@@ -29,6 +29,7 @@
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/polfit.hpp>
+#include <adportable/float.hpp>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_layout.h>
@@ -46,6 +47,7 @@
 #include <QPrinter>
 #include <boost/format.hpp>
 #include <sstream>
+#include <tuple>
 
 namespace dataproc {
     namespace mspeakswnd {
@@ -57,7 +59,7 @@ namespace dataproc {
                 std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
                 markers_.push_back( marker );
                 marker->setValue( x, y );
-                marker->setLineStyle( QwtPlotMarker::Cross );
+                // marker->setLineStyle( QwtPlotMarker::Cross );
                 marker->setLinePen( Qt::darkGreen, 0.0, Qt::DashDotLine );
                 marker->setLabel( QwtText( (boost::format("%.7g<i>(ns)</i>") % ( y * 1000 )).str().c_str(), QwtText::RichText ) );
                 marker->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
@@ -93,17 +95,40 @@ namespace dataproc {
 
                 const QPointF& dmax = *std::max_element( data.begin(), data.end(), []( const QPointF& a, const QPointF& b ){
                         return std::abs(a.y()) < std::abs(b.y()); } );
-                double dfs = dmax.y() * 1.2;
+                double dfs = std::abs(dmax.y()) * 1.2;
+                plot.setAxisScale( QwtPlot::yRight, -dfs, dfs );
                 
+                std::vector< std::tuple< int, double, double > > bars;
+                for ( auto& datum: data ) {
+                    std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
+                    markers_.push_back( marker );
+                    marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( Qt::red ), QSize(5, 5) ) );
+                    marker->setValue( datum.x(), datum.y() );
+                    marker->setYAxis( QwtPlot::yRight );
+                    marker->attach( &plot );
+                    auto it = std::find_if( bars.begin(), bars.end(), [=]( const std::tuple<int, double, double>& d ){
+                            return adportable::compare<double>::essentiallyEqual( std::get<1>(d), datum.x() );
+                        });
+                    if ( it == bars.end() )
+                        bars.push_back( std::make_tuple( 1, datum.x(), datum.y() ) );
+                    else {
+                        std::get<0>( *it )++;
+                        std::get<2>( *it ) += datum.y();
+                    }
+                }
+                QVector< QPointF > bar;
+                for ( auto& t: bars ) {
+                    if ( std::get<0>(t) > 0 )
+                        bar.push_back( QPointF( std::get<1>(t), std::get<2>(t) / std::get<0>(t) ) );
+                }
+
                 std::shared_ptr< QwtPlotCurve > curve = std::make_shared< QwtPlotCurve >( QwtText("&delta;(ns)", QwtText::RichText) );
                 curves_.push_back( curve );
                 curve->setPen( Qt::red );
                 curve->setYAxis( QwtPlot::yRight );
-                curve->setSamples( data );
+                curve->setSamples( bar );
 				curve->setStyle( QwtPlotCurve::Sticks );
-                curve->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5) ) );
                 curve->attach( &plot );
-                plot.setAxisScale( QwtPlot::yRight, dfs, -dfs );
                 
                 // horizontal center line for deviation plot
                 std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
@@ -233,7 +258,7 @@ MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
     for ( size_t i = 0; i < peaks.x().size(); ++i ) {
         double sqrtM = peaks.y()[i];
         double t = ( sqrtM - peaks.coeffs()[ 0 ] ) / peaks.coeffs()[ 1 ];
-        deviation.push_back( QPointF( sqrtM, ( peaks.x()[i] - t ) * 1000 ) ); // --> ns
+        deviation.push_back( QPointF( sqrtM, (peaks.x()[i] - t) * 1000 ) );
     }
     mspeakswnd::draw_stics devplot( curves, markers );
     devplot( deviation, plot );
@@ -255,6 +280,7 @@ MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
     data.push_back( QPointF(m0, t0) );
     data.push_back( QPointF(m1, t1) );
     plot.setAxisScale( QwtPlot::yLeft, -(t1 * 0.05), t1 * 1.05 );
+    plot.setAxisScale( QwtPlot::xBottom, m0, m1 * 1.10 );
 
     mspeakswnd::draw_regression regplot( curves );
     regplot( data, (boost::format( "lap# %d" ) % mode).str(), plot );
@@ -302,7 +328,7 @@ MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& pe
     for ( size_t i = 0; i < peaks.x().size(); ++i ) {
 		double x = peaks.x()[i];
         double y = peaks.y()[i] - adportable::polfit::estimate_y( peaks.coeffs(), x );
-        deviation.push_back( QPointF( x, y * 1000 ) ); // --> ns
+        deviation.push_back( QPointF( x, y * 1000 ) );
     }
     mspeakswnd::draw_stics devplot( curves, markers );
     devplot( deviation, plot );
