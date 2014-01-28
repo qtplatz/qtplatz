@@ -121,8 +121,6 @@ namespace dataproc {
         QwtPlotCurve * regressionCurve_;
         std::shared_ptr< QwtPlotCurve > slopePlotCurve_;
         std::shared_ptr< QwtPlotCurve > interceptPlotCurve_;
-        // QwtPlotCurve * slopeRegressionCurve_;
-        // QwtPlotCurve * interceptRegressionCurve_;
 
         std::vector< double > coeffs_intercepts_;
         std::vector< double > coeffs_slopes_;

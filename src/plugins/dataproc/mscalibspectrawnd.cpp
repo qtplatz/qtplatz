@@ -194,10 +194,10 @@ namespace dataproc {
               , "time (&mu;s)"
               ,  0
             },
-            { "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span>"
+            { "Slope(&mu;s/m)" // x-bottom
+              , "Intercept(&mu;s)" // x-top
+              , "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span>" // y-left
               , 0
-              , "Slope(&mu;s/m)"
-              , "Intercept(&mu;s)"
             }
         };
 }
@@ -236,6 +236,12 @@ MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
             text.setFont( font );
             plot->setAxisTitle(QwtPlot::xBottom, text );
         }
+        if ( label.xtop ) {
+            QwtText text( label.xtop, QwtText::RichText );
+            text.setFont( font );
+            plot->setAxisTitle(QwtPlot::xTop, text );
+            plot->enableAxis( QwtPlot::xTop );
+        }
         if ( label.yleft ) {
             QwtText text( label.yleft, QwtText::RichText );
             text.setFont( font );
@@ -248,11 +254,11 @@ MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
             plot->enableAxis( QwtPlot::yRight );
         }
         plot->axisAutoScale( QwtPlot::xBottom );
+        plot->axisAutoScale( QwtPlot::xTop );
         plot->axisAutoScale( QwtPlot::yLeft );
         plot->axisScaleEngine( QwtPlot::xBottom )->setAttribute( QwtScaleEngine::Floating, true );
         QwtPlotLegendItem * legendItem = new QwtPlotLegendItem;
         legendItem->attach( plot.get() );
-        // legendItem->setMaxColumns( 1 );
     }
     init();
 }
@@ -454,7 +460,7 @@ MSCalibSpectraWnd::flight_length_regression()
                 mq.push_back( std::sqrt( d.second->exactMass() ) );
             }
         }
-        adportable::polfit::fit( slopes.data(), mq.data(), mq.size(), 2, coeffs_slopes_ ); // 90deg rotated against plot
+        adportable::polfit::fit( slopes.data(), mq.data(), mq.size(), 2, coeffs_slopes_ );
         adportable::polfit::fit( mq.data(), intercepts.data(), mq.size(), 2, coeffs_intercepts_ );
     }
 }
@@ -870,27 +876,24 @@ MSCalibSpectraWnd::plot_slope( adwplot::Dataplot& plot )
 {
 	plot.axisAutoScale( QwtPlot::xBottom );
 	plot.axisAutoScale( QwtPlot::yLeft );
-	plot.axisAutoScale( QwtPlot::yRight );
 
     slopeMarkers_.clear();
-    QRectF rect;
 
-    int n = 0;
+    double slope_max = 0;
     for ( auto& datum: data_ ) {
 		QString formula = QString::fromStdWString( datum.first );
         std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >( formula );
         slopeMarkers_.push_back( marker );
 		marker->setLabel( QwtText( QString::fromStdWString( adcontrols::ChemicalFormula::formatFormula( datum.first ).c_str() ) ) );
 		marker->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
-		marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( Qt::blue ), QSize(5, 5) ) );
-        double x = std::sqrt( datum.second->exactMass() );
-        double y = datum.second->slope();
-        marker->setValue( x, y );
-        if ( n++ == 0 )
-            rect = QRectF( x, y, 0, 0 );
-        else
-            rect.setCoords( std::min( x, rect.left() ), std::min( y, rect.top() ), std::max( x, rect.right() ), std::max( x, rect.bottom() ) );
-        marker->attach( &plot );
+		marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::XCross ), Qt::NoBrush, QPen( Qt::blue ), QSize(5, 5) ) );
+        double x = datum.second->slope();
+        if ( ! adportable::compare<double>::essentiallyEqual( x, 0.0 ) ) { // 0 slope, which has no regression result
+            double y = std::sqrt( datum.second->exactMass() );
+            marker->setValue( x, y );  // a datum plot
+            marker->attach( &plot );
+            slope_max = std::max( slope_max, x );
+        }
     }
 
     slopePlotCurve_ = std::make_shared< QwtPlotCurve >(); // clear if plot exists
@@ -900,22 +903,21 @@ MSCalibSpectraWnd::plot_slope( adwplot::Dataplot& plot )
     slopePlotCurve_->setYAxis( QwtPlot::yLeft );
     slopePlotCurve_->setTitle( "slope" );
 
+    // plot regression ( x: slope, y: sqrt(m) )
     if ( coeffs_slopes_.size() >= 2 ) {
-        double x1 = rect.left() - rect.width() * 0.05;  // sqrt(m) axis  := horizontal axis but y on polymonials
-        double x2 = rect.right() + rect.width() * 0.05; // sqrt(m) axis
-        double y1 = ( x1 - coeffs_slopes_[ 0 ] ) / coeffs_slopes_[ 1 ];
-        double y2 = ( x2 - coeffs_slopes_[ 0 ] ) / coeffs_slopes_[ 1 ];
-        QVector< QPointF > xy;
-        xy << QPointF( x1, y1 );
-        xy << QPointF( x2, y2 );
-        slopePlotCurve_->setSamples( xy );
+        QVector< QPointF > regression;
+        regression << QPointF( 0.0, adportable::polfit::estimate_y( coeffs_slopes_, 0.0 ) );
+        regression << QPointF( slope_max, adportable::polfit::estimate_y( coeffs_slopes_, slope_max ) );
+        slopePlotCurve_->setSamples( regression );
     }
+    plot.setAxisScale( QwtPlot::xBottom, 0.0, slope_max * 1.05 );
+
     do {
         std::ostringstream o;
         adcontrols::MSCalibration calib;
         calib.coeffs( coeffs_slopes_ );
         o << "Slope: " << calib.formulaText() << ";  ";
-        plot.setTitle( o.str() );
+        plot.setFooter( o.str() );
     } while(0);
     plot.replot();
     plot.zoomer().setZoomBase( false );
@@ -924,9 +926,7 @@ MSCalibSpectraWnd::plot_slope( adwplot::Dataplot& plot )
 void
 MSCalibSpectraWnd::plot_intercept( adwplot::Dataplot& plot )
 {
-    QRectF rect;
-
-    int n = 0;
+    std::pair<double, double> X( 0, 0 );
     for ( auto& datum: data_ ) {
 		QString formula = QString::fromStdWString( datum.first );
         std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >( formula );
@@ -934,45 +934,44 @@ MSCalibSpectraWnd::plot_intercept( adwplot::Dataplot& plot )
 		marker->setLabel( QwtText( QString::fromStdWString( adcontrols::ChemicalFormula::formatFormula( datum.first ).c_str() ) ) );
 		marker->setLabelAlignment( Qt::AlignLeft | Qt::AlignTop );
 		marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( Qt::red ), QSize(5, 5) ) );
-        marker->setYAxis( QwtPlot::yRight );
-        double x = std::sqrt( datum.second->exactMass() );
-        double y = datum.second->intercept();
-        marker->setValue( x, y );
-        if ( n++ == 0 )
-            rect = QRectF( x, y, 0, 0 );
-        else
-            rect.setCoords( std::min( x, rect.left() ), std::min( y, rect.top() ), std::max( x, rect.right() ), std::max( x, rect.bottom() ) );
-        marker->attach( &plot );
+        marker->setXAxis( QwtPlot::xTop );
+        double x = datum.second->intercept();
+        if ( ! adportable::compare<double>::essentiallyEqual( x, 0.0 ) ) { // 0 intercept, which has no regression result
+            double y = std::sqrt( datum.second->exactMass() );
+            marker->setValue( x, y );
+            marker->attach( &plot );
+            X.first = std::min( X.first, x );
+            X.second = std::max( X.second, x );
+        }
     }
+    plot.setAxisScale( QwtPlot::xTop, X.first, X.second * 1.10 ); // [0..max]
 
     interceptPlotCurve_ = std::make_shared<QwtPlotCurve>();
     interceptPlotCurve_->attach( &plot );
     interceptPlotCurve_->setLegendAttribute( QwtPlotCurve::LegendShowLine );
     interceptPlotCurve_->setPen( QPen( Qt::red ) );
-    interceptPlotCurve_->setYAxis( QwtPlot::yRight );
+    interceptPlotCurve_->setXAxis( QwtPlot::xTop );
     interceptPlotCurve_->setTitle( "intercept" );
     
     if ( coeffs_intercepts_.size() >= 2 ) {
-        double x1 = rect.left() - rect.width() * 0.05;  // sqrt(m) axis  := horizontal axis but y on polymonials
-        double x2 = rect.right() + rect.width() * 0.05; // sqrt(m) axis
-        double y1 = adportable::polfit::estimate_y( coeffs_intercepts_, x1 );
-        double y2 = adportable::polfit::estimate_y( coeffs_intercepts_, x2 );
-        QVector< QPointF > xy;
-        xy << QPointF( x1, y1 );
-        xy << QPointF( x2, y2 );
-        interceptPlotCurve_->setSamples( xy );
+        QVector< QPointF > regression_plot;
+        double m0 = (X.first - coeffs_intercepts_[ 0 ]) / coeffs_intercepts_[ 1 ]; // -a/b := sqrt(m) where intercept is X.first
+        double m1 = (X.second - coeffs_intercepts_[ 0 ]) / coeffs_intercepts_[ 1 ]; // sqrt(m) where intercept is X.second
+        regression_plot << QPointF( X.first, m0 );
+        regression_plot << QPointF( X.second, m1 );
+        interceptPlotCurve_->setSamples( regression_plot );
     }
 
 	if ( coeffs_intercepts_.size() >= 1 ) {
         std::ostringstream o;
-        o << boost::format( "intercept = %.6g" ) % coeffs_intercepts_[0];
+        o << boost::format( "Intercept(&mu;s) = %.6g" ) % coeffs_intercepts_[0];
         for ( size_t i = 1; i < coeffs_intercepts_.size(); ++i ) {
             o << boost::format(
                 " + %.6g &times; &radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span><sup>%d</sup>" )
                 % coeffs_intercepts_[ i ] % i;
         }
         o << "; ";
-        plot.setFooter( o.str() );
+        plot.setTitle( o.str() );
     } while(0);
 
     plot.replot();
