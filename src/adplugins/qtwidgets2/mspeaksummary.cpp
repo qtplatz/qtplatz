@@ -25,12 +25,16 @@
 #include "mspeaksummary.hpp"
 #include "mspeakview.hpp"
 #include <QStandardItemModel>
+#include <QApplication>
+#include <QClipboard>
+#include <QKeyEvent>
 #include <boost/format.hpp>
 
 namespace qtwidgets2 {
     enum {
         r_mass_vs_time
         , r_length_vs_time
+        , r_result
         , r_num_rows
     };
     enum {
@@ -39,6 +43,7 @@ namespace qtwidgets2 {
         , c_mspeaksummary_coeffs_1
         , c_mspeaksummary_sd
         , c_mspeaksummary_t0
+        , c_mspeaksummary_velocity
     };
     enum {
         c_mspeaksummary_formula
@@ -55,13 +60,12 @@ MSPeakSummary::MSPeakSummary(QWidget *parent) : QTreeView(parent)
     this->setModel( model_.get() );
     this->setItemDelegate( delegate_.get() );
     this->setSortingEnabled( true );
-    //this->verticalHeader()->setDefaultSectionSize( 18 );
+
     QFont font;
     font.setFamily( "Consolas" );
 	font.setPointSize( 8 );
     this->setFont( font );
     this->setTabKeyNavigation( true );
-	// this->setEditTriggers( QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked );
 }
 
 void
@@ -71,26 +75,27 @@ MSPeakSummary::onInitialUpdate( MSPeakView * parent )
 
     QStandardItemModel& model = *model_;
     
-    model.setColumnCount( 5 );
+    model.setColumnCount( 6 );
     model.setRowCount( r_num_rows );
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr( "item" ) );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr( "(a)" ) );
     model.setHeaderData( 2, Qt::Horizontal, QObject::tr( "(b)" ) );
-    model.setHeaderData( 3, Qt::Horizontal, QObject::tr( "std. error" ) );
-    model.setHeaderData( 4, Qt::Horizontal, QObject::tr( "t0 (us)" ) );
+    model.setHeaderData( 3, Qt::Horizontal, QObject::tr( "std. error(ns)" ) );
+    model.setHeaderData( 4, Qt::Horizontal, QObject::tr( "t0(ns)" ) );
+    model.setHeaderData( 5, Qt::Horizontal, QObject::tr( "v(us/m/Da)" ) );
 
-    model.setData( model.index( r_mass_vs_time, 0 ), "#lap" );
+    model.setData( model.index( r_mass_vs_time, 0 ), "laps" );
     model.setData( model.index( r_length_vs_time, 0 ), "mol" );
+    model.setData( model.index( r_result, 0 ), "normalized" );
     
-    QStandardItem * p1 = model.itemFromIndex( model.index( r_mass_vs_time, 0 ) );
-	p1->setColumnCount( 5 );
-
-    QStandardItem * p2 = model.itemFromIndex( model.index( r_length_vs_time, 0 ) );
-	p2->setColumnCount( 5 );
+    for ( int row = 0; row < r_num_rows; ++row ) {
+        QStandardItem * p1 = model.itemFromIndex( model.index( row, 0 ) );
+        p1->setColumnCount( 6 );
+    }
 }
 
 void
-MSPeakSummary::setPolinomials( int mode, const std::vector<double>& coeffs, double sd )
+MSPeakSummary::setPolynomials( int mode, const std::vector<double>& coeffs, double sd, double v )
 {
 	QStandardItemModel& model = *model_;
     QStandardItem * parent = model.itemFromIndex( model.index( r_mass_vs_time, 0 ) );
@@ -108,12 +113,14 @@ MSPeakSummary::setPolinomials( int mode, const std::vector<double>& coeffs, doub
     model.setData( model.index( row, c_mspeaksummary_coeffs + 1, parent->index() ), coeffs[1] );
     model.setData( model.index( row, c_mspeaksummary_sd, parent->index() ), sd );
 
-    double t0 = (-coeffs[0]) / coeffs[1];
+    //double t0 = (-coeffs[0]) / coeffs[1];
+    double t0 = coeffs[0];
     model.setData( model.index( row, c_mspeaksummary_t0, parent->index() ), t0 );
+    model.setData( model.index( row, c_mspeaksummary_velocity, parent->index() ), v );
 }
 
 void
-MSPeakSummary::setPolinomials( const std::string& formula, const std::vector<double>& coeffs, double sd )
+MSPeakSummary::setPolynomials( const std::string& formula, const std::vector<double>& coeffs, double sd, double v )
 {
 	QStandardItemModel& model = *model_;
     QStandardItem * parent = model.itemFromIndex( model.index( r_length_vs_time, 0 ) );
@@ -126,12 +133,30 @@ MSPeakSummary::setPolinomials( const std::string& formula, const std::vector<dou
 	}
     if ( row >= parent->rowCount() )
         parent->setRowCount( row + 1 );
+
     model.setData( model.index( row, c_mspeaksummary_mode, parent->index() ), QString::fromStdString( formula ) );
     model.setData( model.index( row, c_mspeaksummary_coeffs + 0, parent->index() ), coeffs[0] );
     model.setData( model.index( row, c_mspeaksummary_coeffs + 1, parent->index() ), coeffs[1] );
     model.setData( model.index( row, c_mspeaksummary_sd, parent->index() ), sd );
-    double t0 = (-coeffs[0]) / coeffs[1];
+    double t0 = coeffs[0];
     model.setData( model.index( row, c_mspeaksummary_t0, parent->index() ), t0 );
+    model.setData( model.index( row, c_mspeaksummary_velocity, parent->index() ), v );
+}
+
+void
+MSPeakSummary::setResult( int row, const std::vector<double>& coeffs, double sd )
+{
+	QStandardItemModel& model = *model_;
+    QStandardItem * parent = model.itemFromIndex( model.index( r_result, 0 ) );
+
+    if ( row >= parent->rowCount() )
+        parent->setRowCount( row + 1 );
+
+    model.setData( model.index( row, c_mspeaksummary_mode, parent->index() ), row );
+    model.setData( model.index( row, c_mspeaksummary_coeffs + 0, parent->index() ), coeffs[0] );
+    model.setData( model.index( row, c_mspeaksummary_coeffs + 1, parent->index() ), coeffs[1] );
+    model.setData( model.index( row, c_mspeaksummary_sd, parent->index() ), sd );
+    // model.setData( model.index( row, c_mspeaksummary_t0, parent->index() ), t0 );
 }
 
 // override QTreeView
@@ -157,6 +182,41 @@ MSPeakSummary::currentChanged( const QModelIndex& index, const QModelIndex& prev
     }
 }
 
+void
+MSPeakSummary::keyPressEvent( QKeyEvent * event )
+{
+    if ( event->matches( QKeySequence::Copy ) ) {
+        handleCopyToClipboard();
+    } else if ( event->matches( QKeySequence::Paste ) ) {
+        // handlePasteFromClipboard();
+    } else {
+        QTreeView::keyPressEvent( event );
+    }
+}
+
+void
+MSPeakSummary::handleCopyToClipboard()
+{
+    QStandardItemModel& model = *model_;
+    QModelIndexList list = selectionModel()->selectedIndexes();
+
+    qSort( list );
+    if ( list.size() < 1 )
+        return;
+
+    QString copy_table;
+    QModelIndex prev = list.first();
+	int i = 0;
+    for ( auto idx: list ) {
+		if ( i++ > 0 )
+			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
+        copy_table.append( model.data( idx, Qt::DisplayRole ).toString() );
+        prev = idx;
+    }
+    QApplication::clipboard()->setText( copy_table );
+}
+
+
 ////////////////
 
 MSPeakSummaryDelegate::MSPeakSummaryDelegate(QObject *parent) : QItemDelegate( parent )
@@ -169,11 +229,14 @@ MSPeakSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     if ( index.parent() != QModelIndex() ) {
         switch ( index.column() ) {
         case c_mspeaksummary_sd:
-            drawDisplay( painter, option, option.rect, ( boost::format("%.4le") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+            drawDisplay( painter, option, option.rect, ( boost::format("%.4g") % (index.data( Qt::EditRole ).toDouble() * 1000) ).str().c_str() );
             break;
         case c_mspeaksummary_coeffs:
         case c_mspeaksummary_coeffs_1:
-            drawDisplay( painter, option, option.rect, ( boost::format("%.7le") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+            drawDisplay( painter, option, option.rect, ( boost::format("%.8g") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+            break;
+        case c_mspeaksummary_t0:
+            drawDisplay( painter, option, option.rect, ( boost::format("%.7g") % (index.data( Qt::EditRole ).toDouble() * 1000) ).str().c_str() );
             break;
         default:
             QItemDelegate::paint( painter, option, index );        

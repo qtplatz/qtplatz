@@ -341,8 +341,8 @@ MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& pe
     // draw regression line
     QVector< QPointF > data;
     if ( y0 > 0 ) {
-        y0 = ( - peaks.coeffs()[ 0 ] ) / peaks.coeffs()[ 1 ];
-        x0 = 0.0;
+        x0 = ( - peaks.coeffs()[ 0 ] ) / peaks.coeffs()[ 1 ];
+        y0 = 0.0;
     }
     double x1 = *std::max_element( peaks.x().begin(), peaks.x().end() );
     double y1 = adportable::polfit::estimate_y( peaks.coeffs(), x1 );

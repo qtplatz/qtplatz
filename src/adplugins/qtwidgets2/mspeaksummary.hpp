@@ -42,8 +42,9 @@ namespace qtwidgets2 {
 
         void onInitialUpdate( MSPeakView * );
 
-        void setPolinomials( int mode, const std::vector< double >&, double sd );
-        void setPolinomials( const std::string& formula, const std::vector< double >&, double sd );
+        void setPolynomials( int mode, const std::vector< double >&, double sd, double v );
+        void setPolynomials( const std::string& formula, const std::vector< double >&, double sd, double v );
+        void setResult( int id, const std::vector< double >&, double sd );
 
     signals:
 
@@ -56,6 +57,8 @@ namespace qtwidgets2 {
 
         // reimplement QTreeView
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+        void keyPressEvent( QKeyEvent * event ) override;
+        void handleCopyToClipboard();
     };
 
     class MSPeakSummaryDelegate : public QItemDelegate {

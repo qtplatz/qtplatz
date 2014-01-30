@@ -34,11 +34,13 @@
 #include <tuple>
 #include <map>
 #include <deque>
+#include <array>
 
 class QSplitter;
 class QwtPlotMarker;
 class QwtPlotCurve;
 class QwtPlot;
+class QwtText;
 
 namespace adcontrols {
     class MassSpectrum;
@@ -55,6 +57,7 @@ class QPrinter;
 namespace dataproc {
 
     class Dataprocessor;
+    template<int> struct Fitter;
 
     namespace internal { class SeriesData; }
 
@@ -113,31 +116,22 @@ namespace dataproc {
 
         std::vector< std::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
         std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
-        std::map< std::wstring, std::shared_ptr< internal::SeriesData > > data_; // formula,  coeffs(a, b)
-        std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotCurves_;  // formula marker, length by time
-        std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotRegressions_; // regression line for length by time
-        std::vector< std::shared_ptr< QwtPlotMarker > > slopeMarkers_;
-        std::vector< std::shared_ptr< QwtPlotMarker > > interceptMarkers_;
-        QwtPlotCurve * regressionCurve_;
-        std::shared_ptr< QwtPlotCurve > slopePlotCurve_;
-        std::shared_ptr< QwtPlotCurve > interceptPlotCurve_;
-
-        std::vector< double > coeffs_intercepts_;
-        std::vector< double > coeffs_slopes_;
-
-        enum { idPlotLengthTime, idPlotSlopeIntercept };  // plot (left & right)
+        
+        enum { idPlotSqrtMassTime, idPlotLengthTime, idPlotOrbit, idPlotInjection };  // plot (left & right)
 
         std::vector< std::shared_ptr< adwplot::Dataplot > > plots_;
+        std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
 
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
         void replotSpectra();
-        void plotSelectedLengthTime( const std::wstring& formula );
-        void plot_length_time();
-        void plot_length_time( internal::SeriesData&, int id, adwplot::Dataplot& );
-        void plot_slope( adwplot::Dataplot& );
-        void plot_intercept( adwplot::Dataplot& );
-        // void plotTimeMarker( double t, double l );
         void flight_length_regression();
+
+        void plot_time_corrected_calibrant( int id, int mode, const Fitter<2>&, adwplot::Dataplot& );
+        void plot_length_time( int id, const std::wstring& formula, const Fitter<2>&, adwplot::Dataplot& );
+        void plot_orbital_sector_calibration( int id, const Fitter<2>&, adwplot::Dataplot& plot );
+        void plot_injection_sector_calibration( int id, const Fitter<2>&, adwplot::Dataplot& plot );
+        void plot_fitter( int id, const QwtText&, const Fitter<2>&, adwplot::Dataplot&, int xAxis = 0, int yAxis = 0);
+
         void generate_marged_result( Dataprocessor * );
     };
 

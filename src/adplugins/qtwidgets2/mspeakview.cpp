@@ -33,6 +33,7 @@
 #include <adportable/is_type.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
+#include <tuple>
 
 using namespace qtwidgets2;
 using namespace adcontrols::metric;
@@ -130,6 +131,7 @@ MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
         }
     }
 
+    std::vector< std::tuple< double, double, double > > slopes;
     // estimate t-delay by ions
     do {
         std::map< int, adcontrols::MSPeaks > d;
@@ -140,15 +142,22 @@ MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
             if ( pks.size() >= 2 ) {
                 std::vector<double> x, y, coeffs;
                 for ( auto& pk: pks ) {
-                    x.push_back( scale_to_micro( pk.time() ) );
-                    y.push_back( std::sqrt( pk.mass() ) );
+                    y.push_back( scale_to_micro( pk.time() ) );
+                    x.push_back( std::sqrt( pk.mass() ) );
                 }
                 adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
-                peakSummary_->setPolinomials( t.first, coeffs, adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs ) );
+                double t1 = 0;
+                for ( size_t i = 0; i < x.size(); ++i )
+                    t1 += adportable::polfit::estimate_y( coeffs, x[i] ) / y[i];
+				peakSummary_->setPolynomials( t.first
+                                              , coeffs
+                                              , adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs )
+                                              , t1 / x.size() );
+                slopes.push_back( std::make_tuple( pks[0].flight_length(), coeffs[0], coeffs[1] ) );
             }
         }
     } while(0);
-
+    
     // estimate t-delay by flength
     do {
         std::map< std::string, adcontrols::MSPeaks > d;
@@ -161,15 +170,33 @@ MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
             const adcontrols::MSPeaks& pks = t.second;
             if ( pks.size() >= 2 ) {
                 std::vector<double> x, y, coeffs;
+                // length, time plot
                 for ( auto& pk: pks ) {
                     x.push_back( pk.flight_length() );
                     y.push_back( scale_to_micro( pk.time() ) );
                 }
                 adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
-                peakSummary_->setPolinomials( t.first, coeffs, adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs ) );
+
+                // double v = adportable::polfit::estimate_y( coeffs, 1.0 );  // time for 1.0mL := velocity
+                double v = coeffs[1] / std::sqrt( pks[0].mass() );
+                peakSummary_->setPolynomials( t.first, coeffs, adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs ), v );
             }
         }
     } while(0);
+
+    // estimate overall calibration
+    if ( slopes.size() >= 2 ) {
+        std::vector<double> x, y0, y1, coeffs0, coeffs1; 
+        for ( auto& item: slopes ) {
+            x.push_back( std::get<0>(item) ); // length
+            y0.push_back( std::get<1>(item) ); // intercept (a)
+            y1.push_back( std::get<2>(item) ); // slope (b)
+        }
+        adportable::polfit::fit( x.data(), y0.data(), x.size(), 2, coeffs0 );
+        adportable::polfit::fit( x.data(), y1.data(), x.size(), 2, coeffs1 );
+        peakSummary_->setResult( 0, coeffs0, adportable::polfit::standard_error( x.data(), y0.data(), x.size(), coeffs0 ) );
+        peakSummary_->setResult( 1, coeffs1, adportable::polfit::standard_error( x.data(), y1.data(), x.size(), coeffs1 ) );
+    }
 }
 
 void

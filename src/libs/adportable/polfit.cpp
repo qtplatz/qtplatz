@@ -372,7 +372,7 @@ polfit::standard_error( const double* x, const double* y, size_t npts, const std
 {
     double sdd = 0;
     for ( size_t i = 0; i < npts; ++i ) {
-        double v = estimate_y( coeffs, x[i] );
+        double v = estimate_y( coeffs, x[i] ) - y[i];
         sdd += v * v;
     }
     return std::sqrt( sdd );
