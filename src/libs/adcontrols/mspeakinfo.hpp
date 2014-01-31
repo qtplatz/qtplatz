@@ -27,12 +27,13 @@
 
 #pragma once
 
-#include <vector>
+
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
-
+#include <memory>
+#include <vector>
 #include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
@@ -41,7 +42,7 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MSPeakInfo {
     public:
-        MSPeakInfo();
+        MSPeakInfo( int mode = 0 );
         MSPeakInfo( const MSPeakInfo& );
 
         static const wchar_t * dataClass() { return L"adcontrols::MSPeakInfo"; }
@@ -54,6 +55,7 @@ namespace adcontrols {
         inline const_iterator begin() const { return vec_.begin(); }
         inline const_iterator end() const { return vec_.end(); }
         size_t size() const;
+        size_t total_size() const;
         void clear();
 
         MSPeakInfo& operator << ( const MSPeakInfoItem& );
@@ -62,6 +64,8 @@ namespace adcontrols {
         MSPeakInfo& getSegment( size_t fcn );
         const MSPeakInfo& getSegment( size_t fcn ) const;
         size_t numSegments() const;
+        int mode() const;
+        void mode( int );
 
         static bool archive( std::ostream&, const MSPeakInfo& );
         static bool restore( std::istream&, MSPeakInfo& );
@@ -69,9 +73,12 @@ namespace adcontrols {
     private:
         std::vector< MSPeakInfoItem > vec_;
         std::vector< MSPeakInfo > siblings_;
+        int mode_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, const unsigned int ) {
+        template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
+            if ( version >= 2 )
+                ar & mode_;
             ar  & vec_
                 & siblings_
                 ;
@@ -79,6 +86,9 @@ namespace adcontrols {
 
     };
 
+	typedef std::shared_ptr< MSPeakInfo > MSPeakInfoPtr;
 }
+
+BOOST_CLASS_VERSION( adcontrols::MSPeakInfo, 2 )
 
 #endif // MSPEAKINFO_HPP

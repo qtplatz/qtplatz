@@ -34,7 +34,7 @@ namespace adcontrols { class MSPeaks; }
 namespace qtwidgets2 {
 
     class MSPeakSummary;
-    class MSPeakTable;
+    class TOFTable;
 
     class MSPeakView : public QWidget
                      , public adplugin::LifeCycle {
@@ -64,7 +64,7 @@ namespace qtwidgets2 {
 
 	private:
         std::unique_ptr< MSPeakSummary > peakSummary_;
-        std::unique_ptr< MSPeakTable > peakTable_;
+        std::unique_ptr< TOFTable > tofTable_;
         std::unique_ptr< adcontrols::MSPeaks > mspeaks_;
         std::vector< QWidget * > clients_;
     };

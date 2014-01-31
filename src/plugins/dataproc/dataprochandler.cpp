@@ -211,7 +211,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     adcontrols::MSAssignedMasses assignedMasses;
     
 	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
-    size_t n = 0;
+    int n = 0;
 	for ( auto seg: segments )
 		assigner( assignedMasses, seg, res.references(), seg.mode(), n++ );
 
@@ -278,7 +278,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) 
         mode_map[ it->mode() ]++;
     std::map<size_t, size_t>::iterator itMax = std::max_element( mode_map.begin(), mode_map.end() );
-    int mode = itMax->first;
+    int mode = static_cast<int>(itMax->first);
 
     mass_calibrator calibrator( assigned, centroid.getMSProperty() );
     adcontrols::MSCalibration calib;
@@ -294,7 +294,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     adcontrols::MSAssignedMasses assignedMasses;
 	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
 	for ( size_t n = 0; n < segments.size(); ++n ) {
-		assign( assignedMasses, segments[n], m.references(), 0, n );
+		assign( assignedMasses, segments[n], m.references(), 0, static_cast<int>(n) );
 	}
 
     mass_calibrator calibrator2( assignedMasses, centroid.getMSProperty() );

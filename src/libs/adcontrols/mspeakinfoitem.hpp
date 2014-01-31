@@ -26,8 +26,11 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <string>
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/string.hpp>
 #include <boost/serialization/version.hpp>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -37,6 +40,7 @@ namespace adcontrols {
     public:
         ~MSPeakInfoItem(void);
         MSPeakInfoItem(void);
+        MSPeakInfoItem( const MSPeakInfoItem& );
 
         double mass() const;
         double area() const;
@@ -57,6 +61,15 @@ namespace adcontrols {
         double widthHH( bool time = false ) const;
         double hh_left_time() const;
         double hh_right_time() const;
+
+        const std::string& formula() const;
+        void formula( const std::string& );
+        const std::wstring& annotation() const;
+        void annotation( const std::wstring& );
+        const bool visible() const;
+        void visible( bool );
+        const bool is_reference() const;
+        void is_reference( bool );
 
         // re-assign mass (usually call from calibration process)
         void assign_mass( double mass, double left, double right, double hhLeft, double hhRight );
@@ -83,9 +96,14 @@ namespace adcontrols {
         double centroid_right_time_;
         double centroid_threshold_; // absolute hight (for graphical rep)
 
+        bool is_visible_;
+        bool is_reference_;
+        std::string formula_;
+        std::wstring annotation_;
+
         friend class internal::CentroidProcessImpl;
         friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, const unsigned int ) {
+        template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
             ar  & peak_index_
                 & peak_start_index_
                 & peak_end_index_
@@ -105,8 +123,17 @@ namespace adcontrols {
                 & centroid_right_time_
                 & centroid_threshold_
                 ;
+            if ( version >= 2 ) {
+                ar & is_visible_
+                    & is_reference_
+                    & formula_
+                    & annotation_
+                    ;
+            }
         }
 
     };
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::MSPeakInfoItem, 2 )

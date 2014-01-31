@@ -515,7 +515,6 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
 
     replotSpectra();
     flight_length_regression();
-	plot_regression();
 }
 
 void
@@ -589,7 +588,6 @@ MSCalibSpectraWnd::handleValueChanged()
     }
 
     flight_length_regression();
-    plot_regression();
 
     using namespace adcontrols;
 
@@ -661,13 +659,11 @@ MSCalibSpectraWnd::handle_reassign_mass_requested()
         const adcontrols::MSCalibration& calib = margedCalibResult_->calibration();
         adcontrols::segment_wrapper<> segments( *margedSpectrum_ );
 
-        if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
-			adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( margedSpectrum_->scanLaw(), calib );
-            for ( auto& a: assigned ) {
-				double mass = mass_calculator( a.time(), a.mode() );
-				a.mass( mass );
-                segments[ a.idMassSpectrum() ].setMass( a.idPeak(), mass );
-            }
+		adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( margedSpectrum_->scanLaw(), calib );
+        for ( auto& a: assigned ) {
+			double mass = mass_calculator( a.time(), a.mode() );
+			a.mass( mass );
+               segments[ a.idMassSpectrum() ].setMass( a.idPeak(), mass );
         }
 		DataprocHandler::doAnnotateAssignedPeaks( *margedSpectrum_, assigned );
 		margedCalibResult_->assignedMasses( assigned );
@@ -685,10 +681,7 @@ MSCalibSpectraWnd::handle_recalibration_requested()
 void
 MSCalibSpectraWnd::handle_apply_calibration_to_dataset()
 {
-    QMessageBox::information( 0, "MSCalibSpectra", "apply calibration to dataset not implementd" );
     if ( margedCalibResult_ ) {
-        //const adcontrols::MSCalibration& calibration = margedCalibResult_->calibration();
-        // todo
         if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
             std::wstring clsid = adportable::utf::to_wstring( margedSpectrum_->getMSProperty().dataInterpreterClsid() );
             processor->applyCalibration( clsid, *margedCalibResult_ );

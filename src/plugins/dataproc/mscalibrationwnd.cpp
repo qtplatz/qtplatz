@@ -28,6 +28,7 @@
 #include "dataprochandler.hpp"
 #include "qtwidgets_name.hpp"
 #include "mass_calibrator.hpp"
+#include "sessionmanager.hpp"
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -475,7 +476,20 @@ MSCalibrationWnd::handle_recalibration_requested()
 void
 MSCalibrationWnd::handle_apply_calibration_to_dataset()
 {
-    QMessageBox::information( 0, "MSCalibrationWnd", "apply calibration to dataset not implementd" );
+    auto result = pImpl_->calibResult_.lock();
+    auto ms = pImpl_->calibCentroid_.lock();
+
+    if ( result && ms ) {
+        if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+            std::wstring clsid = adportable::utf::to_wstring( ms->getMSProperty().dataInterpreterClsid() );
+            processor->applyCalibration( clsid, *result );
+        } else {
+            QMessageBox::warning( 0, "Dataproc", "apply calibration to dataset: no active dataset" );
+        }
+    } else {
+        QMessageBox::warning( 0, "Dataproc", "apply calibration to dataset: has no calibration" );
+    }
+
 }
 
 void

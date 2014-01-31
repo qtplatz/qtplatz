@@ -24,7 +24,7 @@
 
 #include "mspeakview.hpp"
 #include "mspeaksummary.hpp"
-#include "mspeaktable.hpp"
+#include "toftable.hpp"
 #include <adcontrols/mspeaks.hpp>
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/metric/prefix.hpp>
@@ -44,13 +44,13 @@ MSPeakView::~MSPeakView()
 
 MSPeakView::MSPeakView(QWidget *parent) : QWidget(parent)
                                         , peakSummary_( new MSPeakSummary(this) )
-                                        , peakTable_( new MSPeakTable(this) )
+                                        , tofTable_( new TOFTable(this) )
                                         , mspeaks_( new adcontrols::MSPeaks )
 {
     if ( QSplitter * splitter = new QSplitter ) {
 
         splitter->addWidget( peakSummary_.get() );
-        splitter->addWidget( peakTable_.get() );
+        splitter->addWidget( tofTable_.get() );
         splitter->setOrientation( Qt::Horizontal );
 
         QVBoxLayout * layout = new QVBoxLayout( this );
@@ -77,7 +77,7 @@ void
 MSPeakView::OnInitialUpdate()
 {
     peakSummary_->onInitialUpdate( this );
-    peakTable_->onInitialUpdate();
+    tofTable_->onInitialUpdate();
 }
 
 void
@@ -127,7 +127,7 @@ MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
             });
         if ( it == mspeaks_->end() ) {
             (*mspeaks_) << peak;
-            peakTable_->addPeak( peak );
+            tofTable_->addPeak( peak );
         }
     }
 

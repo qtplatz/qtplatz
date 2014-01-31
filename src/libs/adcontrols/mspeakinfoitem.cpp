@@ -33,8 +33,53 @@ MSPeakInfoItem::~MSPeakInfoItem(void)
 }
 
 MSPeakInfoItem::MSPeakInfoItem(void)
+    : peak_index_(0)
+    , peak_start_index_(0)
+    , peak_end_index_(0)
+    , base_height_(0)
+    , mass_(0)
+    , area_(0)
+    , height_(0)
+    , time_from_mass_(0)
+    , time_from_time_(0)
+    , HH_left_mass_(0)
+    , HH_right_mass_(0)
+    , HH_left_time_(0)
+    , HH_right_time_(0)
+    , centroid_left_mass_(0)
+    , centroid_right_mass_(0)
+    , centroid_left_time_(0)
+    , centroid_right_time_(0)
+    , centroid_threshold_(0)
+    , is_visible_( true )
+    , is_reference_( false )
 {
-    std::memset( this, 0, sizeof( MSPeakInfoItem ) );
+}
+
+MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t )
+    : peak_index_( t.peak_index_)
+    , peak_start_index_( t.peak_start_index_)        
+    , peak_end_index_( t.peak_end_index_)          
+    , base_height_( t.base_height_)             
+    , mass_( t.mass_)                    
+    , area_( t.area_)                    
+    , height_( t.height_)                  
+    , time_from_mass_( t.time_from_mass_)          
+    , time_from_time_( t.time_from_time_)          
+    , HH_left_mass_( t.HH_left_mass_)            
+    , HH_right_mass_( t.HH_right_mass_)           
+    , HH_left_time_( t.HH_left_time_)            
+    , HH_right_time_( t.HH_right_time_)           
+    , centroid_left_mass_( t.centroid_left_mass_)      
+    , centroid_right_mass_( t.centroid_right_mass_)     
+    , centroid_left_time_( t.centroid_left_time_)      
+    , centroid_right_time_( t.centroid_right_time_)     
+    , centroid_threshold_( t.centroid_threshold_)      
+    , is_visible_( t.is_visible_)         
+    , is_reference_( t.is_reference_)      
+    , formula_( t.formula_ )      
+    , annotation_( annotation_ )
+{
 }
 
 unsigned int
@@ -137,6 +182,30 @@ double
 MSPeakInfoItem::hh_right_time() const
 {
     return HH_right_time_;
+}
+
+const std::string&
+MSPeakInfoItem::formula() const
+{
+    return formula_;
+}
+
+void
+MSPeakInfoItem::formula( const std::string& formula )
+{
+    formula_ = formula;
+}
+
+const std::wstring&
+MSPeakInfoItem::annotation() const
+{
+    return annotation_;
+}
+
+void
+MSPeakInfoItem::annotation( const std::wstring& v )
+{
+    annotation_ = v;
 }
 
 void

@@ -38,6 +38,8 @@
 #include "sessionmanager.hpp"
 
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
@@ -438,6 +440,7 @@ MainWindow::createDockWidgets()
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm" }
         , { "Data property",   "dataproc::MSPropertyForm" }      // local
+        , { "MS Peaks",        "qtwidgets2::MSPeakTable" }
         , { "TOF Peaks",       "qtwidgets2::MSPeakView" }
     };
     
@@ -515,14 +518,34 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
             if ( stack_->currentIndex() != 6 )
                 actionSelSpectrogram();
 		}
+
+        adcontrols::MSPeakInfoPtr pkinfo;
+
+        if ( folder.name() == L"Spectra" ) {
+            
+            if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium.data() ) ) {
+
+                if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
+                            return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+                    if ( auto fpkinfo = portfolio::find_first_of( fCentroid.attachments(), [] ( portfolio::Folium& a ){
+                                return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
+                        pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fpkinfo );
+                    }
+                } else {
+                    pkinfo = std::make_shared< adcontrols::MSPeakInfo >();  // empty data for clear table
+                }
+            }
+        }
         
         // set data property to MSPropertyForm
         boost::any any( folium );
         for ( auto widget: dockWidgets() ) {
             adplugin::LifeCycleAccessor accessor( widget->widget() );
-            adplugin::LifeCycle * pLifeCycle = accessor.get();
-            if ( pLifeCycle )
+            if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
                 pLifeCycle->setContents( any );
+                if ( pkinfo )
+                    pLifeCycle->setContents( boost::any( pkinfo ) );
+            }
         }
     }
 }

@@ -29,11 +29,12 @@
 
 using namespace adcontrols;
 
-MSPeakInfo::MSPeakInfo()
+MSPeakInfo::MSPeakInfo( int mode ) : mode_( mode )
 {
 }
 
 MSPeakInfo::MSPeakInfo( const MSPeakInfo& t ) : vec_( t.vec_ )
+                                              , mode_( t.mode_ )
 {
 }
 
@@ -59,10 +60,31 @@ MSPeakInfo::getSegment( size_t fcn ) const
     throw std::out_of_range( "MSPeakInfo fragments subscript out of range" );
 }
 
+size_t 
+MSPeakInfo::total_size() const
+{
+    size_t size = vec_.size();
+    for ( const auto& sibling: siblings_ )
+        size += sibling.size();
+    return size;
+}
+
 size_t
 MSPeakInfo::numSegments() const
 {
     return siblings_.size();
+}
+
+int
+MSPeakInfo::mode() const
+{
+    return mode_;
+}
+
+void
+MSPeakInfo::mode( int v )
+{
+    mode_ = v;
 }
 
 MSPeakInfo&

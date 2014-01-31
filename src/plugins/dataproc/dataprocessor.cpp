@@ -573,11 +573,23 @@ void
 Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibration )
 {
     if ( portfolio::Folder fsp = portfolio_->findFolder( L"Spectra" ) ) {
+
         for ( portfolio::Folium folium: fsp.folio() ) {
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr > ( folium ) ) {
-				auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
-				DataprocHandler::apply_calibration( *ptr, calibration.calibration() );
-                // apply new calib
+
+				if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+                    DataprocHandler::apply_calibration( *ptr, calibration.calibration() );
+
+                    portfolio::Folio atts = folium.attachments();
+
+                    for ( portfolio::Folium& att: atts ) {
+                        if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( att ) ) {
+							if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( att ) )
+								DataprocHandler::apply_calibration( *ptr, calibration.calibration() );                                
+						}
+					}
+                    
+                }
             }
         }
     }

@@ -42,6 +42,7 @@ SOURCES += factory.cpp \
         mspeaktable.cpp \
         standarditemhelper.cpp \
         tableview.cpp \
+        toftable.cpp \
         qtwidgets2.cpp \
     mschromatogramwidget.cpp
 
@@ -56,6 +57,7 @@ HEADERS += \
         mscalibsummarywidget.hpp \
         standarditemhelper.hpp \
         tableview.hpp \
+        toftable.hpp \
         qtwidgets2.hpp \
     mschromatogramwidget.hpp
 
