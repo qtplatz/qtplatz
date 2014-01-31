@@ -584,8 +584,17 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
 
                     for ( portfolio::Folium& att: atts ) {
                         if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( att ) ) {
-							if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( att ) )
-								DataprocHandler::apply_calibration( *ptr, calibration.calibration() );                                
+
+							if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( att ) ) {
+
+								DataprocHandler::apply_calibration( *ptr, calibration.calibration() );
+                                
+                                if ( auto fchild = portfolio::find_first_of( att.attachments(), []( portfolio::Folium& child ){
+                                            return portfolio::is_type< adcontrols::MSPeakInfoPtr >( child );} ) ) {
+                                    auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild );
+                                    DataprocHandler::reverse_copy( *pkinfo, *ptr );
+                                }
+                            }
 						}
 					}
                     

@@ -255,7 +255,7 @@ DataprocHandler::doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
 		else
 			ms.setColor( idx, 6 ); // dark red
         std::wstring text = adcontrols::ChemicalFormula::formatFormula( assigned.formula() );
-        adcontrols::annotation anno( text, ms.getMass( idx ),  ms.getIntensity( idx ), idx );
+        adcontrols::annotation anno( text, ms.getMass( idx ),  ms.getIntensity( idx ), static_cast< int >(idx) );
         ms.get_annotations() << anno;
     }
 	return true;
@@ -278,7 +278,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) 
         mode_map[ it->mode() ]++;
     std::map<size_t, size_t>::iterator itMax = std::max_element( mode_map.begin(), mode_map.end() );
-    int mode = static_cast<int>(itMax->first);
+    //int mode = static_cast<int>(itMax->first);
 
     mass_calibrator calibrator( assigned, centroid.getMSProperty() );
     adcontrols::MSCalibration calib;
@@ -348,4 +348,23 @@ DataprocHandler::apply_calibration( adcontrols::MassSpectrum& ms, const adcontro
 			fms.setCalibration( calib, true );
     }
 	return false;
+}
+
+//static
+bool
+DataprocHandler::reverse_copy( adcontrols::MSPeakInfo& pkinfo, const adcontrols::MassSpectrum& ms )
+{
+    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > ms_segs( ms );
+	adcontrols::segment_wrapper< adcontrols::MSPeakInfo > pkinfo_segs( pkinfo );
+    
+    for ( size_t fcn = 0; fcn < ms_segs.size(); ++fcn ) {
+        auto& fpk = pkinfo_segs[ fcn ];
+        auto& fms = ms_segs[ fcn ];
+        
+        for ( size_t i = 0; i < fms.size(); ++i ) {
+            auto& pk = fpk.begin() + i;
+            pk->mass( fms.getMass( i ) );
+        }
+    }
+	return true;
 }

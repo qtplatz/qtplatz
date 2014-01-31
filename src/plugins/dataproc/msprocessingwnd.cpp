@@ -29,8 +29,11 @@
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -66,6 +69,7 @@
 using namespace dataproc;
 
 namespace dataproc {
+
     class MSProcessingWndImpl {
     public:
         ~MSProcessingWndImpl() {}
@@ -77,37 +81,6 @@ namespace dataproc {
         adwplot::ChromatogramWidget * ticPlot_;
         adwplot::SpectrumWidget * profileSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
-    };
-    
-    //---------------------------------------------------------
-    template<class Wnd> struct selProcessed : public boost::static_visitor<bool> {
-        Wnd& wnd_;
-        portfolio::Folder& folder_;
-        selProcessed( Wnd& wnd, portfolio::Folder& folder ) : wnd_( wnd )
-                                                            , folder_( folder ) {
-        }
-        template<typename T> bool operator ()( T& ) const {
-            adportable::debug(__FILE__, __LINE__) << "Unhandled data: " << typeid(T).name() << " received.";
-			return false;
-        }
-        
-        bool operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-            wnd_.idSpectrumFolium( folder_.id() );
-            wnd_.draw2( ptr );
-			return true;
-        }
-        
-        bool operator () ( adutils::ChromatogramPtr& ptr ) const {
-            wnd_.idChromatogramFolium( folder_.id() );
-            wnd_.draw( ptr );
-			return true;
-        }
-        
-        bool operator () ( adutils::PeakResultPtr& ptr ) const {
-            wnd_.draw( ptr );
-			return true;
-        }
-        
     };
 }
 
@@ -180,7 +153,6 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 void
 MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
-    pProcessedSpectrum_ = ptr;
     pImpl_->processedSpectrum_->setData( ptr, static_cast<int>(drawIdx2_++) );
 }
 
@@ -263,26 +235,60 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
     drawIdx1_ = 0;
     drawIdx2_ = 0;
 
-    portfolio::Folder folder = folium.getParentFolder();
-    if ( folder && ( folder.name() == L"Spectra" || folder.name() == L"Chromatograms" ) ) {
+    if ( portfolio::Folder folder = folium.getParentFolder() ) {
 
-        auto data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-        
-        if ( boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data ) ) {
+        if ( folder.name() == L"Spectra" || folder.name() == L"Chromatograms" ) {
 
-            idActiveFolium_ = folium.id();
-            
-            portfolio::Folio attachments = folium.attachments();
-            std::sort( attachments.begin(), attachments.end(), [](const portfolio::Folium& a, const portfolio::Folium& ) {
-                    return a.name() == Constants::F_CENTROID_SPECTRUM;  // centroid result on top
-                });
-            for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-                auto contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-                if ( boost::apply_visitor( selProcessed<MSProcessingWnd>( *this, folder ), contents ) ) {
+            if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
+
+                if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+
+                    draw1( ptr ); // profile
+
+                    idActiveFolium_ = folium.id();
+                    idSpectrumFolium( folder.id() );
                     
-                    if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( *it ) )
-                        MainWindow::instance()->setProcessMethod( *method );
-				}
+                    portfolio::Folio atts = folium.attachments();
+                    std::sort( atts.begin(), atts.end(), []( const portfolio::Folium& a, const portfolio::Folium& ){
+                            return a.name() == Constants::F_CENTROID_SPECTRUM; }); // centroid result on top
+
+                    for( auto processed: atts ) {
+
+                        if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( processed ) ) {
+                            if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( processed ) ) {
+                                
+                                draw2( ptr );
+                                if ( ptr->isCentroid() )
+                                    pProcessedSpectrum_ = ptr;
+                                
+                                if ( auto fmethod = portfolio::find_first_of( processed.attachments(), []( portfolio::Folium& a ){
+                                            return portfolio::is_type< adcontrols::ProcessMethodPtr >( a ); }) ) {
+                                    // centrid, then DFT low pass filtered profile spectrum
+                                    
+                                    if ( auto method = portfolio::get< adcontrols::ProcessMethodPtr >( fmethod ) )
+                                        MainWindow::instance()->setProcessMethod( *method );
+                                }
+                                if ( auto f = portfolio::find_first_of( processed.attachments(), []( portfolio::Folium& a ){
+                                            return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
+                                    pkinfo_ = portfolio::get< adcontrols::MSPeakInfoPtr >( f );
+                                }
+                            }
+                        } 
+                    }
+                }
+                
+            } else if ( portfolio::is_type< adcontrols::ChromatogramPtr >( folium ) ) {
+                if ( auto ptr = portfolio::get< adcontrols::ChromatogramPtr > ( folium ) ) {
+                    draw( ptr );
+                    idActiveFolium_ = folium.id();
+                    idChromatogramFolium( folder.id() );
+                    if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
+                                return portfolio::is_type< adcontrols::PeakResultPtr >( a ); }) ) {
+                        auto pkresults = portfolio::get< adcontrols::PeakResultPtr >( f );
+                        draw( pkresults );
+                    }
+
+                }
             }
         }
     }
@@ -314,6 +320,17 @@ MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& )
 {
 	// This is conflicting with picker's action, so it has moved to range selection slots
 }
+
+void
+MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
+{
+    if ( auto pkinfo = pkinfo_.lock() ) {
+        adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > fpks( *pkinfo );
+        auto pk = fpks[ fcn ].begin() + idx;
+        qDebug() << pk->mass();
+    }
+}
+
 
 void
 MSProcessingWnd::selectedOnChromatogram( const QPointF& pos )

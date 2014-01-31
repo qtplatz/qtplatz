@@ -76,6 +76,7 @@ namespace dataproc {
                                              , const adcontrols::MSAssignedMasses& );
 
         static bool apply_calibration( adcontrols::MassSpectrum&, const adcontrols::MSCalibration& );
+        static bool reverse_copy( adcontrols::MSPeakInfo&, const adcontrols::MassSpectrum& );
     };
 
 }

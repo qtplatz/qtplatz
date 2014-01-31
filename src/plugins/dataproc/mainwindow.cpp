@@ -108,6 +108,7 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , processMethodNameEdit_( new QLineEdit ) 
                                           , currentFeature_( CentroidProcess )
                                           , msPeaksWnd_( 0 )
+    , wndMSProcessing_( 0 ) 
 {
     std::fill( actions_.begin(), actions_.end(), static_cast<QAction *>(0) );
 }
@@ -285,7 +286,7 @@ MainWindow::createContents( Core::IMode * mode
         stack_ = new QStackedWidget;
         splitter3->addWidget( stack_ );
 
-        wnd.push_back( new MSProcessingWnd );
+        wnd.push_back( wndMSProcessing_ = new MSProcessingWnd );
         wnd.back()->setWindowTitle( "MS Process" );
         stack_->addWidget( wnd.back() );
 
@@ -454,6 +455,10 @@ MainWindow::createDockWidgets()
                 boost::any a( msPeaksWnd_ );
                 p->setContents( a );
             }
+        }
+
+        if ( pWidget && std::strcmp( widget.wiid, "qtwidgets2::MSPeakTable" ) == 0 ) {
+            connect( pWidget, SIGNAL( currentChanged( int, int ) ), wndMSProcessing_, SLOT( handleCurrentChanged( int, int ) ) );
         }
 
         if ( !pWidget ) {

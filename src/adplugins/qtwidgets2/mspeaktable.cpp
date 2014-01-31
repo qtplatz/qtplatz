@@ -47,6 +47,7 @@ namespace qtwidgets2 {
         c_mspeaktable_formula
         , c_mspeaktable_mass
         , c_mspeaktable_mass_error
+        , c_mspeaktable_delta_mass
         , c_mspeaktable_mode
         , c_mspeaktable_time
         , c_mspeaktable_description
@@ -226,6 +227,28 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
     resizeColumnsToContents();
     resizeRowsToContents();
 }
+
+void
+MSPeakTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
+{
+    QStandardItemModel& model = *model_;
+    (void)prev;
+
+    scrollTo( index, QAbstractItemView::EnsureVisible );
+	int row = index.row();
+    int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
+    int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
+
+
+    double mass = model.index( row, c_mspeaktable_mass ).data( Qt::EditRole ).toDouble();
+    for ( int r = 0; r < model.rowCount(); ++r ) {
+        double d = std::abs( model.index( r, c_mspeaktable_mass ).data( Qt::EditRole ).toDouble() - mass );
+        model.setData( model.index( r, c_mspeaktable_delta_mass ), int( d + 0.7 ) );
+    }
+
+    emit currentChanged( idx, fcn );
+}
+
 
 void
 MSPeakTable::keyPressEvent( QKeyEvent * event )

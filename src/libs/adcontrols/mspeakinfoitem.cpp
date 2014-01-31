@@ -217,3 +217,16 @@ MSPeakInfoItem::assign_mass( double mass, double left, double right, double HHle
     HH_left_mass_ = HHleft;
     HH_right_mass_ = HHright;
 }
+
+void
+MSPeakInfoItem::mass( double mass )
+{
+    // this will cause when re-assign calibration to centroid spectrum occured
+    double d = mass_ - mass;
+
+    mass_ = mass;
+    centroid_left_mass_ += d;
+    centroid_right_mass_ += d;
+    HH_left_mass_ += d;
+    HH_right_mass_ += d;
+}

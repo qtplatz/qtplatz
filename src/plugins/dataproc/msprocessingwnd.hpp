@@ -38,6 +38,7 @@ namespace adcontrols {
     class Chromatogram;
 	class PeakResult;
     class ProcessMethod;
+	class MSPeakInfo;
 }
 
 namespace portfolio {
@@ -70,6 +71,7 @@ namespace dataproc {
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handlePrintCurrentView( const QString& outpdf );
+        void handleCurrentChanged( int idx, int fcn );
 
     private slots:
         void handleCustomMenuOnProcessedSpectrum( const QPoint& );
@@ -88,6 +90,7 @@ namespace dataproc {
         std::shared_ptr<MSProcessingWndImpl> pImpl_;
         std::weak_ptr< adcontrols::MassSpectrum > pProcessedSpectrum_;
         std::weak_ptr< adcontrols::MassSpectrum > pProfileSpectrum_;
+        std::weak_ptr< adcontrols::MSPeakInfo > pkinfo_;
 
         std::wstring idActiveFolium_;
         std::wstring idChromatogramFolium_;

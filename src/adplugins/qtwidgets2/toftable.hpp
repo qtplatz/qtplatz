@@ -26,74 +26,50 @@
 #define MSPEAKTABLE_HPP
 
 #include <QTableView>
-#include <QItemDelegate>
-#include <adplugin/lifecycle.hpp>
 #include <memory>
+#include <QItemDelegate>
 
 class QStandardItemModel;
 
-namespace adcontrols { class MSPeakInfo; class ChemicalFormula; }
+namespace adcontrols { class MSPeaks; class MSPeak; }
 
 namespace qtwidgets2 {
 
-    class MSPeakTable : public QTableView
-                      , public adplugin::LifeCycle {
+    class TOFTable : public QTableView  {
         Q_OBJECT
     public:
-        explicit MSPeakTable(QWidget *parent = 0);
+        explicit TOFTable(QWidget *parent = 0);
         void onInitialUpdate();
         QStandardItemModel& model() { return *model_; }
-
-        // adplugin::LifeCycle
-        void OnCreate( const adportable::Configuration& ) override;
-        void OnInitialUpdate() override;
-        void onUpdate( boost::any& ) override;
-        void OnFinalClose() override;
-        bool getContents( boost::any& ) const override;
-        bool setContents( boost::any& ) override;
-        void * query_interface_workaround( const char * ) override;
-
+        void setPeaks( const adcontrols::MSPeaks& );
     protected:
         // reimplement QTableView
-        void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+        // void currentChanged( const QModelIndex&, const QModelIndex& ) override;
         void keyPressEvent( QKeyEvent * event ) override;
         
     signals:
-        void valueChanged();
-        void currentChanged( int idx, int fcn );
 
     public slots:
         void handleCopyToClipboard();
 
-    private slots:
-        void handleValueChanged( const QModelIndex& );
-        void showContextMenu( const QPoint& );
-
     private:
         std::shared_ptr< QStandardItemModel > model_;
         std::shared_ptr< QItemDelegate > delegate_;
-        std::vector< QWidget * > clients_;
-        std::weak_ptr< adcontrols::MSPeakInfo > peakInfo_;
-        bool inProgress_;
-        static std::shared_ptr< adcontrols::ChemicalFormula > formulaParser_;
-        void setPeakInfo( const adcontrols::MSPeakInfo& );
-        void formulaChanged( const QModelIndex& );
-        static double exactMass( std::string );
+
+        void addPeak( const adcontrols::MSPeak& );
+        friend class MSPeakView;
     };
 
-    //////////////////////
-
-    class MSPeakTableDelegate : public QItemDelegate {
+    class TOFTableDelegate : public QItemDelegate {
         Q_OBJECT
     public:
-        explicit MSPeakTableDelegate(QObject *parent = 0);
+        explicit TOFTableDelegate(QObject *parent = 0);
         void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 		// void setEditorData(QWidget *editor, const QModelIndex &index) const override;
-        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
+        // void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
         // bool editorEvent( QEvent * event, QAbstractItemModel *
         //                   , const QStyleOptionViewItem&, const QModelIndex& ) override;
     signals:
-        void valueChanged( const QModelIndex& ) const;
     public slots:
     };
 }

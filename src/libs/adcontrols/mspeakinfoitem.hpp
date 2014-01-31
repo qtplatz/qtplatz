@@ -43,6 +43,7 @@ namespace adcontrols {
         MSPeakInfoItem( const MSPeakInfoItem& );
 
         double mass() const;
+        void mass( double ); // re-calibration will update only mass
         double area() const;
         double height() const;
         double time( bool time = false ) const;

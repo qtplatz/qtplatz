@@ -129,6 +129,7 @@ namespace dataproc {
         enum ProcessType currentFeature_;
         QWidget * msPeaksWnd_;
         std::array< QAction *, numActions > actions_;
+        QWidget * wndMSProcessing_;
 
         void setToolBarDockWidget( QDockWidget * dock );
         QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
