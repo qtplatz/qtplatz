@@ -124,6 +124,8 @@ MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
 	this->setItemDelegate( delegate_.get() );
     this->setSortingEnabled( true );
     this->verticalHeader()->setDefaultSectionSize( 18 );
+    this->setContextMenuPolicy( Qt::CustomContextMenu );
+
     QFont font;
     font.setFamily( "Consolas" );
 	font.setPointSize( 8 );
@@ -364,13 +366,29 @@ MSPeakTable::handleCopyToClipboard()
 void
 MSPeakTable::showContextMenu( const QPoint& pt )
 {
-    std::vector< QAction * > actions;
-    QMenu menu;
-    
-    actions.push_back( menu.addAction( "Lock mass with this peak" ) );
-    QAction * selected = menu.exec( this->mapToGlobal( pt ) );
-    (void)selected;
-    emit triggerLockMass( -1, -1 );
+    QModelIndex index = currentIndex();
+
+	if ( index.isValid() ) {
+        std::vector< QAction * > actions;
+        QMenu menu;
+
+        QString formula = model_->data( model_->index( index.row(), c_mspeaktable_formula ) ).toString();
+        if ( !formula.isEmpty() ) {
+            actions.push_back( menu.addAction( "Lock mass with this peak" ) );
+            QAction * selected = menu.exec( this->mapToGlobal( pt ) );
+            if ( selected ) {
+                int idx = model_->data( model_->index( index.row(), c_mspeaktable_index ) ).toInt();
+                int fcn = model_->data( model_->index( index.row(), c_mspeaktable_fcn ) ).toInt();
+                emit triggerLockMass( idx, fcn );
+            }
+        } else {
+            actions.push_back( menu.addAction( "Lock mass" ) );
+            QAction * selected = menu.exec( this->mapToGlobal( pt ) );
+            if ( selected ) {
+                emit triggerLockMass( -1, -1 );
+            }
+        }
+    }
 }
 
 void

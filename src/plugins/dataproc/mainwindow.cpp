@@ -460,7 +460,7 @@ MainWindow::createDockWidgets()
         if ( pWidget && std::strcmp( widget.wiid, "qtwidgets2::MSPeakTable" ) == 0 ) {
             connect( pWidget, SIGNAL( currentChanged( int, int ) ), wndMSProcessing_, SLOT( handleCurrentChanged( int, int ) ) );
             connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wndMSProcessing_, SLOT( handleFormulaChanged( int, int ) ) );
-            connect( pWidget, SIGNAL( triggerLockMass() ), wndMSProcessing_, SLOT( handleLockMass() ) );
+            connect( pWidget, SIGNAL( triggerLockMass( int, int ) ), wndMSProcessing_, SLOT( handleLockMass( int, int ) ) );
         }
 
         if ( !pWidget ) {
