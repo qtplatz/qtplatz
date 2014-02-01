@@ -197,7 +197,7 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 
     // -----------
     QFont font;
-    font.setFamily( "Colsolas" );
+    font.setFamily( "Consolas" );
     font.setBold( false );
 	font.setPointSize( 8 );
     setAxisFont( QwtPlot::xBottom, font );
@@ -353,7 +353,7 @@ ChromatogramWidget::plotAnnotations( const adcontrols::annotations& vec )
     adwplot::Annotations w( *this, impl_->annotation_markers_ );
 
     for ( auto& a: vec ) {
-		QwtText text( QString::fromStdWString( a.text() ), QwtText::RichText );
+		QwtText text( QString::fromStdString( a.text() ), QwtText::RichText );
         text.setColor( Qt::darkGreen );
         text.setFont( Annotation::font() );
         w.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );

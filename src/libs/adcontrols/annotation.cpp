@@ -23,10 +23,11 @@
 **************************************************************************/
 
 #include "annotation.hpp"
+#include <adportable/utf.hpp>
 
 using namespace adcontrols;
 
-annotation::annotation() : type_( dataText )
+annotation::annotation() : format_( dataText )
                          , index_( -1 )
                          , priority_( 0 )
                          , x_( 0 )
@@ -36,7 +37,7 @@ annotation::annotation() : type_( dataText )
 {
 }
 
-annotation::annotation( const annotation& t ) : type_( t.type_ )
+annotation::annotation( const annotation& t ) : format_( t.format_ )
                                               , index_( t.index_ )
                                               , priority_( t.priority_ )
                                               , text_( t.text_ )
@@ -52,26 +53,50 @@ annotation::annotation( const std::wstring& text
                         , double y
                         , int idx
                         , int priority
-                        , enum dataType typ ) : type_( typ )
-                                              , index_( idx )
-                                              , x_( x ), y_( y )
-                                              , priority_( priority )
-                                              , text_( text )
-                                              , w_( 0 ), h_( 0 )
+                        , DataFormat typ ) : format_( typ )
+                                           , index_( idx )
+                                           , x_( x ), y_( y )
+                                           , priority_( priority )
+										   , text_( adportable::utf::to_utf8( text ) )
+                                           , w_( 0 )
+                                           , h_( 0 )
+{
+}
+
+annotation::annotation( const std::string& text
+                        , double x
+                        , double y
+                        , int idx
+                        , int priority
+                        , DataFormat typ ) : format_( typ )
+                                           , index_( idx )
+                                           , x_( x ), y_( y )
+                                           , priority_( priority )
+										   , text_( text )
+                                           , w_( 0 )
+                                           , h_( 0 )
 {
 }
 
 
-const std::wstring&
+const std::string&
 annotation::text() const
 {
     return text_;
 }
 
 void
-annotation::text( const std::wstring& text )
+annotation::text( const std::string& text, DataFormat format )
 {
     text_ = text;
+    format_ = format;
+}
+
+void
+annotation::text( const std::wstring& text, DataFormat format )
+{
+    text_ = adportable::utf::to_utf8( text );
+    format_ = format;
 }
  
 int
@@ -87,16 +112,16 @@ annotation::index( int idx )
 }
 
 
-enum annotation::dataType
-annotation::type() const
+enum annotation::DataFormat
+annotation::dataFormat() const
 {
-    return type_;
+    return format_;
 }
 
 void
-annotation::dataType( enum dataType t )
+annotation::dataFormat( enum DataFormat t )
 {
-    type_ = t;
+    format_ = t;
 }
 
 int

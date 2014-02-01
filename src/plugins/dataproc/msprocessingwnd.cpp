@@ -44,6 +44,7 @@
 #include <adportable/xml_serializer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwplot/picker.hpp>
+#include <adwplot/peakmarker.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
@@ -75,13 +76,42 @@ namespace dataproc {
         ~MSProcessingWndImpl() {}
         MSProcessingWndImpl() : ticPlot_(0)
                               , profileSpectrum_(0)
-                              , processedSpectrum_(0) {
+                              , processedSpectrum_(0)
+                              , is_time_axis_( false ){
         }
-        
+
+        void currentChanged( const adcontrols::MSPeakInfoItem& pk ) {
+            if ( profile_marker_ ) {
+                profile_marker_->setPeak( pk, is_time_axis_, adcontrols::metric::micro );
+                profileSpectrum_->replot();
+            }
+            if ( processed_marker_ ) {
+                processed_marker_->setPeak( pk, is_time_axis_, adcontrols::metric::micro );
+                processedSpectrum_->replot();
+            }
+        }
+
+        void currentChanged( const adcontrols::MassSpectrum& ms, int idx ) {
+            if ( profile_marker_ ) {
+                profile_marker_->setPeak( ms, idx, is_time_axis_, adcontrols::metric::micro );
+                profileSpectrum_->replot();
+            }
+            if ( processed_marker_ ) {
+                processed_marker_->setPeak( ms, idx, is_time_axis_, adcontrols::metric::micro );
+                processedSpectrum_->replot();
+            }
+        }
+        void set_time_axis( bool isTime ) { 
+            is_time_axis_ = isTime;
+        }
         adwplot::ChromatogramWidget * ticPlot_;
         adwplot::SpectrumWidget * profileSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
+        std::shared_ptr< adwplot::PeakMarker > profile_marker_;
+        std::shared_ptr< adwplot::PeakMarker > processed_marker_;
+        bool is_time_axis_;
     };
+
 }
 
 MSProcessingWnd::MSProcessingWnd(QWidget *parent) : QWidget(parent)
@@ -106,12 +136,20 @@ MSProcessingWnd::init()
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
 			connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProfile( const QPointF& ) ) );
 			connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProfile( const QRectF& ) ) );
+            pImpl_->profile_marker_ = std::make_shared< adwplot::PeakMarker >();
+            pImpl_->profile_marker_->attach( pImpl_->profileSpectrum_ );
+            pImpl_->profile_marker_->visible( true );
+            pImpl_->profile_marker_->setYAxis( QwtPlot::yLeft );
         }
 
         if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             pImpl_->processedSpectrum_->setMinimumHeight( 80 );
 			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProcessed( const QPointF& ) ) );
 			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProcessed( const QRectF& ) ) );
+            pImpl_->processed_marker_ = std::make_shared< adwplot::PeakMarker >();
+            pImpl_->processed_marker_->attach( pImpl_->processedSpectrum_ );
+            pImpl_->processed_marker_->visible( true );
+            pImpl_->processed_marker_->setYAxis( QwtPlot::yLeft );
         }
  
 		pImpl_->ticPlot_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
@@ -241,6 +279,10 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
+                pProcessedSpectrum_.reset();
+                pProfileSpectrum_.reset();
+                pkinfo_.reset();
+
                 if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
                     draw1( ptr ); // profile
@@ -300,6 +342,7 @@ MSProcessingWnd::handleAxisChanged( int axis )
     using adwplot::SpectrumWidget;
 
     axis_ = axis;
+    pImpl_->set_time_axis( axis == AxisMZ ? false : true );
     pImpl_->profileSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
     pImpl_->processedSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
     if ( adcontrols::MassSpectrumPtr profile = pProfileSpectrum_.lock() ) {
@@ -327,10 +370,26 @@ MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
     if ( auto pkinfo = pkinfo_.lock() ) {
         adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > fpks( *pkinfo );
         auto pk = fpks[ fcn ].begin() + idx;
-        qDebug() << pk->mass();
+        pImpl_->currentChanged( *pk );
+    } else if ( auto ms = pProcessedSpectrum_.lock() ) {
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
+        if ( segs.size() > fcn ) {
+            pImpl_->currentChanged( segs[ fcn ], idx );
+        }
     }
 }
 
+void
+MSProcessingWnd::handleFormulaChanged( int /* idx */, int /* fcn */ )
+{
+	pImpl_->processedSpectrum_->update_annotation();
+}
+
+void
+MSProcessingWnd::handleLockMass( int idx, int fcn )
+{
+    qDebug() << "todo...";
+}
 
 void
 MSProcessingWnd::selectedOnChromatogram( const QPointF& pos )

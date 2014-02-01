@@ -34,22 +34,27 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT annotation {
     public:
-        enum dataType {
+        enum DataFormat {
             dataText
             , dataSvg
+            , dataFormula
+            , dataSmiles
+            , dataMOL
         };
         annotation();
-        annotation( const std::wstring&, double x = 0, double y = 0, int id = (-1), int priority = 0, dataType typ = dataText );
+        annotation( const std::wstring&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat f = dataText );
+        annotation( const std::string&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat f = dataText );
         annotation( const annotation& );
 
-        const std::wstring& text() const;
-        void text( const std::wstring& text );
+        const std::string& text() const;
+        void text( const std::wstring& text, DataFormat f = dataText );
+        void text( const std::string& text, DataFormat f = dataText );
 
         int index() const;
         void index( int );
 
-        dataType type() const;
-        void dataType( dataType );
+        DataFormat dataFormat() const;
+        void dataFormat( DataFormat );
 
         int priority() const;
         void priority( int );
@@ -63,25 +68,31 @@ namespace adcontrols {
         void y( double );
 
     private:
-        enum dataType type_;
+        DataFormat format_;
         int index_;
         int priority_;
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
-        std::wstring text_;
+        std::string text_;
 
         double x_, y_;
         double w_, h_;
         
         friend class boost::serialization::access;
         template<class Archive>
-            void serialize( Archive& ar, const unsigned int /* version */) {
-            ar & BOOST_SERIALIZATION_NVP( type_ )
+            void serialize( Archive& ar, const unsigned int version ) {
+            ar & BOOST_SERIALIZATION_NVP( format_ )
                 & BOOST_SERIALIZATION_NVP( index_ )
-                & BOOST_SERIALIZATION_NVP( priority_ )
-                & BOOST_SERIALIZATION_NVP( text_ )
-                & BOOST_SERIALIZATION_NVP( x_ )
+                & BOOST_SERIALIZATION_NVP( priority_ );
+            if ( version < 2 ) {
+                std::wstring tmp;
+                ar & BOOST_SERIALIZATION_NVP( tmp );
+                text( tmp );
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( text_ );
+            }
+            ar & BOOST_SERIALIZATION_NVP( x_ )
                 & BOOST_SERIALIZATION_NVP( y_ )
                 & BOOST_SERIALIZATION_NVP( w_ )
                 & BOOST_SERIALIZATION_NVP( h_ )
@@ -90,5 +101,7 @@ namespace adcontrols {
     };
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::annotation, 2 )
 
 

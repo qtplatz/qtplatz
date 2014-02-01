@@ -108,7 +108,7 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     yAxis->setTitle( "m/z" );
 
     QFont font;
-    font.setFamily( "Colsolas" );
+    font.setFamily( "Consolas" );
     font.setBold( false );
 	font.setPointSize( 8 );
     setAxisFont( QwtPlot::xBottom, font );

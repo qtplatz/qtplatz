@@ -459,6 +459,8 @@ MainWindow::createDockWidgets()
 
         if ( pWidget && std::strcmp( widget.wiid, "qtwidgets2::MSPeakTable" ) == 0 ) {
             connect( pWidget, SIGNAL( currentChanged( int, int ) ), wndMSProcessing_, SLOT( handleCurrentChanged( int, int ) ) );
+            connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wndMSProcessing_, SLOT( handleFormulaChanged( int, int ) ) );
+            connect( pWidget, SIGNAL( triggerLockMass() ), wndMSProcessing_, SLOT( handleLockMass() ) );
         }
 
         if ( !pWidget ) {
@@ -524,20 +526,21 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                 actionSelSpectrogram();
 		}
 
-        adcontrols::MSPeakInfoPtr pkinfo;
+        adcontrols::MassSpectrumPtr centroid;
 
         if ( folder.name() == L"Spectra" ) {
             
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium.data() ) ) {
 
-                if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
+                if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
                             return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
-                    if ( auto fpkinfo = portfolio::find_first_of( fCentroid.attachments(), [] ( portfolio::Folium& a ){
-                                return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
-                        pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fpkinfo );
-                    }
+                    centroid = portfolio::get< adcontrols::MassSpectrumPtr >( f );
+                    // if ( auto fpkinfo = portfolio::find_first_of( fCentroid.attachments(), [] ( portfolio::Folium& a ){
+                    //             return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
+                    //     pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fpkinfo );
+                    // }
                 } else {
-                    pkinfo = std::make_shared< adcontrols::MSPeakInfo >();  // empty data for clear table
+                    centroid = std::make_shared< adcontrols::MassSpectrum >();  // empty data for clear table
                 }
             }
         }
@@ -548,8 +551,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
             adplugin::LifeCycleAccessor accessor( widget->widget() );
             if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
                 pLifeCycle->setContents( any );
-                if ( pkinfo )
-                    pLifeCycle->setContents( boost::any( pkinfo ) );
+                pLifeCycle->setContents( boost::any( centroid ) );
             }
         }
     }

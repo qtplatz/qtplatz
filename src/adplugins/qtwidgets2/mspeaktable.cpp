@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "mspeaktable.hpp"
+#include <adcontrols/annotations.hpp>
+#include <adcontrols/annotation.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
@@ -95,6 +97,18 @@ namespace qtwidgets2 {
     }
 
     std::shared_ptr< adcontrols::ChemicalFormula > MSPeakTable::formulaParser_;
+
+    ///////////////////
+
+    namespace detail {
+
+        template<class T> struct lock_weak_pointer : public boost::static_visitor< std::shared_ptr<T> > {
+            std::shared_ptr< T > operator ()( std::weak_ptr<T>& wptr ) const {
+                return wptr.lock();
+            }
+        };
+
+    }
 }
 
 using namespace qtwidgets2; 
@@ -161,9 +175,19 @@ bool
 MSPeakTable::setContents( boost::any& a )
 {
     if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
-        peakInfo_ = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );
-		if ( auto ptr = peakInfo_.lock() )
-			setPeakInfo( *ptr );
+        std::weak_ptr< adcontrols::MSPeakInfo > wptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );
+        data_source_ = wptr;
+        if ( auto ptr = wptr.lock() )
+            setPeakInfo( *ptr );            
+        return true;
+    }
+
+    if ( adportable::a_type< adcontrols::MassSpectrumPtr >::is_a( a ) ) {
+        std::weak_ptr< adcontrols::MassSpectrum > wptr = boost::any_cast< adcontrols::MassSpectrumPtr >( a );
+        data_source_ = wptr;
+        if ( auto ptr = wptr.lock() )
+            setPeakInfo( *ptr );            
+        return true;
     }
     return false;
 }
@@ -226,6 +250,54 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
     }
     resizeColumnsToContents();
     resizeRowsToContents();
+}
+
+void
+MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
+{
+	QStandardItemModel& model = *model_;
+    size_t total_size = 0;
+
+    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
+    for( auto& t: segs )
+        total_size += t.size();
+
+    model.setRowCount( static_cast< int >( total_size ) );
+	
+    int row = 0;
+    int fcn = 0;
+    for ( auto& fms: segs ) {
+
+        const adcontrols::annotations& annots = fms.get_annotations();
+
+        for ( int idx = 0; idx < fms.size(); ++idx ) {
+
+            model.setData( model.index( row, c_mspeaktable_fcn ), fcn ); // hidden
+            model.setData( model.index( row, c_mspeaktable_index ), idx ); // hidden
+
+            double mass = fms.getMass( idx );
+            model.setData( model.index( row, c_mspeaktable_time ), fms.getTime( idx ) );
+            model.setData( model.index( row, c_mspeaktable_mass ), mass );
+            model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
+
+            auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; } );
+            while ( it != annots.end() ) {
+                if ( it->dataFormat() == adcontrols::annotation::dataText ) {
+                    model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );                    
+                } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
+                    model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->text() ) );
+                    model.setData( model.index( row, c_mspeaktable_mass_error ), mass - exactMass( it->text() ) );
+                } 
+                // todo: smiles, MOL
+				it = std::find_if( ++it, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });
+            }
+            ++row;
+        }
+        ++fcn;
+    }
+
+    resizeRowsToContents();
+    resizeColumnsToContents();
 }
 
 void
@@ -298,6 +370,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
     actions.push_back( menu.addAction( "Lock mass with this peak" ) );
     QAction * selected = menu.exec( this->mapToGlobal( pt ) );
     (void)selected;
+    emit triggerLockMass( -1, -1 );
 }
 
 void
@@ -307,7 +380,6 @@ MSPeakTable::handleValueChanged( const QModelIndex& index )
         return;
     if ( index.column() == c_mspeaktable_formula ) {
         formulaChanged( index );
-        emit valueChanged();
 	}
 }
 
@@ -318,17 +390,43 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
 
     if ( index.column() == c_mspeaktable_formula ) {
 
-        std::string formula = index.data( Qt::EditRole ).toString().toStdString();
+        int fcn = model.index( index.row(), c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
+        int idx = model.index( index.row(), c_mspeaktable_index ).data( Qt::EditRole ).toInt();
 
-        if ( auto ptr = peakInfo_.lock() ) {
-            int fcn = model.index( index.row(), c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
-            int idx = model.index( index.row(), c_mspeaktable_index ).data( Qt::EditRole ).toInt();
-            adcontrols::segment_wrapper< adcontrols::MSPeakInfo > segs( *ptr );
-            auto it = segs[ fcn ].begin() + idx;
-            it->formula( formula );
-        }
+        std::string formula = index.data( Qt::EditRole ).toString().toStdString();
         double mass = model.index( index.row(), c_mspeaktable_mass ).data( Qt::EditRole ).toDouble();
         model.setData( model.index( index.row(), c_mspeaktable_mass_error ), mass - exactMass( formula ) );
+
+        if ( data_source_.which() == 0 ) {
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MSPeakInfo > >( data_source_ );
+            if ( auto ptr = wptr.lock() ) {
+                adcontrols::segment_wrapper< adcontrols::MSPeakInfo > segs( *ptr );
+                auto it = segs[ fcn ].begin() + idx;
+                it->formula( formula );            
+            }
+        } else {
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+            if ( auto ptr = wptr.lock() ) {
+                adcontrols::segment_wrapper<> segs( *ptr );
+                if ( segs.size() > fcn ) {
+                    auto& ms = segs[fcn];
+                    adcontrols::annotations& annots = ms.get_annotations();
+                    auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){
+                            return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
+                    if ( it != annots.end() ) {
+                        it->text( formula, adcontrols::annotation::dataFormula );
+                    } else {
+                        annots << adcontrols::annotation( formula
+                                                          , ms.getMass( idx )
+                                                          , ms.getIntensity( idx )
+                                                          , idx
+                                                          , 0
+                                                          , adcontrols::annotation::dataFormula );
+                    }
+                    emit formulaChanged( idx, fcn );
+                }
+            }
+        }
     }
 }
 

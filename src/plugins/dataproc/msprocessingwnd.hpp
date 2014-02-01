@@ -71,7 +71,10 @@ namespace dataproc {
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handlePrintCurrentView( const QString& outpdf );
+        // slot for MSPeakTable
         void handleCurrentChanged( int idx, int fcn );
+        void handleFormulaChanged( int idx, int fcn );
+        void handleLockMass( int, int );
 
     private slots:
         void handleCustomMenuOnProcessedSpectrum( const QPoint& );

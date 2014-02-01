@@ -33,6 +33,7 @@
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
@@ -189,7 +190,7 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
 
     // -----------
     QFont font;
-    font.setFamily( "Colsolas" );
+    font.setFamily( "Consolas" );
     font.setBold( false );
 	font.setPointSize( 8 );
     setAxisFont( QwtPlot::xBottom, font );
@@ -208,6 +209,14 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
 		picker_->setEnabled( true );
 	}
 	*/
+}
+
+void
+SpectrumWidget::update_annotation()
+{
+    QRectF rc = zoomRect();
+    impl_->update_annotations( *this, std::make_pair( rc.left(), rc.right() ) );
+	replot();
 }
 
 void
@@ -543,6 +552,9 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                     if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
                         if ( a.index() >= 0 && isTimeAxis_ )
                             a.x( scale_to_micro( ms.getTime( a.index() ) ) );
+						if ( a.dataFormat() == adcontrols::annotation::dataFormula ) {
+							a.text( adcontrols::ChemicalFormula::formatFormula( a.text () ) );
+						}
                         annotations << a;
                     }
                 }
@@ -580,7 +592,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
         Annotations annots(plot, annotations_);
         
         for ( const auto& a: annotations ) {
-            QwtText text( QString::fromStdWString(a.text()), QwtText::RichText);
+            QwtText text( QString::fromStdString(a.text()), QwtText::RichText);
             text.setColor( Qt::darkGreen );
             text.setFont( Annotation::font() );
             annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
@@ -594,7 +606,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
             color = Qt::gray;
         }
         for ( const auto& a: auto_annotations ) {
-            QwtText text( QString::fromStdWString(a.text()), QwtText::RichText );
+            QwtText text( QString::fromStdString(a.text()), QwtText::RichText );
             text.setColor( color );
             text.setFont( font );
 			bool res = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );

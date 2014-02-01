@@ -167,7 +167,7 @@ MSPeaksWnd::MSPeaksWnd(QWidget *parent) : QWidget(parent)
     assert( sizeof( axis_titles ) / sizeof( axis_titles[0] ) == plots_.size() );
 
     QFont font;
-    font.setFamily( "Colsolas" );
+    font.setFamily( "Consolas" );
     font.setBold( false );
 	font.setPointSize( 8 );
 

@@ -25,6 +25,7 @@
 #include "peakmarker.hpp"
 #include <qwt_plot_marker.h>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/massspectrum.hpp>
 
 // enum { idPeakLeft, idPeakCenter, idPeakRight, idPeakBottom, idPeakThreshold, idPeakTop, numMarkers };
 
@@ -36,8 +37,7 @@ PeakMarker::PeakMarker()
         marker = new QwtPlotMarker();
 
     markers_[ idPeakCenter ]->setLineStyle( QwtPlotMarker::VLine );
-    markers_[ idPeakCenter ]->setLineStyle( QwtPlotMarker::VLine );
-    markers_[ idPeakCenter ]->setLinePen( Qt::darkGray, 0, Qt::DashDotLine );
+    markers_[ idPeakCenter ]->setLinePen( QColor( 0xff, 0, 0, 0x40 ), 0, Qt::DashDotLine );
 
     markers_[ idPeakLeft ]->setLineStyle( QwtPlotMarker::VLine );
     markers_[ idPeakLeft ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
@@ -106,11 +106,28 @@ PeakMarker::setPeak( const adcontrols::MSPeakInfoItem& pk, bool isTime, adcontro
 }
 
 void
+PeakMarker::setPeak( const adcontrols::MassSpectrum& ms, int idx, bool isTime, adcontrols::metric::prefix pfx )
+{
+    if ( ms.size() > idx ) {
+        if ( isTime ) {
+            markers_[ idPeakCenter ]->setValue( adcontrols::metric::scale_to( pfx, ms.getTime( idx ) ), 0 );
+        } else {
+            markers_[ idPeakCenter ]->setValue( ms.getMass( idx ), 0 );
+        }
+    }
+    markers_[ idPeakLeft ]->setValue( 0, 0 );
+    markers_[ idPeakRight ]->setValue( 0, 0 );
+    markers_[ idPeakThreshold ]->setValue( 0, 0 );
+    markers_[ idPeakBase ]->setValue( 0, 0 );
+    markers_[ idPeakTop ]->setValue( 0, 0 );
+}
+
+void
 PeakMarker::visible( bool v )
 {
     if ( v ) {
-        markers_[ idPeakCenter ]->setLinePen( Qt::transparent );
+        markers_[ idPeakCenter ]->setLinePen( QColor( 0xff, 0, 0, 0x40 ) );
     } else {
-        markers_[ idPeakCenter ]->setLinePen( Qt::green );
+        markers_[ idPeakCenter ]->setLinePen( Qt::transparent );
     }
 }

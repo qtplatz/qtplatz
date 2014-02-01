@@ -29,10 +29,13 @@
 #include <QItemDelegate>
 #include <adplugin/lifecycle.hpp>
 #include <memory>
+#if !defined Q_MOC_RUN
+# include <boost/variant.hpp>
+#endif
 
 class QStandardItemModel;
 
-namespace adcontrols { class MSPeakInfo; class ChemicalFormula; }
+namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; }
 
 namespace qtwidgets2 {
 
@@ -61,6 +64,8 @@ namespace qtwidgets2 {
     signals:
         void valueChanged();
         void currentChanged( int idx, int fcn );
+        void formulaChanged( int idx, int fcn );
+        void triggerLockMass( int idx, int fcn );
 
     public slots:
         void handleCopyToClipboard();
@@ -72,11 +77,14 @@ namespace qtwidgets2 {
     private:
         std::shared_ptr< QStandardItemModel > model_;
         std::shared_ptr< QItemDelegate > delegate_;
-        std::vector< QWidget * > clients_;
-        std::weak_ptr< adcontrols::MSPeakInfo > peakInfo_;
+
+        boost::variant< std::weak_ptr< adcontrols::MSPeakInfo >
+                        , std::weak_ptr< adcontrols::MassSpectrum > > data_source_;
+        
         bool inProgress_;
         static std::shared_ptr< adcontrols::ChemicalFormula > formulaParser_;
         void setPeakInfo( const adcontrols::MSPeakInfo& );
+		void setPeakInfo( const adcontrols::MassSpectrum& );
         void formulaChanged( const QModelIndex& );
         static double exactMass( std::string );
     };

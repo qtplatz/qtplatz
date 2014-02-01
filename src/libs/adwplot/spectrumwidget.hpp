@@ -46,6 +46,7 @@ namespace adwplot {
         void setAxis( HorizontalAxis );
         bool autoAnnotation() const;
         void setAutoAnnotation( bool enable = true );
+        void update_annotation();
         
     private:
         struct SpectrumWidgetImpl * impl_;
