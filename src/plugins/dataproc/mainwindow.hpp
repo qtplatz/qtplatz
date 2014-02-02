@@ -31,7 +31,7 @@
 #include <array>
 
 namespace adportable { class Configuration; }
-namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; class MSPeaks; }
+namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; class MSPeaks; class MassSpectrum; }
 namespace portfolio { class Folium; }
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
@@ -83,6 +83,8 @@ namespace dataproc {
 
         void saveDefaultMSCalibrateResult( portfolio::Folium& );
         void install_actions();
+        void lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& );
+        void dataMayChanged();
 
     public slots:
         void handleSessionAdded( Dataprocessor * );

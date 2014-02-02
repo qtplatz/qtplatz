@@ -436,7 +436,8 @@ MainWindow::createDockWidgets()
         const char * wiid;
         const char * pageName;
     } widgets [] = { 
-        {  "Centroid" ,        "qtwidgets::CentroidForm",            "CentroidMethod"}
+        {  "Centroid" ,        "qtwidgets::CentroidForm",            "CentroidMethod"} // should be first
+        , { "MS Peaks",        "qtwidgets2::MSPeakTable",            "MSPeakTable" }
         , { "MS Calibration",  "qtwidgets2::MSCalibrationForm",      "MSCalibrationMethod"}
         , { "MS Chromatogr.",  "qtwidgets2::MSChromatogramWidget",   "MSChromatogrMethod" }
         , { "Targeting",       "qtwidgets::TargetForm",              "TargetMethod" }
@@ -444,7 +445,6 @@ MainWindow::createDockWidgets()
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm","EleCompMethod" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm",          "PeakFindMethod" }
         , { "Data property",   "dataproc::MSPropertyForm",           "DataProperty" }      // local
-        , { "MS Peaks",        "qtwidgets2::MSPeakTable",            "MSPeakTable" }
         , { "TOF Peaks",       "qtwidgets2::MSPeakView",             "TOFPeaks" }
     };
     
@@ -464,7 +464,8 @@ MainWindow::createDockWidgets()
         if ( pWidget && std::strcmp( widget.wiid, "qtwidgets2::MSPeakTable" ) == 0 ) {
             connect( pWidget, SIGNAL( currentChanged( int, int ) ), wndMSProcessing_, SLOT( handleCurrentChanged( int, int ) ) );
             connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wndMSProcessing_, SLOT( handleFormulaChanged( int, int ) ) );
-            connect( pWidget, SIGNAL( triggerLockMass( int, int ) ), wndMSProcessing_, SLOT( handleLockMass( int, int ) ) );
+            connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int> >& ) )
+                     , wndMSProcessing_, SLOT( handleLockMass( const QVector<QPair<int, int> >& ) ) );
         }
 
         if ( !pWidget ) {
@@ -558,6 +559,34 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                 pLifeCycle->setContents( afolium );
                 pLifeCycle->setContents( acentroid );
             }
+        }
+    }
+}
+
+void
+MainWindow::lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& ptr )
+{
+    auto docks = dockWidgets();
+    auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
+    if ( it != docks.end() ) {
+        adplugin::LifeCycleAccessor accessor( (*it)->widget() );
+        if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
+            boost::any any( ptr );
+            pLifeCycle->onUpdate( any );
+        }
+    }
+}
+
+void
+MainWindow::dataMayChanged()
+{
+    auto docks = dockWidgets();
+    auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
+    if ( it != docks.end() ) {
+        adplugin::LifeCycleAccessor accessor( (*it)->widget() );
+        if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
+            boost::any any(int(0));
+            pLifeCycle->onUpdate( any );
         }
     }
 }

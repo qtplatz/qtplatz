@@ -41,7 +41,10 @@
 #include <QStandardItemModel>
 #include <QDebug>
 #include <QMenu>
+#include <QPair>
 #include <boost/format.hpp>
+#include <sstream>
+#include <set>
 
 namespace qtwidgets2 {
 
@@ -158,8 +161,26 @@ MSPeakTable::OnInitialUpdate()
 }
 
 void
-MSPeakTable::onUpdate( boost::any& )
+MSPeakTable::onUpdate( boost::any& a )
 {
+    if ( adportable::a_type< adcontrols::MassSpectrumPtr >::is_a( a ) ) {
+        // lockMassHandled on MainWindow invoke this method
+
+        auto ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( a );
+        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+        if ( wptr.lock() == ptr )
+            dataChanged( *ptr );                        
+
+    } else if ( a.type() == typeid(int) ) {
+        // dataMayChanged on MainWindow invoke this method over applyCalibration()
+
+        int id = boost::any_cast<int>( a );
+        if ( id == 0 ) { // data may changed
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+            if ( auto ptr = wptr.lock() )
+                dataChanged( *ptr );
+        }
+    }
 }
 
 void
@@ -250,8 +271,6 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
         }
         ++fcn;
     }
-    resizeColumnsToContents();
-    resizeRowsToContents();
 }
 
 void
@@ -282,6 +301,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_mass ), mass );
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
 
+            model.setData( model.index( row, c_mspeaktable_formula ), QString() ); // clear formula
+
             auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
@@ -300,6 +321,51 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
     resizeRowsToContents();
     resizeColumnsToContents();
+}
+
+void
+MSPeakTable::dataChanged( const adcontrols::MassSpectrum& ms )
+{
+	QStandardItemModel& model = *model_;
+
+    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
+    size_t total_size = 0;
+    for( auto& t: segs )
+        total_size += t.size();
+
+    if ( total_size != model.rowCount() ) {
+        setPeakInfo( ms );
+        return;
+    }
+
+    for ( int row = 0; row < total_size; ++row ) {
+
+        int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
+        int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
+        if ( fcn < segs.size() ) {
+            auto& fms = segs[ fcn ];
+
+            double mass = fms.getMass( idx );
+            model.setData( model.index( row, c_mspeaktable_time ), fms.getTime( idx ) );
+            model.setData( model.index( row, c_mspeaktable_mass ), mass );
+            model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
+
+            model.setData( model.index( row, c_mspeaktable_description ), QString() );
+            model.setData( model.index( row, c_mspeaktable_formula ), QString() );
+
+            const adcontrols::annotations& annots = fms.get_annotations();
+            auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; } );
+            while ( it != annots.end() ) {
+                if ( it->dataFormat() == adcontrols::annotation::dataText ) {
+                    model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );                    
+                } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
+                    model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->text() ) );
+                    model.setData( model.index( row, c_mspeaktable_mass_error ), mass - exactMass( it->text() ) );
+                } 
+				it = std::find_if( ++it, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });
+            }
+        }
+    }
 }
 
 void
@@ -371,7 +437,41 @@ MSPeakTable::showContextMenu( const QPoint& pt )
 	if ( index.isValid() ) {
         std::vector< QAction * > actions;
         QMenu menu;
+        
+        QModelIndexList list = selectionModel()->selectedIndexes();
+        if ( list.size() < 1 )
+            return;
 
+        std::set< int > rows;
+        for ( auto index: list )
+            rows.insert( index.row() ); // make unique row list
+
+        std::ostringstream o;
+        o << "Lock mass with ";
+
+        QVector< QPair<int, int> > refs;
+
+        for ( int row: rows ) {
+
+            QString formula = model_->data( model_->index( row, c_mspeaktable_formula ) ).toString();
+
+            if ( ! formula.isEmpty() ) {
+                if ( !refs.isEmpty() )
+                    o << ", ";
+                o << formula.toStdString();
+
+                int idx = model_->data( model_->index( row, c_mspeaktable_index ) ).toInt();
+                int fcn = model_->data( model_->index( row, c_mspeaktable_fcn ) ).toInt();
+
+                refs.push_back( QPair<int,int>( idx, fcn ) );
+            }
+        }
+        
+        actions.push_back( menu.addAction( o.str().c_str() ) );
+        QAction * selected = menu.exec( this->mapToGlobal( pt ) );
+        if ( selected )
+            emit triggerLockMass( refs );
+        /*
         QString formula = model_->data( model_->index( index.row(), c_mspeaktable_formula ) ).toString();
         if ( !formula.isEmpty() ) {
             actions.push_back( menu.addAction( "Lock mass with this peak" ) );
@@ -388,6 +488,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
                 emit triggerLockMass( -1, -1 );
             }
         }
+        */
     }
 }
 

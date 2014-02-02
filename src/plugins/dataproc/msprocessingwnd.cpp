@@ -37,6 +37,7 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/waveform.hpp>
@@ -386,9 +387,22 @@ MSProcessingWnd::handleFormulaChanged( int /* idx */, int /* fcn */ )
 }
 
 void
-MSProcessingWnd::handleLockMass( int idx, int fcn )
+MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
 {
-    qDebug() << "todo...";
+    if ( auto ms = pProcessedSpectrum_.lock() ) {
+
+        adcontrols::lockmass lkms;
+        
+        for ( auto ref: refs )
+            adcontrols::lockmass::findReferences( lkms, *ms, ref.first, ref.second );
+
+        if ( lkms.fit() ) {
+            if ( lkms( *ms ) ) {
+                pImpl_->processedSpectrum_->update_annotation();
+                MainWindow::instance()->lockMassHandled( ms );
+            }
+        }
+    }
 }
 
 void
@@ -559,10 +573,6 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     renderer.render( pImpl_->profileSpectrum_, &painter, drawRect );
 
 	QString formattedMethod;
-
-	// if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-
-    // portfolio::Folium folium = dp->getPortfolio().findFolium( idActiveFolium_ );
 
     portfolio::Folio attachments = folium.attachments();
     portfolio::Folio::iterator it

@@ -65,7 +65,7 @@ namespace qtwidgets2 {
         void valueChanged();
         void currentChanged( int idx, int fcn );
         void formulaChanged( int idx, int fcn );
-        void triggerLockMass( int idx, int fcn );
+        void triggerLockMass( const QVector< QPair<int, int> >& );
 
     public slots:
         void handleCopyToClipboard();
@@ -85,6 +85,7 @@ namespace qtwidgets2 {
         static std::shared_ptr< adcontrols::ChemicalFormula > formulaParser_;
         void setPeakInfo( const adcontrols::MSPeakInfo& );
 		void setPeakInfo( const adcontrols::MassSpectrum& );
+		void dataChanged( const adcontrols::MassSpectrum& );
         void formulaChanged( const QModelIndex& );
         static double exactMass( std::string );
     };

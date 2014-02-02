@@ -74,7 +74,7 @@ namespace dataproc {
         // slot for MSPeakTable
         void handleCurrentChanged( int idx, int fcn );
         void handleFormulaChanged( int idx, int fcn );
-        void handleLockMass( int, int );
+        void handleLockMass( const QVector< QPair<int, int> >& );
 
     private slots:
         void handleCustomMenuOnProcessedSpectrum( const QPoint& );

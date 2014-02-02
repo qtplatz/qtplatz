@@ -604,6 +604,7 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
     }
 	file().applyCalibration( dataInterpreterClsid, calibration );
     ifileimpl_->setModified();
+    MainWindow::instance()->dataMayChanged(); // notify for dockwidgets
 }
 
 portfolio::Folium
