@@ -67,9 +67,9 @@ namespace adcontrols {
         void formula( const std::string& );
         const std::wstring& annotation() const;
         void annotation( const std::wstring& );
-        const bool visible() const;
+        bool visible() const;
         void visible( bool );
-        const bool is_reference() const;
+        bool is_reference() const;
         void is_reference( bool );
 
         // re-assign mass (usually call from calibration process)

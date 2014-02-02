@@ -78,7 +78,7 @@ MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t )
     , is_visible_( t.is_visible_)         
     , is_reference_( t.is_reference_)      
     , formula_( t.formula_ )      
-    , annotation_( annotation_ )
+    , annotation_( t.annotation_ )
 {
 }
 

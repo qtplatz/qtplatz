@@ -130,6 +130,7 @@ MainWindow::install_actions()
     const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
 
     if ( QAction * action = new QAction( tr("Data processing"), this ) ) {
+        (void)action;
 
 		actions_[ idActCreateSpectrogram ] = new QAction( tr("Create spectrogram"), this );
         connect( actions_[ idActCreateSpectrogram ], SIGNAL( triggered() ), this, SLOT( actCreateSpectrogram() ) );
@@ -535,10 +536,6 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                 if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
                             return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
                     centroid = portfolio::get< adcontrols::MassSpectrumPtr >( f );
-                    // if ( auto fpkinfo = portfolio::find_first_of( fCentroid.attachments(), [] ( portfolio::Folium& a ){
-                    //             return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
-                    //     pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fpkinfo );
-                    // }
                 } else {
                     centroid = std::make_shared< adcontrols::MassSpectrum >();  // empty data for clear table
                 }
@@ -546,12 +543,13 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         }
         
         // set data property to MSPropertyForm
-        boost::any any( folium );
+        boost::any afolium( folium );
+        boost::any acentroid( centroid );
         for ( auto widget: dockWidgets() ) {
             adplugin::LifeCycleAccessor accessor( widget->widget() );
             if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
-                pLifeCycle->setContents( any );
-                pLifeCycle->setContents( boost::any( centroid ) );
+                pLifeCycle->setContents( afolium );
+                pLifeCycle->setContents( acentroid );
             }
         }
     }

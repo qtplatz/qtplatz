@@ -277,8 +277,8 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     std::map< size_t, size_t > mode_map;
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) 
         mode_map[ it->mode() ]++;
-    std::map<size_t, size_t>::iterator itMax = std::max_element( mode_map.begin(), mode_map.end() );
-    //int mode = static_cast<int>(itMax->first);
+    // std::map<size_t, size_t>::iterator itMax = std::max_element( mode_map.begin(), mode_map.end() );
+    // int mode = static_cast<int>(itMax->first);
 
     mass_calibrator calibrator( assigned, centroid.getMSProperty() );
     adcontrols::MSCalibration calib;
@@ -362,7 +362,7 @@ DataprocHandler::reverse_copy( adcontrols::MSPeakInfo& pkinfo, const adcontrols:
         auto& fms = ms_segs[ fcn ];
         
         for ( size_t i = 0; i < fms.size(); ++i ) {
-            auto& pk = fpk.begin() + i;
+            auto pk = fpk.begin() + i;
             pk->mass( fms.getMass( i ) );
         }
     }
