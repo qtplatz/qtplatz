@@ -411,10 +411,11 @@ MainWindow::setToolBarDockWidget( QDockWidget * dock )
 }
 
 QDockWidget *
-MainWindow::createDockWidget( QWidget * widget, const QString& title )
+MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& pageName )
 {
     QDockWidget * dockWidget = addDockForWidget( widget );
-    dockWidget->setObjectName( widget->objectName() );
+    dockWidget->setObjectName( pageName.isEmpty() ? widget->objectName() : pageName );
+
     if ( title.isEmpty() )
         dockWidget->setWindowTitle( widget->objectName() );
     else
@@ -433,23 +434,25 @@ MainWindow::createDockWidgets()
     static const struct { 
         const char * title;
         const char * wiid;
+        const char * pageName;
     } widgets [] = { 
-        {  "Centroid" ,        "qtwidgets::CentroidForm" }
-        , { "MS Calibration",  "qtwidgets2::MSCalibrationForm" }
-        , { "MS Chromatogr.",  "qtwidgets2::MSChromatogramWidget" }
-        , { "Targeting",       "qtwidgets::TargetForm" }
-        //, { "Isotope",       "qtwidgets::IsotopeForm" }
-        , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
-        , { "Peak Find",       "qtwidgets::PeakMethodForm" }
-        , { "Data property",   "dataproc::MSPropertyForm" }      // local
-        , { "MS Peaks",        "qtwidgets2::MSPeakTable" }
-        , { "TOF Peaks",       "qtwidgets2::MSPeakView" }
+        {  "Centroid" ,        "qtwidgets::CentroidForm",            "CentroidMethod"}
+        , { "MS Calibration",  "qtwidgets2::MSCalibrationForm",      "MSCalibrationMethod"}
+        , { "MS Chromatogr.",  "qtwidgets2::MSChromatogramWidget",   "MSChromatogrMethod" }
+        , { "Targeting",       "qtwidgets::TargetForm",              "TargetMethod" }
+        //, { "Isotope",       "qtwidgets::IsotopeForm",             "IsotopeMethod" }
+        , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm","EleCompMethod" }
+        , { "Peak Find",       "qtwidgets::PeakMethodForm",          "PeakFindMethod" }
+        , { "Data property",   "dataproc::MSPropertyForm",           "DataProperty" }      // local
+        , { "MS Peaks",        "qtwidgets2::MSPeakTable",            "MSPeakTable" }
+        , { "TOF Peaks",       "qtwidgets2::MSPeakView",             "TOFPeaks" }
     };
     
     for ( auto widget: widgets ) {
 
         QWidget * pWidget = adplugin::widget_factory::create( widget.wiid, 0, 0 );
         if ( pWidget && std::strcmp(widget.wiid, "qtwidgets2::MSPeakView") == 0 ) {
+
             connect( this, SIGNAL(onAddMSPeaks( const adcontrols::MSPeaks& )), pWidget, SLOT(handle_add_mspeaks( const adcontrols::MSPeaks& )) );
             adplugin::LifeCycleAccessor accessor( pWidget );
             if ( adplugin::LifeCycle * p = accessor.get() ) {
@@ -472,7 +475,7 @@ MainWindow::createDockWidgets()
         }
         
         if ( pWidget ) {
-            createDockWidget( pWidget, widget.title );
+            createDockWidget( pWidget, widget.title, widget.pageName );
         } else {
             QMessageBox::critical(0, QLatin1String("dataprocmanager"), widget.wiid );
         }
@@ -520,7 +523,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
             if ( stack_->currentIndex() != 2 && stack_->currentIndex() != 3 )
                 actionSelMSCalibration();
         } else if ( folder.name() == L"Spectra" ) {
-			if ( stack_->currentIndex() == 2 || stack_->currentIndex() == 3 )
+			if ( stack_->currentIndex() != 0 || stack_->currentIndex() != 1 )
 				actionSelMSProcess();
         } else if ( folder.name() == L"Spectrograms" ) {
             if ( stack_->currentIndex() != 6 )
@@ -540,6 +543,10 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                     centroid = std::make_shared< adcontrols::MassSpectrum >();  // empty data for clear table
                 }
             }
+			auto docks = dockWidgets();
+			auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
+			if ( it != docks.end() )
+				(*it)->raise();
         }
         
         // set data property to MSPropertyForm

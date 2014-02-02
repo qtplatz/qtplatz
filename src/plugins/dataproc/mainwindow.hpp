@@ -134,7 +134,7 @@ namespace dataproc {
         void setToolBarDockWidget( QDockWidget * dock );
         QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
         void createToolbar();
-        QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
+        QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& pageName = QString() );
         void createDockWidgets();
         Utils::StyledBar * createStyledBarTop();
         Utils::StyledBar * createStyledBarMiddle();
