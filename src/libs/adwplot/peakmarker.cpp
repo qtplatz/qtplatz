@@ -128,6 +128,6 @@ PeakMarker::visible( bool v )
     if ( v ) {
         markers_[ idPeakCenter ]->setLinePen( QColor( 0xff, 0, 0, 0x40 ) );
     } else {
-        markers_[ idPeakCenter ]->setLinePen( Qt::transparent );
+        markers_[ idPeakCenter ]->setLinePen( QColor( 0xff, 0, 0, 0x10 ) );
     }
 }

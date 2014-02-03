@@ -306,7 +306,6 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 // MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time );
                 item.peak_start_index( uint32_t(pk.first) );
                 item.peak_end_index( uint32_t(pk.second) );
-                item.base_height( uint32_t(pk.base) );
                 info_ << item;
             }
         } while(0);

@@ -31,6 +31,7 @@
 #include "mainwindow.hpp"
 #include "dataprocessworker.hpp"
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -605,6 +606,43 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
 	file().applyCalibration( dataInterpreterClsid, calibration );
     ifileimpl_->setModified();
     MainWindow::instance()->dataMayChanged(); // notify for dockwidgets
+}
+
+void
+Dataprocessor::lockMassHandled( const std::wstring& foliumId
+                                , const adcontrols::MassSpectrumPtr& ms
+                                , const adcontrols::lockmass& lockmass )
+{
+	if ( portfolio::Folium folium = this->portfolio().findFolium( foliumId ) ) {
+        
+        bool verified = false;
+        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+
+            portfolio::Folio atts = folium.attachments();
+            auto it = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
+            if ( it != atts.end() ) {
+                auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
+                if ( centroid == ms ) {
+                    verified = true;
+                    if ( auto fchild = portfolio::find_first_of( it->attachments(), []( portfolio::Folium& child ){
+                                return portfolio::is_type< adcontrols::MSPeakInfoPtr >( child );} ) ) {
+                        auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild );
+                        DataprocHandler::reverse_copy( *pkinfo, *centroid );
+                    }
+                }
+            }
+            if ( verified ) {
+                lockmass( *ptr ); // update profile spectrum
+                ifileimpl_->setModified();
+            }
+        }
+	}
+}
+
+void
+Dataprocessor::formulaChanged()
+{
+    ifileimpl_->setModified();
 }
 
 portfolio::Folium

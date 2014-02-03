@@ -36,6 +36,7 @@
 namespace adcontrols {
     class datafile;
     class LCMSDataset;
+    class lockmass;
     class ProcessMethod;
     class MassSpectrum;
     class MassSpectra;
@@ -68,7 +69,7 @@ namespace dataproc {
         bool create( const QString& token );
         bool open( const QString& );
         Core::IFile * ifile();
-
+        
 		const std::wstring& filename() const;
         adcontrols::datafile& file();
         const adcontrols::LCMSDataset* getLCMSDataset();
@@ -85,13 +86,15 @@ namespace dataproc {
 
         // apply calibration to entire dataset
         void applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
+		void lockMassHandled( const std::wstring& foliumId, const std::shared_ptr< adcontrols::MassSpectrum >&, const adcontrols::lockmass& );
+        void formulaChanged();
 
         void sendCheckedSpectraToCalibration( Dataprocessor * );
         void removeCheckedItems();
 
         void createSpectrogram();
         void clusterSpectrogram();
-
+        
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& );

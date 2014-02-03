@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include <string>
+#include <cstdint>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/version.hpp>
@@ -76,9 +77,9 @@ namespace adcontrols {
         void assign_mass( double mass, double left, double right, double hhLeft, double hhRight );
 
     private:
-        unsigned int peak_index_;
-        unsigned int peak_start_index_;
-        unsigned int peak_end_index_;
+        uint32_t peak_index_;
+        uint32_t peak_start_index_;
+        uint32_t peak_end_index_;
         double base_height_;
         double mass_;
         double area_;

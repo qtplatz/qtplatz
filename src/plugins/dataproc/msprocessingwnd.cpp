@@ -288,36 +288,41 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 
                     draw1( ptr ); // profile
 
+                    pProcessedSpectrum_.reset();
+                    pkinfo_.reset();
+                    
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium( folder.id() );
-                    
-                    portfolio::Folio atts = folium.attachments();
-                    std::sort( atts.begin(), atts.end(), []( const portfolio::Folium& a, const portfolio::Folium& ){
-                            return a.name() == Constants::F_CENTROID_SPECTRUM; }); // centroid result on top
 
-                    for( auto processed: atts ) {
-
-                        if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( processed ) ) {
-                            if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( processed ) ) {
-                                
-                                draw2( ptr );
-                                if ( ptr->isCentroid() )
-                                    pProcessedSpectrum_ = ptr;
-                                
-                                if ( auto fmethod = portfolio::find_first_of( processed.attachments(), []( portfolio::Folium& a ){
-                                            return portfolio::is_type< adcontrols::ProcessMethodPtr >( a ); }) ) {
-                                    // centrid, then DFT low pass filtered profile spectrum
-                                    
-                                    if ( auto method = portfolio::get< adcontrols::ProcessMethodPtr >( fmethod ) )
-                                        MainWindow::instance()->setProcessMethod( *method );
-                                }
-                                if ( auto f = portfolio::find_first_of( processed.attachments(), []( portfolio::Folium& a ){
-                                            return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
-                                    pkinfo_ = portfolio::get< adcontrols::MSPeakInfoPtr >( f );
-                                }
+                    if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
+                                return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+                        
+                        if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
+                            if ( centroid->isCentroid() ) {
+                                draw2( centroid );
+                                pProcessedSpectrum_ = centroid;
                             }
-                        } 
+                        }
+                        if ( auto fmethod = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
+                                    return portfolio::is_type< adcontrols::ProcessMethodPtr >( a ); }) ) {
+                                
+                            if ( auto method = portfolio::get< adcontrols::ProcessMethodPtr >( fmethod ) )
+                                MainWindow::instance()->setProcessMethod( *method );
+                        }
+                        if ( auto fpkinfo = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
+                                    return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
+                            pkinfo_ = portfolio::get< adcontrols::MSPeakInfoPtr >( fpkinfo );
+                        }
                     }
+
+                    if ( auto f = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
+                                return a.name() == Constants::F_DFT_FILTERD; }) ) {
+                        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( f ) ) {
+                            // overlay DFT low pass filterd
+                            draw2( ptr );
+                        }
+                    }
+                    
                 }
                 
             } else if ( portfolio::is_type< adcontrols::ChromatogramPtr >( folium ) ) {
@@ -384,6 +389,8 @@ void
 MSProcessingWnd::handleFormulaChanged( int /* idx */, int /* fcn */ )
 {
 	pImpl_->processedSpectrum_->update_annotation();
+    if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
+        dp->formulaChanged();
 }
 
 void
@@ -399,7 +406,9 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
         if ( lkms.fit() ) {
             if ( lkms( *ms ) ) {
                 pImpl_->processedSpectrum_->update_annotation();
-                MainWindow::instance()->lockMassHandled( ms );
+                if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
+					dp->lockMassHandled( idSpectrumFolium_, ms, lkms ); // update profile
+                MainWindow::instance()->lockMassHandled( ms ); // update MSPeakTable
             }
         }
     }
