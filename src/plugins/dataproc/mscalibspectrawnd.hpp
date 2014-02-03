@@ -83,6 +83,7 @@ namespace dataproc {
         void handle_reassign_mass_requested();
         void handle_recalibration_requested();
         void handle_apply_calibration_to_dataset();
+        void handle_apply_calibration_to_all();
         void handle_apply_calibration_to_default();
         void handleAxisChanged( int );
         //---

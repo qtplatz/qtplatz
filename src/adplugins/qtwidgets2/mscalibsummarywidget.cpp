@@ -377,6 +377,7 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
     actions.push_back( menu.addAction( "Re-calc polynomials" ) );
     actions.push_back( menu.addAction( "Assign mass on spectrum" ) );
     actions.push_back( menu.addAction( "Apply calibration to current dataset" ) );
+    actions.push_back( menu.addAction( "Apply calibration to all datasets" ) );
     actions.push_back( menu.addAction( "Save as default calibration" ) );
     actions.push_back( menu.addAction( "Copy summary to clipboard" ) );
     actions.push_back( menu.addAction( "Add to peak table" ) );
@@ -384,17 +385,18 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
     QAction * selected = menu.exec( this->mapToGlobal( pt ) );
 
     if ( selected == actions[ 0 ] ) {
-        // emit on_recalibration_requested();      // re-calc polynomials and errors but no m/z axis on spectrum to be changed
         emit valueChanged();
     } else if ( selected == actions[ 1 ] ) {
         emit on_reassign_mass_requested();      // change source mass spectrum m/z array (both profile and centroid)
     } else if ( selected == actions[ 2 ] ) {
         emit on_apply_calibration_to_dataset(); // change whole calibration for current dataset
     } else if ( selected == actions[ 3 ] ) {
-        emit on_apply_calibration_to_default(); // save calibration as system default
+        emit on_apply_calibration_to_all();     // change whole calibration for current dataset
     } else if ( selected == actions[ 4 ] ) {
-        copySummaryToClipboard();
+        emit on_apply_calibration_to_default(); // save calibration as system default
     } else if ( selected == actions[ 5 ] ) {
+        copySummaryToClipboard();
+    } else if ( selected == actions[ 6 ] ) {
         addSelectionToPeakTable();
     }
 }

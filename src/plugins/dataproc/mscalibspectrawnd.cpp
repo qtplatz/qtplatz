@@ -236,6 +236,8 @@ MSCalibSpectraWnd::init()
             assert( res );
             res = connect( wndCalibSummary_, SIGNAL( on_apply_calibration_to_dataset()), this, SLOT( handle_apply_calibration_to_dataset() ) );
             assert(res);
+            res = connect( wndCalibSummary_, SIGNAL( on_apply_calibration_to_dataset()), this, SLOT( handle_apply_calibration_to_all() ) );
+            assert(res);
             res = connect( wndCalibSummary_, SIGNAL( on_apply_calibration_to_default()), this, SLOT( handle_apply_calibration_to_default() ) );
             assert(res);
 
@@ -685,7 +687,21 @@ MSCalibSpectraWnd::handle_apply_calibration_to_dataset()
         if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
             std::wstring clsid = adportable::utf::to_wstring( margedSpectrum_->getMSProperty().dataInterpreterClsid() );
             processor->applyCalibration( clsid, *margedCalibResult_ );
+            MainWindow::instance()->dataMayChanged(); // notify for dockwidgets
         }
+    }
+}
+
+void
+MSCalibSpectraWnd::handle_apply_calibration_to_all()
+{
+    if ( margedCalibResult_ ) {
+        std::wstring clsid = adportable::utf::to_wstring( margedSpectrum_->getMSProperty().dataInterpreterClsid() );
+
+        for ( auto& session: *SessionManager::instance() )
+            session.processor()->applyCalibration( clsid, *margedCalibResult_ );
+
+        MainWindow::instance()->dataMayChanged(); // notify for dockwidgets
     }
 }
 

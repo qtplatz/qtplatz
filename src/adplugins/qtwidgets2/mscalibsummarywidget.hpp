@@ -89,6 +89,7 @@ namespace qtwidgets2 {
         void on_recalibration_requested();
         void on_reassign_mass_requested();
         void on_apply_calibration_to_dataset();
+        void on_apply_calibration_to_all();
         void on_apply_calibration_to_default();
         void on_add_selection_to_peak_table( const adcontrols::MSPeaks& );
 
