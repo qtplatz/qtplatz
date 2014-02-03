@@ -76,10 +76,12 @@ MSCalibSummaryWidget::MSCalibSummaryWidget(QWidget *parent) : QTableView(parent)
     this->setContextMenuPolicy( Qt::CustomContextMenu );
     this->setSortingEnabled( true );
     this->verticalHeader()->setDefaultSectionSize( 18 );
+#if defined WIN32
     QFont font;
     font.setFamily( "Consolas" );
 	font.setPointSize( 8 );
     this->setFont( font );
+#endif
     connect( this, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
     connect( pDelegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );
 }
