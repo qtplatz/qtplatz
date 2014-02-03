@@ -75,6 +75,7 @@ namespace dataproc {
         void handleCurrentChanged( int idx, int fcn );
         void handleFormulaChanged( int idx, int fcn );
         void handleLockMass( const QVector< QPair<int, int> >& );
+        void handleDataMayChanged();
 
     private slots:
         void handleCustomMenuOnProcessedSpectrum( const QPoint& );

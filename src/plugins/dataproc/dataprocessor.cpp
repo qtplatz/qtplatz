@@ -573,9 +573,9 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 void
 Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibration )
 {
-    if ( portfolio::Folder fsp = portfolio_->findFolder( L"Spectra" ) ) {
+    if ( portfolio::Folder folder = portfolio_->findFolder( L"Spectra" ) ) {
 
-        for ( portfolio::Folium folium: fsp.folio() ) {
+        for ( portfolio::Folium folium: folder.folio() ) {
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr > ( folium ) ) {
 
 				if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
@@ -624,6 +624,7 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
                 auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
                 if ( centroid == ms ) {
                     verified = true;
+                    // update attached peakinfo
                     if ( auto fchild = portfolio::find_first_of( it->attachments(), []( portfolio::Folium& child ){
                                 return portfolio::is_type< adcontrols::MSPeakInfoPtr >( child );} ) ) {
                         auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild );
@@ -632,6 +633,12 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
                 }
             }
             if ( verified ) {
+                auto it = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ){ return f.name() == Constants::F_DFT_FILTERD; });
+                if ( it != atts.end() ) {
+                    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( *it ) )
+                        lockmass( *ptr );
+                }
+
                 lockmass( *ptr ); // update profile spectrum
                 ifileimpl_->setModified();
             }

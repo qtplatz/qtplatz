@@ -111,6 +111,19 @@ namespace qtwidgets2 {
             }
         };
 
+        struct dataMayChanged : public boost::static_visitor< bool > {
+            MSPeakTable * pThis_;
+            dataMayChanged( MSPeakTable * table ) : pThis_( table ) {}
+            bool operator()( std::weak_ptr< adcontrols::MassSpectrum >& wptr ) const {
+                if ( auto ptr = wptr.lock() )
+                    pThis_->dataChanged( *ptr );
+                return true;
+            }
+            bool operator()( std::weak_ptr< adcontrols::MSPeakInfo >& ) const {
+                return false; // do nothing
+            }
+        };
+
     }
 }
 
@@ -176,9 +189,10 @@ MSPeakTable::onUpdate( boost::any& a )
 
         int id = boost::any_cast<int>( a );
         if ( id == 0 ) { // data may changed
-            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
-            if ( auto ptr = wptr.lock() )
-                dataChanged( *ptr );
+            boost::apply_visitor( detail::dataMayChanged( this ), data_source_ );
+            // auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+            // if ( auto ptr = wptr.lock() )
+            //     dataChanged( *ptr );
         }
     }
 }

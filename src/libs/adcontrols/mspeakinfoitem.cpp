@@ -222,7 +222,7 @@ void
 MSPeakInfoItem::mass( double mass )
 {
     // this will cause when re-assign calibration to centroid spectrum occured
-    double d = mass_ - mass;
+    double d = mass - mass_;
 
     mass_ = mass;
     centroid_left_mass_ += d;

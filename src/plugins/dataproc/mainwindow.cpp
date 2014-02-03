@@ -466,6 +466,7 @@ MainWindow::createDockWidgets()
             connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wndMSProcessing_, SLOT( handleFormulaChanged( int, int ) ) );
             connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int> >& ) )
                      , wndMSProcessing_, SLOT( handleLockMass( const QVector<QPair<int, int> >& ) ) );
+            connect( this, SIGNAL( onDataMayCanged() ), wndMSProcessing_, SLOT( handleDataMayChanged() ) );
         }
 
         if ( !pWidget ) {
@@ -589,6 +590,7 @@ MainWindow::dataMayChanged()
             pLifeCycle->onUpdate( any );
         }
     }
+    emit onDataMayCanged();
 }
 
 int

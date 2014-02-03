@@ -39,6 +39,8 @@ namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormu
 
 namespace qtwidgets2 {
 
+    namespace detail { struct dataMayChanged; }
+
     class MSPeakTable : public QTableView
                       , public adplugin::LifeCycle {
         Q_OBJECT
@@ -88,6 +90,7 @@ namespace qtwidgets2 {
 		void dataChanged( const adcontrols::MassSpectrum& );
         void formulaChanged( const QModelIndex& );
         static double exactMass( std::string );
+        friend struct detail::dataMayChanged;
     };
 
     //////////////////////

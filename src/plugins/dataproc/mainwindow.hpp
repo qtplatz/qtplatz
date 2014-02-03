@@ -144,6 +144,7 @@ namespace dataproc {
     signals:
         void onPrintCurrentView( const QString& ) const;
         void onAddMSPeaks( const adcontrols::MSPeaks& ) const;
+        void onDataMayCanged() const;
     };
 
 }

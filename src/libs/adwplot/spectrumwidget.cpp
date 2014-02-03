@@ -552,6 +552,8 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                     if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
                         if ( a.index() >= 0 && isTimeAxis_ )
                             a.x( scale_to_micro( ms.getTime( a.index() ) ) );
+                        else
+                            a.x( ms.getMass( a.index() ) );
 						if ( a.dataFormat() == adcontrols::annotation::dataFormula ) {
 							a.text( adcontrols::ChemicalFormula::formatFormula( a.text () ) );
 						}

@@ -288,11 +288,8 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 
                     draw1( ptr ); // profile
 
-                    pProcessedSpectrum_.reset();
-                    pkinfo_.reset();
-                    
                     idActiveFolium_ = folium.id();
-                    idSpectrumFolium( folder.id() );
+                    idSpectrumFolium_ = folium.id();
 
                     if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
                                 return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
@@ -398,20 +395,30 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
 {
     if ( auto ms = pProcessedSpectrum_.lock() ) {
 
-        adcontrols::lockmass lkms;
+        adcontrols::lockmass lockmass;
         
         for ( auto ref: refs )
-            adcontrols::lockmass::findReferences( lkms, *ms, ref.first, ref.second );
+            adcontrols::lockmass::findReferences( lockmass, *ms, ref.first, ref.second );
 
-        if ( lkms.fit() ) {
-            if ( lkms( *ms ) ) {
+        if ( lockmass.fit() ) {
+            if ( lockmass( *ms ) ) {
                 pImpl_->processedSpectrum_->update_annotation();
+
                 if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
-					dp->lockMassHandled( idSpectrumFolium_, ms, lkms ); // update profile
+					dp->lockMassHandled( idSpectrumFolium_, ms, lockmass ); // update profile
+
                 MainWindow::instance()->lockMassHandled( ms ); // update MSPeakTable
+                handleDataMayChanged();
             }
         }
     }
+}
+
+void
+MSProcessingWnd::handleDataMayChanged()
+{
+    pImpl_->profileSpectrum_->update();
+    pImpl_->processedSpectrum_->update();
 }
 
 void
