@@ -128,9 +128,9 @@ Section "!Application" App
 	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
 	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\lib\qtplatz\plugins\QtProject"
 
-	!ifndef ARCH
-	  !define ARCH	x86
-        !endif
+;	!ifndef ARCH
+;	  !define ARCH	x86
+;       !endif
 
 ;-------------------------------- define path -------------------------
 	!define InQtPlatz   "..\..\..\..\qtplatz"

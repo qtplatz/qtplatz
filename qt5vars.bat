@@ -26,7 +26,6 @@ echo VC=%VC%
 echo arch_tool=%uname%
 echo QMAKESPEC=%QMAKESPEC%
 echo -------------------------------------
-
 set RDBASE=%USERPROFILE%\src\rdkit
 
 if %uname%==x86_vc11 goto x86_vc11
