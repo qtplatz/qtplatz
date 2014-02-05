@@ -46,6 +46,6 @@ qtplatz.msi: qtplatz.wixobj
 	$(LIGHT) $?
 	copy.bat
 
-qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
+qtplatz.wixobj: version.wxi copy.bat qtplatz.wxs
 	$(CANDLE) qtplatz.wxs
 
