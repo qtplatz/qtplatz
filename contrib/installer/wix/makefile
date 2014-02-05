@@ -9,17 +9,30 @@ TORCH = "$(WIX)\bin\Torch.exe"
 SMOKE = "$(WIX)\bin\Smoke.exe"
 PYRO = "$(WIX)\bin\Pyro.exe"
 
-all: qtplatz.msi version.txt
+all: qtplatz.msi
 
 clean:
-	rm -f *.msi *.wixobj version.txt
+	rm -f *.msi *.wixobj version.wxi *.zip *.bat *.exe *.obj
 
-version.txt:
-	git describe > version.txt
+veryclean: clean
+	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Clean /p:Configuration=Release
+
+qtplatz:
+	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Rebuild /p:Configuration=Release
+
+version.exe: version.c
+	cl version.c
+
+version.wxi: version.exe
+	git describe | version > version.wxi
+
+copy.bat: version.exe
+	git describe | version -b > copy.bat
 
 qtplatz.msi: qtplatz.wixobj
 	$(LIGHT) $?
+	copy.bat
 
-qtplatz.wixobj: qtplatz.wxs
-	$(CANDLE) $?
+qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
+	$(CANDLE) qtplatz.wxs
 

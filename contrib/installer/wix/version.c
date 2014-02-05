@@ -9,6 +9,14 @@ main(int ac, char * av[])
 {
     int c, n;
     int v[4];
+    int batchfile = 0;
+
+    --ac;
+    ++av;
+    if ( ac ) {
+        if ( strcmp( av[0], "-b" ) == 0 )
+            batchfile = 1;
+    }
 
     memset(v, 0, sizeof(v));
     n = 0;
@@ -23,6 +31,9 @@ main(int ac, char * av[])
         if ( n >= 4 )
             break;
     }
-    printf("<Include>\n<?define ProductVersion =\"%d.%d.%d.%d\" ?>\n</Include>", v[0], v[1], v[2], v[3]);
+    if ( batchfile )
+        printf("copy qtplatz.msi qtplatz_x64-%d.%d.%d.%d.msi", v[0], v[1], v[2], v[3] );
+    else
+        printf("<Include>\n<?define ProductVersion =\"%d.%d.%d.%d\" ?>\n</Include>", v[0], v[1], v[2], v[3]);
 }
 

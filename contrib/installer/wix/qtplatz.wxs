@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Product Id="*" Name="qtplatz" Language="1033" Version="2.6.0.0" Manufacturer="MS-Cheminformatics LLC" UpgradeCode="cf1f5024-a587-488a-beee-fd248ed76e4e">
+  <?include version.wxi ?>
+  <Product Id="*" Name="QtPlatz $(var.ProductVersion)"
+	     Language="1033" Version="$(var.ProductVersion)" Manufacturer="MS-Cheminformatics LLC" UpgradeCode="cf1f5024-a587-488a-beee-fd248ed76e4e">
         <Package Id="*" Keywords="installer" Platform="x64" Manufacturer="MS-Cheminformatics LLC" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
         <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
         <Media Id="1" Cabinet="Cab1.cab" EmbedCab="yes" />
-        <Feature Id="ProductFeature" Title="qtplatz" Level="1">
+        <Feature Id="ProductFeature" Title="QtPlatz Mass Spectrometry Software" Level="1">
             <ComponentGroupRef Id="LicenseComponents" />
             <ComponentGroupRef Id="RDKitComponents" />
             <ComponentGroupRef Id="QtComponents" />
@@ -54,9 +56,6 @@
     <?define InTAOBin     = "$(env.ACE_ROOT)/bin" ?>
     <Fragment>
         <ComponentGroup Id="LicenseComponents" Directory="INSTALLFOLDER">
-            <Component Id="version.txt" Guid="3FFD52E1-6A4C-48A9-9858-412E3B8B9442" Win64="yes">
-                <File Id="version.txt" Source="./version.txt" ProcessorArchitecture="x64" />
-            </Component>
             <Component Id="license.txt" Guid="85B42502-7D63-4FCF-9737-3660138FA88B" Win64="yes">
                 <File Id="license.txt" Source="$(var.TOP)/license.txt" ProcessorArchitecture="x64" />
             </Component>
