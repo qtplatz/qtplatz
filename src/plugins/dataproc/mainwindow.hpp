@@ -85,6 +85,7 @@ namespace dataproc {
         void install_actions();
         void lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& );
         void dataMayChanged();
+        void zoomedOnSpectrum( const QRectF& );
 
     public slots:
         void handleSessionAdded( Dataprocessor * );
@@ -145,6 +146,7 @@ namespace dataproc {
         void onPrintCurrentView( const QString& ) const;
         void onAddMSPeaks( const adcontrols::MSPeaks& ) const;
         void onDataMayCanged() const;
+        void onZoomedOnSpectrum( const QRectF& ) const;
     };
 
 }

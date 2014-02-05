@@ -71,6 +71,7 @@ namespace qtwidgets2 {
 
     public slots:
         void handleCopyToClipboard();
+        void handle_zoomed( const QRectF& );   // zoomer zoomed
 
     private slots:
         void handleValueChanged( const QModelIndex& );

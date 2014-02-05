@@ -147,6 +147,9 @@ MSProcessingWnd::init()
             pImpl_->processedSpectrum_->setMinimumHeight( 80 );
 			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProcessed( const QPointF& ) ) );
 			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProcessed( const QRectF& ) ) );
+            adwplot::Zoomer * zoomer = &pImpl_->processedSpectrum_->zoomer();
+            connect( zoomer, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
+
             pImpl_->processed_marker_ = std::make_shared< adwplot::PeakMarker >();
             pImpl_->processed_marker_->attach( pImpl_->processedSpectrum_ );
             pImpl_->processed_marker_->visible( true );
@@ -252,7 +255,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
         if ( portfolio::Folium folium = folder.findFoliumByName( L"TIC.1" ) ) {
 			if ( folium.empty() )
 				processor->fetch( folium );
-			handleSelectionChanged( processor, folium );
+			processor->setCurrentSelection( folium );
 		}
     }
 
@@ -262,11 +265,16 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
         portfolio::Folio folio = spectra.folio();
         if ( !folio.empty() ) {
             processor->fetch( folio[0] );
-            handleSelectionChanged( processor, folio[0] );
+			processor->setCurrentSelection( folio[0] );
         }
     }
 }
 
+void
+MSProcessingWnd::handleZoomedOnSpectrum( const QRectF& rc )
+{
+    MainWindow::instance()->zoomedOnSpectrum( rc );
+}
 
 void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )

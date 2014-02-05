@@ -16,7 +16,7 @@
             <ComponentGroupRef Id="MicrosoftComponents" />
             <ComponentGroupRef Id="PluginComponents" />
             <ComponentGroupRef Id="InfiTOFComponents" />
-	    <ComponentGroupRef Id="ApplicationProgramsFolder"/>
+            <ComponentGroupRef Id="ApplicationProgramsFolder" />
         </Feature>
         <UI />
     </Product>
@@ -41,9 +41,9 @@
                     </Directory>
                 </Directory>
             </Directory>
-	    <Directory Id="ProgramMenuFolder">
-	      <Directory Id="ApplicationProgramsFolder" Name="QtPlatz Mass Spectrometry Software"/>
-	    </Directory>
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="QtPlatz Mass Spectrometry Software" />
+            </Directory>
         </Directory>
     </Fragment>
     <?define TOP = "../../.." ?>
@@ -54,90 +54,90 @@
     <?define InTAOBin     = "$(env.ACE_ROOT)/bin" ?>
     <Fragment>
         <ComponentGroup Id="LicenseComponents" Directory="INSTALLFOLDER">
-            <Component Id="version.txt" Guid="" Win64="yes">
+            <Component Id="version.txt" Guid="3FFD52E1-6A4C-48A9-9858-412E3B8B9442" Win64="yes">
                 <File Id="version.txt" Source="./version.txt" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="license.txt" Guid="" Win64="yes">
+            <Component Id="license.txt" Guid="85B42502-7D63-4FCF-9737-3660138FA88B" Win64="yes">
                 <File Id="license.txt" Source="$(var.TOP)/license.txt" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="RDKitComponents" Directory="LIB_RDKIT">
-            <Component Id="rdkit_version.txt" Guid="" Win64="yes">
+            <Component Id="rdkit_version.txt" Guid="EE9791B3-137B-4C17-BE0D-000D964F7F81" Win64="yes">
                 <File Id="rdkit_version.txt" Source="$(env.RDBASE)/license.txt" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="QtComponents" Directory="BIN">
-            <Component Id="libEGL.dll" Guid="" Win64="yes">
+            <Component Id="libEGL.dll" Guid="61C52CDF-5F57-40BF-99F8-786AF4377080" Win64="yes">
                 <File Id="libEGL.dll" Source="$(env.QTDIR)/bin/libEGL.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="libGLESv2.dll" Guid="" Win64="yes">
+            <Component Id="libGLESv2.dll" Guid="8B9B0FB5-B223-4C2C-A83F-F9123EAFB82F" Win64="yes">
                 <File Id="libGLESv2.dll" Source="$(env.QTDIR)/bin/libGLESv2.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="icuin51.dll" Guid="" Win64="yes">
+            <Component Id="icuin51.dll" Guid="08EFD3E1-2D9D-45E2-A133-5200207C156C" Win64="yes">
                 <File Id="icuin51.dll" Source="$(env.QTDIR)/bin/icuin51.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="icuuc51.dll" Guid="" Win64="yes">
+            <Component Id="icuuc51.dll" Guid="67F10816-BB66-4D2B-A163-29C456BC32B1" Win64="yes">
                 <File Id="icuuc51.dll" Source="$(env.QTDIR)/bin/icuuc51.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="icudt51.dll" Guid="" Win64="yes">
+            <Component Id="icudt51.dll" Guid="BF5B9F29-F6E4-4436-841D-49B2F23199A4" Win64="yes">
                 <File Id="icudt51.dll" Source="$(env.QTDIR)/bin/icudt51.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5CLucene.dll" Guid="" Win64="yes">
+            <Component Id="Qt5CLucene.dll" Guid="7A608D80-5B5C-4AEE-AAFF-178EA8F4196B" Win64="yes">
                 <File Id="Qt5CLucene.dll" Source="$(env.QTDIR)/bin/Qt5CLucene.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Core.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Core.dll" Guid="B5DCF2A2-FDE8-416C-91A5-87E19933C8C8" Win64="yes">
                 <File Id="Qt5Core.dll" Source="$(env.QTDIR)/bin/Qt5Core.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Gui.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Gui.dll" Guid="B71A7BA9-97CC-4DF9-93F7-8DD99592F706" Win64="yes">
                 <File Id="Qt5Gui.dll" Source="$(env.QTDIR)/bin/Qt5Gui.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Help.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Help.dll" Guid="C46BFE3B-9ADA-4E6C-B61B-43AA57176614" Win64="yes">
                 <File Id="Qt5Help.dll" Source="$(env.QTDIR)/bin/Qt5Help.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Multimedia.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Multimedia.dll" Guid="BE51BBC9-8A85-4419-BD80-5818F344BA1C" Win64="yes">
                 <File Id="Qt5Multimedia.dll" Source="$(env.QTDIR)/bin/Qt5Multimedia.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Network.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Network.dll" Guid="EF2CD9F2-D3A8-4F91-9105-5EC6F618D741" Win64="yes">
                 <File Id="Qt5Network.dll" Source="$(env.QTDIR)/bin/Qt5Network.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5OpenGL.dll" Guid="" Win64="yes">
+            <Component Id="Qt5OpenGL.dll" Guid="791B8C49-8BA2-48AE-8799-8E6197255242" Win64="yes">
                 <File Id="Qt5OpenGL.dll" Source="$(env.QTDIR)/bin/Qt5OpenGL.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5PrintSupport.dll" Guid="" Win64="yes">
+            <Component Id="Qt5PrintSupport.dll" Guid="05D39EF7-127A-46AE-AEFF-3CCCCFD3257A" Win64="yes">
                 <File Id="Qt5PrintSupport.dll" Source="$(env.QTDIR)/bin/Qt5PrintSupport.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Script.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Script.dll" Guid="DC7BB0C0-BC87-44A6-84C7-677FA4DA8A41" Win64="yes">
                 <File Id="Qt5Script.dll" Source="$(env.QTDIR)/bin/Qt5Script.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Sql.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Sql.dll" Guid="37DE7385-604F-4046-8258-43B5C4827ECD" Win64="yes">
                 <File Id="Qt5Sql.dll" Source="$(env.QTDIR)/bin/Qt5Sql.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Svg.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Svg.dll" Guid="6FDFD795-3F6B-41C8-9743-ABBD59EF24C4" Win64="yes">
                 <File Id="Qt5Svg.dll" Source="$(env.QTDIR)/bin/Qt5Svg.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Widgets.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Widgets.dll" Guid="E7E173CB-1514-44FB-9EA4-A8AC58B7EBC9" Win64="yes">
                 <File Id="Qt5Widgets.dll" Source="$(env.QTDIR)/bin/Qt5Widgets.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5Xml.dll" Guid="" Win64="yes">
+            <Component Id="Qt5Xml.dll" Guid="44B3E3FD-0C76-4BBD-BE58-5D689603A30D" Win64="yes">
                 <File Id="Qt5Xml.dll" Source="$(env.QTDIR)/bin/Qt5Xml.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="Qt5XmlPatterns.dll" Guid="" Win64="yes">
+            <Component Id="Qt5XmlPatterns.dll" Guid="8A17AC88-7AE3-40AB-9A11-494DE78780DC" Win64="yes">
                 <File Id="Qt5XmlPatterns.dll" Source="$(env.QTDIR)/bin/Qt5XmlPatterns.dll" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="QtPlatformsComponents" Directory="PLATFORMS">
-            <Component Id="qminimal.dll" Guid="" Win64="yes">
+            <Component Id="qminimal.dll" Guid="A221C867-A374-43D0-8B45-5F1BE8E459F4" Win64="yes">
                 <File Id="qminimal.dll" Source="$(env.QTDIR)/plugins/platforms/qminimal.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="qoffscreen.dll" Guid="" Win64="yes">
+            <Component Id="qoffscreen.dll" Guid="E45E437B-7918-4169-BD85-F1CF69CFB335" Win64="yes">
                 <File Id="qoffscreen.dll" Source="$(env.QTDIR)/plugins/platforms/qoffscreen.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="qwindows.dll" Guid="" Win64="yes">
+            <Component Id="qwindows.dll" Guid="0037933B-61BF-42A7-8666-02D68DEB9B22" Win64="yes">
                 <File Id="qwindows.dll" Source="$(env.QTDIR)/plugins/platforms/qwindows.dll" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="QtCreatorComponents" Directory="PLUGINS_QTPROJECT">
-            <Component Id="Core.dll" Guid="" Win64="yes">
+            <Component Id="Core.dll" Guid="772F0878-C577-463F-B478-5BEAE23C795A" Win64="yes">
                 <File Id="Core.pluginspec" Source="$(var.TOP)/lib/qtplatz/plugins/QtProject/Core.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="Core.dll" Source="$(var.TOP)/lib/qtplatz/plugins/QtProject/Core.dll" ProcessorArchitecture="x64" />
             </Component>
@@ -146,165 +146,163 @@
             <Component Id="qtplatz.exe" Guid="4EF69506-4DCB-4FAC-B0E7-ED0ED29A6F86" Win64="yes">
                 <File Id="qtplatz.exe" Source="../../../bin/qtplatz.exe" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="Aggregation.dll" Guid="" Win64="yes">
+            <Component Id="Aggregation.dll" Guid="1400C2E0-315D-4C37-9656-6E64DC7CF9D5" Win64="yes">
                 <File Id="Aggregation.dll" Source="../../../bin/Aggregation.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="ExtensionSystem.dll" Guid="" Win64="yes">
+            <Component Id="ExtensionSystem.dll" Guid="CDDD8FCA-47A7-4A00-A097-3068ED2514D5" Win64="yes">
                 <File Id="ExtensionSystem.dll" Source="../../../bin/ExtensionSystem.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="Utils.dll" Guid="" Win64="yes">
+            <Component Id="Utils.dll" Guid="256923EE-0038-4DC8-AEE1-8656FB4AEA32" Win64="yes">
                 <File Id="Utils.dll" Source="../../../bin/Utils.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="adchem.dll" Guid="" Win64="yes">
+            <Component Id="adchem.dll" Guid="11EA8F0B-8085-4E5A-9099-7C2C8F613A16" Win64="yes">
                 <File Id="adchem.dll" Source="../../../bin/adchem.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="adcontrols.dll" Guid="" Win64="yes">
+            <Component Id="adcontrols.dll" Guid="0D031AFE-599C-4D03-82FB-D3738A12A005" Win64="yes">
                 <File Id="adcontrols.dll" Source="../../../bin/adcontrols.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="adextension.dll" Guid="" Win64="yes">
+            <Component Id="adextension.dll" Guid="BC444E65-618D-4CCA-B160-9B1802E0573B" Win64="yes">
                 <File Id="adextension.dll" Source="../../../bin/adextension.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="adorbmgr.dll" Guid="" Win64="yes">
+            <Component Id="adorbmgr.dll" Guid="B073E12B-27F7-4744-8168-DB38D8287D06" Win64="yes">
                 <File Id="adorbmgr.dll" Source="../../../bin/adorbmgr.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="adplugin.dll" Guid="" Win64="yes">
+            <Component Id="adplugin.dll" Guid="F3CEA1D8-358F-4FB3-90CC-0DC90FE47B90" Win64="yes">
                 <File Id="adplugin.dll" Source="../../../bin/adplugin.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="adsequence.dll" Guid="" Win64="yes">
+            <Component Id="adsequence.dll" Guid="984CF213-1076-45CD-B678-59CC3587480B" Win64="yes">
                 <File Id="adsequence.dll" Source="../../../bin/adsequence.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="chromatogr.dll" Guid="" Win64="yes">
+            <Component Id="chromatogr.dll" Guid="E6BFEE5D-0E0D-4A0C-8E4D-522971F81338" Win64="yes">
                 <File Id="chromatogr.dll" Source="../../../bin/chromatogr.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="portfolio.dll" Guid="" Win64="yes">
+            <Component Id="portfolio.dll" Guid="E5403C7A-E0F2-42D5-9E4C-49C0175C8E97" Win64="yes">
                 <File Id="portfolio.dll" Source="../../../bin/portfolio.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="XSDComponents" Directory="PLUGINS_XSD">
-            <Component Id="config.xsd" Guid="" Win64="yes">
+            <Component Id="config.xsd" Guid="830AB06B-0540-4A65-8B38-D1A7365F0918" Win64="yes">
                 <File Id="config.xsd" Source="$(var.TOP)/src/plugins/xsd/config.xsd" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="PluginComponents" Directory="PLUGINS_MSCHEMINFORMATICS">
-            <Component Id="adbroker.adplugin" Guid="" Win64="yes">
+            <Component Id="adbroker.dll" Guid="98937396-6E9A-46F3-B9E7-649843B7B6EA" Win64="yes">
                 <File Id="adbroker.adplugin" Source="$(var.InMSCheminfo)/adbroker.adplugin" ProcessorArchitecture="x64" />
                 <File Id="adbroker.dll" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/adbroker.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="adcontroller.dll" Guid="" Win64="yes">
+            <Component Id="adcontroller.dll" Guid="12C97A5D-F4DB-4BB7-ABF7-7D850091C18A" Win64="yes">
                 <File Id="adcontroller.adplugin" Source="$(var.InMSCheminfo)/adcontroller.adplugin" ProcessorArchitecture="x64" />
                 <File Id="adcontroller.dll" Source="$(var.InMSCheminfo)/adcontroller.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="addatafile.dll" Guid="" Win64="yes">
+            <Component Id="addatafile.dll" Guid="1AC2DA1B-E459-451B-89CD-577ABF689EF6" Win64="yes">
                 <File Id="addatafile.adplugin" Source="$(var.InMSCheminfo)/addatafile.adplugin" ProcessorArchitecture="x64" />
                 <File Id="addatafile.dll" Source="$(var.InMSCheminfo)/addatafile.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="adtextfile.dll" Guid="" Win64="yes">
+            <Component Id="adtextfile.dll" Guid="B8A12482-CBBB-4257-89CF-F7CE9CCFBC00" Win64="yes">
                 <File Id="adtextfile.adplugin" Source="$(var.InMSCheminfo)/adtextfile.adplugin" ProcessorArchitecture="x64" />
                 <File Id="adtextfile.dll" Source="$(var.InMSCheminfo)/adtextfile.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="compassxtract.dll" Guid="" Win64="yes">
+            <Component Id="compassxtract.dll" Guid="E6AD17C2-ABAB-4E19-8E3F-AD31B20F7D92" Win64="yes">
                 <File Id="compassxtract.adplugin" Source="$(var.InMSCheminfo)/compassxtract.adplugin" ProcessorArchitecture="x64" />
                 <File Id="compassxtract.dll" Source="$(var.InMSCheminfo)/compassxtract.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="fticr.dll" Guid="" Win64="yes">
+            <Component Id="fticr.dll" Guid="80321606-B23E-40CC-BDB1-DEBE9CD7D19D" Win64="yes">
                 <File Id="fticr.adplugin" Source="$(var.InMSCheminfo)/fticr.adplugin" ProcessorArchitecture="x64" />
                 <File Id="fticr.dll" Source="$(var.InMSCheminfo)/fticr.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="qtwidgets.dll" Guid="" Win64="yes">
+            <Component Id="qtwidgets.dll" Guid="A554C960-5773-4C43-A377-AB827430924C" Win64="yes">
                 <File Id="qtwidgets.adplugin" Source="$(var.InMSCheminfo)/qtwidgets.adplugin" ProcessorArchitecture="x64" />
                 <File Id="qtwidgets.dll" Source="$(var.InMSCheminfo)/qtwidgets.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="qtwidgets2.dll" Guid="" Win64="yes">
+            <Component Id="qtwidgets2.dll" Guid="DC3E1F09-314B-4A83-94D3-6DA3410182CA" Win64="yes">
                 <File Id="qtwidgets2.adplugin" Source="$(var.InMSCheminfo)/qtwidgets2.adplugin" ProcessorArchitecture="x64" />
                 <File Id="qtwidgets2.dll" Source="$(var.InMSCheminfo)/qtwidgets2.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="acquire.dll" Guid="" Win64="yes">
+            <Component Id="acquire.dll" Guid="9FC3E441-5693-4A24-8C07-DC5220D65ED2" Win64="yes">
                 <File Id="acquire.dll" Source="$(var.InMSCheminfo)/acquire.dll" ProcessorArchitecture="x64" />
                 <File Id="acquire.pluginspec" Source="$(var.InMSCheminfo)/acquire.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="acquire.config" Source="$(var.InMSCheminfo)/acquire.config" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="batchproc.dll" Guid="" Win64="yes">
+            <Component Id="batchproc.dll" Guid="D85DCA42-031A-4EF2-8F35-F71D395A2ED0" Win64="yes">
                 <File Id="batchproc.pluginspec" Source="$(var.InMSCheminfo)/batchproc.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="batchproc.dll" Source="$(var.InMSCheminfo)/batchproc.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="chemistry.dll" Guid="" Win64="yes">
+            <Component Id="chemistry.dll" Guid="37A019FA-AD6E-4F6F-B952-71154CE54265" Win64="yes">
                 <File Id="chemistry.pluginspec" Source="$(var.InMSCheminfo)/chemistry.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="chemistry.dll" Source="$(var.InMSCheminfo)/chemistry.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="dataproc.dll" Guid="" Win64="yes">
+            <Component Id="dataproc.dll" Guid="99B5853A-5C95-4769-BBE4-A3D9DCD32EFA" Win64="yes">
                 <File Id="dataproc.dll" Source="$(var.InMSCheminfo)/dataproc.dll" ProcessorArchitecture="x64" />
                 <File Id="dataproc.pluginspec" Source="$(var.InMSCheminfo)/dataproc.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="dataproc.config" Source="$(var.InMSCheminfo)/dataproc.config" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="sequence.dll" Guid="" Win64="yes">
+            <Component Id="sequence.dll" Guid="D9734BC0-7D34-4255-BC4C-7A511F569DC7" Win64="yes">
                 <File Id="sequence.pluginspec" Source="$(var.InMSCheminfo)/sequence.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="sequence.dll" Source="$(var.InMSCheminfo)/sequence.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="servant.dll" Guid="" Win64="yes">
+            <Component Id="servant.dll" Guid="AAD693ED-3B3A-417A-8B32-5F8DD75E7C0E" Win64="yes">
                 <File Id="servant.pluginspec" Source="$(var.InMSCheminfo)/servant.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="servant.dll" Source="$(var.InMSCheminfo)/servant.dll" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="InfiTOFComponents" Directory="PLUGINS_MSCHEMINFORMATICS">
-            <Component Id="infitof.dll" Guid="" Win64="yes">
+            <Component Id="infitof.dll" Guid="812A8109-1937-4746-9AEA-886FAF62F861" Win64="yes">
                 <File Id="infitof.dll" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitof.dll" ProcessorArchitecture="x64" />
                 <File Id="infitof.pluginspec" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitof.pluginspec" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="infirawfile.dll" Guid="" Win64="yes">
+            <Component Id="infirawfile.dll" Guid="22A3685E-1854-49CB-9C33-5193CBC48CC7" Win64="yes">
                 <File Id="infirawfile.dll" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infirawfile.dll" ProcessorArchitecture="x64" />
                 <File Id="infirawfile.adplugin" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infirawfile.adplugin" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="infitofspectrometer.dll" Guid="" Win64="yes">
+            <Component Id="infitofspectrometer.dll" Guid="21A0C747-09CE-4A8F-AC67-813837E58BFF" Win64="yes">
                 <File Id="infitofspectrometer.dll" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitofspectrometer.dll" ProcessorArchitecture="x64" />
                 <File Id="infitofspectrometer.adplugin" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitofspectrometer.adplugin" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="TAOComponents" Directory="BIN">
-            <Component Id="ACE.dll" Guid="" Win64="yes">
+            <Component Id="ACE.dll" Guid="217E3E3E-5658-4DDB-B4AF-202E5F3AB4ED" Win64="yes">
                 <File Id="ACE.dll" Source="$(var.InTAOLib)/ACE.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="TAO.dll" Guid="" Win64="yes">
+            <Component Id="TAO.dll" Guid="3FA54452-2A41-4563-8476-D1DE34D72165" Win64="yes">
                 <File Id="TAO.dll" Source="$(var.InTAOLib)/TAO.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="TAO_AnytypeCode.dll" Guid="" Win64="yes">
+            <Component Id="TAO_AnytypeCode.dll" Guid="CA979EE4-B020-4A0D-A4A2-EB6932E70B51" Win64="yes">
                 <File Id="TAO_AnytypeCode.dll" Source="$(var.InTAOLib)/TAO_AnytypeCode.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="TAO_CodecFactory.dll" Guid="" Win64="yes">
+            <Component Id="TAO_CodecFactory.dll" Guid="4C0FA230-4199-4688-9D6E-E335919429ED" Win64="yes">
                 <File Id="TAO_CodecFactory.dll" Source="$(var.InTAOLib)/TAO_CodecFactory.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="TAO_Codeset.dll" Guid="" Win64="yes">
+            <Component Id="TAO_Codeset.dll" Guid="E54AD1E3-C0B2-4E75-BA35-5E9AAFE7D6FE" Win64="yes">
                 <File Id="TAO_Codeset.dll" Source="$(var.InTAOLib)/TAO_Codeset.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="TAO_PI.dll" Guid="" Win64="yes">
+            <Component Id="TAO_PI.dll" Guid="F5D5C4CE-0CD2-472D-BB32-4D95BB4AF268" Win64="yes">
                 <File Id="TAO_PI.dll" Source="$(var.InTAOLib)/TAO_PI.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="TAO_PortableServer.dll" Guid="" Win64="yes">
+            <Component Id="TAO_PortableServer.dll" Guid="F03CEBBC-3704-4387-8BFB-9D6C6929C909" Win64="yes">
                 <File Id="TAO_PortableServer.dll" Source="$(var.InTAOLib)/TAO_PortableServer.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="TAO_Utils.dll" Guid="" Win64="yes">
+            <Component Id="TAO_Utils.dll" Guid="D0A6546B-3C1E-4D84-B8D6-94B1A075C91E" Win64="yes">
                 <File Id="TAO_Utils.dll" Source="$(var.InTAOLib)/TAO_Utils.dll" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="MicrosoftComponents" Directory="BIN">
-            <Component Id="vccorlib110.dll" Guid="" Win64="yes">
+            <Component Id="vccorlib110.dll" Guid="D2FDE345-28F1-44E3-A82F-84D533F8AAB9" Win64="yes">
                 <File Id="vccorlib110.dll" Source="$(var.InVC110)/vccorlib110.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="msvcr110.dll" Guid="" Win64="yes">
+            <Component Id="msvcr110.dll" Guid="EFA92C4D-D4E4-40CA-8165-B0A269F8B92C" Win64="yes">
                 <File Id="msvcr110.dll" Source="$(var.InVC110)/msvcr110.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="msvcp110.dll" Guid="" Win64="yes">
+            <Component Id="msvcp110.dll" Guid="E37142AA-5089-4843-BB75-A39B1C4FBD60" Win64="yes">
                 <File Id="msvcp110.dll" Source="$(var.InVC110)/msvcp110.dll" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
     </Fragment>
     <Fragment>
         <ComponentGroup Id="ApplicationProgramsFolder" Directory="ApplicationProgramsFolder">
-          <Component Id="ApplicationShortcut" Guid="94DB95AE-A0EB-4BFC-8894-C7F16D7E107D">
-            <Shortcut Id="ApplicationStartMenuShortcut" Name="QtPlatz Mass Spectrometry" Target="[#qtplatz.exe]" WorkingDirectory="APPLICATIONROOTDIRECTORY" />
+            <Component Id="ApplicationShortcut" Guid="94DB95AE-A0EB-4BFC-8894-C7F16D7E107D">
+                <Shortcut Id="ApplicationStartMenuShortcut" Name="QtPlatz Mass Spectrometry" Target="[#qtplatz.exe]" WorkingDirectory="APPLICATIONROOTDIRECTORY" />
                 <RemoveFolder Id="INSTALLFOLDER" On="uninstall" />
-                <RegistryValue Root="HKCU"
-			       Key="Software\MS-Cheminformatics\QtPlatz"
-			       Name="installed" Value="1" Type="integer" KeyPath="yes"/>
+                <RegistryValue Root="HKCU" Key="Software\MS-Cheminformatics\QtPlatz" Name="installed" Value="1" Type="integer" KeyPath="yes" />
             </Component>
         </ComponentGroup>
     </Fragment>

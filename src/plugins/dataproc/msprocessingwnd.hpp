@@ -87,6 +87,7 @@ namespace dataproc {
         void selectedOnProcessed( const QPointF& );
 		void selectedOnProcessed( const QRectF& );
         void handleAxisChanged( int );
+        void handleZoomedOnSpectrum( const QRectF& );
 
     private:
         size_t drawIdx1_;

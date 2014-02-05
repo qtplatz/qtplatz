@@ -189,12 +189,14 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
     setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
 
     // -----------
+#if ! defined __APPLE__
     QFont font;
     font.setFamily( "Consolas" );
     font.setBold( false );
 	font.setPointSize( 8 );
     setAxisFont( QwtPlot::xBottom, font );
     setAxisFont( QwtPlot::yLeft, font );
+#endif
 
     // handle zoom rect by this
     if ( zoomer1_ ) {

@@ -54,6 +54,7 @@
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <boost/any.hpp>
+#include <boost/exception/all.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -467,6 +468,7 @@ MainWindow::createDockWidgets()
             connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int> >& ) )
                      , wndMSProcessing_, SLOT( handleLockMass( const QVector<QPair<int, int> >& ) ) );
             connect( this, SIGNAL( onDataMayCanged() ), wndMSProcessing_, SLOT( handleDataMayChanged() ) );
+            connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handle_zoomed( const QRectF& ) ) );
         }
 
         if ( !pWidget ) {
@@ -513,6 +515,12 @@ MainWindow::toolButton( const char * id )
 }
 
 void
+MainWindow::zoomedOnSpectrum( const QRectF& rc )
+{
+    emit onZoomedOnSpectrum( rc );
+}
+
+void
 MainWindow::handleSessionAdded( dataproc::Dataprocessor * )
 {
 }
@@ -540,7 +548,11 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 
                 if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
                             return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
-                    centroid = portfolio::get< adcontrols::MassSpectrumPtr >( f );
+					try {
+						centroid = portfolio::get< adcontrols::MassSpectrumPtr >( f );
+					} catch ( boost::bad_any_cast& ex ) {
+						ADDEBUG() << boost::diagnostic_information( ex );
+					}
                 } else {
                     centroid = std::make_shared< adcontrols::MassSpectrum >();  // empty data for clear table
                 }

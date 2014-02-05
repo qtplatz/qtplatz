@@ -53,6 +53,7 @@ namespace qtwidgets2 {
         , c_mspeaktable_mass
         , c_mspeaktable_mass_error
         , c_mspeaktable_delta_mass
+        , c_mspeaktable_intensity
         , c_mspeaktable_mode
         , c_mspeaktable_time
         , c_mspeaktable_description
@@ -242,6 +243,7 @@ MSPeakTable::onInitialUpdate()
     model.setHeaderData( c_mspeaktable_time,        Qt::Horizontal, QObject::tr( "time(us)" ) );
     model.setHeaderData( c_mspeaktable_mass,        Qt::Horizontal, QObject::tr( "m/z" ) );
     model.setHeaderData( c_mspeaktable_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
+    model.setHeaderData( c_mspeaktable_intensity,   Qt::Horizontal, QObject::tr( "intensity" ) );
     model.setHeaderData( c_mspeaktable_mode,        Qt::Horizontal, QObject::tr( "mode" ) );
     model.setHeaderData( c_mspeaktable_formula,     Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_mspeaktable_description, Qt::Horizontal, QObject::tr( "description" ) );
@@ -415,6 +417,28 @@ MSPeakTable::keyPressEvent( QKeyEvent * event )
         // handlePasteFromClipboard();
     } else {
         QTableView::keyPressEvent( event );
+    }
+}
+
+void
+MSPeakTable::handle_zoomed( const QRectF& rc )
+{
+    if ( data_source_.which() == 1 ) {
+        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+        if ( auto ptr = wptr.lock() ) {
+            std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right() );
+            if ( bp.first >= 0 && bp.second >= 0 ) {
+                for ( int row = 0; row < model_->rowCount(); ++row ) {
+                    if ( model_->index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == bp.first 
+                         && model_->index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt() == bp.second ) {
+                        
+                        setCurrentIndex( model_->index( row, c_mspeaktable_mass ) );
+                        scrollTo( model_->index( row, c_mspeaktable_mass ) );
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
 

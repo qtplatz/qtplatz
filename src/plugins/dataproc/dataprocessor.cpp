@@ -956,6 +956,9 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
         att.addAttachment( L"MSPeakInfo" ).assign( pkInfo, pkInfo->dataClass() );
 
         return true;
+    } else {
+        pCentroid->addDescription( adcontrols::Description( L"process", L"Centroid failed" ) );
+        att.assign( pCentroid, pCentroid->dataClass() ); // attach it even no peak detected
     }
     return false;
 }

@@ -12,10 +12,10 @@ PYRO = "$(WIX)\bin\Pyro.exe"
 all: qtplatz.msi version.txt
 
 clean:
-	rm -f *.msi *.wixobj
+	rm -f *.msi *.wixobj version.txt
 
 version.txt:
-	git describe >> version.txt
+	git describe > version.txt
 
 qtplatz.msi: qtplatz.wixobj
 	$(LIGHT) $?
