@@ -1,3 +1,14 @@
+##################################################
+# Makefile for QtPlatz
+#
+# Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+# Author: Toshinobu Hondo
+######################################
+SH	= CMD.EXE
+TOP    	= ..
+
+TARGET 	= Release|Win32
+QTPLATZ_PATH = ..\..\..\..\qtplatz
 
 CANDLE = "$(WIX)bin\Candle.exe"
 LIGHT = "$(WIX)\bin\Light.exe"
@@ -10,6 +21,8 @@ SMOKE = "$(WIX)\bin\Smoke.exe"
 PYRO = "$(WIX)\bin\Pyro.exe"
 
 all: qtplatz.msi
+
+world: qtplatz
 
 clean:
 	rm -f *.msi *.wixobj version.wxi *.zip *.bat *.exe *.obj
