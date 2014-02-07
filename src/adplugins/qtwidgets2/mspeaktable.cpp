@@ -144,7 +144,8 @@ MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
     this->verticalHeader()->setDefaultSectionSize( 18 );
     this->setContextMenuPolicy( Qt::CustomContextMenu );
 
-	this->setFont( qtwrapper::font::setFont( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
+    QFont font;
+	this->setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
 
     if ( ! formulaParser_ )
         formulaParser_ = std::make_shared< adcontrols::ChemicalFormula >();

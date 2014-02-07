@@ -26,7 +26,7 @@
 #include <QFont>
 
 namespace qtwrapper {
-#if Q_OS_MAC
+#if defined Q_OS_MAC
     static int font_size_list [] = {
         6 // fontSizeTiny
         , 7 // fontSizeFootnote
@@ -50,7 +50,7 @@ namespace qtwrapper {
     };
 #endif
 
-    static char * font_family_list [] = {
+    static const char * font_family_list [] = {
         0 // fontDefault
         , "Verdena" // fontTableHeader
         , "Consolas" // fontTableBody
