@@ -47,6 +47,7 @@ QTPLATZ_CONFIG += Sequence
 QTPLATZ_CONFIG += Dataproc
 #QTPLATZ_CONFIG += ExampleTOF
 QTPLATZ_CONFIG += Chemistry
+QTPLATZ_CONFIG += Peptide
 
 # no chemistry for ARM platform
-linux-arm-*: QTPLATZ_CONFIG -= ChemSpider Chemistry
+linux-arm-*: QTPLATZ_CONFIG -= ChemSpider Chemistry Peptide

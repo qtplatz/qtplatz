@@ -46,6 +46,7 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adportable/debug.hpp>
+#include <qtwrapper/font.hpp>
 #include <boost/format.hpp>
 #include <boost/variant.hpp>
 #include <queue>
@@ -197,9 +198,7 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 
     // -----------
     QFont font;
-    font.setFamily( "Consolas" );
-    font.setBold( false );
-	font.setPointSize( 8 );
+    qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
     setAxisFont( QwtPlot::xBottom, font );
     setAxisFont( QwtPlot::yLeft, font );
 

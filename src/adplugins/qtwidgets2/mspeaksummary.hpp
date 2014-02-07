@@ -42,7 +42,7 @@ namespace qtwidgets2 {
 
         void onInitialUpdate( MSPeakView * );
 
-        void setPolynomials( int mode, const std::vector< double >&, double sd, double v );
+        void setPolynomials( int mode, const std::vector< double >&, double sd, double v, double l );
         void setPolynomials( const std::string& formula, const std::vector< double >&, double sd, double v );
         void setResult( int id, const std::vector< double >&, double sd );
 

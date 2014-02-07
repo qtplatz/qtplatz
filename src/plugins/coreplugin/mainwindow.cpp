@@ -582,11 +582,13 @@ void MainWindow::registerDefaultActions()
     connect(m_openAction, SIGNAL(triggered()), this, SLOT(openFile()));
 
     // Open With Action
+#if 0 
+	// disable this item since qtplatz does not need it, 7th Feb., 2014 TH
     m_openWithAction = new QAction(tr("&Open File With..."), this);
     cmd = am->registerAction(m_openWithAction, Constants::OPEN_WITH, m_globalContext);
     mfile->addAction(cmd, Constants::G_FILE_OPEN);
     connect(m_openWithAction, SIGNAL(triggered()), this, SLOT(openFileWith()));
-
+#endif
     // File->Recent Files Menu
     ActionContainer *ac = am->createMenu(Constants::M_FILE_RECENTFILES);
     mfile->addMenu(ac, Constants::G_FILE_OPEN);

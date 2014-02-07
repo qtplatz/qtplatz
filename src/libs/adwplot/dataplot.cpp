@@ -31,6 +31,7 @@
 #include "zoomer.hpp"
 #include "picker.hpp"
 #include "panner.hpp"
+#include <qtwrapper/font.hpp>
 #include <qwt_picker_machine.h>
 #include <qwt_scale_widget.h>
 #include <adportable/utf.hpp>
@@ -71,9 +72,8 @@ Dataplot::setTitle( const std::string& text )
 {
 	QwtText qwtText( text.c_str(), QwtText::RichText );
     QFont font = qwtText.font();
-    font.setPointSize( 9 );
-    font.setBold( false );
-    font.setFamily( "Calibri" );
+
+    qtwrapper::font::setFont( font, qtwrapper::fontSizePlotTitle, qtwrapper::fontPlotTitle );
     qwtText.setFont( font );
     qwtText.setRenderFlags( Qt::AlignLeft | Qt::AlignTop );
 
@@ -92,12 +92,8 @@ Dataplot::setFooter( const std::string& text )
 {
 	QwtText qwtText( text.c_str(), QwtText::RichText );
     QFont font = qwtText.font();
-    font.setPointSize( 9 );
-    font.setBold( false );
-    font.setFamily( "Calibri" );
-    qwtText.setFont( font );
+    qwtText.setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizePlotFooter, qtwrapper::fontPlotFooter ) );
     qwtText.setRenderFlags( Qt::AlignRight | Qt::AlignBottom );
-
     QwtPlot::setFooter( qwtText );
 }
 

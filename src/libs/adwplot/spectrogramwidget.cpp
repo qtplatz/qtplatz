@@ -27,6 +27,7 @@
 #include "zoomer.hpp"
 #include "picker.hpp"
 #include <adportable/debug.hpp>
+#include <qtwrapper/font.hpp>
 #include <qwt_plot_spectrogram.h>
 #include <qwt_color_map.h>
 #include <qwt_plot_spectrogram.h>
@@ -108,9 +109,8 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     yAxis->setTitle( "m/z" );
 
     QFont font;
-    font.setFamily( "Consolas" );
-    font.setBold( false );
-	font.setPointSize( 8 );
+    qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
+
     setAxisFont( QwtPlot::xBottom, font );
     setAxisFont( QwtPlot::yLeft, font );
     setAxisFont( QwtPlot::yRight, font );

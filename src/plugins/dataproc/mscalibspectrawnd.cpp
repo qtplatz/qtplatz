@@ -56,6 +56,7 @@
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
+#include <qtwrapper/font.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_legend.h>
 #include <qwt_plot_curve.h>
@@ -151,10 +152,7 @@ MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
     }
 
 	QFont font;
-	font.setFamily( "Verdana" );
-	font.setBold( true );
-	font.setItalic( true );
-	font.setPointSize( 9 );
+	qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisTitle ); 
 
     int id = 0;
     for ( auto& plot: plots_ ) {
@@ -759,24 +757,6 @@ MSCalibSpectraWnd::handlePrintCurrentView( const QString& pdfname )
 
     // renderer.render( pImpl_->processedSpectrum_, &painter, drawRect );
     // ---------- calibratin equation ----------
-#if 0
-    if ( calibResult ) {
-        const adcontrols::MSCalibration& calib = calibResult->calibration();
-        QString text = "Calibration eq.: sqrt(m/z) = ";
-        for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
-            if ( i == 0 )
-                text += ( boost::format( "%.14le" ) % calib.coeffs()[0] ).str().c_str();
-            else
-                text += ( boost::format( "\t+ %.14le * x^%d" ) % calib.coeffs()[i] % i ).str().c_str();
-        }
-        drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
-        drawRect.setHeight( printer.height() - drawRect.top() );
-        QFont font = painter.font();
-        font.setPointSize( 8 );
-        painter.setFont( font );
-        painter.drawText( drawRect, Qt::TextWordWrap, text );
-    }
-#endif
     // ---------- end calibration equestion -----
 
     if ( connect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
@@ -878,6 +858,14 @@ void
 MSCalibSpectraWnd::plot_orbital_sector_calibration( int id, const Fitter<CurveLinear>& fitter, adwplot::Dataplot& plot )
 {
     plot_fitter( id, QwtText("orbital sector"), fitter, plot );
+    std::ostringstream o;
+    o << "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span> = ";
+    const std::vector<double> coeffs = fitter.polynomial_;
+    o << boost::format( "%.7e + " ) % coeffs[0];
+    o << boost::format( "%.7e&sdot;t" ) % coeffs[1];
+    for ( size_t i = 2; i < coeffs.size(); ++i )
+        o << boost::format( " + %.7e&sdot;t<sup>%d</sup>") % coeffs[i] % i;
+    plot.setFooter( o.str() );
 
     plot.axisAutoScale( QwtPlot::xBottom );
     plot.axisAutoScale( QwtPlot::yLeft );
@@ -888,6 +876,14 @@ void
 MSCalibSpectraWnd::plot_injection_sector_calibration( int id, const Fitter<CurveLinear>& fitter, adwplot::Dataplot& plot )
 {
     plot_fitter( id, QwtText("injection sector"), fitter, plot );
+    std::ostringstream o;
+    o << "time(&mu;s) = ";
+    const std::vector<double> coeffs = fitter.polynomial_;
+    o << boost::format( "%.7e + " ) % coeffs[0];
+    o << boost::format( "%.7e&sdot;&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span>" ) % coeffs[1];
+    for ( size_t i = 2; i < coeffs.size(); ++i )
+        o << boost::format( " + %.7e&sdot;t<sup>%d</sup>") % coeffs[i] % i;
+    plot.setFooter( o.str() );
 
     plot.axisAutoScale( QwtPlot::xBottom );
     plot.axisAutoScale( QwtPlot::yLeft );

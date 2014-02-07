@@ -33,6 +33,7 @@
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
+#include <qtwrapper/font.hpp>
 #include <QApplication>
 #include <QClipboard>
 #include <QHeaderView>
@@ -143,12 +144,7 @@ MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
     this->verticalHeader()->setDefaultSectionSize( 18 );
     this->setContextMenuPolicy( Qt::CustomContextMenu );
 
-#if defined WIN32
-    QFont font;
-    font.setFamily( "Consolas" );
-	font.setPointSize( 8 );
-    this->setFont( font );
-#endif
+	this->setFont( qtwrapper::font::setFont( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
 
     if ( ! formulaParser_ )
         formulaParser_ = std::make_shared< adcontrols::ChemicalFormula >();
@@ -366,6 +362,7 @@ MSPeakTable::dataChanged( const adcontrols::MassSpectrum& ms )
             double mass = fms.getMass( idx );
             model.setData( model.index( row, c_mspeaktable_time ), fms.getTime( idx ) );
             model.setData( model.index( row, c_mspeaktable_mass ), mass );
+            model.setData( model.index( row, c_mspeaktable_intensity ), fms.getIntensity( idx ) );
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
 
             model.setData( model.index( row, c_mspeaktable_description ), QString() );

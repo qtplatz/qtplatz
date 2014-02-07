@@ -139,20 +139,23 @@ MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
             d[ peak.mode() ] << peak;
         for ( auto& t: d ) {
             const adcontrols::MSPeaks& pks = t.second;
+            const double length = pks[0].flight_length();
             if ( pks.size() >= 2 ) {
                 std::vector<double> x, y, coeffs;
                 for ( auto& pk: pks ) {
-                    y.push_back( scale_to_micro( pk.time() ) );
                     x.push_back( std::sqrt( pk.mass() ) );
+                    y.push_back( scale_to_micro( pk.time() ) );
                 }
-                adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
-                double t1 = 0;
-                for ( size_t i = 0; i < x.size(); ++i )
-                    t1 += adportable::polfit::estimate_y( coeffs, x[i] ) / y[i];
+
+                adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ); // sqrt(m), time(us) for each length
+
+                double t1 = length / adportable::polfit::estimate_y( coeffs, 1.0 ); // time for unit sqrt(m)
+
 				peakSummary_->setPolynomials( t.first
                                               , coeffs
                                               , adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs )
-                                              , t1 / x.size() );
+                                              , t1
+                                              , length );
                 slopes.push_back( std::make_tuple( pks[0].flight_length(), coeffs[0], coeffs[1] ) );
             }
         }
@@ -175,10 +178,8 @@ MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
                     x.push_back( pk.flight_length() );
                     y.push_back( scale_to_micro( pk.time() ) );
                 }
-                adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
-
-                // double v = adportable::polfit::estimate_y( coeffs, 1.0 );  // time for 1.0mL := velocity
-                double v = coeffs[1] / std::sqrt( pks[0].mass() );
+                adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ); // L(m), time(us) for each formula
+                double v = std::sqrt( pks[0].mass() ) / adportable::polfit::estimate_y( coeffs, 1.0 );  // time for 1.0mL := velocity
                 peakSummary_->setPolynomials( t.first, coeffs, adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs ), v );
             }
         }

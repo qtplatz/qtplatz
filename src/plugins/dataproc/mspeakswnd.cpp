@@ -30,6 +30,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
+#include <qtwrapper/font.hpp>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_layout.h>
@@ -167,6 +168,7 @@ MSPeaksWnd::MSPeaksWnd(QWidget *parent) : QWidget(parent)
     assert( sizeof( axis_titles ) / sizeof( axis_titles[0] ) == plots_.size() );
 
     QFont font;
+	qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
     font.setFamily( "Consolas" );
     font.setBold( false );
 	font.setPointSize( 8 );

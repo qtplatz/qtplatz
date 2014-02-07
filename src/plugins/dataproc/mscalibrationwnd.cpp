@@ -44,10 +44,13 @@
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/computemass.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adwplot/peakmarker.hpp>
+#include <adwplot/plot_stderror.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/utf.hpp>
+#include <qtwrapper/font.hpp>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
@@ -92,9 +95,9 @@ namespace dataproc {
         QWidget * calibSummaryWidget_;
         std::shared_ptr< adwplot::PeakMarker > centroid_marker_;
         std::weak_ptr< adcontrols::MassSpectrum > calibCentroid_;
-        std::weak_ptr< adcontrols::MassSpectrum > calibProfile_;
         std::weak_ptr< adcontrols::MSCalibrateResult > calibResult_;
         std::weak_ptr< adcontrols::MSPeakInfo > peakInfo_;
+        adwplot::plot_stderror plot_stderror_;
 
         portfolio::Folium folium_;
         bool timeAxis_;
@@ -119,6 +122,9 @@ namespace dataproc {
             }
         }
     };
+
+    struct draw_stderror {
+    };
 }
 
 MSCalibrationWnd::MSCalibrationWnd( QWidget * parent ) : QWidget( parent )
@@ -130,6 +136,8 @@ void
 MSCalibrationWnd::init()
 {
     pImpl_ = std::make_shared< MSCalibrationWndImpl >( this );
+
+    pImpl_->plot_stderror_.title( "&delta;<i>m/z</i>" );
 
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
@@ -212,70 +220,53 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         pImpl_->processedSpectrum_->clear();
         pImpl_->peakInfo_.reset();
         pImpl_->calibCentroid_.reset();
-        pImpl_->calibProfile_.reset();
+        // pImpl_->calibProfile_.reset();
 
         portfolio::Folio attachments = folium.attachments();
 
-        // draw profile spectrum
-        if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( folium.data() ) ) { 
-
-            auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
-
-            auto it = std::find_if( attachments.begin(), attachments.end(), []( portfolio::Folium& f ){
-                    return f.name() == Constants::F_DFT_FILTERD;
-                });
-
-			QSize sz = pImpl_->processedSpectrum_->canvas()->size();
-
-            if ( it != attachments.end() ) {
-                // Select DFT Filterd if exists
-                pImpl_->calibProfile_ = portfolio::get< adcontrols::MassSpectrumPtr> ( *it );
-                pImpl_->processedSpectrum_->setData( pImpl_->calibProfile_.lock(), idx_profile, true );
-
-            } else {
-
-                pImpl_->processedSpectrum_->setData( ptr, idx_profile, true );
-                if ( ptr->isCentroid() ) {
-                    pImpl_->calibCentroid_ = ptr;
-                    pImpl_->processedSpectrum_->setTitle( folium.name() );
-                } else {
-                    pImpl_->calibProfile_ = ptr;
-                }
-            }
-			sz = pImpl_->processedSpectrum_->canvas()->size();
-        }
-
-        if ( ! pImpl_->calibCentroid_.lock() ) {
-            auto it = std::find_if( attachments.begin(), attachments.end(), []( portfolio::Folium& f ){
-                    return f.name() == Constants::F_CENTROID_SPECTRUM;
-                });
-            if ( it != attachments.end() ) {
-                pImpl_->calibCentroid_ = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
-                if ( auto fpki 
-                     = portfolio::find_first_of( it->attachments(), []( portfolio::Folium& a ){
-                             return portfolio::is_type< std::shared_ptr< adcontrols::MSPeakInfo > >( a ); } 
-                         ) ) {
-                    pImpl_->peakInfo_ = portfolio::get< std::shared_ptr< adcontrols::MSPeakInfo > >( fpki );
-                }
+        auto it = std::find_if( attachments.begin(), attachments.end(), []( portfolio::Folium& f ){
+                return f.name() == Constants::F_CENTROID_SPECTRUM;
+            });
+        if ( it != attachments.end() ) {
+            pImpl_->calibCentroid_ = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
+            if ( auto fpki 
+                 = portfolio::find_first_of( it->attachments(), []( portfolio::Folium& a ){
+                         return portfolio::is_type< std::shared_ptr< adcontrols::MSPeakInfo > >( a ); } 
+                     ) ) {
+                pImpl_->peakInfo_ = portfolio::get< std::shared_ptr< adcontrols::MSPeakInfo > >( fpki );
             }
         }
-
+        
         // calib result
         if ( auto fcalibResult = portfolio::find_first_of( attachments, []( portfolio::Folium& f ){
                     return portfolio::is_type< adcontrols::MSCalibrateResultPtr >(f);
                 }) ) {
             pImpl_->calibResult_ = portfolio::get< adcontrols::MSCalibrateResultPtr >( fcalibResult );
-
+            
             if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( fcalibResult ) )
                 MainWindow::instance()->setProcessMethod( *method );
         }
-
+        
         auto result = pImpl_->calibResult_.lock();
         auto centroid = pImpl_->calibCentroid_.lock();
+
         if ( result && centroid )
             emit onSetData( *result, *centroid );
+        
         if ( centroid )
             pImpl_->processedSpectrum_->setData( centroid, 1 );
+
+        if ( result && centroid ) {
+            QVector< QPointF > errors;
+            adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( centroid->scanLaw(), result->calibration() );
+
+            for ( auto a: result->assignedMasses() ) {
+                double mass = mass_calculator( a.time(), a.mode() );
+                errors.push_back( QPointF( a.exactMass(), ( mass - a.exactMass() ) * 1000 ) );
+            }
+            pImpl_->plot_stderror_( errors, *pImpl_->processedSpectrum_ );
+            pImpl_->processedSpectrum_->replot();
+        }
     }
 }
 
@@ -565,7 +556,7 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
         drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
         drawRect.setHeight( printer.height() - drawRect.top() );
         QFont font = painter.font();
-        font.setPointSize( 8 );
+		qtwrapper::font::setSize( font, qtwrapper::fontSizeSmall );
         painter.setFont( font );
         painter.drawText( drawRect, Qt::TextWordWrap, text );
     }

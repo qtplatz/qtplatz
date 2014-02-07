@@ -9,6 +9,7 @@ TOP    	= ..
 
 TARGET 	= Release|Win32
 QTPLATZ_PATH = ..\..\..\..\qtplatz
+INFITOF_PATH = ..\..\..\..\infitof
 
 CANDLE = "$(WIX)bin\Candle.exe"
 LIGHT = "$(WIX)\bin\Light.exe"
@@ -22,8 +23,6 @@ PYRO = "$(WIX)\bin\Pyro.exe"
 
 all: qtplatz.msi
 
-world: qtplatz
-
 clean:
 	rm -f *.msi *.wixobj version.wxi *.zip *.bat *.exe *.obj
 
@@ -32,6 +31,9 @@ veryclean: clean
 
 qtplatz:
 	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Rebuild /p:Configuration=Release
+
+infitof:
+	msbuild $(INFITOF_PATH)\infitof.sln /m:4 /t:Rebuild /p:Configuration=Release
 
 version.exe: version.c
 	cl version.c
@@ -43,8 +45,12 @@ copy.bat: version.exe
 	git describe | version -b > copy.bat
 
 qtplatz.msi: qtplatz.wixobj
-	$(LIGHT) $?
+	$(LIGHT) qtplatz.wixobj
+	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 	copy.bat
+
+sign:
+	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 
 qtplatz.wixobj: version.wxi copy.bat qtplatz.wxs
 	$(CANDLE) qtplatz.wxs

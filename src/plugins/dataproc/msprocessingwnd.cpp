@@ -52,6 +52,7 @@
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <qtwrapper/xmlformatter.hpp>
+#include <qtwrapper/font.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>

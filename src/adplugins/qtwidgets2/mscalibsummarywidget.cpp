@@ -42,6 +42,7 @@
 #include <adutils/processeddata.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <qtwrapper/font.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/any.hpp>
@@ -76,12 +77,7 @@ MSCalibSummaryWidget::MSCalibSummaryWidget(QWidget *parent) : QTableView(parent)
     this->setContextMenuPolicy( Qt::CustomContextMenu );
     this->setSortingEnabled( true );
     this->verticalHeader()->setDefaultSectionSize( 18 );
-#if defined WIN32
-    QFont font;
-    font.setFamily( "Consolas" );
-	font.setPointSize( 8 );
-    this->setFont( font );
-#endif
+	this->setFont( qtwrapper::font::setFont( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
     connect( this, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
     connect( pDelegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );
 }

@@ -37,7 +37,8 @@ SOURCES += adwplot.cpp \
     panner.cpp \
     spectrogramwidget.cpp \
     spectrogramdata.cpp \
-    peakmarker.cpp
+    peakmarker.cpp \
+    plot_stderror.cpp
 
 HEADERS += adwplot.hpp \
     annotation.hpp \
@@ -58,7 +59,8 @@ HEADERS += adwplot.hpp \
     panner.hpp \
     spectrogramwidget.hpp \
     spectrogramdata.hpp \
-    peakmarker.hpp
+    peakmarker.hpp \
+    plot_stderror.hpp
 
 unix:!symbian {
     maemo5 {

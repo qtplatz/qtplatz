@@ -24,6 +24,7 @@
 
 #include "mspeaksummary.hpp"
 #include "mspeakview.hpp"
+#include <qtwrapper/font.hpp>
 #include <QStandardItemModel>
 #include <QApplication>
 #include <QClipboard>
@@ -44,6 +45,7 @@ namespace qtwidgets2 {
         , c_mspeaksummary_sd
         , c_mspeaksummary_t0
         , c_mspeaksummary_velocity
+        , c_mspeaksummary_length
     };
     enum {
         c_mspeaksummary_formula
@@ -60,12 +62,9 @@ MSPeakSummary::MSPeakSummary(QWidget *parent) : QTreeView(parent)
     this->setModel( model_.get() );
     this->setItemDelegate( delegate_.get() );
     this->setSortingEnabled( true );
-
-    QFont font;
-    font.setFamily( "Consolas" );
-	font.setPointSize( 8 );
-    this->setFont( font );
+	this->setFont( qtwrapper::font::setFont( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
     this->setTabKeyNavigation( true );
+	this->setSelectionMode( QAbstractItemView::ExtendedSelection );
 }
 
 void
@@ -75,7 +74,7 @@ MSPeakSummary::onInitialUpdate( MSPeakView * parent )
 
     QStandardItemModel& model = *model_;
     
-    model.setColumnCount( 6 );
+    model.setColumnCount( 7 );
     model.setRowCount( r_num_rows );
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr( "item" ) );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr( "(a)" ) );
@@ -83,6 +82,7 @@ MSPeakSummary::onInitialUpdate( MSPeakView * parent )
     model.setHeaderData( 3, Qt::Horizontal, QObject::tr( "std. error(ns)" ) );
     model.setHeaderData( 4, Qt::Horizontal, QObject::tr( "t0(ns)" ) );
     model.setHeaderData( 5, Qt::Horizontal, QObject::tr( "v(us/m/Da)" ) );
+    model.setHeaderData( 6, Qt::Horizontal, QObject::tr( "L(m)" ) );
 
     model.setData( model.index( r_mass_vs_time, 0 ), "laps" );
     model.setData( model.index( r_length_vs_time, 0 ), "mol" );
@@ -90,12 +90,12 @@ MSPeakSummary::onInitialUpdate( MSPeakView * parent )
     
     for ( int row = 0; row < r_num_rows; ++row ) {
         QStandardItem * p1 = model.itemFromIndex( model.index( row, 0 ) );
-        p1->setColumnCount( 6 );
+        p1->setColumnCount( 7 );
     }
 }
 
 void
-MSPeakSummary::setPolynomials( int mode, const std::vector<double>& coeffs, double sd, double v )
+MSPeakSummary::setPolynomials( int mode, const std::vector<double>& coeffs, double sd, double v, double l )
 {
 	QStandardItemModel& model = *model_;
     QStandardItem * parent = model.itemFromIndex( model.index( r_mass_vs_time, 0 ) );
@@ -113,10 +113,10 @@ MSPeakSummary::setPolynomials( int mode, const std::vector<double>& coeffs, doub
     model.setData( model.index( row, c_mspeaksummary_coeffs + 1, parent->index() ), coeffs[1] );
     model.setData( model.index( row, c_mspeaksummary_sd, parent->index() ), sd );
 
-    //double t0 = (-coeffs[0]) / coeffs[1];
     double t0 = coeffs[0];
     model.setData( model.index( row, c_mspeaksummary_t0, parent->index() ), t0 );
     model.setData( model.index( row, c_mspeaksummary_velocity, parent->index() ), v );
+    model.setData( model.index( row, c_mspeaksummary_length, parent->index() ), l );
 }
 
 void

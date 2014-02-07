@@ -37,6 +37,7 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
+#include <qtwrapper/font.hpp>
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
 #include <qwt_plot_curve.h>
@@ -189,14 +190,8 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
     setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
 
     // -----------
-#if ! defined __APPLE__
     QFont font;
-    font.setFamily( "Consolas" );
-    font.setBold( false );
-	font.setPointSize( 8 );
-    setAxisFont( QwtPlot::xBottom, font );
-    setAxisFont( QwtPlot::yLeft, font );
-#endif
+    qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
 
     // handle zoom rect by this
     if ( zoomer1_ ) {

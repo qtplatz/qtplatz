@@ -34,7 +34,7 @@ using namespace chemistry;
 
 ChemistryMode::ChemistryMode( QObject * /* parent */ )
 {
-	setName( tr("ChemistryMode") );
+	setName( tr("Chemistry") );
 	setUniqueModeName( Constants::C_CHEM_MODE );
     setIcon( QIcon( ":/chemistry/images/applications-science-3.png" ) );
 	setPriority( 40 );

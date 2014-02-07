@@ -15,7 +15,8 @@ SOURCES += qtwrapper.cpp \
     qstring.cpp \
     application.cpp \
     xmlformatter.cpp \ 
-    progressbar.cpp
+    progressbar.cpp \
+    font.cpp
 
 HEADERS += qtwrapper.hpp \
     qstring.hpp \
@@ -23,4 +24,5 @@ HEADERS += qtwrapper.hpp \
     xmlformatter.hpp \ 
     waitcursor.hpp \
     progressbar.hpp \
-    trackingenabled.hpp
+    trackingenabled.hpp \
+    font.hpp
