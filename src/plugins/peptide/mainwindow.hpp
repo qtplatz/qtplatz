@@ -36,6 +36,7 @@ namespace Utils { class StyledBar; }
 
 class QToolButton;
 class QAction;
+class QLineEdit;
 
 namespace peptide {
 
@@ -53,15 +54,16 @@ namespace peptide {
     signals:
             
     public slots:
+        void actFileOpen();
 
     private slots:
 
     private:
-        enum idActions { idActFileOpen
-                         , numActions };
+        enum idActions { idActFileOpen, numActions };
 
         QDockWidget * toolBarDockWidget_;
         std::array< QAction *, numActions > actions_;
+        std::unique_ptr< QLineEdit > topLineEdit_;
 
         void createDockWidgets();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );

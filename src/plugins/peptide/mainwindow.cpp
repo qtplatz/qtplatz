@@ -38,6 +38,8 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <utils/styledbar.h>
 
+#include <QFileDialog>
+#include <QLineEdit>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QToolButton>
@@ -55,6 +57,7 @@
 using namespace peptide;
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
+                                        , topLineEdit_( new QLineEdit )
 {
     std::fill( actions_.begin(), actions_.end(), static_cast<QAction *>(0) );
 }
@@ -91,7 +94,7 @@ MainWindow::createContents( Core::IMode * mode )
             centralWidget->setLayout( centralLayout );
             centralLayout->setMargin( 0 );
             centralLayout->setSpacing( 0 );
-            // ----------------- middle tool bar -------------------
+            // ----------------- top tool bar -------------------
             centralLayout->addWidget( toolBar1 );              // [1]
             // ----------------------------------------------------
             
@@ -99,7 +102,7 @@ MainWindow::createContents( Core::IMode * mode )
             centralLayout->setStretch( 0, 1 );
             centralLayout->setStretch( 1, 0 );
             
-            // ----------------- middle tool bar -------------------
+            // ----------------- mid tool bar -------------------
             centralLayout->addWidget( toolBar2 );              // [1]
         }
     }
@@ -142,8 +145,12 @@ MainWindow::createTopStyledBar()
         toolBarLayout->setSpacing( 0 );
         Core::ActionManager * am = Core::ICore::instance()->actionManager();
         if ( am ) {
-            QList<int> globalcontext;
-            globalcontext << Core::Constants::C_GLOBAL_ID;
+            // [file open] button
+            toolBarLayout->addWidget(toolButton(am->command(Constants::FILE_OPEN)->action()));
+            //-- separator --
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            //---
+            toolBarLayout->addWidget( topLineEdit_.get() );
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
@@ -165,7 +172,7 @@ MainWindow::createMidStyledBar()
             // print, method file open & save buttons
             //toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
             //toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::FILE_OPEN)->action()));
+            //toolBarLayout->addWidget(toolButton(am->command(Constants::FILE_OPEN)->action()));
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
@@ -298,3 +305,18 @@ MainWindow::createActions()
     }
 }
 
+void
+MainWindow::actFileOpen()
+{
+    boost::filesystem::path datapath( adportable::profile::user_data_dir<char>() );
+    datapath /= "data";
+
+    QString name
+        = QFileDialog::getOpenFileName( this
+                                        , tr("Open protein definition file" )
+										, datapath.string().c_str()
+                                        , tr("Protain sequence files(*.fas)") );
+    if ( ! name.isEmpty() ) {
+        topLineEdit_->setText( name );
+	}
+}

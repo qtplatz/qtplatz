@@ -21,7 +21,8 @@ SUBDIRS   = \
     adsequence \
     adorbmgr \
     adchem \
-    adwchem
+    adwchem \
+    adpeptide
 
 # adfs : boost
 # xmlparser : none
