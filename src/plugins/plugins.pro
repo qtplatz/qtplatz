@@ -29,6 +29,10 @@ contains( QTPLATZ_CONFIG, Chemistry ) {
   SUBDIRS += plugin_chemistry
 }
 
+contains( QTPLATZ_CONFIG, Peptide ) {
+  SUBDIRS += plugin_peptide
+}
+
 plugin_coreplugin.subdir = coreplugin
 
 plugin_chemspider.subdir = chemspider
@@ -51,4 +55,7 @@ plugin_chemistry.depends = plugin_coreplugin
 
 plugin_batchproc.subdir = batchproc
 plugin_batchproc.depends = plugin_coreplugin
+
+plugin_peptide.subdir = peptide
+plugin_peptide.depends = plugin_coreplugin
 

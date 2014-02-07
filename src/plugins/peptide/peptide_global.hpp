@@ -1,0 +1,13 @@
+#ifndef PEPTIDE_GLOBAL_HPP
+#define PEPTIDE_GLOBAL_HPP
+
+#include <QtGlobal>
+
+#if defined(PEPTIDE_LIBRARY)
+#  define PEPTIDESHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define PEPTIDESHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // PEPTIDE_GLOBAL_H
+

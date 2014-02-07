@@ -1,0 +1,9 @@
+<plugin name=\"peptide\" version=\"0.0.1\" compatVersion=\"0.0.1\">
+    <vendor>MSCheminformatics</vendor>
+    <copyright>(C) MS-Cheminformatics LLC</copyright>
+    <license></license>
+    <description></description>
+    <url>http://www.qtplatz.com</url>
+    $$dependencyList
+</plugin>
+

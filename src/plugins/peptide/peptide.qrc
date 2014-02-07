@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/peptide">
+        <file>images/fingerprint.png</file>
+        <file>images/drop128.png</file>
+        <file>images/drop256.png</file>
+        <file>images/drop512.png</file>
+    </qresource>
+</RCC>
