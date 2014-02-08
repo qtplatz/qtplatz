@@ -106,6 +106,12 @@ contrib/example-tof/libs/tofinterface/*C.inl
 contrib/example-tof/libs/tofinterface/*S.cpp
 contrib/example-tof/libs/tofinterface/*S.h
 contrib/example-tof/libs/tofinterface/*S.inl
+contrib/installer/wix/copy.bat
+contrib/installer/wix/*.msi
+contrib/installer/wix/*.zip
+contrib/installer/wix/*.wix*
+contrib/installer/wix/*.exe
+contrib/installer/wix/version.wxi
 examples/device_controller/*C.cpp
 examples/device_controller/*C.h
 examples/device_controller/*C.inl
@@ -114,6 +120,7 @@ examples/device_controller/*S.h
 examples/device_controller/*S.inl
 src/plugins/chemistry/portfolio.xml
 src/plugins/batchproc/batchproc.pluginspec
+src/plugins/peptide/peptide.pluginspec
 src/app/exclude.txt
 src/app/version.h
 
