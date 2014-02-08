@@ -26,6 +26,7 @@
 #define PROTEIN_HPP
 
 #include "adpeptide_global.hpp"
+#include <compiler/disable_dll_interface.h>
 #include <string>
 
 namespace adpeptide {
@@ -34,6 +35,7 @@ namespace adpeptide {
     public:
         protein();
         protein( const protein& );
+        protein( const std::string& name, const std::string& sequence );
         
         const std::string& name() const;
         const std::string& sequence() const;

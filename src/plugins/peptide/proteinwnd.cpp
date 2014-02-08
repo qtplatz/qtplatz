@@ -26,6 +26,7 @@
 #include "proteintable.hpp"
 #include <coreplugin/minisplitter.h>
 #include <QVBoxLayout>
+#include <QTextEdit>
 
 using namespace peptide;
 
@@ -38,14 +39,26 @@ void
 ProteinWnd::init()
 {
     if ( QBoxLayout * layout = new QVBoxLayout( this ) ) {
+
+        layout->setMargin( 0 );
+        layout->setSpacing( 0 );
     
         if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {  // protein | spectrum
-
-            splitter->addWidget( new ProteinTable );
-            splitter->addWidget( new ProteinTable );
+            widgets_.push_back( new ProteinTable );
+            widgets_.push_back( new QTextEdit );
+            for ( auto w: widgets_ )
+                splitter->addWidget( w );
             splitter->setOrientation( Qt::Horizontal );
-            // std::shared_ptr< adwplot::SpectrumWidget > wnd = std::make_shared< adwplot::SpectrumWidget >(this);
             layout->addWidget( splitter );
         }
+    }
+}
+
+void
+ProteinWnd::setData( const adpeptide::protfile& file )
+{
+    for ( auto w: widgets_ ) {
+        if ( ProteinTable * p = dynamic_cast< ProteinTable* >( w ) )
+            p->setData( file );
     }
 }

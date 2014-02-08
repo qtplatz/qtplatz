@@ -29,6 +29,7 @@
 #include <qtwrapper/trackingenabled.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>
+#include <adpeptide/protfile.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/minisplitter.h>
@@ -81,7 +82,8 @@ MainWindow::createContents( Core::IMode * mode )
     if ( QWidget * editorWidget = new QWidget ) {
 
         editorWidget->setLayout( editorHolderLayout );
-        editorHolderLayout->addWidget( new ProteinWnd() ); //tableView_.get() );
+        wnds_.push_back ( new ProteinWnd() );
+        editorHolderLayout->addWidget( wnds_.back() );
 
         Utils::StyledBar * toolBar1 = createTopStyledBar();
         Utils::StyledBar * toolBar2 = createMidStyledBar();
@@ -320,5 +322,15 @@ MainWindow::actFileOpen()
                                         , tr("Protain sequence files(*.fas)") );
     if ( ! name.isEmpty() ) {
         topLineEdit_->setText( name );
+        
+        auto file = std::make_shared< adpeptide::protfile >( name.toStdString() );
+        if ( *file ) {
+            protfile_ = file;
+            std::for_each( wnds_.begin(), wnds_.end(), [=]( QWidget * w ){
+                    if ( ProteinWnd * p = dynamic_cast< ProteinWnd *>(w) )
+                        p->setData( *protfile_ );
+                });
+        }
+
 	}
 }

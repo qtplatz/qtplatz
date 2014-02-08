@@ -35,6 +35,12 @@ protein::protein( const protein& t ) : name_( t.name_ )
 {
 }
 
+protein::protein( const std::string& name
+                  , const std::string& sequence ) : name_( name )
+                                                  , sequence_( sequence )
+{
+}
+
 const std::string&
 protein::name() const
 {

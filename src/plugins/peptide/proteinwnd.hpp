@@ -27,6 +27,8 @@
 
 #include <QWidget>
 
+namespace adpeptide { class protfile; }
+
 namespace peptide {
 
     class ProteinWnd : public QWidget {
@@ -34,7 +36,11 @@ namespace peptide {
     public:
         explicit ProteinWnd(QWidget *parent = 0);
 
+        void setData( const adpeptide::protfile& );
+
     private:
+        std::vector< QWidget * > widgets_;
+
         void init();
     
     signals:

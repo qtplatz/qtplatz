@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "proteintable.hpp"
+#include <adpeptide/protfile.hpp>
 #include <QStandardItemModel>
 #include <QItemDelegate>
 
@@ -45,11 +46,34 @@ ProteinTable::ProteinTable(QWidget *parent) : QTreeView(parent)
 {
     setModel( model_ );
     setItemDelegate( delegate_ );
+    init( *model_ );
 }
 
 ProteinTable::~ProteinTable()
 {
     delete delegate_;
     delete model_;
+}
+
+void
+ProteinTable::init( QStandardItemModel& model )
+{
+    model.setColumnCount( 3 );
+    model.setHeaderData( 0, Qt::Horizontal, QObject::tr("name") );
+    model.setHeaderData( 1, Qt::Horizontal, QObject::tr("sequence") );
+}
+
+void
+ProteinTable::setData( const adpeptide::protfile& file ) 
+{
+    QStandardItemModel& model = *model_;
+
+    model.setRowCount( static_cast<int>( file.size() ) );
+    int row = 0;
+    for ( auto& prot: file ) {
+        model.setData( model.index( row, 0 ), QString::fromStdString( prot.name() ) );
+        model.setData( model.index( row, 1 ), QString::fromStdString( prot.sequence() ) );
+		++row;
+    }
 }
 

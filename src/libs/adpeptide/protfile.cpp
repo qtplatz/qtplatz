@@ -23,7 +23,102 @@
 **************************************************************************/
 
 #include "protfile.hpp"
+#include <boost/filesystem.hpp>
+#include <fstream>
 
-protfile::protfile()
+namespace adpeptide {
+    
+    static bool
+    getline( std::istream& in, std::string& line )
+    {
+        while( in.good() ) {
+            int c = in.get();
+            if ( c == '\r') {
+                if ( in.get() != '\n' ) // whoops, its old mac file
+					in.unget();
+                return true;
+            } else if ( c == '\n' ) {
+                return true;
+            }
+            line.push_back( c );
+        }
+        return !line.empty();
+    }
+
+}
+
+using namespace adpeptide;
+
+protfile::protfile( const std::string& filename ) : filename_( filename )
 {
+	std::fstream fin( filename );
+
+    if ( fin.is_open() ) {
+        while ( fetch( fin ) )
+            ;
+    }
+}
+
+protfile::operator bool() const
+{
+    return !proteins_.empty();
+}
+
+size_t
+protfile::size() const
+{
+    return proteins_.size();
+}
+
+std::vector< protein >::const_iterator
+protfile::begin() const
+{
+    return proteins_.begin();
+}
+
+std::vector< protein >::iterator
+protfile::begin()
+{
+    return proteins_.begin();
+}
+
+std::vector< protein >::const_iterator
+protfile::end() const
+{
+    return proteins_.end();
+}
+
+std::vector< protein >::iterator
+protfile::end()
+{
+    return proteins_.end();
+}
+
+bool
+protfile::fetch( std::istream& inf )
+{
+    int c = inf.get();
+    while ( c != '>' && inf.good() ) // find '>'
+        c = inf.get();
+
+    if ( c == '>' ) {
+        std::string common_name;
+        std::string sequence;
+        if ( getline( inf, common_name ) ) {
+            while ( inf.good() ) {
+                c = inf.get();
+                if ( c == '>' ) { // find next record
+                    inf.unget();
+                    break;
+                } else if ( c == '\r' || c== '\n' ) {
+                    continue;
+                } else {
+                    sequence.push_back( c );
+                }
+            }
+            proteins_.push_back( protein( common_name, sequence ) );
+            return true;
+        }
+    }
+    return false;
 }

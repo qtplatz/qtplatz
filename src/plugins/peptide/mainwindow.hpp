@@ -33,6 +33,7 @@
 
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
+namespace adpeptide { class protein; class protfile; }
 
 class QToolButton;
 class QAction;
@@ -64,6 +65,8 @@ namespace peptide {
         QDockWidget * toolBarDockWidget_;
         std::array< QAction *, numActions > actions_;
         std::unique_ptr< QLineEdit > topLineEdit_;
+        std::vector< QWidget * > wnds_;
+        std::shared_ptr< adpeptide::protfile > protfile_;
 
         void createDockWidgets();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );

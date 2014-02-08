@@ -25,10 +25,32 @@
 #ifndef PROTFILE_HPP
 #define PROTFILE_HPP
 
-class protfile
-{
-public:
-    protfile();
-};
+#include "adpeptide_global.hpp"
+#include "protein.hpp"
+#include <vector>
+#include <string>
+#include <istream>
+
+namespace adpeptide {
+
+    class ADPEPTIDESHARED_EXPORT protfile {
+    public:
+        protfile( const std::string& filename );
+        operator bool() const;
+        size_t size() const;
+        
+        std::vector< protein >::const_iterator begin() const;
+        std::vector< protein >::iterator begin();
+        std::vector< protein >::const_iterator end() const;
+        std::vector< protein >::iterator end();
+
+    private:
+        std::string filename_;
+        std::vector< protein > proteins_;
+        bool fetch( std::istream& );
+    };
+
+}
+
 
 #endif // PROTFILE_HPP

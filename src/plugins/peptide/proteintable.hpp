@@ -30,6 +30,8 @@
 class QItemDelegate;
 class QStandardItemModel;
 
+namespace adpeptide { class protfile; }
+
 namespace peptide {
 
     class ProteinTable : public QTreeView  {
@@ -38,9 +40,13 @@ namespace peptide {
         explicit ProteinTable(QWidget *parent = 0);
         ~ProteinTable();
 
+        void setData( const adpeptide::protfile& );
+
     private:
         QStandardItemModel * model_;
         QItemDelegate * delegate_;
+
+        void init( QStandardItemModel& );
     
     signals:
     
