@@ -9,13 +9,12 @@ include(../../boost.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 DEFINES += PEPTIDE_LIBRARY
 
-
 LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(portfolio) \
         -l$$qtLibraryTarget(adfs) \
-        -l$$qtLibraryTarget(adpeptide) \
+        -l$$qtLibraryTarget(adprot) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adextension)
 

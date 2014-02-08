@@ -22,10 +22,20 @@
 **
 **************************************************************************/
 
-#include "protease.hpp"
+#include "sequence.hpp"
 
-using namespace adpeptide;
+using namespace adprot;
 
-protease::protease()
+sequence::sequence()
 {
+}
+
+sequence::sequence( const std::string& text ) : sequence_( text )
+{
+}
+
+
+sequence::operator const std::string& () const
+{
+    return sequence_;
 }

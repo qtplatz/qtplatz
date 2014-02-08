@@ -29,7 +29,7 @@
 #include <qtwrapper/trackingenabled.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>
-#include <adpeptide/protfile.hpp>
+#include <adprot/protfile.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/minisplitter.h>
@@ -323,7 +323,7 @@ MainWindow::actFileOpen()
     if ( ! name.isEmpty() ) {
         topLineEdit_->setText( name );
         
-        auto file = std::make_shared< adpeptide::protfile >( name.toStdString() );
+        auto file = std::make_shared< adprot::protfile >( name.toStdString() );
         if ( *file ) {
             protfile_ = file;
             std::for_each( wnds_.begin(), wnds_.end(), [=]( QWidget * w ){

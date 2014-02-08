@@ -22,18 +22,4 @@ SUBDIRS   = \
     adorbmgr \
     adchem \
     adwchem \
-    adpeptide
-
-# adfs : boost
-# xmlparser : none
-# adinterface : TAO
-# acewrapper : boost, ACE
-# adportable : boost, stl
-# adutils : boost
-# adwplot : QWT
-# qtwrapper : QtCore
-# adplugin (dll) : ACE, TAO
-# adcontroller (dll) : adinterface, adportable, acewrapper, xmlparser, adplugin
-# qtwidgets (dll) : adcontrols
-# adborker (dll) : adinterface, adportable, acewrapper adcontrols portfolio
-# adtxtfactory (dll) : adcontrols, adportable, xmlparser, portfolio
+    adprot

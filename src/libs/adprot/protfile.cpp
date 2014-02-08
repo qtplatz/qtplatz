@@ -26,7 +26,7 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 
-namespace adpeptide {
+namespace adprot {
     
     static bool
     getline( std::istream& in, std::string& line )
@@ -47,7 +47,7 @@ namespace adpeptide {
 
 }
 
-using namespace adpeptide;
+using namespace adprot;
 
 protfile::protfile( const std::string& filename ) : filename_( filename )
 {

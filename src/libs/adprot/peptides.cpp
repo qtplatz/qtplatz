@@ -22,31 +22,10 @@
 **
 **************************************************************************/
 
-#ifndef PROTEIN_HPP
-#define PROTEIN_HPP
+#include "peptides.hpp"
 
-#include "adpeptide_global.hpp"
-#include <compiler/disable_dll_interface.h>
-#include <string>
+using namespace adprot;
 
-namespace adpeptide {
-
-    class ADPEPTIDESHARED_EXPORT protein {
-    public:
-        protein();
-        protein( const protein& );
-        protein( const std::string& name, const std::string& sequence );
-        
-        const std::string& name() const;
-        const std::string& sequence() const;
-        void name( const std::string& );
-        void sequence( const std::string& );
-
-    private:
-        std::string name_;
-        std::string sequence_;
-    };
-
+peptides::peptides()
+{
 }
-
-#endif // PROTEIN_HPP

@@ -25,35 +25,28 @@
 #ifndef AMINOACID_HPP
 #define AMINOACID_HPP
 
-#include "adpeptide_global.hpp"
+#include "adprot_global.hpp"
 #include <compiler/disable_dll_interface.h>
 #include <string>
 
-namespace adpeptide {
+namespace adprot {
 
-    class ADPEPTIDESHARED_EXPORT AminoAcid  {
+    class ADPROTSHARED_EXPORT AminoAcid  {
     public:
         AminoAcid( char symbol );
         AminoAcid( const char * _3letter );
 
-        class ADPEPTIDESHARED_EXPORT iterator {
-            size_t pos_;
-        public:
-            iterator( size_t pos );
-            const iterator& operator ++ () { ++pos_; return *this; }
-            bool operator != ( const iterator& rhs ) const { return pos_ != rhs.pos_; }
-            operator AminoAcid* () const;
-        };
+        typedef AminoAcid * iterator;
 
-        static const iterator begin();
-        static const iterator end();
+        static iterator begin();
+        static iterator end();
         static size_t size();
 
-        const std::string& symbol( bool _3letter = true ) const;
-        const std::string& formula() const;
-        const std::string& smiles() const;
+        std::string symbol( bool _3letter = true ) const;
+        const char * formula() const;
+        const char * smiles() const;
     private:
-        int symbol_;
+        int pos_;
     };
 }
 

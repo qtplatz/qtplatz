@@ -6,15 +6,15 @@
 
 QT       -= core gui
 
-TARGET = adpeptide
+TARGET = adprot
 TEMPLATE = lib
 INCLUDEPATH += ../../libs
 include(../../qtplatzlibrary.pri)
 include(../../boost.pri)
 
-DEFINES += ADPEPTIDE_LIBRARY
+DEFINES += ADPROT_LIBRARY
 
-SOURCES += adpeptide.cpp \
+SOURCES += adprot.cpp \
     peptide.cpp \
     peptides.cpp \
     protease.cpp \
@@ -23,7 +23,7 @@ SOURCES += adpeptide.cpp \
     protfile.cpp \
     aminoacid.cpp
 
-HEADERS += adpeptide.hpp\
+HEADERS += adprot.hpp\
         adpeptide_global.hpp \
     peptide.hpp \
     peptides.hpp \
@@ -32,6 +32,10 @@ HEADERS += adpeptide.hpp\
     sequence.hpp \
     protfile.hpp \
     aminoacid.hpp
+
+!win32 {
+  LIBS += -lboost_system
+}
 
 unix:!symbian {
     maemo5 {

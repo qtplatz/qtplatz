@@ -26,7 +26,7 @@
 #include <algorithm>
 #include <array>
 
-namespace adpeptide {
+namespace adprot {
 
     struct AA {
         const char _1letter_symbol;
@@ -57,74 +57,100 @@ namespace adpeptide {
         , { 'W', "Trp", "C11H12N2O2", "O=C(O)[C@@H](N)CC1=CNC2=C1C=CC=C2" }
         , { 'Y', "Tye", "C9H11NO3",   "N[C@@H](CC1=CC=C(O)C=C1)C(O)=O" }
     };
-
+    
     static AminoAcid __table [] = {
         AminoAcid( 'A' )
         , AminoAcid( 'C' )
-/*
-        , { 'D' }
-        , { 'E' }
-        , { 'F' }
-        , { 'G' }
-        , { 'H' }
-        , { 'I' }
-        , { 'K' }
-        , { 'L' }
-        , { 'M' }
-        , { 'N' }
-        , { 'P' }
-        , { 'Q' }
-        , { 'R' }
-        , { 'S' }
-        , { 'T' }
-        , { 'V' }
-        , { 'W' }
-        , { 'Y' }
-*/
+        , AminoAcid( 'D' )
+        , AminoAcid( 'E' )
+        , AminoAcid( 'F' )
+        , AminoAcid( 'G' )
+        , AminoAcid( 'H' )
+        , AminoAcid( 'I' )
+        , AminoAcid( 'K' )
+        , AminoAcid( 'L' )
+        , AminoAcid( 'M' )
+        , AminoAcid( 'N' )
+        , AminoAcid( 'P' )
+        , AminoAcid( 'Q' )
+        , AminoAcid( 'S' )
+        , AminoAcid( 'T' )
+        , AminoAcid( 'V' )
+        , AminoAcid( 'W' )
+        , AminoAcid( 'Y' )
     };
 }
 
-#define countof(x) (sizeof(x)/sizeof(x[0]))
+# define countof(x) (sizeof(x)/sizeof(x[0]))
 
-using namespace adpeptide;
+using namespace adprot;
 
-AminoAcid::AminoAcid( char symbol ) : symbol_( symbol )
+AminoAcid::AminoAcid( char symbol ) : pos_(0)
 {
-    if ( symbol >= countof( protein_compositions ) )
-        throw std::exception();
-
-    if ( protein_compositions[ symbol ]._3letter_symbol == 0 )
+    for ( auto& aa: protein_compositions ) {
+        if ( symbol == aa._1letter_symbol )
+            break;
+        pos_++;
+    }
+    if ( pos_ >= countof( protein_compositions ) )
         throw std::exception();        
 }
 
-AminoAcid::AminoAcid( const char * symbol ) : symbol_(0)
+AminoAcid::AminoAcid( const char * symbol ) : pos_(0)
 {
     for ( auto& aa: protein_compositions ) {
-        if ( std::strcmp( symbol, aa._3letter_symbol ) == 0 ) {
-			symbol_ = aa._1letter_symbol;
+        if ( std::strcmp( symbol, aa._3letter_symbol ) == 0 )
             break;
-        }
+        pos_++;
+    }
+    if ( pos_ >= countof( protein_compositions ) )
+        throw std::exception();
+}
+
+std::string
+AminoAcid::symbol( bool _3letter ) const
+{
+    if ( _3letter )
+        return protein_compositions[ pos_ ]._3letter_symbol;
+    else {
+        std::string s;
+        s.push_back( protein_compositions[ pos_ ]._1letter_symbol );
+        return s;
     }
 }
 
-const AminoAcid::iterator
+const char *
+AminoAcid::formula() const
+{
+    return protein_compositions[ pos_ ].formula;
+}
+
+const char *
+AminoAcid::smiles() const
+{
+    return protein_compositions[ pos_ ].smiles;
+}
+
+
+size_t
+AminoAcid::size()
+{
+    return countof( protein_compositions );
+}
+
+AminoAcid::iterator
 AminoAcid::begin()
 {
-    return AminoAcid::iterator( 0 );
+    return &__table[0];
 }
 
-const AminoAcid::iterator
+#if defined __GNUC__
+# pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+
+AminoAcid::iterator
 AminoAcid::end()
 {
-    return AminoAcid::iterator( countof( protein_compositions ) );
-}
-
-AminoAcid::iterator::iterator( size_t pos ) : pos_( pos )
-{
-}
-
-AminoAcid::iterator::operator AminoAcid* () const 
-{
-    return &__table[pos_];
+    return &__table[ countof( protein_compositions ) ];
 }
 

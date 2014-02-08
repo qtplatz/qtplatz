@@ -22,30 +22,24 @@
 **
 **************************************************************************/
 
-#ifndef PROTEASE_HPP
-#define PROTEASE_HPP
+#ifndef SEQUENCE_HPP
+#define SEQUENCE_HPP
 
-#include "adpeptide_global.hpp"
+#include "adprot_global.hpp"
 #include <string>
-#include <vector>
 
-namespace adpeptide {
+namespace adprot {
 
-    class ADPEPTIDESHARED_EXPORT protease {
+    class ADPROTSHARED_EXPORT sequence {
     public:
-
-        protease();
-
-        const std::string& name() const;
-        void name( const std::string& ) const;
-        const std::vector< std::string >& aliases() const;
-        std::vector< std::string >& aliases();
+        sequence();
+        sequence( const std::string& );
+        operator const std::string& () const;
         
     private:
-        std::string name_;
-        std::vector< std::string > aliases_;
-
+        std::string sequence_;
     };
 
 }
-#endif // PROTEASE_HPP
+
+#endif // SEQUENCE_HPP

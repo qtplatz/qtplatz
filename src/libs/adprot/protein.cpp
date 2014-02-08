@@ -22,15 +22,47 @@
 **
 **************************************************************************/
 
-#ifndef ADPEPTIDE_GLOBAL_HPP
-#define ADPEPTIDE_GLOBAL_HPP
+#include "protein.hpp"
 
-#include <compiler/decl_export.h>
+using namespace adprot;
 
-#if defined(ADPEPTIDE_LIBRARY)
-#  define ADPEPTIDESHARED_EXPORT DECL_EXPORT
-#else
-#  define ADPEPTIDESHARED_EXPORT DECL_IMPORT
-#endif
+protein::protein()
+{
+}
 
-#endif // ADPEPTIDE_GLOBAL_HPP
+protein::protein( const protein& t ) : name_( t.name_ )
+                                     , sequence_( t.sequence_ )
+{
+}
+
+protein::protein( const std::string& name
+                  , const std::string& sequence ) : name_( name )
+                                                  , sequence_( sequence )
+{
+}
+
+const std::string&
+protein::name() const
+{
+    return name_;
+}
+
+void
+protein::name( const std::string& var )
+{
+    name_ = var;
+}
+
+
+const std::string&
+protein::sequence() const
+{
+    return sequence_;
+}
+
+void
+protein::sequence( const std::string& var )
+{
+    sequence_ = var;
+}
+

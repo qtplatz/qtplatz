@@ -22,9 +22,61 @@
 **
 **************************************************************************/
 
-#include "adpeptide.hpp"
+#include "peptide.hpp"
+#include "aminoacid.hpp"
 
+using namespace adprot;
 
-adpeptide::adpeptide()
+peptide::peptide()
 {
 }
+
+peptide::peptide( const peptide& t ) : name_( t.name_ )
+                                     , sequence_( t.sequence_ )
+{
+}
+
+peptide::peptide( const std::string& name
+                  , const std::string& sequence ) : name_( name )
+                                                  , sequence_( sequence )
+{
+}
+
+const std::string&
+peptide::name() const
+{
+    return name_;
+}
+
+void
+peptide::name( const std::string& name )
+{
+    name_ = name;
+}
+
+const std::string&
+peptide::sequence() const
+{
+    return sequence_;
+}
+
+void
+peptide::sequence( const std::string& sequence )
+{
+    sequence_ = sequence;
+}
+
+// static
+std::string
+peptide::formula( const std::string& sequence )
+{
+    return "";
+}
+
+// static
+bool
+peptide::product_ions( std::vector< std::string >& formulae, const std::string& sequence, series bya )
+{
+    return false;
+}
+

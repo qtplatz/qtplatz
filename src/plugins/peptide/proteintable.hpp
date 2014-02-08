@@ -30,7 +30,7 @@
 class QItemDelegate;
 class QStandardItemModel;
 
-namespace adpeptide { class protfile; }
+namespace adprot { class protfile; }
 
 namespace peptide {
 
@@ -40,7 +40,7 @@ namespace peptide {
         explicit ProteinTable(QWidget *parent = 0);
         ~ProteinTable();
 
-        void setData( const adpeptide::protfile& );
+        void setData( const adprot::protfile& );
 
     private:
         QStandardItemModel * model_;

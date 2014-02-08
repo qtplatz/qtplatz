@@ -43,7 +43,8 @@ LIBS += -l$$qtLibraryTarget( adutils ) \
         -l$$qtLibraryTarget( adwchem ) \
         -l$$qtLibraryTarget( adcontrols ) \
         -l$$qtLibraryTarget( adplugin ) \
-        -l$$qtLibraryTarget( qtwrapper )
+        -l$$qtLibraryTarget( qtwrapper ) \
+        -l$$qtLibraryTarget( adprot )
 
 !win32 {
     LIBS += -lboost_date_time -lboost_filesystem -lboost_system

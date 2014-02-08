@@ -55,7 +55,7 @@ ProteinWnd::init()
 }
 
 void
-ProteinWnd::setData( const adpeptide::protfile& file )
+ProteinWnd::setData( const adprot::protfile& file )
 {
     for ( auto w: widgets_ ) {
         if ( ProteinTable * p = dynamic_cast< ProteinTable* >( w ) )

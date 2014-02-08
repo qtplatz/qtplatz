@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "proteintable.hpp"
-#include <adpeptide/protfile.hpp>
+#include <adprot/protfile.hpp>
 #include <QStandardItemModel>
 #include <QItemDelegate>
 
@@ -64,7 +64,7 @@ ProteinTable::init( QStandardItemModel& model )
 }
 
 void
-ProteinTable::setData( const adpeptide::protfile& file ) 
+ProteinTable::setData( const adprot::protfile& file ) 
 {
     QStandardItemModel& model = *model_;
 

@@ -28,6 +28,7 @@
 #include <adportable/debug.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adprot/aminoacid.hpp>
 
 #include <compiler/diagnostic_push.h>
 #if defined _MSC_VER
@@ -57,7 +58,7 @@
 #include <boost/exception/all.hpp>
 
 namespace chemistry { 
-    static char * tags [] = {
+    static const char * tags [] = {
         "STRUCTURE_ChemicalName_IUPAC"
         , "STRUCTURE_MolecularWeight"
         , "STRUCTURE_ChemicalType"
@@ -106,6 +107,8 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
     for ( auto tag: tags )
         model_->setHeaderData( col++, Qt::Horizontal, tag );        
 
+    adcontrols::ChemicalFormula cformula;    
+
     do { // add PFTBA as demonstration
         model_->setRowCount( 1 );
         std::string smiles = "C(C(C(F)(F)F)(F)F)(C(N(C(C(C(C(F)(F)F)(F)F)(F)F)(F)F)C(C(C(C(F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F";
@@ -120,12 +123,30 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
         do { // formula
             std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
             model_->setData( model_->index( 0, 2 ), formula.c_str() );
-
-            adcontrols::ChemicalFormula cformula;    
             model_->setData( model_->index( 0, 3 ), cformula.getMonoIsotopicMass( formula ) );
         } while(0);
         delete mol;
     } while (0);    // end of PFTBA
+
+    do {
+        int row = model_->rowCount();
+        model_->setRowCount( model_->rowCount() + adprot::AminoAcid::size() );
+        for ( adprot::AminoAcid::iterator it = adprot::AminoAcid::begin(); it != adprot::AminoAcid::end(); ++it ) {
+            model_->setData( model_->index( row, 0 ), static_cast<adprot::AminoAcid *>(it)->smiles() );
+            RDKit::RWMol * mol = RDKit::SmilesToMol( static_cast<adprot::AminoAcid *>(it)->smiles() );
+            do { // SVG
+                std::string svg = adchem::drawing::toSVG( *mol );
+                model_->setData( model_->index( row, 1 ), QByteArray( svg.data(), static_cast<int>( svg.size() ) ) );
+                model_->item( row, 1 )->setEditable( false );
+            } while(0);
+            do { // formula
+                model_->setData( model_->index( row, 2 ), static_cast<adprot::AminoAcid *>(it)->formula() );
+                model_->setData( model_->index( row, 3 ), cformula.getMonoIsotopicMass( static_cast<adprot::AminoAcid *>(it)->formula() ) );
+            } while(0);
+            ++row;
+        }
+        
+    } while(0);
 
     for ( int col = 3; col < model_->columnCount(); ++col )
         resizeColumnToContents( col );

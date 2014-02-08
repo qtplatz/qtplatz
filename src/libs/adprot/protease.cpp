@@ -22,16 +22,10 @@
 **
 **************************************************************************/
 
-#ifndef ADPEPTIDE_HPP
-#define ADPEPTIDE_HPP
+#include "protease.hpp"
 
-#include "adpeptide_global.hpp"
+using namespace adprot;
 
-class ADPEPTIDESHARED_EXPORT adpeptide
+protease::protease()
 {
-
-public:
-    adpeptide();
-};
-
-#endif // ADPEPTIDE_HPP
+}

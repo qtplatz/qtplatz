@@ -22,47 +22,30 @@
 **
 **************************************************************************/
 
-#include "protein.hpp"
+#ifndef PROTEASE_HPP
+#define PROTEASE_HPP
 
-using namespace adpeptide;
+#include "adprot_global.hpp"
+#include <string>
+#include <vector>
 
-protein::protein()
-{
+namespace adprot {
+
+    class ADPROTSHARED_EXPORT protease {
+    public:
+
+        protease();
+
+        const std::string& name() const;
+        void name( const std::string& ) const;
+        const std::vector< std::string >& aliases() const;
+        std::vector< std::string >& aliases();
+        
+    private:
+        std::string name_;
+        std::vector< std::string > aliases_;
+
+    };
+
 }
-
-protein::protein( const protein& t ) : name_( t.name_ )
-                                     , sequence_( t.sequence_ )
-{
-}
-
-protein::protein( const std::string& name
-                  , const std::string& sequence ) : name_( name )
-                                                  , sequence_( sequence )
-{
-}
-
-const std::string&
-protein::name() const
-{
-    return name_;
-}
-
-void
-protein::name( const std::string& var )
-{
-    name_ = var;
-}
-
-
-const std::string&
-protein::sequence() const
-{
-    return sequence_;
-}
-
-void
-protein::sequence( const std::string& var )
-{
-    sequence_ = var;
-}
-
+#endif // PROTEASE_HPP

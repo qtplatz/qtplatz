@@ -22,24 +22,35 @@
 **
 **************************************************************************/
 
-#ifndef SEQUENCE_HPP
-#define SEQUENCE_HPP
+#ifndef PROTFILE_HPP
+#define PROTFILE_HPP
 
-#include "adpeptide_global.hpp"
+#include "adprot_global.hpp"
+#include "protein.hpp"
+#include <vector>
 #include <string>
+#include <istream>
 
-namespace adpeptide {
+namespace adprot {
 
-    class ADPEPTIDESHARED_EXPORT sequence {
+    class ADPROTSHARED_EXPORT protfile {
     public:
-        sequence();
-        sequence( const std::string& );
-        operator const std::string& () const;
+        protfile( const std::string& filename );
+        operator bool() const;
+        size_t size() const;
         
+        std::vector< protein >::const_iterator begin() const;
+        std::vector< protein >::iterator begin();
+        std::vector< protein >::const_iterator end() const;
+        std::vector< protein >::iterator end();
+
     private:
-        std::string sequence_;
+        std::string filename_;
+        std::vector< protein > proteins_;
+        bool fetch( std::istream& );
     };
 
 }
 
-#endif // SEQUENCE_HPP
+
+#endif // PROTFILE_HPP
