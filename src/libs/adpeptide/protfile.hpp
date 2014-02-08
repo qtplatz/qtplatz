@@ -22,10 +22,13 @@
 **
 **************************************************************************/
 
-#include "protease.hpp"
+#ifndef PROTFILE_HPP
+#define PROTFILE_HPP
 
-using namespace adpeptide;
-
-protease::protease()
+class protfile
 {
-}
+public:
+    protfile();
+};
+
+#endif // PROTFILE_HPP

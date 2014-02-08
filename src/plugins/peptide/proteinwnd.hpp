@@ -22,10 +22,27 @@
 **
 **************************************************************************/
 
-#include "protease.hpp"
+#ifndef PROTEINWND_HPP
+#define PROTEINWND_HPP
 
-using namespace adpeptide;
+#include <QWidget>
 
-protease::protease()
-{
+namespace peptide {
+
+    class ProteinWnd : public QWidget {
+        Q_OBJECT
+    public:
+        explicit ProteinWnd(QWidget *parent = 0);
+
+    private:
+        void init();
+    
+    signals:
+    
+    public slots:
+    
+    };
+
 }
+
+#endif // PROTEINWND_HPP

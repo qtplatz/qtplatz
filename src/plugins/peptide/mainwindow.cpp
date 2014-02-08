@@ -25,6 +25,7 @@
 #include "mainwindow.hpp"
 #include "peptidemode.hpp"
 #include "peptideconstants.hpp"
+#include "proteinwnd.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>
@@ -80,7 +81,7 @@ MainWindow::createContents( Core::IMode * mode )
     if ( QWidget * editorWidget = new QWidget ) {
 
         editorWidget->setLayout( editorHolderLayout );
-        editorHolderLayout->addWidget( new QTextEdit() ); //tableView_.get() );
+        editorHolderLayout->addWidget( new ProteinWnd() ); //tableView_.get() );
 
         Utils::StyledBar * toolBar1 = createTopStyledBar();
         Utils::StyledBar * toolBar2 = createMidStyledBar();
@@ -179,15 +180,15 @@ MainWindow::createMidStyledBar()
             QList<int> context;
             context << Core::Constants::C_GLOBAL_ID;
             
-            QComboBox * features = new QComboBox;
-            features->addItem( "Centroid" );
-            features->addItem( "Isotope" );
-            features->addItem( "Calibration" );
-            features->addItem( "Find peaks" );
-            toolBarLayout->addWidget( features );
+            // QComboBox * features = new QComboBox;
+            // features->addItem( "Centroid" );
+            // features->addItem( "Isotope" );
+            // features->addItem( "Calibration" );
+            // features->addItem( "Find peaks" );
+            // toolBarLayout->addWidget( features );
 
-            connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
-            connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
+            //connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
+            //connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
 
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -208,6 +209,7 @@ MainWindow::onInitialUpdate()
 void
 MainWindow::createDockWidgets()
 {
+    createDockWidget( new QTextEdit(), "Sequence" );
     // if ( QWidget * w = new DropTargetForm( this ) ) {
     //     connect( w, SIGNAL( dropped( const QList<QString>& ) ), this, SLOT( handleDropped( const QList<QString>& ) ) );
     //     createDockWidget( w, "Drop Target" );

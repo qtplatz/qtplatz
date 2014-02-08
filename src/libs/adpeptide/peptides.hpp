@@ -25,10 +25,20 @@
 #ifndef PEPTIDES_HPP
 #define PEPTIDES_HPP
 
-class peptides
-{
-public:
-    peptides();
-};
+#include "adpeptide_global.hpp"
+#include "peptide.hpp"
+#include <vector>
+
+namespace adpeptide {
+
+
+    class ADPEPTIDESHARED_EXPORT peptides {
+    public:
+        peptides();
+    private:
+        std::vector< adpeptide::peptide > vec_;
+    };
+
+}
 
 #endif // PEPTIDES_HPP

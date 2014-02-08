@@ -25,10 +25,27 @@
 #ifndef PROTEASE_HPP
 #define PROTEASE_HPP
 
-class protease
-{
-public:
-    protease();
-};
+#include "adpeptide_global.hpp"
+#include <string>
+#include <vector>
 
+namespace adpeptide {
+
+    class ADPEPTIDESHARED_EXPORT protease {
+    public:
+
+        protease();
+
+        const std::string& name() const;
+        void name( const std::string& ) const;
+        const std::vector< std::string >& aliases() const;
+        std::vector< std::string >& aliases();
+        
+    private:
+        std::string name_;
+        std::vector< std::string > aliases_;
+
+    };
+
+}
 #endif // PROTEASE_HPP

@@ -24,6 +24,39 @@
 
 #include "protein.hpp"
 
+using namespace adpeptide;
+
 protein::protein()
 {
 }
+
+protein::protein( const protein& t ) : name_( t.name_ )
+                                     , sequence_( t.sequence_ )
+{
+}
+
+const std::string&
+protein::name() const
+{
+    return name_;
+}
+
+void
+protein::name( const std::string& var )
+{
+    name_ = var;
+}
+
+
+const std::string&
+protein::sequence() const
+{
+    return sequence_;
+}
+
+void
+protein::sequence( const std::string& var )
+{
+    sequence_ = var;
+}
+

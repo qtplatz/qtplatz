@@ -24,6 +24,8 @@
 
 #include "peptides.hpp"
 
+using namespace adpeptide;
+
 peptides::peptides()
 {
 }

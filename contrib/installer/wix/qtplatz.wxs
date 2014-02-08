@@ -157,6 +157,9 @@
             <Component Id="adchem.dll" Guid="11EA8F0B-8085-4E5A-9099-7C2C8F613A16" Win64="yes">
                 <File Id="adchem.dll" Source="../../../bin/adchem.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
+            <Component Id="adpeptide.dll" Guid="tbd" Win64="yes">
+                <File Id="adpeptide.dll" Source="../../../bin/adpeptide.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+            </Component>
             <Component Id="adcontrols.dll" Guid="0D031AFE-599C-4D03-82FB-D3738A12A005" Win64="yes">
                 <File Id="adcontrols.dll" Source="../../../bin/adcontrols.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
@@ -229,6 +232,10 @@
             <Component Id="chemistry.dll" Guid="37A019FA-AD6E-4F6F-B952-71154CE54265" Win64="yes">
                 <File Id="chemistry.pluginspec" Source="$(var.InMSCheminfo)/chemistry.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="chemistry.dll" Source="$(var.InMSCheminfo)/chemistry.dll" ProcessorArchitecture="x64" />
+            </Component>
+            <Component Id="peptide.dll" Guid="tbd" Win64="yes">
+                <File Id="peptide.pluginspec" Source="$(var.InMSCheminfo)/peptide.pluginspec" ProcessorArchitecture="x64" />
+                <File Id="peptide.dll" Source="$(var.InMSCheminfo)/peptide.dll" ProcessorArchitecture="x64" />
             </Component>
             <Component Id="dataproc.dll" Guid="99B5853A-5C95-4769-BBE4-A3D9DCD32EFA" Win64="yes">
                 <File Id="dataproc.dll" Source="$(var.InMSCheminfo)/dataproc.dll" ProcessorArchitecture="x64" />

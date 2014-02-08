@@ -25,12 +25,12 @@
 #ifndef ADPEPTIDE_GLOBAL_HPP
 #define ADPEPTIDE_GLOBAL_HPP
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
 #if defined(ADPEPTIDE_LIBRARY)
-#  define ADPEPTIDESHARED_EXPORT Q_DECL_EXPORT
+#  define ADPEPTIDESHARED_EXPORT DECL_EXPORT
 #else
-#  define ADPEPTIDESHARED_EXPORT Q_DECL_IMPORT
+#  define ADPEPTIDESHARED_EXPORT DECL_IMPORT
 #endif
 
 #endif // ADPEPTIDE_GLOBAL_HPP

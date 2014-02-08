@@ -25,10 +25,21 @@
 #ifndef SEQUENCE_HPP
 #define SEQUENCE_HPP
 
-class sequence
-{
-public:
-    sequence();
-};
+#include "adpeptide_global.hpp"
+#include <string>
+
+namespace adpeptide {
+
+    class ADPEPTIDESHARED_EXPORT sequence {
+    public:
+        sequence();
+        sequence( const std::string& );
+        operator const std::string& () const;
+        
+    private:
+        std::string sequence_;
+    };
+
+}
 
 #endif // SEQUENCE_HPP

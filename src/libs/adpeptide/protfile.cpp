@@ -22,10 +22,8 @@
 **
 **************************************************************************/
 
-#include "protease.hpp"
+#include "protfile.hpp"
 
-using namespace adpeptide;
-
-protease::protease()
+protfile::protfile()
 {
 }

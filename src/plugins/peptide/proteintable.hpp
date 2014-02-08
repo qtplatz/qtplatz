@@ -22,10 +22,32 @@
 **
 **************************************************************************/
 
-#include "protease.hpp"
+#ifndef PROTEINTABLE_HPP
+#define PROTEINTABLE_HPP
 
-using namespace adpeptide;
+#include <QTreeView>
 
-protease::protease()
-{
+class QItemDelegate;
+class QStandardItemModel;
+
+namespace peptide {
+
+    class ProteinTable : public QTreeView  {
+        Q_OBJECT
+    public:
+        explicit ProteinTable(QWidget *parent = 0);
+        ~ProteinTable();
+
+    private:
+        QStandardItemModel * model_;
+        QItemDelegate * delegate_;
+    
+    signals:
+    
+    public slots:
+    
+    };
+
 }
+
+#endif // PROTEINTABLE_HPP

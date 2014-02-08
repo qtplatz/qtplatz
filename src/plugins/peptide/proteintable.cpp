@@ -22,10 +22,34 @@
 **
 **************************************************************************/
 
-#include "protease.hpp"
+#include "proteintable.hpp"
+#include <QStandardItemModel>
+#include <QItemDelegate>
 
-using namespace adpeptide;
+namespace peptide {
+    namespace detail {
 
-protease::protease()
-{
+        class ProteinTableDelegate : public QItemDelegate {
+        public:
+            
+        };
+
+    }
 }
+
+using namespace peptide;
+
+ProteinTable::ProteinTable(QWidget *parent) : QTreeView(parent)
+                                            , model_( new QStandardItemModel )
+                                            , delegate_( new detail::ProteinTableDelegate )
+{
+    setModel( model_ );
+    setItemDelegate( delegate_ );
+}
+
+ProteinTable::~ProteinTable()
+{
+    delete delegate_;
+    delete model_;
+}
+

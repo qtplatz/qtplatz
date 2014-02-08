@@ -25,10 +25,13 @@
 #ifndef PEPTIDE_HPP
 #define PEPTIDE_HPP
 
-class peptide
-{
-public:
-    peptide();
-};
+namespace adpeptide {
+
+    class peptide  {
+    public:
+        peptide();
+    };
+
+}
 
 #endif // PEPTIDE_HPP

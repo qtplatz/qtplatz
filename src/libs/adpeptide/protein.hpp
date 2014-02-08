@@ -25,10 +25,26 @@
 #ifndef PROTEIN_HPP
 #define PROTEIN_HPP
 
-class protein
-{
-public:
-    protein();
-};
+#include "adpeptide_global.hpp"
+#include <string>
+
+namespace adpeptide {
+
+    class ADPEPTIDESHARED_EXPORT protein {
+    public:
+        protein();
+        protein( const protein& );
+        
+        const std::string& name() const;
+        const std::string& sequence() const;
+        void name( const std::string& );
+        void sequence( const std::string& );
+
+    private:
+        std::string name_;
+        std::string sequence_;
+    };
+
+}
 
 #endif // PROTEIN_HPP

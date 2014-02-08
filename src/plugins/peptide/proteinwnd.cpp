@@ -22,10 +22,30 @@
 **
 **************************************************************************/
 
-#include "protease.hpp"
+#include "proteinwnd.hpp"
+#include "proteintable.hpp"
+#include <coreplugin/minisplitter.h>
+#include <QVBoxLayout>
 
-using namespace adpeptide;
+using namespace peptide;
 
-protease::protease()
+ProteinWnd::ProteinWnd(QWidget *parent) : QWidget(parent)
 {
+    init();
+}
+
+void
+ProteinWnd::init()
+{
+    if ( QBoxLayout * layout = new QVBoxLayout( this ) ) {
+    
+        if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {  // protein | spectrum
+
+            splitter->addWidget( new ProteinTable );
+            splitter->addWidget( new ProteinTable );
+            splitter->setOrientation( Qt::Horizontal );
+            // std::shared_ptr< adwplot::SpectrumWidget > wnd = std::make_shared< adwplot::SpectrumWidget >(this);
+            layout->addWidget( splitter );
+        }
+    }
 }
