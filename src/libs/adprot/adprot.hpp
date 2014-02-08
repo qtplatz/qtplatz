@@ -27,11 +27,4 @@
 
 #include "adprot_global.hpp"
 
-class ADPEPTIDESHARED_EXPORT adprot
-{
-
-public:
-    adprot();
-};
-
 #endif // ADPEPTIDE_HPP

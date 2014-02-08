@@ -24,7 +24,3 @@
 
 #include "adprot.hpp"
 
-
-adprot::adprot()
-{
-}
