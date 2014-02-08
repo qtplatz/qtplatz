@@ -22,61 +22,39 @@
 **
 **************************************************************************/
 
-#include "peptide.hpp"
-#include "aminoacid.hpp"
+#ifndef AMINOACID_HPP
+#define AMINOACID_HPP
 
-using namespace adpeptide;
+#include "adpeptide_global.hpp"
+#include <compiler/disable_dll_interface.h>
+#include <string>
 
-peptide::peptide()
-{
+namespace adpeptide {
+
+    class ADPEPTIDESHARED_EXPORT AminoAcid  {
+    public:
+        AminoAcid( char symbol );
+        AminoAcid( const char * _3letter );
+
+        class ADPEPTIDESHARED_EXPORT iterator {
+            size_t pos_;
+        public:
+            iterator( size_t pos );
+            const iterator& operator ++ () { ++pos_; return *this; }
+            bool operator != ( const iterator& rhs ) const { return pos_ != rhs.pos_; }
+            operator AminoAcid* () const;
+        };
+
+        static const iterator begin();
+        static const iterator end();
+        static size_t size();
+
+        const std::string& symbol( bool _3letter = true ) const;
+        const std::string& formula() const;
+        const std::string& smiles() const;
+    private:
+        int symbol_;
+    };
 }
 
-peptide::peptide( const peptide& t ) : name_( t.name_ )
-                                     , sequence_( t.sequence_ )
-{
-}
-
-peptide::peptide( const std::string& name
-                  , const std::string& sequence ) : name_( name )
-                                                  , sequence_( sequence )
-{
-}
-
-const std::string&
-peptide::name() const
-{
-    return name_;
-}
-
-void
-peptide::name( const std::string& name )
-{
-    name_ = name;
-}
-
-const std::string&
-peptide::sequence() const
-{
-    return sequence_;
-}
-
-void
-peptide::sequence( const std::string& sequence )
-{
-    sequence_ = sequence;
-}
-
-// static
-std::string
-peptide::formula( const std::string& sequence )
-{
-    return "";
-}
-
-// static
-bool
-peptide::product_ions( std::vector< std::string >& formulae, const std::string& sequence, series bya )
-{
-    return false;
-}
-
+#endif // AMINOACID_HPP

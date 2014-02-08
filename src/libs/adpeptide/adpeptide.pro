@@ -20,7 +20,8 @@ SOURCES += adpeptide.cpp \
     protease.cpp \
     protein.cpp \
     sequence.cpp \
-    protfile.cpp
+    protfile.cpp \
+    aminoacid.cpp
 
 HEADERS += adpeptide.hpp\
         adpeptide_global.hpp \
@@ -29,7 +30,8 @@ HEADERS += adpeptide.hpp\
     protease.hpp \
     protein.hpp \
     sequence.hpp \
-    protfile.hpp
+    protfile.hpp \
+    aminoacid.hpp
 
 unix:!symbian {
     maemo5 {

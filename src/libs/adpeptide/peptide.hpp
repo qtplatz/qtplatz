@@ -25,11 +25,37 @@
 #ifndef PEPTIDE_HPP
 #define PEPTIDE_HPP
 
+#include "adpeptide_global.hpp"
+#include <compiler/disable_dll_interface.h>
+#include <string>
+#include <vector>
+
 namespace adpeptide {
 
-    class peptide  {
+    class ADPEPTIDESHARED_EXPORT peptide  {
     public:
         peptide();
+        peptide( const peptide& t);
+        peptide( const std::string& name, const std::string& sequence );
+
+        const std::string& name() const;
+        void name( const std::string& );
+
+        const std::string& sequence() const;
+        void sequence( const std::string& );
+
+        enum series {
+            a_series
+            , b_series
+            , y_series
+        };
+
+        static std::string formula( const std::string& sequence );
+        static bool product_ions( std::vector< std::string >& formulae, const std::string& sequence, series );
+
+    private:
+        std::string name_;
+        std::string sequence_;
     };
 
 }
