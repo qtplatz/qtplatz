@@ -22,37 +22,42 @@
 **
 **************************************************************************/
 
-#ifndef PROTEINWND_HPP
-#define PROTEINWND_HPP
+#ifndef DIGESTEDPEPTIDETABLE_HPP
+#define DIGESTEDPEPTIDETABLE_HPP
 
-#include <QWidget>
+#include <QTableView>
+#include <memory>
 
-namespace adprot { class protfile; }
+class QItemDelegate;
+class QStandardItemModel;
+
+namespace adprot {    class protease;    class protein; }
 
 namespace peptide {
 
-    class MainWindow;
-
-    class ProteinWnd : public QWidget {
+    class DigestedPeptideTable : public QTableView {
         Q_OBJECT
     public:
-        explicit ProteinWnd(QWidget *parent = 0);
+        explicit DigestedPeptideTable(QWidget *parent = 0);
+        ~DigestedPeptideTable();
 
-        void setData( const adprot::protfile& );
+        void setData( const std::shared_ptr< adprot::protease>& );
+        void setData( const adprot::protein& );
 
     private:
-        std::vector< QWidget * > widgets_;
-        void init();
-    
+        QStandardItemModel * model_;
+        QItemDelegate * delegate_;
+
+        std::weak_ptr< adprot::protease > protease_;
+
+        void init( QStandardItemModel& );
+
     signals:
-    
+
     public slots:
 
-    private slots:
-        void protSelChanged( int row );
-    
     };
 
 }
 
-#endif // PROTEINWND_HPP
+#endif // DIGESTEDPEPTIDETABLE_HPP

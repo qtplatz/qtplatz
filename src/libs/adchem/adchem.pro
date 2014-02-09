@@ -41,7 +41,7 @@ LIBS += -lFileParsers \
   LIBS += -lboost_system
 }
 
-#LIBS += -l$$qtLibraryTarget( adportable )
+LIBS += -l$$qtLibraryTarget( adportable )
 
 unix:!symbian {
     maemo5 {

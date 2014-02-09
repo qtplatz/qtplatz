@@ -24,6 +24,11 @@
 
 #include "proteinwnd.hpp"
 #include "proteintable.hpp"
+#include "digestedpeptidetable.hpp"
+#include "mainwindow.hpp"
+#include <adwplot/spectrumwidget.hpp>
+#include <adprot/protfile.hpp>
+#include <adprot/protease.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QVBoxLayout>
 #include <QTextEdit>
@@ -45,9 +50,21 @@ ProteinWnd::init()
     
         if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {  // protein | spectrum
             widgets_.push_back( new ProteinTable );
-            widgets_.push_back( new QTextEdit );
-            for ( auto w: widgets_ )
-                splitter->addWidget( w );
+            splitter->addWidget( widgets_.back() );
+            connect( widgets_.back(), SIGNAL( currentChanged( int ) ), this, SLOT( protSelChanged( int ) ) );
+
+            if ( Core::MiniSplitter * splitter2 = new Core::MiniSplitter ) {
+                splitter->addWidget( splitter2 );
+
+                widgets_.push_back( new DigestedPeptideTable );
+                splitter2->addWidget( widgets_.back() );
+
+                widgets_.push_back( new adwplot::SpectrumWidget );
+                splitter2->addWidget( widgets_.back() );
+
+                splitter2->setOrientation( Qt::Vertical );
+            }
+
             splitter->setOrientation( Qt::Horizontal );
             layout->addWidget( splitter );
         }
@@ -58,7 +75,26 @@ void
 ProteinWnd::setData( const adprot::protfile& file )
 {
     for ( auto w: widgets_ ) {
-        if ( ProteinTable * p = dynamic_cast< ProteinTable* >( w ) )
+        if ( ProteinTable * p = dynamic_cast< ProteinTable* >( w ) ) {
             p->setData( file );
+        }
+    }
+}
+
+void
+ProteinWnd::protSelChanged( int row )
+{
+    if ( std::shared_ptr< adprot::protfile > ptr = MainWindow::instance()->get_protfile() ) {
+        if ( row < ptr->size() ) {
+            auto it = ptr->begin() + row;
+
+            for ( auto w: widgets_ ) {
+                if ( DigestedPeptideTable * p = dynamic_cast< DigestedPeptideTable* >( w ) ) {
+                    p->setData( MainWindow::instance()->get_protease() );
+                    p->setData( *it );
+                }
+            }
+        }
+
     }
 }

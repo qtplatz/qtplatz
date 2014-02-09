@@ -47,9 +47,15 @@ namespace peptide {
         QItemDelegate * delegate_;
 
         void init( QStandardItemModel& );
-        void split( const std::string& sequence, std::string& worded );
+        void handleCopyToClipboard();
+        static void split( const std::string& sequence, std::string& worded );
+
+    protected:
+        void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+        void keyPressEvent( QKeyEvent * ) override;
     
     signals:
+        void currentChanged( int row );
     
     public slots:
     

@@ -30,6 +30,7 @@
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>
 #include <adprot/protfile.hpp>
+#include <adprot/protease.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/minisplitter.h>
@@ -56,16 +57,28 @@
 
 #include <boost/filesystem.hpp>
 
+namespace peptide {
+    MainWindow * MainWindow::instance_ = 0;
+}
+
 using namespace peptide;
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , topLineEdit_( new QLineEdit )
+                                        , protease_( std::make_shared< adprot::protease >( "trypsin" ) )
 {
     std::fill( actions_.begin(), actions_.end(), static_cast<QAction *>(0) );
+    instance_ = this;
 }
 
 MainWindow::~MainWindow()
 {
+}
+
+MainWindow *
+MainWindow::instance()
+{
+    return instance_;
 }
 
 QWidget *
@@ -334,3 +347,16 @@ MainWindow::actFileOpen()
 
 	}
 }
+
+const std::shared_ptr< adprot::protfile >&
+MainWindow::get_protfile() const
+{
+    return protfile_;
+}
+
+const std::shared_ptr< adprot::protease >&
+MainWindow::get_protease() const
+{
+    return protease_;
+}
+

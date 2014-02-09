@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "proteintable.hpp"
+#include "mainwindow.hpp"
 #include <adprot/protfile.hpp>
 #include <adprot/protease.hpp>
 #include <QStandardItemModel>
@@ -30,6 +31,9 @@
 #include <QItemDelegate>
 #include <QPainter>
 #include <QTextDocument>
+#include <QApplication>
+#include <QKeyEvent>
+#include <QClipboard>
 #include <sstream>
 
 namespace peptide {
@@ -108,7 +112,7 @@ ProteinTable::init( QStandardItemModel& model )
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr("name") );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr("sequence") );
 	setColumnWidth( 0, 200 );
-    setColumnWidth( 1, 600 );
+    setColumnWidth( 1, 500 );
 	setWordWrap( true );
 }
 
@@ -117,21 +121,21 @@ ProteinTable::setData( const adprot::protfile& file )
 {
     QStandardItemModel& model = *model_;
 
-    adprot::protease trypsin( "trypsin" );
+    adprot::protease& trypsin = *MainWindow::instance()->get_protease();
 
-    model.setRowCount( static_cast<int>( file.size() * 2 ) );
+    model.setRowCount( static_cast<int>( file.size() ) );
     int row = 0;
     for ( auto& prot: file ) {
         model.setData( model.index( row, 0 ), QString::fromStdString( prot.name() ) );
 
         std::string worded, richText;
         split( prot.sequence(), worded );
-
         adprot::protease::digest( trypsin, worded, richText );
         model.setData( model.index( row, 1 ), QString::fromStdString( richText ) );
-		++row;
 
-        model.setData( model.index( row, 1 ), QString::fromStdString( worded ) );
+        model.item( row, 0 )->setEditable( false );
+        model.item( row, 1 )->setEditable( false );
+
 		++row;
     }
     resizeRowsToContents();
@@ -148,4 +152,45 @@ ProteinTable::split( const std::string& sequence, std::string& worded )
         pos += width;
     }
 
+}
+
+void
+ProteinTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
+{
+    emit currentChanged( index.row() );
+}
+
+void
+ProteinTable::keyPressEvent( QKeyEvent * event )
+{
+    if ( event->matches( QKeySequence::Copy ) ) {
+        handleCopyToClipboard();
+    }
+    // else if ( event->matches( QKeySequence::Paste ) ) {
+    //     handlePasteFromClipboard();
+     else {
+        QTableView::keyPressEvent( event );
+    }
+}
+
+void
+ProteinTable::handleCopyToClipboard()
+{
+    QStandardItemModel& model = *model_;
+    QModelIndexList list = selectionModel()->selectedIndexes();
+
+    qSort( list );
+    if ( list.size() < 1 )
+        return;
+
+    QString copy_table;
+    QModelIndex prev = list.first();
+	int i = 0;
+    for ( auto idx: list ) {
+		if ( i++ > 0 )
+			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
+        copy_table.append( model.data( idx ).toString() );
+        prev = idx;
+    }
+    QApplication::clipboard()->setText( copy_table );
 }

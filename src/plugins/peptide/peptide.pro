@@ -16,7 +16,9 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(adprot) \
         -l$$qtLibraryTarget(adportable) \
-        -l$$qtLibraryTarget(adextension)
+        -l$$qtLibraryTarget(adextension) \
+        -l$$qtLibraryTarget(adwplot) \
+        -l$$qtLibraryTarget(qtwrapper)
 
 !win32 {
   LIBS += -lboost_system \
@@ -36,7 +38,8 @@ SOURCES += peptideplugin.cpp \
     mainwindow.cpp \
     peptidemode.cpp \
     proteintable.cpp \
-    proteinwnd.cpp
+    proteinwnd.cpp \
+    digestedpeptidetable.cpp
 
 HEADERS += peptideplugin.hpp \
         peptide_global.hpp \
@@ -44,7 +47,8 @@ HEADERS += peptideplugin.hpp \
         mainwindow.hpp \
         peptidemode.hpp \
     proteintable.hpp \
-    proteinwnd.hpp
+    proteinwnd.hpp \
+    digestedpeptidetable.hpp
 
 ## set the QTC_SOURCE environment variable to override the setting here
 QTCREATOR_SOURCES = $$(QTC_SOURCE)

@@ -33,7 +33,7 @@
 
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
-namespace adprot { class protein; class protfile; }
+namespace adprot { class protein; class protfile; class protease; }
 
 class QToolButton;
 class QAction;
@@ -51,6 +51,10 @@ namespace peptide {
 
         QWidget * createContents( Core::IMode * );
         void onInitialUpdate();
+        const std::shared_ptr< adprot::protfile >& get_protfile() const;
+        const std::shared_ptr< adprot::protease >& get_protease() const;
+
+        static MainWindow * instance();
         
     signals:
             
@@ -61,12 +65,14 @@ namespace peptide {
 
     private:
         enum idActions { idActFileOpen, numActions };
-
+        static MainWindow * instance_;
         QDockWidget * toolBarDockWidget_;
         std::array< QAction *, numActions > actions_;
         std::unique_ptr< QLineEdit > topLineEdit_;
         std::vector< QWidget * > wnds_;
+
         std::shared_ptr< adprot::protfile > protfile_;
+        std::shared_ptr< adprot::protease > protease_;
 
         void createDockWidgets();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
