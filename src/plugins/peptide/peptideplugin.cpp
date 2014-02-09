@@ -28,8 +28,6 @@
 #include "mainwindow.hpp"
 #include "peptidemode.hpp"
 
-//#include <adcontrols/massspectrometerbroker.hpp>
-//#include <adcontrols/massspectrometer.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -66,23 +64,11 @@ bool peptideplugin::initialize(const QStringList &arguments, QString *errorStrin
     (void)arguments;
     (void)errorString;
 
-    // QAction *action = new QAction(tr("peptide action"), this);
-	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
-	// Core::Command * cmd = Core::ICore::instance()->actionManager()->registerAction( action, Constants::ACTION_ID, gc );
-
-    // cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
-    // connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));
-
-	//Core::ActionContainer *menu = Core::ICore::instance()->actionManager()->createMenu(Constants::MENU_ID);
-    //menu->menu()->setTitle(tr("Peptide"));
-    //menu->addAction(cmd);
-	//Core::ICore::instance()->actionManager()->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
-
-
     Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     mainWindow_->activateWindow();
     mainWindow_->createActions();
 
+	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
     mode_->setContext( gc );
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );

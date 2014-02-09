@@ -28,23 +28,31 @@
 #include "adprot_global.hpp"
 #include <string>
 #include <vector>
+#include <compiler/disable_dll_interface.h>
 
 namespace adprot {
 
     class ADPROTSHARED_EXPORT protease {
     public:
 
-        protease();
+        protease( const std::string& name = "trypsin" );
 
         const std::string& name() const;
-        void name( const std::string& ) const;
+
         const std::vector< std::string >& aliases() const;
         std::vector< std::string >& aliases();
-        
+
+        void cleave_points( const char * aa );
+        const std::string& cleave_points() const;
+
+        static bool digest( const protease&, const std::string& sequence, std::vector< std::string >& output );
+        static bool digest( const protease&, const std::string& sequence, std::vector< size_t >& output );
+        static bool digest( const protease&, const std::string& sequence, std::string& richText );
+
     private:
         std::string name_;
         std::vector< std::string > aliases_;
-
+        std::string cleave_points_;
     };
 
 }

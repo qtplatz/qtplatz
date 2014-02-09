@@ -33,20 +33,22 @@ namespace adprot {
 
     class ADPROTSHARED_EXPORT AminoAcid  {
     public:
-        AminoAcid( char symbol, const char * _3letter, const char * formula, const char * smiles );
+        AminoAcid( int symbol, const char * _3letter, const char * formula, const char * smiles );
 
         typedef AminoAcid * iterator;
 
         static iterator begin();
         static iterator end();
         static size_t size();
+        static const AminoAcid * find( int symbol );
 
-        std::string symbol( bool _3letter = true ) const;
+        int code() const;     // 1 letter
+        const char * symbol() const; // 3 letter
         const char * formula() const;
         const char * smiles() const;
     private:
-        const char symbol_;
-        const char * _3letter_;
+        const int symbol_1letter_;
+        const char * symbol_3letter_;
         const char * formula_;
         const char * smiles_;
     };

@@ -27,37 +27,6 @@
 #include <array>
 
 namespace adprot {
-#if 0
-    struct AA {
-        const char _1letter_symbol;
-        const char * _3letter_symbol;
-        const char * formula;
-        const char * smiles;
-    };
-    
-    static AA protein_compositions [] = {
-        { 'A', "Ala", "C3H7NO2",      "O=C(O)[C@@H](N)C" }
-        , { 'C', "Cys", "C3H7NO2S",   "SC[C@H](N)C(O)=O" }
-        , { 'D', "Asp", "C4H7NO4",    "OC(C[C@H](N)C(O)=O)=O" }
-        , { 'E', "Glu", "C5H9NO4",    "O=C(O)[C@@H](N)CCC(O)=O" }
-        , { 'F', "Phe", "C9H11NO2",   "N[C@H](C(O)=O)CC1=CC=CC=C1" }
-        , { 'G', "Gly", "C2H5NO2",    "O=C(O)CN" }
-        , { 'H', "His", "C6H9N3O2",   "N[C@@H](CC1=CN=CN1)C(O)=O" }
-        , { 'I', "Ile", "C6H13NO2",   "O=C(O)[C@@H](N)[C@@H](C)CC" }
-        , { 'K', "Lye", "C6H14N2O2",  "N[C@H](C(O)=O)CCCCN" }
-        , { 'L', "Leu", "C6H13NO2",   "N[C@@H](CC(C)C)C(O)=O" }
-        , { 'M', "Met", "C5H11NO2S",  "OC([C@@H](N)CCSC)=O" }
-        , { 'N', "Asn", "C4H8N2O3",   "NC(C[C@H](N)C(O)=O)=O" }
-        , { 'P', "Pro", "C5H9NO2",    "O=C([C@@H]1CCCN1)O" }
-        , { 'Q', "Gln", "C5H10N2O3",  "OC([C@@H](N)CCC(N)=O)=O" }
-        , { 'R', "Arg", "C6H14N4O2",  "O=C(O)[C@@H](N)CCCNC(N)=N" }
-        , { 'S', "Ser", "C3H7NO3",    "OC([C@@H](N)CO)=O" }
-        , { 'T', "Thr", "C4H9NO3",    "N[C@H](C(O)=O)[C@H](O)C" }
-        , { 'V', "Val", "C5H11NO2",   "N[C@H](C(O)=O)C(C)C" }
-        , { 'W', "Trp", "C11H12N2O2", "O=C(O)[C@@H](N)CC1=CNC2=C1C=CC=C2" }
-        , { 'Y', "Tye", "C9H11NO3",   "N[C@@H](CC1=CC=C(O)C=C1)C(O)=O" }
-    };
-#endif
 
     static AminoAcid __table [] = {
         AminoAcid( 'A', "Ala", "C3H7NO2",      "O=C(O)[C@@H](N)C" )
@@ -68,7 +37,7 @@ namespace adprot {
         , AminoAcid( 'G', "Gly", "C2H5NO2",    "O=C(O)CN" )
         , AminoAcid( 'H', "His", "C6H9N3O2",   "N[C@@H](CC1=CN=CN1)C(O)=O" )
         , AminoAcid( 'I', "Ile", "C6H13NO2",   "O=C(O)[C@@H](N)[C@@H](C)CC" )
-        , AminoAcid( 'K', "Lye", "C6H14N2O2",  "N[C@H](C(O)=O)CCCCN" )
+        , AminoAcid( 'K', "Lys", "C6H14N2O2",  "N[C@H](C(O)=O)CCCCN" )
         , AminoAcid( 'L', "Leu", "C6H13NO2",   "N[C@@H](CC(C)C)C(O)=O" )
         , AminoAcid( 'M', "Met", "C5H11NO2S",  "OC([C@@H](N)CCSC)=O" )
         , AminoAcid( 'N', "Asn", "C4H8N2O3",   "NC(C[C@H](N)C(O)=O)=O" )
@@ -81,55 +50,59 @@ namespace adprot {
         , AminoAcid( 'W', "Trp", "C11H12N2O2", "O=C(O)[C@@H](N)CC1=CNC2=C1C=CC=C2" )
         , AminoAcid( 'Y', "Tye", "C9H11NO3",   "N[C@@H](CC1=CC=C(O)C=C1)C(O)=O" )
     };
-/*    
-    static AminoAcid __table [] = {
-        AminoAcid( 'A' )        // 0
-        , AminoAcid( 'C' )      // 1
-        , AminoAcid( 'D' )      // 2
-        , AminoAcid( 'E' )      // 3
-        , AminoAcid( 'F' )      // 4
-        , AminoAcid( 'G' )      // 5
-        , AminoAcid( 'H' )      // 6
-        , AminoAcid( 'I' )      // 7
-        , AminoAcid( 'K' )      // 8
-        , AminoAcid( 'L' )      // 9
-        , AminoAcid( 'M' )      // 10
-        , AminoAcid( 'N' )      // 11
-        , AminoAcid( 'P' )      // 12
-        , AminoAcid( 'Q' )      // 13
-        , AminoAcid( 'S' )      // 14
-        , AminoAcid( 'T' )      // 15
-        , AminoAcid( 'V' )      // 16
-        , AminoAcid( 'W' )      // 17
-        , AminoAcid( 'Y' )      // 18
+    static int alphabet_index [] = {
+        0       // A
+        ,-1     // B
+        ,1      //'C',
+        ,2      //'D',
+        ,3      //'E',
+        ,4      //'F',
+        ,5      //'G',
+        ,6      //'H',
+        ,7      //'I',
+        ,-1     // J
+        ,8      //'K',
+        ,9      //'L',
+        ,10     // 'M',
+        ,11     // 'N',
+        ,-1     // O
+        ,12     // 'P',
+        ,13     // 'Q',
+        ,14     // 'R',
+        ,15     // 'S',
+        ,16     // 'T',
+        ,-1      // U
+        ,17     // 'V',
+        ,18     // 'W',
+        ,-1      // X
+        ,19     // 'Y',
     };
-*/
 }
 
 # define countof(x) (sizeof(x)/sizeof(x[0]))
 
 using namespace adprot;
 
-AminoAcid::AminoAcid( char symbol
-                      , const char * _3letter
+AminoAcid::AminoAcid( int symbol_1letter
+                      , const char * symbol_3letter
                       , const char * formula
-                      , const char * smiles ) : symbol_( symbol )
+                      , const char * smiles ) : symbol_1letter_( symbol_1letter )
+                                              , symbol_3letter_( symbol_3letter )
                                               , formula_( formula )
-                                              , _3letter_( _3letter )
                                               , smiles_( smiles ) 
 {
 }
 
-std::string
-AminoAcid::symbol( bool _3letter ) const
+int
+AminoAcid::code() const
 {
-    if ( _3letter )
-        return _3letter_;
-    else {
-        std::string s;
-        s.push_back( symbol_ );
-        return s;
-    }
+    return symbol_1letter_;
+}
+
+const char *
+AminoAcid::symbol() const
+{
+    return symbol_3letter_;
 }
 
 const char *
@@ -144,11 +117,21 @@ AminoAcid::smiles() const
     return smiles_;
 }
 
-
 size_t
 AminoAcid::size()
 {
     return countof( __table );
+}
+
+const AminoAcid *
+AminoAcid::find( int symbol )
+{
+    if ( symbol < 'A' || symbol > 'Y' )
+        return 0;
+    int idx = alphabet_index[ symbol - 'A' ];
+    if ( idx < 0 )
+        return 0;
+    return &__table[ idx ];
 }
 
 AminoAcid::iterator

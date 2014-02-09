@@ -24,6 +24,7 @@
 
 #include "peptide.hpp"
 #include "aminoacid.hpp"
+#include <algorithm>
 
 using namespace adprot;
 
@@ -70,7 +71,13 @@ peptide::sequence( const std::string& sequence )
 std::string
 peptide::formula( const std::string& sequence )
 {
-    return "";
+    std::string formula;
+
+    for( char a: sequence ) {
+        if ( const AminoAcid * aa = AminoAcid::find( int(a) ) )
+            formula += aa->formula();
+    }
+    return formula;
 }
 
 // static

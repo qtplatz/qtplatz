@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?include version.wxi ?>
-  <Product Id="*" Name="QtPlatz $(var.ProductVersion)"
-	     Language="1033" Version="$(var.ProductVersion)" Manufacturer="MS-Cheminformatics LLC" UpgradeCode="cf1f5024-a587-488a-beee-fd248ed76e4e">
+    <?include version.wxi ?>
+    <Product Id="*" Name="QtPlatz $(var.ProductVersion)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="MS-Cheminformatics LLC" UpgradeCode="cf1f5024-a587-488a-beee-fd248ed76e4e">
         <Package Id="*" Keywords="installer" Platform="x64" Manufacturer="MS-Cheminformatics LLC" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
         <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
         <Media Id="1" Cabinet="Cab1.cab" EmbedCab="yes" />
@@ -157,8 +156,8 @@
             <Component Id="adchem.dll" Guid="11EA8F0B-8085-4E5A-9099-7C2C8F613A16" Win64="yes">
                 <File Id="adchem.dll" Source="../../../bin/adchem.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
-            <Component Id="adpeptide.dll" Guid="tbd" Win64="yes">
-                <File Id="adpeptide.dll" Source="../../../bin/adpeptide.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+            <Component Id="adprot.dll" Guid="9A556689-4CB3-4C79-86E6-36E29A73E870" Win64="yes">
+                <File Id="adprot.dll" Source="../../../bin/adprot.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
             <Component Id="adcontrols.dll" Guid="0D031AFE-599C-4D03-82FB-D3738A12A005" Win64="yes">
                 <File Id="adcontrols.dll" Source="../../../bin/adcontrols.dll" ProcessorArchitecture="x64" KeyPath="yes" />
@@ -233,7 +232,7 @@
                 <File Id="chemistry.pluginspec" Source="$(var.InMSCheminfo)/chemistry.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="chemistry.dll" Source="$(var.InMSCheminfo)/chemistry.dll" ProcessorArchitecture="x64" />
             </Component>
-            <Component Id="peptide.dll" Guid="tbd" Win64="yes">
+            <Component Id="peptide.dll" Guid="52AF883F-7F99-42FA-A92D-C3F56CEC912A" Win64="yes">
                 <File Id="peptide.pluginspec" Source="$(var.InMSCheminfo)/peptide.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="peptide.dll" Source="$(var.InMSCheminfo)/peptide.dll" ProcessorArchitecture="x64" />
             </Component>

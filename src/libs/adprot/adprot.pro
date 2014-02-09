@@ -33,6 +33,8 @@ HEADERS += adprot.hpp\
     protfile.hpp \
     aminoacid.hpp
 
+LIBS += -l$$qtLibraryTarget( adcontrols )
+
 !win32 {
   LIBS += -lboost_system
 }

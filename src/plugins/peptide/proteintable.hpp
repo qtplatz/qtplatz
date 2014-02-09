@@ -25,7 +25,7 @@
 #ifndef PROTEINTABLE_HPP
 #define PROTEINTABLE_HPP
 
-#include <QTreeView>
+#include <QTableView>
 
 class QItemDelegate;
 class QStandardItemModel;
@@ -34,7 +34,7 @@ namespace adprot { class protfile; }
 
 namespace peptide {
 
-    class ProteinTable : public QTreeView  {
+    class ProteinTable : public QTableView  {
         Q_OBJECT
     public:
         explicit ProteinTable(QWidget *parent = 0);
@@ -47,6 +47,7 @@ namespace peptide {
         QItemDelegate * delegate_;
 
         void init( QStandardItemModel& );
+        void split( const std::string& sequence, std::string& worded );
     
     signals:
     

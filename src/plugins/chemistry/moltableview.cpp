@@ -132,17 +132,16 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
         int row = model_->rowCount();
         model_->setRowCount( model_->rowCount() + adprot::AminoAcid::size() );
         for ( adprot::AminoAcid::iterator it = adprot::AminoAcid::begin(); it != adprot::AminoAcid::end(); ++it ) {
-            model_->setData( model_->index( row, 0 ), static_cast<adprot::AminoAcid *>(it)->smiles() );
-            RDKit::RWMol * mol = RDKit::SmilesToMol( static_cast<adprot::AminoAcid *>(it)->smiles() );
+            model_->setData( model_->index( row, 0 ), it->smiles() );
+            RDKit::RWMol * mol = RDKit::SmilesToMol( it->smiles() );
             do { // SVG
                 std::string svg = adchem::drawing::toSVG( *mol );
                 model_->setData( model_->index( row, 1 ), QByteArray( svg.data(), static_cast<int>( svg.size() ) ) );
                 model_->item( row, 1 )->setEditable( false );
             } while(0);
-            do { // formula
-                model_->setData( model_->index( row, 2 ), static_cast<adprot::AminoAcid *>(it)->formula() );
-                model_->setData( model_->index( row, 3 ), cformula.getMonoIsotopicMass( static_cast<adprot::AminoAcid *>(it)->formula() ) );
-            } while(0);
+            model_->setData( model_->index( row, 2 ), it->formula() );
+            model_->setData( model_->index( row, 3 ), cformula.getMonoIsotopicMass( it->formula() ) );
+            model_->setData( model_->index( row, 4 ), it->symbol() );
             ++row;
         }
         

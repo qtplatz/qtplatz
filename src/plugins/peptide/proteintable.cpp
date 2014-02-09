@@ -24,15 +24,61 @@
 
 #include "proteintable.hpp"
 #include <adprot/protfile.hpp>
+#include <adprot/protease.hpp>
 #include <QStandardItemModel>
+#include <QModelIndex>
 #include <QItemDelegate>
+#include <QPainter>
+#include <QTextDocument>
+#include <sstream>
 
 namespace peptide {
     namespace detail {
 
         class ProteinTableDelegate : public QItemDelegate {
         public:
-            
+            void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+                if ( index.column() == 1 ) {
+                    render_sequence( painter, option, index.data().toString() );
+                } else {
+                    QItemDelegate::paint( painter, option, index );
+                }
+            }
+
+            QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+                if ( index.column() == 1 ) {
+					return QSize( 800, 96 );
+					/*
+                    QTextDocument document;
+					QTextOption to;
+					to.setWrapMode( QTextOption::WordWrap );
+					document.setDefaultTextOption( to );
+                    document.setHtml( index.data().toString() );
+					QSize size( document.size().width(), document.size().height() );
+					return size;
+					*/
+                }
+                return QItemDelegate::sizeHint( option, index );
+            }
+        private:
+            void render_sequence( QPainter * painter, const QStyleOptionViewItem& option, const QString& text ) const {
+                painter->save();
+                QStyleOptionViewItemV4 op = option;
+                QTextDocument document;
+                QTextOption to;
+                to.setWrapMode( QTextOption::WrapAtWordBoundaryOrAnywhere );
+                document.setDefaultTextOption( to );
+				QFont font;
+				font.setFamily( "Consolas" );
+				document.setDefaultFont( font );
+				document.setTextWidth( op.rect.width() );
+                document.setHtml( text );
+                op.widget->style()->drawControl( QStyle::CE_ItemViewItem, &op, painter );
+                painter->translate( op.rect.topLeft() );
+                QRect clip( 0, 0, op.rect.width(), op.rect.height() );
+                document.drawContents( painter, clip );
+                painter->restore();
+            }
         };
 
     }
@@ -40,7 +86,7 @@ namespace peptide {
 
 using namespace peptide;
 
-ProteinTable::ProteinTable(QWidget *parent) : QTreeView(parent)
+ProteinTable::ProteinTable(QWidget *parent) : QTableView( parent )
                                             , model_( new QStandardItemModel )
                                             , delegate_( new detail::ProteinTableDelegate )
 {
@@ -58,9 +104,12 @@ ProteinTable::~ProteinTable()
 void
 ProteinTable::init( QStandardItemModel& model )
 {
-    model.setColumnCount( 3 );
+    model.setColumnCount( 2 );
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr("name") );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr("sequence") );
+	setColumnWidth( 0, 200 );
+    setColumnWidth( 1, 600 );
+	setWordWrap( true );
 }
 
 void
@@ -68,12 +117,35 @@ ProteinTable::setData( const adprot::protfile& file )
 {
     QStandardItemModel& model = *model_;
 
-    model.setRowCount( static_cast<int>( file.size() ) );
+    adprot::protease trypsin( "trypsin" );
+
+    model.setRowCount( static_cast<int>( file.size() * 2 ) );
     int row = 0;
     for ( auto& prot: file ) {
         model.setData( model.index( row, 0 ), QString::fromStdString( prot.name() ) );
-        model.setData( model.index( row, 1 ), QString::fromStdString( prot.sequence() ) );
+
+        std::string worded, richText;
+        split( prot.sequence(), worded );
+
+        adprot::protease::digest( trypsin, worded, richText );
+        model.setData( model.index( row, 1 ), QString::fromStdString( richText ) );
+		++row;
+
+        model.setData( model.index( row, 1 ), QString::fromStdString( worded ) );
 		++row;
     }
+    resizeRowsToContents();
 }
 
+void
+ProteinTable::split( const std::string& sequence, std::string& worded )
+{
+    const size_t width = 10;
+    size_t pos = 0;
+    while ( pos < sequence.size() ) {
+        worded += sequence.substr( pos, width );
+        worded += "\n"; // for word wrap
+        pos += width;
+    }
+
+}
