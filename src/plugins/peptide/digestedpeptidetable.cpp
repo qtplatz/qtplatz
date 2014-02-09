@@ -47,6 +47,7 @@ namespace peptide {
                     render_formula( painter, option, index.data().toString() );
                 } else if ( index.column() == 2 ) {
                     QStyleOptionViewItemV2 op = option;
+					op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
                     drawDisplay( painter, op, op.rect, (boost::format("%.7lf") % index.data().toDouble()).str().c_str() );
                 } else {
                     QItemDelegate::paint( painter, option, index );
