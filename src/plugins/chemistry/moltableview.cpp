@@ -130,7 +130,7 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
 
     do {
         int row = model_->rowCount();
-        model_->setRowCount( model_->rowCount() + adprot::AminoAcid::size() );
+        model_->setRowCount( model_->rowCount() + static_cast<int>(adprot::AminoAcid::size()) );
         for ( adprot::AminoAcid::iterator it = adprot::AminoAcid::begin(); it != adprot::AminoAcid::end(); ++it ) {
             model_->setData( model_->index( row, 0 ), it->smiles() );
             RDKit::RWMol * mol = RDKit::SmilesToMol( it->smiles() );
@@ -139,9 +139,15 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
                 model_->setData( model_->index( row, 1 ), QByteArray( svg.data(), static_cast<int>( svg.size() ) ) );
                 model_->item( row, 1 )->setEditable( false );
             } while(0);
-            model_->setData( model_->index( row, 2 ), it->formula() );
+            std::string aa = adcontrols::ChemicalFormula::standardFormula( std::string( it->formula(false) ) + "H2O" );
+			model_->setData( model_->index( row, 2 ), aa.c_str() );
             model_->setData( model_->index( row, 3 ), cformula.getMonoIsotopicMass( it->formula() ) );
             model_->setData( model_->index( row, 4 ), it->symbol() );
+
+            std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
+            assert( formula == aa );
+            model_->setData( model_->index( row, 5 ), formula.c_str() );
+
             ++row;
         }
         

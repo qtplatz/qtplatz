@@ -50,6 +50,12 @@
 #endif
 using namespace adcontrols;
 
+namespace std {
+    // override '<' in order to sort elements (atom_type below) in alphabetical order
+    bool operator < ( const std::pair<int, const char *>& lhs, const std::pair<int, const char *>& rhs ) {
+        return std::strcmp( lhs.second, rhs.second ) < 0;
+    }
+}
 
 namespace adcontrols {
 
@@ -76,7 +82,7 @@ namespace adcontrols {
             "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No"
         };
 
-        typedef std::pair< size_t, const char * > atom_type;
+        typedef std::pair< int, const char * > atom_type; // sort override, see top of this file
 
         // for chemical composition
         typedef std::map< atom_type, size_t > map_type;
@@ -208,11 +214,11 @@ namespace adcontrols {
                     for ( client::map_type::value_type& p: map ) {
 						std::basic_string<char_type> atom( p.first.second, p.first.second + std::strlen( p.first.second ) );
                         if ( p.first.first == 0 ) {
-                            o << atom; // adportable::utf::to_wstring( p.first.second );
+                            o << atom;
                             if ( p.second > 1 )  // omit '1' such as CH4, not C1H4
                                 o << p.second;
                         } else {
-                            o << atom; // p.first.first << adportable::utf::to_wstring( p.first.second );
+                            o << atom;
                             if ( p.second > 1 ) 
                                 o << p.second;
                             o << ' ';
@@ -238,19 +244,25 @@ ChemicalFormula::ChemicalFormula() : impl_( new internal::ChemicalFormulaImpl )
 }
 
 double
-ChemicalFormula::getMonoIsotopicMass( const std::wstring& formula )
+ChemicalFormula::getElectronMass() const
+{
+    return 5.4857990943e-4;
+}
+
+double
+ChemicalFormula::getMonoIsotopicMass( const std::wstring& formula ) const
 {
     return internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
 }
 
 double
-ChemicalFormula::getMonoIsotopicMass( const std::string& formula )
+ChemicalFormula::getMonoIsotopicMass( const std::string& formula ) const
 {
     return internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
 }
 
 double
-ChemicalFormula::getChemicalMass( const std::wstring& formula )
+ChemicalFormula::getChemicalMass( const std::wstring& formula ) const
 {
     return internal::ChemicalFormulaImpl::getChemicalMass( formula );
 }

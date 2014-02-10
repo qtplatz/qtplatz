@@ -28,7 +28,7 @@
 #include <QTableView>
 #include <memory>
 
-class QItemDelegate;
+class QStyledItemDelegate;
 class QStandardItemModel;
 
 namespace adprot {    class protease;    class protein; }
@@ -46,7 +46,6 @@ namespace peptide {
 
     private:
         QStandardItemModel * model_;
-        QItemDelegate * delegate_;
 
         std::weak_ptr< adprot::protease > protease_;
 

@@ -46,11 +46,12 @@ namespace adcontrols {
 
 		typedef std::map< std::string, size_t > elemental_composition_map_t;
 
-        double getMonoIsotopicMass( const std::wstring& formula );
-		double getMonoIsotopicMass( const std::string& formula );
+        double getMonoIsotopicMass( const std::wstring& formula ) const;
+		double getMonoIsotopicMass( const std::string& formula ) const;
 
-        double getChemicalMass( const std::wstring& formula );
-		double getChemicalMass( const std::string& formula );
+        double getChemicalMass( const std::wstring& formula ) const;
+		double getChemicalMass( const std::string& formula ) const;
+        double getElectronMass() const;
 
 		static std::wstring standardFormula( const std::wstring& formula );
 		static std::string standardFormula( const std::string& formula );

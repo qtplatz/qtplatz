@@ -31,12 +31,47 @@
 #include <QTextDocument>
 #include <QModelIndex>
 #include <QItemDelegate>
+#include <QStyledItemDelegate>
+#include <QHeaderView>
 #include <QPainter>
 #include <QDebug>
 #include <boost/format.hpp>
 
 namespace peptide {
     namespace detail {
+
+        class HeaderView : public QHeaderView {
+		public:
+			HeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0) : QHeaderView( orientation, parent ) {}
+
+			void paintSection( QPainter * painter, const QRect& rect, int logicalIndex ) const override {
+				if ( !rect.isValid() )
+					return;
+
+				if ( logicalIndex == 3 ) {
+					QStyleOptionHeader op;
+					initStyleOption(&op);
+					op.text = "";
+					op.rect = rect;
+                    op.textAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+					// draw the section
+					style()->drawControl( QStyle::CE_Header, &op, painter, this );
+					// html paiting
+					painter->save();
+					QRect textRect = style()->subElementRect( QStyle::SE_HeaderLabel, &op, this );
+					painter->translate( textRect.topLeft() );
+					QTextDocument doc;
+					doc.setTextWidth( textRect.width() );
+					doc.setDefaultTextOption( QTextOption( Qt::AlignHCenter ) );
+					doc.setDocumentMargin(0);
+					doc.setHtml( model()->headerData( logicalIndex, Qt::Horizontal ).toString() );
+					doc.drawContents( painter, QRect( QPoint( 0, 0 ), textRect.size() ) );
+					painter->restore();
+				} else {
+					QHeaderView::paintSection( painter, rect, logicalIndex );
+				}
+			}
+        };
 
         class DigestedPeptideDelegate : public QItemDelegate {
         public:
@@ -45,7 +80,7 @@ namespace peptide {
                     render_sequence( painter, option, index.data().toString() );
                 } else if ( index.column() == 1 ) {
                     render_formula( painter, option, index.data().toString() );
-                } else if ( index.column() == 2 ) {
+                } else if ( index.column() == 2 || index.column() == 3 ) {
                     QStyleOptionViewItemV2 op = option;
 					op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
                     drawDisplay( painter, op, op.rect, (boost::format("%.7lf") % index.data().toDouble()).str().c_str() );
@@ -64,11 +99,14 @@ namespace peptide {
             }
             
         private:
-            void render_formula( QPainter * painter, const QStyleOptionViewItem& option, const QString& text ) const {
+            void render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text ) const {
                 painter->save();
                 QStyleOptionViewItemV4 op = option;
                 QTextDocument document;
+                document.setDefaultTextOption( QTextOption( op.displayAlignment ) );
+				document.setDefaultFont( op.font );
                 document.setHtml( text );
+				op.displayAlignment = Qt::AlignVCenter;
                 op.widget->style()->drawControl( QStyle::CE_ItemViewItem, &op, painter );
                 painter->translate( op.rect.topLeft() );
                 QRect clip( 0, 0, op.rect.width(), op.rect.height() );
@@ -76,19 +114,13 @@ namespace peptide {
                 painter->restore();
             }
 
+            void render_formula( QPainter * painter, const QStyleOptionViewItem& option, const QString& text ) const {
+                std::string formula = adcontrols::ChemicalFormula::formatFormula( text.toStdString() );
+                render_html( painter, option, QString::fromStdString( formula ) );
+            }
+
             void render_sequence( QPainter * painter, const QStyleOptionViewItem& option, const QString& text ) const {
-                painter->save();
-                QStyleOptionViewItemV4 op = option;
-                QTextDocument document;
-                QFont font;
-                font.setFamily( "Consolas" );
-                document.setDefaultFont( font );
-                document.setHtml( text );
-                op.widget->style()->drawControl( QStyle::CE_ItemViewItem, &op, painter );
-                painter->translate( op.rect.topLeft() );
-                QRect clip( 0, 0, op.rect.width(), op.rect.height() );
-                document.drawContents( painter, clip );
-                painter->restore();
+                render_html( painter, option, text );
             }
 
         };
@@ -101,26 +133,26 @@ using namespace peptide;
 
 DigestedPeptideTable::DigestedPeptideTable(QWidget *parent) :  QTableView(parent)
                                             , model_( new QStandardItemModel )
-                                            , delegate_( new detail::DigestedPeptideDelegate )
 {
+	setHorizontalHeader( new detail::HeaderView );
     setModel( model_ );
-    setItemDelegate( delegate_ );
+	setItemDelegate( new detail::DigestedPeptideDelegate );
     init( *model_ );
 }
 
 DigestedPeptideTable::~DigestedPeptideTable()
 {
-    delete delegate_;
     delete model_;
 }
 
 void
 DigestedPeptideTable::init( QStandardItemModel& model )
 {
-    model.setColumnCount( 3 );
+    model.setColumnCount( 4 );
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr("sequence") );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr("formula") );
     model.setHeaderData( 2, Qt::Horizontal, QObject::tr("mass") );
+    model.setHeaderData( 3, Qt::Horizontal, QObject::tr("mass +H<sup>+</sup>") );
 	setColumnWidth( 0, 200 );
     QFont font;
     font.setFamily( "Consolas" );
@@ -138,16 +170,16 @@ DigestedPeptideTable::setData( const adprot::protein& prot )
 
         std::vector< std::string > peptides;
         if ( adprot::protease::digest( *enzyme, prot.sequence(), peptides ) ) {
-            model.setRowCount( peptides.size() );
+            model.setRowCount( static_cast<int>(peptides.size()) );
 
             int row = 0;
             for ( auto& peptide: peptides ) {
                 std::string formula = adprot::peptide::formula( peptide );
                 std::string stdFormula = adcontrols::ChemicalFormula::standardFormula( formula );
                 model.setData( model.index( row, 0 ), QString::fromStdString( peptide ) );
-                model.setData( model.index( row, 1 ), QString::fromStdString( adcontrols::ChemicalFormula::formatFormula( stdFormula ) ) );
+                model.setData( model.index( row, 1 ), QString::fromStdString( stdFormula ) );
                 model.setData( model.index( row, 2 ), formulaParser.getMonoIsotopicMass( stdFormula ) );
-                // model.setData( model.index( row, 2 ), Qt::AlignRight + Qt::AlignVCenter, Qt::TextAlignmentRole);
+                model.setData( model.index( row, 3 ), formulaParser.getMonoIsotopicMass( stdFormula + "H" ) - formulaParser.getElectronMass() );
                 ++row;
             }
             

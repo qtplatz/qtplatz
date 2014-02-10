@@ -75,9 +75,9 @@ peptide::formula( const std::string& sequence )
 
     for( char a: sequence ) {
         if ( const AminoAcid * aa = AminoAcid::find( int(a) ) )
-            formula += aa->formula();
+            formula += aa->formula( false );
     }
-    return formula;
+    return formula + "H2O";
 }
 
 // static
