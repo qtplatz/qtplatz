@@ -48,7 +48,7 @@ namespace peptide {
 				if ( !rect.isValid() )
 					return;
 
-				if ( logicalIndex == 3 ) {
+				if ( logicalIndex == 3 || logicalIndex == 4 ) {
 					QStyleOptionHeader op;
 					initStyleOption(&op);
 					op.text = "";
@@ -80,7 +80,7 @@ namespace peptide {
                     render_sequence( painter, option, index.data().toString() );
                 } else if ( index.column() == 1 ) {
                     render_formula( painter, option, index.data().toString() );
-                } else if ( index.column() == 2 || index.column() == 3 ) {
+				} else if ( index.column() >= 2 ) {
                     QStyleOptionViewItemV2 op = option;
 					op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
                     drawDisplay( painter, op, op.rect, (boost::format("%.7lf") % index.data().toDouble()).str().c_str() );
@@ -148,11 +148,12 @@ DigestedPeptideTable::~DigestedPeptideTable()
 void
 DigestedPeptideTable::init( QStandardItemModel& model )
 {
-    model.setColumnCount( 4 );
+    model.setColumnCount( 5 );
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr("sequence") );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr("formula") );
     model.setHeaderData( 2, Qt::Horizontal, QObject::tr("mass") );
     model.setHeaderData( 3, Qt::Horizontal, QObject::tr("mass +H<sup>+</sup>") );
+    model.setHeaderData( 4, Qt::Horizontal, QObject::tr("mass +H<sup>+</sup> (+<sup>18</sup>O)") );
 	setColumnWidth( 0, 200 );
     QFont font;
     font.setFamily( "Consolas" );
@@ -165,6 +166,10 @@ DigestedPeptideTable::setData( const adprot::protein& prot )
 {
     QStandardItemModel& model = *model_;
     adcontrols::ChemicalFormula formulaParser;
+
+    double H2O = formulaParser.getMonoIsotopicMass( "H2O2" );
+    double H2O18 = formulaParser.getMonoIsotopicMass( "H2O 18O" );
+    double e = formulaParser.getElectronMass();
 
     if ( auto enzyme = protease_.lock() ) {
 
@@ -179,7 +184,10 @@ DigestedPeptideTable::setData( const adprot::protein& prot )
                 model.setData( model.index( row, 0 ), QString::fromStdString( peptide ) );
                 model.setData( model.index( row, 1 ), QString::fromStdString( stdFormula ) );
                 model.setData( model.index( row, 2 ), formulaParser.getMonoIsotopicMass( stdFormula ) );
-                model.setData( model.index( row, 3 ), formulaParser.getMonoIsotopicMass( stdFormula + "H" ) - formulaParser.getElectronMass() );
+				double m = formulaParser.getMonoIsotopicMass( stdFormula + "H H2 O" );
+				double mm = formulaParser.getMonoIsotopicMass( stdFormula + "H H2 18O" );
+                model.setData( model.index( row, 3 ), formulaParser.getMonoIsotopicMass( stdFormula + "H" ) - e );
+                model.setData( model.index( row, 4 ), formulaParser.getMonoIsotopicMass( stdFormula + "H3(18O)" ) - H2O - e);
                 ++row;
             }
             

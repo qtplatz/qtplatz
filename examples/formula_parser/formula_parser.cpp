@@ -17,6 +17,13 @@
 #include <map>
 #include <boost/format.hpp>
 
+namespace std {
+    // override '<' in order to sort elements (atom_type below) in alphabetical order
+    bool operator < ( const std::pair<int, const char *>& lhs, const std::pair<int, const char *>& rhs ) {
+        return std::strcmp( lhs.second, rhs.second ) < 0;
+    }
+}
+
 namespace client {
     namespace qi = boost::spirit::qi;
     using boost::phoenix::bind;
@@ -38,53 +45,9 @@ namespace client {
         "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No"
     };
 
-    typedef std::pair< size_t, const char * > atom_type;
+    typedef std::pair< int, const char * > atom_type;
     typedef std::map< atom_type, size_t > map_type;
-#if 0
-    void map_add( map_type& m, const std::pair<const atom_type, std::size_t>& p ) {
-        m[ p.first ] += p.second;
-    }
 
-    void map_join( map_type& m, map_type& a ) {
-        for( map_type::value_type& p: a )
-            m[ p.first ] += p.second;
-    }
-
-    void map_mul( map_type& m, std::size_t n ) {
-        for( map_type::value_type& p: m )
-            p.second *= n;
-    }
-
-    template<typename Iterator>
-    struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, map_type() > {
-
-        chemical_formula_parser() : chemical_formula_parser::base_type( molecule )
-                                  , element( element_table, element_table )  {
-            molecule =
-				+ (
-                    atoms            [ boost::phoenix::bind(&map_add, _val, qi::_1) ]
-                    | repeated_group [ boost::phoenix::bind(&map_join, _val, qi::_1 ) ]
-                    | space
-                    )
-                ;
-            atoms = 
-                atom >> ( qi::uint_ | qi::attr(1u) ) // default to 1
-                ;
-            atom =
-                ( qi::uint_ | qi::attr(0u) ) >> element
-                ;
-            repeated_group %= // forces attr proparation
-                '(' >> molecule >> ')'
-                    >> qi::omit[ qi::uint_[ boost::phoenix::bind( map_mul, qi::_val, qi::_1 ) ] ]
-                ;
-        }
-
-        qi::rule<Iterator, atom_type() > atom;
-        qi::rule<Iterator, std::pair< atom_type, std::size_t >() > atoms;
-        qi::rule<Iterator, map_type()> molecule, repeated_group;
-        qi::symbols<char, const char *> element;
-    };
-#endif
     struct formulaComposition {
         static void formula_add( map_type& m, const std::pair<const atom_type, std::size_t>& p ) {
             m[ p.first ] += p.second;
@@ -113,7 +76,7 @@ namespace client {
         static void formula_join( format_type& m, format_type& a ) {
             m.push_back( std::make_pair( atom_type( 0, braces[0] ), 0 ) );
             for ( auto t: a )
-            m.push_back( t );
+                m.push_back( t );
         }
         
         static void formula_repeat( format_type& m, std::size_t n ) {
