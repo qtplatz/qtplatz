@@ -167,8 +167,7 @@ DigestedPeptideTable::setData( const adprot::protein& prot )
     QStandardItemModel& model = *model_;
     adcontrols::ChemicalFormula formulaParser;
 
-    double H2O = formulaParser.getMonoIsotopicMass( "H2O2" );
-    double H2O18 = formulaParser.getMonoIsotopicMass( "H2O 18O" );
+    double H2O = formulaParser.getMonoIsotopicMass( "H2O" );
     double e = formulaParser.getElectronMass();
 
     if ( auto enzyme = protease_.lock() ) {
@@ -179,7 +178,8 @@ DigestedPeptideTable::setData( const adprot::protein& prot )
 
             int row = 0;
             for ( auto& peptide: peptides ) {
-                std::string formula = adprot::peptide::formula( peptide );
+                
+				std::string formula = adprot::peptide::formula( peptide );
                 std::string stdFormula = adcontrols::ChemicalFormula::standardFormula( formula );
                 model.setData( model.index( row, 0 ), QString::fromStdString( peptide ) );
                 model.setData( model.index( row, 1 ), QString::fromStdString( stdFormula ) );
@@ -187,7 +187,8 @@ DigestedPeptideTable::setData( const adprot::protein& prot )
 				double m = formulaParser.getMonoIsotopicMass( stdFormula + "H H2 O" );
 				double mm = formulaParser.getMonoIsotopicMass( stdFormula + "H H2 18O" );
                 model.setData( model.index( row, 3 ), formulaParser.getMonoIsotopicMass( stdFormula + "H" ) - e );
-                model.setData( model.index( row, 4 ), formulaParser.getMonoIsotopicMass( stdFormula + "H3(18O)" ) - H2O - e);
+                model.setData( model.index( row, 4 ), formulaParser.getMonoIsotopicMass( stdFormula + "HH2 18O" ) - H2O - e);
+
                 ++row;
             }
             

@@ -50,13 +50,6 @@
 #endif
 using namespace adcontrols;
 
-namespace std {
-    // override '<' in order to sort elements (atom_type below) in alphabetical order
-    bool operator < ( const std::pair<int, const char *>& lhs, const std::pair<int, const char *>& rhs ) {
-        return std::strcmp( lhs.second, rhs.second ) < 0;
-    }
-}
-
 namespace adcontrols {
 
     namespace client {
@@ -209,9 +202,24 @@ namespace adcontrols {
             template< typename char_type > static std::basic_string<char_type> standardFormula( const std::basic_string<char_type>& formula ) {
                 client::map_type map;
                 if ( parse( formula, map ) ) {
+                    std::vector< std::pair< client::atom_type, size_t > > orderd;
+                    for ( auto atom: map ) {
+						orderd.push_back( std::make_pair( atom.first, atom.second ) );
+#if 0
+						auto it = std::lower_bound( orderd.begin()
+                                                    , orderd.end()
+                                                    , atom.first
+                                                    , []( const client::atom_type& lhs, const client::atom_type& rhs ){
+                                                        return std::strcmp( lhs.second, rhs.second ) < 0 || lhs.first < rhs.first;});
+						//orderd.insert( it, std::make_pair( atom.first, atom.second ) );
+#endif
+                    }
+					std::sort( orderd.begin(), orderd.end(), []( const std::pair< client::atom_type, size_t >& lhs, const std::pair< client::atom_type, size_t >& rhs ){
+						return std::strcmp( lhs.first.second, rhs.first.second ) < 0 || lhs.first.first < rhs.first.first; });
+
                     std::basic_ostringstream<char_type> o;
 
-                    for ( client::map_type::value_type& p: map ) {
+                    for ( auto& p: orderd ) {
 						std::basic_string<char_type> atom( p.first.second, p.first.second + std::strlen( p.first.second ) );
                         if ( p.first.first == 0 ) {
                             o << atom;
