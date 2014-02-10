@@ -184,8 +184,6 @@ DigestedPeptideTable::setData( const adprot::protein& prot )
                 model.setData( model.index( row, 0 ), QString::fromStdString( peptide ) );
                 model.setData( model.index( row, 1 ), QString::fromStdString( stdFormula ) );
                 model.setData( model.index( row, 2 ), formulaParser.getMonoIsotopicMass( stdFormula ) );
-				double m = formulaParser.getMonoIsotopicMass( stdFormula + "H H2 O" );
-				double mm = formulaParser.getMonoIsotopicMass( stdFormula + "H H2 18O" );
                 model.setData( model.index( row, 3 ), formulaParser.getMonoIsotopicMass( stdFormula + "H" ) - e );
                 model.setData( model.index( row, 4 ), formulaParser.getMonoIsotopicMass( stdFormula + "HH2 18O" ) - H2O - e);
 

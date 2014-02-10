@@ -85,6 +85,7 @@ protease::digest( const protease& enzyme, const std::string& sequence, std::vect
         output.push_back( digested );
         bpos = pos + 1;
     }
+    output.push_back( sequence.substr( bpos ) );
 
     return !output.empty();
 }
