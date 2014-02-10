@@ -203,19 +203,14 @@ namespace adcontrols {
                 client::map_type map;
                 if ( parse( formula, map ) ) {
                     std::vector< std::pair< client::atom_type, size_t > > orderd;
-                    for ( auto atom: map ) {
+                    for ( auto atom: map )
 						orderd.push_back( std::make_pair( atom.first, atom.second ) );
-#if 0
-						auto it = std::lower_bound( orderd.begin()
-                                                    , orderd.end()
-                                                    , atom.first
-                                                    , []( const client::atom_type& lhs, const client::atom_type& rhs ){
-                                                        return std::strcmp( lhs.second, rhs.second ) < 0 || lhs.first < rhs.first;});
-						//orderd.insert( it, std::make_pair( atom.first, atom.second ) );
-#endif
-                    }
-					std::sort( orderd.begin(), orderd.end(), []( const std::pair< client::atom_type, size_t >& lhs, const std::pair< client::atom_type, size_t >& rhs ){
-						return std::strcmp( lhs.first.second, rhs.first.second ) < 0 || lhs.first.first < rhs.first.first; });
+
+                    // reorder elements in alphabetical order
+					std::sort( orderd.begin(), orderd.end()
+                               , []( const std::pair< client::atom_type, size_t >& lhs, const std::pair< client::atom_type, size_t >& rhs ){
+                                   return std::strcmp( lhs.first.second, rhs.first.second ) < 0 || lhs.first.first < rhs.first.first;
+                               } );
 
                     std::basic_ostringstream<char_type> o;
 

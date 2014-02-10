@@ -17,13 +17,6 @@
 #include <map>
 #include <boost/format.hpp>
 
-namespace std {
-    // override '<' in order to sort elements (atom_type below) in alphabetical order
-    bool operator < ( const std::pair<int, const char *>& lhs, const std::pair<int, const char *>& rhs ) {
-		return std::strcmp( lhs.second, rhs.second ) < 0 || lhs.first < rhs.first;
-    }
-}
-
 namespace client {
     namespace qi = boost::spirit::qi;
     using boost::phoenix::bind;
