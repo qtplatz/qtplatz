@@ -23,6 +23,51 @@
 **************************************************************************/
 
 #include "formula_parser.hpp"
+#include "tableofelement.hpp"
+#include "element.hpp"
+#include <iostream>
+
+struct molecule {
+
+    struct element {
+        const char * symbol;
+        size_t count;
+        element( const char * _symbol, int _count = 0 ) : symbol(_symbol), count(_count) {
+        }
+    };
+
+    struct isotope {
+        double mass;
+        double abundance;
+        isotope( double _mass = 0, double _abundance = 0 ) : mass(_mass), abundance(_abundance) {
+        }
+    };
+    
+    std::vector< element > elements; // an array of (element&count), ex: C6H6O2 (six carbons, 6 hydrogens and 2 oxigens)
+    std::vector< isotope > isotopes; // an array of isotopes of this molecule
+};
+
+bool
+scanner( std::string& line, molecule& mol )
+{
+    std::string::const_iterator it = line.begin();
+    std::string::const_iterator end = line.end();
+
+    chem::comp_type elemental_composition;
+    chem::chemical_formula_parser< std::string::const_iterator > parser;
+    if ( boost::spirit::qi::parse( it, end, parser, elemental_composition ) && it == end ) {
+        for ( auto& atom: elemental_composition ) {
+            const char * symbol = atom.first.second;
+            // put result in alphabetical order
+            auto it = std::lower_bound( mol.elements.begin(), mol.elements.end(), symbol, [](const molecule::element& lhs, const char * symbol ){
+                    return std::strcmp( lhs.symbol, symbol ) < 0;
+                });
+            mol.elements.insert( it, molecule::element( atom.first.second, atom.second ) );
+        }
+        return true;
+    }
+    return false;
+}
 
 int
 main(int argc, char * argv[])
@@ -30,32 +75,22 @@ main(int argc, char * argv[])
     (void)argc;
     (void)argv;
 
-    std::string str;
-    std::wstring wstr;
-    
-    chem::chemical_formula_parser< std::string::const_iterator> cf;
+    std::string line;
 
-    while (std::getline(std::cin, str))  {
-        if (str.empty() || str[0] == 'q' || str[0] == 'Q')
+    while (std::getline(std::cin, line))  {
+
+        if (line.empty() || line[0] == 'q' || line[0] == 'Q')
             break;
 
-        chem::map_type map;
-        std::string::const_iterator it = str.begin();
-        std::string::const_iterator end = str.end();
-        
-        if ( boost::spirit::qi::parse( it, end, cf, map ) && it == end ) {
-            std::cout << "-------------------------\n";
-            std::cout << "Parsing succeeded\n";
-            std::cout << str << " Parses OK: " << std::endl;
-            std::cout << str << " map size: " << map.size() << std::endl;
-            
-            for ( auto e: map )
-                std::cout << e.first.first << " "  << e.first.second  << " " << e.second << std::endl;
-            std::cout << "-------------------------\n";
+        molecule mol;
+        if ( scanner( line, mol ) ) {
+
+            std::for_each( mol.elements.begin(), mol.elements.end(), [&]( const molecule::element& e ){
+                    std::cout << e.symbol << e.count << " ";
+                });
+            std::cout << std::endl;
         } else {
-            std::cout << "-------------------------\n";
-            std::cout << "Parsing failed\n";
-            std::cout << "-------------------------\n";
+            std::cout << "Parse failed: " << line << std::endl;
         }
     }
     std::cout << "Bye... :-) \n\n";

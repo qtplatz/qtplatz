@@ -59,7 +59,7 @@ namespace chem {
         // Actinoids
         "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No"
     };
-
+    
     typedef std::pair< int, const char * > atom_type;
     typedef std::map< atom_type, size_t > comp_type;
 
@@ -68,14 +68,12 @@ namespace chem {
             m[ p.first ] += p.second;
         }
         
-        static void formula_join( comp_type& m, map_type& a ) {
-            for( map_type::value_type& p: a )
-                m[ p.first ] += p.second;
+        static void formula_join( comp_type& m, comp_type& a ) {
+            std::for_each( a.begin(), a.end(), [&]( comp_type::value_type& p ){ m[ p.first ] += p.second; });
         }
         
         static void formula_repeat( comp_type& m, std::size_t n ) {
-            for( map_type::value_type& p: m )
-                p.second *= n;
+            std::for_each( m.begin(), m.end(), [=]( comp_type::value_type& p ){ p.second *= n; });
         }
     };
 

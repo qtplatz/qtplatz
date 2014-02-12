@@ -28,7 +28,6 @@
 #include <array>
 
 // reduced version of "Table of Elements", copied from qtplatz/src/liba/adcontrols/tableofelements.cpp
-// for combinience 
 
 namespace detail {
 	
@@ -38,9 +37,7 @@ namespace detail {
         int atomicNumber_;
         int valence_;
         int isotopeCount_;
-        struct isotope { double mass_; double abund_; } ma_[10];
-        //struct isotope { double mass_; double abund_; };
-        //const std::vector< isotope > isotopes_;
+        tableofelement::isotope ma_[10];
     } __elementTable__ [] = {
         // Symbol Name AtomicNumber Valence NumberOfIsotope Weight_1      Ratio_1...
         { "H",   "Hydrogen",       1,   1,  2,  { { 1.007825,     0.999885 }, 
@@ -409,13 +406,65 @@ tableofelement::tableofelement()
 {
 }
 
-element
-tableofelement::findElement( const std::string& line )
+tableofelement::element
+tableofelement::findElement( const char * symbol )
 {
     for ( const auto& e: detail::__elementTable__ ) {
-        if ( line.compare( 0, std::strlen( e.symbol_ ), e.symbol_ ) == 0 ) {
-            return element( &e );
-        }
+        if ( std::strcmp( symbol, e.symbol_ ) == 0 )
+            return tableofelement::element( &e );
     }
+    return tableofelement::element( 0 );
+}
+
+tableofelement::element::element( const detail::element * p ) : p_(p)
+{
+}
+
+tableofelement::element::element( const element& t ) : p_(t.p_)
+{
+}
+
+tableofelement::element::operator bool () const
+{
+    return p_ != 0;
+}
+
+const char *
+tableofelement::element::symbol() const
+{
+    if ( p_ )
+        return p_->symbol_;
     return 0;
+}
+
+const char *
+tableofelement::element::name() const
+{
+    if ( p_ )
+        return p_->name_;
+    return 0;
+}
+
+int
+tableofelement::element::atomicNumber() const
+{
+    if ( p_ )
+        return p_->atomicNumber_;
+    return 0;
+}
+
+int
+tableofelement::element::valence() const
+{
+    if ( p_ )
+        return p_->valence_;
+    return -1;
+}
+
+tableofelement::isotopes
+tableofelement::element::isotopes() const
+{
+    if ( p_ )
+        return tableofelement::isotopes( p_->ma_, size_t( p_->isotopeCount_ )  );
+    return tableofelement::isotopes( 0, 0 );
 }
