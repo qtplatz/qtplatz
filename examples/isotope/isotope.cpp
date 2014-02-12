@@ -23,7 +23,25 @@
 **************************************************************************/
 
 #include "isotope.hpp"
+#include "molecule.hpp"
+#include "tableofelement.hpp"
+#include <string>
 
 isotope::isotope()
 {
+}
+
+bool
+isotope::compute( molecule& mol )
+{
+    (void)mol;
+    std::vector< std::pair< std::string, tableofelement::element > > xmol;
+    for ( auto& e: mol.elements ) {
+        tableofelement::element toe = tableofelement::findElement( e.symbol );
+        (void)toe;
+        // xmol.push_back( std::make_pair( e.symbol, tableofelement::findElement( e.symbol ) ) );
+    }
+
+    
+    return true;
 }

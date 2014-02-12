@@ -23,29 +23,10 @@
 **************************************************************************/
 
 #include "formula_parser.hpp"
-#include "tableofelement.hpp"
 #include "element.hpp"
+#include "molecule.hpp"
+#include "isotope.hpp"
 #include <iostream>
-
-struct molecule {
-
-    struct element {
-        const char * symbol;
-        size_t count;
-        element( const char * _symbol, int _count = 0 ) : symbol(_symbol), count(_count) {
-        }
-    };
-
-    struct isotope {
-        double mass;
-        double abundance;
-        isotope( double _mass = 0, double _abundance = 0 ) : mass(_mass), abundance(_abundance) {
-        }
-    };
-    
-    std::vector< element > elements; // an array of (element&count), ex: C6H6O2 (six carbons, 6 hydrogens and 2 oxigens)
-    std::vector< isotope > isotopes; // an array of isotopes of this molecule
-};
 
 bool
 scanner( std::string& line, molecule& mol )
@@ -84,11 +65,14 @@ main(int argc, char * argv[])
 
         molecule mol;
         if ( scanner( line, mol ) ) {
-
             std::for_each( mol.elements.begin(), mol.elements.end(), [&]( const molecule::element& e ){
                     std::cout << e.symbol << e.count << " ";
                 });
             std::cout << std::endl;
+
+            isotope iso;
+            // isotope::compute( mol );
+            
         } else {
             std::cout << "Parse failed: " << line << std::endl;
         }

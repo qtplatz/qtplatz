@@ -71,7 +71,7 @@ public:
         const detail::element * p_;
     };
 
-    element findElement( const char * symbol );
+    static element findElement( const char * symbol );
 
 };
 
