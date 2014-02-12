@@ -162,41 +162,40 @@ DigestedPeptideTable::init( QStandardItemModel& model )
 }
 
 void
-DigestedPeptideTable::setData( const adprot::protein& prot )
+DigestedPeptideTable::setData( const std::vector< std::tuple< std::string, std::string, double > >& peptides )
 {
     QStandardItemModel& model = *model_;
-    adcontrols::ChemicalFormula formulaParser;
 
-    double H2O = formulaParser.getMonoIsotopicMass( "H2O" );
-    double e = formulaParser.getElectronMass();
+    if ( auto formulaParser = formulaParser_.lock() ) {
 
-    if ( auto enzyme = protease_.lock() ) {
+        double water = formulaParser->getMonoIsotopicMass( "H2O" );
+        double electron = formulaParser->getElectronMass();
+		double proton = formulaParser->getMonoIsotopicMass( "H" ) - electron;
+		double heavyWater = formulaParser->getMonoIsotopicMass( "H2 18O" );
 
-        std::vector< std::string > peptides;
-        if ( adprot::protease::digest( *enzyme, prot.sequence(), peptides ) ) {
-            model.setRowCount( static_cast<int>(peptides.size()) );
-
-            int row = 0;
-            for ( auto& peptide: peptides ) {
-                
-				std::string formula = adprot::peptide::formula( peptide );
-                std::string stdFormula = adcontrols::ChemicalFormula::standardFormula( formula );
-                model.setData( model.index( row, 0 ), QString::fromStdString( peptide ) );
-                model.setData( model.index( row, 1 ), QString::fromStdString( stdFormula ) );
-                model.setData( model.index( row, 2 ), formulaParser.getMonoIsotopicMass( stdFormula ) );
-                model.setData( model.index( row, 3 ), formulaParser.getMonoIsotopicMass( stdFormula + "H" ) - e );
-                model.setData( model.index( row, 4 ), formulaParser.getMonoIsotopicMass( stdFormula + "HH2 18O" ) - H2O - e);
-
-                ++row;
-            }
+        model.setRowCount( static_cast<int>( peptides.size() ) );
+        
+        int row = 0;
+        for ( auto& peptide: peptides ) {
             
+            const std::string& sequence = std::get<0>( peptide );
+            const std::string& stdFormula = std::get<1>( peptide );
+            double mass = std::get<2>( peptide );
+
+            model.setData( model.index( row, 0 ), QString::fromStdString( sequence ) );
+            model.setData( model.index( row, 1 ), QString::fromStdString( stdFormula ) );
+            model.setData( model.index( row, 2 ), mass );
+            model.setData( model.index( row, 3 ), mass + proton ); 
+			model.setData( model.index( row, 4 ), mass - water + heavyWater + proton ); // 18O
+            
+            ++row;
         }
     }
 }
 
 void
-DigestedPeptideTable::setData( const std::shared_ptr< adprot::protease >& enzyme )
+DigestedPeptideTable::setData( const std::shared_ptr< adcontrols::ChemicalFormula >& ptr )
 {
-    protease_ = enzyme;
+    formulaParser_ = ptr;
 }
 

@@ -43,7 +43,13 @@ namespace peptide {
         public:
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 if ( index.column() == 1 ) {
-                    render_sequence( painter, option, index.data().toString() );
+                    if ( auto enzyme = MainWindow::instance()->get_protease() ) {
+                        std::string worded, richText;
+                        ProteinTable::split( index.data().toString().toStdString(), worded );
+                        adprot::protease::digest( *enzyme, worded, richText );
+                        render_sequence( painter, option, QString::fromStdString( richText ) );
+                    } else
+                        render_sequence( painter, option, index.data( Qt::DisplayRole ).toString() );
                 } else {
                     QItemDelegate::paint( painter, option, index );
                 }
@@ -83,6 +89,7 @@ namespace peptide {
                 document.drawContents( painter, clip );
                 painter->restore();
             }
+            
         };
 
     }
@@ -121,17 +128,12 @@ ProteinTable::setData( const adprot::protfile& file )
 {
     QStandardItemModel& model = *model_;
 
-    adprot::protease& trypsin = *MainWindow::instance()->get_protease();
-
     model.setRowCount( static_cast<int>( file.size() ) );
     int row = 0;
     for ( auto& prot: file ) {
-        model.setData( model.index( row, 0 ), QString::fromStdString( prot.name() ) );
 
-        std::string worded, richText;
-        split( prot.sequence(), worded );
-        adprot::protease::digest( trypsin, worded, richText );
-        model.setData( model.index( row, 1 ), QString::fromStdString( richText ) );
+        model.setData( model.index( row, 0 ), QString::fromStdString( prot.name() ) );
+        model.setData( model.index( row, 1 ), QString::fromStdString( prot.sequence() ) );
 
         model.item( row, 0 )->setEditable( false );
         model.item( row, 1 )->setEditable( false );
@@ -139,6 +141,16 @@ ProteinTable::setData( const adprot::protfile& file )
 		++row;
     }
     resizeRowsToContents();
+}
+
+bool
+ProteinTable::getSequence( int row, std::string& sequence )
+{
+    if ( row < model_->rowCount() ) {
+        sequence = model_->index( row, 1 ).data( Qt::EditRole ).toString().toStdString();
+        return true;
+    }
+    return false;
 }
 
 void
@@ -151,13 +163,22 @@ ProteinTable::split( const std::string& sequence, std::string& worded )
         worded += "\n"; // for word wrap
         pos += width;
     }
-
 }
 
 void
-ProteinTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
+ProteinTable::selectionChanged( const QItemSelection& selected, const QItemSelection& deselected )
 {
-    emit currentChanged( index.row() );
+	QTableView::selectionChanged( selected, deselected );
+
+    QModelIndexList list = selectionModel()->selectedIndexes();
+    qSort( list );
+    if ( list.size() < 1 )
+        return;
+    QVector< int > rows;
+    for ( auto index: list )
+        rows.push_back( index.row() );
+
+    emit selectionChanged( rows );
 }
 
 void

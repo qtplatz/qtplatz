@@ -22,43 +22,13 @@
 **
 **************************************************************************/
 
-#ifndef DIGESTEDPEPTIDETABLE_HPP
-#define DIGESTEDPEPTIDETABLE_HPP
+#ifndef ISOTOPE_HPP
+#define ISOTOPE_HPP
 
-#include <QTableView>
-#include <memory>
-#include <tuple>
+class isotope
+{
+public:
+    isotope();
+};
 
-class QStyledItemDelegate;
-class QStandardItemModel;
-
-namespace adprot { class protease; class protein; }
-namespace adcontrols { class ChemicalFormula; }
-
-namespace peptide {
-
-    class DigestedPeptideTable : public QTableView {
-        Q_OBJECT
-    public:
-        explicit DigestedPeptideTable(QWidget *parent = 0);
-        ~DigestedPeptideTable();
-
-        void setData( const std::shared_ptr< adcontrols::ChemicalFormula >& );
-        void setData( const std::vector< std::tuple< std::string, std::string, double > >& );
-
-    private:
-        QStandardItemModel * model_;
-
-        std::weak_ptr< adcontrols::ChemicalFormula > formulaParser_;
-
-        void init( QStandardItemModel& );
-
-    signals:
-
-    public slots:
-
-    };
-
-}
-
-#endif // DIGESTEDPEPTIDETABLE_HPP
+#endif // ISOTOPE_HPP

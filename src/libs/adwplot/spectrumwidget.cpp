@@ -547,10 +547,14 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                 const adcontrols::annotations& attached = ms.get_annotations();
                 for ( auto a : attached ) {
                     if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
-                        if ( a.index() >= 0 && isTimeAxis_ )
-                            a.x( scale_to_micro( ms.getTime( a.index() ) ) );
-                        else
-                            a.x( ms.getMass( a.index() ) );
+                        if ( a.index() >= 0 ) {
+							if ( isTimeAxis_ ) {
+								a.x( scale_to_micro( ms.getTime( a.index() ) ) );
+							} else {
+								a.x( ms.getMass( a.index() ) );
+							}
+							a.y( ms.getIntensity( a.index() ) );
+						}
 						if ( a.dataFormat() == adcontrols::annotation::dataFormula ) {
 							a.text( adcontrols::ChemicalFormula::formatFormula( a.text () ) );
 						}

@@ -34,6 +34,7 @@
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
 namespace adprot { class protein; class protfile; class protease; }
+namespace adcontrols { class ChemicalFormula; }
 
 class QToolButton;
 class QAction;
@@ -53,6 +54,7 @@ namespace peptide {
         void onInitialUpdate();
         const std::shared_ptr< adprot::protfile >& get_protfile() const;
         const std::shared_ptr< adprot::protease >& get_protease() const;
+        const std::shared_ptr< adcontrols::ChemicalFormula >& getChemicalFormula() const;
 
         static MainWindow * instance();
         
@@ -73,6 +75,7 @@ namespace peptide {
 
         std::shared_ptr< adprot::protfile > protfile_;
         std::shared_ptr< adprot::protease > protease_;
+        std::shared_ptr< adcontrols::ChemicalFormula > formulaParser_;
 
         void createDockWidgets();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );

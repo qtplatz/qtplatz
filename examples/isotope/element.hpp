@@ -22,43 +22,27 @@
 **
 **************************************************************************/
 
-#ifndef DIGESTEDPEPTIDETABLE_HPP
-#define DIGESTEDPEPTIDETABLE_HPP
+#ifndef ELEMENT_HPP
+#define ELEMENT_HPP
 
-#include <QTableView>
-#include <memory>
-#include <tuple>
+namespace detail { struct element; }
 
-class QStyledItemDelegate;
-class QStandardItemModel;
+class element {
+    const detail::element * element_;
+public:
+    element( const detail::element * e = 0 );
 
-namespace adprot { class protease; class protein; }
-namespace adcontrols { class ChemicalFormula; }
+    struct isotope { double mass; double abundance; };
 
-namespace peptide {
+    operator bool () const { return element_ != 0; }
 
-    class DigestedPeptideTable : public QTableView {
-        Q_OBJECT
-    public:
-        explicit DigestedPeptideTable(QWidget *parent = 0);
-        ~DigestedPeptideTable();
+    const char * symbol() const;
+    const char * name() const;
+    int atomicNumber() const;
+    int valence() const;
+    int isotopeCount() const;
+    const isotope * isotopes() const;
+};
 
-        void setData( const std::shared_ptr< adcontrols::ChemicalFormula >& );
-        void setData( const std::vector< std::tuple< std::string, std::string, double > >& );
 
-    private:
-        QStandardItemModel * model_;
-
-        std::weak_ptr< adcontrols::ChemicalFormula > formulaParser_;
-
-        void init( QStandardItemModel& );
-
-    signals:
-
-    public slots:
-
-    };
-
-}
-
-#endif // DIGESTEDPEPTIDETABLE_HPP
+#endif // ELEMENT_HPP

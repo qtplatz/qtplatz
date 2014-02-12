@@ -29,6 +29,7 @@
 
 class QItemDelegate;
 class QStandardItemModel;
+class QItemSelection;
 
 namespace adprot { class protfile; }
 
@@ -41,21 +42,22 @@ namespace peptide {
         ~ProteinTable();
 
         void setData( const adprot::protfile& );
+        bool getSequence( int row, std::string& );
 
+		static void split( const std::string& sequence, std::string& worded );
     private:
         QStandardItemModel * model_;
         QItemDelegate * delegate_;
 
         void init( QStandardItemModel& );
         void handleCopyToClipboard();
-        static void split( const std::string& sequence, std::string& worded );
 
     protected:
-        void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+        void selectionChanged( const QItemSelection&, const QItemSelection& ) override;
         void keyPressEvent( QKeyEvent * ) override;
     
     signals:
-        void currentChanged( int row );
+        void selectionChanged( const QVector< int >& );
     
     public slots:
     

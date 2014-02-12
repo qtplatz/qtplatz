@@ -11,7 +11,10 @@ CONFIG   += ordered
 INCLUDEPATH += /usr/local/include
 
 SUBDIRS = device_emulators \
-    bcastaddr
+        bcastaddr \
+        formula_parser \
+        sdfile_parser \
+    isotope
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin
 

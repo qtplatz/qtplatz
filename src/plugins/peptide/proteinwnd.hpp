@@ -26,12 +26,17 @@
 #define PROTEINWND_HPP
 
 #include <QWidget>
+#include <memory>
 
 namespace adprot { class protfile; }
+namespace adcontrols { class MassSpectrum; }
+namespace adwplot { class SpectrumWidget; }
 
 namespace peptide {
 
     class MainWindow;
+    class DigestedPeptideTable;
+    class ProteinTable;
 
     class ProteinWnd : public QWidget {
         Q_OBJECT
@@ -40,9 +45,19 @@ namespace peptide {
 
         void setData( const adprot::protfile& );
 
+        enum { idSequence, idStdFormula, idNeutralMass };
+        typedef std::tuple< std::string, std::string, double > peptide_formula_mass_type;
+        
     private:
-        std::vector< QWidget * > widgets_;
+
+        std::shared_ptr< adcontrols::MassSpectrum > spectrum_;
+        adwplot::SpectrumWidget * spectrumWidget_;
+        DigestedPeptideTable * peptideTable_;
+        ProteinTable * proteinTable_;
+
         void init();
+        void sort_and_unique( std::vector< peptide_formula_mass_type >& );
+        void setData( const std::vector< peptide_formula_mass_type >& );
     
     signals:
     
@@ -50,7 +65,7 @@ namespace peptide {
 
     private slots:
         void protSelChanged( int row );
-    
+        void handleSelectionChanged( const QVector< int >& );
     };
 
 }

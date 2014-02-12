@@ -27,6 +27,7 @@
 #include "peptideconstants.hpp"
 #include "proteinwnd.hpp"
 #include <qtwrapper/trackingenabled.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>
 #include <adprot/protfile.hpp>
@@ -66,6 +67,7 @@ using namespace peptide;
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , topLineEdit_( new QLineEdit )
                                         , protease_( std::make_shared< adprot::protease >( "trypsin" ) )
+                                        , formulaParser_( std::make_shared< adcontrols::ChemicalFormula >() )
 {
     std::fill( actions_.begin(), actions_.end(), static_cast<QAction *>(0) );
     instance_ = this;
@@ -358,5 +360,11 @@ const std::shared_ptr< adprot::protease >&
 MainWindow::get_protease() const
 {
     return protease_;
+}
+
+const std::shared_ptr< adcontrols::ChemicalFormula >&
+MainWindow::getChemicalFormula() const
+{
+    return formulaParser_;
 }
 

@@ -22,43 +22,18 @@
 **
 **************************************************************************/
 
-#ifndef DIGESTEDPEPTIDETABLE_HPP
-#define DIGESTEDPEPTIDETABLE_HPP
+#ifndef TABLEOFELEMENTS_HPP
+#define TABLEOFELEMENTS_HPP
 
-#include <QTableView>
-#include <memory>
-#include <tuple>
+#include <string>
 
-class QStyledItemDelegate;
-class QStandardItemModel;
+class element;
 
-namespace adprot { class protease; class protein; }
-namespace adcontrols { class ChemicalFormula; }
+class tableofelement
+{
+public:
+    tableofelement();
+    static element findElement( const std::string& );
+};
 
-namespace peptide {
-
-    class DigestedPeptideTable : public QTableView {
-        Q_OBJECT
-    public:
-        explicit DigestedPeptideTable(QWidget *parent = 0);
-        ~DigestedPeptideTable();
-
-        void setData( const std::shared_ptr< adcontrols::ChemicalFormula >& );
-        void setData( const std::vector< std::tuple< std::string, std::string, double > >& );
-
-    private:
-        QStandardItemModel * model_;
-
-        std::weak_ptr< adcontrols::ChemicalFormula > formulaParser_;
-
-        void init( QStandardItemModel& );
-
-    signals:
-
-    public slots:
-
-    };
-
-}
-
-#endif // DIGESTEDPEPTIDETABLE_HPP
+#endif // TABLEOFELEMENTS_HPP
