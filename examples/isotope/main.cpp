@@ -27,6 +27,7 @@
 #include "molecule.hpp"
 #include "isotope.hpp"
 #include <iostream>
+#include <boost/format.hpp>
 
 bool
 scanner( std::string& line, molecule& mol )
@@ -65,13 +66,18 @@ main(int argc, char * argv[])
 
         molecule mol;
         if ( scanner( line, mol ) ) {
+            std::cout << "formula: ";
             std::for_each( mol.elements.begin(), mol.elements.end(), [&]( const molecule::element& e ){
                     std::cout << e.symbol << e.count << " ";
                 });
             std::cout << std::endl;
 
-            isotope iso;
-            // isotope::compute( mol );
+            isotope::compute( mol );
+            
+            int idx = 0;
+            std::for_each( mol.isotopes.begin(), mol.isotopes.end(), [&]( const molecule::isotope& i ){
+                    std::cout << boost::format( "[%2d] %.8f\t%.8f\n" ) % idx++ % i.mass % i.abundance;
+                });
             
         } else {
             std::cout << "Parse failed: " << line << std::endl;

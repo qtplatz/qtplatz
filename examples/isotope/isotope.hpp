@@ -25,13 +25,14 @@
 #ifndef ISOTOPE_HPP
 #define ISOTOPE_HPP
 
-struct molecule;
+#include "molecule.hpp"
 
 class isotope {
 public:
     isotope();
-    bool compute( molecule& mol );
-
+    static bool compute( molecule& mol );
+private:
+    static void append( molecule& mol, const molecule::isotope& );
 };
 
 #endif // ISOTOPE_HPP

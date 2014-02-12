@@ -31,17 +31,68 @@ isotope::isotope()
 {
 }
 
+#if 0
+static int
+calculate_peaks( std::vector< isotope >& peaks )
+{
+    peaks.clear();
+    for( compound& c: mol ) {
+        for( int k = 0; k < c.natoms(); k++ ) {
+            for ( const isotope& i: c.isotopes() ) {
+                if ( k == 0 ) {
+                    peaks.push_back( isotope( i.mass(), i.abundance() ) );
+                } else {
+                    for ( auto& p: peaks ) {
+                        isotope np1( p.mass() + i.mass(), p.abundance() * i.abundance() );
+                        auto it = std::lower_bound( peaks.begin(), peaks.end(), np1
+                                                    , [](const isotope& lhs, const isotope& rhs){
+                                                        return lhs.mass() < rhs.mass();
+                                                    });
+                        peaks.insert( it, np1 );
+                    }
+                }
+            }
+        }
+    }
+    return 1;
+}
+#endif
+
+void
+isotope::append( molecule& mol, const molecule::isotope& pk )
+{
+    // todo: sort by mass, and marge if delta mass is less than threshold
+    mol.isotopes.push_back( pk );
+}
+
 bool
 isotope::compute( molecule& mol )
 {
-    (void)mol;
-    std::vector< std::pair< std::string, tableofelement::element > > xmol;
+    mol.isotopes.clear();
+
+    std::vector< std::pair< tableofelement::element, size_t > > xmol;
     for ( auto& e: mol.elements ) {
         tableofelement::element toe = tableofelement::findElement( e.symbol );
-        (void)toe;
-        // xmol.push_back( std::make_pair( e.symbol, tableofelement::findElement( e.symbol ) ) );
+        xmol.push_back( std::make_pair( toe, e.count ) );
     }
 
-    
+    for ( auto& c: xmol ) {
+        const tableofelement::element& toe = c.first;
+        size_t count = c.second;
+        for( size_t k = 0; k < count; k++ ) {
+            for ( const tableofelement::isotope& i: toe.isotopes() ) {
+                if ( k == 0 ) {
+                    mol.isotopes.push_back( molecule::isotope( i.mass, i.abundant ) );
+                } else {
+                    for ( auto& pk: mol.isotopes ) {
+                        molecule::isotope npk( pk.mass + i.mass, pk.abundance * i.abundant );
+                        append( mol, npk );
+                        //mol.isotopes.push_back( npk );
+                    }
+                }
+            }
+        }
+    }
+
     return true;
 }
