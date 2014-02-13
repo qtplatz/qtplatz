@@ -71,6 +71,9 @@ isotopecluster::operator()( molecule& mol ) const
 bool
 isotopecluster::marge( mol::isotope& it, const mol::isotope& mi ) const
 {
+    if ( mi.abundance <= 1.0e-15 ) // std::numeric_limits<double>::min() )
+        return true; // throw this away
+
     if ( ( it.mass - mi.mass ) < threshold_daltons_ ) {
         it.abundance += mi.abundance;
         // don't change mass (or take average?)

@@ -66,11 +66,22 @@ scanner( std::string& line, molecule& mol )
 int
 main(int argc, char * argv[])
 {
-    (void)argc;
-    (void)argv;
+    double threshold_daltons = 1.0e-7;
+
+    if ( --argc ) {
+        ++argv;
+        while( argc-- ) {
+            if ( std::strcmp( *argv, "-d" ) == 0 && argc ) {
+                --argc;
+                ++argv;
+                threshold_daltons = atof( *argv ) / 1000;
+            }
+        }
+    }
+    std::cout << boost::format( "Set daltons threshold to: %gmDa\n" ) % (threshold_daltons * 1000);
 
     std::string line;
-        
+    std::cerr << "Enter formula: ";
     while (std::getline(std::cin, line))  {
             
         if (line.empty() || line[0] == 'q' || line[0] == 'Q')
@@ -86,16 +97,17 @@ main(int argc, char * argv[])
                 
             std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-            isotopecluster cluster( 0.0005 );
+            isotopecluster cluster( threshold_daltons );
             cluster( mol );
 
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
             
             auto it = std::max_element( mol.cluster.begin(), mol.cluster.end()
                                         , [](const mol::isotope& a, const mol::isotope& b){
                                             return a.abundance < b.abundance;});
             const double pmax = it->abundance;
+            const double sum = std::accumulate( mol.cluster.begin(), mol.cluster.end(), 0.0
+                                                , []( double x, const mol::isotope& a ){ return x + a.abundance; } );
 
             int idx = 0;
             for ( auto& i: mol.cluster ) {
@@ -103,12 +115,15 @@ main(int argc, char * argv[])
                 if ( ratio >= 0.05 )
                     std::cout << boost::format( "[%2d] %.8f\t%.8e\t%.6f\n" ) % idx++ % i.mass % i.abundance % ratio;
             }
-            std::cout << "processed in: "
+            std::cout << "processed "
+                      << mol.cluster.size() << " peaks in: "
                       << double(std::chrono::duration_cast< std::chrono::microseconds >( end - start ).count())/1000 << "ms."
                       << std::endl;
+            std::cout << boost::format( "sum =%.14f" ) % sum << std::endl;
         } else {
             std::cout << "Parse failed: " << line << std::endl;
         }
+        std::cerr << "Enter formula: ";
     }
 
     std::cout << "Bye... :-) \n\n";
