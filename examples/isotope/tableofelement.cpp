@@ -24,6 +24,7 @@
 
 #include "tableofelement.hpp"
 #include "element.hpp"
+#include <cstring>
 #include <vector>
 #include <array>
 

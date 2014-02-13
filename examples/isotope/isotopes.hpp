@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <cstdlib>
+
 namespace toe {
 
     struct isotope { double mass; double abundance; };

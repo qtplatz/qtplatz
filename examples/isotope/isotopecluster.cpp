@@ -71,9 +71,6 @@ isotopecluster::operator()( molecule& mol ) const
 bool
 isotopecluster::marge( mol::isotope& it, const mol::isotope& mi ) const
 {
-    if ( mi.abundance < threshold_abandance_ )
-        return true; // erase it
-
     if ( ( it.mass - mi.mass ) < threshold_daltons_ ) {
         it.abundance += mi.abundance;
         // don't change mass (or take average?)

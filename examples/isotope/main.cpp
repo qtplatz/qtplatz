@@ -70,12 +70,12 @@ main(int argc, char * argv[])
     (void)argv;
 
     std::string line;
-
+        
     while (std::getline(std::cin, line))  {
-
+            
         if (line.empty() || line[0] == 'q' || line[0] == 'Q')
             break;
-
+            
         molecule mol;
         if ( scanner( line, mol ) ) {
             std::cout << "formula: ";
@@ -83,35 +83,35 @@ main(int argc, char * argv[])
                     std::cout << e.symbol() << e.count() << " ";
                 });
             std::cout << std::endl;
-
+                
             std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
             isotopecluster cluster;
-			cluster( mol );
+            cluster( mol );
 
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
             
             auto it = std::max_element( mol.cluster.begin(), mol.cluster.end()
-                                            , [](const mol::isotope& a, const mol::isotope& b){
+                                        , [](const mol::isotope& a, const mol::isotope& b){
                                             return a.abundance < b.abundance;});
             const double pmax = it->abundance;
 
             int idx = 0;
             for ( auto& i: mol.cluster ) {
                 double ratio = i.abundance / pmax * 100.0;
-                std::cout << boost::format( "[%2d] %.8f\t%.8e\t%.6f\n" ) % idx++ % i.mass % i.abundance % ratio;
-                if ( ratio < 0.05 )
-                    break;
+                if ( ratio >= 0.05 )
+                    std::cout << boost::format( "[%2d] %.8f\t%.8e\t%.6f\n" ) % idx++ % i.mass % i.abundance % ratio;
             }
             std::cout << "processed in: "
-                      << std::chrono::duration_cast< std::chrono::microseconds >( end - start ).count() << "us."
+                      << double(std::chrono::duration_cast< std::chrono::microseconds >( end - start ).count())/1000 << "ms."
                       << std::endl;
         } else {
             std::cout << "Parse failed: " << line << std::endl;
         }
     }
+
     std::cout << "Bye... :-) \n\n";
-	return 0;
+    return 0;
 }
 
