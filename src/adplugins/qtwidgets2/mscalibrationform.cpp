@@ -31,7 +31,7 @@
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/tableofelements.hpp>
+#include <adcontrols/TableOfElement.hpp>
 #include <adcontrols/element.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/is_type.hpp>
@@ -303,7 +303,7 @@ MSCalibrationForm::on_addReference_pressed()
             ref << adcontrols::MSReference( L"C54H18F96N3O6P3", true, L"H", false );
         } else {
             // check if an element
-            const adcontrols::Element& element = adcontrols::TableOfElements::instance()->findElement( endGroup.toStdWString() );
+            const adcontrols::Element& element = adcontrols::TableOfElement::instance()->findElement( endGroup.toStdWString() );
             if ( element.atomicNumber() >= 1 ) {
                 for ( adcontrols::Element::vector_type::const_iterator it = element.begin(); it != element.end(); ++it ) {
                     std::wstring formula = ( boost::wformat( L"%1%%2%" ) % int( it->mass_ + 0.5 ) % element.symbol() ).str();

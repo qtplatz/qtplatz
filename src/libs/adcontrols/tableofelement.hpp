@@ -31,20 +31,18 @@
 
 namespace adcontrols {
 
-    namespace internal {
-        class TableOfElementsImpl;
-    }
+    namespace detail {  class TableOfElementImpl;  }
 
     class Element;
     class Elements;
     class SuperAtom;
     class SuperAtoms;
 
-    class ADCONTROLSSHARED_EXPORT TableOfElements {
-        ~TableOfElements();
-        TableOfElements();
+    class ADCONTROLSSHARED_EXPORT TableOfElement {
+        ~TableOfElement();
+        TableOfElement();
     public:
-        static TableOfElements * instance();
+        static TableOfElement * instance();
         void dispose();
 
         const Element& findElement( const std::wstring& symbol ) const;
@@ -56,8 +54,8 @@ namespace adcontrols {
         void loadXml( const std::wstring& );
 
     private:
-        static TableOfElements * instance_;
-        internal::TableOfElementsImpl * pImpl_;
+        static TableOfElement * instance_;
+        detail::TableOfElementImpl * pImpl_;
     };
 
 }

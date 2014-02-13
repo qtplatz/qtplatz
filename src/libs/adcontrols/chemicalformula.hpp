@@ -31,7 +31,7 @@
 
 namespace adcontrols {
 
-    class TableOfElements;
+    class TableOfElement;
     class CTable;
 
     namespace internal {

@@ -28,7 +28,7 @@
 #include <compiler/disable_unused_parameter.h>
 
 #include "chemicalformula.hpp"
-#include "tableofelements.hpp"
+#include "tableofelement.hpp"
 #include "ctable.hpp"
 #include "element.hpp"
 #include <adportable/utf.hpp>
@@ -154,7 +154,7 @@ namespace adcontrols {
             template< typename char_type > static double getMonoIsotopicMass( const std::basic_string< char_type >& formula ) {
                 client::map_type map;
                 if ( parse( formula, map ) ) {
-                    adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
+                    adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
                     double mass = 0;
                     for ( client::map_type::value_type& p: map ) {
                         const char * element_name = p.first.second;
@@ -169,7 +169,7 @@ namespace adcontrols {
             template< typename char_type > static double getChemicalMass( const std::basic_string< char_type >& formula ) {
                 client::map_type map;
                 if ( parse( formula, map ) ) {
-                    adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
+                    adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
                     double mass = 0;
                     for ( client::map_type::value_type& p: map )
                         mass += toe->getChemicalMass( toe->findElement( p.first.second ) ) * p.second;
@@ -355,7 +355,7 @@ ChemicalFormula::getFormula( const CTable& ctable )
 {
 	using adcontrols::CTable;
 
-	adcontrols::TableOfElements * toe = adcontrols::TableOfElements::instance();
+	adcontrols::TableOfElement * toe = adcontrols::TableOfElement::instance();
 
 	typedef std::pair< std::wstring, int > atom_valence_t;
 	std::vector< atom_valence_t > valences;

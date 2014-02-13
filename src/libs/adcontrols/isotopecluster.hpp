@@ -31,25 +31,16 @@
 
 namespace adcontrols {
 
-    class IsotopeClusterImpl;
-    class MassSpectrum;
+	namespace mol { struct molecule; struct isotope; }
 
-    class ADCONTROLSSHARED_EXPORT IsotopeCluster {
+    class ADCONTROLSSHARED_EXPORT isotopeCluster {
     public:
-        ~IsotopeCluster();
-        IsotopeCluster();
-
-		static bool isotopeDistribution( MassSpectrum& ms, const std::wstring& formula, size_t charges = 1, bool accountElectron = true );
-
-        bool Compute( const std::wstring& stdFormula, double threshold, bool resInDa, double rp, MassSpectrum&, size_t& nPeaks );
-        bool Compute( const std::wstring& stdFormula, double threshold, bool resInDa, double rp, MassSpectrum&, const std::wstring& adduct, size_t charges, size_t& nPeaks, bool bAccountForElectrons );
-
-        void clearFormulae();
-        bool addFormula( const std::wstring& stdFormula, const std::wstring& adduct, size_t chargeState, double relativeAmount );
-        bool computeFormulae(double threshold, bool resInDa, double resolution,	MassSpectrum&, size_t& nPeaks, bool bAccountForElectrons, double sf );
-
+        isotopeCluster();
+        bool operator()( mol::molecule& ) const;
     private:
-        IsotopeClusterImpl * impl_;
+        bool marge( mol::isotope&, const mol::isotope& ) const;
+        double threshold_daltons_;
+        double threshold_abundance_;
     };
 
 }

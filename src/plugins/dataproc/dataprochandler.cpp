@@ -32,7 +32,7 @@
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/annotations.hpp>
-#include <adcontrols/tableofelements.hpp>
+#include <adcontrols/TableOfElement.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>

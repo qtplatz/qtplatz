@@ -69,7 +69,7 @@ SOURCES += acceptor.cpp \
     processeddataset.cpp \
     processmethod.cpp \
     reportmethod.cpp \
-    tableofelements.cpp \
+    tableofelement.cpp \
     targetingmethod.cpp \
     theoreticalplate.cpp \
     timeutil.cpp \
@@ -139,7 +139,7 @@ HEADERS += acceptor.hpp \
     processeddataset.hpp \
     processmethod.hpp \
     reportmethod.hpp \
-    tableofelements.hpp \
+    tableofelement.hpp \
     targetingmethod.hpp \
     theoreticalplate.hpp \
     timeutil.hpp \
@@ -152,6 +152,8 @@ HEADERS += acceptor.hpp \
     waveform.hpp \
     annotation.hpp \
     annotations.hpp \
+    molecule.hpp \
+    isotopes.hpp \
     mspeakinfo.hpp \
     mspeak.hpp \
     mspeaks.hpp \
