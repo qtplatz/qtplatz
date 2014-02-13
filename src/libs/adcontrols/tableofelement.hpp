@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include "chemicalformula.hpp"
+#include "element.hpp"
 #include <string>
 
 namespace adcontrols {
@@ -45,8 +46,10 @@ namespace adcontrols {
         static TableOfElement * instance();
         void dispose();
 
+        static element find( const char * );
         const Element& findElement( const std::wstring& symbol ) const;
         const Element& findElement( const std::string& symbol ) const;
+
         static double getMonoIsotopicMass( const Element&, size_t isotope = 0 );
         static double getChemicalMass( const Element& );
 

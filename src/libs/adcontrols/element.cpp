@@ -38,7 +38,7 @@ Element::Element( const Element& t ) : symbol_(t.symbol_)
 									 , isotopes_(t.isotopes_)
 {
 }
-
+/*
 Element::Element( const std::wstring& symbol
 				 , const std::wstring& name
 				 , int atomicNumber
@@ -48,14 +48,25 @@ Element::Element( const std::wstring& symbol
 								 , valence_(valence)
 {
 }
+*/
 
-const std::wstring& 
+Element::Element( const std::string& symbol
+				 , const std::string& name
+				 , int atomicNumber
+				 , int valence ) : symbol_(symbol)
+				                 , name_(name)
+								 , atomicNumber_(atomicNumber)
+								 , valence_(valence)
+{
+}
+
+const std::string& 
 Element::symbol() const
 {
   return symbol_;
 }
 
-const std::wstring& 
+const std::string& 
 Element::name() const
 {
   return name_;

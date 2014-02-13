@@ -139,10 +139,11 @@ void
 ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& m )
 {
 	using adcontrols::IsotopeMethod;
-	using adcontrols::IsotopeCluster;
+	//using adcontrols::IsotopeCluster;
 	using adcontrols::MassSpectrum;
 
 	const IsotopeMethod * p = m.find< IsotopeMethod >();
+/*
 	if ( p ) {
 		for ( IsotopeMethod::vector_type::const_iterator it = p->begin(); it != p->end(); ++it ) {
 			auto ms = std::make_shared< MassSpectrum >();
@@ -151,5 +152,6 @@ ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& m )
 				pImpl_->processedSpectrum_->setData( ms, pImpl_->drawIdx_++ );
 		}
 	}
+*/
     
 }

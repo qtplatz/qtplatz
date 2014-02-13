@@ -100,7 +100,7 @@ bool
 DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::IsotopeMethod& m )
 {
     adcontrols::ChemicalFormula chemicalFormula; 
-
+#if 0
     adcontrols::IsotopeCluster cluster;
     cluster.clearFormulae();
 
@@ -131,6 +131,7 @@ DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::Iso
         }
 
     }
+#endif
     return false;
 }
 

@@ -41,6 +41,7 @@ namespace adcontrols {
 
     // 'element' is small & fast access interface for table-of-element
     // implimented for quick isotope cluster pattern calculation using c++11 range patterns
+
     class ADCONTROLSSHARED_EXPORT element {
         friend class TableOfElement;
         element( const detail::element * );
@@ -60,10 +61,12 @@ namespace adcontrols {
         int count_;
     };
 
+    //////////
     class ADCONTROLSSHARED_EXPORT Element {
     public:
         Element();
-        Element( const std::wstring& symbol, const std::wstring& name, int atomicNumber, int valence );
+        //Element( const std::wstring& symbol, const std::wstring& name, int atomicNumber, int valence );
+        Element( const std::string& symbol, const std::string& name, int atomicNumber, int valence );
         Element( const Element& );
       
         class Isotope {
@@ -81,8 +84,8 @@ namespace adcontrols {
             }
         };
       
-        const std::wstring& symbol() const;
-        const std::wstring& name() const;
+        const std::string& symbol() const;
+        const std::string& name() const;
         int atomicNumber() const;
         int valence() const;
         size_t isotopeCount() const;
@@ -94,8 +97,8 @@ namespace adcontrols {
         inline vector_type::const_iterator end() const { return isotopes_.end(); }
 
     private:
-        std::wstring symbol_;
-        std::wstring name_;
+        std::string symbol_;
+        std::string name_;
         int atomicNumber_;
         int valence_;
         std::vector< Isotope > isotopes_;
@@ -138,3 +141,4 @@ namespace adcontrols {
 BOOST_CLASS_VERSION(adcontrols::Element, 1)
 BOOST_CLASS_VERSION(adcontrols::Element::Isotope, 1)
 BOOST_CLASS_VERSION(adcontrols::SuperAtom, 1)
+
