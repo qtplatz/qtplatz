@@ -86,7 +86,7 @@ main(int argc, char * argv[])
                 
             std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-            isotopecluster cluster;
+            isotopecluster cluster( 0.0005 );
             cluster( mol );
 
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
