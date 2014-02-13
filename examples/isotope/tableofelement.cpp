@@ -37,7 +37,7 @@ namespace detail {
         int atomicNumber_;
         int valence_;
         int isotopeCount_;
-        tableofelement::isotope ma_[10];
+        toe::isotope ma_[10];
     } __elementTable__ [] = {
         // Symbol Name AtomicNumber Valence NumberOfIsotope Weight_1      Ratio_1...
         { "H",   "Hydrogen",       1,   1,  2,  { { 1.007825,     0.999885 }, 
@@ -406,31 +406,32 @@ tableofelement::tableofelement()
 {
 }
 
-tableofelement::element
+element
 tableofelement::findElement( const char * symbol )
 {
     for ( const auto& e: detail::__elementTable__ ) {
         if ( std::strcmp( symbol, e.symbol_ ) == 0 )
-            return tableofelement::element( &e );
+            return element( &e );
     }
-    return tableofelement::element( 0 );
+    return element( 0 );
 }
 
-tableofelement::element::element( const detail::element * p ) : p_(p)
+/////////////
+element::element( const detail::element * p ) : p_( p ), count_( 1 )
 {
 }
 
-tableofelement::element::element( const element& t ) : p_(t.p_)
+element::element( const element& t ) : p_( t.p_ ), count_( t.count_ )
 {
 }
 
-tableofelement::element::operator bool () const
+element::operator bool () const
 {
     return p_ != 0;
 }
 
 const char *
-tableofelement::element::symbol() const
+element::symbol() const
 {
     if ( p_ )
         return p_->symbol_;
@@ -438,7 +439,7 @@ tableofelement::element::symbol() const
 }
 
 const char *
-tableofelement::element::name() const
+element::name() const
 {
     if ( p_ )
         return p_->name_;
@@ -446,7 +447,7 @@ tableofelement::element::name() const
 }
 
 int
-tableofelement::element::atomicNumber() const
+element::atomicNumber() const
 {
     if ( p_ )
         return p_->atomicNumber_;
@@ -454,17 +455,29 @@ tableofelement::element::atomicNumber() const
 }
 
 int
-tableofelement::element::valence() const
+element::valence() const
 {
     if ( p_ )
         return p_->valence_;
     return -1;
 }
 
-tableofelement::isotopes
-tableofelement::element::isotopes() const
+toe::isotopes
+element::isotopes() const
 {
     if ( p_ )
-        return tableofelement::isotopes( p_->ma_, size_t( p_->isotopeCount_ )  );
-    return tableofelement::isotopes( 0, 0 );
+        return toe::isotopes( p_->ma_, size_t( p_->isotopeCount_ )  );
+    return toe::isotopes( 0, 0 );
+}
+
+int
+element::count() const
+{
+    return count_;
+}
+
+void
+element::count( int v )
+{
+    count_ = v;
 }

@@ -61,10 +61,10 @@ namespace chem {
     };
     
     typedef std::pair< int, const char * > atom_type;
-    typedef std::map< atom_type, size_t > comp_type;
+    typedef std::map< atom_type, int > comp_type;
 
     struct formulaComposition {
-        static void formula_add( comp_type& m, const std::pair<const atom_type, std::size_t>& p ) {
+        static void formula_add( comp_type& m, const std::pair<const atom_type, int>& p ) {
             m[ p.first ] += p.second;
         }
         
@@ -72,7 +72,7 @@ namespace chem {
             std::for_each( a.begin(), a.end(), [&]( comp_type::value_type& p ){ m[ p.first ] += p.second; });
         }
         
-        static void formula_repeat( comp_type& m, std::size_t n ) {
+        static void formula_repeat( comp_type& m, int n ) {
             std::for_each( m.begin(), m.end(), [=]( comp_type::value_type& p ){ p.second *= n; });
         }
     };
@@ -97,11 +97,13 @@ namespace chem {
             repeated_group %= // forces attr proparation
                 '(' >> molecule >> ')'
                     >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
+                | '[' >> molecule >> ']'
+                    >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
                 ;
         }
 
         qi::rule<Iterator, atom_type() > atom;
-        qi::rule<Iterator, std::pair< atom_type, std::size_t >() > atoms;
+        qi::rule<Iterator, std::pair< atom_type, int >() > atoms;
         qi::rule<Iterator, startType()> molecule, repeated_group;
         qi::symbols<char, const char *> element;
     };

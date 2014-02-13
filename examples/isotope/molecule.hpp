@@ -26,24 +26,22 @@
 
 #include <cstdint>
 #include <vector>
+#include "element.hpp"
 
-struct molecule {
+// namespace 'mol' describes about a molecule
+// namespace 'toe' describes about atoms with respect to table of element
+// class 'element' in global spece uses both in molecule and table-of-element
 
-    struct element {
-        const char * symbol;
-        size_t count;
-        element( const char * _symbol, int _count = 0 ) : symbol(_symbol), count(_count) {
-        }
-    };
-
+namespace mol {
     struct isotope {
         double mass;
         double abundance;
-        isotope( double _mass = 0, double _abundance = 0 ) : mass(_mass), abundance(_abundance) {
-        }
+        isotope( double m = 0, double a = 1.0 ) : mass(m), abundance(a) {}
     };
-    
+}
+
+struct molecule {
     std::vector< element > elements; // an array of (element&count), ex: C6H6O2 (six carbons, 6 hydrogens and 2 oxigens)
-    std::vector< isotope > isotopes; // an array of isotopes of this molecule
+    std::vector< mol::isotope > cluster;
 };
 

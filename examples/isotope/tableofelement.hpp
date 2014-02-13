@@ -29,47 +29,11 @@
 
 class element;
 
-namespace detail { struct element; }
-
 class tableofelement
 {
 public:
     tableofelement();
     // static const element& findElement( const std::string& );
-
-    struct isotope {
-        double mass;
-        double abundant;
-    };
-
-    class isotopes {
-        typedef const isotope * const_iterator;
-        typedef size_t size_type;
-    public:
-        isotopes( const isotope * p, size_t size ) : p_(p), size_(size) {}
-        inline const_iterator begin() const { return p_; }
-        inline const_iterator end() const { return p_ + size_; }
-        inline size_type size() const { return size_; }
-    private:
-        const isotope * p_;
-        const size_t size_;
-    };
-
-    // 'element' for lookup table-of-element
-    class element {
-    public:
-        element( const detail::element * );
-        element( const element& );
-
-        operator bool () const;
-        const char * symbol() const;
-        const char * name() const;
-        int atomicNumber() const;
-        int valence() const;
-        isotopes isotopes() const;
-    private:
-        const detail::element * p_;
-    };
 
     static element findElement( const char * symbol );
 

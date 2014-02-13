@@ -22,17 +22,24 @@
 **
 **************************************************************************/
 
-#ifndef ISOTOPE_HPP
-#define ISOTOPE_HPP
+#pragma once
 
-#include "molecule.hpp"
+namespace toe {
 
-class isotope {
-public:
-    isotope();
-    static bool compute( molecule& mol );
-private:
-    static void append( molecule& mol, const molecule::isotope& );
-};
+    struct isotope { double mass; double abundance; };
 
-#endif // ISOTOPE_HPP
+    class isotopes {
+        typedef const isotope * const_iterator;
+        typedef size_t size_type;
+    public:
+        isotopes( const isotope * p, size_t size ) : p_(p), size_(size) {}
+        inline const_iterator begin() const { return p_; }
+        inline const_iterator end() const { return p_ + size_; }
+        inline size_type size() const { return size_; }
+        inline const isotope& operator [] ( int idx ) const { return p_[ idx ]; }
+    private:
+        const isotope * p_;
+        const size_t size_;
+    };
+
+}

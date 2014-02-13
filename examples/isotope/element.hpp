@@ -25,24 +25,26 @@
 #ifndef ELEMENT_HPP
 #define ELEMENT_HPP
 
+#include "isotopes.hpp"
+
 namespace detail { struct element; }
 
 class element {
-    const detail::element * element_;
 public:
-    element( const detail::element * e = 0 );
+    element( const detail::element * );
+    element( const element& );
 
-    struct isotope { double mass; double abundance; };
-
-    operator bool () const { return element_ != 0; }
-
+    operator bool () const;
     const char * symbol() const;
     const char * name() const;
     int atomicNumber() const;
     int valence() const;
-    int isotopeCount() const;
-    const isotope * isotopes() const;
+    toe::isotopes isotopes() const;
+    int count() const;
+    void count( int );
+private:
+    const detail::element * p_;
+    int count_;
 };
-
 
 #endif // ELEMENT_HPP

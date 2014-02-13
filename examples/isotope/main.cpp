@@ -25,8 +25,10 @@
 #include "formula_parser.hpp"
 #include "element.hpp"
 #include "molecule.hpp"
-#include "isotope.hpp"
+#include "tableofelement.hpp"
+#include "isotopecluster.hpp"
 #include <iostream>
+#include <chrono>
 #include <boost/format.hpp>
 
 bool
@@ -38,13 +40,23 @@ scanner( std::string& line, molecule& mol )
     chem::comp_type elemental_composition;
     chem::chemical_formula_parser< std::string::const_iterator > parser;
     if ( boost::spirit::qi::parse( it, end, parser, elemental_composition ) && it == end ) {
+
         for ( auto& atom: elemental_composition ) {
+
             const char * symbol = atom.first.second;
-            // put result in alphabetical order
-            auto it = std::lower_bound( mol.elements.begin(), mol.elements.end(), symbol, [](const molecule::element& lhs, const char * symbol ){
-                    return std::strcmp( lhs.symbol, symbol ) < 0;
-                });
-            mol.elements.insert( it, molecule::element( atom.first.second, atom.second ) );
+            uint32_t count = atom.second;
+
+            if ( element e = tableofelement::findElement( symbol ) ) {
+
+                e.count( count );  // number of atoms
+
+                // make it alphabetical order comforming to organic chemistry standard
+                auto it = std::lower_bound( mol.elements.begin(), mol.elements.end(), symbol, [](const element& lhs, const char * symbol ){
+                        return std::strcmp( lhs.symbol(), symbol ) < 0;
+                    });
+                mol.elements.insert( it, e );
+
+            }
         }
         return true;
     }
@@ -67,18 +79,34 @@ main(int argc, char * argv[])
         molecule mol;
         if ( scanner( line, mol ) ) {
             std::cout << "formula: ";
-            std::for_each( mol.elements.begin(), mol.elements.end(), [&]( const molecule::element& e ){
-                    std::cout << e.symbol << e.count << " ";
+            std::for_each( mol.elements.begin(), mol.elements.end(), [&]( const element& e ){
+                    std::cout << e.symbol() << e.count() << " ";
                 });
             std::cout << std::endl;
 
-            isotope::compute( mol );
+            std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+            isotopecluster cluster;
+			cluster( mol );
+
+            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
             
+            auto it = std::max_element( mol.cluster.begin(), mol.cluster.end()
+                                            , [](const mol::isotope& a, const mol::isotope& b){
+                                            return a.abundance < b.abundance;});
+            const double pmax = it->abundance;
+
             int idx = 0;
-            std::for_each( mol.isotopes.begin(), mol.isotopes.end(), [&]( const molecule::isotope& i ){
-                    std::cout << boost::format( "[%2d] %.8f\t%.8f\n" ) % idx++ % i.mass % i.abundance;
-                });
-            
+            for ( auto& i: mol.cluster ) {
+                double ratio = i.abundance / pmax * 100.0;
+                std::cout << boost::format( "[%2d] %.8f\t%.8e\t%.6f\n" ) % idx++ % i.mass % i.abundance % ratio;
+                if ( ratio < 0.05 )
+                    break;
+            }
+            std::cout << "processed in: "
+                      << std::chrono::duration_cast< std::chrono::microseconds >( end - start ).count() << "us."
+                      << std::endl;
         } else {
             std::cout << "Parse failed: " << line << std::endl;
         }

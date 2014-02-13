@@ -22,10 +22,21 @@
 **
 **************************************************************************/
 
-#include "element.hpp"
-#include "tableofelement.hpp"
+#ifndef ISOTOPE_HPP
+#define ISOTOPE_HPP
 
-element::element( const detail::element * e ) : element_( e )
-{
-}
+#include "molecule.hpp"
 
+class isotopecluster {
+public:
+    isotopecluster( double limit_daltons = 0.5e-7 );
+    bool operator()( molecule& mol ) const;
+    // todo: cluster method to be added
+private:
+    bool marge( mol::isotope&, const mol::isotope& ) const;
+
+    double threshold_daltons_;
+    double threshold_abandance_;
+};
+
+#endif // ISOTOPE_HPP

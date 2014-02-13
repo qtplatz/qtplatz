@@ -17,11 +17,11 @@ TEMPLATE = app
 include(../../src/boost.pri)
 
 SOURCES += main.cpp \
-    element.cpp \
-    isotope.cpp \
+    isotopecluster.cpp \
     tableofelement.cpp
 
 HEADERS += \
     element.hpp \
-    isotope.hpp \
+    isotopes.hpp \
+    isotopecluster.hpp \
     tableofelement.hpp
