@@ -40,73 +40,76 @@
 
 namespace adportable {
 
-    namespace qi = boost::spirit::qi;
-    using boost::phoenix::bind;
-    using boost::spirit::qi::_val;
-    using boost::spirit::qi::_1;
-    using boost::spirit::ascii::space;
+    namespace chem {
 
-    const char * element_table [] = {
-        "H",                                                                                                              "He",
-        "Li", "Be",                                                                         "B",  "C",  "N",  "O",  "F",  "Ne", 
-        "Na", "Mg",                                                                         "Al", "Si", "P",  "S",  "Cl", "Ar",
-        "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",  
-        "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",  
-        "Cs", "Ba", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
-        "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr",
-        // Lanthanoids
-        "La", "Ce", "Pr", "Nd", "Pm", "Sm",  "Eu", "Gd",  "Tb", "Dy",  "Ho", "Er" "Tm", "Yb",
-        // Actinoids
-        "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No"
-    };
+        namespace qi = boost::spirit::qi;
+        using boost::phoenix::bind;
+        using boost::spirit::qi::_val;
+        using boost::spirit::qi::_1;
+        using boost::spirit::ascii::space;
+
+        const char * element_table [] = {
+            "H",                                                                                                              "He",
+            "Li", "Be",                                                                         "B",  "C",  "N",  "O",  "F",  "Ne", 
+            "Na", "Mg",                                                                         "Al", "Si", "P",  "S",  "Cl", "Ar",
+            "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",  
+            "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",  
+            "Cs", "Ba", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
+            "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr",
+            // Lanthanoids
+            "La", "Ce", "Pr", "Nd", "Pm", "Sm",  "Eu", "Gd",  "Tb", "Dy",  "Ho", "Er" "Tm", "Yb",
+            // Actinoids
+            "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No"
+        };
     
-    typedef std::pair< int, const char * > atom_type;
-    typedef std::map< atom_type, int > comp_type;
+        typedef std::pair< int, const char * > atom_type;
+        typedef std::map< atom_type, int > comp_type;
 
-    struct formulaComposition {
-        static void formula_add( comp_type& m, const std::pair<const atom_type, int>& p ) {
-            m[ p.first ] += p.second;
-        }
+        struct formulaComposition {
+            static void formula_add( comp_type& m, const std::pair<const atom_type, int>& p ) {
+                m[ p.first ] += p.second;
+            }
         
-        static void formula_join( comp_type& m, comp_type& a ) {
-            std::for_each( a.begin(), a.end(), [&]( comp_type::value_type& p ){ m[ p.first ] += p.second; });
-        }
+            static void formula_join( comp_type& m, comp_type& a ) {
+                std::for_each( a.begin(), a.end(), [&]( comp_type::value_type& p ){ m[ p.first ] += p.second; });
+            }
         
-        static void formula_repeat( comp_type& m, int n ) {
-            std::for_each( m.begin(), m.end(), [=]( comp_type::value_type& p ){ p.second *= n; });
-        }
-    };
+            static void formula_repeat( comp_type& m, int n ) {
+                std::for_each( m.begin(), m.end(), [=]( comp_type::value_type& p ){ p.second *= n; });
+            }
+        };
 
-    template<typename Iterator, typename handler = formulaComposition, typename startType = comp_type>
-    struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, startType() > {
+        template<typename Iterator, typename handler = formulaComposition, typename startType = comp_type>
+        struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, startType() > {
 
-        chemical_formula_parser() : chemical_formula_parser::base_type( molecule ), element( element_table, element_table )  {
-            molecule =
-				+ (
-                    atoms            [ boost::phoenix::bind(&handler::formula_add, _val, qi::_1) ]
-                    | repeated_group [ boost::phoenix::bind(&handler::formula_join, _val, qi::_1 ) ]
-                    | space
-                    )
-                ;
-            atoms = 
-                atom >> ( qi::uint_ | qi::attr(1u) ) // default to 1
-                ;
-            atom =
-                ( qi::uint_ | qi::attr(0u) ) >> element
-                ;
-            repeated_group %= // forces attr proparation
-                '(' >> molecule >> ')'
-                    >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
-                | '[' >> molecule >> ']'
-                    >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
-                ;
-        }
+            chemical_formula_parser() : chemical_formula_parser::base_type( molecule ), element( element_table, element_table )  {
+                molecule =
+                    + (
+                        atoms            [ boost::phoenix::bind(&handler::formula_add, _val, qi::_1) ]
+                        | repeated_group [ boost::phoenix::bind(&handler::formula_join, _val, qi::_1 ) ]
+                        | space
+                        )
+                    ;
+                atoms = 
+                    atom >> ( qi::uint_ | qi::attr(1u) ) // default to 1
+                    ;
+                atom =
+                    ( qi::uint_ | qi::attr(0u) ) >> element
+                    ;
+                repeated_group %= // forces attr proparation
+                    '(' >> molecule >> ')'
+                        >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
+                    | '[' >> molecule >> ']'
+                        >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
+                    ;
+            }
 
-        qi::rule<Iterator, atom_type() > atom;
-        qi::rule<Iterator, std::pair< atom_type, int >() > atoms;
-        qi::rule<Iterator, startType()> molecule, repeated_group;
-        qi::symbols<char, const char *> element;
-    };
+            qi::rule<Iterator, atom_type() > atom;
+            qi::rule<Iterator, std::pair< atom_type, int >() > atoms;
+            qi::rule<Iterator, startType()> molecule, repeated_group;
+            qi::symbols<char, const char *> element;
+        };
 
+    }
 }
 

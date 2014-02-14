@@ -32,6 +32,7 @@
 #include "ctable.hpp"
 #include "element.hpp"
 #include <adportable/utf.hpp>
+#include <adportable/formula_parser.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
@@ -53,53 +54,12 @@ using namespace adcontrols;
 
 namespace adcontrols {
 
-    namespace client {
-
-        using boost::phoenix::bind;
-        using boost::spirit::qi::_val;
-        using boost::spirit::qi::_1;
-        using boost::spirit::ascii::space;
-        
-        namespace qi = boost::spirit::qi;
-
-        const char * element_table [] = {
-            "H",                                                                                                              "He",
-            "Li", "Be",                                                                         "B",  "C",  "N",  "O",  "F",  "Ne", 
-            "Na", "Mg",                                                                         "Al", "Si", "P",  "S",  "Cl", "Ar",
-            "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",  
-            "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",  
-            "Cs", "Ba", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
-            "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr",
-            // Lanthanoids
-            "La", "Ce", "Pr", "Nd", "Pm", "Sm",  "Eu", "Gd",  "Tb", "Dy",  "Ho", "Er" "Tm", "Yb",
-            // Actinoids
-            "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No"
-        };
-
-        typedef std::pair< int, const char * > atom_type; // sort override, see top of this file
-
-        // for chemical composition
-        typedef std::map< atom_type, size_t > map_type;
-        struct formulaComposition {
-            static void formula_add( map_type& m, const std::pair<const atom_type, std::size_t>& p ) {
-                m[ p.first ] += p.second;
-            }
-            
-            static void formula_join( map_type& m, map_type& a ) {
-                for( map_type::value_type& p: a )
-                    m[ p.first ] += p.second;
-            }
-            
-            static void formula_repeat( map_type& m, std::size_t n ) {
-                for( map_type::value_type& p: m )
-                    p.second *= n;
-            }
-        };
-
+    namespace internal {
 
         // for chemical formula formatter
         static const char * braces [] = { "(", ")" };
-
+        using adportable::chem::atom_type;
+        
         typedef std::vector< std::pair< atom_type, size_t > > format_type;
         struct formulaFormat {
             static void formula_add( format_type& m, const std::pair<const atom_type, std::size_t>& p ) {
@@ -115,49 +75,16 @@ namespace adcontrols {
             }
         };
 
-        template<typename Iterator, typename handler, typename startType>
-        struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, startType() > {
-            
-            chemical_formula_parser() : chemical_formula_parser::base_type( molecule ), element( element_table, element_table )  {
-                molecule =
-                    + (
-                        atoms            [ boost::phoenix::bind(&handler::formula_add, _val, qi::_1) ]
-                        | repeated_group [ boost::phoenix::bind(&handler::formula_join, _val, qi::_1 ) ]
-                        | space
-                        )
-                    ;
-                atoms = 
-                    atom >> ( qi::uint_ | qi::attr(1u) ) // default to 1
-                    ;
-                atom =
-                    ( qi::uint_ | qi::attr(0u) ) >> element
-                    ;
-                repeated_group %= // forces attr proparation
-                    '(' >> molecule >> ')'
-                        >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
-                    ;
-            }
-            
-            qi::rule<Iterator, atom_type() > atom;
-            qi::rule<Iterator, std::pair< atom_type, std::size_t >() > atoms;
-            qi::rule<Iterator, startType()> molecule, repeated_group;
-            qi::symbols<char, const char *> element;
-        };
-
-    }
-
-    namespace internal {
-
         class ChemicalFormulaImpl {
         public:
             ChemicalFormulaImpl();
 
             template< typename char_type > static double getMonoIsotopicMass( const std::basic_string< char_type >& formula ) {
-                client::map_type comp;
+                adportable::chem::comp_type comp;
                 if ( parse( formula, comp ) ) {
                     adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
                     double mass =
-                        std::accumulate( comp.begin(), comp.end(), 0.0, [=]( double m, const client::map_type::value_type& pair ){
+                        std::accumulate( comp.begin(), comp.end(), 0.0, [=]( double m, const adportable::chem::comp_type::value_type& pair ){
                                 if ( mol::element e = toe->findElement( pair.first.second ) )
                                     return m + mol::element::monoIsotopicMass( e, pair.first.first /* isotope */ ) * pair.second;
                                 return m;
@@ -168,11 +95,11 @@ namespace adcontrols {
             }
 
             template< typename char_type > static double getChemicalMass( const std::basic_string< char_type >& formula ) {
-                client::map_type comp;
+                adportable::chem::comp_type comp;
                 if ( parse( formula, comp ) ) {
                     adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
                     double mass =
-                        std::accumulate( comp.begin(), comp.end(), 0.0, [=]( double m, const client::map_type::value_type& pair ){
+                        std::accumulate( comp.begin(), comp.end(), 0.0, [=]( double m, const adportable::chem::comp_type::value_type& pair ){
                                 if ( mol::element e = toe->findElement( pair.first.second ) )
                                     return m + mol::element::chemicalMass( e ) * pair.second;
                                 return m;
@@ -182,22 +109,24 @@ namespace adcontrols {
                 return 0;
             }
 
-			template< typename char_type > static bool parse( const std::basic_string< char_type >& formula, client::map_type& map ) {
+			template< typename char_type > static bool parse( const std::basic_string< char_type >& formula, adportable::chem::comp_type& comp ) {
+                using adportable::chem::formulaComposition;
+                using adportable::chem::comp_type;
                 
                 typedef typename std::basic_string< char_type >::const_iterator iterator_type;
                 
-                client::chemical_formula_parser< iterator_type, client::formulaComposition, client::map_type > cf;
+                adportable::chem::chemical_formula_parser< iterator_type, formulaComposition, comp_type > cf;
                 iterator_type it = formula.begin();
                 iterator_type end = formula.end();
 
-                return boost::spirit::qi::parse( it, end, cf, map ) && it == end;
+                return boost::spirit::qi::parse( it, end, cf, comp ) && it == end;
             }
 
-			template< typename char_type > static bool format( const std::basic_string< char_type >& formula, client::format_type& fmt ) {
-                
+			template< typename char_type > static bool format( const std::basic_string< char_type >& formula, format_type& fmt ) {
+                using adportable::chem::comp_type;
                 typedef typename std::basic_string< char_type >::const_iterator iterator_type;
                 
-                client::chemical_formula_parser< iterator_type, client::formulaFormat, client::format_type > cf;
+                adportable::chem::chemical_formula_parser< iterator_type, formulaFormat, format_type > cf;
                 iterator_type it = formula.begin();
                 iterator_type end = formula.end();
 
@@ -205,15 +134,19 @@ namespace adcontrols {
             }
 
             template< typename char_type > static std::basic_string<char_type> standardFormula( const std::basic_string<char_type>& formula ) {
-                client::map_type map;
+				
+
+				adportable::chem::comp_type map;
+				using adportable::chem::atom_type;
+
                 if ( parse( formula, map ) ) {
-                    std::vector< std::pair< client::atom_type, size_t > > orderd;
+					std::vector< std::pair< atom_type, size_t > > orderd;
                     for ( auto atom: map )
 						orderd.push_back( std::make_pair( atom.first, atom.second ) );
 
                     // reorder elements in alphabetical order
 					std::sort( orderd.begin(), orderd.end()
-                               , []( const std::pair< client::atom_type, size_t >& lhs, const std::pair< client::atom_type, size_t >& rhs ){
+                               , []( const std::pair< atom_type, size_t >& lhs, const std::pair< atom_type, size_t >& rhs ){
                                    return std::strcmp( lhs.first.second, rhs.first.second ) < 0 || lhs.first.first < rhs.first.first;
                                } );
 
@@ -297,7 +230,7 @@ std::wstring
 ChemicalFormula::formatFormula( const std::wstring& formula, bool richText )
 {
     using adcontrols::internal::ChemicalFormulaImpl;
-    client::format_type fmt;
+    internal::format_type fmt;
 
     if ( ChemicalFormulaImpl::format( formula, fmt ) ) {
 
@@ -358,21 +291,13 @@ ChemicalFormula::getComposition( const std::wstring& formula )
 {
 	using internal::ChemicalFormulaImpl;
 
-	std::map< std::string, size_t > comp;
-    client::map_type map;
-	if ( ChemicalFormulaImpl::parse( formula, map ) ) {
-		for ( client::map_type::value_type& p: map ) {
-            // size_t atomic_number = p.first.first;
-            std::string element = p.first.second;
-
-            // marge isotopes if specified in formula
-            if ( comp.find( element ) == comp.end() )
-                comp[ element ] = p.second;
-            else
-                comp[ element ] += p.second;
-        }
+    std::map< std::string, size_t > result;
+    adportable::chem::comp_type comp;
+	if ( ChemicalFormulaImpl::parse( formula, comp ) ) {
+        for ( auto& c: comp )
+            result[ c.first.second ] += c.second; // ignore isotope
 	}
-    return comp;
+    return result;
 }
 
 ///////////////
