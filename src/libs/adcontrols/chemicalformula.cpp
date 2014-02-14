@@ -44,6 +44,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <numeric>
 
 #if defined _MSC_VER
 # pragma warning( disable: 4503)
@@ -152,27 +153,30 @@ namespace adcontrols {
             ChemicalFormulaImpl();
 
             template< typename char_type > static double getMonoIsotopicMass( const std::basic_string< char_type >& formula ) {
-                client::map_type map;
-                if ( parse( formula, map ) ) {
+                client::map_type comp;
+                if ( parse( formula, comp ) ) {
                     adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
-                    double mass = 0;
-                    for ( client::map_type::value_type& p: map ) {
-                        const char * element_name = p.first.second;
-                        size_t isotope = p.first.first;
-                        mass += toe->getMonoIsotopicMass( toe->findElement( element_name ), isotope ) * p.second;
-                    }
+                    double mass =
+                        std::accumulate( comp.begin(), comp.end(), 0.0, [=]( double m, const client::map_type::value_type& pair ){
+                                if ( mol::element e = toe->findElement( pair.first.second ) )
+                                    return m + mol::element::monoIsotopicMass( e, pair.first.first /* isotope */ ) * pair.second;
+                                return m;
+                            });
                     return mass;
                 }
                 return 0;
             }
 
             template< typename char_type > static double getChemicalMass( const std::basic_string< char_type >& formula ) {
-                client::map_type map;
-                if ( parse( formula, map ) ) {
+                client::map_type comp;
+                if ( parse( formula, comp ) ) {
                     adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
-                    double mass = 0;
-                    for ( client::map_type::value_type& p: map )
-                        mass += toe->getChemicalMass( toe->findElement( p.first.second ) ) * p.second;
+                    double mass =
+                        std::accumulate( comp.begin(), comp.end(), 0.0, [=]( double m, const client::map_type::value_type& pair ){
+                                if ( mol::element e = toe->findElement( pair.first.second ) )
+                                    return m + mol::element::chemicalMass( e ) * pair.second;
+                                return m;
+                            });
                     return mass;
                 }
                 return 0;
@@ -240,10 +244,9 @@ namespace adcontrols {
 
 ChemicalFormula::~ChemicalFormula(void)
 {
-    delete impl_;
 }
 
-ChemicalFormula::ChemicalFormula() : impl_( new internal::ChemicalFormulaImpl )
+ChemicalFormula::ChemicalFormula() 
 {
 }
 
@@ -348,67 +351,6 @@ namespace adcontrols {
 		return ( size_t( bond.first_atom_number ) == num ) ? bond.second_atom_number
 			: ( size_t( bond.second_atom_number ) == num ) ? bond.first_atom_number : 0;
 	}
-}
-
-std::wstring
-ChemicalFormula::getFormula( const CTable& ctable )
-{
-	using adcontrols::CTable;
-
-	adcontrols::TableOfElement * toe = adcontrols::TableOfElement::instance();
-
-	typedef std::pair< std::wstring, int > atom_valence_t;
-	std::vector< atom_valence_t > valences;
-
-	for ( const CTable::Atom& atom: ctable.atoms() ) {
-		const adcontrols::Element& element = toe->findElement( atom.symbol );
-		assert( ! element.symbol().empty() );
-		valences.push_back( std::make_pair<std::wstring, int>( std::wstring( atom.symbol ), element.valence() ) );
-	}
-
-	for ( const CTable::Bond& bond: ctable.bonds() ) {
-		int n = bond.bond_type <= 3 ? bond.bond_type : 0;
-		valences[ bond.first_atom_number - 1 ].second -= n;
-		valences[ bond.second_atom_number - 1 ].second -= n;
-	}
-
-	do {
-		std::vector< atom_valence_t >::iterator atomIt = valences.begin(); 
-		do {
-			// find atom that has negataive valence value
-			atomIt = std::find_if( atomIt, valences.end(), boost::bind( &atom_valence_t::second, _1) < 0 );
-			if ( atomIt != valences.end() ) {
-				size_t atom_number = std::distance( valences.begin(), atomIt ) + 1;
-
-				CTable::bond_vector::const_iterator bondIt = ctable.bonds().begin();
-				while ( bondIt != ctable.bonds().end() ) {
-					bondIt = std::find_if( bondIt, ctable.bonds().end(), boost::bind( &bond_connect, _1, atom_number ) );
-					if ( bondIt != ctable.bonds().end() ) {
-						size_t adjacent_number = bond_connect( *bondIt, atom_number );
-						while ( valences[ adjacent_number - 1 ].second > 0 && atomIt->second < 0 ) {
-							valences[ adjacent_number - 1 ].second--;
-							atomIt->second++;
-						}
-						++bondIt;
-					}
-				}
-				++atomIt;
-			}
-		} while ( atomIt != valences.end() );
-	} while(0);
-	std::wostringstream formula;
-	for ( size_t i = 0; i < valences.size(); ++i ) {
-		const std::pair< std::wstring, int >& v = valences[ i ];
-		formula << v.first;
-
-		if ( v.second >= 1 ) {
-			formula << L"H";
-			if ( v.second >= 2 )
-				formula << v.second;
-		}
-		formula << L" ";
-	}
-	return formula.str();
 }
 
 std::map< std::string, size_t >
