@@ -26,16 +26,11 @@
 
 #pragma once
 
-// #include <boost/serialization/nvp.hpp>
-// #include <boost/serialization/version.hpp>
-// #include <boost/serialization/string.hpp>
-// #include <boost/serialization/vector.hpp>
 #include "adcontrols_global.h"
-//#include <string>
-//#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
+    class TableOfElement;
 	namespace toe { class isotopes; struct isotope; }
 	namespace detail { struct element; }
 
@@ -45,7 +40,7 @@ namespace adcontrols {
     namespace mol {
 
         class ADCONTROLSSHARED_EXPORT element {
-            friend class TableOfElement;
+            friend class adcontrols::TableOfElement;
             element( const detail::element * );
         public:
             element( const element& );
