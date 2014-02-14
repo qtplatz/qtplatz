@@ -93,6 +93,7 @@ namespace adcontrols {
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
         size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
+        size_t operator << ( const std::pair< double, double >& ); // add (mass,intensity), return index
         
         void setMass( size_t idx, double mass );
         void setIntensity( size_t idx, double intensity );

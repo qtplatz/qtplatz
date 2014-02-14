@@ -103,9 +103,10 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
     auto formulaParser = MainWindow::instance()->getChemicalFormula();
     double electron = formulaParser->getElectronMass();
 
-    std::vector< std::pair< double, double > > data;
+    // std::vector< std::pair< double, double > > data;
 
     adcontrols::isotopeCluster isocalc;
+    spectrum_->resize(0);
 
     for ( auto& formula: formulae ) {
         adcontrols::mol::molecule mol;
@@ -117,26 +118,26 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
             auto last = std::remove_if( mol.cluster.begin(), mol.cluster.end(), [=]( const adcontrols::mol::isotope& i ){
                     return i.abundance / pmax < 0.001;}); // delete if peak high is less than 0.1% of base peak
             for ( auto& pi = mol.cluster.begin(); pi != last; ++pi ) {
-                auto it = std::lower_bound( data.begin(), data.end(), pi->mass
-                                            , []( const std::pair<double, double>& a, double m ){ return a.first < m; });
-                data.insert( it, std::make_pair( pi->mass - electron, pi->abundance / pmax * 10000 ) ); // assume positive ion
+                // auto it = std::lower_bound( data.begin(), data.end(), pi->mass
+                //                             , []( const std::pair<double, double>& a, double m ){ return a.first < m; });
+                *(spectrum_) << std::make_pair( pi->mass - electron, pi->abundance / pmax * 10000 ); // assume positive ion
             }
         }
     }
 
-    spectrum_->resize( data.size() );
-	int idx = 0;
-	for ( auto& d: data ) {
-		spectrum_->setMass( idx, d.first );
-		spectrum_->setIntensity( idx, d.second );
-		++idx;
-	}
+    // spectrum_->resize( data.size() );
+	// int idx = 0;
+	// for ( auto& d: data ) {
+	// 	spectrum_->setMass( idx, d.first );
+	// 	spectrum_->setIntensity( idx, d.second );
+	// 	++idx;
+	// }
 
     spectrum_->setCentroid( adcontrols::CentroidNative );
     adcontrols::annotations& annots = spectrum_->get_annotations();
     annots.clear();
-	double lMass = data[ 0 ].first;
-	double hMass = data[ data.size() - 1 ].first;
+	double lMass = spectrum_->getMass( 0 );
+	double hMass = spectrum_->getMass( spectrum_->size() - 1 );
     spectrum_->setAcquisitionMassRange( double( int( lMass / 10 ) * 10 ), double( int( ( hMass + 10 ) / 10 ) * 10 ) );
 	spectrumWidget_->setAutoAnnotation( true );
     spectrumWidget_->setData( spectrum_, 0 );

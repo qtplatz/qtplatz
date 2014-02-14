@@ -255,6 +255,21 @@ MassSpectrum::getIntensityArray() const
     return pImpl_->getIntensityArray();
 }
 
+size_t
+MassSpectrum::operator << ( const std::pair< double, double >& d ) 
+{
+    std::vector<double>& m = pImpl_->massArray_;
+    size_t pos = std::distance( m.begin(), std::lower_bound( m.begin(), m.end(), d.first ) );
+
+    pImpl_->massArray_.insert( pImpl_->massArray_.begin() + pos, d.first );
+    pImpl_->intsArray_.insert( pImpl_->intsArray_.begin() + pos, d.second );
+
+    if ( ! pImpl_->tofArray_.empty() )
+        pImpl_->tofArray_.insert( pImpl_->tofArray_.begin() + pos, 0.0 ); // adjust size
+
+    return pos;
+}
+
 void
 MassSpectrum::setMass( size_t idx, double mass )
 {

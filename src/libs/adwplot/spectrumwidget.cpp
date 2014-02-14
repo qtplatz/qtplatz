@@ -306,7 +306,7 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
 {
     using spectrumwidget::TraceData;
 
-    bool addedTrace = impl_->traces_.size() <= size_t( idx );
+    //bool addedTrace = impl_->traces_.size() <= size_t( idx );
 
     while ( int( impl_->traces_.size() ) <= idx ) 
 		impl_->traces_.push_back( TraceData( static_cast<int>(impl_->traces_.size()) ) );
