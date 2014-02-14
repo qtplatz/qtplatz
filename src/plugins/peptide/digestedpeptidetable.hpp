@@ -48,12 +48,15 @@ namespace peptide {
 
     private:
         QStandardItemModel * model_;
+        void selectionChanged( const QItemSelection&, const QItemSelection& ) override;
 
         std::weak_ptr< adcontrols::ChemicalFormula > formulaParser_;
 
         void init( QStandardItemModel& );
+        void handleCopyToClipboard();
 
     signals:
+        void selectedFormulae( const QVector< QString >& );
 
     public slots:
 

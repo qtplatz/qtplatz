@@ -547,7 +547,7 @@ namespace adcontrols {
                                    , std::make_pair( 0.0, 0.0 )
                                    , []( const std::pair<double, double>& a, const toe::isotope& i ){
                                        return std::make_pair( a.first + (i.mass * i.abundance), a.second + i.abundance ); });
-
+            
             //assert( adportable::compare<double>::approximatelyEqual( sum.second, 1.0 ) );
 
             return sum.first;

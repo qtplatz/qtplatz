@@ -67,11 +67,11 @@ ProteinWnd::init()
             if ( Core::MiniSplitter * splitter2 = new Core::MiniSplitter ) {
                 splitter->addWidget( splitter2 );
 
-                if ( peptideTable_ = new DigestedPeptideTable ) {
+                if ( ( peptideTable_ = new DigestedPeptideTable ) ) {
                     peptideTable_->setData( MainWindow::instance()->getChemicalFormula() );
                     splitter2->addWidget( peptideTable_ );
                 }
-                if ( spectrumWidget_ = new adwplot::SpectrumWidget ) {
+                if ( ( spectrumWidget_ = new adwplot::SpectrumWidget ) ) {
                     spectrumWidget_->setAutoAnnotation( false );
                     splitter2->addWidget( spectrumWidget_ );
                 }
@@ -140,7 +140,7 @@ ProteinWnd::protSelChanged( int row )
     auto formulaParser = MainWindow::instance()->getChemicalFormula();
 
     if ( std::shared_ptr< adprot::protfile > ptr = MainWindow::instance()->get_protfile() ) {
-        if ( row < ptr->size() ) {
+        if ( row < int( ptr->size() ) ) {
 
             auto it = ptr->begin() + row;
 
@@ -210,3 +210,10 @@ ProteinWnd::setData( const std::vector< peptide_formula_mass_type >& peptides )
         spectrumWidget_->setData( spectrum_, 0 );
     }    
 }
+
+void
+ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
+{
+    
+}
+

@@ -137,6 +137,7 @@ DigestedPeptideTable::DigestedPeptideTable(QWidget *parent) :  QTableView(parent
 	setHorizontalHeader( new detail::HeaderView );
     setModel( model_ );
 	setItemDelegate( new detail::DigestedPeptideDelegate );
+    setSortingEnabled( true );
     init( *model_ );
 }
 
@@ -151,9 +152,9 @@ DigestedPeptideTable::init( QStandardItemModel& model )
     model.setColumnCount( 5 );
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr("sequence") );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr("formula") );
-    model.setHeaderData( 2, Qt::Horizontal, QObject::tr("mass") );
-    model.setHeaderData( 3, Qt::Horizontal, QObject::tr("mass +H<sup>+</sup>") );
-    model.setHeaderData( 4, Qt::Horizontal, QObject::tr("mass +H<sup>+</sup> (+<sup>18</sup>O)") );
+    model.setHeaderData( 2, Qt::Horizontal, QObject::tr("M") );
+    model.setHeaderData( 3, Qt::Horizontal, QObject::tr("M+H<sup>+</sup>") );
+    model.setHeaderData( 4, Qt::Horizontal, QObject::tr("M+H<sup>+</sup>(<sup>18</sup>O)") );
 	setColumnWidth( 0, 200 );
     QFont font;
     font.setFamily( "Consolas" );
@@ -199,3 +200,18 @@ DigestedPeptideTable::setData( const std::shared_ptr< adcontrols::ChemicalFormul
     formulaParser_ = ptr;
 }
 
+void
+DigestedPeptideTable::selectionChanged( const QItemSelection& selected, const QItemSelection& deselected )
+{
+	QTableView::selectionChanged( selected, deselected );
+
+    QModelIndexList list = selectionModel()->selectedIndexes();
+    qSort( list );
+    if ( list.size() < 1 )
+        return;
+    QVector< QString > formulae;
+    for ( auto index: list )
+        formulae.push_back( model_->index( index.row(), 1 ).data( Qt::EditRole ).toString() );
+    
+    emit selectedFormulae( formulae );
+}

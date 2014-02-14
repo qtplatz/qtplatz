@@ -66,6 +66,7 @@ namespace peptide {
     private slots:
         void protSelChanged( int row );
         void handleSelectionChanged( const QVector< int >& );
+        void handleFormulaeSelected( const QVector< QString >& );
     };
 
 }
