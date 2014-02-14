@@ -47,28 +47,28 @@ namespace dataproc {
     public:
         ~ElementalCompWndImpl() {}
         ElementalCompWndImpl() : ticPlot_(0)
-                               , profileSpectrum_(0)
+                               , referenceSpectrum_(0)
                                , processedSpectrum_(0)
                                , drawIdx_(0) {
         }
       
         adwplot::ChromatogramWidget * ticPlot_;
-        adwplot::SpectrumWidget * profileSpectrum_;
+        adwplot::SpectrumWidget * referenceSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
         int drawIdx_;
     };
 
-    //---------------------------------------------------------
-    template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
-        Wnd& wnd_;
-        selProcessed( Wnd& wnd ) : wnd_(wnd) {}
+    // //---------------------------------------------------------
+    // template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
+    //     Wnd& wnd_;
+    //     selProcessed( Wnd& wnd ) : wnd_(wnd) {}
 
-        template<typename T> void operator ()( T& ) const { }
+    //     template<typename T> void operator ()( T& ) const { }
 
-        void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-            wnd_.draw2( ptr );
-        }
-    };
+    //     void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+    //         wnd_.draw2( ptr );
+    //     }
+    // };
 
 }
 
@@ -89,10 +89,15 @@ ElementalCompWnd::init()
     pImpl_ = new ElementalCompWndImpl;
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
+        if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) )
             splitter->addWidget( pImpl_->processedSpectrum_ );
-            splitter->setOrientation( Qt::Vertical );
-        }
+        if ( ( pImpl_->referenceSpectrum_ = new adwplot::SpectrumWidget(this) ) )
+            splitter->addWidget( pImpl_->referenceSpectrum_ );
+
+        pImpl_->processedSpectrum_->link( pImpl_->referenceSpectrum_ );
+        pImpl_->referenceSpectrum_->link( pImpl_->processedSpectrum_ );
+
+        splitter->setOrientation( Qt::Vertical );
     }
   
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
@@ -106,7 +111,7 @@ ElementalCompWnd::init()
 void
 ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
-    pImpl_->profileSpectrum_->setData( ptr, 0 );
+    pImpl_->referenceSpectrum_->setData( ptr, 0 );
 }
 
 void
@@ -126,12 +131,17 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
     pImpl_->drawIdx_ = 0;
 
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-    // boost::apply_visitor( selChanged(*this), data );
 
     portfolio::Folio attachments = folium.attachments();
-    for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-        adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-        boost::apply_visitor( selProcessed<ElementalCompWnd>( *this ), contents );
+    if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
+                return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+        
+        if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
+            if ( centroid->isCentroid() ) {
+                draw2( centroid );
+                // pProcessedSpectrum_ = centroid;
+            }
+        }
     }
 }
 
