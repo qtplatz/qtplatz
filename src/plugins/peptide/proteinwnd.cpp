@@ -103,8 +103,6 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
     auto formulaParser = MainWindow::instance()->getChemicalFormula();
     double electron = formulaParser->getElectronMass();
 
-    // std::vector< std::pair< double, double > > data;
-
     adcontrols::isotopeCluster isocalc;
     spectrum_->resize(0);
 
@@ -117,21 +115,11 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
                                                 return a.abundance < b.abundance;} )->abundance;
             auto last = std::remove_if( mol.cluster.begin(), mol.cluster.end(), [=]( const adcontrols::mol::isotope& i ){
                     return i.abundance / pmax < 0.001;}); // delete if peak high is less than 0.1% of base peak
-            for ( auto& pi = mol.cluster.begin(); pi != last; ++pi ) {
-                // auto it = std::lower_bound( data.begin(), data.end(), pi->mass
-                //                             , []( const std::pair<double, double>& a, double m ){ return a.first < m; });
+            for ( auto pi = mol.cluster.begin(); pi != last; ++pi ) {
                 *(spectrum_) << std::make_pair( pi->mass - electron, pi->abundance / pmax * 10000 ); // assume positive ion
             }
         }
     }
-
-    // spectrum_->resize( data.size() );
-	// int idx = 0;
-	// for ( auto& d: data ) {
-	// 	spectrum_->setMass( idx, d.first );
-	// 	spectrum_->setIntensity( idx, d.second );
-	// 	++idx;
-	// }
 
     spectrum_->setCentroid( adcontrols::CentroidNative );
     adcontrols::annotations& annots = spectrum_->get_annotations();

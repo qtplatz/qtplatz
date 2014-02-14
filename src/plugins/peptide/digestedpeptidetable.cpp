@@ -137,7 +137,6 @@ DigestedPeptideTable::DigestedPeptideTable(QWidget *parent) :  QTableView(parent
 	setHorizontalHeader( new detail::HeaderView );
     setModel( model_ );
 	setItemDelegate( new detail::DigestedPeptideDelegate );
-    setSortingEnabled( true );
     init( *model_ );
 }
 
@@ -155,6 +154,7 @@ DigestedPeptideTable::init( QStandardItemModel& model )
     model.setHeaderData( 2, Qt::Horizontal, QObject::tr("M") );
     model.setHeaderData( 3, Qt::Horizontal, QObject::tr("M+H<sup>+</sup>") );
     model.setHeaderData( 4, Qt::Horizontal, QObject::tr("M+H<sup>+</sup>(<sup>18</sup>O)") );
+    setSortingEnabled( true );
 	setColumnWidth( 0, 200 );
     QFont font;
     font.setFamily( "Consolas" );

@@ -80,8 +80,8 @@ namespace adwplot {
 
             xSeriesData( const adcontrols::MassSpectrum& ms
                          , const QRectF& rc
-                         , bool axisTime ) : ms_( ms )
-                                           , rect_( rc )
+                         , bool axisTime ) : rect_( rc )
+                                           , ms_( ms )
                                            , axisTime_( axisTime ) {
             }
 
@@ -377,7 +377,7 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
 
             for ( const auto& c: color ) {
                 xSeriesData * xp = new xSeriesData( seg, rect, isTimeAxis_ );
-                if ( size_t ndata = xp->make_color_index( c ) ) {
+                if ( xp->make_color_index( c ) ) {
                     curves_.push_back( PlotCurve( plot ) );
                     PlotCurve &curve = curves_.back();
                     curve.p()->setData( xp );
@@ -471,7 +471,7 @@ TraceData::y_range( double left, double right ) const
                         idright = std::distance( x, std::lower_bound( x, x + seg.size(), uright ) );
                     }
                 } else {
-                    std::pair< double, double > range = seg.getMSProperty().instTimeRange();
+                    // std::pair< double, double > range = seg.getMSProperty().instTimeRange();
                     
                     struct X {
                         static uint32_t index( uint32_t interval, uint32_t delay, uint32_t nSamples, double t ) {
@@ -523,7 +523,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
     using adportable::array_wrapper;
     using namespace adcontrols::metric;        
 
-	QRectF zrc = plot.zoomRect();
+	// QRectF zrc = plot.zoomRect();
 
     typedef std::tuple< size_t, size_t, int, double, double > peak; // fcn, idx, color, mass, intensity
     enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
@@ -577,7 +577,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                     for ( size_t idx = beg; idx <= end; ++idx ) {
                         if ( std::find_if( attached.begin()
                                            , attached.end()
-                                           , [idx]( const adcontrols::annotation& a ){ return a.index() == idx; } ) == attached.end() ) {
+                                           , [idx]( const adcontrols::annotation& a ){ return a.index() == int(idx); } ) == attached.end() ) {
                             int pri = ms.getIntensity( idx ) / max_y * 1000;
                             if ( colors )
                                 pri *= 100;
@@ -622,9 +622,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
             QwtText text( QString::fromStdString(a.text()), QwtText::RichText );
             text.setColor( color );
             text.setFont( font );
-			bool res = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
-            if ( res )
-                qDebug() << "auto annotation insert[" << annots.size() << "]=" << a.x() << ", " << text.text();
+			annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
         }
     }
 }
