@@ -27,6 +27,7 @@
 
 using namespace adcontrols;
 
+#if 0
 Element::Element()
 {
 }
@@ -125,3 +126,4 @@ SuperAtom::SuperAtom( const std::wstring& name
 									 , valence_(valence)
 {
 }
+#endif

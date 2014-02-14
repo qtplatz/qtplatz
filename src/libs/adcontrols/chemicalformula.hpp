@@ -34,10 +34,6 @@ namespace adcontrols {
     class TableOfElement;
     class CTable;
 
-    namespace internal {
-        class ChemicalFormulaImpl;
-    }
-
     class ADCONTROLSSHARED_EXPORT ChemicalFormula {
     public:
         ~ChemicalFormula();
@@ -56,12 +52,9 @@ namespace adcontrols {
 		static std::wstring standardFormula( const std::wstring& formula );
 		static std::string standardFormula( const std::string& formula );
 
-		static std::wstring getFormula( const CTable& );
+		static std::string getFormula( const CTable& );
 		static elemental_composition_map_t getComposition( const std::wstring& formula );
         static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
         static std::string formatFormula( const std::string& formula, bool richText = true );
-
-    private:
-        internal::ChemicalFormulaImpl * impl_;
     };
 }

@@ -52,6 +52,7 @@ HEADERS += adportable.hpp \
     differential.hpp \
     fft.hpp \
     float.hpp \
+    formula_parser.hpp \
     is_equal.hpp \
     moment.hpp \
     polfit.hpp \

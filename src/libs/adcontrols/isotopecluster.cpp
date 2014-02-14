@@ -36,7 +36,7 @@
 //#include <adportable/combination.hpp>
 //#include <boost/foreach.hpp>
 //#include <boost/bind.hpp>
-
+#include <algorithm>
 #include <cmath>
 #include <numeric>
 

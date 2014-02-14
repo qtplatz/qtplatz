@@ -46,7 +46,7 @@ namespace adcontrols {
             Atom( const Atom& );
             double x, y, z;
 
-            std::wstring symbol;
+            std::string symbol;
             int mass_difference;
             int charge;
             int atom_stereo_parity;

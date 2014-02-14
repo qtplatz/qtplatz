@@ -102,7 +102,7 @@ CTFile::load_molfile( const boost::filesystem::path& path, CTable& ctable )
             if ( ++it != tokens.end() )
 				a.z = atof( it->c_str() );
             if ( ++it != tokens.end() )
-				a.symbol = adportable::string::convert( *it );
+				a.symbol = *it;
 			if ( ++it != tokens.end() )
 				a.mass_difference = atoi( it->c_str() );
 			if ( ++it != tokens.end() )

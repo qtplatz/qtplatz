@@ -26,119 +26,50 @@
 
 #pragma once
 
-#include <string>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
+// #include <boost/serialization/nvp.hpp>
+// #include <boost/serialization/version.hpp>
+// #include <boost/serialization/string.hpp>
+// #include <boost/serialization/vector.hpp>
 #include "adcontrols_global.h"
-#include <compiler/disable_dll_interface.h>
+//#include <string>
+//#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
-	namespace toe { class isotopes; }
+	namespace toe { class isotopes; struct isotope; }
 	namespace detail { struct element; }
 
     // 'element' is small & fast access interface for table-of-element
     // implimented for quick isotope cluster pattern calculation using c++11 range patterns
 
-    class ADCONTROLSSHARED_EXPORT element {
-        friend class TableOfElement;
-        element( const detail::element * );
-    public:
-        element( const element& );
-        
-        operator bool () const;
-        const char * symbol() const;
-        const char * name() const;
-        int atomicNumber() const;
-        int valence() const;
-        toe::isotopes isotopes() const;
-        int count() const;
-        void count( int );
-    private:
-        const detail::element * p_;
-        int count_;
-    };
+    namespace mol {
 
-    //////////
-    class ADCONTROLSSHARED_EXPORT Element {
-    public:
-        Element();
-        //Element( const std::wstring& symbol, const std::wstring& name, int atomicNumber, int valence );
-        Element( const std::string& symbol, const std::string& name, int atomicNumber, int valence );
-        Element( const Element& );
-      
-        class Isotope {
+        class ADCONTROLSSHARED_EXPORT element {
+            friend class TableOfElement;
+            element( const detail::element * );
         public:
-            Isotope( double mass = 0, double abund = 0 ) : mass_(mass), abundance_(abund) {}
-            double mass_;
-            double abundance_;
+            element( const element& );
+            
+            operator bool () const;
+            const char * symbol() const;
+            const char * name() const;
+            int atomicNumber() const;
+            int valence() const;
+            toe::isotopes isotopes() const;
+            int count() const;
+            void count( int );
+            static double monoIsotopicMass( const element&, int isotope = 0 );
+            static double chemicalMass( const element& );
         private:
-            friend class boost::serialization::access;
-            template<class Archive>
-            void serialize(Archive& ar, const unsigned int version) {
-                (void)version;
-                ar & BOOST_SERIALIZATION_NVP(mass_);
-                ar & BOOST_SERIALIZATION_NVP(abundance_);
-            }
+            const detail::element * p_;
+            int count_;
         };
-      
-        const std::string& symbol() const;
-        const std::string& name() const;
-        int atomicNumber() const;
-        int valence() const;
-        size_t isotopeCount() const;
-        const Isotope& operator [] ( int idx ) const;
-        void addIsotope( const Isotope& );
 
-        typedef std::vector< Isotope > vector_type;
-        inline vector_type::const_iterator begin() const { return isotopes_.begin(); }
-        inline vector_type::const_iterator end() const { return isotopes_.end(); }
+    } // namespace mol
 
-    private:
-        std::string symbol_;
-        std::string name_;
-        int atomicNumber_;
-        int valence_;
-        std::vector< Isotope > isotopes_;
-
-        friend class boost::serialization::access;
-        template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
-	    (void)version;
-	    ar & BOOST_SERIALIZATION_NVP(name_);
-	    ar & BOOST_SERIALIZATION_NVP(symbol_);
-	    ar & BOOST_SERIALIZATION_NVP(atomicNumber_);
-	    ar & BOOST_SERIALIZATION_NVP(valence_);
-	    ar & BOOST_SERIALIZATION_NVP(isotopes_);
-        }
-    };
-
-    class SuperAtom {
-    public:
-        SuperAtom();
-        SuperAtom( const std::wstring& name, const std::wstring& alias_, const std::wstring& formula_, int valence );
-        SuperAtom( const SuperAtom& );
-
-        std::wstring name_;
-        std::wstring alias_;
-        std::wstring formula_;
-        int valence_;
-    private:
-        friend class boost::serialization::access;
-        template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
-	    (void)version;
-	    ar & BOOST_SERIALIZATION_NVP(name_);
-	    ar & BOOST_SERIALIZATION_NVP(alias_);
-	    ar & BOOST_SERIALIZATION_NVP(formula_);
-	    ar & BOOST_SERIALIZATION_NVP(valence_);
-        }
-    };
 }
 
-BOOST_CLASS_VERSION(adcontrols::Element, 1)
-BOOST_CLASS_VERSION(adcontrols::Element::Isotope, 1)
-BOOST_CLASS_VERSION(adcontrols::SuperAtom, 1)
+//BOOST_CLASS_VERSION(adcontrols::Element, 1)
+//BOOST_CLASS_VERSION(adcontrols::Element::Isotope, 1)
+//BOOST_CLASS_VERSION(adcontrols::SuperAtom, 1)
 

@@ -25,16 +25,17 @@
 #include "mscalibrationform.hpp"
 #include "ui_mscalibrationform.h"
 #include "mscalibratedelegate.hpp"
-
+#include <adcontrols/isotopes.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/msreferencedefns.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/TableOfElement.hpp>
+#include <adcontrols/tableofelement.hpp>
 #include <adcontrols/element.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/is_type.hpp>
+#include <adportable/utf.hpp>
 #include <QStandardItemModel>
 #include "standarditemhelper.hpp"
 #include <boost/any.hpp>
@@ -303,18 +304,16 @@ MSCalibrationForm::on_addReference_pressed()
             ref << adcontrols::MSReference( L"C54H18F96N3O6P3", true, L"H", false );
         } else {
             // check if an element
-            const adcontrols::Element& element = adcontrols::TableOfElement::instance()->findElement( endGroup.toStdWString() );
-            if ( element.atomicNumber() >= 1 ) {
-                for ( adcontrols::Element::vector_type::const_iterator it = element.begin(); it != element.end(); ++it ) {
-                    std::wstring formula = ( boost::wformat( L"%1%%2%" ) % int( it->mass_ + 0.5 ) % element.symbol() ).str();
-					std::wstring description = ( boost::wformat( L"%.4f" ) % it->abundance_ ).str();
-                    bool enable = it->abundance_ > 0.01;
-                    ref << adcontrols::MSReference( formula, true, L"", enable, it->mass_, 1, description );
-                } 
+            if ( adcontrols::mol::element element = adcontrols::TableOfElement::instance()->findElement( endGroup.toStdString() ) ) {
+                for ( auto& i: element.isotopes() ) {
+                    std::wstring formula = ( boost::wformat(L"%1%%2%") % int( i.mass + 0.3 ) % adportable::utf::to_wstring( element.symbol() ) ).str();
+                    std::wstring description = ( boost::wformat(L"%.4f") % i.abundance ).str();
+                    bool enable = i.abundance > 0.01;
+                    ref << adcontrols::MSReference( formula, true, L"", enable, i.mass, 1, description );
+                }
             } else {
-				// try formula
+                // chemical formula
 				ref << adcontrols::MSReference( endGroup.toStdWString(), isAdduct, adduct_lose.toStdWString() );
-
 			}
         }
 	}

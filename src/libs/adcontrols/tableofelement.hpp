@@ -29,36 +29,22 @@
 #include "chemicalformula.hpp"
 #include "element.hpp"
 #include <string>
+#include <map>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
-
-    namespace detail {  class TableOfElementImpl;  }
-
-    class Element;
-    class Elements;
-    class SuperAtom;
-    class SuperAtoms;
 
     class ADCONTROLSSHARED_EXPORT TableOfElement {
         ~TableOfElement();
         TableOfElement();
     public:
         static TableOfElement * instance();
-        void dispose();
 
-        static element find( const char * );
-        const Element& findElement( const std::wstring& symbol ) const;
-        const Element& findElement( const std::string& symbol ) const;
-
-        static double getMonoIsotopicMass( const Element&, size_t isotope = 0 );
-        static double getChemicalMass( const Element& );
-
-        std::wstring saveXml() const;
-        void loadXml( const std::wstring& );
+        mol::element findElement( const std::string& ) const;
 
     private:
         static TableOfElement * instance_;
-        detail::TableOfElementImpl * pImpl_;
+        std::map< std::string, int > index_;
     };
 
 }

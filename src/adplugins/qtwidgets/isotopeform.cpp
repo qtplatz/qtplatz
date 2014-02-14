@@ -142,7 +142,7 @@ IsotopeForm::onMolChanged( QString key )
 	using adcontrols::ChemicalFormula;
 
     QStandardItemModel& model = *pModel_;
-
+#if 0
 	CTable ctab;
 	if ( ui->molwidget->getCTable( key, ctab ) ) {
 		ctabs_.push_back( std::make_pair( key, ctab ) );
@@ -161,6 +161,7 @@ IsotopeForm::onMolChanged( QString key )
 		model.setData( model.index( row, col++ ), m );
 		model.setData( model.index( row, col++ ), key ); // hidden
 	}
+#endif
 }
 
 void
