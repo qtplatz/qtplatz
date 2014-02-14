@@ -171,6 +171,7 @@ SpectrumWidget::~SpectrumWidget()
 SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
                                                 , impl_( new SpectrumWidgetImpl )
                                                 , autoYZoom_( true ) 
+                                                , keepZoomed_( true )
                                                 , haxis_( HorizontalAxisMass )
 {
     //zoomer2_.reset();
@@ -233,6 +234,12 @@ SpectrumWidget::override_zoom_rect( QRectF& rc )
         rc.setBottom( bottom );
         rc.setTop( top + ( top - bottom ) * 0.12 );  // increase 12% for annotation
     }
+}
+
+void
+SpectrumWidget::setKeepZoomed( bool value )
+{
+    keepZoomed_ = value;
 }
 
 // void
@@ -309,20 +316,23 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     QRectF rect;
     trace.setData( *this, ptr, rect, haxis_, yaxis2 );
 
+	QRectF z = zoomer1_->zoomRect(); // current (:= previous) zoom
+
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
     setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.top(), rect.bottom() );
+    
+    zoomer1_->setZoomBase( true );
 
-    QRectF z = zoomer1_->zoomRect();
-    zoomer1_->setZoomBase();
-    if ( ! addedTrace )
-        Dataplot::zoom( z );
+    if ( keepZoomed_ ) // if ( ! addedTrace )
+        Dataplot::zoom( z ); // push previous rect
 
-    // todo: annotations
     if ( ptr->isCentroid() ) {
         impl_->centroid_ = ptr;
         impl_->clear_annotations();
         impl_->update_annotations( *this, ptr->getAcquisitionMassRange() );
     }
+
+    replot();
 }
 
 //////////////////////////////////////////////////////////////////////////

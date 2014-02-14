@@ -286,18 +286,26 @@ namespace adcontrols {
 	}
 }
 
-std::map< std::string, size_t >
-ChemicalFormula::getComposition( const std::wstring& formula )
+bool
+ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::string& formula )
 {
-	using internal::ChemicalFormulaImpl;
-
-    std::map< std::string, size_t > result;
     adportable::chem::comp_type comp;
-	if ( ChemicalFormulaImpl::parse( formula, comp ) ) {
-        for ( auto& c: comp )
-            result[ c.first.second ] += c.second; // ignore isotope
+
+	if ( internal::ChemicalFormulaImpl::parse( formula, comp ) ) {
+        for ( auto& c: comp ) {
+            // ignore isotope
+            auto it = std::find_if( el.begin(), el.end(), [=]( const mol::element& e ){ return c.first.second == e.symbol(); }); 
+            if ( it != el.end() ) {
+                it->count( it->count() + c.second );
+            } else {
+                if ( mol::element e = TableOfElement::instance()->findElement( c.first.second ) ) {
+                    e.count( c.second );
+                    el.push_back( e );
+                }
+            }
+        }
 	}
-    return result;
+    return !el.empty();
 }
 
 ///////////////

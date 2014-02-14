@@ -30,12 +30,6 @@
 #include "isotopes.hpp"
 #include "element.hpp"
 
-//#include "massspectrum.hpp"
-//#include "description.hpp"
-//#include "chemicalformula.hpp"
-//#include <adportable/combination.hpp>
-//#include <boost/foreach.hpp>
-//#include <boost/bind.hpp>
 #include <algorithm>
 #include <cmath>
 #include <numeric>

@@ -28,11 +28,13 @@
 #include "adcontrols_global.h"
 #include <string>
 #include <map>
+#include <vector>
 
 namespace adcontrols {
 
     class TableOfElement;
     class CTable;
+    namespace mol { class element; }
 
     class ADCONTROLSSHARED_EXPORT ChemicalFormula {
     public:
@@ -48,12 +50,10 @@ namespace adcontrols {
         double getChemicalMass( const std::wstring& formula ) const;
 		double getChemicalMass( const std::string& formula ) const;
         double getElectronMass() const;
-
+        
 		static std::wstring standardFormula( const std::wstring& formula );
 		static std::string standardFormula( const std::string& formula );
-
-		static std::string getFormula( const CTable& );
-		static elemental_composition_map_t getComposition( const std::wstring& formula );
+        static bool getComposition( std::vector< mol::element >&, const std::string& formula );
         static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
         static std::string formatFormula( const std::string& formula, bool richText = true );
     };

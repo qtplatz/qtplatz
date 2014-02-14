@@ -34,14 +34,13 @@ namespace adcontrols {
 	namespace toe { class isotopes; struct isotope; }
 	namespace detail { struct element; }
 
-    // 'element' is small & fast access interface for table-of-element
-    // implimented for quick isotope cluster pattern calculation using c++11 range patterns
-
     namespace mol {
 
         class ADCONTROLSSHARED_EXPORT element {
+
             friend class adcontrols::TableOfElement;
             element( const detail::element * );
+
         public:
             element( const element& );
             
@@ -64,7 +63,4 @@ namespace adcontrols {
 
 }
 
-//BOOST_CLASS_VERSION(adcontrols::Element, 1)
-//BOOST_CLASS_VERSION(adcontrols::Element::Isotope, 1)
-//BOOST_CLASS_VERSION(adcontrols::SuperAtom, 1)
 

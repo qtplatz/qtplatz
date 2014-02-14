@@ -47,10 +47,12 @@ namespace adwplot {
         bool autoAnnotation() const;
         void setAutoAnnotation( bool enable = true );
         void update_annotation();
+        void setKeepZoomed( bool );
         
     private:
         struct SpectrumWidgetImpl * impl_;
         bool autoYZoom_;
+        bool keepZoomed_;
         HorizontalAxis haxis_;
 
     signals:

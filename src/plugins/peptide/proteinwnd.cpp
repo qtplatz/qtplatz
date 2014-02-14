@@ -31,9 +31,12 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/isotopecluster.hpp>
+#include <adcontrols/molecule.hpp>
 #include <adprot/protfile.hpp>
 #include <adprot/protease.hpp>
 #include <adprot/peptide.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QVBoxLayout>
 #include <QTextEdit>
@@ -62,7 +65,6 @@ ProteinWnd::init()
 
             proteinTable_ = new ProteinTable;
             splitter->addWidget( proteinTable_ );
-            connect( proteinTable_, SIGNAL( selectionChanged( const QVector<int>& ) ), this, SLOT( handleSelectionChanged( const QVector<int>& ) ) );
 
             if ( Core::MiniSplitter * splitter2 = new Core::MiniSplitter ) {
                 splitter->addWidget( splitter2 );
@@ -72,7 +74,6 @@ ProteinWnd::init()
                     splitter2->addWidget( peptideTable_ );
                 }
                 if ( ( spectrumWidget_ = new adwplot::SpectrumWidget ) ) {
-                    spectrumWidget_->setAutoAnnotation( false );
                     splitter2->addWidget( spectrumWidget_ );
                 }
                 splitter2->setOrientation( Qt::Vertical );
@@ -80,6 +81,10 @@ ProteinWnd::init()
 
             splitter->setOrientation( Qt::Horizontal );
             layout->addWidget( splitter );
+
+			spectrumWidget_->setKeepZoomed( false );
+            connect( proteinTable_, SIGNAL( selectionChanged( const QVector<int>& ) ), this, SLOT( handleSelectionChanged( const QVector<int>& ) ) );
+            connect( peptideTable_, SIGNAL( selectedFormulae( const QVector<QString>& ) ), this, SLOT( handleFormulaeSelected( const QVector<QString>& ) ) );
         }
     }
 }
@@ -91,8 +96,57 @@ ProteinWnd::setData( const adprot::protfile& file )
 }
 
 void
+ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
+{
+    qtwrapper::waitCursor wait;
+
+    auto formulaParser = MainWindow::instance()->getChemicalFormula();
+    double electron = formulaParser->getElectronMass();
+
+    std::vector< std::pair< double, double > > data;
+
+    adcontrols::isotopeCluster isocalc;
+
+    for ( auto& formula: formulae ) {
+        adcontrols::mol::molecule mol;
+        if ( adcontrols::ChemicalFormula::getComposition( mol.elements, formula.toStdString() + "H" ) ) { // protenated
+            isocalc( mol );
+            double pmax = std::max_element( mol.cluster.begin(), mol.cluster.end()
+                                            , [](const adcontrols::mol::isotope& a, const adcontrols::mol::isotope& b){
+                                                return a.abundance < b.abundance;} )->abundance;
+            auto last = std::remove_if( mol.cluster.begin(), mol.cluster.end(), [=]( const adcontrols::mol::isotope& i ){
+                    return i.abundance / pmax < 0.001;}); // delete if peak high is less than 0.1% of base peak
+            for ( auto& pi = mol.cluster.begin(); pi != last; ++pi ) {
+                auto it = std::lower_bound( data.begin(), data.end(), pi->mass
+                                            , []( const std::pair<double, double>& a, double m ){ return a.first < m; });
+                data.insert( it, std::make_pair( pi->mass - electron, pi->abundance / pmax * 10000 ) ); // assume positive ion
+            }
+        }
+    }
+
+    spectrum_->resize( data.size() );
+	int idx = 0;
+	for ( auto& d: data ) {
+		spectrum_->setMass( idx, d.first );
+		spectrum_->setIntensity( idx, d.second );
+		++idx;
+	}
+
+    spectrum_->setCentroid( adcontrols::CentroidNative );
+    adcontrols::annotations& annots = spectrum_->get_annotations();
+    annots.clear();
+	double lMass = data[ 0 ].first;
+	double hMass = data[ data.size() - 1 ].first;
+    spectrum_->setAcquisitionMassRange( double( int( lMass / 10 ) * 10 ), double( int( ( hMass + 10 ) / 10 ) * 10 ) );
+	spectrumWidget_->setAutoAnnotation( true );
+    spectrumWidget_->setData( spectrum_, 0 );
+}
+
+void
 ProteinWnd::handleSelectionChanged( const QVector<int>& rows )
 {
+    qtwrapper::waitCursor wait;
+
     if ( rows.isEmpty() )
         return;
 
@@ -133,6 +187,7 @@ ProteinWnd::handleSelectionChanged( const QVector<int>& rows )
         //setData( vec );
     }
 }
+
 
 void
 ProteinWnd::protSelChanged( int row )
@@ -207,13 +262,8 @@ ProteinWnd::setData( const std::vector< peptide_formula_mass_type >& peptides )
             annots << adcontrols::annotation( sequence, mass, h, idx, 0 );
             ++idx;
         }
+        spectrumWidget_->setAutoAnnotation( false );
         spectrumWidget_->setData( spectrum_, 0 );
     }    
-}
-
-void
-ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
-{
-    
 }
 
