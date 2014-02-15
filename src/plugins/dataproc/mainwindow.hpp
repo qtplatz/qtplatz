@@ -32,6 +32,7 @@
 
 namespace adportable { class Configuration; }
 namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; class MSPeaks; class MassSpectrum; }
+namespace adprot { class digestedPeptides; }
 namespace portfolio { class Folium; }
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
@@ -86,6 +87,8 @@ namespace dataproc {
         void lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& );
         void dataMayChanged();
         void zoomedOnSpectrum( const QRectF& );
+
+        void proteinSelected( const adprot::digestedPeptides& );
 
     public slots:
         void handleSessionAdded( Dataprocessor * );

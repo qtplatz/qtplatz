@@ -22,44 +22,29 @@
 **
 **************************************************************************/
 
-#ifndef MOLWIDGET_HPP
-#define MOLWIDGET_HPP
+#ifndef TARGETINGFORM_HPP
+#define TARGETINGFORM_HPP
 
 #include <QWidget>
-#include <QUrl>
-#include <QList>
-#include <memory>
 
-#include "adwchem_global.hpp"
+namespace Ui {
+class TargetingForm;
+}
 
-namespace RDKit { class ROMol; }
+namespace adwidgets {
 
-namespace adwchem {
-
-    class ADWCHEMSHARED_EXPORT MolWidget : public QWidget {
+    class TargetingForm : public QWidget
+    {
         Q_OBJECT
-    public:
-        explicit MolWidget(QWidget *parent = 0);
 
-        void setMol( const RDKit::ROMol& );
+    public:
+        explicit TargetingForm(QWidget *parent = 0);
+        ~TargetingForm();
 
     private:
-        void dragEnterEvent( QDragEnterEvent * ) override;
-        void dragMoveEvent( QDragMoveEvent * ) override;
-        void dragLeaveEvent( QDragLeaveEvent * ) override;
-        void dropEvent( QDropEvent * ) override;
-        void paintEvent( QPaintEvent * ) override;
-
-        std::string svg_;
-
-    signals:
-        void dropped( const QList< QUrl >& );
-
-    public slots:
-        void handleDropped( const QList< QUrl >& );
-
+        Ui::TargetingForm *ui;
     };
 
 }
 
-#endif // MOLWIDGET_HPP
+#endif // TARGETINGFORM_HPP

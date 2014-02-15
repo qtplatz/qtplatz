@@ -22,22 +22,10 @@
 **
 **************************************************************************/
 
-#include "ipeptidehandlerimpl.hpp"
-#include "mainwindow.hpp"
-#include <adprot/protein.hpp>
+#include "tableview.hpp"
 
-using namespace dataproc;
+using namespace adwidgets;
 
-iPeptideHandlerImpl::iPeptideHandlerImpl(QObject *parent) :
-    adextension::iPeptideHandler(parent)
+TableView::TableView(QWidget *parent) : QTableView(parent)
 {
 }
-
-void
-iPeptideHandlerImpl::onProteinSelected( const adprot::digestedPeptides& p ) const
-{
-    MainWindow::instance()->proteinSelected( p );
-}
-
-
-

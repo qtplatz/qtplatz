@@ -48,6 +48,8 @@
 #include <adportable/configuration.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
+#include <adprot/digestedpeptides.hpp>
+#include <adwidgets/targetingwidget.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -436,12 +438,14 @@ MainWindow::createDockWidgets()
         const char * title;
         const char * wiid;
         const char * pageName;
+        QWidget * (*factory)( QWidget * );
     } widgets [] = { 
         {  "Centroid" ,        "qtwidgets::CentroidForm",            "CentroidMethod"} // should be first
         , { "MS Peaks",        "qtwidgets2::MSPeakTable",            "MSPeakTable" }
         , { "MS Calibration",  "qtwidgets2::MSCalibrationForm",      "MSCalibrationMethod"}
         , { "MS Chromatogr.",  "qtwidgets2::MSChromatogramWidget",   "MSChromatogrMethod" }
         , { "Targeting",       "qtwidgets::TargetForm",              "TargetMethod" }
+        , { "Peptide",         "adwidgets::TargetWidget",            "PeptideMethod", &adwidgets::TargetingWidget::create }
         //, { "Isotope",       "qtwidgets::IsotopeForm",             "IsotopeMethod" }
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm","EleCompMethod" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm",          "PeakFindMethod" }
@@ -451,7 +455,8 @@ MainWindow::createDockWidgets()
     
     for ( auto widget: widgets ) {
 
-        QWidget * pWidget = adplugin::widget_factory::create( widget.wiid, 0, 0 );
+        QWidget * pWidget = widget.factory ? widget.factory( 0 ) : adplugin::widget_factory::create( widget.wiid, 0, 0 );
+        // QWidget * pWidget = adplugin::widget_factory::create( widget.wiid, 0, 0 );
         if ( pWidget && std::strcmp(widget.wiid, "qtwidgets2::MSPeakView") == 0 ) {
 
             connect( this, SIGNAL(onAddMSPeaks( const adcontrols::MSPeaks& )), pWidget, SLOT(handle_add_mspeaks( const adcontrols::MSPeaks& )) );
@@ -741,6 +746,19 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned, port
     }
 }
 
+void
+MainWindow::proteinSelected( const adprot::digestedPeptides& digested )
+{
+    auto docks = dockWidgets();
+    auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){ return d->objectName() == "PeptideMethod"; });
+    if ( it != docks.end() ) {
+        (*it)->raise();
+        boost::any a( digested );
+        if ( auto t = dynamic_cast< adwidgets::TargetingWidget *>( (*it)->widget() ) ) {
+            t->setContents( a );
+        }
+    }
+}
 
 void
 MainWindow::handleFeatureSelected( int value )

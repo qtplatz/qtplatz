@@ -21,5 +21,5 @@ SUBDIRS   = \
     adsequence \
     adorbmgr \
     adchem \
-    adwchem \
-    adprot
+    adprot \
+    adwidgets

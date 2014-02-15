@@ -22,22 +22,36 @@
 **
 **************************************************************************/
 
-#include "ipeptidehandlerimpl.hpp"
-#include "mainwindow.hpp"
-#include <adprot/protein.hpp>
+#ifndef TARGETINGTABLE_HPP
+#define TARGETINGTABLE_HPP
 
-using namespace dataproc;
+#include "tableview.hpp"
 
-iPeptideHandlerImpl::iPeptideHandlerImpl(QObject *parent) :
-    adextension::iPeptideHandler(parent)
-{
+class QStandardItemModel;
+
+namespace adprot { class digestedPeptides; }
+
+namespace adwidgets {
+
+    class TargetingTable : public TableView  {
+        Q_OBJECT
+    public:
+        explicit TargetingTable(QWidget *parent = 0);
+        ~TargetingTable();
+
+        void onInitialUpdate();
+
+        void setContents( const adprot::digestedPeptides& );
+
+    private:
+        QStandardItemModel * model_;
+
+    signals:
+
+    public slots:
+
+    };
+
 }
 
-void
-iPeptideHandlerImpl::onProteinSelected( const adprot::digestedPeptides& p ) const
-{
-    MainWindow::instance()->proteinSelected( p );
-}
-
-
-
+#endif // TARGETINGTABLE_HPP

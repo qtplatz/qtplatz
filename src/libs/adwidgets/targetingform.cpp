@@ -22,22 +22,32 @@
 **
 **************************************************************************/
 
-#include "ipeptidehandlerimpl.hpp"
-#include "mainwindow.hpp"
-#include <adprot/protein.hpp>
+#include "targetingform.hpp"
+#include "ui_targetingform.h"
+#include "spin_t.hpp"
+#include <adcontrols/targetingmethod.hpp>
 
-using namespace dataproc;
+using namespace adwidgets;
 
-iPeptideHandlerImpl::iPeptideHandlerImpl(QObject *parent) :
-    adextension::iPeptideHandler(parent)
+TargetingForm::TargetingForm(QWidget *parent) :  QWidget(parent)
+                                              ,  ui(new Ui::TargetingForm)
 {
+    ui->setupUi(this);
+
+    ui->radioButtonRP->setChecked( false );
+    ui->radioButtonWidth->setChecked( true );    
+    spin_t<QDoubleSpinBox, double>::init( ui->doubleSpinBoxRP, 1000.0, 100000.0, 10000.0 );
+    spin_t<QDoubleSpinBox, double>::init( ui->doubleSpinBoxWidth, 0.1, 500.0, 1.0 );
+    spin_t<QSpinBox, int >::init( ui->spinBoxChargeMin, 1, 50, 1 );
+    spin_t<QSpinBox, int >::init( ui->spinBoxChargeMax, 1, 50, 1 );
+
+	ui->cbxLowMass->setCheckState( Qt::Unchecked );
+	ui->cbxHighMass->setCheckState( Qt::Unchecked );
+	spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxLowMassLimit, 1, 5000,  100 );
+	spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxHighMassLimit, 1, 5000, 2000 );
 }
 
-void
-iPeptideHandlerImpl::onProteinSelected( const adprot::digestedPeptides& p ) const
+TargetingForm::~TargetingForm()
 {
-    MainWindow::instance()->proteinSelected( p );
+    delete ui;
 }
-
-
-

@@ -22,22 +22,46 @@
 **
 **************************************************************************/
 
-#include "ipeptidehandlerimpl.hpp"
-#include "mainwindow.hpp"
-#include <adprot/protein.hpp>
+#ifndef TARGETINGWIDGET_HPP
+#define TARGETINGWIDGET_HPP
 
-using namespace dataproc;
+#include "adwidgets_global.hpp"
 
-iPeptideHandlerImpl::iPeptideHandlerImpl(QObject *parent) :
-    adextension::iPeptideHandler(parent)
-{
+#include <adplugin/lifecycle.hpp>
+#include <QWidget>
+
+namespace adwidgets {
+
+    class TargetingForm;
+    class TargetingTable;
+
+    class ADWIDGETSSHARED_EXPORT TargetingWidget : public QWidget
+                                                 , public adplugin::LifeCycle {
+        Q_OBJECT
+    public:
+        explicit TargetingWidget(QWidget *parent = 0);
+        ~TargetingWidget();
+
+        static QWidget * create( QWidget * parent );
+
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void onUpdate( boost::any& ) override;
+        void OnFinalClose() override;
+        bool getContents( boost::any& ) const override;
+        bool setContents( boost::any& ) override;   
+
+    private:
+        TargetingForm * form_;
+        TargetingTable * table_;
+        
+    signals:
+
+    public slots:
+
+    };
+
 }
 
-void
-iPeptideHandlerImpl::onProteinSelected( const adprot::digestedPeptides& p ) const
-{
-    MainWindow::instance()->proteinSelected( p );
-}
-
-
-
+#endif // TARGETINGWIDGET_HPP

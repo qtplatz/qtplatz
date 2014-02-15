@@ -40,7 +40,6 @@ LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget( adutils ) \
         -l$$qtLibraryTarget( adportable ) \
         -l$$qtLibraryTarget( adchem ) \
-        -l$$qtLibraryTarget( adwchem ) \
         -l$$qtLibraryTarget( adcontrols ) \
         -l$$qtLibraryTarget( adplugin ) \
         -l$$qtLibraryTarget( qtwrapper ) \

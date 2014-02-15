@@ -22,15 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef ADWCHEM_GLOBAL_HPP
-#define ADWCHEM_GLOBAL_HPP
+#ifndef TABLEVIEW_HPP
+#define TABLEVIEW_HPP
 
-#include <QtCore/qglobal.h>
+#include <QTableView>
 
-#if defined(ADWCHEM_LIBRARY)
-#  define ADWCHEMSHARED_EXPORT Q_DECL_EXPORT
-#else
-#  define ADWCHEMSHARED_EXPORT Q_DECL_IMPORT
-#endif
+namespace adwidgets {
 
-#endif // ADWCHEM_GLOBAL_HPP
+    class TableView : public QTableView
+    {
+        Q_OBJECT
+    public:
+        explicit TableView(QWidget *parent = 0);
+
+    signals:
+
+    public slots:
+
+    };
+
+}
+
+#endif // TABLEVIEW_HPP

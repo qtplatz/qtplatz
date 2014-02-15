@@ -22,9 +22,16 @@
 **
 **************************************************************************/
 
-#include "adwchem.hpp"
+#ifndef ADWIDGETS_HPP
+#define ADWIDGETS_HPP
 
+#include "adwidgets_global.hpp"
 
-adwchem::adwchem()
+class ADWIDGETSSHARED_EXPORT Adwidgets
 {
-}
+
+public:
+    Adwidgets();
+};
+
+#endif // ADWIDGETS_HPP

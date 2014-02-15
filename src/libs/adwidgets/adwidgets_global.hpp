@@ -22,22 +22,15 @@
 **
 **************************************************************************/
 
-#include "ipeptidehandlerimpl.hpp"
-#include "mainwindow.hpp"
-#include <adprot/protein.hpp>
+#ifndef ADWIDGETS_GLOBAL_HPP
+#define ADWIDGETS_GLOBAL_HPP
 
-using namespace dataproc;
+#include <QtCore/qglobal.h>
 
-iPeptideHandlerImpl::iPeptideHandlerImpl(QObject *parent) :
-    adextension::iPeptideHandler(parent)
-{
-}
+#if defined(ADWIDGETS_LIBRARY)
+#  define ADWIDGETSSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define ADWIDGETSSHARED_EXPORT Q_DECL_IMPORT
+#endif
 
-void
-iPeptideHandlerImpl::onProteinSelected( const adprot::digestedPeptides& p ) const
-{
-    MainWindow::instance()->proteinSelected( p );
-}
-
-
-
+#endif // ADWIDGETS_GLOBAL_HPP

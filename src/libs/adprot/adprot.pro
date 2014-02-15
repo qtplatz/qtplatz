@@ -25,7 +25,7 @@ SOURCES += adprot.cpp \
     digestedpeptides.cpp
 
 HEADERS += adprot.hpp\
-        adpeptide_global.hpp \
+    adprot_global.hpp \
     peptide.hpp \
     peptides.hpp \
     protease.hpp \

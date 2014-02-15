@@ -22,22 +22,19 @@
 **
 **************************************************************************/
 
-#include "ipeptidehandlerimpl.hpp"
-#include "mainwindow.hpp"
-#include <adprot/protein.hpp>
+#ifndef SPIN_TYPE_HPP
+#define SPIN_TYPE_HPP
 
-using namespace dataproc;
+namespace adwidgets {
 
-iPeptideHandlerImpl::iPeptideHandlerImpl(QObject *parent) :
-    adextension::iPeptideHandler(parent)
-{
+    template<class Spin, typename T = double> struct spin_t {
+        static void init( Spin * s, T minimum, T maximum, T initval ) {
+            s->setMinimum( minimum );
+            s->setMaximum( maximum );
+            s->setValue( initval );
+            s->setKeyboardTracking( false );
+        }
+    };
 }
 
-void
-iPeptideHandlerImpl::onProteinSelected( const adprot::digestedPeptides& p ) const
-{
-    MainWindow::instance()->proteinSelected( p );
-}
-
-
-
+#endif // SPIN_TYPE_HPP
