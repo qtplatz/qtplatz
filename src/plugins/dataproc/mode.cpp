@@ -44,7 +44,7 @@ Mode::Mode(QObject *parent) :
     setName(tr("Processing"));
     setUniqueModeName( dataproc::Constants::C_DATAPROC_MODE );
     setIcon(QIcon(":/dataproc/image/ViewResults.png"));
-    setPriority( 97 );
+    setPriority( 80 );
 
     QList<int> contexts = QList<int>() <<
         Core::UniqueIDManager::instance()->uniqueIdentifier( Constants::C_DATAPROCESSOR ) <<

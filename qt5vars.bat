@@ -5,10 +5,10 @@ set VC=
 echo "##### " ARCH_VC=%ARCH% %VC%
 echo "args: " %1 %2 %3
 
-if "%1"=="x64" (
-  set ARCH=x64
-) else (
+if "%1"=="x86" (
   set ARCH=x86
+) else (
+  set ARCH=x64
 )
 
 if "%2"=="vc12" (
@@ -33,16 +33,41 @@ if %uname%==x86_vc12 goto x86_vc12
 if %uname%==x64_vc11 goto x64_vc11
 if %uname%==x64_vc12 goto x64_vc12
 
+:x64_vc11
+echo ======= setup for x64 64bit memory using VS2012 =================
+call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" amd64
+set ACE_ROOT=%USERPROFILE%\src64\ACE_wrappers
+set TAO_ROOT=%ACE_ROOT%\TAO
+set QTDIR=C:\Qt\Qt5.2.1\5.2.1\msvc2012_64
+set QWT=C:\x64\vc11\Qwt-6.1.1-svn
+set BOOST_ROOT=C:\Boost
+set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
+set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
+set PATH=%QTDIR%\bin;%PATH%
+goto all_set
+
 :x86_vc11
 echo ======= setup for x86 32bit memory using VS2012 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x86
 set ACE_ROOT=%USERPROFILE%\src\vc11\ACE_wrappers
 set TAO_ROOT=%ACE_ROOT%\TAO
-set QTDIR=C:\Qt\Qt5.1.1\5.1.1\msvc2012
+set QTDIR=C:\Qt\x86\Qt5.2.1\5.2.1\msvc2012
 set QWT=C:\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
 set BOOST_LIBRARY=%BOOST_ROOT%\lib
+goto all_set
+
+:x64_vc12
+echo ======= setup for x64 64bit memory using VS2013 =================
+call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
+set ACE_ROOT=%USERPROFILE%\src64\ACE_wrappers
+set TAO_ROOT=%ACE_ROOT%\TAO
+set QTDIR=C:\x64\qt5\qtbase
+set QWT=C:\x64\vc12\Qwt-6.1.1-svn
+set BOOST_ROOT=C:\Boost
+set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
+set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
 goto all_set
 
 :x86_vc12
@@ -55,30 +80,6 @@ set QWT=C:\x86\vc12\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
 set BOOST_LIBRARY=%BOOST_ROOT%\lib
-goto all_set
-
-:x64_vc11
-echo ======= setup for x64 64bit memory using VS2012 =================
-call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" amd64
-set ACE_ROOT=%USERPROFILE%\src64\ACE_wrappers
-set TAO_ROOT=%ACE_ROOT%\TAO
-rem set QTDIR=C:\x64\qt5\qtbase
-set QTDIR=C:\x64\Qt5.2.0\5.2.0\msvc2012_64
-set QWT=C:\x64\vc11\Qwt-6.1.1-svn
-set BOOST_ROOT=C:\Boost
-set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
-goto all_set
-:x64_vc12
-echo ======= setup for x64 64bit memory using VS2013 =================
-call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-set ACE_ROOT=%USERPROFILE%\src64\ACE_wrappers
-set TAO_ROOT=%ACE_ROOT%\TAO
-set QTDIR=C:\x64\qt5\qtbase
-set QWT=C:\x64\vc12\Qwt-6.1.1-svn
-set BOOST_ROOT=C:\Boost
-set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
 goto all_set
 
 :all_set

@@ -42,7 +42,7 @@ BatchMode::BatchMode(QObject *parent) :  Core::BaseMode(parent)
     setName(tr("Batch"));
     setUniqueModeName( batchproc::Constants::C_BATCHPROC_MODE );
     setIcon(QIcon(":/batchproc/images/file_batch.png"));
-    setPriority( 80 );
+    setPriority( 30 );
     // QList<int> contexts = QList<int>() <<
     //     Core::UniqueIDManager::instance()->uniqueIdentifier( Constants::C_DATAPROCESSOR ) <<
     //     Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_EDIT_MODE) <<

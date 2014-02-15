@@ -37,7 +37,7 @@ Mode::Mode(QObject *parent) :  Core::BaseMode(parent)
     setName( tr("Sequence" ) );
     setUniqueModeName( sequence::Constants::C_SEQUENCE_MODE );
     setIcon(QIcon(":/sequence/images/DefineControls.png"));
-    setPriority( 90 );
+    setPriority( 40 );
 
     QList<int> contexts = QList<int>() 
         << Core::UniqueIDManager::instance()->uniqueIdentifier( sequence::Constants::C_SEQUENCE_MODE )
