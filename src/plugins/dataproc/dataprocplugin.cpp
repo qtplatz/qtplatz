@@ -33,6 +33,7 @@
 #include "dataproceditor.hpp"
 #include "isequenceimpl.hpp"
 #include "isnapshothandlerimpl.hpp"
+#include "ipeptidehandlerimpl.hpp"
 #include "mainwindow.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
@@ -148,7 +149,9 @@ DataprocPlugin::~DataprocPlugin()
         disconnect_isnapshothandler_signals();
         removeObject( iSnapshotHandler_.get() );
     }
-        
+
+    if ( iPeptideHandler_ )
+        removeObject( iPeptideHandler_.get() );
 }
 
 DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
@@ -199,6 +202,10 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     iSnapshotHandler_.reset( new iSnapshotHandlerImpl );
     if ( iSnapshotHandler_ && connect_isnapshothandler_signals() )
         addObject( iSnapshotHandler_.get() );
+
+    iPeptideHandler_.reset( new iPeptideHandlerImpl );
+	if ( iPeptideHandler_ )
+        addObject( iPeptideHandler_.get() );
 
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( ! mdb ) {

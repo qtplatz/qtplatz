@@ -36,26 +36,28 @@ namespace adprot {
     public:
         peptide();
         peptide( const peptide& t);
-        peptide( const std::string& name, const std::string& sequence );
+        peptide( const std::string& sequence, const std::string& formula, double mass );
 
-        const std::string& name() const;
-        void name( const std::string& );
+        const std::string& annotation() const;
+        void setAnnotation( const std::string& );
 
         const std::string& sequence() const;
-        void sequence( const std::string& );
+        void setSequence( const std::string& );
 
-        enum series {
-            a_series
-            , b_series
-            , y_series
-        };
+        const std::string& formula() const;
+        void setFormula( const std::string& formula );
+
+        // neutral mass
+        double mass() const;
+        void setMass( const double& value );
 
         static std::string formula( const std::string& sequence );
-        static bool product_ions( std::vector< std::string >& formulae, const std::string& sequence, series );
 
     private:
-        std::string name_;
+        std::string annotation_;
         std::string sequence_;
+        std::string formula_;
+        double mass_; // neutral mass
     };
 
 }

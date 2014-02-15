@@ -33,11 +33,15 @@
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/molecule.hpp>
+#include <adextension/ipeptidehandler.hpp>
 #include <adprot/protfile.hpp>
 #include <adprot/protease.hpp>
 #include <adprot/peptide.hpp>
+#include <adprot/peptides.hpp>
+#include <adprot/digestedpeptides.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/minisplitter.h>
+#include <extensionsystem/pluginmanager.h>
 #include <QVBoxLayout>
 #include <QTextEdit>
 #include <set>
@@ -162,16 +166,15 @@ ProteinWnd::handleSelectionChanged( const QVector<int>& rows )
             }
         }
 
-        std::vector< peptide_formula_mass_type > vec;
+        adprot::digestedPeptides digested( adprot::protein(), *enzyme );
+
         for ( const auto& sequence: digested_peptides ) {
             std::string stdFormula = adcontrols::ChemicalFormula::standardFormula( adprot::peptide::formula( sequence ) );
-            vec.push_back( std::make_tuple( sequence // amino acid sequence
-                                            , stdFormula // chemical formula (free for N, C terminals, normal H2O)
-                                            , formulaParser->getMonoIsotopicMass( stdFormula ) // neutral mass
-                               ) );
+            double mass = formulaParser->getMonoIsotopicMass( stdFormula );
+            digested << adprot::peptide( sequence, stdFormula, mass );
         }
         // order of protein sequence
-        peptideTable_->setData( vec );
+        peptideTable_->setData( digested );
         //sort_and_unique( vec );
         //setData( vec );
     }
@@ -190,52 +193,67 @@ ProteinWnd::protSelChanged( int row )
 
             if ( auto enzyme = MainWindow::instance()->get_protease() ) {
                 
+                adprot::digestedPeptides digested( *it, *enzyme );
+                            
                 std::vector< std::string > sequences;
                 adprot::protease::digest( *enzyme, it->sequence(), sequences );
                 std::vector< peptide_formula_mass_type > vec;
                 for ( const auto& sequence: sequences ) {
+
                     std::string stdFormula = adcontrols::ChemicalFormula::standardFormula( adprot::peptide::formula( sequence ) );
+
+                    double mass = formulaParser->getMonoIsotopicMass( stdFormula );
+                    digested << adprot::peptide( sequence, stdFormula, mass );
+
                     vec.push_back( std::make_tuple( sequence // amino acid sequence
                                                     , stdFormula // chemical formula (free for N, C terminals, normal H2O)
-                                                    , formulaParser->getMonoIsotopicMass( stdFormula ) // neutral mass
+                                                    , mass // neutral mass
                                        ) );
                 }
                 // order of protein sequence
-                peptideTable_->setData( vec );
-                sort_and_unique( vec );
-                setData( vec );
+                peptideTable_->setData( digested );
+
+                adprot::peptides peptides = digested.peptides(); // deep copy
+
+                // remove same peptides for spectrum draw
+                sort_and_unique( peptides );
+                setData( peptides );
+
+                for( auto handler: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iPeptideHandler >() ) {
+                    handler->onProteinSelected( digested );
+                }
             }
         }
     }
 }
 
 void
-ProteinWnd::sort_and_unique( std::vector< peptide_formula_mass_type >& peptides )
+//ProteinWnd::sort_and_unique( std::vector< peptide_formula_mass_type >& peptides )
+ProteinWnd::sort_and_unique( adprot::peptides& peptides )
 {
-    std::sort( peptides.begin(), peptides.end(), []( const peptide_formula_mass_type& lhs, const peptide_formula_mass_type& rhs ){
-            return std::get<2>(lhs) < std::get<2>(rhs);
+    std::sort( peptides.begin(), peptides.end(), []( const adprot::peptide& lhs, const adprot::peptide& rhs ){
+            return lhs.mass() < rhs.mass();
         });
     auto it =
-        std::unique( peptides.begin(), peptides.end(), []( const peptide_formula_mass_type& lhs, const peptide_formula_mass_type& rhs ){
-                return std::get<0>(lhs) == std::get<0>(rhs);
+        std::unique( peptides.begin(), peptides.end(), []( const adprot::peptide& lhs, const adprot::peptide& rhs ){
+                return lhs.sequence() == rhs.sequence();
             });
     peptides.erase( it, peptides.end() );
 }
 
 void
-ProteinWnd::setData( const std::vector< peptide_formula_mass_type >& peptides )
+ProteinWnd::setData( const adprot::peptides& peptides )
 {
     if ( auto formulaParser = MainWindow::instance()->getChemicalFormula() ) {
-
-        spectrum_->resize( peptides.size() );
+        
+        spectrum_->resize( 0 );
 		spectrum_->setCentroid( adcontrols::CentroidNative );
         adcontrols::annotations& annots = spectrum_->get_annotations();
 		annots.clear();
         
         auto it = std::max_element( peptides.begin(), peptides.end()
-                               , [](const peptide_formula_mass_type& lhs, const peptide_formula_mass_type& rhs){
-                                   return std::get<2>(lhs) < std::get<2>(rhs); });
-		double hMass = std::get<2>( *it );
+                                    , [](const adprot::peptide& lhs, const adprot::peptide& rhs){ return lhs.mass() < rhs.mass(); });
+		double hMass = it->mass();
 
         spectrum_->setAcquisitionMassRange( 100, double( int( ( hMass + 500 ) / 500 ) * 500 ) );
         
@@ -243,12 +261,10 @@ ProteinWnd::setData( const std::vector< peptide_formula_mass_type >& peptides )
 
         int idx = 0;
         for ( auto& peptide: peptides ) {
-            const std::string& sequence = std::get<0>( peptide );
-            double mass = std::get<2>( peptide ) + proton; // M+H+
+            double mass = peptide.mass() + proton; // M+H+
             double h = 10 + ( idx % 16 ) * 10;
-            spectrum_->setMass( idx, mass );
-            spectrum_->setIntensity( idx, h );
-            annots << adcontrols::annotation( sequence, mass, h, idx, 0 );
+            (*spectrum_) << std::make_pair( mass, h );
+            annots << adcontrols::annotation( peptide.sequence(), mass, h, idx, 0 );
             ++idx;
         }
         spectrumWidget_->setAutoAnnotation( false );

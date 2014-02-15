@@ -22,34 +22,20 @@
 **
 **************************************************************************/
 
-#ifndef PEPTIDES_HPP
-#define PEPTIDES_HPP
+#include "ipeptidehandlerimpl.hpp"
+#include <adprot/protein.hpp>
 
-#include "adprot_global.hpp"
-#include "peptide.hpp"
-#include <vector>
+using namespace dataproc;
 
-namespace adprot {
-
-    class ADPROTSHARED_EXPORT peptides {
-    public:
-        peptides();
-        typedef std::vector< adprot::peptide >::size_type size_type;
-        typedef std::vector< adprot::peptide >::iterator iterator;
-        typedef std::vector< adprot::peptide >::const_iterator const_iterator;
-
-        size_type size() const;
-        iterator begin();
-        iterator end();
-        const_iterator begin() const;
-        const_iterator end() const;
-        iterator erase( iterator first, iterator last );
-        peptides& operator << ( const peptide& );
-
-    private:
-        std::vector< adprot::peptide > vec_;
-    };
-
+iPeptideHandlerImpl::iPeptideHandlerImpl(QObject *parent) :
+    adextension::iPeptideHandler(parent)
+{
 }
 
-#endif // PEPTIDES_HPP
+void
+iPeptideHandlerImpl::onProteinSelected( const adprot::digestedPeptides& ) const
+{
+}
+
+
+

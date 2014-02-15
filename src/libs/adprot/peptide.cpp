@@ -28,31 +28,35 @@
 
 using namespace adprot;
 
-peptide::peptide()
+peptide::peptide() : mass_( 0 )
 {
 }
 
-peptide::peptide( const peptide& t ) : name_( t.name_ )
+peptide::peptide( const peptide& t ) : annotation_( t.annotation_ )
                                      , sequence_( t.sequence_ )
+                                     , formula_( t.formula_ )
+                                     , mass_( t.mass_ )
 {
 }
 
-peptide::peptide( const std::string& name
-                  , const std::string& sequence ) : name_( name )
-                                                  , sequence_( sequence )
+peptide::peptide( const std::string& sequence
+                  , const std::string& formula
+                  , double mass ) : sequence_( sequence )
+                                  , formula_( formula )
+                                  , mass_( mass )
 {
 }
 
 const std::string&
-peptide::name() const
+peptide::annotation() const
 {
-    return name_;
+    return annotation_;
 }
 
 void
-peptide::name( const std::string& name )
+peptide::setAnnotation( const std::string& value )
 {
-    name_ = name;
+    annotation_ = value;
 }
 
 const std::string&
@@ -62,9 +66,33 @@ peptide::sequence() const
 }
 
 void
-peptide::sequence( const std::string& sequence )
+peptide::setSequence( const std::string& sequence )
 {
     sequence_ = sequence;
+}
+
+double
+peptide::mass() const
+{
+    return mass_;
+}
+
+void
+peptide::setMass( const double& value )
+{
+    mass_ = value;
+}
+
+const std::string&
+peptide::formula() const
+{
+    return formula_;
+}
+
+void
+peptide::setFormula( const std::string& value )
+{
+    formula_ = value;
 }
 
 // static
@@ -80,10 +108,4 @@ peptide::formula( const std::string& sequence )
     return formula + "H2O";
 }
 
-// static
-bool
-peptide::product_ions( std::vector< std::string >& formulae, const std::string& sequence, series bya )
-{
-    return false;
-}
 

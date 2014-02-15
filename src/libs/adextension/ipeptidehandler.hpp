@@ -30,13 +30,15 @@
 #include <QObject>
 #include "adextension_global.hpp"
 
+namespace adprot { class digestedPeptides; }
+
 namespace adextension {
 
     class ADEXTENSIONSHARED_EXPORT iPeptideHandler : public QObject {
         Q_OBJECT
     public:
         explicit iPeptideHandler(QObject *parent = 0);
-
+        virtual void onProteinSelected( const adprot::digestedPeptides& ) const = 0;
     signals:
 
     public slots:

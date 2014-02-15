@@ -32,7 +32,7 @@
 class QStyledItemDelegate;
 class QStandardItemModel;
 
-namespace adprot { class protease; class protein; }
+namespace adprot { class protease; class protein; class digestedPeptides; }
 namespace adcontrols { class ChemicalFormula; }
 
 namespace peptide {
@@ -44,7 +44,7 @@ namespace peptide {
         ~DigestedPeptideTable();
 
         void setData( const std::shared_ptr< adcontrols::ChemicalFormula >& );
-        void setData( const std::vector< std::tuple< std::string, std::string, double > >& );
+        void setData( const adprot::digestedPeptides& );
 
     private:
         QStandardItemModel * model_;

@@ -28,7 +28,7 @@
 #include <QWidget>
 #include <memory>
 
-namespace adprot { class protfile; }
+namespace adprot { class protfile; class digestedPeptides; class peptides; }
 namespace adcontrols { class MassSpectrum; }
 namespace adwplot { class SpectrumWidget; }
 
@@ -56,8 +56,8 @@ namespace peptide {
         ProteinTable * proteinTable_;
 
         void init();
-        void sort_and_unique( std::vector< peptide_formula_mass_type >& );
-        void setData( const std::vector< peptide_formula_mass_type >& );
+        void sort_and_unique( adprot::peptides& );
+        void setData( const adprot::peptides& );
     
     signals:
     

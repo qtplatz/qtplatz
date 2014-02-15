@@ -29,3 +29,46 @@ using namespace adprot;
 peptides::peptides()
 {
 }
+
+peptides::size_type
+peptides::size() const
+{
+    return vec_.size();
+}
+
+peptides::iterator
+peptides::begin()
+{
+    return vec_.begin();
+}
+
+peptides::iterator
+peptides::end()
+{
+    return vec_.end();
+}
+
+peptides::const_iterator
+peptides::begin() const
+{
+    return vec_.begin();
+}
+
+peptides::const_iterator
+peptides::end() const
+{
+    return vec_.end();
+}
+
+peptides::iterator
+peptides::erase( iterator first, iterator last )
+{
+    return vec_.erase( first, last );
+}
+
+peptides&
+peptides::operator << ( const peptide& p )
+{
+    vec_.push_back( p );
+    return *this;
+}

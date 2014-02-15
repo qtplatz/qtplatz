@@ -21,7 +21,8 @@ SOURCES += adprot.cpp \
     protein.cpp \
     sequence.cpp \
     protfile.cpp \
-    aminoacid.cpp
+    aminoacid.cpp \
+    digestedpeptides.cpp
 
 HEADERS += adprot.hpp\
         adpeptide_global.hpp \
@@ -31,7 +32,8 @@ HEADERS += adprot.hpp\
     protein.hpp \
     sequence.hpp \
     protfile.hpp \
-    aminoacid.hpp
+    aminoacid.hpp \
+    digestedpeptides.hpp
 
 !win32 {
   LIBS += -lboost_system

@@ -27,6 +27,8 @@
 #include <adprot/protein.hpp>
 #include <adprot/protease.hpp>
 #include <adprot/peptide.hpp>
+#include <adprot/peptides.hpp>
+#include <adprot/digestedpeptides.hpp>
 #include <QStandardItemModel>
 #include <QTextDocument>
 #include <QModelIndex>
@@ -163,7 +165,7 @@ DigestedPeptideTable::init( QStandardItemModel& model )
 }
 
 void
-DigestedPeptideTable::setData( const std::vector< std::tuple< std::string, std::string, double > >& peptides )
+DigestedPeptideTable::setData( const adprot::digestedPeptides& digested )
 {
     QStandardItemModel& model = *model_;
 
@@ -174,14 +176,14 @@ DigestedPeptideTable::setData( const std::vector< std::tuple< std::string, std::
 		double proton = formulaParser->getMonoIsotopicMass( "H" ) - electron;
 		double heavyWater = formulaParser->getMonoIsotopicMass( "H2 18O" );
 
-        model.setRowCount( static_cast<int>( peptides.size() ) );
+        model.setRowCount( static_cast<int>( digested.peptides().size() ) );
         
         int row = 0;
-        for ( auto& peptide: peptides ) {
+        for ( auto& peptide: digested.peptides() ) {
             
-            const std::string& sequence = std::get<0>( peptide );
-            const std::string& stdFormula = std::get<1>( peptide );
-            double mass = std::get<2>( peptide );
+            const std::string& sequence = peptide.sequence();
+            const std::string& stdFormula = peptide.formula();
+            double mass = peptide.mass();
 
             model.setData( model.index( row, 0 ), QString::fromStdString( sequence ) );
             model.setData( model.index( row, 1 ), QString::fromStdString( stdFormula ) );

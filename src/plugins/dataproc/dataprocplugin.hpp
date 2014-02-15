@@ -53,6 +53,7 @@ namespace dataproc {
     class DataprocessorFactory;
     class iSequenceImpl;
     class iSnapshotHandlerImpl;
+	class iPeptideHandlerImpl;
     
     class DataprocPlugin : public ExtensionSystem::IPlugin {
         
@@ -100,6 +101,7 @@ namespace dataproc {
         
         std::unique_ptr< iSequenceImpl > iSequence_;
         std::unique_ptr< iSnapshotHandlerImpl > iSnapshotHandler_;
+        std::unique_ptr< iPeptideHandlerImpl > iPeptideHandler_;
 
         static DataprocPlugin * instance_;
         

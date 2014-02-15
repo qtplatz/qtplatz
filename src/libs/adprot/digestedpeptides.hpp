@@ -22,34 +22,37 @@
 **
 **************************************************************************/
 
-#ifndef PEPTIDES_HPP
-#define PEPTIDES_HPP
+#ifndef DIGESTEDPEPTIDES_HPP
+#define DIGESTEDPEPTIDES_HPP
 
 #include "adprot_global.hpp"
-#include "peptide.hpp"
-#include <vector>
+#include <compiler/disable_dll_interface.h>
+#include <memory>
 
 namespace adprot {
 
-    class ADPROTSHARED_EXPORT peptides {
-    public:
-        peptides();
-        typedef std::vector< adprot::peptide >::size_type size_type;
-        typedef std::vector< adprot::peptide >::iterator iterator;
-        typedef std::vector< adprot::peptide >::const_iterator const_iterator;
+    class protein;
+	class peptide;
+    class peptides;
+    class protease;
 
-        size_type size() const;
-        iterator begin();
-        iterator end();
-        const_iterator begin() const;
-        const_iterator end() const;
-        iterator erase( iterator first, iterator last );
-        peptides& operator << ( const peptide& );
+    class  ADPROTSHARED_EXPORT digestedPeptides  {
+    public:
+        digestedPeptides();
+        digestedPeptides( const digestedPeptides& );
+        digestedPeptides( const protein&, const protease& );
+
+        const protein& protein() const;
+        const protease& protease() const;
+        const peptides& peptides() const;
+		digestedPeptides& operator << ( const adprot::peptide& );
 
     private:
-        std::vector< adprot::peptide > vec_;
+        std::shared_ptr< adprot::protein > protein_;
+        std::shared_ptr< adprot::protease > protease_;
+        std::shared_ptr< adprot::peptides > peptides_;
     };
 
 }
 
-#endif // PEPTIDES_HPP
+#endif // DIGESTEDPEPTIDES_HPP

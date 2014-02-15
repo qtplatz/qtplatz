@@ -14,14 +14,16 @@ include(../../qwt.pri)
 include(../../boost.pri)
 
 LIBS += -l$$qtLibraryTarget(Core)
-LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adplugin) \
-        -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) \
+LIBS += -l$$qtLibraryTarget(adwplot) \
+        -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(portfolio) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(chromatogr) \
+        -l$$qtLibraryTarget(adprot) \
         -l$$qtLibraryTarget(adextension)
-
 
 !win32 {
   LIBS += -lboost_date_time -lboost_system -lboost_filesystem \
@@ -67,7 +69,8 @@ SOURCES += \
     dialogspectrometerchoice.cpp \
     filepropertywidget.cpp \
     mspeakswnd.cpp \
-    spectrogramwnd.cpp
+    spectrogramwnd.cpp \
+    ipeptidehandlerimpl.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -100,7 +103,8 @@ HEADERS += \
     dialogspectrometerchoice.hpp \
     filepropertywidget.hpp \
     mspeakswnd.hpp \
-    spectrogramwnd.hpp
+    spectrogramwnd.hpp \
+    ipeptidehandlerimpl.hpp
 
 OTHER_FILES += \
     dataproc.pluginspec \
