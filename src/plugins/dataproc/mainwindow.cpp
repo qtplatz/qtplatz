@@ -627,6 +627,11 @@ MainWindow::handlePeptideTarget( const QVector<QPair<QString, QString> >& peptid
 {
     adcontrols::ProcessMethod pm;
     getProcessMethod( pm );
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+
+    } else {
+		QMessageBox::information( 0, "Dataproc", "No data exist for peptide targeting" );
+    }
 }
 
 void

@@ -53,11 +53,22 @@ TargetingForm::~TargetingForm()
 }
 
 void
-TargetingForm::getContents( adcontrols::TargetingMethod& )
+TargetingForm::getContents( adcontrols::TargetingMethod& m )
 {
+	m.resolving_power( ui->doubleSpinBoxRP->value() );
+	m.peak_width( ui->doubleSpinBoxWidth->value() );
+    m.is_use_resolving_power( ui->radioButtonRP->isChecked() );
+
+    m.chargeState( ui->spinBoxChargeMin->value(), ui->spinBoxChargeMax->value() );
+
+    m.isLowMassLimitEnabled( ui->cbxLowMass->checkState() == Qt::Checked );
+    m.isHighMassLimitEnabled( ui->cbxHighMass->checkState() == Qt::Checked );
+
+	m.lowMassLimit( ui->doubleSpinBoxLowMassLimit->value() );
+	m.highMassLimit( ui->doubleSpinBoxHighMassLimit->value() );
 }
 
 void
-TargetingForm::setContents( const adcontrols::TargetingMethod& )
+TargetingForm::setContents( const adcontrols::TargetingMethod& m )
 {
 }

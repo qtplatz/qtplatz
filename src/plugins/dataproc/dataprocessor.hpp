@@ -94,6 +94,7 @@ namespace dataproc {
 
         void createSpectrogram();
         void clusterSpectrogram();
+        void findPeptide( adcontrols::ProcessMethod& );
         
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );

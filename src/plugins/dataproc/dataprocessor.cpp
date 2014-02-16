@@ -717,6 +717,11 @@ Dataprocessor::clusterSpectrogram()
 	DataprocessWorker::instance()->clusterSpectrogram( this );
 }
 
+void
+Dataprocessor::findPeptide( const adcontrols::ProcessMethod& )
+{
+}
+
 ///////////////////////////
 bool
 Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )

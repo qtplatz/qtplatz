@@ -56,6 +56,7 @@ namespace dataproc {
         void createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass );
         void createSpectrogram( Dataprocessor * );
 		void clusterSpectrogram( Dataprocessor * );
+        void findPeptide( Dataprocessor * );
 
     private:
         void terminate();
