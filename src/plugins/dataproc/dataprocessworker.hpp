@@ -33,6 +33,7 @@
 #include <boost/asio.hpp>
 
 namespace adcontrols { class MassSpectrum; class ProcessMethod; }
+namespace adprot { class digestedPeptides; }
 namespace qtwrapper { class ProgressBar; }
 
 namespace dataproc {
@@ -56,7 +57,7 @@ namespace dataproc {
         void createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass );
         void createSpectrogram( Dataprocessor * );
 		void clusterSpectrogram( Dataprocessor * );
-        void findPeptide( Dataprocessor * );
+        void findPeptide( Dataprocessor *, const adprot::digestedPeptides& );
 
     private:
         void terminate();

@@ -718,8 +718,9 @@ Dataprocessor::clusterSpectrogram()
 }
 
 void
-Dataprocessor::findPeptide( const adcontrols::ProcessMethod& )
+Dataprocessor::findPeptide( const adprot::digestedPeptides& digested )
 {
+	DataprocessWorker::instance()->findPeptide( this, digested );
 }
 
 ///////////////////////////

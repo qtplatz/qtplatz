@@ -45,6 +45,7 @@ namespace dataproc {
         const char * const CALIBFILE_APPLY      = "dataproc.ApplyCalibration";
 
         const char * const CREATE_SPECTROGRAM   = "dataproc.Spectrogram";
+        const char * const CLUSTER_SPECTROGRAM  = "dataproc.ClusterSpectrogram";
 
         // icon
         const char * const ICON_METHOD_SAVE     = ":/dataproc/image/filesave.png";

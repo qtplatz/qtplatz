@@ -47,6 +47,8 @@ namespace adcontrols {
     class CentroidMethod;
 }
 
+namespace adprot { class digestedPeptides; }
+
 namespace portfolio {
     class Portfolio;
     class Folium;
@@ -94,7 +96,7 @@ namespace dataproc {
 
         void createSpectrogram();
         void clusterSpectrogram();
-        void findPeptide( adcontrols::ProcessMethod& );
+        void findPeptide( const adprot::digestedPeptides& );
         
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );

@@ -40,6 +40,7 @@
 #include <portfolio/folder.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/progressmanager/progressmanager.h>
+#include <QMessageBox>
 
 using namespace dataproc;
 
@@ -130,11 +131,13 @@ DataprocessWorker::createSpectrogram( Dataprocessor* processor )
 void
 DataprocessWorker::clusterSpectrogram( Dataprocessor * processor )
 {
+    QMessageBox::information( 0, "DataprocessWorker", "Cluster spectrogram not implemented." );
 }
 
 void
-DataprocessWorker::findPeptide( Dataprocessor * processor )
+DataprocessWorker::findPeptide( Dataprocessor * processor, const adprot::digestedPeptides& peptides )
 {
+    QMessageBox::information( 0, "DataprocessWorker", "findPeptide not implemented." );
 }
 
 void

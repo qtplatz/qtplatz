@@ -49,6 +49,8 @@
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
 #include <adprot/digestedpeptides.hpp>
+#include <adprot/peptides.hpp>
+#include <adprot/peptide.hpp>
 #include <adwidgets/peptidewidget.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -138,6 +140,9 @@ MainWindow::install_actions()
 		actions_[ idActCreateSpectrogram ] = new QAction( tr("Create spectrogram"), this );
         connect( actions_[ idActCreateSpectrogram ], SIGNAL( triggered() ), this, SLOT( actCreateSpectrogram() ) );
 
+		actions_[ idActClusterSpectrogram ] = new QAction( tr("Cluster pectrogram"), this );
+        connect( actions_[ idActClusterSpectrogram ], SIGNAL( triggered() ), this, SLOT( actClusterSpectrogram() ) );
+
         if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
 
             Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID );
@@ -146,6 +151,8 @@ MainWindow::install_actions()
             if ( Core::Command * cmd = am->registerAction( actions_[ idActCreateSpectrogram ], Constants::CREATE_SPECTROGRAM, gc ) )
                 menu->addAction( cmd );
 
+            if ( Core::Command * cmd = am->registerAction( actions_[ idActClusterSpectrogram ], Constants::CLUSTER_SPECTROGRAM, gc ) )
+                menu->addAction( cmd );
 
 			// add 'dataproc' menu item to Tools
 			am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
@@ -440,17 +447,17 @@ MainWindow::createDockWidgets()
         const char * pageName;
         QWidget * (*factory)( QWidget * );
     } widgets [] = { 
-        {  "Centroid" ,        "qtwidgets::CentroidForm",            "CentroidMethod"} // should be first
-        , { "MS Peaks",        "qtwidgets2::MSPeakTable",            "MSPeakTable" }
-        , { "MS Calibration",  "qtwidgets2::MSCalibrationForm",      "MSCalibrationMethod"}
-        , { "MS Chromatogr.",  "qtwidgets2::MSChromatogramWidget",   "MSChromatogrMethod" }
-        , { "Targeting",       "qtwidgets::TargetForm",              "TargetMethod" }
+        {  "Centroid" ,        "qtwidgets::CentroidForm",            "CentroidMethod", 0} // should be first
+        , { "MS Peaks",        "qtwidgets2::MSPeakTable",            "MSPeakTable", 0 }
+        , { "MS Calibration",  "qtwidgets2::MSCalibrationForm",      "MSCalibrationMethod", 0}
+        , { "MS Chromatogr.",  "qtwidgets2::MSChromatogramWidget",   "MSChromatogrMethod", 0 }
+        , { "Targeting",       "qtwidgets::TargetForm",              "TargetMethod", 0 }
         , { "Peptide",         "adwidgets::PeptideWidget",           "PeptideMethod", &adwidgets::PeptideWidget::create }
-        //, { "Isotope",       "qtwidgets::IsotopeForm",             "IsotopeMethod" }
-        , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm","EleCompMethod" }
-        , { "Peak Find",       "qtwidgets::PeakMethodForm",          "PeakFindMethod" }
+        //, { "Isotope",       "qtwidgets::IsotopeForm",             "IsotopeMethod", 0 }
+        , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm","EleCompMethod", 0 }
+        , { "Peak Find",       "qtwidgets::PeakMethodForm",          "PeakFindMethod", 0 }
         , { "Data property",   "dataproc::MSPropertyForm",           "DataProperty", &dataproc::MSPropertyForm::create }
-        , { "TOF Peaks",       "qtwidgets2::MSPeakView",             "TOFPeaks" }
+        , { "TOF Peaks",       "qtwidgets2::MSPeakView",             "TOFPeaks", 0 }
     };
     
     for ( auto widget: widgets ) {
@@ -625,10 +632,12 @@ MainWindow::handleApplyMethod()
 void
 MainWindow::handlePeptideTarget( const QVector<QPair<QString, QString> >& peptides )
 {
-    adcontrols::ProcessMethod pm;
-    getProcessMethod( pm );
+    adprot::digestedPeptides digested;
+    for ( auto& p: peptides )
+        digested << adprot::peptide( p.first.toStdString(), p.second.toStdString(), 0 );
+    
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-
+        processor->findPeptide( digested );
     } else {
 		QMessageBox::information( 0, "Dataproc", "No data exist for peptide targeting" );
     }
