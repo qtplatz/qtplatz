@@ -15,7 +15,8 @@ include(../../boost.pri)
 LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adprot) \
         -l$$qtLibraryTarget(adcontrols) \
-        -l$$qtLibraryTarget(adportable)
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(qtwrapper)
 
 DEFINES += ADWIDGETS_LIBRARY
 
@@ -23,7 +24,10 @@ SOURCES += adwidgets.cpp \
     targetingform.cpp \
     targetingwidget.cpp \
     tableview.cpp \
-    targetingtable.cpp
+    targetingtable.cpp \
+    peptidewidget.cpp \
+    peptidetable.cpp \
+    delegatehelper.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -31,7 +35,10 @@ HEADERS += adwidgets.hpp\
     spin_t.hpp \
     targetingwidget.hpp \
     tableview.hpp \
-    targetingtable.hpp
+    targetingtable.hpp \
+    peptidewidget.hpp \
+    peptidetable.hpp \
+    delegatehelper.hpp
 
 unix {
     target.path = /usr/lib

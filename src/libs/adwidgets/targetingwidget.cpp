@@ -27,6 +27,8 @@
 #include "targetingtable.hpp"
 #include <adportable/is_type.hpp>
 #include <adprot/digestedpeptides.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
 
@@ -66,14 +68,6 @@ TargetingWidget::create( QWidget * parent )
     return new TargetingWidget( parent );
 }
 
-// void *
-// TargetingWidget::query_interface_workaround( const char * typenam )
-// {
-//     if ( typenam == typeid( TargetingWidget ).name() )
-//         return static_cast< TargetingWidget * >(this);
-//     return 0;
-// }
-
 void
 TargetingWidget::OnCreate( const adportable::Configuration& )
 {
@@ -82,6 +76,7 @@ TargetingWidget::OnCreate( const adportable::Configuration& )
 void
 TargetingWidget::OnInitialUpdate()
 {
+    table_->onInitialUpdate();
 }
 
 void
@@ -95,8 +90,16 @@ TargetingWidget::OnFinalClose()
 }
 
 bool
-TargetingWidget::getContents( boost::any& ) const
+TargetingWidget::getContents( boost::any& a ) const
 {
+    if ( adportable::a_type< adcontrols::ProcessMethod >::is_pointer( a ) ) {
+        adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( a ); 
+        adcontrols::TargetingMethod method;
+        form_->getContents( method );
+        table_->getContents( method );
+		pm->appendMethod( method );
+        return true;
+    }
     return false;
 }
 
@@ -108,7 +111,12 @@ TargetingWidget::setContents( boost::any& a )
 		table_->setContents( digested );
         
         return true;
+    } else if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
+        const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( a );
+        const adcontrols::TargetingMethod * t = pm.find< adcontrols::TargetingMethod >();
+        form_->setContents( *t );
     }
+    
     return false;
 }
 

@@ -22,46 +22,30 @@
 **
 **************************************************************************/
 
-#ifndef TARGETINGWIDGET_HPP
-#define TARGETINGWIDGET_HPP
+#ifndef PEPTIDETABLE_HPP
+#define PEPTIDETABLE_HPP
 
-#include "adwidgets_global.hpp"
+#include "tableview.hpp"
 
-#include <adplugin/lifecycle.hpp>
-#include <QWidget>
+class QStandardItemModel;
 
-namespace adcontrols { class TargetingMethod; }
+namespace adprot { class digestedPeptides; }
 
 namespace adwidgets {
 
-    class TargetingForm;
-    class TargetingTable;
-
-    class ADWIDGETSSHARED_EXPORT TargetingWidget : public QWidget
-                                                 , public adplugin::LifeCycle {
+    class PeptideTable : public TableView
+    {
         Q_OBJECT
     public:
-        explicit TargetingWidget(QWidget *parent = 0);
-        ~TargetingWidget();
+        explicit PeptideTable(QWidget *parent = 0);
+        ~PeptideTable();
 
-        static QWidget * create( QWidget * parent );
-
-        // adplugin::LifeCycle
-        void OnCreate( const adportable::Configuration& ) override;
-        void OnInitialUpdate() override;
-        void onUpdate( boost::any& ) override;
-        void OnFinalClose() override;
-        bool getContents( boost::any& ) const override;
-        bool setContents( boost::any& ) override;   
-        
-        //
-        void loadFromUI( adcontrols::TargetingMethod& );
-        void saveToUI( const adcontrols::TargetingMethod& );
+        void onInitialUpdate();
+        void setContents( const adprot::digestedPeptides& );
 
     private:
-        TargetingForm * form_;
-        TargetingTable * table_;
-        
+        QStandardItemModel * model_;
+
     signals:
 
     public slots:
@@ -70,4 +54,4 @@ namespace adwidgets {
 
 }
 
-#endif // TARGETINGWIDGET_HPP
+#endif // PEPTIDETABLE_HPP

@@ -39,7 +39,7 @@ TargetingForm::TargetingForm(QWidget *parent) :  QWidget(parent)
     spin_t<QDoubleSpinBox, double>::init( ui->doubleSpinBoxRP, 1000.0, 100000.0, 10000.0 );
     spin_t<QDoubleSpinBox, double>::init( ui->doubleSpinBoxWidth, 0.1, 500.0, 1.0 );
     spin_t<QSpinBox, int >::init( ui->spinBoxChargeMin, 1, 50, 1 );
-    spin_t<QSpinBox, int >::init( ui->spinBoxChargeMax, 1, 50, 1 );
+    spin_t<QSpinBox, int >::init( ui->spinBoxChargeMax, 1, 50, 3 );
 
 	ui->cbxLowMass->setCheckState( Qt::Unchecked );
 	ui->cbxHighMass->setCheckState( Qt::Unchecked );
@@ -50,4 +50,14 @@ TargetingForm::TargetingForm(QWidget *parent) :  QWidget(parent)
 TargetingForm::~TargetingForm()
 {
     delete ui;
+}
+
+void
+TargetingForm::getContents( adcontrols::TargetingMethod& )
+{
+}
+
+void
+TargetingForm::setContents( const adcontrols::TargetingMethod& )
+{
 }

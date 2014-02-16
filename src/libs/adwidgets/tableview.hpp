@@ -35,6 +35,15 @@ namespace adwidgets {
     public:
         explicit TableView(QWidget *parent = 0);
 
+    protected:
+        // reimplement QTableView
+        void keyPressEvent( QKeyEvent * event ) override;
+        void mouseReleaseEvent( QMouseEvent * event ) override;
+        // void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+
+        void handleDeleteSelection();
+        void handleCopyToClipboard();
+        
     signals:
 
     public slots:

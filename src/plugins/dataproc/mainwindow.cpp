@@ -49,7 +49,7 @@
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
 #include <adprot/digestedpeptides.hpp>
-#include <adwidgets/targetingwidget.hpp>
+#include <adwidgets/peptidewidget.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -445,20 +445,20 @@ MainWindow::createDockWidgets()
         , { "MS Calibration",  "qtwidgets2::MSCalibrationForm",      "MSCalibrationMethod"}
         , { "MS Chromatogr.",  "qtwidgets2::MSChromatogramWidget",   "MSChromatogrMethod" }
         , { "Targeting",       "qtwidgets::TargetForm",              "TargetMethod" }
-        , { "Peptide",         "adwidgets::TargetWidget",            "PeptideMethod", &adwidgets::TargetingWidget::create }
+        , { "Peptide",         "adwidgets::PeptideWidget",           "PeptideMethod", &adwidgets::PeptideWidget::create }
         //, { "Isotope",       "qtwidgets::IsotopeForm",             "IsotopeMethod" }
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm","EleCompMethod" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm",          "PeakFindMethod" }
-        , { "Data property",   "dataproc::MSPropertyForm",           "DataProperty" }      // local
+        , { "Data property",   "dataproc::MSPropertyForm",           "DataProperty", &dataproc::MSPropertyForm::create }
         , { "TOF Peaks",       "qtwidgets2::MSPeakView",             "TOFPeaks" }
     };
     
     for ( auto widget: widgets ) {
 
         QWidget * pWidget = widget.factory ? widget.factory( 0 ) : adplugin::widget_factory::create( widget.wiid, 0, 0 );
-        // QWidget * pWidget = adplugin::widget_factory::create( widget.wiid, 0, 0 );
-        if ( pWidget && std::strcmp(widget.wiid, "qtwidgets2::MSPeakView") == 0 ) {
 
+        if ( pWidget && std::strcmp(widget.wiid, "qtwidgets2::MSPeakView") == 0 ) {
+            // TOFPeaks
             connect( this, SIGNAL(onAddMSPeaks( const adcontrols::MSPeaks& )), pWidget, SLOT(handle_add_mspeaks( const adcontrols::MSPeaks& )) );
             adplugin::LifeCycleAccessor accessor( pWidget );
             if ( adplugin::LifeCycle * p = accessor.get() ) {
@@ -468,6 +468,7 @@ MainWindow::createDockWidgets()
         }
 
         if ( pWidget && std::strcmp( widget.wiid, "qtwidgets2::MSPeakTable" ) == 0 ) {
+            // MS Peak list
             connect( pWidget, SIGNAL( currentChanged( int, int ) ), wndMSProcessing_, SLOT( handleCurrentChanged( int, int ) ) );
             connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wndMSProcessing_, SLOT( handleFormulaChanged( int, int ) ) );
             connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int> >& ) )
@@ -476,13 +477,11 @@ MainWindow::createDockWidgets()
             connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handle_zoomed( const QRectF& ) ) );
         }
 
-        if ( !pWidget ) {
-            if ( std::strcmp( widget.wiid, "dataproc::FilePropertyWidget" ) == 0 ) 
-                pWidget = new FilePropertyWidget;
-            if ( std::strcmp( widget.wiid, "dataproc::MSPropertyForm" ) == 0 )
-                pWidget = new MSPropertyForm;
+        if ( pWidget && std::strcmp( widget.wiid, "adwidgets::PeptideWidget" ) == 0 ) {
+            connect( pWidget, SIGNAL(triggerFind(const QVector<QPair<QString,QString> >&)), 
+                     this, SLOT( handlePeptideTarget(const QVector< QPair<QString, QString> >& ) ) );
         }
-        
+
         if ( pWidget ) {
             createDockWidget( pWidget, widget.title, widget.pageName );
         } else {
@@ -624,6 +623,13 @@ MainWindow::handleApplyMethod()
 }
 
 void
+MainWindow::handlePeptideTarget( const QVector<QPair<QString, QString> >& peptides )
+{
+    adcontrols::ProcessMethod pm;
+    getProcessMethod( pm );
+}
+
+void
 MainWindow::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
 {
     emit onAddMSPeaks( peaks );
@@ -754,7 +760,7 @@ MainWindow::proteinSelected( const adprot::digestedPeptides& digested )
     if ( it != docks.end() ) {
         (*it)->raise();
         boost::any a( digested );
-        if ( auto t = dynamic_cast< adwidgets::TargetingWidget *>( (*it)->widget() ) ) {
+        if ( auto t = dynamic_cast< adwidgets::PeptideWidget *>( (*it)->widget() ) ) {
             t->setContents( a );
         }
     }

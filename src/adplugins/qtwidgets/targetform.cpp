@@ -234,17 +234,19 @@ TargetForm::update_adducts( QTreeView& tree
                             , const adcontrols::TargetingMethod& method
                             , bool positiveMode )
 {
+	(void)positiveMode;
+
 	QStandardItem * item = model.itemFromIndex( index );
-	auto vec = method.adducts( positiveMode );
+	auto vec = method.adducts();
 	
 	item->removeRows( 0, item->rowCount() );
-	item->setRowCount( vec.empty() ? 1 : vec.size() );
+	item->setRowCount( vec.empty() ? 1 : int(vec.size()) );
 	item->setColumnCount( c_adduct_num_columns );
 
 	int row = 0;
 	for ( auto it: vec ) {
-		model.setData( model.index( row, c_adduct_or_loss, index ), qtwrapper::qstring::copy( it.first ), Qt::EditRole );
-		enable_checkbox( model, model.index( row, c_adduct_checkbox, index ), it.second );
+		model.setData( model.index( row, c_adduct_or_loss, index ), it.second.c_str(), Qt::EditRole );
+		enable_checkbox( model, model.index( row, c_adduct_checkbox, index ), it.first );
 	    ++row;
 	}
 	tree.expandAll();
@@ -259,15 +261,14 @@ TargetForm::get_adducts( QTreeView&
 	QStandardItem * item = model.itemFromIndex( index );
     size_t nRows = item->rowCount();
 	
-	auto &vec = method.adducts( positiveMode );
+	auto &vec = method.adducts();
 	vec.clear();
 
 	for ( size_t row = 0; row < nRows; ++row ) {
-		std::wstring adduct_or_loss
-            = qtwrapper::wstring::copy( model.index( row, c_adduct_or_loss, index ).data( Qt::EditRole ).toString() );
+		std::string adduct_or_loss = model.index( row, c_adduct_or_loss, index ).data( Qt::EditRole ).toString().toStdString();
 		bool enable = ( model.index( row, c_adduct_checkbox, index ).data( Qt::CheckStateRole ) ) == Qt::Checked;
 		if ( ! adduct_or_loss.empty() )
-			vec.push_back( adcontrols::TargetingMethod::value_type( adduct_or_loss, enable ) );
+			vec.push_back( std::make_pair( enable, adduct_or_loss ) );
 	}
 }
 
@@ -281,8 +282,8 @@ TargetForm::update_formulae( QTreeView&, QStandardItemModel& model
 
 	int row = 0;
 	for ( auto it: vec ) {
-		model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it.first ), Qt::EditRole );
-        enable_checkbox( model, model.index( row, c_formula_checkbox ), it.second );
+		model.setData( model.index( row, c_formula ), it.second.c_str(), Qt::EditRole );
+		enable_checkbox( model, model.index( row, c_formula_checkbox ), it.first );
 	    ++row;
 	}
 	model.setData( model.index( row, c_formula ), QString( "-- edit here --"), Qt::EditRole );
@@ -297,10 +298,10 @@ TargetForm::get_formulae( QTreeView&, QStandardItemModel& model, adcontrols::Tar
     vec.clear();
 
     for ( size_t row = 0; row < nRows; ++row ) {
-        std::wstring formula = qtwrapper::wstring::copy( model.index( row, c_formula ).data( Qt::EditRole ).toString() );
+		std::string formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
         bool enable = is_checked( model.index( row, c_formula_checkbox ) );
         if ( ! formula.empty() )
-            vec.push_back( adcontrols::TargetingMethod::value_type( formula, enable ) );
+            vec.push_back( std::make_pair( enable, formula ) );
     }
 }
 

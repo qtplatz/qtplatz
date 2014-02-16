@@ -57,6 +57,12 @@ FilePropertyWidget::~FilePropertyWidget()
 {
 }
 
+QWidget *
+FilePropertyWidget::create( QWidget * parent )
+{
+    return new FilePropertyWidget( parent );
+}
+
 // adplugin::LifeCycle
 void
 FilePropertyWidget::OnCreate( const adportable::Configuration& )

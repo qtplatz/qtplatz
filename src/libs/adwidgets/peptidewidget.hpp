@@ -22,27 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef TARGETINGWIDGET_HPP
-#define TARGETINGWIDGET_HPP
+#ifndef PEPTIDEWIDGET_HPP
+#define PEPTIDEWIDGET_HPP
 
 #include "adwidgets_global.hpp"
-
 #include <adplugin/lifecycle.hpp>
 #include <QWidget>
-
-namespace adcontrols { class TargetingMethod; }
 
 namespace adwidgets {
 
     class TargetingForm;
-    class TargetingTable;
+	class TargetingTable;
+    class PeptideTable;
 
-    class ADWIDGETSSHARED_EXPORT TargetingWidget : public QWidget
-                                                 , public adplugin::LifeCycle {
+    class ADWIDGETSSHARED_EXPORT PeptideWidget : public QWidget
+                                               , public adplugin::LifeCycle {
         Q_OBJECT
     public:
-        explicit TargetingWidget(QWidget *parent = 0);
-        ~TargetingWidget();
+        explicit PeptideWidget(QWidget *parent = 0);
+        ~PeptideWidget();
 
         static QWidget * create( QWidget * parent );
 
@@ -53,21 +51,22 @@ namespace adwidgets {
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any& ) override;   
-        
-        //
-        void loadFromUI( adcontrols::TargetingMethod& );
-        void saveToUI( const adcontrols::TargetingMethod& );
 
     private:
         TargetingForm * form_;
         TargetingTable * table_;
-        
+        PeptideTable * peptideTable_;
+
     signals:
+        void triggerFind( const QVector< QPair< QString, QString > >& ) const; // (sequence, formula)
 
     public slots:
+
+    private slots:
+        void showContextMenu( const QPoint& );
 
     };
 
 }
 
-#endif // TARGETINGWIDGET_HPP
+#endif // PEPTIDEWIDGET_HPP

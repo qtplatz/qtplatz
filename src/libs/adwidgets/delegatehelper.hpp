@@ -22,52 +22,24 @@
 **
 **************************************************************************/
 
-#ifndef TARGETINGWIDGET_HPP
-#define TARGETINGWIDGET_HPP
+#ifndef DELEGATEHELPER_HPP
+#define DELEGATEHELPER_HPP
 
-#include "adwidgets_global.hpp"
-
-#include <adplugin/lifecycle.hpp>
-#include <QWidget>
-
-namespace adcontrols { class TargetingMethod; }
+class QPainter;
+class QStyleOptionViewItem;
+class QString;
+class QModelIndex;
+#include <QSize>
 
 namespace adwidgets {
 
-    class TargetingForm;
-    class TargetingTable;
-
-    class ADWIDGETSSHARED_EXPORT TargetingWidget : public QWidget
-                                                 , public adplugin::LifeCycle {
-        Q_OBJECT
+    class DelegateHelper  {
     public:
-        explicit TargetingWidget(QWidget *parent = 0);
-        ~TargetingWidget();
-
-        static QWidget * create( QWidget * parent );
-
-        // adplugin::LifeCycle
-        void OnCreate( const adportable::Configuration& ) override;
-        void OnInitialUpdate() override;
-        void onUpdate( boost::any& ) override;
-        void OnFinalClose() override;
-        bool getContents( boost::any& ) const override;
-        bool setContents( boost::any& ) override;   
-        
-        //
-        void loadFromUI( adcontrols::TargetingMethod& );
-        void saveToUI( const adcontrols::TargetingMethod& );
-
-    private:
-        TargetingForm * form_;
-        TargetingTable * table_;
-        
-    signals:
-
-    public slots:
-
+        DelegateHelper();
+        static void render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text );
+        static QSize html_size_hint( const QStyleOptionViewItem& option, const QModelIndex& index );
     };
 
 }
 
-#endif // TARGETINGWIDGET_HPP
+#endif // DELEGATEHELPER_HPP

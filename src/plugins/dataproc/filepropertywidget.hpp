@@ -49,6 +49,7 @@ namespace dataproc {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any& ) override;
         // <--------------
+        static QWidget * create( QWidget * parent );
         
     signals:
             

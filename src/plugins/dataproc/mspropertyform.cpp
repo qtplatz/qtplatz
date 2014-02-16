@@ -53,6 +53,12 @@ MSPropertyForm::~MSPropertyForm()
     delete ui;
 }
 
+QWidget *
+MSPropertyForm::create( QWidget * parent )
+{
+    return new MSPropertyForm( parent );
+}
+
 // adplugin::LifeCycle
 void
 MSPropertyForm::OnCreate( const adportable::Configuration& )

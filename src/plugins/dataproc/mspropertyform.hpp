@@ -45,6 +45,7 @@ namespace dataproc {
     public:
         explicit MSPropertyForm(QWidget *parent = 0);
         ~MSPropertyForm();
+        static QWidget * create( QWidget * );
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& ) override;

@@ -30,6 +30,7 @@
 class QStandardItemModel;
 
 namespace adprot { class digestedPeptides; }
+namespace adcontrols { class TargetingMethod; }
 
 namespace adwidgets {
 
@@ -42,6 +43,10 @@ namespace adwidgets {
         void onInitialUpdate();
 
         void setContents( const adprot::digestedPeptides& );
+        void setContents( const adcontrols::TargetingMethod& );
+        void getContents( adcontrols::TargetingMethod& );
+
+        QStandardItemModel& model();
 
     private:
         QStandardItemModel * model_;

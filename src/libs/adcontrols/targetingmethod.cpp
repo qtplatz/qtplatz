@@ -27,26 +27,26 @@
 
 using namespace adcontrols;
 
-TargetingMethod::TargetingMethod() : isPositiveIonMode_( true )
-                                   , is_use_resolving_power_( false )
-                                   , resolving_power_( 10000 )
-                                   , peak_width_( 1.0 ) // mDa
-                                   , chargeStateMin_( 1 )
-                                   , chargeStateMax_( 1 )
-                                   , isLowMassLimitEnabled_( false ) // auto
-                                   , isHighMassLimitEnabled_( false )
-                                   , lowMassLimit_( 1 )
-                                   , highMassLimit_( 1000 )
-                                   , tolerance_( 10.0 )
+TargetingMethod::TargetingMethod( idTarget id ) : idTarget_( id )
+                                                , is_use_resolving_power_( false )
+                                                , resolving_power_( 10000 )
+                                                , peak_width_( 1.0 ) // mDa
+                                                , chargeStateMin_( 1 )
+                                                , chargeStateMax_( 3 )
+                                                , isLowMassLimitEnabled_( false ) // auto
+    , isHighMassLimitEnabled_( false )
+    , lowMassLimit_( 1 )
+    , highMassLimit_( 1000 )
+    , tolerance_( 10.0 )
 {
-    adductsPos_.push_back( std::pair< std::wstring, bool >( L"+H+", true ) );
-    adductsPos_.push_back( std::pair< std::wstring, bool >( L"+Na+", false ) );
-    adductsPos_.push_back( std::pair< std::wstring, bool >( L"+K+", false ) );
-    adductsPos_.push_back( std::pair< std::wstring, bool >( L"+Li+", false ) );
+    adducts_.push_back( std::make_pair( true,  "H" ) );
+    adducts_.push_back( std::make_pair( false, "Na" ) );
+    adducts_.push_back( std::make_pair( false, "K" ) );
+    adducts_.push_back( std::make_pair( false, "Li" ) );
 
-    adductsNeg_.push_back( std::pair< std::wstring, bool >( L"-H+", true ) );
-    adductsNeg_.push_back( std::pair< std::wstring, bool >( L"+COO-", false ) );
-    adductsNeg_.push_back( std::pair< std::wstring, bool >( L"+Cl-", false ) );
+    lose_.push_back( std::make_pair( true,  "H" ) );
+    lose_.push_back( std::make_pair( false, "COO" ) );
+    lose_.push_back( std::make_pair( false, "Cl" ) );
 }
 
 TargetingMethod::TargetingMethod( const TargetingMethod& t )
@@ -57,7 +57,8 @@ TargetingMethod::TargetingMethod( const TargetingMethod& t )
 TargetingMethod&
 TargetingMethod::operator = ( const TargetingMethod& rhs )
 {
-    isPositiveIonMode_      = rhs.isPositiveIonMode_;
+    idTarget_ = rhs.idTarget_;
+
     is_use_resolving_power_ = rhs.is_use_resolving_power_;
     resolving_power_        = rhs.resolving_power_;
     peak_width_             = rhs.peak_width_;
@@ -70,48 +71,84 @@ TargetingMethod::operator = ( const TargetingMethod& rhs )
     tolerance_              = rhs.tolerance_;
 
     formulae_               = rhs.formulae_;
-    adductsPos_             = rhs.adductsPos_;
-    adductsNeg_             = rhs.adductsNeg_;
+    peptides_               = rhs.peptides_;
+    adducts_                = rhs.adducts_;
+    lose_                   = rhs.lose_;
 
 	return *this;
 }
 
-
-std::vector< TargetingMethod::value_type >&
-TargetingMethod::adducts( bool positive )
+void
+TargetingMethod::targetId( TargetingMethod::idTarget target )
 {
-    return positive ? adductsPos_ : adductsNeg_;
+    idTarget_ = target;
 }
 
-const std::vector< TargetingMethod::value_type >&
-TargetingMethod::adducts( bool positive ) const
+TargetingMethod::idTarget
+TargetingMethod::targetId() const
 {
-    return positive ? adductsPos_ : adductsNeg_;
+    return idTarget_;
 }
 
-std::pair< unsigned int, unsigned int >
+std::vector< std::pair< bool, std::string > >&
+TargetingMethod::adducts()
+{
+    return adducts_;
+}
+
+std::vector< std::pair< bool, std::string > >&
+TargetingMethod::lose()
+{
+    return lose_;
+}
+
+const std::vector< std::pair< bool, std::string > >&
+TargetingMethod::adducts() const
+{
+    return adducts_;
+}
+
+const std::vector< std::pair< bool, std::string > >&
+TargetingMethod::lose() const
+{
+    return lose_;
+}
+
+std::pair< uint32_t, uint32_t >
 TargetingMethod::chargeState() const
 {
-    return std::pair< unsigned int, unsigned int >( chargeStateMin_, chargeStateMax_ );
+    return std::pair< uint32_t, uint32_t >( chargeStateMin_, chargeStateMax_ );
 }
 
 void
-TargetingMethod::chargeState( unsigned int min, unsigned int max )
+TargetingMethod::chargeState( uint32_t min, uint32_t max )
 {
     chargeStateMin_ = min;
     chargeStateMax_ = max;
 }
 
-std::vector< TargetingMethod::value_type >&
+std::vector< std::pair< bool, std::string > >&
 TargetingMethod::formulae()
 {
     return formulae_;
 }
 
-const std::vector< TargetingMethod::value_type >&
+const std::vector< std::pair< bool, std::string > >&
 TargetingMethod::formulae() const
 {
     return formulae_;
+}
+
+std::vector< std::pair< bool, std::pair< std::string, std::string > > >&
+TargetingMethod::peptides()
+{
+    return peptides_;
+}
+
+const std::vector< std::pair< bool, std::pair< std::string, std::string > > >&
+TargetingMethod::peptides() const
+{
+    return peptides_;
 }
 
 bool

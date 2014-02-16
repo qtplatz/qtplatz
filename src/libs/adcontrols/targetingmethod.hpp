@@ -43,20 +43,29 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT TargetingMethod {
     public:
-        TargetingMethod();
+        enum idTarget { idTargetFormula, idTargetPeptide };
+
+        TargetingMethod( idTarget id = idTargetFormula );
         TargetingMethod( const TargetingMethod& );
         TargetingMethod& operator = ( const TargetingMethod& rhs );
 
-        typedef std::pair< std::wstring, bool > value_type;
+        void targetId( idTarget );
+        idTarget targetId() const;
 
-        std::vector< value_type >& adducts( bool positive = true );
-        const std::vector< value_type >& adducts( bool positive = true ) const;
+        std::vector< std::pair< bool, std::string > >& adducts();
+        const std::vector< std::pair< bool, std::string > >& adducts() const;
+
+        std::vector< std::pair< bool, std::string > >& lose();
+        const std::vector< std::pair< bool, std::string > >& lose() const;
 
 		std::pair< unsigned int, unsigned int > chargeState() const;
 		void chargeState( unsigned int, unsigned int );
 
-		std::vector< value_type >& formulae();
-		const std::vector< value_type >& formulae() const;
+		std::vector< std::pair< bool, std::string > >& formulae();
+		const std::vector< std::pair< bool, std::string > >& formulae() const;
+
+		std::vector< std::pair< bool, std::pair< std::string, std::string > > >& peptides();
+		const std::vector< std::pair< bool, std::pair< std::string, std::string > > >& peptides() const;
 
         bool is_use_resolving_power() const;
         void is_use_resolving_power( bool );
@@ -81,46 +90,69 @@ namespace adcontrols {
         void tolerance( double );
 
     private:
-        bool isPositiveIonMode_;
-
+        idTarget idTarget_;
+        // bool isPositiveIonMode_;
         bool is_use_resolving_power_;
         double resolving_power_;
         double peak_width_;
-        unsigned int chargeStateMin_;
-        unsigned int chargeStateMax_;
+        uint32_t chargeStateMin_;
+        uint32_t chargeStateMax_;
         bool isLowMassLimitEnabled_;
         bool isHighMassLimitEnabled_;
         double lowMassLimit_;
         double highMassLimit_;
         double tolerance_;
 
-		// formula should be formatted of "<chemical-formula-string> -- any comment" | "numerical value -- any comment"
-        std::vector< std::pair< std::wstring, bool > > formulae_;
-
-		// adducts formula should be formatted of: "[+-]<formula-string>" where '+' or '-' specify adduct or loss
-        std::vector< std::pair< std::wstring, bool > > adductsPos_;
-        std::vector< std::pair< std::wstring, bool > > adductsNeg_;
-
+        std::vector< std::pair< bool, std::string > > formulae_;
+        std::vector< std::pair< bool, std::string > > adducts_;
+        std::vector< std::pair< bool, std::string > > lose_;
+        std::vector< std::pair< bool, std::pair< std::string, std::string > > > peptides_;
+        
         friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, const unsigned int) {
+        template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( isPositiveIonMode_ );
-            ar & BOOST_SERIALIZATION_NVP( is_use_resolving_power_ );
-            ar & BOOST_SERIALIZATION_NVP( resolving_power_ );
-            ar & BOOST_SERIALIZATION_NVP( peak_width_ );
-            ar & BOOST_SERIALIZATION_NVP( chargeStateMin_ );
-            ar & BOOST_SERIALIZATION_NVP( chargeStateMax_ );
-            ar & BOOST_SERIALIZATION_NVP( isLowMassLimitEnabled_ );
-            ar & BOOST_SERIALIZATION_NVP( isHighMassLimitEnabled_ );
-            ar & BOOST_SERIALIZATION_NVP( lowMassLimit_ );
-            ar & BOOST_SERIALIZATION_NVP( highMassLimit_ );
-            ar & BOOST_SERIALIZATION_NVP( tolerance_ );
-            ar & BOOST_SERIALIZATION_NVP( formulae_ );
-            ar & BOOST_SERIALIZATION_NVP( adductsPos_ );
-            ar & BOOST_SERIALIZATION_NVP( adductsNeg_ );
+            if ( version <= 1 ) {
+                std::vector< std::pair< std::wstring, bool > > adducts;
+                std::vector< std::pair< std::wstring, bool > > formulae;
+                bool isPositive;
+
+                ar & BOOST_SERIALIZATION_NVP( isPositive );
+                ar & BOOST_SERIALIZATION_NVP( is_use_resolving_power_ );
+                ar & BOOST_SERIALIZATION_NVP( resolving_power_ );
+                ar & BOOST_SERIALIZATION_NVP( peak_width_ );
+                ar & BOOST_SERIALIZATION_NVP( chargeStateMin_ );
+                ar & BOOST_SERIALIZATION_NVP( chargeStateMax_ );
+                ar & BOOST_SERIALIZATION_NVP( isLowMassLimitEnabled_ );
+                ar & BOOST_SERIALIZATION_NVP( isHighMassLimitEnabled_ );
+                ar & BOOST_SERIALIZATION_NVP( lowMassLimit_ );
+                ar & BOOST_SERIALIZATION_NVP( highMassLimit_ );
+                ar & BOOST_SERIALIZATION_NVP( tolerance_ );
+                ar & BOOST_SERIALIZATION_NVP( formulae );
+                ar & BOOST_SERIALIZATION_NVP( adducts ); // pos
+                ar & BOOST_SERIALIZATION_NVP( adducts ); // neg
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( idTarget_ )
+                    & BOOST_SERIALIZATION_NVP( is_use_resolving_power_ )
+                    & BOOST_SERIALIZATION_NVP( resolving_power_ )
+                    & BOOST_SERIALIZATION_NVP( peak_width_ )
+                    & BOOST_SERIALIZATION_NVP( chargeStateMin_ )
+                    & BOOST_SERIALIZATION_NVP( chargeStateMax_ )
+                    & BOOST_SERIALIZATION_NVP( isLowMassLimitEnabled_ )
+                    & BOOST_SERIALIZATION_NVP( isHighMassLimitEnabled_ )
+                    & BOOST_SERIALIZATION_NVP( lowMassLimit_ )
+                    & BOOST_SERIALIZATION_NVP( highMassLimit_ )
+                    & BOOST_SERIALIZATION_NVP( tolerance_ )
+                    & BOOST_SERIALIZATION_NVP( adducts_ )
+                    & BOOST_SERIALIZATION_NVP( lose_)
+                    & BOOST_SERIALIZATION_NVP( formulae_ )
+                    & BOOST_SERIALIZATION_NVP( peptides_ )
+                    ;
+            }
         }
     };
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::TargetingMethod, 2 )
 
 #endif // TARGETINGMETHOD_H

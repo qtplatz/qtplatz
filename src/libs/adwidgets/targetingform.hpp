@@ -31,6 +31,8 @@ namespace Ui {
 class TargetingForm;
 }
 
+namespace adcontrols { class TargetingMethod; }
+
 namespace adwidgets {
 
     class TargetingForm : public QWidget
@@ -40,6 +42,9 @@ namespace adwidgets {
     public:
         explicit TargetingForm(QWidget *parent = 0);
         ~TargetingForm();
+
+        void getContents( adcontrols::TargetingMethod& );
+        void setContents( const adcontrols::TargetingMethod& );
 
     private:
         Ui::TargetingForm *ui;

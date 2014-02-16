@@ -101,6 +101,7 @@ namespace dataproc {
         void handleApplyMethod();
         void handleFeatureSelected( int );
         void handleFeatureActivated( int );
+        void handlePeptideTarget( const QVector<QPair<QString, QString> >& );
 
         void actionSelMSProcess();
         void actionSelElementalComp();
