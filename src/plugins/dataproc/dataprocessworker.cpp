@@ -36,11 +36,15 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/spectrogram.hpp>
+#include <adcontrols/targetingmethod.hpp>
+#include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <QMessageBox>
+#include <functional>
 
 using namespace dataproc;
 
@@ -131,13 +135,31 @@ DataprocessWorker::createSpectrogram( Dataprocessor* processor )
 void
 DataprocessWorker::clusterSpectrogram( Dataprocessor * processor )
 {
-    QMessageBox::information( 0, "DataprocessWorker", "Cluster spectrogram not implemented." );
+	qtwrapper::ProgressBar * p = new qtwrapper::ProgressBar;
+
+    std::lock_guard< std::mutex > lock( mutex_ );
+	if ( threads_.empty() )
+		threads_.push_back( std::thread( [=] { io_service_.run(); } ) );
+
+	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
+	MainWindow::instance()->getProcessMethod( *pm );
+
+    threads_.push_back( std::thread( [=] { handleClusterSpectrogram( processor, pm, p ); } ) );
 }
 
 void
 DataprocessWorker::findPeptide( Dataprocessor * processor, const adprot::digestedPeptides& peptides )
 {
-    QMessageBox::information( 0, "DataprocessWorker", "findPeptide not implemented." );
+	qtwrapper::ProgressBar * p = new qtwrapper::ProgressBar;
+
+    std::lock_guard< std::mutex > lock( mutex_ );
+	if ( threads_.empty() )
+		threads_.push_back( std::thread( [=] { io_service_.run(); } ) );
+
+	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
+	MainWindow::instance()->getProcessMethod( *pm );
+
+    threads_.push_back( std::thread( [=] { handleFindPeptide( processor, pm, p ); } ) );
 }
 
 void
@@ -232,4 +254,73 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
     
+}
+
+void
+DataprocessWorker::handleFindPeptide( Dataprocessor* processor
+                                      , const std::shared_ptr< adcontrols::ProcessMethod > pm
+                                      , qtwrapper::ProgressBar * progress )
+{
+    progress->setStarted();
+
+    adcontrols::TargetingMethod tm;
+    auto it = std::find_if( pm->begin(), pm->end(), [](const adcontrols::ProcessMethod::value_type& t){
+            using adcontrols::TargetingMethod;
+            return t.type() == typeid(TargetingMethod) && boost::get<TargetingMethod>(t).targetId() == TargetingMethod::idTargetPeptide;});
+    if ( it != pm->end() )
+        tm = boost::get<adcontrols::TargetingMethod>( *it );
+    
+    adcontrols::MassSpectraPtr ptr;
+
+    if ( portfolio::Folder folder = processor->portfolio().findFolder( L"Spectrograms" ) ) {
+		if ( auto folium = folder.findFoliumByName( L"Spectrogram" ) )
+            portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium );
+    }
+
+    if ( ptr ) {
+        // make a list of possible ions
+
+        // find peaks for each item on the list
+
+        // find a cluster for a found peak
+    }
+
+	progress->dispose();
+    io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
+}
+
+void
+DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
+                                             , const std::shared_ptr< adcontrols::ProcessMethod > pm
+                                             , qtwrapper::ProgressBar * progress )
+{
+    progress->setStarted();
+
+    adcontrols::TargetingMethod tm;
+    auto it = std::find_if( pm->begin(), pm->end(), [](const adcontrols::ProcessMethod::value_type& t){
+            using adcontrols::TargetingMethod;
+            return t.type() == typeid(TargetingMethod) && boost::get<TargetingMethod>(t).targetId() == TargetingMethod::idTargetPeptide;});
+    if ( it != pm->end() )
+        tm = boost::get<adcontrols::TargetingMethod>( *it );
+    
+    adcontrols::MassSpectraPtr ptr;
+
+    if ( portfolio::Folder folder = processor->portfolio().findFolder( L"Spectrograms" ) ) {
+        if ( auto folium = folder.findFoliumByName( L"Spectrogram" ) )
+            portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium );
+    }
+
+    if ( ptr ) {
+        adcontrols::Spectrogram::ClusterMethod m;
+        adcontrols::Spectrogram::ClusterFinder finder( m, [=](int curr, int total)->bool{
+                if ( curr == 0 )
+                    progress->setProgressRange( 0, total );
+                progress->setProgressValue( curr );
+                return true;
+            });
+        finder( *ptr );
+    }
+
+	progress->dispose();
+    io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
 }

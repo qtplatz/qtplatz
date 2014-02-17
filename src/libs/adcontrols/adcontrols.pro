@@ -85,7 +85,9 @@ SOURCES += acceptor.cpp \
     mspeakinfo.cpp \
     mspeak.cpp \
     mspeaks.cpp \
-    mschromatogrammethod.cpp
+    mschromatogrammethod.cpp \
+    spectrogram.cpp \
+    targeting.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -157,7 +159,9 @@ HEADERS += acceptor.hpp \
     mspeakinfo.hpp \
     mspeak.hpp \
     mspeaks.hpp \
-    mschromatogrammethod.hpp
+    mschromatogrammethod.hpp \
+    spectrogram.hpp \
+    targeting.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 

@@ -65,9 +65,18 @@ namespace dataproc {
                                         , const std::shared_ptr< adcontrols::ProcessMethod >
                                         , const std::vector< std::tuple< int, double, double > >&
                                         , qtwrapper::ProgressBar* );
+
         void handleCreateSpectrogram( Dataprocessor *
                                       , const std::shared_ptr< adcontrols::ProcessMethod >
                                       , qtwrapper::ProgressBar* );
+        
+        void handleClusterSpectrogram( Dataprocessor *
+                                       , const std::shared_ptr< adcontrols::ProcessMethod >
+                                       , qtwrapper::ProgressBar* );
+
+        void handleFindPeptide( Dataprocessor *
+                                , const std::shared_ptr< adcontrols::ProcessMethod >
+                                , qtwrapper::ProgressBar* );
 
         void join( const std::thread::id& );
     };
