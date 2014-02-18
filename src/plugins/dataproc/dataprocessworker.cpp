@@ -45,6 +45,7 @@
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <QMessageBox>
 #include <functional>
+#include <chrono>
 
 using namespace dataproc;
 
@@ -310,6 +311,8 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
             portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium );
     }
 
+	std::vector< std::shared_ptr< adcontrols::Spectrogram::ClusterData > > clusters;
+    std::chrono::steady_clock::time_point start;
     if ( ptr ) {
         adcontrols::Spectrogram::ClusterMethod m;
         adcontrols::Spectrogram::ClusterFinder finder( m, [=](int curr, int total)->bool{
@@ -318,8 +321,15 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
                 progress->setProgressValue( curr );
                 return true;
             });
-        finder( *ptr );
+        finder( *ptr, clusters );
+        // todo: post data here
+        
+        // 
+        start = std::chrono::steady_clock::now();
     }
+
+    ADDEBUG() << "destractor spent: " 
+              << double( std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - start ).count() / 1000.0 );
 
 	progress->dispose();
     io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );

@@ -28,6 +28,9 @@
 #include "adcontrols_global.h"
 #include <vector>
 #include <functional>
+#include <cstdint>
+#include <memory>
+#include <tuple>
 
 #if defined _MSC_VER
 # pragma warning(disable:4251)
@@ -52,34 +55,43 @@ namespace adcontrols {
             } 
         };
 
-        struct ADCONTROLSSHARED_EXPORT ClusterData {
+        typedef ADCONTROLSSHARED_EXPORT struct peak_type {
+            uint32_t idx_;
             double mass_;
-            double time_;
-            double sdMass_; // distribution for masses (assume gaussian distribution)
-            double sdTime_; // distribution for times (assume gaussian distribution)
-            double height_; // maximum hight of centroid peaks on spectra
-            double volume_; // sum of centroid peaks on spectra
-            size_t idFirst_; // first spectrum index of this cluster
-            size_t idLast_;  // last spectrum index of this cluster
+            double height_;
+            bool flag_;
+            peak_type( uint32_t idx, double m, double h ) : idx_(idx), mass_(m), height_(h), flag_( false ) {}
+        };
 
-            ClusterData( double m = 0, double t = 0, double dM = 0, double dT = 0, double h = 0, double v = 0, size_t id0 = 0, size_t id1 = 0)
-                : mass_(m), time_(t), sdMass_(dM), sdTime_(dT), height_(h), volume_(v), idFirst_(id0), idLast_(id1) {
-            }
+        class ADCONTROLSSHARED_EXPORT ClusterData { // : public std::enable_shared_from_this< ClusterData > {
+            std::vector< peak_type > peaks_;
+        public:
+            ClusterData( const ClusterData& );
+            ClusterData();
+            ~ClusterData();
+
+            inline void push_back( const peak_type& pk ) { peaks_.push_back( pk ); }
+            inline std::vector<peak_type>::iterator begin() { return peaks_.begin(); };
+            inline std::vector<peak_type>::iterator end() { return peaks_.end(); };
+            inline peak_type& font() { return peaks_.front(); }
+            inline peak_type& back() { return peaks_.back(); }
+            inline size_t size() const { return peaks_.size(); }
+            inline void insert( std::vector< peak_type >::iterator it, const peak_type& pk ) { peaks_.insert( it, pk ); }
         };
 
         class ADCONTROLSSHARED_EXPORT ClusterFinder {
-            ClusterFinder( const ClusterFinder& t );
+            ClusterFinder( const ClusterFinder& t, std::vector< std::shared_ptr< ClusterData > >& );
 
         public:
             ClusterFinder( const ClusterMethod& m, std::function<bool (int curr, int total)> );
-            bool operator()( const MassSpectra& );
+            bool operator()( const MassSpectra&, std::vector< std::shared_ptr< ClusterData > >&  );
 
             std::vector< ClusterData >& clusters();
             const std::vector< ClusterData >& clusters() const;
 
         private:
             std::function< bool( int curr, long total ) > progress_;
-            std::vector< ClusterData > clusters_;
+            std::vector< std::shared_ptr< ClusterData > > work_;
             ClusterMethod method_;
         };
         
