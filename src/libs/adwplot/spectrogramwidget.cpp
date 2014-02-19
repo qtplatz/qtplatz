@@ -26,6 +26,7 @@
 #include "spectrogramdata.hpp"
 #include "zoomer.hpp"
 #include "picker.hpp"
+#include <adcontrols/spectrogram.hpp> // clusters
 #include <adportable/debug.hpp>
 #include <qtwrapper/font.hpp>
 #include <qwt_plot_spectrogram.h>
@@ -40,15 +41,17 @@
 #include <qwt_plot_picker.h>
 #include <qwt_picker_machine.h>
 #include <qwt_painter.h>
+#include <qwt_plot_item.h>
 #include <QBrush>
 #include <QEvent>
 #include <QMouseEvent>
+#include <QPainter>
 #include <iostream>
 #include <boost/format.hpp>
 #include <cmath>
 
 namespace adwplot {
-    namespace detail {
+    namespace spectrogram {
         
         class ColorMap: public QwtLinearColorMap {
         public:
@@ -59,7 +62,40 @@ namespace adwplot {
             }
         };
 
-    } // namespace detail
+        class ClusterMarker : public QwtPlotItem {
+        public:
+            ClusterMarker() {
+                setZ( 10 );
+            }
+            void draw( QPainter * painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap, const QRectF& canvasRect ) const override {
+                if ( auto clusters = clusters_.lock() ) {
+
+                    painter->save();
+                    painter->setPen( QColor( 0xff, 0x00, 0x00, 0x40 ) );
+
+					for ( auto& cluster: *clusters ) {
+						QRectF rc;
+						rc.setCoords( cluster.time_interval().first, cluster.mass_interval().first
+							, cluster.time_interval().second, cluster.mass_interval().second );
+						QRectF xrc = QwtScaleMap::transform( xMap, yMap, rc );
+						if ( canvasRect.contains( xrc ) )
+							painter->drawRect( xrc ); 
+					}
+                    painter->restore();
+                    
+                } else {
+                    int x0 = xMap.transform( 5.0 );
+                    int x1 = xMap.transform( 5.1 );
+                    int y0 = yMap.transform( 400.0 );
+                    int y1 = yMap.transform( 401.0 );
+                    QRect rc( x0, y0, x1 - x0, y1 - y0 );
+                    painter->fillRect( rc, QColor( 0xff, 0x00, 0x00, 0x80 ) ); 
+                }
+            }
+            std::weak_ptr< adcontrols::SpectrogramClusters > clusters_;
+        };
+
+    } // namespace spectrogram
 }
 
 using namespace adwplot;
@@ -69,9 +105,10 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
                                                         , zoomer_( new Zoomer( xBottom, yLeft, canvas() ) )
                                                         , picker_( new Picker( canvas() ) )
                                                         , data_(0)
+                                                        , clusterMarker_( new spectrogram::ClusterMarker() )
 {
     spectrogram_->setRenderThreadCount( 0 ); // use system specific thread count
-    spectrogram_->setColorMap( new detail::ColorMap() );
+    spectrogram_->setColorMap( new spectrogram::ColorMap() );
     spectrogram_->setCachePolicy( QwtPlotRasterItem::PaintCache );
 
     if ( Zoomer * zoomer = dynamic_cast< Zoomer * >( zoomer_ ) ) {
@@ -91,13 +128,15 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
 
 	setData( new SpectrogramData() );
     spectrogram_->attach( this );
+    clusterMarker_->attach( this );
+    clusterMarker_->setZ( spectrogram_->z() + 10 );
 
     const QwtInterval zInterval = spectrogram_->data()->interval( Qt::ZAxis );
     // A color bar on the right axis
     QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
     rightAxis->setTitle( QwtText( "Intensity", QwtText::RichText ) );
     rightAxis->setColorBarEnabled( true );
-	rightAxis->setColorMap( zInterval, new detail::ColorMap );
+	rightAxis->setColorMap( zInterval, new spectrogram::ColorMap );
 
     setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
     enableAxis( QwtPlot::yRight );
@@ -141,12 +180,19 @@ SpectrogramWidget::setData( SpectrogramData * data )
     const QwtInterval zInterval = data->interval( Qt::ZAxis );
     setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
     // A color bar on the right axis
-    axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap() );
+    axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new spectrogram::ColorMap() );
 
     spectrogram_->setData( data );
     replot();
 
     zoomer_->setZoomBase( false );
+}
+
+void
+SpectrogramWidget::setData( adcontrols::SpectrogramClusters * clusters )
+{
+    auto ptr = clusters->shared_from_this();
+    clusterMarker_->clusters_ = ptr;
 }
 
 void
@@ -192,7 +238,7 @@ SpectrogramWidget::handleZoomed( const QRectF& rc )
         if ( data_->zoomed( rc ) ) {
             spectrogram_->invalidateCache();
 			const QwtInterval zInterval = data_->interval( Qt::ZAxis );
-            axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap );
+            axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new spectrogram::ColorMap );
             setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
             replot();
         }

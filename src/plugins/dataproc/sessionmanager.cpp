@@ -83,7 +83,6 @@ void
 SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
     activeDataprocessor_ = dataprocessor;
-    //emit signalSessionUpdated( dataprocessor, folium );
     emit onSessionUpdated( dataprocessor, QString::fromStdWString( folium.id() ) );
 }
 

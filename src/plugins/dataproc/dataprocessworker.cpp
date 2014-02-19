@@ -311,7 +311,7 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
             portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium );
     }
 
-	std::vector< std::shared_ptr< adcontrols::Spectrogram::ClusterData > > clusters;
+	std::shared_ptr< adcontrols::SpectrogramClusters > clusters( std::make_shared< adcontrols::SpectrogramClusters >() );
     std::chrono::steady_clock::time_point start;
     if ( ptr ) {
         adcontrols::Spectrogram::ClusterMethod m;
@@ -321,11 +321,11 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
                 progress->setProgressValue( curr );
                 return true;
             });
-        finder( *ptr, clusters );
-        // todo: post data here
-        
+        finder( *ptr, *clusters );
+        processor->addSpectrogramClusters( clusters );
         // 
         start = std::chrono::steady_clock::now();
+        // heap free checking on microsoft takes long time (more than 30 min for deleting 4000k objects)
     }
 
     ADDEBUG() << "destractor spent: " 

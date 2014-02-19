@@ -31,7 +31,9 @@
 #include <adportable/debug.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <algorithm>
-#include <list>
+
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
 
 using namespace adcontrols;
 
@@ -39,11 +41,57 @@ Spectrogram::Spectrogram()
 {
 }
 
+SpectrogramClusters::SpectrogramClusters()
+{
+}
+
+SpectrogramClusters::SpectrogramClusters( const SpectrogramClusters& t ) : data_( t.data_ )
+{
+}
+
+void
+SpectrogramClusters::operator << ( const Spectrogram::ClusterData& d )
+{
+    data_.push_back( d );
+}
+
+size_t
+SpectrogramClusters::size() const
+{
+    return data_.size();
+}
+
+SpectrogramClusters::iterator
+SpectrogramClusters::begin()
+{
+    return data_.begin();
+}
+
+SpectrogramClusters::iterator
+SpectrogramClusters::end()
+{
+    return data_.end();
+}
+
+SpectrogramClusters::const_iterator
+SpectrogramClusters::begin() const
+{
+    return data_.begin();
+}
+
+SpectrogramClusters::const_iterator
+SpectrogramClusters::end() const
+{
+    return data_.end();
+}
+
 Spectrogram::ClusterData::ClusterData()
 {
 }
 
 Spectrogram::ClusterData::ClusterData( const ClusterData& t ) : peaks_( t.peaks_ )
+                                                              , mass_interval_( t.mass_interval_ )
+                                                              , time_interval_( t.time_interval_ )
 {
 }
 
@@ -53,14 +101,13 @@ Spectrogram::ClusterData::~ClusterData()
 }
 
 Spectrogram::ClusterFinder::ClusterFinder( const Spectrogram::ClusterMethod& m
-                                           , std::function<bool (int curr, int total)> progress ) : method_(m)
-                                                                                                  , progress_( progress )
+                                         , std::function<bool (int curr, int total)> progress ) : method_(m)
+                                                                                                , progress_( progress )
 {
 }
 
 bool
-Spectrogram::ClusterFinder::operator()( const MassSpectra& spectra
-                                        , std::vector< std::shared_ptr< ClusterData > >& clusters )
+Spectrogram::ClusterFinder::operator()( const MassSpectra& spectra, SpectrogramClusters& clusters )
 {
     progress_( 0, int(spectra.size()) );
 
@@ -90,12 +137,10 @@ Spectrogram::ClusterFinder::operator()( const MassSpectra& spectra
     int iprog = 0;
 	progress_( iprog, int(npeaks) );
 
-    // std::vector< std::shared_ptr< ClusterData > > pclusters;
-
     auto it = peaks.begin();
     while ( it != peaks.end() ) {
 
-        work_.push_back( std::make_shared< ClusterData>() );
+        work_.push_back( std::make_shared< ClusterData >() );
         ClusterData& cluster = *work_.back();
 
 		it->flag_ = true;
@@ -105,12 +150,12 @@ Spectrogram::ClusterFinder::operator()( const MassSpectra& spectra
 			if ( ! it2->flag_ ) {
                 auto equalIdx = std::find_if( cluster.begin(), cluster.end(), [=]( const peak_type& a ){ return a.idx_ == it2->idx_; });
                 if ( equalIdx == cluster.end() ) {
-					uint32_t fidx = cluster.font().idx_ < 5 ? 0 : cluster.font().idx_ - 5;
+					uint32_t fidx = cluster.front().idx_ < 5 ? 0 : cluster.front().idx_ - 5;
 					uint32_t bidx = cluster.back().idx_ + 5;
                     if ( fidx < it2->idx_ && it2->idx_ < bidx ) {
                         it2->flag_ = true;
                         cluster.insert( std::lower_bound( cluster.begin(), cluster.end()
-                                                                 , it2->idx_, []( const peak_type& a, uint32_t i ){ return a.idx_ < i; }), *it2 );
+                                                          , it2->idx_, []( const peak_type& a, uint32_t i ){ return a.idx_ < i; }), *it2 );
                     }
                 }
 			}
@@ -127,8 +172,13 @@ Spectrogram::ClusterFinder::operator()( const MassSpectra& spectra
     }
 
     std::for_each( work_.begin(), work_.end(), [&]( std::shared_ptr< ClusterData >& p ){
-            if ( p->size() >= 5 )
-                clusters.push_back( p );
+            if ( p->size() >= 5 ) {
+                auto m0 = std::min_element( p->begin(), p->end(), []( const Spectrogram::peak_type& a, const Spectrogram::peak_type& b ){ return a.mass_ < b.mass_; });
+                auto m1 = std::max_element( p->begin(), p->end(), []( const Spectrogram::peak_type& a, const Spectrogram::peak_type& b ){ return a.mass_ < b.mass_; });
+                p->mass_interval( m0->mass_, m1->mass_ );
+                p->time_interval( spectra.x()[ p->front().idx_ ], spectra.x()[ p->back().idx_ ] );
+                clusters << *p;
+            }
         });
 
 	return true;
@@ -161,3 +211,23 @@ Spectrogram::ChromatogramExtractor::operator () ( Chromatogram& c, double lMass,
     }
     
 }
+
+//////////////////
+// static
+bool
+SpectrogramClusters::archive( std::ostream& os, const SpectrogramClusters& clusters )
+{
+    portable_binary_oarchive ar( os );
+    ar << clusters;
+    return true;
+}
+
+//static
+bool
+SpectrogramClusters::restore( std::istream& is, SpectrogramClusters& v )
+{
+    portable_binary_iarchive ar( is );
+    ar >> v;
+    return true;
+}
+

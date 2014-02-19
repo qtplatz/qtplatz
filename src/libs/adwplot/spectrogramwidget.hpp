@@ -33,15 +33,20 @@ class QwtRasterData;
 class QwtPlotZoomer;
 class QwtPlotPicker;
 
+namespace adcontrols { class SpectrogramClusters; }
+
 namespace adwplot {
 
     class SpectrogramData;
+
+    namespace spectrogram { class ClusterMarker; }
 
     class SpectrogramWidget : public QwtPlot {
         Q_OBJECT
     public:
         explicit SpectrogramWidget(QWidget *parent = 0);
         void setData( SpectrogramData * );
+        void setData( adcontrols::SpectrogramClusters * );
     
     signals:
         void dataChanged();
@@ -64,6 +69,8 @@ namespace adwplot {
         QwtPlotZoomer * zoomer_;
         QwtPlotPicker * picker_;
         SpectrogramData * data_;
+        adwplot::spectrogram::ClusterMarker * clusterMarker_;
+
         void handle_signal();
 
         QwtText tracker1( const QPointF& );

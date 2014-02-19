@@ -69,6 +69,9 @@ ProcessedData::toVariant( boost::any & a )
     else if ( adportable::a_type< MassSpectraPtr >::is_a( a ) )
         return boost::any_cast< MassSpectraPtr >( a );
 
+    else if ( adportable::a_type< SpectrogramClustersPtr >::is_a( a ) )
+        return boost::any_cast< SpectrogramClustersPtr >( a );
+
     adportable::debug(__FILE__, __LINE__)
         << "ProcessedData::toVariant( " << a.type().name() << " ) -- return Nothing()";
 

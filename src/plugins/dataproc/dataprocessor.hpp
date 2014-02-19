@@ -45,6 +45,7 @@ namespace adcontrols {
     class MSCalibrateMethod;
 	class MSCalibrateResult;
     class CentroidMethod;
+    class SpectrogramClusters;
 }
 
 namespace adprot { class digestedPeptides; }
@@ -101,6 +102,8 @@ namespace dataproc {
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& );
+        portfolio::Folium addSpectrogramClusters( std::shared_ptr< adcontrols::SpectrogramClusters >& );
+
         portfolio::Portfolio& portfolio() { return *portfolio_; }
 
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );

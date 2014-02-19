@@ -137,10 +137,10 @@ MainWindow::install_actions()
     if ( QAction * action = new QAction( tr("Data processing"), this ) ) {
         (void)action;
 
-		actions_[ idActCreateSpectrogram ] = new QAction( tr("Create spectrogram"), this );
+		actions_[ idActCreateSpectrogram ] = new QAction( tr("Create Spectrogram"), this );
         connect( actions_[ idActCreateSpectrogram ], SIGNAL( triggered() ), this, SLOT( actCreateSpectrogram() ) );
 
-		actions_[ idActClusterSpectrogram ] = new QAction( tr("Cluster pectrogram"), this );
+		actions_[ idActClusterSpectrogram ] = new QAction( tr("Cluster Spectrogram"), this );
         connect( actions_[ idActClusterSpectrogram ], SIGNAL( triggered() ), this, SLOT( actClusterSpectrogram() ) );
 
         if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {

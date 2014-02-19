@@ -30,7 +30,11 @@
 #include <functional>
 #include <cstdint>
 #include <memory>
-#include <tuple>
+
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/utility.hpp>
 
 #if defined _MSC_VER
 # pragma warning(disable:4251)
@@ -40,6 +44,8 @@ namespace adcontrols {
 
     class MassSpectra;
     class Chromatogram;
+    class SpectrogramClusters;
+    typedef std::shared_ptr< SpectrogramClusters > SpectrogramClustersPtr;
 
     class ADCONTROLSSHARED_EXPORT Spectrogram  {
     public:
@@ -60,11 +66,16 @@ namespace adcontrols {
             double mass_;
             double height_;
             bool flag_;
-            peak_type( uint32_t idx, double m, double h ) : idx_(idx), mass_(m), height_(h), flag_( false ) {}
+            peak_type( uint32_t idx = 0, double m = 0, double h = 0 ) : idx_(idx), mass_(m), height_(h), flag_( false ) {}
+
+        private:
+            friend class boost::serialization::access;
+            template<class Archive> void serialize(Archive& ar, const unsigned int ) {
+                ar & BOOST_SERIALIZATION_NVP( idx_ ) & BOOST_SERIALIZATION_NVP( mass_ ) & BOOST_SERIALIZATION_NVP( height_ );
+            }
         };
 
         class ADCONTROLSSHARED_EXPORT ClusterData { // : public std::enable_shared_from_this< ClusterData > {
-            std::vector< peak_type > peaks_;
         public:
             ClusterData( const ClusterData& );
             ClusterData();
@@ -73,10 +84,25 @@ namespace adcontrols {
             inline void push_back( const peak_type& pk ) { peaks_.push_back( pk ); }
             inline std::vector<peak_type>::iterator begin() { return peaks_.begin(); };
             inline std::vector<peak_type>::iterator end() { return peaks_.end(); };
-            inline peak_type& font() { return peaks_.front(); }
+            inline peak_type& front() { return peaks_.front(); }
             inline peak_type& back() { return peaks_.back(); }
             inline size_t size() const { return peaks_.size(); }
             inline void insert( std::vector< peak_type >::iterator it, const peak_type& pk ) { peaks_.insert( it, pk ); }
+            inline const std::pair< double, double >& mass_interval() const { return mass_interval_; }
+            inline void mass_interval( double min, double max ) { mass_interval_ = std::make_pair( min, max ); }
+            inline const std::pair< double, double >& time_interval() const { return time_interval_; }
+            inline void time_interval( double min, double max ) { time_interval_ = std::make_pair( min, max ); }
+        private:
+            std::vector< peak_type > peaks_;
+            std::pair< double, double > mass_interval_;
+            std::pair< double, double > time_interval_;
+
+            friend class boost::serialization::access;
+            template<class Archive> void serialize(Archive& ar, const unsigned int ) {
+                ar & BOOST_SERIALIZATION_NVP( peaks_ )
+                    & BOOST_SERIALIZATION_NVP( mass_interval_ )
+                    & BOOST_SERIALIZATION_NVP( time_interval_ );
+            };
         };
 
         class ADCONTROLSSHARED_EXPORT ClusterFinder {
@@ -84,10 +110,7 @@ namespace adcontrols {
 
         public:
             ClusterFinder( const ClusterMethod& m, std::function<bool (int curr, int total)> );
-            bool operator()( const MassSpectra&, std::vector< std::shared_ptr< ClusterData > >&  );
-
-            std::vector< ClusterData >& clusters();
-            const std::vector< ClusterData >& clusters() const;
+            bool operator()( const MassSpectra&, SpectrogramClusters& );
 
         private:
             std::function< bool( int curr, long total ) > progress_;
@@ -103,9 +126,38 @@ namespace adcontrols {
             const MassSpectra& spectra_;
             std::vector< double > seconds_;
         };
-
     };
 
+    //////////////////
+
+    class ADCONTROLSSHARED_EXPORT SpectrogramClusters : public std::enable_shared_from_this< SpectrogramClusters > {
+    public:
+
+        static const wchar_t * dataClass() { return L"adcontrols::SpectrogramClusters"; }
+
+        SpectrogramClusters();
+        SpectrogramClusters( const SpectrogramClusters& );
+
+        void operator << ( const Spectrogram::ClusterData& );
+        typedef std::vector< Spectrogram::ClusterData >::iterator iterator;
+        typedef std::vector< Spectrogram::ClusterData >::const_iterator const_iterator;
+        size_t size() const;
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
+
+        static bool archive( std::ostream&, const SpectrogramClusters& );
+        static bool restore( std::istream&, SpectrogramClusters& );
+        
+    private:
+        std::vector< Spectrogram::ClusterData > data_;
+
+        friend class boost::serialization::access;
+        template<class Archive> void serialize(Archive& ar, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( data_ );
+        };
+    };
 }
 
 #endif // SPECTROGRAM_HPP

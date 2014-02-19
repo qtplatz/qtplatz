@@ -66,6 +66,7 @@
 #include <adcontrols/waveform.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/spectrogram.hpp>
 //#include <adorbmgr/orbmgr.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/profile.hpp>
@@ -701,9 +702,23 @@ Dataprocessor::addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& spect
     portfolio::Folder folder = portfolio_->addFolder( L"Spectrograms" );
     portfolio::Folium folium = folder.addFolium( L"Spectrogram" );  // "Spectrograms/Spectrogram"
 	folium.assign( spectra, spectra->dataClass() );
-    SessionManager::instance()->updateDataprocessor( this, folium ); // this cause an error on emit since this is in worker thread
+    SessionManager::instance()->updateDataprocessor( this, folium );
 	return folium;
 }
+
+portfolio::Folium
+Dataprocessor::addSpectrogramClusters( std::shared_ptr< adcontrols::SpectrogramClusters >& clusters )
+{
+    portfolio::Folder folder = portfolio_->addFolder( L"Spectrograms" );
+    portfolio::Folium folium = folder.findFoliumByName( L"Spectrogram" );  // "Spectrograms/Spectrogram"
+    if ( folium ) {
+        portfolio::Folium att = folium.addAttachment( L"Clusters" );
+        att.assign( clusters, clusters->dataClass() );
+        SessionManager::instance()->updateDataprocessor( this, folium );
+    }
+	return folium;
+}
+
 
 void
 Dataprocessor::createSpectrogram()

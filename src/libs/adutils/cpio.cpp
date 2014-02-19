@@ -43,6 +43,7 @@
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/massspectra.hpp>
+#include <adcontrols/spectrogram.hpp>
 #include <boost/exception/all.hpp>
 
 using namespace adutils;
@@ -103,6 +104,10 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         return internal::cpio_handler< adcontrols::MassSpectra >::save( dbf, a );
 
+    } else if ( adportable::a_type< adcontrols::SpectrogramClustersPtr >::is_a( a ) ) {
+
+        return internal::cpio_handler< adcontrols::SpectrogramClusters >::save( dbf, a );
+        
     }
 
 	struct cpio_error : virtual boost::exception, virtual std::exception {};

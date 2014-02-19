@@ -206,8 +206,6 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     if ( SessionManager * mgr = SessionManager::instance() ) {
         connect( mgr, SIGNAL( onSessionRemoved( Dataprocessor* ) ), this, SLOT( handleRemoveSession( Dataprocessor * ) ) );
         connect( mgr, SIGNAL( signalAddSession( Dataprocessor* ) ), this, SLOT( handleAddSession( Dataprocessor * ) ) );
-        // connect( mgr, SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium ) )
-        //          , this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium ) ) );
         connect( mgr, SIGNAL( onSessionUpdated( Dataprocessor*, const QString& ) ), this, SLOT( handleSessionUpdated( Dataprocessor *, const QString& ) ) );
         connect( mgr, SIGNAL( onFolderChanged( Dataprocessor*, const QString& ) )
                  , this, SLOT( handleFolderChanged( Dataprocessor *, const QString& ) ) );
@@ -335,7 +333,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, const QString
 void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    QString filename( qtwrapper::qstring::copy( processor->file().filename() ) );
+    QString filename = QString::fromStdWString( processor->file().filename() );
 
     QStandardItemModel& model = *pModel_;
 

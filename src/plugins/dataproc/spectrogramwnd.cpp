@@ -27,6 +27,7 @@
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/spectrogram.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <portfolio/folium.hpp>
@@ -175,6 +176,13 @@ SpectrogramWnd::handleSelectionChanged( Dataprocessor*, portfolio::Folium& foliu
             data_ = ptr;
             plot_->setData( new detail::SpectrogramData( ptr ) );
         }
+        portfolio::Folio atts = folium.attachments();
+        portfolio::Folio::iterator it
+            = portfolio::Folium::find< adcontrols::SpectrogramClustersPtr >( atts.begin(), atts.end() );
+        if ( it != atts.end() ) {
+            adcontrols::SpectrogramClustersPtr clusters = boost::any_cast< adcontrols::SpectrogramClustersPtr >( *it );
+            plot_->setData( clusters.get() );
+        }
     }
 }
 
@@ -265,7 +273,6 @@ namespace dataproc {
         size_t 
         SpectrogramData::dx( double x ) const
         {
-            //size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( m_.size1() - 1 );
             size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( size1_ - 1 );
 			if ( d > m_.size1() - 1 )
 				return m_.size1() - 1;
