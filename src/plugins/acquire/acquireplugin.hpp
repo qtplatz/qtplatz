@@ -47,6 +47,8 @@ class QComboBox;
 class QPointF;
 class QRectF;
 
+namespace Core { class IMode; }
+
 namespace adcontrols {
     class MassSpectrometer;
     class DataInterpreter;
@@ -143,6 +145,7 @@ namespace acquire {
             adportable::Configuration * pConfig_;
 
             void initialize_actions();
+            QWidget * createContents( Core::IMode * );
 
             ControlServer::Session_var session_;
             SignalObserver::Observer_var observer_;
