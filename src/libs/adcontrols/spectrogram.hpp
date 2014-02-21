@@ -92,6 +92,7 @@ namespace adcontrols {
             inline void mass_interval( double min, double max ) { mass_interval_ = std::make_pair( min, max ); }
             inline const std::pair< double, double >& time_interval() const { return time_interval_; }
             inline void time_interval( double min, double max ) { time_interval_ = std::make_pair( min, max ); }
+            uint32_t center_index() const;
         private:
             std::vector< peak_type > peaks_;
             std::pair< double, double > mass_interval_;

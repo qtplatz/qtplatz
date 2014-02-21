@@ -70,8 +70,12 @@ namespace adwplot {
             void draw( QPainter * painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap, const QRectF& canvasRect ) const override {
                 if ( auto clusters = clusters_.lock() ) {
 
+					QRectF scaleRect = this->scaleRect( xMap, yMap );
+					if ( scaleRect.height() > 100 )
+						return;
+
                     painter->save();
-                    painter->setPen( QColor( 0xff, 0x00, 0x00, 0x40 ) );
+                    painter->setPen( QColor( 0xff, 0xff, 0xff, 0x60 ) );
 
 					for ( auto& cluster: *clusters ) {
 						QRectF rc;

@@ -100,6 +100,12 @@ Spectrogram::ClusterData::~ClusterData()
     peaks_.clear();
 }
 
+uint32_t
+Spectrogram::ClusterData::center_index() const
+{
+    return ( peaks_.back().idx_ + peaks_.front().idx_ ) / 2;
+}
+
 Spectrogram::ClusterFinder::ClusterFinder( const Spectrogram::ClusterMethod& m
                                          , std::function<bool (int curr, int total)> progress ) : method_(m)
                                                                                                 , progress_( progress )
@@ -150,8 +156,9 @@ Spectrogram::ClusterFinder::operator()( const MassSpectra& spectra, SpectrogramC
 			if ( ! it2->flag_ ) {
                 auto equalIdx = std::find_if( cluster.begin(), cluster.end(), [=]( const peak_type& a ){ return a.idx_ == it2->idx_; });
                 if ( equalIdx == cluster.end() ) {
-					uint32_t fidx = cluster.front().idx_ < 5 ? 0 : cluster.front().idx_ - 5;
-					uint32_t bidx = cluster.back().idx_ + 5;
+                    uint32_t moment = cluster.center_index();
+					uint32_t fidx = moment <= 60 ? 0 : moment - 60;
+					uint32_t bidx = moment + 60;
                     if ( fidx < it2->idx_ && it2->idx_ < bidx ) {
                         it2->flag_ = true;
                         cluster.insert( std::lower_bound( cluster.begin(), cluster.end()
