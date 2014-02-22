@@ -221,13 +221,13 @@ stmt::step()
 bool
 stmt::bind_blob( int nnn, const void * blob, std::size_t size, void dtor(void*) )
 {
-    return sqlite3_bind_blob( stmt_, nnn, blob, size, dtor ) == SQLITE_OK;
+    return sqlite3_bind_blob( stmt_, nnn, blob, static_cast<int>(size), dtor ) == SQLITE_OK;
 }
 
 bool
 stmt::bind_zeroblob( int nnn, std::size_t size )
 {
-    return sqlite3_bind_zeroblob( stmt_, nnn, size ) == SQLITE_OK;
+    return sqlite3_bind_zeroblob( stmt_, nnn, static_cast<int>(size) ) == SQLITE_OK;
 }
 
 //-------------
@@ -427,7 +427,7 @@ blob::blob( std::size_t octets, const char *p ) : p_( reinterpret_cast< const in
 boost::uint32_t
 blob::size() const
 { 
-    return octets_;
+    return static_cast<uint32_t>(octets_);
 }
 
 bool
@@ -466,7 +466,7 @@ blob::reopen( int64_t rowid )
 bool
 blob::read( int8_t * pbuf, std::size_t bufsize, std::size_t offset ) const
 {
-    if ( pBlob_ && ( sqlite3_blob_read( pBlob_, pbuf, bufsize, offset ) == SQLITE_OK ) )
+    if ( pBlob_ && ( sqlite3_blob_read( pBlob_, pbuf, bufsize, static_cast<int>(offset) ) == SQLITE_OK ) )
         return true;
     return false;
 }
@@ -474,7 +474,7 @@ blob::read( int8_t * pbuf, std::size_t bufsize, std::size_t offset ) const
 bool
 blob::write( const int8_t * pbuf, std::size_t octets, std::size_t offset ) const
 {
-    return sqlite3_blob_write( pBlob_, pbuf, octets, offset ) == SQLITE_OK;
+    return sqlite3_blob_write( pBlob_, pbuf, octets, static_cast<int>(offset) ) == SQLITE_OK;
 }
 
 ///////////////////

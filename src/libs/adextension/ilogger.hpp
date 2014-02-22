@@ -1,16 +1,15 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -23,17 +22,28 @@
 **
 **************************************************************************/
 
-#ifndef ADSERVANT_H
-#define ADSERVANT_H
+#ifndef ILOGGER_HPP
+#define ILOGGER_HPP
 
-#include "servant_global.h"
-#include <mutex>
+#include <QObject>
+#include "adextension_global.hpp"
 
-// class SERVANTSHARED_EXPORT Servant {
-// public:
-//     Servant();
-//     std::mutex mutex_;
-//     static Servant& instance();
-// };
+namespace adextension {
 
-#endif // ADSERVANT_H
+    class ADEXTENSIONSHARED_EXPORT iLogger : public QObject {
+        Q_OBJECT
+    public:
+        explicit iLogger(QObject *parent = 0);
+
+        virtual void operator << ( const std::string& ) = 0;
+        virtual void appendLog( const std::string&, bool isRichText = false ) = 0;
+
+    signals:
+
+    public slots:
+
+    };
+
+}
+
+#endif // ILOGGER_HPP

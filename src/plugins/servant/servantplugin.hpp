@@ -26,7 +26,6 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
-//#include <adplugin/orbservant.hpp>
 #include <vector>
 
 namespace adportable {
@@ -55,8 +54,6 @@ namespace servant {
     public slots:
         
     private:
-        void final_close();
-        // typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
-        // std::vector< adplugin::orbServant * > orbServants_;
+
     };
 }

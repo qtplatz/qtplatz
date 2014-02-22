@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,14 +22,11 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// MS-Cheminformatics LLC / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
 #include <coreplugin/ioutputpane.h>
+#include <adextension/ilogger.hpp>
 
 class QStackedWidget;
 class QPlainTextEdit;
@@ -47,7 +44,7 @@ namespace servant {
         void appendLog( const std::wstring& );
         void appendLog( const QString& );
 
-    // IOutputPane
+        // IOutputPane
         QWidget * outputWidget( QWidget * );
         QList<QWidget *> toolBarWidgets() const;
         QString name() const { return tr("Servant Log"); }
@@ -58,16 +55,17 @@ namespace servant {
         bool hasFocus();
         bool canFocus();
         void setFocus();
-
+        
         bool canNext();
         bool canPrevious();
         void goToNext();
         void goToPrev();
         bool canNavigate();
-
-        public slots:
-            void clearContents();
-
+                          
+    public slots:
+        void clearContents();
+        void handleLogging( const QString&, bool );
+        
     private:
         QStackedWidget * widget_;
         QPlainTextEdit * textWidget_;

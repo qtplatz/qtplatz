@@ -17,8 +17,9 @@ SOURCES += adextension.cpp \
            isequence.cpp \
            ieditorfactory.cpp \
            imonitorfactory.cpp \
-    ipeptide.cpp \
-    ipeptidehandler.cpp
+           ipeptide.cpp \
+           ipeptidehandler.cpp \
+           ilogger.cpp
 
 HEADERS += adextension.hpp\
            adextension_global.hpp \
@@ -26,8 +27,9 @@ HEADERS += adextension.hpp\
            isequence.hpp \
            ieditorfactory.hpp \
            imonitorfactory.hpp \
-    ipeptide.hpp \
-    ipeptidehandler.hpp
+           ipeptide.hpp \
+           ipeptidehandler.hpp \
+           ilogger.hpp
 
 unix:!symbian {
     maemo5 {

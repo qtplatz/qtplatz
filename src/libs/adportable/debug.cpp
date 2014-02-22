@@ -46,7 +46,7 @@ namespace adportable {
             logfile() : filename_( "debug.log" ) {
             }
             ~logfile() {
-	      instance_ = 0;
+                instance_ = 0;
             }
         public:
             static logfile * instance() {
@@ -57,7 +57,7 @@ namespace adportable {
                 return instance_;
             }
             static void dispose() {
-	      delete instance_;
+                delete instance_;
             }
             const std::string& filename() const {
                 return filename_;

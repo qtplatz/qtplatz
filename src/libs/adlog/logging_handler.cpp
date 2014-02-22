@@ -22,30 +22,51 @@
 **
 **************************************************************************/
 
-#ifndef LOGGER_HPP
-#define LOGGER_HPP
+#include "logging_handler.hpp"
 
-#include <adextension/ilogger.hpp>
+using namespace adlog;
 
-namespace servant {
+logging_handler * logging_handler::instance_ = 0;
+std::mutex logging_handler::mutex_;
 
-    class Logger : public adextension::iLogger {
-        Q_OBJECT
-    public:
-        explicit Logger(QObject *parent = 0);
-
-        void operator << ( const std::string& ) override;
-        void appendLog( const std::string&, bool ) override;
-
-        void operator()( const std::string& );
-
-    signals:
-        void onLogging( const QString&, bool );
-
-    public slots:
-
-    };
-
+logging_handler::logging_handler()
+{
 }
 
-#endif // LOGGER_HPP
+logging_handler *
+logging_handler::instance()
+{
+    if ( instance_ == 0 ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        
+        if ( instance_ == 0 )
+            instance_ = new logging_handler();
+    }
+
+    return instance_;
+}
+
+void
+logging_handler::register_handler( std::function<void( const std::string& )> f )
+{
+    loggers_.push_back( f );
+}
+
+logging_handler::iterator
+logging_handler::begin()
+{
+    return loggers_.begin();
+}
+
+logging_handler::iterator
+logging_handler::end()
+{
+    return loggers_.end();
+}
+
+size_t
+logging_handler::size() const
+{
+    return loggers_.size();
+}
+

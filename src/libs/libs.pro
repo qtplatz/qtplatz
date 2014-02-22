@@ -22,4 +22,5 @@ SUBDIRS   = \
     adorbmgr \
     adchem \
     adprot \
-    adwidgets
+    adwidgets \
+    adlog

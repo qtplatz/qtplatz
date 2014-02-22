@@ -11,36 +11,33 @@ include(../../ace_tao.pri)
 include(../../boost.pri)
 
 LIBS += -l$$qtLibraryTarget(adcontrols) \
-        -l$$qtLibraryTarget(acewrapper) \
+        -l$$qtLibraryTarget(adextension) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(adextension) \
-        -l$$qtLibraryTarget(adbroker) \
         -l$$qtLibraryTarget(xmlparser) \
         -l$$qtLibraryTarget(Core)
 
 !win32 {
-  LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
 }
 
 DEFINES += SERVANT_LIBRARY
 
-#  orbservantmanager.cpp --> to be deleted
-#  orbservantmanager.hpp --> to be deleted
-
 SOURCES += outputwindow.cpp \
         servant.cpp \
         servantmode.cpp \
-        servantplugin.cpp
+        servantplugin.cpp \
+    logger.cpp
 
 HEADERS += servant_global.h \
-        logger.hpp \
         outputwindow.hpp \
         servant.hpp \
         servantmode.hpp \
-        servantplugin.hpp
+        servantplugin.hpp \
+    logger.hpp
 
 OTHER_FILES += \
     servant.pluginspec \

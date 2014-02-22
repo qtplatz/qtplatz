@@ -26,7 +26,7 @@
 #include "servantplugin.hpp"
 #include "servantmode.hpp"
 #include "outputwindow.hpp"
-#include "servantpluginimpl.hpp"
+#include "logger.hpp"
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/coreconstants.h>
@@ -35,11 +35,10 @@
 #include <coreplugin/navigationwidget.h>
 #include <extensionsystem/pluginmanager.h>
 
-#include <acewrapper/constants.hpp>
-
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
-
+#include <adlog/logging_handler.hpp>
+#include <adlog/logger.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
@@ -52,7 +51,6 @@
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/configloader.hpp>
-
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
 
@@ -92,12 +90,18 @@ bool
 ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments);
+	(void)error_message;
 
     do { adportable::debug(__FILE__, __LINE__) << "<----- ServantPlugin::initialize() ..."; } while(0);
 
     OutputWindow * outputWindow = new OutputWindow;
     addAutoReleasedObject( outputWindow );
-    //pImpl_ = new internal::ServantPluginImpl( outputWindow );
+
+    if ( Logger * logger = new Logger ) {
+        connect( logger, SIGNAL( onLogging( const QString, bool ) ), outputWindow, SLOT( handleLogging( const QString, bool ) ) );
+        addAutoReleasedObject( logger );
+        adlog::logging_handler::instance()->register_handler( std::ref(*logger) );
+    }
 
     ///////////////////////////////////
     Core::ICore * core = Core::ICore::instance();
@@ -129,42 +133,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 				adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
 		});
 	}
-#if 0
-	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
-
-        adplugin::orbServant * adBroker = 0;
-
-        if ( adplugin::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
-
-            orbBroker->orbmgr_init( 0, 0 );
-
-            // adbroker::orbBroker& orbCreator = *orbBroker;
-            
-            try { 
-
-                adBroker = orbBroker->create_instance();
-                orbServants_.push_back( adBroker );
-
-            } catch ( boost::exception& ex ) {
-                *error_message = QString::fromStdString( boost::diagnostic_information( ex ) );
-                return false;
-            }
-
-            // ----------------------- initialize corba servants ------------------------------
-            std::vector< adplugin::plugin_ptr > factories;
-            adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
-            for ( const adplugin::plugin_ptr& plugin: factories ) {
-                
-                if ( plugin->iid() == adbroker_plugin->iid() )
-                    continue;
-                
-                if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) ) {
-                    orbServants_.push_back( servant );
-                }
-            }
-        }
-    }
-#endif
     do { adportable::debug() << "----> ServantPlugin::initialize() completed."; } while(0);
     return true;
 }
@@ -176,6 +144,8 @@ ServantPlugin::extensionsInitialized()
     OutputWindow * outputWindow = ExtensionSystem::PluginManager::instance()->getObject< servant::OutputWindow >();
     if ( outputWindow )
         outputWindow->appendLog( L"ServantPlugin::extensionsInitialized()" );
+    adlog::logger logger;
+    logger << "ServantPlugin::extensionsInitialized... on logger";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
@@ -183,35 +153,5 @@ ServantPlugin::aboutToShutdown()
 { 
 	return SynchronousShutdown;
 }
-
-#if 0
-void
-ServantPlugin::final_close()
-{
-    adportable::debug() << "====== ServantPlugin::final_close servants shutdown... =======";
-
-    // destriction must be reverse order
-    for ( orbservant_vector_type::reverse_iterator it = orbServants_.rbegin(); it != orbServants_.rend(); ++it )
-        (*it)->deactivate();
-    
-	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
-
-        if ( adplugin::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
-            
-            try {
-
-                orbBroker->orbmgr_shutdown();
-                orbBroker->orbmgr_fini();
-                orbBroker->orbmgr_wait();
-
-            } catch ( boost::exception& ex ) {
-                ADDEBUG() << boost::diagnostic_information( ex );
-            }
-            
-        }
-    }
-
-}
-#endif
 
 Q_EXPORT_PLUGIN( ServantPlugin )

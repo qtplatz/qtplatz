@@ -62,6 +62,15 @@ OutputWindow::appendLog( const QString& text )
     textWidget_->appendPlainText( text );
 }
 
+void
+OutputWindow::handleLogging( const QString& text, bool richText )
+{
+    if ( richText )
+		textWidget_->appendHtml( text );
+    else
+        textWidget_->appendPlainText( text );
+}
+
 QWidget *
 OutputWindow::outputWidget( QWidget * )
 {
