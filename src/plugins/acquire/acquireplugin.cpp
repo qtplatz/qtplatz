@@ -65,6 +65,10 @@
 #include <adportable/serializer.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/manager.hpp>
+#include <adplugin/plugin.hpp>
+#include <adplugin/plugin_ptr.hpp>
+#include <adplugin/orbbroker.hpp>
+
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/fft.hpp>
@@ -115,6 +119,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
+#include <boost/exception/all.hpp>
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -198,17 +203,19 @@ namespace acquire {
 QToolButton * 
 AcquirePlugin::toolButton( QAction * action )
 {
-  QToolButton * button = new QToolButton;
-  if ( button )
-    button->setDefaultAction( action );
-  return button;
+    QToolButton * button = new QToolButton;
+    if ( button )
+        button->setDefaultAction( action );
+    return button;
 }
 
 AcquirePlugin::~AcquirePlugin()
 {
-  delete mainWindow_;
-  delete pImpl_;
-  adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin dtor complete ===============";
+    shutdown_broker();
+
+    delete mainWindow_;
+    delete pImpl_;
+    adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin dtor complete ===============";
 }
 
 AcquirePlugin::AcquirePlugin() : mainWindow_(0)
@@ -317,6 +324,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         mainWindow_->init( *pConfig_ );
 
     initialize_actions();
+    initialize_broker();
 
     mode->setWidget( createContents( mode ) );
 
@@ -672,13 +680,15 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                 return;
 
             CORBA::WString_var name = tgt->dataInterpreterClsid();
-            auto spectrometer = adcontrols::MassSpectrometer::create( name.in() );
+            if ( auto spectrometer = adcontrols::MassSpectrometer::create( name.in() ))  {
 
-            SignalObserver::Description_var desc = tgt->getDescription();
-
-            observerMap_[ objId ] = std::make_tuple( tgt, desc, name.in(), false, spectrometer );
-
-            npos_map_[ objId ] = pos;
+                SignalObserver::Description_var desc = tgt->getDescription();
+                observerMap_[ objId ] = std::make_tuple( tgt, desc, name.in(), false, spectrometer );
+                npos_map_[ objId ] = pos;
+            } else {
+                ADDEBUG() << "receive data from unavilable spectrometer: " << name.in();
+                return;
+            }
         }
     } while (0);
 
@@ -897,6 +907,71 @@ AcquirePlugin::handle_receiver_debug_print( int32_t, int32_t, std::string text )
 {
     QString qtext( text.c_str() );
     mainWindow_->eventLog( qtext );
+}
+
+void
+AcquirePlugin::initialize_broker()
+{
+    if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
+
+        adplugin::orbServant * adBroker = 0;
+
+        if ( adplugin::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
+
+            orbBroker->orbmgr_init( 0, 0 );
+
+            try { 
+
+                adBroker = orbBroker->create_instance();
+                orbServants_.push_back( adBroker );
+
+            } catch ( boost::exception& ex ) {
+				QMessageBox::warning( 0, "AcquirePlugin", QString::fromStdString( boost::diagnostic_information( ex ) ) );
+                return;
+            }
+
+            // ----------------------- initialize corba servants ------------------------------
+            std::vector< adplugin::plugin_ptr > factories;
+            adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
+            for ( const adplugin::plugin_ptr& plugin: factories ) {
+                
+                if ( plugin->iid() == adbroker_plugin->iid() )
+                    continue;
+                
+                if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) ) {
+                    orbServants_.push_back( servant );
+                }
+            }
+        }    
+    }
+}
+
+void
+AcquirePlugin::shutdown_broker()
+{
+    adportable::debug() << "====== AcquirePlugin::shutdown_broker broker shutting down... =======";
+
+    // destriction must be reverse order
+    for ( orbservant_vector_type::reverse_iterator it = orbServants_.rbegin(); it != orbServants_.rend(); ++it )
+        (*it)->deactivate();
+    
+	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
+
+        if ( adplugin::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
+            
+            try {
+
+                orbBroker->orbmgr_shutdown();
+                orbBroker->orbmgr_fini();
+                orbBroker->orbmgr_wait();
+
+            } catch ( boost::exception& ex ) {
+                ADDEBUG() << boost::diagnostic_information( ex );
+            }
+            
+        }
+    }
+
 }
 
 QWidget *

@@ -46,7 +46,6 @@
 #include <adplugin/orbfactory.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/constants.hpp>
-//#include <adbroker/orbbroker.hpp>
 #include <adplugin/orbbroker.hpp>
 
 #include <adportable/configuration.hpp>
@@ -75,14 +74,12 @@ ServantPlugin * ServantPlugin::instance_ = 0;
 
 ServantPlugin::~ServantPlugin()
 {
-    final_close();
     instance_ = 0;
 }
 
 ServantPlugin::ServantPlugin() 
 {
     instance_ = this;
-    // ACE::init();
 }
 
 ServantPlugin *
@@ -132,7 +129,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 				adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
 		});
 	}
-
+#if 0
 	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
 
         adplugin::orbServant * adBroker = 0;
@@ -167,6 +164,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             }
         }
     }
+#endif
     do { adportable::debug() << "----> ServantPlugin::initialize() completed."; } while(0);
     return true;
 }
@@ -186,6 +184,7 @@ ServantPlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
+#if 0
 void
 ServantPlugin::final_close()
 {
@@ -213,5 +212,6 @@ ServantPlugin::final_close()
     }
 
 }
+#endif
 
 Q_EXPORT_PLUGIN( ServantPlugin )

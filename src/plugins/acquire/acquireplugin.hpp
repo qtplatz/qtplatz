@@ -34,6 +34,8 @@
 #include <adinterface/controlserverC.h>
 #include <adinterface/signalobserverC.h>
 #include <adinterface/receiverC.h>
+#include <adplugin/orbservant.hpp>
+
 #if ! defined Q_MOC_RUN
 #include <boost/asio.hpp>
 #endif
@@ -146,6 +148,8 @@ namespace acquire {
 
             void initialize_actions();
             QWidget * createContents( Core::IMode * );
+            void initialize_broker();
+            void shutdown_broker();
 
             ControlServer::Session_var session_;
             SignalObserver::Observer_var observer_;
@@ -156,7 +160,6 @@ namespace acquire {
                                 , bool
                                 , std::shared_ptr< adcontrols::MassSpectrometer > > observer_type;
             
-            // std::map< unsigned long, SignalObserver::Observer_var > observerMap_;
             std::map< unsigned long, observer_type > observerMap_;
 
             std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
@@ -197,6 +200,9 @@ namespace acquire {
             void handle_receiver_log( const ::EventLog::LogMessage& );
             void handle_receiver_shutdown();
             void handle_receiver_debug_print( int32_t, int32_t, std::string );
+
+            typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
+            std::vector< adplugin::orbServant * > orbServants_;
 
         public:
             static QToolButton * toolButton( QAction * action );

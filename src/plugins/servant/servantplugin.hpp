@@ -26,7 +26,7 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
-#include <adplugin/orbservant.hpp>
+//#include <adplugin/orbservant.hpp>
 #include <vector>
 
 namespace adportable {
@@ -35,10 +35,6 @@ namespace adportable {
 
 namespace servant {
 
-    // namespace internal {
-    //     class ServantPluginImpl;
-    // }
-    
     class ServantPlugin : public ExtensionSystem::IPlugin {
 	    Q_OBJECT
 		Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
@@ -60,7 +56,7 @@ namespace servant {
         
     private:
         void final_close();
-        typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
-        std::vector< adplugin::orbServant * > orbServants_;
+        // typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
+        // std::vector< adplugin::orbServant * > orbServants_;
     };
 }
