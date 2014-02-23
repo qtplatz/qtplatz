@@ -17,6 +17,7 @@ include(../../qwt.pri)
 
 LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(adinterface) \
         -l$$qtLibraryTarget(adwplot) \

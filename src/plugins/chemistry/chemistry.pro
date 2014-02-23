@@ -39,6 +39,7 @@ OTHER_FILES = chemistry.pluginspec
 LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget( adutils ) \
         -l$$qtLibraryTarget( adportable ) \
+        -l$$qtLibraryTarget( adlog ) \
         -l$$qtLibraryTarget( adchem ) \
         -l$$qtLibraryTarget( adcontrols ) \
         -l$$qtLibraryTarget( adplugin ) \

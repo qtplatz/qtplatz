@@ -17,6 +17,7 @@ INCLUDEPATH += "C:\Program Files (x86)\Bruker Daltonik\CompassXtract"
 DEFINES += COMPASSXTRACT_LIBRARY
 LIBS += -l$$qtLibraryTarget( adplugin ) \
         -l$$qtLibraryTarget( adportable ) \
+        -l$$qtLibraryTarget( adlog ) \
         -l$$qtLibraryTarget( adcontrols ) \
         -l$$qtLibraryTarget( portfolio )
 

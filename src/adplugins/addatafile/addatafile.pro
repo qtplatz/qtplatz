@@ -20,6 +20,7 @@ INCLUDEPATH += ../../libs
 LIBS +=  -l$$qtLibraryTarget(adplugin) \
          -l$$qtLibraryTarget(acewrapper) \
         -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adutils) \

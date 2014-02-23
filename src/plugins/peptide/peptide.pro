@@ -11,6 +11,7 @@ DEFINES += PEPTIDE_LIBRARY
 
 LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(portfolio) \
         -l$$qtLibraryTarget(adfs) \
@@ -35,20 +36,20 @@ macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
 # peptide files
 
 SOURCES += peptideplugin.cpp \
-    mainwindow.cpp \
-    peptidemode.cpp \
-    proteintable.cpp \
-    proteinwnd.cpp \
-    digestedpeptidetable.cpp
+        mainwindow.cpp \
+        peptidemode.cpp \
+        proteintable.cpp \
+        proteinwnd.cpp \
+        digestedpeptidetable.cpp
 
 HEADERS += peptideplugin.hpp \
         peptide_global.hpp \
         peptideconstants.hpp \
         mainwindow.hpp \
         peptidemode.hpp \
-    proteintable.hpp \
-    proteinwnd.hpp \
-    digestedpeptidetable.hpp
+        proteintable.hpp \
+        proteinwnd.hpp \
+        digestedpeptidetable.hpp
 
 ## set the QTC_SOURCE environment variable to override the setting here
 QTCREATOR_SOURCES = $$(QTC_SOURCE)

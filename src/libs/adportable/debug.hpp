@@ -44,21 +44,12 @@ namespace adportable {
         static void initialize( const std::string& filename );
         std::string where() const;
         std::string str() const { return o_.str(); }
-        debug& operator << ( const char * );
-        debug& operator << ( const unsigned char * );
-        debug& operator << ( const std::string& );
-        debug& operator << ( const std::wstring& );
-        debug& operator << ( bool );
-        debug& operator << ( char );
-        debug& operator << ( unsigned char );
-        debug& operator << ( int );
-        debug& operator << ( unsigned int );
-        debug& operator << ( long );
-        debug& operator << ( unsigned long );
-        debug& operator << ( unsigned long long );
-        debug& operator << ( float );
-        debug& operator << ( double );
-		debug& operator << ( const boost::system::error_code& );
+
+        template<typename T> debug& operator << ( const T& t ) { o_ << t; return *this; }
+		template<> debug& operator << ( const std::wstring& t );
+        template<> debug& operator << ( const boost::system::error_code& );
+		debug& operator << ( const wchar_t *);
+		debug& operator << ( const std::wstring& t );
     };
 
     inline std::string where( const char * file, const int line ) { 

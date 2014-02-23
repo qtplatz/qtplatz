@@ -46,10 +46,10 @@ namespace adfs {
     namespace detail {
         struct error_log {
             static void log( const std::string& sql, const char * msg ) {
-				adportable::debug(__FILE__, __LINE__) << sql << "\terror : " << msg;
+				ADDEBUG() << sql << "\terror : " << msg;
             }
             static void log( const std::wstring& sql, const char * msg ) {
-				adportable::debug(__FILE__, __LINE__) << sql << "\terror : " << msg;
+				//ADDEBUG() << sql << "\terror : " << msg;
             }
         };
     };

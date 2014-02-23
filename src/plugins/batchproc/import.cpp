@@ -40,6 +40,7 @@
 #include <adfs/cpio.hpp>
 #include <adinterface/signalobserver.hpp>
 #include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/float.hpp>
@@ -112,12 +113,13 @@ import::~import()
             if ( boost::filesystem::exists( path ) )
                 boost::filesystem::remove( path );
         } catch ( std::exception& ex ) {
-            adportable::debug(__FILE__, __LINE__) << "remove file " << path.string() << " caught an exception: " << ex.what();
+            ADERROR() << "remove file " << path.string() << " caught an exception: " << ex.what();
         }
         try {
             boost::filesystem::rename( destination_file_, path );
         } catch ( std::exception& ex ) {
-            adportable::debug(__FILE__, __LINE__) << "rename file " << destination_file_ << " to " << path.string() << " caught an exception: " << ex.what();
+			ADDEBUG() << destination_file_.c_str();
+            ADERROR() << "rename file " << destination_file_ << " to " << path.string() << " caught an exception: " << ex.what();
         }
     }
 }
@@ -308,7 +310,7 @@ import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
                 uint32_t events = 0;
                 adutils::AcquiredData::insert( fs_->db(), centroidId_, time, i, fcn, events, ar.data(), ar.size() );
                 
-                adportable::debug(__FILE__, __LINE__) << "import spectrum size " << ar.size();
+                ADDEBUG() << "import spectrum size " << ar.size();
             }
         }  
     }
@@ -380,8 +382,7 @@ import::import_profile_spectra( uint64_t fcn, size_t nSpectra )
                                            , archive_data.data(), archive_data.size()
                                            , archive_meta.data(), archive_meta.size() );
             
-            adportable::debug(__FILE__, __LINE__)
-                << "import spectrum size " << archive_data.size() << " mass array size: " << archive_meta.size();
+            ADDEBUG() << "import spectrum size " << archive_data.size() << " mass array size: " << archive_meta.size();
         }
     }
     progress_( rowId_, nSpectra, nSpectra ); // completed

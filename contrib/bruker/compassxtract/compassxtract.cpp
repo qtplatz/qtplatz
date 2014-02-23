@@ -28,16 +28,6 @@
 #include "compassxtract.hpp"
 #include "datafile_factory.hpp"
 
-#if defined WIN32
-#  if defined _DEBUG
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "portfoliod.lib")
-#  else
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "portfolio.lib")
-#  endif
-#endif
-
 Compassxtract::Compassxtract()
 {
 }

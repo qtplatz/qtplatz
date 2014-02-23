@@ -46,7 +46,7 @@
 #include <boost/lexical_cast.hpp>
 #include <adportable/string.hpp>
 #include <adportable/posix_path.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <acewrapper/input_buffer.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/attributes.hpp>
@@ -88,7 +88,7 @@ namespace addatafile { namespace detail {
                 try {
                     adfs::cpio<T>::deserialize( *ptr, obuf );
                 } catch ( std::exception& e ) {
-                    adportable::debug(__FILE__, __LINE__) << "exception: " << e.what() << " while deserializing " << typeid(T).name();
+                    ADERROR() << "exception: " << e.what() << " while deserializing " << typeid(T).name();
                     ptr.reset();
                 }
                 return ptr;
@@ -209,8 +209,7 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
                         any = detail::serializer< adcontrols::MassSpectra >::deserialize( obuf );
                         
                     } else {
-                        adportable::debug(__FILE__, __LINE__)
-                            << "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType;
+                        ADERROR() << "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType << ")";
                         throw std::bad_typeid();
                     }
                 }

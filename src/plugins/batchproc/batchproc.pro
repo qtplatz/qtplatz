@@ -12,6 +12,7 @@ DEFINES += BATCHPROC_LIBRARY
 
 LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(portfolio) \
         -l$$qtLibraryTarget(adfs) \

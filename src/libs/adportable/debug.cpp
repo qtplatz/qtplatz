@@ -104,24 +104,18 @@ debug::where() const
     return o.str();
 }
 
-debug&
-debug::operator << ( const char * text )
+
+template<> debug&
+debug::operator << ( const std::wstring& text )
 {
-    o_ << text;
+    o_ << adportable::string::convert( text );
     return *this;
 }
 
-debug&
-debug::operator << ( const unsigned char * text )
+template<> debug&
+debug::operator << ( const boost::system::error_code& error )
 {
-    o_ << text;
-    return *this;
-}
-
-debug&
-debug::operator << ( const std::string& text )
-{
-    o_ << text;
+    o_ << error.message();
     return *this;
 }
 
@@ -133,71 +127,8 @@ debug::operator << ( const std::wstring& text )
 }
 
 debug&
-debug::operator << ( bool b )
+debug::operator << ( const wchar_t * text )
 {
-    o_ << b;
-    return *this;
-}
-
-debug&
-debug::operator << ( char c )
-{
-    o_ << c;
-    return *this;
-}
-
-debug&
-debug::operator << ( unsigned char c )
-{
-    o_ << c;
-    return *this;
-}
-
-debug&
-debug::operator << ( int n )
-{
-    o_ << n;
-    return *this;
-}
-
-debug&
-debug::operator << ( unsigned int n )
-{
-    o_ << n;
-    return *this;
-}
-
-debug&
-debug::operator << ( long x )
-{
-    o_ << x;
-    return *this;
-}
-
-debug&
-debug::operator << ( unsigned long x )
-{
-    o_ << x;
-    return *this;
-}
-
-debug&
-debug::operator << ( unsigned long long x )
-{
-    o_ << x;
-    return *this;
-}
-
-debug&
-debug::operator << ( double d )
-{
-    o_ << d;
-    return *this;
-}
-
-debug&
-debug::operator<< ( const boost::system::error_code& error )
-{
-	o_ << error.message();
+	o_ << adportable::string::convert( text );
 	return *this;
 }

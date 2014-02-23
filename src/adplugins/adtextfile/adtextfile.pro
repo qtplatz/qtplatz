@@ -12,6 +12,7 @@ include (../../boost.pri)
 INCLUDEPATH += ../../libs
 
 LIBS += -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(xmlparser) \
         -l$$qtLibraryTarget(portfolio) \

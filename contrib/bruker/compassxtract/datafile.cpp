@@ -30,7 +30,8 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adportable/array_wrapper.hpp>
-#include <adportable/debug.hpp>
+//#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -200,11 +201,7 @@ datafile::getSpectrum( int fcn, int pos, adcontrols::MassSpectrum& ms, uint32_t 
 
 		return true;
 	} catch(_com_error& ex ) {
-#if defined _UNICODE
-		adportable::debug(__FILE__, __LINE__)  << std::wstring( ex.ErrorMessage() );
-#else
-		adportable::debug(__FILE__, __LINE__)  << static_cast< const char *>(ex.ErrorMessage());
-#endif
+		ADERROR() << std::wstring( ex.ErrorMessage() );
 		return false;
 	}
 	return false;
@@ -256,7 +253,7 @@ datafile::_open( const std::wstring& filename, bool )
 				(void)n;
             }
         } catch(_com_error& ex ) {
-			adportable::debug(__FILE__, __LINE__)  << std::wstring( ex.ErrorMessage() );
+			ADERROR() << ex.ErrorMessage();
 			return false;
         }
     }
@@ -351,7 +348,7 @@ datafile::is_valid_datafile( const std::wstring& filename )
 			hr = pAnalysis->Open( _bstr_t( rpath.wstring().c_str() ) );
 			return hr == S_OK; // 
 		} catch(_com_error& ex ) {
-			adportable::debug(__FILE__, __LINE__)  << std::wstring( ex.ErrorMessage() );
+			ADERROR() << ex.ErrorMessage();
 		}
 
 /*

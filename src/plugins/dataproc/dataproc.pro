@@ -17,6 +17,7 @@ LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget(adwplot) \
         -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(adwidgets) \
         -l$$qtLibraryTarget(portfolio) \
