@@ -39,7 +39,6 @@
 #include <adfs/filesystem.hpp>
 #include <adfs/cpio.hpp>
 #include <adinterface/signalobserver.hpp>
-#include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
@@ -118,7 +117,6 @@ import::~import()
         try {
             boost::filesystem::rename( destination_file_, path );
         } catch ( std::exception& ex ) {
-			ADDEBUG() << destination_file_.c_str();
             ADERROR() << "rename file " << destination_file_ << " to " << path.string() << " caught an exception: " << ex.what();
         }
     }

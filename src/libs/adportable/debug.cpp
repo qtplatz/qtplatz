@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "debug.hpp"
+#include "debug_core.hpp"
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -37,40 +38,6 @@
 
 using namespace adportable;
 
-namespace adportable {
-    namespace internal {
-
-        class logfile : boost::noncopyable {
-            static logfile * instance_;
-            std::string filename_;
-            logfile() : filename_( "debug.log" ) {
-            }
-            ~logfile() {
-                instance_ = 0;
-            }
-        public:
-            static logfile * instance() {
-                if ( instance_ == 0 ) {
-                    instance_ = new logfile();
-                    atexit( dispose );
-                }
-                return instance_;
-            }
-            static void dispose() {
-                delete instance_;
-            }
-            const std::string& filename() const {
-                return filename_;
-            }
-            void filename( const std::string& filename ) {
-                filename_ = filename;
-            }
-        };
-    }
-}
-
-internal::logfile * internal::logfile::instance_ = 0;
-
 debug::debug( const char * file, const int line ) : line_(line)
 {
     if ( file )
@@ -79,20 +46,13 @@ debug::debug( const char * file, const int line ) : line_(line)
 
 debug::~debug(void)
 {
-    using namespace internal;
-    if ( logfile::instance() && !file_.empty() ) {
-      std::ofstream of( logfile::instance()->filename().c_str(), std::ios_base::out | std::ios_base::app );
-      if ( ! file_.empty() )
-        of << where();
-      of << o_.str() << std::endl;
-    }
-    std::cout << where() << o_.str() << std::endl;
+    core::debug_core::instance()->log( 0, o_.str(), file_, line_ );
 }
 
 void
 debug::initialize( const std::string& name )
 {
-    internal::logfile::instance()->filename( name );
+    core::debug_core::instance()->open( name );
 }
 
 std::string

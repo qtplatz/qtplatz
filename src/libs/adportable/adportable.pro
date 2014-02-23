@@ -34,7 +34,8 @@ SOURCES += adportable.cpp \
     timer.cpp \
     profile.cpp \
     textfile.cpp \
-    bzip2.cpp
+    bzip2.cpp \
+    debug_core.cpp
 
 win32 {
    SOURCES += protocollifecycle.cpp
@@ -70,5 +71,6 @@ HEADERS += adportable.hpp \
     timer.hpp \
     profile.hpp \
     textfile.hpp \
-    bzip2.hpp
+    bzip2.hpp \
+    debug_core.hpp
 
