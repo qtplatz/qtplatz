@@ -30,6 +30,7 @@
 
 namespace CORBA {
     class ORB;
+    class Object;
 }
 
 namespace PortableServer {
@@ -48,6 +49,7 @@ namespace adplugin {
         virtual const char * activate() = 0;
         virtual bool deactivate() = 0;
 		virtual const char * object_name() const = 0;
+        virtual CORBA::Object * _this() const = 0;
     };
 
 }

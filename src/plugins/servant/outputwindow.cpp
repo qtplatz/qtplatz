@@ -25,13 +25,9 @@
 
 #include "outputwindow.hpp"
 
-#if QT_VERSION >= 0x050000
 # include <QtWidgets/QStackedWidget>
 # include <QtWidgets/QPlainTextEdit>
-#else
-# include <QtGui/QStackedWidget>
-# include <QtGui/QPlainTextEdit>
-#endif
+# include <QtWidgets/QTextEdit>
 
 #include <qtwrapper/qstring.hpp>
 
@@ -42,7 +38,9 @@ OutputWindow::OutputWindow(void)
     widget_ = new QStackedWidget;
     widget_->setWindowTitle( name() );
 
+    //textWidget_ = new QTextEdit; // new QPlainTextEdit;
     textWidget_ = new QPlainTextEdit;
+	textWidget_->setMaximumBlockCount( 5000 );
     widget_->addWidget( textWidget_ );
 }
 
@@ -53,20 +51,20 @@ OutputWindow::~OutputWindow(void)
 void
 OutputWindow::appendLog( const std::wstring& text )
 {
-    textWidget_->appendPlainText( qtwrapper::qstring::copy( text ) );
+    appendLog( QString::fromStdWString( text ) );
 }
 
 void
 OutputWindow::appendLog( const QString& text )
 {
-    textWidget_->appendPlainText( text );
+	textWidget_->appendPlainText( text );
 }
 
 void
 OutputWindow::handleLogging( const QString& text, bool richText )
 {
     if ( richText )
-		textWidget_->appendHtml( text );
+        textWidget_->appendHtml( text );
     else
         textWidget_->appendPlainText( text );
 }

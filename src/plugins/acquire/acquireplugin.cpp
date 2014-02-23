@@ -29,6 +29,7 @@
 #include "mainwindow.hpp"
 #include "receiver_i.hpp"
 #include "brokerevent_i.hpp"
+#include "qbroker.hpp"
 
 #include <acewrapper/constants.hpp>
 #include <adextension/isnapshothandler.hpp>
@@ -342,7 +343,23 @@ AcquirePlugin::extensionsInitialized()
             mainWindow_->addMonitorWidget( factory->create(), factory->title() );
         });
 	mainWindow_->OnInitialUpdate();
-    
+
+    if ( ! orbServants_.empty() ) { // adbroker instance should be on top of vector by definition
+        if ( adplugin::orbServant * svrBroker = orbServants_[0] ) {
+            Broker::Manager_var mgr = Broker::Manager::_narrow( svrBroker->_this() );
+            if ( ! CORBA::is_nil( mgr ) ) {
+                pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
+                if ( ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
+                    pImpl_->initialize_broker_session();
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }    
+        }
+    }
+    /*
 	adorbmgr::orbmgr * orbmgr = adorbmgr::orbmgr::instance();
     if ( orbmgr ) {
 
@@ -355,7 +372,7 @@ AcquirePlugin::extensionsInitialized()
             }
         }
     }
-
+    */
     threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 }
 
@@ -382,9 +399,9 @@ AcquirePlugin::actionConnect()
 {
 	using adinterface::EventLog::LogMessageHelper;
 
-    if ( CORBA::is_nil( session_.in() ) ) {
+    if ( CORBA::is_nil( session_.in() ) && !orbServants_.empty() ) {
 
-		Broker::Manager_var broker = adorbmgr::orbmgr::getBrokerManager();
+		Broker::Manager_var broker = Broker::Manager::_narrow( orbServants_[0]->_this() );
 
         if ( ! CORBA::is_nil( broker ) ) {
 
@@ -912,38 +929,46 @@ AcquirePlugin::handle_receiver_debug_print( int32_t, int32_t, std::string text )
 void
 AcquirePlugin::initialize_broker()
 {
-    if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
+    adplugin::orbServant * adBroker = 0;
+    adplugin::orbBroker * orbBroker = 0;
 
-        adplugin::orbServant * adBroker = 0;
+    adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" );
+    if ( adbroker_plugin ) {
 
-        if ( adplugin::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
+        if ( orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
 
             orbBroker->orbmgr_init( 0, 0 );
 
             try { 
 
-                adBroker = orbBroker->create_instance();
-                orbServants_.push_back( adBroker );
+                if ( adBroker = orbBroker->create_instance() ) {
+                    orbServants_.push_back( adBroker );
+                    Broker::Manager_var mgr = Broker::Manager::_narrow( adBroker->_this() );
+                    addObject ( new QBroker( mgr._retn() ) );
+                }
 
             } catch ( boost::exception& ex ) {
 				QMessageBox::warning( 0, "AcquirePlugin", QString::fromStdString( boost::diagnostic_information( ex ) ) );
                 return;
             }
-
-            // ----------------------- initialize corba servants ------------------------------
-            std::vector< adplugin::plugin_ptr > factories;
-            adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
-            for ( const adplugin::plugin_ptr& plugin: factories ) {
-                
-                if ( plugin->iid() == adbroker_plugin->iid() )
-                    continue;
-                
-                if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) ) {
-                    orbServants_.push_back( servant );
-                }
-            }
-        }    
+        }
     }
+    if ( adBroker == 0 || orbBroker == 0 )
+        return;
+
+    // ----------------------- initialize corba servants ------------------------------
+    std::vector< adplugin::plugin_ptr > factories;
+    adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
+    for ( const adplugin::plugin_ptr& plugin: factories ) {
+        
+        if ( plugin->iid() == adbroker_plugin->iid() ) // skip "adBroker"
+            continue;
+        
+        if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) ) {
+            orbServants_.push_back( servant );
+        }
+    }
+
 }
 
 void
@@ -951,10 +976,13 @@ AcquirePlugin::shutdown_broker()
 {
     adportable::debug() << "====== AcquirePlugin::shutdown_broker broker shutting down... =======";
 
+    auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
+	removeObject( iBroker );
+
     // destriction must be reverse order
     for ( orbservant_vector_type::reverse_iterator it = orbServants_.rbegin(); it != orbServants_.rend(); ++it )
         (*it)->deactivate();
-    
+
 	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
 
         if ( adplugin::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {

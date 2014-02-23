@@ -30,6 +30,7 @@
 
 class QStackedWidget;
 class QPlainTextEdit;
+class QTextEdit;
 
 namespace servant {
 
@@ -45,22 +46,22 @@ namespace servant {
         void appendLog( const QString& );
 
         // IOutputPane
-        QWidget * outputWidget( QWidget * );
-        QList<QWidget *> toolBarWidgets() const;
-        QString name() const { return tr("Servant Log"); }
-        int priorityInStatusBar() const;
-        void visibilityChanged(bool visible);
+        QWidget * outputWidget( QWidget * ) override;
+        QList<QWidget *> toolBarWidgets() const override;
+        QString name() const override { return tr("Servant Log"); }
+        int priorityInStatusBar() const override;
+        void visibilityChanged(bool visible) override;
         //bool isEmpty() const;
         //int numberOfResults() const;
-        bool hasFocus();
-        bool canFocus();
-        void setFocus();
+        bool hasFocus() override;
+        bool canFocus() override;
+        void setFocus() override;
         
-        bool canNext();
-        bool canPrevious();
-        void goToNext();
-        void goToPrev();
-        bool canNavigate();
+        bool canNext() override;
+        bool canPrevious() override;
+        void goToNext() override;
+        void goToPrev() override;
+        bool canNavigate() override;
                           
     public slots:
         void clearContents();
@@ -69,6 +70,7 @@ namespace servant {
     private:
         QStackedWidget * widget_;
         QPlainTextEdit * textWidget_;
+        // QTextEdit * textWidget_;
     };
 
 }

@@ -31,6 +31,7 @@
 
 namespace CORBA {
     class ORB;
+	class Object;
 }
 
 namespace PortableServer {
@@ -45,11 +46,12 @@ public:
     virtual ~adBroker(void);
 
     // orbServant
-    virtual bool initialize( CORBA::ORB* orb, PortableServer::POA * poa, PortableServer::POAManager * mgr );
-    virtual const char * activate();
-    virtual bool deactivate();
-    virtual void initial_reference( const char * );
-	virtual const char * object_name() const;
+    bool initialize( CORBA::ORB* orb, PortableServer::POA * poa, PortableServer::POAManager * mgr ) override;
+    const char * activate() override;
+    bool deactivate() override;
+    //void initial_reference( const char * ) override;
+	const char * object_name() const override;
+	CORBA::Object * _this() const override;
 
     // plugin
     const char * iid() const { return "com.ms-cheminfo.lib.qtplatz.plugins.adborker"; }

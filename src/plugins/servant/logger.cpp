@@ -23,17 +23,14 @@
 **************************************************************************/
 
 #include "logger.hpp"
+#include <qcolor.h>
+#include <adportable/debug.hpp>
+#include <boost/format.hpp>
 
 using namespace servant;
 
 Logger::Logger(QObject *parent) :  adextension::iLogger(parent)
 {
-}
-
-void
-Logger::operator << ( const std::string& text )
-{
-    emit onLogging( QString::fromStdString( text ), false );
 }
 
 void
@@ -43,7 +40,16 @@ Logger::appendLog( const std::string& text, bool richText )
 }
 
 void
-Logger::operator ()( const std::string& text )
+Logger::operator ()( int pri, const std::string& text, const std::string& file, int line )
 {
-    emit onLogging( QString::fromStdString( text ), false );    
+    QString loc = (file.empty() ? "" : (boost::format("%s(%4d):") % file % line).str().c_str() );
+
+    if ( pri == 0 ) 
+        emit onLogging( QString("%1\t%2").arg( loc, text.c_str() ), false );
+    else if ( pri == 1 )
+        emit onLogging( QString( "<font color=blue>%1&nbsp;&nbsp;%2</font>" ).arg( loc, text.c_str() ), true );
+    else if ( pri == 2 )
+        emit onLogging( QString( "<span style='background-color: yellow'>%1&nbsp;&nbsp;%2</span>" ).arg( loc, text.c_str() ), true );
+    else
+		emit onLogging( QString( "<font color=red>%1&nbsp;&nbsp;%2</font>" ).arg( loc, text.c_str() ), true );
 }

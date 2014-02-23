@@ -33,6 +33,7 @@ namespace adplugin { class plugin; }
 
 namespace CORBA {
     class ORB;
+    class Object;
 }
 
 class ADCONTROLLERSHARED_EXPORT adController : public adplugin::orbServant 
@@ -41,10 +42,12 @@ public:
     adController();
     virtual ~adController();
 
-	virtual bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * );
-	virtual const char * activate();
-	virtual bool deactivate();
-	virtual const char * object_name() const;
+    // adplugin::orbServant
+	bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * ) override;
+	const char * activate() override;
+	bool deactivate() override;
+	const char * object_name() const override;
+    CORBA::Object * _this() const override;
 
 	int run();
 	void abort_server();

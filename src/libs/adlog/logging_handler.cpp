@@ -47,7 +47,7 @@ logging_handler::instance()
 }
 
 void
-logging_handler::register_handler( std::function<void( const std::string& )> f )
+logging_handler::register_handler( handler_type f )
 {
     loggers_.push_back( f );
 }

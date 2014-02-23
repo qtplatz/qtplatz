@@ -4,23 +4,26 @@
 #
 #-------------------------------------------------
 
-QT       -= gui
+QT       -= core gui
 
 TARGET = adlog
 TEMPLATE = lib
 
 include(../../qtplatzlibrary.pri)
+include(../../boost.pri)
+
+LIBS += -l$$qtLibraryTarget(adportable)
 
 DEFINES += ADLOG_LIBRARY
 
 SOURCES += adlog.cpp \
-    logger.cpp \
-    logging_handler.cpp
+        logger.cpp \
+        logging_handler.cpp
 
 HEADERS += adlog.hpp\
         adlog_global.hpp \
-    logger.hpp \
-    logging_handler.hpp
+        logger.hpp \
+        logging_handler.hpp
 
 unix {
     target.path = /usr/lib

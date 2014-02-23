@@ -67,7 +67,6 @@
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/spectrogram.hpp>
-//#include <adorbmgr/orbmgr.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>

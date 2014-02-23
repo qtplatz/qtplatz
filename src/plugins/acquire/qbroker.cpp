@@ -22,26 +22,33 @@
 **
 **************************************************************************/
 
-#ifndef ILOGGER_HPP
-#define ILOGGER_HPP
+#include "qbroker.hpp"
+#include <adinterface/brokerC.h>
 
-#include <QObject>
-#include "adextension_global.hpp"
+using namespace acquire;
 
-namespace adextension {
-
-    class ADEXTENSIONSHARED_EXPORT iLogger : public QObject {
-        Q_OBJECT
-    public:
-        explicit iLogger(QObject *parent = 0);
-        virtual void appendLog( const std::string&, bool isRichText = false ) = 0;
-
-    signals:
-
-    public slots:
-
-    };
-
+QBroker::QBroker( Broker::Manager * ptr
+                  , QObject *parent) : adextension::iBroker(parent)
+                                     , ptr_(ptr)
+{
 }
 
-#endif // ILOGGER_HPP
+QBroker::~QBroker()
+{
+	CORBA::release( ptr_ );
+}
+
+Broker::Manager * 
+QBroker::brokerManager() const
+{
+    return Broker::Manager::_duplicate( ptr_ );
+}
+
+void
+QBroker::setBrokerManager( Broker::Manager * mgr )
+{
+    if ( ptr_ )
+		CORBA::release( ptr_ );
+    ptr_ = Broker::Manager::_duplicate( mgr );
+}
+

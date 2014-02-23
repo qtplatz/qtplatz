@@ -24,7 +24,6 @@
 
 #include "orbmgr.hpp"
 
-#include <adinterface/brokerC.h>
 #include <boost/thread/barrier.hpp>
 #include <tao/Utils/ORB_Manager.h>
 #include <adportable/debug.hpp>
@@ -59,7 +58,6 @@ orbmgr::orbmgr( CORBA::ORB_ptr orb
                                                               , init_count_( 0 )  
                                                               , thread_( 0 )
                                                               , taomgr_( new TAO_ORB_Manager( orb, poa, poamanager ) )
-                                                              , bmgr_( 0 )
 {
 }
 
@@ -177,25 +175,6 @@ orbmgr::deactivate( PortableServer::ServantBase * p_servant )
         }
     }
 }
-
-void
-orbmgr::setBrokerManager( Broker::Manager_ptr mgr )
-{
-    Broker::Manager_ptr ptr = mgr ? Broker::Manager::_duplicate( mgr ) : 0;
-    if ( bmgr_ )
-        bmgr_->_remove_ref();
-    bmgr_ = ptr;
-}
-
-// static
-Broker::Manager_ptr
-orbmgr::getBrokerManager()
-{
-    if ( instance_ && instance_->bmgr_ )
-        return Broker::Manager::_duplicate( instance_->bmgr_ );
-    return 0;
-}
-
 
 void
 orbmgr::shutdown()

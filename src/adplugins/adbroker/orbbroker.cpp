@@ -100,7 +100,7 @@ orbBroker::create_instance() const
                 Broker::Manager_var mgr = Broker::Manager::_narrow( obj );
 
                 if ( !CORBA::is_nil( mgr ) ) {
-                    adorbmgr::orbmgr::instance()->setBrokerManager( mgr );
+                    //adorbmgr::orbmgr::instance()->setBrokerManager( mgr );
                     size_t nTrial = 30;
                     while ( nTrial-- ) {
                         try {
@@ -143,8 +143,9 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
                     BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( obj );
 
                     if ( !CORBA::is_nil( accessor ) ) {
-
-						Broker::Manager_var mgr = adorbmgr::orbmgr::getBrokerManager();
+                        
+						Broker::Manager_var mgr = adbroker::manager_i::instance()->impl()._this();
+						// Broker::Manager_var mgr = adorbmgr::orbmgr::getBrokerManager();
                         
                         accessor->setBrokerManager( mgr.in() );
                         accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );

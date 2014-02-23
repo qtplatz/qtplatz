@@ -113,6 +113,12 @@ adController::object_name() const
 	return acewrapper::constants::adcontroller::manager::_name();
 }
 
+CORBA::Object *
+adController::_this() const
+{
+    return CORBA::Object::_duplicate( adcontroller::manager_i::instance()->impl()._this() );
+}
+
 bool
 adController::_deactivate()
 {

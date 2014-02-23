@@ -31,6 +31,11 @@
 #include <mutex>
 #include "adlog_global.hpp"
 
+#if defined _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
+#endif
+
 namespace adlog {
 
     class ADLOGSHARED_EXPORT logging_handler  {
@@ -39,8 +44,10 @@ namespace adlog {
 
         static logging_handler * instance();
 
-        void register_handler( std::function<void( const std::string& )> );
-		typedef std::vector<std::function<void(const std::string& )> >::iterator iterator;
+        typedef std::function<void( int, const std::string&, const std::string& /* file */, int /* line */)> handler_type;
+
+        void register_handler( handler_type );
+		typedef std::vector< handler_type >::iterator iterator;
 
         iterator begin();
         iterator end();
@@ -49,11 +56,13 @@ namespace adlog {
     private:
         static std::mutex mutex_;
         static logging_handler * instance_;
-        std::vector< std::function<void( const std::string& )> > loggers_;
+        std::vector< handler_type > loggers_;
     };
 
 }
 
-
+#if defined _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif // LOGGING_HANDLER_HPP

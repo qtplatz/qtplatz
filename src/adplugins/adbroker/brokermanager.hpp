@@ -54,7 +54,6 @@ namespace adbroker {
         static void terminate();
 
         BrokerSession * getBrokerSession();
-        adwidgets::ElementIO& getElementIO();
   
     private:
         static BrokerManager * instance_;

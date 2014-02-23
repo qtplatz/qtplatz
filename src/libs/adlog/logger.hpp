@@ -25,16 +25,38 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 #include "adlog_global.hpp"
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_dll_interface.h>
+
+namespace boost { namespace system { class error_code; } }
 
 namespace adlog {
 
     class ADLOGSHARED_EXPORT logger {
     public:
-        logger();
-        void operator << ( const std::string& );
+        logger( const char * file = 0, int line = 0, int pri = 0 );
+        ~logger();
+        template<typename T> inline logger& operator << ( const T& t ) { o_ << t; return *this; }
+        template<> logger& operator << ( const std::wstring& );
+        template<> logger& operator << ( const boost::system::error_code& );
+		logger& operator << ( const wchar_t *);
+
+    private:
+        int pri_;
+        int line_;
+        std::string file_;
+        std::ostringstream o_;
     };
 
+    enum { LOG_TRACE, LOG_INFO, LOG_WARN, LOG_ERROR };
+
 }
+#include <compiler/diagnostic_pop.h>
 
-
+# define ADLOG(x)  adlog::logger(__FILE__, __LINE__,(x))
+# define ADTRACE() adlog::logger(__FILE__, __LINE__,adlog::LOG_TRACE)
+# define ADINFO()  adlog::logger(__FILE__, __LINE__,adlog::LOG_INFO)
+# define ADWARN()  adlog::logger(__FILE__, __LINE__,adlog::LOG_WARN)
+# define ADERROR() adlog::logger(__FILE__, __LINE__,adlog::LOG_ERROR)

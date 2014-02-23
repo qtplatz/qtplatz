@@ -22,7 +22,7 @@ HEADERS += adorbmgr.h\
         orbmgr.hpp
 
 LIBS += -l$$qtLibraryTarget(acewrapper) \
-        -l$$qtLibraryTarget(adinterface) \
+        -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(xmlparser)

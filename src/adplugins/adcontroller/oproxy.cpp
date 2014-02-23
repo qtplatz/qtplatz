@@ -110,11 +110,11 @@ oProxy::populateObservers( unsigned long objid )
     if ( CORBA::is_nil( impl_.in() ) )
         return 0;
     
-    size_t nsize = 0;
+    CORBA::ULong nsize = 0;
     SignalObserver::Observers_var vec = impl_->getSiblings();
     if ( ( vec.ptr() != 0) && ( nsize = vec->length() ) > 0 ) {
-        for ( size_t i = 0; i < nsize; ++i )
-            vec[i]->assign_objId( ++objid );
+        for ( CORBA::ULong i = 0; i < nsize; ++i )
+            vec[i]->assign_objId( CORBA::ULong( ++objid ) );
     }
     return nsize;
 }

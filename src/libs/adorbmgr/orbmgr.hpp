@@ -40,8 +40,7 @@ namespace PortableServer {
     typedef TAO_ServantBase ServantBase;
     typedef ServantBase *Servant;
 }
-namespace Broker { class Manager; }
-
+// namespace Broker { class Manager; }
 
 class TAO_ORB_Manager;
 
@@ -65,9 +64,8 @@ namespace adorbmgr {
         PortableServer::POA* child_poa();
         PortableServer::POAManager* poa_manager();
 
-        void setBrokerManager( Broker::Manager * );
-
-        static Broker::Manager * getBrokerManager();
+        // void setBrokerManager( Broker::Manager * );
+        // static Broker::Manager * getBrokerManager();
         
         static std::string activate( PortableServer::Servant );
         static void deactivate( const std::string& id );
@@ -86,7 +84,7 @@ namespace adorbmgr {
         size_t init_count_;
         std::thread * thread_;
         TAO_ORB_Manager * taomgr_;
-        Broker::Manager * bmgr_;
+        //Broker::Manager * bmgr_;
     };
 
 }

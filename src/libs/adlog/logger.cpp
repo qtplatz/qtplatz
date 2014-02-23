@@ -24,17 +24,42 @@
 
 #include "logger.hpp"
 #include "logging_handler.hpp"
+#include <adportable/string.hpp>
+#include <boost/system/error_code.hpp>
+#include <adportable/debug.hpp>
 
 using namespace adlog;
 
-logger::logger()
+logger::logger( const char * file, int line, int pri ) : pri_( pri )
+                                                       , line_(line)
+                                                       , file_(file == 0 ? "" : file)
 {
 }
 
-void
-logger::operator << ( const std::string& msg )
+logger::~logger()
 {
     for ( auto& log: *logging_handler::instance() )
-        log( msg );
+        log( pri_, o_.str(), file_, line_ );
+    adportable::debug( file_.c_str(), line_ ) << o_.str();
 }
 
+template<> logger&
+logger::operator << ( const std::wstring& text )
+{
+    o_ << adportable::string::convert( text );
+    return *this;
+}
+
+template<> logger&
+logger::operator << ( const boost::system::error_code& error )
+{
+    o_ << error.message();
+    return *this;
+}
+
+logger&
+logger::operator << ( const wchar_t * text )
+{
+	o_ << adportable::string::convert( text );
+	return *this;
+}

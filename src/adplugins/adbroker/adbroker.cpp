@@ -86,12 +86,11 @@ adBroker::object_name() const
 	return acewrapper::constants::adbroker::manager::_name();
 }
 
-void
-adBroker::initial_reference( const char * )
+CORBA::Object *
+adBroker::_this() const
 {
-    // do nothing
+	return CORBA::Object::_duplicate( adbroker::manager_i::instance()->impl()._this() );
 }
-
 
 class adbroker_plugin : public adplugin::plugin
                       , public adplugin::orbFactory

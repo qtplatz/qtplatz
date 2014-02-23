@@ -17,13 +17,16 @@ include(../../qwt.pri)
 
 LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(adinterface) \
-    -l$$qtLibraryTarget(adwplot) \
-    -l$$qtLibraryTarget(adportable) \
-    -l$$qtLibraryTarget(acewrapper) -l$$qtLibraryTarget(qtwrapper) \
-    -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adplugin) \
-    -l$$qtLibraryTarget(adextension) \
-    -l$$qtLibraryTarget(adorbmgr)
+        -l$$qtLibraryTarget(adutils) \
+        -l$$qtLibraryTarget(adinterface) \
+        -l$$qtLibraryTarget(adwplot) \
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(acewrapper) \
+        -l$$qtLibraryTarget(qtwrapper) \
+        -l$$qtLibraryTarget(xmlparser) \
+        -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(adextension) \
+        -l$$qtLibraryTarget(adorbmgr)
 
 win32 {
   LIBS += -l$$qtLibraryTarget( TAO_Utils ) \
@@ -44,13 +47,15 @@ DEFINES += ACQUIRE_LIBRARY
 SOURCES += \
 	acquiremode.cpp \
 	acquireplugin.cpp \
-	mainwindow.cpp
+	mainwindow.cpp \
+    qbroker.cpp
 
 HEADERS +=  acquire_global.h \
 	acquiremode.hpp \
 	acquireplugin.hpp \
 	mainwindow.hpp \
-	constants.hpp
+	constants.hpp \
+    qbroker.hpp
 
 OTHER_FILES += acquire.pluginspec \
     acquire.config.xml \

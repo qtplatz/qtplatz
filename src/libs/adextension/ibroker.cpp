@@ -22,26 +22,10 @@
 **
 **************************************************************************/
 
-#ifndef ILOGGER_HPP
-#define ILOGGER_HPP
+#include "ibroker.hpp"
 
-#include <QObject>
-#include "adextension_global.hpp"
+using namespace adextension;
 
-namespace adextension {
-
-    class ADEXTENSIONSHARED_EXPORT iLogger : public QObject {
-        Q_OBJECT
-    public:
-        explicit iLogger(QObject *parent = 0);
-        virtual void appendLog( const std::string&, bool isRichText = false ) = 0;
-
-    signals:
-
-    public slots:
-
-    };
-
+iBroker::iBroker(QObject *parent) : QObject(parent)
+{
 }
-
-#endif // ILOGGER_HPP

@@ -92,7 +92,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(arguments);
 	(void)error_message;
 
-    do { adportable::debug(__FILE__, __LINE__) << "<----- ServantPlugin::initialize() ..."; } while(0);
+    ADINFO() << "<----- ServantPlugin::initialize() ...";
 
     OutputWindow * outputWindow = new OutputWindow;
     addAutoReleasedObject( outputWindow );
@@ -133,19 +133,14 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 				adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
 		});
 	}
-    do { adportable::debug() << "----> ServantPlugin::initialize() completed."; } while(0);
+    ADINFO() << "----> ServantPlugin::initialize() completed.";
     return true;
 }
 
 void
 ServantPlugin::extensionsInitialized()
 {
-    do { adportable::debug(__FILE__, __LINE__) << "ServantPlugin::extensionsInitialized() entered."; } while(0);
-    OutputWindow * outputWindow = ExtensionSystem::PluginManager::instance()->getObject< servant::OutputWindow >();
-    if ( outputWindow )
-        outputWindow->appendLog( L"ServantPlugin::extensionsInitialized()" );
-    adlog::logger logger;
-    logger << "ServantPlugin::extensionsInitialized... on logger";
+    ADINFO() << "ServantPlugin::extensionsInitialized.";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag

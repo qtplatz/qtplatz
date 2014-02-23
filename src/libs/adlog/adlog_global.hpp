@@ -25,12 +25,12 @@
 #ifndef ADLOG_GLOBAL_HPP
 #define ADLOG_GLOBAL_HPP
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
 #if defined(ADLOG_LIBRARY)
-#  define ADLOGSHARED_EXPORT Q_DECL_EXPORT
+#  define ADLOGSHARED_EXPORT DECL_EXPORT
 #else
-#  define ADLOGSHARED_EXPORT Q_DECL_IMPORT
+#  define ADLOGSHARED_EXPORT DECL_IMPORT
 #endif
 
 #endif // ADLOG_GLOBAL_HPP

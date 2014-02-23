@@ -34,10 +34,9 @@ namespace servant {
     public:
         explicit Logger(QObject *parent = 0);
 
-        void operator << ( const std::string& ) override;
         void appendLog( const std::string&, bool ) override;
-
-        void operator()( const std::string& );
+        
+        void operator()( int, const std::string&, const std::string& file, int line );
 
     signals:
         void onLogging( const QString&, bool );
