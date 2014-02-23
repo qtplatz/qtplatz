@@ -27,10 +27,7 @@
 
 #include <sstream>
 
-namespace boost { 
-	namespace posix_time { class ptime; } 
-	namespace system { class error_code; }
-}
+namespace boost { namespace system { class error_code; } }
 
 namespace adportable {
 
@@ -46,11 +43,12 @@ namespace adportable {
         std::string str() const { return o_.str(); }
 
         template<typename T> debug& operator << ( const T& t ) { o_ << t; return *this; }
-		template<> debug& operator << ( const std::wstring& t );
-        template<> debug& operator << ( const boost::system::error_code& );
 		debug& operator << ( const wchar_t *);
 		debug& operator << ( const std::wstring& t );
     };
+
+    template<> debug& debug::operator << ( const std::wstring& t );
+    template<> debug& debug::operator << ( const boost::system::error_code& );
 
     inline std::string where( const char * file, const int line ) { 
         debug x( file, line );
