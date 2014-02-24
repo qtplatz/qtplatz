@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "adcontrols.hpp"
+#include <adportable/debug.hpp>
+#include <functional>
 
 using namespace adcontrols;
 
@@ -38,3 +40,4 @@ global_mutex::mutex()
 {
     return global_mutex::instance().mutex_;
 }
+

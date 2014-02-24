@@ -26,10 +26,12 @@ SOURCES += portfolio.cpp \
     folder.cpp \
     folium.cpp \
     node.cpp \
-    portfolioimpl.cpp
+    portfolioimpl.cpp \
+    logging_hook.cpp
 
 HEADERS += portfolio.hpp \
     portfolio_global.h \
     folder.hpp \
     folium.hpp \
-    portfolioimpl.hpp
+    portfolioimpl.hpp \
+    logging_hook.hpp

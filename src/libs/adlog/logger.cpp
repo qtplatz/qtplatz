@@ -38,9 +38,7 @@ logger::logger( const char * file, int line, int pri ) : pri_( pri )
 
 logger::~logger()
 {
-    for ( auto& log: *logging_handler::instance() )
-        log( pri_, o_.str(), file_, line_ );
-    adportable::debug( file_.c_str(), line_ ) << o_.str();
+    logging_handler::instance()->appendLog( pri_, o_.str(), file_, line_ );
 }
 
 template<> logger&

@@ -22,41 +22,18 @@
 **
 **************************************************************************/
 
-#ifndef DEBUG_CORE_HPP
-#define DEBUG_CORE_HPP
+#pragma once
 
-#include <mutex>
-#include <memory>
-#include <string>
-#include <vector>
-#include <functional>
+#include "portfolio_global.h"
+#include <adportable/debug_core.hpp>
 
-namespace adportable {
+namespace portfolio {
 
-    namespace core {
-        
-        class debug_core : public std::enable_shared_from_this< debug_core > {
-            debug_core();
-            ~debug_core();
-        public:
-            static debug_core * instance();
-            
-            bool open( const std::string& logfile );
-            const std::string& logfile() const;
+    class PORTFOLIOSHARED_EXPORT logging_hook {
+    public:
+        logging_hook();
+        static void register_hook( adportable::core::debug_core::hook_handler_type f );
+    };
 
-            virtual void log( int pri, const std::string& msg, const std::string& file, int line ) const;
-            
-            typedef std::function< void(int, const std::string&, const std::string&, int) > hook_handler_type;
-            void hook( hook_handler_type );
-
-        private:
-            std::string logfname_;
-            static std::mutex mutex_;
-            static debug_core * instance_;
-            std::vector< hook_handler_type > hooks_;
-        };
-        
-    }
 }
 
-#endif // DEBUG_CORE_HPP

@@ -87,7 +87,8 @@ SOURCES += acceptor.cpp \
     mspeaks.cpp \
     mschromatogrammethod.cpp \
     spectrogram.cpp \
-    targeting.cpp
+    targeting.cpp \
+    logging_hook.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -161,7 +162,8 @@ HEADERS += acceptor.hpp \
     mspeaks.hpp \
     mschromatogrammethod.hpp \
     spectrogram.hpp \
-    targeting.hpp
+    targeting.hpp \
+    logging_hook.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 

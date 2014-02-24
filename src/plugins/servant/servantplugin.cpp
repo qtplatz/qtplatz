@@ -46,6 +46,9 @@
 #include <adplugin/manager.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/orbbroker.hpp>
+#include <adlog/logging_handler.hpp>
+#include <adcontrols/logging_hook.hpp>
+#include <portfolio/logging_hook.hpp>
 
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
@@ -93,6 +96,10 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	(void)error_message;
 
     ADINFO() << "<----- ServantPlugin::initialize() ...";
+    do {
+        adcontrols::logging_hook::register_hook( adlog::logging_handler::log );
+        // portfolio::logging_hook::register_hook( adlog::logging_handler::log );
+    } while(0);
 
     OutputWindow * outputWindow = new OutputWindow;
     addAutoReleasedObject( outputWindow );

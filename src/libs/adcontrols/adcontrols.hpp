@@ -28,7 +28,7 @@
 #include <mutex>
 
 namespace adcontrols {
-
+    
     class global_mutex {
         std::mutex mutex_;
     public:

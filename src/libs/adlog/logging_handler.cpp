@@ -70,3 +70,17 @@ logging_handler::size() const
     return loggers_.size();
 }
 
+void
+logging_handler::appendLog( int pri, const std::string& msg, const std::string& file, int line )
+{
+    for ( auto& client: *this )
+        client( pri, msg, file, line );
+}
+
+// static -- invoke from adportable::core::debug_core
+void
+logging_handler::log( int pri, const std::string& msg, const std::string& file, int line )
+{
+    logging_handler::instance()->appendLog( pri, msg, file, line );
+}
+

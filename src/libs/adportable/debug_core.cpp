@@ -25,7 +25,6 @@
 #include "debug_core.hpp"
 #include <fstream>
 #include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
@@ -71,21 +70,16 @@ debug_core::open( const std::string& logfile )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     logfname_ = logfile;
-	if ( ! logfname_.empty() ) {
-        boost::filesystem::path path( logfname_ );
-        if ( boost::filesystem::exists( path ) && !boost::filesystem::is_regular_file( path ) )
-            return false;
-	}
     return true;
 }
 
 void
 debug_core::log( int pri, const std::string& msg, const std::string& file, int line ) const
 {
-	if ( hook_ ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        if ( hook_ )
-            hook_->log( pri, msg, file, line );
+    if ( ! hooks_.empty() ) {
+        std::lock_guard< std::mutex > lock( mutex_ );    
+        for ( auto& logger: hooks_ )
+            logger( pri, msg, file, line );
     }
 
     std::string loc;
@@ -100,12 +94,9 @@ debug_core::log( int pri, const std::string& msg, const std::string& file, int l
 }
 
 void
-debug_core::hook( debug_core * p )
+debug_core::hook( hook_handler_type f )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    
-    if ( p )
-        hook_ = p->shared_from_this();
-    else
-        hook_.reset();
+    hooks_.push_back( f );
 }
+

@@ -13,6 +13,7 @@ include(../../qtplatzlibrary.pri)
 include(../../boost.pri)
 
 LIBS += -l$$qtLibraryTarget(adportable)
+!win32: { LIBS += -lboost_system }
 
 DEFINES += ADLOG_LIBRARY
 

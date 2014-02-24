@@ -39,19 +39,20 @@
 
 namespace adlog {
 
-    class ADLOGSHARED_EXPORT logging_handler : public adportable::core::debug_core {
+    class ADLOGSHARED_EXPORT logging_handler {
         logging_handler();
-    public:
 
+    public:
         static logging_handler * instance();
-        // debug_core hook -- workaround for historically 'debug.cpp' has been implemented in adportable static lib.
-        void log( int pri, const std::string& msg, const std::string& file, int line ) const override;
+        static void log( int pri, const std::string& msg, const std::string& file, int line );
 
         // actual handler type
         typedef std::function<void( int, const std::string&, const std::string& /* file */, int /* line */)> handler_type;
 
         void register_handler( handler_type );
 		typedef std::vector< handler_type >::iterator iterator;
+
+        void appendLog( int pri, const std::string& msg, const std::string& file, int line );
 
         iterator begin();
         iterator end();

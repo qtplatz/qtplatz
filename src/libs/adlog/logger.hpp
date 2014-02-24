@@ -39,8 +39,6 @@ namespace adlog {
         logger( const char * file = 0, int line = 0, int pri = 0 );
         ~logger();
         template<typename T> inline logger& operator << ( const T& t ) { o_ << t; return *this; }
-        template<> logger& operator << ( const std::wstring& );
-        template<> logger& operator << ( const boost::system::error_code& );
 		logger& operator << ( const wchar_t *);
 
     private:
@@ -50,9 +48,13 @@ namespace adlog {
         std::ostringstream o_;
     };
 
+    template<> logger& logger::operator << ( const std::wstring& );
+    template<> logger& logger::operator << ( const boost::system::error_code& );
+
     enum { LOG_TRACE, LOG_INFO, LOG_WARN, LOG_ERROR };
 
 }
+
 #include <compiler/diagnostic_pop.h>
 
 # define ADLOG(x)  adlog::logger(__FILE__, __LINE__,(x))
