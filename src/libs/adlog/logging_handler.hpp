@@ -53,6 +53,7 @@ namespace adlog {
 		typedef std::vector< handler_type >::iterator iterator;
 
         void appendLog( int pri, const std::string& msg, const std::string& file, int line );
+		void close();
 
         iterator begin();
         iterator end();
@@ -61,6 +62,7 @@ namespace adlog {
     private:
         static std::mutex mutex_;
         static logging_handler * instance_;
+        std::string logfile_;
         std::vector< handler_type > loggers_;
     };
 

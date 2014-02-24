@@ -48,6 +48,8 @@ namespace adportable {
             
             typedef std::function< void(int, const std::string&, const std::string&, int) > hook_handler_type;
             void hook( hook_handler_type );
+            void unhook( hook_handler_type );
+            void unhook(); // unhook all
 
         private:
             std::string logfname_;

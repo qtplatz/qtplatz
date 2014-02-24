@@ -34,6 +34,9 @@ namespace adportable {
 
 namespace servant {
 
+    class Logger;
+    class OutputWindow;
+
     class ServantPlugin : public ExtensionSystem::IPlugin {
 	    Q_OBJECT
 		Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
@@ -54,6 +57,7 @@ namespace servant {
     public slots:
         
     private:
-
+        Logger * logger_;
+        OutputWindow * outputWindow_;
     };
 }

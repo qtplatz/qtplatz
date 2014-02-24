@@ -35,3 +35,9 @@ logging_hook::register_hook( adportable::core::debug_core::hook_handler_type f )
 {
     adportable::core::debug_core::instance()->hook( f );
 }
+
+void
+logging_hook::unregister_hook()
+{
+    adportable::core::debug_core::instance()->unhook();
+}

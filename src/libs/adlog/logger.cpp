@@ -26,7 +26,6 @@
 #include "logging_handler.hpp"
 #include <adportable/string.hpp>
 #include <boost/system/error_code.hpp>
-#include <adportable/debug.hpp>
 
 using namespace adlog;
 

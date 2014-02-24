@@ -94,6 +94,13 @@ protfile::end()
     return proteins_.end();
 }
 
+protfile&
+protfile::operator << ( const protein& p )
+{
+    proteins_.push_back( p );
+    return *this;
+}
+
 bool
 protfile::fetch( std::istream& inf )
 {

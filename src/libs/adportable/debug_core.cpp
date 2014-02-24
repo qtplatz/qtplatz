@@ -100,3 +100,10 @@ debug_core::hook( hook_handler_type f )
     hooks_.push_back( f );
 }
 
+void
+debug_core::unhook()
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    hooks_.clear();
+}
+

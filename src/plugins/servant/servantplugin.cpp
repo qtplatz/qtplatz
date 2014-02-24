@@ -77,7 +77,8 @@ ServantPlugin::~ServantPlugin()
     instance_ = 0;
 }
 
-ServantPlugin::ServantPlugin() 
+ServantPlugin::ServantPlugin() : logger_(0)
+                               , outputWindow_(0)
 {
     instance_ = this;
 }
@@ -97,16 +98,16 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     ADINFO() << "<----- ServantPlugin::initialize() ...";
     do {
         adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
-        adcontrols::logging_hook::register_hook( adlog::logging_handler::log );
-    } while(0);
+        adcontrols::logging_hook::register_hook( adlog::logging_handler::log );} while(0);
 
-    OutputWindow * outputWindow = new OutputWindow;
-    addAutoReleasedObject( outputWindow );
+    if ( outputWindow_ = new OutputWindow ) {
+        addAutoReleasedObject( outputWindow_ );
 
-    if ( Logger * logger = new Logger ) {
-        connect( logger, SIGNAL( onLogging( const QString, bool ) ), outputWindow, SLOT( handleLogging( const QString, bool ) ) );
-        addAutoReleasedObject( logger );
-        adlog::logging_handler::instance()->register_handler( std::ref(*logger) );
+        if ( logger_ = new Logger ) {
+            connect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
+            addAutoReleasedObject( logger_ );
+            adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );
+        }
     }
 
     ///////////////////////////////////
@@ -152,6 +153,13 @@ ServantPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 { 
+    adportable::core::debug_core::instance()->unhook();
+    adcontrols::logging_hook::unregister_hook();
+	adlog::logging_handler::instance()->close();
+	
+    if ( outputWindow_ && logger_ )
+        disconnect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
+
 	return SynchronousShutdown;
 }
 

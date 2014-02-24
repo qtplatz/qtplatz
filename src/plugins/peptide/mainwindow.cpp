@@ -221,6 +221,7 @@ void
 MainWindow::onInitialUpdate()
 {
     setSimpleDockWidgetArrangement();
+    setDemoData();
 }
 
 void
@@ -322,6 +323,30 @@ MainWindow::createActions()
 
         am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
     }
+}
+
+void
+MainWindow::setDemoData()
+{
+    topLineEdit_->setText( "select a file contains protein sequences by clicking file open icon..." );
+    adprot::protein protein( "Bovin serum albumin",
+                             " MKWVTFISLL LLFSSAYSRG VFRRDTHKSE IAHRFKDLGE EHFKGLVLIA FSQYLQQCPF" \
+                             " DEHVKLVNEL TEFAKTCVAD ESHAGCEKSL HTLFGDELCK VASLRETYGD MADCCEKQEP" \
+                             " ERNECFLSHK DDSPDLPKLK PDPNTLCDEF KADEKKFWGK YLYEIARRHP YFYAPELLYY" \
+                             " ANKYNGVFQE CCQAEDKGAC LLPKIETMRE KVLASSARQR LRCASIQKFG ERALKAWSVA" \
+                             " RLSQKFPKAE FVEVTKLVTD LTKVHKECCH GDLLECADDR ADLAKYICDN QDTISSKLKE" \
+                             " CCDKPLLEKS HCIAEVEKDA IPENLPPLTA DFAEDKDVCK NYQEAKDAFL GSFLYEYSRR" \
+                             " HPEYAVSVLL RLAKEYEATL EECCAKDDPH ACYSTVFDKL KHLVDEPQNL IKQNCDQFEK" \
+                             " LGEYGFQNAL IVRYTRKVPQ VSTPTLVEVS RSLGKVGTRC CTKPESERMP CTEDYLSLIL" \
+                             " NRLCVLHEKT PVSEKVTKCC TESLVNRRPC FSALTPDETY VPKAFDEKLF TFHADICTLP" \
+                             " DTEKQIKKQT ALVELLKHKP KATEEQLKTV MENFVAFVDK CCAADDKEAC FAVEGPKLVV" \
+                             " STQTALA" );
+	protfile_ = std::make_shared< adprot::protfile >( "demo data" );
+	*protfile_ << protein;
+	std::for_each( wnds_.begin(), wnds_.end(), [=]( QWidget * w ){
+                    if ( ProteinWnd * p = dynamic_cast< ProteinWnd *>(w) )
+                        p->setData( *protfile_ );
+                });
 }
 
 void

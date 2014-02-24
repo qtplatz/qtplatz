@@ -30,6 +30,8 @@
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/constants.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/debug_core.hpp>
+#include <adlog/logging_handler.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
 
@@ -89,6 +91,8 @@ bool
 SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
 {
     Q_UNUSED( arguments );
+
+    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
     
     Core::ICore * core = Core::ICore::instance();
     if ( core == 0 )

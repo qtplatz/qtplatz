@@ -38,6 +38,8 @@ namespace adprot {
         protfile( const std::string& filename );
         operator bool() const;
         size_t size() const;
+
+        protfile& operator << (const protein&);
         
         std::vector< protein >::const_iterator begin() const;
         std::vector< protein >::iterator begin();

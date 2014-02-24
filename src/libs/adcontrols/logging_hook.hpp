@@ -33,6 +33,7 @@ namespace adcontrols {
     public:
         logging_hook();
         static void register_hook( adportable::core::debug_core::hook_handler_type );
+        static void unregister_hook();
     };
 
 }

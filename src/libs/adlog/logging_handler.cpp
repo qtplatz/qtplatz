@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "logging_handler.hpp"
+#include <adportable/profile.hpp>
+#include <boost/filesystem/path.hpp>
 #include <fstream>
 
 using namespace adlog;
@@ -32,6 +34,9 @@ std::mutex logging_handler::mutex_;
 
 logging_handler::logging_handler()
 {
+    boost::filesystem::path logfile( adportable::profile::user_data_dir<char>() );
+    logfile /= "qtplatz.log";
+    logfile_ = logfile.filename().string();
 }
 
 logging_handler *
@@ -77,8 +82,14 @@ logging_handler::appendLog( int pri, const std::string& msg, const std::string& 
     for ( auto& client: *this )
         client( pri, msg, file, line );
 
-    std::ofstream of( "debug.log", std::ios_base::out | std::ios_base::app );
+	std::ofstream of( logfile_.c_str(), std::ios_base::out | std::ios_base::app );
     of << file << "(" << line << "): " << msg << std::endl;
+}
+
+void
+logging_handler::close()
+{
+	loggers_.clear();
 }
 
 // static -- invoke from adportable::core::debug_core

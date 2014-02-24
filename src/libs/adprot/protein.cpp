@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "protein.hpp"
+#include <algorithm>
+#include <cctype>
 
 using namespace adprot;
 
@@ -39,6 +41,7 @@ protein::protein( const std::string& name
                   , const std::string& sequence ) : name_( name )
                                                   , sequence_( sequence )
 {
+    sequence_.erase( std::remove_if( sequence_.begin(), sequence_.end(), std::isspace ), sequence_.end() );
 }
 
 const std::string&

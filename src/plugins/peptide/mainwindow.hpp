@@ -86,6 +86,7 @@ namespace peptide {
         QToolButton * toolButton( QAction * );
         QToolButton * toolButton( const char * );
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
+        void setDemoData();
     };
 
 }
