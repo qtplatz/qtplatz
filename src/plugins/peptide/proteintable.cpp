@@ -35,6 +35,7 @@
 #include <QKeyEvent>
 #include <QClipboard>
 #include <sstream>
+#include <set>
 
 namespace peptide {
     namespace detail {
@@ -174,9 +175,13 @@ ProteinTable::selectionChanged( const QItemSelection& selected, const QItemSelec
     qSort( list );
     if ( list.size() < 1 )
         return;
-    QVector< int > rows;
-    for ( auto index: list )
-        rows.push_back( index.row() );
+	std::set<int> uniq;
+    for ( auto index: list ) 
+		uniq.insert( index.row() );
+	
+	QVector<int> rows;
+	for ( auto row: uniq )
+		rows.push_back( row );
 
     emit selectionChanged( rows );
 }

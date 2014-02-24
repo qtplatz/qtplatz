@@ -97,6 +97,8 @@ void
 ProteinWnd::setData( const adprot::protfile& file )
 {
 	proteinTable_->setData( file );
+	proteinTable_->clearSelection();
+	proteinTable_->selectRow( 0 );
 }
 
 void
@@ -143,10 +145,10 @@ ProteinWnd::handleSelectionChanged( const QVector<int>& rows )
     if ( rows.isEmpty() )
         return;
 
-    if ( rows.size() == 1 ) {
-        protSelChanged( rows[0] );
-        return;
-    }
+	if ( rows.size() == 1 ) {
+		protSelChanged( rows[0] );
+		return;
+	}
 
     auto formulaParser = MainWindow::instance()->getChemicalFormula();
     auto enzyme = MainWindow::instance()->get_protease();
