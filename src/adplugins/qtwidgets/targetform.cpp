@@ -264,7 +264,7 @@ TargetForm::get_adducts( QTreeView&
 	auto &vec = method.adducts();
 	vec.clear();
 
-	for ( size_t row = 0; row < nRows; ++row ) {
+	for ( int row = 0; row < nRows; ++row ) {
 		std::string adduct_or_loss = model.index( row, c_adduct_or_loss, index ).data( Qt::EditRole ).toString().toStdString();
 		bool enable = ( model.index( row, c_adduct_checkbox, index ).data( Qt::CheckStateRole ) ) == Qt::Checked;
 		if ( ! adduct_or_loss.empty() )
@@ -278,7 +278,7 @@ TargetForm::update_formulae( QTreeView&, QStandardItemModel& model
 {
     auto vec = method.formulae();
 	model.removeRows( 0, model.rowCount() );
-	model.setRowCount( vec.size() + 1 ); // keep empty line on the bottom
+	model.setRowCount( int(vec.size()) + 1 ); // keep empty line on the bottom
 
 	int row = 0;
 	for ( auto it: vec ) {
@@ -293,11 +293,11 @@ TargetForm::update_formulae( QTreeView&, QStandardItemModel& model
 void
 TargetForm::get_formulae( QTreeView&, QStandardItemModel& model, adcontrols::TargetingMethod& method )
 {
-    size_t nRows = model.rowCount();
+    int nRows = model.rowCount();
     auto vec = method.formulae();
     vec.clear();
 
-    for ( size_t row = 0; row < nRows; ++row ) {
+    for ( int row = 0; row < nRows; ++row ) {
 		std::string formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
         bool enable = is_checked( model.index( row, c_formula_checkbox ) );
         if ( ! formula.empty() )

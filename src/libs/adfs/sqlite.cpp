@@ -49,7 +49,7 @@ namespace adfs {
 				ADDEBUG() << sql << "\terror : " << msg;
             }
             static void log( const std::wstring& sql, const char * msg ) {
-				//ADDEBUG() << sql << "\terror : " << msg;
+				ADDEBUG() << sql << "\terror : " << msg;
             }
         };
     };

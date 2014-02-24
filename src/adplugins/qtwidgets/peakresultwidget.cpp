@@ -115,7 +115,7 @@ PeakResultWidget::add( const adcontrols::Peak& peak )
 {
     QStandardItemModel& model = *pModel_;
 
-    size_t row = model.rowCount();
+    int row = model.rowCount();
     model.appendRow( new QStandardItem( qtwrapper::qstring( peak.name() ) ) );
     model.setData( model.index( row, 1 ), static_cast<double>( adcontrols::timeutil::toMinutes( peak.peakTime() ) ) );
     model.setData( model.index( row, 2 ), peak.peakArea() );

@@ -5,6 +5,7 @@ CONFIG(debug, debug|release) {
 
 win32 {
     DEFINES += _WIN32_WINNT=0x0700 _SCL_SECURE_NO_WARNINGS
+    QMAKE_CXXFLAGS *= -wd4996
 } else {
     QMAKE_CXXFLAGS *= -std=c++11
 }

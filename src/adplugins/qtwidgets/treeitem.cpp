@@ -56,7 +56,7 @@ TreeItem::child(int number)
 int
 TreeItem::childCount() const
 {
-    return childItems_.size();
+    return static_cast< int >( childItems_.size() );
 }
 
 int
@@ -74,7 +74,7 @@ TreeItem::childNumber() const
 int
 TreeItem::columnCount() const
 {
-    return itemData_.size();
+    return static_cast< int >( itemData_.size() );
 }
 
 QVariant

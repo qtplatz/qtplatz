@@ -30,7 +30,7 @@ string::convert( const std::string& source )
     size_t source_length = source.length();
     std::wstring target( source_length, L'\0' );
 #if defined WIN32
-    ::MultiByteToWideChar( CP_ACP, 0, source.c_str(), source.length(), &target[0], target.size() );
+    ::MultiByteToWideChar( CP_ACP, 0, source.c_str(), source.length(), &target[0], int(target.size()) );
 #else
     size_t n = mbstowcs( &target[0], source.c_str(), target.size() );
     if ( n != size_t(-1) )
@@ -45,7 +45,7 @@ string::convert( const std::wstring& source )
 {
     std::string target( source.length() * 3 + 1, '\0' );
 #if defined WIN32
-    ::WideCharToMultiByte( CP_ACP, 0, source.c_str(), source.length(), &target[0], target.size(), 0, 0 );
+    ::WideCharToMultiByte( CP_ACP, 0, source.c_str(), source.length(), &target[0], int(target.size()), 0, 0 );
 #else
     size_t n = wcstombs( &target[0], source.c_str(), target.size() );
     if ( n != size_t( -1 ) ) 

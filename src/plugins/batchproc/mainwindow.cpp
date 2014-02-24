@@ -260,7 +260,7 @@ MainWindow::handleDropped( const QList<QString>& files )
             files_.push_back( file.toStdWString() );
 
             if ( model.rowCount() < int( files_.size() ) )
-                model.setRowCount( files_.size() );
+                model.setRowCount( int( files_.size() ) );
 
             model.setData( model.index( row, Constants::c_batchproc_filename ), file );
 			model.setData( model.index( row, Constants::c_batchproc_process ), QVariant::fromValue( process( PROCESS_IMPORT ) ) );

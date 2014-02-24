@@ -43,7 +43,7 @@ IsotopeMethodModel::IsotopeMethodModel(QObject *parent) : QAbstractListModel( pa
 int
 IsotopeMethodModel::rowCount( const QModelIndex& ) const
 {
-    return method_.size();
+    return static_cast<int>( method_.size() );
 }
 
 Qt::ItemFlags
@@ -91,7 +91,7 @@ void
 IsotopeMethodModel::appendFormula( const adcontrols::IsotopeMethod::Formula& formula, int rowIndex )
 {
     Q_UNUSED( rowIndex );
-    beginInsertRows( QModelIndex(), method_.size() + 1, method_.size() + 1 );
+    beginInsertRows( QModelIndex(), method_.size() + 1, int(method_.size() + 1) );
     method_.addFormula( formula );
     endInsertRows();
 }

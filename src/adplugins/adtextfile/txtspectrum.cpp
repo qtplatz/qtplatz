@@ -146,9 +146,9 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
 	const unsigned long startDelay = static_cast<unsigned long>(  ( timeArray.front() * 1e12 /*s*/) / sampInterval + 0.5 );
 
     unsigned long nDelay = startDelay;
-    size_t nCount = 0;
+    uint32_t nCount = 0;
 
-    size_t idx = 0;
+    uint32_t idx = 0;
     for ( std::vector<double>::const_iterator it = timeArray.begin() + 1; it != timeArray.end(); ++it ) {
         ++nCount;
         ++idx;

@@ -246,7 +246,7 @@ MSProperty::compute_profile_time_array( double * p, std::size_t size, const Samp
 {
     size_t n = 0;
     for ( n = 0; n < size; ++n ) {
-		double d = ( info.nSamplingDelay + n ) * info.sampInterval; 
+		double d = double( ( info.nSamplingDelay + n ) * info.sampInterval ); 
         p[ n ] = metric::scale_to<double>( pfx, d, metric::pico );
 	}
     return n;

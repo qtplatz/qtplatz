@@ -22,7 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
 #include "adbroker.hpp"
 #include "orbbroker.hpp"
 #include <adplugin/visitor.hpp>

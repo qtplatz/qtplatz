@@ -173,7 +173,7 @@ SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
 
     if ( ( vec.ptr() != 0 ) && ( vec->length() > 0 ) ) {
         
-        for ( size_t i = 0; i < vec->length(); ++i ) {
+        for ( CORBA::ULong i = 0; i < vec->length(); ++i ) {
             
             SignalObserver::Observer_ptr observer = vec[ i ];
             unsigned long objId = observer->objId();

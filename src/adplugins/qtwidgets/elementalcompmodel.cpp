@@ -127,7 +127,7 @@ int
 ElementalCompModel::rowCount( const QModelIndex& parent ) const
 {
     Q_UNUSED( parent );
-    return method_.size();
+    return static_cast<int>( method_.size() );
 }
 
 QVariant
