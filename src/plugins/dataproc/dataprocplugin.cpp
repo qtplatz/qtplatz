@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -60,8 +60,12 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
+#include <adportable/debug_core.hpp>
+#include <adlog/logger.hpp>
+#include <adlog/logging_handler.hpp>
 #include <adportable/float.hpp>
+#include <portfolio/logging_hook.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
@@ -167,6 +171,11 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 {
     Q_UNUSED( arguments );
 
+    do {
+        adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
+        portfolio::logging_hook::register_hook( adlog::logging_handler::log );
+    } while(0);
+
     Core::ICore * core = Core::ICore::instance();
     if ( core == 0 )
         return false;
@@ -227,10 +236,10 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
                     }
                 });
         }
-
+        
         //------------------------------------------------
         QStringList mTypes;
-
+        
         // externally installed mime-types
         std::wstring mimefile
             = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
@@ -251,7 +260,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
         // core mime-types
         if ( ! mdb->addMimeTypes(":/dataproc/mimetype.xml", error_message) )
-            adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
+            ADWARN() << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
 
 
         dataprocFactory_ = new DataprocessorFactory( this, mTypes );
@@ -321,7 +330,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
 	qtwrapper::waitCursor w;
 
-    adportable::debug(__FILE__, __LINE__) << "onSelectTimeRagneOnChromatogram(" << x1 << ", " << x2 << ")";
+    ADTRACE() << "onSelectTimeRagneOnChromatogram(" << x1 << ", " << x2 << ")";
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
@@ -378,12 +387,12 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     }
                 }
             } catch ( ... ) {
-                adportable::debug(__FILE__, __LINE__) << boost::current_exception_diagnostic_information();
+                ADTRACE() << boost::current_exception_diagnostic_information();
                 QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
             }
 		}
 	}
-    adportable::debug(__FILE__, __LINE__) << "return onSelectTimeRagneOnChromatogram(" << x1 << ", " << x2 << ")";
+    ADTRACE() << "return onSelectTimeRagneOnChromatogram(" << x1 << ", " << x2 << ")";
 }
 
 void
@@ -396,13 +405,13 @@ DataprocPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 DataprocPlugin::aboutToShutdown()
 {
-    adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutting down...  ===============";
+    ADTRACE() << "====== DataprocPlugin shutting down...  ===============";
 
     pActionManager_->saveDefaults();
 
     mainWindow_->OnFinalClose();
 
-    adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutdown complete ===============";
+    ADTRACE() << "====== DataprocPlugin shutdown complete ===============";
 	return SynchronousShutdown;
 }
 

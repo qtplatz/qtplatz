@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -29,7 +29,7 @@
 #include <adfs/file.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/date_string.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <adutils/mscalibio.hpp>
 #include <adutils/acquiredconf.hpp>
@@ -49,7 +49,7 @@ SampleProcessor::~SampleProcessor()
     fs_->close();
 	Logging( L"Sample %1% closed in file '%2%'.", EventLog::pri_INFO ) % storage_name_.stem() % storage_name_.wstring();
 
-    adportable::debug(__FILE__, __LINE__) << "SampleProcessor:: -- DTOR -- ";
+    ADTRACE() << "SampleProcessor:: -- DTOR -- ";
 }
 
 SampleProcessor::SampleProcessor( boost::asio::io_service& io_service ) : fs_( new adfs::filesystem )

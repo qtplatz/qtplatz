@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -28,7 +28,7 @@
 #include "logger_i.hpp"
 #include "objectdiscovery.hpp"
 #include <acewrapper/orbservant.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/string.hpp>
 #include <regex>
 
@@ -59,12 +59,12 @@ std::mutex manager_i::mutex_;
 
 manager_i::manager_i(void) : discovery_(0)
 {
-    adportable::debug(__FILE__, __LINE__) << "adbroker::manager_i ctor";
+    ADTRACE() << "adbroker::manager_i ctor";
 }
 
 manager_i::~manager_i(void)
 {
-    adportable::debug(__FILE__, __LINE__) << "adbroker::~manager_i dtor";
+    ADTRACE() << "adbroker::~manager_i dtor";
     delete discovery_;
 }
 
@@ -82,7 +82,7 @@ manager_i::instance()
 void
 manager_i::shutdown()
 {
-    adportable::debug(__FILE__, __LINE__) << "##### adbroker::manager::shutting down ... ######";
+    ADTRACE() << "##### adbroker::manager::shutting down ... ######";
 
     if ( discovery_ ) {
         std::lock_guard< std::mutex > lock( mutex_ );
@@ -92,7 +92,7 @@ manager_i::shutdown()
         discovery_ = 0;
     }
 
-    adportable::debug(__FILE__, __LINE__) << "##### adbroker::manager::shutdown complete ######";
+    ADTRACE() << "##### adbroker::manager::shutdown complete ######";
 }
 
 Broker::Session_ptr
@@ -140,7 +140,7 @@ manager_i::getLogger()
 void
 manager_i::register_ior( const char * name, const char * ior )
 {
-    adportable::debug() << "adbroker::manager_i::register_ior("
+    ADTRACE() << "adbroker::manager_i::register_ior("
                         << std::string(name) << ", " << std::string(ior) << ")";
 
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -151,7 +151,7 @@ manager_i::register_ior( const char * name, const char * ior )
 void
 manager_i::internal_register_ior( const std::string& name, const std::string& ior )
 {
-    adportable::debug() << "adbroker::manager_i::internal_register_ior(" 
+    ADTRACE() << "adbroker::manager_i::internal_register_ior(" 
                         << name << ", " << ior.substr(0, 20) << "... )";
 
     std::lock_guard< std::mutex > lock( mutex_ );

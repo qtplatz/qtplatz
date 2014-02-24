@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -30,7 +30,7 @@
 #include <adcontrols/traceaccessor.hpp>
 #include <adfs/cpio.hpp>
 #include <adportable/bzip2.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/serializer.hpp>
 #include <boost/exception/all.hpp>
 
@@ -61,13 +61,13 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
         else if ( traceId && std::wcscmp( traceId, L"MS.CENTROID" ) == 0 )
             return translate_processed( ms, data, dsize, meta, msize, spectrometer, idData );
     } catch ( boost::exception& ex ) {
-        adportable::debug(__FILE__, __LINE__) << boost::diagnostic_information( ex );
+        ADERROR() << boost::diagnostic_information( ex );
         std::ostringstream o;
         o << "batchproc::DataInterpreter::translate(traceId=" << traceId << ")";
         ex << boost::error_info< struct errmsg_info, std::string >( o.str() );
         throw;
     } catch ( ... ) {
-        adportable::debug(__FILE__, __LINE__) << boost::current_exception_diagnostic_information();        
+        ADERROR() << boost::current_exception_diagnostic_information();        
         throw;
     }
     return adcontrols::translate_error;
@@ -81,7 +81,7 @@ DataInterpreter::translate_profile( adcontrols::MassSpectrum& ms
                                     , size_t idData ) const
 {
 	(void)idData;
-    adportable::debug(__FILE__, __LINE__) << "translate_profile( dsize=" << dsize << ", msize=" << msize << ")";
+    ADTRACE() << "translate_profile( dsize=" << dsize << ", msize=" << msize << ")";
     import_profile profile;
     import_continuum_massarray ma;
     
@@ -93,12 +93,12 @@ DataInterpreter::translate_profile( adcontrols::MassSpectrum& ms
 
         std::string ar;
         adportable::bzip2::decompress( ar, data, dsize );
-        adportable::debug(__FILE__, __LINE__) << "translate_profile deserialize import_profile w/ decompress";
+        ADTRACE() << "translate_profile deserialize import_profile w/ decompress";
         if ( ! adportable::serializer< import_profile >::deserialize( profile, ar.data(), ar.size() ) )
             return adcontrols::translate_error;
 
     } else {
-        adportable::debug(__FILE__, __LINE__) << "translate_profile deserialize import_profile w/o decompress";
+        ADTRACE() << "translate_profile deserialize import_profile w/o decompress";
         if ( ! adportable::serializer< import_profile >::deserialize( profile, data, dsize ) ) 
             return adcontrols::translate_error;
     }

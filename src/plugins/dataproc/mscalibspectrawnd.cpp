@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -43,7 +43,7 @@
 #include <adcontrols/description.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adportable/configuration.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
@@ -290,7 +290,7 @@ MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 			try {
 				margedSpectrum_ = boost::any_cast< adcontrols::MassSpectrumPtr >( fSummary );
 			} catch ( std::exception& ex ) {
-				adportable::debug(__FILE__, __LINE__) << "got an exception: " << ex.what();
+				ADTRACE() << "got an exception: " << ex.what();
 			}
             portfolio::Folio atts = fSummary.attachments();
             auto it = portfolio::Folium::find< adcontrols::MSCalibrateResultPtr >( atts.begin(), atts.end() );
@@ -298,7 +298,7 @@ MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 				try {
 					margedCalibResult_ = boost::any_cast< adcontrols::MSCalibrateResultPtr >( *it );
 				} catch ( std::exception& ex ) {
-					adportable::debug(__FILE__, __LINE__) << "got an exception: " << ex.what();
+					ADTRACE() << "got an exception: " << ex.what();
 				}
 			}
         }

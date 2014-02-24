@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 ** Copyright (C) MS-Cheminformatics LLC / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -30,7 +30,6 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adportable/array_wrapper.hpp>
-//#include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,7 +29,7 @@
 #include <qtwrapper/trackingenabled.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/profile.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adprot/protfile.hpp>
 #include <adprot/protease.hpp>
 #include <coreplugin/coreconstants.h>

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -37,7 +37,7 @@
 #include <adcontrols/mspeaks.hpp>
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/computemass.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/serializer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/array_wrapper.hpp>
@@ -268,7 +268,7 @@ MSCalibSummaryWidget::createModelData( const std::vector< std::pair< int, int > 
 		try {
 			model.setData( model.index( row, c_time_normalized ), ms.getNormalizedTime( idx.second ) );
 		} catch ( boost::exception& e ) {
-			adportable::debug(__FILE__, __LINE__) << boost::diagnostic_information(e);
+			ADERROR() << boost::diagnostic_information(e);
 		}
         model.setData( model.index( row, c_intensity ), ms.getIntensity( idx.second ) );
 

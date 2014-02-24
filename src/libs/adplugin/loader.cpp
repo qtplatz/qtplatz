@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,7 +26,7 @@
 #include "manager.hpp"
 #include "constants.hpp"
 #include <boost/filesystem.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <QLibrary>
 
 using namespace adplugin;
@@ -76,6 +76,17 @@ loader::populate( const wchar_t * directory )
 
 	}
 	manager::instance()->populated();
+}
+
+// static
+std::string
+loader::library_filename( const char * library )
+{
+    std::string dname( library );
+#if defined DEBUG || defined _DEBUG
+    dname += DEBUG_LIB_TRAIL;
+#endif
+    return dname;
 }
 
 void

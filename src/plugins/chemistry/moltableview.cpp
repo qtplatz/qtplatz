@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,7 +25,7 @@
 #include "moltableview.hpp"
 #include "moltabledelegate.hpp"
 #include <adchem/sdfile.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adprot/aminoacid.hpp>
@@ -193,7 +193,7 @@ MolTableView::setMol( adchem::SDFile& file, QProgressBar& progressBar )
                     model_->setData( model_->index( idx, col++ ), QString::fromStdString( formula) );
                     model_->setData( model_->index( idx, col++), cformula.getMonoIsotopicMass( formula ) );
                 } catch ( std::exception& ex ) {
-                    ADDEBUG() << ex.what();
+                    ADERROR() << ex.what();
                 }
                 col = 4;
                 // associated data
@@ -210,9 +210,9 @@ MolTableView::setMol( adchem::SDFile& file, QProgressBar& progressBar )
 				if ( idx == 10 )
 					this->update();
             } catch ( std::exception& ex ) {
-                ADDEBUG() << boost::current_exception_diagnostic_information() << ex.what();
+                ADERROR() << boost::current_exception_diagnostic_information() << ex.what();
             } catch ( ... ) {
-                ADDEBUG() << boost::current_exception_diagnostic_information();
+                ADERROR() << boost::current_exception_diagnostic_information();
             }
             ++idx;
         }

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -30,7 +30,7 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/bzip2.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <boost/exception/all.hpp>
 
 namespace batchproc {
@@ -130,22 +130,22 @@ MassSpectrometer::load_continuum_massarray()
             if ( accessor_->getRaw( objid, 0, fcn, data, meta ) ) {
                 if ( !meta.empty() ) {
                     if ( adportable::bzip2::is_a( meta.data(), meta.size() ) ) {
-                        adportable::debug(__FILE__, __LINE__) << "load continuum massarray w/ decompress";
+                        ADTRACE() << "load continuum massarray w/ decompress";
                         std::string ar;
                         adportable::bzip2::decompress( ar, meta.data(), meta.size() );
                         try {
-                            adportable::debug(__FILE__, __LINE__) << "deserialize continuum massarray size=" << ar.size();
+                            ADTRACE() << "deserialize continuum massarray size=" << ar.size();
                             adportable::serializer< import_continuum_massarray >::deserialize( *continuum_massarray_, ar.data(), ar.size() );
                         } catch ( boost::archive::archive_exception& ex ) {
-                            adportable::debug(__FILE__, __LINE__) << "archive_exception::code : " << ex.code << " " << ex.what();
+                            ADTRACE() << "archive_exception::code : " << ex.code << " " << ex.what();
                             BOOST_THROW_EXCEPTION( ex );
                         }
                     } else {
-                        adportable::debug(__FILE__, __LINE__) << "load continuum massarray w/o decompress";
+                        ADTRACE() << "load continuum massarray w/o decompress";
                         try {
                             adportable::serializer< import_continuum_massarray >::deserialize( *continuum_massarray_, meta.data(), meta.size() );
                         } catch ( boost::archive::archive_exception& ex ) {
-                            adportable::debug(__FILE__, __LINE__) << boost::current_exception_diagnostic_information() << ex.code;
+                            ADWARN() << boost::current_exception_diagnostic_information() << ex.code;
                             BOOST_THROW_EXCEPTION( ex );
                         }
                     }

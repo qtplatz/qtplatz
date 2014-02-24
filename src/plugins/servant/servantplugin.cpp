@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -52,7 +52,6 @@
 
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
-#include <adportable/debug.hpp>
 #include <adportable/configloader.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
@@ -97,8 +96,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     ADINFO() << "<----- ServantPlugin::initialize() ...";
     do {
+        adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
         adcontrols::logging_hook::register_hook( adlog::logging_handler::log );
-        // portfolio::logging_hook::register_hook( adlog::logging_handler::log );
     } while(0);
 
     OutputWindow * outputWindow = new OutputWindow;

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,7 +26,7 @@
 
 #include <boost/thread/barrier.hpp>
 #include <tao/Utils/ORB_Manager.h>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <boost/bind.hpp>
 #include <thread>
 
@@ -49,7 +49,7 @@ orbmgr::instance()
 orbmgr::~orbmgr()
 {
     delete taomgr_;
-    adportable::debug(__FILE__, __LINE__) << "orbmgr deleted cleanly";
+    ADTRACE() << "orbmgr deleted cleanly";
 }
 
 orbmgr::orbmgr( CORBA::ORB_ptr orb
@@ -153,7 +153,7 @@ orbmgr::deactivate( CORBA::Object_ptr obj )
                 PortableServer::ObjectId_var objid = poa->reference_to_id( obj );
                 poa->deactivate_object( objid );
             } catch ( CORBA::Exception& ex ) {
-                adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+                ADERROR() << ex._info().c_str();
             }
         }
     }
@@ -170,7 +170,7 @@ orbmgr::deactivate( PortableServer::ServantBase * p_servant )
                 PortableServer::ObjectId_var objid = poa->servant_to_id( p_servant );
                 poa->deactivate_object( objid );
             } catch ( CORBA::Exception& ex ) {
-                adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+                ADERROR() << ex._info().c_str();
             }
         }
     }
@@ -186,7 +186,7 @@ orbmgr::shutdown()
 			try {
 				orb->shutdown( true );
 			} catch( ... ) {
-				adportable::debug(__FILE__, __LINE__) << "shutdown got an exception";
+				ADERROR() << "shutdown got an exception";
 			}
 		}
 	}
@@ -203,7 +203,7 @@ orbmgr::run( boost::barrier& barrier )
         thread_running_ = false;
         throw;
     }
-	adportable::debug(__FILE__, __LINE__) << "orbmgr::run -- terminated.";
+	ADTRACE() << "orbmgr::run -- terminated.";
 }
 
 bool

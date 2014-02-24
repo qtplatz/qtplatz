@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -31,7 +31,7 @@
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <qtwrapper/qstring.hpp>
 
 #include <boost/variant.hpp>

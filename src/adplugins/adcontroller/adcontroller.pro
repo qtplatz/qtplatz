@@ -26,7 +26,8 @@ LIBS += \
      -l$$qtLibraryTarget(acewrapper) \
      -l$$qtLibraryTarget(adinterface) \
      -l$$qtLibraryTarget(adplugin) \
-     -l$$qtLibraryTarget(xmlparser)
+     -l$$qtLibraryTarget(xmlparser) \
+     -l$$qtLibraryTarget(adlog)
 
 win32 {
   LIBS += -l$$qtLibraryTarget(TAO_Utils) \

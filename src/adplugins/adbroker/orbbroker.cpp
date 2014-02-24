@@ -31,7 +31,7 @@
 #include <adplugin/plugin_ptr.hpp>
 #include <adplugin/orbfactory.hpp>
 #include <adorbmgr/orbmgr.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adinterface/brokerC.h>
 #include <adinterface/brokerclientC.h>
 #include <boost/exception/all.hpp>
@@ -86,10 +86,10 @@ orbBroker::create_instance() const
 			try {
 				broker->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
 			} catch ( CORBA::Exception& ex ) {
-				adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+				ADWARN() << ex._info().c_str();
 				return 0;
 			} catch ( ... ) {
-				adportable::debug( __FILE__, __LINE__ ) << boost::current_exception_diagnostic_information();
+				ADWARN() << boost::current_exception_diagnostic_information();
 				return 0;
 			}
 
@@ -164,11 +164,11 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
                 }
                 
             } else {
-                ADDEBUG() << plugin->clsid() << " nil instance created.";
+                ADTRACE() << plugin->clsid() << " nil instance created.";
             }
             
         } else {
-            ADDEBUG() << plugin->clsid() << " has on adplugin::orbFactory class.";
+            ADTRACE() << plugin->clsid() << " has on adplugin::orbFactory class.";
         }
     }
 

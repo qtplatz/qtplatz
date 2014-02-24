@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -31,7 +31,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adutils/processeddata.hpp>
 #include <adutils/fsio2.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -421,7 +421,7 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 			if ( processor ) {
 				std::string tname = static_cast<boost::any&>( folium ).type().name();
-				// adportable::debug(__FILE__, __LINE__)
+				// ADTRACE()
 				// 	<< "folium name: '" << folium.name()
 				// 	<< "'\tfilename: " << processor->file().filename()
 				// 	<< "\tfolium(type=" << tname << ", id=" << folium.id() << ")";

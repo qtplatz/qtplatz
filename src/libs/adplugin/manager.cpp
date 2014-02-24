@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -31,10 +31,14 @@
 #include "plugin.hpp"
 #include "plugin_ptr.hpp"
 #include "visitor.hpp"
+#include "loader.hpp"
 #include <adportable/configuration.hpp>
 #include <acewrapper/constants.hpp>
 #include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/debug_core.hpp>
+#include <adlog/logger.hpp>
+#include <adlog/logging_handler.hpp>
 #include <adportable/string.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <QLibrary>
@@ -137,6 +141,7 @@ manager::instance()
 
 manager::manager(void) : d_( new internal::manager_data() )
 {
+	adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 }
 
 manager::~manager(void)

@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@scienceliaison.com
 **
@@ -29,7 +29,7 @@
 #include "standarditemhelper.hpp"
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <qtwrapper/spin_t.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <QStandardItemModel>

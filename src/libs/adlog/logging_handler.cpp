@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "logging_handler.hpp"
+#include <fstream>
 
 using namespace adlog;
 
@@ -75,12 +76,16 @@ logging_handler::appendLog( int pri, const std::string& msg, const std::string& 
 {
     for ( auto& client: *this )
         client( pri, msg, file, line );
+
+    std::ofstream of( "debug.log", std::ios_base::out | std::ios_base::app );
+    of << file << "(" << line << "): " << msg << std::endl;
 }
 
 // static -- invoke from adportable::core::debug_core
 void
 logging_handler::log( int pri, const std::string& msg, const std::string& file, int line )
 {
-    logging_handler::instance()->appendLog( pri, msg, file, line );
+    for ( auto& client: *logging_handler::instance() )
+        client( pri, msg, file, line );
 }
 

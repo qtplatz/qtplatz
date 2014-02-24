@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -30,6 +30,9 @@
 #include "massspectrometerfactory.hpp"
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
+
+#include <adportable/debug_core.hpp>
+#include <adlog/logging_handler.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -62,10 +65,13 @@ batchprocPlugin::~batchprocPlugin()
         removeObject( mode_.get() );
 }
 
-bool batchprocPlugin::initialize(const QStringList &arguments, QString *errorString)
+bool
+batchprocPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     (void)arguments;
     (void)errorString;
+
+    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
     QAction *action = new QAction(tr("batchproc action"), this);
 	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,7 +25,7 @@
 #include "logging.hpp"
 #include "manager_i.hpp"
 #include "task.hpp"
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <acewrapper/orbservant.hpp>
 #include <functional>
 
@@ -40,8 +40,7 @@ Logging::Logging( const std::wstring& format
 
 Logging::~Logging()
 {
-	// commit_to_broker();
-	adportable::debug(__FILE__, __LINE__) << adinterface::EventLog::LogMessageHelper::toString( msg.get() );
+	ADTRACE() << adinterface::EventLog::LogMessageHelper::toString( msg.get() );
 	commit_to_task();
 }
 

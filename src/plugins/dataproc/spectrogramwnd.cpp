@@ -28,7 +28,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/spectrogram.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>

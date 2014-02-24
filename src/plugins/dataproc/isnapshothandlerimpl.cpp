@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "isnapshothandlerimpl.hpp"
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 
 using namespace dataproc;
 
@@ -50,6 +50,6 @@ iSnapshotHandlerImpl::portfolio_created( const QString& token )
 void
 iSnapshotHandlerImpl::folium_added( const QString& token, const QString& path, const QString& folderId )
 {
-    adportable::debug(__FILE__, __LINE__) << "##### iSnapshotHandlerImpl::folium_added #####";
+    ADTRACE() << "##### iSnapshotHandlerImpl::folium_added #####";
     emit onFoliumAdded( token, path, folderId );
 }

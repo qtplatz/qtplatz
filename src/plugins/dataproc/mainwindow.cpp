@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -47,7 +47,7 @@
 #include <adplugin/widget_factory.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/utf.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adprot/digestedpeptides.hpp>
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
@@ -562,7 +562,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 					try {
 						centroid = portfolio::get< adcontrols::MassSpectrumPtr >( f );
 					} catch ( boost::bad_any_cast& ex ) {
-						ADDEBUG() << boost::diagnostic_information( ex );
+						ADERROR() << boost::diagnostic_information( ex );
 					}
                 } else {
                     centroid = std::make_shared< adcontrols::MassSpectrum >();  // empty data for clear table
@@ -724,7 +724,7 @@ MainWindow::onMethodApply( adcontrols::ProcessMethod& pm )
 void
 MainWindow::actionApply()
 {
-    adportable::debug(__FILE__, __LINE__) << "dataproc::MainWindow::actionApply(" << currentFeature_ << ")";
+    ADTRACE() << "dataproc::MainWindow::actionApply(" << currentFeature_ << ")";
     qtwrapper::waitCursor wait;
 
     adcontrols::ProcessMethod m;

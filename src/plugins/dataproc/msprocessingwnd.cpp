@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -41,7 +41,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/waveform.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwplot/picker.hpp>
@@ -486,7 +486,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 void
 MSProcessingWnd::selectedOnProcessed( const QPointF& pos )
 {
-    adportable::debug(__FILE__, __LINE__) << "MSProcessingWnd::selectedOnProcessed: " << pos.x() << ", " << pos.y();
+    ADTRACE() << "MSProcessingWnd::selectedOnProcessed: " << pos.x() << ", " << pos.y();
 }
 
 void

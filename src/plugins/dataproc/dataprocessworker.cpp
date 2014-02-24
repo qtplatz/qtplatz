@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,7 +28,7 @@
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
 #include <qtwrapper/progressbar.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -232,13 +232,13 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
 
                     if ( hasCentroid ) {
                         if ( dset->getSpectrum( 0, pos, *ptr, objId ) ) {
-                            ADDEBUG() << "Creating spectrogram from centroid: " << pos << "/" << tic.size();
+                            ADTRACE() << "Creating spectrogram from centroid: " << pos << "/" << tic.size();
                             (*spectra) << ptr;
                         }
                     } else {
                         adcontrols::MassSpectrum profile;
                         if ( dset->getSpectrum( 0, pos, profile, 0 ) ) {
-                            ADDEBUG() << "Creating spectrogram from profile: " << pos << "/" << tic.size();
+                            ADTRACE() << "Creating spectrogram from profile: " << pos << "/" << tic.size();
                             adcontrols::MSPeakInfo result;
                             DataprocHandler::doCentroid( result, *ptr, profile, *centroidMethod );
                             (*spectra) << ptr;
@@ -328,7 +328,7 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
         // heap free checking on microsoft takes long time (more than 30 min for deleting 4000k objects)
     }
 
-    ADDEBUG() << "destractor spent: " 
+    ADTRACE() << "destractor spent: " 
               << double( std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - start ).count() / 1000.0 );
 
 	progress->dispose();

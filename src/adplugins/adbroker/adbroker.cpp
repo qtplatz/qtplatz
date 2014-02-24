@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,12 +26,12 @@
 #include "adbroker.hpp"
 #include "orbbroker.hpp"
 #include <adplugin/visitor.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <typeinfo>
 #include <tao/Utils/ORB_Manager.h>
 #include <acewrapper/orbservant.hpp>
 #include <acewrapper/constants.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include "manager_i.hpp"
 #include "brokermanager.hpp"
 #include <mutex>

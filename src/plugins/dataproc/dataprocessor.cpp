@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -69,7 +69,7 @@
 #include <adcontrols/spectrogram.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/profile.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
@@ -151,17 +151,17 @@ Dataprocessor::open(const QString &fileName )
                 file->accept( *this );
                 return true;
             } catch ( boost::exception& ex ) {
-                adportable::debug(__FILE__, __LINE__) << boost::diagnostic_information( ex );
+                ADERROR() << boost::diagnostic_information( ex );
             } catch ( std::exception& ex ) {
-                adportable::debug(__FILE__, __LINE__) << ex.what();
+                ADERROR() << ex.what();
             } catch ( ... ) {
-                adportable::debug(__FILE__, __LINE__) << "got an exception '...'";
+                ADERROR() << "got an exception '...'";
             }
         }
     } catch ( boost::exception& ex ) {
-        adportable::debug(__FILE__, __LINE__) << boost::diagnostic_information( ex );
+        ADERROR() << boost::diagnostic_information( ex );
     } catch ( ... ) {
-        adportable::debug(__FILE__, __LINE__) << "got an exception '...'";
+        ADERROR() << "got an exception '...'";
     }
     return false;
 }
@@ -246,7 +246,7 @@ namespace dataproc {
         }
 
         template<typename T> bool operator () ( T& ) const {
-            adportable::debug(__FILE__, __LINE__) << "doSpectraolProcess( " << typeid( T ).name() << ") -- ignored";
+            ADTRACE() << "doSpectraolProcess( " << typeid( T ).name() << ") -- ignored";
             return false;
         }
 
@@ -273,7 +273,7 @@ namespace dataproc {
         }
 
         template<typename T> bool operator () ( T& ) const {
-            // adportable::debug(__FILE__, __LINE__) << "doChromatogramProcess( " << typeid( T ).name() << ") -- ignored";
+            // ADTRACE() << "doChromatogramProcess( " << typeid( T ).name() << ") -- ignored";
             return false;
         }
 
@@ -309,7 +309,7 @@ namespace dataproc {
 void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
-    adportable::debug(__FILE__, __LINE__) << "applyProcess: " << procType;
+    ADTRACE() << "applyProcess: " << procType;
 
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
     if ( folium )
@@ -333,7 +333,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         } else if ( procType == CalibrationProcess ) {
             // should not be here
         } else if ( procType == PeakFindProcess ) {
-            // adportable::debug(__FILE__, __LINE__) << "============== select PeakFindProcess";
+            // ADTRACE() << "============== select PeakFindProcess";
             selector.append< adcontrols::PeakMethod >( method );
         }
 

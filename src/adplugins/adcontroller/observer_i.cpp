@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -29,7 +29,7 @@
 #include "sampleprocessor.hpp"
 #include <algorithm>
 #include <acewrapper/orbservant.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/timer.hpp>
 #include "logging.hpp"
 
@@ -86,7 +86,7 @@ observer_i::getDescription (void)
     try {
         return source_observer_->getDescription();
     } catch ( CORBA::Exception& ex ) {
-        adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+        ADERROR() << ex._info().c_str();
     }
     return 0;
 }
@@ -336,8 +336,7 @@ observer_i::handle_data( unsigned long /* parentId */, unsigned long objId, long
                 return rdbuf._retn();
             }
         } catch ( CORBA::Exception& ex ) {
-            adportable::debug(__FILE__, __LINE__)
-                << "CORBA::Exception: " << ex._info().c_str();
+            ADERROR() << "CORBA::Exception: " << ex._info().c_str();
             Logging( L"Exception: observer_i::handle_data \"%1%\"\t while readData from %2% at pos %3%" )
                 % ex._info().c_str() % objId % pos;
         }

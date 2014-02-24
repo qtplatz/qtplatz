@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,7 +27,9 @@
 #include "chemistrymode.hpp"
 #include "mainwindow.hpp"
 #include "constants.hpp"
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
+#include <adportable/debug_core.hpp>
+#include <adlog/logging_handler.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -78,6 +80,8 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
+
+    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
     // 
     initialize_actions();

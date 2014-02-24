@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,6 +27,9 @@
 #include "peptideconstants.hpp"
 #include "mainwindow.hpp"
 #include "peptidemode.hpp"
+
+#include <adportable/debug_core.hpp>
+#include <adlog/logging_handler.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -63,6 +66,8 @@ bool peptideplugin::initialize(const QStringList &arguments, QString *errorStrin
 {
     (void)arguments;
     (void)errorString;
+
+    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
     Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     mainWindow_->activateWindow();

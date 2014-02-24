@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -30,7 +30,7 @@
 #include <acewrapper/constants.hpp>
 #include <acewrapper/orbservant.hpp>
 #include <acewrapper/ifconfig.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <iostream>
 #include <boost/bind.hpp>
 #include <thread>
@@ -55,8 +55,7 @@ ObjectDiscovery::~ObjectDiscovery()
 void
 ObjectDiscovery::close()
 {
-    adportable::debug(__FILE__, __LINE__)
-        << "============= ObjectDiscovery::close() ===============";
+    ADTRACE() << "============= ObjectDiscovery::close() ===============";
     if ( iorQuery_ )
         iorQuery_->close();
     if ( io_service_ )
@@ -79,7 +78,7 @@ ObjectDiscovery::reply_handler( const std::string& ident, const std::string& ior
 	std::string name;
 
     if ( unregister_lookup( ident, name ) ) {
-        adportable::debug(__FILE__, __LINE__) << "ObjectDiscovery: name=" << name << ", " << ident 
+        ADTRACE() << "ObjectDiscovery: name=" << name << ", " << ident 
                             << " ior=" << ior.substr(0, 20) << "...";
         manager_i::instance()->impl().internal_register_ior( name, ior );
 	}

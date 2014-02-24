@@ -48,8 +48,8 @@ namespace adlog {
         std::ostringstream o_;
     };
 
-    template<> logger& logger::operator << ( const std::wstring& );
-    template<> logger& logger::operator << ( const boost::system::error_code& );
+    template<> ADLOGSHARED_EXPORT logger& logger::operator << ( const std::wstring& );
+    template<> ADLOGSHARED_EXPORT logger& logger::operator << ( const boost::system::error_code& );
 
     enum { LOG_TRACE, LOG_INFO, LOG_WARN, LOG_ERROR };
 

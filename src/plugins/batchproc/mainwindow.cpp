@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -32,7 +32,7 @@
 #include "process.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <adportable/profile.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/rightpane.h>
@@ -347,6 +347,6 @@ MainWindow::handleProgress( int rowId, int curr, int total )
 void
 MainWindow::handleDestDirChanged( const QString& text )
 {
-	adportable::debug(__FILE__, __LINE__) << text.toStdString();
+	ADTRACE() << text.toStdString();
     destDir_ = text.toStdWString();
 }

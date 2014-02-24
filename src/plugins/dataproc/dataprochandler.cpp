@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -52,7 +52,7 @@
 #include <adcontrols/peakresult.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/polfit.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <chromatogr/chromatography.hpp>
 #include <portfolio/folium.hpp>
 

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -308,7 +308,7 @@ import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
                 uint32_t events = 0;
                 adutils::AcquiredData::insert( fs_->db(), centroidId_, time, i, fcn, events, ar.data(), ar.size() );
                 
-                ADDEBUG() << "import spectrum size " << ar.size();
+                ADTRACE() << "import spectrum size " << ar.size();
             }
         }  
     }
@@ -380,7 +380,7 @@ import::import_profile_spectra( uint64_t fcn, size_t nSpectra )
                                            , archive_data.data(), archive_data.size()
                                            , archive_meta.data(), archive_meta.size() );
             
-            ADDEBUG() << "import spectrum size " << archive_data.size() << " mass array size: " << archive_meta.size();
+            ADTRACE() << "import spectrum size " << archive_data.size() << " mass array size: " << archive_meta.size();
         }
     }
     progress_( rowId_, nSpectra, nSpectra ); // completed

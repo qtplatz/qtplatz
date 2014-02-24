@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -29,7 +29,7 @@
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adportable/configuration.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/is_type.hpp>
 #include <QStandardItemModel>
 #include "standarditemhelper.hpp"

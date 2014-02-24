@@ -24,7 +24,6 @@
 
 #include "logger.hpp"
 #include <qcolor.h>
-#include <adportable/debug.hpp>
 #include <boost/format.hpp>
 
 using namespace servant;

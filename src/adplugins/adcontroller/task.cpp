@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -37,7 +37,7 @@
 #include <adinterface/eventlog_helper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/timer.hpp>
 #include <acewrapper/orbservant.hpp>
 #include <xmlparser/pugixml.hpp>
@@ -428,7 +428,7 @@ iTask::handle_echo( std::string s )
             d.receiver_->debug_print( 0, 0, s.c_str() );
         } catch ( CORBA::Exception& ) {
             d.failed_++;
-            adportable::debug(__FILE__, __LINE__) << "iTask::handle_dispatch_command 'echo' got an exception";
+            ADERROR() << "iTask::handle_dispatch_command 'echo' got an exception";
         }
     }
 }
@@ -450,7 +450,7 @@ iTask::handle_prepare_for_run( ControlMethod::Method m )
 void
 iTask::handle_start_run()
 {
-    adportable::debug(__FILE__, __LINE__) << "######################### handle_start_run...";
+    ADTRACE() << "######################### handle_start_run...";
     Logging( L"handle start run" );
 
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -481,13 +481,13 @@ iTask::handle_stop_run()
     for ( auto& proxy: iproxies_ )
         proxy->stopRun();
 
-    adportable::debug(__FILE__, __LINE__) << "######################### handle_stop_run...";
+    ADTRACE() << "######################### handle_stop_run...";
     Logging( L"handle stop run" );
 
     std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( !queue_.empty() ) {
-        adportable::debug(__FILE__, __LINE__) << "handle_stop_run remove one sample-processor";
+        ADTRACE() << "handle_stop_run remove one sample-processor";
         queue_.front()->stop_triggered();
         queue_.pop_front();
     }
@@ -517,11 +517,11 @@ iTask::notify_message( unsigned long msgid, unsigned long value )
 
     for ( internal::receiver_data& d: this->receiver_set_ ) {
         try {
-            adportable::debug(__FILE__, __LINE__) << "notify_message(" << msgid << ", " << value << ")";
+            ADTRACE() << "notify_message(" << msgid << ", " << value << ")";
             d.receiver_->message( Receiver::eINSTEVENT( msgid ), value );
         } catch ( CORBA::Exception& ex ) {
             d.failed_++;
-            adportable::debug(__FILE__, __LINE__) << "exception: " << ex._name();
+            ADERROR() << "exception: " << ex._name();
         }
     }
 }
@@ -537,7 +537,7 @@ iTask::handle_message( std::wstring name, unsigned long msgid, unsigned long val
             d.receiver_->message( Receiver::eINSTEVENT( msgid ), value );
         } catch ( CORBA::Exception& ex ) {
             d.failed_++;
-            adportable::debug(__FILE__, __LINE__) << "exception: " << ex._name();
+            ADERROR() << "exception: " << ex._name();
         }
     }
 }

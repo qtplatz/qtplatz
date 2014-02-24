@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -70,8 +70,11 @@
 #include <adplugin/plugin_ptr.hpp>
 #include <adplugin/orbbroker.hpp>
 
+#include <adportable/debug_core.hpp>
+#include <adlog/logging_handler.hpp>
+#include <adlog/logger.hpp>
+
 #include <adportable/date_string.hpp>
-#include <adportable/debug.hpp>
 #include <adportable/fft.hpp>
 
 #include <adwplot/chromatogramwidget.hpp>
@@ -216,7 +219,7 @@ AcquirePlugin::~AcquirePlugin()
 
     delete mainWindow_;
     delete pImpl_;
-    adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin dtor complete ===============";
+    ADTRACE() << "====== AcquirePlugin dtor complete ===============";
 }
 
 AcquirePlugin::AcquirePlugin() : mainWindow_(0)
@@ -288,6 +291,9 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments);
     Q_UNUSED(error_message);
+
+    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
+
     Core::ICore * core = Core::ICore::instance();
 
     QList<int> context;
@@ -315,8 +321,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     pConfig_ = new adportable::Configuration();
 
     if ( ! adportable::ConfigLoader::loadConfigFile( *pConfig_, configFile, query ) ) {
-        adportable::debug dbg( __FILE__, __LINE__ );
-        dbg << "AcquirePlugin::initialize loadConfig '" << configFile << "' load failed";
+        ADWARN() << "AcquirePlugin::initialize loadConfig '" << configFile << "' load failed";
         return false;
     }
 
@@ -379,7 +384,7 @@ AcquirePlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 AcquirePlugin::aboutToShutdown()
 {
-    adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutting down...  ===============";
+    ADTRACE() << "====== AcquirePlugin shutting down...  ===============";
 
     actionDisconnect();
     pImpl_->terminate_broker_session();
@@ -389,7 +394,7 @@ AcquirePlugin::aboutToShutdown()
     for ( std::thread& t: threads_ )
         t.join();
 
-    adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutdown complete ===============";
+    ADTRACE() << "====== AcquirePlugin shutdown complete ===============";
     
 	return SynchronousShutdown;
 }
@@ -491,7 +496,7 @@ AcquirePlugin::actionConnect()
     if ( ! CORBA::is_nil( session_ ) ) {
         actionInitRun_->setEnabled( true );
         actionRun_->setEnabled( true );
-        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
+        ADTRACE() << "adcontroller status: " << session_->status();
     }
 }
 
@@ -535,7 +540,7 @@ AcquirePlugin::actionInitRun()
     if ( ! CORBA::is_nil( session_ ) ) {
         ControlMethod::Method m;
         session_->prepare_for_run( m );
-        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
+        ADTRACE() << "adcontroller status: " << session_->status();
     }
 }
 
@@ -544,7 +549,7 @@ AcquirePlugin::actionRun()
 {
     if ( ! CORBA::is_nil( session_ ) ) {
         session_->start_run();
-        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
+        ADTRACE() << "adcontroller status: " << session_->status();
     }
 }
 
@@ -553,7 +558,7 @@ AcquirePlugin::actionStop()
 {
     if ( ! CORBA::is_nil( session_ ) ) {
         session_->stop_run();
-        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
+        ADTRACE() << "adcontroller status: " << session_->status();
     }
 }
 
@@ -562,7 +567,7 @@ AcquirePlugin::actionInject()
 {
     if ( ! CORBA::is_nil( session_ ) ) {
 		session_->event_out( ControlServer::event_InjectOut ); // simulate inject out to modules
-        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
+        ADTRACE() << "adcontroller status: " << session_->status();
     }
 }
 
@@ -703,7 +708,7 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                 observerMap_[ objId ] = std::make_tuple( tgt, desc, name.in(), false, spectrometer );
                 npos_map_[ objId ] = pos;
             } else {
-                ADDEBUG() << "receive data from unavilable spectrometer: " << name.in();
+                ADTRACE() << "receive data from unavilable spectrometer: " << name.in();
                 return;
             }
         }
@@ -734,7 +739,7 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
             }
             emit onUpdateUIData( objId, pos );
         } catch ( CORBA::Exception& ex ) {
-            adportable::debug(__FILE__, __LINE__) << "handle_update_data got an corba exception: " << ex._info().c_str();
+            ADTRACE() << "handle_update_data got an corba exception: " << ex._info().c_str();
         }
 
     } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
@@ -748,7 +753,7 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                 return;
             }
         } catch ( CORBA::Exception& ex ) {
-            adportable::debug(__FILE__, __LINE__) << "handle_update_data got an corba exception: " << ex._info().c_str();
+            ADTRACE() << "handle_update_data got an corba exception: " << ex._info().c_str();
         }
     }
 }
@@ -782,7 +787,7 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
 
     if ( msg == Receiver::STATE_CHANGED ) {
 
-		adportable::debug(__FILE__, __LINE__) << "handle_message( STATE_CHANGED, " << value << ")";
+		ADTRACE() << "handle_message( STATE_CHANGED, " << value << ")";
 
         eStatus status = eStatus( value );
         if ( status == eWaitingForContactClosure ) {
@@ -974,7 +979,7 @@ AcquirePlugin::initialize_broker()
 void
 AcquirePlugin::shutdown_broker()
 {
-    adportable::debug() << "====== AcquirePlugin::shutdown_broker broker shutting down... =======";
+    ADTRACE() << "====== AcquirePlugin::shutdown_broker broker shutting down... =======";
 
     auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
 	removeObject( iBroker );
@@ -994,7 +999,7 @@ AcquirePlugin::shutdown_broker()
                 orbBroker->orbmgr_wait();
 
             } catch ( boost::exception& ex ) {
-                ADDEBUG() << boost::diagnostic_information( ex );
+                ADERROR() << boost::diagnostic_information( ex );
             }
             
         }

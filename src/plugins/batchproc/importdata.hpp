@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -32,7 +32,7 @@
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/version.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 
 namespace batchproc {
 
@@ -64,9 +64,9 @@ namespace batchproc {
         template< class Archive >
         void serialize( Archive& ar, const unsigned int ) {
             ar & pos_;
-            adportable::debug( __FILE__, __LINE__ ) << "import_continuum_massarray serialize pos=" << pos_;
+            ADTRACE() << "import_continuum_massarray serialize pos=" << pos_;
             ar & masses_;
-            adportable::debug( __FILE__, __LINE__ ) << "import_continuum_massarray serialize masses=" << masses_.size();
+            ADTRACE() << "import_continuum_massarray serialize masses=" << masses_.size();
         }
     };
 

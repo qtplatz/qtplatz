@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -39,6 +39,7 @@ namespace adplugin {
 		static void populate( const wchar_t * directory );
         static void load( const wchar_t * library_filename );
         static void unload( const wchar_t * library_filename );
+        static std::string library_filename( const char * library );
         static plugin_ptr select_iid( const char * iid );
         static plugin_ptr select_clsid( const char * clsid ); // return first match only
         static size_t select_iids( const char * regex, std::vector< plugin_ptr >& );

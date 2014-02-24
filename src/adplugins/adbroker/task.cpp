@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -42,7 +42,7 @@
 #include <adfs/folder.hpp>
 #include <adfs/file.hpp>
 #include <adportable/float.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <sstream>
 #include <iostream>
 #include <adinterface/signalobserverC.h>
@@ -195,11 +195,11 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
 
     if ( observer->readData( pos, dbuf ) ) {
 
-        adportable::debug(__FILE__, __LINE__) << "broker readData( " << pos << " ) fnc= " << dbuf->fcn;
+        ADTRACE() << "broker readData( " << pos << " ) fnc= " << dbuf->fcn;
         while ( dbuf->fcn != 0 ) {
             if ( !observer->readData( --pos, dbuf ) )
                 return;
-            adportable::debug(__FILE__, __LINE__) << "back tracking readData( " << pos << " ) fnc= " << dbuf->fcn;
+            ADTRACE() << "back tracking readData( " << pos << " ) fnc= " << dbuf->fcn;
         }
 
         adcontrols::translate_state state;
@@ -222,7 +222,7 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
             do {
                 if ( ! ( success = observer->readData( pos, dbuf ) ) ) {
                     std::this_thread::sleep_for( duration );
-                    adportable::debug(__FILE__, __LINE__) << "waiting for spectrum functions to be completed: " << pos;
+                    ADTRACE() << "waiting for spectrum functions to be completed: " << pos;
                 }
             } while ( !success && wait-- );
 

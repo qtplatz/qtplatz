@@ -16,7 +16,8 @@ INCLUDEPATH += $$OUT_PWD/..
 
 LIBS += -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper) \
-        -l$$qtLibraryTarget(xmlparser)
+        -l$$qtLibraryTarget(xmlparser) \
+        -l$$qtLibraryTarget(adlog)
 
 !win32 {
   LIBS += -lboost_filesystem -lboost_system -lboost_regex

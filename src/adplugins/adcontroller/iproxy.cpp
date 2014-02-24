@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,10 +26,9 @@
 #include "iproxy.hpp"
 #include "task.hpp"
 #include "manager_i.hpp"
-//#include <acewrapper/brokerhelper.hpp>
 #include <acewrapper/orbservant.hpp>
 #include <adportable/string.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <stdexcept>
 #include <functional>
 
@@ -67,11 +66,11 @@ iProxy::initialConfiguration( const adportable::Configuration& c )
                     }
                 } 
             } catch ( CORBA::Exception& ex ) {
-                adportable::debug(__FILE__, __LINE__) << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
+                ADERROR() << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
             }
         }
     } else {
-        adportable::debug(__FILE__, __LINE__) << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
+        ADERROR() << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
     }
     return objref_;
 }
@@ -130,7 +129,7 @@ iProxy::disconnect()
 		try {
 			return impl_->disconnect( this->_this() );
 		} catch ( CORBA::Exception& ex ) {
-			adportable::debug(__FILE__, __LINE__) << "iProxy::disconnect got an exception: " << ex._info().c_str();
+			ADERROR() << "iProxy::disconnect got an exception: " << ex._info().c_str();
 		}
 	}
     return false;

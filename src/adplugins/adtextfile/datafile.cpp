@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -41,7 +41,7 @@
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
@@ -73,7 +73,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     TXTSpectrum txt;
 
     if ( ! txt.load( filename ) ) {
-        adportable::debug(__FILE__, __LINE__) 
+        ADERROR() 
             << "datafile '" << filename << "' open failed -- check file access permission";
         return false;
     }

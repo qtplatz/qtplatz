@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -32,7 +32,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/mscalibration.hpp>
-#include <adportable/debug.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/textfile.hpp>
 #include <fstream>
 #include <algorithm>
@@ -168,7 +168,7 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
                 nCount = 0;
                 double t0 = *it;
                 nDelay = int( ( t0 / ( sampInterval * 1e-12 ) ) + 0.5 );
-                adportable::debug(__FILE__, __LINE__)
+                ADTRACE()
                     << "time error: " << (t0 - ( nDelay * sampInterval * 1e-12 ) ) * 1e12 << "ps : t=" << t0  << " @ " << idx;
             }
         }
