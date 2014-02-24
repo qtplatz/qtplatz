@@ -82,10 +82,16 @@ debug_core::open( const std::string& logfile )
 void
 debug_core::log( int pri, const std::string& msg, const std::string& file, int line ) const
 {
+	if ( hook_ ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( hook_ )
+            hook_->log( pri, msg, file, line );
+    }
+
     std::string loc;
     if ( file.empty() )
         loc = ( boost::format( "%1%(%2%): " ) % file % line ).str();
-
+    
     if ( !logfname_.empty() ) {
         std::ofstream of( logfname_.c_str(), std::ios_base::out | std::ios_base::app );
         of << loc << msg << std::endl;
@@ -93,3 +99,13 @@ debug_core::log( int pri, const std::string& msg, const std::string& file, int l
     std::cout << loc << msg << std::endl;
 }
 
+void
+debug_core::hook( debug_core * p )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
+    if ( p )
+        hook_ = p->shared_from_this();
+    else
+        hook_.reset();
+}

@@ -26,23 +26,27 @@
 #define DEBUG_CORE_HPP
 
 #include <mutex>
+#include <memory>
 
 namespace adportable {
 
     namespace core {
         
-        class debug_core {
+        class debug_core : public std::enable_shared_from_this< debug_core > {
             debug_core();
             ~debug_core();
         public:
             static debug_core * instance();
+
             bool open( const std::string& logfile );
             const std::string& logfile() const;
 
-            void log( int pri, const std::string& msg, const std::string& file, int line ) const;
+            virtual void log( int pri, const std::string& msg, const std::string& file, int line ) const;
+            void hook( debug_core * );
 
         private:
             std::string logfname_;
+            std::shared_ptr< debug_core > hook_;
             static std::mutex mutex_;
             static debug_core * instance_;
         };

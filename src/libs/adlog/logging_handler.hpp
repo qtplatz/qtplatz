@@ -30,6 +30,7 @@
 #include <functional>
 #include <mutex>
 #include "adlog_global.hpp"
+#include <adportable/debug_core.hpp>
 
 #if defined _MSC_VER
 # pragma warning(push)
@@ -38,12 +39,15 @@
 
 namespace adlog {
 
-    class ADLOGSHARED_EXPORT logging_handler  {
+    class ADLOGSHARED_EXPORT logging_handler : public adportable::core::debug_core {
         logging_handler();
     public:
 
         static logging_handler * instance();
+        // debug_core hook -- workaround for historically 'debug.cpp' has been implemented in adportable static lib.
+        void log( int pri, const std::string& msg, const std::string& file, int line ) const override;
 
+        // actual handler type
         typedef std::function<void( int, const std::string&, const std::string& /* file */, int /* line */)> handler_type;
 
         void register_handler( handler_type );
