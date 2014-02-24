@@ -156,6 +156,9 @@
             <Component Id="adchem.dll" Guid="11EA8F0B-8085-4E5A-9099-7C2C8F613A16" Win64="yes">
                 <File Id="adchem.dll" Source="../../../bin/adchem.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
+            <Component Id="adlog.dll" Guid="C552E0A7-8257-471B-BB4A-F1E22A1B60C8" Win64="yes">
+                <File Id="adlog.dll" Source="../../../bin/adlog.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+            </Component>
             <Component Id="adprot.dll" Guid="9A556689-4CB3-4C79-86E6-36E29A73E870" Win64="yes">
                 <File Id="adprot.dll" Source="../../../bin/adprot.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>

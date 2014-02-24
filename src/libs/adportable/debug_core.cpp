@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "debug_core.hpp"
+#include <iostream>
 #include <fstream>
 #include <boost/format.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
