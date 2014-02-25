@@ -10,15 +10,29 @@ include(../../agilentplugin.pri)
 include(../../qwt.pri)
 include(../../boost.pri)
 
-#INCLUDEPATH *= $$OUT_PWD/../../src/libs
+INCLUDEPATH *= $$OUT_PWD/../../libs
 
 # u5303 files
 
-SOURCES += u5303aplugin.cpp
+SOURCES += u5303aplugin.cpp \
+           mainwindow.cpp \
+           u5303amode.cpp \
+           document.cpp
 
 HEADERS += u5303aplugin.hpp \
         u5303a_global.hpp \
-        u5303a_constants.hpp
+        u5303a_constants.hpp \
+        mainwindow.hpp \
+        u5303amode.hpp \
+        document.hpp
+
+LIBS += -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adlog) \
+        -l$$qtLibraryTarget(adfs) \
+        -l$$qtLibraryTarget(adextension) \
+        -l$$qtLibraryTarget(adwplot) \
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(u5303a)
 
 # Qt Creator linking
 
@@ -28,7 +42,7 @@ HEADERS += u5303aplugin.hpp \
 ## set the QTC_BUILD environment variable to override the setting here
 #IDE_BUILD_TREE = $$(QTC_BUILD)
 
-QTC_PLUGIN_NAME = u5303
+QTC_PLUGIN_NAME = u5303aplugin
 QTC_LIB_DEPENDS += \
     # nothing here at this time
 
@@ -39,3 +53,6 @@ QTC_PLUGIN_RECOMMENDS += \
     # optional plugin dependencies. nothing here at this time
 
 ###### End _dependencies.pri contents ######
+
+RESOURCES += \
+    u5303a.qrc

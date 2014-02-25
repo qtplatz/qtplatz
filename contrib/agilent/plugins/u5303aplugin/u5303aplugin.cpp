@@ -1,5 +1,35 @@
+// -*- C++ -*-
+/**************************************************************************
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+*
+** Contact: info@ms-cheminfo.com
+**
+** Commercial Usage
+**
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
+
 #include "u5303aplugin.hpp"
 #include "u5303a_constants.hpp"
+#include "u5303amode.hpp"
+#include "mainwindow.hpp"
+
+#include <adportable/debug_core.hpp>
+#include <adlog/logging_handler.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -7,6 +37,8 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/modemanager.h>
 
 #include <QAction>
 #include <QMessageBox>
@@ -15,8 +47,10 @@
 #include <QtPlugin>
 
 using namespace u5303a::Internal;
+using namespace u5303a;
 
-u5303APlugin::u5303APlugin()
+u5303APlugin::u5303APlugin() : mainWindow_( new MainWindow() )
+                             , mode_( std::make_shared< u5303AMode >(this) )
 {
     // Create your members
 }
@@ -25,19 +59,25 @@ u5303APlugin::~u5303APlugin()
 {
     // Unregister objects from the plugin manager's object pool
     // Delete members
+    removeObject( mode_.get() );
 }
 
 bool u5303APlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    // Register objects in the plugin manager's object pool
-    // Load settings
-    // Add actions to menus
-    // Connect to other plugins' signals
-    // In the initialize function, a plugin can be sure that the plugins it
-    // depends on have initialized their members.
+    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
+
+    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
+    mainWindow_->activateWindow();
+    mainWindow_->createActions();
+
+	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    mode_->setContext( gc );
+    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
+        mode_->setWidget( widget );
+    addObject( mode_.get() );
 
     QAction *action = new QAction(tr("u5303A action"), this);
 

@@ -1,4 +1,4 @@
-<plugin name=\"u5303a\" version=\"1.0.1\" compatVersion=\"1.3.1\">
+<plugin name=\"u5303aplugin\" version=\"1.0.1\" compatVersion=\"1.3.1\">
     <vendor>MS-Cheminformatics</vendor>
     <copyright>(C) 2014 MS-Cheminformatics LLC</copyright>
     <license>Put your license text here</license>

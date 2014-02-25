@@ -60,6 +60,7 @@ peptideplugin::~peptideplugin()
     // Delete members
 	if ( mode_ )
         removeObject( mode_.get() );
+    delete mainWindow_;
 }
 
 bool peptideplugin::initialize(const QStringList &arguments, QString *errorString)

@@ -6,10 +6,10 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with
-** the Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -21,3 +21,17 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+
+#ifndef U5303A_HPP
+#define U5303A_HPP
+
+#include "u5303a_global.hpp"
+
+class U5303ASHARED_EXPORT U5303A
+{
+
+public:
+    U5303A();
+};
+
+#endif // U5303A_HPP

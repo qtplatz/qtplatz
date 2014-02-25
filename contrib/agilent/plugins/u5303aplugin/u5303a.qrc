@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/u5303a">
+        <file>images/image001_512.png</file>
+    </qresource>
+</RCC>

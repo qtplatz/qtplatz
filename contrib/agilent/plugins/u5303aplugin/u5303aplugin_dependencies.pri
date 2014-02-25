@@ -1,4 +1,4 @@
-QTC_PLUGIN_NAME = u5303a
+QTC_PLUGIN_NAME = u5303aplugin
 QTC_LIB_DEPENDS += \
     # nothing here at this time
 
