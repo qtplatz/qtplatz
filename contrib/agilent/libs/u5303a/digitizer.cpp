@@ -205,26 +205,45 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         ADTRACE() << "Calibrating...";
         spAgDrvr_->Calibration->SelfCalibrate(); 
 		
+		try {
         // Set the mode FDK
-        ADTRACE() << "Mode FDK...";
-        spAgDrvr_->Acquisition->Mode = AgMD2AcquisitionModeUserFDK;
-
+			ADTRACE() << "Mode FDK...";
+			spAgDrvr_->Acquisition->Mode = AgMD2AcquisitionModeUserFDK;
+		} catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
         // Set the sample rate and nbr of samples to acquire
         double sample_rate = 3.2E9;
-        spAgDrvr_->Acquisition->PutSampleRate(sample_rate);                           
-        spAgDrvr_->Acquisition->UserControl->PostTrigger = (nbr_of_s_to_acquire/32)+2; 
-        spAgDrvr_->Acquisition->UserControl->PreTrigger = 0; 
-			
-        // Start on trigger
-        spAgDrvr_->Acquisition->UserControl->StartOnTriggerEnabled = 1;
-
-        // Full bandwidth
-        spCh1->Filter->Bypass = 1;
-
+        spAgDrvr_->Acquisition->PutSampleRate(sample_rate); 
+		try {
+			spAgDrvr_->Acquisition->UserControl->PostTrigger = (nbr_of_s_to_acquire/32)+2;
+		} catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
+		try {
+			spAgDrvr_->Acquisition->UserControl->PreTrigger = 0; 
+		} catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
+		try {
+			// Start on trigger
+			spAgDrvr_->Acquisition->UserControl->StartOnTriggerEnabled = 1;
+		} catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
+		try {
+			// Full bandwidth
+			spCh1->Filter->Bypass = 1;
+		} catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
         // Apply the Settings 
-        printf("Apply setup...\n");
-        spAgDrvr_->Acquisition->ApplySetup();
-			
+        ADTRACE() << "Apply setup...";
+		try {
+			spAgDrvr_->Acquisition->ApplySetup();
+		} catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
         long seg_depth = (nbr_of_s_to_acquire >> 5) + 5;
         long seg_ctrl = 0x80000;   // Averager mode, Analog trigger
 
@@ -232,31 +251,44 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             seg_ctrl=seg_ctrl+0x400000;
         }
         long delay_next_acq = 2;
-
-        spDpuA->WriteRegisterInt32(0x3300, seg_depth);        
-        spDpuA->WriteRegisterInt32(0x3304, nbr_of_averages);   
-        spDpuA->WriteRegisterInt32(0x3308, seg_ctrl);        
-        spDpuA->WriteRegisterInt32(0x3318, nbr_of_averages);  
-        spDpuA->WriteRegisterInt32(0x331c, nsa);              
-        spDpuA->WriteRegisterInt32(0x3320, delay_to_first_s); 
-        spDpuA->WriteRegisterInt32(0x3324, delay_next_acq);   
-		
+		try {
+			spDpuA->WriteRegisterInt32(0x3300, seg_depth);        
+			spDpuA->WriteRegisterInt32(0x3304, nbr_of_averages);   
+			spDpuA->WriteRegisterInt32(0x3308, seg_ctrl);        
+			spDpuA->WriteRegisterInt32(0x3318, nbr_of_averages);  
+			spDpuA->WriteRegisterInt32(0x331c, nsa);              
+			spDpuA->WriteRegisterInt32(0x3320, delay_to_first_s); 
+			spDpuA->WriteRegisterInt32(0x3324, delay_next_acq);   
+		} catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
         Sleep(1000);
 
         // Memory settings
-        spDDR3A->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware);
-        spDDR3B->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware);
-			
+		try {
+			spDDR3A->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware);
+			spDDR3B->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware);
+		} catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
         Sleep(1000);        
         //Start the acquisition
-        spAgDrvr_->Acquisition->UserControl->StartSegmentation();                              	
-        spAgDrvr_->Acquisition->UserControl->StartProcessing(AgMD2UserControlProcessingType1); 	
+		try {
+			spAgDrvr_->Acquisition->UserControl->StartSegmentation();                              	
+			spAgDrvr_->Acquisition->UserControl->StartProcessing(AgMD2UserControlProcessingType1); 	
+		} catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
 		
 			//Wait for the end of the acquisition
         long wait_for_end = 0x80000000;  	
         Sleep(200);
         while (wait_for_end>=0x80000000) {
-            spDpuA->ReadRegisterInt32(0x3308,&wait_for_end);	
+			try {
+				spDpuA->ReadRegisterInt32(0x3308,&wait_for_end);	
+			} catch ( _com_error& e ) {
+				ADERROR() << e.Description() << e.ErrorMessage();
+			}
             Sleep(200);
         }
         
@@ -265,8 +297,11 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         SAFEARRAY* psaWfmDataRaw = NULL;  // Driver will allocate to required size --> To store data samples
         long words_32bits = nbr_of_s_to_acquire;
         __int64 ActualElements, FirstValidElement;
-        spDpuA->ReadIndirectInt32(0x11,0,words_32bits,&psaWfmDataRaw,&ActualElements,&FirstValidElement); 
-        
+		try {
+			spDpuA->ReadIndirectInt32(0x11,0,words_32bits,&psaWfmDataRaw,&ActualElements,&FirstValidElement); 
+        } catch ( _com_error& e ) {
+			ADERROR() << e.Description() << e.ErrorMessage();
+		}
         //Store acquired data in a file
         //ofstream myfile_raw;
         //myfile_raw.open ("Averager_Output.txt");
@@ -281,7 +316,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         for (long i = (long)FirstValidElement; i < ((long)FirstValidElement +(long)ActualElements); i++) {
             _int32 s1 = pLongs[i];
             // save the data to file in raw data and volts 
-            myfile_raw << s1 << ";" << s1 / nbr_of_averages * (front_end_range / 8192) - front_end_range / 2 << endl;
+            //myfile_raw << s1 << ";" << s1 / nbr_of_averages * (front_end_range / 8192) - front_end_range / 2 << endl;
         }
         SafeArrayUnaccessData(psaWfmDataRaw);   
     }
