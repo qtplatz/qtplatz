@@ -268,8 +268,8 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         spDpuA->ReadIndirectInt32(0x11,0,words_32bits,&psaWfmDataRaw,&ActualElements,&FirstValidElement); 
         
         //Store acquired data in a file
-        ofstream myfile_raw;
-        myfile_raw.open ("Averager_Output.txt");
+        //ofstream myfile_raw;
+        //myfile_raw.open ("Averager_Output.txt");
 		
         //Memory will be freed when the smart data type goes out of scope
         void *pVoid = 0;
