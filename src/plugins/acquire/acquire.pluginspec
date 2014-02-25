@@ -1,5 +1,5 @@
 <plugin name="acquire" version="2.2.7" compatVersion="1.3.1">
-    <vendor>MS-Cheminformatics LLC</vendor>
+    <vendor>MS-Cheminformatics</vendor>
     <copyright>(C)2010-2013 MS-Cheminformatics LLC</copyright>
     <license>
 GNU Lesser General Public License Usage

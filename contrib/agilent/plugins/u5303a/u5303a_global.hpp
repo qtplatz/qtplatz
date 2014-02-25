@@ -1,0 +1,13 @@
+#ifndef U5303A_GLOBAL_HPP
+#define U5303A_GLOBAL_HPP
+
+#include <QtGlobal>
+
+#if defined(U5303A_LIBRARY)
+#  define U5303ASHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define U5303ASHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // U5303A_GLOBAL_H
+

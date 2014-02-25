@@ -55,8 +55,6 @@ loader::populate( const wchar_t * directory )
 				name.replace_extension();
 
 #if defined DEBUG || defined _DEBUG
-				// adportable::debug(__FILE__, __LINE__) << "loading adplugin: " << name.generic_string().c_str();
-
 				std::string dlibname = name.generic_string() + DEBUG_LIB_TRAIL;
 				QLibrary dlib( dlibname.c_str() );
 				if ( dlib.load() ) {
@@ -64,13 +62,14 @@ loader::populate( const wchar_t * directory )
 						dlib.unload();
 					continue;
 				}
-#endif
+#else
 				std::string libname = name.generic_string();
 				QLibrary lib( libname.c_str() );
 				if ( lib.load() ) {
 					if ( ! manager::instance()->install( lib, it->path().generic_string() ) )
 						lib.unload();
 				}
+#endif
 			}
 		}
 

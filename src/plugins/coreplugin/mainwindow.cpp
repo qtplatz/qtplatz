@@ -63,7 +63,7 @@
 #include "baseview.h"
 #include "basefilewizard.h"
 #include "ioutputpane.h"
-
+#include "../../app/version.h"
 #include <coreplugin/findplaceholder.h>
 #include <coreplugin/settingsdatabase.h>
 #include <utils/pathchooser.h>
@@ -166,7 +166,7 @@ MainWindow::MainWindow() :
     qApp->setWindowIcon(QIcon(":/core/images/qtcreator_logo_128.png"));
 #endif
     QCoreApplication::setApplicationName(QLatin1String("qtplatz"));
-    QCoreApplication::setApplicationVersion(QLatin1String(Core::Constants::IDE_VERSION_LONG));
+    QCoreApplication::setApplicationVersion(QLatin1String(VERSION));
     QCoreApplication::setOrganizationName(QLatin1String("Nokia"));
     QSettings::setDefaultFormat(QSettings::IniFormat);
     QString baseName = qApp->style()->objectName();
@@ -742,9 +742,9 @@ void MainWindow::registerDefaultActions()
 
     // About IDE Action
 #ifdef Q_WS_MAC
-    tmpaction = new QAction(tr("About &Qt Creator"), this); // it's convention not to add dots to the about menu
+    tmpaction = new QAction(tr("About &QtPlatz"), this); // it's convention not to add dots to the about menu
 #else
-    tmpaction = new QAction(tr("About &Qt Creator..."), this);
+    tmpaction = new QAction(tr("About &QtPlatz..."), this);
 #endif
     cmd = am->registerAction(tmpaction, Constants::ABOUT_QTCREATOR, m_globalContext);
     mhelp->addAction(cmd, Constants::G_HELP_ABOUT);

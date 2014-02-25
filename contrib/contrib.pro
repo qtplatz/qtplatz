@@ -4,7 +4,8 @@ CONFIG	+= ordered
 include(contrib.pri)
 include(../src/config.pri)
 
-SUBDIRS += bruker
+SUBDIRS += bruker \
+           agilent
 
 contains( QTPLATZ_CONFIG, ExampleTOF ) {
   SUBDIRS += example-tof

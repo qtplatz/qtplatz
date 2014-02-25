@@ -6,4 +6,4 @@ TEMPLATE  = subdirs
 SUBDIRS   = plugin_toftune
 
 plugin_toftune.subdir = toftune
-#plugin_hmqtune.depends = plugin_coreplugin
+#plugin_toftune.depends = plugin_coreplugin

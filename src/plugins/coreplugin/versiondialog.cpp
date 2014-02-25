@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "versiondialog.h"
-
+#include "../../app/version.h"
 #include "coreconstants.h"
 #include "icore.h"
 
@@ -55,12 +55,12 @@ VersionDialog::VersionDialog(QWidget *parent)
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
     setWindowIcon(QIcon(":/core/images/qtcreator_logo_128.png"));
 
-    setWindowTitle(tr("About Qt Creator"));
+    setWindowTitle(tr("About QtPlatz"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     QGridLayout *layout = new QGridLayout(this);
     layout->setSizeConstraint(QLayout::SetFixedSize);
 
-    QString version = QLatin1String(IDE_VERSION_LONG);
+    QString version = QLatin1String(VERSION);
     version += QDate(2007, 25, 10).toString(Qt::SystemLocaleDate);
 
     QString ideRev;
@@ -70,21 +70,21 @@ VersionDialog::VersionDialog(QWidget *parent)
 #endif
 
      const QString description = tr(
-        "<h3>Qt Creator %1</h3>"
+        "<h3>QtPlatz %1</h3>"
         "Based on Qt %2 (%3 bit)<br/>"
         "<br/>"
         "Built on %4 at %5<br />"
         "<br/>"
         "%8"
         "<br/>"
-        "Copyright 2008-%6 %7. All rights reserved.<br/>"
+        "Copyright 2010-%6 %7. All rights reserved.<br/>"
         "<br/>"
         "The program is provided AS IS with NO WARRANTY OF ANY KIND, "
         "INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A "
         "PARTICULAR PURPOSE.<br/>")
         .arg(version, QLatin1String(QT_VERSION_STR), QString::number(QSysInfo::WordSize), 
-             QLatin1String(__DATE__), QLatin1String(__TIME__), QLatin1String(IDE_YEAR), 
-             (QLatin1String(IDE_AUTHOR)), ideRev);
+             QLatin1String(__DATE__), QLatin1String(__TIME__), QLatin1String("2014"), 
+             (QLatin1String("MS-Cheminformatics LLC")), ideRev);
 
     QLabel *copyRightLabel = new QLabel(description);
     copyRightLabel->setWordWrap(true);

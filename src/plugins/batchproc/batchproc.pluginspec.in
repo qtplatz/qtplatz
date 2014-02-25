@@ -1,5 +1,5 @@
 <plugin name=\"batchproc\" version=\"0.0.1\" compatVersion=\"0.0.1\">
-    <vendor>MSCheminformatics</vendor>
+    <vendor>MS-Cheminformatics</vendor>
     <copyright>(C) MS-Cheminformatics LLC</copyright>
     <license></license>
     <description></description>

@@ -6,7 +6,7 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
 ** a written agreement between you and MS-Cheminformatics LLC.
@@ -188,7 +188,7 @@ DataInterpreter::translate( adcontrols::TraceAccessor& trace
             return adcontrols::translate_error;
 
     const double * intens = c.getIntensityArray();
-    for ( size_t i = 0; i < c.size(); ++i )
+    for ( int i = 0; i < c.size(); ++i )
         trace.push_back( 0, i, c.timeFromDataIndex(i), intens[i], 0 );
 
 	return adcontrols::translate_complete;

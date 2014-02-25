@@ -44,9 +44,9 @@ namespace Constants {
     "." STRINGIFY(IDE_VERSION_MINOR) \
     "." STRINGIFY(IDE_VERSION_RELEASE)
 
-const char * const IDE_VERSION_LONG      = IDE_VERSION;
-const char * const IDE_AUTHOR            = "Nokia Corporation";
-const char * const IDE_YEAR              = "2009";
+//const char * const IDE_VERSION_LONG      = IDE_VERSION;
+//const char * const IDE_AUTHOR            = "Nokia Corporation";
+//const char * const IDE_YEAR              = "2009";
 
 #ifdef IDE_REVISION
 const char * const IDE_REVISION_STR      = STRINGIFY(IDE_REVISION);

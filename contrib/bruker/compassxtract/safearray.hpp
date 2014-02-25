@@ -2,7 +2,7 @@
 ** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
 ** Copyright (C) MS-Cheminformatics LLC / Advanced Instrumentation Project
 *
-** Contact: toshi.hondo@scienceliaison.com
+** Contact: toshi.hondo@MS-Cheminformatics.com
 **
 ** Commercial Usage
 **
