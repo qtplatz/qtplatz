@@ -26,10 +26,39 @@
 #define DIGITIZER_HPP
 
 #include "u5303a_global.hpp"
+#include <functional>
+#include <vector>
+#include <memory>
 
 namespace u5303a {
 
     namespace detail { class task; }
+
+    class U5303ASHARED_EXPORT identify {
+    public:
+        identify();
+        identify( const identify& );
+        std::string Identifier;
+        std::string Revision;
+        std::string Vendor;
+        std::string Description;
+        std::string InstrumentModel;
+        std::string FirmwareRevision;
+    };
+
+	class U5303ASHARED_EXPORT method {
+    public:
+        std::string tba_;
+    };
+
+	class U5303ASHARED_EXPORT waveform : public std::enable_shared_from_this< waveform > {
+		waveform( const waveform& );// = delete;
+	public:
+		waveform() : actualElements_(0), firstValidElement_(0) {}
+        int64_t actualElements_;
+        int64_t firstValidElement_;
+        std::vector< int32_t > d_;
+    };
 
     class U5303ASHARED_EXPORT digitizer {
     public:
@@ -37,8 +66,23 @@ namespace u5303a {
         ~digitizer();
 
         bool peripheral_initialize();
+        bool peripheral_prepare_for_run( const method& );
+        bool peripheral_run();
+        bool peripheral_stop();
+        bool peripheral_trigger_inject();
         bool peripheral_terminate();
+
+        typedef std::function< void( const std::string, const std::string ) > command_reply_type;
+        typedef std::function< void( const waveform * ) > waveform_reply_type;
+
+        void connect_reply( command_reply_type ); // method,reply
+        void disconnect_reply( command_reply_type );
+
+        void connect_waveform( waveform_reply_type );
+        void disconnect_waveform( waveform_reply_type );
     };
+
+
 }
 
 #endif

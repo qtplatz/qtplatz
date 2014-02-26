@@ -25,29 +25,47 @@
 #ifndef DOCUMENT_HPP
 #define DOCUMENT_HPP
 
+#include <QObject>
 #include <mutex>
 #include <memory>
+#include <deque>
 
 namespace u5303a {
 
     class digitizer;
+	class method;
+	class waveform;
 
     namespace detail { struct remover; }
 
-    class document {
+    class document : public QObject {
+        Q_OBJECT
         document();
         ~document();
     public:
         static document * instance();
 
-        bool u5303a_connect();
+        void u5303a_connect();
+        void u5303a_prepare_for_run();
+        void u5303a_start_run();
+        void u5303a_stop();
+        void u5303a_trigger_inject();
         
     private:
-        static std::mutex mutex_;
-        static document * instance_;
         friend struct detail::remover;
 
+        static std::mutex mutex_;
+        static document * instance_;
+
         u5303a::digitizer * digitizer_;
+        std::deque< std::shared_ptr< const waveform > > que_;
+
+        void reply_handler( const std::string&, const std::string& );
+        void waveform_handler( const waveform * );
+    signals:
+        void on_reply( const QString&, const QString& );
+        void on_waveform_recieved();
+        void on_status( int );
     };
 
 }

@@ -99,6 +99,7 @@ bool u5303APlugin::initialize(const QStringList &arguments, QString *errorString
 
 void u5303APlugin::extensionsInitialized()
 {
+	mainWindow_->OnInitialUpdate();
     // Retrieve objects from the plugin manager's object pool
     // In the extensionsInitialized function, a plugin can be sure that all
     // plugins that depend on it are completely initialized.

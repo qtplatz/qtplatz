@@ -22,30 +22,29 @@
 **
 **************************************************************************/
 
-#ifndef SAFEARRAY_HPP
-#define SAFEARRAY_HPP
-
 #pragma once
 
-struct SAFEARRAY;
+#include <atlbase.h>
+#include <cstdint>
 
-class safearray_t {
-    SAFEARRAY * psa_;
-    void * pvoid_;
-    uint32_t size_;
+template<typename T> class safearray_t {
+    SAFEARRAY *& psa_;
+    T * pdata_;
+    ULONG size_;
 public:
-    safearray_t( SAFEARRAY * p ) : psa_( p ), pvoid_(0) {
-        SafeArrayAccessData( psa_, &pvoid_ );
-        uint32_t lBound(0), uBound(0);
-        if ( ( SafeArrayGetLBound( psa_, 1, &lBound ) == S_OK ) &&
-             ( SafeArrayGetUBound( psa_, 1, &uBound ) == S_OK ) )
-            size_ = uBound - lBound + 1;
+    safearray_t( SAFEARRAY *& p ) : psa_( p ), pdata_(0), size_(0) {
+        SafeArrayAccessData( psa_, reinterpret_cast<void **>(&pdata_) );
+		LONG lBound, uBound;
+		SafeArrayGetLBound( psa_, 1, &lBound );
+		SafeArrayGetUBound( psa_, 1, &uBound );
+		size_ = uBound - lBound + 1;
     }
     ~safearray_t() {
-        SafeArrayUnaccessData( psa );
+        SafeArrayUnaccessData( psa_ );
+		SafeArrayDestroy( psa_ );
+		psa_ = 0;
     }
-    template<typename T> const T* data() const { return reinterpret_cast<const T*>(pvoid_); }
-    uint32_t size() const { return size_; }
+    const T* data() const { return pdata_; }
+    uint32_t size() const { return static_cast<uint32_t>(size_); }
 };
 
-#endif // SAFEARRAY_HPP

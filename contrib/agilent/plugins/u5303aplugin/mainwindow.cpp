@@ -78,6 +78,12 @@ void
 MainWindow::OnInitialUpdate()
 {
     setSimpleDockWidgetArrangement();
+    connect( document::instance(), SIGNAL( on_reply(const QString&, const QString&) ), this, SLOT( handle_reply( const QString&, const QString& ) ) );
+    connect( document::instance(), SIGNAL( on_waveform() ), this, SLOT( handle_waveform() ) );
+    connect( document::instance(), SIGNAL( on_status(int) ), this, SLOT( handle_status(int) ) );
+    for ( auto action: actions_ )
+        action->setEnabled( false );
+    actions_[ idActConnect ]->setEnabled( true );
 }
 
 void
@@ -176,10 +182,10 @@ MainWindow::setSimpleDockWidgetArrangement()
 }
 
 QDockWidget *
-MainWindow::createDockWidget( QWidget * widget, const QString& title )
+MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& page )
 {
     QDockWidget * dockWidget = addDockForWidget( widget );
-    dockWidget->setObjectName( widget->objectName() );
+    dockWidget->setObjectName( page.isEmpty() ? widget->objectName() : page );
     if ( title.isEmpty() )
         dockWidget->setWindowTitle( widget->objectName() );
     else
@@ -193,7 +199,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
 void
 MainWindow::createDockWidgets()
 {
-    createDockWidget( new QTextEdit(), "Log" );
+    createDockWidget( new QTextEdit(), "Log", "Log" );
 }
 
 // static
@@ -352,16 +358,19 @@ MainWindow::actConnect()
 void
 MainWindow::actInitRun()
 {
+    document::instance()->u5303a_prepare_for_run();
 }
 
 void
 MainWindow::actRun()
 {
+    document::instance()->u5303a_start_run();
 }
 
 void
 MainWindow::actStop()
 {
+    document::instance()->u5303a_stop();
 }
 
 void
@@ -370,6 +379,38 @@ MainWindow::actSnapshot()
 }
 
 void
+MainWindow::actInject()
+{
+}
+
+void
 MainWindow::actFileOpen()
 {
 }
+
+void
+MainWindow::handle_reply( const QString& method, const QString& reply )
+{
+	auto docks = dockWidgets();
+    auto it = std::find_if( docks.begin(), docks.end(), []( const QDockWidget * w ){ return w->objectName() == "Log"; });
+    if ( it != docks.end() ) {
+		if ( auto edit = dynamic_cast< QTextEdit * >( (*it)->widget() ) )
+			edit->append( QString("%1: %2").arg( method, reply ) );
+	}
+}
+
+void
+MainWindow::handle_waveform()
+{
+}
+
+void
+MainWindow::handle_status( int status )
+{
+    if ( status == 1 ) {
+        for ( auto action: actions_ )
+            action->setEnabled( true );
+        actions_[ idActConnect ]->setEnabled( false );
+    }
+}
+

@@ -23,8 +23,9 @@
 **************************************************************************/
 
 #include "document.hpp"
-#include <memory>
 #include <u5303a/digitizer.hpp>
+#include <boost/bind.hpp>
+#include <string>
 
 using namespace u5303a;
 
@@ -65,8 +66,55 @@ document::instance()
     return instance_;
 }
 
-bool
+void
 document::u5303a_connect()
 {
-	return digitizer_->peripheral_initialize();
+    //digitizer_->connect( [=]( const std::string& method, const std::string& reply ){ reply_handler( method, reply );} );
+	digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
+	digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1 ) );
+	digitizer_->peripheral_initialize();
+}
+
+void
+document::u5303a_prepare_for_run()
+{
+    method m;
+	digitizer_->peripheral_prepare_for_run( m );    
+}
+
+void
+document::u5303a_start_run()
+{
+	digitizer_->peripheral_run();
+}
+
+void
+document::u5303a_stop()
+{
+	digitizer_->peripheral_stop();
+}
+
+void
+document::u5303a_trigger_inject()
+{
+	digitizer_->peripheral_trigger_inject();
+}
+
+void
+document::reply_handler( const std::string& method, const std::string& reply )
+{
+	emit on_reply( QString::fromStdString( method ), QString::fromStdString( reply ) );
+    if ( method == "InitialSetup" && reply == "success" )
+        emit on_status( 1 );
+}
+
+void
+document::waveform_handler( const waveform * p )
+{
+    auto ptr = p->shared_from_this();
+    std::lock_guard< std::mutex > lock( mutex_ );
+    que_.push_back( ptr );
+    while ( que_.size() >= 32 )
+        que_.pop_front();
+    emit on_waveform_recieved();
 }

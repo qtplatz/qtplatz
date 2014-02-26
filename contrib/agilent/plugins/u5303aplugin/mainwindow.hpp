@@ -54,7 +54,7 @@ namespace u5303a {
 		void OnInitialUpdate();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
-		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
+		QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& page = QString() );
 
         void createActions();
 
@@ -75,11 +75,17 @@ namespace u5303a {
 
 	public slots:
         void actConnect();
+        void actInject();
         void actInitRun();
         void actRun();
         void actStop();
         void actSnapshot();
         void actFileOpen();
+
+    private slots:
+        void handle_reply( const QString&, const QString& );
+        void handle_waveform();
+        void handle_status( int status );
 
 	private:
         QAction * actionConnect_;
