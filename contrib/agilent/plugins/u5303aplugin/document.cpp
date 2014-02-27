@@ -24,6 +24,7 @@
 
 #include "document.hpp"
 #include <u5303a/digitizer.hpp>
+#include <adlog/logger.hpp>
 #include <boost/bind.hpp>
 #include <string>
 
@@ -116,5 +117,6 @@ document::waveform_handler( const waveform * p )
     que_.push_back( ptr );
     while ( que_.size() >= 32 )
         que_.pop_front();
+    ADTRACE() << "waveform_handler: got a spectrum " << que_.size();
     emit on_waveform_recieved();
 }

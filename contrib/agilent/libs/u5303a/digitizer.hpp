@@ -48,7 +48,24 @@ namespace u5303a {
 
 	class U5303ASHARED_EXPORT method {
     public:
-        std::string tba_;
+        method()
+            : front_end_range( 2.0 )        // 1V,2V range
+            , front_end_offset( 0.0 )       // [-0.5V,0.5V], [-1V,1V] offset
+            , ext_trigger_level( 0.0 )      // external trigger threshold
+            , nbr_of_s_to_acquire( 100000 ) // from 1 to 480,000 samples
+            , nbr_of_averages( 19999 )      // number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
+            , delay_to_first_s( 0 )         // from 0 to 16,000,000 "blocks". Each block shifts by 10ns. 
+            , invert_signal( 0 )            // 0-> no inversion , 1-> signal inverted
+            , nsa( 0x0 ) {                  // bit[31]->enable, bits[11:0]->threshold
+        }
+        double front_end_range;
+        double front_end_offset;
+        double ext_trigger_level;
+        long nbr_of_s_to_acquire;
+        long nbr_of_averages;
+        long delay_to_first_s;
+        long invert_signal;
+        long nsa;
     };
 
 	class U5303ASHARED_EXPORT waveform : public std::enable_shared_from_this< waveform > {

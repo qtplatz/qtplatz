@@ -23,12 +23,12 @@
 **************************************************************************/
 
 #include "digitizer.hpp"
+#include "simulator.hpp"
 #include <adportable/string.hpp>
 #include "safearray.hpp"
 #include <adlog/logger.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
-#include <boost/logic/tribool.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
 #include <mutex>
@@ -39,23 +39,29 @@
 #import "IviDriverTypeLib.dll" no_namespace
 #import "AgMD2.dll" no_namespace
 
-namespace u5303a { namespace detail {
+#ifdef ERR
+# undef ERR
+#endif
+#ifdef TERR
+# undef TERR
+#endif
+
+#define ERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_ERROR)<<e.Description()<<", "<<e.ErrorMessage(); error_reply(e,m); } while(0)
+#define TERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_ERROR)<<e.Description()<<", "<<e.ErrorMessage(); task.error_reply(e,m); } while(0)
+
+namespace u5303a {
+
+    class simulator;
+
+    namespace detail {
 
         enum DeviceType { Simulate, UserFDK };
-        double front_end_range = 2.0;    // 1V,2V range
-        double front_end_offset = 0.0;   // [-0.5V,0.5V], [-1V,1V] offset
-        double ext_trigger_level = 0.0;  // external trigger threshold
-        //
-        long nbr_of_s_to_acquire = 100000; // from 1 to 480,000 samples
-        long nbr_of_averages = 19999;      // number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
-        long delay_to_first_s = 0;       // from 0 to 16,000,000 "blocks". Each block shifts by 10ns. 
-        long invert_signal = 0;          //0-> no inversion , 1-> signal inverted
-        long nsa = 0x0;                  //bit[31]->enable, bits[11:0]->threshold
 
         template<DeviceType> struct device {
-            static bool initial_setup( task& );
-            static boost::tribool acquire( task& );
+            static bool initial_setup( task&, const method& );
+            static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
+            static bool readData( task&, waveform& );
         };
 
         class task {
@@ -78,8 +84,12 @@ namespace u5303a { namespace detail {
             void connect( digitizer::waveform_reply_type f );
             void disconnect( digitizer::waveform_reply_type f );
 
+            inline IAgMD2Ptr& spAgDrvr() { return spAgDrvr_; }
+            inline simulator * simulator() { return simulator_; }
+            inline const method& method() const { return method_; }
+            void error_reply( const _com_error& e, const std::string& );
+
         private:
-            template<DeviceType> friend struct device;
             static task * instance_;
             static std::mutex mutex_;
 
@@ -87,7 +97,10 @@ namespace u5303a { namespace detail {
             std::vector< std::thread > threads_;
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
+            boost::asio::io_service::strand strand_;
             bool simulated_;
+            u5303a::method method_;
+			u5303a::simulator * simulator_;
 
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
@@ -95,10 +108,9 @@ namespace u5303a { namespace detail {
             bool handle_initial_setup( int nDelay, int nSamples, int nAverage );
             bool handle_terminating();
             bool handle_acquire();
-            bool handle_prepare_for_run( const method& );
-            boost::tribool acquire();
+            bool handle_prepare_for_run( const u5303a::method& );
+            bool acquire();
             bool waitForEndOfAcquisition( int timeout );
-            void error_reply( const _com_error& e, const std::string& );
             bool readData( waveform& );
         };
 
@@ -110,6 +122,7 @@ using namespace u5303a::detail;
 
 task * task::instance_ = 0;
 std::mutex task::mutex_;
+
 
 digitizer::digitizer()
 {
@@ -183,15 +196,18 @@ digitizer::disconnect_waveform( waveform_reply_type f )
 ////////////////////
 
 task::task() : work_( io_service_ )
+             , strand_( io_service_ )
              , simulated_( false )
+             , simulator_( 0 )
 {
     threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
-    io_service_.post( [&] { ::CoInitialize( 0 ); } );
-	io_service_.post( [&] { spAgDrvr_.CreateInstance(__uuidof(AgMD2)); } );
+    io_service_.post( strand_.wrap( [&] { ::CoInitialize( 0 ); } ) );
+    io_service_.post( strand_.wrap( [&] { spAgDrvr_.CreateInstance(__uuidof(AgMD2)); } ) );
 }
 
 task::~task()
 {
+    delete simulator_;
 }
 
 task *
@@ -209,16 +225,16 @@ bool
 task::initialize()
 {
     ADTRACE() << "u5303a digitizer initializing...";
-    io_service_.post( [&] { handle_initial_setup( 32, 1024 * 10, 2 ); } );        
+    io_service_.post( strand_.wrap( [&] { handle_initial_setup( 32, 1024 * 10, 2 ); } ) );
     return true;
 }
 
 bool
-task::prepare_for_run( const method& m )
+task::prepare_for_run( const u5303a::method& m )
 {
     ADTRACE() << "u5303a digitizer prepare for run...";
-    io_service_.post( [&] { handle_prepare_for_run(m); } );        
-    io_service_.post( [&] { handle_acquire(); } );        
+    io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
+    io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );
     return true;
 }
 
@@ -259,6 +275,8 @@ task::terminate()
 bool
 task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 {
+    u5303a::method m;
+
 	BSTR strResourceDesc = L"PXI3::0::0::INSTR";
     
     // If desired, use 'DriverSetup= CAL=0' to prevent digitizer from doing a SelfCal (~1 seconds) each time
@@ -277,15 +295,20 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     try {
         success = spAgDrvr_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
     } catch ( _com_error & e ) {
-        ADERROR() << e.Description() << ", " << e.ErrorMessage();
+        ERR(e,"Initialize");
     }
     if ( !success ) {
         try {
             BSTR strInitOptions = L"Simulate=true, DriverSetup= Model=U5303A, Trace=true";
             success = spAgDrvr_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
             simulated_ = true;
+            simulator_ = new u5303a::simulator;
+            // threads for waveform generation
+            threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+            threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+            threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
         } catch ( _com_error & e ) {
-            ADERROR() << e.Description() << ", " << e.ErrorMessage();
+            ERR( e, "Initialize" );
         }
     }
 
@@ -306,9 +329,9 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         for ( auto& reply: reply_handlers_ ) reply( "InstrumentFirmwareRevision", ident.FirmwareRevision );
 
         if ( simulated_ )
-            device<Simulate>::initial_setup( *this );
+            device<Simulate>::initial_setup( *this, m );
         else
-            device<UserFDK>::initial_setup( *this );
+            device<UserFDK>::initial_setup( *this, m );
     }
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
@@ -322,7 +345,7 @@ task::handle_terminating()
 }
 
 bool
-task::handle_prepare_for_run( const method& )
+task::handle_prepare_for_run( const u5303a::method& )
 {
 	return true;
 }
@@ -330,11 +353,12 @@ task::handle_prepare_for_run( const method& )
 bool
 task::handle_acquire()
 {
-    io_service_.post( [&] { handle_acquire(); } );    // scedule for next acquire
+    static int counter_;
+    ADTRACE() << "handle_acquire : " << counter_++;
 
-    typedef device<UserFDK> inst;
+    io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );    // scedule for next acquire
 
-    if ( acquire() != false ) {
+    if ( acquire() ) {
         if ( waitForEndOfAcquisition( 3000 ) ) {
             auto avgr = std::make_shared< waveform >();
             if ( readData( *avgr ) ) {
@@ -360,7 +384,7 @@ task::handle_acquire()
     return false;
 }
 
-boost::tribool
+bool
 task::acquire()
 {
     if ( simulated_ )
@@ -381,21 +405,10 @@ task::waitForEndOfAcquisition( int timeout )
 bool
 task::readData( waveform& data )
 {
-    IAgMD2LogicDevicePtr spDpuA = spAgDrvr_->LogicDevices->Item[L"DpuA"];
-
-    long words_32bits = nbr_of_s_to_acquire;
-
-    try {
-		SAFEARRAY * psaWfmDataRaw(0);
-        spDpuA->ReadIndirectInt32(0x11, 0, words_32bits, &psaWfmDataRaw, &data.actualElements_, &data.firstValidElement_);
-		safearray_t<int32_t> sa( psaWfmDataRaw );
-        size_t size = sa.size();
-        data.d_.resize( size );
-		std::copy( sa.data(), sa.data() + size, data.d_.begin() );
-    } catch ( _com_error& e ) {
-        ADERROR() << "digitier::task::readData: " << e.Description() << e.ErrorMessage();
-    }
-    return true;
+    if ( simulated_ )
+        return device<Simulate>::readData( *this, data );
+    else
+        return device<UserFDK>::readData( *this, data );
 }
 
 void
@@ -455,123 +468,78 @@ identify::identify( const identify& t ) : Identifier( t.Identifier )
 }
 
 template<> bool
-device<UserFDK>::initial_setup( task& task )
+device<UserFDK>::initial_setup( task& task, const method& m )
 {
-    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr_->LogicDevices->Item[L"DpuA"];	
+    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];	
     IAgMD2LogicDeviceMemoryBankPtr spDDR3A = spDpuA->MemoryBanks->Item[L"DDR3A"];
     IAgMD2LogicDeviceMemoryBankPtr spDDR3B = spDpuA->MemoryBanks->Item[L"DDR3B"];
 	
     // Create smart pointers to Channels and TriggerSource interfaces
-    IAgMD2ChannelPtr spCh1 = task.spAgDrvr_->Channels->Item[L"Channel1"];
-    IAgMD2TriggerSourcePtr spTrigSrc = task.spAgDrvr_->Trigger->Sources->Item[L"External1"];
+    IAgMD2ChannelPtr spCh1 = task.spAgDrvr()->Channels->Item[L"Channel1"];
+    IAgMD2TriggerSourcePtr spTrigSrc = task.spAgDrvr()->Trigger->Sources->Item[L"External1"];
     
-    try {
-        spCh1->TimeInterleavedChannelList = "Channel2"; 
-        spCh1->PutRange(front_end_range);              
-        spCh1->PutOffset(front_end_offset);           	
+    try { spCh1->TimeInterleavedChannelList = "Channel2";       } catch ( _com_error& e ) { TERR(e, "TimeInterleavedChannelList");  }
+    try { spCh1->PutRange(m.front_end_range);                   } catch ( _com_error& e ) { TERR(e, "Range");  }
+    try { spCh1->PutOffset(m.front_end_offset);                 } catch ( _com_error& e ) { TERR(e, "Offset");  }
+    // Setup triggering
+    try { task.spAgDrvr()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
+    try { spTrigSrc->PutLevel(m.ext_trigger_level);             } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
         
-        // Setup triggering
-        task.spAgDrvr_->Trigger->ActiveSource = "External1"; 
-        spTrigSrc->PutLevel(ext_trigger_level);      
-        
-        // Calibrate
-        ADTRACE() << "Calibrating...";
-        task.spAgDrvr_->Calibration->SelfCalibrate();
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "..." );
-    } 
+    // Calibrate
+    ADTRACE() << "Calibrating...";
+    try { task.spAgDrvr()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
 
-    try {
-        ADTRACE() << "Set the Mode FDK...";
-        task.spAgDrvr_->Acquisition->Mode = AgMD2AcquisitionModeUserFDK;
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "Mode FDK" );
-    }
+    ADTRACE() << "Set the Mode FDK...";
+    try { task.spAgDrvr()->Acquisition->Mode = AgMD2AcquisitionModeUserFDK; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
 
     // Set the sample rate and nbr of samples to acquire
-    double sample_rate = 3.2E9;
-    task.spAgDrvr_->Acquisition->PutSampleRate(sample_rate); 
-    try {
-        task.spAgDrvr_->Acquisition->UserControl->PostTrigger = (nbr_of_s_to_acquire/32) + 2;
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "SampleRate" );
-    }
-    try {
-        task.spAgDrvr_->Acquisition->UserControl->PreTrigger = 0; 
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "Trigger" );
-    }
-    try {
-        // Start on trigger
-        task.spAgDrvr_->Acquisition->UserControl->StartOnTriggerEnabled = 1;
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "StartOnTrigger" );
-    }
-    try {
-        // Full bandwidth
-        spCh1->Filter->Bypass = 1;
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "Bandwidth" );
-    }
-    try {
-        ADTRACE() << "Apply setup...";
-        task.spAgDrvr_->Acquisition->ApplySetup();
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "ApplySetup" );
-    }
-    long seg_depth = (nbr_of_s_to_acquire >> 5) + 5;
+    const double sample_rate = 3.2E9;
+    try { task.spAgDrvr()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
+    try { task.spAgDrvr()->Acquisition->UserControl->PostTrigger = (m.nbr_of_s_to_acquire/32) + 2; } catch ( _com_error& e ) { TERR(e,"PostTrigger"); }
+    try { task.spAgDrvr()->Acquisition->UserControl->PreTrigger = 0; } catch ( _com_error& e ) { TERR(e,"PreTrigger"); }
+
+    // Start on trigger
+    try { task.spAgDrvr()->Acquisition->UserControl->StartOnTriggerEnabled = 1; } catch ( _com_error& e ) { TERR( e,"StartOnTrigger" ); }
+
+    // Full bandwidth
+    try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); }
+
+    ADTRACE() << "Apply setup...";
+    try { task.spAgDrvr()->Acquisition->ApplySetup();  } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
+
+    long seg_depth = (m.nbr_of_s_to_acquire >> 5) + 5;
     long seg_ctrl = 0x80000;   // Averager mode, Analog trigger
 
-    if (invert_signal == 1) 	{
-        seg_ctrl=seg_ctrl+0x400000;
+    if (m.invert_signal == 1) 	{
+        seg_ctrl = seg_ctrl + 0x400000;
     }
     long delay_next_acq = 2;
-    try {
-        spDpuA->WriteRegisterInt32(0x3300, seg_depth);        
-        spDpuA->WriteRegisterInt32(0x3304, nbr_of_averages);   
-        spDpuA->WriteRegisterInt32(0x3308, seg_ctrl);        
-        spDpuA->WriteRegisterInt32(0x3318, nbr_of_averages);  
-        spDpuA->WriteRegisterInt32(0x331c, nsa);              
-        spDpuA->WriteRegisterInt32(0x3320, delay_to_first_s); 
-        spDpuA->WriteRegisterInt32(0x3324, delay_next_acq);   
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "WriteRegisterInt32" );
-    }
+    try { spDpuA->WriteRegisterInt32(0x3300, seg_depth);         } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3300"); }
+    try { spDpuA->WriteRegisterInt32(0x3304, m.nbr_of_averages); } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3304"); }
+    try { spDpuA->WriteRegisterInt32(0x3308, seg_ctrl);          } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3308"); }
+    try { spDpuA->WriteRegisterInt32(0x3318, m.nbr_of_averages); } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3318"); }
+    try { spDpuA->WriteRegisterInt32(0x331c, m.nsa);             } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x331c"); }
+    try { spDpuA->WriteRegisterInt32(0x3320, m.delay_to_first_s);} catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3320"); }
+    try { spDpuA->WriteRegisterInt32(0x3324, delay_next_acq);    } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3324"); }
+
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
     // Memory settings
-    try {
-        spDDR3A->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware);
-        spDDR3B->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware);
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "AccessControl" );
-    }
+    try { spDDR3A->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware); } catch (_com_error& e){TERR(e,"DDR3A::AccessControl");}
+    try { spDDR3B->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware); } catch (_com_error& e){TERR(e,"DDR3B::AccessControl");}
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
 	return true;
 }
 
-template<> boost::tribool
+template<> bool
 device<UserFDK>::acquire( task& task )
 {
     //Start the acquisition
-    try {
-        task.spAgDrvr_->Acquisition->UserControl->StartSegmentation();                              	
-        task.spAgDrvr_->Acquisition->UserControl->StartProcessing(AgMD2UserControlProcessingType1); 	
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "StartSegmentation" );
-    }
+    try { task.spAgDrvr()->Acquisition->UserControl->StartSegmentation(); } catch ( _com_error& e ) { TERR(e, "StartSegmentation"); }
+    try { task.spAgDrvr()->Acquisition->UserControl->StartProcessing(AgMD2UserControlProcessingType1); } catch ( _com_error& e ) {
+        TERR( e, "StartProcessing" ); }
     return true;
 }
 
@@ -581,95 +549,92 @@ device<UserFDK>::waitForEndOfAcquisition( task& task, int timeout )
     //Wait for the end of the acquisition
 
     long wait_for_end = 0x80000000;
-    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr_->LogicDevices->Item[L"DpuA"];	
+    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];	
 
     while ( wait_for_end >= 0x80000000 ) {
-
-        try {
-            std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
-            spDpuA->ReadRegisterInt32( 0x3308, &wait_for_end );
-
-        } catch ( _com_error& e ) {
-            ADERROR() << e.Description() << e.ErrorMessage();
-            task.error_reply( e, "ReadRegisterInt32" );
-            return false;
-        }
+        std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
+        try { spDpuA->ReadRegisterInt32( 0x3308, &wait_for_end ); } catch ( _com_error& e ) { TERR(e, "ReadRegisterInt32"); }
     }
     return true;
 }
 
 template<> bool
-device<Simulate>::initial_setup( task& task )
+device<UserFDK>::readData( task& task, waveform& data )
 {
-    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr_->LogicDevices->Item[L"DpuA"];	
+    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];
+
+	long words_32bits = task.method().nbr_of_s_to_acquire;
+
+    try {
+		SAFEARRAY * psaWfmDataRaw(0);
+        spDpuA->ReadIndirectInt32(0x11, 0, words_32bits, &psaWfmDataRaw, &data.actualElements_, &data.firstValidElement_);
+		safearray_t<int32_t> sa( psaWfmDataRaw );
+        size_t size = sa.size();
+        data.d_.resize( size );
+		std::copy( sa.data(), sa.data() + size, data.d_.begin() );
+    } catch ( _com_error& e ) {
+        TERR(e,"readData::ReadIndirectInt32");
+    }
+    return true;
+}
+
+
+template<> bool
+device<Simulate>::initial_setup( task& task, const method& m )
+{
+    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];	
     IAgMD2LogicDeviceMemoryBankPtr spDDR3A = spDpuA->MemoryBanks->Item[L"DDR3A"];
     IAgMD2LogicDeviceMemoryBankPtr spDDR3B = spDpuA->MemoryBanks->Item[L"DDR3B"];
 	
     // Create smart pointers to Channels and TriggerSource interfaces
-    IAgMD2ChannelPtr spCh1 = task.spAgDrvr_->Channels->Item[L"Channel1"];
-    IAgMD2TriggerSourcePtr spTrigSrc = task.spAgDrvr_->Trigger->Sources->Item[L"External1"];
-    
-    try {
-        spCh1->TimeInterleavedChannelList = "Channel2"; 
-        spCh1->PutRange(front_end_range);              
-        spCh1->PutOffset(front_end_offset);           	
-        
-        // Setup triggering
-        task.spAgDrvr_->Trigger->ActiveSource = "External1"; 
-        spTrigSrc->PutLevel(ext_trigger_level);      
-        
-        // Calibrate
-        ADTRACE() << "Calibrating...";
-        task.spAgDrvr_->Calibration->SelfCalibrate();
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "..." );
-    } 
+    IAgMD2ChannelPtr spCh1 = task.spAgDrvr()->Channels->Item[L"Channel1"];
+    IAgMD2TriggerSourcePtr spTrigSrc = task.spAgDrvr()->Trigger->Sources->Item[L"External1"];
 
-    try {
-        task.spAgDrvr_->Acquisition->Mode = AgMD2AcquisitionModeUserFDK; // error
-    } catch ( _com_error& e ) {
-        task.error_reply( e, "Mode FDK" );
-    }
+    try { spCh1->TimeInterleavedChannelList = "Channel2";       } catch ( _com_error& e ) { TERR(e, "TimeInterleavedChannelList");  }
+    try { spCh1->PutRange(m.front_end_range);                   } catch ( _com_error& e ) { TERR(e, "Range");  }
+    try { spCh1->PutOffset(m.front_end_offset);                 } catch ( _com_error& e ) { TERR(e, "Offset");  }
+    // Setup triggering
+    try { task.spAgDrvr()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
+    try { spTrigSrc->PutLevel(m.ext_trigger_level);             } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
+
+    // Calibrate
+    ADTRACE() << "Calibrating...";
+    try { task.spAgDrvr()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
 
     // Set the sample rate and nbr of samples to acquire
     double sample_rate = 3.2E9;
-    task.spAgDrvr_->Acquisition->PutSampleRate(sample_rate); 
+    try { task.spAgDrvr()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
 
-    try {
-        // Full bandwidth
-        spCh1->Filter->Bypass = 1; // invalid value
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-        task.error_reply( e, "Bandwidth" );
-    }
+    try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
 
-    try {
-        task.spAgDrvr_->Acquisition->ApplySetup();
-    } catch ( _com_error& e ) {
-        ADERROR() << e.Description() << e.ErrorMessage();
-    }
-    long seg_depth = (nbr_of_s_to_acquire >> 5) + 5;
-    long seg_ctrl = 0x80000;   // Averager mode, Analog trigger
+    ADTRACE() << "Apply setup...";
+    try { task.spAgDrvr()->Acquisition->ApplySetup();  } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
 
-    if (invert_signal == 1) 	{
-        seg_ctrl=seg_ctrl+0x400000;
-    }
-    long delay_next_acq = 2;
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
 	return true;
 }
 
-template<> boost::tribool
+template<> bool
 device<Simulate>::acquire( task& task )
 {
-    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
-    return true;
+    if ( simulator * simulator = task.simulator() )
+        return simulator->acquire( task.io_service() );
+    return false;
 }
 
 template<> bool
 device<Simulate>::waitForEndOfAcquisition( task& task, int timeout )
 {
-    return true;
+    if ( simulator * simulator = task.simulator() )
+        return simulator->waitForEndOfAcquisition();
+    return false;
+}
+
+template<> bool
+device<Simulate>::readData( task& task, waveform& data )
+{
+    if ( simulator * simulator = task.simulator() )
+        return simulator->readData( data );
+    return false;
 }
