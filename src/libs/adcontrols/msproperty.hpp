@@ -61,12 +61,17 @@ namespace adcontrols {
         void setNumAverage( size_t );
 
         double time( size_t pos ); // return flight time for data[pos] in seconds
+//
+//        uint32_t instSamplingInterval() const; // ps
+//        void setInstSamplingInterval( uint32_t ); // ps
 
-        uint32_t instSamplingInterval() const; // ps
-        void setInstSamplingInterval( uint32_t ); // ps
+//        double fSamplingInterval() const; // s
+//        void setfSamplingInterval( double ); // s
 
-        uint32_t instSamplingStartDelay() const;  // number of data points before record waveform in array
-        void setInstSamplingStartDelay( uint32_t );
+//        void nSamples( uint32_t );
+
+//        uint32_t instSamplingStartDelay() const;  // number of data points before record waveform in array
+//        void setInstSamplingStartDelay( uint32_t );
 
         double timeSinceInjection() const;
         void setTimeSinceInjection( uint32_t /* microseconds */);
@@ -100,20 +105,31 @@ namespace adcontrols {
             uint32_t nSamples;
             uint32_t nAverage;
             uint32_t mode;  // number of turns for InfiTOF, lenear|reflectron for MALDI etc
+            uint32_t padding;
 
             SamplingInfo();
             SamplingInfo( uint32_t sampInterval, uint32_t nDelay, uint32_t nCount, uint32_t nAvg, uint32_t mode );
+            void fSampInterval( double );
+            double fSampInterval() const;
+        private:
+            double fsampInterval; // seconds
 
         private:
             friend class boost::serialization::access;
             template<class Archive>
             void serialize(Archive& ar, const unsigned int version ) {
                 ar & BOOST_SERIALIZATION_NVP(sampInterval);
+                ar & BOOST_SERIALIZATION_NVP(fsampInterval);
                 ar & BOOST_SERIALIZATION_NVP(nSamplingDelay);
                 ar & BOOST_SERIALIZATION_NVP(nSamples);
                 ar & BOOST_SERIALIZATION_NVP(nAverage);
                 if ( version >= 3 )
                     ar & BOOST_SERIALIZATION_NVP(mode);
+                if ( version >= 4 ) {
+                    ar & BOOST_SERIALIZATION_NVP(padding)
+                        & BOOST_SERIALIZATION_NVP(fsampInterval)
+                        ;
+                }
             };
         };
 
@@ -168,5 +184,5 @@ namespace adcontrols {
 }
 
 BOOST_CLASS_VERSION(adcontrols::MSProperty, 5)
-BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 3)
+BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 4)
 

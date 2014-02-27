@@ -70,10 +70,9 @@ document::instance()
 void
 document::u5303a_connect()
 {
-    //digitizer_->connect( [=]( const std::string& method, const std::string& reply ){ reply_handler( method, reply );} );
-	digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
-	digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1 ) );
-	digitizer_->peripheral_initialize();
+    digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
+    digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1 ) );
+    digitizer_->peripheral_initialize();
 }
 
 void
@@ -117,6 +116,21 @@ document::waveform_handler( const waveform * p )
     que_.push_back( ptr );
     while ( que_.size() >= 32 )
         que_.pop_front();
-    ADTRACE() << "waveform_handler: got a spectrum " << que_.size();
-    emit on_waveform_recieved();
+    emit on_waveform_received();
+}
+
+std::shared_ptr< const waveform >
+document::findWaveform( uint32_t serialnumber )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    if ( que_.empty() )
+        return 0;
+    if ( serialnumber == (-1) )
+        return que_.back();
+	/*
+	auto it = std::find_if( que_.begin(), que_.end(), [=]( std::shared_ptr< const waveform >& p ){ return p->serialnumber_ == serialnumber; });
+    if ( it != que_.end() )
+        return *it;
+    */
+	return 0;
 }

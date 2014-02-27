@@ -22,53 +22,39 @@
 **
 **************************************************************************/
 
-#ifndef DOCUMENT_HPP
-#define DOCUMENT_HPP
+#ifndef WAVEFORMWND_HPP
+#define WAVEFORMWND_HPP
 
-#include <QObject>
-#include <mutex>
+#include <QWidget>
 #include <memory>
-#include <deque>
+
+namespace adwplot { class TraceWidget; class SpectrumWidget; }
+namespace adcontrols { class MassSpectrum; }
 
 namespace u5303a {
 
-    class digitizer;
-	class method;
-	class waveform;
+    class waveform;
 
-    namespace detail { struct remover; }
-
-    class document : public QObject {
+    class WaveformWnd : public QWidget {
         Q_OBJECT
-        document();
-        ~document();
     public:
-        static document * instance();
-
-        void u5303a_connect();
-        void u5303a_prepare_for_run();
-        void u5303a_start_run();
-        void u5303a_stop();
-        void u5303a_trigger_inject();
-        std::shared_ptr< const waveform > findWaveform( uint32_t serialnumber = (-1) );
+        explicit WaveformWnd( QWidget * parent = 0 );
+        ~WaveformWnd();
         
+        void onInitialUpdate();
+        void setData( const std::shared_ptr< const u5303a::waveform >& );
+
+    public slots:
+        void handle_waveform();
+
     private:
-        friend struct detail::remover;
-
-        static std::mutex mutex_;
-        static document * instance_;
-
-        u5303a::digitizer * digitizer_;
-        std::deque< std::shared_ptr< const waveform > > que_;
-
-        void reply_handler( const std::string&, const std::string& );
-        void waveform_handler( const waveform * );
-    signals:
-        void on_reply( const QString&, const QString& );
-        void on_waveform_received();
-        void on_status( int );
+        void init();
+        void fini();
+        adwplot::TraceWidget * tpw_;
+        adwplot::SpectrumWidget * spw_;
+        std::shared_ptr< adcontrols::MassSpectrum > sp_;
     };
 
 }
 
-#endif // DOCUMENT_HPP
+#endif // WAVEFORMWND_HPP

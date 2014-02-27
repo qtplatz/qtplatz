@@ -17,14 +17,16 @@ INCLUDEPATH *= $$OUT_PWD/../../libs
 SOURCES += u5303aplugin.cpp \
            mainwindow.cpp \
            u5303amode.cpp \
-           document.cpp
+           document.cpp \
+           waveformwnd.cpp
 
 HEADERS += u5303aplugin.hpp \
         u5303a_global.hpp \
         u5303a_constants.hpp \
         mainwindow.hpp \
         u5303amode.hpp \
-        document.hpp
+        document.hpp \
+        waveformwnd.hpp
 
 LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adlog) \
@@ -32,6 +34,7 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adextension) \
         -l$$qtLibraryTarget(adwplot) \
         -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(u5303a)
 
 # Qt Creator linking

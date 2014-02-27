@@ -52,6 +52,7 @@ namespace u5303a {
             : front_end_range( 2.0 )        // 1V,2V range
             , front_end_offset( 0.0 )       // [-0.5V,0.5V], [-1V,1V] offset
             , ext_trigger_level( 0.0 )      // external trigger threshold
+			, samp_rate( 3.2e9 )        // sampling rate (3.2GS/s)
             , nbr_of_s_to_acquire( 100000 ) // from 1 to 480,000 samples
             , nbr_of_averages( 19999 )      // number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
             , delay_to_first_s( 0 )         // from 0 to 16,000,000 "blocks". Each block shifts by 10ns. 
@@ -61,6 +62,7 @@ namespace u5303a {
         double front_end_range;
         double front_end_offset;
         double ext_trigger_level;
+		double samp_rate; // HZ
         long nbr_of_s_to_acquire;
         long nbr_of_averages;
         long delay_to_first_s;
@@ -69,9 +71,19 @@ namespace u5303a {
     };
 
 	class U5303ASHARED_EXPORT waveform : public std::enable_shared_from_this< waveform > {
-		waveform( const waveform& );// = delete;
+		waveform( const waveform& ); // = delete;
+		void operator = ( const waveform& ); // = delete;
 	public:
-		waveform() : actualElements_(0), firstValidElement_(0) {}
+		waveform() : actualElements_(0)
+            , firstValidElement_(0)
+            , wellKnownEvents_(0)
+            , serialnumber_(0)
+            , timestamp_(0) {
+        }
+        method method_;
+        uint32_t serialnumber_;
+        uint32_t wellKnownEvents_;
+        uint64_t timestamp_;
         int64_t actualElements_;
         int64_t firstValidElement_;
         std::vector< int32_t > d_;

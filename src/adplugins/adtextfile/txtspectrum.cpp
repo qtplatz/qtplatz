@@ -224,9 +224,9 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
 		if ( segments.size() > fcn )
 			prop = segments[ fcn ].getMSProperty();
 	}
-    prop.setInstSamplingInterval( info.sampInterval );
-    prop.setNumAverage( info.nAverage ); // workaround
-    prop.setInstSamplingStartDelay( info.nSamplingDelay );
+    //prop.setInstSamplingInterval( info.sampInterval );
+    //prop.setNumAverage( info.nAverage ); // workaround
+    //prop.setInstSamplingStartDelay( info.nSamplingDelay );
 	prop.setSamplingInfo( info );
 
     ms.setMSProperty( prop );

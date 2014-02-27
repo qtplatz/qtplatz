@@ -23,10 +23,11 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "waveformwnd.hpp"
 #include "document.hpp"
 #include "u5303a_constants.hpp"
 #include <qtwrapper/trackingenabled.hpp>
-
+#include <adlog/logger.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/serializer.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -79,11 +80,16 @@ MainWindow::OnInitialUpdate()
 {
     setSimpleDockWidgetArrangement();
     connect( document::instance(), SIGNAL( on_reply(const QString&, const QString&) ), this, SLOT( handle_reply( const QString&, const QString& ) ) );
-    connect( document::instance(), SIGNAL( on_waveform() ), this, SLOT( handle_waveform() ) );
+    // connect( document::instance(), SIGNAL( on_waveform_received() ), this, SLOT( handle_waveform() ) );
     connect( document::instance(), SIGNAL( on_status(int) ), this, SLOT( handle_status(int) ) );
     for ( auto action: actions_ )
         action->setEnabled( false );
     actions_[ idActConnect ]->setEnabled( true );
+
+	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
+		wnd->onInitialUpdate();
+        connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
+    }
 }
 
 void
@@ -116,14 +122,14 @@ MainWindow::createContents( Core::IMode * mode )
             setCentralWidget( centralWidget );
             
             QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-            centralWidget->setLayout( centralLayout );
+            // centralWidget->setLayout( centralLayout );
             centralLayout->setMargin( 0 );
             centralLayout->setSpacing( 0 );
             // ----------------- top tool bar -------------------
             centralLayout->addWidget( toolBar1 );              // [1]
             // ----------------------------------------------------
-            
-            centralLayout->addWidget( editorWidget ); // [0]
+            centralLayout->addWidget( new WaveformWnd );
+            // ----------------------------------------------------
             centralLayout->setStretch( 0, 1 );
             centralLayout->setStretch( 1, 0 );
             
@@ -381,6 +387,7 @@ MainWindow::actSnapshot()
 void
 MainWindow::actInject()
 {
+    document::instance()->u5303a_trigger_inject();
 }
 
 void
@@ -397,11 +404,6 @@ MainWindow::handle_reply( const QString& method, const QString& reply )
 		if ( auto edit = dynamic_cast< QTextEdit * >( (*it)->widget() ) )
 			edit->append( QString("%1: %2").arg( method, reply ) );
 	}
-}
-
-void
-MainWindow::handle_waveform()
-{
 }
 
 void

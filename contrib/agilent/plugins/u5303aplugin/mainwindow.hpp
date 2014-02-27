@@ -67,7 +67,7 @@ namespace u5303a {
     private:
         enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
         std::array< QAction *, numActions > actions_;
-
+        std::vector< QWidget* > widgets_;
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
 
 
@@ -84,7 +84,6 @@ namespace u5303a {
 
     private slots:
         void handle_reply( const QString&, const QString& );
-        void handle_waveform();
         void handle_status( int status );
 
 	private:

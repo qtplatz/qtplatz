@@ -283,7 +283,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 // assert( masses[ index ] < mass && mass < masses[ index + 1 ] );
 
                 double t0 = profile.getTime( index );
-                double td = profile.getMSProperty().instSamplingInterval() * 1e-12;
+				double td = profile.getMSProperty().getSamplingInfo().fSampInterval();
                 item.time_from_mass_ = t0 + td * ( mass - masses[ index ] ) / ( masses[ index + 1 ] - masses[ index ] );
 
                 // centroid by time

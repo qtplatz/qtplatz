@@ -316,7 +316,7 @@ datafile::posFromTime( double minutes ) const
 	double t = adcontrols::Chromatogram::toSeconds( minutes );
 	array_wrapper< const double > times( pTIC_->getTimeArray(), pTIC_->size() );
 	array_wrapper< const double >::iterator it = std::lower_bound( times.begin(), times.end(), t );
-	long pos = std::distance( times.begin(), it );
+	long pos = static_cast<long>( std::distance( times.begin(), it ) );
 	return pos;
 }
 

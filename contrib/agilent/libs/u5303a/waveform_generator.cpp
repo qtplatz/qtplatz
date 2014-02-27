@@ -37,6 +37,7 @@ using namespace adcontrols::metric;
 
 std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
 std::chrono::high_resolution_clock::time_point __last__;
+static uint32_t __serialNumber__;
 static const adportable::TimeSquaredScanLaw scanLaw;
 
 namespace u5303a {
@@ -60,16 +61,14 @@ using namespace u5303a;
 
 waveform_generator::waveform_generator( uint32_t nStartDelay
                                                 , uint32_t nbrSamples
-                                                , double exitDelay
                                                 , uint32_t nbrWaveforms
-                                                , uint32_t sampInterval )
-    : exitDelay_( exitDelay )
-    , nStartDelay_( nStartDelay )
+                                                , uint32_t sampInterval ) : nStartDelay_( nStartDelay )
     , nbrSamples_( nbrSamples )
     , sampInterval_( sampInterval )
     , timeStamp_( 0 )
     , nbrWaveforms_( nbrWaveforms )
     , waveform_( nbrSamples_ )
+    , serialNumber_( __serialNumber__++ )
 {
 }
 
@@ -154,6 +153,12 @@ waveform_generator::timestamp() const
 }
 
 uint32_t
+waveform_generator::serialNumber() const
+{
+    return serialNumber_;
+}
+
+uint32_t
 waveform_generator::startDelay() const
 {
     return nStartDelay_;
@@ -169,12 +174,6 @@ uint32_t
 waveform_generator::nbrSamples() const
 {
     return nbrSamples_;
-}
-
-uint32_t
-waveform_generator::exitDelay() const
-{
-    return static_cast< uint32_t >( exitDelay_ );
 }
 
 uint32_t

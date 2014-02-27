@@ -33,7 +33,6 @@ namespace u5303a {
     public:
         waveform_generator( uint32_t nStartDelay = 0
                             , uint32_t nbrSamples = 65536
-                            , double exitDelay = 0
                             , uint32_t nbrWavefoms = 1
                             , uint32_t sampInterval_ = 500 );
 
@@ -41,15 +40,14 @@ namespace u5303a {
         void onTriggered(); // ns
         const std::vector< int32_t >& waveform() const;
         uint64_t timestamp() const;
+        uint32_t serialNumber() const;
         uint32_t startDelay() const;
         uint32_t nbrWaveforms() const;
         uint32_t nbrSamples() const;
-        uint32_t exitDelay() const;
         uint32_t sampInterval() const;
         
     private:
-        double exitDelay_;    // seconds 
-
+        uint32_t serialNumber_;
         uint32_t nStartDelay_;
         uint32_t nbrSamples_;
         uint32_t sampInterval_; // ps

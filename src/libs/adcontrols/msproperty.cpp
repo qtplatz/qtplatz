@@ -39,16 +39,17 @@ MSProperty::MSProperty() : time_since_injection_( 0 )
 {
 }
 
-MSProperty::MSProperty( const MSProperty& t ) : time_since_injection_( t.time_since_injection_ )
-                                              , instAccelVoltage_( t.instAccelVoltage_ )
-                                              , tDelay_( t.tDelay_ )
-                                              , instNumAvrg_( t.instNumAvrg_ )
-                                              , instSamplingStartDelay_( t.instSamplingStartDelay_ )
-                                              , instSamplingInterval_( t.instSamplingInterval_ )
-                                              , dataInterpreterClsid_( t.dataInterpreterClsid_ )
-                                              , deviceData_( t.deviceData_ )
-                                              , coeffs_( t.coeffs_ ) // depricated
-                                              , samplingData_( t.samplingData_ )
+MSProperty::MSProperty( const MSProperty& t )
+    : time_since_injection_( t.time_since_injection_ )
+    , instAccelVoltage_( t.instAccelVoltage_ )
+    , tDelay_( t.tDelay_ )
+    , instNumAvrg_( t.instNumAvrg_ )
+    , instSamplingStartDelay_( t.instSamplingStartDelay_ )
+    , instSamplingInterval_( t.instSamplingInterval_ )
+    , dataInterpreterClsid_( t.dataInterpreterClsid_ )
+    , deviceData_( t.deviceData_ )
+    , coeffs_( t.coeffs_ ) // depricated
+    , samplingData_( t.samplingData_ )
 {
 }
 
@@ -82,18 +83,6 @@ MSProperty::deviceDataSize() const
 {
     return deviceData_.size();
 }
-
-// const std::vector< double >&
-// MSProperty::coeffs() const
-// {
-//     return coeffs_;
-// }
-
-// void
-// MSProperty::coeffs( const std::vector< double >& coeffs )
-// {
-//     coeffs_ = coeffs;
-// }
 
 double
 MSProperty::acceleratorVoltage() const
@@ -136,23 +125,25 @@ void
 MSProperty::setNumAverage( size_t value )
 {
     instNumAvrg_ = static_cast<uint32_t>(value);
+    samplingData_.nAverage = instNumAvrg_;
 }
 
 double
 MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
 {
-    return double( instSamplingStartDelay_ + pos ) * instSamplingInterval_ * 1.0e12;  // ps -> s
+	return double( samplingData_.nSamplingDelay + pos ) * samplingData_.fSampInterval(); // seconds
 }
 
 std::pair<double, double>
 MSProperty::instTimeRange() const
 {
 	const SamplingInfo& x = samplingData_;
-    double t0 = metric::scale_to_base( double(x.nSamplingDelay * x.sampInterval), metric::pico );
-    double t1 = metric::scale_to_base( double((x.nSamplingDelay + x.nSamples) * x.sampInterval), metric::pico );
+    double t0 = metric::scale_to_base( double(x.nSamplingDelay * x.fSampInterval()), metric::base );
+    double t1 = metric::scale_to_base( double((x.nSamplingDelay + x.nSamples) * x.fSampInterval()), metric::base );
     return std::make_pair( t0, t1 );
 }
 
+#if 0
 uint32_t
 MSProperty::instSamplingInterval() const
 {
@@ -162,7 +153,31 @@ MSProperty::instSamplingInterval() const
 void
 MSProperty::setInstSamplingInterval( uint32_t value )
 {
-   instSamplingInterval_ = value;
+    instSamplingInterval_ = value;
+    fSamplingInterval_ = 0;
+    samplingData_.fSampInterval( 0 );
+}
+
+double
+MSProperty::fSamplingInterval() const
+{
+    if ( instSamplingInterval_ )
+        return double( instSamplingInterval_ ) * 1.0e-12; // ps -> seconds
+    return fSamplingInterval_;
+}
+
+void
+MSProperty::setfSamplingInterval( double value )
+{
+    fSamplingInterval_ = value;
+    instSamplingInterval_ = 0;
+    samplingData_.fSampInterval( value );
+}
+
+void
+MSProperty::nSamples( uint32_t v )
+{
+    samplingData_.nSamples = v;
 }
 
 uint32_t
@@ -175,8 +190,9 @@ void
 MSProperty::setInstSamplingStartDelay( uint32_t value )
 {
     instSamplingStartDelay_ = value;
+    samplingData_.nSamplingDelay = value;
 }
-
+#endif
 
 double
 MSProperty::timeSinceInjection() const
@@ -218,38 +234,70 @@ MSProperty::SamplingInfo::SamplingInfo( uint32_t interval
                                         , uint32_t ndelay
                                         , uint32_t nsamples
                                         , uint32_t navgr
-                                        , uint32_t _mode) : sampInterval( interval )
-                                                          , nSamplingDelay( ndelay )
-                                                          , nSamples( nsamples )  
-                                                          , nAverage( navgr )
-                                                          , mode( _mode )
+                                        , uint32_t _mode )
+    : sampInterval( interval )
+    , nSamplingDelay( ndelay )
+    , nSamples( nsamples )  
+    , nAverage( navgr )
+    , mode( _mode )
+    , padding(0)
+    , fsampInterval(0)
 {
 }
- 
+
 MSProperty::SamplingInfo::SamplingInfo() : sampInterval( 0 )
                                          , nSamplingDelay( 0 )
                                          , nSamples( 0 )
                                          , nAverage( 0 )
                                          , mode( 0 )
+                                         , padding( 0 )
+                                         , fsampInterval( 0 )
 {
+}
+
+void
+MSProperty::SamplingInfo::fSampInterval( double v )
+{
+    fsampInterval = v;
+    sampInterval = 0;
+}
+
+double
+MSProperty::SamplingInfo::fSampInterval() const
+{
+    if ( sampInterval )
+        return double(sampInterval) * 1.0e-12; // ps --> seconds
+    return fsampInterval;
 }
 
 //static
 double
 MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
 {
-    return ( info.nSamplingDelay + idx ) * info.sampInterval * 1e-12;
+    if ( info.sampInterval )
+        return ( info.nSamplingDelay + idx ) * info.sampInterval * 1e-12;
+    else
+        return ( info.nSamplingDelay + idx ) * info.fSampInterval();
 }
 
 size_t
 MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info, metric::prefix pfx )
 {
-    size_t n = 0;
-    for ( n = 0; n < size; ++n ) {
-		double d = double( ( info.nSamplingDelay + n ) * info.sampInterval ); 
-        p[ n ] = metric::scale_to<double>( pfx, d, metric::pico );
-	}
-    return n;
+    if ( info.sampInterval ) {
+        size_t n = 0;
+        for ( n = 0; n < size; ++n ) {
+            double d = double( ( info.nSamplingDelay + n ) * info.sampInterval ); 
+            p[ n ] = metric::scale_to<double>( pfx, d, metric::pico );
+        }
+        return n;
+    } else {
+        size_t n = 0;
+        for ( n = 0; n < size; ++n ) {
+            double d = double( ( info.nSamplingDelay + n ) * info.fSampInterval() ); 
+            p[ n ] = metric::scale_to<double>( pfx, d, metric::base );
+        }
+        return n;
+    }
 }
 
 const adcontrols::MassSpectrometer&

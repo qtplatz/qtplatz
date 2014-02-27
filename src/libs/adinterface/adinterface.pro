@@ -38,7 +38,8 @@ SOURCES += interface.cpp \
 HEADERS += interface.hpp \
         eventlog_helper.hpp \
         controlmethodhelper.hpp \
-        controlmethodaccessor.hpp
+        controlmethodaccessor.hpp \
+    controlserver.hpp
 
 OTHER_FILES += \
     adinterface_dependencies.pri
