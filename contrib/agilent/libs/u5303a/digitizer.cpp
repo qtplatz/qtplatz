@@ -102,6 +102,7 @@ namespace u5303a {
             bool simulated_;
             u5303a::method method_;
 			u5303a::simulator * simulator_;
+            uint32_t serialnumber_;
 
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
@@ -200,6 +201,7 @@ task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , simulated_( false )
              , simulator_( 0 )
+             , serialnumber_( 0 )
 {
     threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
     io_service_.post( strand_.wrap( [&] { ::CoInitialize( 0 ); } ) );
@@ -410,6 +412,7 @@ task::waitForEndOfAcquisition( int timeout )
 bool
 task::readData( waveform& data )
 {
+    data.serialnumber_ = serialnumber_++;
     if ( simulated_ )
         return device<Simulate>::readData( *this, data );
     else

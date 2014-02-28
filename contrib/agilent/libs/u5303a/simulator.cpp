@@ -56,6 +56,7 @@ simulator::acquire( boost::asio::io_service& io_service )
                 generator->onTriggered();
                 std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) ); // simulate triggers
                 post( generator.get() );
+                hasWaveform_ = true;
                 std::unique_lock< std::mutex > lock( queue_ );
                 cond_.notify_one();
             } );
@@ -74,6 +75,7 @@ simulator::waitForEndOfAcquisition()
         acqTriggered_ = false;
         return true;
     } else {
+        acqTriggered_ = false;
         return false;
     }
 }
@@ -104,5 +106,4 @@ simulator::post( waveform_generator * generator )
     auto ptr = generator->shared_from_this();
     std::lock_guard< std::mutex > lock( mutex_ );
     waveforms_.push_back( ptr );
-    hasWaveform_ = true;
 }
