@@ -27,11 +27,15 @@
 #include "document.hpp"
 #include "u5303a_constants.hpp"
 #include "u5303amethodwidget.hpp"
+#include <u5303a/digitizer.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adextension/isnapshothandler.hpp>
 #include <adinterface/controlserver.hpp>
 #include <adportable/serializer.hpp>
+#include <adportable/date_string.hpp>
+#include <adportable/profile.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -44,7 +48,13 @@
 #include <coreplugin/navigationwidget.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
+#include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/bind.hpp>
+#include <boost/exception/all.hpp>
 
 #include <QDockWidget>
 #include <QMenu>
@@ -393,6 +403,27 @@ MainWindow::actStop()
 void
 MainWindow::actSnapshot()
 {
+    if ( auto waveform = document::instance()->findWaveform() ) {
+        adcontrols::MassSpectrum ms;
+        if ( document::toMassSpectrum( ms, *waveform ) ) {
+
+            boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
+            path /= "data";
+            path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+            if ( ! boost::filesystem::exists( path ) ) {
+                boost::system::error_code ec;
+                boost::filesystem::create_directories( path, ec );
+            }
+            path /= "u5303a.adfs";
+            std::wstring title = ( boost::wformat( L"Spectrum %1%" ) % waveform->serialnumber_ ).str();
+            std::wstring folderId;
+			if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
+                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+                for ( auto handler: vec )
+                    handler->folium_added( path.string().c_str(), "/Processed/Spectra", QString::fromStdWString( folderId ) );
+            }
+        }
+    }
 }
 
 void

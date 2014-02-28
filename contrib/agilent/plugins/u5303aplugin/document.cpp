@@ -25,8 +25,14 @@
 #include "document.hpp"
 #include <u5303a/digitizer.hpp>
 #include <adlog/logger.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adinterface/controlserver.hpp>
+#include <adcontrols/metric/prefix.hpp>
+#include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
 #include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
 #include <string>
 
 using namespace u5303a;
@@ -158,3 +164,63 @@ document::method() const
     return *method_;
 }
 
+// static
+bool
+document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform )
+{
+    using namespace adcontrols::metric;
+
+    sp.setCentroid( adcontrols::CentroidNone );
+
+    adcontrols::MSProperty prop = sp.getMSProperty();
+    adcontrols::MSProperty::SamplingInfo info( 0
+                                               , waveform.method_.delay_to_first_s
+                                               , uint32_t(waveform.d_.size())
+                                               , waveform.method_.nbr_of_averages + 1
+                                               , 0 );
+    info.fSampInterval( 1.0 / waveform.method_.samp_rate );
+    prop.acceleratorVoltage( 3000 );
+    prop.setSamplingInfo( info );
+    
+    prop.setTimeSinceInjection( scale_to_base<double>( double( waveform.timestamp_ ), pico ) );
+    prop.setDataInterpreterClsid( "u5303a" );
+
+    // prop.setDeviceData(); TBA
+    sp.setMSProperty( prop );
+    sp.resize( waveform.d_.size() );
+	int idx = 0;
+    for ( auto y: waveform.d_ )
+        sp.setIntensity( idx++, y );
+    // mass array tba
+	return true;
+}
+
+// static
+bool
+document::appendOnFile( const std::wstring& path
+                        , const std::wstring& title
+                        , const adcontrols::MassSpectrum& ms, std::wstring& id )
+{
+    adfs::filesystem fs;
+	
+	if ( ! boost::filesystem::exists( path ) ) {
+		if ( ! fs.create( path.c_str() ) )
+			return false;
+	} else {
+		if ( ! fs.mount( path.c_str() ) )
+			return false;
+	}
+	adfs::folder folder = fs.addFolder( L"/Processed/Spectra" );
+
+    if ( folder ) {
+		adfs::file file = folder.addFile( adfs::create_uuid(), title );
+        if ( file ) {
+            file.dataClass( ms.dataClass() );
+            id = file.id();
+            if ( adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
+				file.commit();
+        }
+	}
+    return true;
+    
+}

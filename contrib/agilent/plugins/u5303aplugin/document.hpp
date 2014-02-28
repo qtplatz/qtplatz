@@ -30,6 +30,8 @@
 #include <memory>
 #include <deque>
 
+namespace adcontrols { class MassSpectrum; }
+
 namespace u5303a {
 
     class digitizer;
@@ -54,6 +56,9 @@ namespace u5303a {
         std::shared_ptr< const waveform > findWaveform( uint32_t serialnumber = (-1) );
         const u5303a::method& method() const;
         int32_t device_status() const;
+
+        static bool toMassSpectrum( adcontrols::MassSpectrum&, const waveform& );
+        static bool appendOnFile( const std::wstring& path, const std::wstring& title, const adcontrols::MassSpectrum&, std::wstring& id );
         
     private:
         friend struct detail::remover;
