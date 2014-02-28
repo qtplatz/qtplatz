@@ -474,8 +474,8 @@ TraceData::y_range( double left, double right ) const
                     // std::pair< double, double > range = seg.getMSProperty().instTimeRange();
                     
                     struct X {
-                        static uint32_t index( uint32_t interval, uint32_t delay, uint32_t nSamples, double t ) {
-                            uint32_t idx = uint32_t( scale_to_pico(t) / interval + 0.5 );
+                        static uint32_t index( double interval, uint32_t delay, uint32_t nSamples, double t ) {
+                            uint32_t idx = uint32_t( t / interval + 0.5 );
                             if ( idx < delay )
                                 return 0;
                             idx -= delay;
@@ -485,8 +485,8 @@ TraceData::y_range( double left, double right ) const
                         }
                     };
                     const adcontrols::MSProperty::SamplingInfo& info = seg.getMSProperty().getSamplingInfo();
-                    idleft = X::index( info.sampInterval, info.nSamplingDelay, info.nSamples, uleft );
-                    idright = X::index( info.sampInterval, info.nSamplingDelay, info.nSamples, uright );
+                    idleft = X::index( info.fSampInterval(), info.nSamplingDelay, info.nSamples, uleft );
+                    idright = X::index( info.fSampInterval(), info.nSamplingDelay, info.nSamples, uright );
                 }
             } else {
                 // mass axis

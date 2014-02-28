@@ -76,6 +76,7 @@ WaveformWnd::fini()
 void
 WaveformWnd::onInitialUpdate()
 {
+    spw_->setKeepZoomed( false );
 }
 
 void
@@ -111,5 +112,6 @@ WaveformWnd::handle_waveform()
 		for ( auto y: waveform->d_ )
 			sp_->setIntensity( idx++, y );
 		spw_->setData( sp_, 0 );
+        spw_->setKeepZoomed( true );
     }
 }
