@@ -61,17 +61,6 @@ namespace adcontrols {
         void setNumAverage( size_t );
 
         double time( size_t pos ); // return flight time for data[pos] in seconds
-//
-//        uint32_t instSamplingInterval() const; // ps
-//        void setInstSamplingInterval( uint32_t ); // ps
-
-//        double fSamplingInterval() const; // s
-//        void setfSamplingInterval( double ); // s
-
-//        void nSamples( uint32_t );
-
-//        uint32_t instSamplingStartDelay() const;  // number of data points before record waveform in array
-//        void setInstSamplingStartDelay( uint32_t );
 
         double timeSinceInjection() const;
         void setTimeSinceInjection( uint32_t /* microseconds */);
@@ -93,10 +82,9 @@ namespace adcontrols {
         const char * deviceData() const;
         size_t deviceDataSize() const;
 
-        // coefficients for scanLaw := polinomials for compute time parameters from mass value that user entered.
-        // This will be manged by scanLaw with repsect to device data by Spectrometer::ScanLaw
-        // const std::vector<double>& coeffs() const;
-        // void coeffs( const std::vector< double >& );
+        void setSamplingDelay( uint32_t );
+        void setSamplingInterval( uint32_t ); // ps
+        void setfSamplingInterval( double ); // seconds
 
         class ADCONTROLSSHARED_EXPORT SamplingInfo {
         public:
@@ -119,7 +107,6 @@ namespace adcontrols {
             template<class Archive>
             void serialize(Archive& ar, const unsigned int version ) {
                 ar & BOOST_SERIALIZATION_NVP(sampInterval);
-                ar & BOOST_SERIALIZATION_NVP(fsampInterval);
                 ar & BOOST_SERIALIZATION_NVP(nSamplingDelay);
                 ar & BOOST_SERIALIZATION_NVP(nSamples);
                 ar & BOOST_SERIALIZATION_NVP(nAverage);
@@ -139,13 +126,13 @@ namespace adcontrols {
     private:
         uint32_t time_since_injection_; // msec
         double instAccelVoltage_;       // for scan law
-        double tDelay_;                 // for scan law
-        uint32_t instNumAvrg_;
-        uint32_t instSamplingStartDelay_;
-        uint32_t instSamplingInterval_; // ps
+        double instTDelay_;             // for scan law
+        uint32_t deprecated_instNumAvrg_;
+        uint32_t deprecated_instSamplingStartDelay_;
+        uint32_t deprecated_instSamplingInterval_; // ps
         std::string dataInterpreterClsid_;
         std::string deviceData_;
-        std::vector< double > coeffs_; // depreicated
+        std::vector< double > deprecated_coeffs_; // deprecated
 
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
@@ -155,34 +142,45 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
-            ar & BOOST_SERIALIZATION_NVP(time_since_injection_);
-            ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
-            ar & BOOST_SERIALIZATION_NVP(instNumAvrg_);
-            ar & BOOST_SERIALIZATION_NVP(instSamplingStartDelay_);
-            ar & BOOST_SERIALIZATION_NVP(instSamplingInterval_);
-            ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
-            ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
-            if ( version == 2 ) {
-                std::vector< SamplingInfo > data;
-                ar & BOOST_SERIALIZATION_NVP( data );
-                if ( ! data.empty() )
-                    samplingData_ = data[ 0 ];
-            } else if ( version >= 3 ) {
+        void serialize( Archive& ar, const unsigned int version ) {
+            if ( version >= 6 ) {
+                ar & BOOST_SERIALIZATION_NVP( time_since_injection_);
+                ar & BOOST_SERIALIZATION_NVP( instAccelVoltage_);
+                ar & BOOST_SERIALIZATION_NVP( instTDelay_ );
+                ar & BOOST_SERIALIZATION_NVP( instMassRange_.first );
+                ar & BOOST_SERIALIZATION_NVP( instMassRange_.second );
                 ar & BOOST_SERIALIZATION_NVP( samplingData_ );
-            }
-            if ( version >= 5 )
-                ar & BOOST_SERIALIZATION_NVP( tDelay_ );
-            if ( version >= 4 ) {
                 ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
                 ar & BOOST_SERIALIZATION_NVP( deviceData_ );
-                ar & BOOST_SERIALIZATION_NVP( coeffs_ );
+                // ar & BOOST_SERIALIZATION_NVP( deprecated_coeffs_ );
+            } else {
+                ar & BOOST_SERIALIZATION_NVP(time_since_injection_);
+                ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
+                ar & BOOST_SERIALIZATION_NVP(deprecated_instNumAvrg_);            // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP(deprecated_instSamplingStartDelay_); // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP(deprecated_instSamplingInterval_);   // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
+                ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
+                if ( version == 2 ) {
+                    std::vector< SamplingInfo > data;
+                    ar & BOOST_SERIALIZATION_NVP( data );
+                    if ( ! data.empty() )
+                        samplingData_ = data[ 0 ];
+                } else if ( version >= 3 ) {
+                    ar & BOOST_SERIALIZATION_NVP( samplingData_ );
+                }
+                if ( version >= 5 )
+                    ar & BOOST_SERIALIZATION_NVP( instTDelay_ );
+                if ( version >= 4 ) {
+                    ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
+                    ar & BOOST_SERIALIZATION_NVP( deviceData_ );
+                    ar & BOOST_SERIALIZATION_NVP( deprecated_coeffs_ );
+                }
             }
         }
-
     };
 }
 
-BOOST_CLASS_VERSION(adcontrols::MSProperty, 5)
+BOOST_CLASS_VERSION(adcontrols::MSProperty, 6)
 BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 4)
 

@@ -321,7 +321,7 @@ import::import_profile_spectra( uint64_t fcn, size_t nSpectra )
 {
     import_continuum_massarray meta;
     
-    for ( size_t i = 0; i < nSpectra; ++i ) {
+    for ( int i = 0; i < int(nSpectra); ++i ) {
 
         if ( progress_( rowId_, i, nSpectra ) ) {
             progress_( rowId_, 0, 0 ); // canceled

@@ -32,23 +32,17 @@ using namespace adcontrols;
 
 MSProperty::MSProperty() : time_since_injection_( 0 )
                          , instAccelVoltage_( 0 )
-                         , tDelay_( 0 )
-                         , instNumAvrg_( 0 )
-                         , instSamplingStartDelay_( 0 )
-                         , instSamplingInterval_( 0 )     
+                         , instTDelay_( 0 )
 {
 }
 
 MSProperty::MSProperty( const MSProperty& t )
     : time_since_injection_( t.time_since_injection_ )
     , instAccelVoltage_( t.instAccelVoltage_ )
-    , tDelay_( t.tDelay_ )
-    , instNumAvrg_( t.instNumAvrg_ )
-    , instSamplingStartDelay_( t.instSamplingStartDelay_ )
-    , instSamplingInterval_( t.instSamplingInterval_ )
+    , instTDelay_( t.instTDelay_ )
     , dataInterpreterClsid_( t.dataInterpreterClsid_ )
     , deviceData_( t.deviceData_ )
-    , coeffs_( t.coeffs_ ) // depricated
+    , deprecated_coeffs_( t.deprecated_coeffs_ ) // depricated
     , samplingData_( t.samplingData_ )
 {
 }
@@ -99,13 +93,13 @@ MSProperty::acceleratorVoltage( double value )
 double
 MSProperty::tDelay() const
 {
-	return tDelay_;
+	return instTDelay_;
 }
 
 void
 MSProperty::tDelay( double t )
 {
-	tDelay_ = t;
+	instTDelay_ = t;
 }
 
 int
@@ -114,19 +108,6 @@ MSProperty::mode() const
     return samplingData_.mode;
 }
 
-// number of average for waveform
-size_t
-MSProperty::numAverage() const
-{
-    return instNumAvrg_;
-}
-
-void
-MSProperty::setNumAverage( size_t value )
-{
-    instNumAvrg_ = static_cast<uint32_t>(value);
-    samplingData_.nAverage = instNumAvrg_;
-}
 
 double
 MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
@@ -141,6 +122,24 @@ MSProperty::instTimeRange() const
     double t0 = metric::scale_to_base( double(x.nSamplingDelay * x.fSampInterval()), metric::base );
     double t1 = metric::scale_to_base( double((x.nSamplingDelay + x.nSamples) * x.fSampInterval()), metric::base );
     return std::make_pair( t0, t1 );
+}
+
+void
+MSProperty::setSamplingDelay( uint32_t v )
+{
+    samplingData_.nSamplingDelay = v;
+}
+
+void
+MSProperty::setSamplingInterval( uint32_t v ) // ps
+{
+    samplingData_.sampInterval = v;
+}
+
+void
+MSProperty::setfSamplingInterval( double v ) // seconds
+{
+	samplingData_.fSampInterval( v );
 }
 
 #if 0
