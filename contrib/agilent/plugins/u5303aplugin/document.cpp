@@ -25,6 +25,7 @@
 #include "document.hpp"
 #include <u5303a/digitizer.hpp>
 #include <adlog/logger.hpp>
+#include <adinterface/controlserver.hpp>
 #include <boost/bind.hpp>
 #include <string>
 
@@ -48,6 +49,8 @@ namespace u5303a { namespace detail {
 }
     
 document::document() : digitizer_( new u5303a::digitizer )
+                     , method_( std::make_shared< u5303a::method >() )
+                     , device_status_( 0 )
 {
 }
 
@@ -76,10 +79,16 @@ document::u5303a_connect()
 }
 
 void
-document::u5303a_prepare_for_run()
+document::prepare_for_run()
 {
-    method m;
-	digitizer_->peripheral_prepare_for_run( m );    
+	digitizer_->peripheral_prepare_for_run( *method_ );
+}
+
+void
+document::prepare_for_run( const u5303a::method& m )
+{
+    *method_ = m;
+	digitizer_->peripheral_prepare_for_run( *method_ );
 }
 
 void
@@ -100,12 +109,20 @@ document::u5303a_trigger_inject()
 	digitizer_->peripheral_trigger_inject();
 }
 
+int32_t
+document::device_status() const
+{
+    return device_status_;
+}
+
 void
 document::reply_handler( const std::string& method, const std::string& reply )
 {
 	emit on_reply( QString::fromStdString( method ), QString::fromStdString( reply ) );
-    if ( method == "InitialSetup" && reply == "success" )
-        emit on_status( 1 );
+    if ( method == "InitialSetup" && reply == "success" ) {
+        device_status_ = controlserver::eStandBy;
+        emit on_status( device_status_ );
+    }
 }
 
 void
@@ -134,3 +151,10 @@ document::findWaveform( uint32_t serialnumber )
     */
 	return 0;
 }
+
+const u5303a::method&
+document::method() const
+{
+    return *method_;
+}
+

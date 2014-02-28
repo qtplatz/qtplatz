@@ -26,9 +26,11 @@
 #include "waveformwnd.hpp"
 #include "document.hpp"
 #include "u5303a_constants.hpp"
+#include "u5303amethodwidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adinterface/controlserver.hpp>
 #include <adportable/serializer.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -79,6 +81,13 @@ void
 MainWindow::OnInitialUpdate()
 {
     setSimpleDockWidgetArrangement();
+
+    QList< QDockWidget *> widgets = dockWidgets();
+    for ( auto w: widgets ) {
+        if ( auto t = w->findChild< u5303AMethodWidget * >() )
+            t->onInitialUpdate();
+    }
+
     connect( document::instance(), SIGNAL( on_reply(const QString&, const QString&) ), this, SLOT( handle_reply( const QString&, const QString& ) ) );
     // connect( document::instance(), SIGNAL( on_waveform_received() ), this, SLOT( handle_waveform() ) );
     connect( document::instance(), SIGNAL( on_status(int) ), this, SLOT( handle_status(int) ) );
@@ -90,6 +99,7 @@ MainWindow::OnInitialUpdate()
 		wnd->onInitialUpdate();
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
     }
+
 }
 
 void
@@ -100,7 +110,7 @@ MainWindow::activateLayout()
 QWidget *
 MainWindow::createContents( Core::IMode * mode )
 {
-    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::East );
+    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::West );
     setDocumentMode( true );
     setDockNestingEnabled( true );
 
@@ -181,8 +191,8 @@ MainWindow::setSimpleDockWidgetArrangement()
     for ( auto widget: widgets ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
         widget->show();
-        if ( npos++ >= 2 )
-            tabifyDockWidget( widgets[1], widget );
+        if ( npos && npos++ < widgets.size() - 1 ) // last item is not on the tab
+            tabifyDockWidget( widgets[0], widget );
     }
     // update();
 }
@@ -205,6 +215,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
 void
 MainWindow::createDockWidgets()
 {
+    createDockWidget( new u5303AMethodWidget(), "U5303A Parameter", "U5303AMethodWidget" );
     createDockWidget( new QTextEdit(), "Log", "Log" );
 }
 
@@ -364,7 +375,7 @@ MainWindow::actConnect()
 void
 MainWindow::actInitRun()
 {
-    document::instance()->u5303a_prepare_for_run();
+    document::instance()->prepare_for_run();
 }
 
 void
@@ -409,11 +420,13 @@ MainWindow::handle_reply( const QString& method, const QString& reply )
 void
 MainWindow::handle_status( int status )
 {
-    if ( status == 1 ) {
+    if ( status == controlserver::eStandBy ) {
         for ( auto action: actions_ )
             action->setEnabled( true );
         actions_[ idActConnect ]->setEnabled( false );
         actInitRun();
+        if ( auto mw = findChild< u5303AMethodWidget * >() )
+            mw->onStatus( status );
     }
 }
 

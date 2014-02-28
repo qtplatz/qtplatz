@@ -18,7 +18,10 @@ SOURCES += u5303aplugin.cpp \
            mainwindow.cpp \
            u5303amode.cpp \
            document.cpp \
-           waveformwnd.cpp
+           waveformwnd.cpp \
+    u5303aform.cpp \
+    u5303amethodtable.cpp \
+    u5303amethodwidget.cpp
 
 HEADERS += u5303aplugin.hpp \
         u5303a_global.hpp \
@@ -26,7 +29,10 @@ HEADERS += u5303aplugin.hpp \
         mainwindow.hpp \
         u5303amode.hpp \
         document.hpp \
-        waveformwnd.hpp
+        waveformwnd.hpp \
+    u5303aform.hpp \
+    u5303amethodtable.hpp \
+    u5303amethodwidget.hpp
 
 LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adlog) \
@@ -59,3 +65,6 @@ QTC_PLUGIN_RECOMMENDS += \
 
 RESOURCES += \
     u5303a.qrc
+
+FORMS += \
+    u5303aform.ui

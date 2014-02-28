@@ -30,6 +30,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QSplitter>
 #include <QBoxLayout>
@@ -81,9 +82,9 @@ void
 WaveformWnd::handle_waveform()
 {
     if ( auto waveform = document::instance()->findWaveform() ) {
-        // double dbase(0), rms(0);
-        // const int32_t * waveform = reinterpret_cast< const int32_t *>( avgr_.waveform.data() );
-        // double tic = adportable::spectrum_processor::tic( avgr_.nbrSamples, waveform, dbase, rms );
+        double dbase(0), rms(0);
+		const int32_t * data = waveform->d_.data();
+		double tic = adportable::spectrum_processor::tic( waveform->d_.size(), data, dbase, rms );
 
 		// data interpreter need to be implementd --- TBD
 

@@ -46,11 +46,14 @@ namespace u5303a {
         static document * instance();
 
         void u5303a_connect();
-        void u5303a_prepare_for_run();
         void u5303a_start_run();
         void u5303a_stop();
         void u5303a_trigger_inject();
+        void prepare_for_run();
+        void prepare_for_run( const u5303a::method& );
         std::shared_ptr< const waveform > findWaveform( uint32_t serialnumber = (-1) );
+        const u5303a::method& method() const;
+        int32_t device_status() const;
         
     private:
         friend struct detail::remover;
@@ -60,6 +63,8 @@ namespace u5303a {
 
         u5303a::digitizer * digitizer_;
         std::deque< std::shared_ptr< const waveform > > que_;
+        std::shared_ptr< u5303a::method > method_;
+        int32_t device_status_;
 
         void reply_handler( const std::string&, const std::string& );
         void waveform_handler( const waveform * );

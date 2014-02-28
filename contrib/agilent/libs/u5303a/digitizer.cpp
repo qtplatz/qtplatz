@@ -59,6 +59,7 @@ namespace u5303a {
 
         template<DeviceType> struct device {
             static bool initial_setup( task&, const method& );
+            static bool setup( task&, const method& );
             static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
             static bool readData( task&, waveform& );
@@ -345,8 +346,12 @@ task::handle_terminating()
 }
 
 bool
-task::handle_prepare_for_run( const u5303a::method& )
+task::handle_prepare_for_run( const u5303a::method& m )
 {
+    if ( simulated_ )
+        device<Simulate>::setup( *this, m );
+    else
+        device<UserFDK>::setup( *this, m );
 	return true;
 }
 
@@ -534,6 +539,12 @@ device<UserFDK>::initial_setup( task& task, const method& m )
 }
 
 template<> bool
+device<UserFDK>::setup( task& task, const method& m )
+{
+    return device<UserFDK>::initial_setup( task, m );
+}
+
+template<> bool
 device<UserFDK>::acquire( task& task )
 {
     //Start the acquisition
@@ -613,6 +624,12 @@ device<Simulate>::initial_setup( task& task, const method& m )
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
 	return true;
+}
+
+template<> bool
+device<Simulate>::setup( task& task, const method& m )
+{
+    return device<Simulate>::initial_setup( task, m );
 }
 
 template<> bool
