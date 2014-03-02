@@ -26,10 +26,11 @@
 #include "document.hpp"
 #include <u5303a/digitizer.hpp>
 #include <adwplot/spectrumwidget.hpp>
-#include <adwplot/tracewidget.hpp>
+#include <adwplot/chromatogramwidget.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/trace.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QSplitter>
@@ -39,7 +40,8 @@ using namespace u5303a;
 
 WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
                                              , spw_( new adwplot::SpectrumWidget )
-                                             , tpw_( new adwplot::TraceWidget )
+                                             , tpw_( new adwplot::ChromatogramWidget )
+                                             , tp_( std::make_shared< adcontrols::Trace >() )
 {
     init();
 }
@@ -58,10 +60,14 @@ WaveformWnd::init()
     do {
         splitter->addWidget( tpw_ );
         splitter->addWidget( spw_ );
-        spw_->setAxis( adwplot::SpectrumWidget::HorizontalAxisTime );
-        spw_->setKeepZoomed( false );
+        splitter->setStretchFactor( 0, 1 );
+        splitter->setStretchFactor( 1, 3 );
         splitter->setOrientation( Qt::Vertical );
     } while(0);
+
+    spw_->setAxis( adwplot::SpectrumWidget::HorizontalAxisTime );
+    spw_->setKeepZoomed( false );
+
     QBoxLayout * layout = new QVBoxLayout( this );
     layout->setMargin( 0 );
     layout->setSpacing( 2 );
@@ -83,9 +89,16 @@ void
 WaveformWnd::handle_waveform()
 {
     if ( auto waveform = document::instance()->findWaveform() ) {
-        double dbase(0), rms(0);
-		const int32_t * data = waveform->d_.data();
-		double tic = adportable::spectrum_processor::tic( waveform->d_.size(), data, dbase, rms );
+        do {
+            // timed trace
+            double dbase(0), rms(0);
+            const int32_t * data = waveform->d_.data();
+            double tic = adportable::spectrum_processor::tic( waveform->d_.size(), data, dbase, rms );
+
+            double t = adcontrols::metric::scale_to_base( waveform->timestamp_, adcontrols::metric::pico );
+			tp_->push_back( waveform->serialnumber_, t, tic );
+            tpw_->setData( *tp_ );
+        } while(0);
 
 		// data interpreter need to be implementd --- TBD
 

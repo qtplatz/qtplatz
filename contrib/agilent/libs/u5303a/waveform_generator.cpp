@@ -91,7 +91,7 @@ void
 waveform_generator::onTriggered()
 {
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();    
-    timeStamp_ = std::chrono::duration< uint64_t, std::nano >( now - __uptime__ ).count() * 1000; // ps
+    timeStamp_ = std::chrono::duration< uint64_t, std::pico >( now - __uptime__ ).count(); // ps
 
     noise __noise__( -15.0, 35.0 );
 

@@ -45,10 +45,13 @@ namespace u5303a {
 
     private:
         QStandardItemModel * model_;
+        bool in_progress_;
 
     signals:
 
     public slots:
+    private slots:
+        void handleDataChanged( const QModelIndex&, const QModelIndex& );
 
     };
 

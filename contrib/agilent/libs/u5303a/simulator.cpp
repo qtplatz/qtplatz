@@ -95,6 +95,11 @@ simulator::readData( waveform& data )
 
     if ( ptr ) {
         data.d_ = ptr->waveform();
+        data.timestamp_ = ptr->timestamp();
+        data.serialnumber_ = ptr->serialNumber();
+        data.wellKnownEvents_ = 0;
+        data.actualElements_ = data.d_.size();
+        data.firstValidElement_ = 0;
         return true;
     }
     return false;

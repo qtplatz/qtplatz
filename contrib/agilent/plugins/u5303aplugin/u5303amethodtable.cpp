@@ -28,12 +28,20 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QHeaderView>
+#include <QTextDocument>
 
 namespace u5303a {
-    
-    class u5303AMethodDelegate : public QStyledItemDelegate {
-    public:
+
+    enum { c_item_name
+           , c_item_value
+           , c_description
     };
+    
+    // class u5303AMethodDelegate : public QStyledItemDelegate {
+    //     Q_OBJECT
+    // public:
+        
+    // };
 
 }
 
@@ -46,11 +54,24 @@ u5303AMethodTable::~u5303AMethodTable()
 
 u5303AMethodTable::u5303AMethodTable(QWidget *parent) : QTableView(parent)
                                                       , model_( new QStandardItemModel )
+                                                      , in_progress_( false )
 {
     setModel( model_ );
-	setItemDelegate( new u5303AMethodDelegate );
+	// setItemDelegate( new u5303AMethodDelegate );
     QFont font;
     setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
+}
+
+void
+u5303AMethodTable::handleDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight )
+{
+    if ( in_progress_ )
+        return;
+
+    QStandardItemModel& model = *model_;
+
+    for ( int row = topLeft.row(); row <= bottomRight.row(); ++row )
+		model.itemFromIndex( model.index( row, c_item_value ) )->setBackground( QColor( Qt::yellow ) );
 }
     
 void
@@ -63,7 +84,8 @@ u5303AMethodTable::onInitialUpdate()
     
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr( "parameter" ) );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr( "value" ) );
-    model.setHeaderData( 3, Qt::Horizontal, QObject::tr( "description" ) );
+    model.setHeaderData( 2, Qt::Horizontal, QObject::tr( "description" ) );
+    // this->setColumnHidden( 3, true );
 
     u5303a::method m; // constructor default method for initial display
     int row = 0;
@@ -75,7 +97,7 @@ u5303AMethodTable::onInitialUpdate()
     model.setData( model.index( row, 1 ), m.front_end_offset );
     model.setData( model.index( row, 2 ), "[-0.5V,0.5V], [-1V,1V] offset" );
     ++row;
-    model.setData( model.index( row, 0 ), "sampling rage" );
+    model.setData( model.index( row, 0 ), "sampling rate" );
     model.setData( model.index( row, 1 ), m.samp_rate );
     model.setData( model.index( row, 2 ), "sampling rate (3.2GS/s)" );
     ++row;
@@ -107,25 +129,30 @@ u5303AMethodTable::onInitialUpdate()
 	resizeRowsToContents();
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        model.item( row, 0 )->setEditable( false );
-        model.item( row, 1 )->setEditable( true );
-        model.item( row, 2 )->setEditable( false );
+        model.item( row, c_item_name )->setEditable( false );
+        model.item( row, c_item_value )->setEditable( true );
+        model.item( row, c_description )->setEditable( false );
     }
+
+	connect( model_, SIGNAL( dataChanged(const QModelIndex&, const QModelIndex& ) )
+             , this, SLOT( handleDataChanged( const QModelIndex&, const QModelIndex& ) ) );
 }
 
 bool
 u5303AMethodTable::setContents( const u5303a::method& m )
 {
     QStandardItemModel& model = *model_;
+    
+    in_progress_ = true;
 
     int row = 0;
     model.setData( model.index( row, 1 ), m.front_end_range );
     ++row;
     model.setData( model.index( row, 1 ), m.front_end_offset );
     ++row;
-    model.setData( model.index( row, 1 ), m.ext_trigger_level );
-    ++row;
     model.setData( model.index( row, 1 ), m.samp_rate );
+    ++row;
+    model.setData( model.index( row, 1 ), m.ext_trigger_level );
     ++row;
     model.setData( model.index( row, 1 ), m.nbr_of_s_to_acquire );
     ++row;
@@ -136,6 +163,8 @@ u5303AMethodTable::setContents( const u5303a::method& m )
     model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
     ++row;
     model.setData( model.index( row, 1 ), m.nsa );
+
+    in_progress_ = false;
 	
 	return true;
 }
@@ -163,6 +192,10 @@ u5303AMethodTable::getContents( u5303a::method& m )
     m.invert_signal = model.index( row, 1 ).data().toBool() ? 1 : 0;
     ++row;
     m.nsa = model.index( row, 1 ).data().toInt();
-	
+
+    in_progress_ = true;
+    for ( int row = 0; row < model.rowCount(); ++row )
+		model.itemFromIndex( model.index( row, c_item_value ) )->setBackground( QColor( Qt::white ) );
+    in_progress_ = false;
 	return true;
 }

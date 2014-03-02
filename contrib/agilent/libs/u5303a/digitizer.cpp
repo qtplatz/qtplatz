@@ -575,6 +575,8 @@ device<UserFDK>::waitForEndOfAcquisition( task& task, int timeout )
 template<> bool
 device<UserFDK>::readData( task& task, waveform& data )
 {
+    static std::chrono::high_resolution_clock::time_point __uptime = std::chrono::high_resolution_clock::now();
+
     IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];
 
 	long words_32bits = task.method().nbr_of_s_to_acquire;
@@ -582,6 +584,9 @@ device<UserFDK>::readData( task& task, waveform& data )
     try {
 		SAFEARRAY * psaWfmDataRaw(0);
         spDpuA->ReadIndirectInt32(0x11, 0, words_32bits, &psaWfmDataRaw, &data.actualElements_, &data.firstValidElement_);
+        // workaround
+        data.timestamp_ = std::chrono::duration< uint64_t, std::pico >( std::chrono::high_resolution_clock::now() - __uptime ).count();
+
 		safearray_t<int32_t> sa( psaWfmDataRaw );
         size_t size = sa.size();
         data.d_.resize( size );
