@@ -53,7 +53,7 @@ namespace adsequence {
     class schema;
 
     typedef std::vector< char > blob;
-    typedef boost::variant< int, double, std::wstring > cdata_t;
+    typedef boost::variant< int, double, std::string > cdata_t;
     typedef std::vector< cdata_t > line_t;
 
     class ADSEQUENCESHARED_EXPORT sequence {
@@ -61,6 +61,8 @@ namespace adsequence {
         ~sequence();
         sequence();
         sequence( const sequence& );
+
+        static const wchar_t * dataClass() { return L"adsequence::sequence"; }
 
         const adsequence::schema& schema() const;
         void schema( const adsequence::schema& );

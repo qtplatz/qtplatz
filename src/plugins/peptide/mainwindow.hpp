@@ -68,7 +68,6 @@ namespace peptide {
     private:
         enum idActions { idActFileOpen, numActions };
         static MainWindow * instance_;
-        QDockWidget * toolBarDockWidget_;
         std::array< QAction *, numActions > actions_;
         std::unique_ptr< QLineEdit > topLineEdit_;
         std::vector< QWidget * > wnds_;

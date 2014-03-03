@@ -220,24 +220,6 @@ ProcessMethod::end() const
 
 //////////////////// serialize /////////////////
 
-namespace adcontrols {
-
-    template<> void
-    ProcessMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
-    {
-        (void)version;
-        ar << boost::serialization::make_nvp( "ProcessMethod", vec_ );
-    }
-    
-    template<> void
-    ProcessMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
-    {
-        (void)version;
-        ar >> boost::serialization::make_nvp("ProcessMethod", vec_);
-    }
-}; // namespace adcontrols
-
-//////////////////// static ////////////////
 bool
 ProcessMethod::archive( std::ostream& os, const ProcessMethod& t )
 {

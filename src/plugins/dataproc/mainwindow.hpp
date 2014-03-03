@@ -119,7 +119,6 @@ namespace dataproc {
     private:
         QWidget * toolBar_;
         QHBoxLayout * toolBarLayout_;
-        QDockWidget * toolBarDockWidget_;
         QComboBox * axisChoice_;
 
         QAction * actionSearch_;
@@ -139,7 +138,6 @@ namespace dataproc {
         QWidget * wndMSProcessing_;
 
         void setToolBarDockWidget( QDockWidget * dock );
-        QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
         void createToolbar();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& pageName = QString() );
         void createDockWidgets();

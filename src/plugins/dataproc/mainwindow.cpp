@@ -98,7 +98,6 @@ MainWindow::~MainWindow()
 MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , toolBar_( 0 )
                                           , toolBarLayout_( 0 )
-                                          , toolBarDockWidget_( 0 )
                                           , axisChoice_( 0 )
                                           , actionSearch_( 0 )
                                           , actionApply_( 0 )
@@ -408,16 +407,7 @@ MainWindow::setSimpleDockWidgetArrangement()
     }
 	widgets[1]->raise();
 
-    QDockWidget * toolBarDock = toolBarDockWidget();
-    if ( toolBarDock )
-        toolBarDock->show();
     update();
-}
-
-void
-MainWindow::setToolBarDockWidget( QDockWidget * dock )
-{
-	toolBarDockWidget_ = dock;
 }
 
 QDockWidget *

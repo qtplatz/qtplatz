@@ -26,13 +26,13 @@
 #include "sequencefile.hpp"
 #include "sequenceeditor.hpp"
 #include "constants.hpp"
-//#include "serializer.hpp"
+
 #include <adcontrols/processmethod.hpp>
-#include <adfs/adfs.hpp>
-#include <adfs/cpio.hpp>
-#include <adfs/sqlite.hpp>
 #include <adcontrols/controlmethod.hpp>
-//#include <adinterface/controlmethodC.h>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adutils/adfsio.hpp>
+
 #include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <adsequence/sequence.hpp>
@@ -112,17 +112,17 @@ SequenceFile::load( const QString& filename )
         if ( folio.empty() )
             return false;
         adfs::file& file = *folio.begin();  // take first one.
-        adfs::cpio< adsequence::sequence >::load( *adsequence_, file );
+        adutils::adfsio< adsequence::sequence >::read( file, *adsequence_ );
     } while( 0 );
 
     do {
         adfs::folder folder = file.findFolder( L"/ProcessMethod" );
-
         std::vector< adfs::file > folio = folder.files();
-        for ( std::vector< adfs::file >::iterator it = folio.begin(); it != folio.end(); ++it ) {
-            std::shared_ptr< adcontrols::ProcessMethod > ptr( new adcontrols::ProcessMethod );
-            adfs::cpio< adcontrols::ProcessMethod >::load( *ptr, *it );
-            procmethods_[ it->name() ] = ptr;
+
+        for ( auto& file: folio ) {
+            std::shared_ptr< adcontrols::ProcessMethod > ptr( std::make_shared< adcontrols::ProcessMethod >() );
+            if ( adutils::adfsio< adcontrols::ProcessMethod >::read( file, *ptr ) )
+                procmethods_[ file.name() ] = ptr;
         }
     } while ( 0 );
     
@@ -130,24 +130,17 @@ SequenceFile::load( const QString& filename )
         adfs::folder folder = file.addFolder( L"/ControlMethod" );
 
         std::vector< adfs::file > folio = folder.files();
-        for ( std::vector< adfs::file >::iterator it = folio.begin(); it != folio.end(); ++it ) {
-            std::vector< char > ibuf( it->size() );
-            it->read( ibuf.size(), &ibuf[0] );
+        for ( auto& file: folio ) { 
 			auto ptr = std::make_shared< adcontrols::ControlMethod >();
-			if ( adportable::serializer< adcontrols::ControlMethod >::deserialize( *ptr, ibuf.data(), ibuf.size() ) ) {
-				ctrlmethods_ [ it->name() ] = ptr;
-			}
-            //serializer::restore( *ptr, ibuf );
-            // dubug
-            // ptr->subject = CORBA::wstring_dup( it->name().c_str() );
-            //
-            // ctrlmethods_[ it->name() ] = ptr;
+            if ( adutils::adfsio< adcontrols::ControlMethod >::read( file, *ptr ) )
+                ctrlmethods_ [ file.name() ] = ptr;
         }
     } while ( 0 );
 
     if ( ! filename.isEmpty() )
         filename_ = filename;
     setModified( false );
+
     emit changed();
 
     return true;
@@ -175,49 +168,28 @@ SequenceFile::save( const QString& filename )
 
     do {
         adfs::folder folder = file.addFolder( L"/Sequence" );
-#if 0
-        adfs::folium folium = folder.addFolium( adfs::create_uuid() );
-        adfs::cpio< adsequence::sequence >::copyin( *adsequence_, folium );
-        folium.dataClass( L"adsequence::sequence" );
-        folium.commit();
-#endif
+        if ( ! adutils::adfsio< adsequence::sequence >::write( folder, *adsequence_, L"sequence" ) )
+            return false;
     } while( 0 );
-#if 0
+
     do {
         adfs::folder folder = file.addFolder( L"/ProcessMethod" );
 
-        for ( process_method_map_type::const_iterator it = procmethods_.begin(); it != procmethods_.end(); ++it ) {
-            adfs::folium folium = folder.addFolium( it->first );
-            adfs::cpio< adcontrols::ProcessMethod >::copyin( *it->second, folium );
-            folium.dataClass( L"adcontrols::ProcessMethod" );
-            folium.commit();
+        for ( auto& method: procmethods_ ) {
+            if ( ! adutils::adfsio< adcontrols::ProcessMethod >::write( folder, *method.second, method.first ) )
+                return false;
         }
     } while ( 0 );
     
     do {
         adfs::folder folder = file.addFolder( L"/ControlMethod" );
-        for ( control_method_map_type::const_iterator it = ctrlmethods_.begin(); it != ctrlmethods_.end(); ++it ) {
-            adfs::folium folium = folder.addFolium( it->first );
-            
-            std::vector< char > obuf;
-            serializer::archive( obuf, *it->second );
-            folium.write( obuf.size(), &obuf[0] );
 
-            folium.dataClass( L"ControlMethod::Method" );
-            folium.commit();
-
-            std::wcout << L"Saving control method: ['" << it->second->subject.in() << L"'] has "
-                << it->second->lines.length() << " lines in "
-                << obuf.size() << " bytes"
-                << std::endl;
-
+        for ( auto& method: ctrlmethods_ ) {
+            if ( ! adutils::adfsio< adcontrols::ControlMethod >::write( folder, *method.second, method.first ) )
+                return false;
         }
     } while ( 0 );
-#endif
-    // --> debug
-    int res = sqlite3_close( file.db() );
-	(void)res;
-    // <---
+
     editor_.setModified( false );
     emit changed();
     return true;

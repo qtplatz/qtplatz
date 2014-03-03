@@ -107,7 +107,7 @@ sequence::make_line() const
             line.push_back( double(0) );
             break;
         case COLUMN_VARCHAR:
-            line.push_back( std::wstring(L"") );
+            line.push_back( std::string("") );
             break;
         }
     }

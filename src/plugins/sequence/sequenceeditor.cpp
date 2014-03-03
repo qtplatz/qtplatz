@@ -25,7 +25,7 @@
 #include "sequenceeditor.hpp"
 #include "sequencefile.hpp"
 #include "constants.hpp"
-#include "sequencewidget.hpp"
+#include "sequencewnd.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -55,7 +55,7 @@ SequenceEditor::~SequenceEditor()
 SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
                                                 , displayName_( "Sequence Editor" )
                                                 , file_( new SequenceFile( *this ) )
-                                                , widget_( new SequenceWidget( file_->adsequence().schema(), 0 ) )
+                                                , widget_( new SequenceWnd( file_->adsequence().schema(), 0 ) )
                                                 , currRow_( 0 )
                                                 , currCol_( 0 )
 {

@@ -62,7 +62,6 @@ namespace batchproc {
         std::unique_ptr< QTableView > tableView_;
         std::unique_ptr< QStandardItemModel > model_;
         std::unique_ptr< BatchprocDelegate > delegate_;
-        QDockWidget * toolBarDockWidget_;
         std::deque< std::wstring > files_;
         std::wstring destDir_;
 

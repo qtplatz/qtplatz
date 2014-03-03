@@ -35,7 +35,7 @@ namespace ControlMethod { struct Method; }
 
 namespace sequence {
 
-    class SequenceWidget;
+    class SequenceWnd;
     class SequenceFile;
 
     class SequenceEditor : public Core::IEditor {
@@ -94,7 +94,7 @@ namespace sequence {
         QList<int> context_;
         QString displayName_;  // this will shows on Navigator's 'Open Documents' pane
         SequenceFile * file_;
-        SequenceWidget * widget_;
+        SequenceWnd * widget_;
         size_t currRow_;
         size_t currCol_;
     };

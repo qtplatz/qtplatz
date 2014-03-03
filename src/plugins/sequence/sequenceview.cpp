@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "sequenceview.hpp"
-#include "sequencewidget.hpp"
+#include "sequencewnd.hpp"
 
 SequenceView::SequenceView(QWidget *parent) : QTreeView(parent)
 {

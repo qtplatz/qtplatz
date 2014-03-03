@@ -77,7 +77,6 @@ MainWindow::MainWindow( QWidget * parent ) : Utils::FancyMainWindow( parent )
                                            , tableView_( new MolTableView( this ) )
                                            , toolBar_( 0 )
                                            , toolBarLayout_( 0 )
-                                           , toolBarDockWidget_( 0 )
                                            , actionSearch_( 0 )
                                            , topLineEdit_( 0 )
                                            , progressBar_( 0 )
@@ -139,17 +138,6 @@ MainWindow::createContents( Core::IMode * mode )
     Utils::StyledBar * toolBar1 = createTopStyledBar();
     Utils::StyledBar * toolBar2 = createMidStyledBar();
 
-	if ( QDockWidget * dock = new QDockWidget( "Chemistry Toolbar" ) ) {
-        dock->setObjectName( QLatin1String( "Chemistry Toolbar" ) );
-        // dock->setWidget( toolBar );
-        dock->setFeatures( QDockWidget::NoDockWidgetFeatures );
-        dock->setAllowedAreas( Qt::BottomDockWidgetArea );
-        dock->setTitleBarWidget( new QWidget( dock ) );
-        dock->setProperty( "managed_dockwidget", QLatin1String( "true" ) );
-        addDockWidget( Qt::BottomDockWidgetArea, dock );
-        setToolBarDockWidget( dock );
-    }
-
 	//---------- centraol widget ------------
 	QWidget * centralWidget = new QWidget;
 	setCentralWidget( centralWidget );
@@ -203,18 +191,9 @@ MainWindow::setSimpleDockWidgetArrangement()
 			tabifyDockWidget( dockWidgets[1], dockWidget );
 	}
 
-
-	QDockWidget * toolBarDock = toolBarDockWidget();
-
-	toolBarDock->show();
 	update();
 }
 
-void
-MainWindow::setToolBarDockWidget( QDockWidget * dock )
-{
-	toolBarDockWidget_ = dock;
-}
 
 QDockWidget *
 MainWindow::createDockWidget( QWidget * widget, const QString& title )

@@ -145,6 +145,7 @@ void
 SequencePlugin::extensionsInitialized()
 {
 	mainWindow_->OnInitialUpdate();
+    handleFileNew( true );
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag

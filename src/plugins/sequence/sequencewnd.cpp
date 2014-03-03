@@ -22,14 +22,13 @@
 **
 **************************************************************************/
 
-#include "sequencewidget.hpp"
+#include "sequencewnd.hpp"
 #include "ui_sequencewidget.h"
 #include "sequencedelegate.hpp"
 #include "sequenceeditor.hpp"
 #include "sequencefile.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/processmethod.hpp>
-//#include <adinterface/controlmethodC.h>
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
 #include <adsequence/sequence.hpp>
@@ -50,7 +49,7 @@
 
 using namespace sequence;
 
-SequenceWidget::SequenceWidget( const adsequence::schema& schema
+SequenceWnd::SequenceWnd( const adsequence::schema& schema
                                 , QWidget *parent) : QWidget( parent )
                                                    , ui( new Ui::SequenceWidget )
                                                    , model_( new QStandardItemModel )
@@ -72,13 +71,13 @@ SequenceWidget::SequenceWidget( const adsequence::schema& schema
     assert( res );
 }
 
-SequenceWidget::~SequenceWidget()
+SequenceWnd::~SequenceWnd()
 {
     delete ui;
 }
 
 void
-SequenceWidget::OnInitialUpdate( const adsequence::schema& schema )
+SequenceWnd::OnInitialUpdate( const adsequence::schema& schema )
 {
     boost::filesystem::path dir( adportable::profile::user_data_dir<char>() );
     dir /= "data";
@@ -99,30 +98,30 @@ SequenceWidget::OnInitialUpdate( const adsequence::schema& schema )
 }
 
 void
-SequenceWidget::OnFinalClose()
+SequenceWnd::OnFinalClose()
 {
 }
 
 void
-SequenceWidget::setSequenceName( const QString& name )
+SequenceWnd::setSequenceName( const QString& name )
 {
     ui->lineEditName->setText( name );
 }
 
 void
-SequenceWidget::setDataSaveIn( const QString& dir )
+SequenceWnd::setDataSaveIn( const QString& dir )
 {
     ui->lineEditDataDir->setText( dir );
 }
 
 void
-SequenceWidget::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& )
+SequenceWnd::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& )
 {
     emit currentChanged( curr.row(), curr.column() );
 }
 
 void
-SequenceWidget::showContextMenu( const QPoint& pt )
+SequenceWnd::showContextMenu( const QPoint& pt )
 {
     QMenu menu;
 
@@ -145,7 +144,7 @@ SequenceWidget::showContextMenu( const QPoint& pt )
 }
 
 void
-SequenceWidget::addLine()
+SequenceWnd::addLine()
 {
     QStandardItemModel& model = *model_;
     const adsequence::schema& schema = *schema_;
@@ -173,7 +172,7 @@ SequenceWidget::addLine()
 }
 
 void
-SequenceWidget::delLine()
+SequenceWnd::delLine()
 {
     QModelIndex index = ui->treeView->currentIndex();
     model_->removeRows( index.row(), 1 );
@@ -181,17 +180,17 @@ SequenceWidget::delLine()
 }
 
 void
-SequenceWidget::browse()
+SequenceWnd::browse()
 {
     QModelIndex index = ui->treeView->currentIndex();
-    QMessageBox::warning( 0, "SequenceWidget::browse", index.data().toString() );
+    QMessageBox::warning( 0, "SequenceWnd::browse", index.data().toString() );
 }
 
 void
-SequenceWidget::saveAs()
+SequenceWnd::saveAs()
 {
     QModelIndex index = ui->treeView->currentIndex();
-    QMessageBox::warning( 0, "SequenceWidget::saveAs", index.data().toString() );
+    QMessageBox::warning( 0, "SequenceWnd::saveAs", index.data().toString() );
 }
 
 namespace sequence {
@@ -206,7 +205,7 @@ namespace sequence {
 }
 
 void
-SequenceWidget::getSequence( adsequence::sequence& seq ) const
+SequenceWnd::getSequence( adsequence::sequence& seq ) const
 {
     QStandardItemModel& model = *model_;
     const adsequence::schema& schema = seq.schema();
@@ -229,7 +228,7 @@ SequenceWidget::getSequence( adsequence::sequence& seq ) const
                 line.push_back( v.toDouble() );
                 break;
             case adsequence::COLUMN_VARCHAR:
-                line.push_back( qtwrapper::wstring::copy( v.toString() ) );
+				line.push_back( v.toString().toStdString() );
                 break;
             case adsequence::COLUMN_SAMPLE_TYPE:
                 line.push_back( v.toInt() );
@@ -243,7 +242,7 @@ SequenceWidget::getSequence( adsequence::sequence& seq ) const
 }
 
 void
-SequenceWidget::setSequence( const adsequence::sequence& seq )
+SequenceWnd::setSequence( const adsequence::sequence& seq )
 {
     QStandardItemModel& model = *model_;
     const adsequence::schema& schema = seq.schema();
@@ -280,7 +279,7 @@ SequenceWidget::setSequence( const adsequence::sequence& seq )
 }
 
 QString
-SequenceWidget::getControlMethodName( size_t row ) const
+SequenceWnd::getControlMethodName( size_t row ) const
 {
     QStandardItemModel& model = *model_;
     const adsequence::schema& schema = *schema_;
@@ -295,7 +294,7 @@ SequenceWidget::getControlMethodName( size_t row ) const
 }
 
 QString
-SequenceWidget::getProcessMethodName( size_t row ) const
+SequenceWnd::getProcessMethodName( size_t row ) const
 {
     QStandardItemModel& model = *model_;
     const adsequence::schema& schema = *schema_;

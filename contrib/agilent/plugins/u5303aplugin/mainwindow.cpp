@@ -131,58 +131,58 @@ MainWindow::createContents( Core::IMode * mode )
     if ( QWidget * editorWidget = new QWidget ) {
 
         editorWidget->setLayout( editorHolderLayout );
-        editorHolderLayout->addWidget( new QTextEdit() );
 
-        Utils::StyledBar * toolBar1 = createTopStyledToolbar();
-        Utils::StyledBar * toolBar2 = createMidStyledToolbar();
+        editorHolderLayout->addWidget( createTopStyledToolbar() );
+        editorHolderLayout->addWidget( new WaveformWnd() );
         
         //---------- central widget ------------
-        QWidget * centralWidget = new QWidget;
-        if ( centralWidget ) {
+        if ( QWidget * centralWidget = new QWidget ) {
+
             setCentralWidget( centralWidget );
             
             QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-            // centralWidget->setLayout( centralLayout );
+            centralWidget->setLayout( centralLayout );
             centralLayout->setMargin( 0 );
             centralLayout->setSpacing( 0 );
-            // ----------------- top tool bar -------------------
-            centralLayout->addWidget( toolBar1 );              // [1]
             // ----------------------------------------------------
-            centralLayout->addWidget( new WaveformWnd );
+            centralLayout->addWidget( editorWidget ); // [ToolBar + WaveformWnd]
             // ----------------------------------------------------
+
             centralLayout->setStretch( 0, 1 );
             centralLayout->setStretch( 1, 0 );
-            
             // ----------------- mid tool bar -------------------
-            centralLayout->addWidget( toolBar2 );              // [1]
+            centralLayout->addWidget( createMidStyledToolbar() );      // [Middle toolbar]
         }
     }
 
-	// Right-side window with editor, output etc.
-	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-    if ( mainWindowSplitter ) {
+	if ( Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter ) {
+
         QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
         outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
-        mainWindowSplitter->addWidget( this );
-        mainWindowSplitter->addWidget( outputPane );
-        mainWindowSplitter->setStretchFactor( 0, 10 );
-        mainWindowSplitter->setStretchFactor( 1, 0 );
+
+        mainWindowSplitter->addWidget( this );        // [Central Window]
+        mainWindowSplitter->addWidget( outputPane );  // [Output (log) Window]
+
+        mainWindowSplitter->setStretchFactor( 0, 9 );
+        mainWindowSplitter->setStretchFactor( 1, 1 );
         mainWindowSplitter->setOrientation( Qt::Vertical );
+
+        // Split Navigation and Application window
+        Core::MiniSplitter * splitter = new Core::MiniSplitter;               // entier this view
+        if ( splitter ) {
+            splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) ); // navegate
+            splitter->addWidget( mainWindowSplitter );                            // *this + ontput
+            splitter->setStretchFactor( 0, 0 );
+            splitter->setStretchFactor( 1, 1 );
+            splitter->setOrientation( Qt::Horizontal );
+            splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
+        }
+
+        createDockWidgets();
+
+        return splitter;
     }
-
-	// Navigation and right-side window
-	Core::MiniSplitter * splitter = new Core::MiniSplitter;               // entier this view
-    if ( splitter ) {
-        splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) ); // navegate
-        splitter->addWidget( mainWindowSplitter );                            // *this + ontput
-        splitter->setStretchFactor( 0, 0 );
-        splitter->setStretchFactor( 1, 1 );
-        splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
-    }
-
-    createDockWidgets();
-
-	return splitter;
+    return 0;
 }
 
 void

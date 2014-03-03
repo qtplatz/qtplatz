@@ -46,6 +46,13 @@ namespace adutils {
             return false;
         }
 
+		static bool read( adfs::file& file, T& t ) {
+			std::unique_ptr< char [] > device( new char [ file.size() ] );
+			if ( file.read( file.size(), device.get() ) == file.size() )
+				return adportable::serializer<T>::deserialize( t, device.get(), file.size() );
+			return false;
+		}
+
         static bool write( adfs::folder& folder, const T& t, const std::wstring& file_name ) {
             adfs::file file = folder.addFile( file_name );
             std::string device;

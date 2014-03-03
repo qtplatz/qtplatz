@@ -42,6 +42,7 @@ namespace adextension { class iEditorFactory; }
 namespace adsequence  { class sequence; }
 namespace ControlMethod{ struct Method; }
 namespace Core { class IMode; }
+namespace Utils { class StyledBar; }
 
 namespace sequence {
     
@@ -79,9 +80,6 @@ namespace sequence {
 
     private:
         static MainWindow * instance_;
-		QWidget * toolBar_;
-		QHBoxLayout * toolBarLayout_;
-        QDockWidget * toolBarDockWidget_;
         QAction * actionConnect_;
         QLineEdit * ctrlMethodName_;
         QLineEdit * procMethodName_;
@@ -89,10 +87,9 @@ namespace sequence {
 
         std::vector< adplugin::LifeCycle * > editors_;
 
-		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
-		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
-        void setToolBarDockWidget( QDockWidget * dock );
+		QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& objname = QString() );
         void createToolbar();
+        Utils::StyledBar * createMidStyledToolbar();
     };
 
 }

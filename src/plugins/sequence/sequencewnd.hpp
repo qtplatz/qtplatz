@@ -47,11 +47,11 @@ namespace sequence {
     class SequenceDelegate;
     class SequenceEditor;
 
-    class SequenceWidget : public QWidget {
+    class SequenceWnd : public QWidget {
         Q_OBJECT
     public:
-        explicit SequenceWidget( const adsequence::schema&, QWidget *parent = 0 );
-        ~SequenceWidget();
+        explicit SequenceWnd( const adsequence::schema&, QWidget *parent = 0 );
+        ~SequenceWnd();
 
         void OnInitialUpdate( const adsequence::schema& );
         void OnFinalClose();

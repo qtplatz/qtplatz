@@ -82,7 +82,10 @@ namespace adcontrols {
     private:
         vector_type vec_;
         friend class boost::serialization::access;
-        template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
+        template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
+            (void)version;
+            ar & BOOST_SERIALIZATION_NVP( vec_ );
+        }
 
     };
 

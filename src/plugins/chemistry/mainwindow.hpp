@@ -79,13 +79,10 @@ namespace chemistry {
 		static MainWindow * instance_;
 		QWidget * toolBar_;
 		QHBoxLayout * toolBarLayout_;
-		QDockWidget * toolBarDockWidget_;
 		QAction * actionSearch_;
         QLineEdit * topLineEdit_;
         QProgressBar * progressBar_;
 
-		void setToolBarDockWidget( QDockWidget * dock );
-		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
 		void createDockWidgets();
 		void createToolbar();
         Utils::StyledBar * createTopStyledBar();
