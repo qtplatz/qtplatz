@@ -265,8 +265,8 @@ SequenceWnd::setSequence( const adsequence::sequence& seq )
                 break;
             case adsequence::COLUMN_VARCHAR:
             {
-                std::wstring varchar = boost::get< std::wstring >( line[ col ] );
-                model.setData( model.index( row, col ), qtwrapper::qstring::copy( varchar ) );
+                std::string varchar = boost::get< std::string >( line[ col ] );
+				model.setData( model.index( row, col ), QString::fromStdString( varchar ) );
             }
             break;
             case adsequence::COLUMN_SAMPLE_TYPE:
