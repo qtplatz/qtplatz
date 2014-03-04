@@ -43,7 +43,7 @@ SOURCES +=  sequenceplugin.cpp \
     sequencefile.cpp \
     mainwindow.cpp \
     mode.cpp \
-    sequencewidget.cpp \
+    sequencewnd.cpp \
     sequencedelegate.cpp \
     sequenceview.cpp
 
@@ -55,7 +55,7 @@ HEADERS += sequence_global.h \
     constants.hpp \
     mainwindow.hpp \
     mode.hpp \
-    sequencewidget.hpp \
+    sequencewnd.hpp \
     sequencedelegate.hpp \
     sequenceview.hpp
 

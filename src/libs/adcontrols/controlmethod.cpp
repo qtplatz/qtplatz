@@ -37,93 +37,95 @@ ControlMethod::ControlMethod()
 
 ControlMethod::ControlMethod( const ControlMethod& t ) : subject_( t.subject_ )
                                                        , description_( t.description_ )
-                                                       , lines_( t.lines_ )
+                                                       , items_( t.items_ )
 {
 }
 
-ControlMethod::MethodLine::MethodLine() : unitnumber_( 0 )
-                                        , isInitialCondition_( true )
-                                        , funcid_( 0 )
+using namespace adcontrols::controlmethod;
+
+MethodItem::MethodItem() : unitnumber_( 0 )
+                         , isInitialCondition_( true )
+                         , funcid_( 0 )
 {
 }
 
-ControlMethod::MethodLine::MethodLine( const MethodLine& t ) : modelname_( t.modelname_ )
-                                                             , unitnumber_( t.unitnumber_ )
-                                                             , isInitialCondition_( t.isInitialCondition_ )
-                                                             , time_( t.time_ )
-                                                             , funcid_( t.funcid_ )
-                                                             , xdata_( t.xdata_ )
+MethodItem::MethodItem( const MethodItem& t ) : modelname_( t.modelname_ )
+                                              , unitnumber_( t.unitnumber_ )
+                                              , isInitialCondition_( t.isInitialCondition_ )
+                                              , time_( t.time_ )
+                                              , funcid_( t.funcid_ )
+                                              , xdata_( t.xdata_ )
 {
 }
 
 const std::wstring& 
-ControlMethod::MethodLine::modelname() const
+MethodItem::modelname() const
 {
     return modelname_;
 }
 
 void
-ControlMethod::MethodLine::modelname( const std::wstring& value )
+MethodItem::modelname( const std::wstring& value )
 {
     modelname_ = value;
 }
 
 uint32_t
-ControlMethod::MethodLine::unitnumber() const
+MethodItem::unitnumber() const
 {
     return unitnumber_;
 }
 
 void
-ControlMethod::MethodLine::unitnumber( uint32_t value ) 
+MethodItem::unitnumber( uint32_t value ) 
 {
     unitnumber_ = value;
 }
 
 bool
-ControlMethod::MethodLine::isInitialCondition() const
+MethodItem::isInitialCondition() const
 {
     return isInitialCondition_;
 }
 
 void
-ControlMethod::MethodLine::isInitialCondition( bool value )
+MethodItem::isInitialCondition( bool value )
 {
     isInitialCondition_ = value;
 }
 
-const std::pair< uint32_t, uint32_t >&
-ControlMethod::MethodLine::time() const
+const double&
+MethodItem::time() const
 {
     return time_;
 }
 
 void
-ControlMethod::MethodLine::time( const std::pair< uint32_t, uint32_t >& value )
+MethodItem::time( const double& value )
 {
     time_ = value;
 }
 
 uint32_t
-ControlMethod::MethodLine::funcid() const
+MethodItem::funcid() const
 {
     return funcid_;
 }
 
 void
-ControlMethod::MethodLine::funcid( uint32_t value )
+MethodItem::funcid( uint32_t value )
 {
     funcid_ = value;
 }
 
 const uint8_t *
-ControlMethod::MethodLine::xdata() const
+MethodItem::xdata() const
 {
     return xdata_.data();
 }
 
 size_t
-ControlMethod::MethodLine::xsize() const
+MethodItem::xsize() const
 {
     return xdata_.size();
 }

@@ -41,20 +41,12 @@ namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT ControlMethod {
-    public:
-        ~ControlMethod();
-        ControlMethod();
-        ControlMethod( const ControlMethod& );
+    namespace controlmethod {
 
-        static const wchar_t * dataClass() { return L"adcontrols::ControlMethod"; }
-
-        typedef size_t size_type;
-
-        class ADCONTROLSSHARED_EXPORT MethodLine {
+        class ADCONTROLSSHARED_EXPORT MethodItem {
         public:
-            MethodLine();
-            MethodLine( const MethodLine& );
+            MethodItem();
+            MethodItem( const MethodItem& );
 
             const std::wstring& modelname() const;
             void modelname( const std::wstring& );
@@ -62,8 +54,8 @@ namespace adcontrols {
             void unitnumber( uint32_t );
             bool isInitialCondition() const;
             void isInitialCondition( bool );
-            const std::pair< uint32_t, uint32_t >& time() const;
-            void time( const std::pair< uint32_t, uint32_t >& );
+            const double& time() const;
+            void time( const double& );
             uint32_t funcid() const;
             void funcid( uint32_t );
             const uint8_t * xdata() const;
@@ -73,8 +65,8 @@ namespace adcontrols {
             std::wstring modelname_;
             uint32_t unitnumber_;
             bool isInitialCondition_;
-            std::pair< uint32_t /* sec */, uint32_t /* usec */ > time_;
-            uint32_t funcid_;         // MethodFunc
+            double time_;
+            uint32_t funcid_;              // MethodFunc
             std::vector< uint8_t > xdata_; // serialized data
 
         private:
@@ -83,16 +75,37 @@ namespace adcontrols {
             template<class Archive>
                 void serialize( Archive& ar, const unsigned int version ) {
                 using namespace boost::serialization;
-                (void)version;
-                ar & BOOST_SERIALIZATION_NVP(modelname_);
-                ar & BOOST_SERIALIZATION_NVP(unitnumber_);
-                ar & BOOST_SERIALIZATION_NVP(isInitialCondition_);
-                ar & BOOST_SERIALIZATION_NVP(time_);
-                ar & BOOST_SERIALIZATION_NVP(funcid_);
-                ar & BOOST_SERIALIZATION_NVP(xdata_);
+                if ( version >= 2 ) {
+                    ar & BOOST_SERIALIZATION_NVP(modelname_);
+                    ar & BOOST_SERIALIZATION_NVP(unitnumber_);
+                    ar & BOOST_SERIALIZATION_NVP(isInitialCondition_);
+                    ar & BOOST_SERIALIZATION_NVP(time_);
+                    ar & BOOST_SERIALIZATION_NVP(funcid_);
+                    ar & BOOST_SERIALIZATION_NVP(xdata_);
+                } else {
+                    ar & BOOST_SERIALIZATION_NVP(modelname_);
+                    ar & BOOST_SERIALIZATION_NVP(unitnumber_);
+                    ar & BOOST_SERIALIZATION_NVP(isInitialCondition_);
+                    std::pair< std::uint32_t, std::uint32_t > xtime;
+                    ar & BOOST_SERIALIZATION_NVP(xtime);
+                    ar & BOOST_SERIALIZATION_NVP(funcid_);
+                    ar & BOOST_SERIALIZATION_NVP(xdata_);
+                }
             }
         };
 
+    };
+
+    ////////////////////////////////////////////////
+
+    class ADCONTROLSSHARED_EXPORT ControlMethod {
+    public:
+        ~ControlMethod();
+        ControlMethod();
+        ControlMethod( const ControlMethod& );
+
+        static const wchar_t * dataClass() { return L"adcontrols::ControlMethod"; }
+        typedef size_t size_type;
         size_type size() const;
 
     private:
@@ -100,15 +113,20 @@ namespace adcontrols {
 
         std::wstring subject_;
         std::wstring description_;
-        std::vector< MethodLine > lines_;
+        std::vector< controlmethod::MethodItem > items_;
 
         template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            (void)version;
-            ar & BOOST_SERIALIZATION_NVP(subject_);
-            ar & BOOST_SERIALIZATION_NVP(description_);
-            ar & BOOST_SERIALIZATION_NVP(lines_);
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP(subject_);
+                ar & BOOST_SERIALIZATION_NVP(description_);
+                ar & BOOST_SERIALIZATION_NVP(items_);
+            } else {
+                ar & BOOST_SERIALIZATION_NVP(subject_);
+                ar & BOOST_SERIALIZATION_NVP(description_);
+                ar & BOOST_SERIALIZATION_NVP(items_);
+            }
         }
     };
 
@@ -116,4 +134,6 @@ namespace adcontrols {
 
 }
 
+BOOST_CLASS_VERSION( adcontrols::ControlMethod, 2 )
+BOOST_CLASS_VERSION( adcontrols::controlmethod::MethodItem, 2 )
 
