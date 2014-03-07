@@ -47,7 +47,7 @@ namespace adcontrols {
         public:
             MethodItem();
             MethodItem( const MethodItem& );
-            MethodItem( const std::string& model, uint32_t unitnumber, unit32_t funcid = 0 );
+            MethodItem( const std::string& model, uint32_t unitnumber, uint32_t funcid = 0 );
 
             // An analytical instrument is consisted from serveral independent modules
             // such as autosampler, solvent delivery system, 2 units of (same models of) UV detector

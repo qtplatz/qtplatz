@@ -96,6 +96,7 @@ using namespace adcontrols::controlmethod;
 
 MethodItem::MethodItem() : unitnumber_( 0 )
                          , isInitialCondition_( true )
+                         , time_( -1 )
                          , funcid_( 0 )
 {
 }
@@ -144,6 +145,7 @@ void
 MethodItem::isInitialCondition( bool value )
 {
     isInitialCondition_ = value;
+    time_ = (-1);
 }
 
 const double&
@@ -155,6 +157,7 @@ MethodItem::time() const
 void
 MethodItem::time( const double& value )
 {
+    isInitialCondition_ = false;
     time_ = value;
 }
 
