@@ -41,6 +41,57 @@ ControlMethod::ControlMethod( const ControlMethod& t ) : subject_( t.subject_ )
 {
 }
 
+// ControlMethod&
+// ControlMethod::operator = ( const ControlMethod& t )
+// {
+//     subject_ = t.subject_;
+//     description_ = t.description_;
+//     items_ = t.items_;
+//     return *this;
+// }
+
+ControlMethod::iterator
+ControlMethod::begin()
+{
+    return items_.begin();
+}
+
+ControlMethod::iterator
+ControlMethod::end()
+{
+    return items_.end();
+}
+
+ControlMethod::const_iterator
+ControlMethod::begin() const
+{
+    return items_.begin();
+}
+
+ControlMethod::const_iterator
+ControlMethod::end() const
+{
+    return items_.end();
+}
+
+ControlMethod::iterator
+ControlMethod::erase( iterator pos )
+{
+    return items_.erase( pos );
+}
+
+ControlMethod::iterator
+ControlMethod::erase( iterator first, iterator last )
+{
+    return items_.erase( first, last );
+}
+
+size_t
+ControlMethod::size() const 
+{
+    return items_.size();
+}
+
 using namespace adcontrols::controlmethod;
 
 MethodItem::MethodItem() : unitnumber_( 0 )
@@ -54,18 +105,19 @@ MethodItem::MethodItem( const MethodItem& t ) : modelname_( t.modelname_ )
                                               , isInitialCondition_( t.isInitialCondition_ )
                                               , time_( t.time_ )
                                               , funcid_( t.funcid_ )
-                                              , xdata_( t.xdata_ )
+                                              , label_( t.label_ )
+                                              , data_( t.data_ )
 {
 }
 
-const std::wstring& 
+const std::string& 
 MethodItem::modelname() const
 {
     return modelname_;
 }
 
 void
-MethodItem::modelname( const std::wstring& value )
+MethodItem::modelname( const std::string& value )
 {
     modelname_ = value;
 }
@@ -118,16 +170,28 @@ MethodItem::funcid( uint32_t value )
     funcid_ = value;
 }
 
-const uint8_t *
-MethodItem::xdata() const
+void
+MethodItem::itemLabel( const std::string& value )
 {
-    return xdata_.data();
+    label_ = value;
+}
+
+const std::string&
+MethodItem::itemLabel() const
+{
+    return label_;
+}
+
+const char *
+MethodItem::data() const
+{
+    return data_.data();
 }
 
 size_t
-MethodItem::xsize() const
+MethodItem::size() const
 {
-    return xdata_.size();
+    return data_.size();
 }
 
 

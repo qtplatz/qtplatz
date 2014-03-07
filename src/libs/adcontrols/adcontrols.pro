@@ -163,7 +163,8 @@ HEADERS += acceptor.hpp \
     mschromatogrammethod.hpp \
     spectrogram.hpp \
     targeting.hpp \
-    logging_hook.hpp
+    logging_hook.hpp \
+    controlmethodaccerror.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 

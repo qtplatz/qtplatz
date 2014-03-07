@@ -34,6 +34,7 @@
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
+#include <adwidgets/controlmethodwidget.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -107,7 +108,7 @@ MainWindow::OnInitialUpdate()
 
         for ( size_t i = 0; i < v->size(); ++i ) {
 			adextension::iEditorFactory& factory = (*v)[i];
-
+            
             QString objname = 
                 ( factory.method_type()
                   == adextension::iEditorFactory::PROCESS_METHOD ) ? "ProcessMethodEditor" : "ControlMethodEditor";
@@ -124,6 +125,8 @@ MainWindow::OnInitialUpdate()
             }
         }
     }
+
+    createDockWidget( new adwidgets::ControlMethodWidget, "Control Method", "ControlMethodWidget" );
 
     // load GUI defined default values for get configuration
     getControlMethod( *defaultControlMethod_ );
@@ -176,6 +179,7 @@ MainWindow::createContents( Core::IMode * mode )
             editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorWidget ) );
 
             if ( Core::MiniSplitter * splitter1 = new Core::MiniSplitter ) {
+
                 splitter1->addWidget( editorWidget );        // [Editor]
                 splitter1->addWidget( new Core::RightPanePlaceHolder( mode ) );
                 splitter1->setStretchFactor( 0, 1 );
@@ -187,8 +191,8 @@ MainWindow::createContents( Core::IMode * mode )
 
                     QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
                     centralWidget->setLayout( centralLayout );
-                    centralLayout->setMargin( 0 );
-                    centralLayout->setSpacing( 0 );
+                    centralLayout->setMargin( 1 );
+                    centralLayout->setSpacing( 1 );
 
                     centralLayout->addWidget( splitter1 ); // editor
                     centralLayout->addWidget( createMidStyledToolbar() ); // toolbar
@@ -247,17 +251,20 @@ MainWindow::setSimpleDockWidgetArrangement()
             tabifyDockWidget( master, widget );
     }
 
-    // master = 0;
+    master = 0;
     for ( auto widget: findChildren<QDockWidget *>( "ControlMethodEditor" ) ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
         widget->show();
-		if ( master == 0 )
-			master = widget;
-		else
+	 	if ( master == 0 )
+	 		master = widget;
+	 	else
             tabifyDockWidget( master, widget );
     }
-
-
+    if ( auto widget = findChild< QDockWidget *>( "ControlMethodWidget" ) ) {
+        addDockWidget( Qt::BottomDockWidgetArea, widget );
+        widget->show();
+    }        
+    
     update();
 }
 

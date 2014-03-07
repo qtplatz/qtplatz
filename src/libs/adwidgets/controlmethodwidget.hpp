@@ -22,46 +22,37 @@
 **
 **************************************************************************/
 
-#ifndef CONTROLMETHODTABLE_HPP
-#define CONTROLMETHODTABLE_HPP
+#ifndef CONTROLMETHODWIDGET_HPP
+#define CONTROLMETHODWIDGET_HPP
 
-#pragma once
-
-#include "tableview.hpp"
+#include <QWidget>
 #include "adwidgets_global.hpp"
 
-#include <memory>
-
-class QStandardItemModel;
-
-namespace adcontrols { class ControlMethod; namespace controlmethod { class MethodItem; } }
+class QTabWidget;
 
 namespace adwidgets {
 
-    class ControlMethodTable : public TableView {
+    class ControlMethodTable;
+
+    class  ADWIDGETSSHARED_EXPORT ControlMethodWidget : public QWidget {
         Q_OBJECT
     public:
-        explicit ControlMethodTable(QWidget *parent = 0);
+        explicit ControlMethodWidget(QWidget *parent = 0);
+		QSize sizeHint() const override;
 
-        void onInitialUpdate();
-
-        void setContents( const adcontrols::ControlMethod& );
-        bool getContents( adcontrols::ControlMethod& );
-        bool append( const adcontrols::controlmethod::MethodItem& );
-        const adcontrols::controlmethod::MethodItem& operator []( int row ) const;
-
-        QStandardItemModel& model();
+        void addWidget( QWidget *, const QString& label );
+        void addWidget( QWidget *, const QIcon&, const QString& );
 
     private:
-        QStandardItemModel * model_;
-        std::shared_ptr< adcontrols::ControlMethod > method_;
-
+        ControlMethodTable * table_;
+        QTabWidget * tab_;
+        
     signals:
-
+            
     public slots:
-
+        
     };
 
 }
 
-#endif // CONTROLMETHODTABLE_HPP
+#endif // CONTROLMETHODWIDGET_HPP

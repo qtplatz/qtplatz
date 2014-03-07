@@ -47,50 +47,58 @@ namespace adcontrols {
         public:
             MethodItem();
             MethodItem( const MethodItem& );
+            MethodItem( const std::string& model, uint32_t unitnumber, unit32_t funcid = 0 );
 
-            const std::wstring& modelname() const;
-            void modelname( const std::wstring& );
+            // An analytical instrument is consisted from serveral independent modules
+            // such as autosampler, solvent delivery system, 2 units of (same models of) UV detector
+            // and so on.  Each module can be indentified by a pair of modelname and unitnumber that 
+            // is counted from zero (zero is default number).
+
+            const std::string& modelname() const;
+            void modelname( const std::string& );
+            
             uint32_t unitnumber() const;
             void unitnumber( uint32_t );
+
             bool isInitialCondition() const;
             void isInitialCondition( bool );
+
             const double& time() const;
             void time( const double& );
+
             uint32_t funcid() const;
             void funcid( uint32_t );
-            const uint8_t * xdata() const;
-            size_t xsize() const;
+
+            const std::string& itemLabel() const; // short description for Table UI
+            void itemLabel( const std::string& );
+
+            const char * data() const;            // serialized data
+            size_t size() const;
+            void data( const char * data, size_t size );
 
         private:
-            std::wstring modelname_;
+            std::string modelname_;
             uint32_t unitnumber_;
             bool isInitialCondition_;
             double time_;
             uint32_t funcid_;              // MethodFunc
-            std::vector< uint8_t > xdata_; // serialized data
+            std::string label_;
+            std::string data_;             // serialized data
 
         private:
             friend class boost::serialization::access;
 
             template<class Archive>
-                void serialize( Archive& ar, const unsigned int version ) {
+                void serialize( Archive& ar, const unsigned int ) {
                 using namespace boost::serialization;
-                if ( version >= 2 ) {
-                    ar & BOOST_SERIALIZATION_NVP(modelname_);
-                    ar & BOOST_SERIALIZATION_NVP(unitnumber_);
-                    ar & BOOST_SERIALIZATION_NVP(isInitialCondition_);
-                    ar & BOOST_SERIALIZATION_NVP(time_);
-                    ar & BOOST_SERIALIZATION_NVP(funcid_);
-                    ar & BOOST_SERIALIZATION_NVP(xdata_);
-                } else {
-                    ar & BOOST_SERIALIZATION_NVP(modelname_);
-                    ar & BOOST_SERIALIZATION_NVP(unitnumber_);
-                    ar & BOOST_SERIALIZATION_NVP(isInitialCondition_);
-                    std::pair< std::uint32_t, std::uint32_t > xtime;
-                    ar & BOOST_SERIALIZATION_NVP(xtime);
-                    ar & BOOST_SERIALIZATION_NVP(funcid_);
-                    ar & BOOST_SERIALIZATION_NVP(xdata_);
-                }
+                ar & BOOST_SERIALIZATION_NVP(modelname_)
+                    & BOOST_SERIALIZATION_NVP(unitnumber_)
+                    & BOOST_SERIALIZATION_NVP(isInitialCondition_)
+                    & BOOST_SERIALIZATION_NVP(time_)
+                    & BOOST_SERIALIZATION_NVP(funcid_)
+                    & BOOST_SERIALIZATION_NVP(label_)
+                    & BOOST_SERIALIZATION_NVP(data_)
+                    ;
             }
         };
 
@@ -103,30 +111,35 @@ namespace adcontrols {
         ~ControlMethod();
         ControlMethod();
         ControlMethod( const ControlMethod& );
+        // ControlMethod& operator = ( const ControlMethod& );
 
         static const wchar_t * dataClass() { return L"adcontrols::ControlMethod"; }
         typedef size_t size_type;
+        typedef std::vector< controlmethod::MethodItem >::iterator iterator;
+        typedef std::vector< controlmethod::MethodItem >::const_iterator const_iterator;
+
         size_type size() const;
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
+        iterator erase( iterator pos );
+        iterator erase( iterator first, iterator last );
+        iterator insert( const controlmethod::MethodItem& );
 
     private:
         friend class boost::serialization::access;
 
-        std::wstring subject_;
-        std::wstring description_;
+        std::string subject_;
+        std::string description_;
         std::vector< controlmethod::MethodItem > items_;
 
         template<class Archive>
-            void serialize( Archive& ar, const unsigned int version ) {
+            void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            if ( version >= 2 ) {
-                ar & BOOST_SERIALIZATION_NVP(subject_);
-                ar & BOOST_SERIALIZATION_NVP(description_);
-                ar & BOOST_SERIALIZATION_NVP(items_);
-            } else {
-                ar & BOOST_SERIALIZATION_NVP(subject_);
-                ar & BOOST_SERIALIZATION_NVP(description_);
-                ar & BOOST_SERIALIZATION_NVP(items_);
-            }
+            ar & BOOST_SERIALIZATION_NVP(subject_)
+                & BOOST_SERIALIZATION_NVP(description_)
+                & BOOST_SERIALIZATION_NVP(items_);
         }
     };
 
@@ -134,6 +147,6 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::ControlMethod, 2 )
-BOOST_CLASS_VERSION( adcontrols::controlmethod::MethodItem, 2 )
+BOOST_CLASS_VERSION( adcontrols::ControlMethod, 1 )
+BOOST_CLASS_VERSION( adcontrols::controlmethod::MethodItem, 1 )
 

@@ -28,7 +28,8 @@ SOURCES += adwidgets.cpp \
         peptidewidget.cpp \
         peptidetable.cpp \
         delegatehelper.cpp \
-    controlmethodtable.cpp
+    controlmethodtable.cpp \
+    controlmethodwidget.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -40,7 +41,8 @@ HEADERS += adwidgets.hpp\
         peptidewidget.hpp \
         peptidetable.hpp \
         delegatehelper.hpp \
-    controlmethodtable.hpp
+    controlmethodtable.hpp \
+    controlmethodwidget.hpp
 
 unix {
     target.path = /usr/lib
