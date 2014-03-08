@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "controlmethod.hpp"
+#include <adportable/float.hpp>
 
 using namespace adcontrols;
 
@@ -85,6 +86,22 @@ ControlMethod::erase( iterator first, iterator last )
 {
     return items_.erase( first, last );
 }
+
+ControlMethod::iterator
+ControlMethod::insert( const controlmethod::MethodItem& item )
+{
+    using adcontrols::controlmethod::MethodItem;
+    auto it = std::lower_bound( items_.begin(), items_.end(), item, []( const MethodItem& a, const MethodItem& b ){
+            if ( adportable::compare<double>::essentiallyEqual( a.time(), b.time() ) ) {
+                if ( a.modelname() == b.modelname() )
+                    return a.unitnumber() < b.unitnumber();
+                return a.modelname() < b.modelname();
+            }
+            return a.time() < b.time();
+        });
+    return items_.insert( it, item );
+}
+
 
 size_t
 ControlMethod::size() const 
