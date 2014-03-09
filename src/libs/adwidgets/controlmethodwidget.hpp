@@ -30,6 +30,8 @@
 
 class QTabWidget;
 
+namespace adcontrols { namespace controlmethod { class MethodItem; } }
+
 namespace adwidgets {
 
     class ControlMethodTable;
@@ -50,6 +52,7 @@ namespace adwidgets {
     signals:
             
     public slots:
+        void handleAdd( const adcontrols::controlmethod::MethodItem& );
         
     };
 

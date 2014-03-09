@@ -208,6 +208,13 @@ MethodItem::data() const
     return data_.data();
 }
 
+void
+MethodItem::data( const char * data, size_t size )
+{
+    data_.resize( size );
+    std::copy( data, data + size, data_.begin() );
+}
+
 size_t
 MethodItem::size() const
 {

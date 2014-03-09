@@ -104,6 +104,9 @@ MainWindow::OnInitialUpdate()
 
     QList< iSequence * > visitables = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
 
+    QWidget * timeEvent = new adwidgets::ControlMethodWidget;
+    createDockWidget( timeEvent, "Control Method", "ControlMethodWidget" );
+
 	for ( iSequence * v: visitables ) {
 
         for ( size_t i = 0; i < v->size(); ++i ) {
@@ -116,6 +119,10 @@ MainWindow::OnInitialUpdate()
             QWidget * widget = factory.createEditor( 0 );
 			if ( widget ) {
 				createDockWidget( widget, factory.title(), objname );
+                if ( factory.method_type() == adextension::iEditorFactory::CONTROL_METHOD )
+                    connect( widget, SIGNAL( onTriggerAdd( const adcontrols::controlmethod::MethodItem& ) )
+                             , timeEvent, SLOT( handleAdd( const adcontrols::controlmethod::MethodItem& ) ) );
+
                 adplugin::LifeCycleAccessor accessor( widget );
                 adplugin::LifeCycle * pLifeCycle = accessor.get();
                 if ( pLifeCycle ) {
@@ -126,7 +133,6 @@ MainWindow::OnInitialUpdate()
         }
     }
 
-    createDockWidget( new adwidgets::ControlMethodWidget, "Control Method", "ControlMethodWidget" );
 
     // load GUI defined default values for get configuration
     getControlMethod( *defaultControlMethod_ );

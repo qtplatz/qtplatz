@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <string>
+#include <adcontrols/controlmethod.hpp>
 #include <adportable/float.hpp>
 #include "adcontrols_global.h"
 
@@ -62,6 +63,7 @@ namespace adcontrols {
                 }
                 return false; // failed on serialize
             }
+
 
         private:
             std::string model_;

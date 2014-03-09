@@ -62,7 +62,7 @@ ControlMethodWidget::ControlMethodWidget(QWidget *parent) : QWidget(parent)
 QSize
 ControlMethodWidget::sizeHint() const
 {
-	return QSize( 100, 100 );
+	return QSize( 200, 100 );
 }
 
 void
@@ -75,4 +75,9 @@ void
 ControlMethodWidget::addWidget( QWidget * widget, const QIcon& icon, const QString& label )
 {
 	tab_->addTab( widget, icon, label );
+}
+
+void
+ControlMethodWidget::handleAdd( const adcontrols::controlmethod::MethodItem& item )
+{
 }
