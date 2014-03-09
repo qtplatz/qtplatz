@@ -26,7 +26,7 @@
 #include "session_i.hpp"
 #include "chemicalformula_i.hpp"
 
-#include <adcontrols/TableOfElement.hpp>
+#include <adcontrols/tableofelement.hpp>
 
 using namespace adbroker;
 

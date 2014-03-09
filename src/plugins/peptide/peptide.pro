@@ -16,9 +16,9 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(portfolio) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(adprot) \
-        -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adextension) \
         -l$$qtLibraryTarget(adwplot) \
+        -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper)
 
 !win32 {
@@ -30,7 +30,7 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
           -lbz2
 }
 
-linux-*: LIBS += -ldl
+linux-*: LIBS += -lqwt -ldl
 macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
 
 # peptide files

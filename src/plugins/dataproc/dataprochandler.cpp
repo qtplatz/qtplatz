@@ -26,13 +26,12 @@
 #include "dataprochandler.hpp"
 #include "assign_masses.hpp"
 #include "mass_calibrator.hpp"
-// #include "dialogspectrometerchoice.hpp"
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/computemass.hpp>
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/annotations.hpp>
-#include <adcontrols/TableOfElement.hpp>
+#include <adcontrols/tableofelement.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>

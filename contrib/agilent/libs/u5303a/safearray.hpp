@@ -24,6 +24,8 @@
 
 #pragma once
 
+#if defined WIN32
+
 #include <atlbase.h>
 #include <cstdint>
 
@@ -48,3 +50,4 @@ public:
     uint32_t size() const { return static_cast<uint32_t>(size_); }
 };
 
+#endif
