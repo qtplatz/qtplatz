@@ -186,6 +186,9 @@
             <Component Id="portfolio.dll" Guid="E5403C7A-E0F2-42D5-9E4C-49C0175C8E97" Win64="yes">
                 <File Id="portfolio.dll" Source="../../../bin/portfolio.dll" ProcessorArchitecture="x64" KeyPath="yes" />
             </Component>
+            <Component Id="u5303a.dll" Guid="434D4261-7EE6-47C3-BF8F-C283EB53D07F" Win64="yes">
+                <File Id="u5303a.dll" Source="../../../bin/u5303a.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+            </Component>
         </ComponentGroup>
         <ComponentGroup Id="XSDComponents" Directory="PLUGINS_XSD">
             <Component Id="config.xsd" Guid="830AB06B-0540-4A65-8B38-D1A7365F0918" Win64="yes">
@@ -254,6 +257,10 @@
             <Component Id="servant.dll" Guid="AAD693ED-3B3A-417A-8B32-5F8DD75E7C0E" Win64="yes">
                 <File Id="servant.pluginspec" Source="$(var.InMSCheminfo)/servant.pluginspec" ProcessorArchitecture="x64" />
                 <File Id="servant.dll" Source="$(var.InMSCheminfo)/servant.dll" ProcessorArchitecture="x64" />
+            </Component>
+            <Component Id="u5303aplugin.dll" Guid="10E909A0-44BF-4E5E-8A71-31F72081763D" Win64="yes">
+                <File Id="u5303aplugin.pluginspec" Source="$(var.InMSCheminfo)/u5303aplugin.pluginspec" ProcessorArchitecture="x64" />
+                <File Id="u5303aplugin.dll" Source="$(var.InMSCheminfo)/u5303aplugin.dll" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="InfiTOFComponents" Directory="PLUGINS_MSCHEMINFORMATICS">
