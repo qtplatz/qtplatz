@@ -41,7 +41,11 @@ protein::protein( const std::string& name
                   , const std::string& sequence ) : name_( name )
                                                   , sequence_( sequence )
 {
+#if defined __linux__
+    sequence_.erase( std::remove_if( sequence_.begin(), sequence_.end(), [](const char c){return std::isspace(c);}), sequence_.end() );
+#else
     sequence_.erase( std::remove_if( sequence_.begin(), sequence_.end(), std::isspace ), sequence_.end() );
+#endif
 }
 
 const std::string&

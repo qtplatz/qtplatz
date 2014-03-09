@@ -42,9 +42,9 @@ namespace adprot {
         digestedPeptides( const digestedPeptides& );
         digestedPeptides( const protein&, const protease& );
 
-        const protein& protein() const;
-        const protease& protease() const;
-        const peptides& peptides() const;
+        const adprot::protein& protein() const;
+        const adprot::protease& protease() const;
+        const adprot::peptides& peptides() const;
 		digestedPeptides& operator << ( const adprot::peptide& );
 
     private:

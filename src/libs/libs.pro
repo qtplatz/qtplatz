@@ -9,12 +9,13 @@ SUBDIRS   = \
     adextension \
     adinterface \
     xmlparser \
+    acewrapper \
+    adlog \
+    adfs \
     portfolio \
     adutils \
-    acewrapper \
     adcontrols \
     chromatogr \
-    adfs \
     qtwrapper \
     adwplot \
     adplugin \
@@ -22,5 +23,5 @@ SUBDIRS   = \
     adorbmgr \
     adchem \
     adprot \
-    adwidgets \
-    adlog
+    adwidgets
+
