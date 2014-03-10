@@ -136,9 +136,9 @@ document::waveform_handler( const waveform * p )
 {
     auto ptr = p->shared_from_this();
     std::lock_guard< std::mutex > lock( mutex_ );
-    que_.push_back( ptr );
     while ( que_.size() >= 32 )
         que_.pop_front();
+	que_.push_back( ptr );
     emit on_waveform_received();
 }
 
@@ -148,8 +148,10 @@ document::findWaveform( uint32_t serialnumber )
     std::lock_guard< std::mutex > lock( mutex_ );
     if ( que_.empty() )
         return 0;
-    if ( serialnumber == (-1) )
-        return que_.back();
+	std::shared_ptr< const waveform > ptr = que_.back();
+	ADTRACE() << "findWaveform: " << ptr->serialnumber_;
+    //if ( serialnumber == (-1) )
+    return ptr;
 	/*
 	auto it = std::find_if( que_.begin(), que_.end(), [=]( std::shared_ptr< const waveform >& p ){ return p->serialnumber_ == serialnumber; });
     if ( it != que_.end() )

@@ -51,10 +51,10 @@ namespace u5303a {
         method()
             : front_end_range( 2.0 )        // 1V,2V range
             , front_end_offset( 0.0 )       // [-0.5V,0.5V], [-1V,1V] offset
-            , ext_trigger_level( 0.0 )      // external trigger threshold
-			, samp_rate( 3.2e9 )        // sampling rate (3.2GS/s)
+            , ext_trigger_level( 1.0 )      // external trigger threshold
+			, samp_rate( 3.2e9 )			// sampling rate (3.2GS/s)
             , nbr_of_s_to_acquire( 100000 ) // from 1 to 480,000 samples
-            , nbr_of_averages( 19999 )      // number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
+            , nbr_of_averages( 999 )		// number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
             , delay_to_first_s( 0 )         // from 0 to 16,000,000 "blocks". Each block shifts by 10ns. 
             , invert_signal( 0 )            // 0-> no inversion , 1-> signal inverted
             , nsa( 0x0 ) {                  // bit[31]->enable, bits[11:0]->threshold

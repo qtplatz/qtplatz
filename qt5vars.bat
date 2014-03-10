@@ -42,7 +42,7 @@ set QTDIR=C:\Qt\Qt5.2.1\5.2.1\msvc2012_64
 set QWT=C:\x64\vc11\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
+set BOOST_LIBRARY=%BOOST_ROOT%\lib
 set PATH=%QTDIR%\bin;%PATH%
 goto all_set
 

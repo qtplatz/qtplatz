@@ -280,7 +280,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 {
     u5303a::method m;
 
-	BSTR strResourceDesc = L"PXI3::0::0::INSTR";
+	BSTR strResourceDesc = L"PXI4::0::0::INSTR";
     
     // If desired, use 'DriverSetup= CAL=0' to prevent digitizer from doing a SelfCal (~1 seconds) each time
     // it is initialized or reset which is the default behavior. By default set to false.
@@ -361,7 +361,6 @@ bool
 task::handle_acquire()
 {
     static int counter_;
-    ADTRACE() << "handle_acquire : " << counter_++;
 
     io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );    // scedule for next acquire
 
@@ -369,6 +368,7 @@ task::handle_acquire()
         if ( waitForEndOfAcquisition( 3000 ) ) {
             auto avgr = std::make_shared< waveform >();
             if ( readData( *avgr ) ) {
+				ADTRACE() << "readDate : " << avgr->serialnumber_;
                 // if ( software_events_ ) {
                 //     avgr->wellKnownEvents |= software_events_; // marge with hardware events
                 //     software_events_ = 0;

@@ -179,9 +179,9 @@ u5303AMethodTable::getContents( u5303a::method& m )
     ++row;
 	m.front_end_offset = model.index( row, 1 ).data().toDouble();
     ++row;
-	m.ext_trigger_level = model.index( row, 1 ).data().toDouble();
-    ++row;
 	m.samp_rate = model.index( row, 1 ).data().toDouble();
+	++row;
+	m.ext_trigger_level = model.index( row, 1 ).data().toDouble();
     ++row;
 	m.nbr_of_s_to_acquire = model.index( row, 1 ).data().toInt();
     ++row;
