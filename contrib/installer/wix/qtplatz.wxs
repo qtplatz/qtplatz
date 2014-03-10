@@ -17,6 +17,7 @@
             <ComponentGroupRef Id="MicrosoftComponents" />
             <ComponentGroupRef Id="PluginComponents" />
             <ComponentGroupRef Id="InfiTOFComponents" />
+            <ComponentGroupRef Id="BrukerComponents" />
             <ComponentGroupRef Id="ApplicationProgramsFolder" />
         </Feature>
         <UI />
@@ -314,6 +315,7 @@
                 <File Id="msvcp110.dll" Source="$(var.InVC110)/msvcp110.dll" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
+	<?include bruker.wxi ?>
     </Fragment>
     <Fragment>
         <ComponentGroup Id="ApplicationProgramsFolder" Directory="ApplicationProgramsFolder">

@@ -1,0 +1,17 @@
+<Include>
+
+  <?define InBruker = "C:\Program Files (x86)\Bruker Daltonik\3.1.2" ?>
+
+  <ComponentGroup Id="BrukerComponents" Directory="LIB_BRUKER">
+    <Component Id="Bruker_Daltonics_CompassXtract.msi" Guid="" Win64="yes">
+      <File Id="Bruker_Daltonics_CompassXtract.msi" Source="$(var.InBruker)/Bruker Daltonics CompassXtract.msi" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Data1.cab" Guid="" Win64="yes">
+      <File Id="Data1.cab" Source="$(var.InBruker)/Data1.cab" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="CompassXtract_3.1.2_Release_Notes.pdf" Guid="" Win64="yes">
+      <File Id="CompassXtract_3.1.2_Release_Notes.pdf" Source="$(var.InBruker)/CompassXtract 3.1.2 Release Notes.pdf" ProcessorArchitecture="x64" />
+    </Component>
+  </ComponentGroup>
+
+</Include>
