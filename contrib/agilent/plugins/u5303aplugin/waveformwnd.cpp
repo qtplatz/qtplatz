@@ -35,6 +35,8 @@
 #include <coreplugin/minisplitter.h>
 #include <QSplitter>
 #include <QBoxLayout>
+#include <boost/format.hpp>
+#include <chrono>
 
 using namespace u5303a;
 
@@ -89,11 +91,11 @@ void
 WaveformWnd::handle_waveform()
 {
     if ( auto waveform = document::instance()->findWaveform() ) {
+        double dbase(0), rms(0);
         do {
             // timed trace
-            double dbase(0), rms(0);
             const int32_t * data = waveform->d_.data();
-            double tic = adportable::spectrum_processor::tic( waveform->d_.size(), data, dbase, rms );
+            double tic = adportable::spectrum_processor::tic( static_cast<unsigned int>(waveform->d_.size()), data, dbase, rms );
 
             double t = adcontrols::metric::scale_to_base( waveform->timestamp_, adcontrols::metric::pico );
 			tp_->push_back( waveform->serialnumber_, t, tic );
@@ -123,8 +125,11 @@ WaveformWnd::handle_waveform()
 		sp_->resize( waveform->d_.size() );
 		int idx = 0;
 		for ( auto y: waveform->d_ )
-			sp_->setIntensity( idx++, y );
+			sp_->setIntensity( idx++, y - dbase );
 		spw_->setData( sp_, 0 );
         spw_->setKeepZoomed( true );
+		std::chrono::duration< uint64_t, std::pico > pico( waveform->timestamp_ );
+		typedef std::chrono::duration<double> seconds;
+		spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f" ) % std::chrono::duration_cast<seconds>( pico ).count() % rms ).str() );
     }
 }

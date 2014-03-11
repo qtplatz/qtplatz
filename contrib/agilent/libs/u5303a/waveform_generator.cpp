@@ -130,7 +130,7 @@ waveform_generator::onTriggered()
             ++itIon;
             ++itTime;
         }
-        d = int32_t(y);
+        d = int32_t(y) + 10000; // add background (simulate high background level)
     }
 }
 

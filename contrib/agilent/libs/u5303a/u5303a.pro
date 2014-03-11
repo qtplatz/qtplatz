@@ -14,13 +14,11 @@ include(../../boost.pri)
 
 DEFINES += U5303A_LIBRARY
 
-SOURCES += u5303a.cpp \
-        digitizer.cpp \
+SOURCES += digitizer.cpp \
         simulator.cpp \
         waveform_generator.cpp
 
-HEADERS += u5303a.hpp\
-        u5303a_global.hpp \
+HEADERS += u5303a_global.hpp \
         digitizer.hpp \
         safearray.hpp \
         simulator.hpp \

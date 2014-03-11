@@ -499,11 +499,16 @@ TraceData::y_range( double left, double right ) const
             if ( idleft < idright ) {
                 const double * y = seg.getIntensityArray();
                 
-                double min = *std::min_element( y + idleft, y + idright );
-                double max = *std::max_element( y + idleft, y + idright );
-                
-                bottom = std::min( bottom, min );
+                auto minmax = std::minmax_element( y + idleft, y + idright );
+                double min = *minmax.first;
+                double max = *minmax.second;
+
                 top = std::max( top, max );
+                if ( ! isCentroid ) {
+                    bottom = min - (max - min) / 20;
+                } else {
+                    bottom = -10;
+                }
             }
         }
     }

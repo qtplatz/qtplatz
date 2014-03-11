@@ -35,6 +35,7 @@
 #include <thread>
 #include <algorithm>
 #include <chrono>
+#include <atomic>
 
 #import "IviDriverTypeLib.dll" no_namespace
 #import "AgMD2.dll" no_namespace
@@ -70,7 +71,7 @@ namespace u5303a {
             ~task();
         public:
             static task * instance();
-
+            
             inline boost::asio::io_service& io_service() { return io_service_; }
             
             void terminate();
@@ -103,6 +104,7 @@ namespace u5303a {
             u5303a::method method_;
 			u5303a::simulator * simulator_;
             uint32_t serialnumber_;
+            std::atomic<int> acquire_post_count_;
 
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
@@ -202,6 +204,7 @@ task::task() : work_( io_service_ )
              , simulated_( false )
              , simulator_( 0 )
              , serialnumber_( 0 )
+             , acquire_post_count_( 0 )
 {
     threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
     io_service_.post( strand_.wrap( [&] { ::CoInitialize( 0 ); } ) );
@@ -235,9 +238,13 @@ task::initialize()
 bool
 task::prepare_for_run( const u5303a::method& m )
 {
-    ADTRACE() << "u5303a digitizer prepare for run...";
+    ADTRACE() << "u5303a digitizer prepare for run..." << acquire_post_count_;
+
     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
-    io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );
+    if ( acquire_post_count_ == 0 ) {
+        acquire_post_count_++;
+        io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );
+    }
     return true;
 }
 
@@ -350,6 +357,16 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const u5303a::method& m )
 {
+    ADTRACE() << "u5303a::task::handle_prepare_for_run";
+    ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
+              << "\text_trigger_level: " << m.ext_trigger_level 
+              << "\tsamp_rate: " << m.samp_rate
+              << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
+              << "\tnbr_of_average: " << m.nbr_of_averages
+              << "\tdelay_to_first_s: " << m.delay_to_first_s
+              << "\tinvert_signal: " << m.invert_signal
+              << "\tnsa: " << m.nsa;
+
     if ( simulated_ )
         device<Simulate>::setup( *this, m );
     else
@@ -362,8 +379,10 @@ task::handle_acquire()
 {
     static int counter_;
 
+    ++acquire_post_count_;
     io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );    // scedule for next acquire
 
+    --acquire_post_count_;
     if ( acquire() ) {
         if ( waitForEndOfAcquisition( 3000 ) ) {
             auto avgr = std::make_shared< waveform >();
@@ -588,9 +607,10 @@ device<UserFDK>::readData( task& task, waveform& data )
         data.timestamp_ = std::chrono::duration< uint64_t, std::pico >( std::chrono::high_resolution_clock::now() - __uptime ).count();
 
 		safearray_t<int32_t> sa( psaWfmDataRaw );
-        size_t size = sa.size();
-        data.d_.resize( size );
-		std::copy( sa.data(), sa.data() + size, data.d_.begin() );
+        data.d_.resize( words_32bits );
+        
+		std::copy( sa.data() + data.firstValidElement_, sa.data() + words_32bits, data.d_.begin() );
+
     } catch ( _com_error& e ) {
         TERR(e,"readData::ReadIndirectInt32");
     }
