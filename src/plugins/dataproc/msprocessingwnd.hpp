@@ -102,7 +102,9 @@ namespace dataproc {
         std::wstring idSpectrumFolium_;
         int axis_;
         bool assign_masses_to_profile( const std::wstring& model_name );
+        double correct_baseline();
         void init();
+        void draw1();
     };
 
 }

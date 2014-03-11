@@ -42,6 +42,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwplot/picker.hpp>
@@ -68,6 +69,7 @@
 #include <boost/format.hpp>
 #include "selchanged.hpp"
 #include <sstream>
+#include <array>
 
 using namespace dataproc;
 
@@ -191,6 +193,21 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 	pImpl_->profileSpectrum_->setTitle( title.str() );
     pImpl_->processedSpectrum_->clear();
 	drawIdx2_ = 0;
+}
+
+void
+MSProcessingWnd::draw1()
+{
+    if ( auto ptr = pProfileSpectrum_.lock() ) {
+        if ( drawIdx1_ )
+            --drawIdx1_;
+        pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
+        std::wostringstream title;
+        for ( auto text: ptr->getDescriptions() )
+            title << text.text() << L", ";
+        pImpl_->profileSpectrum_->setTitle( title.str() );
+        pImpl_->processedSpectrum_->clear();
+    }
 }
 
 void
@@ -463,6 +480,9 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         if ( ! models.empty() ) {
             QMenu menu;
 
+            std::array< QAction *, 1 > fixedActions;
+            fixedActions[ 0 ] = menu.addAction( "Correct baseline" );
+
             std::vector< QAction * > actions;
             for ( auto model: models ) {
                 actions.push_back( menu.addAction( 
@@ -470,6 +490,12 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
             }
 
             QAction * selectedItem = menu.exec( QCursor::pos() );
+            if ( fixedActions[ 0 ] == selectedItem ) {
+                correct_baseline();
+                draw1();
+                return;
+            }
+
             auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
                     return item == selectedItem; }
                 );
@@ -649,3 +675,29 @@ MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
 	return true;
 }
 
+double
+MSProcessingWnd::correct_baseline()
+{
+    double tic = 0;
+
+	if ( auto x = this->pProfileSpectrum_.lock() ) {
+
+        std::wostringstream o;
+        o << L"Baseline corrected";
+
+		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
+
+		for ( auto& ms: segments ) {
+
+            double dbase(0), rms(0);
+            const double * data = ms.getIntensityArray();
+            tic += adportable::spectrum_processor::tic( static_cast< unsigned int >( ms.size() ), data, dbase, rms );
+            for ( size_t idx = 0; idx < ms.size(); ++idx )
+                ms.setIntensity( idx, data[ idx ] - dbase );
+            double h = *std::max_element( ms.getIntensityArray(), ms.getIntensityArray() + ms.size() );
+            o << boost::wformat( L" H=%.2f/RMS=%.2f" ) % h % rms;
+		}
+		x->addDescription( adcontrols::Description( L"process", o.str() ) );
+	}
+	return tic;
+}
