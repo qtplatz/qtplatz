@@ -102,7 +102,7 @@ namespace u5303a {
             boost::asio::io_service::strand strand_;
             bool simulated_;
             u5303a::method method_;
-			u5303a::simulator * simulator_;
+	    u5303a::simulator * simulator_;
             uint32_t serialnumber_;
             std::atomic<int> acquire_post_count_;
 
@@ -241,10 +241,10 @@ task::prepare_for_run( const u5303a::method& m )
     ADTRACE() << "u5303a digitizer prepare for run..." << acquire_post_count_;
 
     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
-    if ( acquire_post_count_ == 0 ) {
+    //if ( acquire_post_count_ == 0 ) {
         acquire_post_count_++;
         io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );
-    }
+	//}
     return true;
 }
 
@@ -367,6 +367,7 @@ task::handle_prepare_for_run( const u5303a::method& m )
               << "\tinvert_signal: " << m.invert_signal
               << "\tnsa: " << m.nsa;
 
+    method_ = m;
     if ( simulated_ )
         device<Simulate>::setup( *this, m );
     else
