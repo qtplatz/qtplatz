@@ -241,10 +241,10 @@ task::prepare_for_run( const u5303a::method& m )
     ADTRACE() << "u5303a digitizer prepare for run..." << acquire_post_count_;
 
     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
-    //if ( acquire_post_count_ == 0 ) {
+    if ( acquire_post_count_ == 0 ) {
         acquire_post_count_++;
         io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );
-	//}
+	}
     return true;
 }
 
@@ -285,8 +285,7 @@ task::terminate()
 bool
 task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 {
-    u5303a::method m;
-
+    // u5303a::method m;
 	BSTR strResourceDesc = L"PXI4::0::0::INSTR";
     
     // If desired, use 'DriverSetup= CAL=0' to prevent digitizer from doing a SelfCal (~1 seconds) each time
@@ -339,9 +338,9 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         for ( auto& reply: reply_handlers_ ) reply( "InstrumentFirmwareRevision", ident.FirmwareRevision );
 
         if ( simulated_ )
-            device<Simulate>::initial_setup( *this, m );
+            device<Simulate>::initial_setup( *this, method_ );
         else
-            device<UserFDK>::initial_setup( *this, m );
+            device<UserFDK>::initial_setup( *this, method_ );
     }
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
@@ -367,11 +366,11 @@ task::handle_prepare_for_run( const u5303a::method& m )
               << "\tinvert_signal: " << m.invert_signal
               << "\tnsa: " << m.nsa;
 
-    method_ = m;
     if ( simulated_ )
         device<Simulate>::setup( *this, m );
     else
         device<UserFDK>::setup( *this, m );
+    method_ = m;
 	return true;
 }
 
@@ -585,9 +584,14 @@ device<UserFDK>::waitForEndOfAcquisition( task& task, int timeout )
     long wait_for_end = 0x80000000;
     IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];	
 
+    int count = 0;
     while ( wait_for_end >= 0x80000000 ) {
         std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
         try { spDpuA->ReadRegisterInt32( 0x3308, &wait_for_end ); } catch ( _com_error& e ) { TERR(e, "ReadRegisterInt32"); }
+        if ( ++count > 15 ) {
+            ADTRACE() << "U5303A::waitForEndOfAcqisition timed out";
+            return false;
+        }
     }
     return true;
 }
@@ -600,6 +604,7 @@ device<UserFDK>::readData( task& task, waveform& data )
     IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];
 
 	long words_32bits = task.method().nbr_of_s_to_acquire;
+    data.method_ = task.method();
 
     try {
 		SAFEARRAY * psaWfmDataRaw(0);
@@ -680,6 +685,7 @@ device<Simulate>::waitForEndOfAcquisition( task& task, int timeout )
 template<> bool
 device<Simulate>::readData( task& task, waveform& data )
 {
+    data.method_ = task.method();
     if ( simulator * simulator = task.simulator() )
         return simulator->readData( data );
     return false;
