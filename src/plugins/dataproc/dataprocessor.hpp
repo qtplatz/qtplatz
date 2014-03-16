@@ -86,6 +86,7 @@ namespace dataproc {
         void applyCalibration( const adcontrols::ProcessMethod& );
         void applyCalibration( const adcontrols::ProcessMethod&, const adcontrols::MSAssignedMasses&  );
         void applyCalibration( const adcontrols::ProcessMethod&, const adcontrols::MSAssignedMasses&, portfolio::Folium&  );
+        portfolio::Folium currentSelection() const;
 
         // apply calibration to entire dataset
         void applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
@@ -103,6 +104,8 @@ namespace dataproc {
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& );
         portfolio::Folium addSpectrogramClusters( std::shared_ptr< adcontrols::SpectrogramClusters >& );
+
+        void subtract( portfolio::Folium& );
 
         portfolio::Portfolio& portfolio() { return *portfolio_; }
 

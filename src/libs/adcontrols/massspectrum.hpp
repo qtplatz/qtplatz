@@ -129,6 +129,7 @@ namespace adcontrols {
         double getIntensity( size_t idx ) const;
         double getTime( size_t idx ) const;
         double getNormalizedTime( size_t idx ) const;
+		size_t getIndexFromTime( double seconds, bool closest = false ) const;
 
 		int getColor( size_t idx ) const;
     

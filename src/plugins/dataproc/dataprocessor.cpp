@@ -217,6 +217,12 @@ Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
     SessionManager::instance()->selectionChanged( this, folium );
 }
 
+portfolio::Folium
+Dataprocessor::currentSelection() const
+{
+	return portfolio_->findFolium( idActiveFolium_ );
+}
+
 bool
 Dataprocessor::fetch( portfolio::Folium& folium )
 {
@@ -718,7 +724,6 @@ Dataprocessor::addSpectrogramClusters( std::shared_ptr< adcontrols::SpectrogramC
 	return folium;
 }
 
-
 void
 Dataprocessor::createSpectrogram()
 {
@@ -735,6 +740,23 @@ void
 Dataprocessor::findPeptide( const adprot::digestedPeptides& digested )
 {
 	DataprocessWorker::instance()->findPeptide( this, digested );
+}
+
+void
+Dataprocessor::subtract( portfolio::Folium& folium )
+{
+    if ( auto background = portfolio::get< adutils::MassSpectrumPtr >( folium ) ) {
+        if ( auto profile = portfolio::get< adutils::MassSpectrumPtr >( currentSelection() ) ) {
+            if ( profile->isCentroid() || background->isCentroid() )
+                return;
+            adcontrols::MassSpectrum xms( *profile );
+            for ( size_t i = 0; i < xms.size(); ++i )
+                xms.setIntensity( i, xms.getIntensity( i ) - background->getIntensity( i ) );
+
+			xms.addDescription( adcontrols::Description( L"processed", ( boost::wformat( L" - %1%" ) % folium.name() ).str() ) );
+            addSpectrum( xms, adcontrols::ProcessMethod() );
+        }
+    }
 }
 
 ///////////////////////////

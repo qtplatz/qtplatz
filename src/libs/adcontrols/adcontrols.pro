@@ -88,7 +88,8 @@ SOURCES += acceptor.cpp \
     mschromatogrammethod.cpp \
     spectrogram.cpp \
     targeting.cpp \
-    logging_hook.cpp
+    logging_hook.cpp \
+    profile_time_array.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -164,7 +165,8 @@ HEADERS += acceptor.hpp \
     spectrogram.hpp \
     targeting.hpp \
     logging_hook.hpp \
-    controlmethodaccerror.hpp
+    controlmethodaccerror.hpp \
+    profile_time_array.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 

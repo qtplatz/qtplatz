@@ -105,6 +105,9 @@ namespace dataproc {
         double correct_baseline();
         void init();
         void draw1();
+        double compute_rms( double, double );
+        std::pair<double, double> compute_minmax( double, double );
+        bool power_spectrum( const adcontrols::MassSpectrum&, std::vector<double>& x, std::vector<double>& y, const std::pair<size_t, size_t>& );
     };
 
 }

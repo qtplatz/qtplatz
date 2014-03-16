@@ -269,6 +269,12 @@ MSProperty::SamplingInfo::fSampInterval() const
     return fsampInterval;
 }
 
+double
+MSProperty::SamplingInfo::fSampDelay() const
+{
+	return nSamplingDelay * fSampInterval();
+}
+
 //static
 double
 MSProperty::toSeconds( size_t idx, const SamplingInfo& info )

@@ -34,6 +34,7 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -43,15 +44,18 @@
 #include <adcontrols/waveform.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adportable/array_wrapper.hpp>
 #include <adportable/xml_serializer.hpp>
+#include <adportable/fft.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwplot/picker.hpp>
 #include <adwplot/peakmarker.hpp>
+#include <adwplot/chromatogramwidget.hpp>
+#include <adwplot/spectrumwidget.hpp>
+#include <adwplot/tracewidget.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
-#include <adwplot/chromatogramwidget.hpp>
-#include <adwplot/spectrumwidget.hpp>
 #include <qtwrapper/xmlformatter.hpp>
 #include <qtwrapper/font.hpp>
 #include <coreplugin/minisplitter.h>
@@ -70,6 +74,8 @@
 #include "selchanged.hpp"
 #include <sstream>
 #include <array>
+#include <numeric>
+#include <complex>
 
 using namespace dataproc;
 
@@ -77,10 +83,15 @@ namespace dataproc {
 
     class MSProcessingWndImpl {
     public:
-        ~MSProcessingWndImpl() {}
+        ~MSProcessingWndImpl() {
+            delete profileSpectrum_;
+            delete processedSpectrum_;
+            delete pwplot_;
+        }
         MSProcessingWndImpl() : ticPlot_(0)
                               , profileSpectrum_(0)
                               , processedSpectrum_(0)
+                              , pwplot_( new adwplot::TraceWidget )
                               , is_time_axis_( false ){
         }
 
@@ -108,9 +119,21 @@ namespace dataproc {
         void set_time_axis( bool isTime ) { 
             is_time_axis_ = isTime;
         }
+
+        static void copyToClipboard( adwplot::Dataplot * w ) {
+            QRectF rc = w->zoomRect();
+            QClipboard * clipboard = QApplication::clipboard();
+            QwtPlotRenderer renderer;
+            QImage img( w->size(), QImage::Format_ARGB32 );
+            QPainter painter(&img);
+            renderer.render( w, &painter, w->rect() );
+            clipboard->setImage( img );
+        }
+        
         adwplot::ChromatogramWidget * ticPlot_;
         adwplot::SpectrumWidget * profileSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
+        adwplot::TraceWidget * pwplot_;
         std::shared_ptr< adwplot::PeakMarker > profile_marker_;
         std::shared_ptr< adwplot::PeakMarker > processed_marker_;
         bool is_time_axis_;
@@ -163,9 +186,15 @@ MSProcessingWnd::init()
 		pImpl_->profileSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
 		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
 
+        pImpl_->pwplot_->setMinimumHeight( 80 );
+		pImpl_->pwplot_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
+        pImpl_->pwplot_->xBottomTitle( "Frequency (MHz)" );
+        pImpl_->pwplot_->yLeftTitle( "Power" );
+
 		splitter->addWidget( pImpl_->ticPlot_ );
         splitter->addWidget( pImpl_->profileSpectrum_ );
         splitter->addWidget( pImpl_->processedSpectrum_ );
+        splitter->addWidget( pImpl_->pwplot_ );
         splitter->setOrientation( Qt::Vertical );
 
         pImpl_->profileSpectrum_->link( pImpl_->processedSpectrum_ );
@@ -472,6 +501,39 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
         // todo: chromatogram creation by m/z|time range
+        using namespace adcontrols::metric;
+
+		QMenu menu;
+        std::array< QAction *, 3 > fixedActions;
+		fixedActions[ 0 ] = menu.addAction( QString::fromStdString( (boost::format("RMS in range %.3lf -- %.3lf(us)") % rect.left() % rect.right() ).str() ) );
+		fixedActions[ 1 ] = menu.addAction( QString::fromStdString( (boost::format("Max value in range %.3lf -- %.3lf(us)") % rect.left() % rect.right() ).str() ) );
+        fixedActions[ 2 ] = menu.addAction( "Frequency analysis" );
+
+        std::pair<size_t, size_t> range;
+        if ( auto ms = pProfileSpectrum_.lock() ) {
+            if ( pImpl_->is_time_axis_ )
+                range = std::make_pair( ms->getIndexFromTime( scale_to_base( rect.left(), micro ) ), ms->getIndexFromTime( scale_to_base( rect.right(), micro ) ) );
+            else {
+                const double * masses = ms->getMassArray();
+                range = std::make_pair( std::distance( masses, std::lower_bound( masses, masses + ms->size(), rect.left() ) )
+                                        , std::distance( masses, std::lower_bound( masses, masses + ms->size(), rect.right() ) ) );
+            }
+
+            QAction * selectedItem = menu.exec( QCursor::pos() );
+            if ( fixedActions[ 0 ] == selectedItem ) {
+                if ( compute_rms( scale_to_base( rect.left(), micro), scale_to_base( rect.right(), micro ) ) > 0 )
+                    draw1();
+                return;
+            } else if ( fixedActions[ 1 ] == selectedItem ) {
+                compute_minmax( scale_to_base( rect.left(), micro), scale_to_base( rect.right(), micro ) );
+                draw1();
+                return;
+            } else if ( fixedActions[ 2 ] == selectedItem ) {
+                std::vector< double > freq, power;
+                if ( power_spectrum( *ms, freq, power, range ) )
+                    pImpl_->pwplot_->setData( freq.size(), freq.data(), power.data() );
+            }
+        }
 
 	} else {
 		std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
@@ -480,8 +542,10 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         if ( ! models.empty() ) {
             QMenu menu;
 
-            std::array< QAction *, 1 > fixedActions;
+            std::array< QAction *, 3 > fixedActions;
             fixedActions[ 0 ] = menu.addAction( "Correct baseline" );
+            fixedActions[ 1 ] = menu.addAction( "Copy to Clipboard" );
+            fixedActions[ 2 ] = menu.addAction( "Frequency analysis" );
 
             std::vector< QAction * > actions;
             for ( auto model: models ) {
@@ -494,6 +558,16 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 correct_baseline();
                 draw1();
                 return;
+            } else if ( fixedActions[ 1 ] == selectedItem ) {
+                pImpl_->copyToClipboard( pImpl_->profileSpectrum_ );
+                return;
+            } else if ( fixedActions[ 2 ] == selectedItem ) {
+                if ( auto ms = pProfileSpectrum_.lock() ) {
+                    auto range = std::make_pair( size_t(0), ms->size() - 1 );
+                    std::vector< double > freq, power;
+                    if ( power_spectrum( *ms, freq, power, range ) )
+                        pImpl_->pwplot_->setData( freq.size(), freq.data(), power.data() );
+                }
             }
 
             auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
@@ -558,15 +632,14 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                 return item == selectedItem; }
             );
         if ( it != actions.end() ) {
-            QRectF rc = pImpl_->processedSpectrum_->zoomRect();
+
             if ( *it == actions[ 0 ] ) {
-                QClipboard * clipboard = QApplication::clipboard();
-                QwtPlotRenderer renderer;
-                QImage img( pImpl_->processedSpectrum_->size(), QImage::Format_ARGB32 );
-                QPainter painter(&img);
-                renderer.render( pImpl_->processedSpectrum_, &painter, pImpl_->processedSpectrum_->rect() );
-                clipboard->setImage( img );
+
+                pImpl_->copyToClipboard( pImpl_->processedSpectrum_ );
+
             } else if ( *it == actions[ 1 ] ) {
+
+                QRectF rc = pImpl_->processedSpectrum_->zoomRect();
 
                 if ( adcontrols::MassSpectrumPtr ptr = pProcessedSpectrum_.lock() ) {
 					// create chromatograms for all peaks in current zoomed scope
@@ -700,4 +773,123 @@ MSProcessingWnd::correct_baseline()
 		x->addDescription( adcontrols::Description( L"process", o.str() ) );
 	}
 	return tic;
+}
+
+double
+MSProcessingWnd::compute_rms( double s, double e )
+{
+	if ( auto ptr = this->pProfileSpectrum_.lock() ) {
+
+		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
+        
+        for ( auto& ms: segments ) {
+
+            std::pair< size_t, size_t > range;
+            if ( pImpl_->is_time_axis_ ) {
+                range.first = ms.getIndexFromTime( s, false );
+                range.second = ms.getIndexFromTime( e, true );
+            } else {
+                const double * masses = ms.getMassArray();
+                range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
+                range.second = std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) );
+            }
+            size_t n = range.second - range.first + 1;
+            if ( n >= 5 ) {
+
+                adportable::array_wrapper<const double> data( ms.getIntensityArray() + range.first, n );
+
+				double sum = std::accumulate( data.begin(), data.end(), 0.0 );
+                double m = sum / data.size();
+                double sdd = std::accumulate( data.begin(), data.end(), 0.0, [=]( double a, double x ){ return a + ( (x - m) * (x - m) ); }) / n;
+                double rms = std::sqrt( sdd );
+
+				using namespace adcontrols::metric;
+                
+                ptr->addDescription( adcontrols::Description( L"process"
+                                                              , (boost::wformat(L"RMS[%.3lf-%.3lf,N=%d]=%.3lf")
+                                                                 % scale_to_micro(s) % scale_to_micro(e) % n % rms).str() ) );
+
+                QString text = QString::fromStdString( ( boost::format("rms(start,end,N,rms)\t%.14f\t%.14f\t%d\t%.7f") % scale_to_micro(s) % scale_to_micro(e) % n % rms).str() );
+                QApplication::clipboard()->setText( text );
+
+				return rms;
+            }
+        }
+
+    }
+	return 0;
+}
+
+std::pair< double, double >
+MSProcessingWnd::compute_minmax( double s, double e )
+{
+    using namespace adcontrols::metric;
+
+	if ( auto ptr = this->pProfileSpectrum_.lock() ) {
+
+		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
+        
+        for ( auto& ms: segments ) {
+
+            std::pair< size_t, size_t > range;
+            if ( pImpl_->is_time_axis_ ) {
+                range.first = ms.getIndexFromTime( s, false );
+                range.second = ms.getIndexFromTime( e, true );
+            } else {
+                const double * masses = ms.getMassArray();
+                range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
+                range.second = std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) );
+            }
+
+            size_t n = range.second - range.first + 1;
+            if ( n >= 5 ) {
+
+                adportable::array_wrapper<const double> data( ms.getIntensityArray(), ms.size() );
+                auto pair = std::minmax_element( data.begin() + range.first, data.begin() + range.second );
+                std::pair<double, double> result = std::make_pair( *pair.first, *pair.second );
+
+                size_t index = std::distance( data.begin(), pair.second );
+				double t = adcontrols::MSProperty::toSeconds( index, ms.getMSProperty().getSamplingInfo() );
+
+                ptr->addDescription( adcontrols::Description( L"process"
+					, (boost::wformat(L"MAX at %.4us=%.3f") % scale_to_micro(t) % result.second ).str() ) );
+                
+				QString text = QString::fromStdString( ( boost::format("max @\t%d\t%.14lf\t%.7f") % index % scale_to_micro(t) % result.second ).str() );
+                QApplication::clipboard()->setText( text );
+
+				return result;
+            }
+        }
+
+    }
+	return std::make_pair(0,0);
+}
+
+bool
+MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
+                                 , std::vector< double >& x, std::vector< double >& y
+                                 , const std::pair< size_t, size_t >& range )
+{
+    const size_t size = range.second - range.first + 1;
+    if ( size == 0 )
+        return false;
+    size_t n = 1;
+    while ( size >> n )
+        ++n;
+    size_t N = 1 << ( n - 1 );
+
+    std::vector< std::complex< double > > spc(N), fft(N);
+	const double * intens = ms.getIntensityArray(); // + range.first;
+	for ( size_t i = 0; i < N && i < size; ++i )
+        spc[ i ] = std::complex< double >( intens[ i ] );
+    adportable::fft::fourier_transform( fft, spc, false );
+
+	const double T = N * ms.getMSProperty().getSamplingInfo().fSampInterval();
+    x.resize( N / 2 );
+    y.resize( N / 2 );
+    for ( size_t i = 0; i < N / 2; ++i ) {
+        y[i] = ( ( fft[ i ].real() * fft[ i ].real() ) + ( fft[ i ].imag() * fft[ i ].imag() ) ) / ( N * N );
+        x[i] = double( i ) / T * 1e-6; // MHz
+    }
+	return true;
 }

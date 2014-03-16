@@ -40,7 +40,7 @@ namespace adwplot {
         ~SpectrumWidget();
         
         void clear();
-        void setData( const std::shared_ptr< adcontrols::MassSpectrum >&, int idx, bool yaxis1 = false );
+        void setData( const std::shared_ptr< adcontrols::MassSpectrum >&, int idx, bool axisRight = false );
         
         enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
         void setAxis( HorizontalAxis );

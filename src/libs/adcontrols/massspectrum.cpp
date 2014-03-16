@@ -305,6 +305,24 @@ MassSpectrum::getTime( size_t idx ) const
     return 0;
 }
 
+size_t
+MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
+{
+    size_t idx;
+    if ( const double * p = pImpl_->getTimeArray() ) {
+        idx = std::distance( p, std::lower_bound( p, p + pImpl_->size(), seconds ) );
+    } else {
+        const MSProperty::SamplingInfo& info = pImpl_->getMSProperty().getSamplingInfo();
+        idx = size_t( ( seconds - info.fSampDelay() ) / info.fSampInterval() );
+    }
+    if ( closest && idx < pImpl_->size() ) {
+        if ( ( ( idx + 1 ) < pImpl_->size() )
+             && ( std::abs( seconds - getTime( idx ) ) > std::abs( seconds - getTime( idx + 1 ) ) ) )
+            ++idx;
+    }
+    return idx; // will return size() when 'seconds' does not exist
+}
+
 double
 MassSpectrum::getNormalizedTime( size_t idx ) const
 {

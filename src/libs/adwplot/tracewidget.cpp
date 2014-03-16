@@ -30,6 +30,7 @@
 #include "annotation.hpp"
 #include "annotations.hpp"
 #include <adportable/array_wrapper.hpp>
+#include <qtwrapper/font.hpp>
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
 #include <qwt_plot_curve.h>
@@ -149,6 +150,9 @@ TraceWidget::TraceWidget(QWidget *parent) : Dataplot(parent)
 
     setAxisTitle(QwtPlot::xBottom, "Time(microsecond)");
     setAxisTitle(QwtPlot::yLeft, "Intensity");
+
+    QFont font;
+    qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
 
     // handle zoom rect by this
     if ( zoomer1_ )

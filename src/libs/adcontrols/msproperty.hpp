@@ -99,6 +99,7 @@ namespace adcontrols {
             SamplingInfo( uint32_t sampInterval, uint32_t nDelay, uint32_t nCount, uint32_t nAvg, uint32_t mode );
             void fSampInterval( double );
             double fSampInterval() const;
+			double fSampDelay() const;
         private:
             double fsampInterval; // seconds
 
