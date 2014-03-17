@@ -48,6 +48,9 @@ namespace adwplot {
         struct TraceWidgetImpl * impl_;
         bool autoYZoom_;
 
+        QwtText tracker1( const QPointF& );
+        QwtText tracker2( const QPointF&, const QPointF& );
+
     signals:
         void onMoved( const QPointF& );
 		void onSelected( const QPointF& );

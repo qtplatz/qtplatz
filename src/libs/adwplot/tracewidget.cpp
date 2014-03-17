@@ -38,6 +38,7 @@
 #include <qwt_picker_machine.h>
 #include <boost/format.hpp>
 #include <algorithm>
+#include <functional>
 
 using namespace adwplot;
 
@@ -132,6 +133,8 @@ namespace adwplot {
 
         void clear();
 		void clear_annotations();
+        QwtText tracker1( const QPointF& );
+        QwtText tracker2( const QPointF&, const QPointF& );
     };
 
 } // namespace adwplot
@@ -145,8 +148,6 @@ TraceWidget::TraceWidget(QWidget *parent) : Dataplot(parent)
                                                 , impl_( new TraceWidgetImpl )
                                                 , autoYZoom_( true ) 
 {
-    //zoomer2_.reset();
-	zoomer1_->autoYScale( autoYZoom_ );
 
     setAxisTitle(QwtPlot::xBottom, "Time(microsecond)");
     setAxisTitle(QwtPlot::yLeft, "Intensity");
@@ -155,27 +156,31 @@ TraceWidget::TraceWidget(QWidget *parent) : Dataplot(parent)
     qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
 
     // handle zoom rect by this
-    if ( zoomer1_ )
+    if ( zoomer1_ ) {
+        zoomer1_->autoYScale( autoYZoom_ );
+		using namespace std::placeholders;
+        zoomer1_->tracker1( std::bind( &TraceWidgetImpl::tracker1, impl_, _1 ) );
+        zoomer1_->tracker2( std::bind( &TraceWidgetImpl::tracker2, impl_, _1, _2 ) );
         connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
-/*
+    }
+
 	if ( picker_ ) {
-		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
 		picker_->setEnabled( true );
 	}
-	*/
+
 }
 
 void
 TraceWidget::xBottomTitle( const std::string& title )
 {
-    setAxisTitle(QwtPlot::xBottom, title.c_str() );
+    setAxisTitle( QwtPlot::xBottom, QwtText( title.c_str(), QwtText::RichText ) );
 }
 
 void
 TraceWidget::yLeftTitle( const std::string& title )
 {
-    setAxisTitle(QwtPlot::yLeft, title.c_str() );
+    setAxisTitle(QwtPlot::yLeft, QwtText( title.c_str(), QwtText::RichText ) );
 }
 
 void
@@ -262,9 +267,10 @@ TraceWidget::setData( std::size_t n, const double * px, const double * py, int i
 
     QRectF z = zoomer1_->zoomRect();
 
-    zoomer1_->setZoomBase();
+    zoomer1_->setZoomBase( true );
     if ( ! addedTrace )
         zoomer1_->zoom( z );
+    replot();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -300,8 +306,6 @@ TraceData::setData( Dataplot& plot, std::size_t size, const double * x, const do
 std::pair< double, double >
 TraceData::y_range( double left, double right ) const
 {
-    double top = 100;
-    double bottom = -10;
     for ( const map_type::value_type& pair: data_ ) {
 
         size_t idx0 = pair.second.index( left );
@@ -309,13 +313,10 @@ TraceData::y_range( double left, double right ) const
         if ( idx0 < idx1 ) {
             double min = pair.second.minimum_value( idx0, idx1 );
             double max = pair.second.maximum_value( idx0, idx1 );
-            if ( min < bottom )
-               bottom = min;
-            if ( max > top )
-                top = max;
+			return std::make_pair( min, max );
         }
     }
-    return std::make_pair<>(bottom, top);
+    return std::make_pair<>( -10, 100);
 }
 
 namespace adwplot {
@@ -349,4 +350,18 @@ TraceWidgetImpl::clear()
 {
     annotations_.clear();
     traces_.clear();
+}
+
+QwtText
+TraceWidgetImpl::tracker1( const QPointF& pos )
+{
+    return QwtText( (boost::format("%.4g %.4g") % pos.x() % pos.y()).str().c_str(), QwtText::RichText );
+}
+
+QwtText
+TraceWidgetImpl::tracker2( const QPointF& p1, const QPointF& pos )
+{
+    double dx = ( pos.x() - p1.x() );
+    double dy = ( pos.y() - p1.y() );
+    return QwtText( (boost::format("%.4g %.4g (&delta;=%g,%g)") % pos.x() % pos.y() % dx % dy).str().c_str(), QwtText::RichText );
 }

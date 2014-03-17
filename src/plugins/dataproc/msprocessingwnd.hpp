@@ -86,6 +86,7 @@ namespace dataproc {
 		void selectedOnProfile( const QRectF& );
         void selectedOnProcessed( const QPointF& );
 		void selectedOnProcessed( const QRectF& );
+		void selectedOnPowerPlot( const QRectF& );
         void handleAxisChanged( int );
         void handleZoomedOnSpectrum( const QRectF& );
 
@@ -107,7 +108,8 @@ namespace dataproc {
         void draw1();
         double compute_rms( double, double );
         std::pair<double, double> compute_minmax( double, double );
-        bool power_spectrum( const adcontrols::MassSpectrum&, std::vector<double>& x, std::vector<double>& y, const std::pair<size_t, size_t>& );
+        bool power_spectrum( const adcontrols::MassSpectrum&, std::vector<double>& x, std::vector<double>& y
+                             , const std::pair<size_t, size_t>&, double& dc, double& nyquist );
     };
 
 }

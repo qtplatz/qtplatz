@@ -83,11 +83,6 @@ namespace dataproc {
 
     class MSProcessingWndImpl {
     public:
-        ~MSProcessingWndImpl() {
-            delete profileSpectrum_;
-            delete processedSpectrum_;
-            delete pwplot_;
-        }
         MSProcessingWndImpl() : ticPlot_(0)
                               , profileSpectrum_(0)
                               , processedSpectrum_(0)
@@ -190,6 +185,8 @@ MSProcessingWnd::init()
 		pImpl_->pwplot_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
         pImpl_->pwplot_->xBottomTitle( "Frequency (MHz)" );
         pImpl_->pwplot_->yLeftTitle( "Power" );
+        connect( pImpl_->pwplot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnPowerPlot( const QRectF& ) ) );
+
 
 		splitter->addWidget( pImpl_->ticPlot_ );
         splitter->addWidget( pImpl_->profileSpectrum_ );
@@ -530,8 +527,11 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 return;
             } else if ( fixedActions[ 2 ] == selectedItem ) {
                 std::vector< double > freq, power;
-                if ( power_spectrum( *ms, freq, power, range ) )
-                    pImpl_->pwplot_->setData( freq.size(), freq.data(), power.data() );
+                double y_dc(0), y_nyquist(0);
+                if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
+                    pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
+                    pImpl_->pwplot_->setTitle( (boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist).str() );
+                }
             }
         }
 
@@ -565,8 +565,11 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 if ( auto ms = pProfileSpectrum_.lock() ) {
                     auto range = std::make_pair( size_t(0), ms->size() - 1 );
                     std::vector< double > freq, power;
-                    if ( power_spectrum( *ms, freq, power, range ) )
-                        pImpl_->pwplot_->setData( freq.size(), freq.data(), power.data() );
+                    double y_dc(0), y_nyquist(0);
+                    if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
+                        pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
+                        pImpl_->pwplot_->setTitle( (boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist).str() );
+                    }
                 }
             }
 
@@ -581,6 +584,20 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
             }
         }
     }
+}
+
+void
+MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
+{
+    QMenu menu;
+    
+    std::array< QAction *, 1 > fixedActions;
+    fixedActions[ 0 ] = menu.addAction( "Copy to Clipboard" );
+    
+    QAction * selectedItem = menu.exec( QCursor::pos() );
+    if ( fixedActions[ 0 ] == selectedItem )
+        pImpl_->copyToClipboard( pImpl_->pwplot_ );
+
 }
 
 void
@@ -868,10 +885,11 @@ MSProcessingWnd::compute_minmax( double s, double e )
 bool
 MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
                                  , std::vector< double >& x, std::vector< double >& y
-                                 , const std::pair< size_t, size_t >& range )
+                                 , const std::pair< size_t, size_t >& range
+                                 , double& dc, double& nyquist )
 {
     const size_t size = range.second - range.first + 1;
-    if ( size == 0 )
+    if ( size < 8 )
         return false;
     size_t n = 1;
     while ( size >> n )
@@ -879,7 +897,7 @@ MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
     size_t N = 1 << ( n - 1 );
 
     std::vector< std::complex< double > > spc(N), fft(N);
-	const double * intens = ms.getIntensityArray(); // + range.first;
+	const double * intens = ms.getIntensityArray() + range.first;
 	for ( size_t i = 0; i < N && i < size; ++i )
         spc[ i ] = std::complex< double >( intens[ i ] );
     adportable::fft::fourier_transform( fft, spc, false );
@@ -888,8 +906,11 @@ MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
     x.resize( N / 2 );
     y.resize( N / 2 );
     for ( size_t i = 0; i < N / 2; ++i ) {
-        y[i] = ( ( fft[ i ].real() * fft[ i ].real() ) + ( fft[ i ].imag() * fft[ i ].imag() ) ) / ( N * N );
+        y[i] = ( ( fft[ i ].real() * fft[ i ].real() ) + ( fft[ i ].imag() * fft[ i ].imag() ) ) / ( double(N) * N );
         x[i] = double( i ) / T * 1e-6; // MHz
     }
+    dc = fft[0].real();
+    nyquist = fft[ N / 2 ].real();
+
 	return true;
 }
