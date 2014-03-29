@@ -61,10 +61,11 @@ goto all_set
 :x64_vc12
 echo ======= setup for x64 64bit memory using VS2013 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-set ACE_ROOT=%USERPROFILE%\src64\ACE_wrappers
+set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers
 set TAO_ROOT=%ACE_ROOT%\TAO
-set QTDIR=C:\x64\qt5\qtbase
-set QWT=C:\x64\vc12\Qwt-6.1.1-svn
+set PATH=C:\qt5\bin;%PATH%
+set QTDIR=C:\qt5
+set QWT=C:\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
 set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
