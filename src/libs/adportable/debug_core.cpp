@@ -26,9 +26,9 @@
 #include <iostream>
 #include <fstream>
 #include <boost/format.hpp>
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/sync/scoped_lock.hpp>
+//#include <boost/interprocess/shared_memory_object.hpp>
+//#include <boost/interprocess/mapped_region.hpp>
+//#include <boost/interprocess/sync/scoped_lock.hpp>
 
 namespace adportable { namespace core {
 
