@@ -36,13 +36,14 @@ if %uname%==x64_vc12 goto x64_vc12
 :x64_vc11
 echo ======= setup for x64 64bit memory using VS2012 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" amd64
-set ACE_ROOT=%USERPROFILE%\src64\ACE_wrappers
+set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x64
 set TAO_ROOT=%ACE_ROOT%\TAO
-set QTDIR=C:\Qt\Qt5.2.1\5.2.1\msvc2012_64
-set QWT=C:\x64\vc11\Qwt-6.1.1-svn
+:set QTDIR=C:\Qt\Qt5.2.1\5.2.1\msvc2012_64
+set QTDIR=C:\qt5\5.3.0-beta1
+set QWT=C:\Qwt-6.1.1-svn\x64
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%\lib
+set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
 set PATH=%QTDIR%\bin;%PATH%
 goto all_set
 
