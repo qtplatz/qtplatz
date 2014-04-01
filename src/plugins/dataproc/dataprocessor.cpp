@@ -746,7 +746,8 @@ void
 Dataprocessor::subtract( portfolio::Folium& folium )
 {
     if ( auto background = portfolio::get< adutils::MassSpectrumPtr >( folium ) ) {
-        if ( auto profile = portfolio::get< adutils::MassSpectrumPtr >( currentSelection() ) ) {
+        portfolio::Folium cf = currentSelection();
+        if ( auto profile = portfolio::get< adutils::MassSpectrumPtr >( cf ) ) {
             if ( profile->isCentroid() || background->isCentroid() )
                 return;
             adcontrols::MassSpectrum xms( *profile );
