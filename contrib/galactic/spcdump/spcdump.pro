@@ -5,14 +5,18 @@
 #-------------------------------------------------
 
 QT       += core
-
 QT       -= gui
+include(../../../src/boost.pri)
 
-TARGET = spcod
+TARGET = spcdump
 CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
+INCLUDEPATH += ../spcfile
 
+!win32 {
+  LIBS += -lboost_system -lboost_filesystem
+}
 
 SOURCES += main.cpp

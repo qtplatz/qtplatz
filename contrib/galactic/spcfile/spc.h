@@ -385,4 +385,3 @@ typedef struct		/* log block header format */
 #define SPCATM	13	/* Atomic Spectrum */
 #define SPCDAD	14	/* Chromatography Diode Array Spectra */
 
-
