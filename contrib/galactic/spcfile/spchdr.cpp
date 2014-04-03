@@ -286,37 +286,23 @@ spchdr::dump_spchdr( std::ostream& o ) const
 {
     const SPCHDR& h = *p_;
 
+    static const char * flags[] = { "TSPREC", "TCGRAM", "TMULTI", "TRANDM", "TORDRD", "TALABS", "TXYXYS", "TXVALS" };
+
     o << "================== SPCHDR ===================" << std::endl;
     o << std::hex << std::showbase
-      << "ftflgs: " << int(h.ftflgs) << std::endl;
-    if ( h.ftflgs & TSPREC ) // 1
-        o << "\tY data blocks are 16 bit integer (only if fexp if NOT 0x80)" << std::endl;
-    if ( h.ftflgs & TCGRAM ) // 2
-        o << "\tEnables fexper in older software (not used)" << std::endl;
-
-    if ( h.ftflgs & TMULTI ) // 4
-        o << "\tMultifile data format (more than one subfile)" << std::endl;
-
-    if ( h.ftflgs & TRANDM ) // 8
-        o << "\tIf TMULTI and TRANDM then Z values in SUBHDR structures are in random order (not used)" << std::endl;
-
-    if ( h.ftflgs & TORDRD ) // 0x10
-        o << "\tIf TMULTI and TORDRD then Z values are in ascending or descending ordered but not evenly spaced. Z values read from individual SUBHDR structures." << std::endl;
-
-    if ( h.ftflgs & TALABS ) { // 0x20
-        o << "\tAxis label text stored in fcatxt: " << h.fcatxt << std::endl;
+      << "ftflgs: " << int(h.ftflgs) << "\thas " << number_of_subfiles() << " subfiles\t";
+    for ( unsigned i = 0; i < 8; ++i ) {
+        if ( h.ftflgs & (1 << i) )
+            o << flags[i] << ", ";
     }
 
-    if ( h.ftflgs & TXYXYS )  // 0x40
-        o << "\tEach subfile has unique X array; can only be used if TXVALS is also used. Used exclusively to flag as MS data for drawing as ¡°sticks¡± rather than connected lines." << std::endl;
-
-    if ( h.ftflgs & TXVALS ) // 0x80
-        o << "\tNon-evenly spaced X data. File has X value array preceding Y data block(s)." << std::endl;
-
     if ( isDeprecated() )
-        o << "Old Data Format";
+        o << "\tOld Data Format";
     else
-        o << "Endian: " << ( isLittleEndian() ? "Little" : "Big" ) << std::endl;
+        o << "\tEndian: " << ( isLittleEndian() ? "Little" : "Big" );
+    o << std::endl;
+    o << "Number of point: " << std::dec << std::showbase << fnpts();
+    o << "\tacquisition range: " << ffirst() << " -- " << flast() << std::endl;
 
     static const char * experiments[] = {
         "General SPC (could be anything) "
@@ -336,15 +322,12 @@ spchdr::dump_spchdr( std::ostream& o ) const
     };
 
     if ( fexper() < sizeof(experiments)/sizeof(experiments[0]) )
-        o << "fexper:\t" << experiments[ fexper() ] << std::endl;
+        o << "experiment:\t" << experiments[ fexper() ] << std::endl;
 
     std::string timestr;
 
     o << std::hex << std::showbase 
-      << "Fraction scaling exponent integer:\t"       << int( fexp() )
-      << "\nInteger number of point:\t"                 << fnpts()
-      << "\nX coordinate :\t"    << ffirst() << ", " << flast()
-      << "\nNumber of sub files:\t"                     << number_of_subfiles()
+      << "Fraction scaling exponent integer:\t" << int( fexp() )
       << "\naxis_type(x,y,z):\t"  << spcfile::axis_type_x_string( axis_type_x() )
       << ", " << spcfile::axis_type_y_string( axis_type_y() )
       << ", " << spcfile::axis_type_x_string( axis_type_z() ) << std::endl
@@ -369,6 +352,7 @@ spchdr::dump_spchdr( std::ostream& o ) const
       << "\nZ subfile increment:\t"                     << fzinc()       
       << "\nNumber of pluns for 4D with W dimension:\t" << fwplanes()
       << "\nW plane increment:\t"                       << fwinc()    
-      << "\nType of W axis units:\t"                    << fwtype()     
+      << "\nType of W axis units:\t"                    << int( fwtype() )
       << std::endl;
+    o << "=================== end of SPCHDR ====================" << std::endl;
 }

@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <memory>
 #include "spcfile_global.hpp"
 
 namespace galactic {
@@ -40,21 +41,23 @@ namespace galactic {
         
         operator bool () const;
         const spchdr * spchdr() const;
-        const subhdr * subhdr() const;
+        const subhdr * subhdr( size_t idx = 0 ) const;
+        size_t number_of_subfiles() const;
 
         bool isDeprecated() const;
         bool isLittleEndian() const;
         const char * date() const;
         const char * axis_x_label() const;
         const char * axis_y_label() const;
+        const char * source_instrument_description() const;
 
         static const char * axis_type_x_string( int );
         static const char * axis_type_y_string( int );
     
     private:
         std::vector< char > device_;
+        std::vector< std::shared_ptr<galactic::subhdr> > subhdrs_;
 		galactic::spchdr * spchdr_;
-        galactic::subhdr * subhdr_;
         bool loaded_;
         std::string date_;
         std::string axis_x_label_;

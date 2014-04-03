@@ -26,6 +26,8 @@
 #include "../spcfile/spcfile.hpp"
 #include "../spcfile/spchdr.hpp"
 #include "../spcfile/subhdr.hpp"
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adportable/profile.hpp>
 #include <QAction>
@@ -119,7 +121,9 @@ MainWindow::actFileOpen()
         if ( adwplot::SpectrumWidget * w = findChild< adwplot::SpectrumWidget * >() ) {
             w->setTitle( name.toStdString() );
             if ( Open( name.toStdString() ) ) {
-				w->setFooter( spcfile_->date() );
+                std::ostringstream o;
+                o << spcfile_->source_instrument_description() << "\t" << spcfile_->date();
+				w->setFooter( o.str() );
                 if ( const galactic::spchdr * h = spcfile_->spchdr() ) {
                     w->setAxisTitle( QwtPlot::xBottom, QwtText( spcfile_->axis_x_label() ) );
                     w->setAxisTitle( QwtPlot::yLeft, QwtText( spcfile_->axis_y_label() ) );
@@ -141,6 +145,20 @@ MainWindow::Open( const std::string& filename )
         if ( spcfile_ = std::make_shared< galactic::spcfile >( in, fsize ) ) {
             dumpspc( *spcfile_, o );
         }
+		auto * data = reinterpret_cast< const uint32_t * >( spcfile_->subhdr()->data() );
+
+        std::shared_ptr< adcontrols::MassSpectrum > ms = std::make_shared< adcontrols::MassSpectrum >();
+
+        ms->resize( spcfile_->spchdr()->fnpts() );
+		std::pair< double, double > range = std::make_pair( spcfile_->spchdr()->ffirst(), spcfile_->spchdr()->flast() );
+		ms->setAcquisitionMassRange( range.first, range.second );
+		for ( size_t i = 0; i < ms->size(); ++i ) {
+			ms->setMass( i, i * ( range.second - range.first ) / (ms->size() - 1) + range.first );
+			ms->setIntensity( i, data[i] );
+		}
+		if ( auto spw = findChild< adwplot::SpectrumWidget * >() )
+			spw->setData( ms, 0 );
+
         if ( QTextEdit * logw = findChild<QTextEdit *>() ) {
 			logw->clear();
             logw->setText( o.str().c_str() );

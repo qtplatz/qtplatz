@@ -24,10 +24,15 @@
 
 #include "subhdr.hpp"
 #include "spc_h.hpp"
+#include <iomanip>
 
 using namespace galactic;
 
 subhdr::subhdr( const SUBHDR * p ) : p_( p )
+{
+}
+
+subhdr::subhdr( const subhdr& t ) : p_( t.p_ )
 {
 }
 
@@ -85,6 +90,12 @@ subhdr::subwlevel() const
     return p_->subwlevel;             // W axis value (if fwplanes non-zero)
 }
 
+const uint8_t *
+subhdr::data() const
+{
+    return reinterpret_cast< const uint8_t *>(p_) + sizeof( SUBHDR );
+}
+
 void
 subhdr::dump_subhdr( std::ostream& o ) const
 {
@@ -99,10 +110,10 @@ subhdr::dump_subhdr( std::ostream& o ) const
     o << std::endl;
     o << "Exponent for sub-files's Y values: " << int( subexp() ) << std::endl;
     o << "Integer index number of trace subfile (0=first): " << subindx() << std::endl;
-    o << "Time for trace: " << subtime() << "\ttime for next trace: " << subnext() << std::endl;
+    o << "Time for trace: " << std::fixed << std::setprecision(3) << subtime() << "\ttime for next trace: " << subnext() << std::endl;
     o << "Floating peak pick noise level if high byte nonzero: " << subnois() << std::endl;
-    o << "number of subfile points for TXYXYS type: " << int(subnpts()) << std::endl;
+    o << "number of subfile points for TXYXYS: " << int(subnpts()) << std::endl;
     o << "number of co-added scans: " << std::dec << int(subscan()) << std::endl;
     o << "subwlevel: " << subwlevel() << std::endl;
-    o << "------------------- subhdr ----------------------" << std::endl;
+    o << "==================== end of subhdr ==================" << std::endl;
 }

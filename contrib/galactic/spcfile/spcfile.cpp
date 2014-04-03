@@ -45,30 +45,33 @@ using namespace galactic;
 
 spcfile::spcfile( std::istream& in, size_t fsize ) : device_( fsize, 0 )
                                                    , spchdr_( 0 )
-                                                   , subhdr_( 0 )
                                                    , loaded_( false ) {
     in.read( device_.data(), fsize );
     if ( !in.fail() ) {
         loaded_ = true;
         spchdr_ = new galactic::spchdr( reinterpret_cast< const SPCHDR * >( device_.data() ) );
-        subhdr_ = new galactic::subhdr( reinterpret_cast< const SUBHDR * >( device_.data() + sizeof( SPCHDR ) ) );
+        const char * psub = device_.data() + sizeof( SPCHDR );
+        subhdrs_.push_back( std::make_shared< galactic::subhdr >( reinterpret_cast< const SUBHDR * >( psub ) ) );
+        if ( spchdr_->isMultiFileFormat() ) {
+            for ( size_t i = 1; i < spchdr_->number_of_subfiles(); ++i ) {
+                subhdrs_.push_back( std::make_shared< galactic::subhdr >( reinterpret_cast< const SUBHDR * >( psub ) ) );
+            }
+        }
+
         spchdr::string_from_time( spchdr_->fdate(), date_ );
         if ( spchdr_->ftflgs() & TALABS ) {
 			const char * p = spchdr_->axis_label_text();
-			while ( p && *p && std::distance( spchdr_->axis_label_text(), p ) < 30 ) {
+			while ( p && *p && std::distance( spchdr_->axis_label_text(), p ) < 30 )
 				axis_x_label_ += *p++;
-			}
 			++p;
-			while ( p && *p && std::distance( spchdr_->axis_label_text(), p ) < 30 ) {
+			while ( p && *p && std::distance( spchdr_->axis_label_text(), p ) < 30 )
 				axis_y_label_ += *p++;
-			}
         }
     }
 }
 
 spcfile::~spcfile()
 {
-    delete subhdr_;
     delete spchdr_;
 }
 
@@ -84,9 +87,17 @@ spcfile::spchdr() const
 }
 
 const subhdr *
-spcfile::subhdr() const
+spcfile::subhdr( size_t idx ) const
 {
-    return subhdr_;
+    if ( subhdrs_.size() > idx )
+        return subhdrs_[ idx ].get();
+    return 0;
+}
+
+size_t
+spcfile::number_of_subfiles() const
+{
+    return subhdrs_.size();
 }
 
 const char *
@@ -103,6 +114,14 @@ spcfile::axis_y_label() const
     if ( axis_y_label_.empty() )
         return spchdr_->axis_type_y() == YARB ? "Intensity" : axis_type_y_string( spchdr_->axis_type_y() );
     return axis_y_label_.c_str();
+}
+
+const char *
+spcfile::source_instrument_description() const
+{
+    if ( spchdr_ )
+        return spchdr_->source_instrument_description();
+    return "no data";
 }
 
 bool
