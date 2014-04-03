@@ -54,6 +54,7 @@ spcfile::spcfile( std::istream& in, size_t fsize ) : device_( fsize, 0 )
         subhdrs_.push_back( std::make_shared< galactic::subhdr >( reinterpret_cast< const SUBHDR * >( psub ) ) );
         if ( spchdr_->isMultiFileFormat() ) {
             for ( size_t i = 1; i < spchdr_->number_of_subfiles(); ++i ) {
+                psub += sizeof( SUBHDR ) + spchdr_->fnpts() * sizeof(uint32_t);
                 subhdrs_.push_back( std::make_shared< galactic::subhdr >( reinterpret_cast< const SUBHDR * >( psub ) ) );
             }
         }

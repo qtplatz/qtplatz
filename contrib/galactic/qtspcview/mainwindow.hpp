@@ -48,6 +48,7 @@ public:
 
 private:
     std::shared_ptr< galactic::spcfile > spcfile_;
+    size_t index_;
 
     QDockWidget * addDockForWidget( QWidget * widget );
     void updateDockWidget( QDockWidget * );
@@ -56,6 +57,7 @@ private:
 
 private slots:
     void actFileOpen();
+    void actViewNext();
 };
 
 #endif // MAINWINDOW_HPP

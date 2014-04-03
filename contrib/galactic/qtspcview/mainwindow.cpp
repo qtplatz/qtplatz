@@ -48,7 +48,8 @@
 #include <boost/filesystem/fstream.hpp>
 #include <sstream>
 
-MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
+                                        , index_( 0 )
 {
 	this->resize( 800, 600 );
     QWidget * centralWidget = new QWidget( this );
@@ -59,6 +60,9 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent)
 
 	if ( QMenu * fileMenu = this->menuBar()->addMenu( tr("&File") ) ) {
 		fileMenu->addAction( tr("Open Grams .spc file..."), this, SLOT( actFileOpen() ) );
+	}
+	if ( QMenu * viewMenu = this->menuBar()->addMenu( tr("&View") ) ) {
+		viewMenu->addAction( tr("View next"), this, SLOT( actViewNext() ) );
 	}
 
     QToolBar * toolBar = new QToolBar( this );
@@ -107,35 +111,10 @@ MainWindow::updateDockWidget(QDockWidget *dockWidget)
     dockWidget->setFeatures(features);
 }
 
-void
-MainWindow::actFileOpen()
-{
-    boost::filesystem::path datapath( adportable::profile::user_data_dir<char>() );
-    
-    QString name =
-        QFileDialog::getOpenFileName( this
-                                      , tr("Open Grams .spc file")
-                                      , datapath.string().c_str()
-                                      , tr("Galactic SPC Files(*.spc)") );
-    if ( !name.isEmpty() ) {
-        if ( adwplot::SpectrumWidget * w = findChild< adwplot::SpectrumWidget * >() ) {
-            w->setTitle( name.toStdString() );
-            if ( Open( name.toStdString() ) ) {
-                std::ostringstream o;
-                o << spcfile_->source_instrument_description() << "\t" << spcfile_->date();
-				w->setFooter( o.str() );
-                if ( const galactic::spchdr * h = spcfile_->spchdr() ) {
-                    w->setAxisTitle( QwtPlot::xBottom, QwtText( spcfile_->axis_x_label() ) );
-                    w->setAxisTitle( QwtPlot::yLeft, QwtText( spcfile_->axis_y_label() ) );
-                }
-            }
-        }
-    }
-}
-
 bool
 MainWindow::Open( const std::string& filename )
 {
+    index_ = 0;
     boost::filesystem::path fpath( filename );
     if ( boost::filesystem::exists( fpath ) ) {
         size_t fsize = boost::filesystem::file_size( fpath );
@@ -176,3 +155,60 @@ MainWindow::dumpspc( const galactic::spcfile& spc, std::ostream& o )
     if ( auto sub = spc.subhdr() )
         sub->dump_subhdr( o );
 }
+
+void
+MainWindow::actFileOpen()
+{
+    boost::filesystem::path datapath( adportable::profile::user_data_dir<char>() );
+    
+    QString name =
+        QFileDialog::getOpenFileName( this
+                                      , tr("Open Grams .spc file")
+                                      , datapath.string().c_str()
+                                      , tr("Galactic SPC Files(*.spc)") );
+    if ( !name.isEmpty() ) {
+        if ( adwplot::SpectrumWidget * w = findChild< adwplot::SpectrumWidget * >() ) {
+            w->setTitle( name.toStdString() );
+            if ( Open( name.toStdString() ) ) {
+                std::ostringstream o;
+                o << spcfile_->source_instrument_description() << "\t" << spcfile_->date();
+				w->setFooter( o.str() );
+                if ( const galactic::spchdr * h = spcfile_->spchdr() ) {
+                    w->setAxisTitle( QwtPlot::xBottom, QwtText( spcfile_->axis_x_label() ) );
+                    w->setAxisTitle( QwtPlot::yLeft, QwtText( spcfile_->axis_y_label() ) );
+                }
+            }
+        }
+    }
+}
+
+void
+MainWindow::actViewNext()
+{
+    if ( ++index_ < spcfile_->spchdr()->number_of_subfiles() ) {
+
+        std::ostringstream o;
+        if ( auto sub = spcfile_->subhdr( index_ ) )
+            sub->dump_subhdr( o );
+        
+        auto * data = reinterpret_cast< const uint32_t * >( spcfile_->subhdr( index_ )->data() );
+
+        std::shared_ptr< adcontrols::MassSpectrum > ms = std::make_shared< adcontrols::MassSpectrum >();
+        
+        ms->resize( spcfile_->spchdr()->fnpts() );
+        std::pair< double, double > range = std::make_pair( spcfile_->spchdr()->ffirst(), spcfile_->spchdr()->flast() );
+        ms->setAcquisitionMassRange( range.first, range.second );
+        for ( size_t i = 0; i < ms->size(); ++i ) {
+            ms->setMass( i, i * ( range.second - range.first ) / (ms->size() - 1) + range.first );
+            ms->setIntensity( i, data[i] );
+        }
+        if ( auto spw = findChild< adwplot::SpectrumWidget * >() )
+            spw->setData( ms, 0 );
+        
+        if ( QTextEdit * logw = findChild<QTextEdit *>() ) {
+            logw->clear();
+            logw->setText( o.str().c_str() );
+        }
+    }
+}
+
