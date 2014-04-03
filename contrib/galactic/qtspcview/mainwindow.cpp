@@ -23,6 +23,9 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "../spcfile/spcfile.hpp"
+#include "../spcfile/spchdr.hpp"
+#include "../spcfile/subhdr.hpp"
 #include <adwplot/spectrumwidget.hpp>
 #include <adportable/profile.hpp>
 #include <QAction>
@@ -40,6 +43,8 @@
 #include <QToolBar>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <sstream>
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent)
 {
@@ -111,13 +116,45 @@ MainWindow::actFileOpen()
                                       , datapath.string().c_str()
                                       , tr("Galactic SPC Files(*.spc)") );
     if ( !name.isEmpty() ) {
-        if ( adwplot::SpectrumWidget * w = findChild< adwplot::SpectrumWidget * >() )
+        if ( adwplot::SpectrumWidget * w = findChild< adwplot::SpectrumWidget * >() ) {
             w->setTitle( name.toStdString() );
-        Open( name.toStdString() );
+            if ( Open( name.toStdString() ) ) {
+				w->setFooter( spcfile_->date() );
+                if ( const galactic::spchdr * h = spcfile_->spchdr() ) {
+                    w->setAxisTitle( QwtPlot::xBottom, QwtText( spcfile_->axis_x_label() ) );
+                    w->setAxisTitle( QwtPlot::yLeft, QwtText( spcfile_->axis_y_label() ) );
+                }
+            }
+        }
     }
 }
 
-void
+bool
 MainWindow::Open( const std::string& filename )
 {
+    boost::filesystem::path fpath( filename );
+    if ( boost::filesystem::exists( fpath ) ) {
+        size_t fsize = boost::filesystem::file_size( fpath );
+        boost::filesystem::ifstream in( fpath, std::ios_base::binary );
+        std::ostringstream o;
+        o << fpath << std::endl;
+        if ( spcfile_ = std::make_shared< galactic::spcfile >( in, fsize ) ) {
+            dumpspc( *spcfile_, o );
+        }
+        if ( QTextEdit * logw = findChild<QTextEdit *>() ) {
+			logw->clear();
+            logw->setText( o.str().c_str() );
+        }
+        return true;
+    }
+    return false;
+}
+
+void
+MainWindow::dumpspc( const galactic::spcfile& spc, std::ostream& o )
+{
+    if ( auto hdr = spc.spchdr() )
+        hdr->dump_spchdr( o );
+    if ( auto sub = spc.subhdr() )
+        sub->dump_subhdr( o );
 }

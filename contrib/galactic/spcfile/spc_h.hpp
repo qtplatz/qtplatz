@@ -22,40 +22,20 @@
 **
 **************************************************************************/
 
-#ifndef MAINWINDOW_HPP
-#define MAINWINDOW_HPP
+#ifndef SPC_H_HPP
+#define SPC_H_HPP
 
-#include <QMainWindow>
-#include <string>
-#include <memory>
-#include <ostream>
+#pragma once
 
-class QDockWidget;
+#include <cstdint>
 
-namespace Ui {
-class MainWindow;
-}
+typedef int8_t      BYTE;
+typedef int16_t     WORD;
+typedef uint32_t	DWORD;
 
-namespace galactic { class spcfile; }
+#pragma pack(push)
+#pragma pack(1)
+#include "spc.h"
+#pragma pack(pop)
 
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
-
-public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
-
-private:
-    std::shared_ptr< galactic::spcfile > spcfile_;
-
-    QDockWidget * addDockForWidget( QWidget * widget );
-    void updateDockWidget( QDockWidget * );
-    bool Open( const std::string& );
-    void dumpspc( const galactic::spcfile&, std::ostream&  );
-
-private slots:
-    void actFileOpen();
-};
-
-#endif // MAINWINDOW_HPP
+#endif // SPC_H_HPP

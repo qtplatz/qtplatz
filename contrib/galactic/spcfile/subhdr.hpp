@@ -22,40 +22,35 @@
 **
 **************************************************************************/
 
-#ifndef MAINWINDOW_HPP
-#define MAINWINDOW_HPP
+#ifndef SUBHDR_HPP
+#define SUBHDR_HPP
 
-#include <QMainWindow>
-#include <string>
-#include <memory>
+#pragma once
+#include "spc_h.hpp"
+#include "spcfile_global.hpp"
 #include <ostream>
 
-class QDockWidget;
+namespace galactic {
 
-namespace Ui {
-class MainWindow;
+    class SPCFILESHARED_EXPORT subhdr {
+    public:
+        subhdr( const SUBHDR * p );
+        uint8_t subflgs() const;
+        int8_t  subexp() const;
+        int16_t subindx() const;
+        float subtime() const;
+        float subnext() const;
+        float subnois() const;
+        uint32_t subnpts() const;
+        uint32_t subscan() const;
+        float subwlevel() const;
+
+        void dump_subhdr( std::ostream& ) const;
+
+    private:
+        const SUBHDR * p_;
+    };
+
 }
 
-namespace galactic { class spcfile; }
-
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
-
-public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
-
-private:
-    std::shared_ptr< galactic::spcfile > spcfile_;
-
-    QDockWidget * addDockForWidget( QWidget * widget );
-    void updateDockWidget( QDockWidget * );
-    bool Open( const std::string& );
-    void dumpspc( const galactic::spcfile&, std::ostream&  );
-
-private slots:
-    void actFileOpen();
-};
-
-#endif // MAINWINDOW_HPP
+#endif // SUBHDR_HPP

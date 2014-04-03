@@ -25,14 +25,41 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
+#include "spcfile_global.hpp"
 
 namespace galactic {
 
-    typedef int8_t      BYTE;
-    typedef int32_t     WORD;
-    typedef uint32_t	DWORD;
+	class spchdr;
+	class subhdr;
 
-# include "spc.h"
+    class SPCFILESHARED_EXPORT spcfile {
+    public:
+        ~spcfile();
+        spcfile( std::istream& in, size_t fsize );
+        
+        operator bool () const;
+        const spchdr * spchdr() const;
+        const subhdr * subhdr() const;
+
+        bool isDeprecated() const;
+        bool isLittleEndian() const;
+        const char * date() const;
+        const char * axis_x_label() const;
+        const char * axis_y_label() const;
+
+        static const char * axis_type_x_string( int );
+        static const char * axis_type_y_string( int );
+    
+    private:
+        std::vector< char > device_;
+		galactic::spchdr * spchdr_;
+        galactic::subhdr * subhdr_;
+        bool loaded_;
+        std::string date_;
+        std::string axis_x_label_;
+        std::string axis_y_label_;
+    };
 
 }
 

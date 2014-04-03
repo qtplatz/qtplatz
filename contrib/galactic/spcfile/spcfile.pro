@@ -33,9 +33,14 @@ LIBS += -l$$qtLibraryTarget( adplugin ) \
 
 SOURCES += spcfile.cpp \
            datafile_factory.cpp \
-           datafile.cpp
+           datafile.cpp \
+    spchdr.cpp \
+    subhdr.cpp
 
 HEADERS += \
         spcfile_global.hpp \
         datafile_factory.hpp \
-        datafile.hpp
+        datafile.hpp \
+    spchdr.hpp \
+    spc_h.hpp \
+    subhdr.hpp

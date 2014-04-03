@@ -28,7 +28,8 @@
 #include <adcontrols/datafile_factory.hpp>
 #include <adplugin/plugin.hpp>
 
-namespace spcfile {
+namespace galactic {
+
 	class datafile_factory : public adcontrols::datafile_factory
 	                       , public adplugin::plugin {
 	public:

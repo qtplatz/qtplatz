@@ -39,7 +39,7 @@ namespace adcontrols {
 
 namespace portfolio { class Portfolio; }
 
-namespace spcfile {
+namespace galactic {
 
 	class datafile : public adcontrols::datafile
 		           , public adcontrols::LCMSDataset

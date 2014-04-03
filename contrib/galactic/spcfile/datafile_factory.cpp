@@ -27,7 +27,7 @@
 #include <adcontrols/processeddataset.hpp> // for delition of scoped_ptr<ProcessedDataset>
 #include <adplugin/visitor.hpp>
 
-using namespace spcfile;
+using namespace galactic;
 
 datafile_factory::datafile_factory()
 {
@@ -74,7 +74,7 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode ) co
 adcontrols::datafile *
 datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
-	spcfile::datafile * p = new spcfile::datafile();
+	galactic::datafile * p = new galactic::datafile();
 
 	if ( p->_open( filename, readonly ) )
 		return p;

@@ -37,7 +37,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <vector>
 
-using namespace spcfile;
+using namespace galactic;
 
 datafile::datafile()
 {

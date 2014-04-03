@@ -24,6 +24,10 @@
 
 #include "datafile_factory.hpp"
 #include "spcfile_global.hpp"
+#include "spcfile.hpp"
+#include "spc_h.hpp"
+#include "spchdr.hpp"
+#include "subhdr.hpp"
 
 extern "C" {
     SPCFILESHARED_EXPORT adcontrols::datafile_factory * datafile_factory();
@@ -33,5 +37,177 @@ extern "C" {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
-    return new spcfile::datafile_factory();
+    return new galactic::datafile_factory();
+}
+
+//
+using namespace galactic;
+
+spcfile::spcfile( std::istream& in, size_t fsize ) : device_( fsize, 0 )
+                                                   , spchdr_( 0 )
+                                                   , subhdr_( 0 )
+                                                   , loaded_( false ) {
+    in.read( device_.data(), fsize );
+    if ( !in.fail() ) {
+        loaded_ = true;
+        spchdr_ = new galactic::spchdr( reinterpret_cast< const SPCHDR * >( device_.data() ) );
+        subhdr_ = new galactic::subhdr( reinterpret_cast< const SUBHDR * >( device_.data() + sizeof( SPCHDR ) ) );
+        spchdr::string_from_time( spchdr_->fdate(), date_ );
+        if ( spchdr_->ftflgs() & TALABS ) {
+			const char * p = spchdr_->axis_label_text();
+			while ( p && *p && std::distance( spchdr_->axis_label_text(), p ) < 30 ) {
+				axis_x_label_ += *p++;
+			}
+			++p;
+			while ( p && *p && std::distance( spchdr_->axis_label_text(), p ) < 30 ) {
+				axis_y_label_ += *p++;
+			}
+        }
+    }
+}
+
+spcfile::~spcfile()
+{
+    delete subhdr_;
+    delete spchdr_;
+}
+
+spcfile::operator bool () const
+{
+    return loaded_;
+}
+
+const spchdr *
+spcfile::spchdr() const
+{
+    return spchdr_;
+}
+
+const subhdr *
+spcfile::subhdr() const
+{
+    return subhdr_;
+}
+
+const char *
+spcfile::axis_x_label() const
+{
+    if ( axis_x_label_.empty() )
+        return spchdr_->axis_type_x() == XARB ? "<i>m/z</i>" : axis_type_x_string( spchdr_->axis_type_x() );
+    return axis_x_label_.c_str();
+}
+
+const char *
+spcfile::axis_y_label() const
+{
+    if ( axis_y_label_.empty() )
+        return spchdr_->axis_type_y() == YARB ? "Intensity" : axis_type_y_string( spchdr_->axis_type_y() );
+    return axis_y_label_.c_str();
+}
+
+bool
+spcfile::isDeprecated() const
+{
+    return spchdr_ && spchdr_->isDeprecated();
+}
+
+bool
+spcfile::isLittleEndian() const
+{
+    return spchdr_ && spchdr_->isLittleEndian();
+}
+
+const char *
+spcfile::date() const
+{
+    return date_.c_str();
+}
+
+// static
+const char *
+spcfile::axis_type_x_string( int x )
+{
+    // x, z, w axis are here
+
+    static const char * x_axis_types [] = {
+        "Arbitrary"
+        , "Wavenumber (cm-1)"
+        , "Micrometers (um)"
+        , "Nanometers (nm)"
+        , "Seconds"
+        , "Minutes"
+        , "Hertz (Hz)"
+        , "Kilohertz (KHz)"
+        , "Megahertz (MHz)"
+        , "Mass (M/z)"
+        , "Parts per million (PPM)"
+        , "Days"
+        , "Years"
+        , "Raman Shift (cm-1)"
+        , "eV"
+        , "XYZ text labels in fcatxt (old 0x4D version only)"
+        , "Diode Number"
+        , "Channel"
+        , "Degrees"
+        , "Temperature (F)"
+        , "Temperature (C)"
+        , "Temperature (K)"
+        , "Data Points"
+        , "Milliseconds (mSec)"
+        , "Microseconds (uSec)"
+        , "Nanoseconds (nSec)"
+        , "Gigahertz (GHz)"
+        , "Centimeters (cm)"
+        , "Meters (m)"
+        , "Millimeters (mm)"
+        , "Hours"
+    };
+    if ( x < sizeof( x_axis_types ) / sizeof( x_axis_types[0] ) )
+        return x_axis_types[ x ];
+    if ( x == XDBLIGM )
+        return "Double interferogram (no display labels)";
+    return "Unknown";
+}
+
+const char *
+spcfile::axis_type_y_string( int y )
+{
+    static const char * y_axis_types [] = {
+        "Arbitrary Intensity"
+        ,"Interferogram"
+        ,"Absorbance"
+        ,"Kubelka-Monk"
+        ,"Counts"
+        ,"Volts"
+        ,"Degrees"
+        ,"Milliamps"
+        ,"Millimeters"
+        ,"Millivolts"
+        ,"Log(1/R)"
+        ,"Percent"
+
+        ,"Intensity"
+        ,"Relative Intensity"
+        ,"Energy"
+        ,"Decibel"
+        ,"Temperature (F)"
+        ,"Temperature (C)"
+        ,"Temperature (K)"
+        ,"Index of Refraction [N]"
+        ,"Extinction Coeff. [K]"
+        ,"Real"
+        ,"Imaginary"
+        ,"Complex"
+    };
+
+    if ( y < sizeof( y_axis_types ) / sizeof( y_axis_types[0] ) )
+        return y_axis_types[ y ];
+
+    switch( y ) {
+    case YTRANS:  return "Transmission (ALL HIGHER MUST HAVE VALLEYS!)";
+    case YREFLEC: return "Reflectance";
+    case YVALLEY: return "Arbitrary or Single Beam with Valley Peaks";
+    case YEMISN:  return "Emission";
+    }
+    return "Unknown";
 }
