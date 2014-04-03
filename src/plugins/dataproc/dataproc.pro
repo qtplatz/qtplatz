@@ -9,6 +9,7 @@ greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
 
 PROVIDER = MS-Cheminformatics
 
+include(../galactic.pri)
 include(../../qtplatzplugin.pri)
 include(../../qwt.pri)
 include(../../boost.pri)

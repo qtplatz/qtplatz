@@ -2,6 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
         spcfile \
-        spcdump
+        spcdump \
+    qtspcview
 
 
