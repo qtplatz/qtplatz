@@ -53,10 +53,10 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x86
 set ACE_ROOT=%USERPROFILE%\src\vc11\ACE_wrappers
 set TAO_ROOT=%ACE_ROOT%\TAO
 set QTDIR=C:\x86\Qt5.2.1\5.2.1\msvc2012
-set QWT=C:\Qwt-6.1.1-svn
+set QWT=C:\x86\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%\lib
+set BOOST_LIBRARY=%BOOST_ROOT%\x86\lib
 goto all_set
 
 :x64_vc12

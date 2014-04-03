@@ -29,3 +29,15 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.hpp
 
 FORMS    +=
+
+CONFIG(release, debug|release): DESTDIR = $$OUT_PWD/release
+CONFIG(debug, debug|release): DESTDIR = $$OUT_PWD/debug
+
+DllFiles.path = $$DESTDIR
+DllFiles.files = ../../../lib/qtplatz/$$qtLibraryTarget(adlog).dll \
+                 ../../../lib/qtplatz/$$qtLibraryTarget(adplugin).dll \
+                 ../../../lib/qtplatz/$$qtLibraryTarget(adcontrols).dll \
+                 ../../../lib/qtplatz/$$qtLibraryTarget(portfolio).dll \
+                 ../../../lib/qtplatz/plugins/MS-Cheminformatics/$$qtLibraryTarget(spcfile).dll
+
+INSTALLS += DllFiles

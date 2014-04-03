@@ -330,7 +330,7 @@ namespace dataproc {
 
                     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
                     for ( auto& seg: segs ) {
-                        for ( int i = 0; i < seg.size(); ++i ) {
+                        for ( size_t i = 0; i < seg.size(); ++i ) {
                             double m = seg.getMass( i );
                             if ( ylimits_.first < m && m < ylimits_.second ) {
                                 size_t iy = dy(m);

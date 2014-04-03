@@ -108,7 +108,7 @@ PeakMarker::setPeak( const adcontrols::MSPeakInfoItem& pk, bool isTime, adcontro
 void
 PeakMarker::setPeak( const adcontrols::MassSpectrum& ms, int idx, bool isTime, adcontrols::metric::prefix pfx )
 {
-    if ( ms.size() > idx ) {
+    if ( ms.size() > unsigned(idx) ) {
         if ( isTime ) {
             markers_[ idPeakCenter ]->setValue( adcontrols::metric::scale_to( pfx, ms.getTime( idx ) ), 0 );
         } else {

@@ -428,7 +428,7 @@ MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
         pImpl_->currentChanged( *pk );
     } else if ( auto ms = pProcessedSpectrum_.lock() ) {
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
-        if ( segs.size() > fcn ) {
+        if ( segs.size() > unsigned( fcn ) ) {
             pImpl_->currentChanged( segs[ fcn ], idx );
         }
     }

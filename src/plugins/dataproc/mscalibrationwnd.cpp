@@ -330,7 +330,7 @@ MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult
     // recalc polinomials
 	mass_calibrator calibrator( calibResult.assignedMasses(), prop );
         
-    int nterm = pCalibMethod->polynomialDegree() + 1;
+    unsigned int nterm = pCalibMethod->polynomialDegree() + 1;
     if ( calibrator.size() < nterm )
         nterm = static_cast<int>( calibrator.size() );
     
