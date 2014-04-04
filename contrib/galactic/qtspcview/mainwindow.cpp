@@ -124,7 +124,10 @@ MainWindow::Open( const std::string& filename )
         if ( spcfile_ = std::make_shared< galactic::spcfile >( in, fsize ) ) {
             dumpspc( *spcfile_, o );
         }
-		auto * data = reinterpret_cast< const uint32_t * >( spcfile_->subhdr()->data() );
+		auto * data = reinterpret_cast< const int32_t * >( spcfile_->subhdr()->data() );
+        double sfactor = 1.0;
+        if ( int fexp = spcfile_->spchdr()->fexp() )
+            sfactor = std::pow( 1.0, fexp );
 
         std::shared_ptr< adcontrols::MassSpectrum > ms = std::make_shared< adcontrols::MassSpectrum >();
 
@@ -133,10 +136,12 @@ MainWindow::Open( const std::string& filename )
 		ms->setAcquisitionMassRange( range.first, range.second );
 		for ( size_t i = 0; i < ms->size(); ++i ) {
 			ms->setMass( i, i * ( range.second - range.first ) / (ms->size() - 1) + range.first );
-			ms->setIntensity( i, data[i] );
+			ms->setIntensity( i, double(data[i]) / sfactor );
 		}
-		if ( auto spw = findChild< adwplot::SpectrumWidget * >() )
+		if ( auto spw = findChild< adwplot::SpectrumWidget * >() ) {
+			spw->setKeepZoomed( false );
 			spw->setData( ms, 0 );
+		}
 
         if ( QTextEdit * logw = findChild<QTextEdit *>() ) {
 			logw->clear();
