@@ -22,23 +22,12 @@
 **
 **************************************************************************/
 
-#include "datafile_factory.hpp"
 #include "spcfile_global.hpp"
 #include "spcfile.hpp"
 #include "spc_h.hpp"
 #include "spchdr.hpp"
 #include "subhdr.hpp"
-
-extern "C" {
-    SPCFILESHARED_EXPORT adcontrols::datafile_factory * datafile_factory();
-	SPCFILESHARED_EXPORT adplugin::plugin * adplugin_plugin_instance();
-}
-
-adplugin::plugin *
-adplugin_plugin_instance()
-{
-    return new galactic::datafile_factory();
-}
+#include <istream>
 
 //
 using namespace galactic;

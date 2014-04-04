@@ -1,3 +1,1 @@
-ADPLUGIN_NAME = spcfile
-ADPLUBIN_DEPENDS += \
-		adplugin
+QTC_LIB_NAME = spcfile

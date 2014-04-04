@@ -2,6 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
         spcfile \
-        qtspcview
+        qtspcview \
+    galactic_spcfile
 
 
