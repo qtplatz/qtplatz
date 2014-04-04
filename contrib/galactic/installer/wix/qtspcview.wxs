@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <?include version.wxi ?>
+    <Product Id="*" Name="QtSPCView $(var.ProductVersion)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="MS-Cheminformatics LLC" UpgradeCode="cf1f5024-a587-488a-beee-fd248ed76e4e">
+        <Package Id="*" Keywords="installer" Platform="x86" Manufacturer="MS-Cheminformatics LLC" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+        <Media Id="1" Cabinet="Cab1.cab" EmbedCab="yes" />
+        <Feature Id="ProductFeature" Title="QtSPCView SPC View Viewer" Level="1">
+            <ComponentGroupRef Id="LicenseComponents" />
+            <ComponentGroupRef Id="QtComponents" />
+            <ComponentGroupRef Id="QtPlatformsComponents" />
+            <ComponentGroupRef Id="QtSPCViewComponents" />
+            <ComponentGroupRef Id="MicrosoftComponents" />
+            <ComponentGroupRef Id="ApplicationProgramsFolder" />
+        </Feature>
+        <UI />
+    </Product>
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFilesFolder">
+                <Directory Id="INSTALLFOLDER" Name="QtSPCView">
+                    <Directory Id="BIN" Name="bin">
+                      <Directory Id="PLATFORMS" Name="platforms" />
+                    </Directory>
+                </Directory>
+                <Directory Id="ProgramMenuFolder">
+                    <Directory Id="ApplicationProgramsFolder" Name="QtSPCView SPC File Viewer" />
+                </Directory>
+            </Directory>
+        </Directory>
+    </Fragment>
+    <?define TOP = "../../../.." ?>
+    <?define InQt         = "$(env.QTDIR)" ?>
+    <?define InVC110      = "$(env.VCINSTALLDIR)/redist/x86/Microsoft.VC110.CRT" ?>
+    <Fragment>
+      <ComponentGroup Id="LicenseComponents" Directory="INSTALLFOLDER">
+        <Component Id="license.txt" Guid="82CA6B02-BDBA-4EEA-A915-D6CA26858674">
+          <File Id="license.txt" Source="$(var.TOP)/license.txt" ProcessorArchitecture="x86" />
+        </Component>
+      </ComponentGroup>
+      <ComponentGroup Id="QtComponents" Directory="BIN">
+        <Component Id="libEGL.dll" Guid="CFD7321F-D983-4E90-B6BF-F4478B8BBD47">
+          <File Id="libEGL.dll" Source="$(env.QTDIR)/bin/libEGL.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="libGLESv2.dll" Guid="506D0FF6-B343-4374-A925-4E336B2A4810">
+          <File Id="libGLESv2.dll" Source="$(env.QTDIR)/bin/libGLESv2.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="icuin51.dll" Guid="53666DB7-7098-40B3-B1E5-BEF6BF9E5E8F">
+          <File Id="icuin51.dll" Source="$(env.QTDIR)/bin/icuin51.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="icuuc51.dll" Guid="3CAC5F25-5630-4904-A9F5-BB8D6CA81EF1">
+          <File Id="icuuc51.dll" Source="$(env.QTDIR)/bin/icuuc51.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="icudt51.dll" Guid="57ECFDB1-A6FA-4570-B381-08CC78739F13">
+          <File Id="icudt51.dll" Source="$(env.QTDIR)/bin/icudt51.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="Qt5CLucene.dll" Guid="298E277A-9EBF-44A2-AAC7-F1FDAC940777">
+          <File Id="Qt5CLucene.dll" Source="$(env.QTDIR)/bin/Qt5CLucene.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="Qt5Core.dll" Guid="33E4F1C5-6B38-4464-AE41-8EAF7EB5BCF3">
+          <File Id="Qt5Core.dll" Source="$(env.QTDIR)/bin/Qt5Core.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="Qt5Gui.dll" Guid="16DD76B1-1D80-4AE0-998F-21D652361037">
+          <File Id="Qt5Gui.dll" Source="$(env.QTDIR)/bin/Qt5Gui.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="Qt5OpenGL.dll" Guid="C11FAC64-B6C2-4103-AEDB-482A184773F2">
+          <File Id="Qt5OpenGL.dll" Source="$(env.QTDIR)/bin/Qt5OpenGL.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="Qt5PrintSupport.dll" Guid="0F0A33CB-EB06-49ED-ABBD-DD082F45C2E1">
+          <File Id="Qt5PrintSupport.dll" Source="$(env.QTDIR)/bin/Qt5PrintSupport.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="Qt5Svg.dll" Guid="AB11F7FA-5163-4E96-81AF-6B420AEADDFD">
+          <File Id="Qt5Svg.dll" Source="$(env.QTDIR)/bin/Qt5Svg.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="Qt5Widgets.dll" Guid="1B3D9D04-8BDF-4A6C-AC35-3483BDDB309B">
+          <File Id="Qt5Widgets.dll" Source="$(env.QTDIR)/bin/Qt5Widgets.dll" ProcessorArchitecture="x86" />
+        </Component>
+      </ComponentGroup>
+      <ComponentGroup Id="QtPlatformsComponents" Directory="PLATFORMS">
+        <Component Id="qminimal.dll" Guid="41ABB2A1-C08E-413B-B124-163D27F00BBC">
+          <File Id="qminimal.dll" Source="$(env.QTDIR)/plugins/platforms/qminimal.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="qoffscreen.dll" Guid="FFB3A957-891C-4E2A-A1B4-52A68071671B">
+          <File Id="qoffscreen.dll" Source="$(env.QTDIR)/plugins/platforms/qoffscreen.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="qwindows.dll" Guid="F1204D6D-1802-4E1B-8D77-02A2A5AC329B">
+          <File Id="qwindows.dll" Source="$(env.QTDIR)/plugins/platforms/qwindows.dll" ProcessorArchitecture="x86" />
+        </Component>
+      </ComponentGroup>
+      <ComponentGroup Id="QtSPCViewComponents" Directory="BIN">
+        <Component Id="adcontrols.dll" Guid="EFEFC153-79B7-4FFA-AFA7-CAC3E40783EA">
+          <File Id="adcontrols.dll" Source="../../qtspcview/release/adcontrols.dll" ProcessorArchitecture="x86" KeyPath="yes" />
+        </Component>
+        <Component Id="spcfile.dll" Guid="036A2549-13F7-46C4-88E6-B420FCD78CE1">
+          <File Id="spcfile.dll" Source="../../qtspcview/release/spcfile.dll" ProcessorArchitecture="x86" KeyPath="yes" />
+        </Component>
+        <Component Id="qtspcview.exe" Guid="93FC8845-C204-4FEF-A69B-4D6E856362E7">
+          <File Id="qtspcview.exe" Source="../../qtspcview/release/qtspcview.exe" ProcessorArchitecture="x86" KeyPath="yes" />
+        </Component>
+      </ComponentGroup>
+      <ComponentGroup Id="MicrosoftComponents" Directory="BIN">
+        <Component Id="vccorlib110.dll" Guid="BB90E56C-3EBE-49D6-ADF8-DCD375B73524">
+          <File Id="vccorlib110.dll" Source="$(var.InVC110)/vccorlib110.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="msvcr110.dll" Guid="CDE0BC14-A0D6-4D34-9668-C58EA2D4E7E2">
+          <File Id="msvcr110.dll" Source="$(var.InVC110)/msvcr110.dll" ProcessorArchitecture="x86" />
+        </Component>
+        <Component Id="msvcp110.dll" Guid="CE90990C-3A66-4C26-B33D-78B474B98B56">
+          <File Id="msvcp110.dll" Source="$(var.InVC110)/msvcp110.dll" ProcessorArchitecture="x86" />
+        </Component>
+      </ComponentGroup>
+    </Fragment>
+    <Fragment>
+      <ComponentGroup Id="ApplicationProgramsFolder" Directory="ApplicationProgramsFolder">
+        <Component Id="ApplicationShortcut" Guid="F12E138E-1594-4A7D-B4CF-780D3634112B">
+          <Shortcut Id="ApplicationStartMenuShortcut" Name="QtSPCView SPC File Viewer" Target="[#qtspcview.exe]" WorkingDirectory="APPLICATIONROOTDIRECTORY" />
+          <RemoveFolder Id="INSTALLFOLDER" On="uninstall" />
+          <RegistryValue Root="HKCU" Key="Software\MS-Cheminformatics\QtSPCView" Name="installed" Value="1" Type="integer" KeyPath="yes" />
+        </Component>
+      </ComponentGroup>
+    </Fragment>
+  </Wix>
