@@ -9,6 +9,7 @@ TOP    	= ..
 
 TARGET 	= Release|Win32
 QTPLATZ_PATH = ..\..\..\..\qtplatz
+RM	= rm -f
 
 CANDLE = "$(WIX)bin\Candle.exe"
 LIGHT = "$(WIX)\bin\Light.exe"
@@ -23,7 +24,7 @@ PYRO = "$(WIX)\bin\Pyro.exe"
 all: qtspcview.msi
 
 clean:
-	rm -f *.msi *.wixobj *.wixpdb version.wxi *.zip *.bat *.exe *.obj *~
+	$(RM) *.msi *.wixobj *.wixpdb version.wxi *.zip *.bat *.exe *.obj *~
 
 version.exe: version.c
 	cl version.c
