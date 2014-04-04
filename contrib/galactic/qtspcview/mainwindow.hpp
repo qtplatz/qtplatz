@@ -48,11 +48,13 @@ public:
 
 private:
     std::shared_ptr< galactic::spcfile > spcfile_;
+    std::string fpath_;
     size_t index_;
 
     QDockWidget * addDockForWidget( QWidget * widget );
     void updateDockWidget( QDockWidget * );
     bool Open( const std::string& );
+    void draw( size_t index );
     void dumpspc( const galactic::spcfile&, std::ostream&  );
 
 private slots:

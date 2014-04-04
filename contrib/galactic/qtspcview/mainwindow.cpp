@@ -124,29 +124,7 @@ MainWindow::Open( const std::string& filename )
         if ( spcfile_ = std::make_shared< galactic::spcfile >( in, fsize ) ) {
             dumpspc( *spcfile_, o );
         }
-		auto * data = reinterpret_cast< const int32_t * >( spcfile_->subhdr()->data() );
-        double sfactor = 1.0;
-        if ( int fexp = spcfile_->spchdr()->fexp() )
-            sfactor = std::pow( 1.0, fexp );
-
-        std::shared_ptr< adcontrols::MassSpectrum > ms = std::make_shared< adcontrols::MassSpectrum >();
-
-        ms->resize( spcfile_->spchdr()->fnpts() );
-		std::pair< double, double > range = std::make_pair( spcfile_->spchdr()->ffirst(), spcfile_->spchdr()->flast() );
-		ms->setAcquisitionMassRange( range.first, range.second );
-		for ( size_t i = 0; i < ms->size(); ++i ) {
-			ms->setMass( i, i * ( range.second - range.first ) / (ms->size() - 1) + range.first );
-			ms->setIntensity( i, double(data[i]) / sfactor );
-		}
-		if ( auto spw = findChild< adwplot::SpectrumWidget * >() ) {
-			spw->setKeepZoomed( false );
-			spw->setData( ms, 0 );
-		}
-
-        if ( QTextEdit * logw = findChild<QTextEdit *>() ) {
-			logw->clear();
-            logw->setText( o.str().c_str() );
-        }
+        draw( 0 );
         return true;
     }
     return false;
@@ -173,7 +151,9 @@ MainWindow::actFileOpen()
                                       , tr("Galactic SPC Files(*.spc)") );
     if ( !name.isEmpty() ) {
         if ( adwplot::SpectrumWidget * w = findChild< adwplot::SpectrumWidget * >() ) {
-            w->setTitle( name.toStdString() );
+            fpath_ = name.toStdString();
+            w->setTitle( fpath_ );
+
             if ( Open( name.toStdString() ) ) {
                 std::ostringstream o;
                 o << spcfile_->source_instrument_description() << "\t" << spcfile_->date();
@@ -190,30 +170,42 @@ MainWindow::actFileOpen()
 void
 MainWindow::actViewNext()
 {
-    if ( ++index_ < spcfile_->spchdr()->number_of_subfiles() ) {
+    draw( index_ + 1 );
+}
 
-        std::ostringstream o;
-        if ( auto sub = spcfile_->subhdr( index_ ) )
-            sub->dump_subhdr( o );
-        
-        auto * data = reinterpret_cast< const uint32_t * >( spcfile_->subhdr( index_ )->data() );
+void
+MainWindow::draw( size_t index )
+{
+    if ( index < spcfile_->number_of_subfiles() )
+        index_ = index;
+    else
+        index_ = 0;
 
-        std::shared_ptr< adcontrols::MassSpectrum > ms = std::make_shared< adcontrols::MassSpectrum >();
-        
-        ms->resize( spcfile_->spchdr()->fnpts() );
-        std::pair< double, double > range = std::make_pair( spcfile_->spchdr()->ffirst(), spcfile_->spchdr()->flast() );
-        ms->setAcquisitionMassRange( range.first, range.second );
-        for ( size_t i = 0; i < ms->size(); ++i ) {
-            ms->setMass( i, i * ( range.second - range.first ) / (ms->size() - 1) + range.first );
-            ms->setIntensity( i, data[i] );
-        }
-        if ( auto spw = findChild< adwplot::SpectrumWidget * >() )
-            spw->setData( ms, 0 );
-        
-        if ( QTextEdit * logw = findChild<QTextEdit *>() ) {
-            logw->clear();
-            logw->setText( o.str().c_str() );
-        }
+    std::ostringstream o;
+    if ( auto sub = spcfile_->subhdr( index_ ) )
+        sub->dump_subhdr( o );
+
+    auto * data = reinterpret_cast< const int32_t * >( spcfile_->subhdr( index_ )->data() );
+    int fexp = spcfile_->spchdr()->fexp();
+    
+    std::shared_ptr< adcontrols::MassSpectrum > ms = std::make_shared< adcontrols::MassSpectrum >();
+    
+    ms->resize( spcfile_->spchdr()->fnpts() );
+    std::pair< double, double > range = std::make_pair( spcfile_->spchdr()->ffirst(), spcfile_->spchdr()->flast() );
+    ms->setAcquisitionMassRange( range.first, range.second );
+    for ( size_t i = 0; i < ms->size(); ++i ) {
+        ms->setMass( i, i * ( range.second - range.first ) / (ms->size() - 1) + range.first );
+        ms->setIntensity( i, double( int64_t(data[i]) << fexp ) / double(0xffffffffL) );
+    }
+    if ( auto spw = findChild< adwplot::SpectrumWidget * >() ) {
+        spw->setTitle( ( boost::format( "%1%[%2%/%3%]" ) % fpath_ % (index_ + 1) % spcfile_->spchdr()->number_of_subfiles() ).str() );
+        spw->setKeepZoomed( false );
+        spw->setData( ms, 0 );
+    }
+    
+    if ( QTextEdit * logw = findChild<QTextEdit *>() ) {
+        logw->clear();
+        logw->setText( o.str().c_str() );
     }
 }
 
