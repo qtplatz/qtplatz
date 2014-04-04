@@ -28,11 +28,17 @@
 
 using namespace galactic;
 
-subhdr::subhdr( const SUBHDR * p ) : p_( p )
+subhdr::subhdr( const SUBHDR * p, const SPCHDR * spchdr ) : p_( p )
+                                                          , spchdr_( spchdr )
+                                                          , fexp_( unsigned( spchdr->fexp ) )
 {
+    if ( spchdr_->ftflgs & TMULTI )
+        fexp_ = p_->subexp;
 }
 
 subhdr::subhdr( const subhdr& t ) : p_( t.p_ )
+                                  , spchdr_( t.spchdr_ )
+                                  , fexp_( t.fexp_ )
 {
 }
 
@@ -90,10 +96,11 @@ subhdr::subwlevel() const
     return p_->subwlevel;             // W axis value (if fwplanes non-zero)
 }
 
-const uint8_t *
-subhdr::data() const
+double
+subhdr::operator [] ( size_t idx ) const
 {
-    return reinterpret_cast< const uint8_t *>(p_) + sizeof( SUBHDR );
+    const int32_t * data = reinterpret_cast< const int32_t * >( reinterpret_cast< const uint8_t *>(p_) + sizeof( SUBHDR ) );
+    return ( fexp_ == 0x80 ) ? double( data[ idx ] ) : double ( int64_t( data[ idx ] ) << fexp_ ) / double( 0xffffffffL );
 }
 
 void

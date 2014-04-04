@@ -40,11 +40,11 @@ spcfile::spcfile( std::istream& in, size_t fsize ) : device_( fsize, 0 )
         loaded_ = true;
         spchdr_ = new galactic::spchdr( reinterpret_cast< const SPCHDR * >( device_.data() ) );
         const char * psub = device_.data() + sizeof( SPCHDR );
-        subhdrs_.push_back( std::make_shared< galactic::subhdr >( reinterpret_cast< const SUBHDR * >( psub ) ) );
+        subhdrs_.push_back( std::make_shared< galactic::subhdr >( reinterpret_cast< const SUBHDR * >( psub ), spchdr_->p() ) );
         if ( spchdr_->isMultiFileFormat() ) {
             for ( size_t i = 1; i < spchdr_->number_of_subfiles(); ++i ) {
                 psub += sizeof( SUBHDR ) + spchdr_->fnpts() * sizeof(uint32_t);
-                subhdrs_.push_back( std::make_shared< galactic::subhdr >( reinterpret_cast< const SUBHDR * >( psub ) ) );
+                subhdrs_.push_back( std::make_shared< galactic::subhdr >( reinterpret_cast< const SUBHDR * >( psub ), spchdr_->p() ) );
             }
         }
 

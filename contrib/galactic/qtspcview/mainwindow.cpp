@@ -181,31 +181,30 @@ MainWindow::draw( size_t index )
     else
         index_ = 0;
 
+    std::pair< double, double > range = std::make_pair( spcfile_->spchdr()->ffirst(), spcfile_->spchdr()->flast() );
     std::ostringstream o;
-    if ( auto sub = spcfile_->subhdr( index_ ) )
+    if ( auto sub = spcfile_->subhdr( index_ ) ) {
         sub->dump_subhdr( o );
 
-    auto * data = reinterpret_cast< const int32_t * >( spcfile_->subhdr( index_ )->data() );
-    int fexp = spcfile_->spchdr()->fexp();
-    
-    std::shared_ptr< adcontrols::MassSpectrum > ms = std::make_shared< adcontrols::MassSpectrum >();
-    
-    ms->resize( spcfile_->spchdr()->fnpts() );
-    std::pair< double, double > range = std::make_pair( spcfile_->spchdr()->ffirst(), spcfile_->spchdr()->flast() );
-    ms->setAcquisitionMassRange( range.first, range.second );
-    for ( size_t i = 0; i < ms->size(); ++i ) {
-        ms->setMass( i, i * ( range.second - range.first ) / (ms->size() - 1) + range.first );
-        ms->setIntensity( i, double( int64_t(data[i]) << fexp ) / double(0xffffffffL) );
-    }
-    if ( auto spw = findChild< adwplot::SpectrumWidget * >() ) {
-        spw->setTitle( ( boost::format( "%1%[%2%/%3%]" ) % fpath_ % (index_ + 1) % spcfile_->spchdr()->number_of_subfiles() ).str() );
-        spw->setKeepZoomed( false );
-        spw->setData( ms, 0 );
-    }
-    
-    if ( QTextEdit * logw = findChild<QTextEdit *>() ) {
-        logw->clear();
-        logw->setText( o.str().c_str() );
+        const size_t npts = spcfile_->spchdr()->fnpts();
+        std::shared_ptr< adcontrols::MassSpectrum > ms = std::make_shared< adcontrols::MassSpectrum >();
+        ms->resize( npts );
+        ms->setAcquisitionMassRange( range.first, range.second );
+
+        for ( size_t i = 0; i < ms->size(); ++i ) {
+            ms->setMass( i, i * ( range.second - range.first ) / ( npts - 1 ) + range.first );
+            ms->setIntensity( i, (*sub)[i] );
+        }
+        if ( auto spw = findChild< adwplot::SpectrumWidget * >() ) {
+            spw->setTitle( ( boost::format( "%1%[%2%/%3%]" ) % fpath_ % (index_ + 1) % spcfile_->spchdr()->number_of_subfiles() ).str() );
+            spw->setKeepZoomed( false );
+            spw->setData( ms, 0 );
+        }
+        
+        if ( QTextEdit * logw = findChild<QTextEdit *>() ) {
+            logw->clear();
+            logw->setText( o.str().c_str() );
+        }
     }
 }
 

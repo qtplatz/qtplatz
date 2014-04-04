@@ -34,7 +34,7 @@ namespace galactic {
 
     class SPCFILESHARED_EXPORT subhdr {
     public:
-        subhdr( const SUBHDR * p );
+        subhdr( const SUBHDR * p, const SPCHDR * );
         subhdr( const subhdr& );
 
         uint8_t subflgs() const;
@@ -46,11 +46,13 @@ namespace galactic {
         uint32_t subnpts() const;
         uint32_t subscan() const;
         float subwlevel() const;
-        const uint8_t * data() const;
+        double operator [] ( size_t idx ) const;
         void dump_subhdr( std::ostream& ) const;
 
     private:
         const SUBHDR * p_;
+        const SPCHDR * spchdr_;
+        int fexp_;
     };
 
 }

@@ -36,6 +36,8 @@ namespace galactic {
     class SPCFILESHARED_EXPORT spchdr {
     public:
         spchdr( const SPCHDR * p );
+        const SPCHDR * p() const { return p_; }
+
         uint8_t ftflgs() const;
         // file data type flags
         bool isMultiFileFormat() const;
