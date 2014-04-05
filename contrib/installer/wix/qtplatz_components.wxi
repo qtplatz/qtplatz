@@ -1,0 +1,52 @@
+<Include>
+  <ComponentGroup Id="QtPlatzComponents" Directory="BIN">
+    <Component Id="qtplatz.exe" Guid="4EF69506-4DCB-4FAC-B0E7-ED0ED29A6F86" Win64="yes">
+      <File Id="qtplatz.exe" Source="../../../bin/qtplatz.exe" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="Aggregation.dll" Guid="1400C2E0-315D-4C37-9656-6E64DC7CF9D5" Win64="yes">
+      <File Id="Aggregation.dll" Source="../../../bin/Aggregation.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="ExtensionSystem.dll" Guid="CDDD8FCA-47A7-4A00-A097-3068ED2514D5" Win64="yes">
+      <File Id="ExtensionSystem.dll" Source="../../../bin/ExtensionSystem.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="Utils.dll" Guid="256923EE-0038-4DC8-AEE1-8656FB4AEA32" Win64="yes">
+      <File Id="Utils.dll" Source="../../../bin/Utils.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="adchem.dll" Guid="11EA8F0B-8085-4E5A-9099-7C2C8F613A16" Win64="yes">
+      <File Id="adchem.dll" Source="../../../bin/adchem.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="adlog.dll" Guid="C552E0A7-8257-471B-BB4A-F1E22A1B60C8" Win64="yes">
+      <File Id="adlog.dll" Source="../../../bin/adlog.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="adprot.dll" Guid="9A556689-4CB3-4C79-86E6-36E29A73E870" Win64="yes">
+      <File Id="adprot.dll" Source="../../../bin/adprot.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="adcontrols.dll" Guid="0D031AFE-599C-4D03-82FB-D3738A12A005" Win64="yes">
+      <File Id="adcontrols.dll" Source="../../../bin/adcontrols.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="adextension.dll" Guid="BC444E65-618D-4CCA-B160-9B1802E0573B" Win64="yes">
+      <File Id="adextension.dll" Source="../../../bin/adextension.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="adorbmgr.dll" Guid="B073E12B-27F7-4744-8168-DB38D8287D06" Win64="yes">
+      <File Id="adorbmgr.dll" Source="../../../bin/adorbmgr.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="adplugin.dll" Guid="F3CEA1D8-358F-4FB3-90CC-0DC90FE47B90" Win64="yes">
+      <File Id="adplugin.dll" Source="../../../bin/adplugin.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="adsequence.dll" Guid="984CF213-1076-45CD-B678-59CC3587480B" Win64="yes">
+      <File Id="adsequence.dll" Source="../../../bin/adsequence.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="adwidgets.dll" Guid="5291B834-A269-412E-BB5F-767BACD1DFB6" Win64="yes">
+      <File Id="adwidgets.dll" Source="../../../bin/adwidgets.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="chromatogr.dll" Guid="E6BFEE5D-0E0D-4A0C-8E4D-522971F81338" Win64="yes">
+      <File Id="chromatogr.dll" Source="../../../bin/chromatogr.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="portfolio.dll" Guid="E5403C7A-E0F2-42D5-9E4C-49C0175C8E97" Win64="yes">
+      <File Id="portfolio.dll" Source="../../../bin/portfolio.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="u5303a.dll" Guid="434D4261-7EE6-47C3-BF8F-C283EB53D07F" Win64="yes">
+      <File Id="u5303a.dll" Source="../../../bin/u5303a.dll" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+  </ComponentGroup>
+</Include>

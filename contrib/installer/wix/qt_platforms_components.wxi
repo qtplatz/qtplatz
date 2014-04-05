@@ -1,0 +1,13 @@
+<Include>
+  <ComponentGroup Id="QtPlatformsComponents" Directory="PLATFORMS">
+    <Component Id="qminimal.dll" Guid="A221C867-A374-43D0-8B45-5F1BE8E459F4" Win64="yes">
+      <File Id="qminimal.dll" Source="$(env.QTDIR)/plugins/platforms/qminimal.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="qoffscreen.dll" Guid="E45E437B-7918-4169-BD85-F1CF69CFB335" Win64="yes">
+      <File Id="qoffscreen.dll" Source="$(env.QTDIR)/plugins/platforms/qoffscreen.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="qwindows.dll" Guid="0037933B-61BF-42A7-8666-02D68DEB9B22" Win64="yes">
+      <File Id="qwindows.dll" Source="$(env.QTDIR)/plugins/platforms/qwindows.dll" ProcessorArchitecture="x64" />
+    </Component>
+  </ComponentGroup>
+</Include>

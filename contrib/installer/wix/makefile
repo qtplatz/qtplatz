@@ -7,7 +7,7 @@
 SH	= CMD.EXE
 TOP    	= ..
 
-TARGET 	= Release|Win32
+#TARGET 	= Release|Win32
 QTPLATZ_PATH = ..\..\..\..\qtplatz
 INFITOF_PATH = ..\..\..\..\infitof
 
@@ -20,11 +20,13 @@ MELT = "$(WIX)\bin\Melt.exe"
 TORCH = "$(WIX)\bin\Torch.exe"
 SMOKE = "$(WIX)\bin\Smoke.exe"
 PYRO = "$(WIX)\bin\Pyro.exe"
+#RM	= rm -f
+RM	= del
 
 all: qtplatz.msi
 
 clean:
-	rm -f *.msi *.wixobj version.wxi *.zip *.bat *.exe *.obj
+	$(RM) *.msi *.wixobj *.wixpdb version.wxi *.zip *.bat *.exe *.obj *~
 
 veryclean: clean
 	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Clean /p:Configuration=Release

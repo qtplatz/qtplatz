@@ -38,6 +38,7 @@ namespace adcontrols {
 }
 
 namespace portfolio { class Portfolio; }
+namespace galactic { class spcfile; }
 
 namespace galactic {
 
@@ -69,8 +70,10 @@ namespace galactic {
 		bool _open( const std::wstring&, bool );
 		static bool is_valid_datafile( const std::wstring& );
 	private:
+        std::shared_ptr< galactic::spcfile > spcfile_;
 		std::shared_ptr< adcontrols::ProcessedDataset > processedDataset_;
         std::wstring root_filename_; 
+        std::map< std::wstring, size_t > dataIds_;
 	};
 
 }

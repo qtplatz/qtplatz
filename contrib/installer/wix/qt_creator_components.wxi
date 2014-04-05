@@ -1,0 +1,8 @@
+<Include>
+  <ComponentGroup Id="QtCreatorComponents" Directory="PLUGINS_QTPROJECT">
+    <Component Id="Core.dll" Guid="772F0878-C577-463F-B478-5BEAE23C795A" Win64="yes">
+      <File Id="Core.pluginspec" Source="$(var.TOP)/lib/qtplatz/plugins/QtProject/Core.pluginspec" ProcessorArchitecture="x64" />
+      <File Id="Core.dll" Source="$(var.TOP)/lib/qtplatz/plugins/QtProject/Core.dll" ProcessorArchitecture="x64" />
+    </Component>
+  </ComponentGroup>
+</Include>

@@ -23,6 +23,9 @@
 **************************************************************************/
 
 #include "datafile.hpp"
+#include "../spcfile/spcfile.hpp"
+#include "../spcfile/spchdr.hpp"
+#include "../spcfile/subhdr.hpp"
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -35,13 +38,13 @@
 #include <boost/any.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/format.hpp>
 #include <vector>
 
 using namespace galactic;
 
 datafile::datafile()
 {
-	//memset(&acqu_, 0, sizeof( acqu_ ) );
 }
 
 //virtual
@@ -58,32 +61,21 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 
 // virtual
 boost::any
-datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
+datafile::fetch( const std::wstring& foliumGuid, const std::wstring& dataType ) const
 {
+	(void)dataType;
 	boost::any any;
-	boost::uint32_t x = 0;
-	std::vector< double > intens;
+    
+    auto it = dataIds_.find( foliumGuid ); 
 
-    (void)dataType;
+    if ( it != dataIds_.end() ) {
 
-	boost::filesystem::path fpath( path );
-	boost::uintmax_t n = boost::filesystem::file_size( path ) / 4;
+        auto ms = std::make_shared< adcontrols::MassSpectrum >();
 
-	adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum() );
-    pMS->resize( static_cast< size_t >( n ) );
+        if ( getSpectrum( 0, int(it->second), *ms, 0 ) )
+            any = ms;
 
-	boost::filesystem::ifstream rdfile( fpath, std::ios_base::binary );
-	size_t idx;
-	for ( idx = 0; idx < n && ! rdfile.eof(); ++idx ) {
-		rdfile.read( reinterpret_cast<char *>(&x), sizeof(x) );
-		pMS->setIntensity( idx, double( x ) );
-		//double fraction = acqu_.fMax - acqu_.fMax * idx / n + acqu_.ml2;
-		//double mz = acqu_.ml1 / fraction;
-		double mz = 0;
-		pMS->setMass( idx, mz );
-	}
-	pMS->setAcquisitionMassRange( 0, 0 ); //acqu_.mlow, acqu_.mhigh );
-	any = pMS;     
+    }
 	return any;
 }
 
@@ -105,7 +97,7 @@ datafile::getFunctionCount() const
 size_t
 datafile::getSpectrumCount( int /* fcn */ ) const
 {
-	return 0;
+    return spcfile_->spchdr()->number_of_subfiles();
 }
 
 //virtual
@@ -124,8 +116,24 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
 
 //virtual
 bool
-datafile::getSpectrum( int /* fcn*/, int /*idx*/, adcontrols::MassSpectrum&, uint32_t ) const
+datafile::getSpectrum( int /* fcn*/, int idx, adcontrols::MassSpectrum& ms, uint32_t /* objid */) const
 {
+    if ( idx < spcfile_->number_of_subfiles() ) {
+
+        const galactic::spchdr& hdr = *spcfile_->spchdr();
+        const galactic::subhdr& sub = *spcfile_->subhdr( idx );
+
+        std::pair< double, double > range = std::make_pair( hdr.ffirst(), hdr.flast() );
+        const size_t npts = hdr.fnpts();
+        ms.resize( npts );
+        ms.setAcquisitionMassRange( range.first, range.second );
+        
+        for ( int i = 0; i < npts; ++i ) {
+            ms.setMass( i, i * double(( range.second - range.first )) / ( npts - 1 ) + range.first );
+            ms.setIntensity( i, sub[i] );
+        }
+        return true;
+    }
 	return false;
 }
 
@@ -134,31 +142,36 @@ datafile::getSpectrum( int /* fcn*/, int /*idx*/, adcontrols::MassSpectrum&, uin
 bool
 datafile::_open( const std::wstring& filename, bool )
 {
-	boost::filesystem::path path( filename );
-	boost::filesystem::ifstream in( path, std::ios_base::binary );
+    boost::filesystem::path path( filename );
+    
+    if ( boost::filesystem::exists( path ) ) {
 
-	if ( in.fail() )
-		return false;
+        size_t fsize = boost::filesystem::file_size( path );
+        boost::filesystem::ifstream in( path, std::ios_base::binary );
+        
+        if ( spcfile_ = std::make_shared< galactic::spcfile >( in, fsize ) ) {
 
-    portfolio::Portfolio portfolio;
-	portfolio.create_with_fullpath( filename );
-    bool res = false;
-#if 0    
-    if ( boost::filesystem::is_regular_file( dw.root_dir / L"acqu" ) ) {
-        res = _1open( filename_, portfolio );
-    } else {
-        boost::filesystem::directory_iterator end;
-        for ( boost::filesystem::directory_iterator it( filename_ ); it != end; ++it ) {
-            if ( boost::filesystem::is_directory( *it / L"pdata" ) )
-                res = _1open( it->path().wstring(), portfolio );
+            portfolio::Portfolio portfolio;
+            portfolio.create_with_fullpath( filename );
+
+            auto folder = portfolio.addFolder( L"Spectra" );
+
+            for ( size_t i = 0; i < spcfile_->number_of_subfiles(); ++i ) {
+                // auto ms = std::make_shared< adcontrols::MassSpectrum >();
+                auto folium = folder.addFolium( ( boost::wformat( L"Spectrum(%1%)" ) % ( i + 1 ) ).str() );
+                folium.assign( boost::any(), adcontrols::MassSpectrum::dataClass() ); // set empty data, it will be fixed by 'fetch'
+                dataIds_[ folium.id() ] = i;
+            }
+
+            processedDataset_.reset( new adcontrols::ProcessedDataset );
+            processedDataset_->xml( portfolio.xml() );
+
+            return true;
+
         }
+
     }
-    if ( res ) {
-        processedDataset_.reset( new adcontrols::ProcessedDataset );
-        processedDataset_->xml( portfolio.xml() );
-    }
-#endif
-    return res;
+    return false;
 }
 
 size_t

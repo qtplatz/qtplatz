@@ -192,7 +192,7 @@ MainWindow::draw( size_t index )
         ms->setAcquisitionMassRange( range.first, range.second );
 
         for ( size_t i = 0; i < ms->size(); ++i ) {
-            ms->setMass( i, i * ( range.second - range.first ) / ( npts - 1 ) + range.first );
+            ms->setMass( i, i * double( range.second - range.first ) / ( npts - 1 ) + range.first );
             ms->setIntensity( i, (*sub)[i] );
         }
         if ( auto spw = findChild< adwplot::SpectrumWidget * >() ) {

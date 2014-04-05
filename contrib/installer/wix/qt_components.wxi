@@ -1,0 +1,61 @@
+<Include>
+  <ComponentGroup Id="QtComponents" Directory="BIN">
+    <Component Id="libEGL.dll" Guid="61C52CDF-5F57-40BF-99F8-786AF4377080" Win64="yes">
+      <File Id="libEGL.dll" Source="$(env.QTDIR)/bin/libEGL.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="libGLESv2.dll" Guid="8B9B0FB5-B223-4C2C-A83F-F9123EAFB82F" Win64="yes">
+      <File Id="libGLESv2.dll" Source="$(env.QTDIR)/bin/libGLESv2.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="icuin51.dll" Guid="08EFD3E1-2D9D-45E2-A133-5200207C156C" Win64="yes">
+      <File Id="icuin51.dll" Source="$(env.QTDIR)/bin/icuin51.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="icuuc51.dll" Guid="67F10816-BB66-4D2B-A163-29C456BC32B1" Win64="yes">
+      <File Id="icuuc51.dll" Source="$(env.QTDIR)/bin/icuuc51.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="icudt51.dll" Guid="BF5B9F29-F6E4-4436-841D-49B2F23199A4" Win64="yes">
+      <File Id="icudt51.dll" Source="$(env.QTDIR)/bin/icudt51.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5CLucene.dll" Guid="7A608D80-5B5C-4AEE-AAFF-178EA8F4196B" Win64="yes">
+      <File Id="Qt5CLucene.dll" Source="$(env.QTDIR)/bin/Qt5CLucene.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Core.dll" Guid="B5DCF2A2-FDE8-416C-91A5-87E19933C8C8" Win64="yes">
+      <File Id="Qt5Core.dll" Source="$(env.QTDIR)/bin/Qt5Core.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Gui.dll" Guid="B71A7BA9-97CC-4DF9-93F7-8DD99592F706" Win64="yes">
+      <File Id="Qt5Gui.dll" Source="$(env.QTDIR)/bin/Qt5Gui.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Help.dll" Guid="C46BFE3B-9ADA-4E6C-B61B-43AA57176614" Win64="yes">
+      <File Id="Qt5Help.dll" Source="$(env.QTDIR)/bin/Qt5Help.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Multimedia.dll" Guid="BE51BBC9-8A85-4419-BD80-5818F344BA1C" Win64="yes">
+      <File Id="Qt5Multimedia.dll" Source="$(env.QTDIR)/bin/Qt5Multimedia.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Network.dll" Guid="EF2CD9F2-D3A8-4F91-9105-5EC6F618D741" Win64="yes">
+      <File Id="Qt5Network.dll" Source="$(env.QTDIR)/bin/Qt5Network.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5OpenGL.dll" Guid="791B8C49-8BA2-48AE-8799-8E6197255242" Win64="yes">
+      <File Id="Qt5OpenGL.dll" Source="$(env.QTDIR)/bin/Qt5OpenGL.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5PrintSupport.dll" Guid="05D39EF7-127A-46AE-AEFF-3CCCCFD3257A" Win64="yes">
+      <File Id="Qt5PrintSupport.dll" Source="$(env.QTDIR)/bin/Qt5PrintSupport.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Script.dll" Guid="DC7BB0C0-BC87-44A6-84C7-677FA4DA8A41" Win64="yes">
+      <File Id="Qt5Script.dll" Source="$(env.QTDIR)/bin/Qt5Script.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Sql.dll" Guid="37DE7385-604F-4046-8258-43B5C4827ECD" Win64="yes">
+      <File Id="Qt5Sql.dll" Source="$(env.QTDIR)/bin/Qt5Sql.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Svg.dll" Guid="6FDFD795-3F6B-41C8-9743-ABBD59EF24C4" Win64="yes">
+      <File Id="Qt5Svg.dll" Source="$(env.QTDIR)/bin/Qt5Svg.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Widgets.dll" Guid="E7E173CB-1514-44FB-9EA4-A8AC58B7EBC9" Win64="yes">
+      <File Id="Qt5Widgets.dll" Source="$(env.QTDIR)/bin/Qt5Widgets.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5Xml.dll" Guid="44B3E3FD-0C76-4BBD-BE58-5D689603A30D" Win64="yes">
+      <File Id="Qt5Xml.dll" Source="$(env.QTDIR)/bin/Qt5Xml.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="Qt5XmlPatterns.dll" Guid="8A17AC88-7AE3-40AB-9A11-494DE78780DC" Win64="yes">
+      <File Id="Qt5XmlPatterns.dll" Source="$(env.QTDIR)/bin/Qt5XmlPatterns.dll" ProcessorArchitecture="x64" />
+    </Component>
+  </ComponentGroup>
+</Include>

@@ -1,0 +1,16 @@
+<Include>
+  <ComponentGroup Id="InfiTOFComponents" Directory="PLUGINS_MSCHEMINFORMATICS">
+    <Component Id="infitof.dll" Guid="812A8109-1937-4746-9AEA-886FAF62F861" Win64="yes">
+      <File Id="infitof.dll" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitof.dll" ProcessorArchitecture="x64" />
+      <File Id="infitof.pluginspec" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitof.pluginspec" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="infirawfile.dll" Guid="22A3685E-1854-49CB-9C33-5193CBC48CC7" Win64="yes">
+      <File Id="infirawfile.dll" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infirawfile.dll" ProcessorArchitecture="x64" />
+      <File Id="infirawfile.adplugin" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infirawfile.adplugin" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="infitofspectrometer.dll" Guid="21A0C747-09CE-4A8F-AC67-813837E58BFF" Win64="yes">
+      <File Id="infitofspectrometer.dll" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitofspectrometer.dll" ProcessorArchitecture="x64" />
+      <File Id="infitofspectrometer.adplugin" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitofspectrometer.adplugin" ProcessorArchitecture="x64" />
+    </Component>
+  </ComponentGroup>
+</Include>

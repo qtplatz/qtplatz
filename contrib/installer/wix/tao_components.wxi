@@ -1,0 +1,28 @@
+<Include>
+  <ComponentGroup Id="TAOComponents" Directory="BIN">
+    <Component Id="ACE.dll" Guid="217E3E3E-5658-4DDB-B4AF-202E5F3AB4ED" Win64="yes">
+      <File Id="ACE.dll" Source="$(var.InTAOLib)/ACE.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="TAO.dll" Guid="3FA54452-2A41-4563-8476-D1DE34D72165" Win64="yes">
+      <File Id="TAO.dll" Source="$(var.InTAOLib)/TAO.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="TAO_AnytypeCode.dll" Guid="CA979EE4-B020-4A0D-A4A2-EB6932E70B51" Win64="yes">
+      <File Id="TAO_AnytypeCode.dll" Source="$(var.InTAOLib)/TAO_AnytypeCode.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="TAO_CodecFactory.dll" Guid="4C0FA230-4199-4688-9D6E-E335919429ED" Win64="yes">
+      <File Id="TAO_CodecFactory.dll" Source="$(var.InTAOLib)/TAO_CodecFactory.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="TAO_Codeset.dll" Guid="E54AD1E3-C0B2-4E75-BA35-5E9AAFE7D6FE" Win64="yes">
+      <File Id="TAO_Codeset.dll" Source="$(var.InTAOLib)/TAO_Codeset.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="TAO_PI.dll" Guid="F5D5C4CE-0CD2-472D-BB32-4D95BB4AF268" Win64="yes">
+      <File Id="TAO_PI.dll" Source="$(var.InTAOLib)/TAO_PI.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="TAO_PortableServer.dll" Guid="F03CEBBC-3704-4387-8BFB-9D6C6929C909" Win64="yes">
+      <File Id="TAO_PortableServer.dll" Source="$(var.InTAOLib)/TAO_PortableServer.dll" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="TAO_Utils.dll" Guid="D0A6546B-3C1E-4D84-B8D6-94B1A075C91E" Win64="yes">
+      <File Id="TAO_Utils.dll" Source="$(var.InTAOLib)/TAO_Utils.dll" ProcessorArchitecture="x64" />
+    </Component>
+  </ComponentGroup>
+</Include>

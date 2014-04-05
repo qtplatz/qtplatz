@@ -6,16 +6,15 @@
 
 QT       -= gui
 
-include(../../contrib.pri)
-include(../../../src/boost.pri)
-include(../../../src/adplugin.pri)
-
-PROVIDER = MS-Cheminfomatics
-
 TARGET = galactic_spcfile
 TEMPLATE = lib
 
 DEFINES += GALACTIC_SPCFILE_LIBRARY
+
+include(../../contrib.pri)
+include(../../../src/boost.pri)
+include(../../../src/adplugin.pri)
+
 INCLUDEPATH += .
 INCLUDEPATH += $$QTPLATZ_SOURCE_TREE/src
 
