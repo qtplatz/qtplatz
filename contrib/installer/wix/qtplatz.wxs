@@ -13,6 +13,7 @@
             <ComponentGroupRef Id="QtCreatorComponents" />
             <ComponentGroupRef Id="QtPlatzComponents" />
             <ComponentGroupRef Id="SPCFileComponents" />
+            <ComponentGroupRef Id="SPCFilePluginComponents" />
             <ComponentGroupRef Id="XSDComponents" />
             <ComponentGroupRef Id="TAOComponents" />
             <ComponentGroupRef Id="MicrosoftComponents" />

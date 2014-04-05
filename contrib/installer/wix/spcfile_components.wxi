@@ -1,11 +1,13 @@
 <Include xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <ComponentGroup Id="SPCFileComponents" Directory="PLUGINS_MSCHEMINFORMATICS">
+  <ComponentGroup Id="SPCFilePluginComponents" Directory="PLUGINS_MSCHEMINFORMATICS">
     <Component Id="galactic_spcfile.dll" Guid="399012C2-D2EB-4978-AA90-6C730873EE51" Win64="yes">
       <File Id="galactic_spcfile.adplugin" Source="$(var.InMSCheminfo)/galactic_spcfile.adplugin" ProcessorArchitecture="x64" />
       <File Id="galactic_spcfile.dll" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/galactic_spcfile.dll" ProcessorArchitecture="x64" />
     </Component>
+  </ComponentGroup>
+  <ComponentGroup Id="SPCFileComponents" Directory="BIN">
     <Component Id="spcfile.dll" Guid="DF1570B0-EBA9-48D3-9776-717DB6FEFC90" Win64="yes">
-      <File Id="spcfile.dll" Source="$(var.TOP)/lib/qtplatz/spcfile.dll" ProcessorArchitecture="x64" />
+      <File Id="spcfile.dll" Source="../../../bin/spcfile.dll" ProcessorArchitecture="x64" KeyPath="yes" />
     </Component>
   </ComponentGroup>
 </Include>
