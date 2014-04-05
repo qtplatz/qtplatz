@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
         spcfile \
-        qtspcview \
-    galactic_spcfile
+        galactic_spcfile
 
+win32: SUBDIRS += qtspcview
 

@@ -171,9 +171,9 @@ spcfile::axis_type_x_string( int x )
         , "Millimeters (mm)"
         , "Hours"
     };
-    if ( x < sizeof( x_axis_types ) / sizeof( x_axis_types[0] ) )
+    if ( unsigned(x) < sizeof( x_axis_types ) / sizeof( x_axis_types[0] ) )
         return x_axis_types[ x ];
-    if ( x == XDBLIGM )
+    if ( unsigned(x) == XDBLIGM )
         return "Double interferogram (no display labels)";
     return "Unknown";
 }
@@ -209,7 +209,7 @@ spcfile::axis_type_y_string( int y )
         ,"Complex"
     };
 
-    if ( y < sizeof( y_axis_types ) / sizeof( y_axis_types[0] ) )
+    if ( unsigned(y) < sizeof( y_axis_types ) / sizeof( y_axis_types[0] ) )
         return y_axis_types[ y ];
 
     switch( y ) {

@@ -118,7 +118,7 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
 bool
 datafile::getSpectrum( int /* fcn*/, int idx, adcontrols::MassSpectrum& ms, uint32_t /* objid */) const
 {
-    if ( idx < spcfile_->number_of_subfiles() ) {
+    if ( unsigned( idx ) < spcfile_->number_of_subfiles() ) {
 
         const galactic::spchdr& hdr = *spcfile_->spchdr();
         const galactic::subhdr& sub = *spcfile_->subhdr( idx );
@@ -128,9 +128,9 @@ datafile::getSpectrum( int /* fcn*/, int idx, adcontrols::MassSpectrum& ms, uint
         ms.resize( npts );
         ms.setAcquisitionMassRange( range.first, range.second );
         
-        for ( int i = 0; i < npts; ++i ) {
-            ms.setMass( i, i * double(( range.second - range.first )) / ( npts - 1 ) + range.first );
-            ms.setIntensity( i, sub[i] );
+        for ( size_t i = 0; i < npts; ++i ) {
+            ms.setMass( int(i), i * double(( range.second - range.first )) / ( npts - 1 ) + range.first );
+            ms.setIntensity( int(i), sub[i] );
         }
         return true;
     }
@@ -149,7 +149,7 @@ datafile::_open( const std::wstring& filename, bool )
         size_t fsize = boost::filesystem::file_size( path );
         boost::filesystem::ifstream in( path, std::ios_base::binary );
         
-        if ( spcfile_ = std::make_shared< galactic::spcfile >( in, fsize ) ) {
+        if ( ( spcfile_ = std::make_shared< galactic::spcfile >( in, fsize ) ) ) {
 
             portfolio::Portfolio portfolio;
             portfolio.create_with_fullpath( filename );

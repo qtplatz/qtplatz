@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
 #include <memory>
 #include "spcfile_global.hpp"
 
