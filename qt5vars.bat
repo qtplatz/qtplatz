@@ -49,7 +49,7 @@ goto all_set
 :x86_vc11
 echo ======= setup for x86 32bit memory using VS2012 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x86
-set ACE_ROOT=%USERPROFILE%\src\vc11\ACE_wrappers
+set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86
 set TAO_ROOT=%ACE_ROOT%\TAO
 set QTDIR=C:\x86\Qt5.2.1\5.2.1\msvc2012
 set QWT=C:\x86\Qwt-6.1.1-svn
@@ -61,7 +61,7 @@ goto all_set
 :x64_vc12
 echo ======= setup for x64 64bit memory using VS2013 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers
+set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x64
 set TAO_ROOT=%ACE_ROOT%\TAO
 set PATH=C:\qt5\bin;%PATH%
 set QTDIR=C:\qt5
@@ -74,7 +74,7 @@ goto all_set
 :x86_vc12
 echo ======= setup for x86 32bit memory using VS2013 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
-set ACE_ROOT=%USERPROFILE%\src\vc11\ACE_wrappers
+set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86
 set TAO_ROOT=%ACE_ROOT%\TAO
 set QTDIR=C:\x86\qt5\qtbase
 set QWT=C:\x86\vc12\Qwt-6.1.1-svn
