@@ -62,6 +62,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -894,7 +895,9 @@ MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& inser
         path = path.parent_path() / path.stem();
 
         if ( portfolio::Folium folium = portfolio.findFolium( id ) ) {
-            path += ( insertor + folium.name() );
+            std::wstring name = folium.name();
+            boost::algorithm::trim( name );
+            path += ( insertor + name );
 
             boost::filesystem::path tpath = path;
             tpath.replace_extension( extension );

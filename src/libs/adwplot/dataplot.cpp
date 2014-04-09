@@ -224,6 +224,6 @@ Dataplot::copyImageToFile( Dataplot * plot, const QString& file, const char * fo
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
 
-    renderer.renderDocument( plot, file, format, QSizeF( 240, 180 ), 150 );
+    renderer.renderDocument( plot, file, format, QSizeF( 320, 80 ), 150 );
 }
 
