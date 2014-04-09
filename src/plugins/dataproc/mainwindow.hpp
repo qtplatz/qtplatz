@@ -90,6 +90,8 @@ namespace dataproc {
 
         void proteinSelected( const adprot::digestedPeptides& );
 
+        static QString makePrintFilename( const std::wstring& id, const std::wstring& insertor = L"__", const char * extension = ".svg" );
+
     public slots:
         void handleSessionAdded( Dataprocessor * );
         void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );

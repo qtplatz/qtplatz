@@ -149,7 +149,7 @@ DataprocessWorker::clusterSpectrogram( Dataprocessor * processor )
 }
 
 void
-DataprocessWorker::findPeptide( Dataprocessor * processor, const adprot::digestedPeptides& peptides )
+DataprocessWorker::findPeptide( Dataprocessor * processor, const adprot::digestedPeptides& /*peptides*/ )
 {
 	qtwrapper::ProgressBar * p = new qtwrapper::ProgressBar;
 

@@ -54,11 +54,14 @@
 #include <adwidgets/peptidewidget.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
+#include <portfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -879,4 +882,29 @@ MainWindow::actClusterSpectrogram()
 {
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )
         processor->clusterSpectrogram();
+}
+
+QString
+MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& insertor, const char * extension )
+{
+    if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        portfolio::Portfolio portfolio = dp->getPortfolio();
+
+        boost::filesystem::path path( portfolio.fullpath() );
+        path = path.parent_path() / path.stem();
+
+        if ( portfolio::Folium folium = portfolio.findFolium( id ) ) {
+            path += ( insertor + folium.name() );
+
+            boost::filesystem::path tpath = path;
+            tpath.replace_extension( extension );
+            int nnn = 0;
+            while( boost::filesystem::exists( tpath ) ) {
+				tpath = path.wstring() + ( boost::wformat(L"(%d)") % nnn++ ).str();
+                tpath.replace_extension( extension );
+            }
+            return QString::fromStdString( tpath.string() );
+        }
+    }
+    return QString();
 }

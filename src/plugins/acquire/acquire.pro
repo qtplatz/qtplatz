@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += gui svg
+QT       += gui svg printsupport
 
 TARGET = acquire
 TEMPLATE = lib

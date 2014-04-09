@@ -57,6 +57,9 @@ namespace adwplot {
 
         QRectF zoomRect() const;
         inline Zoomer& zoomer() { return *zoomer1_; } // left bottom
+
+        static void copyToClipboard( Dataplot * );
+        static void copyImageToFile( Dataplot *, const QString& file, const char * format = "svg" );
     
     private:
         typedef std::vector<Dataplot *> plotlink;

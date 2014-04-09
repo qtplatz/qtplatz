@@ -36,6 +36,10 @@
 #include <qwt_scale_widget.h>
 #include <adportable/utf.hpp>
 #include <algorithm>
+#include <qwt_plot_renderer.h>
+#include <QApplication>
+#include <QClipboard>
+#include <QSvgGenerator>
 
 using namespace adwplot;
 
@@ -194,5 +198,32 @@ Dataplot::unlink()
 		plotlink_->erase( std::remove( plotlink_->begin(), plotlink_->end(), this ) );
 		plotlink_.reset();
 	}
+}
+
+//static
+void
+Dataplot::copyToClipboard( Dataplot * plot )
+{
+    //QRectF rc = plot->zoomRect();
+    QImage img( plot->size(), QImage::Format_ARGB32 );
+    QPainter painter(&img);
+
+    QwtPlotRenderer renderer;
+    renderer.render( plot, &painter, plot->rect() );
+    if ( QClipboard * clipboard = QApplication::clipboard() )
+        clipboard->setImage( img );
+}
+
+//static
+void
+Dataplot::copyImageToFile( Dataplot * plot, const QString& file, const char * format )
+{
+    QwtPlotRenderer renderer;
+
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+
+    renderer.renderDocument( plot, file, format, QSizeF( 240, 180 ), 150 );
 }
 
