@@ -590,7 +590,7 @@ MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
     
     std::array< QAction *, 2 > fixedActions;
     fixedActions[ 0 ] = menu.addAction( "Copy to Clipboard" );
-    fixedActions[ 0 ] = menu.addAction( "Save as SVG File..." );
+    fixedActions[ 1 ] = menu.addAction( "Save as SVG File..." );
     
     QAction * selectedItem = menu.exec( QCursor::pos() );
     if ( fixedActions[ 0 ] == selectedItem )
