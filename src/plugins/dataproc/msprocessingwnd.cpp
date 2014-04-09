@@ -598,7 +598,7 @@ MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
     else if ( fixedActions[ 1 ] == selectedItem ) {
         QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File", MainWindow::makePrintFilename( idSpectrumFolium_, L"_power_" ), tr("SVG (*.svg)") );
         if ( ! name.isEmpty() )
-            adwplot::Dataplot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );
+            adwplot::Dataplot::copyImageToFile( pImpl_->pwplot_, name, "svg" );
     }
 }
 
