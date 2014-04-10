@@ -900,11 +900,10 @@ MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& inser
             path += ( insertor + name );
 
             boost::filesystem::path tpath = path;
-            tpath.replace_extension( extension );
+            tpath += extension;
             int nnn = 0;
             while( boost::filesystem::exists( tpath ) ) {
-				tpath = path.wstring() + ( boost::wformat(L"(%d)") % nnn++ ).str();
-                tpath.replace_extension( extension );
+				tpath = path.wstring() + ( boost::wformat(L"(%d)%s") % nnn++ % extension).str();
             }
             return QString::fromStdString( tpath.string() );
         }
