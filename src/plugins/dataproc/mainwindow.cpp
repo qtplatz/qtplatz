@@ -78,6 +78,7 @@
 #include <coreplugin/icore.h>
 #include <utils/styledbar.h>
 
+#include <QDir>
 #include <QDockWidget>
 #include <QMenu>
 #include <QMessageBox>
@@ -910,3 +911,52 @@ MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& inser
     }
     return QString();
 }
+
+//static
+QString
+MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int nbsp )
+{
+    QString o;
+
+    if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+
+        while ( nbsp-- )
+            o += "&nbsp;";
+
+        portfolio::Portfolio portfolio = dp->getPortfolio();
+        boost::filesystem::path path( portfolio.fullpath() );
+
+        QDir dir( QString::fromStdWString( path.wstring() ) );
+        dir.cdUp();
+        dir.cdUp();
+        o += dir.relativeFilePath( path.string().c_str() );
+        o += insertor;
+
+        if ( portfolio::Folium folium = portfolio.findFolium( id ) ) {
+            std::wstring name = folium.name();
+            boost::algorithm::trim( name );
+            o += QString::fromStdWString( name );
+        }
+        return o;
+    }
+    return QString();
+    
+}
+
+
+//static
+std::wstring
+MainWindow::foliumName( const std::wstring& id )
+{
+    if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        portfolio::Portfolio portfolio = dp->getPortfolio();
+
+        if ( portfolio::Folium folium = portfolio.findFolium( id ) ) {
+            std::wstring name = folium.name();
+            boost::algorithm::trim( name );
+            return name;
+        }
+    }
+    return std::wstring();
+}
+

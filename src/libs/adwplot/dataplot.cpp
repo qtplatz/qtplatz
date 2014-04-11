@@ -65,16 +65,9 @@ Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
 }
 
 void
-Dataplot::setTitle( const std::wstring& text )
+Dataplot::setTitle( const QString& text )
 {
-    std::string utf8 = adportable::utf::to_utf8( text );
-    setTitle( utf8 );
-}
-
-void
-Dataplot::setTitle( const std::string& text )
-{
-	QwtText qwtText( text.c_str(), QwtText::RichText );
+	QwtText qwtText( text, QwtText::RichText );
     QFont font = qwtText.font();
 
     qtwrapper::font::setFont( font, qtwrapper::fontSizePlotTitle, qtwrapper::fontPlotTitle );
@@ -85,21 +78,39 @@ Dataplot::setTitle( const std::string& text )
 }
 
 void
-Dataplot::setFooter( const std::wstring& text )
+Dataplot::setTitle( const std::wstring& text )
 {
-    std::string utf8 = adportable::utf::to_utf8( text );
-    setFooter( utf8 );
+    setTitle( QString::fromStdWString( text ) );
 }
 
 void
-Dataplot::setFooter( const std::string& text )
+Dataplot::setTitle( const std::string& text )
 {
-	QwtText qwtText( text.c_str(), QwtText::RichText );
+    setTitle( QString::fromStdString( text ) );
+}
+
+void
+Dataplot::setFooter( const QString& text )
+{
+	QwtText qwtText( text, QwtText::RichText );
     QFont font = qwtText.font();
     qwtText.setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizePlotFooter, qtwrapper::fontPlotFooter ) );
     qwtText.setRenderFlags( Qt::AlignRight | Qt::AlignBottom );
     QwtPlot::setFooter( qwtText );
 }
+
+void
+Dataplot::setFooter( const std::string& text )
+{
+    setFooter( QString::fromStdString( text ) );
+}
+
+void
+Dataplot::setFooter( const std::wstring& text )
+{
+    setFooter( QString::fromStdWString( text ) );
+}
+
 
 QRectF
 Dataplot::zoomRect() const

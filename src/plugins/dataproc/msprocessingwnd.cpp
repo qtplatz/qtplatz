@@ -204,10 +204,10 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
     pProfileSpectrum_ = ptr;
     pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
-	std::wostringstream title;
+    QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: ptr->getDescriptions() )
-		title << text.text() << L", ";
-	pImpl_->profileSpectrum_->setTitle( title.str() );
+		title += QString::fromStdWString( text.text() + L", " );
+	pImpl_->profileSpectrum_->setTitle( title );
     pImpl_->processedSpectrum_->clear();
 	drawIdx2_ = 0;
 }
@@ -219,10 +219,12 @@ MSProcessingWnd::draw1()
         if ( drawIdx1_ )
             --drawIdx1_;
         pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
-        std::wostringstream title;
+
+        QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
         for ( auto text: ptr->getDescriptions() )
-            title << text.text() << L", ";
-        pImpl_->profileSpectrum_->setTitle( title.str() );
+            title += QString::fromStdWString( text.text() + L", " );
+
+        pImpl_->profileSpectrum_->setTitle( title );
         pImpl_->processedSpectrum_->clear();
     }
 }
@@ -329,10 +331,9 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 
                 if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-                    draw1( ptr ); // profile
-
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
+					draw1( ptr ); // profile
 
                     if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
                                 return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
@@ -520,8 +521,12 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 std::vector< double > freq, power;
                 double y_dc(0), y_nyquist(0);
                 if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
+                    std::ostringstream o;
+                    o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist;
+                    QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
+
                     pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
-                    pImpl_->pwplot_->setTitle( (boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist).str() );
+                    pImpl_->pwplot_->setTitle( title );
                 }
             }
         }
@@ -559,8 +564,13 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                     std::vector< double > freq, power;
                     double y_dc(0), y_nyquist(0);
                     if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
+
+                        std::ostringstream o;
+                        o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist;
+                        QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
+
                         pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
-                        pImpl_->pwplot_->setTitle( (boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist).str() );
+                        pImpl_->pwplot_->setTitle( title );
                     }
                 }
                 return;

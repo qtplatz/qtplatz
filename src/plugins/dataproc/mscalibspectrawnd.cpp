@@ -326,7 +326,7 @@ void
 MSCalibSpectraWnd::replotSpectra()
 {
     if ( margedSpectrum_ ) {
-        wndSpectra_[ 0 ]->setTitle( "Coadded spectrum" );
+        wndSpectra_[ 0 ]->setTitle( QString("Coadded spectrum") );
         wndSpectra_[ 0 ]->setData( margedSpectrum_, 0 );
     }
 
