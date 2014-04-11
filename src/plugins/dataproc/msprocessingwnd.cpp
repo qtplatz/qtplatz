@@ -72,6 +72,7 @@
 #include <boost/variant.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/exception/all.hpp>
 #include "selchanged.hpp"
 #include <sstream>
 #include <array>
@@ -759,30 +760,35 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 bool
 MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
 {
-    const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.c_str() );
-    const adcontrols::ScanLaw& law = model.getScanLaw();
-    ADTRACE() << model_name;
+    try {
+        const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.c_str() );
+        const adcontrols::ScanLaw& law = model.getScanLaw();
+        ADTRACE() << model_name;
 
-	std::pair< double, double > mass_range;
+        std::pair< double, double > mass_range;
 
-	if ( auto x = this->pProfileSpectrum_.lock() ) {
+        if ( auto x = this->pProfileSpectrum_.lock() ) {
 
-		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
+            adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
 
-		for ( auto& ms: segments ) {
-			for ( size_t idx = 0; idx < ms.size(); ++idx ) {
-				double m = law.getMass( ms.getTime( idx ), 0 );
-                ms.setMass( idx, m );
-				if ( idx == 0 )
-					mass_range.first = std::min( mass_range.first, m );
-				if ( idx == ms.size() - 1 )
-					mass_range.second = std::max( mass_range.second, m );
-			}
-		}
-		x->setAcquisitionMassRange( mass_range.first, mass_range.second );
-	}
+            for ( auto& ms: segments ) {
+                for ( size_t idx = 0; idx < ms.size(); ++idx ) {
+                    double m = law.getMass( ms.getTime( idx ), 0 );
+                    ms.setMass( idx, m );
+                    if ( idx == 0 )
+                        mass_range.first = std::min( mass_range.first, m );
+                    if ( idx == ms.size() - 1 )
+                        mass_range.second = std::max( mass_range.second, m );
+                }
+            }
+            x->setAcquisitionMassRange( mass_range.first, mass_range.second );
+        }
 	
-	return true;
+        return true;
+    } catch ( boost::exception& ex ) {
+        ADERROR() << boost::diagnostic_information( ex );
+        return false;
+    }
 }
 
 double
