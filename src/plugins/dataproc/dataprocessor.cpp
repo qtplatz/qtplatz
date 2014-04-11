@@ -582,6 +582,8 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
     if ( portfolio::Folder folder = portfolio_->findFolder( L"Spectra" ) ) {
 
         for ( portfolio::Folium folium: folder.folio() ) {
+
+			this->fetch( folium );
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr > ( folium ) ) {
 
 				if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {

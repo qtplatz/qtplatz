@@ -150,8 +150,7 @@ spectrum_processor::tic( unsigned int nbrSamples, const int32_t * praw, double& 
     double ax = 0;
     for ( size_t i = 0; i < nbrSamples; ++i )
         ax += praw[ i ] - dbase;
-    return ax; //avgr.average() - dbase;
-    // return avgr.average() - dbase;
+    return ax; 
 }
 
 double
@@ -304,8 +303,6 @@ namespace adportable { namespace peakfind {
                 // replace
                 if ( stack_.top().type() == c.type() )  { // marge
                     stack_.top() += c;  // marge
-                    //stack_.pop();
-                    //stack_.push( c );  // replace
                 }
 
                 // if (Up - Down)|(Down - Up), should push counter and wait for next state
@@ -338,9 +335,20 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
     pdebug_.resize( nbrSamples );
     memset( &pdebug_[0], 0, sizeof(double) * nbrSamples );
 
-	array_wrapper<const double>::iterator xIt = px.begin() + nbrSamples / 5;
-    array_wrapper<const double>::iterator it = std::upper_bound( xIt, px.end(),*xIt + peakwidth_ );
-    size_t w = std::distance( xIt, it );  // make odd
+    size_t w = 7; // std::distance( xIt, it );  // make odd
+
+    if ( width_method_ == TOF ) {
+		if ( ( pX[0] < atmz_ ) && ( atmz_ + peakwidth_ < pX[ nbrSamples - 1 ] ) ) {
+			array_wrapper<const double>::iterator xIt1 = std::upper_bound( px.begin(), px.end(), atmz_ );
+			array_wrapper<const double>::iterator xIt2 = std::upper_bound( xIt1, px.end(), atmz_ + peakwidth_ );
+			w = std::distance( xIt1, xIt2 );
+		} else {
+			array_wrapper<const double>::iterator xIt1 = std::upper_bound( px.begin(), px.end(), pX[ nbrSamples / 4 ] );
+			array_wrapper<const double>::iterator xIt2 = std::upper_bound( xIt1, px.end(), *xIt1 + peakwidth_ );
+			w = std::distance( xIt1, xIt2 );
+		}
+    }
+
     size_t noise = 5; // assume LSB noise
     size_t N = ( w < 5 ) ? 5 : ( w > 25 ) ? 25 : w | 0x01;
     size_t NH = N / 2;
@@ -383,7 +391,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
             results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, pY[ peak.first.bpos_ ] ) );
     }
 
-    return 0;
+    return results_.size();
 }
 
 bool

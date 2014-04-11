@@ -74,8 +74,6 @@ namespace adcontrols {
             MassSpectrum clone_;
             CentroidMethod method_;
             Description desc_;
-        public:
-            MassSpectrum debug_profile_;
         };
 
         struct timeFunctor {
@@ -133,11 +131,6 @@ bool
 CentroidProcess::getCentroidSpectrum( MassSpectrum& ms )
 {
 	pImpl_->copy( ms );
-
-#if defined DEBUG_CENTROID_PROCESS
-    ms = pImpl_->debug_profile_;
-    return true;
-#endif
 
 	size_t nSize;
 	if ( pImpl_ && ( nSize = pImpl_->info_.size() ) ) {
@@ -213,26 +206,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
         finder.atmz_ = method_.rsTofAtMz();
     }
 
-    // buffer for smoothing
-    std::unique_ptr< double [] > pY( new double [ profile.size() ] );
-    uint32_t nAverage = 3;
-	size_t nSize = profile.size();
-	if ( nSize < 3 )
-		return;
-	
-	while ( ( profile.getMass( nAverage ) - profile.getMass( 0 ) ) < finder.peakwidth_ && nAverage <= nSize )
-		++nAverage;
-	nAverage |= 1; // make odd
-    if ( nAverage > 7 )
-		nAverage = 7;
-	
-	spectrum_processor::moving_average( profile.size(), pY.get(), profile.getIntensityArray(), nAverage );
-    finder( profile.size(), profile.getMassArray(), pY.get() );
-
-#if defined DEBUG_CENTROID_PROCESS
-    debug_profile_ = profile;
-    // debug_profile_.setIntensityArray( &finder.pdebug_[0] );
-#endif
+    finder( profile.size(), profile.getMassArray(), profile.getIntensityArray() );
 
     array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
     array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
@@ -243,6 +217,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 	info_.mode( profile.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
 
     for ( adportable::peakinfo& pk: finder.results_ ) {
+
         adportable::array_wrapper<const double>::iterator it = 
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
 
@@ -307,15 +282,13 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 // MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time );
                 item.peak_start_index( uint32_t(pk.first) );
                 item.peak_end_index( uint32_t(pk.second) );
-                info_ << item;
+				
+				if ( item.widthHH() >= finder.peakwidth_ / 4)
+					info_ << item;
             }
         } while(0);
-
-#if defined DEBUG_CENTROID_PROCESS
-        debug_profile_.setIntensity( pair.first, 50000 );
-        debug_profile_.setIntensity( pair.second, 25000 );
-#endif
     }
+
     toferror /= toferror_weight;
     if ( toferror >= 20.0e-12 ) // warning if error was 20ps or larger
         adportable::debug(__FILE__, __LINE__ ) << "centroid tof interporation error: " << toferror * 1e12 << "ps";
