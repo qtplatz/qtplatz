@@ -284,7 +284,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 
     size_t spCount = getSpectrumCount( 0 );
     if ( endPos < 0 || endPos >= int( spCount ) )
-        endPos = spCount - 1;
+        endPos = int(spCount) - 1;
 
     size_t nData = endPos - begPos + 1;
     uint64_t npos = npos0_ + begPos;
@@ -320,7 +320,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 
     for ( size_t i = 0; i < nData; ++i ) {
 
-        progress( i, nData );
+        progress( i, int(nData) );
 
         adcontrols::MassSpectrum ms;
         adcontrols::translate_state state;
@@ -341,7 +341,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
             }
             const adportable::spectrum_processor::areaFraction& frac = fractions[ nch ];
             double base(0), rms(0);
-			double tic = adportable::spectrum_processor::tic( fms.size(), fms.getIntensityArray(), base, rms );
+			double tic = adportable::spectrum_processor::tic( uint32_t(fms.size()), fms.getIntensityArray(), base, rms );
 			(void)tic;
 			(void)rms;
 			double d = adportable::spectrum_processor::area( frac, base, fms.getIntensityArray(), fms.size() );
