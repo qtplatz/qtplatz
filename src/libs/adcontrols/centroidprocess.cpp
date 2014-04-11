@@ -219,12 +219,13 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 	size_t nSize = profile.size();
 	if ( nSize < 3 )
 		return;
-
+	
 	while ( ( profile.getMass( nAverage ) - profile.getMass( 0 ) ) < finder.peakwidth_ && nAverage <= nSize )
 		++nAverage;
-    if ( nAverage >= 26 )
-		nAverage = 25;
-
+	nAverage |= 1; // make odd
+    if ( nAverage > 7 )
+		nAverage = 7;
+	
 	spectrum_processor::moving_average( profile.size(), pY.get(), profile.getIntensityArray(), nAverage );
     finder( profile.size(), profile.getMassArray(), pY.get() );
 

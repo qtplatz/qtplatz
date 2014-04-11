@@ -128,9 +128,9 @@ namespace adcontrols {
         uint32_t time_since_injection_; // msec
         double instAccelVoltage_;       // for scan law
         double instTDelay_;             // for scan law
-        uint32_t deprecated_instNumAvrg_;
-        uint32_t deprecated_instSamplingStartDelay_;
-        uint32_t deprecated_instSamplingInterval_; // ps
+        uint32_t deprecated_instNumAvrg_;               // use sampleData
+        uint32_t deprecated_instSamplingStartDelay_;    // use sampleData
+        uint32_t deprecated_instSamplingInterval_;      // use sampleData
         std::string dataInterpreterClsid_;
         std::string deviceData_;
         std::vector< double > deprecated_coeffs_; // deprecated
@@ -153,7 +153,6 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( samplingData_ );
                 ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
                 ar & BOOST_SERIALIZATION_NVP( deviceData_ );
-                // ar & BOOST_SERIALIZATION_NVP( deprecated_coeffs_ );
             } else {
                 ar & BOOST_SERIALIZATION_NVP(time_since_injection_);
                 ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
