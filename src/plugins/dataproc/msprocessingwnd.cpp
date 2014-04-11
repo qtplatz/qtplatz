@@ -47,6 +47,7 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adportable/fft.hpp>
+#include <adportable/timesquaredscanlaw.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwplot/picker.hpp>
 #include <adwplot/peakmarker.hpp>
@@ -787,9 +788,43 @@ MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
         return true;
     } catch ( boost::exception& ex ) {
         ADERROR() << boost::diagnostic_information( ex );
-        return false;
+        return assign_masses_to_profile();
     }
 }
+
+bool
+MSProcessingWnd::assign_masses_to_profile()
+{
+	adportable::TimeSquaredScanLaw law;
+
+    std::pair< double, double > mass_range;
+    
+    if ( auto x = this->pProfileSpectrum_.lock() ) {
+        
+        adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
+        
+        for ( auto& ms: segments ) {
+            for ( size_t idx = 0; idx < ms.size(); ++idx ) {
+                double m = law.getMass( ms.getTime( idx ), 0 );
+                ms.setMass( idx, m );
+                if ( idx == 0 )
+                    mass_range.first = std::min( mass_range.first, m );
+                if ( idx == ms.size() - 1 )
+                    mass_range.second = std::max( mass_range.second, m );
+            }
+        }
+        x->setAcquisitionMassRange( mass_range.first, mass_range.second );
+
+        adcontrols::MSProperty prop( x->getMSProperty() );
+		prop.acceleratorVoltage( law.kAcceleratorVoltage() );
+		prop.tDelay( law.tDelay() );
+		x->setMSProperty( prop );
+
+        return true;
+    }
+    return false;
+}
+
 
 double
 MSProcessingWnd::correct_baseline()
