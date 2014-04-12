@@ -81,7 +81,7 @@ namespace adportable {
             {
                 // left triangle
                 //
-                //  90deg rotated triangle (h == time axis)
+                //  90deg clockwise rotated triangle (h == time axis)
                 //     /|
                 //    / | h   A  = (1/2) a * h;
                 //   /__|     Gy = (1/3) * h

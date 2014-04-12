@@ -43,11 +43,11 @@ namespace adportable {
     static const double __norm5__ = 10;
     static const double __1st_derivative5__[] = { 0, 1, 2 };
 
-    static const double __norm7__ = 28;
-    static const double __1st_derivative7__[] = { 0, 1, 2, 3 };
+    // //static const double __norm7__ = 28;
+    // static const double __1st_derivative7__[] = { 0, 1, 2, 3 };
 
-    static const double __norm9__ = 60;
-    static const double __1st_derivative9__[] = { 0, 1, 2, 3, 4 };
+    // //static const double __norm9__ = 60;
+    // static const double __1st_derivative9__[] = { 0, 1, 2, 3, 4 };
 
     template<typename T> static inline double convolute(const T * py) {
         double fxi;
@@ -361,7 +361,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
     if ( state.width_ < 3 )
         state.width_ = 3;
 
-	averager base;
+	//averager base;
     for ( size_t x = NH; x < nbrSamples - NH; ++x ) {
         double d1 = diff( &pY[x] );
         bool reduce = false;

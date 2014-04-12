@@ -220,7 +220,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 
         adportable::array_wrapper<const double>::iterator it = 
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
-
+        
         double h = *it - pk.base;
         double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
         size_t idx = std::distance( intens.begin(), it );
