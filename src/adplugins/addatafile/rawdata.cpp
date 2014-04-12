@@ -320,7 +320,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 
     for ( size_t i = 0; i < nData; ++i ) {
 
-        progress( i, int(nData) );
+        progress( int(i), int(nData) );
 
         adcontrols::MassSpectrum ms;
         adcontrols::translate_state state;

@@ -35,6 +35,7 @@
 #include <stack>
 #include <stdexcept>
 #include <algorithm>
+#include <numeric>
 
 using namespace adportable;
 
@@ -128,7 +129,7 @@ namespace adportable {
 }
 
 double
-spectrum_processor::tic( unsigned int nbrSamples, const int32_t * praw, double& dbase, double& rms, size_t N )
+spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase, double& rms, size_t N )
 {
     averager base;
     averager avgr;
@@ -154,7 +155,7 @@ spectrum_processor::tic( unsigned int nbrSamples, const int32_t * praw, double& 
 }
 
 double
-spectrum_processor::tic( unsigned int nbrSamples, const double * praw, double& dbase, double& rms, size_t N )
+spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, double& rms, size_t N )
 {
     averager base;
     averager avgr;
@@ -300,7 +301,6 @@ namespace adportable { namespace peakfind {
                     }
                 }
 
-                // replace
                 if ( stack_.top().type() == c.type() )  { // marge
                     stack_.top() += c;  // marge
                 }
@@ -348,47 +348,58 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
 			w = std::distance( xIt1, xIt2 );
 		}
     }
+    double dbase(0), rms(0);
+    spectrum_processor::tic( nbrSamples, pY, dbase, rms );
 
-    size_t noise = 5; // assume LSB noise
+    // int noise = int(rms); //5; // assume LSB noise
     size_t N = ( w < 5 ) ? 5 : ( w > 25 ) ? 25 : w | 0x01;
     size_t NH = N / 2;
 
-    double slope = double( noise ) / double( w );
+    double slope = double( 40 ) / double( w * 8 );
     adportable::differential<double> diff( static_cast<long>(N), 1 );
 
     peakfind::slope_state<peakfind::counter> state;
     state.width_ = w / 8;
     if ( state.width_ < 3 )
         state.width_ = 3;
+    
+    double base_avg = dbase;
+    size_t base_pos = 0, base_c = 0;
 
-	//averager base;
     for ( size_t x = NH; x < nbrSamples - NH; ++x ) {
         double d1 = diff( &pY[x] );
         bool reduce = false;
-        if ( d1 >= slope )
+        if ( d1 >= slope ) {
+            if ( base_c = std::min( base_c, w * 2 ) )
+                base_avg = std::accumulate( py.begin() + base_pos - base_c, py.begin() + base_pos, 0.0 ) / double(base_c);
+            base_c = 0;
             reduce = state.process_slope( peakfind::counter( x, peakfind::Up ) );
-        else if ( d1 <= (-slope ) )
+        } else if ( d1 <= (-slope ) ) {
+            base_c = 0;
             reduce = state.process_slope( peakfind::counter( x, peakfind::Down ) );
-
-        pdebug_[x] = d1;
-        if ( reduce ) {
-
-            std::pair< peakfind::counter, peakfind::counter > peak;
-
-            while ( state.reduce( peak ) )
-				results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, pY[ peak.first.bpos_ ] ) );
-
+        } else {
+            if ( state.stack_.size() < 2 ) {
+                ++base_c;
+                base_pos = x;
+            }
         }
+    
+        if ( reduce ) {
+            std::pair< peakfind::counter, peakfind::counter > peak;
+            while ( state.reduce( peak ) )
+				results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, base_avg ) ); //pY[ peak.first.bpos_] ) );
+        } 
     }
 
     if ( ! state.stack_.empty() ) {
+
         if ( state.stack_.top().type() == peakfind::Down )
             state.stack_.push( peakfind::counter( nbrSamples - 1, peakfind::None ) ); // dummy
 
         std::pair< peakfind::counter, peakfind::counter > peak;
 
         while ( state.reduce( peak ) )
-            results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, pY[ peak.first.bpos_ ] ) );
+            results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, base_avg ) ); //pY[ peak.first.bpos_ ] ) );
     }
 
     return results_.size();
