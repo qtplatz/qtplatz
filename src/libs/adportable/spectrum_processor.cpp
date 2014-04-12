@@ -275,7 +275,7 @@ namespace adportable { namespace peakfind {
             stack< T > stack_;
             size_t width_;
 
-            slope_state() : width_( 3 ) {}
+            slope_state( size_t w = 5 ) : width_( ( w < 3 ? 3 : w ) ) {}
 
             bool reduce( std::pair< T, T >& res ) {
                 if ( stack_[1].type() == Down && stack_.size() >= 3 ) {
@@ -355,13 +355,10 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
     size_t N = ( w < 5 ) ? 5 : ( w > 25 ) ? 25 : w | 0x01;
     size_t NH = N / 2;
 
-    double slope = double( 40 ) / double( w * 8 );
+    double slope = double( rms ) / double( w * 8 );
     adportable::differential<double> diff( static_cast<long>(N), 1 );
 
-    peakfind::slope_state<peakfind::counter> state;
-    state.width_ = w / 8;
-    if ( state.width_ < 3 )
-        state.width_ = 3;
+    peakfind::slope_state<peakfind::counter> state( w / 8 );
     
     double base_avg = dbase;
     size_t base_pos = 0, base_c = 0;
@@ -385,9 +382,18 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
         }
     
         if ( reduce ) {
+            double baselevel = base_avg;
             std::pair< peakfind::counter, peakfind::counter > peak;
-            while ( state.reduce( peak ) )
-				results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, base_avg ) ); //pY[ peak.first.bpos_] ) );
+            while ( state.reduce( peak ) ) {
+				if ( pX[ peak.second.tpos_ ] - pX[ peak.first.bpos_ ] >= peakwidth_ ) {
+                    if ( !results_.empty() ) {
+                        const peakinfo& prev = results_.back();
+                        if ( peak.first.bpos_ - prev.first >= w )
+                            baselevel = std::min( pY[peak.first.bpos_], pY[peak.second.tpos_] );
+                    }
+                    results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, baselevel ) );
+                }
+            }
         } 
     }
 
@@ -398,8 +404,17 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
 
         std::pair< peakfind::counter, peakfind::counter > peak;
 
-        while ( state.reduce( peak ) )
-            results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, base_avg ) ); //pY[ peak.first.bpos_ ] ) );
+        while ( state.reduce( peak ) ) {
+            double baselevel = base_avg;
+            if ( pX[ peak.second.tpos_ ] - pX[ peak.first.bpos_ ] >= peakwidth_ ) {
+                if ( !results_.empty() ) {
+                    const peakinfo& prev = results_.back();
+                    if ( peak.first.bpos_ - prev.first >= w )
+                        baselevel = std::min( pY[peak.first.bpos_], pY[peak.second.tpos_] );
+                }
+				results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, baselevel ) );
+            }
+        }
     }
 
     return results_.size();
