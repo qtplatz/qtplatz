@@ -70,14 +70,14 @@ struct noise {
 
 };
 
+const int M = 100;
+const size_t N = 512;
 
-const int M = 7;
-const size_t N = 256;
-
+int
 main( int ac, char * av[] )
 {
     boost::numeric::ublas::vector< double > smooth, derivative;
-    noise noise( -10, +10 );
+    noise noise( -0.1, +0.1 );
 
     std::cout << "smooth:" << std::endl;
     SGCubic::smoothing_coefficients( smooth, M );
@@ -88,8 +88,8 @@ main( int ac, char * av[] )
     std::vector<double> waveform;
     double mean = double(N) / 2;
     for ( int i = 0; i < N; ++i ) {
-        boost::math::normal_distribution< double > nd( mean, double(N)/8 /* sd */);
-        double y = boost::math::pdf( nd, i ) / boost::math::pdf( nd, mean ); // + noise();
+        boost::math::normal_distribution< double > nd( mean, double(N)/32 /* sd */);
+        double y = boost::math::pdf( nd, i ) / boost::math::pdf( nd, mean ) + noise();
         waveform.push_back( y );
     }
     
