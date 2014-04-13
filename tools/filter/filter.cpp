@@ -4,9 +4,14 @@
 #include <cmath>
 #include <vector>
 #include <iomanip>
-#include <boost/numeric/ublas/matrix.hpp>
+
+#define BOOST_UBLAS_SHALLOW_ARRAY_ADAPTOR
+#include <boost/numeric/ublas/vector.hpp>
+
 #include <boost/math/distributions/normal.hpp>
 #include <boost/random.hpp>
+
+#include <chrono>
 
 class SGCubic {
 public:
@@ -46,13 +51,24 @@ public:
         }
     }
 
-    static inline double convolute( const double * py, const boost::numeric::ublas::vector<double>& coeffs ) {
+    static inline double a_convolute( const double * py, const boost::numeric::ublas::vector<double>& coeffs ) {
+
         double fxi = 0;
         int m = coeffs.size();
         py -= m / 2;
         for ( int i = 0; i < m; ++i )
             fxi += py[ i ] * coeffs[ i ];
+
         return fxi;
+    }
+
+    static inline double u_convolute( const double * py, const boost::numeric::ublas::vector<double>& coeffs ) {
+
+        using namespace boost::numeric::ublas;
+        vector< double, shallow_array_adaptor<double> >
+            u( shallow_array_adaptor<double>( coeffs.size(), const_cast<double *>(py - coeffs.size() / 2 ) ) );
+
+        return boost::numeric::ublas::inner_prod( u, coeffs );
     }
 
 };
@@ -70,8 +86,11 @@ struct noise {
 
 };
 
-const int M = 100;
-const size_t N = 512;
+const int M = 9;
+const size_t N = 1024 * 256;
+const int K = 100;
+
+std::array<double, N> result;
 
 int
 main( int ac, char * av[] )
@@ -92,11 +111,47 @@ main( int ac, char * av[] )
         double y = boost::math::pdf( nd, i ) / boost::math::pdf( nd, mean ) + noise();
         waveform.push_back( y );
     }
+
+    std::chrono::nanoseconds ta, tu;
+    volatile double * result1 = result.data();
+    volatile double * result2 = result.data();
+    volatile double * result3 = result.data();
+    volatile double * result4 = result.data();
+
+    do {
+        auto t0 = std::chrono::high_resolution_clock::now();
+
+        for ( int k = 0; k < K; ++k ) {
+            for ( int i = M / 2; i < N - M / 2; ++i ) {
+                double s = SGCubic::a_convolute( waveform.data() + i, smooth );
+                double d = SGCubic::a_convolute( waveform.data() + i, derivative );
+                result1[ i ] = s;
+                result2[ i ] = d;
+                // std::cout << i << "\t" << std::fixed << std::setprecision(7) << waveform[i] << "\t" << s << "\t" << d << std::endl;
+            }
+        }
+        auto t1 = std::chrono::high_resolution_clock::now();
+        ta = t1 - t0;
+    } while(0);
+
+    do {
+        auto t0 = std::chrono::high_resolution_clock::now();
     
-    for ( int i = M / 2; i < N - M / 2; ++i ) {
-        double s = SGCubic::convolute( waveform.data() + i, smooth );
-        double d = SGCubic::convolute( waveform.data() + i, derivative );
-        std::cout << i << "\t" << std::fixed << std::setprecision(7) << waveform[i] << "\t" << s << "\t" << d << std::endl;
-    }
+        for ( int k = 0; k < K; ++k ) {
+            for ( int i = M / 2; i < N - M / 2; ++i ) {
+                double s = SGCubic::u_convolute( waveform.data() + i, smooth );
+                double d = SGCubic::u_convolute( waveform.data() + i, derivative );
+                result3[ i ] = s;
+                result4[ i ] = d;
+                // std::cout << i << "\t" << std::fixed << std::setprecision(7) << waveform[i] << "\t" << s << "\t" << d << std::endl;
+            }
+        }
+        auto t1 = std::chrono::high_resolution_clock::now();
+        tu = t1 - t0;
+    } while(0);
+
+    std::cout << std::fixed << std::setprecision(3) 
+              << "vector/ublas=" << ( double(ta.count() / double(tu.count()) ) )
+              << "\tvector(us):" << double(ta.count())/1e3 << ", ublas(us):" << double(tu.count())/1e3 << std::endl;
 
 }
