@@ -22,9 +22,9 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-// Smoothing and Differentiation of Data
-// by Simplified Least Sequares Procedures.
+// Smoothing and Differentiation of Data by Simplified Least Sequares Procedures.
 // Abraham Savitzky and Marcel J. E. Golay, Anal. Chem. (1964) 36, 1627.
+// 
 
 #pragma once
 

@@ -34,7 +34,9 @@ SOURCES += configloader.cpp \
            profile.cpp \
            textfile.cpp \
            bzip2.cpp \
-           debug_core.cpp
+           debug_core.cpp \
+    savitzkeygolay.cpp \
+    sgfilter.cpp
 
 win32 {
    SOURCES += protocollifecycle.cpp
@@ -70,5 +72,7 @@ HEADERS += array_wrapper.hpp \
            profile.hpp \
            textfile.hpp \
            bzip2.hpp \
-           debug_core.hpp
+           debug_core.hpp \
+    savitzkeygolay.hpp \
+    sgfilter.hpp
 
