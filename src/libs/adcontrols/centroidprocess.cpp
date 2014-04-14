@@ -37,7 +37,6 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/moment.hpp>
-#include <adportable/differential.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
 #include <boost/archive/xml_oarchive.hpp>
@@ -189,7 +188,6 @@ CentroidProcessImpl::copy( MassSpectrum& ms )
 void
 CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 {
-    using adportable::differential;
     using adportable::spectrum_processor;
     using adportable::array_wrapper;
 
@@ -283,7 +281,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 item.peak_start_index( uint32_t(pk.first) );
                 item.peak_end_index( uint32_t(pk.second) );
 				
-				if ( item.widthHH() >= finder.peakwidth_ / 2 )
+				if ( ( masses[pk.second] - masses[pk.first]) >= finder.peakwidth_ )
 					info_ << item;
             }
         } while(0);

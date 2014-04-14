@@ -49,7 +49,6 @@ HEADERS += array_wrapper.hpp \
            ConvertUTF.h \
            date_string.hpp \
            debug.hpp \
-           differential.hpp \
            fft.hpp \
            float.hpp \
            formula_parser.hpp \

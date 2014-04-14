@@ -26,16 +26,20 @@
 #include <compiler/disable_unused_parameter.h>
 #include "spectrum_processor.hpp"
 #include "array_wrapper.hpp"
-#include <adportable/differential.hpp>
 #include <boost/variant.hpp>
 #include <compiler/diagnostic_pop.h>
 
+#include "sgfilter.hpp"
+
 #include <cmath>
 #include <cstring> // for memset()
-#include <stack>
 #include <stdexcept>
 #include <algorithm>
 #include <numeric>
+#include <fstream>
+#if defined _DEBUG || defined DEBUG
+# include <iomanip>
+#endif
 
 using namespace adportable;
 
@@ -43,12 +47,6 @@ namespace adportable {
 
     static const double __norm5__ = 10;
     static const double __1st_derivative5__[] = { 0, 1, 2 };
-
-    // //static const double __norm7__ = 28;
-    // static const double __1st_derivative7__[] = { 0, 1, 2, 3 };
-
-    // //static const double __norm9__ = 60;
-    // static const double __1st_derivative9__[] = { 0, 1, 2, 3, 4 };
 
     template<typename T> static inline double convolute(const T * py) {
         double fxi;
@@ -179,37 +177,37 @@ spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, 
 }
 
 void
-spectrum_processor::differentiation( size_t nbrSamples, double * pY, const double * intens, size_t N )
+spectrum_processor::differentiation( size_t nbrSamples, double * pY, const double * intens, size_t m )
 {
-    using adportable::differential;
+    SGFilter d1( int(m), SGFilter::Derivative1 );
 
-    const size_t Nhalf = N / 2;
-    differential<double> diff( static_cast<long>(N) );
+    // fill head & tail
+    for ( size_t x = 0; x < (m/2); ++x ) {
+        pY[ x ] = intens[ x ];
+        pY[ nbrSamples - 1 - x ] = intens[ nbrSamples - 1 - x ];
+    }
 
-    for ( size_t x = 0; x <= Nhalf; ++x )
-        pY[ x ] = pY[ nbrSamples - 1 - x ] = 0;
+    for ( size_t x = (m/2); x < nbrSamples - (m/2); ++x )
+        pY[ x ] = d1( &intens[x] );
 
-    for ( size_t x = Nhalf; x < nbrSamples - Nhalf; ++x )
-        pY[ x ] = diff( &intens[x] );
 }
 
 void
-spectrum_processor::moving_average( size_t nbrSamples, double * pY, const double * praw, size_t N )
+spectrum_processor::moving_average( size_t nbrSamples, double * pY, const double * praw, size_t m )
 {
-    using adportable::differential;
-
-    N |= 0x01; // make odd
+    m |= 0x01; // make odd
+    
     double ax = 0;
     for ( size_t i = 0; i < nbrSamples; ++i ) {
         ax += praw[i];
-        if ( i < (N/2) )
+        if ( i < (m/2) )
             pY[i] = praw[i] ;
-        if ( i >= N ) {
-            pY[i - (N/2) - 1] = ax / double(N);
-            ax -= praw[i - N];
+        if ( i >= m ) {
+            pY[i - (m/2) - 1] = ax / double(m);
+            ax -= praw[i - m];
 		}
     }
-	for ( size_t i = nbrSamples - (N/2) - 1; i < nbrSamples; ++i )
+	for ( size_t i = nbrSamples - (m/2) - 1; i < nbrSamples; ++i )
 		pY[i] = ax;
 }
 
@@ -234,7 +232,7 @@ spectrum_peakfinder::spectrum_peakfinder(double pw, double bw, WidthMethod wm ) 
 
 namespace adportable { namespace peakfind {
 
-        const size_t stack_size = 256;
+        const size_t stack_size = 64;
 
         template< class T > class stack {
             T vec_[ stack_size ];
@@ -292,8 +290,8 @@ namespace adportable { namespace peakfind {
             }
 
             bool shift_reduce( const T& c ) {
-                // delete count if too narrow width
                 while ( stack_.top().distance() < width_ ) {
+                    // && stack_.top().type() == peakfind::Down ) { // discard narrow 'down' state
                     stack_.pop();
                     if ( stack_.empty() ) {
                         stack_.push( c );
@@ -301,9 +299,8 @@ namespace adportable { namespace peakfind {
                     }
                 }
 
-                if ( stack_.top().type() == c.type() )  { // marge
+                if ( stack_.top().type() == c.type() )  // marge
                     stack_.top() += c;  // marge
-                }
 
                 // if (Up - Down)|(Down - Up), should push counter and wait for next state
                 if ( stack_.top().type() != c.type() )
@@ -313,13 +310,14 @@ namespace adportable { namespace peakfind {
             };
 
             bool process_slope( const T& t ) {
-                if ( stack_.empty() )
-                    stack_.push( t );
-                else if ( stack_.top().type() == t.type() )
+                if ( stack_.empty() ) {
+                    stack_.push( t ); // Up|Down
+                    return false;
+                } else if ( stack_.top().type() == t.type() ) {
                     stack_.top()++;
-                else
+                    return false;
+                } else
                     return shift_reduce( t );
-                return false;
             }
         };
 
@@ -336,12 +334,13 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
     memset( &pdebug_[0], 0, sizeof(double) * nbrSamples );
 
     size_t w = 7; // std::distance( xIt, it );  // make odd
-
+    size_t atmz = 0;
     if ( width_method_ == TOF ) {
 		if ( ( pX[0] < atmz_ ) && ( atmz_ + peakwidth_ < pX[ nbrSamples - 1 ] ) ) {
 			array_wrapper<const double>::iterator xIt1 = std::upper_bound( px.begin(), px.end(), atmz_ );
 			array_wrapper<const double>::iterator xIt2 = std::upper_bound( xIt1, px.end(), atmz_ + peakwidth_ );
 			w = std::distance( xIt1, xIt2 );
+            atmz = size_t( atmz_ * 4 );
 		} else {
 			array_wrapper<const double>::iterator xIt1 = std::upper_bound( px.begin(), px.end(), pX[ nbrSamples / 4 ] );
 			array_wrapper<const double>::iterator xIt2 = std::upper_bound( xIt1, px.end(), *xIt1 + peakwidth_ );
@@ -352,19 +351,24 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
     spectrum_processor::tic( nbrSamples, pY, dbase, rms );
 
     // int noise = int(rms); //5; // assume LSB noise
-    size_t N = ( w < 5 ) ? 5 : ( w > 25 ) ? 25 : w | 0x01;
-    size_t NH = N / 2;
+    int m = ( w < 5 ) ? 5 : int(w) | 0x01; // ( w > 25 ) ? 25 : w | 0x01;
+    int NH = m / 2;
 
     double slope = double( rms ) / double( w * 8 );
-    adportable::differential<double> diff( static_cast<long>(N), 1 );
+    SGFilter diff( m, SGFilter::Derivative1, SGFilter::Cubic );
 
-    peakfind::slope_state<peakfind::counter> state( w / 8 );
+    peakfind::slope_state<peakfind::counter> state( w / 2 );
     
     double base_avg = dbase;
     size_t base_pos = 0, base_c = 0;
 
+#if defined _DEBUG || defined DEBUG // debug
+    std::ofstream o( "spectrum.txt" );
+#endif
+
     for ( size_t x = NH; x < nbrSamples - NH; ++x ) {
         double d1 = diff( &pY[x] );
+
         bool reduce = false;
         if ( d1 >= slope ) {
             if ( base_c = std::min( base_c, w * 2 ) )
@@ -380,6 +384,16 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
                 base_pos = x;
             }
         }
+
+#if defined _DEBUG || defined DEBUG
+        if ( 12 < pX[x] && pX[x] < 34 ) {
+            o << std::fixed << std::setprecision(14) << x << "\t" << pX[x] << "\t" << pY[x] << "\t" << d1 
+              << "\t" << ( reduce ? "true" : "false");
+            for ( int i = 0; i < state.stack_.size(); ++i )
+                o << "\tstack:" << state.stack_[i].type() << ", " << state.stack_[i].distance();
+            o << std::endl;
+        }
+#endif
     
         if ( reduce ) {
             double baselevel = base_avg;
@@ -395,6 +409,10 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
                 }
             }
         } 
+        if ( atmz && atmz < pX[ x ] ) {
+            atmz *= 4;
+            diff = SGFilter( int( diff.coefficients().size() / 2 ) | 0x01, SGFilter::Derivative1, SGFilter::Cubic );            
+        }
     }
 
     if ( ! state.stack_.empty() ) {

@@ -85,6 +85,23 @@ SGFilter::operator()( const double * y ) const
     return convolution( y, coefficients_.data(), norm_, m_ );
 }
 
+double
+SGFilter::operator()( const int32_t * y ) const
+{
+    return convolution( y, coefficients_.data(), norm_, m_ );
+}
+
+int
+SGFilter::m() const
+{
+    return m_;
+}
+
+const std::vector<double>&
+SGFilter::coefficients() const
+{
+    return coefficients_;
+}
 
 // static
 double
@@ -100,9 +117,7 @@ SGFilter::Quadratic::derivative_1st_coefficients( std::vector< double >& coeffs,
         denominator += i * i;
 
     for ( int i = -n; i <= n; ++i ) {
-        const double numerator = i;
         coeffs.push_back( i );
-        // std::cerr << "1st dd(2)[" << i << "]: " << numerator / denominator << "\t" << numerator << "/" << denominator << std::endl;
     }
     return denominator;
 }
@@ -166,6 +181,17 @@ SGFilter::Cubic::derivative_2nd_coefficients( std::vector< double >& coeffs, int
 // static
 double
 SGFilter::convolution( const double * y, const double * C, const double& norm, int m )
+{
+    double fxi = 0;
+    y -= m / 2;
+    for ( int i = 0; i < m; ++i )
+        fxi += y[ i ] * C[ i ];
+    return fxi / norm;
+}
+
+// static
+double
+SGFilter::convolution( const int32_t * y, const double * C, const double& norm, int m )
 {
     double fxi = 0;
     y -= m / 2;

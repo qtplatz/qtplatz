@@ -43,6 +43,7 @@
 
 //#include <boost/numeric/ublas/matrix.hpp>
 #include <vector>
+#include <cstdint>
 
 namespace adportable {
 
@@ -55,7 +56,9 @@ namespace adportable {
         SGFilter( const SGFilter& );
 
         double operator()( const double * y ) const;
+        double operator()( const int32_t * y ) const;
         double norm() const;
+        int m() const;
         const std::vector<double>& coefficients() const;
         Filter filter() const;
 
@@ -70,6 +73,7 @@ namespace adportable {
         };
 
         static double convolution( const double * /* &y[i+m/2] */, const double * coefficients, const double& norm, int m );
+        static double convolution( const int32_t * /* &y[i+m/2] */, const double * coefficients, const double& norm, int m );
         
     private:
         Filter filter_;
