@@ -22,45 +22,109 @@
 **
 **************************************************************************/
 
+/** Savitzky-Golay filter coefficient genelrator
+
+    References
+
+    Hannibal H. Madden
+    Comments on the Savitzky-Golay Convolution Method for Least-Squares Fit Smoothing and Differentiation of Digital Data
+    Analytical Chemistry, (1978) 60(9) 1383-1986
+
+    Original:
+    Abraham Savitzky, A. and Marcel J. E. Golay, (1964). Analytical Chemistry (1964) 36(8) 1627-1639
+    Smoothing and Differentiation of Data by Simplified Least Squares Procedures.
+
+    Also an easy reference:
+    http://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter#Tables_of_selected_convolution_coefficients    
+**/
+
 #include "sgfilter.hpp"
+#include <cmath>
+#include <iostream>
+
+using namespace adportable;
 
 SGFilter::~SGFilter()
 {
 }
 
-SGFilter::SGFilter( int m, Filter filter ) : m_( m )
-                                           , filter_( filter )
+SGFilter::SGFilter( int m, Filter filter, PolynomialOrder order ) : filter_( filter )
+                                                                  , order_( order )
+                                                                  , m_( m )
 {
-    if ( filter_ == Smoothing )
+    if ( filter_ == Smoothing ) {
+
         norm_ = Cubic::smoothing_coefficients( coefficients_, m_ );
-    else if ( filter_ == Derivative1 )
-        norm_ = Cubic::derivative_1st_coefficients( coefficients_, m_ );
-    else
+
+    } else if ( filter_ == Derivative1 ) {
+
+        if ( order == Quadratic )
+            norm_ = Quadratic::derivative_1st_coefficients( coefficients_, m_ );            
+        else
+            norm_ = Cubic::derivative_1st_coefficients( coefficients_, m_ );
+
+    } else if ( filter_ == Derivative2 ) {
+
+        norm_ = Cubic::derivative_2nd_coefficients( coefficients_, m_ );
+
+    } else
         throw std::bad_cast();
 }
 
-SGFilter::SGFilter( const SGFilter& t ) : m_( t.m_ )
+SGFilter::SGFilter( const SGFilter& t ) : filter_( t.filter_ )
+                                        , order_( t.order_ )
+                                        , m_( t.m_ )
                                         , norm_( t.norm_ )
                                         , coefficients_( t.coefficients_ )
 {
 }
 
 double
+SGFilter::operator()( const double * y ) const
+{
+    return convolution( y, coefficients_.data(), norm_, m_ );
+}
+
+
+// static
+double
+SGFilter::Quadratic::derivative_1st_coefficients( std::vector< double >& coeffs, int m )
+{
+    m |= 0x01; // should be odd
+    int n = m / 2;
+
+    coeffs.clear();    
+
+    double denominator = 0;
+    for ( int i = -n; i <= n; ++i )
+        denominator += i * i;
+
+    for ( int i = -n; i <= n; ++i ) {
+        const double numerator = i;
+        coeffs.push_back( i );
+        // std::cerr << "1st dd(2)[" << i << "]: " << numerator / denominator << "\t" << numerator << "/" << denominator << std::endl;
+    }
+    return denominator;
+}
+
+
+double
 SGFilter::Cubic::smoothing_coefficients( std::vector< double >& coeffs, int m )
 {
     m |= 0x01; // should be odd
     int n = m / 2;
-    double cd = ( ( m * (std::pow(m,2) - 4 ) ) / 3 );
-    
-    coeffs.resize( m );
-    const double m2 = std::pow( m, 2 );
-    
-    int k = 0;
+
+    coeffs.clear();
+    const double m2 = std::pow(m,2);
+
+    double denominator = ( m * (m2 - 4) ) / 3.0;
+
     for ( int i = -n; i <= n; ++i ) {
-        double cn = 3 * ( 3*m2 + 3 * m - 1 - 5*(double(i) * i);
-        double cn = ( ( 3 * m2 - 7 - 20 * std::pow(double(i), 2) ) / 4.0 );
-        coeffs[k++] = cn / cd;
+        double numerator = (3*m2 - 7 - 20*std::pow(i,2))/4.0;
+        coeffs.push_back( numerator / denominator );
+        // std::cerr << "smooth[" << i << "]: " << numerator / denominator << "\t" << numerator << "/" << denominator << std::endl;
     }
+    return 1.0;
 }
 
 double
@@ -68,17 +132,18 @@ SGFilter::Cubic::derivative_1st_coefficients( std::vector< double >& coeffs, int
 {
     m |= 0x01; // should be odd
     int n = m / 2;
-    coeffs.resize( m );
+    coeffs.clear();
 
-    const double m2 = std::pow(m, 2);
-    const double m4 = std::pow(m, 4);
+    const double m2 = m * m;
+    const double m4 = m2 * m2;
 
-    double cd = m * (m2 - 1) * (3 * m4 - 39.0 * m2 + 108) / 15.0;
-    int k = 0;
+    const double denominator = m * (m2 - 1)*(3*m4 - 39*m2 + 108)/15;
     for ( int i = -n; i <= n; ++i ) {
-        double cn = ( 5 * ( 3 * m4 - 18 * m2 + 31 ) * i ) - ( 28 * (3 * m2 - 7) * std::pow(double(i),3) );
-        coeffs[k++] = cn / cd;
+        double numerator = 5*(3*m4 - 18*m2 + 31)*i - 28*(3*m2 - 7) * std::pow(i, 3);
+        coeffs.push_back( double(numerator) / double(denominator) );
+        // std::cerr << "1st derivative[" << i << "]: " << numerator / denominator << "\t" << numerator << "/" << denominator << std::endl;
     }
+    return 1.0;
 }
 
 double
@@ -86,21 +151,21 @@ SGFilter::Cubic::derivative_2nd_coefficients( std::vector< double >& coeffs, int
 {
     m |= 0x01; // should be odd
     int n = m / 2;
-    coeffs.resize( m );
+    coeffs.clear();
 
-    const double m2 = std::pow(m, 2);
+    const double m2 = m * m;
+    const double denominator = m2 * (m2 - 1)*(m2 - 4) / 15;
 
-    double cd = m * (m2 - 1.0) * (m2 - 4.0) / 15.0;
-    int k = 0;
     for ( int i = -n; i <= n; ++i ) {
-        double cn = 12.0 * m * (double(i) * i) - m * (m2 - 1);
-        coeffs[k++] = cn / cd;
+        const double numerator = 12 * m * std::pow(i, 2) - m * (m2 - 1);
+        coeffs.push_back( double(numerator) / double(denominator) );
     }
+    return 1.0;
 }
 
 // static
 double
-SGFilter::convolution( const double * y, const double * C, const double& norm, int m ) const
+SGFilter::convolution( const double * y, const double * C, const double& norm, int m )
 {
     double fxi = 0;
     y -= m / 2;
@@ -108,3 +173,4 @@ SGFilter::convolution( const double * y, const double * C, const double& norm, i
         fxi += y[ i ] * C[ i ];
     return fxi / norm;
 }
+

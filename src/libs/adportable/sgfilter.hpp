@@ -49,8 +49,9 @@ namespace adportable {
     class SGFilter {
     public:
         enum Filter { Smoothing, Derivative1, Derivative2 };
+        enum PolynomialOrder { Quadratic = 2, Cubic = 3 };
         ~SGFilter();
-        SGFilter( int m = 5, eFilter filter = Smoothing );
+        SGFilter( int m = 5, Filter filter = Smoothing, PolynomialOrder = Cubic );
         SGFilter( const SGFilter& );
 
         double operator()( const double * y ) const;
@@ -58,15 +59,21 @@ namespace adportable {
         const std::vector<double>& coefficients() const;
         Filter filter() const;
 
-        struct Cubic {
-            static double smoothing_coefficients( std::vector< double >& coeffs, int m );
+        struct Quadratic {
             static double derivative_1st_coefficients( std::vector< double >& coeffs, int m );
         };
 
-        static double convolution( const double * /* &y[i+m/2] */, const double * coefficients, const double& norm, int m ) const;
+        struct Cubic { // Quadratic & Cubic
+            static double smoothing_coefficients( std::vector< double >& coeffs, int m );
+            static double derivative_1st_coefficients( std::vector< double >& coeffs, int m );
+            static double derivative_2nd_coefficients( std::vector< double >& coeffs, int m );
+        };
+
+        static double convolution( const double * /* &y[i+m/2] */, const double * coefficients, const double& norm, int m );
         
     private:
         Filter filter_;
+        PolynomialOrder order_;
         int m_;
         double norm_;
         std::vector< double > coefficients_;
