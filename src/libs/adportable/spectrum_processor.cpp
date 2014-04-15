@@ -364,6 +364,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
 
 #if defined _DEBUG || defined DEBUG // debug
     std::ofstream o( "spectrum.txt" );
+	SGFilter smoother( m );
 #endif
 
     for ( size_t x = NH; x < nbrSamples - NH; ++x ) {
@@ -387,7 +388,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
 
 #if defined _DEBUG || defined DEBUG
         if ( 12 < pX[x] && pX[x] < 34 ) {
-            o << std::fixed << std::setprecision(14) << x << "\t" << pX[x] << "\t" << pY[x] << "\t" << d1 
+            o << std::fixed << std::setprecision(14) << x << "\t" << pX[x] << "\t" << pY[x] << "\t" << d1 << "\t" << smoother( &pY[x] )
               << "\t" << ( reduce ? "true" : "false");
             for ( int i = 0; i < state.stack_.size(); ++i )
                 o << "\tstack:" << state.stack_[i].type() << ", " << state.stack_[i].distance();
@@ -411,7 +412,10 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
         } 
         if ( atmz && atmz < pX[ x ] ) {
             atmz *= 4;
-            diff = SGFilter( int( diff.coefficients().size() / 2 ) | 0x01, SGFilter::Derivative1, SGFilter::Cubic );            
+            diff = SGFilter( int( diff.coefficients().size() / 2 ) | 0x01, SGFilter::Derivative1, SGFilter::Cubic );
+#if defined _DEBUG || defined DEBUG
+			smoother = SGFilter( int( diff.coefficients().size() / 2 | 0x01 ) );
+#endif
         }
     }
 
