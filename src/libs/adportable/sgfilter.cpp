@@ -41,6 +41,7 @@
 #include "sgfilter.hpp"
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 using namespace adportable;
 
@@ -48,9 +49,11 @@ SGFilter::~SGFilter()
 {
 }
 
-SGFilter::SGFilter( int m, Filter filter, PolynomialOrder order ) : filter_( filter )
-                                                                  , order_( order )
-                                                                  , m_( m )
+SGFilter::SGFilter( int m
+                    , Filter filter
+                    , PolynomialOrder order ) : filter_( filter )
+                                              , order_( order )
+                                              , m_( m )
 {
     if ( filter_ == Smoothing ) {
 
@@ -68,7 +71,8 @@ SGFilter::SGFilter( int m, Filter filter, PolynomialOrder order ) : filter_( fil
         norm_ = Cubic::derivative_2nd_coefficients( coefficients_, m_ );
 
     } else
-        throw std::bad_cast();
+
+        throw std::invalid_argument( "Filter" );
 }
 
 SGFilter::SGFilter( const SGFilter& t ) : filter_( t.filter_ )
