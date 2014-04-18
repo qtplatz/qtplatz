@@ -36,16 +36,16 @@ MassSpectra::~MassSpectra()
 {
 }
 
-MassSpectra::MassSpectra() : upper_mass_( 0 )
-                           , lower_mass_( 0 )
+MassSpectra::MassSpectra() : lower_mass_( 0 )
+                           , upper_mass_( 0 )
                            , z_max_( 0 )
 {
 }
 
 MassSpectra::MassSpectra( const MassSpectra& t ) : vec_( t.vec_ )
                                                  , x_( t.x_ )
-                                                 , upper_mass_( t.upper_mass_ )
                                                  , lower_mass_( t.lower_mass_ )
+                                                 , upper_mass_( t.upper_mass_ )
                                                  , z_max_( t.z_max_ )
 {
 }
@@ -98,10 +98,10 @@ MassSpectra::setChromatogram( const Chromatogram& c )
 {
     x_.clear();
     if ( const double * tarray = c.getTimeArray() ) {
-        for ( int i = 0; i < c.size(); ++i )
+        for ( size_t i = 0; i < c.size(); ++i )
             x_.push_back( tarray[i] / 60.0 ); //--> min
     } else {
-        for ( int i = 0; i < c.size(); ++i )
+        for ( size_t i = 0; i < c.size(); ++i )
             x_.push_back( c.timeFromSampleIndex( i ) / 60.0 ); // --> min
     }
 }

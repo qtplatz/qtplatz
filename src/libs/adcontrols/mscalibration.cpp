@@ -36,25 +36,25 @@
 
 using namespace adcontrols;
 
-MSCalibration::MSCalibration() : t0_method_( LINEAR_TO_SQRT_M )
-                               , time_prefix_( adcontrols::metric::base )
+MSCalibration::MSCalibration() : time_prefix_( adcontrols::metric::base )
+                               , t0_method_( LINEAR_TO_SQRT_M )
 {
     init();
 }
 
-MSCalibration::MSCalibration( const MSCalibration& t ) : calibDate_( t.calibDate_ )
+MSCalibration::MSCalibration( const MSCalibration& t ) : time_prefix_( t.time_prefix_ )
+                                                       , calibDate_( t.calibDate_ )
                                                        , calibId_( t.calibId_ )
                                                        , coeffs_( t.coeffs_ )  
                                                        , t0_coeffs_( t.t0_coeffs_ )
                                                        , t0_method_( t.t0_method_ )
-                                                       , time_prefix_( t.time_prefix_ )
                                                        , algo_( t.algo_ )
 {
 }
 
 MSCalibration::MSCalibration( const std::vector<double>& v
-                              , metric::prefix pfx ) : coeffs_( v )
-                                                     , time_prefix_( pfx )
+                              , metric::prefix pfx ) : time_prefix_( pfx )
+                                                     , coeffs_( v )
                                                      , t0_method_( LINEAR_TO_SQRT_M )
 													 , algo_( TIMESQUARED )
 {
@@ -64,11 +64,11 @@ MSCalibration::MSCalibration( const std::vector<double>& v
 MSCalibration::MSCalibration( const std::vector<double>& coeffs
                               , metric::prefix time_prefix
                               , const std::vector<double>& t0Coeff
-                              , ALGORITHM algo ) : coeffs_( coeffs )
-                                                        , t0_coeffs_( t0Coeff )
-                                                        , time_prefix_( time_prefix )
-                                                        , t0_method_( LINEAR_TO_SQRT_M ) 
-                                                        , algo_( algo )
+                              , ALGORITHM algo ) : time_prefix_( time_prefix )
+                                                 , coeffs_( coeffs )
+                                                 , t0_coeffs_( t0Coeff )
+                                                 , t0_method_( LINEAR_TO_SQRT_M ) 
+                                                 , algo_( algo )
 {
     init();
 }

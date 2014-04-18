@@ -59,8 +59,8 @@ MSReference::MSReference( const std::wstring& formula
                           , uint32_t charge
                           , const std::wstring& description ) : enable_( enable )
                                                               , exactMass_( exactMass ) 
-                                                              , chargeCount_( charge )
                                                               , polarityPositive_( polarityPositive )
+                                                              , chargeCount_( charge )
                                                               , formula_( formula )
                                                               , adduct_or_loss_( adduct_or_loss )
                                                               , description_( description )    

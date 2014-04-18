@@ -55,9 +55,9 @@ annotation::annotation( const std::wstring& text
                         , int priority
                         , DataFormat typ ) : format_( typ )
                                            , index_( idx )
-                                           , x_( x ), y_( y )
                                            , priority_( priority )
 										   , text_( adportable::utf::to_utf8( text ) )
+                                           , x_( x ), y_( y )
                                            , w_( 0 )
                                            , h_( 0 )
 {
@@ -70,9 +70,9 @@ annotation::annotation( const std::string& text
                         , int priority
                         , DataFormat typ ) : format_( typ )
                                            , index_( idx )
-                                           , x_( x ), y_( y )
                                            , priority_( priority )
 										   , text_( text )
+                                           , x_( x ), y_( y )
                                            , w_( 0 )
                                            , h_( 0 )
 {

@@ -42,7 +42,6 @@ namespace adcontrols {
     public:
         enum T0_METHOD { IGNORE_T0, LINEAR_TO_SQRT_M };
         enum ALGORITHM { TIMESQUARED, MULTITURN_NORMALIZED };
-        enum metric::prefix time_prefix_;
 
         MSCalibration();
         MSCalibration( const MSCalibration& );
@@ -79,6 +78,7 @@ namespace adcontrols {
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
+        enum metric::prefix time_prefix_;
         std::string calibDate_;
         std::wstring calibId_;
         std::vector< double > coeffs_;

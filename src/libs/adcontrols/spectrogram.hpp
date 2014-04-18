@@ -61,7 +61,7 @@ namespace adcontrols {
             } 
         };
 
-        typedef ADCONTROLSSHARED_EXPORT struct peak_type {
+        struct ADCONTROLSSHARED_EXPORT peak_type {
             uint32_t idx_;
             double mass_;
             double height_;
@@ -132,12 +132,16 @@ namespace adcontrols {
     //////////////////
 
     class ADCONTROLSSHARED_EXPORT SpectrogramClusters : public std::enable_shared_from_this< SpectrogramClusters > {
+#if defined _MSC_VER && _MSC_VER <= 1700
+        SpectrogramClusters( const SpectrogramClusters& );
+#else
+        SpectrogramClusters( const SpectrogramClusters& ) = delete;
+#endif
     public:
-
         static const wchar_t * dataClass() { return L"adcontrols::SpectrogramClusters"; }
 
         SpectrogramClusters();
-        SpectrogramClusters( const SpectrogramClusters& );
+        void clone( const SpectrogramClusters& );
 
         void operator << ( const Spectrogram::ClusterData& );
         typedef std::vector< Spectrogram::ClusterData >::iterator iterator;

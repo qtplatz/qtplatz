@@ -45,8 +45,10 @@ SpectrogramClusters::SpectrogramClusters()
 {
 }
 
-SpectrogramClusters::SpectrogramClusters( const SpectrogramClusters& t ) : data_( t.data_ )
+void
+SpectrogramClusters::clone( const SpectrogramClusters& t )
 {
+    data_ = t.data_;
 }
 
 void
@@ -107,8 +109,8 @@ Spectrogram::ClusterData::center_index() const
 }
 
 Spectrogram::ClusterFinder::ClusterFinder( const Spectrogram::ClusterMethod& m
-                                         , std::function<bool (int curr, int total)> progress ) : method_(m)
-                                                                                                , progress_( progress )
+                                         , std::function<bool (int curr, int total)> progress ) : progress_( progress )
+                                                                                                , method_(m)
 {
 }
 

@@ -66,6 +66,8 @@ CTFile::load_molfile( const boost::filesystem::path& path, CTable& ctable )
 	int natoms = 0, nbounds = 0;
     int chiral = 0;
     int nprops = 0;
+    (void)chiral;
+    (void)nprops;
 	std::string version;
 
 	if ( std::getline( inf, line ) ) {

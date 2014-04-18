@@ -371,7 +371,7 @@ namespace adcontrols {
             { "Lr", "Lawrencium",     103,  0,   1, { { 262.10963,      1.0000 } } },
         };
 	
-        static struct superatom {
+        struct superatom {
             const char * name_;
             const char * alias_;
             const char * formula_;

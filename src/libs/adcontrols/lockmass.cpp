@@ -140,7 +140,7 @@ lockmass::findReferences( lockmass& lk,  const adcontrols::MassSpectrum& ms, int
         return false;
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
-    if ( fcn >= segs.size() )
+    if ( size_t(fcn) >= segs.size() )
         return false;
 
     auto& annots = segs[ fcn ].get_annotations();
