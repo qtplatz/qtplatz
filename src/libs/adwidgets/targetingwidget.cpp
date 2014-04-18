@@ -35,8 +35,8 @@
 using namespace adwidgets;
 
 TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
-                                                  , table_(0)
                                                   , form_(0)
+                                                  , table_(0)
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 

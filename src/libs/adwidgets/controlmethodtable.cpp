@@ -99,7 +99,7 @@ ControlMethodTable::operator [] ( int row ) const
     if ( !method_ ) {
         BOOST_THROW_EXCEPTION( error() << info( "no method" ) );
     }
-    if ( row >= method_->size() || row < 0 ) {
+    if ( unsigned(row) >= method_->size() || row < 0 ) {
         BOOST_THROW_EXCEPTION( error() << info( "subscript out of range" ) );
     }
 

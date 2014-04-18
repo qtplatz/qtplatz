@@ -233,7 +233,7 @@ sdfile_iterator::itemText() const
 bool
 sdfile_iterator::fetch()
 {
-    if ( idx_ >= 0 && idx_ < supplier_.length() ) {
+    if ( idx_ < size_t( supplier_.length() ) ) {
         mol_.reset( supplier_[ idx_ ] );
         return true;
     }

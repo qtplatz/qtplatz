@@ -39,8 +39,8 @@
 using namespace adwidgets;
 
 PeptideWidget::PeptideWidget(QWidget *parent) : QWidget(parent)
-                                              , table_(0)
                                               , form_(0)
+                                              , table_(0)
                                               , peptideTable_(0)
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {

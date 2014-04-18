@@ -372,7 +372,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
 
         bool reduce = false;
         if ( d1 >= slope ) {
-            if ( base_c = std::min( base_c, w * 2 ) )
+            if ( ( base_c = std::min( base_c, w * 2 ) ) )
                 base_avg = std::accumulate( py.begin() + base_pos - base_c, py.begin() + base_pos, 0.0 ) / double(base_c);
             base_c = 0;
             reduce = state.process_slope( peakfind::counter( x, peakfind::Up ) );

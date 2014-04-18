@@ -75,6 +75,7 @@ TableView::handleCopyToClipboard()
     QString selected_text;
     QModelIndex prev = indecies.first();
     QModelIndex last = indecies.last();
+    (void)last;
 
     indecies.removeFirst();
     for( int i = 0; i < indecies.size(); ++i ) {

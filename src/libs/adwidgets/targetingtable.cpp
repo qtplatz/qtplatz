@@ -129,11 +129,11 @@ TargetingTable::setContents( const adprot::digestedPeptides& digested )
 }
 
 void
-TargetingTable::setContents( const adcontrols::TargetingMethod& method )
+TargetingTable::setContents( const adcontrols::TargetingMethod& )
 {
 }
 
 void
-TargetingTable::getContents( adcontrols::TargetingMethod& method )
+TargetingTable::getContents( adcontrols::TargetingMethod& )
 {
 }

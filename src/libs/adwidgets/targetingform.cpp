@@ -71,4 +71,5 @@ TargetingForm::getContents( adcontrols::TargetingMethod& m )
 void
 TargetingForm::setContents( const adcontrols::TargetingMethod& m )
 {
+    (void)m;
 }

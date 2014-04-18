@@ -78,6 +78,6 @@ ControlMethodWidget::addWidget( QWidget * widget, const QIcon& icon, const QStri
 }
 
 void
-ControlMethodWidget::handleAdd( const adcontrols::controlmethod::MethodItem& item )
+ControlMethodWidget::handleAdd( const adcontrols::controlmethod::MethodItem& )
 {
 }
