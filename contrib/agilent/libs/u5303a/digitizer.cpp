@@ -285,7 +285,10 @@ task::terminate()
 bool
 task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 {
-    // u5303a::method m;
+	(void)nAverage;
+	(void)nSamples;
+	(void)nDelay;
+	// u5303a::method m;
 	BSTR strResourceDesc = L"PXI4::0::0::INSTR";
     
     // If desired, use 'DriverSetup= CAL=0' to prevent digitizer from doing a SelfCal (~1 seconds) each time
@@ -579,6 +582,7 @@ device<UserFDK>::acquire( task& task )
 template<> bool
 device<UserFDK>::waitForEndOfAcquisition( task& task, int timeout )
 {
+	(void)timeout;
     //Wait for the end of the acquisition
 
     long wait_for_end = 0x80000000;
@@ -675,7 +679,7 @@ device<Simulate>::acquire( task& task )
 }
 
 template<> bool
-device<Simulate>::waitForEndOfAcquisition( task& task, int timeout )
+device<Simulate>::waitForEndOfAcquisition( task& task, int /* timeout */)
 {
     if ( simulator * simulator = task.simulator() )
         return simulator->waitForEndOfAcquisition();

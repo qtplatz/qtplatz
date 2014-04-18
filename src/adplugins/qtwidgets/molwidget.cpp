@@ -92,7 +92,7 @@ MolWidget::paintEvent( QPaintEvent * )
 }
 
 bool
-MolWidget::getCTable( const QString& molfile, adcontrols::CTable& ctab )
+MolWidget::getCTable( const QString& /* molfile */, adcontrols::CTable& /* ctab */)
 {
 	return false;
 }

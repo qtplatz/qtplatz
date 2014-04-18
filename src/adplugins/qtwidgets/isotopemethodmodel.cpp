@@ -91,7 +91,7 @@ void
 IsotopeMethodModel::appendFormula( const adcontrols::IsotopeMethod::Formula& formula, int rowIndex )
 {
     Q_UNUSED( rowIndex );
-    beginInsertRows( QModelIndex(), method_.size() + 1, int(method_.size() + 1) );
+    beginInsertRows( QModelIndex(), int( method_.size() + 1), int(method_.size() + 1) );
     method_.addFormula( formula );
     endInsertRows();
 }
