@@ -177,7 +177,7 @@ MSCalibrationForm::getCalibrateMethod( adcontrols::MSCalibrateMethod& method ) c
 
     adcontrols::MSReferences references;
     
-    size_t nRows = model.rowCount();
+    int nRows = model.rowCount();
 
     for ( int row = 0; row < nRows; ++row ) {
         adcontrols::MSReference reference;

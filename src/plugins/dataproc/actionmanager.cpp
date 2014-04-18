@@ -98,6 +98,7 @@ ActionManager::initialize_actions( const QList<int>& context )
             menu->menu()->setTitle( "Processing" );
             menu->addAction( cmdPrint );
             menu->addAction( cmdOpen );
+            (void)cmdSave;  // not in the dataproc menu
             menu->addAction( cmdCalib );
             am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
         }

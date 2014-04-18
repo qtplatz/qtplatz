@@ -96,7 +96,7 @@ DataprocHandler::doCentroid( adcontrols::MSPeakInfo& pkInfo
 }
 
 bool
-DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::IsotopeMethod& m )
+DataprocHandler::doIsotope( adcontrols::MassSpectrum&, const adcontrols::IsotopeMethod& )
 {
     adcontrols::ChemicalFormula chemicalFormula; 
 #if 0

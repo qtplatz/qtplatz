@@ -24,26 +24,15 @@
 
 #include "drawing.hpp"
 
-// #include <RDGeneral/Invariant.h>
-// #include <GraphMol/RDKitBase.h>
-// #include <GraphMol/SmilesParse/SmilesParse.h>
-// #include <GraphMol/SmilesParse/SmilesWrite.h>
-// #include <GraphMol/Substruct/SubstructMatch.h>
 #include <GraphMol/Depictor/RDDepictor.h>
-// #include <GraphMol/FileParsers/FileParsers.h>
-// #include <GraphMol/Descriptors/MolDescriptors.h>
-// #include <GraphMol/FileParsers/MolSupplier.h>
 
-#ifdef _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4018) // signed/unsigned
-# pragma warning(disable:4189) // local variable not referenced
-#endif
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_sign_compare.h>
+
 #include <GraphMol/MolDrawing/MolDrawing.h>
 #include <GraphMol/MolDrawing/DrawingToSVG.h>
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
+
+#include <compiler/diagnostic_pop.h>
 
 using namespace adchem;
 

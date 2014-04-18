@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "orbbroker.hpp"
 
 using namespace adplugin;

@@ -306,7 +306,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
         const adcontrols::annotations& annots = fms.get_annotations();
 
-        for ( int idx = 0; idx < fms.size(); ++idx ) {
+        for ( int idx = 0; idx < signed(fms.size()); ++idx ) {
 
             model.setData( model.index( row, c_mspeaktable_fcn ), fcn ); // hidden
             model.setData( model.index( row, c_mspeaktable_index ), idx ); // hidden
@@ -344,7 +344,7 @@ MSPeakTable::dataChanged( const adcontrols::MassSpectrum& ms )
 	QStandardItemModel& model = *model_;
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
-    size_t total_size = 0;
+    int total_size = 0;
     for( auto& t: segs )
         total_size += t.size();
 
@@ -357,7 +357,7 @@ MSPeakTable::dataChanged( const adcontrols::MassSpectrum& ms )
 
         int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
         int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
-        if ( fcn < segs.size() ) {
+        if ( fcn < signed(segs.size()) ) {
             auto& fms = segs[ fcn ];
 
             double mass = fms.getMass( idx );
@@ -565,7 +565,7 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
             auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
             if ( auto ptr = wptr.lock() ) {
                 adcontrols::segment_wrapper<> segs( *ptr );
-                if ( segs.size() > fcn ) {
+                if ( signed(segs.size()) > fcn ) {
                     auto& ms = segs[fcn];
                     adcontrols::annotations& annots = ms.get_annotations();
                     auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){

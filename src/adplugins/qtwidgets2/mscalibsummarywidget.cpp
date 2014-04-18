@@ -355,9 +355,9 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 	double threshold = res.threshold();
     
     adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *pCalibrantSpectrum_ );
-    for ( int fcn = 0; fcn < segments.size(); ++fcn ) {
+    for ( int fcn = 0; fcn < signed(segments.size()); ++fcn ) {
 		adcontrols::MassSpectrum& fms = segments[ fcn ];
-		for ( int idx = 0; idx < fms.size(); ++idx ) {
+		for ( int idx = 0; idx < signed(fms.size()); ++idx ) {
 			if ( fms.getIntensity( idx ) > threshold )
 				indecies.push_back( std::make_pair( fcn, idx ) );
 		}

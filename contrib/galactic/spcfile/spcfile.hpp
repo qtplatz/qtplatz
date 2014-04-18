@@ -41,8 +41,8 @@ namespace galactic {
         spcfile( std::istream& in, size_t fsize );
         
         operator bool () const;
-        const spchdr * spchdr() const;
-        const subhdr * subhdr( size_t idx = 0 ) const;
+        const galactic::spchdr * spchdr() const;
+        const galactic::subhdr * subhdr( size_t idx = 0 ) const;
         size_t number_of_subfiles() const;
 
         bool isDeprecated() const;

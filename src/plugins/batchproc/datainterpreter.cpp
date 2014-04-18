@@ -188,7 +188,7 @@ DataInterpreter::translate( adcontrols::TraceAccessor& trace
             return adcontrols::translate_error;
 
     const double * intens = c.getIntensityArray();
-    for ( int i = 0; i < c.size(); ++i )
+    for ( size_t i = 0; i < c.size(); ++i )
         trace.push_back( 0, i, c.timeFromDataIndex(i), intens[i], 0 );
 
 	return adcontrols::translate_complete;

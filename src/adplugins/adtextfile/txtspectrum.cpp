@@ -55,7 +55,7 @@ TXTSpectrum::TXTSpectrum()
 bool
 TXTSpectrum::load( const std::wstring& name )
 {
-	bool hasMass( false );
+	//bool hasMass( false );
 	boost::filesystem::path path( name );
 
 	boost::filesystem::ifstream in( path );
@@ -101,7 +101,6 @@ TXTSpectrum::load( const std::wstring& name )
 				timeArray.push_back( values[ 0 ] );
 				intensArray.push_back( values[ 1 ] );
 			} else if ( i == 3 ) {
-				hasMass = true;
                 timeArray.push_back( values[ 0 ] );
                 massArray.push_back( values[ 1 ] );
                 intensArray.push_back( values[ 2 ] );
@@ -237,6 +236,7 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
         double tic, base, rms;
         const double * intens = ms.getIntensityArray();
         tic = adportable::spectrum_processor::tic( info.nSamples, intens, base, rms );
+        (void)tic;
         for ( size_t i = 0; i < info.nSamples; ++i )
             ms.setIntensity( i, intens[i] - base );
     }

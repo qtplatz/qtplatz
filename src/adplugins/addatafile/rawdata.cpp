@@ -87,7 +87,7 @@ rawdata::loadAcquiredConf()
                 
                 adcontrols::TraceAccessor accessor;
                 if ( fetchTraces( conf.objid, conf.dataInterpreterClsid, accessor ) ) {
-                    for ( int fcn = 0; fcn < accessor.nfcn(); ++fcn ) {
+                    for ( int fcn = 0; unsigned(fcn) < accessor.nfcn(); ++fcn ) {
                         std::shared_ptr< adcontrols::Chromatogram > cptr( new adcontrols::Chromatogram() );
                         cptr->addDescription( adcontrols::Description( L"create",  conf.trace_display_name ) );
                         accessor.copy_to( *cptr, fcn );

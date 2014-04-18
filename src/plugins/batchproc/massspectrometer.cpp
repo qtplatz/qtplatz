@@ -49,11 +49,14 @@ MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : adcontro
 {
 }
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_extra.h>
 MassSpectrometer::MassSpectrometer( const MassSpectrometer& t ) : adcontrols::MassSpectrometer( t )
                                                                 , interpreter_( t.interpreter_ )
                                                                 , accessor_( t.accessor_ )
 {
 }
+#include <compiler/diagnostic_pop.h>
 
 bool
 MassSpectrometer::subscribe( const adcontrols::LCMSDataset& data )

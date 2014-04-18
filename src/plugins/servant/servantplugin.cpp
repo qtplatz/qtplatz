@@ -100,10 +100,10 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
         adcontrols::logging_hook::register_hook( adlog::logging_handler::log );} while(0);
 
-    if ( outputWindow_ = new OutputWindow ) {
+    if ( ( outputWindow_ = new OutputWindow ) ) {
         addAutoReleasedObject( outputWindow_ );
 
-        if ( logger_ = new Logger ) {
+        if ( ( logger_ = new Logger ) ) {
             connect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
             addAutoReleasedObject( logger_ );
             adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );

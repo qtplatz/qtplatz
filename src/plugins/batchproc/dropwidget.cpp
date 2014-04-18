@@ -42,7 +42,7 @@ namespace batchproc {
         QIcon::State state_;
         bool enable_;
 
-        scoped_icon_state( QLabel& label, QIcon& icon, QIcon::Mode mode, QIcon::State state, bool enable )
+        scoped_icon_state( QLabel& label, QIcon& icon, QIcon::Mode, QIcon::State, bool enable )
             : label_( label ), icon_(icon) {
 
             enable_ = label.isEnabled();

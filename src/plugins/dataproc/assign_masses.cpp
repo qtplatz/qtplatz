@@ -85,7 +85,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
             // duplicate assign check
             adcontrols::MSAssignedMasses::vector_type::iterator assignIt = 
                 std::find_if( assignedMasses.begin(), assignedMasses.end(), [&]( const adcontrols::MSAssignedMass& a ){
-                        return a.idPeak() == idx && a.idMassSpectrum() == fcn;
+                        return a.idPeak() == idx && a.idMassSpectrum() == unsigned(fcn);
                     });
             if ( assignIt != assignedMasses.end() ) {
                 // already assined to another refernce

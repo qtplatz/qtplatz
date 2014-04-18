@@ -304,7 +304,7 @@ MainWindow::handleStateChanged( const QModelIndex& index )
 {
     if ( index.column() == Constants::c_batchproc_state ) {
 
-        if ( bool state = index.data( Qt::CheckStateRole ) == Qt::Checked ) {
+        if ( index.data( Qt::CheckStateRole ) == Qt::Checked ) {
 
             model_->item( index.row(), Constants::c_batchproc_process )->setEditable( false );
             // model_->item( index.row(), index.column() )->setEditable( false ); // cbx

@@ -1,7 +1,7 @@
 /**************************************************************************
 ** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2014 MS-Cheminformatics LLC
-*
+**
 ** Contact: toshi.hondo@MS-Cheminformatics.com
 **
 ** Commercial Usage

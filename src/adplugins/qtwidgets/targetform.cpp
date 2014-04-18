@@ -194,7 +194,7 @@ TargetForm::init_adducts( QTreeView&, QStandardItemModel& model )
 {
 	model.setColumnCount( c_adduct_num_columns );
     model.setHeaderData( c_adduct_or_loss, Qt::Horizontal, "Adducts/Losses" );
-    if ( c_adduct_or_loss != c_adduct_checkbox )
+    if ( int(c_adduct_or_loss) != int(c_adduct_checkbox) )
         model.setHeaderData( c_adduct_checkbox, Qt::Horizontal, "" );
 
     QStandardItem * rootNode = model.invisibleRootItem();
@@ -223,7 +223,7 @@ TargetForm::init_formulae( QTreeView& tree, QStandardItemModel& model )
     tree.setColumnWidth( c_formula_checkbox, 16 );
 
 	model.setHeaderData( c_formula, Qt::Horizontal, "Formulae" );
-    if ( c_formula != c_formula_checkbox )
+    if ( int(c_formula) != c_formula_checkbox )
         model.setHeaderData( c_formula_checkbox, Qt::Horizontal, "" );
 }
 
@@ -258,8 +258,10 @@ TargetForm::get_adducts( QTreeView&
                          , const QModelIndex& index
                          , adcontrols::TargetingMethod& method, bool positiveMode )
 {
+    (void)positiveMode;
+
 	QStandardItem * item = model.itemFromIndex( index );
-    size_t nRows = item->rowCount();
+    int nRows = item->rowCount();
 	
 	auto &vec = method.adducts();
 	vec.clear();

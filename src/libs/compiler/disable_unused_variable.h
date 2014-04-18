@@ -27,4 +27,5 @@
 #endif
 
 #if defined _MSC_VER
+# pragma warning(disable:4189) // local variable not referenced
 #endif

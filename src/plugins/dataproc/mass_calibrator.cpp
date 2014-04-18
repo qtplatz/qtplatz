@@ -86,6 +86,7 @@ mass_calibrator::polfit( adcontrols::MSCalibration& calib, int nterm )
 double
 mass_calibrator::compute_mass( double time, int mode, const adcontrols::MSCalibration& calib )
 {
+    (void)mode;
 	double msqr = adcontrols::MSCalibration::compute( calib.coeffs(), time ); // time / scanLaw_->fLength( mode ) );
     if ( msqr > 0.0 )
         return msqr * msqr;

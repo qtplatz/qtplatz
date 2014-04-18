@@ -940,13 +940,13 @@ AcquirePlugin::initialize_broker()
     adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" );
     if ( adbroker_plugin ) {
 
-        if ( orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
+        if ( ( orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) ) {
 
             orbBroker->orbmgr_init( 0, 0 );
 
             try { 
 
-                if ( adBroker = orbBroker->create_instance() ) {
+                if ( ( adBroker = orbBroker->create_instance() ) ) {
                     orbServants_.push_back( adBroker );
                     Broker::Manager_var mgr = Broker::Manager::_narrow( adBroker->_this() );
                     addObject ( new QBroker( mgr._retn() ) );
