@@ -26,14 +26,14 @@ struct noise {
 
 };
 
-const int M = 100;
+const int M = 13;
 const size_t N = 512;
 
 int
 main( int ac, char * av[] )
 {
     std::vector< double > smooth, derivative;
-    noise noise( 0.0, 0.001 );
+    noise noise( 0.0, 0.05 );
 
     adportable::SGFilter smoother( M, adportable::SGFilter::Smoothing );
     adportable::SGFilter d1cubic( M, adportable::SGFilter::Derivative1 );

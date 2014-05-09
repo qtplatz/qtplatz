@@ -275,6 +275,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
             model.setData( model.index( row, c_mspeaktable_time ), pk.time() );
             model.setData( model.index( row, c_mspeaktable_mass ), pk.mass() );
+            model.setData( model.index( row, c_mspeaktable_intensity ), pk.area() );
             model.setData( model.index( row, c_mspeaktable_mode ), pkinfo.mode() );
             if ( !pk.formula().empty() ) {
                 model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( pk.formula() ) );
@@ -314,6 +315,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             double mass = fms.getMass( idx );
             model.setData( model.index( row, c_mspeaktable_time ), fms.getTime( idx ) );
             model.setData( model.index( row, c_mspeaktable_mass ), mass );
+            model.setData( model.index( row, c_mspeaktable_intensity ), fms.getIntensity( idx ) );
+
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
 
             model.setData( model.index( row, c_mspeaktable_formula ), QString() ); // clear formula
