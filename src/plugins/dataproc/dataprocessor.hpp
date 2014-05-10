@@ -105,7 +105,7 @@ namespace dataproc {
         portfolio::Folium addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& );
         portfolio::Folium addSpectrogramClusters( std::shared_ptr< adcontrols::SpectrogramClusters >& );
 
-        void subtract( portfolio::Folium& );
+        void subtract( portfolio::Folium& base, portfolio::Folium& target );
 
         portfolio::Portfolio& portfolio() { return *portfolio_; }
 

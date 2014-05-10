@@ -554,7 +554,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     actions[ asCentroid ] = menu.addAction( "Save centroid spectrum as..." );
                     actions[ doCalibration ] = menu.addAction( "Send checked spectra to calibration folder" );
 					menu.addSeparator();
-                    actions[ subBackground ] = menu.addAction( QString("Subtract %1 from %2").arg( selected_spectrum, active_spectrum ) );
+                    actions[ subBackground ] = menu.addAction( QString("Subtract background '%1' from '%2'").arg( selected_spectrum, active_spectrum ) );
                     actions[ removeChecked ] = menu.addAction( "Remove unchecked items" );
 
                     if ( ! isSpectrum )
@@ -570,7 +570,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             for ( auto& session: *SessionManager::instance() )
 								processor->sendCheckedSpectraToCalibration( session.processor() );
                         } else if ( selectedItem == actions[ subBackground ] ) {
-                            processor->subtract( folium );
+                            processor->subtract( folium, active_folium );
                         } else if ( selectedItem == actions[ removeChecked ] ) {
                             processor->removeCheckedItems();
                             invalidateSession( processor );

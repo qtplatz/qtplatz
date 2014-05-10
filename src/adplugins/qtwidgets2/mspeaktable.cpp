@@ -84,6 +84,10 @@ namespace qtwidgets2 {
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() )
                 drawDisplay( painter, option, option.rect, ( boost::format("%.7g") % ( index.data( Qt::EditRole ).toDouble() * 1000 ) ).str().c_str() );
             break;
+        case c_mspeaktable_intensity:
+            if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_intensity ), Qt::EditRole ).toString().isEmpty() )
+                drawDisplay( painter, option, option.rect, ( boost::format("%.2lf") % ( index.data( Qt::EditRole ).toDouble() ) ).str().c_str() );
+            break;
         case c_mspeaktable_mode:
         case c_mspeaktable_formula:
         case c_mspeaktable_description:
@@ -347,7 +351,7 @@ MSPeakTable::dataChanged( const adcontrols::MassSpectrum& ms )
 	QStandardItemModel& model = *model_;
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
-    int total_size = 0;
+    size_t total_size = 0;
     for( auto& t: segs )
         total_size += t.size();
 

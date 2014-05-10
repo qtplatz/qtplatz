@@ -745,18 +745,20 @@ Dataprocessor::findPeptide( const adprot::digestedPeptides& digested )
 }
 
 void
-Dataprocessor::subtract( portfolio::Folium& folium )
+Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
 {
-    if ( auto background = portfolio::get< adutils::MassSpectrumPtr >( folium ) ) {
-        portfolio::Folium cf = currentSelection();
-        if ( auto profile = portfolio::get< adutils::MassSpectrumPtr >( cf ) ) {
+    if ( auto background = portfolio::get< adutils::MassSpectrumPtr >( base ) ) {
+        
+        if ( auto profile = portfolio::get< adutils::MassSpectrumPtr >( target ) ) {
+
             if ( profile->isCentroid() || background->isCentroid() )
                 return;
+
             adcontrols::MassSpectrum xms( *profile );
             for ( size_t i = 0; i < xms.size(); ++i )
                 xms.setIntensity( i, xms.getIntensity( i ) - background->getIntensity( i ) );
 
-			xms.addDescription( adcontrols::Description( L"processed", ( boost::wformat( L" - %1%" ) % folium.name() ).str() ) );
+			xms.addDescription( adcontrols::Description( L"processed", ( boost::wformat( L"%1% - %2%" ) % target.name() % base.name() ).str() ) );
             addSpectrum( xms, adcontrols::ProcessMethod() );
         }
     }
