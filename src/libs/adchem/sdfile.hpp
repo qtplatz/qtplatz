@@ -73,7 +73,7 @@ namespace adchem {
     class ADCHEMSHARED_EXPORT sdfile_iterator {
         RDKit::SDMolSupplier& supplier_;
         std::unique_ptr< RDKit::ROMol > mol_;
-        size_t idx_;
+        uint32_t idx_;
         bool fetch();
     public:
         sdfile_iterator( RDKit::SDMolSupplier& supplier, size_t idx );

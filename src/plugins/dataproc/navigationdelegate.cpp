@@ -30,6 +30,10 @@
 #include <QEvent>
 #include <qlineedit.h>
 
+Q_DECLARE_METATYPE( portfolio::Folium )
+Q_DECLARE_METATYPE( portfolio::Folder )
+Q_DECLARE_METATYPE( dataproc::Dataprocessor * )
+
 using namespace dataproc;
 
 NavigationDelegate::NavigationDelegate(QObject *parent) :  QItemDelegate(parent)

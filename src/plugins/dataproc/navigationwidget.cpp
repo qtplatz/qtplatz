@@ -39,13 +39,14 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/filemanager.h>
 #include <coreplugin/modemanager.h>
-#include <QLabel>
-#include <QTreeView>
-#include <QStandardItemModel>
-#include <QVBoxLayout>
-#include <QMenu>
-#include <QFileDialog>
+#include <QDataStream>
 #include <QDebug>
+#include <QFileDialog>
+#include <QLabel>
+#include <QMenu>
+#include <QStandardItemModel>
+#include <QTreeView>
+#include <QVBoxLayout>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <iomanip>
@@ -164,6 +165,33 @@ public:
     }
 };
 
+QDataStream &operator<<(QDataStream& out, const portfolio::Folium& folium )
+{
+    out << QString::fromStdWString( folium.id() );
+    return out;
+}
+
+QDataStream &operator>>(QDataStream& in, portfolio::Folium& folium )
+{
+    QString id;
+    in >> id;
+    folium.id( id.toStdWString() );
+    return in;
+}
+
+QDataStream &operator<<(QDataStream& out, const portfolio::Folder& folder )
+{
+    out << QString::fromStdWString( folder.id() );
+    return out;
+}
+
+QDataStream &operator>>(QDataStream& in, portfolio::Folder& folder )
+{
+    QString id;
+    in >> id;
+    folder.id( id.toStdWString() );
+    return in;
+}
 
 using namespace dataproc;
 
@@ -175,12 +203,17 @@ NavigationWidget::~NavigationWidget()
 }
 
 NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
-                                                    , pTreeView_( new QTreeView(this) )
+                                                    , pTreeView_( new QTreeView( this ) )
                                                     , pModel_( new QStandardItemModel )
                                                     , pDelegate_( new NavigationDelegate ) 
 {
     pTreeView_->setModel( pModel_ );
     pTreeView_->setItemDelegate( pDelegate_ );
+	pTreeView_->setDragEnabled( true );
+	// pTreeView_->setDragDropMode( QAbstractItemView::DragOnly );
+    qRegisterMetaTypeStreamOperators< portfolio::Folium >( "portfolio::Folium" );
+    qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
+
     setFocusProxy( pTreeView_ );
     initView();
 
@@ -501,6 +534,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 if ( processor && 
                      ( ( folium.getParentFolder().name() == L"Spectra" ) ||
                        ( folium.getParentFolder().name() == L"MSCalibration" ) ) ) {
+
+                    QString selected_spectrum = QString::fromStdWString( folium.name() );
                     
 					if ( folium.empty() )
 						processor->fetch( folium );
@@ -519,7 +554,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     actions[ asCentroid ] = menu.addAction( "Save centroid spectrum as..." );
                     actions[ doCalibration ] = menu.addAction( "Send checked spectra to calibration folder" );
 					menu.addSeparator();
-                    actions[ subBackground ] = menu.addAction( QString("Subtrace this from %1").arg( active_spectrum ) );
+                    actions[ subBackground ] = menu.addAction( QString("Subtract %1 from %2").arg( selected_spectrum, active_spectrum ) );
                     actions[ removeChecked ] = menu.addAction( "Remove unchecked items" );
 
                     if ( ! isSpectrum )
@@ -583,3 +618,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         }
     }
 }
+
+Q_DECLARE_METATYPE( portfolio::Folium )
+Q_DECLARE_METATYPE( portfolio::Folder )
+Q_DECLARE_METATYPE( dataproc::Dataprocessor * )

@@ -87,7 +87,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 
     int idx = 0;
     for ( auto it: txt.spectra_ ) {
-        std::wstring name( ( boost::wformat( L"Spectrum(%1%)" ) % idx++ ).str() );
+		std::wstring name( ( boost::wformat( L"%1%(%2%)" ) % path.stem() % idx++ ).str() );
         portfolio::Folium folium = spectra.addFolium( name );
         folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );
 		data_[ folium.id() ] = it;
