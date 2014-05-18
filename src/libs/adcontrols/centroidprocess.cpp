@@ -221,6 +221,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
         
         double h = *it - pk.base;
         double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
+
         size_t idx = std::distance( intens.begin(), it );
 
         double threshold = pk.base + h * method_.peakCentroidFraction();
@@ -238,7 +239,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 item.peak_start_index_ = static_cast<uint32_t>( pk.first );
                 item.peak_end_index_ = static_cast<uint32_t>( pk.second );
                 item.base_height_ = pk.base;
-                item.area_ = a;
+                item.area_ = a;  // this will override with HH area
                 item.height_ = h;
                 item.mass_ = mass;
                 item.centroid_left_mass_ = moment.xLeft();
@@ -249,6 +250,11 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 moment.width( profile.getIntensityArray(), pk.base + h * 0.5, uint32_t(pk.first), uint32_t(idx), pk.second ); // half-height
                 item.HH_left_mass_ = moment.xLeft();
                 item.HH_right_mass_ = moment.xRight();
+
+                // area in HH range
+                adportable::spectrum_processor::areaFraction fraction;
+                adportable::spectrum_processor::getFraction( fraction, profile.getMassArray(), profile.size(), moment.xLeft(), moment.xRight() );
+				item.area_ = adportable::spectrum_processor::area( fraction, pk.base, intens.begin(), intens.size() );
                 
                 // time interporate from mass
                 array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin() + pk.first, masses.begin() + pk.second, mass );
