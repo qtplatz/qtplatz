@@ -26,34 +26,25 @@
 #pragma once
 
 #include <sstream>
-
-namespace boost { namespace system { class error_code; } }
+#include <chrono>
+#include "debug.hpp"
 
 namespace adportable {
 
-    class debug {
-        std::ostringstream o_;
-        std::string file_;
-        int line_;
+    template< class T = debug > class scoped_debug : public T {
+        std::chrono::steady_clock::time_point trig_point_;
     public:
-        debug(const char * file = 0, const int line = 0);
-        ~debug(void);
-        static void initialize( const std::string& filename );
-        std::string where() const;
-        std::string str() const { return o_.str(); }
-
-        template<typename T> debug& operator << ( const T& t ) { o_ << t; return *this; }
-		debug& operator << ( const wchar_t *);
-		debug& operator << ( const std::wstring& t );
+        scoped_debug(const char * file = 0
+                     , const int line = 0) : T( file, line )
+                                           , trig_point_( std::chrono::steady_clock::now() ) {
+        }
+        ~scoped_debug(void) {
+            auto duration = std::chrono::steady_clock::now() - trig_point_;
+            static_cast< T& >(*this)
+                << "\t"
+                << double(std::chrono::duration_cast< std::chrono::microseconds >( duration ).count()) * 1e-6
+                << "s.";
+        }
     };
-    
-    template<> debug& debug::operator << ( const std::wstring& t );
-    template<> debug& debug::operator << ( const boost::system::error_code& );
-
-    inline std::string where( const char * file, const int line ) { 
-        debug x( file, line );
-        return x.where();
-    }
 }
 
-#define ADDEBUG() adportable::debug(__FILE__, __LINE__)
