@@ -84,7 +84,7 @@ debug_core::log( int pri, const std::string& msg, const std::string& file, int l
     }
 
     std::string loc;
-    if ( file.empty() )
+    if ( !file.empty() )
         loc = ( boost::format( "%1%(%2%): " ) % file % line ).str();
     
     if ( !logfname_.empty() ) {
