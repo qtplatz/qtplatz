@@ -518,7 +518,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         portfolio::Folium active_folium;
         QString active_spectrum;
 		if ( auto activeProcessor = SessionManager::instance()->getActiveDataprocessor() ) {
-            if ( active_folium = activeProcessor->currentSelection() ) {
+            if ( ( active_folium = activeProcessor->currentSelection() ) ) {
                 if ( active_folium.getParentFolder().name() == L"Spectra" )
                     active_spectrum = QString::fromStdWString( active_folium.name() );
             }
@@ -542,16 +542,21 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     
                     bool isSpectrum = portfolio::is_type< adutils::MassSpectrumPtr >( folium );
                     portfolio::Folio atts = folium.attachments();
-                    auto it = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& a ){
+                    auto itCentroid = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& a ){
                             return a.name() == Constants::F_CENTROID_SPECTRUM;
                         });
-                    bool hasCentroid = it != atts.end();
+                    bool hasCentroid = itCentroid != atts.end();
+                    auto itFiltered = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& a ){
+                            return a.name() == Constants::F_DFT_FILTERD;
+                        });
+                    bool hasFilterd = itFiltered != atts.end();
                 
                     QMenu menu;
-                    enum { asProfile, asCentroid, doCalibration, subBackground, removedChecked, removeChecked, numActions };
+                    enum { asProfile, asCentroid, doCalibration, subBackground, removedChecked, removeChecked, asDFTProfile, numActions };
                     std::array< QAction *, numActions > actions;
                     actions[ asProfile ]  = menu.addAction( "Save profile spectrum as..." );
                     actions[ asCentroid ] = menu.addAction( "Save centroid spectrum as..." );
+                    actions[ asDFTProfile ] = menu.addAction( "Save DFT filtered profile spectrum as..." );
                     actions[ doCalibration ] = menu.addAction( "Send checked spectra to calibration folder" );
 					menu.addSeparator();
                     actions[ subBackground ] = menu.addAction( QString("Subtract background '%1' from '%2'").arg( selected_spectrum, active_spectrum ) );
@@ -561,6 +566,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         actions[ asProfile ]->setEnabled( false );
                     if ( ! hasCentroid )
                         actions[ asCentroid ]->setEnabled( false );
+                    if ( ! hasFilterd )
+                        actions[ asDFTProfile ]->setEnabled( false );
                     if ( active_spectrum.isEmpty() )
                         actions[ subBackground ]->setEnabled( false );
 
@@ -597,8 +604,11 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                     auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
                                     export_spectrum::write( of, *profile );
                                 } else if ( selectedItem == actions[ asCentroid ] ) {
-                                    auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
+                                    auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
                                     export_spectrum::write( of, *centroid );
+                                } else if ( selectedItem == actions[ asDFTProfile ] ) {
+                                    auto filtered = portfolio::get< adcontrols::MassSpectrumPtr >( *itFiltered );
+                                    export_spectrum::write( of, *filtered );                                    
                                 }
                             }
                         }
