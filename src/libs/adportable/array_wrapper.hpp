@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 namespace adportable {
 
   template<class T> 
