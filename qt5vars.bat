@@ -11,12 +11,12 @@ if "%1"=="x86" (
   set ARCH=x64
 )
 
-if "%2"=="vc12" (
-  set VC=vc12
-  set QMAKESPEC=win32-msvc2013
-) else (
+if "%2"=="vc11" (
   set VC=vc11
   set QMAKESPEC=win32-msvc2012
+) else (
+  set VC=vc12
+  set QMAKESPEC=win32-msvc2013
 )
 
 set uname=%ARCH%_%VC%
@@ -43,7 +43,6 @@ set QWT=C:\x64\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
 set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
-set PATH=%QTDIR%\bin;%PATH%
 goto all_set
 
 :x86_vc11
@@ -63,8 +62,7 @@ echo ======= setup for x64 64bit memory using VS2013 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
 set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x64
 set TAO_ROOT=%ACE_ROOT%\TAO
-set PATH=C:\qt5\bin;%PATH%
-set QTDIR=C:\qt5
+set QTDIR=C:\Qt\Qt5.3.0\5.3\msvc2013_64_opengl
 set QWT=C:\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
@@ -76,7 +74,7 @@ echo ======= setup for x86 32bit memory using VS2013 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86
 set TAO_ROOT=%ACE_ROOT%\TAO
-set QTDIR=C:\x86\qt5\qtbase
+set QTDIR=C:\x86\Qt\Qt5.3.0\5.3\msvc2013_64_opengl
 set QWT=C:\x86\vc12\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
