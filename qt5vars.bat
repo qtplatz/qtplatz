@@ -36,7 +36,7 @@ if %uname%==x64_vc12 goto x64_vc12
 :x64_vc11
 echo ======= setup for x64 64bit memory using VS2012 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" amd64
-set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x64
+set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86_64_110
 set TAO_ROOT=%ACE_ROOT%\TAO
 set QTDIR=C:\Qt\Qt5.2.1\5.2.1\msvc2012_64_opengl
 set QWT=C:\x64\Qwt-6.1.1-svn
@@ -48,7 +48,7 @@ goto all_set
 :x86_vc11
 echo ======= setup for x86 32bit memory using VS2012 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x86
-set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86
+set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86_110
 set TAO_ROOT=%ACE_ROOT%\TAO
 set QTDIR=C:\x86\Qt5.2.1\5.2.1\msvc2012
 set QWT=C:\x86\Qwt-6.1.1-svn
@@ -60,8 +60,8 @@ goto all_set
 :x64_vc12
 echo ======= setup for x64 64bit memory using VS2013 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x64
-set TAO_ROOT=%ACE_ROOT%\TAO
+:set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86_64_120
+:set TAO_ROOT=%ACE_ROOT%\TAO
 set QTDIR=C:\Qt\Qt5.3.0\5.3\msvc2013_64_opengl
 set QWT=C:\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
@@ -72,8 +72,8 @@ goto all_set
 :x86_vc12
 echo ======= setup for x86 32bit memory using VS2013 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
-set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86
-set TAO_ROOT=%ACE_ROOT%\TAO
+:set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86
+:set TAO_ROOT=%ACE_ROOT%\TAO
 set QTDIR=C:\x86\Qt\Qt5.3.0\5.3\msvc2013_64_opengl
 set QWT=C:\x86\vc12\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
