@@ -72,13 +72,13 @@ goto all_set
 :x86_vc12
 echo ======= setup for x86 32bit memory using VS2013 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
-:set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86
+set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86_120
 :set TAO_ROOT=%ACE_ROOT%\TAO
-set QTDIR=C:\x86\Qt\Qt5.3.0\5.3\msvc2013_64_opengl
+set QTDIR=C:\x86\Qt\Qt5.3.0\5.3\msvc2013_opengl
 set QWT=C:\x86\vc12\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%\lib
+set BOOST_LIBRARY=%BOOST_ROOT%\x86\lib
 goto all_set
 
 :all_set
