@@ -30,10 +30,11 @@ class QStyleOptionViewItem;
 class QString;
 class QModelIndex;
 #include <QSize>
+#include "adwidgets_global.hpp"
 
 namespace adwidgets {
 
-    class DelegateHelper  {
+    class ADWIDGETSSHARED_EXPORT DelegateHelper  {
     public:
         DelegateHelper();
         static void render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text );

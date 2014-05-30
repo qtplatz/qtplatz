@@ -452,10 +452,10 @@ void
 task::disconnect( digitizer::command_reply_type f )
 {
     std::lock_guard< std::mutex > lock( mutex_ );    
-	auto it = std::remove_if( reply_handlers_.begin(), reply_handlers_.end(), [=]( const digitizer::command_reply_type& t ){
-            return t == f;
-        });
-    reply_handlers_.erase( it, reply_handlers_.end() );
+//	auto it = std::remove_if( reply_handlers_.begin(), reply_handlers_.end(), [=]( const digitizer::command_reply_type& t ){
+//            return t == f;
+//        });
+//    reply_handlers_.erase( it, reply_handlers_.end() );
 }
 
 void
@@ -469,10 +469,10 @@ void
 task::disconnect( digitizer::waveform_reply_type f )
 {
     std::lock_guard< std::mutex > lock( mutex_ );    
-	auto it = std::remove_if( waveform_handlers_.begin(), waveform_handlers_.end(), [=]( const digitizer::waveform_reply_type& t ){
-            return t == f;
-        });
-    waveform_handlers_.erase( it, waveform_handlers_.end() );
+//	auto it = std::remove_if( waveform_handlers_.begin(), waveform_handlers_.end(), [=]( const digitizer::waveform_reply_type& t ){
+//            return t == f;
+//        });
+//    waveform_handlers_.erase( it, waveform_handlers_.end() );
 }
 
 void
