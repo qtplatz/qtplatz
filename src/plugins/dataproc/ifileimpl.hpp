@@ -92,7 +92,6 @@ namespace dataproc {
         bool modified_;
         adcontrols::datafile* file_;
         const adcontrols::LCMSDataset* accessor_;
-        std::vector< adcontrols::Chromatogram > ticVec_;
         Dataprocessor& dprocessor_;
     };
 

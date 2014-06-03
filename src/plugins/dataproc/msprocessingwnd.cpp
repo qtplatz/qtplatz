@@ -284,20 +284,20 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 		for ( size_t fcn = 0; fcn < nfcn; ++fcn ) {
             std::wstring title = ( boost::wformat( L"TIC.%1%" ) % (fcn + 1) ).str();
 
-			portfolio::Folium folium = folder.findFoliumByName( title );
+			portfolio::Folium folium = folder.findFoliumByName( std::wstring( L"TIC/" ) + title );
             if ( folium.nil() ) {   // add TIC if not yet added
 				adcontrols::Chromatogram c;
                 if ( dset->getTIC( static_cast<int>(fcn), c ) ) {
                     if ( c.isConstantSampledData() )
                         c.getTimeArray();
-                    c.addDescription( adcontrols::Description( L"origin", title ) );
+                    c.addDescription( adcontrols::Description( L"acquire.title", title ) );
                     adcontrols::ProcessMethod m;
                     MainWindow::instance()->getProcessMethod( m );
                     folium = processor->addChromatogram( c, m );
 				}
             }
 		}
-        if ( portfolio::Folium folium = folder.findFoliumByName( L"TIC.1" ) ) {
+        if ( portfolio::Folium folium = folder.findFoliumByName( L"TIC/TIC.1" ) ) {
 			if ( folium.empty() )
 				processor->fetch( folium );
 			processor->setCurrentSelection( folium );

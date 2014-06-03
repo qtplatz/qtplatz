@@ -131,7 +131,7 @@ namespace adwplot {
             void setData( Dataplot& plot
                           , const std::shared_ptr< adcontrols::MassSpectrum>&
                           , QRectF&, SpectrumWidget::HorizontalAxis, bool yRight );
-            void setFocusedFcn( Dataplot&, int fcn );
+            void setFocusedFcn( int fcn );
             std::pair<double, double> y_range( double left, double right ) const;
 
         private:
@@ -250,13 +250,6 @@ SpectrumWidget::setKeepZoomed( bool value )
     keepZoomed_ = value;
 }
 
-// void
-// SpectrumWidget::zoom( const QRectF& rect )
-// {
-// 	Dataplot::zoom( rect );
-//     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
-// }
-
 void
 SpectrumWidget::zoomed( const QRectF& rect )
 {
@@ -345,7 +338,7 @@ void
 SpectrumWidget::setFocusedFcn( int fcn )
 {
     for ( auto& trace: impl_->traces_ )
-		trace.setFocusedFcn( *this, fcn );
+		trace.setFocusedFcn( fcn );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -478,16 +471,12 @@ TraceData::setData( Dataplot& plot
 }
 
 void
-TraceData::setFocusedFcn( Dataplot& plot, int fcn )
+TraceData::setFocusedFcn( int fcn )
 {
     if ( focusedFcn_ != fcn ) {
         focusedFcn_ = fcn;
         if ( pSpectrum_ ) {
             changeFocus( focusedFcn_ );
-
-            if ( pSpectrum_->isCentroid() ) { // sticked
-            } else { // Profile
-            }
         }
     }
 }

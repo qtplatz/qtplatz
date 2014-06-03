@@ -166,12 +166,6 @@ bool
 IFileImpl::subscribe( const adcontrols::LCMSDataset& data )
 {
     accessor_ = &data;
-    int nfcn = static_cast<int>(data.getFunctionCount());
-    for ( int i = 0; i < nfcn; ++i ) {
-        adcontrols::Chromatogram c;
-        if ( data.getTIC( i, c ) )
-            ticVec_.push_back( c );
-    }
     return true;
 }
 
