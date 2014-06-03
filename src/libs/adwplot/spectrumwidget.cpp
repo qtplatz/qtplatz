@@ -483,9 +483,10 @@ TraceData::setFocusedFcn( Dataplot& plot, int fcn )
     if ( focusedFcn_ != fcn ) {
         focusedFcn_ = fcn;
         if ( pSpectrum_ ) {
+            changeFocus( focusedFcn_ );
+
             if ( pSpectrum_->isCentroid() ) { // sticked
             } else { // Profile
-                changeFocus( focusedFcn_ );
             }
         }
     }
