@@ -246,15 +246,17 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 item.centroid_right_mass_ = moment.xRight();
                 item.centroid_threshold_ = threshold;
                 
-                // pk.mass = mass;
-                moment.width( profile.getIntensityArray(), pk.base + h * 0.5, uint32_t(pk.first), uint32_t(idx), pk.second ); // half-height
+                // half-height width
+                moment.width( profile.getIntensityArray(), pk.base + h * 0.5, uint32_t(pk.first), uint32_t(idx), pk.second );
                 item.HH_left_mass_ = moment.xLeft();
                 item.HH_right_mass_ = moment.xRight();
 
                 // area in HH range
                 adportable::spectrum_processor::areaFraction fraction;
                 adportable::spectrum_processor::getFraction( fraction, profile.getMassArray(), profile.size(), moment.xLeft(), moment.xRight() );
+                double width = moment.xRight() - moment.xLeft(); // m/z 
 				item.area_ = adportable::spectrum_processor::area( fraction, pk.base, intens.begin(), intens.size() );
+                item.area_ = item.area_ * width;
                 
                 // time interporate from mass
                 array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin() + pk.first, masses.begin() + pk.second, mass );

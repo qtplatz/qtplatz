@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include "description.hpp"
+#include <vector>
 
 namespace boost {
     namespace serialization {
@@ -57,19 +58,24 @@ namespace adcontrols {
 	   size_t size() const;
 	   const Description& operator [](size_t idx) const;
 
-       class description_iterator {
-           size_t pos_;
-           const Descriptions& desc_;
-       public:
-		   description_iterator( const Descriptions& d, size_t pos ) : pos_( pos ), desc_( d ) {}
-           bool operator != ( const description_iterator& rhs ) const { return pos_ != rhs.pos_; }
-           const description_iterator& operator ++ () { ++pos_; return *this; }
-           operator const Description* () const { return &desc_[ pos_ ]; }
-       };
+       std::vector< Description >::iterator begin();
+       std::vector< Description >::iterator end();
+       std::vector< Description >::const_iterator begin() const;
+       std::vector< Description >::const_iterator end() const;
 
-       typedef const description_iterator const_iterator;
-       inline const_iterator begin() const { return description_iterator( *this, 0 ); }
-       inline const_iterator end() const { return description_iterator( *this, this->size() ); }
+       // class description_iterator {
+       //     size_t pos_;
+       //     const Descriptions& desc_;
+       // public:
+	   //     description_iterator( const Descriptions& d, size_t pos ) : pos_( pos ), desc_( d ) {}
+       //     bool operator != ( const description_iterator& rhs ) const { return pos_ != rhs.pos_; }
+       //     const description_iterator& operator ++ () { ++pos_; return *this; }
+       //     operator const Description* () const { return &desc_[ pos_ ]; }
+       // };
+
+       // typedef const description_iterator const_description_iterator;
+       // inline const_description_iterator begin() const { return description_iterator( *this, 0 ); }
+       // inline const_description_iterator end() const { return description_iterator( *this, this->size() ); }
 
 	   std::string saveXml() const;
 	   void loadXml( const std::string& xml );

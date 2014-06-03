@@ -90,6 +90,7 @@ namespace qtwidgets2 {
 		void setPeakInfo( const adcontrols::MassSpectrum& );
 		void dataChanged( const adcontrols::MassSpectrum& );
         void formulaChanged( const QModelIndex& );
+        void descriptionChanged( const QModelIndex& );
         static double exactMass( std::string );
         friend struct detail::dataMayChanged;
     };

@@ -25,6 +25,8 @@
 #include "mspeaktable.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/annotation.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
@@ -57,6 +59,7 @@ namespace qtwidgets2 {
         , c_mspeaktable_intensity
         , c_mspeaktable_mode
         , c_mspeaktable_time
+        , c_mspeaktable_protocol
         , c_mspeaktable_description
         , c_mspeaktable_index
         , c_mspeaktable_fcn
@@ -192,11 +195,9 @@ MSPeakTable::onUpdate( boost::any& a )
         // dataMayChanged on MainWindow invoke this method over applyCalibration()
 
         int id = boost::any_cast<int>( a );
+
         if ( id == 0 ) { // data may changed
             boost::apply_visitor( detail::dataMayChanged( this ), data_source_ );
-            // auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
-            // if ( auto ptr = wptr.lock() )
-            //     dataChanged( *ptr );
         }
     }
 }
@@ -246,16 +247,14 @@ MSPeakTable::onInitialUpdate()
     model.setHeaderData( c_mspeaktable_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_mspeaktable_intensity,   Qt::Horizontal, QObject::tr( "intensity" ) );
     model.setHeaderData( c_mspeaktable_mode,        Qt::Horizontal, QObject::tr( "mode" ) );
+    model.setHeaderData( c_mspeaktable_protocol,    Qt::Horizontal, QObject::tr( "protocol" ) );
     model.setHeaderData( c_mspeaktable_formula,     Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_mspeaktable_description, Qt::Horizontal, QObject::tr( "description" ) );
 
     setColumnHidden( c_mspeaktable_index, true );
-    setColumnHidden( c_mspeaktable_fcn, true );
+    setColumnHidden( c_mspeaktable_fcn, true );  // a.k.a. protocol id, internally used as an id
 
-    resizeColumnsToContents();
-    resizeRowsToContents();
-
-    horizontalHeader()->setResizeMode( QHeaderView::Stretch );
+    //horizontalHeader()->setResizeMode( QHeaderView::Stretch );
 }
 
 void
@@ -277,6 +276,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
             model.setData( model.index( row, c_mspeaktable_fcn ), fcn ); // hidden
             model.setData( model.index( row, c_mspeaktable_index ), idx++ ); // hidden
 
+            model.setData( model.index( row, c_mspeaktable_protocol ), fcn ); // protocol id (for display)
+            
             model.setData( model.index( row, c_mspeaktable_time ), pk.time() );
             model.setData( model.index( row, c_mspeaktable_mass ), pk.mass() );
             model.setData( model.index( row, c_mspeaktable_intensity ), pk.area() );
@@ -310,11 +311,22 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
     for ( auto& fms: segs ) {
 
         const adcontrols::annotations& annots = fms.get_annotations();
+        QString protlabel;
+
+        auto& descs = fms.getDescriptions();
+        auto it = std::find_if( descs.begin(), descs.end(), [] ( const adcontrols::Description& d ){ return d.key() == L"acquire.protocol.label"; } );
+        if ( it != descs.end() ) {
+            protlabel = QString::fromStdWString( (boost::wformat( L"#%d %s" ) % fcn % it->text() ).str() );
+        }
+        else {
+            protlabel = QString::fromStdString( (boost::format( "#%1%" ) % fcn).str() );
+        }
 
         for ( int idx = 0; idx < signed(fms.size()); ++idx ) {
 
-            model.setData( model.index( row, c_mspeaktable_fcn ), fcn ); // hidden
+            model.setData( model.index( row, c_mspeaktable_fcn ), fcn ); // protocol number
             model.setData( model.index( row, c_mspeaktable_index ), idx ); // hidden
+            model.setData( model.index( row, c_mspeaktable_protocol ), protlabel );
 
             double mass = fms.getMass( idx );
             model.setData( model.index( row, c_mspeaktable_time ), fms.getTime( idx ) );
@@ -341,8 +353,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
         ++fcn;
     }
 
-    resizeRowsToContents();
     resizeColumnsToContents();
+    resizeRowsToContents();
 }
 
 void
@@ -544,7 +556,10 @@ MSPeakTable::handleValueChanged( const QModelIndex& index )
         return;
     if ( index.column() == c_mspeaktable_formula ) {
         formulaChanged( index );
-	}
+    }
+    else if ( index.column() == c_mspeaktable_description ) {
+        descriptionChanged( index );
+    }
 }
 
 void
@@ -586,6 +601,51 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
                                                           , idx
                                                           , 0
                                                           , adcontrols::annotation::dataFormula );
+                    }
+                    emit formulaChanged( idx, fcn );
+                }
+            }
+        }
+    }
+}
+
+void
+MSPeakTable::descriptionChanged( const QModelIndex& index )
+{
+	QStandardItemModel& model = *model_;
+
+    if ( index.column() == c_mspeaktable_description ) {
+
+        int fcn = model.index( index.row(), c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
+        int idx = model.index( index.row(), c_mspeaktable_index ).data( Qt::EditRole ).toInt();
+
+        std::wstring description = index.data( Qt::EditRole ).toString().toStdWString();
+
+        if ( data_source_.which() == 0 ) {
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MSPeakInfo > >( data_source_ );
+            if ( auto ptr = wptr.lock() ) {
+                adcontrols::segment_wrapper< adcontrols::MSPeakInfo > segs( *ptr );
+                auto it = segs[ fcn ].begin() + idx;
+                it->annotation( description );
+            }
+        } else {
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+            if ( auto ptr = wptr.lock() ) {
+                adcontrols::segment_wrapper<> segs( *ptr );
+                if ( signed(segs.size()) > fcn ) {
+                    auto& ms = segs[fcn];
+                    adcontrols::annotations& annots = ms.get_annotations();
+                    auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){
+                            return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
+                    if ( it != annots.end() ) {
+                        it->text( description, adcontrols::annotation::dataText );
+                    } else {
+                        annots << adcontrols::annotation( description
+                                                          , ms.getMass( idx )
+                                                          , ms.getIntensity( idx )
+                                                          , idx
+                                                          , 0
+                                                          , adcontrols::annotation::dataText );
                     }
                     emit formulaChanged( idx, fcn );
                 }

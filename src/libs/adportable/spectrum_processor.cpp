@@ -117,10 +117,10 @@ namespace adportable {
             if ( frac.uPos < size ) // if following data point exist
                 ax += ( pData[ frac.uPos + 1 ] ) * frac.uFrac;
 
-            double w = ( frac.uPos - frac.lPos + 1 ) + frac.lFrac + frac.uFrac;
-            double d = ax / w;  // normalize by width
-
-            return d;
+            return ax;
+            //double w = (frac.uPos - frac.lPos + 1) + frac.lFrac + frac.uFrac;
+            //double d = ax / w;  // normalize by width
+            //return d;
         }
     };
 

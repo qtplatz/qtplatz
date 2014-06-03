@@ -63,9 +63,10 @@ namespace adcontrols {
 
 			void append( const Description& desc, bool uniq );
 			inline size_t size() const { return vec_.size(); }
-			inline const Description& operator []( int idx ) { return vec_[idx]; }
+			inline const Description& operator []( size_t idx ) { return vec_[idx]; }
 
 		private:
+            friend class Descriptions;
 			friend class boost::serialization::access;
 			template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
 			    (void)version;
@@ -132,6 +133,31 @@ Descriptions::toString() const
         text += desc.text() + L";";
     return text;
 }
+
+std::vector< Description >::iterator
+Descriptions::begin()
+{
+    return pImpl_->vec_.begin();
+}
+
+std::vector< Description >::iterator
+Descriptions::end()
+{
+    return pImpl_->vec_.end();
+}
+
+std::vector< Description >::const_iterator
+Descriptions::begin() const
+{
+    return pImpl_->vec_.begin();
+}
+
+std::vector< Description >::const_iterator
+Descriptions::end() const
+{
+    return pImpl_->vec_.end();    
+}
+
 
 namespace adcontrols {
 
