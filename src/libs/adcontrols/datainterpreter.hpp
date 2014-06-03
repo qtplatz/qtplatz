@@ -64,7 +64,7 @@ namespace adcontrols {
 
         virtual bool compile_header( MassSpectrum&, std::ifstream& ) const { return false; }
 
-        virtual bool make_device_text( std::vector< std::pair< std::string, std::string > >&, const MSProperty& ) { return false; }
+        virtual bool make_device_text( std::vector< std::pair< std::string, std::string > >&, const MSProperty& ) const { return false; }
     };
 
 }
