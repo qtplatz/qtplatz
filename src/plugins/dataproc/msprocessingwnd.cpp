@@ -114,8 +114,14 @@ namespace dataproc {
                 processedSpectrum_->replot();
             }
         }
+
         void set_time_axis( bool isTime ) { 
             is_time_axis_ = isTime;
+        }
+
+        void focusedFcn( int fcn ) {
+            profileSpectrum_->setFocusedFcn( fcn );
+            processedSpectrum_->setFocusedFcn( fcn );
         }
 
         adwplot::ChromatogramWidget * ticPlot_;
@@ -416,6 +422,8 @@ MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& )
 void
 MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
 {
+    pImpl_->focusedFcn( fcn );
+
     if ( auto pkinfo = pkinfo_.lock() ) {
         adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > fpks( *pkinfo );
         auto pk = fpks[ fcn ].begin() + idx;

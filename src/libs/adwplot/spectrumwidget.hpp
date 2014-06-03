@@ -41,6 +41,7 @@ namespace adwplot {
         
         void clear();
         void setData( const std::shared_ptr< adcontrols::MassSpectrum >&, int idx, bool axisRight = false );
+        void setFocusedFcn( int fcn );
         
         enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
         void setAxis( HorizontalAxis );
@@ -54,6 +55,7 @@ namespace adwplot {
         bool autoYZoom_;
         bool keepZoomed_;
         HorizontalAxis haxis_;
+        int focusedFcn_;
 
     signals:
         void onMoved( const QPointF& );

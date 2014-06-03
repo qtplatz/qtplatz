@@ -123,19 +123,26 @@ namespace adwplot {
 	
         class TraceData {
         public:
-            TraceData( int idx ) : idx_( idx ) {  }
+            TraceData( int idx ) : idx_( idx )
+                                 , focusedFcn_( -1 ) {
+            }
             TraceData( const TraceData& t ) : idx_( t.idx_ ), curves_( t.curves_ ) {   }
             ~TraceData();
             void setData( Dataplot& plot
                           , const std::shared_ptr< adcontrols::MassSpectrum>&
                           , QRectF&, SpectrumWidget::HorizontalAxis, bool yRight );
+            void setFocusedFcn( Dataplot&, int fcn );
             std::pair<double, double> y_range( double left, double right ) const;
-            
+
         private:
             void setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, bool yRight );
             void setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, bool yRight );
+            void changeFocus( int focusedFcn );
 
             int idx_;
+            int focusedFcn_;
+            QRectF rect_;
+            bool yRight_;
             std::vector< PlotCurve > curves_;
             std::shared_ptr< adcontrols::MassSpectrum > pSpectrum_;
 			bool isTimeAxis_;
@@ -173,6 +180,7 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
                                                 , autoYZoom_( true ) 
                                                 , keepZoomed_( true )
                                                 , haxis_( HorizontalAxisMass )
+                                                , focusedFcn_( -1 ) // no focus
 {
     //zoomer2_.reset();
 	zoomer1_->autoYScale( autoYZoom_ );
@@ -306,8 +314,6 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
 {
     using spectrumwidget::TraceData;
 
-    //bool addedTrace = impl_->traces_.size() <= size_t( idx );
-
     while ( int( impl_->traces_.size() ) <= idx ) 
 		impl_->traces_.push_back( TraceData( static_cast<int>(impl_->traces_.size()) ) );
 
@@ -335,6 +341,13 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     replot();
 }
 
+void
+SpectrumWidget::setFocusedFcn( int fcn )
+{
+    for ( auto& trace: impl_->traces_ )
+		trace.setFocusedFcn( *this, fcn );
+}
+
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -350,15 +363,32 @@ void
 TraceData::setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF& rect, bool yRight )
 {
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
+    int fcn = 0;
     for ( auto& seg: segments ) {
         curves_.push_back( PlotCurve( plot ) );
 
         PlotCurve &curve = curves_.back();
-        if ( idx_ )
-            curve.p()->setPen( QPen( color_table[ idx_ ] ) );
+        QColor color( color_table[ idx_ ] );
+        curve.p()->setPen( color );
         curve.p()->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
         if ( yRight )
             curve.p()->setYAxis( QwtPlot::yRight );
+        ++fcn;
+    }
+}
+
+void
+TraceData::changeFocus( int focusedFcn )
+{
+    int fcn = 0;
+    for ( auto& curve: curves_ ) {
+        QColor color( color_table[ idx_ ] );
+        if ( focusedFcn >= 0 ) {
+            if ( focusedFcn != fcn )
+                color.setAlpha( 0x20 );
+        }
+        curve.p()->setPen( color );
+        ++fcn;
     }
 }
 
@@ -438,12 +468,29 @@ TraceData::setData( Dataplot& plot
         rect.setCoords( mass_range.first, bottom, mass_range.second, top );
 
     }
+    rect_ = rect;
+    yRight_ = yRight;
     if ( ms->isCentroid() ) { // sticked
         setCentroidData( plot, *ms, rect, yRight );
     } else { // Profile
         setProfileData( plot, *ms, rect, yRight );
     }
 }
+
+void
+TraceData::setFocusedFcn( Dataplot& plot, int fcn )
+{
+    if ( focusedFcn_ != fcn ) {
+        focusedFcn_ = fcn;
+        if ( pSpectrum_ ) {
+            if ( pSpectrum_->isCentroid() ) { // sticked
+            } else { // Profile
+                changeFocus( focusedFcn_ );
+            }
+        }
+    }
+}
+
 
 std::pair< double, double >
 TraceData::y_range( double left, double right ) const
