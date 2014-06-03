@@ -560,6 +560,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
             
             if ( beg < end ) {
                 const adcontrols::annotations& attached = ms.get_annotations();
+                std::map< size_t, adcontrols::annotations > marge;
                 for ( auto a : attached ) {
                     if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
                         if ( a.index() >= 0 ) {
@@ -571,10 +572,18 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
 							a.y( ms.getIntensity( a.index() ) );
 						}
 						if ( a.dataFormat() == adcontrols::annotation::dataFormula ) {
-							a.text( adcontrols::ChemicalFormula::formatFormula( a.text () ) );
-						}
-                        annotations << a;
+							a.text( adcontrols::ChemicalFormula::formatFormula( a.text () ), adcontrols::annotation::dataFormula );
+                        }
+                        marge[ a.index() ] << a;
                     }
+                }
+                for ( auto& a : marge ) {
+                    // if more than two annotations attached to an index, formula is a priority on spectrum
+                    auto it = std::find_if( a.second.begin(), a.second.end(), [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataFormula;  } );
+                    if ( it == a.second.end() )
+                        it = std::find_if( a.second.begin(), a.second.end(), [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataText;  } );
+                    if ( it != a.second.end() )
+                        annotations << *it;
                 }
 
                 if ( autoAnnotation_ ) {

@@ -593,14 +593,18 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
                     auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){
                             return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
                     if ( it != annots.end() ) {
-                        it->text( formula, adcontrols::annotation::dataFormula );
+                        if ( formula.empty() )
+                            annots.erase( it );
+                        else
+                            it->text( formula, adcontrols::annotation::dataFormula );
                     } else {
-                        annots << adcontrols::annotation( formula
-                                                          , ms.getMass( idx )
-                                                          , ms.getIntensity( idx )
-                                                          , idx
-                                                          , 0
-                                                          , adcontrols::annotation::dataFormula );
+                        if ( !formula.empty() )
+                            annots << adcontrols::annotation( formula
+                                                            , ms.getMass( idx )
+                                                            , ms.getIntensity( idx )
+                                                            , idx
+                                                            , 0
+                                                            , adcontrols::annotation::dataFormula );
                     }
                     emit formulaChanged( idx, fcn );
                 }
@@ -636,11 +640,15 @@ MSPeakTable::descriptionChanged( const QModelIndex& index )
                     auto& ms = segs[fcn];
                     adcontrols::annotations& annots = ms.get_annotations();
                     auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){
-                            return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
+                            return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataText; });
                     if ( it != annots.end() ) {
-                        it->text( description, adcontrols::annotation::dataText );
+                        if ( description.empty() )
+                            annots.erase( it );
+                        else
+                            it->text( description, adcontrols::annotation::dataText );
                     } else {
-                        annots << adcontrols::annotation( description
+                        if ( ! description.empty() )
+                            annots << adcontrols::annotation( description
                                                           , ms.getMass( idx )
                                                           , ms.getIntensity( idx )
                                                           , idx

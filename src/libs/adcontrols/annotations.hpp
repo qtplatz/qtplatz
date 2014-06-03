@@ -62,6 +62,7 @@ namespace adcontrols {
         inline iterator end() { return vec_.end(); }
         inline const_iterator begin() const { return vec_.begin(); }
         inline const_iterator end() const { return vec_.end(); }
+        inline iterator erase( iterator it ) { return vec_.erase( it ); }
     private:
         vector_type vec_;
         friend class boost::serialization::access;
