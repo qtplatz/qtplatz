@@ -27,6 +27,8 @@
 
 #include "adcontrols_global.h"
 #include <fstream>
+#include <vector>
+#include <string>
 
 namespace adcontrols {
 
@@ -34,6 +36,7 @@ namespace adcontrols {
     class MassSpectrum;
     class TraceAccessor;
     class MSCalibration;
+    class MSProperty;
 
     enum translate_state {
         translate_error
@@ -60,6 +63,8 @@ namespace adcontrols {
                        , const char * meta, size_t msize, unsigned long events ) const = 0;
 
         virtual bool compile_header( MassSpectrum&, std::ifstream& ) const { return false; }
+
+        virtual bool make_device_text( std::vector< std::pair< std::string, std::string > >&, const MSProperty& ) { return false; }
     };
 
 }

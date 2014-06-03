@@ -27,6 +27,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/metric/prefix.hpp>
@@ -184,10 +185,13 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
       << "<th>classid</th>"
       << "</tr>";
     int n = 0;
+
+
     for ( auto& m: segments ) {
         const adcontrols::MSCalibration& calib =  m.calibration();
         size_t nrowspan = calib.coeffs().empty() ? 1 : 2;
         const adcontrols::MSProperty& prop = m.getMSProperty();
+        auto& interpreter = prop.spectrometer().getDataInterpreter();
         const adcontrols::MSProperty::SamplingInfo& info = prop.getSamplingInfo();
         double start_delay = scale_to<double, micro>( info.sampInterval * info.nSamplingDelay, pico );
         double time_end = scale_to<double, micro>( info.sampInterval * ( info.nSamplingDelay + info.nSamples ), pico );
@@ -229,5 +233,34 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     o << "</table>";
     o << "<hr>";
 
+    // device (averager) dependent data (require data interpreter)
+    o << "<table border=\"1\" cellpadding=\"4\">";
+    o << "<caption>Averager/digitizer dependent information</caption>";
+    o << "<tr>";
+    o << "<th>#seg</th>"
+      << "<th></th>"
+      << "</tr>";
+    int seg = 0;
+    for ( auto& m: segments ) {
+        size_t nrowspan = 1;
+        auto& prop = m.getMSProperty();
+        auto& interpreter = prop.spectrometer().getDataInterpreter();
+
+        const adcontrols::MSProperty::SamplingInfo& info = prop.getSamplingInfo();
+
+        o << "<tr>"
+          << boost::format( "<td rowspan=\"%1%\">" ) % rowspan << n++ << "</td>"
+          << "<td>" << info.sampInterval << "</td>"
+          << "<td>" << boost::format( "%.4lf&mu;s" ) % start_delay << "</td>"
+          << "<td>" << boost::format( "%.4lf&mu;s" ) % time_end << "</td>"
+          << "<td>" << info.nSamples << "</td>"
+          << "<td>" << info.nAverage << "</td>"
+          << "<td>" << info.mode << "</td>"
+		  << "<td>" << prop.dataInterpreterClsid() << "</td>"
+          << "</tr>";
+		}
+    }
+    o << "</table>";
+    o << "<hr>";
 }
 
