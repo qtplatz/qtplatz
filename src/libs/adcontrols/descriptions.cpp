@@ -25,6 +25,7 @@
 #include "descriptions.hpp"
 #include <sstream>
 #include <vector>
+#include <regex>
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
@@ -64,6 +65,7 @@ namespace adcontrols {
 			void append( const Description& desc, bool uniq );
 			inline size_t size() const { return vec_.size(); }
 			inline const Description& operator []( size_t idx ) { return vec_[idx]; }
+            inline operator const vector_type& () const { return vec_; }
 
 		private:
             friend class Descriptions;
@@ -75,6 +77,35 @@ namespace adcontrols {
 			vector_type vec_;
 		};
 		//
+
+        template< typename char_t > struct make_folder_name {
+            const DescriptionsImpl::vector_type& vec_;
+            std::basic_regex< char_t > regex_;
+
+            make_folder_name( const std::basic_string< char_t >& pattern
+                              , const DescriptionsImpl::vector_type& vec ) : regex_( pattern ), vec_( vec ) {
+            }
+
+            std::basic_string< wchar_t > operator()() const {
+
+                std::basic_string< char_t > name;
+                // make it reverse order
+                std::for_each( vec_.rbegin(), vec_.rend(), [&] ( const Description& d ){
+
+                    std::match_results< std::basic_string< char_t >::const_iterator > match;
+
+                    if ( std::regex_match(d.key(), match, regex_) ) {
+                        if ( !name.empty() )
+                            name += char_t( ' ' );
+                        name += d.text();
+                    }
+
+                } );
+
+                return name;
+            }
+        };
+        
 	}
 }
 
@@ -158,6 +189,11 @@ Descriptions::end() const
     return pImpl_->vec_.end();    
 }
 
+std::wstring
+Descriptions::make_folder_name( const std::wstring& regex ) const
+{
+    return internal::make_folder_name< wchar_t >( regex, *pImpl_ )();
+}
 
 namespace adcontrols {
 

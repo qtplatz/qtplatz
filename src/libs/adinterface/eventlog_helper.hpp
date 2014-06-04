@@ -27,7 +27,6 @@
 
 #include <string>
 #include <adportable/string.hpp>
-//#include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 #include <adinterface/eventlogC.h>
 

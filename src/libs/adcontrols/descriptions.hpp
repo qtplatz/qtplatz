@@ -62,20 +62,7 @@ namespace adcontrols {
        std::vector< Description >::iterator end();
        std::vector< Description >::const_iterator begin() const;
        std::vector< Description >::const_iterator end() const;
-
-       // class description_iterator {
-       //     size_t pos_;
-       //     const Descriptions& desc_;
-       // public:
-	   //     description_iterator( const Descriptions& d, size_t pos ) : pos_( pos ), desc_( d ) {}
-       //     bool operator != ( const description_iterator& rhs ) const { return pos_ != rhs.pos_; }
-       //     const description_iterator& operator ++ () { ++pos_; return *this; }
-       //     operator const Description* () const { return &desc_[ pos_ ]; }
-       // };
-
-       // typedef const description_iterator const_description_iterator;
-       // inline const_description_iterator begin() const { return description_iterator( *this, 0 ); }
-       // inline const_description_iterator end() const { return description_iterator( *this, this->size() ); }
+       std::wstring make_folder_name( const std::wstring& regex = L".*" ) const;
 
 	   std::string saveXml() const;
 	   void loadXml( const std::string& xml );

@@ -664,10 +664,8 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
 
-    const adcontrols::Descriptions& descs = src.getDescriptions();
-    std::wstring name;
-    for ( size_t i = 0; i < descs.size(); ++i )
-        name += descs[i].text();
+    // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
+    std::wstring name = src.getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
 
     portfolio::Folium folium = folder.addFolium( name );
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy

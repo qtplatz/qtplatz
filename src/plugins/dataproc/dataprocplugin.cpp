@@ -360,7 +360,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                         }
                         if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
                             t2 = a.getMSProperty().timeSinceInjection() / 60.0; // to min
-                        text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")";
+                        text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")min";
                     } else {
                         text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t1 << "min";
                     }
