@@ -5,9 +5,9 @@ namespace batchproc {
 
     namespace Constants {
 
-        const char ACTION_ID[]        = "batchproc.Action";
-        const char MENU_ID[]          = "batchproc.Menu";
-        const char C_BATCHPROC_MODE[] = "batchproc.Mode";
+        const char * const ACTION_ID        = "batchproc.Action";
+        const char * const MENU_ID          = "batchproc.Menu";
+        const char * const C_BATCHPROC_MODE = "batchproc.Mode";
 
         enum batchproc_columns {
             c_batchproc_filename

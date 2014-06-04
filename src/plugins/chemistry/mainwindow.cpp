@@ -100,7 +100,7 @@ void
 MainWindow::createActions()
 {
 	actionSearch_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr("Search"), this );
-    connect( actionSearch_, SIGNAL( triggered() ), this, SLOT( actionSearch_ ) );
+    connect( actionSearch_, SIGNAL( triggered() ), this, SLOT( actionSearch() ) );
 }
 
 QWidget *

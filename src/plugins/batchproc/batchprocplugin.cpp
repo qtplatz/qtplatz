@@ -85,8 +85,6 @@ batchprocPlugin::initialize(const QStringList &arguments, QString *errorString)
     menu->addAction(cmd);
 	Core::ICore::instance()->actionManager()->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
 
-
-    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     mainWindow_->activateWindow();
     mainWindow_->createActions();
 

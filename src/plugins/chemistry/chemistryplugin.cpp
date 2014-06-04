@@ -86,7 +86,6 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
     // 
     initialize_actions();
 
-    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     mainWindow_->activateWindow();
     mainWindow_->createActions();
 

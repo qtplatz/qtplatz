@@ -43,12 +43,12 @@ BatchMode::BatchMode(QObject *parent) :  Core::BaseMode(parent)
     setUniqueModeName( batchproc::Constants::C_BATCHPROC_MODE );
     setIcon(QIcon(":/batchproc/images/file_batch.png"));
     setPriority( 30 );
-    // QList<int> contexts = QList<int>() <<
-    //     Core::UniqueIDManager::instance()->uniqueIdentifier( Constants::C_DATAPROCESSOR ) <<
+    QList<int> contexts = QList<int>() <<
+        Core::UniqueIDManager::instance()->uniqueIdentifier( Constants::C_BATCHPROC_MODE );
     //     Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_EDIT_MODE) <<
     //     Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_EDITORMANAGER) <<
     //     Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_NAVIGATION_PANE);
-    // setContext( contexts );
+    setContext( contexts );
 
     // Core::ModeManager *modeManager = Core::ModeManager::instance();
     // connect(modeManager, SIGNAL(currentModeChanged(Core::IMode*)), this, SLOT(grabEditorManager(Core::IMode*)));

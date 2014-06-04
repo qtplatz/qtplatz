@@ -6,8 +6,8 @@ namespace peptide {
     namespace Constants {
 
         const char ACTION_ID[]        = "peptide.Action";
-        const char MENU_ID[]          = "peptide.Menu";
-        const char C_PEPTIDE_MODE[] = "peptide.Mode";
+        const char * const MENU_ID          = "peptide.Menu";
+        const char * const C_PEPTIDE_MODE   = "peptide.Mode";
 
         // common actions
         const char * const FILE_OPEN          = "peptide.FileOpen";

@@ -165,9 +165,7 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
     sd->setMinimumExtent( fm.width( "8000.0" ) ); // width for yLeft axis
 
-    connect( this, SIGNAL( dataChanged() ), this, SLOT( handle_dataChanged() ) );
     connect( zoomer_, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
-	//    model::instance()->signal( std::bind(&SpectrogramWidget::handle_signal, this) );
 }
 
 void
