@@ -68,7 +68,7 @@ namespace adcontrols {
             inline operator const vector_type& () const { return vec_; }
 
 		private:
-            friend class Descriptions;
+            friend class adcontrols::Descriptions;
 			friend class boost::serialization::access;
 			template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
 			    (void)version;
@@ -79,28 +79,29 @@ namespace adcontrols {
 		//
 
         template< typename char_t > struct make_folder_name {
-            const DescriptionsImpl::vector_type& vec_;
             std::basic_regex< char_t > regex_;
+            const DescriptionsImpl::vector_type& vec_;
 
             make_folder_name( const std::basic_string< char_t >& pattern
                               , const DescriptionsImpl::vector_type& vec ) : regex_( pattern ), vec_( vec ) {
             }
 
-            std::basic_string< wchar_t > operator()() const {
+            std::basic_string< char_t > operator()() const {
 
                 std::basic_string< char_t > name;
+
                 // make it reverse order
                 std::for_each( vec_.rbegin(), vec_.rend(), [&] ( const Description& d ){
+                        
+                        std::match_results< std::basic_string< wchar_t >::const_iterator > match;
 
-                    std::match_results< std::basic_string< char_t >::const_iterator > match;
+                        if ( std::regex_match(d.key(), match, regex_) ) {
+                            if ( !name.empty() )
+                                name += char_t( ' ' );
+                            name += d.text();
+                        }
 
-                    if ( std::regex_match(d.key(), match, regex_) ) {
-                        if ( !name.empty() )
-                            name += char_t( ' ' );
-                        name += d.text();
-                    }
-
-                } );
+                    } );
 
                 return name;
             }
