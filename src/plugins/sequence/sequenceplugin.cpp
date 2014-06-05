@@ -130,7 +130,6 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     if ( ! mainWindow_ )
         return false;
 
-    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     mainWindow_->activateLayout();
     mainWindow_->createActions();
     QWidget * widget = mainWindow_->createContents( mode_.get() );

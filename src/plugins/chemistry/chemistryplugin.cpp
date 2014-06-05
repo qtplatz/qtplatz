@@ -123,7 +123,6 @@ ChemistryPlugin::initialize_actions()
 void
 ChemistryPlugin::extensionsInitialized()
 {
-	Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
 	mainWindow_->OnInitialUpdate();
 }
 

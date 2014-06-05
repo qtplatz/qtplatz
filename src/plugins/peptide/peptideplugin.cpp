@@ -70,7 +70,6 @@ bool peptideplugin::initialize(const QStringList &arguments, QString *errorStrin
 
     adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
-    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     mainWindow_->activateWindow();
     mainWindow_->createActions();
 

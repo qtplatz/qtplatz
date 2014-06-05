@@ -69,7 +69,6 @@ bool u5303APlugin::initialize(const QStringList &arguments, QString *errorString
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
 
-    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     mainWindow_->activateWindow();
     mainWindow_->createActions();
 

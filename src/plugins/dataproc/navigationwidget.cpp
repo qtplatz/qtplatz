@@ -429,10 +429,6 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 	 // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
 	for ( int i = 0; i < item->rowCount(); ++i)
         pTreeView_->expand( model.index( i, 0, item->index()) );
-
-
-    Core::ModeManager::instance()->activateMode( dataproc::Constants::C_DATAPROC_MODE );
-    
 }
 
 void
