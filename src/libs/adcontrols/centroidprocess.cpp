@@ -254,11 +254,9 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 // area in HH range
                 adportable::spectrum_processor::areaFraction fraction;
                 adportable::spectrum_processor::getFraction( fraction, profile.getMassArray(), profile.size(), moment.xLeft(), moment.xRight() );
-                double width = moment.xRight() - moment.xLeft(); // m/z 
 				item.area_ = adportable::spectrum_processor::area( fraction, pk.base, intens.begin(), intens.size() );
-                item.area_ = item.area_ * width;
-                
-                // time interporate from mass
+                item.area_ = item.area_; // return area in virtual time domain (time asume 1 unit / data point
+
                 array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin() + pk.first, masses.begin() + pk.second, mass );
                 size_t index = std::distance( masses.begin(), --pos );
 
@@ -278,6 +276,9 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 				time_moment.width( profile.getIntensityArray(), pk.base + h * 0.5, uint32_t(pk.first), uint32_t(idx), pk.second );
 				item.HH_left_time_ = time_moment.xLeft();
 				item.HH_right_time_ = time_moment.xRight();
+
+                double width = moment.xRight() - moment.xLeft(); // m/z
+                item.area_ *= width; // time domain area
 
                 double difference = std::abs( item.time_from_time_ - item.time_from_mass_ );
                 
