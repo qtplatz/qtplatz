@@ -689,15 +689,29 @@ SpectrumWidgetImpl::clear()
 QwtText
 SpectrumWidgetImpl::tracker1( const QPointF& pos )
 {
-    return QwtText( (boost::format("<i>m/z=</i>%.4f") % pos.x()).str().c_str(), QwtText::RichText );
+    if ( isTimeAxis_ ) {
+        return QwtText( (boost::format( "%.4f&mu;s" ) % pos.x()).str().c_str(), QwtText::RichText );
+    }
+    else {
+        return QwtText( (boost::format( "<i>m/z=</i>%.4f" ) % pos.x()).str().c_str(), QwtText::RichText );
+    }
 }
 
 QwtText
 SpectrumWidgetImpl::tracker2( const QPointF& p1, const QPointF& pos )
 {
     double d = ( pos.x() - p1.x() );
-    if ( std::abs(d) < 1.0 )
-        return QwtText( (boost::format("<i>m/z=</i>%.4f (&delta;=%gmDa)") % pos.x() % (d * 1000)).str().c_str(), QwtText::RichText );
-    else
-        return QwtText( (boost::format("<i>m/z=</i>%.4f (&delta;=%gDa)") % pos.x() % d).str().c_str(), QwtText::RichText );
+
+    if ( isTimeAxis_ ) {
+        if ( std::abs( d ) < 1.0 )
+            return QwtText( (boost::format( "%.4f&mu;s (&delta;=%gns)" ) % pos.x() % (d * 1000)).str().c_str(), QwtText::RichText );
+        else
+            return QwtText( (boost::format( "%.4f&mu;s (&delta;=%g&mu;s)" ) % pos.x() % d).str().c_str(), QwtText::RichText );
+    }
+    else {
+        if ( std::abs( d ) < 1.0 )
+            return QwtText( (boost::format( "<i>m/z=</i>%.4f (&delta;=%gmDa)" ) % pos.x() % (d * 1000)).str().c_str(), QwtText::RichText );
+        else
+            return QwtText( (boost::format( "<i>m/z=</i>%.4f (&delta;=%gDa)" ) % pos.x() % d).str().c_str(), QwtText::RichText );
+    }
 }

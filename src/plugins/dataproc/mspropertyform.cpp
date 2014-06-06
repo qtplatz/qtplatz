@@ -31,11 +31,13 @@
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adportable/debug.hpp>
 #include <portfolio/folium.hpp>
 #include <adportable/is_type.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/utf.hpp>
 #include <boost/any.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <sstream>
 #include <iomanip>
@@ -230,27 +232,33 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     o << "</table>";
     o << "<hr>";
 
-    // device (averager) dependent data (require data interpreter)
-    std::vector < std::pair< std::string, std::string > > textv;
-    auto& interpreter = ms.getMSProperty().spectrometer().getDataInterpreter();
-    if ( interpreter.make_device_text( textv, ms.getMSProperty() ) ) {
-        o << "<table border=\"1\" cellpadding=\"4\">";
-        o << "<caption>Averager/digitizer dependent information</caption>";
-        o << "<tr>";
-        o << "<th>#seg</th>";
-        std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<th>" << text.first << "</th>"; } );
-        o << "</tr>";
-        int seg = 0;
-        for ( auto& m : segments ) {
-            if ( interpreter.make_device_text( textv, m.getMSProperty() ) ) {
-                o << "<tr>";
-                o << "<td>" << seg++ << "</td>";
-                std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<td>" << text.second << "</td>"; } );
-                o << "</tr>";
+    try {
+        // device (averager) dependent data (require data interpreter)
+        std::vector < std::pair< std::string, std::string > > textv;
+        auto& interpreter = ms.getMSProperty().spectrometer().getDataInterpreter();
+        if ( interpreter.make_device_text( textv, ms.getMSProperty() ) ) {
+            o << "<table border=\"1\" cellpadding=\"4\">";
+            o << "<caption>Averager/digitizer dependent information</caption>";
+            o << "<tr>";
+            o << "<th>#seg</th>";
+            std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<th>" << text.first << "</th>"; } );
+            o << "</tr>";
+            int seg = 0;
+            for ( auto& m : segments ) {
+                if ( interpreter.make_device_text( textv, m.getMSProperty() ) ) {
+                    o << "<tr>";
+                    o << "<td>" << seg++ << "</td>";
+                    std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<td>" << text.second << "</td>"; } );
+                    o << "</tr>";
+                }
             }
+            o << "</table>";
+            o << "<hr>";
         }
-        o << "</table>";
-        o << "<hr>";
+    }
+    catch ( boost::exception& ex ) {
+        ADDEBUG() << boost::diagnostic_information( ex );
+        // ignore if no data interpreter installed.
     }
 }
 

@@ -33,6 +33,7 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/traceaccessor.hpp>
@@ -220,6 +221,11 @@ rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms, uint32_t o
 	while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms, it->trace_id ) )
             == adcontrols::translate_indeterminate )
         ;
+    if ( ms.getMSProperty().dataInterpreterClsid() == 0 ) {
+        // workaround for batchproc::import
+        adcontrols::MSProperty prop = ms.getMSProperty();
+        prop.setDataInterpreterClsid( adportable::utf::to_utf8( it->dataInterpreterClsid ).c_str() );
+    }
     return state == adcontrols::translate_complete;
 }
 
