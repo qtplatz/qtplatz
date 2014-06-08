@@ -466,7 +466,7 @@ blob::reopen( int64_t rowid )
 bool
 blob::read( int8_t * pbuf, std::size_t bufsize, std::size_t offset ) const
 {
-    if ( pBlob_ && ( sqlite3_blob_read( pBlob_, pbuf, bufsize, static_cast<int>(offset) ) == SQLITE_OK ) )
+    if ( pBlob_ && ( sqlite3_blob_read( pBlob_, pbuf, int(bufsize), int(offset) ) == SQLITE_OK ) )
         return true;
     return false;
 }
@@ -474,7 +474,7 @@ blob::read( int8_t * pbuf, std::size_t bufsize, std::size_t offset ) const
 bool
 blob::write( const int8_t * pbuf, std::size_t octets, std::size_t offset ) const
 {
-    return sqlite3_blob_write( pBlob_, pbuf, octets, static_cast<int>(offset) ) == SQLITE_OK;
+    return sqlite3_blob_write( pBlob_, pbuf, int(octets), static_cast<int>(offset) ) == SQLITE_OK;
 }
 
 ///////////////////
