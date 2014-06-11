@@ -1,13 +1,13 @@
 <Include>
   <ComponentGroup Id="MicrosoftComponents" Directory="BIN">
-    <Component Id="vccorlib110.dll" Guid="D2FDE345-28F1-44E3-A82F-84D533F8AAB9" Win64="yes">
-      <File Id="vccorlib110.dll" Source="$(var.InVC110)/vccorlib110.dll" ProcessorArchitecture="x64" />
+    <Component Id="vccorlib120.dll" Guid="D2FDE345-28F1-44E3-A82F-84D533F8AAB9" Win64="yes">
+      <File Id="vccorlib120.dll" Source="$(var.InVC120)/vccorlib120.dll" ProcessorArchitecture="x64" />
     </Component>
-    <Component Id="msvcr110.dll" Guid="EFA92C4D-D4E4-40CA-8165-B0A269F8B92C" Win64="yes">
-      <File Id="msvcr110.dll" Source="$(var.InVC110)/msvcr110.dll" ProcessorArchitecture="x64" />
+    <Component Id="msvcr120.dll" Guid="EFA92C4D-D4E4-40CA-8165-B0A269F8B92C" Win64="yes">
+      <File Id="msvcr120.dll" Source="$(var.InVC120)/msvcr120.dll" ProcessorArchitecture="x64" />
     </Component>
-    <Component Id="msvcp110.dll" Guid="E37142AA-5089-4843-BB75-A39B1C4FBD60" Win64="yes">
-      <File Id="msvcp110.dll" Source="$(var.InVC110)/msvcp110.dll" ProcessorArchitecture="x64" />
+    <Component Id="msvcp120.dll" Guid="E37142AA-5089-4843-BB75-A39B1C4FBD60" Win64="yes">
+      <File Id="msvcp120.dll" Source="$(var.InVC120)/msvcp120.dll" ProcessorArchitecture="x64" />
     </Component>
   </ComponentGroup>
 </Include>

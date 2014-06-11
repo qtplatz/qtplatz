@@ -54,6 +54,7 @@
     <?define InMSCheminfo = "$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics" ?>
     <?define InQt         = "$(env.QTDIR)" ?>
     <?define InVC110      = "$(env.VCINSTALLDIR)/redist/x64/Microsoft.VC110.CRT" ?>
+    <?define InVC120      = "$(env.VCINSTALLDIR)/redist/x64/Microsoft.VC120.CRT" ?>
     <?define InTAOLib     = "$(env.ACE_ROOT)/lib" ?>
     <?define InTAOBin     = "$(env.ACE_ROOT)/bin" ?>
     <Fragment>

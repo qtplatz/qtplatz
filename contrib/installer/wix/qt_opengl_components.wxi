@@ -1,13 +1,13 @@
 <Include>
   <ComponentGroup Id="QtComponents" Directory="BIN">
-    <Component Id="icuin51.dll" Guid="08EFD3E1-2D9D-45E2-A133-5200207C156C" Win64="yes">
-      <File Id="icuin51.dll" Source="$(env.QTDIR)/bin/icuin51.dll" ProcessorArchitecture="x64" />
+    <Component Id="icuin52.dll" Guid="08EFD3E1-2D9D-45E2-A133-5200207C156C" Win64="yes">
+      <File Id="icuin52.dll" Source="$(env.QTDIR)/bin/icuin52.dll" ProcessorArchitecture="x64" />
     </Component>
-    <Component Id="icuuc51.dll" Guid="67F10816-BB66-4D2B-A163-29C456BC32B1" Win64="yes">
-      <File Id="icuuc51.dll" Source="$(env.QTDIR)/bin/icuuc51.dll" ProcessorArchitecture="x64" />
+    <Component Id="icuuc52.dll" Guid="67F10816-BB66-4D2B-A163-29C456BC32B1" Win64="yes">
+      <File Id="icuuc52.dll" Source="$(env.QTDIR)/bin/icuuc52.dll" ProcessorArchitecture="x64" />
     </Component>
-    <Component Id="icudt51.dll" Guid="BF5B9F29-F6E4-4436-841D-49B2F23199A4" Win64="yes">
-      <File Id="icudt51.dll" Source="$(env.QTDIR)/bin/icudt51.dll" ProcessorArchitecture="x64" />
+    <Component Id="icudt52.dll" Guid="BF5B9F29-F6E4-4436-841D-49B2F23199A4" Win64="yes">
+      <File Id="icudt52.dll" Source="$(env.QTDIR)/bin/icudt52.dll" ProcessorArchitecture="x64" />
     </Component>
     <Component Id="Qt5CLucene.dll" Guid="7A608D80-5B5C-4AEE-AAFF-178EA8F4196B" Win64="yes">
       <File Id="Qt5CLucene.dll" Source="$(env.QTDIR)/bin/Qt5CLucene.dll" ProcessorArchitecture="x64" />
