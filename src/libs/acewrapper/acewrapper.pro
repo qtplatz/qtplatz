@@ -21,6 +21,7 @@ INCLUDEPATH *= $$OUT_PWD/..
 SOURCES += constants.cpp \
            input_buffer.cpp \
            ifconfig.cpp \
+           ifconfig_windows.cpp \
            iorsender.cpp \
            iorquery.cpp
            
@@ -30,6 +31,7 @@ HEADERS += constants.hpp \
            ifconfig.hpp \
            ifconfig_macosx.hpp \
            ifconfig_linux.hpp \
+           ifconfig_windows.hpp \
            iorsender.hpp \
            iorquery.hpp
 

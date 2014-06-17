@@ -155,6 +155,9 @@ spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase,
 double
 spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, double& rms, size_t N )
 {
+    if ( nbrSamples < N )
+        return 0.0;
+
     averager base;
     averager avgr;
     int cnt = 1;

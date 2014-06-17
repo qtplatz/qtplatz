@@ -33,7 +33,7 @@ namespace acewrapper {
     class ifconfig {
     public:
         ifconfig();
-        typedef std::pair< std::string, std::string > ifaddr;
+        typedef std::pair< std::string, std::string > ifaddr; // <eth0, 192.168.x.x>
         typedef std::vector< ifaddr > ifvec;
         static bool broadaddr( ifvec& );
         static bool if_addrs( ifvec& );

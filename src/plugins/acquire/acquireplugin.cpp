@@ -32,11 +32,12 @@
 #include "qbroker.hpp"
 
 #include <acewrapper/constants.hpp>
+#include <acewrapper/ifconfig.hpp>
 #include <adextension/isnapshothandler.hpp>
-# include <adinterface/brokerC.h>
-# include <adinterface/controlserverC.h>
-# include <adinterface/receiverC.h>
-# include <adinterface/signalobserverC.h>
+#include <adinterface/brokerC.h>
+#include <adinterface/controlserverC.h>
+#include <adinterface/receiverC.h>
+#include <adinterface/signalobserverC.h>
 #include <adinterface/observerevents_i.hpp>
 #include <adinterface/eventlog_helper.hpp>
 #include <adinterface/eventlog_helper.hpp>
@@ -364,20 +365,6 @@ AcquirePlugin::extensionsInitialized()
             }    
         }
     }
-    /*
-	adorbmgr::orbmgr * orbmgr = adorbmgr::orbmgr::instance();
-    if ( orbmgr ) {
-
-        Broker::Manager_var mgr = orbmgr->getBrokerManager();
-
-        if ( ! CORBA::is_nil( mgr ) ) {
-            pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
-            if ( ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
-                pImpl_->initialize_broker_session();
-            }
-        }
-    }
-    */
     threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 }
 
@@ -942,7 +929,15 @@ AcquirePlugin::initialize_broker()
 
         if ( ( orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) ) {
 
-            orbBroker->orbmgr_init( 0, 0 );
+            acewrapper::ifconfig::ifvec netifv;
+            acewrapper::ifconfig::if_addrs( netifv );
+            std::vector< const char * > argv;
+            for ( auto& netif : netifv ) {
+                argv.push_back( "-ORBListenEndpoints" );
+                netif.second.insert( 0, "iiop://" );
+                argv.push_back( netif.second.c_str() );
+            }
+            orbBroker->orbmgr_init( int(argv.size()), reinterpret_cast<char **>(const_cast<char **>(argv.data())) );
 
             try { 
 
