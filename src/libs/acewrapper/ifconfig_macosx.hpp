@@ -43,6 +43,25 @@ namespace acewrapper {
 
         class ifconfig {
         public:
+
+            static bool if_addrs( std::vector< std::pair< std::string, std::string > >& addrs ) {
+
+                struct ifaddrs * ifa_list, * ifa;
+
+                if ( getifaddrs( &ifa_list ) < 0 )
+                    return false;
+
+                for ( ifa = ifa_list; ifa != 0; ifa = ifa->ifa_next ) {
+
+                    if ( ifa->ifa_addr->sa_family == AF_INET ) {
+                        const in_addr& addr = reinterpret_cast< sockaddr_in * >(ifa->ifa_addr)->sin_addr;
+                        baddrs.push_back( std::make_pair<std::string, std::string>( ifa->ifa_name, inet_ntoa( aaddr ) ) );
+                    }
+                }
+
+                freeifaddrs( ifa_list );
+                return true;
+            }
         
             static bool if_broadaddrs( std::vector< std::pair< std::string, std::string > >& baddrs ) {
 

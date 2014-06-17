@@ -52,6 +52,18 @@ ifconfig::ifconfig()
 }
 
 bool
+ifconfig::if_addrs(  std::vector< std::pair< std::string, std::string > >& vec )
+{
+#if defined __linux__
+    return acewrapper::os_linux::ifconfig::if_addrs( vec );
+#endif
+
+#if defined __APPLE__
+    return acewrapper::macosx::ifconfig::if_addrs( vec );
+#endif
+}
+
+bool
 ifconfig::broadaddr( std::vector< std::pair< std::string, std::string > >& vec )
 {
     vec.clear();

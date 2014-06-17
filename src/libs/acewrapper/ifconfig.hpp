@@ -36,6 +36,7 @@ namespace acewrapper {
         typedef std::pair< std::string, std::string > ifaddr;
         typedef std::vector< ifaddr > ifvec;
         static bool broadaddr( ifvec& );
+        static bool if_addrs( ifvec& );
     };
 
 }

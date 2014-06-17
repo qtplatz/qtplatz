@@ -66,6 +66,18 @@ namespace acewrapper {
                     return 0;
                 return if_req.p()->ifr_flags;
             }
+
+            static bool if_addr( int fd, const std::string& ifname, std::string& addr ) {
+                ifreq_impl if_req( ifname );
+                if ( ioctl( fd, SIOCGIFADDR, if_req.p() ) == 0 ) {
+                    if ( if_req.p()->ifr_broadaddr.sa_family == AF_INET ) {
+                        const sockaddr_in * ipv4 = reinterpret_cast< const sockaddr_in *>(&(if_req.p()->ifr_addr));
+                        addr = inet_ntoa( ipv4->sin_addr );
+                        return true;
+                    }
+                }
+                return false;
+            }
         
             static bool if_broadaddr( int fd, const std::string& ifname, std::string& baddr ) {
                 ifreq_impl if_req( ifname );
@@ -78,6 +90,24 @@ namespace acewrapper {
                     }
                 }
                 return false;
+            }
+
+            static bool if_addrs( std::vector< std::pair< std::string, std::string > >& vec ) {
+                int fd = socket( PF_INET, SOCK_DGRAM, 0 );
+                if ( fd < 0 )
+                    return false;
+                std::string ifname;
+                for ( int idx = 1; if_name( fd, idx, ifname ); ++idx ) {
+                    short flags = if_flags( fd, ifname );
+                    if ( !( flags & IFF_LOOPBACK ) ) {
+                        std::string addr;
+                        if ( if_addr( fd, ifname, addr ) ) 
+                            vec.push_back( std::pair<std::string, std::string>( ifname, addr ) );
+                    }
+                }
+                close( fd );
+                return true;
+                
             }
 
             static bool if_broadaddrs( std::vector< std::pair< std::string, std::string > >& vec ) {
