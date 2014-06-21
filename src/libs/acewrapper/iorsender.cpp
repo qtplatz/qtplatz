@@ -49,13 +49,14 @@ iorSender::iorSender() : socket_( io_service_, udp::endpoint( udp::v4(), dstport
 
     acewrapper::ifconfig::ifvec vec;
     if ( acewrapper::ifconfig::broadaddr( vec ) ) {
-	acewrapper::ifconfig::ifaddr& addr = vec[0];
+        acewrapper::ifconfig::ifaddr& addr = vec[ 0 ];
 
-	sender_endpoint_ = udp::endpoint( boost::asio::ip::address::from_string( addr.second ), srcport );
-    } else {
-	sender_endpoint_ = udp::endpoint( boost::asio::ip::address_v4::any(), srcport );
+        sender_endpoint_ = udp::endpoint( boost::asio::ip::address::from_string( addr.second ), srcport );
     }
-
+    else {
+        sender_endpoint_ = udp::endpoint( boost::asio::ip::address_v4::any(), srcport );
+    }
+    
     start_receive();
 }
 
@@ -69,6 +70,8 @@ iorSender::close()
             thread_->join();
             delete thread_;
             thread_ = 0;
+            instance_ = 0;
+            delete this;
         }
     }
 }
@@ -83,7 +86,7 @@ void
 iorSender::unregister_lookup( const std::string& ident )
 {
     std::map< std::string, std::string>::iterator it = iorvec_.find( ident );
-    if ( it != iorvec_.end() ) 
+    if ( it != iorvec_.end() )
         iorvec_.erase( it );
 }
 
@@ -91,12 +94,12 @@ void
 iorSender::start_receive()
 {
     socket_.async_receive_from( boost::asio::buffer( recv_buffer_ )
-				, sender_endpoint_
-				, boost::bind( &iorSender::handle_receive
-					       , this
-					       , boost::asio::placeholders::error
-					       , boost::asio::placeholders::bytes_transferred ) );
-
+        , sender_endpoint_
+        , boost::bind( &iorSender::handle_receive
+        , this
+        , boost::asio::placeholders::error
+        , boost::asio::placeholders::bytes_transferred ) );
+    
     //recv_timer_.expires_from_now( boost::posix_time::seconds( 3 ) );
     //recv_timer_.async_wait( boost::bind( &iorSender::handle_timeout, this, boost::asio::placeholders::error ) );
 }
@@ -106,43 +109,44 @@ iorSender::handle_timeout( const boost::system::error_code& error )
 {
     if ( ! error ) {
 #if defined DEBUG && 0
-	recv_timer_.expires_from_now( boost::posix_time::seconds( 3 ) );
-	recv_timer_.async_wait( boost::bind( &iorSender::handle_timeout, this, boost::asio::placeholders::error ) );
-
-	send_buffer_.resize(8);
-	socket_.async_send_to( boost::asio::buffer( send_buffer_ )
-			       , sender_endpoint_
-			       , boost::bind( &iorSender::handle_sendto
-					      , this
-					      , boost::asio::placeholders::error ) );
+        recv_timer_.expires_from_now( boost::posix_time::seconds( 3 ) );
+        recv_timer_.async_wait( boost::bind( &iorSender::handle_timeout, this, boost::asio::placeholders::error ) );
+        
+        send_buffer_.resize(8);
+        socket_.async_send_to( boost::asio::buffer( send_buffer_ )
+            , sender_endpoint_
+            , boost::bind( &iorSender::handle_sendto
+            , this
+            , boost::asio::placeholders::error ) );
 #endif
-    } else {
+}
+    else {
         adportable::debug( __FILE__, __LINE__ ) << "ERROR *** iorSender::handle_timeout: " << error;
     }
-
+    
 }
 
 void
 iorSender::handle_receive( const boost::system::error_code& error, std::size_t len )
 {
-    if ( ! error || error == boost::asio::error::message_size ) {
-
+    if ( !error || error == boost::asio::error::message_size ) {
+        
         const char * query = recv_buffer_.data();
-
+        
         if ( debug_ior_sender )
             adportable::debug( __FILE__, __LINE__ ) << "## handle_receive (" << query << ") ##";
-
+        
         if ( std::strncmp( query, "ior?", len ) == 0 ) {
-
+            
             if ( iorvec_.empty() )
                 return;
-
+            
             if ( nextIor_ != iorvec_.end() ) // still remain
                 return;
-
+            
             nextIor_ = iorvec_.begin();
             handle_sendto( boost::system::error_code() ); // force sendto
-        } 
+        }
         start_receive();
     }
 }
@@ -150,24 +154,24 @@ iorSender::handle_receive( const boost::system::error_code& error, std::size_t l
 void
 iorSender::handle_sendto( const boost::system::error_code& error )
 {
-    if ( ! error ) {
+    if ( !error ) {
         if ( nextIor_ != iorvec_.end() ) {
             std::string reply( nextIor_->first + "\n" + nextIor_->second );
             send_buffer_.resize( reply.size() + 1 );
-            std::strcpy( &send_buffer_[0], reply.c_str() );
-
+            std::strcpy( &send_buffer_[ 0 ], reply.c_str() );
+            
             if ( debug_ior_sender )
                 adportable::debug( __FILE__, __LINE__ ) << "## handle_sendto("
-                                                        << sender_endpoint_.address().to_string()
-                                                        << "." << sender_endpoint_.port()
-                                                        << ") ##\n" << &send_buffer_[0];
-
+                << sender_endpoint_.address().to_string()
+                << "." << sender_endpoint_.port()
+                << ") ##\n" << &send_buffer_[ 0 ];
+            
             socket_.async_send_to( boost::asio::buffer( send_buffer_ )
-                                   , sender_endpoint_
-                                   , boost::bind( &iorSender::handle_sendto
-                                                  , this
-                                                  , boost::asio::placeholders::error ) );	    
-
+                , sender_endpoint_
+                , boost::bind( &iorSender::handle_sendto
+                , this
+                , boost::asio::placeholders::error ) );
+            
             ++nextIor_;
         }
     }
@@ -178,10 +182,10 @@ iorSender::spawn()
 {
     if ( thread_ == 0 ) {
         std::lock_guard< std::mutex > lock( mutex_ );
-	if ( thread_ == 0 ) {
-            thread_ = new std::thread( boost::bind( & boost::asio::io_service::run, &io_service_ ) );
-	    return true;
-	}
+        if ( thread_ == 0 ) {
+            thread_ = new std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) );
+            return true;
+        }
     }
     return false;
 }
@@ -191,9 +195,9 @@ iorSender *
 iorSender::instance()
 {
 	if ( instance_ == 0 ) {
-		std::lock_guard< std::mutex > lock( mutex_ );
-		if ( instance_ == 0 )
-			instance_ = new iorSender;
-	}
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( instance_ == 0 )
+            instance_ = new iorSender;
+    }
 	return instance_;
 }

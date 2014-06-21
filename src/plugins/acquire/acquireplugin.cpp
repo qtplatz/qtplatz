@@ -928,10 +928,10 @@ AcquirePlugin::initialize_broker()
     if ( adbroker_plugin ) {
 
         if ( ( orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) ) {
-
+            std::vector< const char * > argv;
             acewrapper::ifconfig::ifvec netifv;
             acewrapper::ifconfig::if_addrs( netifv );
-            std::vector< const char * > argv;
+
             for ( auto& netif : netifv ) {
                 argv.push_back( "-ORBListenEndpoints" );
                 netif.second.insert( 0, "iiop://" );
