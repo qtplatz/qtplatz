@@ -59,6 +59,7 @@
 #include <adcontrols/timeutil.hpp>
 #include <adorbmgr/orbmgr.hpp>
 #include <adextension/imonitorfactory.hpp>
+#include <adextension/icontroller.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
@@ -389,7 +390,14 @@ AcquirePlugin::aboutToShutdown()
 void
 AcquirePlugin::actionConnect()
 {
-	using adinterface::EventLog::LogMessageHelper;
+    // using adinterface::EventLog::LogMessageHelper;
+    auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
+    if ( !iControllers.isEmpty() ) {
+        for ( auto& iController : iControllers ) {
+            iController->wait_for_connection_ready();
+        }
+
+    }
 
     if ( CORBA::is_nil( session_.in() ) && !orbServants_.empty() ) {
 
