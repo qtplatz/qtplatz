@@ -48,15 +48,10 @@ namespace adbroker {
         // implement POA_Broker::Session -->
         virtual bool connect( const char * user, const char * pass, const char * token, BrokerEventSink_ptr );
         virtual bool disconnect( BrokerEventSink_ptr );
-
-        //virtual Broker::ChemicalFormula_ptr getChemicalFormula();
-        //virtual Broker::Folium * folium( const CORBA::WChar * token, const CORBA::WChar * fileId );
         // <---------------------------------
 		virtual bool coaddSpectrum( const CORBA::WChar * token, SignalObserver::Observer_ptr observer, double x1, double x2);
     private:
         std::wstring token_;
-
-        Broker::ChemicalFormula_var chemicalFormula_;
 
         typedef std::vector<internal::event_sink> event_sink_vector_type;
 

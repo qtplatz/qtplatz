@@ -394,85 +394,77 @@ AcquirePlugin::actionConnect()
     if ( CORBA::is_nil( session_.in() ) && !orbServants_.empty() ) {
 
 		Broker::Manager_var broker = Broker::Manager::_narrow( orbServants_[0]->_this() );
-
         if ( ! CORBA::is_nil( broker ) ) {
-
             using namespace acewrapper::constants;
             CORBA::Object_var obj = broker->find_object( adcontroller::manager::_name() );
+            ::ControlServer::Manager_var manager = ::ControlServer::Manager::_narrow( obj );
+            if ( !CORBA::is_nil( manager ) ) {
+                session_ = manager->getSession( L"acquire" );
+                if ( !CORBA::is_nil( session_.in() ) ) {
+                    
+                    receiver_i_.reset( new receiver_i );
 
-            if ( ! CORBA::is_nil( obj ) ) {
+                    receiver_i_->assign_message( [=] ( ::Receiver::eINSTEVENT code, uint32_t value ){
+                        this->handle_receiver_message( code, value ); } );
 
-				::ControlServer::Manager_var manager;
-                try { manager = ::ControlServer::Manager::_narrow( obj ); } catch ( CORBA::Exception& ) { /**/ }
-				
-                if ( ! CORBA::is_nil( manager ) ) {
-                    session_ = manager->getSession( L"acquire" );
-                    if ( ! CORBA::is_nil( session_.in() ) ) {
-                            
-                        receiver_i_.reset( new receiver_i );
+                    receiver_i_->assign_log( [=] ( const ::EventLog::LogMessage& log ){
+                        this->handle_receiver_log( log ); } );
 
-                        receiver_i_->assign_message( [=]( ::Receiver::eINSTEVENT code, uint32_t value ){
-                                this->handle_receiver_message( code, value ); });
+                    receiver_i_->assign_shutdown( [=](){
+                        this->handle_receiver_shutdown(); } );
 
-                        receiver_i_->assign_log( [=]( const ::EventLog::LogMessage& log ){
-                                this->handle_receiver_log( log ); });
+                    receiver_i_->assign_debug_print( [=]( int32_t pri, int32_t cat, std::string text ){ 
+                        this->handle_receiver_debug_print( pri, cat, text ); } );
 
-                        receiver_i_->assign_shutdown( [=](){
-                                this->handle_receiver_shutdown(); } );
-
-                        receiver_i_->assign_debug_print( [=]( int32_t pri, int32_t cat, std::string text ){ 
-                                this->handle_receiver_debug_print( pri, cat, text );} );
-
-                        connect( this, SIGNAL( onReceiverMessage( unsigned long, unsigned long ) )
-                                 , this, SLOT( handle_message( unsigned long, unsigned long ) ) );
+                    connect( this
+                        , SIGNAL( onReceiverMessage( unsigned long, unsigned long ) ), this, SLOT( handle_message( unsigned long, unsigned long ) ) );
                         
-                        if ( session_->connect( receiver_i_->_this(), "acquire" ) )
-                            actionConnect_->setEnabled( false );
+                    if ( session_->connect( receiver_i_->_this(), "acquire" ) )
+                        actionConnect_->setEnabled( false );
                         
-                        if ( session_->status() <= ControlServer::eConfigured )
-                            session_->initialize();
+                    if ( session_->status() <= ControlServer::eConfigured )
+                        session_->initialize();
 
-                        // Master signal observer
-                        observer_ = session_->getObserver();
-                        if ( ! CORBA::is_nil( observer_.in() ) ) {
-                            if ( ! sink_ ) {
-                                sink_.reset( new adinterface::ObserverEvents_i );
+                    // Master signal observer
+                    observer_ = session_->getObserver();
+                    if ( !CORBA::is_nil( observer_.in() ) ) {
+                        if ( !sink_ ) {
+                            sink_.reset( new adinterface::ObserverEvents_i );
 
-                                sink_->assignConfigChanged([=](uint32_t oid, SignalObserver::eConfigStatus st){
-                                        this->handle_observer_config_changed( oid, st ); 
-                                    });
+                            sink_->assignConfigChanged( [=] ( uint32_t oid, SignalObserver::eConfigStatus st ){
+                                this->handle_observer_config_changed( oid, st );
+                            } );
 
-                                sink_->assignUpdateData([=](uint32_t oid, int32_t pos){
-                                        this->handle_observer_update_data( oid, pos ); 
-                                    });
+                            sink_->assignUpdateData( [=] ( uint32_t oid, int32_t pos ){
+                                this->handle_observer_update_data( oid, pos );
+                            } );
 
-                                sink_->assignMethodChanged([=](uint32_t oid, int32_t pos){
-                                        this->handle_observer_method_changed( oid, pos ); 
-                                    });
-                                sink_->assignEvent([=](uint32_t oid, int32_t pos, int32_t ev){
-                                        this->handle_observer_event( oid, pos, ev ); 
-                                    });
+                            sink_->assignMethodChanged( [=] ( uint32_t oid, int32_t pos ){
+                                this->handle_observer_method_changed( oid, pos );
+                            } );
+                            sink_->assignEvent( [=] ( uint32_t oid, int32_t pos, int32_t ev ){
+                                this->handle_observer_event( oid, pos, ev );
+                            } );
 
-                                observer_->connect( sink_->_this(), SignalObserver::Frequent, "acquireplugin" );
+                            observer_->connect( sink_->_this(), SignalObserver::Frequent, "acquireplugin" );
                                 
-                                connect( this, SIGNAL( onObserverConfigChanged( unsigned long, long ) )
-                                         , this, SLOT( handle_config_changed(unsigned long, long) ) );
-                                connect( this, SIGNAL( onUpdateUIData( unsigned long, long ) )
-                                         , this, SLOT( handle_update_ui_data(unsigned long, long) ) );
-                                connect( this, SIGNAL( onObserverMethodChanged( unsigned long, long ) )
-                                         , this, SLOT( handle_method_changed(unsigned long, long) ) );
-                                connect( this, SIGNAL( onObserverEvent( unsigned long, long, long ) )
-                                         , this, SLOT( handle_event(unsigned long, long, long) ) );
-                            }
+                            connect( this, SIGNAL( onObserverConfigChanged( unsigned long, long ) )
+                                , this, SLOT( handle_config_changed( unsigned long, long ) ) );
+                            connect( this, SIGNAL( onUpdateUIData( unsigned long, long ) )
+                                , this, SLOT( handle_update_ui_data( unsigned long, long ) ) );
+                            connect( this, SIGNAL( onObserverMethodChanged( unsigned long, long ) )
+                                , this, SLOT( handle_method_changed( unsigned long, long ) ) );
+                            connect( this, SIGNAL( onObserverEvent( unsigned long, long, long ) )
+                                , this, SLOT( handle_event( unsigned long, long, long ) ) );
+                        }
                         
-                            // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
-                            SignalObserver::Observers_var siblings = observer_->getSiblings();
-                            size_t nsize = siblings->length();
+                        // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
+                        SignalObserver::Observers_var siblings = observer_->getSiblings();
+                        size_t nsize = siblings->length();
 
-                            for ( CORBA::ULong i = 0; i < nsize; ++i ) {
-                                SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
-                                populate( var );
-                            }
+                        for ( CORBA::ULong i = 0; i < nsize; ++i ) {
+                            SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[ i ] );
+                            populate( var );
                         }
                     }
                 }
@@ -928,16 +920,8 @@ AcquirePlugin::initialize_broker()
     if ( adbroker_plugin ) {
 
         if ( ( orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) ) {
-            std::vector< const char * > argv;
-            acewrapper::ifconfig::ifvec netifv;
-            acewrapper::ifconfig::if_addrs( netifv );
 
-            for ( auto& netif : netifv ) {
-                argv.push_back( "-ORBListenEndpoints" );
-                netif.second.insert( 0, "iiop://" );
-                argv.push_back( netif.second.c_str() );
-            }
-            orbBroker->orbmgr_init( int(argv.size()), reinterpret_cast<char **>(const_cast<char **>(argv.data())) );
+            orbBroker->orbmgr_init( 0, 0 );
 
             try { 
 

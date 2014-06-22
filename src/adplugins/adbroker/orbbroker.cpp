@@ -94,32 +94,9 @@ orbBroker::create_instance() const
 			}
 
             std::string ior = broker->activate();
-
             if ( !ior.empty() ) {
-                CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
-                Broker::Manager_var mgr = Broker::Manager::_narrow( obj );
-
-                if ( !CORBA::is_nil( mgr ) ) {
-                    //adorbmgr::orbmgr::instance()->setBrokerManager( mgr );
-                    size_t nTrial = 30;
-                    while ( nTrial-- ) {
-                        try {
-                            mgr->register_ior( broker->object_name(), ior.c_str() );
-                        } catch ( CORBA::Exception& ex ) {
-                            if ( nTrial ) {
-                                std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
-                            } else {
-								delete broker;
-								broker = 0;
-                                struct corba_error : virtual boost::exception, virtual std::exception {};
-								typedef boost::error_info< struct tag_errmsg, std::string > info;
-                                BOOST_THROW_EXCEPTION( corba_error() << info( ex._info().c_str() ) );
-                            }
-                        }
-                    }
-                }
+                return broker;
             }
-			return broker;
         }
     }
     return 0;
@@ -145,13 +122,11 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
                     if ( !CORBA::is_nil( accessor ) ) {
                         
 						Broker::Manager_var mgr = adbroker::manager_i::instance()->impl()._this();
-						// Broker::Manager_var mgr = adorbmgr::orbmgr::getBrokerManager();
                         
                         accessor->setBrokerManager( mgr.in() );
                         accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );
 
                         try {
-                            mgr->register_ior( orbServant->object_name(), ior.c_str() );
                             mgr->register_object( orbServant->object_name(), obj );
                         } catch ( CORBA::Exception& ex ) {
                             factory->release( orbServant );
