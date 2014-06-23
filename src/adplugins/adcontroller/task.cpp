@@ -215,7 +215,7 @@ iTask::initialize_configuration()
                     size_t n = poProxy->populateObservers( objid );
                     Logging(L"iTask::initialize_configuration -- \"%1%\" has %2% signal observers %3% us"
 						, ::EventLog::pri_INFO ) % item.name() % n % timer.elapsed();
-                    objid += n;
+                    objid += int(n);
                 }
                 std::lock_guard< std::mutex > lock( mutex_ );
                 oproxies_.push_back( poProxy );
@@ -456,7 +456,7 @@ iTask::handle_start_run()
     std::lock_guard< std::mutex > lock( mutex_ );
 	
 	if ( queue_.empty() ) {
-		queue_.push_back( std::shared_ptr< SampleProcessor >( new SampleProcessor( io_service_ ) ) );
+        queue_.push_back( std::make_shared< SampleProcessor >( io_service_ ) );
         queue_.back()->prepare_storage( pMasterObserver_->_this() );
     }
 

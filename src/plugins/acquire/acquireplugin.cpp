@@ -711,7 +711,6 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     SignalObserver::Description_var& desc = std::get<1>( it->second );
     auto spectrometer = std::get<4>( it->second );
 
-    // const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() );
     const adcontrols::DataInterpreter& dataInterpreter = spectrometer->getDataInterpreter();
 
     if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
@@ -736,7 +735,6 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                 npos = rb->pos + rb->ndata;
                 readTrace( desc, rb, dataInterpreter, objId );
                 emit onUpdateUIData( objId, pos );
-                npos_map_[ objId ] = npos;
                 return;
             }
         } catch ( CORBA::Exception& ex ) {
