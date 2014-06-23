@@ -179,7 +179,7 @@ SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
             unsigned long objId = observer->objId();
             CORBA::WString_var dataClass;
             SignalObserver::octet_array_var data;
-            size_t idx = 0; 
+            CORBA::ULong idx = 0;
             while ( observer->readCalibration( idx++, data, dataClass ) ) {
                 adfs::stmt sql( fs_->db() );
                 sql.prepare( "INSERT INTO Calibration VALUES(:objid,:dataClass,:data,0)" );
@@ -192,7 +192,7 @@ SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
                     sql.reset();
             }
         }
-        for ( size_t i = 0; i < vec->length(); ++i )
+        for ( CORBA::ULong i = 0; i < vec->length(); ++i )
             populate_calibration( vec[ i ] );
     }
     
@@ -207,7 +207,7 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
 
     if ( ( vec.ptr() != 0 ) && ( vec->length() > 0 ) ) {
         
-        for ( size_t i = 0; i < vec->length(); ++i ) {
+        for ( CORBA::ULong i = 0; i < vec->length(); ++i ) {
             
             SignalObserver::Observer_ptr observer = vec[ i ];
             
@@ -234,7 +234,7 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
                                            , uint64_t( desc->axis_y_decimals ) );
         }
 
-        for ( size_t i = 0; i < vec->length(); ++i )
+        for ( CORBA::ULong i = 0; i < vec->length(); ++i )
             populate_descriptions( vec[ i ] );
 
     }
