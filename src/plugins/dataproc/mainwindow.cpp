@@ -400,33 +400,15 @@ MainWindow::createContents( Core::IMode * mode
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "Spectrogram" ), wnd.back() ) );
     }
 
-    bool res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                        , this, SLOT( handleSessionAdded( Dataprocessor* ) ) );
-    assert( res );
+    connect( SessionManager::instance(), &SessionManager::signalSessionAdded, this, &MainWindow::handleSessionAdded );
 
     // The handleSelectionChanged on MainWindow should be called in advance 
     // for all stacked child widgets.  This is significantly important for child widget has right device size
     // especially for QwtPlot widget calculates QRectF intersection for annotation interference check using
     // QScaleMap.
-    res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                   , this, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );  assert( res );
+    connect( SessionManager::instance(), &SessionManager::signalSelectionChanged, this, &MainWindow::handleSelectionChanged );
 
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
-        // with respect to above comment, this connection should be called after MainWindow::handleSelectionChanged
-        // connection has been established.
-        // res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-        //                , it, SLOT( handleSessionAdded( Dataprocessor* ) ) );  assert( res );
-
-        // res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-        //                , it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );  assert( res );
-
-        // res = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
-        //                , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );   assert( res );
-        
-        // connect( SessionManager::instance(), SIGNAL( signalCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) )
-        //          , it, SLOT( handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) ) );
-
-        // connect( axisChoice_, SIGNAL( currentIndexChanged( int ) ), it, SLOT( handleAxisChanged( int ) ) );
         boost::apply_visitor( session_added_connector(this), it );
         boost::apply_visitor( selection_changed_connector(this), it );
         boost::apply_visitor( apply_method_connector(this), it );
@@ -535,7 +517,7 @@ MainWindow::createDockWidgets()
 
         if ( pWidget && std::strcmp(widget.wiid, "qtwidgets2::MSPeakView") == 0 ) {
             // TOFPeaks
-            connect( this, SIGNAL(onAddMSPeaks( const adcontrols::MSPeaks& )), pWidget, SLOT(handle_add_mspeaks( const adcontrols::MSPeaks& )) );
+            connect( this, SIGNAL( onAddMSPeaks( const adcontrols::MSPeaks& ) ), pWidget, SLOT( handle_add_mspeaks( const adcontrols::MSPeaks& ) ) );
             adplugin::LifeCycleAccessor accessor( pWidget );
             if ( adplugin::LifeCycle * p = accessor.get() ) {
                 boost::any a( msPeaksWnd_ );
@@ -554,8 +536,7 @@ MainWindow::createDockWidgets()
         }
 
         if ( pWidget && std::strcmp( widget.wiid, "adwidgets::PeptideWidget" ) == 0 ) {
-            connect( pWidget, SIGNAL(triggerFind(const QVector<QPair<QString,QString> >&)), 
-                     this, SLOT( handlePeptideTarget(const QVector< QPair<QString, QString> >& ) ) );
+            connect( dynamic_cast<adwidgets::PeptideWidget *>(pWidget), &adwidgets::PeptideWidget::triggerFind, this, &MainWindow::handlePeptideTarget ); // (const QVector< QPair<QString, QString> >&) ) );
         }
 
         if ( pWidget ) {
