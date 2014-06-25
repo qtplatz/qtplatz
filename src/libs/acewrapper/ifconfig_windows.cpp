@@ -24,6 +24,8 @@
 
 #include "ifconfig_windows.hpp"
 
+#if defined WIN32
+
 # include <winsock2.h>
 # include <ws2tcpip.h>
 # include <iphlpapi.h>
@@ -92,3 +94,5 @@ ifconfig::if_addrs( std::vector< std::pair< std::string, std::string > >& vec )
 	}
     return false;
 }
+
+#endif
