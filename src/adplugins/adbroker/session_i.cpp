@@ -25,7 +25,6 @@
 
 #include "session_i.hpp"
 #include "manager_i.hpp"
-#include "chemicalformula_i.hpp"
 #include "brokermanager.hpp"
 #include "task.hpp"
 #include <portfolio/folium.hpp>
@@ -102,26 +101,6 @@ session_i::disconnect( BrokerEventSink_ptr cb )
     return false;
 }
 
-Broker::ChemicalFormula_ptr
-session_i::getChemicalFormula()
-{
-    PortableServer::POA_var poa = ::adbroker::manager_i::instance()->poa();
-
-    if ( CORBA::is_nil( poa ) )
-        return 0;
-
-    ChemicalFormula_i * p = new ChemicalFormula_i();
-    if ( p ) {
-        CORBA::Object_ptr obj = poa->servant_to_reference( p );
-        try {
-            Broker::ChemicalFormula_var var = Broker::ChemicalFormula::_narrow( obj );
-            return var._retn();
-        } catch ( CORBA::Exception& ) {
-        }
-    }
-    return 0;
-}
-
 bool
 session_i::coaddSpectrum( const CORBA::WChar * token, SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
 {
@@ -130,61 +109,3 @@ session_i::coaddSpectrum( const CORBA::WChar * token, SignalObserver::Observer_p
 	return true;
 }
 
-namespace adbroker {
-
-    struct BrokerFoliumBuffer : public std::streambuf {
-        Broker::Folium_var var_;
-        size_t count_;
-        size_t size_;
-        unsigned char * p_;
-
-        BrokerFoliumBuffer() : var_( new Broker::Folium ), count_(0), size_(0), p_(0) {
-            resize();
-        }
-
-        void resize() { 
-            var_->serialized.length( var_->serialized.length() + 1024 * 8 );
-            size_ = var_->serialized.length();
-            p_ = var_->serialized.get_buffer();
-        }
-
-        virtual int_type overflow ( int_type c ) {
-            if ( count_ >= size_ )
-                resize();
-            p_[ count_++ ] = c;
-            return c;
-        }
-
-        virtual std::streamsize xsputn( const char * s, std::streamsize num ) {
-            while ( count_ + num >= size_ )
-                resize();
-            for ( int i = 0; i < num; ++i )
-                p_[ count_++ ] = *s++;
-            return num;
-        }
-    };
-}
-
-Broker::Folium *
-session_i::folium( const CORBA::WChar * token, const CORBA::WChar * fileId )
-{
-    (void)token;
-    (void)fileId;
-#if 0
-	// since on-memory 'portfolio' for snapshot spectra holder was altered by direct adfs use, 
-	// this method may not be necessary.  This will resume when distributed filesystem supported.
-    BrokerFoliumBuffer buffer;
-
-    adbroker::Task * pTask = adbroker::BrokerManager::task();
-    if ( pTask ) {
-        adcontrols::MassSpectrumPtr ptr;
-        portfolio::Folium folium = pTask->findFolium( token, fileId );
-        if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ptr, folium ) ) {
-            std::ostream ostm( &buffer );
-            adcontrols::MassSpectrum::archive( ostm, *ptr );
-        }
-    }
-    return buffer.var_._retn();
-#endif
-	return 0;
-}

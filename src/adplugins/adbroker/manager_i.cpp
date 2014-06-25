@@ -140,20 +140,13 @@ manager_i::getLogger()
 void
 manager_i::register_ior( const char * name, const char * ior )
 {
-    ADTRACE() << "adbroker::manager_i::register_ior("
-                        << std::string(name) << ", " << std::string(ior) << ")";
-
-    std::lock_guard< std::mutex > lock( mutex_ );
-    iorMap_[ name ] = ior;
+    internal_register_ior( name, ior );
 }
 
 // C++ direct interface
 void
 manager_i::internal_register_ior( const std::string& name, const std::string& ior )
 {
-    ADTRACE() << "adbroker::manager_i::internal_register_ior(" 
-                        << name << ", " << ior.substr(0, 20) << "... )";
-
     std::lock_guard< std::mutex > lock( mutex_ );
     iorMap_[ name ] = ior;
 

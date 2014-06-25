@@ -326,7 +326,7 @@ observer_i::handle_data( unsigned long /* parentId */, unsigned long objId, long
     observer_i * pCache = find_cache_observer( objId );
     if ( pCache && ! CORBA::is_nil( pCache->source_observer_.in() ) ) {
 
-        if ( pCache->ihave( pos ) )
+        if ( pos && pCache->ihave( pos ) )
             return 0;
 
         SignalObserver::DataReadBuffer_var rdbuf;
@@ -409,21 +409,6 @@ observer_i::forward_observer_update_events( unsigned long /* parentId */
     }
     return true;
 }
-
-// void
-// observer_i::push_sample_processor( std::shared_ptr< SampleProcessor >& ptr )
-// {
-//     std::lock_guard< std::mutex > lock( mutex_ );
-//     queue_.push_back( ptr );
-// }
-
-// void
-// observer_i::stop_sample_processor()
-// {
-//     std::lock_guard< std::mutex > lock( mutex_ );
-// 	if ( ! queue_.empty() )
-// 		queue_.pop_front();
-// }
 
 bool
 observer_i::write_cache( long pos, SignalObserver::DataReadBuffer_var& rdbuf )

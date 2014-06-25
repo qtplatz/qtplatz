@@ -29,34 +29,10 @@ module Broker {
         args_type args;
     };
 
-    struct Attrib {
-        wstring key;
-        wstring value;
-    };
-    typedef sequence< Attrib > attrib_sequence;
-    typedef sequence< octet > octet_sequence;
-
-    struct Folium {
-        wstring path;
-        wstring class;
-        attrib_sequence attrib;
-        octet_sequence serialized;
-    };
-
-    interface ChemicalFormula {
-        double getMonoIsotopicMass( in wstring formula );
-        double getChemicalMass( in wstring formula );
-    };
-
     interface Session {
         boolean connect( in string user, in string pass, in string token, in BrokerEventSink cb );
         boolean disconnect( in BrokerEventSink cb );
 
-        ChemicalFormula getChemicalFormula();
-
-		// interaction with acquire
-        // boolean coaddSpectrum( in SignalObserver::Observer observer, in double x1, in double x2 );
-        Folium folium( in wstring token, in wstring fileId );
 		boolean coaddSpectrum( in wstring token, in SignalObserver::Observer observer, in double x1, in double x2 );
     };
 

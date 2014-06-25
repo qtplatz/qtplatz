@@ -53,7 +53,6 @@ SOURCES += adbroker.cpp \
     brokermanager.cpp \
     brokersession.cpp \
     brokertoken.cpp \
-    chemicalformula_i.cpp \
     logger_i.cpp \
     manager_i.cpp \
     session_i.cpp \
@@ -68,7 +67,6 @@ HEADERS += adbroker.hpp \
     brokermanager.hpp \
     brokersession.hpp \
     brokertoken.hpp \
-    chemicalformula_i.hpp \
     logger_i.hpp \
     manager_i.hpp \
     session_i.hpp \

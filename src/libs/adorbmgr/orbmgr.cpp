@@ -24,10 +24,9 @@
 
 #include "orbmgr.hpp"
 
-#include <boost/thread/barrier.hpp>
 #include <tao/Utils/ORB_Manager.h>
 #include <adlog/logger.hpp>
-#include <boost/bind.hpp>
+#include <boost/exception/all.hpp>
 #include <thread>
 
 using namespace adorbmgr;
@@ -86,6 +85,7 @@ orbmgr::fini()
 bool
 orbmgr::wait()
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
     if ( thread_ ) {
         thread_->join();
         return true;
@@ -193,15 +193,18 @@ orbmgr::shutdown()
 }
 
 void
-orbmgr::run( boost::barrier& barrier )
+orbmgr::run()
 {
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        thread_running_ = true;
+        cond_.notify_all();
+    } while ( 0 );
+
     try {
-        barrier.wait();
         taomgr_->run();
-        thread_running_ = false;
     } catch ( ... ) {
-        thread_running_ = false;
-        throw;
+        ADTRACE() << boost::current_exception_diagnostic_information();
     }
 	ADTRACE() << "orbmgr::run -- terminated.";
 }
@@ -210,12 +213,14 @@ bool
 orbmgr::spawn()
 {
     if ( thread_ == 0 ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
+        std::unique_lock< std::mutex > lock( mutex_ );
         if ( thread_ == 0 ) {
-            boost::barrier barrier( 2 );
-            thread_ = new std::thread( std::bind( &orbmgr::run, this, std::ref(barrier) ) );
-            thread_running_ = true;
-            barrier.wait();
+
+            thread_ = new std::thread( std::bind( &orbmgr::run, this ) );
+
+            while ( !thread_running_ )
+                cond_.wait( lock );
+            
             return true;
         }
     }

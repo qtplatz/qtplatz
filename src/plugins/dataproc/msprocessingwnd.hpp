@@ -76,6 +76,7 @@ namespace dataproc {
         void handleFormulaChanged( int idx, int fcn );
         void handleLockMass( const QVector< QPair<int, int> >& );
         void handleDataMayChanged();
+        void handleAxisChanged( int );
 
     private slots:
         void handleCustomMenuOnProcessedSpectrum( const QPoint& );
@@ -87,7 +88,6 @@ namespace dataproc {
         void selectedOnProcessed( const QPointF& );
 		void selectedOnProcessed( const QRectF& );
 		void selectedOnPowerPlot( const QRectF& );
-        void handleAxisChanged( int );
         void handleZoomedOnSpectrum( const QRectF& );
 
     private:

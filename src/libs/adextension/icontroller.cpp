@@ -1,16 +1,15 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
 ** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -23,20 +22,11 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "icontroller.hpp"
 
-# include "adinterface/brokerS.h"
+using namespace adextension;
 
-namespace adbroker {
-
-    class ChemicalFormula_i : public POA_Broker::ChemicalFormula {
-    public:
-        ChemicalFormula_i(void);
-        ~ChemicalFormula_i(void);
-
-        virtual ::CORBA::Double getMonoIsotopicMass ( const CORBA::WChar * formula );
-        virtual ::CORBA::Double getChemicalMass ( const CORBA::WChar * formula );
-    };
+iController::iController(QObject *parent) : QObject(parent)
+{
 }
-
 

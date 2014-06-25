@@ -22,21 +22,19 @@
 **
 **************************************************************************/
 
-#ifndef IBROKER_HPP
-#define IBROKER_HPP
+#pragma once
 
 #include <QObject>
 #include "adextension_global.hpp"
-
-namespace Broker { class Manager; }
+#include <functional>
 
 namespace adextension {
 
-    class ADEXTENSIONSHARED_EXPORT iBroker : public QObject {
+    class ADEXTENSIONSHARED_EXPORT iController : public QObject {
         Q_OBJECT
     public:
-        explicit iBroker(QObject *parent = 0);
-        virtual Broker::Manager * brokerManager() const = 0;
+        explicit iController(QObject *parent = 0);
+        virtual bool wait_for_connection_ready() = 0;
         
     signals:
 
@@ -46,4 +44,3 @@ namespace adextension {
 
 }
 
-#endif // IBROKER_HPP
