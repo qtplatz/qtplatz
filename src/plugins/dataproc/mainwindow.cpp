@@ -152,8 +152,8 @@ namespace dataproc {
 
     struct axis_changed_connector : public boost::static_visitor< bool > {
         QObject * this_;
-        QWidget * sender_;
-        axis_changed_connector( QObject * p, QWidget * choice ) : this_(p), sender_(choice) {}
+        QComboBox * sender_;
+        axis_changed_connector( QObject * p, QComboBox * choice ) : this_(p), sender_(choice) {}
         template< class T > bool operator () ( T* receiver ) const {
             return
                 this_->connect( sender_, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged)
