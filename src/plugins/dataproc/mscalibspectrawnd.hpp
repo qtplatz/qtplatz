@@ -66,12 +66,14 @@ namespace dataproc {
     public:
         MSCalibSpectraWnd( QWidget * parent = 0 );
 		~MSCalibSpectraWnd();
+
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool );
         void handlePrintCurrentView( const QString& outpdf );
+        void handleAxisChanged( int );
 
     signals:
         void onSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
@@ -85,7 +87,7 @@ namespace dataproc {
         void handle_apply_calibration_to_dataset();
         void handle_apply_calibration_to_all();
         void handle_apply_calibration_to_default();
-        void handleAxisChanged( int );
+
         //---
         void handle_add_selection_to_peak_table( const adcontrols::MSPeaks& );
 

@@ -63,6 +63,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/variant.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -93,6 +94,78 @@
 #include <QtGui/QIcon>
 #include <QLineEdit>
 #include <qdebug.h>
+
+namespace dataproc {
+
+    typedef boost::variant< MSProcessingWnd*, ElementalCompWnd*, MSCalibrationWnd*, MSCalibSpectraWnd*
+                            , ChromatogramWnd*, MSPeaksWnd*, SpectrogramWnd* > wnd_ptr_t;
+
+    struct wnd_set_title : public boost::static_visitor < QWidget * > {
+        const QString& text_;
+        wnd_set_title( const QString& t ) : text_( t ) {}
+        template<class T> QWidget * operator () ( T* wnd ) const { wnd->setWindowTitle( text_ ); return wnd; }
+    };
+
+    struct session_added_connector : public boost::static_visitor < bool > {
+        QObject * this_;
+        session_added_connector( QObject * p ) : this_(p) {}
+        template<class T> bool operator () ( T* wnd ) const {
+            return
+                this_->connect( SessionManager::instance(), &SessionManager::signalSessionAdded, wnd
+                                , [=]( Dataprocessor *dp ){ wnd->handleSessionAdded(dp);});
+        }
+    };
+
+    struct selection_changed_connector : public boost::static_visitor< bool > {
+        QObject * this_;
+        selection_changed_connector( QObject * p ) : this_(p) {}
+        template<class T> bool operator () ( T* wnd ) const {
+            return
+                this_->connect( SessionManager::instance(), &SessionManager::signalSelectionChanged, wnd
+                                , [=]( Dataprocessor* dp, portfolio::Folium& f ){ wnd->handleSelectionChanged( dp, f ); });
+        }
+    };
+
+    struct apply_method_connector : public boost::static_visitor< bool > {
+        QObject * this_;
+        apply_method_connector( QObject * p ) : this_(p) {}
+        template<class T> bool operator () ( T* wnd ) const {
+            return 
+                this_->connect( DataprocPlugin::instance(), &DataprocPlugin::onApplyMethod, wnd
+                                , [=]( const adcontrols::ProcessMethod& pm ){ wnd->handleApplyMethod( pm ); });
+        }
+    };
+
+    struct check_state_changed_connector : public boost::static_visitor< bool > {
+        QObject * this_;
+        check_state_changed_connector( QObject * p ) : this_(p) {}
+        template< class T > bool operator () ( T* wnd ) const {
+            return 
+                this_->connect( SessionManager::instance(), &SessionManager::signalCheckStateChanged, wnd //( Dataprocessor*, portfolio::Folium&, bool ) )
+                                , [=]( Dataprocessor* dp, portfolio::Folium& f, bool st ){ wnd->handleCheckStateChanged( dp, f, st ); });
+        }
+    };
+    template<> bool check_state_changed_connector::operator()( MSProcessingWnd * ) const { return false; }
+    template<> bool check_state_changed_connector::operator()( ElementalCompWnd * ) const { return false; }
+    template<> bool check_state_changed_connector::operator()( MSCalibrationWnd * ) const { return false; }
+    template<> bool check_state_changed_connector::operator()( ChromatogramWnd * ) const { return false; }
+
+    struct axis_changed_connector : public boost::static_visitor< bool > {
+        QObject * this_;
+        QWidget * sender_;
+        axis_changed_connector( QObject * p, QWidget * choice ) : this_(p), sender_(choice) {}
+        template< class T > bool operator () ( T* receiver ) const {
+            return
+                this_->connect( sender_, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged)
+                                , receiver, [=] ( int idx ){ receiver->handleAxisChanged( idx ); } );
+        }
+    };
+    // following 4 classes has no axis change handler
+    template<> bool axis_changed_connector::operator()( ElementalCompWnd * ) const { return false; }
+    template<> bool axis_changed_connector::operator()( ChromatogramWnd * ) const { return false; }
+    template<> bool axis_changed_connector::operator()( MSPeaksWnd * ) const { return false; }
+    template<> bool axis_changed_connector::operator()( SpectrogramWnd * ) const { return false; }
+}
 
 using namespace dataproc;
 
@@ -295,43 +368,39 @@ MainWindow::createContents( Core::IMode * mode
     QWidget * centralWidget = new QWidget;
     setCentralWidget( centralWidget );
 
-    std::vector< QWidget * > wnd;
+    // std::vector< QWidget * > wnd;
+    std::vector< wnd_ptr_t > wnd;
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
+
         stack_ = new QStackedWidget;
         splitter3->addWidget( stack_ );
 
-        wnd.push_back( wndMSProcessing_ = new MSProcessingWnd );
-        wnd.back()->setWindowTitle( "MS Process" );
-        stack_->addWidget( wnd.back() );
+        wnd.push_back( new MSProcessingWnd );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Process" ), wnd.back() ) );
+        wndMSProcessing_ = boost::get< MSProcessingWnd * >( wnd.back() );
 
         wnd.push_back( new ElementalCompWnd );
-        wnd.back()->setWindowTitle( "Elemental Comp." );
-        stack_->addWidget( wnd.back() );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( "Elemental Comp." ), wnd.back() ) );
 
         wnd.push_back( new MSCalibrationWnd );
-        wnd.back()->setWindowTitle( "MS Calibration" );
-        stack_->addWidget( wnd.back() );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Calibration" ), wnd.back() ) );
 
         wnd.push_back( new MSCalibSpectraWnd );
-        wnd.back()->setWindowTitle( "MS Calibration(2)" );
-        stack_->addWidget( wnd.back() );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Calibration(2)" ), wnd.back() ) );
 
         wnd.push_back( new ChromatogramWnd( apppath ) );
-        wnd.back()->setWindowTitle( "Chromatogram" );
-        stack_->addWidget( wnd.back() );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( "Chromatogram" ), wnd.back() ) );
 
-        msPeaksWnd_ = new MSPeaksWnd;
-        wnd.push_back( msPeaksWnd_ );
-        wnd.back()->setWindowTitle( "TOF Peaks" );
-        stack_->addWidget( wnd.back() );
+        wnd.push_back( new MSPeaksWnd );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( "TOF Peaks" ), wnd.back() ) );
+        msPeaksWnd_ = boost::get<MSPeaksWnd *>( wnd.back() );
 
         wnd.push_back( new SpectrogramWnd );
-        wnd.back()->setWindowTitle( "Spectrogram" );
-        stack_->addWidget( wnd.back() );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( "Spectrogram" ), wnd.back() ) );
     }
-	
-	bool res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+
+    bool res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
                         , this, SLOT( handleSessionAdded( Dataprocessor* ) ) );
     assert( res );
 
@@ -345,21 +414,26 @@ MainWindow::createContents( Core::IMode * mode
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
         // with respect to above comment, this connection should be called after MainWindow::handleSelectionChanged
         // connection has been established.
-        res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                       , it, SLOT( handleSessionAdded( Dataprocessor* ) ) );  assert( res );
+        // res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+        //                , it, SLOT( handleSessionAdded( Dataprocessor* ) ) );  assert( res );
 
-        res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                       , it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );  assert( res );
+        // res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
+        //                , it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );  assert( res );
 
-        res = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
-                       , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );   assert( res );
+        // res = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
+        //                , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );   assert( res );
         
-        connect( SessionManager::instance(), SIGNAL( signalCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) )
-                 , it, SLOT( handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) ) );
+        // connect( SessionManager::instance(), SIGNAL( signalCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) )
+        //          , it, SLOT( handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) ) );
 
-        connect( axisChoice_, SIGNAL( currentIndexChanged( int ) ), it, SLOT( handleAxisChanged( int ) ) );
+        // connect( axisChoice_, SIGNAL( currentIndexChanged( int ) ), it, SLOT( handleAxisChanged( int ) ) );
+        boost::apply_visitor( session_added_connector(this), it );
+        boost::apply_visitor( selection_changed_connector(this), it );
+        boost::apply_visitor( apply_method_connector(this), it );
+
+        boost::apply_visitor( check_state_changed_connector(this), it );
+        boost::apply_visitor( axis_changed_connector(this, axisChoice_), it );
     }
-
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
     toolBarAddingLayout->setMargin(0);

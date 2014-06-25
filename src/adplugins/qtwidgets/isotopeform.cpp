@@ -202,7 +202,7 @@ IsotopeForm::onActivated( const QModelIndex& index )
 
 			adcontrols::ProcessMethod m;
 			m.appendMethod< IsotopeMethod >( *pMethod_ );
-			emit apply( m );
+			//emit apply( m );
 		}
 	}
 }
