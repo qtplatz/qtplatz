@@ -7,3 +7,4 @@ else: version.commands = ./version.sh
 QMAKE_EXTRA_TARGETS += version
 PRE_TARGETDEPS += version.h
 QMAKE_CLEAN += version.h
+DEFINES += VERSION="$Id$"
