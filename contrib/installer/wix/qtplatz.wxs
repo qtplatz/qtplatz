@@ -19,6 +19,7 @@
             <ComponentGroupRef Id="MicrosoftComponents" />
             <ComponentGroupRef Id="PluginComponents" />
             <ComponentGroupRef Id="InfiTOFComponents" />
+            <ComponentGroupRef Id="InfiTOFdComponents" />
             <ComponentGroupRef Id="BrukerComponents" />
             <ComponentGroupRef Id="ApplicationProgramsFolder" />
         </Feature>

@@ -12,8 +12,13 @@
       <File Id="infitofspectrometer.dll" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitofspectrometer.dll" ProcessorArchitecture="x64" />
       <File Id="infitofspectrometer.adplugin" Source="$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics/infitofspectrometer.adplugin" ProcessorArchitecture="x64" />
     </Component>
+  </ComponentGroup>
+  <ComponentGroup Id="InfiTOFdComponents" Directory="BIN">
     <Component Id="infitofd.exe" Guid="49A9BEA7-8306-4750-A419-9E067AC7BF95" Win64="yes">
       <File Id="infitofd.exe" Source="$(var.TOP)/bin/infitofd.exe" ProcessorArchitecture="x64" />
+    </Component>
+    <Component Id="tofdll2.dll" Guid="60FC45E2-1D2B-49FB-BB9E-290019EBB6B9" Win64="yes">
+      <File Id="tofdll2.dll" Source="$(var.TOP)/bin/tofdll2.dll" ProcessorArchitecture="x64" />
     </Component>
   </ComponentGroup>
 </Include>
