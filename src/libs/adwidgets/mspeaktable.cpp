@@ -57,6 +57,7 @@ namespace adwidgets {
         , c_mspeaktable_mass_error
         , c_mspeaktable_delta_mass
         , c_mspeaktable_intensity
+        , c_mspeaktable_relative_intensity
         , c_mspeaktable_mode
         , c_mspeaktable_time
         , c_mspeaktable_protocol
@@ -75,21 +76,29 @@ namespace adwidgets {
     void
     MSPeakTableDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
     {
+        QStyleOptionViewItem op( option );
+        op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
+
         switch( index.column() ) {
         case c_mspeaktable_time:
-            drawDisplay( painter, option, option.rect
-                         , ( boost::format("%.5lf") % scale_to_micro( index.data( Qt::EditRole ).toDouble() ) ).str().c_str() );
+            op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
+            drawDisplay( painter, op, option.rect
+                , (boost::format( "%.5lf" ) % scale_to_micro( index.data( Qt::EditRole ).toDouble() )).str().c_str() );
             break;
         case c_mspeaktable_mass:
-            drawDisplay( painter, option, option.rect, ( boost::format("%.7lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+            drawDisplay( painter, op, option.rect, (boost::format( "%.7lf" ) % index.data( Qt::EditRole ).toDouble()).str().c_str() );
             break;
         case c_mspeaktable_mass_error:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() )
-                drawDisplay( painter, option, option.rect, ( boost::format("%.7g") % ( index.data( Qt::EditRole ).toDouble() * 1000 ) ).str().c_str() );
+                drawDisplay( painter, op, option.rect, (boost::format( "%.7g" ) % (index.data( Qt::EditRole ).toDouble() * 1000)).str().c_str() );
             break;
         case c_mspeaktable_intensity:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_intensity ), Qt::EditRole ).toString().isEmpty() )
-                drawDisplay( painter, option, option.rect, ( boost::format("%.2lf") % ( index.data( Qt::EditRole ).toDouble() ) ).str().c_str() );
+                drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
+            break;
+        case c_mspeaktable_relative_intensity:
+            if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_relative_intensity ), Qt::EditRole ).toString().isEmpty() )
+                drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
             break;
         case c_mspeaktable_mode:
         case c_mspeaktable_formula:
@@ -243,7 +252,8 @@ MSPeakTable::onInitialUpdate()
     model.setHeaderData( c_mspeaktable_time,        Qt::Horizontal, QObject::tr( "time(us)" ) );
     model.setHeaderData( c_mspeaktable_mass,        Qt::Horizontal, QObject::tr( "m/z" ) );
     model.setHeaderData( c_mspeaktable_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
-    model.setHeaderData( c_mspeaktable_intensity,   Qt::Horizontal, QObject::tr( "intensity" ) );
+    model.setHeaderData( c_mspeaktable_intensity,   Qt::Horizontal, QObject::tr( "Abandance" ) );
+    model.setHeaderData( c_mspeaktable_relative_intensity,   Qt::Horizontal, QObject::tr( "R. A." ) );
     model.setHeaderData( c_mspeaktable_mode,        Qt::Horizontal, QObject::tr( "mode" ) );
     model.setHeaderData( c_mspeaktable_protocol,    Qt::Horizontal, QObject::tr( "protocol" ) );
     model.setHeaderData( c_mspeaktable_formula,     Qt::Horizontal, QObject::tr( "formula" ) );
@@ -443,6 +453,12 @@ MSPeakTable::handle_zoomed( const QRectF& rc )
         if ( auto ptr = wptr.lock() ) {
             std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right() );
             if ( bp.first >= 0 && bp.second >= 0 ) {
+                // ---> change rel. intensity
+                double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
+                for ( int row = 0; row < model_->rowCount(); ++row )
+                    model_->setData( model_->index( row, c_mspeaktable_relative_intensity ), model_->index( row, c_mspeaktable_intensity ).data().toDouble() * 100 / base_height );
+                // <--- end rel. intensity
+
                 for ( int row = 0; row < model_->rowCount(); ++row ) {
                     if ( model_->index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == bp.first 
                          && model_->index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt() == bp.second ) {

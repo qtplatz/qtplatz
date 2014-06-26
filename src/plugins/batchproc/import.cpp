@@ -323,7 +323,7 @@ import::import_profile_spectra( uint64_t fcn, size_t nSpectra )
     
     for ( int i = 0; i < int(nSpectra); ++i ) {
 
-        if ( progress_( rowId_, i, nSpectra ) ) {
+        if ( progress_( rowId_, i, int(nSpectra) ) ) {
             progress_( rowId_, 0, 0 ); // canceled
             return false;
         }
@@ -383,7 +383,7 @@ import::import_profile_spectra( uint64_t fcn, size_t nSpectra )
             ADTRACE() << "import spectrum size " << archive_data.size() << " mass array size: " << archive_meta.size();
         }
     }
-    progress_( rowId_, nSpectra, nSpectra ); // completed
+    progress_( rowId_, int(nSpectra), int(nSpectra) ); // completed
     return true;
 }
 
@@ -394,7 +394,7 @@ import::subscribe( const adcontrols::LCMSDataset& data )
     size_t nfcn = data.getFunctionCount();
     for ( size_t i = 0; i < nfcn; ++i ) {
         auto c = std::make_shared< adcontrols::Chromatogram >();
-        if ( data.getTIC( i, *c ) )
+        if ( data.getTIC( int( i ), *c ) )
             tic_.push_back( c );
     }
     return true;
