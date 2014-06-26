@@ -110,17 +110,31 @@ namespace adportable {
             double ax = 0;
             for ( size_t i = frac.lPos; i <= frac.uPos; ++i )
                 ax += pData[i] - baseH;
+            double a_trapesium = 0;
+            if ( frac.lPos > 0 ) { // if one before data point exist
+                // Left trapesium area
+                double y0 = std::min( pData[ frac.lPos ], pData[ frac.lPos - 1 ] ) - baseH;
+                double y1 = std::max( pData[ frac.lPos ], pData[ frac.lPos - 1 ] ) - baseH;
+                double y = (y1 - y0) * (1.0 - frac.lFrac) + y0;
+                double a = (y + y1) * frac.lFrac / 2.0;
+                ax += a;
+                a_trapesium = a;
+            }
 
-            if ( frac.lPos > 0 ) // if one before data point exist
-                ax += ( pData[ frac.lPos - 1 ] ) * frac.lFrac;
-
-            if ( frac.uPos < size ) // if following data point exist
-                ax += ( pData[ frac.uPos + 1 ] ) * frac.uFrac;
-
-            return ax;
-            //double w = (frac.uPos - frac.lPos + 1) + frac.lFrac + frac.uFrac;
-            //double d = ax / w;  // normalize by width
-            //return d;
+            if ( frac.uPos < size ) { // if following data point exist
+                // Right trapesium area
+                double y0 = std::max( pData[ frac.uPos ], pData[ frac.uPos + 1 ] ) - baseH;
+                double y1 = std::min( pData[ frac.uPos ], pData[ frac.uPos + 1 ] ) - baseH;
+                double y = y0 - (y0 - y1) * frac.uFrac;
+                double a = (y + y0) * frac.uFrac / 2.0;
+                ax += a;
+                a_trapesium += a;
+            }
+#if defined _DEBUG || defined DEBUG
+            double portion = ax / a_trapesium;
+            (void)portion;
+#endif
+            return ax; // x-axis is based on bin number (assume equally spaced data array)
         }
     };
 

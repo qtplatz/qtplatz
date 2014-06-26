@@ -254,8 +254,8 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 // area in HH range
                 adportable::spectrum_processor::areaFraction fraction;
                 adportable::spectrum_processor::getFraction( fraction, profile.getMassArray(), profile.size(), moment.xLeft(), moment.xRight() );
-				item.area_ = adportable::spectrum_processor::area( fraction, pk.base, intens.begin(), intens.size() );
-                item.area_ = item.area_; // return area in virtual time domain (time asume 1 unit / data point
+
+				double area = adportable::spectrum_processor::area( fraction, pk.base, intens.begin(), intens.size() );
 
                 array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin() + pk.first, masses.begin() + pk.second, mass );
                 size_t index = std::distance( masses.begin(), --pos );
@@ -277,8 +277,15 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 				item.HH_left_time_ = time_moment.xLeft();
 				item.HH_right_time_ = time_moment.xRight();
 
-                double width = moment.xRight() - moment.xLeft(); // m/z
-                item.area_ *= width; // time domain area
+                // double width = moment.xRight() - moment.xLeft(); // m/z
+                if ( method_.areaMethod() == CentroidMethod::eAreaDa )
+                    item.area_ = area * ( moment.xRight() - moment.xLeft() ) * 1000; // Intens. x mDa
+                else if ( method_.areaMethod() == CentroidMethod::eAreaTime )
+                    item.area_ = area * adcontrols::metric::scale_to_nano( time_moment.xRight() - time_moment.xLeft() ); // Intens. x ns
+                else if ( method_.areaMethod() == CentroidMethod::eWidthNormalized )
+                    item.area_ = area / ((fraction.uPos - fraction.lPos + 1) + fraction.lFrac + fraction.uFrac); // width of unit of sample interval
+                else if ( method_.areaMethod() == CentroidMethod::eAreaPoint )
+                    item.area_ = area; // Intens x ns that assumes data is always 1ns interval
 
                 double difference = std::abs( item.time_from_time_ - item.time_from_mass_ );
                 

@@ -45,6 +45,13 @@ namespace adcontrols {
 			, ePeakWidthConstant
 		};
 
+        enum eAreaMethod {
+            eAreaDa         // I * Da
+            , eAreaTime       // I * ns
+            , eWidthNormalized  // A / width
+            , eAreaPoint      // assume data interval := 1
+        };
+
 		~CentroidMethod(void);
 		CentroidMethod(void);
 		CentroidMethod(const CentroidMethod &);
@@ -78,8 +85,11 @@ namespace adcontrols {
         double cutoffFreqHz() const;
         void cutoffFreqHz( double );
 
+        eAreaMethod areaMethod() const;
+        void areaMethod( eAreaMethod );
+
 	private:
-		double baselineWidth_;
+		double baselineWidth_; // depreicated
         double rsConstInDa_;
         double rsPropoInPpm_;
         double rsTofInDa_;
@@ -88,32 +98,37 @@ namespace adcontrols {
 		bool bCentroidAreaIntensity_;
 		double peakCentroidFraction_;
         ePeakWidthMethod peakWidthMethod_;
-        // add on v2.2.3
-        eNoiseFilterMethod noiseFilterMethod_;
+
+        eNoiseFilterMethod noiseFilterMethod_; // since v2.2.3
         double cutoffFreqHz_; // Hz
 
-       friend class boost::serialization::access;
-       template<class Archive>
-       void serialize( Archive& ar, const unsigned int version ) {
-           using namespace boost::serialization;
+        eAreaMethod areaMethod_; // since v2.7.5
 
-           ar & BOOST_SERIALIZATION_NVP(baselineWidth_)
-               & BOOST_SERIALIZATION_NVP(rsConstInDa_)
-               & BOOST_SERIALIZATION_NVP(rsPropoInPpm_)
-               & BOOST_SERIALIZATION_NVP(rsTofInDa_)
-               & BOOST_SERIALIZATION_NVP(rsTofAtMz_)
-               & BOOST_SERIALIZATION_NVP(attenuation_)
-               & BOOST_SERIALIZATION_NVP(bCentroidAreaIntensity_)
-               & BOOST_SERIALIZATION_NVP(peakCentroidFraction_);
-           if ( version >= 2 ) {
-               ar & BOOST_SERIALIZATION_NVP(noiseFilterMethod_)
-                   & BOOST_SERIALIZATION_NVP(cutoffFreqHz_)
-				   ;
-           }
-       }
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize( Archive& ar, const unsigned int version ) {
+            using namespace boost::serialization;
+
+            ar & BOOST_SERIALIZATION_NVP(baselineWidth_) // deprecated
+                & BOOST_SERIALIZATION_NVP(rsConstInDa_)
+                & BOOST_SERIALIZATION_NVP(rsPropoInPpm_)
+                & BOOST_SERIALIZATION_NVP(rsTofInDa_)
+                & BOOST_SERIALIZATION_NVP(rsTofAtMz_)
+                & BOOST_SERIALIZATION_NVP(attenuation_)
+                & BOOST_SERIALIZATION_NVP(bCentroidAreaIntensity_)
+                & BOOST_SERIALIZATION_NVP(peakCentroidFraction_);
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP(noiseFilterMethod_)
+                    & BOOST_SERIALIZATION_NVP(cutoffFreqHz_)
+                    ;
+            }
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( areaMethod_ );
+            }
+        }
 
 	};
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::CentroidMethod, 2 )
+BOOST_CLASS_VERSION( adcontrols::CentroidMethod, 3 )

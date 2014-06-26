@@ -141,7 +141,7 @@ IsotopeForm::onMolChanged( QString key )
 	using adcontrols::CTable;
 	using adcontrols::ChemicalFormula;
 
-    QStandardItemModel& model = *pModel_;
+//    QStandardItemModel& model = *pModel_;
 #if 0
 	CTable ctab;
 	if ( ui->molwidget->getCTable( key, ctab ) ) {

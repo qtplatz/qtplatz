@@ -529,17 +529,24 @@ MainWindow::createDockWidgets()
             }
         }
 
-        if ( pWidget && std::strcmp( widget.wiid, "qtwidgets2::MSPeakTable" ) == 0 ) {
+        if ( auto p = dynamic_cast< adwidgets::MSPeakTable *>( pWidget ) ) {
             // MS Peak list
-            connect( pWidget, SIGNAL( currentChanged( int, int ) ), wndMSProcessing_, SLOT( handleCurrentChanged( int, int ) ) );
-            connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wndMSProcessing_, SLOT( handleFormulaChanged( int, int ) ) );
-            connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int> >& ) )
-                     , wndMSProcessing_, SLOT( handleLockMass( const QVector<QPair<int, int> >& ) ) );
-            connect( this, SIGNAL( onDataMayCanged() ), wndMSProcessing_, SLOT( handleDataMayChanged() ) );
-            connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handle_zoomed( const QRectF& ) ) );
+            using adwidgets::MSPeakTable;
+            if ( auto wnd = findChild< MSProcessingWnd *>() ) {
+                connect( p, static_cast<void (MSPeakTable::*)(int, int)>(&MSPeakTable::currentChanged), wnd
+                         , [=] ( int idx, int fcn ){ wnd->handleCurrentChanged( idx, fcn ); }
+                    );
+                connect( p, static_cast<void (MSPeakTable::*)(int, int)>(&MSPeakTable::formulaChanged), wnd
+                         , [=] ( int idx, int fcn ){ wnd->handleFormulaChanged( idx, fcn ); }
+                    );
+
+                connect( p, &MSPeakTable::triggerLockMass, wnd, &MSProcessingWnd::handleLockMass );
+                connect( this, &MainWindow::onDataMayCanged, wnd, &MSProcessingWnd::handleDataMayChanged );
+            }
+            connect( this, &MainWindow::onZoomedOnSpectrum, p, &MSPeakTable::handle_zoomed );
         }
 
-        if ( pWidget && std::strcmp( widget.wiid, "adwidgets::PeptideWidget" ) == 0 ) {
+        if ( auto p = dynamic_cast< adwidgets::PeptideWidget *>( pWidget ) ) {
             connect( dynamic_cast<adwidgets::PeptideWidget *>(pWidget), &adwidgets::PeptideWidget::triggerFind, this, &MainWindow::handlePeptideTarget ); // (const QVector< QPair<QString, QString> >&) ) );
         }
 

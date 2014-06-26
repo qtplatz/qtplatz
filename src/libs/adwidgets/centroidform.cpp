@@ -40,6 +40,9 @@ CentroidForm::CentroidForm(QWidget *parent) : QWidget(parent)
                                             , pMethod_( new adcontrols::CentroidMethod ) 
 {
 	ui->setupUi(this);
+    QStringList areaMethods;
+    areaMethods << "Intens. x mDa" << "Intens. x Time(ns)" << "Width Norm." << "Samp. Interval";
+    ui->comboBox->addItems( areaMethods );
 }
 
 CentroidForm::~CentroidForm()
@@ -140,6 +143,8 @@ CentroidForm::update_data( const adcontrols::CentroidMethod& method )
 
 	ui->noiseFilterMethod->setCheckState( method.noiseFilterMethod() == CentroidMethod::eNoFilter ? Qt::Unchecked : Qt::Checked );
 	ui->cutoffMHz->setValue( method.cutoffFreqHz() / 1.0e6 + 0.5 );
+
+    ui->comboBox->setCurrentIndex( method.areaMethod() );
 }
 
 void
@@ -168,6 +173,8 @@ CentroidForm::update_data()
 		adcontrols::CentroidMethod::eDFTLowPassFilter : adcontrols::CentroidMethod::eNoFilter );
 
 	method.cutoffFreqHz( ui->cutoffMHz->value() * 1.0e6 );
+
+    method.areaMethod( adcontrols::CentroidMethod::eAreaMethod( ui->comboBox->currentIndex() ) );
 }
 
 void

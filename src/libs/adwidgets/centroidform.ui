@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>301</width>
-    <height>195</height>
+    <height>208</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -280,6 +280,21 @@
         </widget>
        </item>
        <item>
+        <widget class="QRadioButton" name="radioButton_height">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
+         <property name="text">
+          <string>Height</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup_2</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
         <widget class="QRadioButton" name="radioButton_area">
          <property name="font">
           <font>
@@ -298,19 +313,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="radioButton_height">
-         <property name="font">
-          <font>
-           <family>Calibri</family>
-          </font>
-         </property>
-         <property name="text">
-          <string>Height</string>
-         </property>
-         <attribute name="buttonGroup">
-          <string notr="true">buttonGroup_2</string>
-         </attribute>
-        </widget>
+        <widget class="QComboBox" name="comboBox"/>
        </item>
       </layout>
      </item>

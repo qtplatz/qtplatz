@@ -146,13 +146,13 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
 }
 
 void
-ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& m )
+ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 {
 	using adcontrols::IsotopeMethod;
 	//using adcontrols::IsotopeCluster;
 	using adcontrols::MassSpectrum;
 
-	const IsotopeMethod * p = m.find< IsotopeMethod >();
+//	const IsotopeMethod * p = m.find< IsotopeMethod >();
 /*
 	if ( p ) {
 		for ( IsotopeMethod::vector_type::const_iterator it = p->begin(); it != p->end(); ++it ) {

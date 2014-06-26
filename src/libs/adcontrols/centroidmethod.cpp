@@ -43,6 +43,7 @@ CentroidMethod::CentroidMethod() : baselineWidth_(500.0)
                                  , peakWidthMethod_(ePeakWidthTOF)
                                  , noiseFilterMethod_( eNoFilter )
                                  , cutoffFreqHz_( 100 * 1.0e6 ) // 100MHz
+                                 , areaMethod_( eAreaTime )
 {
 }
 
@@ -66,6 +67,7 @@ CentroidMethod::operator = ( const CentroidMethod& rhs )
 	peakCentroidFraction( rhs.peakCentroidFraction_ );
     noiseFilterMethod_ = rhs.noiseFilterMethod_;
     cutoffFreqHz_ = rhs.cutoffFreqHz_;
+    areaMethod_ = rhs.areaMethod_;
 
 	return * this;
 }
@@ -83,7 +85,8 @@ CentroidMethod::operator == ( const CentroidMethod & rhs ) const
         peakWidthMethod() == rhs.peakWidthMethod() &&
         adportable::compare<double>::approximatelyEqual( peakCentroidFraction_, rhs.peakCentroidFraction() ) &&
         noiseFilterMethod_ == rhs.noiseFilterMethod() &&
-        adportable::compare<double>::approximatelyEqual( cutoffFreqHz_, rhs.cutoffFreqHz_, 1.0 )
+        adportable::compare<double>::approximatelyEqual( cutoffFreqHz_, rhs.cutoffFreqHz_, 1.0 ) &&
+        areaMethod_ == rhs.areaMethod_
         ;
 }
 
@@ -219,3 +222,14 @@ CentroidMethod::cutoffFreqHz( double value )
     cutoffFreqHz_ = value;
 }
 
+void
+CentroidMethod::areaMethod( eAreaMethod v )
+{
+    areaMethod_ = v;
+}
+
+CentroidMethod::eAreaMethod
+CentroidMethod::areaMethod() const
+{
+    return areaMethod_;
+}
