@@ -25,6 +25,7 @@
 #ifndef MSPEAKTABLE_HPP
 #define MSPEAKTABLE_HPP
 
+#include "adwidgets_global.hpp"
 #include <QTableView>
 #include <QItemDelegate>
 #include <adplugin/lifecycle.hpp>
@@ -37,12 +38,12 @@ class QStandardItemModel;
 
 namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; }
 
-namespace qtwidgets2 {
+namespace adwidgets {
 
     namespace detail { struct dataMayChanged; }
 
-    class MSPeakTable : public QTableView
-                      , public adplugin::LifeCycle {
+    class ADWIDGETSSHARED_EXPORT MSPeakTable : public QTableView
+                                             , public adplugin::LifeCycle {
         Q_OBJECT
     public:
         explicit MSPeakTable(QWidget *parent = 0);

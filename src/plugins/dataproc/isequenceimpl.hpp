@@ -26,12 +26,30 @@
 #define ISEQUENCEIMPL_HPP
 
 #include <adextension/isequence.hpp>
+#include <adextension/ieditorfactory.hpp>
 #include <vector>
 #include <memory>
+#include <functional>
+#include <tuple>
 
 namespace dataproc {
-
-    typedef std::shared_ptr< adextension::iEditorFactory> iEditorFactoryPtr;
+    
+    namespace detail {
+        class iEditorFactoryImpl : public adextension::iEditorFactory {
+            std::tuple< std::function< QWidget * (QWidget *) >, METHOD_TYPE, QString > d_;
+        public:
+            iEditorFactoryImpl( const iEditorFactoryImpl& t ) : d_( t.d_ ) {
+            }
+            iEditorFactoryImpl( std::function< QWidget *(QWidget * parent)> f, METHOD_TYPE mtype, const QString& title )
+                : d_( std::make_tuple( f, mtype, title ) ) {
+            }
+            QWidget * createEditor( QWidget * parent ) override {
+                return std::get<0>( d_ ) ? std::get<0>( d_ )(parent) : 0;
+            }
+            METHOD_TYPE method_type() const override { return std::get<1>(d_); }
+            QString title() const override { return std::get<2>(d_); }
+        };
+    }
 
     class iSequenceImpl : public adextension::iSequence {
     public:
@@ -40,11 +58,10 @@ namespace dataproc {
         virtual size_t size() const;
         virtual reference operator [] ( size_t idx );
 
-        iSequenceImpl& operator << ( iEditorFactoryPtr );
+        iSequenceImpl& operator << ( detail::iEditorFactoryImpl );
 
     private:
-
-        std::vector< iEditorFactoryPtr > v_;
+        std::vector< detail::iEditorFactoryImpl > v_;
     };
 
 }

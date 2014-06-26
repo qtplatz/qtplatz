@@ -49,7 +49,7 @@
 #include <sstream>
 #include <set>
 
-namespace qtwidgets2 {
+namespace adwidgets {
 
     enum {
         c_mspeaktable_formula
@@ -136,9 +136,7 @@ namespace qtwidgets2 {
     }
 }
 
-using namespace qtwidgets2; 
-
-
+using namespace adwidgets;
 
 MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
                                           , model_( std::make_shared< QStandardItemModel >() )

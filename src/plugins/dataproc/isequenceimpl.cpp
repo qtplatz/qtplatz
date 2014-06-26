@@ -39,12 +39,12 @@ iSequenceImpl::size() const
 adextension::iEditorFactory&
 iSequenceImpl::operator [] ( size_t idx )
 {
-	return *(v_[ idx ].get());
+	return v_[ idx ];
 }
 
 iSequenceImpl&
-iSequenceImpl::operator << ( const iEditorFactoryPtr ptr )
+iSequenceImpl::operator << ( const detail::iEditorFactoryImpl e )
 {
-    v_.push_back( ptr );
+    v_.push_back( e );
     return *this;
 }

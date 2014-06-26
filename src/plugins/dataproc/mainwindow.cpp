@@ -51,7 +51,9 @@
 #include <adprot/digestedpeptides.hpp>
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
+#include <adwidgets/centroidform.hpp>
 #include <adwidgets/peptidewidget.hpp>
+#include <adwidgets/mspeaktable.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/portfolio.hpp>
@@ -94,6 +96,8 @@
 #include <QtGui/QIcon>
 #include <QLineEdit>
 #include <qdebug.h>
+
+#include <functional>
 
 namespace dataproc {
 
@@ -496,24 +500,24 @@ MainWindow::createDockWidgets()
         const char * title;
         const char * wiid;
         const char * pageName;
-        QWidget * (*factory)( QWidget * );
+        //QWidget * (*factory)(QWidget *);
+        std::function<QWidget *()> factory;
     } widgets [] = { 
-        {  "Centroid" ,        "qtwidgets::CentroidForm",            "CentroidMethod", 0} // should be first
-        , { "MS Peaks",        "qtwidgets2::MSPeakTable",            "MSPeakTable", 0 }
-        , { "MS Calibration",  "qtwidgets2::MSCalibrationForm",      "MSCalibrationMethod", 0}
-        , { "MS Chromatogr.",  "qtwidgets2::MSChromatogramWidget",   "MSChromatogrMethod", 0 }
-        , { "Targeting",       "qtwidgets::TargetForm",              "TargetMethod", 0 }
-        , { "Peptide",         "adwidgets::PeptideWidget",           "PeptideMethod", &adwidgets::PeptideWidget::create }
-        //, { "Isotope",       "qtwidgets::IsotopeForm",             "IsotopeMethod", 0 }
-        , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm","EleCompMethod", 0 }
-        , { "Peak Find",       "qtwidgets::PeakMethodForm",          "PeakFindMethod", 0 }
-        , { "Data property",   "dataproc::MSPropertyForm",           "DataProperty", &dataproc::MSPropertyForm::create }
-        , { "TOF Peaks",       "qtwidgets2::MSPeakView",             "TOFPeaks", 0 }
+        { "Centroid",         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
+        , { "MS Peaks",       "adwidgets::MSPeakTable",           "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
+        , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod" }
+        , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod" }
+        , { "Targeting",      "qtwidgets::TargetForm",            "TargetMethod" }
+        , { "Peptide",        "adwidgets::PeptideWidget",         "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
+        , { "Elemental Comp.","qtwidgets::ElementalCompositionForm", "EleCompMethod" }
+        , { "Peak Find",      "qtwidgets::PeakMethodForm",        "PeakFindMethod" }
+        , { "Data property",  "dataproc::MSPropertyForm",         "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
+        , { "TOF Peaks",      "qtwidgets2::MSPeakView",           "TOFPeaks" }
     };
     
-    for ( auto widget: widgets ) {
+    for ( auto& widget: widgets ) {
 
-        QWidget * pWidget = widget.factory ? widget.factory( 0 ) : adplugin::widget_factory::create( widget.wiid, 0, 0 );
+        QWidget * pWidget = widget.factory ? widget.factory() : adplugin::widget_factory::create( widget.wiid, 0, 0 );
 
         if ( pWidget && std::strcmp(widget.wiid, "qtwidgets2::MSPeakView") == 0 ) {
             // TOFPeaks

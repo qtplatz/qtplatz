@@ -40,12 +40,11 @@ SOURCES += factory.cpp \
         mscalibsummarywidget.cpp \
         mspeakview.cpp \
         mspeaksummary.cpp \
-        mspeaktable.cpp \
         standarditemhelper.cpp \
         tableview.cpp \
         toftable.cpp \
         qtwidgets2.cpp \
-    mschromatogramwidget.cpp
+        mschromatogramwidget.cpp
 
 HEADERS += \
         factory.hpp \
@@ -53,14 +52,13 @@ HEADERS += \
         mscalibrationform.hpp \
         mspeakview.hpp \
         mspeaksummary.hpp \
-        mspeaktable.hpp \
         mscalibsummarydelegate.hpp \
         mscalibsummarywidget.hpp \
         standarditemhelper.hpp \
         tableview.hpp \
         toftable.hpp \
         qtwidgets2.hpp \
-    mschromatogramwidget.hpp
+        mschromatogramwidget.hpp
 
 FORMS += \
     mscalibrationform.ui

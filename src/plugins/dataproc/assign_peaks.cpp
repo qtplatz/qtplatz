@@ -50,9 +50,9 @@ assign_peaks::operator () ( adcontrols::MSAssignedMasses& res
 				if ( std::abs( *pos - t ) < tolerance_ ) {
 					adcontrols::MSAssignedMass a( *it );
 					size_t idx = std::distance( times.begin(), pos );
-					a.idMassSpectrum( idx );
-					a.time( centroid.getTime( idx ) );
-					a.mass( centroid.getMass( idx ) );
+                    a.idMassSpectrum( uint32_t( idx ) );
+                    a.time( centroid.getTime( uint32_t( idx ) ) );
+                    a.mass( centroid.getMass( uint32_t( idx ) ) );
 					res << a;
 				}
 			}
@@ -76,7 +76,7 @@ assign_peaks::find_by_time( const adcontrols::MassSpectrum& centroid, double t, 
 					--pos;
 			}
 			if ( std::abs( *pos - t ) < tolerance )
-				return std::distance( times.begin(), pos );
+				return int( std::distance( times.begin(), pos ) );
 		}
 	}
     return -1;

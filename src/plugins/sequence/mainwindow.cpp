@@ -110,7 +110,7 @@ MainWindow::OnInitialUpdate()
 	for ( iSequence * v: visitables ) {
 
         for ( size_t i = 0; i < v->size(); ++i ) {
-			adextension::iEditorFactory& factory = (*v)[i];
+            adextension::iEditorFactory& factory = (*v)[ i ];
             
             QString objname = 
                 ( factory.method_type()

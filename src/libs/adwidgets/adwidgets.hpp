@@ -27,11 +27,14 @@
 
 #include "adwidgets_global.hpp"
 
-class ADWIDGETSSHARED_EXPORT Adwidgets
-{
+class QWidget;
+namespace adwidgets {
 
-public:
-    Adwidgets();
-};
+    struct factory {
+        template<class T> static QWidget * create( QWidget * parent = 0 ) { 
+            return new T(parent);
+        }
+    };
+}
 
 #endif // ADWIDGETS_HPP

@@ -25,6 +25,3 @@
 #include "adwidgets.hpp"
 
 
-Adwidgets::Adwidgets()
-{
-}

@@ -65,6 +65,7 @@
 #include <adlog/logger.hpp>
 #include <adlog/logging_handler.hpp>
 #include <adportable/float.hpp>
+#include <adwidgets/centroidform.hpp>
 #include <portfolio/logging_hook.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -417,16 +418,26 @@ DataprocPlugin::aboutToShutdown()
 
 bool
 DataprocPlugin::install_isequence( const adportable::Configuration& config
-                                   , const std::wstring& apppath
-                                   , iSequenceImpl& impl )
+                                   , const std::wstring& , iSequenceImpl& impl )
 {
+    impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::CentroidForm( p ); }
+        , adextension::iEditorFactory::PROCESS_METHOD
+        , "Centroid" );
+
     using adportable::Configuration;
     const Configuration * tab = Configuration::find( config, "ProcessMethodEditors" );    
     if ( tab ) {
-        for ( Configuration::vector_type::const_iterator it = tab->begin(); it != tab->end(); ++it )
-			impl << iEditorFactoryPtr( new EditorFactory( *it, apppath ) );
+        for ( auto it : *tab ) {
+            // std::for_each( tab->begin(), tab->end(), [&] ( Configuration::vector_type::const_iterator it ){
+            const std::string& iid = it.component_interface();
+            impl << detail::iEditorFactoryImpl( [=] ( QWidget * p )->QWidget*{ return adplugin::widget_factory::create( iid.c_str(), 0, p ); }
+                , adextension::iEditorFactory::PROCESS_METHOD
+                , QString::fromStdWString( it.title() ) );
+        }
     }
-	return impl.size();
+        //for ( Configuration::vector_type::const_iterator it = tab->begin(); it != tab->end(); ++it )
+        // impl << iEditorFactoryPtr( new EditorFactory( *it, apppath ) );
+    return impl.size();
 }
 
 void

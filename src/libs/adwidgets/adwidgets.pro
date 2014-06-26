@@ -30,7 +30,8 @@ SOURCES += adwidgets.cpp \
         delegatehelper.cpp \
         controlmethodtable.cpp \
         controlmethodwidget.cpp \
-        centroidform.cpp
+        centroidform.cpp \
+        mspeaktable.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -44,7 +45,8 @@ HEADERS += adwidgets.hpp\
         delegatehelper.hpp \
         controlmethodtable.hpp \
         controlmethodwidget.hpp \
-        centroidform.hpp
+        centroidform.hpp \
+        mspeaktable.hpp
 
 unix {
     target.path = /usr/lib

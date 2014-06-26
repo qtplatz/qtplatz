@@ -36,8 +36,8 @@ namespace dataproc {
 		adportable::Configuration config_;
     public:
         EditorFactory( const adportable::Configuration& config, const std::wstring& path );
-        virtual QWidget * createEditor( QWidget * parent = 0 );
-        virtual QString title() const;
+        QWidget * createEditor( QWidget * parent = 0 ) override;
+        QString title() const override;
 	};
 
 }
