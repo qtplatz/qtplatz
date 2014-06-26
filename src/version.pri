@@ -9,4 +9,4 @@ version.output = version.h
 version.clean += version.h
 PRE_TARGETDEPS += version.h
 QMAKE_EXTRA_TARGETS += version
-system( bash $${IDE_BUILD_TREE}/src/version.sh )
+#system( bash $${IDE_BUILD_TREE}/src/version.sh )
