@@ -31,7 +31,6 @@ greaterThan( QT_MAJOR_VERSION, 4 ): INCLUDEPATH += ${QTDIR}/include
 DEFINES += QTWIDGETS_LIBRARY
 
 SOURCES += centroiddelegate.cpp \
-        centroidform.cpp \
         centroidmethodmodel.cpp \
         elementalcompositiondelegate.cpp \
         elementalcompmodel.cpp \
@@ -61,7 +60,6 @@ SOURCES += centroiddelegate.cpp \
     timeeventsdelegate.cpp
 
 HEADERS += centroiddelegate.hpp \
-        centroidform.hpp \
         elementalcompositiondelegate.hpp \
         elementalcompositionform.hpp \
         factory.hpp \
@@ -91,7 +89,6 @@ HEADERS += centroiddelegate.hpp \
     timeeventsdelegate.hpp
 
 FORMS += \
-    centroidform.ui \
     elementalcompositionform.ui \
     logwidget.ui \
     mscalibrationform.ui \

@@ -33,7 +33,6 @@
 #include "logwidget.hpp"
 #include "sequencewidget.hpp"
 #include "sequencesform.hpp"
-#include "centroidform.hpp"
 #include "elementalcompositionform.hpp"
 #include "peakresultwidget.hpp"
 #include "molwidget.hpp"
@@ -56,8 +55,6 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets::SequenceWidget( parent );
     } else if ( std::wstring( iid ) == iid_iSequencesForm ) {
         pWidget = new qtwidgets::SequencesForm( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::CentroidForm" ) {
-        pWidget = new qtwidgets::CentroidForm( parent );
 	} else if ( std::wstring( iid ) == L"qtwidgets::TargetForm" ) {
         pWidget = new qtwidgets::TargetForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ElementalCompositionForm" ) {

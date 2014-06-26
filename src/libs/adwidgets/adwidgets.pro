@@ -28,8 +28,9 @@ SOURCES += adwidgets.cpp \
         peptidewidget.cpp \
         peptidetable.cpp \
         delegatehelper.cpp \
-    controlmethodtable.cpp \
-    controlmethodwidget.cpp
+        controlmethodtable.cpp \
+        controlmethodwidget.cpp \
+        centroidform.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -41,8 +42,9 @@ HEADERS += adwidgets.hpp\
         peptidewidget.hpp \
         peptidetable.hpp \
         delegatehelper.hpp \
-    controlmethodtable.hpp \
-    controlmethodwidget.hpp
+        controlmethodtable.hpp \
+        controlmethodwidget.hpp \
+        centroidform.hpp
 
 unix {
     target.path = /usr/lib
@@ -50,4 +52,5 @@ unix {
 }
 
 FORMS += \
-    targetingform.ui
+    targetingform.ui \
+    centroidform.ui

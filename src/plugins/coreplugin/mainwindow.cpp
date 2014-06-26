@@ -63,7 +63,7 @@
 #include "baseview.h"
 #include "basefilewizard.h"
 #include "ioutputpane.h"
-#include "../../app/version.h"
+#include "version.h"
 #include <coreplugin/findplaceholder.h>
 #include <coreplugin/settingsdatabase.h>
 #include <utils/pathchooser.h>

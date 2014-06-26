@@ -1,16 +1,16 @@
 include(../../qtplatz.pri)
 include(../shared/qtsingleapplication/qtsingleapplication.pri)
-include(../version.pri)
-
 TEMPLATE = app
 TARGET = $$IDE_APP_TARGET
 DESTDIR = $$IDE_APP_PATH
 
 SOURCES += main.cpp
-greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
+# Qt4 is no longer supported due to using new signal/slot syntax
+QT += widgets
 
 include(../config.pri)
 include(../rpath.pri)
+include(../version.pri)
 
 LIBS += -L$$IDE_LIBRARY_PATH
 

@@ -26,6 +26,7 @@
 #ifndef CENTROIDFORM_H
 #define CENTROIDFORM_H
 
+#include "adwidgets_global.hpp"
 #include <QWidget>
 // #include <QDeclarativeView>
 #include <QStandardItemModel>
@@ -43,12 +44,10 @@ namespace Ui {
     class CentroidForm;
 }
 
-namespace qtwidgets {
+namespace adwidgets {
 
-    class CentroidDelegate;
-
-    class CentroidForm : public QWidget 
-                       , public adplugin::LifeCycle {
+    class ADWIDGETSSHARED_EXPORT CentroidForm : public QWidget 
+                                              , public adplugin::LifeCycle {
         Q_OBJECT
 
     public:
@@ -83,6 +82,7 @@ namespace qtwidgets {
     signals:
         void apply( adcontrols::ProcessMethod& );
         void valueChanged();
+
     private slots:
         void on_doubleSpinBox_peakwidth_valueChanged(double arg1);
         void on_doubleSpinBox_centroidfraction_valueChanged(double arg1);

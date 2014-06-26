@@ -29,11 +29,9 @@
 #include <adportable/is_type.hpp>
 #include <adlog/logger.hpp>
 #include <QStandardItemModel>
-#include "centroiddelegate.hpp"
-#include "standarditemhelper.hpp"
 #include <boost/any.hpp>
 
-using namespace qtwidgets;
+using namespace adwidgets;
 
 /////////////////////
 
@@ -208,28 +206,32 @@ CentroidForm::update()
 	}
 }
 
-void qtwidgets::CentroidForm::on_doubleSpinBox_peakwidth_valueChanged(double arg1)
+void 
+CentroidForm::on_doubleSpinBox_peakwidth_valueChanged(double arg1)
 {
     (void)arg1;
     if ( ! isScoped() )
         emit valueChanged();
 }
 
-void qtwidgets::CentroidForm::on_doubleSpinBox_centroidfraction_valueChanged(double arg1)
+void 
+CentroidForm::on_doubleSpinBox_centroidfraction_valueChanged(double arg1)
 {
 	(void)arg1;
     if ( ! isScoped() )
         emit valueChanged();
 }
 
-void qtwidgets::CentroidForm::on_noiseFilterMethod_stateChanged(int arg1)
+void 
+CentroidForm::on_noiseFilterMethod_stateChanged(int arg1)
 {
 	(void)arg1;
     if ( ! isScoped() )
         emit valueChanged();
 }
 
-void qtwidgets::CentroidForm::on_cutoffMHz_valueChanged(int arg1)
+void 
+CentroidForm::on_cutoffMHz_valueChanged(int arg1)
 {
 	(void)arg1;
     if ( ! isScoped() )

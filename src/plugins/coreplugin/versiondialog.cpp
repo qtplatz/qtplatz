@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "versiondialog.h"
-#include "../../app/version.h"
+#include "version.h"
 #include "coreconstants.h"
 #include "icore.h"
 

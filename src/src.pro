@@ -7,6 +7,5 @@ SUBDIRS = \
     app \
     plugins
 
-
 app.depends = libs
 plugins.depends = libs

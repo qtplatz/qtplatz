@@ -26,6 +26,7 @@
 # pragma warning(push)
 # pragma warning(disable:4100)
 # pragma warning(disable:4503)
+# pragma warning(disable:4267) // convesrion from size_t to unsigned int
 #endif
 
 #include "sdfile.hpp"
