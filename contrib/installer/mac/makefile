@@ -1,4 +1,4 @@
-QT_VERSION=5.2.0
+QT_VERSION=5.3.0
 DEPLOYQT = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION)/clang_64/bin/macdeployqt
 APATH = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION)/clang_64/lib
 APLUGINS = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION)/clang_64/plugins
@@ -76,7 +76,7 @@ all:
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
 	@echo "RDBASE is: " $(RDBASE)
 	@echo "################################################"
-	@echo " -- do following procedure -- or make world -- "
+	@echo " -- do following procedure -- or make world or make realworld -- "
 	@echo "################################################"
 	@echo "make app"
 	@echo "make deployqt"
@@ -92,7 +92,14 @@ world:
 	make rdkit
 	make dmg
 
+realworld: qtplatz infitof world
+
 # all: qtplatz.app
+qtplatz:
+	(cd ../../../; qmake -r; make -j4)
+
+infitof:
+	(cd ../../../../infitof; qmake -r; make -j4)
 
 app:
 	(cd ../../../bin; tar cf - .) | tar xvf -
