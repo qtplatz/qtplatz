@@ -25,16 +25,31 @@ RM	= del
 
 all: qtplatz.msi
 
+world: qtplatz infitof qtplatz.msi
+
 clean:
 	$(RM) *.msi *.wixobj *.wixpdb version.wxi *.zip *.bat *.exe *.obj *~
 
 veryclean: clean
-	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Clean /p:Configuration=Release
+	cd $(QTPLATZ_PATH)
+	git clean -d -x -f
+	cd $(MAKEDIR)
+	cd $(INFITOF_PATH)
+	git clean -d -x -f
+	cd $(MAKEDIR)
 
 qtplatz:
+	cd $(QTPLATZ_PATH)
+	git clean -d -x -f
+	qmake -tp vc -r
+	cd $(MAKEDIR)
 	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Rebuild /p:Configuration=Release
 
 infitof:
+	cd $(INFITOF_PATH)
+	git clean -d -x -f
+	qmake -tp vc -r
+	cd $(MAKEDIR)
 	msbuild $(INFITOF_PATH)\infitof.sln /m:4 /t:Rebuild /p:Configuration=Release
 
 version.exe: version.c

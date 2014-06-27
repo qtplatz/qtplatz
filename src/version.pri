@@ -6,7 +6,7 @@ PRE_TARGETDEPS += version.h
 contains(TEMPLATE, "vc.*") {
 # CAUTION: This create version.h when qmake run, not build time
 # due to qmake's PRE_TARGETDEPS could not be make it work with msbuild
-  system( bash $$PWD/version.bat )
+  system( version.bat )
 } else {
   version.commands = $$PWD/version.sh
   version.depends = FORCE
