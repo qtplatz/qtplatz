@@ -63,7 +63,7 @@ copy.bat: version.exe
 	git describe | version -b > copy.bat
 
 qtplatz.msi: qtplatz.wixobj version.wxi
-	$(LIGHT) qtplatz.wixobj version.wxi
+	$(LIGHT) qtplatz.wixobj
 	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 	copy.bat
 
