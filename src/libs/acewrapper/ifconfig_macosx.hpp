@@ -55,7 +55,7 @@ namespace acewrapper {
 
                     if ( ifa->ifa_addr->sa_family == AF_INET ) {
                         const in_addr& addr = reinterpret_cast< sockaddr_in * >(ifa->ifa_addr)->sin_addr;
-                        baddrs.push_back( std::make_pair<std::string, std::string>( ifa->ifa_name, inet_ntoa( aaddr ) ) );
+                        addrs.push_back( std::make_pair<std::string, std::string>( ifa->ifa_name, inet_ntoa( addr ) ) );
                     }
                 }
 
