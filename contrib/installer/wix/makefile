@@ -39,6 +39,7 @@ veryclean: clean
 	cd $(MAKEDIR)
 
 qtplatz:
+	rm version.wxi
 	cd $(QTPLATZ_PATH)
 	git clean -d -x -f
 	qmake -tp vc -r
@@ -55,14 +56,14 @@ infitof:
 version.exe: version.c
 	cl version.c
 
-version.wxi: version.exe
+version.wxi: version.exe ../../../.git
 	git describe | version > version.wxi
 
 copy.bat: version.exe
 	git describe | version -b > copy.bat
 
-qtplatz.msi: qtplatz.wixobj
-	$(LIGHT) qtplatz.wixobj
+qtplatz.msi: qtplatz.wixobj version.wxi
+	$(LIGHT) qtplatz.wixobj version.wxi
 	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 	copy.bat
 
@@ -71,4 +72,6 @@ sign:
 
 qtplatz.wixobj: version.wxi copy.bat qtplatz.wxs
 	$(CANDLE) qtplatz.wxs
+
+
 
