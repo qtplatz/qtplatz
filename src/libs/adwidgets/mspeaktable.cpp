@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mspeaktable.hpp"
+#include "htmlheaderview.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/description.hpp>
@@ -152,6 +153,7 @@ MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
 										  , delegate_( std::make_shared< MSPeakTableDelegate >() )
                                           , inProgress_( false )
 {
+    this->setHorizontalHeader( new HtmlHeaderView );
     this->setModel( model_.get() );
 	this->setItemDelegate( delegate_.get() );
     this->setSortingEnabled( true );
@@ -249,9 +251,10 @@ MSPeakTable::onInitialUpdate()
     
     model.setColumnCount( c_mspeaktable_num_columns );
 
-    model.setHeaderData( c_mspeaktable_time,        Qt::Horizontal, QObject::tr( "time(us)" ) );
-    model.setHeaderData( c_mspeaktable_mass,        Qt::Horizontal, QObject::tr( "m/z" ) );
+    model.setHeaderData( c_mspeaktable_time,        Qt::Horizontal, QObject::tr( "time(&mu;s)" ) );
+    model.setHeaderData( c_mspeaktable_mass,        Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
     model.setHeaderData( c_mspeaktable_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
+    model.setHeaderData( c_mspeaktable_delta_mass,  Qt::Horizontal, QObject::tr( "&delta;Da" ) );
     model.setHeaderData( c_mspeaktable_intensity,   Qt::Horizontal, QObject::tr( "Abandance" ) );
     model.setHeaderData( c_mspeaktable_relative_intensity,   Qt::Horizontal, QObject::tr( "R. A." ) );
     model.setHeaderData( c_mspeaktable_mode,        Qt::Horizontal, QObject::tr( "mode" ) );
@@ -300,6 +303,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
         }
         ++fcn;
     }
+    resizeColumnsToContents();
+    resizeRowsToContents();
 }
 
 void
@@ -456,7 +461,10 @@ MSPeakTable::handle_zoomed( const QRectF& rc )
                 // ---> change rel. intensity
                 double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
                 for ( int row = 0; row < model_->rowCount(); ++row )
-                    model_->setData( model_->index( row, c_mspeaktable_relative_intensity ), model_->index( row, c_mspeaktable_intensity ).data().toDouble() * 100 / base_height );
+                    model_->setData( model_->index( row, c_mspeaktable_relative_intensity )
+                                     , model_->index( row, c_mspeaktable_intensity ).data().toDouble() * 100 / base_height );
+                resizeColumnsToContents();
+                resizeRowsToContents();
                 // <--- end rel. intensity
 
                 for ( int row = 0; row < model_->rowCount(); ++row ) {

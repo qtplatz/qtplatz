@@ -147,6 +147,7 @@ MSProcessingWnd::init()
 
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
+
         if ( ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) ) {
             pImpl_->ticPlot_->setMinimumHeight( 80 );
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnChromatogram( const QPointF& ) ) );
@@ -186,15 +187,18 @@ MSProcessingWnd::init()
         pImpl_->pwplot_->yLeftTitle( "Power" );
         connect( pImpl_->pwplot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnPowerPlot( const QRectF& ) ) );
 
-
 		splitter->addWidget( pImpl_->ticPlot_ );
         splitter->addWidget( pImpl_->profileSpectrum_ );
         splitter->addWidget( pImpl_->processedSpectrum_ );
         splitter->addWidget( pImpl_->pwplot_ );
         splitter->setOrientation( Qt::Vertical );
 
+        splitter->setChildrenCollapsible( true );
+        pImpl_->pwplot_->hide();
+
         pImpl_->profileSpectrum_->link( pImpl_->processedSpectrum_ );
         pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
+        
 
         pImpl_->processedSpectrum_->setContextMenuPolicy( Qt::CustomContextMenu );
 		connect( pImpl_->processedSpectrum_, SIGNAL( customContextMenuRequested( QPoint ) )
@@ -537,6 +541,8 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
                     pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
                     pImpl_->pwplot_->setTitle( title );
+
+                    pImpl_->pwplot_->show();
                 }
             }
         }
