@@ -27,8 +27,9 @@
 
 #include <QObject>
 #include <QList>
-#include <memory>
 #include <QAction>
+#include <memory>
+#include <array>
 
 class QAction;
 
@@ -37,28 +38,42 @@ namespace Core { class IContext; }
 namespace dataproc {
     
     class Dataprocessor;
+    class NavigationWidget;
 
     class ActionManager : public QObject {
         Q_OBJECT
     public:
         explicit ActionManager(QObject *parent = 0);
 
+        enum idActions {
+            idActSave
+            , idActSaveAs
+            , idActCloseCurrentEditor
+            , idActCloseAllEditor
+            , idActOtherEditor
+            , idActImportFile
+            , idActMethodOpen
+            , idActMethodSave
+            , idActPrintCurrentView
+            , idActCalibFileApply
+            , idActProcessCheckedSpectra
+            , idActExplortCheckedSpectra
+            , idActCheckAllSpectra
+            , idActUncheckAllSpectra
+            , numOfActions
+        };
+
         bool initialize_actions( const QList<int>& context );
+        void connect_navigation_pointer( dataproc::NavigationWidget * navi );
         bool saveDefaults();
         bool loadDefaults();
 
     private:
-        std::unique_ptr< QAction > actSave_;
-        std::unique_ptr< QAction > actSaveAs_;
+        std::array< QAction *, numOfActions > actions_;
 
-        std::unique_ptr< QAction > closeCurrentEditorAction_;
-        std::unique_ptr< QAction > closeAllEditorsAction_;
-        std::unique_ptr< QAction > closeOtherEditorsAction_;
-        std::unique_ptr< QAction > importFile_;
-        std::unique_ptr< QAction > actMethodOpen_;
-        std::unique_ptr< QAction > actMethodSave_;
-        std::unique_ptr< QAction > actPrintCurrentView_;
-        std::unique_ptr< QAction > actCalibFileApply_;
+        bool install_edit_actions();
+        bool install_file_actions();
+        bool install_toolbar_actions();
 
     signals:
 
@@ -76,6 +91,9 @@ namespace dataproc {
         void actPrintCurrentView();
         void actCalibFileApply();
     private:
+        void handleCheckAllSpectra();
+        void handleUncheckAllSpectra();
+        
         static QAction * create( const QString& icon_name, const QString& baloon, QObject * parent );
     };
 }

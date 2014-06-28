@@ -25,8 +25,10 @@
 
 #include "navigationwidget.hpp"
 #include "navigationdelegate.hpp"
+#include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
+#include "actionmanager.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adutils/processeddata.hpp>
@@ -229,13 +231,13 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     // connections
     connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
 
-    connect( pTreeView_, SIGNAL(activated(const QModelIndex&)), this, SLOT(handle_activated(const QModelIndex&)));
-    connect( pTreeView_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(handle_clicked(const QModelIndex&)));
-    connect( pTreeView_, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(handle_doubleClicked(const QModelIndex&)));
-    connect( pTreeView_, SIGNAL(entered(const QModelIndex&)), this, SLOT(handle_entered(const QModelIndex&)));
+    connect( pTreeView_, &QTreeView::activated, this, &NavigationWidget::handle_activated ); // (const QModelIndex&) ) );
+    connect( pTreeView_, &QTreeView::clicked, this, &NavigationWidget::handle_clicked ); // SIGNAL( clicked( const QModelIndex& ) ), this, SLOT( handle_clicked( const QModelIndex& ) ));
+    connect( pTreeView_, &QTreeView::doubleClicked, this, &NavigationWidget::handle_doubleClicked ); //  SIGNAL( doubleClicked( const QModelIndex& ) ), this, SLOT( handle_doubleClicked( const QModelIndex& ) ) );
+    connect( pTreeView_, &QTreeView::entered, this, &NavigationWidget::handle_entered ); // SIGNAL( entered( const QModelIndex& ) ), this, SLOT( handle_entered( const QModelIndex& ) ) );
 
     pTreeView_->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect( pTreeView_, SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
+    connect( pTreeView_, &QTreeView::customContextMenuRequested, this, &NavigationWidget::handleContextMenuRequested ); // (QPoint) ), this, SLOT( handleContextMenuRequested( QPoint ) ) );
 
     if ( SessionManager * mgr = SessionManager::instance() ) {
         connect( mgr, SIGNAL( onSessionRemoved( Dataprocessor* ) ), this, SLOT( handleRemoveSession( Dataprocessor * ) ) );
@@ -249,6 +251,10 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
 
     setAutoSynchronization(true);
     setAcceptDrops( true );
+
+    if ( auto am = DataprocPlugin::instance()->actionManager() ) {
+        am->connect_navigation_pointer( this );
+    }
 }
 
 void
@@ -624,6 +630,42 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         }
     }
 }
+
+
+
+void
+NavigationWidget::handleAllCheckState( bool checked, const QString& node )
+{
+    QStandardItemModel& model = *pModel_;
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        auto parent = model.itemFromIndex( model.index( row, 0 ) );
+        for ( int n = 0; n < parent->rowCount(); ++n ) {
+            if ( model.data( model.index( n, 0, parent->index() ) ).toString() == node ) {
+                auto sp = model.itemFromIndex( model.index( n, 0, parent->index() ) );
+                for ( int isp = 0; isp < sp->rowCount(); ++isp ) {
+                    if ( auto item = model.itemFromIndex(model.index(isp, 0, sp->index())) ) {
+                        if ( item->isCheckable() )
+                            item->setCheckState( checked ? Qt::Checked : Qt::Unchecked );
+                    }
+                }
+            }
+        }
+    }
+}
+
+void
+NavigationWidget::handleUncheckAllSpectra()
+{
+    handleAllCheckState( false, "Spectra" );
+}
+
+void
+NavigationWidget::handleCheckAllSpectra()
+{
+    handleAllCheckState( true, "Spectra" );
+}
+
 
 Q_DECLARE_METATYPE( portfolio::Folium )
 Q_DECLARE_METATYPE( portfolio::Folder )

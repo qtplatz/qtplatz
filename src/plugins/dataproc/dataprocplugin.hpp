@@ -77,6 +77,7 @@ namespace dataproc {
         void onSelectTimeRangeOnChromatogram( double x1, double x2 );
         //void handleCreateChromatograms( const adcontrols::MassSpectrum&, double lMass, double hMass );
         DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
+        dataproc::ActionManager * actionManager() { return pActionManager_.get(); }
         
     signals:
         void onApplyMethod( const adcontrols::ProcessMethod& );

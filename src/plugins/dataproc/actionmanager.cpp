@@ -28,6 +28,7 @@
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
+#include "navigationwidget.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -46,6 +47,7 @@
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
+#include <extensionsystem/pluginmanager.h>
 #include <QIcon>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -57,70 +59,100 @@ using namespace dataproc;
 
 ActionManager::ActionManager(QObject *parent) : QObject(parent)
 {
+    std::fill( actions_.begin(), actions_.end(), static_cast<QAction*>(0) );
+}
+
+bool
+ActionManager::install_file_actions()
+{
+	if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
+
+        // File->Processing
+        if ( Core::ActionContainer * menu = am->createMenu( "dataproc.menu" ) ) {
+            menu->menu()->setTitle( "Processing" );
+
+            menu->addAction( am->command( Constants::METHOD_OPEN ) );
+            menu->addAction( am->command( Constants::METHOD_SAVE ) );
+            menu->addAction( am->command( Constants::PRINT_CURRENT_VIEW ) );
+            menu->addAction( am->command( Constants::CALIBFILE_APPLY ) );
+
+            am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
+        }
+    }
+    return true;
+}
+
+bool
+ActionManager::install_toolbar_actions()
+{
+    return true;
 }
 
 bool
 ActionManager::initialize_actions( const QList<int>& context )
 {
-    do {
-        actMethodOpen_.reset( create( Constants::ICON_METHOD_OPEN, tr("Process method open..."), this ) );
-        connect( actMethodOpen_.get(), SIGNAL( triggered() ), this, SLOT( actMethodOpen() ) );
-    } while(0);
+	if ( auto * am = Core::ICore::instance()->actionManager() ) {
 
-    do {
-        actMethodSave_.reset( create( Constants::ICON_METHOD_SAVE, tr("Process method save..."), this ) );
-        connect( actMethodSave_.get(), SIGNAL( triggered() ), this, SLOT( actMethodSave() ) );
-    } while(0);
-
-    do {
-        actPrintCurrentView_.reset( create( Constants::ICON_PDF, tr("Print current view..."), this ) );
-        connect( actPrintCurrentView_.get(), SIGNAL( triggered() ), this, SLOT( actPrintCurrentView() ) );
-    } while(0);
-
-    do {
-        actCalibFileApply_.reset( create( Constants::ICON_CALIBFILE, tr("Apply mass calibration to this..."), this ) );
-        connect( actCalibFileApply_.get(), SIGNAL( triggered() ), this, SLOT( actCalibFileApply() ) );
-    } while(0);
-    
-	if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
-        Core::Command * cmdOpen = 0;
-        Core::Command * cmdSave = 0;
-        Core::Command * cmdPrint = 0;
-        Core::Command * cmdCalib = 0;
-        if ( am ) {
-            cmdOpen = am->registerAction( actMethodOpen_.get(), Constants::METHOD_OPEN, context );
-            cmdSave = am->registerAction( actMethodSave_.get(), Constants::METHOD_SAVE, context );
-            cmdPrint = am->registerAction( actPrintCurrentView_.get(), Constants::PRINT_CURRENT_VIEW, context );
-            cmdCalib = am->registerAction( actCalibFileApply_.get(), Constants::CALIBFILE_APPLY, context );
+        if ( auto p = actions_[ idActSave ] = create( Constants::ICON_SAVE, tr("Save"), this ) ) {
+            am->registerAction( p, Core::Constants::SAVE, context );
+            connect( p, &QAction::triggered, this, &ActionManager::handleSave );
         }
         
-        if ( Core::ActionContainer * menu = am->createMenu( "dataproc.menu" ) ) {
-            menu->menu()->setTitle( "Processing" );
-            menu->addAction( cmdPrint );
-            menu->addAction( cmdOpen );
-            (void)cmdSave;  // not in the dataproc menu
-            menu->addAction( cmdCalib );
-            am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
+        if ( auto p = actions_[ idActSaveAs ] = create( Constants::ICON_SAVE, tr("Save As"), this ) ) {
+            am->registerAction( p, Core::Constants::SAVEAS, context );
+            connect( p, &QAction::triggered, this, &ActionManager::handleSaveAs );
         }
 
-        do {
-            actSave_.reset( create( Constants::ICON_SAVE, tr("Save"), this ) );
-            am->registerAction( actSave_.get(), Core::Constants::SAVE, context );
-            connect( actSave_.get(), SIGNAL( triggered() ), this, SLOT( handleSave() ) );
-        } while(0);
+        // , idActCloseCurrentEditor
+        // , idActCloseAllEditor
+        // , idActOtherEditor
+        // , idActImportFile
 
-        do {
-            actSaveAs_.reset( create( Constants::ICON_SAVE, tr("Save As..."), this ) );
-            am->registerAction( actSaveAs_.get(), Core::Constants::SAVEAS, context );
-            connect( actSaveAs_.get(), SIGNAL( triggered() ), this, SLOT( handleSaveAs() ) );
-        } while(0);
+        if ( auto p = actions_[ idActMethodOpen ] = create( Constants::ICON_METHOD_OPEN, tr("Process method open..."), this ) ) {
+            am->registerAction( p, Constants::METHOD_OPEN, context );
+            connect( p, &QAction::triggered, this, &ActionManager::actMethodOpen );
+        }
 
-        connect( Core::ICore::instance(), SIGNAL( contextChanged( Core::IContext * ) )
-                 , this, SLOT( handleContextChanged( Core::IContext * ) ) );
+        if ( auto p = actions_[ idActMethodSave ] = create( Constants::ICON_METHOD_SAVE, tr("Process method save..."), this ) ) {
+            am->registerAction( p, Constants::METHOD_SAVE, context );
+            connect( p, &QAction::triggered, this, &ActionManager::actMethodSave );
+        }
 
+        if ( auto p = actions_[ idActPrintCurrentView ] = create( Constants::ICON_PDF, tr("Print current view..."), this ) ) {
+            am->registerAction( p, Constants::PRINT_CURRENT_VIEW, context );
+            connect( p, &QAction::triggered, this, &ActionManager::actPrintCurrentView );
+        }
+
+        if ( auto p = actions_[ idActCalibFileApply ]
+             = create( Constants::ICON_CALIBFILE, tr( "Apply mass calibration to this..." ), this ) ) {
+            am->registerAction( p, Constants::CALIBFILE_APPLY, context );
+            connect( p, &QAction::triggered, this, &ActionManager::actCalibFileApply );
+        }
+
+        // edit menu
+        if ( auto p = actions_[ idActCheckAllSpectra ] = new QAction( tr( "Check all spectra" ), this ) ) 
+            am->registerAction( p, Constants::CHECK_ALL_SPECTRA, context );
+
+        if ( auto p = actions_[ idActUncheckAllSpectra ] = new QAction( tr( "Uncheck all spectra" ), this ) )
+            am->registerAction( p, Constants::UNCHECK_ALL_SPECTRA, context );
     }
 
-    return true;
+    connect( Core::ICore::instance(), &Core::ICore::contextChanged, this, &ActionManager::handleContextChanged );
+
+    return  install_toolbar_actions() && install_file_actions();
+}
+
+void
+ActionManager::connect_navigation_pointer( NavigationWidget * navi )
+{
+    connect( actions_[ idActCheckAllSpectra ], &QAction::triggered, navi, &NavigationWidget::handleCheckAllSpectra );
+    connect( actions_[ idActUncheckAllSpectra ], &QAction::triggered, navi, &NavigationWidget::handleUncheckAllSpectra );
+
+	if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
+        auto edit = am->actionContainer( Core::Constants::M_EDIT );
+        edit->addAction( am->command( Constants::CHECK_ALL_SPECTRA ) );
+        edit->addAction( am->command( Constants::UNCHECK_ALL_SPECTRA ) );
+    }
 }
 
 QAction *
@@ -359,6 +391,7 @@ ActionManager::handleContextChanged( Core::IContext * context )
 	if ( editor && editor->file() ) {
         boost::filesystem::path path = editor->file()->fileName().toStdWString();
         QString text = QString::fromStdWString( ( boost::wformat( L"Save \"%1%\" As..." ) % path.stem().wstring() ).str() );
-        actSaveAs_->setText( text );
+        actions_[ idActSaveAs ]->setText( text );
 	}
 }
+

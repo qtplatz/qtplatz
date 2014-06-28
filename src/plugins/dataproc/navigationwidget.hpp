@@ -59,6 +59,9 @@ namespace dataproc {
 		void handleFolderChanged( Dataprocessor *, const QString& folder );
         void handleRemoveSession( Dataprocessor * );
 
+        void handleCheckAllSpectra();
+        void handleUncheckAllSpectra();
+
     private slots:
         void initView();
         // connecting to QAbstractItemView
@@ -77,6 +80,7 @@ namespace dataproc {
         QStandardItemModel * pModel_;
         NavigationDelegate * pDelegate_;
         void invalidateSession( Dataprocessor * );
+        void handleAllCheckState( bool, const QString& );
     };
 
 }

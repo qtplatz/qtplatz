@@ -48,7 +48,8 @@ namespace dataproc {
         const char * const CLUSTER_SPECTROGRAM  = "dataproc.ClusterSpectrogram";
 
         // edit
-        const char * const EDIT_SELECT_ALL_SPECTRA = "dataproc.Edit.SelectAllSpectra";
+        const char * const CHECK_ALL_SPECTRA   = "dataproc.Edit.CheckAllSpectra";
+        const char * const UNCHECK_ALL_SPECTRA = "dataproc.Edit.UncheckAllSpectra";
 
         // icon
         const char * const ICON_METHOD_SAVE     = ":/dataproc/image/filesave.png";
