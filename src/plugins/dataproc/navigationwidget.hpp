@@ -48,6 +48,7 @@ namespace dataproc {
 
         bool autoSyncronization() const;
         void setAutoSynchronization( bool sync );
+        void invalidateSession( Dataprocessor * );
 
     signals:
 
@@ -79,7 +80,6 @@ namespace dataproc {
         QTreeView * pTreeView_;
         QStandardItemModel * pModel_;
         NavigationDelegate * pDelegate_;
-        void invalidateSession( Dataprocessor * );
         void handleAllCheckState( bool, const QString& );
     };
 

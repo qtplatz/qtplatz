@@ -38,6 +38,7 @@
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <qtwrapper/qfiledialog.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/filemanager.h>
 #include <coreplugin/modemanager.h>
@@ -231,13 +232,13 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     // connections
     connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
 
-    connect( pTreeView_, &QTreeView::activated, this, &NavigationWidget::handle_activated ); // (const QModelIndex&) ) );
-    connect( pTreeView_, &QTreeView::clicked, this, &NavigationWidget::handle_clicked ); // SIGNAL( clicked( const QModelIndex& ) ), this, SLOT( handle_clicked( const QModelIndex& ) ));
-    connect( pTreeView_, &QTreeView::doubleClicked, this, &NavigationWidget::handle_doubleClicked ); //  SIGNAL( doubleClicked( const QModelIndex& ) ), this, SLOT( handle_doubleClicked( const QModelIndex& ) ) );
-    connect( pTreeView_, &QTreeView::entered, this, &NavigationWidget::handle_entered ); // SIGNAL( entered( const QModelIndex& ) ), this, SLOT( handle_entered( const QModelIndex& ) ) );
+    connect( pTreeView_, &QTreeView::activated, this, &NavigationWidget::handle_activated );
+    connect( pTreeView_, &QTreeView::clicked, this, &NavigationWidget::handle_clicked );
+    connect( pTreeView_, &QTreeView::doubleClicked, this, &NavigationWidget::handle_doubleClicked );
+    connect( pTreeView_, &QTreeView::entered, this, &NavigationWidget::handle_entered );
 
     pTreeView_->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect( pTreeView_, &QTreeView::customContextMenuRequested, this, &NavigationWidget::handleContextMenuRequested ); // (QPoint) ), this, SLOT( handleContextMenuRequested( QPoint ) ) );
+    connect( pTreeView_, &QTreeView::customContextMenuRequested, this, &NavigationWidget::handleContextMenuRequested );
 
     if ( SessionManager * mgr = SessionManager::instance() ) {
         connect( mgr, SIGNAL( onSessionRemoved( Dataprocessor* ) ), this, SLOT( handleRemoveSession( Dataprocessor * ) ) );
@@ -500,13 +501,112 @@ namespace dataproc {
 				//const adcontrols::MassSpectrum& ms = segments[ n ];
 				for ( size_t n = 0; n < ms.size(); ++n ) {
 					o << std::scientific << std::setprecision( 15 ) << ms.getTime( n ) << ",\t"
-						<< std::fixed << std::setprecision( 13 ) << ms.getMass( n ) << ",\t"
-						<< std::scientific << std::setprecision(7) << ms.getIntensity( n ) << std::endl;
+                      << std::fixed << std::setprecision( 13 ) << ms.getMass( n ) << ",\t"
+                      << std::scientific << std::setprecision(7) << ms.getIntensity( n ) << std::endl;
 				}
 			}
 			return true;
 		}
 	};
+
+    enum ActionType { checkAll, unCheckAll, asProfile, asCentroid, doCalibration, removedChecked, asDFTProfile };
+
+    struct CheckState {
+        bool check;
+        QStandardItemModel& model;
+        QModelIndex index;
+        CheckState( bool f, QStandardItemModel& m, QModelIndex& idx ) : check( f ), model( m ), index( idx ) {};
+        void operator()( Dataprocessor * ) {
+            auto parent = model.itemFromIndex( index ); // ex. Spectra
+            for ( int row = 0; row < parent->rowCount(); ++row ) {
+                if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
+                    if ( item->isCheckable() )
+                        item->setCheckState( check ? Qt::Checked : Qt::Unchecked );
+                }
+            }
+        }
+    };
+
+    struct SaveSpectrumAs {
+        ActionType idAction;
+        portfolio::Folium folium;
+        SaveSpectrumAs( ActionType id, portfolio::Folium& f ) : idAction( id ), folium( f ) {}
+
+        void operator()( Dataprocessor * processor ) {
+
+            boost::filesystem::path path( processor->file().filename() );
+            std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
+            while ( !boost::filesystem::is_directory( path ) )
+                path = path.branch_path();
+
+            QString dir( QString::fromStdWString( path.wstring() ) );
+            QString name( QString::fromStdWString( folium.name() ) );
+
+            QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
+                , QObject::tr( "Save spectrum" )
+                , dir
+                , name
+                , QObject::tr( "qtplatz (*.adfs);;Text files (*.txt)" ) );
+                                                                      
+            
+            boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
+            
+            if ( dstfile.extension() == ".adfs" ) {
+                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, processor->file() );
+            }
+            else {
+                boost::filesystem::ofstream of( dstfile );
+                auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
+                export_spectrum::write( of, *ms );
+            }
+        }        
+    };
+
+    struct CalibrationAction {
+        CalibrationAction() {}
+
+        void operator()( Dataprocessor * processor ) {
+            for ( auto& session : *SessionManager::instance() )
+                processor->sendCheckedSpectraToCalibration( session.processor() );
+        }
+    };
+
+    struct RemoveChecked {
+        NavigationWidget * navi;
+        RemoveChecked( NavigationWidget * nw ) : navi( nw ) {}
+        void operator()( Dataprocessor * processor ) const {
+            processor->removeCheckedItems();
+            navi->invalidateSession( processor );                
+        }
+    };
+
+    struct BackgroundSubtraction {
+        portfolio::Folium background;
+        portfolio::Folium foreground;
+        BackgroundSubtraction( portfolio::Folium& back, portfolio::Folium& fore ) : background( back ), foreground( fore ) {}
+        void operator()( Dataprocessor * processor ) {
+            processor->subtract( foreground, background );
+        }
+    };
+
+    struct ContextMenu {
+        QMenu menu;
+        typedef std::pair< QAction *, std::function< void( Dataprocessor * ) > > pair_type;
+
+        std::vector < pair_type > actions;
+        QAction * add( const QString& text, std::function<void( Dataprocessor * )> f, bool enable = true ) {
+            QAction * pa = menu.addAction( text );
+            actions.push_back( std::make_pair( pa, f ) );
+            pa->setEnabled( enable );
+            return pa;
+        }
+
+        std::vector< pair_type >::iterator exec( QPoint globalPos ) {
+            if ( QAction * selected = menu.exec( globalPos ) )
+                return std::find_if( actions.begin(), actions.end(), [=]( const pair_type& t ){ return t.first == selected; });
+            return actions.end();
+        }
+    };
 }
 
 void
@@ -515,110 +615,72 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 	QPoint globalPos = pTreeView_->mapToGlobal(pos);
 	QModelIndex index = pTreeView_->currentIndex();
 
+    ContextMenu menu;
+
     if ( index.isValid() ) {
 
         portfolio::Folium active_folium;
         QString active_spectrum;
-		if ( auto activeProcessor = SessionManager::instance()->getActiveDataprocessor() ) {
-            if ( ( active_folium = activeProcessor->currentSelection() ) ) {
+        if ( auto activeProcessor = SessionManager::instance()->getActiveDataprocessor() ) {
+            if ( (active_folium = activeProcessor->currentSelection()) ) {
                 if ( active_folium.getParentFolder().name() == L"Spectra" )
                     active_spectrum = QString::fromStdWString( active_folium.name() );
             }
         }
 
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
+            // this indicates menu requested on folium|folder node
 
             QVariant data = pModel_->data( index, Qt::UserRole );
-            if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+            if ( qVariantCanConvert< portfolio::Folder >( data ) ) {
+                if ( auto folder = qVariantValue< portfolio::Folder >( data ) ) {
+                    menu.add( QString( "Check all for %1" ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
+                    menu.add( QString( "Uncheck all for %1" ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
+                }
+            }
+
+            if ( qVariantCanConvert< portfolio::Folium >( data ) ) { // an item selected
+
+                //menu.add( tr( "Check all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
+                //menu.add( tr( "Uncheck all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
             
                 portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
             
-                if ( processor && 
-                     ( ( folium.getParentFolder().name() == L"Spectra" ) ||
-                       ( folium.getParentFolder().name() == L"MSCalibration" ) ) ) {
+                if ( (folium.getParentFolder().name() == L"Spectra") ||
+                    (folium.getParentFolder().name() == L"MSCalibration") )  {
 
                     QString selected_spectrum = QString::fromStdWString( folium.name() );
-                    
-					if ( folium.empty() )
-						processor->fetch( folium );
-                    
-                    bool isSpectrum = portfolio::is_type< adutils::MassSpectrumPtr >( folium );
-                    portfolio::Folio atts = folium.attachments();
-                    auto itCentroid = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& a ){
+
+                    if ( folium.empty() )
+                        processor->fetch( folium );
+
+                    if ( bool isSpectrum = portfolio::is_type< adutils::MassSpectrumPtr >( folium ) ) {
+                        portfolio::Folio atts = folium.attachments();
+                        auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& a ){
                             return a.name() == Constants::F_CENTROID_SPECTRUM;
-                        });
-                    bool hasCentroid = itCentroid != atts.end();
-                    auto itFiltered = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& a ){
+                        } );
+                        bool hasCentroid = itCentroid != atts.end();
+                        auto itFiltered = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& a ){
                             return a.name() == Constants::F_DFT_FILTERD;
-                        });
-                    bool hasFilterd = itFiltered != atts.end();
-                
-                    QMenu menu;
-                    enum { asProfile, asCentroid, doCalibration, subBackground, removedChecked, removeChecked, asDFTProfile, numActions };
-                    std::array< QAction *, numActions > actions;
-                    actions[ asProfile ]  = menu.addAction( "Save profile spectrum as..." );
-                    actions[ asCentroid ] = menu.addAction( "Save centroid spectrum as..." );
-                    actions[ asDFTProfile ] = menu.addAction( "Save DFT filtered profile spectrum as..." );
-                    actions[ doCalibration ] = menu.addAction( "Send checked spectra to calibration folder" );
-					menu.addSeparator();
-                    actions[ subBackground ] = menu.addAction( QString("Subtract background '%1' from '%2'").arg( selected_spectrum, active_spectrum ) );
-                    actions[ removeChecked ] = menu.addAction( "Remove unchecked items" );
+                        } );
+                        bool hasFilterd = itFiltered != atts.end();
 
-                    if ( ! isSpectrum )
-                        actions[ asProfile ]->setEnabled( false );
-                    if ( ! hasCentroid )
-                        actions[ asCentroid ]->setEnabled( false );
-                    if ( ! hasFilterd )
-                        actions[ asDFTProfile ]->setEnabled( false );
-                    if ( active_spectrum.isEmpty() )
-                        actions[ subBackground ]->setEnabled( false );
+                        // enum { asProfile, asCentroid, doCalibration, subBackground, removedChecked, removeChecked, asDFTProfile, numActions };
 
-                    QAction* selectedItem = menu.exec( globalPos );
-                    if ( selectedItem ) {
-                        if ( selectedItem == actions[ doCalibration ] ) {
-                            for ( auto& session: *SessionManager::instance() )
-								processor->sendCheckedSpectraToCalibration( session.processor() );
-                        } else if ( selectedItem == actions[ subBackground ] ) {
-                            processor->subtract( folium, active_folium );
-                        } else if ( selectedItem == actions[ removeChecked ] ) {
-                            processor->removeCheckedItems();
-                            invalidateSession( processor );
-                        } else {
-                            boost::filesystem::path path( processor->file().filename() );
-                            while ( ! boost::filesystem::is_directory( path ) )
-                                path = path.branch_path();
-                            QString dir = qtwrapper::qstring::copy( path.wstring() );
-                            QString name = qtwrapper::qstring::copy( folium.name() );
-                            QString filename = 
-                                QFileDialog::getSaveFileName( this, tr("Save spectrum")
-                                                              , dir
-                                                              , tr("qtplatz (*.adfs);;Text files (*.txt)") );
+                        menu.add( "Save profile spectrum as...", SaveSpectrumAs( asProfile, folium ), isSpectrum );
+                        menu.add( "Save centroid spectrum as...", SaveSpectrumAs( asCentroid, itCentroid != atts.end() ? *itCentroid : portfolio::Folium() ), hasCentroid );
+                        menu.add( "Save DFT filtered spectrum as...", SaveSpectrumAs( asDFTProfile, itFiltered != atts.end() ? *itFiltered : portfolio::Folium() ), hasFilterd );
 
-                            boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
-
-                            if ( dstfile.extension() == ".adfs" ) {
-                                
-                                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, processor->file() );
-                                
-                            } else {
-                                boost::filesystem::ofstream of( dstfile );
-                                if ( selectedItem == actions[ asProfile ] ) {
-                                    auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
-                                    export_spectrum::write( of, *profile );
-                                } else if ( selectedItem == actions[ asCentroid ] ) {
-                                    auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
-                                    export_spectrum::write( of, *centroid );
-                                } else if ( selectedItem == actions[ asDFTProfile ] ) {
-                                    auto filtered = portfolio::get< adcontrols::MassSpectrumPtr >( *itFiltered );
-                                    export_spectrum::write( of, *filtered );                                    
-                                }
-                            }
-                        }
+                        menu.add( "Send checked spectra to calibration folder", CalibrationAction() );
+                        menu.menu.addSeparator();
+                        menu.add( QString( "Subtract background '%1' from '%2'" ).arg( selected_spectrum, active_spectrum )
+                            , BackgroundSubtraction( active_folium, folium ), !active_spectrum.isEmpty() );
+                        menu.add( "Remove unchecked items", RemoveChecked( this ) );
                     }
                 }
-                if ( processor && folium.getParentFolder().name() == L"Chromatograms" ) {
+                if ( folium.getParentFolder().name() == L"Chromatograms" ) {
                     QMenu menu;
-                    QAction * doSpectrogram = 0; 
+                    QAction * doSpectrogram = 0;
                     doSpectrogram = menu.addAction( "Create Spectrogram" );
                     if ( QAction* selectedItem = menu.exec( globalPos ) ) {
                         if ( doSpectrogram == selectedItem ) {
@@ -627,8 +689,11 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     }
                 }
             }
-        }
-    }
+            auto selected = menu.exec( globalPos );
+            if ( selected != menu.actions.end() )
+                selected->second( processor );
+        } // if dataprocessor
+    } // if index.isValid
 }
 
 
@@ -665,6 +730,7 @@ NavigationWidget::handleCheckAllSpectra()
 {
     handleAllCheckState( true, "Spectra" );
 }
+
 
 
 Q_DECLARE_METATYPE( portfolio::Folium )
