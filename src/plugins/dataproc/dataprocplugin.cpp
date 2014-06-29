@@ -181,8 +181,6 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     if ( core == 0 )
         return false;
 
-    mainWindow_->install_actions();
-    
     QList<int> context;
     if ( Core::UniqueIDManager * uidm = core->uniqueIDManager() ) {
         context.append( uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR ) );

@@ -69,6 +69,7 @@ ActionManager::install_file_actions()
 
         // File->Processing
         if ( Core::ActionContainer * menu = am->createMenu( "dataproc.menu" ) ) {
+
             menu->menu()->setTitle( "Processing" );
 
             menu->addAction( am->command( Constants::METHOD_OPEN ) );
@@ -77,6 +78,9 @@ ActionManager::install_file_actions()
             menu->addAction( am->command( Constants::CALIBFILE_APPLY ) );
             menu->addAction( am->command( Constants::PROCESS_ALL_CHECKED ) );
             menu->addAction( am->command( Constants::LISTPEAKS_ON_CHECKED ) );
+
+            menu->addAction( am->command( Constants::CREATE_SPECTROGRAM ) );
+            menu->addAction( am->command( Constants::CLUSTER_SPECTROGRAM ) );
 
             am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
         }
@@ -131,7 +135,6 @@ ActionManager::initialize_actions( const QList<int>& context )
             connect( p, &QAction::triggered, this, &ActionManager::actCalibFileApply );
         }
 
-
         if ( auto p = actions_[ idActApplyProcessToAllChecked ] = new QAction( tr( "Apply process to all checked spectra" ), this ) ) {
             am->registerAction( p, Constants::PROCESS_ALL_CHECKED, context );
             connect( p, &QAction::triggered, this, &ActionManager::handleProcessAllSpectra );
@@ -142,12 +145,23 @@ ActionManager::initialize_actions( const QList<int>& context )
             connect( p, &QAction::triggered, this, &ActionManager::handleExportPeakList );
         }
 
+		if ( auto p = actions_[ idActCreateSpectrogram ] = new QAction( tr("Create Spectrogram"), this ) ) {
+            am->registerAction( p, Constants::CREATE_SPECTROGRAM, context );
+            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::actCreateSpectrogram );
+        }
+
+		if ( auto p = actions_[ idActClusterSpectrogram ] = new QAction( tr("Cluster Spectrogram"), this ) ) {
+            am->registerAction( p, Constants::CLUSTER_SPECTROGRAM, context );
+            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::actClusterSpectrogram );
+        }
+
         // edit menu
         if ( auto p = actions_[ idActCheckAllSpectra ] = new QAction( tr( "Check all spectra" ), this ) ) 
             am->registerAction( p, Constants::CHECK_ALL_SPECTRA, context );
 
         if ( auto p = actions_[ idActUncheckAllSpectra ] = new QAction( tr( "Uncheck all spectra" ), this ) )
             am->registerAction( p, Constants::UNCHECK_ALL_SPECTRA, context );
+
     }
 
     connect( Core::ICore::instance(), &Core::ICore::contextChanged, this, &ActionManager::handleContextChanged );

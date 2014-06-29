@@ -51,9 +51,6 @@ namespace dataproc {
 
     class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT
-        enum idActions { idActCreateSpectrogram
-                         , idActClusterSpectrogram
-                         , numActions };
     public:
         ~MainWindow();
         explicit MainWindow(QWidget *parent = 0);
@@ -83,7 +80,6 @@ namespace dataproc {
         void printCurrentView( const QString& ) const;
 
         void saveDefaultMSCalibrateResult( portfolio::Folium& );
-        void install_actions();
         void lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& );
         void dataMayChanged();
         void zoomedOnSpectrum( const QRectF& );
@@ -104,6 +100,8 @@ namespace dataproc {
         void onMethodApply( adcontrols::ProcessMethod& );
         void actionApply();
         void handle_add_mspeaks( const adcontrols::MSPeaks& );
+        void actCreateSpectrogram();
+		void actClusterSpectrogram();
 
     private slots:
         void handleApplyMethod();
@@ -119,8 +117,6 @@ namespace dataproc {
         void actionSelMSPeaks();
         void actionSelSpectrogram();
 
-        void actCreateSpectrogram();
-		void actClusterSpectrogram();
         
         friend class MSPeaksWnd;
 
@@ -141,7 +137,6 @@ namespace dataproc {
         QStackedWidget * stack_;
         std::unique_ptr< QLineEdit > processMethodNameEdit_;
         enum ProcessType currentFeature_;
-        std::array< QAction *, numActions > actions_;
 
         void setToolBarDockWidget( QDockWidget * dock );
         void createToolbar();

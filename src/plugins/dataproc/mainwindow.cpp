@@ -200,7 +200,6 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , processMethodNameEdit_( new QLineEdit ) 
                                           , currentFeature_( CentroidProcess )
 {
-    std::fill( actions_.begin(), actions_.end(), static_cast<QAction *>(0) );
 }
 
 MainWindow *
@@ -212,37 +211,6 @@ MainWindow::instance()
 void
 MainWindow::activateLayout()
 {
-}
-
-void
-MainWindow::install_actions()
-{
-    const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
-
-    if ( QAction * action = new QAction( tr("Data processing"), this ) ) {
-        (void)action;
-
-		actions_[ idActCreateSpectrogram ] = new QAction( tr("Create Spectrogram"), this );
-        connect( actions_[ idActCreateSpectrogram ], SIGNAL( triggered() ), this, SLOT( actCreateSpectrogram() ) );
-
-		actions_[ idActClusterSpectrogram ] = new QAction( tr("Cluster Spectrogram"), this );
-        connect( actions_[ idActClusterSpectrogram ], SIGNAL( triggered() ), this, SLOT( actClusterSpectrogram() ) );
-
-        if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
-
-            Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID );
-            menu->menu()->setTitle( "Dataproc" );
-
-            if ( Core::Command * cmd = am->registerAction( actions_[ idActCreateSpectrogram ], Constants::CREATE_SPECTROGRAM, gc ) )
-                menu->addAction( cmd );
-
-            if ( Core::Command * cmd = am->registerAction( actions_[ idActClusterSpectrogram ], Constants::CLUSTER_SPECTROGRAM, gc ) )
-                menu->addAction( cmd );
-
-			// add 'dataproc' menu item to Tools
-			am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
-		}
-    }
 }
 
 Utils::StyledBar *
