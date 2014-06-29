@@ -60,6 +60,8 @@ namespace dataproc {
             , idActExplortCheckedSpectra
             , idActCheckAllSpectra
             , idActUncheckAllSpectra
+            , idActApplyProcessToAllChecked
+            , idActExportPeakListAllChecked
             , numOfActions
         };
 
@@ -93,6 +95,9 @@ namespace dataproc {
     private:
         void handleCheckAllSpectra();
         void handleUncheckAllSpectra();
+        void handleProcessAllSpectra();
+        void handleExportPeakList();
+        
         
         static QAction * create( const QString& icon_name, const QString& baloon, QObject * parent );
     };

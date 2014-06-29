@@ -41,11 +41,14 @@
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/widget_factory.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/profile.hpp>
 #include <adportable/utf.hpp>
 #include <adlog/logger.hpp>
 #include <adprot/digestedpeptides.hpp>
@@ -81,6 +84,8 @@
 #include <coreplugin/icore.h>
 #include <utils/styledbar.h>
 
+//#include <QCheckBox>
+#include <QPushButton>
 #include <QDir>
 #include <QDockWidget>
 #include <QMenu>
@@ -96,6 +101,7 @@
 #include <QtGui/QIcon>
 #include <QLineEdit>
 #include <qdebug.h>
+#include <QFileDialog>
 
 #include <functional>
 
@@ -193,8 +199,6 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , stack_( 0 )
                                           , processMethodNameEdit_( new QLineEdit ) 
                                           , currentFeature_( CentroidProcess )
-                                          , msPeaksWnd_( 0 )
-    , wndMSProcessing_( 0 ) 
 {
     std::fill( actions_.begin(), actions_.end(), static_cast<QAction *>(0) );
 }
@@ -341,8 +345,8 @@ MainWindow::createStyledBarMiddle()
             features->addItem( "Find peaks" );
             toolBarLayout->addWidget( features );
 
-            connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
-            connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
+            connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MainWindow::handleFeatureSelected ); // (int) ) );
+            connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &MainWindow::handleFeatureActivated );
 
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -382,7 +386,7 @@ MainWindow::createContents( Core::IMode * mode
 
         wnd.push_back( new MSProcessingWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Process" ), wnd.back() ) );
-        wndMSProcessing_ = boost::get< MSProcessingWnd * >( wnd.back() );
+        //wndMSProcessing_ = boost::get< MSProcessingWnd * >( wnd.back() );
 
         wnd.push_back( new ElementalCompWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "Elemental Comp." ), wnd.back() ) );
@@ -398,7 +402,6 @@ MainWindow::createContents( Core::IMode * mode
 
         wnd.push_back( new MSPeaksWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "TOF Peaks" ), wnd.back() ) );
-        msPeaksWnd_ = boost::get<MSPeaksWnd *>( wnd.back() );
 
         wnd.push_back( new SpectrogramWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "Spectrogram" ), wnd.back() ) );
@@ -524,8 +527,11 @@ MainWindow::createDockWidgets()
             connect( this, SIGNAL( onAddMSPeaks( const adcontrols::MSPeaks& ) ), pWidget, SLOT( handle_add_mspeaks( const adcontrols::MSPeaks& ) ) );
             adplugin::LifeCycleAccessor accessor( pWidget );
             if ( adplugin::LifeCycle * p = accessor.get() ) {
-                boost::any a( msPeaksWnd_ );
-                p->setContents( a );
+                if ( auto wnd = findChild< MSPeaksWnd *>() ) {
+                    // boost::any a( msPeaksWnd_ );
+                    boost::any a( static_cast<QWidget *>(wnd) );
+                    p->setContents( a );
+                }
             }
         }
 
@@ -780,6 +786,87 @@ void
 MainWindow::onMethodApply( adcontrols::ProcessMethod& pm )
 {
     DataprocPlugin::instance()->applyMethod( pm );
+}
+
+void
+MainWindow::handleProcessAllSpectra()
+{
+    qtwrapper::waitCursor wait;
+    adcontrols::ProcessMethod m;
+    getProcessMethod( m );
+    if ( size_t n = m.size() ) {
+        for ( auto& session : *SessionManager::instance() ) {
+            if ( auto processor = session.processor() ) {
+                if ( currentFeature_ == CalibrationProcess )
+                    processor->applyCalibration( m );
+                else
+                    processor->applyProcess( m, currentFeature_ );
+            }
+        }
+    }
+}
+
+void
+MainWindow::handleExportPeakList()
+{
+    boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
+    dir /= L"data";
+
+    QString filename = QFileDialog::getSaveFileName( 0, tr( "Save peak list for all checked spectra")
+                                                     , QString::fromStdWString( dir.wstring() )
+                                                     , tr( "Text files(*.txt)" ) );
+    if ( filename.isEmpty() )
+        return;
+    std::ofstream outf( filename.toStdString() );
+    
+    for ( auto& session : *SessionManager::instance() ) {
+        if ( auto processor = session.processor() ) {
+            auto spectra = processor->getPortfolio().findFolder( L"Spectra" );
+
+            for ( auto& folium: spectra.folio() ) {
+                if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                    if ( folium.empty() )
+                        processor->fetch( folium );
+
+                    // output filename
+                    outf << adportable::utf::to_utf8( processor->filename() ) << std::endl;
+
+                    portfolio::Folio atts = folium.attachments();
+                    auto itCentroid = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ) {
+                            return f.name() == Constants::F_CENTROID_SPECTRUM;
+                        });
+                    if ( itCentroid != atts.end() ) {
+
+                        // output spectrum(centroid) name
+                        outf << adportable::utf::to_utf8( folium.name() + L",\t" + itCentroid->name() ) << std::endl;
+
+                        if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
+                            adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *centroid );
+                            int fcn = 0;
+                            for ( auto& ms: segments ) {
+                                const adcontrols::annotations& annots = ms.get_annotations();
+                                for ( size_t n = 0; n < ms.size(); ++n ) {
+                                    outf << fcn << ",\t" << n << ",\t"
+                                         << std::scientific << std::setprecision( 15 ) << ms.getTime( n ) << ",\t"
+                                         << std::fixed << std::setprecision( 13 ) << ms.getMass( n ) << ",\t"
+                                         << std::scientific << std::setprecision(7) << ms.getIntensity( n );
+                                    
+                                    auto it = std::find_if( annots.begin(), annots.end()
+                                                            , [=]( const adcontrols::annotation& a ){ return a.index() == n; } );
+                                    while ( it != annots.end() ) {
+                                        outf << ",\t" << it->text();
+                                        it = std::find_if( ++it, annots.end()
+                                                                , [=]( const adcontrols::annotation& a ){ return a.index() == n; } );
+                                    }
+                                    outf << std::endl;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void

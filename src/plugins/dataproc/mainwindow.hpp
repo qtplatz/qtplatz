@@ -95,6 +95,9 @@ namespace dataproc {
         static std::wstring foliumName( const std::wstring& id );
         static std::wstring portfolioFilename( const std::wstring& id );
 
+        void handleProcessAllSpectra();
+        void handleExportPeakList();
+
     public slots:
         void handleSessionAdded( Dataprocessor * );
         void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
@@ -138,9 +141,7 @@ namespace dataproc {
         QStackedWidget * stack_;
         std::unique_ptr< QLineEdit > processMethodNameEdit_;
         enum ProcessType currentFeature_;
-        QWidget * msPeaksWnd_;
         std::array< QAction *, numActions > actions_;
-        QWidget * wndMSProcessing_;
 
         void setToolBarDockWidget( QDockWidget * dock );
         void createToolbar();

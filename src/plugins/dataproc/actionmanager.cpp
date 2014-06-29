@@ -75,6 +75,8 @@ ActionManager::install_file_actions()
             menu->addAction( am->command( Constants::METHOD_SAVE ) );
             menu->addAction( am->command( Constants::PRINT_CURRENT_VIEW ) );
             menu->addAction( am->command( Constants::CALIBFILE_APPLY ) );
+            menu->addAction( am->command( Constants::PROCESS_ALL_CHECKED ) );
+            menu->addAction( am->command( Constants::LISTPEAKS_ON_CHECKED ) );
 
             am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
         }
@@ -127,6 +129,17 @@ ActionManager::initialize_actions( const QList<int>& context )
              = create( Constants::ICON_CALIBFILE, tr( "Apply mass calibration to this..." ), this ) ) {
             am->registerAction( p, Constants::CALIBFILE_APPLY, context );
             connect( p, &QAction::triggered, this, &ActionManager::actCalibFileApply );
+        }
+
+
+        if ( auto p = actions_[ idActApplyProcessToAllChecked ] = new QAction( tr( "Apply process to all checked spectra" ), this ) ) {
+            am->registerAction( p, Constants::PROCESS_ALL_CHECKED, context );
+            connect( p, &QAction::triggered, this, &ActionManager::handleProcessAllSpectra );
+        }
+
+        if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra" ), this ) ) {
+            am->registerAction( p, Constants::LISTPEAKS_ON_CHECKED, context );
+            connect( p, &QAction::triggered, this, &ActionManager::handleExportPeakList );
         }
 
         // edit menu
@@ -395,3 +408,16 @@ ActionManager::handleContextChanged( Core::IContext * context )
 	}
 }
 
+void
+ActionManager::handleProcessAllSpectra()
+{
+    if ( auto w = MainWindow::instance() )
+        w->handleProcessAllSpectra();
+}
+
+void
+ActionManager::handleExportPeakList()
+{
+    if ( auto w = MainWindow::instance() )
+        w->handleExportPeakList();
+}

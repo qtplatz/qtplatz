@@ -43,6 +43,8 @@ namespace dataproc {
         const char * const METHOD_APPLY         = "dataproc.MethodApply";
         const char * const PRINT_CURRENT_VIEW   = "dataproc.PrintCurrentView";
         const char * const CALIBFILE_APPLY      = "dataproc.ApplyCalibration";
+        const char * const PROCESS_ALL_CHECKED  = "dataproc.ProcessAllCheckedSpectra";
+        const char * const LISTPEAKS_ON_CHECKED = "dataproc.PeakListAllChecked";
 
         const char * const CREATE_SPECTROGRAM   = "dataproc.Spectrogram";
         const char * const CLUSTER_SPECTROGRAM  = "dataproc.ClusterSpectrogram";
