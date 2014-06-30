@@ -75,6 +75,7 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/imode.h>
 #include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/filemanager.h>
 #include <coreplugin/findplaceholder.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/minisplitter.h>
@@ -1081,3 +1082,15 @@ MainWindow::foliumName( const std::wstring& id )
     return std::wstring();
 }
 
+QString
+MainWindow::currentDir()
+{
+    static QString dir = QString::fromStdWString( adportable::profile::user_data_dir<wchar_t>() );
+
+    QString currentFile = Core::ICore::instance()->fileManager()->currentFile();
+    if ( !currentFile.isEmpty() ) {
+        const QFileInfo fi( currentFile );
+        dir = fi.absolutePath();
+    }
+    return dir;
+}

@@ -242,7 +242,8 @@ void
 ActionManager::actMethodOpen()
 {
     QString name = QFileDialog::getOpenFileName( MainWindow::instance()
-                                                 , tr("Open process method"), "."
+                                                 , tr("Open process method")
+                                                 , MainWindow::currentDir()
                                                  , tr("Process method files(*.pmth)" ) );
     if ( ! name.isEmpty() ) {
 		boost::filesystem::path path( name.toStdString() );

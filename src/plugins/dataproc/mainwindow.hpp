@@ -90,6 +90,7 @@ namespace dataproc {
         static QString makeDisplayName( const std::wstring& id, const char * insertor = "::", int nbsp = 0 );
         static std::wstring foliumName( const std::wstring& id );
         static std::wstring portfolioFilename( const std::wstring& id );
+        static QString currentDir();
 
         void handleProcessAllSpectra();
         void handleExportPeakList();
