@@ -122,7 +122,8 @@ src/plugins/chemistry/portfolio.xml
 src/plugins/batchproc/batchproc.pluginspec
 src/plugins/peptide/peptide.pluginspec
 src/app/exclude.txt
-src/app/version.h
+src/app/spectrum.txt
+src/version.h
 
 # Binaries
 # --------
