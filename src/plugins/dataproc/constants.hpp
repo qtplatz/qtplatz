@@ -44,6 +44,7 @@ namespace dataproc {
         const char * const PRINT_CURRENT_VIEW   = "dataproc.PrintCurrentView";
         const char * const CALIBFILE_APPLY      = "dataproc.ApplyCalibration";
         const char * const PROCESS_ALL_CHECKED  = "dataproc.ProcessAllCheckedSpectra";
+        const char * const IMPORT_ALL_CHECKED   = "dataproc.ImportAllCheckedSpectra";
         const char * const LISTPEAKS_ON_CHECKED = "dataproc.PeakListAllChecked";
 
         const char * const CREATE_SPECTROGRAM   = "dataproc.Spectrogram";

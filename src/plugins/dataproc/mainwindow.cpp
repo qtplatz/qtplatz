@@ -105,6 +105,7 @@
 #include <QFileDialog>
 
 #include <functional>
+#include <fstream>
 
 namespace dataproc {
 
@@ -477,14 +478,14 @@ MainWindow::createDockWidgets()
     } widgets [] = { 
         { "Centroid",         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { "MS Peaks",       "adwidgets::MSPeakTable",           "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
-        , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod" }
-        , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod" }
-        , { "Targeting",      "qtwidgets::TargetForm",            "TargetMethod" }
+        , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod", 0 }
+        , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod", 0 }
+        , { "Targeting",      "qtwidgets::TargetForm",            "TargetMethod", 0 }
         , { "Peptide",        "adwidgets::PeptideWidget",         "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
-        , { "Elemental Comp.","qtwidgets::ElementalCompositionForm", "EleCompMethod" }
-        , { "Peak Find",      "qtwidgets::PeakMethodForm",        "PeakFindMethod" }
+        , { "Elemental Comp.","qtwidgets::ElementalCompositionForm", "EleCompMethod", 0 }
+        , { "Peak Find",      "qtwidgets::PeakMethodForm",        "PeakFindMethod", 0 }
         , { "Data property",  "dataproc::MSPropertyForm",         "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
-        , { "TOF Peaks",      "qtwidgets2::MSPeakView",           "TOFPeaks" }
+        , { "TOF Peaks",      "qtwidgets2::MSPeakView",           "TOFPeaks", 0 }
     };
     
     for ( auto& widget: widgets ) {
@@ -522,7 +523,8 @@ MainWindow::createDockWidgets()
         }
 
         if ( auto p = dynamic_cast< adwidgets::PeptideWidget *>( pWidget ) ) {
-            connect( dynamic_cast<adwidgets::PeptideWidget *>(pWidget), &adwidgets::PeptideWidget::triggerFind, this, &MainWindow::handlePeptideTarget ); // (const QVector< QPair<QString, QString> >&) ) );
+            connect( p, &adwidgets::PeptideWidget::triggerFind, this, &MainWindow::handlePeptideTarget );
+            // (const QVector< QPair<QString, QString> >&) ) );
         }
 
         if ( pWidget ) {
@@ -763,7 +765,7 @@ MainWindow::handleProcessAllSpectra()
     qtwrapper::waitCursor wait;
     adcontrols::ProcessMethod m;
     getProcessMethod( m );
-    if ( size_t n = m.size() ) {
+    if ( m.size() > 0 ) {
         for ( auto& session : *SessionManager::instance() ) {
             if ( auto processor = session.processor() ) {
                 if ( currentFeature_ == CalibrationProcess )
@@ -821,11 +823,11 @@ MainWindow::handleExportPeakList()
                                          << std::scientific << std::setprecision(7) << ms.getIntensity( n );
                                     
                                     auto it = std::find_if( annots.begin(), annots.end()
-                                                            , [=]( const adcontrols::annotation& a ){ return a.index() == n; } );
+                                                            , [=]( const adcontrols::annotation& a ){ return a.index() == int(n); } );
                                     while ( it != annots.end() ) {
                                         outf << ",\t" << it->text();
                                         it = std::find_if( ++it, annots.end()
-                                                                , [=]( const adcontrols::annotation& a ){ return a.index() == n; } );
+                                                           , [=]( const adcontrols::annotation& a ){ return a.index() == int(n); } );
                                     }
                                     outf << std::endl;
                                 }

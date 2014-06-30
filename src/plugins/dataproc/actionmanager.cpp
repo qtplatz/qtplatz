@@ -140,9 +140,14 @@ ActionManager::initialize_actions( const QList<int>& context )
             connect( p, &QAction::triggered, this, &ActionManager::handleProcessAllSpectra );
         }
 
-        if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra" ), this ) ) {
+        if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra..." ), this ) ) {
             am->registerAction( p, Constants::LISTPEAKS_ON_CHECKED, context );
             connect( p, &QAction::triggered, this, &ActionManager::handleExportPeakList );
+        }
+
+        if ( auto p = actions_[ idActImportAllChecked ] = new QAction( tr( "Import and merge all checked spectra..." ), this ) ) {
+            am->registerAction( p, Constants::IMPORT_ALL_CHECKED, context );
+            connect( p, &QAction::triggered, this, &ActionManager::handleImportAllSpectra );
         }
 
 		if ( auto p = actions_[ idActCreateSpectrogram ] = new QAction( tr("Create Spectrogram"), this ) ) {
