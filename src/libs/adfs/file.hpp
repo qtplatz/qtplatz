@@ -38,6 +38,9 @@ namespace adfs {
     class ostreambuf;
     class istreambuf;
 
+    // file class represents folium on portfolio library on adfs::filesystem, so that it is responsible
+    // relatively low level io
+
     class file : public attributes {
     public:
         ~file();

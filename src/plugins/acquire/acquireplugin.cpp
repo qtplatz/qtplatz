@@ -244,23 +244,23 @@ AcquirePlugin::initialize_actions()
     pImpl_->loadIcon();
 
     actionConnect_ = new QAction( QIcon(":/acquire/images/Button Refresh.png"), tr("Connect to control server..."), this);
-    connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
+    connect( actionConnect_, &QAction::triggered, this, &AcquirePlugin::actionConnect );
   
     actionInitRun_ = new QAction(QIcon(":/acquire/images/Button Last.png"), tr("Preparing"), this);
-    connect( actionInitRun_, SIGNAL(triggered()), this, SLOT(actionInitRun()) );
+    connect( actionInitRun_, &QAction::triggered, this, &AcquirePlugin::actionInitRun );
   
     actionRun_ = new QAction(QIcon(":/acquire/images/Button Play.png"), tr("Run"), this);
-    connect( actionRun_, SIGNAL(triggered()), this, SLOT(actionRun()) );
+    connect( actionRun_, &QAction::triggered, this, &AcquirePlugin::actionRun );
   
     actionStop_ = new QAction(QIcon(":/acquire/images/Button Stop.png"), tr("Stop"), this);
-    connect( actionStop_, SIGNAL(triggered()), this, SLOT(actionStop()) );
+    connect( actionStop_, &QAction::triggered, this, &AcquirePlugin::actionStop );
   
     actionInject_ = new QAction(QIcon(":/acquire/images/Button Add.png"), tr("Inject (recording data)"), this);
-    connect( actionInject_, SIGNAL(triggered()), this, SLOT(actionInject()) );
+    connect( actionInject_, &QAction::triggered, this, &AcquirePlugin::actionInject );
 
     //------------ snapshot -------------
     actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
-    connect( actionSnapshot_, SIGNAL(triggered()), this, SLOT(actionSnapshot()) );
+    connect( actionSnapshot_, &QAction::triggered, this, &AcquirePlugin::actionSnapshot );
 
     actionConnect_->setEnabled( true );
     actionInitRun_->setEnabled( false );

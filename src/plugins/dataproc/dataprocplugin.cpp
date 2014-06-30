@@ -289,33 +289,39 @@ DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 }
 
 void
-DataprocPlugin::handle_portfolio_created( const QString token )
+DataprocPlugin::handleFileCreated( const QString& filename )
+{
+    handle_portfolio_created( filename );
+}
+
+void
+DataprocPlugin::handle_portfolio_created( const QString filename )
 {
     // simulate file->open()
     Core::ICore * core = Core::ICore::instance();
     if ( core ) {
         Core::EditorManager * em = core->editorManager();
         if ( em && dataprocFactory_ ) {
-            Core::IEditor * ie = dataprocFactory_->createEditor( 0 );
-            DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie );
-            if ( editor ) {
-                editor->portfolio_create( token );
-                em->pushEditor( editor );
+            if ( Core::IEditor * ie = dataprocFactory_->createEditor( 0 ) ) {
+                if ( DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie ) ) {
+                    editor->portfolio_create( filename );
+                    em->pushEditor( editor );
+                }
             }
         }
     }
 }
 
 void
-DataprocPlugin::handle_folium_added( const QString token, const QString path, const QString id )
+DataprocPlugin::handle_folium_added( const QString fname, const QString path, const QString id )
 {
-    qDebug() << "===== DataprocPlugin::handle_folium_added" << token << " path=" << path;
+    qDebug() << "===== DataprocPlugin::handle_folium_added" << fname << " path=" << path;
 
-	std::wstring filename = token.toStdWString();
+	std::wstring filename = fname.toStdWString();
 
     SessionManager::vector_type::iterator it = SessionManager::instance()->find( filename );
     if ( it == SessionManager::instance()->end() ) {
-		Core::EditorManager::instance()->openEditor( token );
+		Core::EditorManager::instance()->openEditor( fname );
         it = SessionManager::instance()->find( filename );
     }
     if ( it != SessionManager::instance()->end() ) {
@@ -449,11 +455,8 @@ DataprocPlugin::delete_editorfactories( std::vector< EditorFactory * >& factorie
 bool
 DataprocPlugin::connect_isnapshothandler_signals()
 {
-    connect( iSnapshotHandler_.get(), SIGNAL( onPortfolioCreated( const QString& ) )
-             , this, SLOT( handle_portfolio_created( const QString& ) ) );
-
-    connect( iSnapshotHandler_.get(), SIGNAL( onFoliumAdded( const QString&, const QString&, const QString& ) )
-             , this, SLOT( handle_folium_added( const QString&, const QString&, const QString& ) ) );
+    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &DataprocPlugin::handle_portfolio_created );
+    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, &DataprocPlugin::handle_folium_added );
 
     return true;
 }
@@ -461,12 +464,8 @@ DataprocPlugin::connect_isnapshothandler_signals()
 void
 DataprocPlugin::disconnect_isnapshothandler_signals()
 {
-    disconnect( iSnapshotHandler_.get(), SIGNAL( onPortfolioCreated( const QString& ) )
-             , this, SLOT( handle_portfolio_created( const QString& ) ) );
-
-    disconnect( iSnapshotHandler_.get(), SIGNAL( onFoliumAdded( const QString& ) )
-             , this, SLOT( handle_folium_added( const QString& ) ) );
-
+    disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &DataprocPlugin::handle_portfolio_created );
+    disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, &DataprocPlugin::handle_folium_added );
 }
 
 Q_EXPORT_PLUGIN( DataprocPlugin )
