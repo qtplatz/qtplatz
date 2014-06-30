@@ -96,6 +96,11 @@ namespace dataproc {
         void handleImportChecked();
         void handleExportPeakList();
 
+        enum idPage { idSelMSProcess, idSelElementalComp, idSelMSCalibration, idSelMSCalibSpectra
+                      , idSelChromatogram, idSelMSPeaks, idSelSpectrogram, idSelSpectra, idNum };
+
+        void selPage( idPage );
+
     public slots:
         void handleSessionAdded( Dataprocessor * );
         void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
@@ -111,32 +116,19 @@ namespace dataproc {
         void handleFeatureActivated( int );
         void handlePeptideTarget( const QVector<QPair<QString, QString> >& );
 
-        void actionSelMSProcess();
-        void actionSelElementalComp();
-        void actionSelMSCalibration();
-        void actionSelMSCalibSpectra();
-        void actionSelChromatogram();
-        void actionSelMSPeaks();
-        void actionSelSpectrogram();
-
-        
         friend class MSPeaksWnd;
 
     private:
         QWidget * toolBar_;
         QHBoxLayout * toolBarLayout_;
         QComboBox * axisChoice_;
-
+        
         QAction * actionSearch_;
         QAction * actionApply_;
-        QAction * actionSelMSProcess_;
-        QAction * actionSelElementalComp_;
-        QAction * actionSelMSCalibration_;
-        QAction * actionSelMSCalibSpectra_;
-        QAction * actionSelChromatogram_;
-        QAction * actionSelMSPeaks_;
-        QAction * actionSelSpectrogram_;
+
+        std::array< QAction *, idNum > selPages_;
         QStackedWidget * stack_;
+
         std::unique_ptr< QLineEdit > processMethodNameEdit_;
         enum ProcessType currentFeature_;
 

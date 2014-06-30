@@ -34,6 +34,7 @@
 #include "mscalibspectrawnd.hpp"
 #include "mspeakswnd.hpp"
 #include "spectrogramwnd.hpp"
+#include "msspectrawnd.hpp"
 #include "mspropertyform.hpp"
 #include "sessionmanager.hpp"
 
@@ -111,7 +112,7 @@
 namespace dataproc {
 
     typedef boost::variant< MSProcessingWnd*, ElementalCompWnd*, MSCalibrationWnd*, MSCalibSpectraWnd*
-                            , ChromatogramWnd*, MSPeaksWnd*, SpectrogramWnd* > wnd_ptr_t;
+                            , ChromatogramWnd*, MSPeaksWnd*, SpectrogramWnd*, MSSpectraWnd* > wnd_ptr_t;
 
     struct wnd_set_title : public boost::static_visitor < QWidget * > {
         const QString& text_;
@@ -192,17 +193,11 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , axisChoice_( 0 )
                                           , actionSearch_( 0 )
                                           , actionApply_( 0 )
-                                          , actionSelMSProcess_( 0 )
-                                          , actionSelElementalComp_( 0 )
-                                          , actionSelMSCalibration_( 0 )
-                                          , actionSelMSCalibSpectra_( 0 )
-                                          , actionSelChromatogram_( 0 )
-                                          , actionSelMSPeaks_( 0 )
-                                          , actionSelSpectrogram_( 0 )
                                           , stack_( 0 )
                                           , processMethodNameEdit_( new QLineEdit ) 
                                           , currentFeature_( CentroidProcess )
 {
+    std::fill( selPages_.begin(), selPages_.end(), static_cast<QAction *>(0) );
 }
 
 MainWindow *
@@ -230,40 +225,48 @@ MainWindow::createStyledBarTop()
             QList<int> globalcontext;
             globalcontext << Core::Constants::C_GLOBAL_ID;
 
-            actionSelMSProcess_ = new QAction( "MS Process", this );
-            connect( actionSelMSProcess_, SIGNAL( triggered() ), this, SLOT( actionSelMSProcess() ) );
-            am->registerAction( actionSelMSProcess_, "dataproc.selMSProcess", globalcontext );
-            toolBarLayout->addWidget( toolButton( actionSelMSProcess_ ) );
+            if ( auto p = selPages_[ idSelMSProcess ] = new QAction( "MS Process", this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSProcess ); } );
+                am->registerAction( p, "dataproc.selMSProcess", globalcontext );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
+            if ( auto p = selPages_[ idSelElementalComp] = new QAction( "Elemental Comp", this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelElementalComp ); } );
+                am->registerAction( p, "dataproc.selElementalComp", globalcontext );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
+            if ( auto p = selPages_[ idSelMSCalibration ] = new QAction( "MS Calibration", this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibration ); } );
+                am->registerAction( p, "dataproc.selMSCalibration", globalcontext );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
+            if ( auto p = selPages_[ idSelMSCalibSpectra ] = new QAction( "MS Calib. Spectra", this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibSpectra ); } );
+                am->registerAction( p, "dataproc.selMSCalibSpectra", globalcontext );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
+            if ( auto p = selPages_[ idSelChromatogram ] = new QAction( "Chromatogram", this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelChromatogram ); } );
+                am->registerAction( p, "dataproc.selChromatogram", globalcontext );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
+            if ( auto p = selPages_[ idSelMSPeaks ] = new QAction( "TOF Plots", this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSPeaks ); } );
+                am->registerAction( p, "dataproc.selTOFPlots", globalcontext );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
 
-            actionSelElementalComp_ = new QAction( "Elemental Comp", this );
-            connect( actionSelElementalComp_, SIGNAL( triggered() ), this, SLOT( actionSelElementalComp() ) );
-            am->registerAction( actionSelMSProcess_, "dataproc.selElementalComp", globalcontext );
-            toolBarLayout->addWidget( toolButton( actionSelElementalComp_ ) );
+            if ( auto p = selPages_[ idSelSpectrogram ] = new QAction( "Spectrogram", this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
+                am->registerAction( p, "dataproc.selSpectrogram", globalcontext );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
 
-            actionSelMSCalibration_ = new QAction( "MS Calibration", this );
-            connect( actionSelMSCalibration_, SIGNAL( triggered() ), this, SLOT( actionSelMSCalibration() ) );
-            am->registerAction( actionSelMSProcess_, "dataproc.selMSCalibration", globalcontext );
-            toolBarLayout->addWidget( toolButton( actionSelMSCalibration_ ) );
-
-            actionSelMSCalibSpectra_ = new QAction( "MS Calib. Spectra", this );
-            connect( actionSelMSCalibSpectra_, SIGNAL( triggered() ), this, SLOT( actionSelMSCalibSpectra() ) );
-            am->registerAction( actionSelMSProcess_, "dataproc.selMSCalibSpectra", globalcontext );
-            toolBarLayout->addWidget( toolButton( actionSelMSCalibSpectra_ ) );
-
-            actionSelChromatogram_ = new QAction( "Chromatogram", this );
-            connect( actionSelChromatogram_, SIGNAL( triggered() ), this, SLOT( actionSelChromatogram() ) );
-            am->registerAction( actionSelChromatogram_, "dataproc.selChromatogram", globalcontext );
-            toolBarLayout->addWidget( toolButton( actionSelChromatogram_ ) );
-
-            actionSelMSPeaks_ = new QAction( "TOF Plots", this );
-            connect( actionSelMSPeaks_, SIGNAL( triggered() ), this, SLOT( actionSelMSPeaks() ) );
-            am->registerAction( actionSelMSPeaks_, "dataproc.selTOFPlots", globalcontext );
-            toolBarLayout->addWidget( toolButton( actionSelMSPeaks_ ) );
-
-            actionSelSpectrogram_ = new QAction( "Spectrogram", this );
-            connect( actionSelSpectrogram_, SIGNAL( triggered() ), this, SLOT( actionSelSpectrogram() ) );
-            am->registerAction( actionSelSpectrogram_, "dataproc.selSpectrogram", globalcontext );
-            toolBarLayout->addWidget( toolButton( actionSelSpectrogram_ ) );
+            if ( auto p = selPages_[ idSelSpectra ] = new QAction( "Spectra", this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectra ); } );
+                am->registerAction( p, "dataproc.selSpectra", globalcontext );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
@@ -278,6 +281,12 @@ MainWindow::createStyledBarTop()
         toolBarLayout->addWidget( new QLineEdit );
     }
     return toolBar;
+}
+
+void
+MainWindow::selPage( idPage id )
+{
+    stack_->setCurrentIndex( id );
 }
 
 Utils::StyledBar *
@@ -383,6 +392,9 @@ MainWindow::createContents( Core::IMode * mode
 
         wnd.push_back( new SpectrogramWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "Spectrogram" ), wnd.back() ) );
+
+        wnd.push_back( new MSSpectraWnd );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( "Spectra" ), wnd.back() ) );
     }
 
     connect( SessionManager::instance(), &SessionManager::signalSessionAdded, this, &MainWindow::handleSessionAdded );
@@ -587,14 +599,16 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 {
 	if ( portfolio::Folder folder = folium.getParentFolder() ) {
 		if ( folder.name() == L"MSCalibration" ) {
-            if ( stack_->currentIndex() != 2 && stack_->currentIndex() != 3 )
-                actionSelMSCalibration();
+            if ( stack_->currentIndex() != idSelMSCalibration && stack_->currentIndex() != idSelMSCalibSpectra )
+                stack_->setCurrentIndex( idSelMSCalibration );
         } else if ( folder.name() == L"Spectra" ) {
-			if ( stack_->currentIndex() != 0 || stack_->currentIndex() != 1 )
-				actionSelMSProcess();
+            if ( stack_->currentIndex() != idSelMSProcess ||
+                stack_->currentIndex() != idSelElementalComp ||
+                stack_->currentIndex() != idSelSpectra )
+                stack_->setCurrentIndex( idSelMSProcess );
         } else if ( folder.name() == L"Spectrograms" ) {
-            if ( stack_->currentIndex() != 6 )
-                actionSelSpectrogram();
+            if ( stack_->currentIndex() != idSelSpectrogram )
+                stack_->setCurrentIndex( idSelSpectrogram );
 		}
 
         adcontrols::MassSpectrumPtr centroid;
@@ -957,48 +971,6 @@ void
 MainWindow::handleFeatureActivated( int value )
 {
     currentFeature_ = static_cast< ProcessType >( value );
-}
-
-void
-MainWindow::actionSelMSProcess()
-{
-    stack_->setCurrentIndex( 0 );
-}
-
-void
-MainWindow::actionSelElementalComp()
-{
-    stack_->setCurrentIndex( 1 );
-}
-
-void
-MainWindow::actionSelMSCalibration()
-{
-    stack_->setCurrentIndex( 2 );
-}
-
-void
-MainWindow::actionSelMSCalibSpectra()
-{
-    stack_->setCurrentIndex( 3 );
-}
-
-void
-MainWindow::actionSelChromatogram()
-{
-    stack_->setCurrentIndex( 4 );
-}
-
-void
-MainWindow::actionSelMSPeaks()
-{
-    stack_->setCurrentIndex( 5 );
-}
-
-void
-MainWindow::actionSelSpectrogram()
-{
-    stack_->setCurrentIndex( 6 );
 }
 
 void

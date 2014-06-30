@@ -290,7 +290,7 @@ MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
     plot.replot();
 	plot.zoomer().setZoomBase( false );
 
-    MainWindow::instance()->actionSelMSPeaks();
+    MainWindow::instance()->selPage( MainWindow::idSelMSPeaks );
 }
 
 void
@@ -357,7 +357,7 @@ MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& pe
 	plot.replot();
 	plot.zoomer().setZoomBase( false );
 
-    MainWindow::instance()->actionSelMSPeaks();
+    MainWindow::instance()->selPage( MainWindow::idSelMSPeaks );
 }
 
 void

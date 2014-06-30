@@ -59,6 +59,7 @@ SOURCES += \
     mscalibrationwnd.cpp \
     mscalibspectrawnd.cpp \
     msprocessingwnd.cpp \
+    msspectrawnd.cpp \
     navigationdelegate.cpp \
     navigationwidget.cpp \
     navigationwidgetfactory.cpp \
@@ -90,6 +91,7 @@ HEADERS += \
     mscalibrationwnd.hpp \
     mscalibspectrawnd.hpp \
     msprocessingwnd.hpp \
+    msspectrawnd.hpp \
     navigationdelegate.hpp \
     navigationwidget.hpp \
     navigationwidgetfactory.hpp \
