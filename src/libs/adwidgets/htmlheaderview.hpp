@@ -37,7 +37,9 @@ namespace adwidgets {
 
     class HtmlHeaderView : public QHeaderView {
     public:
-        HtmlHeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0) : QHeaderView( orientation, parent ) {}
+        HtmlHeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0) : QHeaderView( orientation, parent ) {
+            setClickable( true );
+        }
             
         void paintSection( QPainter * painter, const QRect& rect, int logicalIndex ) const override {
             
