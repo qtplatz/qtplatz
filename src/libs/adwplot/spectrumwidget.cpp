@@ -320,7 +320,8 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
     setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.top(), rect.bottom() );
     
-    zoomer1_->setZoomBase( true );
+    if ( !yaxis2 )
+        zoomer1_->setZoomBase( true );
 
     if ( keepZoomed_ ) // if ( ! addedTrace )
         Dataplot::zoom( z ); // push previous rect

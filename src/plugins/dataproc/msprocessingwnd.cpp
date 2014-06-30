@@ -244,7 +244,10 @@ MSProcessingWnd::draw1()
 void
 MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
-    pImpl_->processedSpectrum_->setData( ptr, static_cast<int>(drawIdx2_++) );
+    if ( ptr->isCentroid() )
+        pImpl_->processedSpectrum_->setData( ptr, static_cast<int>(drawIdx2_++) );
+    else
+        pImpl_->processedSpectrum_->setData( ptr, static_cast<int>(drawIdx2_++), true );        
 }
 
 void
@@ -614,18 +617,21 @@ MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
 {
     QMenu menu;
     
-    std::array< QAction *, 2 > fixedActions;
+    std::array< QAction *, 3 > fixedActions;
     fixedActions[ 0 ] = menu.addAction( "Copy to Clipboard" );
     fixedActions[ 1 ] = menu.addAction( "Save as SVG File..." );
+    fixedActions[ 2 ] = menu.addAction( "Dismiss" );
     
     QAction * selectedItem = menu.exec( QCursor::pos() );
     if ( fixedActions[ 0 ] == selectedItem )
         adwplot::Dataplot::copyToClipboard( pImpl_->pwplot_ );
     else if ( fixedActions[ 1 ] == selectedItem ) {
-        QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File", MainWindow::makePrintFilename( idSpectrumFolium_, L"_power_" ), tr("SVG (*.svg)") );
-        if ( ! name.isEmpty() )
+        QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File", MainWindow::makePrintFilename( idSpectrumFolium_, L"_power_" ), tr( "SVG (*.svg)" ) );
+        if ( !name.isEmpty() )
             adwplot::Dataplot::copyImageToFile( pImpl_->pwplot_, name, "svg" );
     }
+    else if ( fixedActions[ 2 ] == selectedItem )
+        pImpl_->pwplot_->hide();
 }
 
 void
