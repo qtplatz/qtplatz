@@ -318,6 +318,13 @@ MainWindow::createStyledBarMiddle()
 
             connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MainWindow::handleFeatureSelected ); // (int) ) );
             connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &MainWindow::handleFeatureActivated );
+            features->setContextMenuPolicy( Qt::CustomContextMenu );
+
+            connect( features, &QComboBox::customContextMenuRequested, [=] ( QPoint pt ){
+                    QMenu menu;
+                    menu.addAction( am->command( Constants::PROCESS_ALL_CHECKED )->action() );
+                    menu.exec( features->mapToGlobal( pt ) );
+                } );
 
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -771,8 +778,17 @@ MainWindow::handleProcessChecked()
             if ( auto processor = session.processor() ) {
                 if ( currentFeature_ == CalibrationProcess )
                     processor->applyCalibration( m );
-                else
-                    processor->applyProcess( m, currentFeature_ );
+                else {
+                    for ( auto& folder : processor->portfolio().folders() ) {
+                        for ( auto& folium : folder.folio() ) {
+                            if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                                if ( folium.empty() )
+                                    processor->fetch( folium );
+                                processor->applyProcess( folium, m, currentFeature_ );
+                            }
+                        }
+                    }
+                }
             }
         }
     }
