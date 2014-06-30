@@ -29,7 +29,7 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
-#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
@@ -37,6 +37,8 @@
 #include <adwplot/spectrogramwidget.hpp>
 #include <adwidgets/msmergedtable.hpp>
 #include <portfolio/folium.hpp>
+#include <portfolio/folder.hpp>
+#include <portfolio/portfolio.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
 
@@ -148,35 +150,48 @@ MSSpectraWnd::draw( adutils::ChromatogramPtr& ptr )
 #endif
 
 void
-MSSpectraWnd::handleSessionAdded( Dataprocessor * )
+MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 {
-	/*
-    adcontrols::datafile& file = processor->file();
-    QString filename( qtwrapper::qstring::copy( file.filename() ) );
-    const adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
-    if ( dset ) {
-        adcontrols::Chromatogram c;
-        if ( dset->getTIC( 0, c ) ) {
-            c.addDescription( adcontrols::Description( L"filename", file.filename() ) );
-            //pImpl_->setData( c, filename );
+    dataIds_.clear();
+    int idx = 0;
+    if ( auto folder = processor->portfolio().findFolder( L"Spectra" ) ) {
+
+		// fullpath_ = QString::fromStdWString( processor->filename() );
+        for ( auto& folium: folder.folio() ) {
+            if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                if ( folium.empty() )
+                    processor->fetch( folium );
+                auto atts = folium.attachments();
+                auto itCentroid = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
+                if ( itCentroid != atts.end() ) {
+                    dataIds_[ folium.id() ] = idx; // keep id for profile (quicker to find than an attachment id)
+                    auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
+                    plot_->setData( centroid, idx++ );
+                }
+            }
         }
     }
-	*/
 }
 
 void
-MSSpectraWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& folium )
+MSSpectraWnd::handleSelectionChanged( Dataprocessor *, portfolio::Folium& folium )
 {
-#if 0
-    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-    boost::apply_visitor( selChanged<MSSpectraWnd>(*this), data );
+    if ( folium.attribute( L"isChecked" ) == L"false" )
+        return;
 
-    portfolio::Folio attachments = folium.attachments();
-    for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-        adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-        boost::apply_visitor( selProcessed<MSSpectraWnd>( *this ), contents );
-    }
-#endif
+    int idx = 0;
+    auto it = dataIds_.find( folium.id() );
+    if ( it != dataIds_.end() )
+        idx = it->second;
+    else
+        idx = int( dataIds_.size() );
+    auto atts = folium.attachments();
+    auto itCentroid = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
+    if ( itCentroid != atts.end() ) {
+        auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
+        dataIds_[ folium.id() ] = idx;
+        plot_->setData( centroid, idx );
+    }        
 }
 
 void

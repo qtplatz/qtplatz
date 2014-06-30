@@ -64,6 +64,7 @@ namespace dataproc {
         
     private:
         void init();
+        std::map< std::wstring, int > dataIds_;
 
         std::unique_ptr< adwidgets::MSMergedTable > table_;
         std::unique_ptr< adwplot::SpectrumWidget > plot_;

@@ -493,7 +493,6 @@ MainWindow::createDockWidgets()
         const char * title;
         const char * wiid;
         const char * pageName;
-        //QWidget * (*factory)(QWidget *);
         std::function<QWidget *()> factory;
     } widgets [] = { 
         { "Centroid",         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
@@ -518,7 +517,6 @@ MainWindow::createDockWidgets()
             adplugin::LifeCycleAccessor accessor( pWidget );
             if ( adplugin::LifeCycle * p = accessor.get() ) {
                 if ( auto wnd = findChild< MSPeaksWnd *>() ) {
-                    // boost::any a( msPeaksWnd_ );
                     boost::any a( static_cast<QWidget *>(wnd) );
                     p->setContents( a );
                 }
