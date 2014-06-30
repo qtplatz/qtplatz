@@ -78,6 +78,7 @@ namespace dataproc {
         //void handleCreateChromatograms( const adcontrols::MassSpectrum&, double lMass, double hMass );
         DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
         dataproc::ActionManager * actionManager() { return pActionManager_.get(); }
+        void handleFileCreated( const QString& filename );
         
     signals:
         void onApplyMethod( const adcontrols::ProcessMethod& );

@@ -275,3 +275,35 @@ fsio2::appendOnFile( const std::wstring& filename, const portfolio::Folium& foli
     return detail::folium::save( dbf, pathname, source, xfolium );
 }
 
+// static
+bool
+fsio2::open( adfs::filesystem& fs, const std::wstring& filename )
+{
+    if ( !boost::filesystem::exists( filename ) ) {
+        if ( !fs.create( filename.c_str() ) )
+            return false;
+    } else {
+        if ( ! fs.mount( filename.c_str() ) )
+            return false;
+    }
+    return true;
+}
+
+bool
+fsio2::append( adfs::filesystem& fs
+               , const portfolio::Folium& folium
+               , const adcontrols::datafile& source )
+{
+	portfolio::Folder folder = folium.getParentFolder();
+    boost::filesystem::path pathname = adportable::path::posix( boost::filesystem::path( "/Processed" ) / folder.name() );
+
+    adfs::folder dbf = fs.addFolder( pathname.wstring() );
+    detail::import::attributes( dbf, folder.attributes() );
+
+    std::wstring name = boost::filesystem::path( source.filename() ).leaf().wstring() + L":" + folium.name();
+    portfolio::Folium xfolium( folium );
+    xfolium.name( name );
+
+    return detail::folium::save( dbf, pathname, source, xfolium );
+}
+

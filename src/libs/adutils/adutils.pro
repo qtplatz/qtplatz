@@ -17,7 +17,7 @@ include (../../boost.pri)
 
 SOURCES += adutils.cpp \
     processeddata.cpp \
-    adfsio.cpp \
+    adfile.cpp \
     cpio.cpp \
     fsio.cpp \
     fsio2.cpp \
@@ -28,6 +28,7 @@ SOURCES += adutils.cpp \
 HEADERS += adutils.hpp \
     processeddata.hpp \
     adfsio.hpp \
+    adfile.hpp \
     cpio.hpp \
     fsio.hpp \
     fsio2.hpp \

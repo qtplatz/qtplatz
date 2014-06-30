@@ -125,7 +125,7 @@ PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
     // inst.set_value( "version='1.0' encoding='UTF-8'" );
 
     pugi::xml_node comm = doc_.append_child( pugi::node_comment );
-    comm.set_value( "Copyright(C) 2010-2013, Toshinobu Hondo, MS-Cheminformatics, All rights reserved." );
+    comm.set_value( "Copyright(C) 2010-2014, MS-Cheminformatics LLC, All rights reserved." );
 
     // create "/xtree/dataset" entry
     pugi::xml_node top = doc_.append_child();

@@ -124,9 +124,9 @@ Dataprocessor::Dataprocessor() : portfolio_( new portfolio::Portfolio() )
 }
 
 bool
-Dataprocessor::create(const QString& token )
+Dataprocessor::create(const QString& filename )
 {
-    boost::filesystem::path path( qtwrapper::wstring::copy( token ) );
+    boost::filesystem::path path( qtwrapper::wstring::copy( filename ) );
     path.replace_extension( L".adfs" );
     portfolio_->create_with_fullpath( path.wstring() );
 

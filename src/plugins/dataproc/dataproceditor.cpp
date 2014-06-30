@@ -63,10 +63,10 @@ DataprocEditor::createNew( const QString &contents )
 }
 
 bool
-DataprocEditor::portfolio_create( const QString& token )
+DataprocEditor::portfolio_create( const QString& filename )
 {
     std::shared_ptr<Dataprocessor> processor( new Dataprocessor );
-    if ( processor->create( token ) ) {
+    if ( processor->create( filename ) ) {
         SessionManager::instance()->addDataprocessor( processor, this );
         file_ = processor->ifile();
         return file_;

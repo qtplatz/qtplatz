@@ -93,6 +93,7 @@ namespace dataproc {
         static QString currentDir();
 
         void handleProcessAllSpectra();
+        void handleImportAllSpectra();
         void handleExportPeakList();
 
     public slots:

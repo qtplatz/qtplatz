@@ -22,41 +22,47 @@
 **
 **************************************************************************/
 
-#ifndef FSIO2_HPP
-#define FSIO2_HPP
-
-#include <string>
+#include "adfile.hpp"
+#include "fsio2.hpp"
+#include <adfs/filesystem.hpp>
 #include <boost/filesystem.hpp>
 
-namespace adcontrols {
-    class MassSpectrum;
-    class Chromatogram;
-    class ProcessMethod;
-    class ElementalCompositionCollection;
-    class MSCalibrateResult;
-	class PeakResult;
-	class datafile;
+using namespace adutils;
+
+adfile::~adfile()
+{
 }
 
-namespace adinterface {
-    class Method;
+adfile::adfile()
+{
 }
 
-namespace adfs { class filesystem; class folder; class file; }
-namespace portfolio { class Portfolio; class Folium; }
-
-namespace adutils {
-	
-	class fsio2 {
-    public:
-        fsio2();
-
-        static bool saveContents( adfs::filesystem&, const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& );
-        static bool appendOnFile( const std::wstring& file, const portfolio::Folium&, const adcontrols::datafile& );
-        static bool open( adfs::filesystem&, const std::wstring& );
-        static bool append( adfs::filesystem&, const portfolio::Folium&, const adcontrols::datafile& );
-    };
-
+adfile::adfile( const boost::filesystem::path& filename )
+{
+    open( filename );
 }
 
-#endif // FSIO2_HPP
+bool
+adfile::open( const boost::filesystem::path& filename )
+{
+    if ( std::shared_ptr< adfs::filesystem > fs = std::make_shared< adfs::filesystem >() ) {
+        if ( fsio2::open( *fs, filename.wstring() ) ) {
+            fs_ = fs;
+            return true;
+        }
+    }
+    return false;
+}
+
+adfile::operator bool () const
+{
+    return fs_ != 0;
+}
+
+bool
+adfile::append( const portfolio::Folium& folium, const adcontrols::datafile& datasource )
+{
+    if ( fs_ ) 
+        return fsio2::append( *fs_, folium, datasource );
+    return false;
+}

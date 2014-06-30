@@ -62,6 +62,7 @@ namespace dataproc {
             , idActUncheckAllSpectra
             , idActApplyProcessToAllChecked
             , idActExportPeakListAllChecked
+            , idActImportAllChecked  // a.k.a. merge into a file
             , idActCreateSpectrogram
             , idActClusterSpectrogram
             , numOfActions
@@ -95,11 +96,8 @@ namespace dataproc {
         void actPrintCurrentView();
         void actCalibFileApply();
     private:
-        void handleCheckAllSpectra();
-        void handleUncheckAllSpectra();
-        void handleProcessAllSpectra();
-        void handleExportPeakList();
-        
+        void handleCheckAllSpectra();   // handled by NavigationWidget
+        void handleUncheckAllSpectra(); // handled by NavigationWidget
         
         static QAction * create( const QString& icon_name, const QString& baloon, QObject * parent );
     };

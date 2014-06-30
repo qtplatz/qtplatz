@@ -54,6 +54,7 @@
 #include <adprot/digestedpeptides.hpp>
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
+#include <adutils/adfile.hpp>
 #include <adwidgets/centroidform.hpp>
 #include <adwidgets/peptidewidget.hpp>
 #include <adwidgets/mspeaktable.hpp>
@@ -478,14 +479,14 @@ MainWindow::createDockWidgets()
     } widgets [] = { 
         { "Centroid",         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { "MS Peaks",       "adwidgets::MSPeakTable",           "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
-        , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod", 0 }
-        , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod", 0 }
-        , { "Targeting",      "qtwidgets::TargetForm",            "TargetMethod", 0 }
+        , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod",  }
+        , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod",  }
+        , { "Targeting",      "qtwidgets::TargetForm",            "TargetMethod",  }
         , { "Peptide",        "adwidgets::PeptideWidget",         "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
-        , { "Elemental Comp.","qtwidgets::ElementalCompositionForm", "EleCompMethod", 0 }
-        , { "Peak Find",      "qtwidgets::PeakMethodForm",        "PeakFindMethod", 0 }
+        , { "Elemental Comp.","qtwidgets::ElementalCompositionForm", "EleCompMethod",  }
+        , { "Peak Find",      "qtwidgets::PeakMethodForm",        "PeakFindMethod",  }
         , { "Data property",  "dataproc::MSPropertyForm",         "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
-        , { "TOF Peaks",      "qtwidgets2::MSPeakView",           "TOFPeaks", 0 }
+        , { "TOF Peaks",      "qtwidgets2::MSPeakView",           "TOFPeaks",  }
     };
     
     for ( auto& widget: widgets ) {
@@ -780,11 +781,9 @@ MainWindow::handleProcessAllSpectra()
 void
 MainWindow::handleExportPeakList()
 {
-    boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
-    dir /= L"data";
-
-    QString filename = QFileDialog::getSaveFileName( 0, tr( "Save peak list for all checked spectra")
-                                                     , QString::fromStdWString( dir.wstring() )
+    QString filename = QFileDialog::getSaveFileName( 0
+                                                     , tr( "Save peak list for all checked spectra")
+                                                     , currentDir()
                                                      , tr( "Text files(*.txt)" ) );
     if ( filename.isEmpty() )
         return;
@@ -838,6 +837,39 @@ MainWindow::handleExportPeakList()
             }
         }
     }
+}
+
+void
+MainWindow::handleImportAllSpectra()
+{
+    QString filename = QFileDialog::getSaveFileName( 0
+                                                     , tr( "Import checked spectra into a file")
+                                                     , currentDir()
+                                                     , tr( "QtPlatz files(*.adfs)" ) );
+    if ( filename.isEmpty() )
+        return;
+
+    bool handled(false);
+    do {
+        adutils::adfile adfile;
+        if ( adfile.open( boost::filesystem::path( filename.toStdWString() ) ) ) {
+            handled = true;
+            for ( auto& session : *SessionManager::instance() ) {
+                if ( auto processor = session.processor() ) {
+                    for ( auto& folder : processor->portfolio().folders() ) {
+                        for ( auto& folium : folder.folio() ) {
+                            if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                                adfile.append( folium, processor->file() );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } while ( 0 );
+
+    if ( handled )
+        DataprocPlugin::instance()->handleFileCreated( filename );
 }
 
 void

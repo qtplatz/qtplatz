@@ -22,41 +22,30 @@
 **
 **************************************************************************/
 
-#ifndef FSIO2_HPP
-#define FSIO2_HPP
+#pragma once
 
-#include <string>
-#include <boost/filesystem.hpp>
-
-namespace adcontrols {
-    class MassSpectrum;
-    class Chromatogram;
-    class ProcessMethod;
-    class ElementalCompositionCollection;
-    class MSCalibrateResult;
-	class PeakResult;
-	class datafile;
-}
-
-namespace adinterface {
-    class Method;
-}
+#include <memory>
 
 namespace adfs { class filesystem; class folder; class file; }
 namespace portfolio { class Portfolio; class Folium; }
+namespace boost { namespace filesystem { class path; } }
+namespace adcontrols { class datafile; }
 
 namespace adutils {
 	
-	class fsio2 {
-    public:
-        fsio2();
+    // high level data file io over adfs::filesystem and adfs::file
 
-        static bool saveContents( adfs::filesystem&, const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& );
-        static bool appendOnFile( const std::wstring& file, const portfolio::Folium&, const adcontrols::datafile& );
-        static bool open( adfs::filesystem&, const std::wstring& );
-        static bool append( adfs::filesystem&, const portfolio::Folium&, const adcontrols::datafile& );
+	class adfile {
+    public:
+        ~adfile();
+        adfile();
+        adfile( const boost::filesystem::path& filename );
+        operator bool () const;
+        bool open( const boost::filesystem::path& );
+        bool append( const portfolio::Folium&, const adcontrols::datafile& );
+    private:
+        std::shared_ptr< adfs::filesystem > fs_;
     };
 
 }
 
-#endif // FSIO2_HPP

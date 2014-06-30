@@ -78,6 +78,7 @@ ActionManager::install_file_actions()
             menu->addAction( am->command( Constants::CALIBFILE_APPLY ) );
             menu->addAction( am->command( Constants::PROCESS_ALL_CHECKED ) );
             menu->addAction( am->command( Constants::LISTPEAKS_ON_CHECKED ) );
+            menu->addAction( am->command( Constants::IMPORT_ALL_CHECKED ) );
 
             menu->addAction( am->command( Constants::CREATE_SPECTROGRAM ) );
             menu->addAction( am->command( Constants::CLUSTER_SPECTROGRAM ) );
@@ -137,17 +138,17 @@ ActionManager::initialize_actions( const QList<int>& context )
 
         if ( auto p = actions_[ idActApplyProcessToAllChecked ] = new QAction( tr( "Apply process to all checked spectra" ), this ) ) {
             am->registerAction( p, Constants::PROCESS_ALL_CHECKED, context );
-            connect( p, &QAction::triggered, this, &ActionManager::handleProcessAllSpectra );
+            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleProcessAllSpectra );
         }
 
         if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra..." ), this ) ) {
             am->registerAction( p, Constants::LISTPEAKS_ON_CHECKED, context );
-            connect( p, &QAction::triggered, this, &ActionManager::handleExportPeakList );
+            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportPeakList );
         }
 
         if ( auto p = actions_[ idActImportAllChecked ] = new QAction( tr( "Import and merge all checked spectra..." ), this ) ) {
             am->registerAction( p, Constants::IMPORT_ALL_CHECKED, context );
-            connect( p, &QAction::triggered, this, &ActionManager::handleImportAllSpectra );
+            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleImportAllSpectra );
         }
 
 		if ( auto p = actions_[ idActCreateSpectrogram ] = new QAction( tr("Create Spectrogram"), this ) ) {
@@ -428,16 +429,3 @@ ActionManager::handleContextChanged( Core::IContext * context )
 	}
 }
 
-void
-ActionManager::handleProcessAllSpectra()
-{
-    if ( auto w = MainWindow::instance() )
-        w->handleProcessAllSpectra();
-}
-
-void
-ActionManager::handleExportPeakList()
-{
-    if ( auto w = MainWindow::instance() )
-        w->handleExportPeakList();
-}
