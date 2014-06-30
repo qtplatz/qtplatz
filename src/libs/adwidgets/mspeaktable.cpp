@@ -135,7 +135,7 @@ namespace adwidgets {
             dataMayChanged( MSPeakTable * table ) : pThis_( table ) {}
             bool operator()( std::weak_ptr< adcontrols::MassSpectrum >& wptr ) const {
                 if ( auto ptr = wptr.lock() )
-                    pThis_->dataChanged( *ptr );
+                    pThis_->setData( *ptr );
                 return true;
             }
             bool operator()( std::weak_ptr< adcontrols::MSPeakInfo >& ) const {
@@ -198,7 +198,7 @@ MSPeakTable::onUpdate( boost::any& a )
         auto ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( a );
         auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
         if ( wptr.lock() == ptr )
-            dataChanged( *ptr );                        
+            setData( *ptr );                        
 
     } else if ( a.type() == typeid(int) ) {
         // dataMayChanged on MainWindow invoke this method over applyCalibration()
@@ -371,7 +371,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 }
 
 void
-MSPeakTable::dataChanged( const adcontrols::MassSpectrum& ms )
+MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
 {
 	QStandardItemModel& model = *model_;
 
@@ -380,12 +380,12 @@ MSPeakTable::dataChanged( const adcontrols::MassSpectrum& ms )
     for( auto& t: segs )
         total_size += t.size();
 
-    if ( total_size != model.rowCount() ) {
+    if ( int(total_size) != model.rowCount() ) {
         setPeakInfo( ms );
         return;
     }
 
-    for ( int row = 0; row < total_size; ++row ) {
+    for ( int row = 0; row < int(total_size); ++row ) {
 
         int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
         int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
@@ -550,24 +550,6 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         QAction * selected = menu.exec( this->mapToGlobal( pt ) );
         if ( selected )
             emit triggerLockMass( refs );
-        /*
-        QString formula = model_->data( model_->index( index.row(), c_mspeaktable_formula ) ).toString();
-        if ( !formula.isEmpty() ) {
-            actions.push_back( menu.addAction( "Lock mass with this peak" ) );
-            QAction * selected = menu.exec( this->mapToGlobal( pt ) );
-            if ( selected ) {
-                int idx = model_->data( model_->index( index.row(), c_mspeaktable_index ) ).toInt();
-                int fcn = model_->data( model_->index( index.row(), c_mspeaktable_fcn ) ).toInt();
-                emit triggerLockMass( idx, fcn );
-            }
-        } else {
-            actions.push_back( menu.addAction( "Lock mass" ) );
-            QAction * selected = menu.exec( this->mapToGlobal( pt ) );
-            if ( selected ) {
-                emit triggerLockMass( -1, -1 );
-            }
-        }
-        */
     }
 }
 

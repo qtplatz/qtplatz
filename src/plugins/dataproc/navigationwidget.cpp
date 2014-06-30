@@ -638,8 +638,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     menu.add( QString( "Uncheck all for %1" ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
                 }
             }
-
-            if ( qVariantCanConvert< portfolio::Folium >( data ) ) { // an item selected
+            else if ( qVariantCanConvert< portfolio::Folium >( data ) ) { // an item of [Spectrum|Chrmatogram] selected
 
                 //menu.add( tr( "Check all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
                 //menu.add( tr( "Uncheck all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
@@ -657,24 +656,28 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     if ( bool isSpectrum = portfolio::is_type< adutils::MassSpectrumPtr >( folium ) ) {
                         portfolio::Folio atts = folium.attachments();
                         auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& a ){
-                            return a.name() == Constants::F_CENTROID_SPECTRUM;
-                        } );
+                                return a.name() == Constants::F_CENTROID_SPECTRUM;
+                            } );
                         bool hasCentroid = itCentroid != atts.end();
                         auto itFiltered = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& a ){
-                            return a.name() == Constants::F_DFT_FILTERD;
-                        } );
+                                return a.name() == Constants::F_DFT_FILTERD;
+                            } );
                         bool hasFilterd = itFiltered != atts.end();
 
-                        // enum { asProfile, asCentroid, doCalibration, subBackground, removedChecked, removeChecked, asDFTProfile, numActions };
-
                         menu.add( "Save profile spectrum as...", SaveSpectrumAs( asProfile, folium ), isSpectrum );
-                        menu.add( "Save centroid spectrum as...", SaveSpectrumAs( asCentroid, itCentroid != atts.end() ? *itCentroid : portfolio::Folium() ), hasCentroid );
-                        menu.add( "Save DFT filtered spectrum as...", SaveSpectrumAs( asDFTProfile, itFiltered != atts.end() ? *itFiltered : portfolio::Folium() ), hasFilterd );
+                        portfolio::Folium centroid = itCentroid != atts.end() ? *itCentroid : portfolio::Folium();
+
+                        menu.add( "Save centroid spectrum as...", SaveSpectrumAs( asCentroid, centroid ), hasCentroid );
+                        portfolio::Folium filtered = itFiltered != atts.end() ? *itCentroid : portfolio::Folium();
+                        menu.add( "Save DFT filtered spectrum as...", SaveSpectrumAs( asDFTProfile, filtered ), hasFilterd );
 
                         menu.add( "Send checked spectra to calibration folder", CalibrationAction() );
+
                         menu.menu.addSeparator();
+
                         menu.add( QString( "Subtract background '%1' from '%2'" ).arg( selected_spectrum, active_spectrum )
                             , BackgroundSubtraction( active_folium, folium ), !active_spectrum.isEmpty() );
+
                         menu.add( "Remove unchecked items", RemoveChecked( this ) );
                     }
                 }
