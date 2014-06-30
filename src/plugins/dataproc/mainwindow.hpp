@@ -92,8 +92,8 @@ namespace dataproc {
         static std::wstring portfolioFilename( const std::wstring& id );
         static QString currentDir();
 
-        void handleProcessAllSpectra();
-        void handleImportAllSpectra();
+        void handleProcessChecked();
+        void handleImportChecked();
         void handleExportPeakList();
 
     public slots:

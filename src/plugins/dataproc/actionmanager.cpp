@@ -138,7 +138,7 @@ ActionManager::initialize_actions( const QList<int>& context )
 
         if ( auto p = actions_[ idActApplyProcessToAllChecked ] = new QAction( tr( "Apply process to all checked spectra" ), this ) ) {
             am->registerAction( p, Constants::PROCESS_ALL_CHECKED, context );
-            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleProcessAllSpectra );
+            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleProcessChecked );
         }
 
         if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra..." ), this ) ) {
@@ -148,7 +148,7 @@ ActionManager::initialize_actions( const QList<int>& context )
 
         if ( auto p = actions_[ idActImportAllChecked ] = new QAction( tr( "Import and merge all checked spectra..." ), this ) ) {
             am->registerAction( p, Constants::IMPORT_ALL_CHECKED, context );
-            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleImportAllSpectra );
+            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleImportChecked );
         }
 
 		if ( auto p = actions_[ idActCreateSpectrogram ] = new QAction( tr("Create Spectrogram"), this ) ) {

@@ -761,7 +761,7 @@ MainWindow::onMethodApply( adcontrols::ProcessMethod& pm )
 }
 
 void
-MainWindow::handleProcessAllSpectra()
+MainWindow::handleProcessChecked()
 {
     qtwrapper::waitCursor wait;
     adcontrols::ProcessMethod m;
@@ -840,10 +840,10 @@ MainWindow::handleExportPeakList()
 }
 
 void
-MainWindow::handleImportAllSpectra()
+MainWindow::handleImportChecked()
 {
     QString filename = QFileDialog::getSaveFileName( 0
-                                                     , tr( "Import checked spectra into a file")
+                                                     , tr( "Import checked data into a file")
                                                      , currentDir()
                                                      , tr( "QtPlatz files(*.adfs)" ) );
     if ( filename.isEmpty() )
