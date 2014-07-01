@@ -33,6 +33,7 @@
 #include <adcontrols/msqpeaks.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwplot/spectrogramwidget.hpp>
+#include <adwplot/peakmarker.hpp>
 #include <adwidgets/msquantable.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
@@ -64,6 +65,7 @@ MSSpectraWnd::~MSSpectraWnd()
 MSSpectraWnd::MSSpectraWnd( QWidget *parent ) :  QWidget(parent)
                                               , plot_( new adwplot::SpectrumWidget )
                                               , table_( new adwidgets::MSQuanTable )
+                                              , marker_( new adwplot::PeakMarker )
 {
     init();
 }
@@ -75,10 +77,13 @@ MSSpectraWnd::init()
     if ( splitter ) {
         if ( adplugin::LifeCycle * p = dynamic_cast<adplugin::LifeCycle *>(table_.get()) ) {
             p->OnInitialUpdate();
-            //connect( this, SIGNAL( fireSetData( const adcontrols::PeakResult& ) ),
-            //    pImpl_->peakWidget_, SLOT( setData( const adcontrols::PeakResult& ) ) );
         }
+        // connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProfile( const QRectF& ) ) );
         plot_->enableAxis( QwtPlot::yRight );
+        marker_->attach( plot_.get() );
+        marker_->visible( true );
+        marker_->setYAxis( QwtPlot::yRight );
+
         splitter->addWidget( plot_.get() );
         splitter->addWidget( table_.get() );
         splitter->setOrientation( Qt::Vertical );
@@ -88,6 +93,11 @@ MSSpectraWnd::init()
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( splitter );
+
+    connect( table_.get()
+        , static_cast<void (adwidgets::MSQuanTable::*)(int, int, const QString&, const QString&)>(&adwidgets::MSQuanTable::currentChanged)
+        , this
+        , &MSSpectraWnd::handleCurrentChanged );
 }
 
 void
@@ -139,8 +149,10 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         return;
     }
 
-    if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) )
+    if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
         plot_->setData( profile, 0, true );
+        profile_ = profile;
+    }
 
     int idx = 1; // start with 1 ( 0 was reserved for profile )
     auto it = dataIds_.find( folium.id() );
@@ -153,6 +165,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
     auto itCentroid = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
     if ( itCentroid != atts.end() ) {
         auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
+        processed_ = centroid;
         dataIds_[ folium.id() ] = idx;
         plot_->setData( centroid, idx );
         if ( auto * qpks = document::instance()->msQuanTable() ) {
@@ -176,11 +189,19 @@ void
 MSSpectraWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool )
 {
 }
-///////////////////////////
 
-// void
-// MSSpectraWndImpl::setData( const adcontrols::Chromatogram& c, const QString& )
-// {
-//     chroWidget_->setData( c );
-// }
+void
+MSSpectraWnd::handleCurrentChanged( int idx, int fcn, const QString& dataGuid, const QString& parentGuid )
+{
+    plot_->setFocusedFcn( fcn );
+    if ( auto processed = processed_.lock() ) {
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *processed );
+        if ( segs.size() > size_t( fcn ) ) {
+            marker_->setPeak( segs[ fcn ], idx );
+            plot_->replot();
+        }
+    }
+}
+
+///////////////////////////
 

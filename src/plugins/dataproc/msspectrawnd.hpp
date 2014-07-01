@@ -40,7 +40,7 @@ namespace adcontrols {
 }
 
 namespace adwidgets { class MSQuanTable; }
-namespace adwplot { class SpectrumWidget;  }
+namespace adwplot { class SpectrumWidget; class PeakMarker; }
 
 namespace dataproc {
 
@@ -52,9 +52,6 @@ namespace dataproc {
         explicit MSSpectraWnd( QWidget *parent = 0);
         ~MSSpectraWnd();
         
-        void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
-        
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
@@ -64,10 +61,14 @@ namespace dataproc {
         
     private:
         void init();
+        void handleCurrentChanged( int idx, int fcn, const QString& dataGuid, const QString& parentGuid );
         std::map< std::wstring, int > dataIds_;
+        std::weak_ptr< adcontrols::MassSpectrum > profile_;
+        std::weak_ptr< adcontrols::MassSpectrum > processed_;
 
         std::unique_ptr< adwidgets::MSQuanTable > table_;
         std::unique_ptr< adwplot::SpectrumWidget > plot_;
+        std::unique_ptr< adwplot::PeakMarker > marker_;
     };
 }
 
