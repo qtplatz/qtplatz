@@ -139,6 +139,7 @@ namespace adwplot {
             void setData( Dataplot& plot
                           , const std::shared_ptr< adcontrols::MassSpectrum>&
                           , QRectF&, SpectrumWidget::HorizontalAxis, bool yRight );
+            void redraw( Dataplot& plot, SpectrumWidget::HorizontalAxis, QRectF&, QRectF& );
             void setFocusedFcn( int fcn );
             std::pair<double, double> y_range( double left, double right ) const;
             bool yRight() const { return yRight_; }
@@ -344,12 +345,15 @@ SpectrumWidget::autoAnnotation() const
 }
 
 void
-SpectrumWidget::setAxis( HorizontalAxis haxis )
+SpectrumWidget::setAxis( HorizontalAxis haxis, bool replot )
 {
-    clear();
     haxis_ = haxis;
     impl_->isTimeAxis_ = haxis == HorizontalAxisTime;
     setAxisTitle(QwtPlot::xBottom, QwtText( haxis_ == HorizontalAxisMass ? "<i>m/z</i>" : "Time[&mu;s]", QwtText::RichText) );
+    if ( replot ) {
+        redraw_all();
+    } else
+        clear();
 }
 
 void
@@ -357,8 +361,29 @@ SpectrumWidget::removeData( int idx )
 {
     if ( idx < impl_->traces_.size() ) {
         impl_->traces_[ idx ] = spectrumwidget::TraceData( idx );
+        impl_->clear_annotations();
         replot();
     }
+}
+
+void
+SpectrumWidget::redraw_all()
+{
+    QRectF rcLeft, rcRight;
+
+    for ( auto& trace: impl_->traces_ )
+        trace.redraw( *this, haxis_, rcLeft, rcRight );
+
+    if ( !rcLeft.isNull() ) {
+        setAxisScale( QwtPlot::xBottom, rcLeft.left(), rcLeft.right() );
+        setAxisScale( QwtPlot::yLeft, rcLeft.bottom(), rcLeft.top() );
+    }
+    if ( !rcRight.isNull() ) {
+        if ( rcLeft.isNull() )
+            setAxisScale( QwtPlot::xBottom, rcRight.left(), rcRight.right() );
+        setAxisScale( QwtPlot::yRight, rcRight.bottom(), rcRight.top() );
+    }
+    replot();
 }
 
 void
@@ -481,13 +506,32 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
         } else {
             curves_.push_back( PlotCurve( plot ) );
             PlotCurve &curve = curves_.back();
-            QColor color( color_table[ idx_ ] ); // set color corresponding to idx, if spectrum has no color array
-            curve.p()->setPen( QPen( color_table[ 0 ] ) );
+            QColor color( color_table[ 0 ] );
+            color.setAlpha( 255 - (idx_ * 16) );
+            curve.p()->setPen( QPen( color ) );
             curve.p()->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
             curve.p()->setStyle( QwtPlotCurve::Sticks );
             if ( yRight )
                 curve.p()->setYAxis( QwtPlot::yRight );
         }
+    }
+}
+
+void
+TraceData::redraw( Dataplot& plot, SpectrumWidget::HorizontalAxis axis, QRectF& rcLeft, QRectF& rcRight )
+{
+    QRectF rect;
+    setData( plot, pSpectrum_, rect, axis, yRight_ );
+
+    QRectF& rc = (yRight_) ? rcRight : rcLeft;
+    if ( rc.isNull() )
+        rc = rect;
+    else {
+        rc.setBottom( std::min( rc.bottom(), rect.bottom() ) );
+        rc.setTop( std::max( rc.top(), rect.bottom() ) );
+
+        rc.setLeft( std::min( rc.left(), rect.left() ) );
+        rc.setRight( std::max( rc.right(), rect.right() ) );
     }
 }
 
@@ -500,7 +544,9 @@ TraceData::setData( Dataplot& plot
 {
     curves_.clear();
 
-    pSpectrum_ = ms;
+    if ( pSpectrum_ != ms )
+        pSpectrum_ = ms;
+
     isTimeAxis_ = haxis == SpectrumWidget::HorizontalAxisTime;
 
 	double top = adcontrols::segments_helper::max_intensity( *ms );
@@ -524,7 +570,6 @@ TraceData::setData( Dataplot& plot
         // setCoods( tof-left corner := (x1, y1) -- bottom-right corner := (x2, y2)
         // Origin of Qt's coordinate system is top,left (0,0) (opposit y-scale to GKS)
         rect.setCoords( scale_to_micro(time_range.first), top, scale_to_micro(time_range.second), bottom );
-        rect.setLeft( scale_to_micro(time_range.first) );
 
     } else {
 

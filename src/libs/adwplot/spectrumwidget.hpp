@@ -47,7 +47,7 @@ namespace adwplot {
         void setFocusedFcn( int fcn );
         
         enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
-        void setAxis( HorizontalAxis );
+        void setAxis( HorizontalAxis, bool replot = false );
         bool autoAnnotation() const;
         void setAutoAnnotation( bool enable = true );
         void update_annotation();
@@ -60,6 +60,7 @@ namespace adwplot {
         HorizontalAxis haxis_;
         int focusedFcn_;
         bool scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
+        void redraw_all();
 
     signals:
         void onMoved( const QPointF& );

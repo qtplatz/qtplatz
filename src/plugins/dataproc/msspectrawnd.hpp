@@ -69,6 +69,7 @@ namespace dataproc {
         std::unique_ptr< adwidgets::MSQuanTable > table_;
         std::unique_ptr< adwplot::SpectrumWidget > plot_;
         std::unique_ptr< adwplot::PeakMarker > marker_;
+        bool isTimeAxis_;
     };
 }
 

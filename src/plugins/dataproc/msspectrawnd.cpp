@@ -66,6 +66,7 @@ MSSpectraWnd::MSSpectraWnd( QWidget *parent ) :  QWidget(parent)
                                               , plot_( new adwplot::SpectrumWidget )
                                               , table_( new adwidgets::MSQuanTable )
                                               , marker_( new adwplot::PeakMarker )
+                                              , isTimeAxis_( false )
 {
     init();
 }
@@ -181,8 +182,10 @@ MSSpectraWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 }
 
 void
-MSSpectraWnd::handleAxisChanged( int )
+MSSpectraWnd::handleAxisChanged( int axis )
 {
+    isTimeAxis_ = ( axis == adwplot::SpectrumWidget::HorizontalAxisTime );
+    plot_->setAxis( adwplot::SpectrumWidget::HorizontalAxis( axis ), true );
 }
 
 void
@@ -193,11 +196,13 @@ MSSpectraWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool
 void
 MSSpectraWnd::handleCurrentChanged( int idx, int fcn, const QString& dataGuid, const QString& parentGuid )
 {
+    (void)dataGuid;
+    (void)parentGuid;
     plot_->setFocusedFcn( fcn );
     if ( auto processed = processed_.lock() ) {
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *processed );
         if ( segs.size() > size_t( fcn ) ) {
-            marker_->setPeak( segs[ fcn ], idx );
+            marker_->setPeak( segs[ fcn ], idx, isTimeAxis_ );
             plot_->replot();
         }
     }

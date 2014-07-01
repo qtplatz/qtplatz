@@ -404,15 +404,10 @@ MSProcessingWnd::handleAxisChanged( int axis )
     using adwplot::SpectrumWidget;
 
     axis_ = axis;
+
     pImpl_->set_time_axis( axis == AxisMZ ? false : true );
-    pImpl_->profileSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
-    pImpl_->processedSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
-    if ( adcontrols::MassSpectrumPtr profile = pProfileSpectrum_.lock() ) {
-        pImpl_->profileSpectrum_->setData( profile, 0 ); // todo, set draw index as well
-    }
-    if ( adcontrols::MassSpectrumPtr processed = pProcessedSpectrum_.lock() ) {
-        pImpl_->processedSpectrum_->setData( processed, 0 ); // todo, set draw index as well
-    }
+    pImpl_->profileSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+    pImpl_->processedSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
 }
 
 void
