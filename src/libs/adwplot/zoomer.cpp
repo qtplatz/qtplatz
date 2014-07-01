@@ -51,12 +51,12 @@ Zoomer::Zoomer( int xAxis, int yAxis, QWidget * canvas ) : QwtPlotZoomer( xAxis,
     setRubberBand( CrossRubberBand );
     setTrackerMode( ActiveOnly );
     canvas->setMouseTracking( true );
-    connect( this, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
+    connect( this, &Zoomer::zoomed, this, &Zoomer::handleZoomed );
 }
 
 Zoomer::~Zoomer()
 {
-    disconnect( this, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
+    disconnect( this, &Zoomer::zoomed, this, &Zoomer::handleZoomed );
 }
 
 void

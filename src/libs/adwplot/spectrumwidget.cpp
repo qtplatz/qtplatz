@@ -168,6 +168,7 @@ namespace adwplot {
         std::vector< spectrumwidget::TraceData > traces_;
         bool autoAnnotation_;
         bool isTimeAxis_;
+        QwtPlotZoomer * zoomer2_;
 
         void clear();
         void update_annotations( Dataplot&, const std::pair<double, double>& );
@@ -215,15 +216,9 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
     if ( zoomer1_ ) {
         connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
 		QwtPlotZoomer * p = zoomer1_.get();
-		connect( p, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( zoomed( const QRectF& ) ) );
+		//connect( p, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( zoomed( const QRectF& ) ) );
+        connect( p, &QwtPlotZoomer::zoomed, this, &SpectrumWidget::zoomed );
 	}
-	/*
-	if ( picker_ ) {
-		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
-		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
-		picker_->setEnabled( true );
-	}
-	*/
 }
 
 void
@@ -290,50 +285,6 @@ SpectrumWidget::override_zoom_rect( QRectF& rc )
         if ( hasYRight )
             setAxisScale( QwtPlot::yRight, right.first, right.second ); // immediate set
     }
-#if 0
-        using spectrumwidget::TraceData;
-        bool hasYLeft( false ), hasYRight( false );
-
-        std::pair< double, double > left( std::make_pair(rc.bottom(), rc.top() ) );
-        std::pair< double, double > right( std::make_pair( 0, 0 ) );
-
-        for ( const TraceData& trace: impl_->traces_ ) {
-            std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
-            if ( trace.yRight() ) {
-                hasYRight = true;
-                right.first = std::min( y.first, right.first );
-                right.second = std::max( y.second, right.second );
-            } else {
-                hasYLeft = true;
-                left.first = std::min( y.first, left.first );
-                left.second = std::max( y.second, left.second );
-            }
-        }
-
-        // 12% down for top to room for annotation
-        left.second = ( left.second + ( left.second - left.first ) * 0.12 ); 
-        right.second = ( right.second + ( right.second - right.first ) * 0.12 );
-
-        if ( hasYLeft && hasYRight ) {
-            if ( ( left.first <= 0 && left.second > 0 ) && ( right.first <= 0 && right.second > 0 ) ) {
-                // adjust zero level
-                double left_base = left.first / ( left.second - left.first ); // should be negative
-                double right_base = right.first / (right.second - right.first); // negative too
-                if ( left_base < right_base ) { // left axis has higher zero position
-                    right.first = (right.second - right.first) * left_base;
-                } else {
-                    left.first = (left.second - left.first) * right_base;
-                }
-            }
-        }
-        if ( hasYLeft ) { // override y-axis for yLeft
-            rc.setBottom( left.first );
-            rc.setTop( left.second );
-        }
-        if ( hasYRight )
-            setAxisScale( QwtPlot::yRight, right.first, right.second );
-    }
-#endif
 }
 
 void
@@ -345,6 +296,13 @@ SpectrumWidget::setKeepZoomed( bool value )
 void
 SpectrumWidget::zoomed( const QRectF& rect )
 {
+    if ( autoYZoom_ ) {
+        std::pair< double, double > left, right;
+        if ( scaleY( rect, left, right ) ) { // has Y-right
+            setAxisScale( QwtPlot::yRight, right.first, right.second );
+            replot();
+        }
+    }
     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 
@@ -423,12 +381,13 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
     std::pair< double, double > left, right;
 
-    if ( scaleY( rect, left, right ) && yRight )
+    if ( scaleY( rect, left, right ) && yRight ) {
         setAxisScale( QwtPlot::yRight, right.first, right.second );
-    else
+    }
+    else {
         setAxisScale( QwtPlot::yLeft, left.first, left.second );
-    
-    zoomer1_->setZoomBase( true );
+    }
+    zoomer1_->setZoomBase();
 
     if ( hadTrace && keepZoomed_ )
         Dataplot::zoom( z ); // push previous rect

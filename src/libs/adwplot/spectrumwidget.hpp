@@ -27,6 +27,8 @@
 
 #include "dataplot.hpp"
 
+class QwtPlotZoomer;
+
 namespace adcontrols { class MassSpectrum; }
 
 namespace adwplot {
