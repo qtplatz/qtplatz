@@ -75,6 +75,9 @@ namespace adwidgets {
         QStandardItemModel * model_;
         void handleValueChanged( const QModelIndex& );
         void handleContextMenuRequested( const QPoint& );
+        std::weak_ptr< adcontrols::MSQPeaks > qpks_;
+    signals:
+        void currentChanged( int idx, int fcn, const QString& parentGuid, const QString& dataGuid );
     };
 
 }

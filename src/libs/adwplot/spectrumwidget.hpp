@@ -57,6 +57,7 @@ namespace adwplot {
         bool keepZoomed_;
         HorizontalAxis haxis_;
         int focusedFcn_;
+        bool scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
 
     signals:
         void onMoved( const QPointF& );

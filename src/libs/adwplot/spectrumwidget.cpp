@@ -124,15 +124,24 @@ namespace adwplot {
         class TraceData {
         public:
             TraceData( int idx ) : idx_( idx )
-                                 , focusedFcn_( -1 ) {
+                                 , focusedFcn_( -1 )
+                                 , yRight_( false )  {
             }
-            TraceData( const TraceData& t ) : idx_( t.idx_ ), curves_( t.curves_ ) {   }
+            TraceData( const TraceData& t ) : idx_( t.idx_ )
+                , focusedFcn_( t.focusedFcn_ )
+                , rect_( t.rect_ )
+                , yRight_( t.yRight_ )
+                , curves_( t.curves_ )
+                , pSpectrum_( t.pSpectrum_ )
+                , isTimeAxis_( t.isTimeAxis_ ) {
+            }
             ~TraceData();
             void setData( Dataplot& plot
                           , const std::shared_ptr< adcontrols::MassSpectrum>&
                           , QRectF&, SpectrumWidget::HorizontalAxis, bool yRight );
             void setFocusedFcn( int fcn );
             std::pair<double, double> y_range( double left, double right ) const;
+            bool yRight() const { return yRight_; }
 
         private:
             void setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, bool yRight );
@@ -225,23 +234,106 @@ SpectrumWidget::update_annotation()
 	replot();
 }
 
+bool
+SpectrumWidget::scaleY( const QRectF& rc, std::pair< double, double >& left, std::pair< double, double >& right )
+{
+    using spectrumwidget::TraceData;
+    bool hasYLeft( false ), hasYRight( false );
+    
+    left = right = std::make_pair( 0.0, 0.0 );
+
+    for ( const TraceData& trace: impl_->traces_ ) {
+        std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
+        if ( trace.yRight() ) {
+            if ( !hasYRight ) {
+                hasYRight = true;
+                right = std::make_pair( y.first, y.second );
+            } else
+                right = std::make_pair( std::min( y.first, right.first ), std::max( y.second, right.second ) );
+        } else {
+            if ( !hasYLeft ) {
+                hasYLeft = true;
+                left = std::make_pair( y.first, y.second );
+            } else
+                left = std::make_pair( std::min( y.first, left.first ), std::max( y.second, left.second ) );
+        }
+    }
+
+    // 12% down for top to room for annotation
+    left.second = ( left.second + ( left.second - left.first ) * 0.12 ); 
+    right.second = ( right.second + ( right.second - right.first ) * 0.12 );
+
+    if ( hasYLeft && hasYRight ) {
+        if ( ( left.first <= 0 && left.second > 0 ) && ( right.first <= 0 && right.second > 0 ) ) {
+            // adjust zero level
+            double left_base = left.first / ( left.second - left.first ); // should be negative
+            double right_base = right.first / (right.second - right.first); // negative too
+            if ( left_base < right_base ) { // left axis has higher zero position
+                right.first = (right.second - right.first) * left_base;
+            } else {
+                left.first = (left.second - left.first) * right_base;
+            }
+        }
+    }
+    return hasYRight;
+}
+
 void
 SpectrumWidget::override_zoom_rect( QRectF& rc )
 {
     if ( autoYZoom_ ) {
+        std::pair< double, double > left, right;
+        bool hasYRight = scaleY( rc, left, right );
+        // override
+        rc.setBottom( left.first );
+        rc.setTop( left.second );
+        if ( hasYRight )
+            setAxisScale( QwtPlot::yRight, right.first, right.second ); // immediate set
+    }
+#if 0
         using spectrumwidget::TraceData;
-        double bottom = rc.bottom();
-        double top = rc.top();
+        bool hasYLeft( false ), hasYRight( false );
+
+        std::pair< double, double > left( std::make_pair(rc.bottom(), rc.top() ) );
+        std::pair< double, double > right( std::make_pair( 0, 0 ) );
+
         for ( const TraceData& trace: impl_->traces_ ) {
             std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
-            if ( bottom > y.first )
-                bottom = y.first;
-            if ( top < y.second )
-                top = y.second; // rc.setTop( y.second );
+            if ( trace.yRight() ) {
+                hasYRight = true;
+                right.first = std::min( y.first, right.first );
+                right.second = std::max( y.second, right.second );
+            } else {
+                hasYLeft = true;
+                left.first = std::min( y.first, left.first );
+                left.second = std::max( y.second, left.second );
+            }
         }
-        rc.setBottom( bottom );
-        rc.setTop( top + ( top - bottom ) * 0.12 );  // increase 12% for annotation
+
+        // 12% down for top to room for annotation
+        left.second = ( left.second + ( left.second - left.first ) * 0.12 ); 
+        right.second = ( right.second + ( right.second - right.first ) * 0.12 );
+
+        if ( hasYLeft && hasYRight ) {
+            if ( ( left.first <= 0 && left.second > 0 ) && ( right.first <= 0 && right.second > 0 ) ) {
+                // adjust zero level
+                double left_base = left.first / ( left.second - left.first ); // should be negative
+                double right_base = right.first / (right.second - right.first); // negative too
+                if ( left_base < right_base ) { // left axis has higher zero position
+                    right.first = (right.second - right.first) * left_base;
+                } else {
+                    left.first = (left.second - left.first) * right_base;
+                }
+            }
+        }
+        if ( hasYLeft ) { // override y-axis for yLeft
+            rc.setBottom( left.first );
+            rc.setTop( left.second );
+        }
+        if ( hasYRight )
+            setAxisScale( QwtPlot::yRight, right.first, right.second );
     }
+#endif
 }
 
 void
@@ -312,9 +404,11 @@ SpectrumWidget::removeData( int idx )
 }
 
 void
-SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr, int idx, bool yaxis2 )
+SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr, int idx, bool yRight )
 {
     using spectrumwidget::TraceData;
+
+    bool hadTrace = !impl_->traces_.empty();
 
     while ( int( impl_->traces_.size() ) <= idx ) 
 		impl_->traces_.push_back( TraceData( static_cast<int>(impl_->traces_.size()) ) );
@@ -322,17 +416,21 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     TraceData& trace = impl_->traces_[ idx ];
 
     QRectF rect;
-    trace.setData( *this, ptr, rect, haxis_, yaxis2 );
+    trace.setData( *this, ptr, rect, haxis_, yRight );
 
 	QRectF z = zoomer1_->zoomRect(); // current (:= previous) zoom
 
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
-    setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.top(), rect.bottom() );
-    
-    if ( !yaxis2 )
-        zoomer1_->setZoomBase( true );
+    std::pair< double, double > left, right;
 
-    if ( keepZoomed_ ) // if ( ! addedTrace )
+    if ( scaleY( rect, left, right ) && yRight )
+        setAxisScale( QwtPlot::yRight, right.first, right.second );
+    else
+        setAxisScale( QwtPlot::yLeft, left.first, left.second );
+    
+    zoomer1_->setZoomBase( true );
+
+    if ( hadTrace && keepZoomed_ )
         Dataplot::zoom( z ); // push previous rect
 
     if ( ptr->isCentroid() ) {
@@ -464,12 +562,15 @@ TraceData::setData( Dataplot& plot
         }
 
         using namespace adcontrols::metric;
-        rect.setCoords( scale_to_micro(time_range.first), bottom, scale_to_micro(time_range.second), top );
+        // setCoods( tof-left corner := (x1, y1) -- bottom-right corner := (x2, y2)
+        // Origin of Qt's coordinate system is top,left (0,0) (opposit y-scale to GKS)
+        rect.setCoords( scale_to_micro(time_range.first), top, scale_to_micro(time_range.second), bottom );
+        rect.setLeft( scale_to_micro(time_range.first) );
 
     } else {
 
         const std::pair< double, double >& mass_range = ms->getAcquisitionMassRange();
-        rect.setCoords( mass_range.first, bottom, mass_range.second, top );
+        rect.setCoords( mass_range.first, top, mass_range.second, bottom );
 
     }
     rect_ = rect;
@@ -543,6 +644,8 @@ TraceData::y_range( double left, double right ) const
                 idright = std::distance( x, std::lower_bound( x, x + seg.size(), right ) );
             }
 
+            if ( idleft )
+                --idleft;
             
             if ( idleft < idright ) {
                 const double * y = seg.getIntensityArray();

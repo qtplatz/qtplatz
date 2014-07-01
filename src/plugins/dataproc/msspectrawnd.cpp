@@ -78,6 +78,7 @@ MSSpectraWnd::init()
             //connect( this, SIGNAL( fireSetData( const adcontrols::PeakResult& ) ),
             //    pImpl_->peakWidget_, SLOT( setData( const adcontrols::PeakResult& ) ) );
         }
+        plot_->enableAxis( QwtPlot::yRight );
         splitter->addWidget( plot_.get() );
         splitter->addWidget( table_.get() );
         splitter->setOrientation( Qt::Vertical );
@@ -104,6 +105,10 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
                 if ( folium.empty() )
                     processor->fetch( folium );
+                if ( idx == 0 ) {
+                    auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
+                    plot_->setData( profile, idx++, true );
+                }
                 auto atts = folium.attachments();
                 auto itCentroid = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
                 if ( itCentroid != atts.end() ) {
@@ -134,13 +139,16 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         return;
     }
 
+    if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) )
+        plot_->setData( profile, 0, true );
 
-    int idx = 0;
+    int idx = 1; // start with 1 ( 0 was reserved for profile )
     auto it = dataIds_.find( folium.id() );
     if ( it != dataIds_.end() )
         idx = it->second;
     else
         idx = int( dataIds_.size() );
+
     auto atts = folium.attachments();
     auto itCentroid = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
     if ( itCentroid != atts.end() ) {

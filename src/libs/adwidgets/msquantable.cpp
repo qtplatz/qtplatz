@@ -47,7 +47,7 @@ namespace adwidgets {
             , c_component   // this is the primary id of component. if same key is assined to more than two formula, quant. result will be summed
             , c_formula      // 
             , c_mass
-            , c_mass_error
+            , c_delta_mass
             , c_intensity
             , c_relative_intensity
             , c_mode
@@ -91,18 +91,16 @@ namespace adwidgets {
                 case c_mass:
                     drawDisplay( painter, op, option.rect, (boost::format( "%.7lf" ) % index.data( Qt::EditRole ).toDouble()).str().c_str() );
                     break;
-                case c_mass_error:
-                    if ( !index.model()->data( index.model()->index( index.row(), c_formula ), Qt::EditRole ).toString().isEmpty() )
-                        drawDisplay( painter, op, option.rect, (boost::format( "%.7g" ) % (index.data( Qt::EditRole ).toDouble() * 1000)).str().c_str() );
-                    break;
                 case c_intensity:
                     if ( !index.model()->data( index.model()->index( index.row(), c_intensity ), Qt::EditRole ).toString().isEmpty() )
                         drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
                     break;
                 default:
-                    QItemDelegate::paint( painter, option, index );
+                    op.displayAlignment = Qt::AlignCenter | Qt::AlignHCenter;
+                    QItemDelegate::paint( painter, op, index );
                 }
             }
+
             void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
                 QItemDelegate::setModelData( editor, model, index );
                 if ( valueChanged_ )
@@ -152,7 +150,7 @@ MSQuanTable::OnInitialUpdate()
     model.setHeaderData( c_component,   Qt::Horizontal, QObject::tr( "component" ) );
     model.setHeaderData( c_formula,     Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_mass,        Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
-    model.setHeaderData( c_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
+    model.setHeaderData( c_delta_mass,  Qt::Horizontal, QObject::tr( "&delta;Da" ) );
     model.setHeaderData( c_intensity,   Qt::Horizontal, QObject::tr( "Abandance" ) );
     model.setHeaderData( c_relative_intensity,   Qt::Horizontal, QObject::tr( "R.A." ) );
     model.setHeaderData( c_mode,        Qt::Horizontal, QObject::tr( "mode" ) );
@@ -203,8 +201,27 @@ MSQuanTable::query_interface_workaround( const char * typnam )
 
 // reimplement QTableView
 void
-MSQuanTable::currentChanged( const QModelIndex&, const QModelIndex& )
+MSQuanTable::currentChanged( const QModelIndex& index, const QModelIndex& )
 {
+    QStandardItemModel& model = *model_;
+
+    scrollTo( index, QAbstractItemView::EnsureVisible );
+	int row = index.row();
+    int idx = model.index( row, c_idx ).data( Qt::EditRole ).toInt();
+    int fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
+    std::wstring dataGuid = model.index( row, c_id ).data( Qt::EditRole ).toString().toStdWString();
+    QString profGuid;
+    if ( auto pks = qpks_.lock() )
+        profGuid = QString::fromStdWString( pks->parentGuid( dataGuid ) );
+
+    setUpdatesEnabled( false );
+    double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+    for ( int r = 0; r < model.rowCount(); ++r ) {
+        double d = std::abs( model.index( r, c_mass ).data( Qt::EditRole ).toDouble() - mass );
+        model.setData( model.index( r, c_delta_mass ), int( d + 0.7 ) );
+    }
+    setUpdatesEnabled( true );
+    emit currentChanged( idx, fcn, profGuid, QString::fromStdWString( dataGuid ) );
 }
 
 void
@@ -267,8 +284,32 @@ MSQuanTable::handle_zoomed( const QRectF& )   // zoomer zoomed
 }
 
 void
-MSQuanTable::handleValueChanged( const QModelIndex& )
+MSQuanTable::handleValueChanged( const QModelIndex& index )
 {
+    if ( inProgress_ )
+        return;
+
+    QStandardItemModel& model = *model_;
+
+    if ( auto pks = qpks_.lock() ) {
+        int fcn = model.index( index.row(), c_fcn ).data().toInt();
+        int idx = model.index( index.row(), c_idx ).data().toInt();
+        std::wstring dataGuid = model.index( index.row(), c_id ).data().toString().toStdWString();
+
+        auto it = std::find_if( pks->begin(), pks->end(), [=] ( adcontrols::MSQPeaks::value_type& t ){
+                return t.dataGuid() == dataGuid && t.fcn() == fcn && t.idx() == idx; } );
+        if ( it != pks->end() ) {
+            if ( index.column() == c_formula ) {
+                it->formula( index.data().toString().toStdString() );
+            }
+            else if ( index.column() == c_component ) {
+                it->componentId( index.data().toString().toStdWString() );
+            }
+            else if ( index.column() == c_description ) {
+                it->description( index.data().toString().toStdString() );
+            }
+        }
+    }
 }
 
 void
@@ -280,6 +321,9 @@ MSQuanTable::handleContextMenuRequested( const QPoint& )
 void
 MSQuanTable::setData( const adcontrols::MSQPeaks * pks )
 {
+    if ( pks )
+        qpks_ = pks->shared_from_this();
+
 	QStandardItemModel& model = *model_;
     setUpdatesEnabled( false );
     // model.blockSignals( true );
