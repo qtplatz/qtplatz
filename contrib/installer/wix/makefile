@@ -39,7 +39,7 @@ veryclean: clean
 	cd $(MAKEDIR)
 
 qtplatz:
-	rm version.wxi
+	-$(RM) version.wxi
 	cd $(QTPLATZ_PATH)
 	git clean -d -x -f
 	qmake -tp vc -r
