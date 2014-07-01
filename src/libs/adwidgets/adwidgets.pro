@@ -32,7 +32,7 @@ SOURCES += adwidgets.cpp \
         controlmethodwidget.cpp \
         centroidform.cpp \
         mspeaktable.cpp \
-    msmergedtable.cpp
+        msquantable.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -48,7 +48,7 @@ HEADERS += adwidgets.hpp\
         controlmethodwidget.hpp \
         centroidform.hpp \
         mspeaktable.hpp \
-    msmergedtable.hpp
+        msquantable.hpp
 
 unix {
     target.path = /usr/lib

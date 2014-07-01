@@ -303,6 +303,15 @@ SpectrumWidget::setAxis( HorizontalAxis haxis )
 }
 
 void
+SpectrumWidget::removeData( int idx )
+{
+    if ( idx < impl_->traces_.size() ) {
+        impl_->traces_[ idx ] = spectrumwidget::TraceData( idx );
+        replot();
+    }
+}
+
+void
 SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr, int idx, bool yaxis2 )
 {
     using spectrumwidget::TraceData;
@@ -415,6 +424,7 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
         } else {
             curves_.push_back( PlotCurve( plot ) );
             PlotCurve &curve = curves_.back();
+            QColor color( color_table[ idx_ ] ); // set color corresponding to idx, if spectrum has no color array
             curve.p()->setPen( QPen( color_table[ 0 ] ) );
             curve.p()->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
             curve.p()->setStyle( QwtPlotCurve::Sticks );
@@ -617,9 +627,9 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                 }
                 for ( auto& a : marge ) {
                     // if more than two annotations attached to an index, formula is a priority on spectrum
-                    auto it = std::find_if( a.second.begin(), a.second.end(), [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataFormula;  } );
+                    auto it = std::find_if( a.second.begin(), a.second.end(), [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataFormula; } );
                     if ( it == a.second.end() )
-                        it = std::find_if( a.second.begin(), a.second.end(), [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataText;  } );
+                        it = std::find_if( a.second.begin(), a.second.end(), [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataText; } );
                     if ( it != a.second.end() )
                         annotations << *it;
                 }

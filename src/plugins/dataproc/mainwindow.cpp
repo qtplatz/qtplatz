@@ -598,15 +598,14 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 	if ( portfolio::Folder folder = folium.getParentFolder() ) {
 		if ( folder.name() == L"MSCalibration" ) {
             if ( stack_->currentIndex() != idSelMSCalibration && stack_->currentIndex() != idSelMSCalibSpectra )
-                stack_->setCurrentIndex( idSelMSCalibration );
+                selPage( idSelMSCalibration );
         } else if ( folder.name() == L"Spectra" ) {
-            if ( stack_->currentIndex() != idSelMSProcess ||
-                stack_->currentIndex() != idSelElementalComp ||
-                stack_->currentIndex() != idSelSpectra )
-                stack_->setCurrentIndex( idSelMSProcess );
+            if ( stack_->currentIndex() != idSelMSProcess &&
+                 stack_->currentIndex() != idSelElementalComp &&  stack_->currentIndex() != idSelSpectra )
+                selPage( idSelMSProcess );
         } else if ( folder.name() == L"Spectrograms" ) {
             if ( stack_->currentIndex() != idSelSpectrogram )
-                stack_->setCurrentIndex( idSelSpectrogram );
+                selPage( idSelSpectrogram );
 		}
 
         adcontrols::MassSpectrumPtr centroid;

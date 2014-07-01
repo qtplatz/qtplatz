@@ -85,6 +85,8 @@ SOURCES += acceptor.cpp \
     mspeakinfo.cpp \
     mspeak.cpp \
     mspeaks.cpp \
+    msqpeak.cpp \
+    msqpeaks.cpp \
     mschromatogrammethod.cpp \
     spectrogram.cpp \
     targeting.cpp \
@@ -161,6 +163,8 @@ HEADERS += acceptor.hpp \
     mspeakinfo.hpp \
     mspeak.hpp \
     mspeaks.hpp \
+    msqpeak.hpp \
+    msqpeaks.hpp \
     mschromatogrammethod.hpp \
     spectrogram.hpp \
     targeting.hpp \

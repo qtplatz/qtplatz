@@ -73,7 +73,8 @@ SOURCES += \
     filepropertywidget.cpp \
     mspeakswnd.cpp \
     spectrogramwnd.cpp \
-    ipeptidehandlerimpl.cpp
+    ipeptidehandlerimpl.cpp \
+    document.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -108,7 +109,8 @@ HEADERS += \
     filepropertywidget.hpp \
     mspeakswnd.hpp \
     spectrogramwnd.hpp \
-    ipeptidehandlerimpl.hpp
+    ipeptidehandlerimpl.hpp \
+    document.hpp
 
 OTHER_FILES += \
     dataproc.pluginspec \

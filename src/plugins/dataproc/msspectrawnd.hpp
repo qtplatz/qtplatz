@@ -39,7 +39,7 @@ namespace adcontrols {
     class ProcessMethod;
 }
 
-namespace adwidgets { class MSMergedTable; }
+namespace adwidgets { class MSQuanTable; }
 namespace adwplot { class SpectrumWidget;  }
 
 namespace dataproc {
@@ -66,7 +66,7 @@ namespace dataproc {
         void init();
         std::map< std::wstring, int > dataIds_;
 
-        std::unique_ptr< adwidgets::MSMergedTable > table_;
+        std::unique_ptr< adwidgets::MSQuanTable > table_;
         std::unique_ptr< adwplot::SpectrumWidget > plot_;
     };
 }

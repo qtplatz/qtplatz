@@ -22,8 +22,10 @@
 **
 **************************************************************************/
 
-#ifndef MSMERGEDTABLE_HPP
-#define MSMERGEDTABLE_HPP
+#ifndef MSQUANTABLE_HPP
+#define MSQUANTABLE_HPP
+
+#pragma once
 
 #include "adwidgets_global.hpp"
 #include <QTableView>
@@ -34,15 +36,18 @@ class QItemDelegate;
 class QStandardItemModel;
 class QModelIndex;
 
+namespace adcontrols { class MSQPeaks;  }
+
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT MSMergedTable : public QTableView
-                                               , public adplugin::LifeCycle {
+    class ADWIDGETSSHARED_EXPORT MSQuanTable : public QTableView
+                                             , public adplugin::LifeCycle {
 
         Q_OBJECT
     public:
-        explicit MSMergedTable( QWidget *parent = 0 );
+        explicit MSQuanTable( QWidget *parent = 0 );
         
+        void setData( const adcontrols::MSQPeaks * );
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
         void OnInitialUpdate() override;
@@ -74,4 +79,4 @@ namespace adwidgets {
 
 }
 
-#endif // MSMERGEDTABLE_HPP
+#endif // MSQUANTABLE_HPP

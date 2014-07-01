@@ -26,16 +26,14 @@
 #include "mainwindow.hpp"
 #include "dataprocessor.hpp"
 #include "selchanged.hpp"
+#include "document.hpp"
 #include <adcontrols/description.hpp>
 #include <adcontrols/datafile.hpp>
-#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
-#include <adcontrols/peakresult.hpp>
-#include <adcontrols/peaks.hpp>
-#include <adcontrols/peak.hpp>
+#include <adcontrols/msqpeaks.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwplot/spectrogramwidget.hpp>
-#include <adwidgets/msmergedtable.hpp>
+#include <adwidgets/msquantable.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/portfolio.hpp>
@@ -59,48 +57,13 @@
 
 using namespace dataproc;
 
-namespace dataproc {
-
-    // class ChromatogramWndImpl {
-    // public:
-    //     ~ChromatogramWndImpl() {
-    //         delete chroWidget_;
-    //         delete peakWidget_;
-    //     }
-    //     ChromatogramWndImpl() : chroWidget_(0)
-    //                           , peakWidget_(0) {
-    //     }
-    //     void setData( const adcontrols::Chromatogram&, const QString& );
-    //     adwplot::ChromatogramWidget * chroWidget_;
-    //     QWidget * peakWidget_; // adplutin::manager::widget_factory will make a widget
-    // };
-
-    // //----------------------------//
-    // template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
-    //     selProcessed( Wnd& wnd ) : wnd_(wnd) {}
-    //     template<typename T> void operator ()( T& ) const {
-    //     }
-    //     void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-    //         wnd_.draw2( ptr );
-    //     }
-    //     void operator () ( adutils::ChromatogramPtr& ptr ) const {
-    //         wnd_.draw( ptr );
-    //     }
-    //     void operator () ( adutils::PeakResultPtr& ptr ) const {
-    //         wnd_.draw( ptr );
-    //     }
-    //     Wnd& wnd_;
-    // };
-
-}
-
 MSSpectraWnd::~MSSpectraWnd()
 {
 }
 
 MSSpectraWnd::MSSpectraWnd( QWidget *parent ) :  QWidget(parent)
                                               , plot_( new adwplot::SpectrumWidget )
-                                              , table_( new adwidgets::MSMergedTable )
+                                              , table_( new adwidgets::MSQuanTable )
 {
     init();
 }
@@ -127,32 +90,12 @@ MSSpectraWnd::init()
 }
 
 void
-MSSpectraWnd::draw1( adutils::MassSpectrumPtr& )
-{
-}
-
-void
-MSSpectraWnd::draw2( adutils::MassSpectrumPtr& )
-{
-}
-
-#if 0
-void
-MSSpectraWnd::draw( adutils::ChromatogramPtr& ptr )
-{
-    adcontrols::Chromatogram& c = *ptr;
-    pImpl_->chroWidget_->setData( c );
-	if ( c.peaks().size() ) {
-		adcontrols::PeakResult r( c.baselines(), c.peaks() );
-		emit fireSetData( r );
-	}
-}
-#endif
-
-void
 MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 {
     dataIds_.clear();
+    auto * qpks = document::instance()->msQuanTable();
+    qpks->clear();
+
     int idx = 0;
     if ( auto folder = processor->portfolio().findFolder( L"Spectra" ) ) {
 
@@ -167,6 +110,8 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
                     dataIds_[ folium.id() ] = idx; // keep id for profile (quicker to find than an attachment id)
                     auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
                     plot_->setData( centroid, idx++ );
+                    qpks->setData( *centroid, itCentroid->id(), folium.id(), processor->file().filename() + L"::" + folium.name() );
+                    table_->setData( qpks );
                 }
             }
         }
@@ -174,10 +119,21 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 }
 
 void
-MSSpectraWnd::handleSelectionChanged( Dataprocessor *, portfolio::Folium& folium )
+MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    if ( folium.attribute( L"isChecked" ) == L"false" )
+    if ( folium.attribute( L"isChecked" ) == L"false" ) {
+        auto qpks = document::instance()->msQuanTable();
+        qpks->erase( folium.id() );
+        table_->setData( qpks );
+
+        auto it = dataIds_.find( folium.id() );
+        if ( it != dataIds_.end() ) {
+            plot_->removeData( it->second );
+            dataIds_.erase( it );
+        }
         return;
+    }
+
 
     int idx = 0;
     auto it = dataIds_.find( folium.id() );
@@ -191,7 +147,11 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor *, portfolio::Folium& folium
         auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
         dataIds_[ folium.id() ] = idx;
         plot_->setData( centroid, idx );
-    }        
+        if ( auto * qpks = document::instance()->msQuanTable() ) {
+            qpks->setData( *centroid, itCentroid->id(), folium.id(), processor->file().filename() + L"::" + folium.name() );
+            table_->setData( qpks );
+        }
+    }
 }
 
 void

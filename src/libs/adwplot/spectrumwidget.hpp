@@ -40,6 +40,7 @@ namespace adwplot {
         ~SpectrumWidget();
         
         void clear();
+        void removeData( int idx );
         void setData( const std::shared_ptr< adcontrols::MassSpectrum >&, int idx, bool axisRight = false );
         void setFocusedFcn( int fcn );
         

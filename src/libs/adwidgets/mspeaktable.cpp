@@ -272,6 +272,7 @@ void
 MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
 	QStandardItemModel& model = *model_;
+    setUpdatesEnabled( false );
 
     model.setRowCount( static_cast< int >( info.total_size() ) );
 
@@ -305,6 +306,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
     }
     resizeColumnsToContents();
     resizeRowsToContents();
+    setUpdatesEnabled( true );
 }
 
 void
@@ -312,7 +314,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 {
 	QStandardItemModel& model = *model_;
     size_t total_size = 0;
-
+    setUpdatesEnabled( false );
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     for( auto& t: segs )
         total_size += t.size();
@@ -368,6 +370,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
     resizeColumnsToContents();
     resizeRowsToContents();
+    setUpdatesEnabled( true );
 }
 
 void
@@ -384,7 +387,7 @@ MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
         setPeakInfo( ms );
         return;
     }
-
+    setUpdatesEnabled( false );
     for ( int row = 0; row < int(total_size); ++row ) {
 
         int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
@@ -414,6 +417,7 @@ MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
             }
         }
     }
+    setUpdatesEnabled( true );
 }
 
 void
@@ -427,13 +431,13 @@ MSPeakTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
     int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
     int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
 
-
+    setUpdatesEnabled( false );
     double mass = model.index( row, c_mspeaktable_mass ).data( Qt::EditRole ).toDouble();
     for ( int r = 0; r < model.rowCount(); ++r ) {
         double d = std::abs( model.index( r, c_mspeaktable_mass ).data( Qt::EditRole ).toDouble() - mass );
         model.setData( model.index( r, c_mspeaktable_delta_mass ), int( d + 0.7 ) );
     }
-
+    setUpdatesEnabled( true );
     emit currentChanged( idx, fcn );
 }
 
@@ -459,12 +463,14 @@ MSPeakTable::handle_zoomed( const QRectF& rc )
             std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right() );
             if ( bp.first >= 0 && bp.second >= 0 ) {
                 // ---> change rel. intensity
+                setUpdatesEnabled( false );
                 double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
                 for ( int row = 0; row < model_->rowCount(); ++row )
                     model_->setData( model_->index( row, c_mspeaktable_relative_intensity )
                                      , model_->index( row, c_mspeaktable_intensity ).data().toDouble() * 100 / base_height );
                 resizeColumnsToContents();
                 resizeRowsToContents();
+                setUpdatesEnabled( true );
                 // <--- end rel. intensity
 
                 for ( int row = 0; row < model_->rowCount(); ++row ) {
