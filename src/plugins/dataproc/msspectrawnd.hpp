@@ -66,6 +66,7 @@ namespace dataproc {
     private:
         void init();
         void handleCurrentChanged( int idx, int fcn, const QString& dataGuid, const QString& parentGuid );
+        void handleSelected( const QRectF& );
         std::map< std::wstring, std::tuple<int, std::wstring, std::weak_ptr< adcontrols::MassSpectrum> > > dataIds_;
         std::weak_ptr< adcontrols::MassSpectrum > profile_;
 

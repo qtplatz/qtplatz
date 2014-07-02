@@ -24,6 +24,7 @@
 
 #include "msquantable.hpp"
 #include "htmlheaderview.hpp"
+#include "delegatehelper.hpp"
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msqpeak.hpp>
 #include <adcontrols/msqpeaks.hpp>
@@ -31,8 +32,10 @@
 #include <qtwrapper/font.hpp>
 
 #include <QApplication>
+#include <QBrush>
 #include <QClipboard>
-#include <QItemDelegate>
+//#include <QItemDelegate>
+#include <QStyledItemDelegate>
 #include <QStandardItemModel>
 #include <QKeyEvent>
 
@@ -65,14 +68,28 @@ namespace adwidgets {
         };
         using namespace adcontrols::metric;
         
-        class ItemDelegate : public QItemDelegate {
+        class ItemDelegate : public QStyledItemDelegate { //QItemDelegate {
         public:
-            explicit ItemDelegate( QObject *parent = 0 ) : QItemDelegate( parent ) {
+            explicit ItemDelegate( QObject *parent = 0 ) : QStyledItemDelegate( parent ) {
             }
+
             void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+
                 QStyleOptionViewItem op( option );
+                auto align = Qt::AlignRight | Qt::AlignHCenter;
                 op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
-                
+
+                // if ( index.row() & 0x01 )
+                //     op.palette.setColor( QPalette::Text, Qt::green );
+                painter->save();
+                const QAbstractItemModel& model = *index.model();
+
+                QString dataId = model.data( model.index( currIndex_.row(), c_id ) ).toString();
+                if ( model.data( model.index( index.row(), c_id ) ).toString() == dataId ) {
+                    painter->setPen( Qt::blue );
+                    painter->fillRect( op.rect, QColor( 192, 192, 128, 0x80 ) );
+                }
+
                 switch( index.column() ) {
                 case c_datasource:
                     do {
@@ -80,37 +97,39 @@ namespace adwidgets {
                         std::size_t pos = fqn.find( L"::" );
                         if ( pos != std::wstring::npos ) {
                             boost::filesystem::path path( fqn.substr( 0, pos ) );
-                            drawDisplay( painter, option, option.rect, QString::fromStdWString( path.stem().wstring() + L"/" + fqn.substr( pos + 2 ) ) );
+                            painter->drawText( op.rect, op.displayAlignment, QString::fromStdWString( path.stem().wstring() + L"/" + fqn.substr( pos + 2 ) ) );
+                            //drawDisplay( painter, option, option.rect, QString::fromStdWString( path.stem().wstring() + L"/" + fqn.substr( pos + 2 ) ) );
+                            
                         } else 
-                            drawDisplay( painter, option, option.rect, QString::fromStdWString( fqn ) );
+                            painter->drawText( op.rect, align, QString::fromStdWString( fqn ) );
                     } while ( 0 );
                     break;
                 case c_time:
-                    drawDisplay( painter, op, option.rect
-                                 , (boost::format( "%.5lf" ) % scale_to_micro( index.data( Qt::EditRole ).toDouble() )).str().c_str() );
+                    painter->drawText( option.rect, align, (boost::format( "%.5lf" ) % scale_to_micro( index.data( Qt::EditRole ).toDouble() )).str().c_str() );
                     break;
                 case c_mass:
-                    drawDisplay( painter, op, option.rect, (boost::format( "%.7lf" ) % index.data( Qt::EditRole ).toDouble()).str().c_str() );
+                    painter->drawText( option.rect, align, (boost::format( "%.7lf" ) % index.data( Qt::EditRole ).toDouble()).str().c_str() );
                     break;
                 case c_intensity:
                 case c_relative_intensity:
                     if ( !index.model()->data( index.model()->index( index.row(), c_intensity ), Qt::EditRole ).toString().isEmpty() )
-                        drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
+                        painter->drawText( op.rect, align, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
                     break;
                 default:
                     op.displayAlignment = Qt::AlignCenter | Qt::AlignHCenter;
-                    QItemDelegate::paint( painter, op, index );
+                    QStyledItemDelegate::paint( painter, op, index );
                 }
+                painter->restore();
             }
 
             void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
-                QItemDelegate::setModelData( editor, model, index );
+                QStyledItemDelegate::setModelData( editor, model, index );
                 if ( valueChanged_ )
                     valueChanged_( index );
             }
 
             bool editorEvent( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem& option, const QModelIndex& index ) override {
-                bool res = QItemDelegate::editorEvent( event, model, option, index );
+                bool res = QStyledItemDelegate::editorEvent( event, model, option, index );
                 if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
                     QVariant st = index.data( Qt::CheckStateRole );
                     if ( index.column() == c_isSTD )
@@ -120,7 +139,13 @@ namespace adwidgets {
                 }
                 return res;
             }
+            
             std::function<void( const QModelIndex& )> valueChanged_;
+            QModelIndex currIndex_;
+        public:
+            void handleCurrentChanged( const QModelIndex& index ) {
+                currIndex_ = index;
+            }
         };
     }
 }
@@ -137,6 +162,7 @@ MSQuanTable::MSQuanTable( QWidget * parent ) : QTableView( parent )
     if ( auto delegate = new detail::ItemDelegate() ) {
         delegate->valueChanged_ = [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); };
         setItemDelegate( delegate );
+        connect( this, static_cast< void (MSQuanTable::*)(const QModelIndex&)>(&MSQuanTable::currentChanged), delegate, &ItemDelegate::handleCurrentChanged );
     }
     setSortingEnabled( true );
     verticalHeader()->setDefaultSectionSize( 18 );
@@ -181,6 +207,30 @@ MSQuanTable::OnInitialUpdate()
     //setColumnHidden( c_idx, true );
     //setColumnHidden( c_fcn, true );  // a.k.a. protocol id, internally used as an id
     //setColumnHidden( c_id, true );
+}
+
+void
+MSQuanTable::handleSelected( const QRectF& rc, bool isTime )
+{
+    QStandardItemModel& model = *model_;
+    
+    double y0 = 0;
+    int row_highest = -1;
+	for ( int row = 0; row < model.rowCount(); ++row ) {
+        QModelIndex index = model.index( row, isTime ? c_time : c_mass );
+        double t = index.data( Qt::EditRole ).toDouble();
+        if ( rc.left() < t && t < rc.right() ) {
+            double y = model.index( row, c_intensity ).data( Qt::EditRole ).toDouble();
+            if ( y > y0 ) {
+                y0 = y;
+                row_highest = row;
+            }
+        }
+    }
+    if ( row_highest >= 0 ) {
+		setCurrentIndex( model.index( row_highest, c_formula ) );
+		scrollTo( model.index( row_highest, c_formula ) );
+    }
 }
 
 void
@@ -236,6 +286,7 @@ MSQuanTable::currentChanged( const QModelIndex& index, const QModelIndex& )
     }
     setUpdatesEnabled( true );
     emit currentChanged( idx, fcn, QString::fromStdWString( dataGuid ), profGuid );
+    emit currentChanged( index );
 }
 
 void

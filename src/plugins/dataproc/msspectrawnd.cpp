@@ -26,6 +26,7 @@
 #include "mainwindow.hpp"
 #include "dataprocessor.hpp"
 #include "selchanged.hpp"
+#include "sessionmanager.hpp"
 #include "document.hpp"
 #include <adcontrols/description.hpp>
 #include <adcontrols/datafile.hpp>
@@ -80,7 +81,11 @@ MSSpectraWnd::init()
         if ( adplugin::LifeCycle * p = dynamic_cast<adplugin::LifeCycle *>(table_.get()) ) {
             p->OnInitialUpdate();
         }
-        // connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProfile( const QRectF& ) ) );
+
+        connect( plot_.get()
+                 , static_cast< void(adwplot::SpectrumWidget::*)(const QRectF&)>(&adwplot::SpectrumWidget::onSelected)
+                 , [=]( const QRectF& rc){ table_->handleSelected( rc, isTimeAxis_); });
+
         plot_->enableAxis( QwtPlot::yRight );
         marker_->attach( plot_.get() );
         marker_->visible( true );
@@ -101,6 +106,7 @@ MSSpectraWnd::init()
         , this
         , &MSSpectraWnd::handleCurrentChanged );
 }
+
 
 void
 MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
@@ -235,7 +241,11 @@ MSSpectraWnd::handleCurrentChanged( int idx, int fcn, const QString& dataGuid, c
 void
 MSSpectraWnd::onPageSelected()
 {
-    
+    // it's too slow when spectrum is big
+
+    // if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+    //     handleSessionAdded( dp );
+    // }
 }
 
 ///////////////////////////

@@ -48,6 +48,8 @@ namespace adwidgets {
         explicit MSQuanTable( QWidget *parent = 0 );
         
         void setData( const adcontrols::MSQPeaks * );
+        void handleSelected( const QRectF&, bool isTime = false );
+
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
         void OnInitialUpdate() override;
@@ -78,6 +80,7 @@ namespace adwidgets {
         std::weak_ptr< adcontrols::MSQPeaks > qpks_;
     signals:
         void currentChanged( int idx, int fcn, const QString& parentGuid, const QString& dataGuid );
+        void currentChanged( const QModelIndex& ); 
     };
 
 }
