@@ -27,6 +27,7 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msqpeak.hpp>
 #include <adcontrols/msqpeaks.hpp>
+#include <adportable/float.hpp>
 #include <qtwrapper/font.hpp>
 
 #include <QApplication>
@@ -92,6 +93,7 @@ namespace adwidgets {
                     drawDisplay( painter, op, option.rect, (boost::format( "%.7lf" ) % index.data( Qt::EditRole ).toDouble()).str().c_str() );
                     break;
                 case c_intensity:
+                case c_relative_intensity:
                     if ( !index.model()->data( index.model()->index( index.row(), c_intensity ), Qt::EditRole ).toString().isEmpty() )
                         drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
                     break;
@@ -105,6 +107,18 @@ namespace adwidgets {
                 QItemDelegate::setModelData( editor, model, index );
                 if ( valueChanged_ )
                     valueChanged_( index );
+            }
+
+            bool editorEvent( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem& option, const QModelIndex& index ) override {
+                bool res = QItemDelegate::editorEvent( event, model, option, index );
+                if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
+                    QVariant st = index.data( Qt::CheckStateRole );
+                    if ( index.column() == c_isSTD )
+                        model->setData( index, (st == Qt::Checked) ? "STD" : "SAMP" );
+                    if ( valueChanged_ )
+                        valueChanged_( index );
+                }
+                return res;
             }
             std::function<void( const QModelIndex& )> valueChanged_;
         };
@@ -221,7 +235,7 @@ MSQuanTable::currentChanged( const QModelIndex& index, const QModelIndex& )
         model.setData( model.index( r, c_delta_mass ), int( d + 0.7 ) );
     }
     setUpdatesEnabled( true );
-    emit currentChanged( idx, fcn, profGuid, QString::fromStdWString( dataGuid ) );
+    emit currentChanged( idx, fcn, QString::fromStdWString( dataGuid ), profGuid );
 }
 
 void
@@ -299,6 +313,14 @@ MSQuanTable::handleValueChanged( const QModelIndex& index )
         auto it = std::find_if( pks->begin(), pks->end(), [=] ( adcontrols::MSQPeaks::value_type& t ){
                 return t.dataGuid() == dataGuid && t.fcn() == fcn && t.idx() == idx; } );
         if ( it != pks->end() ) {
+            if ( index.column() == c_isSTD ) {
+                bool standard = (index.data( Qt::CheckStateRole ) == Qt::Checked);
+                it->isSTD( standard );
+                if ( standard && adportable::compare<double>::essentiallyEqual( it->amount(), 0 ) ) {
+                    it->amount( 1.0 );
+                    model.setData( model.index( index.row(), c_amount ), it->amount() );
+                }
+            }
             if ( index.column() == c_formula ) {
                 it->formula( index.data().toString().toStdString() );
             }
@@ -325,8 +347,12 @@ MSQuanTable::setData( const adcontrols::MSQPeaks * pks )
         qpks_ = pks->shared_from_this();
 
 	QStandardItemModel& model = *model_;
+
     setUpdatesEnabled( false );
     // model.blockSignals( true );
+
+    std::map< std::wstring, double > sum;
+
     if ( pks->size() != model.rowCount() )
         model.setRowCount( int( pks->size() ) );
 
@@ -336,25 +362,40 @@ MSQuanTable::setData( const adcontrols::MSQPeaks * pks )
         model.setData( model.index( row, c_idx ), pk.idx() );
         model.setData( model.index( row, c_id ),  QString::fromStdWString( pk.dataGuid()) );
 
+        if ( sum.find( pk.dataGuid() ) == sum.end() ) {
+            sum[ pk.dataGuid() ] = 0;
+            std::for_each( pks->begin(), pks->end(), [&]( const adcontrols::MSQPeak& t ){
+                    if ( pk.dataGuid() == t.dataGuid() )
+                        sum[ pk.dataGuid() ] += t.intensity();
+                });
+        }
+
         model.setData( model.index( row, c_datasource ),  QString::fromStdWString( pks->dataSource( pk.dataGuid() ) ) );
         model.setData( model.index( row, c_protocol ), QString::fromStdString( pk.protocol() ) );
         model.setData( model.index( row, c_amount ), pk.amount() );
         model.setData( model.index( row, c_component ), QString::fromStdWString( pk.componentId() ) );
 
-        // , c_mass_error
-        //       , c_relative_intensity
-        
+        double ra = pk.intensity() * 100 / sum[ pk.dataGuid() ];
+        model.setData( model.index( row, c_relative_intensity ), ra );
+
         model.setData( model.index( row, c_time ), pk.time() );
         model.setData( model.index( row, c_mass ), pk.mass() );
         model.setData( model.index( row, c_intensity ), pk.intensity() );
         model.setData( model.index( row, c_mode ), pk.mode() );
         model.setData( model.index( row, c_formula ), QString::fromStdString( pk.formula() ) );
         model.setData( model.index( row, c_description ), QString::fromStdString( pk.description() ) );
-        model.setData( model.index( row, c_istd ), pk.istd() );
-        model.setData( model.index( row, c_isSTD ), pk.isIS() );
-        // model.setData( model.index( row, c_isIS ), pk.isIS() ); // --> add as checkbox
-        // r.a.
-
+        if ( auto chk = model.itemFromIndex( model.index( row, c_istd ) ) ) {
+            // internal standard, IS# 
+            chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | chk->flags() );
+            model.setData( model.index( row, c_istd ), pk.isIS() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            // set IS#
+            model.setData( model.index( row, c_istd ), pk.istd() );
+        }
+        if ( auto chk = model.itemFromIndex( model.index( row, c_isSTD ) ) ) {
+            // standard | sample
+            chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | chk->flags() );
+            model.setData( model.index( row, c_isSTD ), pk.isSTD() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
         ++row;
     }
 

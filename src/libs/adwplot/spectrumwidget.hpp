@@ -26,6 +26,7 @@
 #pragma once
 
 #include "dataplot.hpp"
+#include <atomic>
 
 class QwtPlotZoomer;
 
@@ -42,7 +43,7 @@ namespace adwplot {
         ~SpectrumWidget();
         
         void clear();
-        void removeData( int idx );
+        void removeData( int idx, bool replot = true );
         void setData( const std::shared_ptr< adcontrols::MassSpectrum >&, int idx, bool axisRight = false );
         void setFocusedFcn( int fcn );
         
@@ -50,15 +51,16 @@ namespace adwplot {
         void setAxis( HorizontalAxis, bool replot = false );
         bool autoAnnotation() const;
         void setAutoAnnotation( bool enable = true );
-        void update_annotation();
+        void update_annotation( bool replot = true );
         void setKeepZoomed( bool );
         
     private:
         struct SpectrumWidgetImpl * impl_;
-        bool autoYZoom_;
-        bool keepZoomed_;
-        HorizontalAxis haxis_;
-        int focusedFcn_;
+        std::atomic<bool> autoYZoom_;
+        std::atomic<bool> keepZoomed_;
+        std::atomic<bool> axisHadScaled_;
+        std::atomic<HorizontalAxis> haxis_;
+        std::atomic<int> focusedFcn_;
         bool scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
         void redraw_all();
 

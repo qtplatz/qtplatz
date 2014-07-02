@@ -202,6 +202,12 @@ MSCalibrationWnd::handleSessionAdded( Dataprocessor * )
 }
 
 void
+MSCalibrationWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& folium )
+{
+    handleSelectionChanged( processor, folium );
+}
+
+void
 MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
     Q_UNUSED(processor);

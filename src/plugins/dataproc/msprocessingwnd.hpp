@@ -69,6 +69,7 @@ namespace dataproc {
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+        void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handlePrintCurrentView( const QString& outpdf );
         void handleAxisChanged( int );

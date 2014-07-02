@@ -126,6 +126,12 @@ ElementalCompWnd::handleSessionAdded( Dataprocessor * )
 }
 
 void
+ElementalCompWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& folium )
+{
+    handleSelectionChanged( processor, folium );
+}
+
+void
 ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
 {
     pImpl_->drawIdx_ = 0;

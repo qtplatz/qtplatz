@@ -54,7 +54,7 @@ namespace adcontrols {
         iterator_type end();
         const_iterator_type begin() const;
         const_iterator_type end() const;
-        void erase( const std::wstring& profGuid );
+        bool erase( const std::wstring& profGuid );
         iterator_type erase( iterator_type );
         iterator_type erase( iterator_type first, iterator_type last );
         MSQPeaks& operator << ( const MSQPeak& );

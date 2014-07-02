@@ -100,6 +100,7 @@ namespace dataproc {
                       , idSelChromatogram, idSelMSPeaks, idSelSpectrogram, idSelSpectra, idNum };
 
         void selPage( idPage );
+        enum idPage curPage() const;
 
     public slots:
         void handleSessionAdded( Dataprocessor * );
@@ -138,6 +139,7 @@ namespace dataproc {
         void createDockWidgets();
         Utils::StyledBar * createStyledBarTop();
         Utils::StyledBar * createStyledBarMiddle();
+        void currentPageChanged( int );
 
     signals:
         void onPrintCurrentView( const QString& ) const;

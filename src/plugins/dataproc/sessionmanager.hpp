@@ -68,6 +68,7 @@ namespace dataproc {
         void folderChanged( Dataprocessor *, const std::wstring& foldername );
         void checkStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );
         void removeEditor( Core::IEditor * );
+        void processed( Dataprocessor *, portfolio::Folium& );
 
         typedef std::vector< Session > vector_type;
 
@@ -80,10 +81,10 @@ namespace dataproc {
         void signalSessionAdded( Dataprocessor * );
         void signalSelectionChanged( Dataprocessor *, portfolio::Folium& );
         void signalCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool );
-		//void signalSessionUpdated( Dataprocessor *, portfolio::Folium& );
 		void onSessionUpdated( Dataprocessor *, const QString& foliumId );
 		void onFolderChanged( Dataprocessor *, const QString& folder );
         void onSessionRemoved( Dataprocessor * );
+        void onProcessed( Dataprocessor *, portfolio::Folium& );
 
     public slots:
         void selectionChanged( Dataprocessor *, portfolio::Folium& );

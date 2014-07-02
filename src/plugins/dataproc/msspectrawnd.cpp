@@ -67,6 +67,7 @@ MSSpectraWnd::MSSpectraWnd( QWidget *parent ) :  QWidget(parent)
                                               , table_( new adwidgets::MSQuanTable )
                                               , marker_( new adwplot::PeakMarker )
                                               , isTimeAxis_( false )
+                                              , dirty_( true )
 {
     init();
 }
@@ -104,14 +105,14 @@ MSSpectraWnd::init()
 void
 MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 {
-    dataIds_.clear();
+    if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
+        return;
+
     auto * qpks = document::instance()->msQuanTable();
-    qpks->clear();
 
     int idx = 0;
     if ( auto folder = processor->portfolio().findFolder( L"Spectra" ) ) {
 
-		// fullpath_ = QString::fromStdWString( processor->filename() );
         for ( auto& folium: folder.folio() ) {
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
                 if ( folium.empty() )
@@ -123,11 +124,12 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
                 auto atts = folium.attachments();
                 auto itCentroid = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
                 if ( itCentroid != atts.end() ) {
-                    dataIds_[ folium.id() ] = idx; // keep id for profile (quicker to find than an attachment id)
-                    auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
-                    plot_->setData( centroid, idx++ );
-                    qpks->setData( *centroid, itCentroid->id(), folium.id(), processor->file().filename() + L"::" + folium.name() );
-                    table_->setData( qpks );
+                    if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
+                        dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid );
+                        plot_->setData( centroid, idx++ );
+                        qpks->setData( *centroid, itCentroid->id(), folium.id(), processor->file().filename() + L"::" + folium.name() );
+                        table_->setData( qpks );
+                    }
                 }
             }
         }
@@ -135,16 +137,31 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 }
 
 void
+MSSpectraWnd::handleProcessed( Dataprocessor * processor, portfolio::Folium& folium )
+{
+    handleSelectionChanged( processor, folium );
+}
+
+void
 MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
+    if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
+        return;
+
+    if ( auto folder = folium.getParentFolder() ) {
+        if ( folder.name() != L"Spectra" )
+            return;
+    }
+
     if ( folium.attribute( L"isChecked" ) == L"false" ) {
+
         auto qpks = document::instance()->msQuanTable();
-        qpks->erase( folium.id() );
-        table_->setData( qpks );
+        if ( qpks->erase( folium.id() ) )
+            table_->setData( qpks );
 
         auto it = dataIds_.find( folium.id() );
         if ( it != dataIds_.end() ) {
-            plot_->removeData( it->second );
+            plot_->removeData( std::get<0>(it->second) );  // 0 := index, 1 := guid, 2 := weak_ptr<MassSpectrum>
             dataIds_.erase( it );
         }
         return;
@@ -155,23 +172,21 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         profile_ = profile;
     }
 
-    int idx = 1; // start with 1 ( 0 was reserved for profile )
+    int idx = int( dataIds_.size() + 1 ); // start with 1 ( 0 was reserved for profile )
     auto it = dataIds_.find( folium.id() );
     if ( it != dataIds_.end() )
-        idx = it->second;
-    else
-        idx = int( dataIds_.size() );
+        idx = std::get<0>( it->second );
 
     auto atts = folium.attachments();
     auto itCentroid = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
     if ( itCentroid != atts.end() ) {
-        auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
-        processed_ = centroid;
-        dataIds_[ folium.id() ] = idx;
-        plot_->setData( centroid, idx );
-        if ( auto * qpks = document::instance()->msQuanTable() ) {
-            qpks->setData( *centroid, itCentroid->id(), folium.id(), processor->file().filename() + L"::" + folium.name() );
-            table_->setData( qpks );
+        if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
+            dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid );
+            plot_->setData( centroid, idx );
+            if ( auto * qpks = document::instance()->msQuanTable() ) {
+                qpks->setData( *centroid, itCentroid->id(), folium.id(), processor->file().filename() + L"::" + folium.name() );
+                table_->setData( qpks );
+            }
         }
     }
 }
@@ -191,21 +206,36 @@ MSSpectraWnd::handleAxisChanged( int axis )
 void
 MSSpectraWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool )
 {
+    // will handle at handleSelectionChanged
 }
 
 void
 MSSpectraWnd::handleCurrentChanged( int idx, int fcn, const QString& dataGuid, const QString& parentGuid )
 {
-    (void)dataGuid;
-    (void)parentGuid;
+    std::wstring profGuid = parentGuid.toStdWString();
+    std::wstring centGuid = dataGuid.toStdWString();
+
     plot_->setFocusedFcn( fcn );
-    if ( auto processed = processed_.lock() ) {
-        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *processed );
-        if ( segs.size() > size_t( fcn ) ) {
-            marker_->setPeak( segs[ fcn ], idx, isTimeAxis_ );
-            plot_->replot();
+    auto it = dataIds_.find( profGuid );
+    if ( it != dataIds_.end() ) {
+        if ( std::get<1>( it->second ) != centGuid ) {
+            ADDEBUG() << "GUID mismatch -- it is a bug";
+            return;
+        }
+        if ( auto processed = std::get<2>( it->second ).lock() ) {
+            adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *processed );
+            if ( segs.size() > size_t( fcn ) ) {
+                marker_->setPeak( segs[ fcn ], idx, isTimeAxis_ );
+                plot_->replot();
+            }
         }
     }
+}
+
+void
+MSSpectraWnd::onPageSelected()
+{
+    
 }
 
 ///////////////////////////

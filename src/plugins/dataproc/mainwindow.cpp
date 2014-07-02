@@ -140,6 +140,16 @@ namespace dataproc {
         }
     };
 
+    struct processed_connector : public boost::static_visitor< bool > {
+        QObject * this_;
+        processed_connector( QObject * p ) : this_(p) {}
+        template<class T> bool operator () ( T* wnd ) const {
+            return
+                this_->connect( SessionManager::instance(), &SessionManager::onProcessed, wnd
+                                , [=]( Dataprocessor* dp, portfolio::Folium& f ){ wnd->handleProcessed( dp, f ); });
+        }
+    };
+
     struct apply_method_connector : public boost::static_visitor< bool > {
         QObject * this_;
         apply_method_connector( QObject * p ) : this_(p) {}
@@ -289,6 +299,22 @@ MainWindow::selPage( idPage id )
     stack_->setCurrentIndex( id );
 }
 
+MainWindow::idPage
+MainWindow::curPage() const
+{
+    return idPage( stack_->currentIndex() );
+}
+
+void
+MainWindow::currentPageChanged( int idx )
+{
+    if ( idx == idSelSpectra ) {
+        if ( auto p = dynamic_cast<MSSpectraWnd *>(stack_->widget( idx )) ) {
+            p->onPageSelected();
+        }
+    }
+}
+
 Utils::StyledBar *
 MainWindow::createStyledBarMiddle()
 {
@@ -371,6 +397,8 @@ MainWindow::createContents( Core::IMode * mode
         stack_ = new QStackedWidget;
         splitter3->addWidget( stack_ );
 
+        connect( stack_, &QStackedWidget::currentChanged, this, &MainWindow::currentPageChanged );
+
         wnd.push_back( new MSProcessingWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Process" ), wnd.back() ) );
         //wndMSProcessing_ = boost::get< MSProcessingWnd * >( wnd.back() );
@@ -408,6 +436,7 @@ MainWindow::createContents( Core::IMode * mode
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
         boost::apply_visitor( session_added_connector(this), it );
         boost::apply_visitor( selection_changed_connector(this), it );
+        boost::apply_visitor( processed_connector(this), it );
         boost::apply_visitor( apply_method_connector(this), it );
 
         boost::apply_visitor( check_state_changed_connector(this), it );

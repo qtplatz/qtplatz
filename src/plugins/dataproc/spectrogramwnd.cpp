@@ -164,6 +164,12 @@ SpectrogramWnd::handleSessionAdded( Dataprocessor* )
 }
 
 void
+SpectrogramWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& folium )
+{
+    handleSelectionChanged( processor, folium );
+}
+
+void
 SpectrogramWnd::handleSelectionChanged( Dataprocessor*, portfolio::Folium& folium )
 {
     portfolio::Folder folder = folium.getParentFolder();

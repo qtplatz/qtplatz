@@ -347,8 +347,8 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
      
         for ( auto it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( processIt(*it, folium), data );
-        SessionManager::instance()->selectionChanged( this, folium );
 		ifileimpl_->setModified();
+        SessionManager::instance()->processed( this, folium );
     }
 }
 

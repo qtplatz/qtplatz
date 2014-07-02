@@ -27,6 +27,7 @@
 
 #include <QWidget>
 #include <memory>
+#include <tuple>
 
 namespace portfolio {
     class Folium;
@@ -51,9 +52,12 @@ namespace dataproc {
     public:
         explicit MSSpectraWnd( QWidget *parent = 0);
         ~MSSpectraWnd();
+
+        void onPageSelected();
         
     public slots:
         void handleSessionAdded( Dataprocessor* );
+        void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handleAxisChanged( int );
@@ -62,14 +66,14 @@ namespace dataproc {
     private:
         void init();
         void handleCurrentChanged( int idx, int fcn, const QString& dataGuid, const QString& parentGuid );
-        std::map< std::wstring, int > dataIds_;
+        std::map< std::wstring, std::tuple<int, std::wstring, std::weak_ptr< adcontrols::MassSpectrum> > > dataIds_;
         std::weak_ptr< adcontrols::MassSpectrum > profile_;
-        std::weak_ptr< adcontrols::MassSpectrum > processed_;
 
         std::unique_ptr< adwidgets::MSQuanTable > table_;
         std::unique_ptr< adwplot::SpectrumWidget > plot_;
         std::unique_ptr< adwplot::PeakMarker > marker_;
         bool isTimeAxis_;
+        bool dirty_;
     };
 }
 

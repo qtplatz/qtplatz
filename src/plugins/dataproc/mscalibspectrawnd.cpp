@@ -489,6 +489,12 @@ MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio:
 }
 
 void
+MSCalibSpectraWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& folium )
+{
+    handleSelectionChanged( processor, folium );
+}
+
+void
 MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
     (void)processor;

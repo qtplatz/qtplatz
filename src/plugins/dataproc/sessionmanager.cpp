@@ -123,10 +123,16 @@ SessionManager::find( const std::wstring& token )
 }
 
 void
+SessionManager::processed( Dataprocessor* dataprocessor, portfolio::Folium& folium )
+{
+    emit onProcessed( dataprocessor, folium );
+}
+
+void
 SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
 	if ( activeDataprocessor_ != dataprocessor ) {
-		activeDataprocessor_ = dataprocessor;
+        activeDataprocessor_ = dataprocessor;
 		auto it = std::find_if( sessions_.begin(), sessions_.end(), [dataprocessor]( dataproc::Session& s ){
                 return dataprocessor == s.processor();
             });

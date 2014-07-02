@@ -176,6 +176,19 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * )
 }
 
 void
+ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
+{
+    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+    boost::apply_visitor( selChanged<ChromatogramWnd>(*this), data );
+
+    portfolio::Folio attachments = folium.attachments();
+    for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
+        adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
+        boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
+    }
+}
+
+void
 ChromatogramWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& folium )
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );

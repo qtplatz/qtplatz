@@ -83,18 +83,22 @@ MSQPeaks::end() const
     return vec_.end();
 }
 
-void
+bool
 MSQPeaks::erase( const std::wstring& profGuid )
 {
+    bool modified( false );
+
     typedef decltype(*ident_.begin()) ident_value_type;
     auto idit = std::find_if( ident_.begin(), ident_.end(), [=] ( ident_value_type& t ){ return t.second.first == profGuid; } );
     if ( idit != ident_.end() ) {
+        modified = true;
         const std::wstring& dataGuid = idit->first;
         auto it = std::remove_if( vec_.begin(), vec_.end(), [=] ( value_type& t ){ return t.dataGuid() == dataGuid; } );
         if ( it != vec_.end() )
             vec_.erase( it, vec_.end() );
         ident_.erase( idit );
     }
+    return modified;
 }
 
 MSQPeaks::iterator_type
@@ -173,7 +177,7 @@ MSQPeaks::setData( const MassSpectrum& ms, const std::wstring& dataGuid, const s
                     } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
                         pk.formula( it->text() );
                     }
-                    it = std::find_if( it, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });                    
+                    it = std::find_if( it + 1, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });                    
                 }
                 vec_.push_back( pk );
             }

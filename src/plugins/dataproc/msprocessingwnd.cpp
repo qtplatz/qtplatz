@@ -43,6 +43,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/xml_serializer.hpp>
@@ -329,10 +330,18 @@ MSProcessingWnd::handleZoomedOnSpectrum( const QRectF& rc )
 }
 
 void
+MSProcessingWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& folium )
+{
+    handleSelectionChanged( processor, folium );
+}
+
+void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
 {
     drawIdx1_ = 0;
     drawIdx2_ = 0;
+
+    adportable::scoped_debug<> scope(__FILE__,__LINE__); scope << "selection changed:";
 
     if ( portfolio::Folder folder = folium.getParentFolder() ) {
 
