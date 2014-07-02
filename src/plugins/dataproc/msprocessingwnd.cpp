@@ -213,9 +213,9 @@ MSProcessingWnd::init()
 }
 
 void
-MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
+MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPtr& ptr )
 {
-    pProfileSpectrum_ = ptr;
+    pProfileSpectrum_ = std::make_pair( guid, ptr );
     pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
     QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: ptr->getDescriptions() )
@@ -228,7 +228,7 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 void
 MSProcessingWnd::draw1()
 {
-    if ( auto ptr = pProfileSpectrum_.lock() ) {
+    if ( auto ptr = pProfileSpectrum_.second.lock() ) {
         if ( drawIdx1_ )
             --drawIdx1_;
         pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
@@ -349,15 +349,16 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-                pProcessedSpectrum_.reset();
-                pProfileSpectrum_.reset();
-                pkinfo_.reset();
+                pProcessedSpectrum_ = std::make_pair( std::wstring(), std::shared_ptr< adcontrols::MassSpectrum >( 0 ) );
+                pProfileSpectrum_ = std::make_pair( std::wstring(), std::shared_ptr< adcontrols::MassSpectrum >( 0 ) );
+                pkinfo_ = std::make_pair( std::wstring(), std::shared_ptr< adcontrols::MSPeakInfo >( 0 ) );
 
                 if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
-					draw1( ptr ); // profile
+
+                    draw_profile( folium.id(), ptr );
 
                     if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
                                 return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
@@ -365,7 +366,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
                         if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
                             if ( centroid->isCentroid() ) {
                                 draw2( centroid );
-                                pProcessedSpectrum_ = centroid;
+                                pProcessedSpectrum_ = std::make_pair( fcentroid.id(), centroid );
                             }
                         }
                         if ( auto fmethod = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
@@ -376,7 +377,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
                         }
                         if ( auto fpkinfo = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
                                     return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
-                            pkinfo_ = portfolio::get< adcontrols::MSPeakInfoPtr >( fpkinfo );
+                            pkinfo_ = std::make_pair( fpkinfo.id(), portfolio::get< adcontrols::MSPeakInfoPtr >( fpkinfo ) );
                         }
                     }
 
@@ -435,11 +436,12 @@ MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
 {
     pImpl_->focusedFcn( fcn );
 
-    if ( auto pkinfo = pkinfo_.lock() ) {
+    if ( auto pkinfo = pkinfo_.second.lock() ) {
         adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > fpks( *pkinfo );
         auto pk = fpks[ fcn ].begin() + idx;
         pImpl_->currentChanged( *pk );
-    } else if ( auto ms = pProcessedSpectrum_.lock() ) {
+    }
+    else if ( auto ms = pProcessedSpectrum_.second.lock() ) {
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
         if ( segs.size() > unsigned( fcn ) ) {
             pImpl_->currentChanged( segs[ fcn ], idx );
@@ -448,17 +450,19 @@ MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
 }
 
 void
-MSProcessingWnd::handleFormulaChanged( int /* idx */, int /* fcn */ )
+MSProcessingWnd::handleFormulaChanged( int idx, int fcn )
 {
 	pImpl_->processedSpectrum_->update_annotation();
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
-        dp->formulaChanged();
+        dp->formulaChanged(); // this makes processor dirty (setModified())
+
+    emit dataChanged( QString::fromStdWString( pProfileSpectrum_.first ), QString::fromStdWString( pProcessedSpectrum_.first ), idx, fcn );
 }
 
 void
 MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
 {
-    if ( auto ms = pProcessedSpectrum_.lock() ) {
+    if ( auto ms = pProcessedSpectrum_.second.lock() ) {
 
         adcontrols::lockmass lockmass;
         
@@ -474,6 +478,8 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
 
                 MainWindow::instance()->lockMassHandled( ms ); // update MSPeakTable
                 handleDataMayChanged();
+
+                emit dataChanged( QString::fromStdWString( idSpectrumFolium_ ), QString( "*" ), -1, -1 );
             }
         }
     }
@@ -520,7 +526,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         fixedActions[ 2 ] = menu.addAction( "Frequency analysis" );
 
         std::pair<size_t, size_t> range;
-        if ( auto ms = pProfileSpectrum_.lock() ) {
+        if ( auto ms = pProfileSpectrum_.second.lock() ) {
             if ( pImpl_->is_time_axis_ )
                 range = std::make_pair( ms->getIndexFromTime( scale_to_base( rect.left(), micro ) ), ms->getIndexFromTime( scale_to_base( rect.right(), micro ) ) );
             else {
@@ -582,7 +588,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 adwplot::Dataplot::copyToClipboard( pImpl_->profileSpectrum_ );
                 return;
             } else if ( fixedActions[ 2 ] == selectedItem ) {
-                if ( auto ms = pProfileSpectrum_.lock() ) {
+                if ( auto ms = pProfileSpectrum_.second.lock() ) {
                     auto range = std::make_pair( size_t(0), ms->size() - 1 );
                     std::vector< double > freq, power;
                     double y_dc(0), y_nyquist(0);
@@ -653,7 +659,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
         // todo: chromatogram creation from base peak in range
 
-        if ( auto ptr = pProcessedSpectrum_.lock() ) {
+        if ( auto ptr = pProcessedSpectrum_.second.lock() ) {
 #if defined BASEPEAK_SELECTION
             // find base peak
 			auto idx = adcontrols::segments_helper::base_peak_index( *ptr, rect.left(), rect.right() );
@@ -704,7 +710,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 
                 QRectF rc = pImpl_->processedSpectrum_->zoomRect();
 
-                if ( adcontrols::MassSpectrumPtr ptr = pProcessedSpectrum_.lock() ) {
+                if ( adcontrols::MassSpectrumPtr ptr = pProcessedSpectrum_.second.lock() ) {
 					// create chromatograms for all peaks in current zoomed scope
 					Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
 					DataprocessWorker::instance()->createChromatograms( processor, ptr, rc.left(), rc.right() );
@@ -792,7 +798,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
 
         std::pair< double, double > mass_range;
 
-        if ( auto x = this->pProfileSpectrum_.lock() ) {
+        if ( auto x = this->pProfileSpectrum_.second.lock() ) {
 
             adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
 
@@ -823,7 +829,7 @@ MSProcessingWnd::assign_masses_to_profile()
 
     std::pair< double, double > mass_range;
     
-    if ( auto x = this->pProfileSpectrum_.lock() ) {
+    if ( auto x = this->pProfileSpectrum_.second.lock() ) {
         
         adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
         
@@ -855,7 +861,7 @@ MSProcessingWnd::correct_baseline()
 {
     double tic = 0;
 
-	if ( auto x = this->pProfileSpectrum_.lock() ) {
+    if ( auto x = this->pProfileSpectrum_.second.lock() ) {
 
         std::wostringstream o;
         o << L"Baseline corrected";
@@ -880,7 +886,7 @@ MSProcessingWnd::correct_baseline()
 double
 MSProcessingWnd::compute_rms( double s, double e )
 {
-	if ( auto ptr = this->pProfileSpectrum_.lock() ) {
+	if ( auto ptr = this->pProfileSpectrum_.second.lock() ) {
 
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
         
@@ -927,7 +933,7 @@ MSProcessingWnd::compute_minmax( double s, double e )
 {
     using namespace adcontrols::metric;
 
-	if ( auto ptr = this->pProfileSpectrum_.lock() ) {
+	if ( auto ptr = this->pProfileSpectrum_.second.lock() ) {
 
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
         

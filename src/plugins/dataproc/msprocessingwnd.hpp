@@ -56,7 +56,7 @@ namespace dataproc {
         public:
         explicit MSProcessingWnd(QWidget *parent = 0);
 
-        void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw_profile( const std::wstring& id, std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw( std::shared_ptr< adcontrols::Chromatogram >& );
         void draw( std::shared_ptr< adcontrols::PeakResult >& );
@@ -65,6 +65,7 @@ namespace dataproc {
         void idChromatogramFolium( const std::wstring& );
 
     signals:
+        void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );
       
     public slots:
         void handleSessionAdded( Dataprocessor* );
@@ -96,9 +97,9 @@ namespace dataproc {
         size_t drawIdx1_;
         size_t drawIdx2_;
         std::shared_ptr<MSProcessingWndImpl> pImpl_;
-        std::weak_ptr< adcontrols::MassSpectrum > pProcessedSpectrum_;
-        std::weak_ptr< adcontrols::MassSpectrum > pProfileSpectrum_;
-        std::weak_ptr< adcontrols::MSPeakInfo > pkinfo_;
+        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProcessedSpectrum_;
+        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileSpectrum_;
+        std::pair< std::wstring, std::weak_ptr< adcontrols::MSPeakInfo > > pkinfo_;
 
         std::wstring idActiveFolium_;
         std::wstring idChromatogramFolium_;
