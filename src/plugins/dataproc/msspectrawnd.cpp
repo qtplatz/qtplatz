@@ -28,14 +28,26 @@
 #include "selchanged.hpp"
 #include "sessionmanager.hpp"
 #include "document.hpp"
+#include "qtwidgets_name.hpp"
+
 #include <adcontrols/description.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msqpeaks.hpp>
 #include <adutils/processeddata.hpp>
+#include <adlog/logger.hpp>
+#include <adplugin/lifecycle.hpp>
+#include <adplugin/plugin.hpp>
+#include <adplugin/plugin_ptr.hpp>
+#include <adplugin/widget_factory.hpp>
+#include <adportable/configuration.hpp>
+#include <adwplot/chromatogramwidget.hpp>
+#include <adwplot/spectrumwidget.hpp>
+#include <adwidgets/msquantable.hpp>
 #include <adwplot/spectrogramwidget.hpp>
 #include <adwplot/peakmarker.hpp>
-#include <adwidgets/msquantable.hpp>
+#include <qtwidgets/peakresultwidget.hpp>
+
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/portfolio.hpp>
@@ -45,17 +57,6 @@
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
-#include <adportable/configuration.hpp>
-
-#include <adplugin/lifecycle.hpp>
-#include <adplugin/plugin.hpp>
-#include <adplugin/plugin_ptr.hpp>
-#include <adplugin/widget_factory.hpp>
-
-#include <qtwidgets/peakresultwidget.hpp>
-#include <adwplot/chromatogramwidget.hpp>
-#include <adwplot/spectrumwidget.hpp>
-#include "qtwidgets_name.hpp"
 
 using namespace dataproc;
 
@@ -225,7 +226,7 @@ MSSpectraWnd::handleCurrentChanged( int idx, int fcn, const QString& dataGuid, c
     auto it = dataIds_.find( profGuid );
     if ( it != dataIds_.end() ) {
         if ( std::get<1>( it->second ) != centGuid ) {
-            ADDEBUG() << "GUID mismatch -- it is a bug";
+            ADERROR() << "GUID mismatch -- it is a bug";
             return;
         }
         if ( auto processed = std::get<2>( it->second ).lock() ) {
