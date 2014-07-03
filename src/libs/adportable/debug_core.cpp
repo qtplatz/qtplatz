@@ -26,6 +26,8 @@
 #include <iostream>
 #include <fstream>
 #include <boost/format.hpp>
+#include "profile.hpp"
+
 //#include <boost/interprocess/shared_memory_object.hpp>
 //#include <boost/interprocess/mapped_region.hpp>
 //#include <boost/interprocess/sync/scoped_lock.hpp>
@@ -45,7 +47,7 @@ debug_core::~debug_core()
 {
 }
 
-debug_core::debug_core() : logfname_( "debug.log" )
+debug_core::debug_core() : logfname_( profile::user_data_dir<char>() + "/debug.log" )
 {
 }
 
