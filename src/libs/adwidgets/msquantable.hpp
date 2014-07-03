@@ -36,7 +36,7 @@ class QItemDelegate;
 class QStandardItemModel;
 class QModelIndex;
 
-namespace adcontrols { class MSQPeaks;  }
+namespace adcontrols { class MSQPeaks; class MSQPeak; }
 
 namespace adwidgets {
 
@@ -46,6 +46,13 @@ namespace adwidgets {
         Q_OBJECT
     public:
         explicit MSQuanTable( QWidget *parent = 0 );
+
+        enum {
+            column_component   // this is the primary id of component. if same key is assined to more than two formula, quant. result will be summed
+            , column_formula      // 
+            , column_description
+            , column_other
+        };
         
         void setData( const adcontrols::MSQPeaks * );
         void handleSelected( const QRectF&, bool isTime = false );
@@ -78,9 +85,15 @@ namespace adwidgets {
         void handleValueChanged( const QModelIndex& );
         void handleContextMenuRequested( const QPoint& );
         std::weak_ptr< adcontrols::MSQPeaks > qpks_;
+
+        int find_row( const adcontrols::MSQPeak& );
+        static void set_a_row( QStandardItemModel&, int row, const adcontrols::MSQPeak& );
+        static void update_row( QStandardItemModel&, int row, const adcontrols::MSQPeak& );
+
     signals:
-        void currentChanged( int idx, int fcn, const QString& parentGuid, const QString& dataGuid );
         void currentChanged( const QModelIndex& ); 
+        void currentChanged( const QString& dataGuid, int idx, int fcn );
+        void dataChanged( const QString& dataGuid, int idx, int fcn, int column, const QVariant& );
     };
 
 }

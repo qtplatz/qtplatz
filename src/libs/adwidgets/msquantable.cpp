@@ -28,7 +28,11 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msqpeak.hpp>
 #include <adcontrols/msqpeaks.hpp>
+#include <adcontrols/msident.hpp>
+#include <adcontrols/msquant.hpp>
 #include <adportable/float.hpp>
+#include <adportable/utf.hpp>
+#include <adportable/debug.hpp>
 #include <qtwrapper/font.hpp>
 
 #include <QApplication>
@@ -85,9 +89,17 @@ namespace adwidgets {
                 const QAbstractItemModel& model = *index.model();
 
                 QString dataId = model.data( model.index( currIndex_.row(), c_id ) ).toString();
+                double mass = model.data( model.index( currIndex_.row(), c_mass ) ).toDouble();
                 if ( model.data( model.index( index.row(), c_id ) ).toString() == dataId ) {
-                    painter->setPen( Qt::blue );
-                    painter->fillRect( op.rect, QColor( 192, 192, 128, 0x80 ) );
+                    painter->setPen( Qt::black );
+                    if ( index.row() == currIndex_.row() )
+                        painter->fillRect( op.rect, QColor( 0xff, 0x66, 0x44, 0x40 ) );
+                    else
+                        painter->fillRect( op.rect, QColor( 0xff, 0x66, 0x44, 0x10 ) );
+                } else {
+                    if ( std::abs( model.data( model.index( index.row(), c_mass ) ).toDouble() - mass ) <= 0.010 ) { // 10mDa
+                        painter->setPen( Qt::blue );                        
+                    }
                 }
 
                 switch( index.column() ) {
@@ -203,10 +215,11 @@ MSQuanTable::OnInitialUpdate()
     model.setHeaderData( c_id,          Qt::Horizontal, QObject::tr( "Data ID" ) );
     model.setHeaderData( c_idx,         Qt::Horizontal, QObject::tr( "idx#" ) );
     model.setHeaderData( c_fcn,         Qt::Horizontal, QObject::tr( "fcn#" ) );
-
-    //setColumnHidden( c_idx, true );
-    //setColumnHidden( c_fcn, true );  // a.k.a. protocol id, internally used as an id
-    //setColumnHidden( c_id, true );
+#if defined NDEBUG || !defined DEBUG 
+    setColumnHidden( c_idx, true );
+    setColumnHidden( c_fcn, true );
+    setColumnHidden( c_id, true ); // dataGuid
+#endif
 }
 
 void
@@ -285,7 +298,7 @@ MSQuanTable::currentChanged( const QModelIndex& index, const QModelIndex& )
         model.setData( model.index( r, c_delta_mass ), int( d + 0.7 ) );
     }
     setUpdatesEnabled( true );
-    emit currentChanged( idx, fcn, QString::fromStdWString( dataGuid ), profGuid );
+    emit currentChanged( QString::fromStdWString( dataGuid ), idx, fcn );
     emit currentChanged( index );
 }
 
@@ -299,21 +312,6 @@ MSQuanTable::keyPressEvent( QKeyEvent * event )
     } else {
         QTableView::keyPressEvent( event );
     }
-}
-
-void
-MSQuanTable::valueChanged()
-{
-}
-
-void
-MSQuanTable::currentChanged( int idx, int fcn )
-{
-}
-
-void
-MSQuanTable::formulaChanged( int idx, int fcn )
-{
 }
 
 void
@@ -356,6 +354,8 @@ MSQuanTable::handleValueChanged( const QModelIndex& index )
 
     QStandardItemModel& model = *model_;
 
+    bool std_assigned( false );
+
     if ( auto pks = qpks_.lock() ) {
         int fcn = model.index( index.row(), c_fcn ).data().toInt();
         int idx = model.index( index.row(), c_idx ).data().toInt();
@@ -367,20 +367,51 @@ MSQuanTable::handleValueChanged( const QModelIndex& index )
             if ( index.column() == c_isSTD ) {
                 bool standard = (index.data( Qt::CheckStateRole ) == Qt::Checked);
                 it->isSTD( standard );
-                if ( standard && adportable::compare<double>::essentiallyEqual( it->amount(), 0 ) ) {
+                if ( !standard )
+                    it->amount( 0.0 );
+                else if ( adportable::compare<double>::essentiallyEqual( it->amount(), 0 ) ) {
                     it->amount( 1.0 );
-                    model.setData( model.index( index.row(), c_amount ), it->amount() );
+                    if ( it->componentId().empty() ) {
+                        if ( it->formula().empty() )
+                            it->componentId( ( boost::wformat( L"M[%g]" ) % it->mass() ).str() );
+                        else
+                            it->componentId( L"M[" + adportable::utf::to_wstring( it->formula() ) + L"]" );
+                    }
                 }
+                update_row( model, index.row(), *it );
+                std_assigned = standard;
             }
+            else if ( index.column() == c_amount ) {
+                double a = index.data().toDouble();
+                if ( a > 0.0 )
+                    it->amount( a );
+                std_assigned = true; // rerun quant process
+            }
+            int column = MSQuanTable::column_other;
             if ( index.column() == c_formula ) {
+                column = MSQuanTable::column_formula;
                 it->formula( index.data().toString().toStdString() );
             }
             else if ( index.column() == c_component ) {
+                column = MSQuanTable::column_component;
                 it->componentId( index.data().toString().toStdWString() );
             }
             else if ( index.column() == c_description ) {
+                column = MSQuanTable::column_description;
                 it->description( index.data().toString().toStdString() );
             }
+            emit dataChanged( QString::fromStdWString(dataGuid), idx, fcn, column, index.data() );
+        }
+
+        if ( std_assigned ) {
+            adcontrols::MSIdent ident( 0.010 ); // +/- 10mDa
+            ident( *pks, [=] ( adcontrols::MSQPeak& pk ){
+                    update_row( *model_, find_row( pk ), pk );
+                } );
+
+            adcontrols::MSQuant()(*pks, [=] ( adcontrols::MSQPeak& pk ){
+                    update_row( *model_, find_row( pk ), pk );
+                });
         }
     }
 }
@@ -409,9 +440,6 @@ MSQuanTable::setData( const adcontrols::MSQPeaks * pks )
 
     int row = 0;
     for ( auto& pk: *pks ) {
-        model.setData( model.index( row, c_fcn ), pk.fcn() );
-        model.setData( model.index( row, c_idx ), pk.idx() );
-        model.setData( model.index( row, c_id ),  QString::fromStdWString( pk.dataGuid()) );
 
         if ( sum.find( pk.dataGuid() ) == sum.end() ) {
             sum[ pk.dataGuid() ] = 0;
@@ -421,32 +449,17 @@ MSQuanTable::setData( const adcontrols::MSQPeaks * pks )
                 });
         }
 
+        model.setData( model.index( row, c_fcn ), pk.fcn() );
+        model.setData( model.index( row, c_idx ), pk.idx() );
+        model.setData( model.index( row, c_id ),  QString::fromStdWString( pk.dataGuid()) );
         model.setData( model.index( row, c_datasource ),  QString::fromStdWString( pks->dataSource( pk.dataGuid() ) ) );
         model.setData( model.index( row, c_protocol ), QString::fromStdString( pk.protocol() ) );
-        model.setData( model.index( row, c_amount ), pk.amount() );
-        model.setData( model.index( row, c_component ), QString::fromStdWString( pk.componentId() ) );
 
         double ra = pk.intensity() * 100 / sum[ pk.dataGuid() ];
         model.setData( model.index( row, c_relative_intensity ), ra );
 
-        model.setData( model.index( row, c_time ), pk.time() );
-        model.setData( model.index( row, c_mass ), pk.mass() );
-        model.setData( model.index( row, c_intensity ), pk.intensity() );
-        model.setData( model.index( row, c_mode ), pk.mode() );
-        model.setData( model.index( row, c_formula ), QString::fromStdString( pk.formula() ) );
-        model.setData( model.index( row, c_description ), QString::fromStdString( pk.description() ) );
-        if ( auto chk = model.itemFromIndex( model.index( row, c_istd ) ) ) {
-            // internal standard, IS# 
-            chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | chk->flags() );
-            model.setData( model.index( row, c_istd ), pk.isIS() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-            // set IS#
-            model.setData( model.index( row, c_istd ), pk.istd() );
-        }
-        if ( auto chk = model.itemFromIndex( model.index( row, c_isSTD ) ) ) {
-            // standard | sample
-            chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | chk->flags() );
-            model.setData( model.index( row, c_isSTD ), pk.isSTD() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-        }
+        set_a_row( model, row, pk );
+
         ++row;
     }
 
@@ -454,3 +467,104 @@ MSQuanTable::setData( const adcontrols::MSQPeaks * pks )
     setUpdatesEnabled( true );
     // update();
 }
+
+int
+MSQuanTable::find_row( const adcontrols::MSQPeak& pk )
+{
+    QStandardItemModel& model = *model_;
+
+    int size = model.rowCount();
+    QString guid( QString::fromStdWString( pk.dataGuid() ) );
+    for ( int row = 0; row < size; ++row ) {
+        if ( model.index( row, c_idx ).data().toInt() == pk.idx() &&
+             model.index( row, c_fcn ).data().toInt() == pk.fcn() &&
+             model.index( row, c_id ).data().toString() == guid )
+            return row;
+    }
+    return -1;
+}
+
+/// static
+void
+MSQuanTable::set_a_row( QStandardItemModel& model, int row, const adcontrols::MSQPeak& pk )
+{
+    model.setData( model.index( row, c_amount ), pk.amount() );
+    model.setData( model.index( row, c_component ), QString::fromStdWString( pk.componentId() ) );
+    if ( pk.isSTD() )
+        model.setData( model.index( row, c_component ), QColor( 0x7a, 0xf5, 0xf5, 0x80 ), Qt::BackgroundColorRole );        
+    else
+        model.setData( model.index( row, c_component ), QColor( Qt::white ), Qt::BackgroundColorRole );        
+    
+    model.setData( model.index( row, c_time ), pk.time() );
+    model.setData( model.index( row, c_mass ), pk.mass() );
+    model.setData( model.index( row, c_intensity ), pk.intensity() );
+    model.setData( model.index( row, c_mode ), pk.mode() );
+    model.setData( model.index( row, c_formula ), QString::fromStdString( pk.formula() ) );
+    model.setData( model.index( row, c_description ), QString::fromStdString( pk.description() ) );
+    
+    if ( auto chk = model.itemFromIndex( model.index( row, c_istd ) ) ) {
+        // internal standard, IS# 
+        chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | chk->flags() );
+        model.setData( model.index( row, c_istd ), pk.isIS() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        // set IS#
+        model.setData( model.index( row, c_istd ), pk.istd() );
+    }
+    
+    if ( auto chk = model.itemFromIndex( model.index( row, c_isSTD ) ) ) {
+        // standard | sample
+        chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | chk->flags() );
+        model.setData( model.index( row, c_isSTD ), pk.isSTD() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    }
+
+    if ( auto p = model.item( row, c_id ) )
+        p->setEditable( false );
+    if ( auto p = model.item( row, c_idx ) )
+        p->setEditable( false );
+    if ( auto p = model.item( row, c_fcn ) )
+        p->setEditable( false );
+    if ( auto p = model.item( row, c_protocol ) )
+        p->setEditable( false );
+    if ( auto p = model.item( row, c_delta_mass ) )
+        p->setEditable( false );
+    if ( auto p = model.item( row, c_intensity ) )
+        p->setEditable( false );
+    if ( auto p = model.item( row, c_relative_intensity ) )
+        p->setEditable( false );
+    if ( pk.isSTD() ) {
+        if ( auto p = model.item( row, c_amount ) )
+            p->setEditable( true );
+    } else {
+        if ( auto p = model.item( row, c_amount ) )
+            p->setEditable( false );
+    }
+}
+
+/// static
+void
+MSQuanTable::update_row( QStandardItemModel& model, int row, const adcontrols::MSQPeak& pk )
+{
+    if ( row < 0 )
+        return;
+
+    if ( pk.isSTD() )
+        model.setData( model.index( row, c_component ), QColor( 0x7a, 0xf5, 0xf5, 0x80 ), Qt::BackgroundColorRole );        
+    else
+        model.setData( model.index( row, c_component ), QColor( Qt::white ), Qt::BackgroundColorRole );        
+
+    model.setData( model.index( row, c_amount ), pk.amount() );
+    model.setData( model.index( row, c_component ), QString::fromStdWString( pk.componentId() ) );
+    if ( pk.isSTD() )
+        model.setData( model.index( row, c_component ), QColor( 0x7a, 0xf5, 0xf5, 0x80 ), Qt::BackgroundColorRole );        
+    
+    model.setData( model.index( row, c_formula ), QString::fromStdString( pk.formula() ) );
+    model.setData( model.index( row, c_description ), QString::fromStdString( pk.description() ) );
+    
+    if ( pk.isSTD() ) {
+        if ( auto p = model.item( row, c_amount ) )
+            p->setEditable( true );
+    } else {
+        if ( auto p = model.item( row, c_amount ) )
+            p->setEditable( false );
+    }
+}
+

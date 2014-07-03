@@ -54,7 +54,8 @@ namespace dataproc {
         ~MSSpectraWnd();
 
         void onPageSelected();
-        
+        void onDataChanged( const QString& foliumGuid, const QString& attGuid, int idx, int fcn );
+
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
@@ -65,10 +66,20 @@ namespace dataproc {
         
     private:
         void init();
-        void handleCurrentChanged( int idx, int fcn, const QString& dataGuid, const QString& parentGuid );
+        void handleDataChanged( const QString& dataGuid, int idx, int fcn, int column, const QVariant& );
+        void handleCurrentChanged( const QString& dataGuid, int idx, int fcn );
         void handleSelected( const QRectF& );
-        std::map< std::wstring, std::tuple<int, std::wstring, std::weak_ptr< adcontrols::MassSpectrum> > > dataIds_;
-        std::weak_ptr< adcontrols::MassSpectrum > profile_;
+        void update_quantable();
+        void draw();
+
+        std::map< std::wstring // folium (profile) Guid (attGuid)
+                  , std::tuple<int                                         // 0 idx
+                               , std::wstring                              // 1 attached (:= centroid) guid
+                               , std::weak_ptr< adcontrols::MassSpectrum>  // 2 
+                               , std::wstring                              // 3 filename::folium.name
+                               >  > dataIds_;
+
+        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > profile_;
 
         std::unique_ptr< adwidgets::MSQuanTable > table_;
         std::unique_ptr< adwplot::SpectrumWidget > plot_;

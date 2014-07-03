@@ -401,7 +401,6 @@ MainWindow::createContents( Core::IMode * mode
 
         wnd.push_back( new MSProcessingWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Process" ), wnd.back() ) );
-        //wndMSProcessing_ = boost::get< MSProcessingWnd * >( wnd.back() );
 
         wnd.push_back( new ElementalCompWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "Elemental Comp." ), wnd.back() ) );
@@ -424,13 +423,16 @@ MainWindow::createContents( Core::IMode * mode
         wnd.push_back( new MSSpectraWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "Spectra" ), wnd.back() ) );
     }
+    if ( auto pSrc = stack_->widget( idSelMSProcess ) ) {
+        if ( auto pDst = stack_->widget( idSelSpectra ) )
+            connect( dynamic_cast<MSProcessingWnd *>(pSrc), &MSProcessingWnd::dataChanged, dynamic_cast<MSSpectraWnd *>(pDst), &MSSpectraWnd::onDataChanged );
+    }
 
     connect( SessionManager::instance(), &SessionManager::signalSessionAdded, this, &MainWindow::handleSessionAdded );
 
-    // The handleSelectionChanged on MainWindow should be called in advance 
-    // for all stacked child widgets.  This is significantly important for child widget has right device size
-    // especially for QwtPlot widget calculates QRectF intersection for annotation interference check using
-    // QScaleMap.
+    // The handleSelectionChanged on MainWindow should be called in advance for all stacked child widgets.
+    // This is significantly important for child widget has right screen axis especially for QwtPlot widget
+    // calculates QRectF intersection for annotation.
     connect( SessionManager::instance(), &SessionManager::signalSelectionChanged, this, &MainWindow::handleSelectionChanged );
 
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {

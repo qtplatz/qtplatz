@@ -479,7 +479,7 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
                 MainWindow::instance()->lockMassHandled( ms ); // update MSPeakTable
                 handleDataMayChanged();
 
-                emit dataChanged( QString::fromStdWString( idSpectrumFolium_ ), QString( "*" ), -1, -1 );
+                emit dataChanged( QString::fromStdWString( idSpectrumFolium_ ), QString(), -1, -1 );
             }
         }
     }

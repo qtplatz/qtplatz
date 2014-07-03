@@ -61,6 +61,8 @@ SOURCES += acceptor.cpp \
     msreference.cpp \
     msreferencedefns.cpp \
     msreferences.cpp \
+    msident.cpp \
+    msquant.cpp \
     peak.cpp \
     peakasymmetry.cpp \
     peakmethod.cpp \
@@ -137,6 +139,8 @@ HEADERS += acceptor.hpp \
     msreference.hpp \
     msreferencedefns.hpp \
     msreferences.hpp \
+    msident.hpp \
+    msquant.hpp \
     peak.hpp \
     peakasymmetry.hpp \
     peakmethod.hpp \

@@ -59,8 +59,9 @@ namespace adcontrols {
         iterator_type erase( iterator_type first, iterator_type last );
         MSQPeaks& operator << ( const MSQPeak& );
         const MSQPeak& operator [] ( size_t idx ) const;
-
+        iterator_type find( const std::wstring& dataGuid, int idx, int fcn );
         void setData( const MassSpectrum&, const std::wstring& dataGuid, const std::wstring& profileGuid, const std::wstring& dataSource );
+        bool replace( const MassSpectrum&, const std::wstring& dataGuid, const std::wstring& profileGuid, int idx, int fcn );
         const std::wstring& parentGuid( const std::wstring& ) const;
         const std::wstring& dataSource( const std::wstring& ) const;
         

@@ -51,6 +51,7 @@ void
 MSQPeaks::clear()
 {
     vec_.clear();
+    ident_.clear();
 }
 
 size_t
@@ -81,6 +82,14 @@ MSQPeaks::const_iterator_type
 MSQPeaks::end() const
 {
     return vec_.end();
+}
+
+MSQPeaks::iterator_type
+MSQPeaks::find( const std::wstring& dataGuid, int idx, int fcn )
+{
+    return std::find_if( vec_.begin(), vec_.end(), [=]( value_type& t ){
+             return t.dataGuid() == dataGuid && t.fcn() == fcn && t.idx() == idx;
+        });
 }
 
 bool
@@ -148,8 +157,10 @@ void
 MSQPeaks::setData( const MassSpectrum& ms, const std::wstring& dataGuid, const std::wstring& profGuid, const std::wstring& dataSource )
 {
     if ( ms.isCentroid() ) {
+
         adcontrols::segment_wrapper< const MassSpectrum > segs( ms );
         uint32_t fcn = 0;
+
         for ( auto& fms: segs ) {
 
             std::string protcol_text;
@@ -164,7 +175,9 @@ MSQPeaks::setData( const MassSpectrum& ms, const std::wstring& dataGuid, const s
             auto& prop = fms.getMSProperty();
 
             for ( uint32_t idx = 0; idx < fms.size(); ++idx ) {
+
                 MSQPeak pk( dataGuid, idx, fcn, this );
+
                 pk.time( fms.getTime(idx) );
                 pk.mass( fms.getMass(idx) );
                 pk.intensity( fms.getIntensity(idx) );
