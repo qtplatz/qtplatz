@@ -155,7 +155,9 @@ namespace adwplot {
             QRectF rect_;
             bool yRight_;
             std::vector< PlotCurve > curves_;
-            std::weak_ptr< adcontrols::MassSpectrum > pSpectrum_;
+            // pSpectrum_ should be kept while real time drawing is in progress
+            // so that weak_ptr is not approriate
+            std::shared_ptr< adcontrols::MassSpectrum > pSpectrum_;
 			bool isTimeAxis_;
         };
         
@@ -518,7 +520,7 @@ void
 TraceData::redraw( Dataplot& plot, SpectrumWidget::HorizontalAxis axis, QRectF& rcLeft, QRectF& rcRight )
 {
     QRectF rect;
-    if ( auto p = pSpectrum_.lock() ) {
+    if ( auto p = pSpectrum_ ) {
         setData( plot, p, rect, axis, yRight_ );
 
         QRectF& rc = (yRight_) ? rcRight : rcLeft;
@@ -543,7 +545,7 @@ TraceData::setData( Dataplot& plot
 {
     curves_.clear();
 
-    if ( pSpectrum_.lock() != ms )
+    if ( pSpectrum_ != ms )
         pSpectrum_ = ms;
 
     isTimeAxis_ = haxis == SpectrumWidget::HorizontalAxisTime;
@@ -590,7 +592,7 @@ TraceData::setFocusedFcn( int fcn )
 {
     if ( focusedFcn_ != fcn ) {
         focusedFcn_ = fcn;
-        if ( auto p = pSpectrum_.lock() ) {
+        if ( auto p = pSpectrum_ ) {
             changeFocus( focusedFcn_ );
         }
     }
@@ -604,7 +606,7 @@ TraceData::y_range( double left, double right ) const
     double bottom = -10;
 
     // if ( const std::shared_ptr< adcontrols::MassSpectrum > ms = pSpectrum_.lock() ) {
-    if ( auto ms = pSpectrum_.lock() ) {
+    if ( auto ms = pSpectrum_ ) {
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
         bool isCentroid = ms->isCentroid();
         for ( auto& seg: segments ) {
