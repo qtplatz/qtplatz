@@ -54,7 +54,7 @@ namespace adwidgets {
             , column_other
         };
         
-        void setData( const adcontrols::MSQPeaks * );
+        void setData( adcontrols::MSQPeaks * );
         void handleSelected( const QRectF&, bool isTime = false );
 
         // adplugin::LifeCycle

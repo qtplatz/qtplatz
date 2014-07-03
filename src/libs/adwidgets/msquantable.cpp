@@ -423,7 +423,7 @@ MSQuanTable::handleContextMenuRequested( const QPoint& )
 
 
 void
-MSQuanTable::setData( const adcontrols::MSQPeaks * pks )
+MSQuanTable::setData( adcontrols::MSQPeaks * pks )
 {
     if ( pks )
         qpks_ = pks->shared_from_this();

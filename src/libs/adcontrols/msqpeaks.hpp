@@ -76,7 +76,7 @@ namespace adcontrols {
             (void)(version);
             ar & vec_
                 & ident_
-                & proto_texts_;
+                & prot_texts_;
         }
         
     };
