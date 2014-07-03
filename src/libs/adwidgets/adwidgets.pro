@@ -18,6 +18,10 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper)
 
+!win32 {
+  LIBS += -lboost_filesystem -lboost_system 
+}
+
 DEFINES += ADWIDGETS_LIBRARY
 
 SOURCES += adwidgets.cpp \
