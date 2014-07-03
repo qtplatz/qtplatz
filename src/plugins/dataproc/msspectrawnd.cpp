@@ -53,7 +53,7 @@
 #include <portfolio/portfolio.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
-
+#include <boost/exception/all.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
@@ -149,9 +149,14 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 void
 MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-        profile_ = std::make_pair( folium.id(), ptr );
-    } else {
+    try {
+        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+            profile_ = std::make_pair( folium.id(), ptr );
+        } else {
+            return;
+        }
+    } catch ( ... ) {
+        ADERROR() << boost::current_exception_diagnostic_information();
         return;
     }
 
