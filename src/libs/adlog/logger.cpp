@@ -26,6 +26,10 @@
 #include "logging_handler.hpp"
 #include <adportable/string.hpp>
 #include <boost/system/error_code.hpp>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <adportable/date_string.hpp>
 
 using namespace adlog;
 
@@ -33,6 +37,8 @@ logger::logger( const char * file, int line, int pri ) : pri_( pri )
                                                        , line_(line)
                                                        , file_(file == 0 ? "" : file)
 {
+    auto tp = std::chrono::system_clock::now();
+    o_ << adportable::date_string::utc_to_localtime_string( std::chrono::system_clock::to_time_t( tp ), 0 ) << ":\t";
 }
 
 logger::~logger()

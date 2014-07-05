@@ -121,6 +121,7 @@
 #include <QMessageBox>
 #include <qdebug.h>
 
+#include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -331,8 +332,13 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     if ( mainWindow_ )
         mainWindow_->init( *pConfig_ );
 
-    initialize_actions();
-    initialize_broker();
+    try {
+        initialize_actions();
+        initialize_broker();
+    }
+    catch ( ... ) {
+        ADERROR() << boost::current_exception_diagnostic_information();
+    }
 
     mode->setWidget( createContents( mode ) );
 
@@ -927,7 +933,14 @@ AcquirePlugin::initialize_broker()
 
         if ( ( orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) ) {
 
-            orbBroker->orbmgr_init( 0, 0 );
+            try {
+                orbBroker->orbmgr_init( 0, 0 );
+            }
+            catch ( ... ) {
+                ADERROR() << "orbBroker raize an exception: " << boost::current_exception_diagnostic_information();
+                QMessageBox::warning( 0, "AcquirePlugin", QString::fromStdString( boost::current_exception_diagnostic_information() ) );
+                return;
+            }
 
             try { 
 
@@ -937,14 +950,18 @@ AcquirePlugin::initialize_broker()
                     addObject ( new QBroker( mgr._retn() ) );
                 }
 
-            } catch ( boost::exception& ex ) {
-				QMessageBox::warning( 0, "AcquirePlugin", QString::fromStdString( boost::diagnostic_information( ex ) ) );
+            } catch ( ... ) {
+                ADERROR() << "orbBroker raize an exception: " << boost::current_exception_diagnostic_information();
+				QMessageBox::warning( 0, "AcquirePlugin", QString::fromStdString( boost::current_exception_diagnostic_information() ) );
                 return;
             }
         }
     }
-    if ( adBroker == 0 || orbBroker == 0 )
+    if ( adBroker == 0 || orbBroker == 0 ) {
+        ADTRACE() << "adBroker does not initialized (it might be not configured)";
         return;
+    }
+
 
     // ----------------------- initialize corba servants ------------------------------
     std::vector< adplugin::plugin_ptr > factories;
