@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <?include version.wxi ?>
-    <Product Id="414521F4-0B23-45D1-BEAF-E2E90041E294"
+    <Product Id="*"
 	     Name="QtPlatz $(var.ProductVersion)" Language="1033" Version="$(var.ProductVersion)"
 	     Manufacturer="MS-Cheminformatics LLC" UpgradeCode="19F5A544-A8C4-4957-B547-74F68DFE8217">
         <Package Id="*" Keywords="installer"
 		 Platform="x64" Manufacturer="MS-Cheminformatics LLC" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
-        <MajorUpgrade Schedule="afterInstallInitialize" DowngradeErrorMessage="A newer version of QtPlatz is already installed." AllowSameVersionUpgrades="yes" />
+        <MajorUpgrade Schedule="afterInstallInitialize"
+		      DowngradeErrorMessage="A newer version of QtPlatz is already installed." AllowSameVersionUpgrades="yes" />
         <Property Id="INSTALLDESKTOPSHORTCUT" Value="1" />
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
         <UIRef Id="WixUI_InstallDir" />
