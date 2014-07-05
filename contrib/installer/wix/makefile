@@ -38,17 +38,16 @@ veryclean: clean
 	git clean -d -x -f
 	cd $(MAKEDIR)
 
+
 qtplatz:
 	-$(RM) version.wxi
 	cd $(QTPLATZ_PATH)
-	git clean -d -x -f
 	qmake -tp vc -r
 	cd $(MAKEDIR)
 	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Rebuild /p:Configuration=Release
 
 infitof:
 	cd $(INFITOF_PATH)
-	git clean -d -x -f
 	qmake -tp vc -r
 	cd $(MAKEDIR)
 	msbuild $(INFITOF_PATH)\infitof.sln /m:4 /t:Rebuild /p:Configuration=Release
