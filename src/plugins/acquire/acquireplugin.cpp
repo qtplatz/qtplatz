@@ -970,23 +970,25 @@ AcquirePlugin::initialize_broker()
 
 
     // ----------------------- initialize corba servants ------------------------------
-    try {
-        std::vector< adplugin::plugin_ptr > factories;
-        adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
-        for ( const adplugin::plugin_ptr& plugin: factories ) {
-        
-            if ( plugin->iid() == adbroker_plugin->iid() ) // skip "adBroker"
-                continue;
-        
-            if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) ) {
-                orbServants_.push_back( servant );
-            }
-        }
-    } catch ( ... ) {
-        ADERROR() << "orbBroker raize an exception: " << boost::current_exception_diagnostic_information();
-        throw;
-    }
+    std::vector< adplugin::plugin_ptr > factories;
+    adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
+    for ( const adplugin::plugin_ptr& plugin: factories ) {
 
+        ADTRACE() << "initializing " << plugin->clsid() << "{iid: " << plugin->iid() << "}";
+        
+        if ( plugin->iid() == adbroker_plugin->iid() ) // skip "adBroker"
+            continue;
+        
+        try {
+
+            if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) )
+                orbServants_.push_back( servant );
+
+        } catch ( ... ) {
+            ADERROR() << "exception while initializing " << plugin->clsid() << "\t" << boost::current_exception_diagnostic_information();
+            throw;
+        }
+    }
 }
 
 void

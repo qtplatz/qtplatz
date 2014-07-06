@@ -106,34 +106,56 @@ orbBroker::create_instance() const
 adplugin::orbServant *
 orbBroker::operator()( adplugin::plugin * plugin ) const
 {
+    struct local_error : virtual boost::exception, virtual std::exception {};
+    typedef boost::error_info< struct tag_errmsg, std::string > info;
+
     if ( plugin ) {
     
         adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
         if ( adplugin::orbFactory * factory = plugin->query_interface< adplugin::orbFactory >() ) {
             
             if ( adplugin::orbServant * orbServant = factory->create_instance() ) {
-                
-                orbServant->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-                std::string ior = orbServant->activate();
+
+                try { 
+                    orbServant->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+                } catch ( ... ) {
+                    ADERROR() << "Exception at orbServant::initialize call";
+                    BOOST_THROW_EXCEPTION( local_error() << info( "orbServant::initialize raise an exception" ) );
+                }
+
+                std::string ior;
+                try {
+                    ior = orbServant->activate();
+                } catch ( ... ) {
+                    ADERROR() << "Exception at orbServant::activate call";
+                    BOOST_THROW_EXCEPTION( local_error() << info( "orbServant::activate raise an exception" ) );
+                }
+
                 if ( !ior.empty() ) {
-                    CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
-                    BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( obj );
+                    try {
+                        CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
+                        BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( obj );
 
-                    if ( !CORBA::is_nil( accessor ) ) {
+                        if ( !CORBA::is_nil( accessor ) ) {
+                            try {
+                                Broker::Manager_var mgr = adbroker::manager_i::instance()->impl()._this();
                         
-						Broker::Manager_var mgr = adbroker::manager_i::instance()->impl()._this();
-                        
-                        accessor->setBrokerManager( mgr.in() );
-                        accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );
+                                accessor->setBrokerManager( mgr.in() );
+                                accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );
 
-                        try {
-                            mgr->register_object( orbServant->object_name(), obj );
-                        } catch ( CORBA::Exception& ex ) {
-                            factory->release( orbServant );
-                            struct corba_error : virtual boost::exception, virtual std::exception {};
-                            typedef boost::error_info< struct tag_errmsg, std::string > info;
-                            BOOST_THROW_EXCEPTION( corba_error() << info( ex._info().c_str() ) );
+                                try {
+                                    mgr->register_object( orbServant->object_name(), obj );
+                                } catch ( CORBA::Exception& ex ) {
+                                    factory->release( orbServant );
+                                    BOOST_THROW_EXCEPTION( local_error() << info( ex._info().c_str() ) );
+                                }
+                            } catch ( ... ) {
+                                ADERROR() << "Exception at Broker::Manager initialization";
+                                BOOST_THROW_EXCEPTION( local_error() << info( "Broker::Manager initialization sequence" ) );
+                            }
                         }
+                    } catch ( ... ) {
+                        BOOST_THROW_EXCEPTION( local_error() << info( "orbServant::activate raise an exception" ) );
                     }
                     return orbServant;
                 }
@@ -143,7 +165,7 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
             }
             
         } else {
-            ADTRACE() << plugin->clsid() << " has on adplugin::orbFactory class.";
+            ADTRACE() << plugin->clsid() << " has no adplugin::orbFactory class.";
         }
     }
 
