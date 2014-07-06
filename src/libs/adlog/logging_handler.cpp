@@ -24,6 +24,7 @@
 
 #include "logging_handler.hpp"
 #include <adportable/profile.hpp>
+#include <adportable/date_string.hpp>
 #include <boost/filesystem/path.hpp>
 #include <fstream>
 
@@ -77,13 +78,14 @@ logging_handler::size() const
 }
 
 void
-logging_handler::appendLog( int pri, const std::string& msg, const std::string& file, int line )
+logging_handler::appendLog( int pri, const std::string& msg, const std::string& file, int line
+                            , const std::chrono::system_clock::time_point& tp  )
 {
     for ( auto& client: *this )
-        client( pri, msg, file, line );
-
+        client( pri, msg, file, line, tp );
+    
 	std::ofstream of( logfile_.c_str(), std::ios_base::out | std::ios_base::app );
-    of << file << "(" << line << "): " << msg << std::endl;
+    of << adportable::date_string::logformat( tp ) << ":\t" << file << "(" << line << "): " << msg << std::endl;
 }
 
 void
@@ -96,7 +98,8 @@ logging_handler::close()
 void
 logging_handler::log( int pri, const std::string& msg, const std::string& file, int line )
 {
-    for ( auto& client: *logging_handler::instance() )
-        client( pri, msg, file, line );
+    auto tp = std::chrono::system_clock::now();
+    for ( auto& client : *logging_handler::instance() )
+        client( pri, msg, file, line, tp );
 }
 

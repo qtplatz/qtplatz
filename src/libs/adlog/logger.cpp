@@ -36,14 +36,13 @@ using namespace adlog;
 logger::logger( const char * file, int line, int pri ) : pri_( pri )
                                                        , line_(line)
                                                        , file_(file == 0 ? "" : file)
+                                                       , tp_( std::chrono::system_clock::now() )
 {
-    auto tp = std::chrono::system_clock::now();
-    o_ << adportable::date_string::utc_to_localtime_string( std::chrono::system_clock::to_time_t( tp ), 0 ) << ":\t";
 }
 
 logger::~logger()
 {
-    logging_handler::instance()->appendLog( pri_, o_.str(), file_, line_ );
+    logging_handler::instance()->appendLog( pri_, o_.str(), file_, line_, tp_ );
 }
 
 template<> logger&

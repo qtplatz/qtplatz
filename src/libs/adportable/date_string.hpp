@@ -26,6 +26,7 @@
 
 #include <string>
 #include <ctime>
+#include <chrono>
 
 namespace boost { namespace gregorian { class date; } }
 
@@ -35,6 +36,7 @@ namespace adportable {
     public:
         static std::string string( const boost::gregorian::date& dt, const char * fmt = "%Y-%m-%d" );
         static std::string utc_to_localtime_string( time_t utc, unsigned usec );
+        static std::string logformat( const std::chrono::system_clock::time_point& tp );
     };
 
 }

@@ -26,6 +26,7 @@
 #define LOGGER_HPP
 
 #include <adextension/ilogger.hpp>
+#include <chrono>
 
 namespace servant {
 
@@ -36,7 +37,7 @@ namespace servant {
 
         void appendLog( const std::string&, bool ) override;
         
-        void operator()( int, const std::string&, const std::string& file, int line );
+        void operator()( int, const std::string&, const std::string& file, int line, const std::chrono::system_clock::time_point& );
 
     signals:
         void onLogging( const QString&, bool );
