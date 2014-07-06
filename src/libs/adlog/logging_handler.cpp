@@ -37,7 +37,7 @@ logging_handler::logging_handler()
 {
     boost::filesystem::path logfile( adportable::profile::user_data_dir<char>() );
     logfile /= "qtplatz.log";
-    logfile_ = logfile.filename().string();
+    logfile_ = logfile.string();
 }
 
 logging_handler *

@@ -334,10 +334,16 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     try {
         initialize_actions();
+    }
+    catch ( ... ) {
+        ADERROR() << "exception handled for initailize_actions: " << boost::current_exception_diagnostic_information();
+    }
+
+    try {
         initialize_broker();
     }
     catch ( ... ) {
-        ADERROR() << boost::current_exception_diagnostic_information();
+        ADERROR() << "exception handled for initailize_broker: " << boost::current_exception_diagnostic_information();
     }
 
     mode->setWidget( createContents( mode ) );
@@ -964,16 +970,21 @@ AcquirePlugin::initialize_broker()
 
 
     // ----------------------- initialize corba servants ------------------------------
-    std::vector< adplugin::plugin_ptr > factories;
-    adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
-    for ( const adplugin::plugin_ptr& plugin: factories ) {
+    try {
+        std::vector< adplugin::plugin_ptr > factories;
+        adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
+        for ( const adplugin::plugin_ptr& plugin: factories ) {
         
-        if ( plugin->iid() == adbroker_plugin->iid() ) // skip "adBroker"
-            continue;
+            if ( plugin->iid() == adbroker_plugin->iid() ) // skip "adBroker"
+                continue;
         
-        if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) ) {
-            orbServants_.push_back( servant );
+            if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) ) {
+                orbServants_.push_back( servant );
+            }
         }
+    } catch ( ... ) {
+        ADERROR() << "orbBroker raize an exception: " << boost::current_exception_diagnostic_information();
+        throw;
     }
 
 }
