@@ -196,7 +196,7 @@ fix_rdkit:
 	done
 
 dmg: qtplatz.app
-	hdiutil create qtplatz-`git describe`.dmg -srcfolder ./qtplatz.app
+	hdiutil create -size 120m qtplatz-`git describe`.dmg -srcfolder ./qtplatz.app
 
 mount:
 	open ./qtplatz.dmg
