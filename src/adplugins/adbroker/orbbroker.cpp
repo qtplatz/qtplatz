@@ -133,7 +133,10 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
 
                 if ( !ior.empty() ) {
                     try {
+                        ADTRACE() << "string_to_object: " << ior;
                         CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
+
+                        ADTRACE() << "Broker::Accessor::_narrow";
                         BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( obj );
 
                         if ( !CORBA::is_nil( accessor ) ) {
