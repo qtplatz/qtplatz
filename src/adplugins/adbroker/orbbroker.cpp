@@ -125,45 +125,26 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
                 }
                 if ( !ior.empty() ) {
                     
-                    CORBA::Object_var obj;
-                    try {
-                        obj = pMgr->orb()->string_to_object( ior.c_str() );
-                    } catch ( ... ) {
-                        ADERROR() << "Exception at string_to_object";
-                        BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
+                    CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
+
+                    if ( CORBA::is_nil( obj ) ) {
+                        ADERROR() << "can't get object reference for ior: " << ior;
+                        return 0;
                     }
                     
                     BrokerClient::Accessor_var accessor;
                     try {
                         accessor = BrokerClient::Accessor::_narrow( obj );
                     } catch ( ... ) {
-                        ADERROR() << "Exception at BrokerClient::Accessor::_narrow";
+                        ADERROR() << "Exception at BrokerClient::Accessor::_narrow obj = " << obj.in();
                         BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
                     }
 
                     if ( !CORBA::is_nil( accessor ) ) {
                         
-						Broker::Manager_var mgr;
-                        try {
-                            mgr = adbroker::manager_i::instance()->impl()._this();
-                        } catch ( ... ) {
-                            ADERROR() << "Exception at adbroker::manager_i::_this()";
-                            BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
-                        }
-                        
-                        try {
-                            accessor->setBrokerManager( mgr.in() );
-                        } catch ( ... ) {
-                            ADERROR() << "Exception at setBrokerManager";
-                            BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
-                        }
-
-                        try {
-                            accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );
-                        } catch ( ... ) {
-                            ADERROR() << "Exception at setBrokerManager";
-                            BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
-                        }
+						Broker::Manager_var mgr = adbroker::manager_i::instance()->impl()._this();
+                        accessor->setBrokerManager( mgr.in() );
+                        accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );
 
                         try {
                             mgr->register_object( orbServant->object_name(), obj );
