@@ -27,13 +27,17 @@
 
 #include <map>
 #include <string>
-#include "adinterface/brokerS.h"
 
 #include "logger_i.hpp"
 #include "session_i.hpp"
 #include "objectdiscovery.hpp"
 #include <mutex>
 #include <memory>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
+#include "adinterface/brokerS.h"
+#include <compiler/diagnostic_pop.h>
 
 namespace acewrapper { template<class T> class ORBServant; }
 

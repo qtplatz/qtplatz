@@ -28,7 +28,11 @@
 #include <deque>
 #include <vector>
 #include <mutex>
-#include "adinterface/brokerS.h"
+
+#include <compiler/diagnostic_push.h>
+# include <compiler/disable_deprecated.h>
+# include "adinterface/brokerS.h"
+#include <compiler/diagnostic_pop.h>
 
 
 namespace broker {

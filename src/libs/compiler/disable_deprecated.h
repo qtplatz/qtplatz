@@ -24,6 +24,7 @@
 
 #if defined __GNUC__
 # pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+# pragma GCC diagnostic ignored "-Wdeprecated-register"
 #endif
 
 #if defined _MSC_VER

@@ -25,8 +25,11 @@
 
 #pragma once
 
+#include <compiler/diagnostic_push.h>
+# include <compiler/disable_deprecated.h>
 # include "adinterface/brokerS.h"
 # include "adinterface/brokereventC.h"
+#include <compiler/diagnostic_pop.h>
 
 
 #include <vector>

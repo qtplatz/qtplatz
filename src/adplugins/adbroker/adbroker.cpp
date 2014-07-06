@@ -27,7 +27,12 @@
 #include <adplugin/visitor.hpp>
 #include <adlog/logger.hpp>
 #include <typeinfo>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
 #include <tao/Utils/ORB_Manager.h>
+#include <compiler/diagnostic_pop.h>
+
 #include <acewrapper/orbservant.hpp>
 #include <acewrapper/constants.hpp>
 #include <adlog/logger.hpp>
