@@ -24,42 +24,38 @@
 
 #include "font.hpp"
 #include <QFont>
+#include <array>
 
 namespace qtwrapper {
+
 #if defined Q_OS_MAC
-    static int font_size_list [] = {
-        6 // fontSizeTiny
-        , 7 // fontSizeFootnote
-        , 8 // fontSizeSmall
-        , 9 // fontSizePlotTitle
-        , 9 // fontSizePlotFooter
-        , 10 // fontSizeNormal
-        , 16 // fontSizeLarge
-        , 24 // fontSizeHuge
-    };
+# define FSIZE(x) ((x)*96/72)
 #else
-    static int font_size_list [] = {
-        6 // fontSizeTiny
-        , 7 // fontSizeFootnote
-        , 8 // fontSizeSmall
-        , 9 // fontSizePlotTitle
-        , 9 // fontSizePlotFooter
-        , 10 // fontSizeNormal
-        , 16 // fontSizeLarge
-        , 24 // fontSizeHuge
-    };
+# define X(x) (x)
 #endif
 
-    static const char * font_family_list [] = {
-        0 // fontDefault
-        , "Verdena" // fontTableHeader
-        , "Consolas" // fontTableBody
-        , "Consolas" // fontTableText
-        , "Consolas" // fontTableNumber
-        , "Consolas" // fontAxisLabel
-        , "Calibri" // fontAxisTitle
-        , "Calibri" // fontPlotTitle
-        , "Calibri" // fontPlotFooter
+    static std::array<int, nbrFontSize> font_size_list = {
+        { FSIZE(6) // fontSizeTiny
+          , FSIZE(7) // fontSizeFootnote
+          , FSIZE(8) // fontSizeSmall
+          , FSIZE(9) // fontSizePlotTitle
+          , FSIZE(9) // fontSizePlotFooter
+          , FSIZE(10) // fontSizeNormal
+          , FSIZE(16) // fontSizeLarge
+          , FSIZE(24) } // fontSizeHuge
+    };
+
+    static std::array< const char *, nbrFontFamily > font_family_list = {
+        { 0 // fontDefault
+          , "Verdena" // fontTableHeader
+          , "Consolas" // fontTableBody
+          , "Consolas" // fontTableText
+          , "Consolas" // fontTableNumber
+          , "Consolas" // fontAxisLabel
+          , "Calibri" // fontAxisTitle
+          , "Calibri" // fontPlotTitle
+          , "Calibri" // fontPlotFooter
+        }
     };
 }
 
@@ -72,7 +68,7 @@ font::font()
 QFont&
 font::setFamily( QFont& font, fontFamily family )
 {
-    if ( family >= 1 && family < sizeof( font_family_list )/sizeof( font_family_list[0] ) )
+    if ( family >= 1 && family < font_family_list.size() )
         font.setFamily( font_family_list[ family ] );
 
     return font;
@@ -82,7 +78,7 @@ font::setFamily( QFont& font, fontFamily family )
 QFont&
 font::setSize( QFont& font, fontSize size )
 {
-    if ( size >= 0 && size < sizeof( font_size_list )/sizeof( font_size_list[0] ) )
+    if ( size >= 0 && size < font_size_list.size() )
         font.setPointSize( font_size_list[ size ] );
 
     return font;

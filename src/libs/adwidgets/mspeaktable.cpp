@@ -24,6 +24,7 @@
 
 #include "mspeaktable.hpp"
 #include "htmlheaderview.hpp"
+#include "delegatehelper.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/description.hpp>
@@ -78,7 +79,7 @@ namespace adwidgets {
     MSPeakTableDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
     {
         QStyleOptionViewItem op( option );
-        op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
+        op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
         switch( index.column() ) {
         case c_mspeaktable_time:
@@ -101,8 +102,13 @@ namespace adwidgets {
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_relative_intensity ), Qt::EditRole ).toString().isEmpty() )
                 drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
             break;
-        case c_mspeaktable_mode:
         case c_mspeaktable_formula:
+            do { 
+                std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
+                DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
+            } while(0);
+            break;
+        case c_mspeaktable_mode:
         case c_mspeaktable_description:
         case c_mspeaktable_num_columns:
         default:

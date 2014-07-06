@@ -39,6 +39,7 @@ namespace qtwrapper {
         , fontAxisTitle
         , fontPlotTitle
         , fontPlotFooter
+        , nbrFontFamily
     };
 
     enum fontSize {
@@ -50,6 +51,7 @@ namespace qtwrapper {
         , fontSizeNormal
         , fontSizeLarge
         , fontSizeHuge
+        , nbrFontSize
     };
 
     class font {

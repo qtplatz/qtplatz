@@ -70,14 +70,14 @@ RDKit_LIBS = \
 	libSubstructMatch \
 	libhc
 
-all:
+default:
 	@echo "################################################"
 	@echo "ACE_ROOT is: " $(ACE_ROOT)
 	@echo "LIBDIR_ACETAO is: " $(LIBDIR_ACETAO)
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
 	@echo "RDBASE is: " $(RDBASE)
 	@echo "################################################"
-	@echo " -- do following procedure -- or make world or make realworld -- "
+	@echo " -- do following procedure -- or make world -- "
 	@echo "################################################"
 	@echo "make app"
 	@echo "make deployqt"
@@ -86,21 +86,33 @@ all:
 	@echo "make dmg"
 	@echo
 
-world:
+pkg:
 	make app
 	make deployqt
 	make ace_tao
 	make rdkit
 	make dmg
 
-realworld: qtplatz infitof world
+world: qtplatz infitof
+	make pkg
 
 # all: qtplatz.app
 qtplatz:
-	(cd ../../../; qmake -r; make -j4)
+	(cd ../../../; qmake; make -j4)
 
 infitof:
-	(cd ../../../../infitof; qmake -r; make -j4)
+	(cd ../../../../infitof; qmake; make -j4)
+
+clean:
+	rm -rf qtplatz.app
+
+veryclean: clean_infitof clean_qtplatz
+
+clean_qtplatz:
+	(cd ../../../; git clean -d -x -f)
+
+clean_infitof:
+	(cd ../../../../infitof; git clean -d -x -f)
 
 app:
 	(cd ../../../bin; tar cf - .) | tar xvf -
@@ -200,9 +212,6 @@ dmg: qtplatz.app
 
 mount:
 	open ./qtplatz.dmg
-
-clean:
-	rm -rf qtplatz.app
 
 otool:
 	otool -L qtplatz.app/Contents/MacOS/qtplatz

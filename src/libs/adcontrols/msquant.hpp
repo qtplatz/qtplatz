@@ -48,7 +48,7 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive>
-            void serialize(Archive& ar, const unsigned int) {
+            void serialize(Archive&, const unsigned int) {
         }
 
     };

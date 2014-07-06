@@ -192,9 +192,9 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
                                                 , impl_( new SpectrumWidgetImpl )
                                                 , autoYZoom_( true ) 
                                                 , keepZoomed_( true )
+                                                , axisHadScaled_( false )
                                                 , haxis_( HorizontalAxisMass )
                                                 , focusedFcn_( -1 ) // no focus
-                                                , axisHadScaled_( false )
 {
 	zoomer1_->autoYScale( autoYZoom_ );
 
@@ -360,7 +360,7 @@ SpectrumWidget::setAxis( HorizontalAxis haxis, bool replot )
 void
 SpectrumWidget::removeData( int idx, bool bReplot )
 {
-    if ( idx < impl_->traces_.size() ) {
+    if ( idx < int(impl_->traces_.size()) ) {
         impl_->traces_[ idx ] = spectrumwidget::TraceData( idx );
         impl_->clear_annotations();
         if ( bReplot )

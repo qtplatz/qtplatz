@@ -25,6 +25,7 @@
 #include "msquantable.hpp"
 #include "htmlheaderview.hpp"
 #include "delegatehelper.hpp"
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msqpeak.hpp>
 #include <adcontrols/msqpeaks.hpp>
@@ -38,7 +39,6 @@
 #include <QApplication>
 #include <QBrush>
 #include <QClipboard>
-//#include <QItemDelegate>
 #include <QStyledItemDelegate>
 #include <QStandardItemModel>
 #include <QKeyEvent>
@@ -79,12 +79,10 @@ namespace adwidgets {
 
             void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
 
-                QStyleOptionViewItem op( option );
-                auto align = Qt::AlignRight | Qt::AlignHCenter;
-                op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
+                // QStyleOptionViewItem op( option );
+                auto align = Qt::AlignRight | Qt::AlignVCenter;
+                // op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
 
-                // if ( index.row() & 0x01 )
-                //     op.palette.setColor( QPalette::Text, Qt::green );
                 painter->save();
                 const QAbstractItemModel& model = *index.model();
 
@@ -93,9 +91,9 @@ namespace adwidgets {
                 if ( model.data( model.index( index.row(), c_id ) ).toString() == dataId ) {
                     painter->setPen( Qt::black );
                     if ( index.row() == currIndex_.row() )
-                        painter->fillRect( op.rect, QColor( 0xff, 0x66, 0x44, 0x40 ) );
+                        painter->fillRect( option.rect, QColor( 0xff, 0x66, 0x44, 0x40 ) );
                     else
-                        painter->fillRect( op.rect, QColor( 0xff, 0x66, 0x44, 0x10 ) );
+                        painter->fillRect( option.rect, QColor( 0xff, 0x66, 0x44, 0x10 ) );
                 } else {
                     if ( std::abs( model.data( model.index( index.row(), c_mass ) ).toDouble() - mass ) <= 0.010 ) { // 10mDa
                         painter->setPen( Qt::blue );                        
@@ -109,11 +107,9 @@ namespace adwidgets {
                         std::size_t pos = fqn.find( L"::" );
                         if ( pos != std::wstring::npos ) {
                             boost::filesystem::path path( fqn.substr( 0, pos ) );
-                            painter->drawText( op.rect, op.displayAlignment, QString::fromStdWString( path.stem().wstring() + L"/" + fqn.substr( pos + 2 ) ) );
-                            //drawDisplay( painter, option, option.rect, QString::fromStdWString( path.stem().wstring() + L"/" + fqn.substr( pos + 2 ) ) );
-                            
+                            painter->drawText( option.rect, align, QString::fromStdWString( path.stem().wstring() + L"/" + fqn.substr( pos + 2 ) ) );
                         } else 
-                            painter->drawText( op.rect, align, QString::fromStdWString( fqn ) );
+                            painter->drawText( option.rect, align, QString::fromStdWString( fqn ) );
                     } while ( 0 );
                     break;
                 case c_time:
@@ -125,11 +121,16 @@ namespace adwidgets {
                 case c_intensity:
                 case c_relative_intensity:
                     if ( !index.model()->data( index.model()->index( index.row(), c_intensity ), Qt::EditRole ).toString().isEmpty() )
-                        painter->drawText( op.rect, align, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
+                        painter->drawText( option.rect, align, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
+                    break;
+                case c_formula:
+                    do { 
+                        std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
+                        DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
+                    } while(0);
                     break;
                 default:
-                    op.displayAlignment = Qt::AlignCenter | Qt::AlignHCenter;
-                    QStyledItemDelegate::paint( painter, op, index );
+                    QStyledItemDelegate::paint( painter, option, index );
                 }
                 painter->restore();
             }
@@ -166,8 +167,9 @@ using namespace adwidgets;
 using namespace adwidgets::detail;
 
 MSQuanTable::MSQuanTable( QWidget * parent ) : QTableView( parent )
-                                                 , model_( new QStandardItemModel )
-                                                 , inProgress_( false )
+                                             , inProgress_( false )
+                                             , model_( new QStandardItemModel )
+
 {
     setHorizontalHeader( new HtmlHeaderView );
     setModel( model_ );
@@ -362,7 +364,7 @@ MSQuanTable::handleValueChanged( const QModelIndex& index )
         std::wstring dataGuid = model.index( index.row(), c_id ).data().toString().toStdWString();
 
         auto it = std::find_if( pks->begin(), pks->end(), [=] ( adcontrols::MSQPeaks::value_type& t ){
-                return t.dataGuid() == dataGuid && t.fcn() == fcn && t.idx() == idx; } );
+                return t.dataGuid() == dataGuid && t.fcn() == uint32_t(fcn) && t.idx() == uint32_t(idx); } );
         if ( it != pks->end() ) {
             if ( index.column() == c_isSTD ) {
                 bool standard = (index.data( Qt::CheckStateRole ) == Qt::Checked);
@@ -435,7 +437,7 @@ MSQuanTable::setData( adcontrols::MSQPeaks * pks )
 
     std::map< std::wstring, double > sum;
 
-    if ( pks->size() != model.rowCount() )
+    if ( pks->size() != size_t(model.rowCount()) )
         model.setRowCount( int( pks->size() ) );
 
     int row = 0;
@@ -476,8 +478,8 @@ MSQuanTable::find_row( const adcontrols::MSQPeak& pk )
     int size = model.rowCount();
     QString guid( QString::fromStdWString( pk.dataGuid() ) );
     for ( int row = 0; row < size; ++row ) {
-        if ( model.index( row, c_idx ).data().toInt() == pk.idx() &&
-             model.index( row, c_fcn ).data().toInt() == pk.fcn() &&
+        if ( model.index( row, c_idx ).data().toInt() == int(pk.idx()) &&
+             model.index( row, c_fcn ).data().toInt() == int(pk.fcn()) &&
              model.index( row, c_id ).data().toString() == guid )
             return row;
     }
