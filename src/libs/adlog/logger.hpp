@@ -27,8 +27,10 @@
 #include <string>
 #include <sstream>
 #include "adlog_global.hpp"
+#include <chrono>
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_dll_interface.h>
+
 
 namespace boost { namespace system { class error_code; } }
 
@@ -45,6 +47,7 @@ namespace adlog {
         int pri_;
         int line_;
         std::string file_;
+        std::chrono::system_clock::time_point tp_;
         std::ostringstream o_;
     };
 

@@ -26,18 +26,23 @@
 #include "logging_handler.hpp"
 #include <adportable/string.hpp>
 #include <boost/system/error_code.hpp>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <adportable/date_string.hpp>
 
 using namespace adlog;
 
 logger::logger( const char * file, int line, int pri ) : pri_( pri )
                                                        , line_(line)
                                                        , file_(file == 0 ? "" : file)
+                                                       , tp_( std::chrono::system_clock::now() )
 {
 }
 
 logger::~logger()
 {
-    logging_handler::instance()->appendLog( pri_, o_.str(), file_, line_ );
+    logging_handler::instance()->appendLog( pri_, o_.str(), file_, line_, tp_ );
 }
 
 template<> logger&

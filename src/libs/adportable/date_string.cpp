@@ -59,3 +59,11 @@ date_string::utc_to_localtime_string( time_t utc, unsigned usec )
 	}
 	return "date_string::utc_to_localtime_string - conversion error";
 }
+
+std::string
+date_string::logformat( const std::chrono::system_clock::time_point& tp )
+{
+    time_t t = std::chrono::system_clock::to_time_t( tp );
+    auto duration = tp - std::chrono::system_clock::from_time_t(t);
+    return utc_to_localtime_string( t, int(std::chrono::duration_cast< std::chrono::microseconds >( duration ).count()) );
+}

@@ -39,7 +39,7 @@ Logger::appendLog( const std::string& text, bool richText )
 }
 
 void
-Logger::operator ()( int pri, const std::string& text, const std::string& file, int line )
+Logger::operator ()( int pri, const std::string& text, const std::string& file, int line, const std::chrono::system_clock::time_point& tp )
 {
     QString loc = (file.empty() ? "" : (boost::format("%s(%4d):") % file % line).str().c_str() );
 

@@ -25,10 +25,12 @@
 #ifndef LOGGING_HANDLER_HPP
 #define LOGGING_HANDLER_HPP
 
-#include <string>
-#include <vector>
+#include <chrono>
 #include <functional>
 #include <mutex>
+#include <string>
+#include <vector>
+
 #include "adlog_global.hpp"
 #include <adportable/debug_core.hpp>
 
@@ -47,12 +49,16 @@ namespace adlog {
         static void log( int pri, const std::string& msg, const std::string& file, int line );
 
         // actual handler type
-        typedef std::function<void( int, const std::string&, const std::string& /* file */, int /* line */)> handler_type;
+        typedef std::function<void(int /* pri */
+            , const std::string& /* text */
+            , const std::string& /* file */
+            , int /* line */
+            , const std::chrono::system_clock::time_point& ) > handler_type;
 
         void register_handler( handler_type );
 		typedef std::vector< handler_type >::iterator iterator;
 
-        void appendLog( int pri, const std::string& msg, const std::string& file, int line );
+        void appendLog( int pri, const std::string& msg, const std::string& file, int line, const std::chrono::system_clock::time_point& );
 		void close();
 
         iterator begin();
