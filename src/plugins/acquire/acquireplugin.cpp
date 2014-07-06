@@ -985,8 +985,11 @@ AcquirePlugin::initialize_broker()
                 orbServants_.push_back( servant );
 
         } catch ( ... ) {
+
             ADERROR() << "exception while initializing " << plugin->clsid() << "\t" << boost::current_exception_diagnostic_information();
-            throw;
+            QMessageBox::warning( 0, "Exception AcquirePlugin"
+                                  , "If you are on Windows 7 sp1, some of important Windows update is getting involved. \
+Please make sure you have up-to-date for Windows");
         }
     }
 }
@@ -994,7 +997,7 @@ AcquirePlugin::initialize_broker()
 void
 AcquirePlugin::shutdown_broker()
 {
-    ADTRACE() << "====== AcquirePlugin::shutdown_broker broker shutting down... =======";
+    ADTRACE() << "AcquirePlugin::shutdown_broker() ...";
 
     auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
 	removeObject( iBroker );
@@ -1020,6 +1023,7 @@ AcquirePlugin::shutdown_broker()
         }
     }
 
+    ADTRACE() << "AcquirePlugin::shutdown_broker() completed.";
 }
 
 QWidget *

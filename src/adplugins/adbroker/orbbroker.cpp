@@ -136,7 +136,7 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
                     try {
                         accessor = BrokerClient::Accessor::_narrow( obj );
                     } catch ( ... ) {
-                        ADERROR() << "Exception at BrokerClient::Accessor::_narrow obj = " << obj.in();
+                        ADERROR() << "Exception when narrow CORBA::Object to BrokerClient::Accessor obj = " << obj.in();
                         BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
                     }
 
