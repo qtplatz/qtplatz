@@ -139,11 +139,16 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
                         ADTRACE() << "Broker::Accessor::_narrow";
                         BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( obj );
 
+                        ADTRACE() << "if !CROBA::is_nis";
                         if ( !CORBA::is_nil( accessor ) ) {
                             try {
+                                ADTRACE() << "getting Broker::Manager_var";
                                 Broker::Manager_var mgr = adbroker::manager_i::instance()->impl()._this();
                         
+                                ADTRACE() << "setBrokerManager";
                                 accessor->setBrokerManager( mgr.in() );
+
+                                ADTRACE() << "visitor call back to accessor";
                                 accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );
 
                                 try {
