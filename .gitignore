@@ -29,6 +29,8 @@ qrc_*.cpp
 *.adfs
 *.json
 *.cxx
+.qmake.stash
+*.dmg
 Thumbs.db
 src/libs/adinterface/*.cxx
 qtplatz.opensdf
