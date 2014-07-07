@@ -36,7 +36,8 @@ SOURCES += adwidgets.cpp \
         controlmethodwidget.cpp \
         centroidform.cpp \
         mspeaktable.cpp \
-        msquantable.cpp
+        msquantable.cpp \
+    adductslosetree.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -52,7 +53,8 @@ HEADERS += adwidgets.hpp\
         controlmethodwidget.hpp \
         centroidform.hpp \
         mspeaktable.hpp \
-        msquantable.hpp
+        msquantable.hpp \
+    adductslosetree.hpp
 
 unix {
     target.path = /usr/lib

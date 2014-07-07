@@ -52,18 +52,18 @@ namespace adcontrols {
         void targetId( idTarget );
         idTarget targetId() const;
 
-        std::vector< std::pair< bool, std::string > >& adducts();
-        const std::vector< std::pair< bool, std::string > >& adducts() const;
+        std::vector< std::pair< bool, std::string > >& adducts( bool positive = true );
+        const std::vector< std::pair< bool, std::string > >& adducts( bool positive = true ) const;
 
-        std::vector< std::pair< bool, std::string > >& lose();
-        const std::vector< std::pair< bool, std::string > >& lose() const;
+        //std::vector< std::pair< bool, std::string > >& lose();
+        //const std::vector< std::pair< bool, std::string > >& lose() const;
 
 		std::pair< unsigned int, unsigned int > chargeState() const;
 		void chargeState( unsigned int, unsigned int );
 
 		std::vector< std::pair< bool, std::string > >& formulae();
 		const std::vector< std::pair< bool, std::string > >& formulae() const;
-
+        
 		std::vector< std::pair< bool, std::pair< std::string, std::string > > >& peptides();
 		const std::vector< std::pair< bool, std::pair< std::string, std::string > > >& peptides() const;
 
@@ -91,7 +91,6 @@ namespace adcontrols {
 
     private:
         idTarget idTarget_;
-        // bool isPositiveIonMode_;
         bool is_use_resolving_power_;
         double resolving_power_;
         double peak_width_;
@@ -103,9 +102,10 @@ namespace adcontrols {
         double highMassLimit_;
         double tolerance_;
 
+        std::vector< std::pair< bool, std::string > > pos_adducts_; // if start with '-' means lose instead of add
+        std::vector< std::pair< bool, std::string > > neg_adducts_;
+
         std::vector< std::pair< bool, std::string > > formulae_;
-        std::vector< std::pair< bool, std::string > > adducts_;
-        std::vector< std::pair< bool, std::string > > lose_;
         std::vector< std::pair< bool, std::pair< std::string, std::string > > > peptides_;
         
         friend class boost::serialization::access;
@@ -142,8 +142,8 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP( lowMassLimit_ )
                     & BOOST_SERIALIZATION_NVP( highMassLimit_ )
                     & BOOST_SERIALIZATION_NVP( tolerance_ )
-                    & BOOST_SERIALIZATION_NVP( adducts_ )
-                    & BOOST_SERIALIZATION_NVP( lose_)
+                    & BOOST_SERIALIZATION_NVP( pos_adducts_ )
+                    & BOOST_SERIALIZATION_NVP( neg_adducts_ )
                     & BOOST_SERIALIZATION_NVP( formulae_ )
                     & BOOST_SERIALIZATION_NVP( peptides_ )
                     ;
@@ -153,6 +153,6 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::TargetingMethod, 2 )
+BOOST_CLASS_VERSION( adcontrols::TargetingMethod, 3 )
 
 #endif // TARGETINGMETHOD_H

@@ -37,41 +37,54 @@
 using namespace adwidgets;
 
 namespace adwidgets {
-    class TargetingDelegate : public QStyledItemDelegate {
-        
-        void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            if ( index.column() == 1 ) {
-				std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
-                DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
-            } else if ( index.column() == 2 ) {
-                QStyleOptionViewItemV2 op = option;
-                op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
-                QStyledItemDelegate::paint( painter, op, index );
-            } else {
-                QStyledItemDelegate::paint( painter, option, index );
-            }
-        }
 
-        QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            if ( index.column() == 1 ) {
-                return DelegateHelper::html_size_hint( option, index );
-            } else {
-                return QStyledItemDelegate::sizeHint( option, index );
+    namespace detail {
+
+        enum {
+            c_peptide
+            , c_formula
+            , c_mass
+            , nbrColums
+        };
+
+        class ItemDelegate : public QStyledItemDelegate {
+        
+            void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+                if ( index.column() == 1 ) {
+                    std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
+                    DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
+                } else if ( index.column() == 2 ) {
+                    QStyleOptionViewItemV2 op = option;
+                    op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
+                    QStyledItemDelegate::paint( painter, op, index );
+                } else {
+                    QStyledItemDelegate::paint( painter, option, index );
+                }
             }
-        }
-    };
+
+            QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+                if ( index.column() == 1 ) {
+                    return DelegateHelper::html_size_hint( option, index );
+                } else {
+                    return QStyledItemDelegate::sizeHint( option, index );
+                }
+            }
+        };
+
+    }
 }
 
 TargetingTable::TargetingTable(QWidget *parent) : TableView(parent)
                                                 , model_( new QStandardItemModel() )
 {
     setModel( model_ );
-	setItemDelegate( new TargetingDelegate );
+	setItemDelegate( new detail::ItemDelegate );
     setSortingEnabled( true );
 
     QFont font;
     setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
-	model_->setColumnCount( 3 );
+
+	model_->setColumnCount( detail::nbrColums );
     model_->setRowCount( 1 );
 }
 
@@ -93,10 +106,13 @@ TargetingTable::onInitialUpdate()
     
     model.setColumnCount( 4 );
 
-    model.setHeaderData( 0,  Qt::Horizontal, QObject::tr( "peptide" ) );
-    model.setHeaderData( 1,  Qt::Horizontal, QObject::tr( "formula" ) );
-    model.setHeaderData( 2,  Qt::Horizontal, QObject::tr( "mass" ) );
-    model.setHeaderData( 3,  Qt::Horizontal, QObject::tr( "#" ) );
+    using namespace adwidgets::detail;
+
+    model.setHeaderData( c_peptide,  Qt::Horizontal, QObject::tr( "peptide" ) );
+    model.setHeaderData( c_formula,  Qt::Horizontal, QObject::tr( "formula" ) );
+    model.setHeaderData( c_mass,  Qt::Horizontal, QObject::tr( "mass" ) );
+
+    setColumnHidden( c_peptide, true );
 
     resizeColumnsToContents();
     resizeRowsToContents();
@@ -105,27 +121,27 @@ TargetingTable::onInitialUpdate()
 }
 
 void
-TargetingTable::setContents( const adprot::digestedPeptides& digested )
+TargetingTable::setContents( const adprot::digestedPeptides& )
 {
-    QStandardItemModel& model = *model_;
-    const adprot::peptides& peptides = digested.peptides();
+    // QStandardItemModel& model = *model_;
+    // const adprot::peptides& peptides = digested.peptides();
 
-    model.setRowCount( static_cast< int >( peptides.size() ) );
+    // model.setRowCount( static_cast< int >( peptides.size() ) );
 
-    int row = 0;
-    for ( auto& p: peptides ) {
-        model.setData( model.index( row, 0 ), QString::fromStdString( p.sequence() ) );
-        model.setData( model.index( row, 1 ), QString::fromStdString( p.formula() ) );
-        model.setData( model.index( row, 2 ), p.mass(), Qt::EditRole );
-        model.setData( model.index( row, 2 ), QString::fromStdString( (boost::format("%.7f")%p.mass()).str() ), Qt::DisplayRole );
-        model.setData( model.index( row, 3 ), row );
-		++row;
-    }
-    if ( row > 1 ) {
-        --row;
-        model.setData( model.index( 0, 3 ), "N" );
-        model.setData( model.index( row, 3 ), "C" );
-    }
+    // int row = 0;
+    // for ( auto& p: peptides ) {
+    //     model.setData( model.index( row, 0 ), QString::fromStdString( p.sequence() ) );
+    //     model.setData( model.index( row, 1 ), QString::fromStdString( p.formula() ) );
+    //     model.setData( model.index( row, 2 ), p.mass(), Qt::EditRole );
+    //     model.setData( model.index( row, 2 ), QString::fromStdString( (boost::format("%.7f")%p.mass()).str() ), Qt::DisplayRole );
+    //     model.setData( model.index( row, 3 ), row );
+	// 	++row;
+    // }
+    // if ( row > 1 ) {
+    //     --row;
+    //     model.setData( model.index( 0, 3 ), "N" );
+    //     model.setData( model.index( row, 3 ), "C" );
+    // }
 }
 
 void

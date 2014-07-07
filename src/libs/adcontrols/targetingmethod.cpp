@@ -34,19 +34,31 @@ TargetingMethod::TargetingMethod( idTarget id ) : idTarget_( id )
                                                 , chargeStateMin_( 1 )
                                                 , chargeStateMax_( 3 )
                                                 , isLowMassLimitEnabled_( false ) // auto
-    , isHighMassLimitEnabled_( false )
+                                                , isHighMassLimitEnabled_( false )
     , lowMassLimit_( 1 )
     , highMassLimit_( 1000 )
     , tolerance_( 10.0 )
 {
-    adducts_.push_back( std::make_pair( true,  "H" ) );
-    adducts_.push_back( std::make_pair( false, "Na" ) );
-    adducts_.push_back( std::make_pair( false, "K" ) );
-    adducts_.push_back( std::make_pair( false, "Li" ) );
+    // reference, 
+    // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
+    pos_adducts_.push_back( std::make_pair( true, "H" ) );
+    pos_adducts_.push_back( std::make_pair( false, "Na" ) );
+    pos_adducts_.push_back( std::make_pair( false, "NH4" ) );
+    pos_adducts_.push_back( std::make_pair( false, "K" ) );
+    pos_adducts_.push_back( std::make_pair( false, "CH3CN+H" ) );
+    pos_adducts_.push_back( std::make_pair( false, "CH3CN+Na" ) );
+    pos_adducts_.push_back( std::make_pair( false, "CH3OH+H" ) );
+    pos_adducts_.push_back( std::make_pair( false, "NH4" ) );
+    pos_adducts_.push_back( std::make_pair( false, "(CH3)2SO+H" ) ); // DMSO+H
+    pos_adducts_.push_back( std::make_pair( false, "C3H8O+H" ) ); // IPA+H
+    pos_adducts_.push_back( std::make_pair( false, "C3H8O+Na" ) ); // IPA+Na
 
-    lose_.push_back( std::make_pair( true,  "H" ) );
-    lose_.push_back( std::make_pair( false, "COO" ) );
-    lose_.push_back( std::make_pair( false, "Cl" ) );
+    neg_adducts_.push_back( std::make_pair( true, "-H" ) );
+    neg_adducts_.push_back( std::make_pair( true, "-H2O-H" ) );
+    neg_adducts_.push_back( std::make_pair( false, "+Na-H2" ) );
+    neg_adducts_.push_back( std::make_pair( false, "Cl" ) );
+    neg_adducts_.push_back( std::make_pair( false, "+K-H2" ) );
+    neg_adducts_.push_back( std::make_pair( false, "COOH-H" ) );
 }
 
 TargetingMethod::TargetingMethod( const TargetingMethod& t )
@@ -72,8 +84,8 @@ TargetingMethod::operator = ( const TargetingMethod& rhs )
 
     formulae_               = rhs.formulae_;
     peptides_               = rhs.peptides_;
-    adducts_                = rhs.adducts_;
-    lose_                   = rhs.lose_;
+    pos_adducts_            = rhs.pos_adducts_;
+    neg_adducts_            = rhs.neg_adducts_;
 
 	return *this;
 }
@@ -91,27 +103,15 @@ TargetingMethod::targetId() const
 }
 
 std::vector< std::pair< bool, std::string > >&
-TargetingMethod::adducts()
+TargetingMethod::adducts( bool positive )
 {
-    return adducts_;
-}
-
-std::vector< std::pair< bool, std::string > >&
-TargetingMethod::lose()
-{
-    return lose_;
+    return positive ? pos_adducts_ : neg_adducts_;
 }
 
 const std::vector< std::pair< bool, std::string > >&
-TargetingMethod::adducts() const
+TargetingMethod::adducts( bool positive ) const
 {
-    return adducts_;
-}
-
-const std::vector< std::pair< bool, std::string > >&
-TargetingMethod::lose() const
-{
-    return lose_;
+    return positive ? pos_adducts_ : neg_adducts_;
 }
 
 std::pair< uint32_t, uint32_t >

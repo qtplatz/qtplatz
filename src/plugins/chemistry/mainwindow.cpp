@@ -285,10 +285,10 @@ MainWindow::createMidStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-        toolBarLayout->addWidget( toolButton( actionSearch_ ) );
-        toolBarLayout->addWidget( new QLabel( tr("Alchemy") ) );
-        toolBarLayout->addWidget( new QLabel( tr("Chemistry") ) );
-        toolBarLayout->addWidget( new QLabel( tr("Physics") ) );
+        //toolBarLayout->addWidget( toolButton( actionSearch_ ) );
+        //toolBarLayout->addWidget( new QLabel( tr("Alchemy") ) );
+        //toolBarLayout->addWidget( new QLabel( tr("Chemistry") ) );
+        //toolBarLayout->addWidget( new QLabel( tr("Physics") ) );
     }
     return toolBar;
 }

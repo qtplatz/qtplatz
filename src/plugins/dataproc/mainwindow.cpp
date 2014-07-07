@@ -58,6 +58,7 @@
 #include <adutils/adfile.hpp>
 #include <adwidgets/centroidform.hpp>
 #include <adwidgets/peptidewidget.hpp>
+#include <adwidgets/targetingwidget.hpp>
 #include <adwidgets/mspeaktable.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -530,7 +531,7 @@ MainWindow::createDockWidgets()
         , { "MS Peaks",       "adwidgets::MSPeakTable",           "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
         , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod",  }
         , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod",  }
-        , { "Targeting",      "qtwidgets::TargetForm",            "TargetMethod",  }
+        , { "Targeting",      "adwidgets::TargetingWidget",       "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
         , { "Peptide",        "adwidgets::PeptideWidget",         "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
         , { "Elemental Comp.","qtwidgets::ElementalCompositionForm", "EleCompMethod",  }
         , { "Peak Find",      "qtwidgets::PeakMethodForm",        "PeakFindMethod",  }

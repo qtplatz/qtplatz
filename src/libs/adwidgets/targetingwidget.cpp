@@ -25,6 +25,7 @@
 #include "targetingwidget.hpp"
 #include "targetingform.hpp"
 #include "targetingtable.hpp"
+#include "adductslosetree.hpp"
 #include <adportable/is_type.hpp>
 #include <adprot/digestedpeptides.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -46,8 +47,10 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
         if ( QSplitter * splitter = new QSplitter ) {
             splitter->addWidget( ( form_ = new TargetingForm ) ); 
             splitter->addWidget( ( table_ = new TargetingTable ) ); 
+            splitter->addWidget( (new AdductsLoseTree) );
             splitter->setStretchFactor( 0, 0 );
-            splitter->setStretchFactor( 1, 1 );
+            splitter->setStretchFactor( 1, 2 );
+            splitter->setStretchFactor( 2, 1 );
             splitter->setOrientation ( Qt::Horizontal );
 
             layout->addWidget( splitter );
@@ -97,6 +100,9 @@ TargetingWidget::getContents( boost::any& a ) const
         adcontrols::TargetingMethod method;
         form_->getContents( method );
         table_->getContents( method );
+        if ( auto tree = findChild< AdductsLoseTree * >() )
+            tree->getContents( method );
+        
 		pm->appendMethod( method );
         return true;
     }
