@@ -26,9 +26,10 @@ DEFINES += ADWIDGETS_LIBRARY
 
 SOURCES += adwidgets.cpp \
         targetingform.cpp \
-        targetingwidget.cpp \
         tableview.cpp \
+        targetingwidget.cpp \
         targetingtable.cpp \
+        targetingadducts.cpp \
         peptidewidget.cpp \
         peptidetable.cpp \
         delegatehelper.cpp \
@@ -36,16 +37,16 @@ SOURCES += adwidgets.cpp \
         controlmethodwidget.cpp \
         centroidform.cpp \
         mspeaktable.cpp \
-        msquantable.cpp \
-    adductslosetree.cpp
+        msquantable.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
         targetingform.hpp \
         spin_t.hpp \
-        targetingwidget.hpp \
         tableview.hpp \
+        targetingwidget.hpp \
         targetingtable.hpp \
+        targetingadducts.hpp \
         peptidewidget.hpp \
         peptidetable.hpp \
         delegatehelper.hpp \
@@ -53,8 +54,7 @@ HEADERS += adwidgets.hpp\
         controlmethodwidget.hpp \
         centroidform.hpp \
         mspeaktable.hpp \
-        msquantable.hpp \
-    adductslosetree.hpp
+        msquantable.hpp
 
 unix {
     target.path = /usr/lib

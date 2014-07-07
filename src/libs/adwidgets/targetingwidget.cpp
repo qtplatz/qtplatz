@@ -25,7 +25,7 @@
 #include "targetingwidget.hpp"
 #include "targetingform.hpp"
 #include "targetingtable.hpp"
-#include "adductslosetree.hpp"
+#include "targetingadducts.hpp"
 #include <adportable/is_type.hpp>
 #include <adprot/digestedpeptides.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -47,7 +47,7 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
         if ( QSplitter * splitter = new QSplitter ) {
             splitter->addWidget( ( form_ = new TargetingForm ) ); 
             splitter->addWidget( ( table_ = new TargetingTable ) ); 
-            splitter->addWidget( (new AdductsLoseTree) );
+            splitter->addWidget( (new TargetingAdducts) );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 2 );
             splitter->setStretchFactor( 2, 1 );
@@ -80,6 +80,9 @@ void
 TargetingWidget::OnInitialUpdate()
 {
     table_->onInitialUpdate();
+        
+    if ( auto tree = findChild< TargetingAdducts * >() )
+        tree->OnInitialUpdate();
 }
 
 void
@@ -100,7 +103,7 @@ TargetingWidget::getContents( boost::any& a ) const
         adcontrols::TargetingMethod method;
         form_->getContents( method );
         table_->getContents( method );
-        if ( auto tree = findChild< AdductsLoseTree * >() )
+        if ( auto tree = findChild< TargetingAdducts * >() )
             tree->getContents( method );
         
 		pm->appendMethod( method );
@@ -113,14 +116,19 @@ bool
 TargetingWidget::setContents( boost::any& a )
 {
 	if ( adportable::a_type< adprot::digestedPeptides >::is_a( a ) ) {
+
         auto digested = boost::any_cast< adprot::digestedPeptides >( a );
 		table_->setContents( digested );
-        
         return true;
+
     } else if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
         const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( a );
         const adcontrols::TargetingMethod * t = pm.find< adcontrols::TargetingMethod >();
+
         form_->setContents( *t );
+        
+        if ( auto tree = findChild< TargetingAdducts * >() )
+            tree->setContents( *t );
     }
     
     return false;

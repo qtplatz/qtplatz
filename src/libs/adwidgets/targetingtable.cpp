@@ -28,6 +28,7 @@
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <QStandardItemModel>
 #include <QHeaderView>
 #include <QStyledItemDelegate>
@@ -47,13 +48,13 @@ namespace adwidgets {
             , nbrColums
         };
 
-        class ItemDelegate : public QStyledItemDelegate {
+        class TargetingDelegate : public QStyledItemDelegate {
         
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-                if ( index.column() == 1 ) {
+                if ( index.column() == c_formula ) {
                     std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
                     DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
-                } else if ( index.column() == 2 ) {
+                } else if ( index.column() == c_mass ) {
                     QStyleOptionViewItemV2 op = option;
                     op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
                     QStyledItemDelegate::paint( painter, op, index );
@@ -78,7 +79,7 @@ TargetingTable::TargetingTable(QWidget *parent) : TableView(parent)
                                                 , model_( new QStandardItemModel() )
 {
     setModel( model_ );
-	setItemDelegate( new detail::ItemDelegate );
+	setItemDelegate( new detail::TargetingDelegate );
     setSortingEnabled( true );
 
     QFont font;
@@ -145,11 +146,26 @@ TargetingTable::setContents( const adprot::digestedPeptides& )
 }
 
 void
-TargetingTable::setContents( const adcontrols::TargetingMethod& )
+TargetingTable::setContents( const adcontrols::TargetingMethod& method )
 {
+    QStandardItemModel& model = *model_;
+    using namespace adwidgets::detail;
+
+    model.setRowCount( int( method.formulae().size() ) );
+
+    int row = 0;
+    for ( auto& formula: method.formulae() ) {
+        model.setData( model.index( row, c_formula ), QString::fromStdString( formula.second ) );
+        if ( auto item = model.item( row, c_formula ) ) {
+            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+            item->setEditable( true );
+            model.setData( model.index( row, c_formula ), formula.first ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
+        ++row;
+    }
 }
 
 void
-TargetingTable::getContents( adcontrols::TargetingMethod& )
+TargetingTable::getContents( adcontrols::TargetingMethod& method )
 {
 }

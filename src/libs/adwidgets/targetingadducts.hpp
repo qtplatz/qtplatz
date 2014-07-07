@@ -35,16 +35,17 @@ namespace adcontrols { class TargetingMethod;  }
 
 namespace adwidgets {
 
-    class AdductsLoseTree : public QTreeView {
+    class TargetingAdducts : public QTreeView {
         Q_OBJECT
     public:
-        explicit AdductsLoseTree(QWidget *parent = 0);
+        explicit TargetingAdducts(QWidget *parent = 0);
 
 		void OnCreate();
 		void OnInitialUpdate();
 		void OnFinalClose();
 
         void getContents( adcontrols::TargetingMethod& );
+        void setContents( const adcontrols::TargetingMethod& );
 
     signals:
 
