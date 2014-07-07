@@ -31,7 +31,7 @@ namespace qtwrapper {
 #if defined Q_OS_MAC
 # define FSIZE(x) ((x)*96/72)
 #else
-# define X(x) (x)
+# define FSIZE(x) (x)
 #endif
 
     static std::array<int, nbrFontSize> font_size_list = {

@@ -123,6 +123,7 @@ examples/device_controller/*S.inl
 src/plugins/chemistry/portfolio.xml
 src/plugins/batchproc/batchproc.pluginspec
 src/plugins/peptide/peptide.pluginspec
+contrib/agilent/plugins/u5303aplugin/u5303aplugin.pluginspec
 src/app/exclude.txt
 src/app/spectrum.txt
 src/version.h
@@ -145,3 +146,4 @@ examples/bcastaddr/bcastaddr
 examples/device_emulators/bcast/bcast
 examples/device_emulators/hello/hello
 examples/device_emulators/powersupply/powersupply
+src/version.tmp
