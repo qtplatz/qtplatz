@@ -65,7 +65,9 @@ Targeting::Candidate::Candidate( const Candidate& t ) : idx( t.idx )
 bool
 Targeting::operator()( const MassSpectrum& )
 {
-candidates_.clear();
+    ADDEBUG() << "Targeting operator...";
+
+    candidates_.clear();
     return true;
 }
 
@@ -73,6 +75,8 @@ void
 Targeting::setup( const TargetingMethod& m )
 {
     ChemicalFormula formula_parser;
+
+    ADDEBUG() << "setup start";
 
     active_formula_.clear();
     for ( auto& f: m.formulae() ) {
@@ -88,12 +92,13 @@ Targeting::setup( const TargetingMethod& m )
     std::sort( neg_adducts_.begin(), neg_adducts_.end() );
 
     auto charge_range = m.chargeState();
-
     
     for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
         make_combination( charge, pos_adducts_, poslist_ );
-        make_combination( charge, neg_adducts_, neglist_ );
+        // make_combination( charge, neg_adducts_, neglist_ );
     }
+
+    ADDEBUG() << "setup completed";
 }
 
 void
@@ -134,6 +139,8 @@ Targeting::make_combination( uint32_t charge
                              , const std::vector< adduct_type >& adducts
                              , std::vector< charge_adduct_type >& list )
 {
+    ADDEBUG() << "make_combination charge=" << charge;
+
     if ( charge == 1 ) {
         for ( auto& a: adducts )
             list.push_back( std::make_tuple( a.first, a.second, charge ) );
