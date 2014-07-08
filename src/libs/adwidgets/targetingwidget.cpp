@@ -49,7 +49,7 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
             splitter->addWidget( ( table_ = new TargetingTable ) ); 
             splitter->addWidget( (new TargetingAdducts) );
             splitter->setStretchFactor( 0, 0 );
-            splitter->setStretchFactor( 1, 2 );
+            splitter->setStretchFactor( 1, 3 );
             splitter->setStretchFactor( 2, 1 );
             splitter->setOrientation ( Qt::Horizontal );
 
@@ -80,9 +80,15 @@ void
 TargetingWidget::OnInitialUpdate()
 {
     table_->onInitialUpdate();
+
+    adcontrols::TargetingMethod m; // default
+    form_->setContents( m );
+    table_->setContents( m );
         
-    if ( auto tree = findChild< TargetingAdducts * >() )
+    if ( auto tree = findChild< TargetingAdducts * >() ) {
         tree->OnInitialUpdate();
+        tree->setContents( m );
+    }
 }
 
 void
@@ -99,15 +105,23 @@ bool
 TargetingWidget::getContents( boost::any& a ) const
 {
     if ( adportable::a_type< adcontrols::ProcessMethod >::is_pointer( a ) ) {
-        adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( a ); 
-        adcontrols::TargetingMethod method;
-        form_->getContents( method );
-        table_->getContents( method );
-        if ( auto tree = findChild< TargetingAdducts * >() )
-            tree->getContents( method );
-        
-		pm->appendMethod( method );
-        return true;
+
+        if ( adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( a ) ) {
+
+            adcontrols::TargetingMethod method( adcontrols::TargetingMethod::idTargetFormula );
+
+            form_->getContents( method );
+
+            if ( auto table = findChild< TargetingTable * >() )
+                table->getContents( method );
+
+            if ( auto tree = findChild< TargetingAdducts * >() )
+                tree->getContents( method );
+            
+            pm->appendMethod( method );
+
+            return true;
+        }
     }
     return false;
 }
@@ -126,6 +140,9 @@ TargetingWidget::setContents( boost::any& a )
         const adcontrols::TargetingMethod * t = pm.find< adcontrols::TargetingMethod >();
 
         form_->setContents( *t );
+
+        if ( auto table = findChild< TargetingTable * >() )
+            table->setContents( *t );
         
         if ( auto tree = findChild< TargetingAdducts * >() )
             tree->setContents( *t );

@@ -36,6 +36,33 @@ DelegateHelper::DelegateHelper()
 }
 
 void
+DelegateHelper::render_html2( QPainter * painter, const QStyleOptionViewItem& option, const QString& text )
+{
+    QStyleOptionViewItemV4 op = option;
+    
+    painter->save();
+
+    QTextDocument document;
+    document.setDefaultTextOption( QTextOption( Qt::AlignVCenter ) ); // hit to QTBUG 13467??
+    document.setDefaultFont( op.font );
+    document.setDefaultStyleSheet( "{ vertical-align: middle; }" );
+    document.setHtml( text );
+
+    op.displayAlignment |= Qt::AlignVCenter;
+    op.text = "";
+    op.widget->style()->drawControl( QStyle::CE_ItemViewItem, &op, painter, op.widget );
+
+    QRect cbx = op.widget->style()->subElementRect( QStyle::SE_CheckBoxIndicator, &option, op.widget );
+    QRect rc( option.rect );
+    rc.setLeft( cbx.right() + 4 );
+
+    painter->translate( cbx.right() + 4, option.rect.top() ); // workaround for VCenter
+    document.drawContents( painter ); // rc.translated( -rc.topLeft() ) );
+
+    painter->restore();
+}
+
+void
 DelegateHelper::render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text )
 {
     painter->save();
@@ -45,7 +72,10 @@ DelegateHelper::render_html( QPainter * painter, const QStyleOptionViewItem& opt
     document.setDefaultFont( op.font );
     document.setHtml( text );
     op.displayAlignment = Qt::AlignVCenter;
+
+    op.text = "";
     op.widget->style()->drawControl( QStyle::CE_ItemViewItem, &op, painter );
+
     painter->translate( op.rect.topLeft() );
     QRect clip( 0, 0, op.rect.width(), op.rect.height() );
     document.drawContents( painter, clip );

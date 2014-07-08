@@ -51,6 +51,8 @@ namespace adwidgets {
     private:
         QStandardItemModel * model_;
 
+        void handleValueChanged( const QModelIndex& );
+
     signals:
 
     public slots:

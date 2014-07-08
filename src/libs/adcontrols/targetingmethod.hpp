@@ -55,17 +55,16 @@ namespace adcontrols {
         std::vector< std::pair< bool, std::string > >& adducts( bool positive = true );
         const std::vector< std::pair< bool, std::string > >& adducts( bool positive = true ) const;
 
-        //std::vector< std::pair< bool, std::string > >& lose();
-        //const std::vector< std::pair< bool, std::string > >& lose() const;
-
 		std::pair< unsigned int, unsigned int > chargeState() const;
 		void chargeState( unsigned int, unsigned int );
+        typedef std::pair< std::string, std::pair< bool, std::wstring > > formula_type;
+        typedef std::pair< bool, std::pair< std::string, std::string > > peptide_type;
 
-		std::vector< std::pair< bool, std::string > >& formulae();
-		const std::vector< std::pair< bool, std::string > >& formulae() const;
+		std::vector< formula_type >& formulae();
+		const std::vector< formula_type >& formulae() const;
         
-		std::vector< std::pair< bool, std::pair< std::string, std::string > > >& peptides();
-		const std::vector< std::pair< bool, std::pair< std::string, std::string > > >& peptides() const;
+		std::vector< peptide_type  >& peptides();
+		const std::vector< peptide_type >& peptides() const;
 
         bool is_use_resolving_power() const;
         void is_use_resolving_power( bool );
@@ -89,6 +88,17 @@ namespace adcontrols {
         double tolerance() const;
         void tolerance( double );
 
+        struct ADCONTROLSSHARED_EXPORT formula_data {
+            TargetingMethod::formula_type f_;
+            formula_data( bool enable, const std::string& formula, const std::wstring& desc ) {
+                f_ = std::make_pair( formula, std::make_pair( enable, desc ) );
+            }
+            operator const TargetingMethod::formula_type& () { return f_; }
+            static bool enable( const TargetingMethod::formula_type& f ) { return f.second.first; }
+            static const std::string& formula( const TargetingMethod::formula_type& f ) { return f.first; }
+            static const std::wstring& description( const TargetingMethod::formula_type& f ) { return f.second.second; }
+        };
+
     private:
         idTarget idTarget_;
         bool is_use_resolving_power_;
@@ -105,8 +115,8 @@ namespace adcontrols {
         std::vector< std::pair< bool, std::string > > pos_adducts_; // if start with '-' means lose instead of add
         std::vector< std::pair< bool, std::string > > neg_adducts_;
 
-        std::vector< std::pair< bool, std::string > > formulae_;
-        std::vector< std::pair< bool, std::pair< std::string, std::string > > > peptides_;
+        std::vector< formula_type > formulae_;
+        std::vector< peptide_type > peptides_;
         
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
@@ -144,9 +154,18 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP( tolerance_ )
                     & BOOST_SERIALIZATION_NVP( pos_adducts_ )
                     & BOOST_SERIALIZATION_NVP( neg_adducts_ )
-                    & BOOST_SERIALIZATION_NVP( formulae_ )
-                    & BOOST_SERIALIZATION_NVP( peptides_ )
                     ;
+                if ( version < 3 ) {
+                    std::vector< std::pair< bool, std::string > > formulae;
+                    std::vector< std::pair< bool, std::pair< std::string, std::string > > > peptides;
+                    ar & BOOST_SERIALIZATION_NVP( formulae )
+                        & BOOST_SERIALIZATION_NVP( peptides )
+                        ;
+                } else {
+                    ar & BOOST_SERIALIZATION_NVP( formulae_ )
+                        & BOOST_SERIALIZATION_NVP( peptides_ )
+                        ;
+                }
             }
         }
     };

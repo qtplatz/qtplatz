@@ -26,20 +26,21 @@
 #include <compiler/diagnostic_push.h>
 #include <compiler/workaround.h>
 #include <compiler/disable_unused_parameter.h>
-
 #include "chemicalformula.hpp"
 #include "tableofelement.hpp"
 #include "ctable.hpp"
 #include "element.hpp"
 #include <adportable/utf.hpp>
 #include <adportable/formula_parser.hpp>
+#include <boost/bind.hpp>
+#include <boost/format.hpp>
+#include <boost/fusion/include/std_pair.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
-#include <boost/fusion/include/std_pair.hpp>
-#include <boost/bind.hpp>
-#include <boost/format.hpp>
+#include <boost/tokenizer.hpp>
 #include <compiler/diagnostic_pop.h>
+
 #include <sstream>
 #include <string>
 #include <vector>
@@ -170,6 +171,7 @@ namespace adcontrols {
                 return std::basic_string<char_type>();
             }
         };
+
 
     }
 
@@ -307,6 +309,49 @@ ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::str
 	}
     return !el.empty();
 }
+
+bool
+ChemicalFormula::split( const std::string& formula, std::vector< std::string >& results, const char * dropped_delims, const char * kept_delims )
+{
+    typedef char char_type;
+
+    typedef boost::tokenizer< boost::char_separator< char_type >
+                              , std::basic_string< char_type >::const_iterator
+                              , std::basic_string< char_type > > tokenizer_t;
+    
+    boost::char_separator< char > separator( dropped_delims, kept_delims, boost::keep_empty_tokens );
+
+    tokenizer_t tokens( formula, separator );
+    for( auto it = tokens.begin(); it != tokens.end(); ++it ) {
+        results.push_back( *it );
+    }
+    return !results.empty();
+}
+
+std::string
+ChemicalFormula::formatFormulae( const std::string& formula, const char * delims, bool richText )
+{
+    typedef char char_type;
+
+    typedef boost::tokenizer< boost::char_separator< char_type >
+                              , std::basic_string< char_type >::const_iterator
+                              , std::basic_string< char_type > > tokenizer_t;
+    
+    boost::char_separator< char > separator( "", delims, boost::drop_empty_tokens );
+    tokenizer_t tokens( formula, separator );
+
+    std::ostringstream o;
+
+    for( auto it = tokens.begin(); it != tokens.end(); ++it ) {
+        std::string formatted = formatFormula( *it, richText );
+        if ( formatted.empty() )
+            o << *it;
+        else
+            o << formatted;
+    }
+    return o.str();
+}
+
 
 ///////////////
 using namespace adcontrols::internal;

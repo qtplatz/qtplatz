@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "targetingadducts.hpp"
+#include "delegatehelper.hpp"
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <QStyledItemDelegate>
 #include <QStandardItemModel>
@@ -33,9 +35,14 @@ using namespace adwidgets;
 namespace adwidgets {
     namespace detail {
 
-        enum {
+        enum eRootColumns {
             c_header
-            , nbrColums
+            , nbrColumns
+        };
+
+        enum eSubColumns {
+            c_formula
+            , nbrChildColumns
         };
 
         enum {
@@ -46,7 +53,17 @@ namespace adwidgets {
 
         class AdductsDelegate : public QStyledItemDelegate {
         public:
-            
+            void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+                if ( index.parent() != QModelIndex() && index.column() == c_formula ) {
+                    
+                    QStyleOptionViewItem opt = option;
+                    initStyleOption( &opt, index );
+                    std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
+                    DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
+                } else {
+                    QStyledItemDelegate::paint( painter, option, index );
+                }
+            }
         };
 
     }
@@ -66,27 +83,24 @@ TargetingAdducts::getContents( adcontrols::TargetingMethod& method )
     using namespace adwidgets::detail;
 	QStandardItemModel& model = *model_;
 
-    std::array< bool, 2 > polarities = { true, false };
-    int n = 0;
+    std::array< std::pair< bool, int >, 2 > polarities = { std::make_pair( true, r_pos_adducts ), std::make_pair( false, r_neg_adducts ) };
 
     for ( auto polarity: polarities ) {
         
-        if ( auto parent = model.item( r_pos_adducts + n, c_header ) ) {
+        if ( auto parent = model.item( polarity.second, c_header ) ) {
 
-            auto& adducts = method.adducts( polarity );
+            auto& adducts = method.adducts( polarity.first );
             adducts.clear();
 
-            for ( int row = 0; parent->rowCount(); ++row ) {
-                if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
-                    std::string adduct = item->data( Qt::EditRole ).toString().toStdString();
+            for ( int row = 0; row < parent->rowCount(); ++row ) {
+                if ( auto item = model.itemFromIndex( model.index( row, c_header, parent->index() ) ) ) {
                     bool enable = item->data( Qt::CheckStateRole ).toBool();
-                    if ( !adducts.empty() ) {
+                    std::string adduct = item->data( Qt::EditRole ).toString().toStdString();
+                    if ( !adduct.empty() )
                         adducts.push_back( std::make_pair( enable, adduct ) );
-                    }
                 }
             }
         }
-        ++n;
     }
 }
 
@@ -96,29 +110,29 @@ TargetingAdducts::setContents( const adcontrols::TargetingMethod& method )
     using namespace adwidgets::detail;
 	QStandardItemModel& model = *model_;
 
-    std::array< bool, 2 > polarities = { true, false };
-    int n = 0;
+    std::array< std::pair< bool, int >, 2 > polarities = { std::make_pair( true, r_pos_adducts ), std::make_pair( false, r_neg_adducts ) };
 
     for ( auto polarity: polarities ) {
 
-        if ( auto parent = model.item( r_pos_adducts + n, c_header ) ) {
+        if ( auto parent = model.item( polarity.second, c_header ) ) {
 
-            parent->setRowCount( int( method.adducts( polarity ).size() + 1 ) ); // add empty line at the bottom of table
+            parent->setRowCount( int( method.adducts( polarity.first ).size() + 1 ) ); // add empty line at the bottom of table
             parent->setEditable( false );
-            parent->setColumnCount( 1 );
+            parent->setColumnCount( nbrChildColumns );
 
             int row = 0;
-            for ( auto& adduct: method.adducts( polarity ) ) {
-                if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
-                    item->setData( QString::fromStdString( adduct.second ), Qt::EditRole );
+            for ( auto& adduct: method.adducts( polarity.first ) ) {
+                if ( auto item = model.itemFromIndex( model.index( row, c_formula, parent->index() ) ) ) {
+                    // check box
                     item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
                     item->setEditable( true );
                     item->setData( adduct.first ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+                    // formula
+                    item->setData( QString::fromStdString( adduct.second ), Qt::EditRole );
                 }
                 ++row;
             }
         }
-        ++n;
     }
 
     expandAll();
@@ -131,10 +145,7 @@ TargetingAdducts::OnInitialUpdate()
 	QStandardItemModel& model = *model_;
 
     QStandardItem * rootNode = model.invisibleRootItem();
-    rootNode->setColumnCount( nbrColums );
-
-	// model.setHeaderData( c_header, Qt::Horizontal, "formula" );
-	// model.setHeaderData( c_value, Qt::Horizontal, "Value" );
+    rootNode->setColumnCount( nbrColumns );
 
     model.setRowCount( nbrRows );
     

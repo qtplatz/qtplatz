@@ -41,7 +41,7 @@ TargetingMethod::TargetingMethod( idTarget id ) : idTarget_( id )
 {
     // reference, 
     // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
-    pos_adducts_.push_back( std::make_pair( true, "H" ) );
+    pos_adducts_.push_back( std::make_pair( false, "H" ) );
     pos_adducts_.push_back( std::make_pair( false, "Na" ) );
     pos_adducts_.push_back( std::make_pair( false, "NH4" ) );
     pos_adducts_.push_back( std::make_pair( false, "K" ) );
@@ -50,11 +50,11 @@ TargetingMethod::TargetingMethod( idTarget id ) : idTarget_( id )
     pos_adducts_.push_back( std::make_pair( false, "CH3OH+H" ) );
     pos_adducts_.push_back( std::make_pair( false, "NH4" ) );
     pos_adducts_.push_back( std::make_pair( false, "(CH3)2SO+H" ) ); // DMSO+H
-    pos_adducts_.push_back( std::make_pair( false, "C3H8O+H" ) ); // IPA+H
-    pos_adducts_.push_back( std::make_pair( false, "C3H8O+Na" ) ); // IPA+Na
+    pos_adducts_.push_back( std::make_pair( false, "C3H8O+H" ) );    // IPA+H
+    pos_adducts_.push_back( std::make_pair( false, "C3H8O+Na" ) );   // IPA+Na
 
-    neg_adducts_.push_back( std::make_pair( true, "-H" ) );
-    neg_adducts_.push_back( std::make_pair( true, "-H2O-H" ) );
+    neg_adducts_.push_back( std::make_pair( false, "-H" ) );
+    neg_adducts_.push_back( std::make_pair( false, "-H2O-H" ) );
     neg_adducts_.push_back( std::make_pair( false, "+Na-H2" ) );
     neg_adducts_.push_back( std::make_pair( false, "Cl" ) );
     neg_adducts_.push_back( std::make_pair( false, "+K-H2" ) );
@@ -127,25 +127,25 @@ TargetingMethod::chargeState( uint32_t min, uint32_t max )
     chargeStateMax_ = max;
 }
 
-std::vector< std::pair< bool, std::string > >&
+std::vector< TargetingMethod::formula_type >&
 TargetingMethod::formulae()
 {
     return formulae_;
 }
 
-const std::vector< std::pair< bool, std::string > >&
+const std::vector< TargetingMethod::formula_type >&
 TargetingMethod::formulae() const
 {
     return formulae_;
 }
 
-std::vector< std::pair< bool, std::pair< std::string, std::string > > >&
+std::vector< TargetingMethod::peptide_type >&
 TargetingMethod::peptides()
 {
     return peptides_;
 }
 
-const std::vector< std::pair< bool, std::pair< std::string, std::string > > >&
+const std::vector< TargetingMethod::peptide_type >&
 TargetingMethod::peptides() const
 {
     return peptides_;

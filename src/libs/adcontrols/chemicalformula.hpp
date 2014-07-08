@@ -56,5 +56,11 @@ namespace adcontrols {
         static bool getComposition( std::vector< mol::element >&, const std::string& formula );
         static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
         static std::string formatFormula( const std::string& formula, bool richText = true );
+        
+        static bool split( const std::string& formula
+                           , std::vector< std::string >&
+                           , const char * dropped_delims = "", const char * kept_delims = "+-" );
+
+        static std::string formatFormulae( const std::string& formula, const char * delims = "+-", bool richText = true );
     };
 }

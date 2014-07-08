@@ -338,13 +338,15 @@ ActionManager::loadDefaults()
     try {
         adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
     } catch ( std::exception& ex ) {
-        QMessageBox::warning( 0, "Open default process method"
+        QMessageBox::warning( 0, "dataproc -- Open default process method"
                               , (boost::format("%1% @ %2% #%3%") % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
         return false;
-    } 
-
-    MainWindow::instance()->processMethodLoaded( path.string().c_str(), m );
-    return true;
+    }
+    if ( m.size() > 0 ) {
+        MainWindow::instance()->processMethodLoaded( path.string().c_str(), m );
+        return true;
+    }
+    return false;
 }
 
 void

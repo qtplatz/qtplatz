@@ -34,6 +34,7 @@
 #include <QStyledItemDelegate>
 #include <boost/format.hpp>
 #include <qtwrapper/font.hpp>
+#include <functional>
 
 using namespace adwidgets;
 
@@ -45,6 +46,7 @@ namespace adwidgets {
             c_peptide
             , c_formula
             , c_mass
+            , c_description
             , nbrColums
         };
 
@@ -63,13 +65,25 @@ namespace adwidgets {
                 }
             }
 
-            QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-                if ( index.column() == 1 ) {
-                    return DelegateHelper::html_size_hint( option, index );
-                } else {
-                    return QStyledItemDelegate::sizeHint( option, index );
-                }
+            void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
+                QStyledItemDelegate::setModelData( editor, model, index );
+                if ( valueChanged_ )
+                    valueChanged_( index );
             }
+            
+            //QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            //    if ( index.column() == 1 ) {
+            //        return DelegateHelper::html_size_hint( option, index );
+            //    } else {
+            //        return QStyledItemDelegate::sizeHint( option, index );
+            //    }
+            //}
+        public:
+            void register_handler( std::function< void( const QModelIndex& ) > f ) {
+                valueChanged_ = f;
+            }
+        private:
+            std::function< void( const QModelIndex& ) > valueChanged_;
         };
 
     }
@@ -79,7 +93,10 @@ TargetingTable::TargetingTable(QWidget *parent) : TableView(parent)
                                                 , model_( new QStandardItemModel() )
 {
     setModel( model_ );
-	setItemDelegate( new detail::TargetingDelegate );
+    auto delegate = new detail::TargetingDelegate;
+	setItemDelegate( delegate );
+    delegate->register_handler( [=]( const QModelIndex& index ){ handleValueChanged( index ); } );
+
     setSortingEnabled( true );
 
     QFont font;
@@ -104,45 +121,26 @@ void
 TargetingTable::onInitialUpdate()
 {
     QStandardItemModel& model = *model_;
-    
-    model.setColumnCount( 4 );
 
     using namespace adwidgets::detail;
 
+    horizontalHeader()->setResizeMode( QHeaderView::Stretch );
+
+    model.setColumnCount( nbrColums );
     model.setHeaderData( c_peptide,  Qt::Horizontal, QObject::tr( "peptide" ) );
     model.setHeaderData( c_formula,  Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_mass,  Qt::Horizontal, QObject::tr( "mass" ) );
+    model.setHeaderData( c_description, Qt::Horizontal, QObject::tr( "memo" ) );
 
     setColumnHidden( c_peptide, true );
 
     resizeColumnsToContents();
     resizeRowsToContents();
-
-    horizontalHeader()->setResizeMode( QHeaderView::Stretch );
 }
 
 void
 TargetingTable::setContents( const adprot::digestedPeptides& )
 {
-    // QStandardItemModel& model = *model_;
-    // const adprot::peptides& peptides = digested.peptides();
-
-    // model.setRowCount( static_cast< int >( peptides.size() ) );
-
-    // int row = 0;
-    // for ( auto& p: peptides ) {
-    //     model.setData( model.index( row, 0 ), QString::fromStdString( p.sequence() ) );
-    //     model.setData( model.index( row, 1 ), QString::fromStdString( p.formula() ) );
-    //     model.setData( model.index( row, 2 ), p.mass(), Qt::EditRole );
-    //     model.setData( model.index( row, 2 ), QString::fromStdString( (boost::format("%.7f")%p.mass()).str() ), Qt::DisplayRole );
-    //     model.setData( model.index( row, 3 ), row );
-	// 	++row;
-    // }
-    // if ( row > 1 ) {
-    //     --row;
-    //     model.setData( model.index( 0, 3 ), "N" );
-    //     model.setData( model.index( row, 3 ), "C" );
-    // }
 }
 
 void
@@ -150,22 +148,69 @@ TargetingTable::setContents( const adcontrols::TargetingMethod& method )
 {
     QStandardItemModel& model = *model_;
     using namespace adwidgets::detail;
+    adcontrols::ChemicalFormula cformula;
 
-    model.setRowCount( int( method.formulae().size() ) );
+    model.setRowCount( int( method.formulae().size() + 1 ) ); // add one free line for add formula
 
     int row = 0;
     for ( auto& formula: method.formulae() ) {
-        model.setData( model.index( row, c_formula ), QString::fromStdString( formula.second ) );
+
+        typedef adcontrols::TargetingMethod::formula_data formula_data;
+
+        model.setData( model.index( row, c_formula ), QString::fromStdString( formula_data::formula( formula ) ) );
         if ( auto item = model.item( row, c_formula ) ) {
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             item->setEditable( true );
-            model.setData( model.index( row, c_formula ), formula.first ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            model.setData( model.index( row, c_formula ), formula_data::enable( formula ) ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
+        model.setData( model.index( row, c_description ), QString::fromStdWString( formula_data::description( formula ) ) );
+
+        double exactMass = cformula.getMonoIsotopicMass( formula_data::formula( formula ) );
+        model_->setData( model_->index( row, c_mass ), exactMass );
+
         ++row;
     }
+
+    resizeColumnsToContents();
+    resizeRowsToContents();
 }
 
 void
 TargetingTable::getContents( adcontrols::TargetingMethod& method )
 {
+    QStandardItemModel& model = *model_;
+    using namespace adwidgets::detail;
+
+    method.formulae().clear();
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+
+        std::string formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
+        bool enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
+        std::wstring memo = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
+
+        if ( !formula.empty() ) {
+            method.formulae().push_back( adcontrols::TargetingMethod::formula_data( enable, formula, memo ) );
+        }
+
+    }
 }
+
+void
+TargetingTable::handleValueChanged( const QModelIndex& index )
+{
+    using namespace adwidgets::detail;
+
+    if ( index.column() == c_formula ) {
+        std::string formula = index.data( Qt::EditRole ).toString().toStdString();
+        adcontrols::ChemicalFormula cformula;
+        double exactMass = cformula.getMonoIsotopicMass( formula );
+        model_->setData( model_->index( index.row(), c_mass ), exactMass );
+    }
+    if ( index.row() == model_->rowCount() - 1 )
+        model_->insertRow( index.row() + 1 );
+
+    resizeColumnsToContents();
+    resizeRowsToContents();
+}
+

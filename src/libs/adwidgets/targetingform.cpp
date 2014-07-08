@@ -71,5 +71,18 @@ TargetingForm::getContents( adcontrols::TargetingMethod& m )
 void
 TargetingForm::setContents( const adcontrols::TargetingMethod& m )
 {
-    (void)m;
+	ui->doubleSpinBoxRP->setValue( m.resolving_power() );
+	ui->doubleSpinBoxWidth->setValue(m.peak_width());
+    ui->radioButtonRP->setChecked( m.is_use_resolving_power() );
+    auto charge = m.chargeState();
+    ui->spinBoxChargeMin->setValue( charge.first );
+    ui->spinBoxChargeMax->setValue( charge.second );
+
+    auto limits = m.isMassLimitsEnabled();
+
+    ui->cbxLowMass->setCheckState( limits.first ? Qt::Checked : Qt::Unchecked );
+    ui->cbxHighMass->setCheckState( limits.second ? Qt::Checked : Qt::Unchecked );
+
+	ui->doubleSpinBoxLowMassLimit->setValue( m.lowMassLimit() );
+	ui->doubleSpinBoxHighMassLimit->setValue( m.highMassLimit() );
 }

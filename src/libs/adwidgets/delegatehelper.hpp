@@ -37,6 +37,7 @@ namespace adwidgets {
     class ADWIDGETSSHARED_EXPORT DelegateHelper  {
     public:
         DelegateHelper();
+        static void render_html2( QPainter * painter, const QStyleOptionViewItem& option, const QString& text );
         static void render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text );
         static QSize html_size_hint( const QStyleOptionViewItem& option, const QModelIndex& index );
     };
