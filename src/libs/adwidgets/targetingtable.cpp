@@ -53,15 +53,24 @@ namespace adwidgets {
         class TargetingDelegate : public QStyledItemDelegate {
         
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+
+                QStyleOptionViewItem opt(option);
+                initStyleOption( &opt, index );
+                opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
+
                 if ( index.column() == c_formula ) {
+
                     std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
-                    DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
+                    DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
+
                 } else if ( index.column() == c_mass ) {
-                    QStyleOptionViewItemV2 op = option;
-                    op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
-                    QStyledItemDelegate::paint( painter, op, index );
+
+                    QStyledItemDelegate::paint( painter, opt, index );
+
                 } else {
-                    QStyledItemDelegate::paint( painter, option, index );
+                    
+                    QStyledItemDelegate::paint( painter, opt, index );
+
                 }
             }
 
@@ -202,7 +211,18 @@ TargetingTable::handleValueChanged( const QModelIndex& index )
     using namespace adwidgets::detail;
 
     if ( index.column() == c_formula ) {
+
         std::string formula = index.data( Qt::EditRole ).toString().toStdString();
+
+        if ( auto item = model_->item( index.row(), c_formula ) ) {
+            if ( !(item->flags() & Qt::ItemIsUserCheckable) ) {
+                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                item->setEditable( true );
+            }
+        }
+
+        model_->setData( index, formula.empty() ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole );
+
         adcontrols::ChemicalFormula cformula;
         double exactMass = cformula.getMonoIsotopicMass( formula );
         model_->setData( model_->index( index.row(), c_mass ), exactMass );
