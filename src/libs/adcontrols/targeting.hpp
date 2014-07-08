@@ -26,7 +26,8 @@
 #define TARGETING_HPP
 
 #include "adcontrols_global.h"
-
+#include <string>
+#include <vector>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
@@ -78,7 +79,8 @@ namespace adcontrols {
         std::vector< Candidate > candidates_;
         typedef std::pair< double, std::string > adduct_type;
         typedef std::tuple< double, std::string, uint32_t > charge_adduct_type;
-        std::vector< std::pair< std::string, double > > active_formula_; // M
+
+        std::vector< std::pair< std::string, double > > active_formula_;
         std::vector< adduct_type > pos_adducts_;
         std::vector< adduct_type > neg_adducts_;
         std::vector< charge_adduct_type > poslist_;
@@ -86,10 +88,10 @@ namespace adcontrols {
 
         void setup( const TargetingMethod& );
         static void setup_adducts( const TargetingMethod&, bool, std::vector< adduct_type >& );
-        static void make_combination( uint32_t charge, std::vector< adduct_type >&, std::vector< charge_adduct_type >& );
+        static void make_combination( uint32_t charge, const std::vector< adduct_type >&, std::vector< charge_adduct_type >& );
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, unsigned int ) {
+        template<class Archive> void serialize( Archive& ar, unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( candidates_ )
                 ;
         }

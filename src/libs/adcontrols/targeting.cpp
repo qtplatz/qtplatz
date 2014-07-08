@@ -26,6 +26,7 @@
 #include "targetingmethod.hpp"
 #include "chemicalformula.hpp"
 #include <adportable/debug.hpp>
+#include <algorithm>
 #include <sstream>
 
 using namespace adcontrols;
@@ -62,9 +63,9 @@ Targeting::Candidate::Candidate( const Candidate& t ) : idx( t.idx )
 }
 
 bool
-Targeting::operator()( const MassSpectrum& ms )
+Targeting::operator()( const MassSpectrum& )
 {
-    candidates_.clear();
+candidates_.clear();
     return true;
 }
 
@@ -81,10 +82,14 @@ Targeting::setup( const TargetingMethod& m )
         }
     }
     setup_adducts( m, true, pos_adducts_ );
+    std::sort( pos_adducts_.begin(), pos_adducts_.end() );
+
     setup_adducts( m, false, neg_adducts_ );
+    std::sort( neg_adducts_.begin(), neg_adducts_.end() );
 
     auto charge_range = m.chargeState();
 
+    
     for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
         make_combination( charge, pos_adducts_, poslist_ );
         make_combination( charge, neg_adducts_, neglist_ );
@@ -125,25 +130,34 @@ Targeting::setup_adducts( const TargetingMethod& m, bool positive, std::vector< 
 }
 
 void
-Targeting::make_combination( uint32_t charge, std::vector< adduct_type >& adducts, std::vector< charge_adduct_type >& list )
+Targeting::make_combination( uint32_t charge
+                             , const std::vector< adduct_type >& adducts
+                             , std::vector< charge_adduct_type >& list )
 {
     if ( charge == 1 ) {
         for ( auto& a: adducts )
             list.push_back( std::make_tuple( a.first, a.second, charge ) );
         return;
     }
-    std::sort( adducts.begin(), adducts.end() );
+
+    std::vector< bool > selector( adducts.size() );
+    std::fill( selector.begin() + charge, selector.end(), true );
 
     do {
-        std::ostringstream o;
-        double adduct_mass = 0;
-        for ( uint32_t i = 0; i < charge; ++i ) {
-            adduct_mass += adducts[ i ].first;
-            o << "(" << adducts[ i ].second << ")";
-        }
 
+        double adduct_mass = 0;
+        std::ostringstream o;
+
+        for ( int i = 0; i < int(adducts.size()); ++i ) {
+            if ( ! selector[i] ) {
+                adduct_mass += adducts[ i ].first;
+                o << "(" << adducts[ i ].second << ")";                
+            }
+        }
         list.push_back( std::make_tuple( adduct_mass, o.str(), charge ) );
+
         ADDEBUG() << o.str();
-    } while ( std::next_permutation( adducts.begin(), adducts.end() ) );
+
+    } while ( std::next_permutation( selector.begin(), selector.end() ) );
 
 }
