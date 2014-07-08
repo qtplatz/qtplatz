@@ -347,7 +347,7 @@ MainWindow::createStyledBarMiddle()
 
             QComboBox * features = new QComboBox;
             features->addItem( "Centroid" );
-            features->addItem( "Isotope" );
+            features->addItem( "Targeting" ); // Centroid + find targets
             features->addItem( "Calibration" );
             features->addItem( "Find peaks" );
             toolBarLayout->addWidget( features );
@@ -994,6 +994,22 @@ void
 MainWindow::handleFeatureSelected( int value )
 {
     currentFeature_ = static_cast< ProcessType >( value );
+
+    const char * object_name = 0;
+
+    if ( currentFeature_ = TargetingProcess )
+        object_name = "TargetingMethod";
+    else if ( currentFeature_ = CalibrationProcess )
+        object_name = "MSCalibrationMethod";
+    else if ( currentFeature_ = PeakFindProcess )
+        object_name = "PeakFindMethod";
+
+    if ( object_name ) {
+        auto docks = dockWidgets();
+        auto it = std::find_if( docks.begin(), docks.end(), [=]( QDockWidget * d ){	return d->objectName() == object_name; });
+        if ( it != docks.end() )
+            (*it)->raise();
+    }
 }
 
 void

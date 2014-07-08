@@ -29,8 +29,9 @@
 #include <adprot/peptide.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/targetingmethod.hpp>
-#include <QStandardItemModel>
 #include <QHeaderView>
+#include <QMenu>
+#include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <boost/format.hpp>
 #include <qtwrapper/font.hpp>
@@ -103,13 +104,14 @@ TargetingTable::TargetingTable(QWidget *parent) : TableView(parent)
 {
     setModel( model_ );
     auto delegate = new detail::TargetingDelegate;
-	setItemDelegate( delegate );
     delegate->register_handler( [=]( const QModelIndex& index ){ handleValueChanged( index ); } );
-
+	setItemDelegate( delegate );
     setSortingEnabled( true );
-
     QFont font;
     setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
+
+    setContextMenuPolicy( Qt::CustomContextMenu );
+    connect( this, &QTableView::customContextMenuRequested, this, &TargetingTable::handleContextMenu );
 
 	model_->setColumnCount( detail::nbrColums );
     model_->setRowCount( 1 );
@@ -234,3 +236,34 @@ TargetingTable::handleValueChanged( const QModelIndex& index )
     resizeRowsToContents();
 }
 
+void
+TargetingTable::handleContextMenu( const QPoint& pt )
+{
+    QMenu menu;
+
+    typedef std::pair< QAction *, std::function< void() > > action_type;
+
+    std::vector< action_type > actions;
+    actions.push_back( std::make_pair( menu.addAction( "Enable all" ), [=](){ enable_all( true ); }) );
+    actions.push_back( std::make_pair( menu.addAction( "Disable all" ), [=](){ enable_all( false ); }) );
+
+    if ( QAction * selected = menu.exec( mapToGlobal( pt ) ) ) {
+        auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){
+                return t.first == selected;
+            });
+        if ( it != actions.end() )
+            (it->second)();
+    }
+}
+
+void
+TargetingTable::enable_all( bool enable )
+{
+    QStandardItemModel& model = *model_;
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        if ( !model.index( row, detail::c_formula ).data().toString().isEmpty() )
+            model_->setData( model.index( row, detail::c_formula ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );        
+    }
+
+}

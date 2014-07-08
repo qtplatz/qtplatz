@@ -71,7 +71,7 @@ namespace dataproc {
 
     enum ProcessType {
         CentroidProcess
-        , IsotopeProcess
+        , TargetingProcess
         , CalibrationProcess
         , PeakFindProcess 
     };

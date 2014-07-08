@@ -52,6 +52,8 @@ namespace adwidgets {
         QStandardItemModel * model_;
 
         void handleValueChanged( const QModelIndex& );
+        void handleContextMenu( const QPoint& );
+        void enable_all( bool );
 
     signals:
 

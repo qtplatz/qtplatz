@@ -30,7 +30,7 @@ using namespace adcontrols;
 TargetingMethod::TargetingMethod( idTarget id ) : idTarget_( id )
                                                 , is_use_resolving_power_( false )
                                                 , resolving_power_( 10000 )
-                                                , peak_width_( 1.0 ) // mDa
+                                                , peak_width_( 10.0 ) // mDa
                                                 , chargeStateMin_( 1 )
                                                 , chargeStateMax_( 3 )
                                                 , isLowMassLimitEnabled_( false ) // auto
@@ -41,6 +41,7 @@ TargetingMethod::TargetingMethod( idTarget id ) : idTarget_( id )
 {
     // reference, 
     // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
+    
     pos_adducts_.push_back( std::make_pair( false, "H" ) );
     pos_adducts_.push_back( std::make_pair( false, "Na" ) );
     pos_adducts_.push_back( std::make_pair( false, "NH4" ) );

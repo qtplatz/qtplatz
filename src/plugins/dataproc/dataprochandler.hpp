@@ -39,6 +39,7 @@ namespace adcontrols {
     class PeakResult;
 
     class CentroidMethod;
+    class TargetingMethod;
     class IsotopeMethod;
     class MSCalibrateMethod;
     class PeakMethod;
@@ -58,6 +59,8 @@ namespace dataproc {
                                 , adcontrols::MassSpectrum& res
                                 , const adcontrols::MassSpectrum& profile
                                 , const adcontrols::CentroidMethod& );
+
+        static bool doTargeting( adcontrols::MassSpectrum&, const adcontrols::TargetingMethod& );
 
         static bool doIsotope( adcontrols::MassSpectrum& res, const adcontrols::IsotopeMethod& );
 

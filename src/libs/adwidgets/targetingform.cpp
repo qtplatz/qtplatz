@@ -56,6 +56,7 @@ void
 TargetingForm::getContents( adcontrols::TargetingMethod& m )
 {
 	m.resolving_power( ui->doubleSpinBoxRP->value() );
+
 	m.peak_width( ui->doubleSpinBoxWidth->value() );
     m.is_use_resolving_power( ui->radioButtonRP->isChecked() );
 

@@ -93,6 +93,7 @@ namespace dataproc {
     struct DataprocessorImpl {
         static adcontrols::MassSpectrumPtr findAttachedMassSpectrum( portfolio::Folium& folium );
         static bool applyMethod( portfolio::Folium&, const adcontrols::IsotopeMethod& );
+        static bool applyMethod( portfolio::Folium&, const adcontrols::TargetingMethod& );
         static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
         static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
         static bool applyMethod( portfolio::Folium&, const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
@@ -260,6 +261,10 @@ namespace dataproc {
             return DataprocessorImpl::applyMethod( folium, m, *ptr_ );
         }
 
+        bool operator () ( const adcontrols::TargetingMethod& m ) const {
+            return DataprocessorImpl::applyMethod( folium, m );
+        }
+
         bool operator () ( const adcontrols::IsotopeMethod& m ) const {
             return DataprocessorImpl::applyMethod( folium, m );
         }
@@ -333,12 +338,15 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
 
         if ( procType == CentroidProcess ) {
             selector.append< adcontrols::CentroidMethod >( method );
-        } else if ( procType == IsotopeProcess ) {
+        }
+        else if ( procType == TargetingProcess ) {
             selector.append< adcontrols::CentroidMethod >( method );
-            selector.append< adcontrols::IsotopeMethod >( method );
-        } else if ( procType == CalibrationProcess ) {
+            selector.append< adcontrols::TargetingMethod >( method );
+        }
+        else if ( procType == CalibrationProcess ) {
             // should not be here
-        } else if ( procType == PeakFindProcess ) {
+        }
+        else if ( procType == PeakFindProcess ) {
             // ADTRACE() << "============== select PeakFindProcess";
             selector.append< adcontrols::PeakMethod >( method );
         }
@@ -819,6 +827,20 @@ DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium )
         Folium::get< adcontrols::MassSpectrumPtr >( ptr, *it);
 
     return ptr; // can be null
+}
+
+bool
+DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::TargetingMethod& m )
+{
+    if ( adcontrols::MassSpectrumPtr centroid = findAttachedMassSpectrum( folium ) ) {
+        
+        if ( DataprocHandler::doTargeting( *centroid, m ) ) {
+            portfolio::Folium att = folium.addAttachment( L"Targeting" );
+            //att.assign( pResult, pResult->dataClass() );
+        }
+        return true;
+    }
+    return false;
 }
 
 bool

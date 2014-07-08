@@ -32,6 +32,7 @@
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/tableofelement.hpp>
+#include <adcontrols/targeting.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -93,6 +94,13 @@ DataprocHandler::doCentroid( adcontrols::MSPeakInfo& pkInfo
         }
     }
     return result;
+}
+
+bool
+DataprocHandler::doTargeting( adcontrols::MassSpectrum& ms, const adcontrols::TargetingMethod& m )
+{
+    adcontrols::Targeting targeting( m );
+    return targeting( ms );
 }
 
 bool

@@ -23,7 +23,127 @@
 **************************************************************************/
 
 #include "targeting.hpp"
+#include "targetingmethod.hpp"
+#include "chemicalformula.hpp"
+#include <adportable/debug.hpp>
+#include <sstream>
+
+using namespace adcontrols;
 
 Targeting::Targeting()
 {
+}
+
+Targeting::Targeting( const Targeting& t ) : candidates_( t.candidates_ )
+                                           , active_formula_( t.active_formula_ )
+                                           , pos_adducts_( t.pos_adducts_ )
+                                           , neg_adducts_( t.neg_adducts_ )
+{
+}
+
+Targeting::Targeting( const TargetingMethod& m )
+{
+    setup( m );
+}
+
+Targeting::Candidate::Candidate() : idx(0)
+                                  , fcn(0)
+                                  , charge(1)
+                                  , mass_error(0)
+{
+}
+
+Targeting::Candidate::Candidate( const Candidate& t ) : idx( t.idx )
+                                                      , fcn( t.fcn )
+                                                      , charge( t.charge )
+                                                      , mass_error( t.mass_error )
+                                                      , formula( t.formula )
+{
+}
+
+bool
+Targeting::operator()( const MassSpectrum& ms )
+{
+    candidates_.clear();
+    return true;
+}
+
+void
+Targeting::setup( const TargetingMethod& m )
+{
+    ChemicalFormula formula_parser;
+
+    active_formula_.clear();
+    for ( auto& f: m.formulae() ) {
+        if ( TargetingMethod::formula_data::enable( f ) ) {
+            const std::string formula = TargetingMethod::formula_data::formula( f );
+            active_formula_.push_back( std::make_pair( formula, formula_parser.getMonoIsotopicMass( formula ) ) );
+        }
+    }
+    setup_adducts( m, true, pos_adducts_ );
+    setup_adducts( m, false, neg_adducts_ );
+
+    auto charge_range = m.chargeState();
+
+    for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
+        make_combination( charge, pos_adducts_, poslist_ );
+        make_combination( charge, neg_adducts_, neglist_ );
+    }
+}
+
+void
+Targeting::setup_adducts( const TargetingMethod& m, bool positive, std::vector< adduct_type >& adducts )
+{
+    ChemicalFormula formula_parser;
+
+    for ( auto& a: m.adducts( positive ) ) { 
+
+        if ( a.first ) { // if (enable)
+            std::string addformula;
+            std::string loseformula;
+
+            std::vector< std::string > formulae;
+            if ( formula_parser.split( a.second, formulae ) ) {
+                for ( auto& tok: formulae ) {
+                    bool addlose( true );
+                    if ( tok == "+" ) {
+                        addlose = true;
+                    } else if ( tok == "-" ) {
+                        addlose = false;
+                    } else {
+                        std::string& t = addlose ? addformula : loseformula;
+                        t += tok;
+                    }                        
+                }
+            }
+            double adduct_mass = formula_parser.getMonoIsotopicMass( addformula );
+            double lose_mass = formula_parser.getMonoIsotopicMass( loseformula );
+
+            adducts.push_back( std::make_pair( adduct_mass - lose_mass, a.second ) );
+        }
+    }
+}
+
+void
+Targeting::make_combination( uint32_t charge, std::vector< adduct_type >& adducts, std::vector< charge_adduct_type >& list )
+{
+    if ( charge == 1 ) {
+        for ( auto& a: adducts )
+            list.push_back( std::make_tuple( a.first, a.second, charge ) );
+        return;
+    }
+    std::sort( adducts.begin(), adducts.end() );
+
+    do {
+        std::ostringstream o;
+        double adduct_mass = 0;
+        for ( uint32_t i = 0; i < charge; ++i ) {
+            adduct_mass += adducts[ i ].first;
+            o << "(" << adducts[ i ].second << ")";
+        }
+
+        list.push_back( std::make_tuple( adduct_mass, o.str(), charge ) );
+        ADDEBUG() << o.str();
+    } while ( std::next_permutation( adducts.begin(), adducts.end() ) );
+
 }

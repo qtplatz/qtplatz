@@ -136,16 +136,17 @@ TargetingWidget::setContents( boost::any& a )
         return true;
 
     } else if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
+
         const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( a );
-        const adcontrols::TargetingMethod * t = pm.find< adcontrols::TargetingMethod >();
 
-        form_->setContents( *t );
-
-        if ( auto table = findChild< TargetingTable * >() )
-            table->setContents( *t );
+        if ( const adcontrols::TargetingMethod * t = pm.find< adcontrols::TargetingMethod >() ) {
+            form_->setContents( *t );
+            table_->setContents( *t );
         
-        if ( auto tree = findChild< TargetingAdducts * >() )
+            if ( auto tree = findChild< TargetingAdducts * >() )
             tree->setContents( *t );
+        }
+
     }
     
     return false;
