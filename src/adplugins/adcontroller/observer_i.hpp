@@ -28,7 +28,11 @@
 #include <vector>
 #include <boost/noncopyable.hpp>
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
 #include <adinterface/signalobserverS.h>
+#include <compiler/diagnostic_pop.h>
+
 #include <memory>
 #include <mutex>
 #include <deque>

@@ -34,9 +34,8 @@
 
 using namespace adcontroller;
 
-iProxy::iProxy( iTask& t ) : objref_( false )
-                           , objId_(0) 
-                           , task_( t )
+iProxy::iProxy( iTask& ) : objref_( false )
+                         , objId_(0) 
 {
 }
 

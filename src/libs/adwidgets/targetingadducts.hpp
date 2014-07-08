@@ -39,6 +39,7 @@ namespace adwidgets {
         Q_OBJECT
     public:
         explicit TargetingAdducts(QWidget *parent = 0);
+        ~TargetingAdducts();
 
 		void OnCreate();
 		void OnInitialUpdate();
@@ -52,8 +53,8 @@ namespace adwidgets {
     public slots:
 
     private:
-        std::unique_ptr< QStandardItemModel > model_;
-        std::unique_ptr< QStyledItemDelegate > delegate_;
+        QStandardItemModel * model_;
+        QStyledItemDelegate * delegate_;
     };
 
 }

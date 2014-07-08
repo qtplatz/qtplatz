@@ -27,8 +27,13 @@
 
 #include <boost/noncopyable.hpp>
 #include <adportable/configuration.hpp>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
 #include <adinterface/controlserverC.h>
 #include <adinterface/signalobserverC.h>
+#include <compiler/diagnostic_pop.h>
+
 #include <boost/asio.hpp>
 #include <mutex>
 #include <vector>

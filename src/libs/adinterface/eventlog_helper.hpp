@@ -28,7 +28,10 @@
 #include <string>
 #include <adportable/string.hpp>
 #include <boost/format.hpp>
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
 #include <adinterface/eventlogC.h>
+#include <compiler/diagnostic_pop.h>
 
 namespace adinterface {
 

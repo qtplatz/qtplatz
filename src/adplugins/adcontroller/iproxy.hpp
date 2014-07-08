@@ -29,8 +29,12 @@
 #include <string>
 #include <boost/noncopyable.hpp>
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
+
 #include <adinterface/receiverS.h>
 #include <adinterface/instrumentC.h>
+#include <compiler/diagnostic_pop.h>
 
 namespace ControlMethod {
     struct Methohd;
@@ -82,7 +86,7 @@ namespace adcontroller {
         bool objref_;
         unsigned long objId_;
         Instrument::Session_var impl_;
-        iTask& task_;
+        // iTask& task_;
         adportable::Configuration config_;
         std::wstring name_;
     };

@@ -69,12 +69,18 @@ namespace adwidgets {
     }
 }
 
+TargetingAdducts::~TargetingAdducts()
+{
+    delete delegate_;
+    delete model_;
+}
+
 TargetingAdducts::TargetingAdducts(QWidget *parent) : QTreeView(parent)
                                                     , model_( new QStandardItemModel )
                                                     , delegate_( new detail::AdductsDelegate )
 {
-    setModel( model_.get() );
-    setItemDelegate( delegate_.get() );
+    setModel( model_ );
+    setItemDelegate( delegate_ );
 }
 
 void
@@ -83,7 +89,8 @@ TargetingAdducts::getContents( adcontrols::TargetingMethod& method )
     using namespace adwidgets::detail;
 	QStandardItemModel& model = *model_;
 
-    std::array< std::pair< bool, int >, 2 > polarities = { std::make_pair( true, r_pos_adducts ), std::make_pair( false, r_neg_adducts ) };
+    std::array< std::pair< bool, int >, 2 > polarities = { { std::make_pair( true, r_pos_adducts ) 
+                                                             , std::make_pair( false, r_neg_adducts ) } };
 
     for ( auto polarity: polarities ) {
         
@@ -110,7 +117,8 @@ TargetingAdducts::setContents( const adcontrols::TargetingMethod& method )
     using namespace adwidgets::detail;
 	QStandardItemModel& model = *model_;
 
-    std::array< std::pair< bool, int >, 2 > polarities = { std::make_pair( true, r_pos_adducts ), std::make_pair( false, r_neg_adducts ) };
+    std::array< std::pair< bool, int >, 2 > polarities = { { std::make_pair( true, r_pos_adducts )
+                                                             , std::make_pair( false, r_neg_adducts ) } };
 
     for ( auto polarity: polarities ) {
 

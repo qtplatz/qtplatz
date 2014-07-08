@@ -25,8 +25,13 @@
 
 #pragma once
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
+
 #include <adinterface/brokerS.h>
 #include <adinterface/brokerclientS.h>
+
+#include <compiler/diagnostic_pop.h>
 
 #include "session_i.hpp"
 #include <map>

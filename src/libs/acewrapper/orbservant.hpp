@@ -28,8 +28,12 @@
 
 #include <string>
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
+
 #include <tao/ORB.h>
 #include <tao/PortableServer/PortableServer.h>
+#include <compiler/diagnostic_pop.h>
 
 class TAO_ORB_Manager;
 

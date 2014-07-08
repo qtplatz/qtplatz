@@ -26,8 +26,13 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
 #include <adinterface/brokerC.h>
 #include <adinterface/brokereventC.h>
+#include <compiler/diagnostic_pop.h>
+
 #include <boost/asio.hpp>
 #include <thread>
 #include <vector>

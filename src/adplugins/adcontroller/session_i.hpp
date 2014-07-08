@@ -25,9 +25,13 @@
 
 #pragma once
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_deprecated.h>
+
 #include <adinterface/receiverC.h>
 #include <adinterface/controlserverS.h>
-//#include <acewrapper/orbservant.hpp>
+#include <compiler/diagnostic_pop.h>
+
 #include <vector>
 
 namespace adcontroller {
