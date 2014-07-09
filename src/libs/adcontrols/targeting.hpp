@@ -53,9 +53,7 @@ namespace adcontrols {
         Targeting( const TargetingMethod& );
 
         bool operator ()( const MassSpectrum& );
-
-        const Candidate& results() const;
-        const Candidate& combination() const;
+        const std::vector< Candidate >& candidates() const { return candidates_; }
 
         struct Candidate {
             uint32_t idx; // peak index on mass-spectrum 

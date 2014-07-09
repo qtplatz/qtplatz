@@ -57,7 +57,7 @@ TargetingForm::getContents( adcontrols::TargetingMethod& m )
 {
 	m.resolving_power( ui->doubleSpinBoxRP->value() );
 
-	m.peak_width( ui->doubleSpinBoxWidth->value() );
+	m.peak_width( ui->doubleSpinBoxWidth->value() / 1000.0 ); // mDa --> Da
     m.is_use_resolving_power( ui->radioButtonRP->isChecked() );
 
     m.chargeState( ui->spinBoxChargeMin->value(), ui->spinBoxChargeMax->value() );
@@ -73,7 +73,7 @@ void
 TargetingForm::setContents( const adcontrols::TargetingMethod& m )
 {
 	ui->doubleSpinBoxRP->setValue( m.resolving_power() );
-	ui->doubleSpinBoxWidth->setValue(m.peak_width());
+    ui->doubleSpinBoxWidth->setValue( m.peak_width() * 1000.0 );
     ui->radioButtonRP->setChecked( m.is_use_resolving_power() );
     auto charge = m.chargeState();
     ui->spinBoxChargeMin->setValue( charge.first );

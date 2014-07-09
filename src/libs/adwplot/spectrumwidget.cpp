@@ -684,7 +684,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
     using adportable::array_wrapper;
     using namespace adcontrols::metric;        
 
-    adportable::scoped_debug<> scope(__FILE__,__LINE__); scope << "update_annotateion:";
+    // adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "update_annotateion:";
     plot.setUpdatesEnabled( false );
 
 	// QRectF zrc = plot.zoomRect();

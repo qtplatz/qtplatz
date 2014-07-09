@@ -341,7 +341,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
     drawIdx1_ = 0;
     drawIdx2_ = 0;
 
-    adportable::scoped_debug<> scope(__FILE__,__LINE__); scope << "selection changed:";
+    //adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "selection changed:";
 
     if ( portfolio::Folder folder = folium.getParentFolder() ) {
 

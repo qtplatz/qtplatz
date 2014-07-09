@@ -30,7 +30,7 @@ using namespace adcontrols;
 TargetingMethod::TargetingMethod( idTarget id ) : idTarget_( id )
                                                 , is_use_resolving_power_( false )
                                                 , resolving_power_( 10000 )
-                                                , peak_width_( 10.0 ) // mDa
+                                                , peak_width_( 0.010 ) // 10mDa
                                                 , chargeStateMin_( 1 )
                                                 , chargeStateMax_( 3 )
                                                 , isLowMassLimitEnabled_( false ) // auto
@@ -49,16 +49,15 @@ TargetingMethod::TargetingMethod( idTarget id ) : idTarget_( id )
     pos_adducts_.push_back( std::make_pair( false, "CH3CN+H" ) );
     pos_adducts_.push_back( std::make_pair( false, "CH3CN+Na" ) );
     pos_adducts_.push_back( std::make_pair( false, "CH3OH+H" ) );
-    pos_adducts_.push_back( std::make_pair( false, "NH4" ) );
     pos_adducts_.push_back( std::make_pair( false, "(CH3)2SO+H" ) ); // DMSO+H
     pos_adducts_.push_back( std::make_pair( false, "C3H8O+H" ) );    // IPA+H
     pos_adducts_.push_back( std::make_pair( false, "C3H8O+Na" ) );   // IPA+Na
 
     neg_adducts_.push_back( std::make_pair( false, "-H" ) );
     neg_adducts_.push_back( std::make_pair( false, "-H2O-H" ) );
-    neg_adducts_.push_back( std::make_pair( false, "+Na-H2" ) );
+    neg_adducts_.push_back( std::make_pair( false, "Na-H2" ) );
     neg_adducts_.push_back( std::make_pair( false, "Cl" ) );
-    neg_adducts_.push_back( std::make_pair( false, "+K-H2" ) );
+    neg_adducts_.push_back( std::make_pair( false, "K-H2" ) );
     neg_adducts_.push_back( std::make_pair( false, "COOH-H" ) );
 }
 
@@ -231,7 +230,7 @@ TargetingMethod::highMassLimit( double value )
     highMassLimit_ = value;
 }
 
-
+#if 0
 double
 TargetingMethod::tolerance() const
 {
@@ -243,3 +242,4 @@ TargetingMethod::tolerance( double value )
 {
     tolerance_ = value;
 }
+#endif

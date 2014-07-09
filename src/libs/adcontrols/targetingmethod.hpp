@@ -85,8 +85,8 @@ namespace adcontrols {
         double highMassLimit() const;
         void highMassLimit( double );
 
-        double tolerance() const;
-        void tolerance( double );
+        //double tolerance() const;
+        //void tolerance( double );
 
         struct ADCONTROLSSHARED_EXPORT formula_data {
             TargetingMethod::formula_type f_;

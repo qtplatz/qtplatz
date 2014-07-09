@@ -839,6 +839,12 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Tar
             if ( (*targeting)(*centroid) ) {
                 portfolio::Folium att = folium.addAttachment( L"Targeting" );
                 att.assign( targeting, adcontrols::Targeting::dataClass() );
+
+                for ( auto& candidate: targeting->candidates() ) {
+                    ADTRACE() << boost::format( "idx: %d, fcn: %d, charge: %d, %s, error=%.g mDa" )
+                        % candidate.idx % candidate.fcn % candidate.charge % candidate.formula % (candidate.mass_error * 1000);
+                }
+                
             }
         }
         return true;

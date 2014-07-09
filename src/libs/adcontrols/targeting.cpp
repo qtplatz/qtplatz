@@ -48,15 +48,24 @@ namespace adcontrols {
             target_finder( It beg, It end, double tolerance ) : beg_( beg ), end_( end ), tolerance_( tolerance ) {
             }
             bool operator()( double target_mass ) {
+
+                if ( target_mass < *beg_ || target_mass > *(end_ - 1) )
+                    return false;
+
                 auto itLower = std::lower_bound( beg_, end_, target_mass - tolerance_ );
                 if ( itLower != end_ ) {
+
                     pos_ = std::make_pair( std::abs( *itLower - target_mass ), std::distance( beg_, itLower ) );
+                    if ( pos_.first > tolerance_ )
+                        return false;
+
                     auto itUpper = std::lower_bound( itLower, end_, target_mass + tolerance_ );
                     for ( auto it = itLower; it <= itUpper && it != end_; ++it ) {
                         double d = std::abs( *it - target_mass );
                         if ( d < pos_.first )
                             pos_ = std::make_pair( d, std::distance( beg_, it ) );
                     }
+
                     return true;
                 }
                 return false;
@@ -113,14 +122,14 @@ Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, uint32_t _charge,
 bool
 Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive, const std::vector< charge_adduct_type >& list )
 {
-    double tolerance = (method_) ? method_->tolerance() / 1000.0 : 0.010;
+    double tolerance = (method_) ? method_->peak_width() : 0.010;
 
     detail::target_finder< const double * > finder( ms.getMassArray(), ms.getMassArray() + ms.size(), tolerance );
 
     for ( auto& formula : active_formula_ ) {
         double target_mass = formula.second; // search 'M'
         if ( finder( target_mass ) )
-            candidates_.push_back( Candidate( uint32_t( finder.pos_.second ), fcn, 1, uint32_t( finder.pos_.first ), formula.first ) );
+            candidates_.push_back( Candidate( uint32_t( finder.pos_.second /*idx*/), fcn, 1/*charge*/, finder.pos_.first /*error*/, formula.first /*formula*/ ) );
     }
 
     (void)polarity_positive; // this will be necessary for account an electron mass, todo
@@ -128,7 +137,7 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positi
         for ( auto& formula : active_formula_ ) {
             double target_mass = (formula.second /* M */ + std::get<0>( adduct /*mass*/ )) / std::get<2>( adduct /*charge*/ );
             if ( finder( target_mass ) )
-                candidates_.push_back( Candidate( uint32_t( finder.pos_.second ), fcn, 1, uint32_t( finder.pos_.first ), formula.first + "+" + std::get<1>( adduct ) ) );
+                candidates_.push_back( Candidate( uint32_t( finder.pos_.second ), fcn, std::get<2>( adduct ), finder.pos_.first, formula.first + "+" + std::get<1>( adduct ) ) );
         }
     }
     return true;
