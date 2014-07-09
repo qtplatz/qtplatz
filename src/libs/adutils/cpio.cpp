@@ -44,6 +44,7 @@
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/spectrogram.hpp>
+#include <adcontrols/targeting.hpp>
 #include <boost/exception/all.hpp>
 
 using namespace adutils;
@@ -108,6 +109,11 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         return internal::cpio_handler< adcontrols::SpectrogramClusters >::save( dbf, a );
         
+    }
+    else if ( adportable::a_type< adcontrols::TargetingPtr >::is_a( a ) ) {
+
+        return internal::cpio_handler< adcontrols::Targeting >::save( dbf, a );
+
     }
 
 	struct cpio_error : virtual boost::exception, virtual std::exception {};

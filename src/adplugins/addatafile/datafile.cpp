@@ -38,6 +38,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/targeting.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -207,6 +208,11 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
 					} else if ( dataType == adcontrols::MassSpectra::dataClass() ) {
                         
                         any = detail::serializer< adcontrols::MassSpectra >::deserialize( obuf );
+
+					} else if ( dataType == adcontrols::Targeting::dataClass() ) {
+                        
+                        any = detail::serializer< adcontrols::Targeting >::deserialize( obuf );
+
                         
                     } else {
                         ADERROR() << "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType << ")";

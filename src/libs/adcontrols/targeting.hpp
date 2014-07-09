@@ -34,7 +34,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
 #include <tuple>
-
+#include <memory>
 #include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
@@ -45,6 +45,8 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT Targeting {
     public:
         struct Candidate;
+
+        static const wchar_t * dataClass() { return L"adcontrols::Targeting"; }
 
         Targeting();
         Targeting( const Targeting& );
@@ -63,6 +65,7 @@ namespace adcontrols {
             std::string formula; // this is the exact formula matched with the peak (contains adducts)
             Candidate();
             Candidate( const Candidate& );
+            Candidate( uint32_t idx, uint32_t fcn, uint32_t charge, double mass_error, const std::string& formula );
         private:
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, unsigned int ) {
@@ -75,7 +78,11 @@ namespace adcontrols {
             }
         };
 
+        static bool archive( std::ostream&, const Targeting& );
+        static bool restore( std::istream&, Targeting& );
+
     private:
+        std::shared_ptr< TargetingMethod > method_;
         std::vector< Candidate > candidates_;
         typedef std::pair< double, std::string > adduct_type;
         typedef std::tuple< double, std::string, uint32_t > charge_adduct_type;
@@ -87,6 +94,7 @@ namespace adcontrols {
         std::vector< charge_adduct_type > neglist_;
 
         void setup( const TargetingMethod& );
+        bool find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive, const std::vector< charge_adduct_type >& list );
         static void setup_adducts( const TargetingMethod&, bool, std::vector< adduct_type >& );
         static void make_combination( uint32_t charge, const std::vector< adduct_type >&, std::vector< charge_adduct_type >& );
 
@@ -96,6 +104,8 @@ namespace adcontrols {
                 ;
         }
     };
+
+    typedef std::shared_ptr< Targeting > TargetingPtr;
 
 }
 

@@ -97,13 +97,6 @@ DataprocHandler::doCentroid( adcontrols::MSPeakInfo& pkInfo
 }
 
 bool
-DataprocHandler::doTargeting( adcontrols::MassSpectrum& ms, const adcontrols::TargetingMethod& m )
-{
-    adcontrols::Targeting targeting( m );
-    return targeting( ms );
-}
-
-bool
 DataprocHandler::doIsotope( adcontrols::MassSpectrum&, const adcontrols::IsotopeMethod& )
 {
     adcontrols::ChemicalFormula chemicalFormula; 

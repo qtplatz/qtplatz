@@ -65,6 +65,7 @@
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adcontrols/peakresult.hpp>
+#include <adcontrols/targeting.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/spectrogram.hpp>
 #include <adportable/array_wrapper.hpp>
@@ -834,9 +835,11 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Tar
 {
     if ( adcontrols::MassSpectrumPtr centroid = findAttachedMassSpectrum( folium ) ) {
         
-        if ( DataprocHandler::doTargeting( *centroid, m ) ) {
-            portfolio::Folium att = folium.addAttachment( L"Targeting" );
-            //att.assign( pResult, pResult->dataClass() );
+        if ( auto targeting = std::make_shared< adcontrols::Targeting >(m) ) {
+            if ( (*targeting)(*centroid) ) {
+                portfolio::Folium att = folium.addAttachment( L"Targeting" );
+                att.assign( targeting, adcontrols::Targeting::dataClass() );
+            }
         }
         return true;
     }

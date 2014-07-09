@@ -9,6 +9,9 @@ Nov 13, 2007:  Incorporation of boost-devel comments (Jens Seidel, Ben Bear and 
 Nov 11, 2007:  Rewrite of Ben Bear's Gacap
 */
 
+// Reference:
+// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2639.pdf
+
 #ifndef BOOST_ALGORITHM_COMBINATION_HPP
 #define BOOST_ALGORITHM_COMBINATION_HPP
 

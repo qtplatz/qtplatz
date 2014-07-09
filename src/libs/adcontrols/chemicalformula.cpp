@@ -322,9 +322,10 @@ ChemicalFormula::split( const std::string& formula, std::vector< std::string >& 
     boost::char_separator< char > separator( dropped_delims, kept_delims, boost::keep_empty_tokens );
 
     tokenizer_t tokens( formula, separator );
-    for( auto it = tokens.begin(); it != tokens.end(); ++it ) {
-        results.push_back( *it );
-    }
+    std::for_each( tokens.begin(), tokens.end(), [&] ( const tokenizer_t::value_type& it ){
+        if ( !it.empty() )
+            results.push_back( it );
+    } );
     return !results.empty();
 }
 
