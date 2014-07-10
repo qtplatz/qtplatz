@@ -29,18 +29,19 @@
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/chromatogram.hpp>
-#include <adcontrols/peakresult.hpp>
+#include <adcontrols/datafile.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
-#include <adcontrols/description.hpp>
-#include <adcontrols/descriptions.hpp>
-#include <adcontrols/lcmsdataset.hpp>
-#include <adcontrols/lockmass.hpp>
-#include <adcontrols/datafile.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/scoped_debug.hpp>
@@ -352,6 +353,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
                 pProcessedSpectrum_ = std::make_pair( std::wstring(), std::shared_ptr< adcontrols::MassSpectrum >( 0 ) );
                 pProfileSpectrum_ = std::make_pair( std::wstring(), std::shared_ptr< adcontrols::MassSpectrum >( 0 ) );
                 pkinfo_ = std::make_pair( std::wstring(), std::shared_ptr< adcontrols::MSPeakInfo >( 0 ) );
+                targeting_ = std::make_pair( std::wstring(), std::shared_ptr< adcontrols::Targeting >( 0 ) );
 
                 if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
@@ -369,16 +371,29 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
                                 pProcessedSpectrum_ = std::make_pair( fcentroid.id(), centroid );
                             }
                         }
+
                         if ( auto fmethod = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
                                     return portfolio::is_type< adcontrols::ProcessMethodPtr >( a ); }) ) {
                                 
                             if ( auto method = portfolio::get< adcontrols::ProcessMethodPtr >( fmethod ) )
                                 MainWindow::instance()->setProcessMethod( *method );
                         }
+                        
                         if ( auto fpkinfo = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
                                     return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
                             pkinfo_ = std::make_pair( fpkinfo.id(), portfolio::get< adcontrols::MSPeakInfoPtr >( fpkinfo ) );
                         }
+
+                        if ( auto ftgt = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
+                                    return portfolio::is_type< adcontrols::TargetingPtr >( a ); } ) ) {
+                            targeting_ = std::make_pair( ftgt.id(), portfolio::get< adcontrols::TargetingPtr >( ftgt ) );
+
+                            // set corresponding targeting method to UI
+                            if ( auto fmth = portfolio::find_first_of( ftgt.attachments(), [] ( portfolio::Folium& a ){ return portfolio::is_type< adcontrols::ProcessMethodPtr >( a ); } ) )
+                                if ( auto mth = portfolio::get< adcontrols::ProcessMethodPtr >( fmth ) )
+                                    MainWindow::instance()->setProcessMethod( *mth );
+                        }
+
                     }
 
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){

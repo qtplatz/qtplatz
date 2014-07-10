@@ -38,12 +38,13 @@
 #include "mspropertyform.hpp"
 #include "sessionmanager.hpp"
 
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/annotation.hpp>
-#include <adcontrols/annotations.hpp>
+#include <adcontrols/targeting.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adplugin/manager.hpp>
@@ -430,11 +431,12 @@ MainWindow::createContents( Core::IMode * mode
     }
 
     connect( SessionManager::instance(), &SessionManager::signalSessionAdded, this, &MainWindow::handleSessionAdded );
+    connect( SessionManager::instance(), &SessionManager::onProcessed, this, &MainWindow::handleProcessed );
 
     // The handleSelectionChanged on MainWindow should be called in advance for all stacked child widgets.
-    // This is significantly important for child widget has right screen axis especially for QwtPlot widget
-    // calculates QRectF intersection for annotation.
+    // This is significantly important for child widget has right QRectF for each QwtPlot.
     connect( SessionManager::instance(), &SessionManager::signalSelectionChanged, this, &MainWindow::handleSelectionChanged );
+
 
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
         boost::apply_visitor( session_added_connector(this), it );
@@ -625,6 +627,12 @@ MainWindow::handleSessionAdded( dataproc::Dataprocessor * )
 }
 
 void
+MainWindow::handleProcessed( dataproc::Dataprocessor * processor, portfolio::Folium& folium )
+{
+    handleSelectionChanged( processor, folium );
+}
+
+void
 MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium& folium )
 {
 	if ( portfolio::Folder folder = folium.getParentFolder() ) {
@@ -641,6 +649,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 		}
 
         adcontrols::MassSpectrumPtr centroid;
+        adcontrols::TargetingPtr targeting;
 
         if ( folder.name() == L"Spectra" ) {
             
@@ -653,6 +662,15 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 					} catch ( boost::bad_any_cast& ex ) {
 						ADERROR() << boost::diagnostic_information( ex );
 					}
+                    
+                    if ( auto t = portfolio::find_first_of( f.attachments(), []( portfolio::Folium& a) {
+                                return a.name() == Constants::F_TARGETING;}) ) {
+                        try {
+                            targeting = portfolio::get< adcontrols::TargetingPtr >( t );
+                        } catch ( boost::bad_any_cast& ex ) {
+                            ADERROR() << boost::diagnostic_information( ex );
+                        }
+                    }
                 } else {
                     centroid = std::make_shared< adcontrols::MassSpectrum >();  // empty data for clear table
                 }
@@ -666,11 +684,14 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         // set data property to MSPropertyForm
         boost::any afolium( folium );
         boost::any acentroid( centroid );
+        boost::any atargeting( targeting );
         for ( auto widget: dockWidgets() ) {
             adplugin::LifeCycleAccessor accessor( widget->widget() );
             if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
                 pLifeCycle->setContents( afolium );
                 pLifeCycle->setContents( acentroid );
+                if ( targeting )
+                    pLifeCycle->setContents( atargeting );
             }
         }
     }

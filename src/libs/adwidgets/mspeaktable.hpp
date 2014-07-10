@@ -36,7 +36,7 @@
 
 class QStandardItemModel;
 
-namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; }
+namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; class Targeting;  }
 
 namespace adwidgets {
 
@@ -89,6 +89,7 @@ namespace adwidgets {
         static std::shared_ptr< adcontrols::ChemicalFormula > formulaParser_;
         void setPeakInfo( const adcontrols::MSPeakInfo& );
 		void setPeakInfo( const adcontrols::MassSpectrum& );
+        void setPeakInfo( const adcontrols::Targeting& );
 		void setData( const adcontrols::MassSpectrum& );
         void formulaChanged( const QModelIndex& );
         void descriptionChanged( const QModelIndex& );

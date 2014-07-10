@@ -148,6 +148,9 @@ Targeting::operator()( const MassSpectrum& ms )
 {
     candidates_.clear();
 
+    if ( !ms.isCentroid() )
+        return false;
+
     bool polarity_positive = (ms.polarity() == PolarityPositive) || (ms.polarity() == PolarityIndeterminate);
 
     segment_wrapper< const adcontrols::MassSpectrum > segs( ms );

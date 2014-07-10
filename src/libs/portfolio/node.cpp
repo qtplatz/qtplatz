@@ -27,6 +27,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
 #include <boost/format.hpp>
+#include <boost/exception/all.hpp>
 #include <string>
 
 #include <compiler/diagnostic_push.h>
@@ -153,8 +154,8 @@ Node::selectNodes( const std::wstring& query )
     try {
         return node_.select_nodes( pugi::as_utf8( query ).c_str() );
     } catch ( pugi::xpath_exception& ex ) {
-        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
-        assert(0);
+        ADDEBUG() << "xml_exception: " << ex.what();
+        BOOST_THROW_EXCEPTION( ex );
     }
     return pugi::xpath_node_set();
 }
@@ -165,8 +166,8 @@ Node::selectNodes( const std::string& query )
     try {
         return node_.select_nodes( query.c_str() );
     } catch ( pugi::xpath_exception& ex ) {
-        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
-        throw std::runtime_error( ex.what() );
+        ADDEBUG() << "xml_exception: " << ex.what();
+        BOOST_THROW_EXCEPTION( ex );
     }
     return pugi::xpath_node_set();
 }
@@ -177,8 +178,8 @@ Node::selectSingleNode( const std::wstring& query )
     try {
         return node_.select_single_node( pugi::as_utf8( query ).c_str() );
     } catch ( pugi::xpath_exception& ex ) {
-        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
-        throw std::runtime_error( ex.what() );
+        ADDEBUG() << "xml_exception: " << ex.what();
+        BOOST_THROW_EXCEPTION( ex );
     }
     return pugi::xpath_node();
 }
@@ -225,8 +226,8 @@ Node::removeFolium( const std::wstring& id )
             node_.remove_child( it->node() );
         return !nodes.empty();
     } catch ( pugi::xpath_exception& ex ) {
-        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
-        assert(0);            
+        ADDEBUG() << "xml_exception: " << ex.what();
+        BOOST_THROW_EXCEPTION( ex );
     }
     return false;
 }
@@ -242,8 +243,8 @@ Node::addAttachment( const std::wstring& name, bool bUniq )
             for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it )
                 node_.remove_child( it->node() );
         } catch ( pugi::xpath_exception& ex ) {
-            adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
-            assert(0);            
+            ADDEBUG() << "xml_exception: " << ex.what();
+            BOOST_THROW_EXCEPTION( ex );
         }
     }
 
@@ -268,8 +269,8 @@ Node::removeAttachment( const std::wstring& name )
             node_.remove_child( it->node() );
         return !nodes.empty();
     } catch ( pugi::xpath_exception& ex ) {
-        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
-        assert(0);            
+        ADDEBUG() << "xml_exception: " << ex.what();
+        BOOST_THROW_EXCEPTION( ex );
     }
     return false;
 }

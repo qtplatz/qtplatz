@@ -34,6 +34,7 @@
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/targeting.hpp>
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
@@ -104,7 +105,7 @@ namespace adwidgets {
             break;
         case c_mspeaktable_formula:
             do { 
-                std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
+                std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                 DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
             } while(0);
             break;
@@ -246,6 +247,13 @@ MSPeakTable::setContents( boost::any& a )
             setPeakInfo( *ptr );            
         return true;
     }
+
+    if ( adportable::a_type< adcontrols::TargetingPtr >::is_a( a ) ) {
+        if ( auto tgt = boost::any_cast<adcontrols::TargetingPtr>(a) ) {
+            setPeakInfo( *tgt );
+        }
+    }
+
     return false;
 }
 
@@ -272,6 +280,25 @@ MSPeakTable::onInitialUpdate()
     setColumnHidden( c_mspeaktable_fcn, true );  // a.k.a. protocol id, internally used as an id
 
     //horizontalHeader()->setResizeMode( QHeaderView::Stretch );
+}
+
+void
+MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
+{
+	QStandardItemModel& model = *model_;
+    const auto& candidates = targeting.candidates();
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
+        int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
+        
+        auto it
+            = std::find_if( candidates.begin(), candidates.end(), [=] ( const adcontrols::Targeting::Candidate& c ){ return c.idx == idx && c.fcn == fcn;  } );
+        if ( it != candidates.end() ) {
+            model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->formula ) );
+            model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass_error );
+        }
+    }
 }
 
 void

@@ -49,6 +49,8 @@ namespace adcontrols {
         ~ProcessMethod();
         ProcessMethod();
         ProcessMethod( const ProcessMethod& );
+        template< class T > ProcessMethod( const T& v ) {  vec_.push_back( v );   }
+
         static const wchar_t * dataClass() { return L"adcontrols::ProcessMethod"; }
 
         typedef boost::variant< CentroidMethod

@@ -39,6 +39,7 @@ namespace adcontrols {
 	class PeakResult;
     class ProcessMethod;
 	class MSPeakInfo;
+    class Targeting;
 }
 
 namespace portfolio {
@@ -100,6 +101,7 @@ namespace dataproc {
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProcessedSpectrum_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileSpectrum_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MSPeakInfo > > pkinfo_;
+        std::pair< std::wstring, std::weak_ptr< adcontrols::Targeting > > targeting_;
 
         std::wstring idActiveFolium_;
         std::wstring idChromatogramFolium_;

@@ -102,6 +102,9 @@ namespace dataproc {
         void selPage( idPage );
         enum idPage curPage() const;
 
+    private:
+        void handleProcessed( Dataprocessor *, portfolio::Folium& );
+
     public slots:
         void handleSessionAdded( Dataprocessor * );
         void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );

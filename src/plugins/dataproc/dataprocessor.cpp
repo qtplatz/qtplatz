@@ -833,21 +833,27 @@ DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium )
 bool
 DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::TargetingMethod& m )
 {
-    if ( adcontrols::MassSpectrumPtr centroid = findAttachedMassSpectrum( folium ) ) {
-        
-        if ( auto targeting = std::make_shared< adcontrols::Targeting >(m) ) {
-            if ( (*targeting)(*centroid) ) {
-                portfolio::Folium att = folium.addAttachment( L"Targeting" );
-                att.assign( targeting, adcontrols::Targeting::dataClass() );
+    if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
 
-                for ( auto& candidate: targeting->candidates() ) {
-                    ADTRACE() << boost::format( "idx: %d, fcn: %d, charge: %d, %s, error=%.g mDa" )
-                        % candidate.idx % candidate.fcn % candidate.charge % candidate.formula % (candidate.mass_error * 1000);
-                }
+        if ( adcontrols::MassSpectrumPtr centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fCentroid ) ) {
+            
+            if ( auto targeting = std::make_shared< adcontrols::Targeting >(m) ) {
                 
+                if ( (*targeting)(*centroid) ) {
+                    
+                    fCentroid.removeAttachment( Constants::F_TARGETING );
+                    portfolio::Folium att = fCentroid.addAttachment( Constants::F_TARGETING );
+
+                    att.assign( targeting, adcontrols::Targeting::dataClass() );
+                    
+                    auto mptr = std::make_shared< adcontrols::ProcessMethod >( m );
+                    att.addAttachment( L"Process Method" ).assign( mptr, mptr->dataClass() );
+                    
+                    return true;
+                }                    
             }
         }
-        return true;
+
     }
     return false;
 }
@@ -858,7 +864,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Iso
     adcontrols::MassSpectrumPtr prev = findAttachedMassSpectrum( folium );
     // copy centroid result if exist, for meta data copy
     if ( prev ) {
-        adcontrols::MassSpectrumPtr pResult( new adcontrols::MassSpectrum( *prev ) );
+        adcontrols::MassSpectrumPtr pResult( std::make_shared< adcontrols::MassSpectrum >( *prev ) );
         if ( DataprocHandler::doIsotope( *pResult, m ) ) {
             portfolio::Folium att = folium.addAttachment( L"Isotope Cluster" );
             att.assign( pResult, pResult->dataClass() );
@@ -932,7 +938,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
 				}
 			}
 
-            adcontrols::MSCalibrateResultPtr pCalibResult( new adcontrols::MSCalibrateResult );
+            adcontrols::MSCalibrateResultPtr pCalibResult( std::make_shared< adcontrols::MSCalibrateResult >() );
             portfolio::Folium fCalibResult = folium.addAttachment( L"Calibrate Result" );
 
             if ( DataprocHandler::doMSCalibration( *pCalibResult, *pCentroid, m ) ) {
@@ -942,8 +948,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
                 fCalibResult.assign( pCalibResult, pCalibResult->dataClass() );
             }
 
-            adcontrols::ProcessMethodPtr method( new adcontrols::ProcessMethod() );
-            method->appendMethod( m );
+            adcontrols::ProcessMethodPtr method( std::make_shared< adcontrols::ProcessMethod >( m ) );
             fCalibResult.addAttachment( L"Process Method" ).assign( method, method->dataClass() );
             
             return true;
@@ -1025,9 +1030,9 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
     if ( centroid ) {
         pCentroid->addDescription( adcontrols::Description( L"process", L"Centroid" ) );
         att.assign( pCentroid, pCentroid->dataClass() );
-        adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
-        ptr->appendMethod( m );
-        att.addAttachment( L"Process Method" ).assign( ptr, ptr->dataClass() );
+
+        auto mptr = std::make_shared< adcontrols::ProcessMethod >( m ); // Ptr ptr( new adcontrols::ProcessMethod() );
+        att.addAttachment( L"Process Method" ).assign( mptr, mptr->dataClass() );
 
         att.addAttachment( L"MSPeakInfo" ).assign( pkInfo, pkInfo->dataClass() );
 
@@ -1050,9 +1055,8 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Pea
     if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
         att.assign( pResult, pResult->dataClass() );
         
-        adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
-        ptr->appendMethod( m );
-        att.addAttachment( L"Process Method" ).assign( ptr, ptr->dataClass() );
+        auto mptr = std::make_shared< adcontrols::ProcessMethod >( m );
+        att.addAttachment( L"Process Method" ).assign( mptr, mptr->dataClass() );
         
         return true;
     }
@@ -1067,7 +1071,7 @@ Dataprocessor::findProcessMethod( const portfolio::Folium& folium )
     portfolio::Folio atts = folium.attachments();
     auto fMethod = portfolio::Folium::find< adcontrols::ProcessMethodPtr >( atts.begin(), atts.end() );
     if ( fMethod != atts.end() ) {
-        const adcontrols::ProcessMethodPtr pMethod = boost::any_cast< adcontrols::ProcessMethodPtr >( fMethod->data() );
+        const auto pMethod = boost::any_cast< adcontrols::ProcessMethodPtr >( fMethod->data() );
         return pMethod;
     }
     return adcontrols::ProcessMethodPtr(0);
