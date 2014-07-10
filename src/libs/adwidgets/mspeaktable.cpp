@@ -150,6 +150,36 @@ namespace adwidgets {
             }
         };
 
+        struct annotation_updator {
+
+            bool operator () ( adcontrols::MassSpectrumPtr& ptr, int idx, int fcn, const std::string& formula ) {
+                adcontrols::segment_wrapper<> segs( *ptr );
+                if ( signed(segs.size()) > fcn ) {
+                    auto& ms = segs[fcn];
+                    adcontrols::annotations& annots = ms.get_annotations();
+                    auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){
+                            return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
+                    if ( it != annots.end() ) {
+                        if ( formula.empty() )
+                            annots.erase( it );
+                        else
+                            it->text( formula, adcontrols::annotation::dataFormula );
+                    } else {
+                        if ( !formula.empty() )
+                            annots << adcontrols::annotation( formula
+                                                              , ms.getMass( idx )
+                                                              , ms.getIntensity( idx )
+                                                              , idx
+                                                              , 0
+                                                              , adcontrols::annotation::dataFormula );
+                    }
+                    return true;
+                }
+                return false;
+            }
+            
+        };
+
     }
 }
 
@@ -288,6 +318,9 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
 	QStandardItemModel& model = *model_;
     const auto& candidates = targeting.candidates();
 
+    if ( candidates.empty() )
+        return;
+
     for ( int row = 0; row < model.rowCount(); ++row ) {
         int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
         int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
@@ -299,6 +332,16 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
             model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass_error );
         }
     }
+    if ( data_source_.which() == 1 ) {
+        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+        if ( adcontrols::MassSpectrumPtr ptr = wptr.lock() ) {
+            std::for_each( candidates.begin(), candidates.end(), [&] ( const adcontrols::Targeting::Candidate& c ){
+                detail::annotation_updator()(ptr, c.idx, c.fcn, c.formula);
+                emit formulaChanged( c.idx, c.fcn );
+            } );
+        }
+    }
+
 }
 
 void
@@ -629,6 +672,9 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
         } else {
             auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
             if ( auto ptr = wptr.lock() ) {
+                if ( detail::annotation_updator()( ptr, idx, fcn, formula ) )
+                    emit formulaChanged( idx, fcn );                    
+#if 0
                 adcontrols::segment_wrapper<> segs( *ptr );
                 if ( signed(segs.size()) > fcn ) {
                     auto& ms = segs[fcn];
@@ -651,6 +697,7 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
                     }
                     emit formulaChanged( idx, fcn );
                 }
+#endif
             }
         }
     }

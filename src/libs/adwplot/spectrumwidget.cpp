@@ -731,7 +731,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
 							a.y( ms.getIntensity( a.index() ) );
 						}
 						if ( a.dataFormat() == adcontrols::annotation::dataFormula ) {
-							a.text( adcontrols::ChemicalFormula::formatFormula( a.text () ), adcontrols::annotation::dataFormula );
+							a.text( adcontrols::ChemicalFormula::formatFormulae( a.text () ), adcontrols::annotation::dataFormula );
                         }
                         marge[ a.index() ] << a;
                     }
