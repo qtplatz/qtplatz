@@ -1018,11 +1018,11 @@ MainWindow::handleFeatureSelected( int value )
 
     const char * object_name = 0;
 
-    if ( currentFeature_ = TargetingProcess )
+    if ( currentFeature_ == TargetingProcess )
         object_name = "TargetingMethod";
-    else if ( currentFeature_ = CalibrationProcess )
+    else if ( currentFeature_ == CalibrationProcess )
         object_name = "MSCalibrationMethod";
-    else if ( currentFeature_ = PeakFindProcess )
+    else if ( currentFeature_ == PeakFindProcess )
         object_name = "PeakFindMethod";
 
     if ( object_name ) {
