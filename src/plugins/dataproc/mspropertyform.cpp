@@ -235,30 +235,38 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     try {
         // device (averager) dependent data (require data interpreter)
         std::vector < std::pair< std::string, std::string > > textv;
-        auto& interpreter = ms.getMSProperty().spectrometer().getDataInterpreter();
-        if ( interpreter.make_device_text( textv, ms.getMSProperty() ) ) {
-            o << "<table border=\"1\" cellpadding=\"4\">";
-            o << "<caption>Averager/digitizer dependent information</caption>";
-            o << "<tr>";
-            o << "<th>#seg</th>";
-            std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<th>" << text.first << "</th>"; } );
-            o << "</tr>";
-            int seg = 0;
-            for ( auto& m : segments ) {
-                if ( interpreter.make_device_text( textv, m.getMSProperty() ) ) {
-                    o << "<tr>";
-                    o << "<td>" << seg++ << "</td>";
-                    std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<td>" << text.second << "</td>"; } );
-                    o << "</tr>";
+        auto& prop = ms.getMSProperty();
+        const char * ipClsid = prop.dataInterpreterClsid();
+        if ( ipClsid && (std::strlen( ipClsid )) > 0 ) {
+            auto& interpreter = prop.spectrometer().getDataInterpreter();
+            if ( interpreter.make_device_text( textv, ms.getMSProperty() ) ) {
+                o << "<table border=\"1\" cellpadding=\"4\">";
+                o << "<caption>Averager/digitizer dependent information</caption>";
+                o << "<tr>";
+                o << "<th>#seg</th>";
+                std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<th>" << text.first << "</th>"; } );
+                o << "</tr>";
+                int seg = 0;
+                for ( auto& m : segments ) {
+                    if ( interpreter.make_device_text( textv, m.getMSProperty() ) ) {
+                        o << "<tr>";
+                        o << "<td>" << seg++ << "</td>";
+                        std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<td>" << text.second << "</td>"; } );
+                        o << "</tr>";
+                    }
                 }
+                o << "</table>";
+                o << "<hr>";
             }
-            o << "</table>";
-            o << "<hr>";
+        }
+        else {
+            o << "<hr>No dataInterpreterClsid specifidc.</hr>";
+            ADERROR() << "no dataInterpreterClisidSpecified.";
         }
     }
     catch ( boost::exception& ex ) {
-        ADDEBUG() << boost::diagnostic_information( ex );
-        // ignore if no data interpreter installed.
+        o << "<hr>data exception: " << boost::diagnostic_information( ex ) << "</hr>";
+        ADERROR() << boost::diagnostic_information( ex );
     }
 }
 
