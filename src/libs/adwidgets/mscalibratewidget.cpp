@@ -27,7 +27,7 @@
 #include "msreferencetable.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adportable/is_type.hpp>
-
+#include <adportable/debug.hpp>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QSplitter>
@@ -63,6 +63,7 @@ MSCalibrateWidget::OnCreate( const adportable::Configuration& )
 void
 MSCalibrateWidget::OnInitialUpdate()
 {
+    ADDEBUG() << "MSCalibrateWidget OnInitialUpdate";
     table_->onInitialUpdate();
     connect( form_, &MSCalibrateForm::addReference, table_, &MSReferenceTable::handleAddReference );
 }
@@ -75,7 +76,7 @@ MSCalibrateWidget::onUpdate( boost::any& )
 void
 MSCalibrateWidget::OnFinalClose()
 {
-    form_->finalClose();
+    ADDEBUG() << "MSCalibrateWidget OnFinalClose";
 }
 
 bool

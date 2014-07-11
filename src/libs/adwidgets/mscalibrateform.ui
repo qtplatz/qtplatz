@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>218</width>
+    <width>246</width>
     <height>300</height>
    </rect>
   </property>
@@ -104,7 +104,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QCommandLinkButton" name="commandLinkButton">
+         <widget class="QPushButton" name="pushButton">
           <property name="text">
            <string>Add MS Reference ...</string>
           </property>

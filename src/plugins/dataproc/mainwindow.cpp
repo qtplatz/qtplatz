@@ -800,8 +800,8 @@ MainWindow::OnInitialUpdate()
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
 		if ( pLifeCycle ) {
 			pLifeCycle->OnInitialUpdate();
-			connect( obj, SIGNAL( apply( adcontrols::ProcessMethod& ) ), this
-                     , SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+			// connect( obj, SIGNAL( apply( adcontrols::ProcessMethod& ) ), this
+            //          , SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
 		}
     }
     setSimpleDockWidgetArrangement();
@@ -815,14 +815,12 @@ MainWindow::OnFinalClose()
     QList< QDockWidget *> widgets = dockWidgets();
   
     for ( auto widget: widgets ) {
-        QObjectList list = widget->children();
-        for ( auto obj: list ) {
-            adplugin::LifeCycleAccessor accessor( obj );
-            adplugin::LifeCycle * pLifeCycle = accessor.get();
-            if ( pLifeCycle ) {
-				disconnect( obj, SIGNAL( onMethodApply( ProcessMethod& ) ), this, SLOT( onMethodApply( ProcessMethod& ) ) );
-                pLifeCycle->OnFinalClose();
-            }
+        QWidget * obj = widget->widget();
+        adplugin::LifeCycleAccessor accessor( obj );
+        adplugin::LifeCycle * pLifeCycle = accessor.get();
+        if ( pLifeCycle ) {
+            //disconnect( obj, SIGNAL( onMethodApply( ProcessMethod& ) ), this, SLOT( onMethodApply( ProcessMethod& ) ) );
+            pLifeCycle->OnFinalClose();
         }
     }
 }

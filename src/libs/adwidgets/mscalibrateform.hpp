@@ -48,7 +48,6 @@ namespace adwidgets {
         explicit MSCalibrateForm(QWidget *parent = 0);
         ~MSCalibrateForm();
 
-        void finalClose();
         void getContents( adcontrols::MSCalibrateMethod& );
         void setContents( const adcontrols::MSCalibrateMethod& );
 
