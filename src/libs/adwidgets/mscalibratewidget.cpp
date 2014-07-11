@@ -75,6 +75,7 @@ MSCalibrateWidget::onUpdate( boost::any& )
 void
 MSCalibrateWidget::OnFinalClose()
 {
+    form_->finalClose();
 }
 
 bool

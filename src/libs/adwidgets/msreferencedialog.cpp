@@ -54,21 +54,25 @@ namespace adwidgets {
             
             struct ui_accessor {
                 Ui_MSReferenceDialog * ui_;
+                control_variant ref_;
                 ui_accessor( Ui_MSReferenceDialog * ui ) : ui_( ui ) {}
-                control_variant operator () ( idItem id ) {
+                control_variant& operator () ( idItem id ) {
                     switch( id ) {
-                    case idEndGroupLabel: return ui_->label_12;
-                    case idRepeatLabel:   return ui_->label_11;
-                    case idAdductLabel:   return ui_->label;
-                    case idPolarityLabel:    return ui_->label_2;
-                    case idClearFormButton:  return ui_->pushButton_3;
-                    case idEndGroupLineEdit: return ui_->edtEndGroup_3;
-                    case idRepeatLineEdit:   return ui_->edtRepeatGroup_3;
-                    case idAdductLineEdit:   return ui_->edtAdductLose_3;
-                    case idAddReferenceButton:  return ui_->addReference_3;
-                    case idAdductsMaterialsCombo: return ui_->comboBox_3;
+                    case idEndGroupLabel: ref_ = ui_->label_12; return ref_;
+                    case idRepeatLabel:   ref_ = ui_->label_11; return ref_;
+                    case idAdductLabel:   ref_ = ui_->label; return ref_;
+                    case idPolarityLabel:    ref_ = ui_->label_2; return ref_;
+                    case idClearFormButton:  ref_ = ui_->pushButton_3; return ref_;
+                    case idEndGroupLineEdit: ref_ = ui_->edtEndGroup_3; return ref_;
+                    case idRepeatLineEdit:   ref_ = ui_->edtRepeatGroup_3; return ref_;
+                    case idAdductLineEdit:   ref_ = ui_->edtAdductLose_3; return ref_;
+                    case idAddReferenceButton:  ref_ = ui_->addReference_3; return ref_;
+                    case idAdductsMaterialsCombo: ref_ = ui_->comboBox_3; return ref_;
+                    case numItems:
+                        break;
                     }
-                    return static_cast<QLabel *>(0);
+                    class error : public boost::exception, public std::exception {};
+                    BOOST_THROW_EXCEPTION( error() );
                 }
             };
 
@@ -124,8 +128,10 @@ MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent )
     font_property()(ui->groupBox);
 
     ui_accessor accessor( ui );
+
     for ( int i = 0; i < numItems; ++i ) {
-        boost::apply_visitor( font_property( false ), accessor( idItem( i ) ) );
+        control_variant v = accessor( idItem(i) );
+        boost::apply_visitor( font_property(false), accessor( idItem( i ) ) );
         boost::apply_visitor( align_property(), accessor( idItem( i ) ) );
     }
 

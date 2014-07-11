@@ -171,15 +171,14 @@ namespace adcontrols {
             }
         };
 
-        template< typename char_type > struct splitter {
-            template<typename char_type> struct delimitors { const char_type * operator()() const; };
-            template<> struct delimitors < wchar_t > { const wchar_t * operator()() const { return L"+-"; } };
-            template<> struct delimitors < char > { const char * operator()() const { return "+-"; } };
+        template<typename char_t> struct delimitors { const char_t * operator()() const; };
+        template<> struct delimitors < wchar_t > { const wchar_t * operator()() const { return L"+-"; } };
+        template<> struct delimitors < char > { const char * operator()() const { return "+-"; } };
 
-            splitter() {}
-            
-            typename std::basic_string<char_type>::size_type operator()( typename const std::basic_string<char_type>& formula
-                , typename std::basic_string<char_type>::size_type pos = 0 ) {
+        template< typename char_type > struct splitter {
+
+            typename std::basic_string<char_type>::size_type operator()( /*typename*/ const std::basic_string<char_type>& formula
+                                                                         , typename std::basic_string<char_type>::size_type pos = 0 ) {
                 return formula.find_first_of( delimitors<char_type>()(), pos );
             }
             //<-------------------------------------------
@@ -188,13 +187,13 @@ namespace adcontrols {
                                , const std::basic_string< char_type >& formula ) {
                 
                 splitter< char_type > splitter;
-                std::basic_string<char_type>::size_type pos;
+                typename std::basic_string<char_type>::size_type pos;
 
                 if ( (pos = splitter( formula )) != std::basic_string<char_type>::npos ) {
                     M = formula.substr( 0, pos );
 
                     while ( pos != std::basic_string<char_type>::npos ) {
-                        std::basic_string< char_type >::size_type next = splitter( formula, pos + 1 );
+                        typename std::basic_string< char_type >::size_type next = splitter( formula, pos + 1 );
                         if ( formula.at( pos ) == char_type( '+' ) )
                             adducts.first += formula.substr( pos + 1, next - pos - 1 ); // skip (+) sign
                         else if ( formula.at( pos ) == char_type( '-' ) )
@@ -208,6 +207,7 @@ namespace adcontrols {
                 }
             }
         };
+
 
         template<typename char_type> std::basic_string<char_type> make_adduct_string( const std::pair < std::basic_string<char_type>, std::basic_string<char_type> >& adduct, bool leading_plus ) {
             std::basic_string<char_type> result;

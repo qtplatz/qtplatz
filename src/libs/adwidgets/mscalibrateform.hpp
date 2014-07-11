@@ -39,7 +39,6 @@ namespace adcontrols { class MSCalibrateMethod; class MSReference; }
 
 namespace adwidgets {
 
-    namespace detail { namespace mscalibrateform { enum idItem : int; } };
     class MSReferenceDialog;
 
     class MSCalibrateForm : public QWidget  {
@@ -49,6 +48,7 @@ namespace adwidgets {
         explicit MSCalibrateForm(QWidget *parent = 0);
         ~MSCalibrateForm();
 
+        void finalClose();
         void getContents( adcontrols::MSCalibrateMethod& );
         void setContents( const adcontrols::MSCalibrateMethod& );
 

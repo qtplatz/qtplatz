@@ -51,24 +51,27 @@ namespace adwidgets {
 
             struct ui_locator {
                 Ui_MSCalibrateForm * ui_;
-
+                control_variant ref_;
                 ui_locator( Ui_MSCalibrateForm * ui ) : ui_( ui ) {
                 }
 
-                control_variant operator()( idItem id ) {
+                control_variant& operator()( idItem id ) {
                     switch( id ) {
-                    case ePolynomialDegreeLabel: return ui_->label;
-                    case eMassToleranceLabel: return ui_->label_2;
-                    case eMinimumRALabel: return ui_->label_3;
-                    case eLowMassLabel: return ui_->label_4;
-                    case eHighMassLabel: return ui_->label_5;
-                    case ePolynomialDegree: return ui_->spinBox;
-                    case eMassTolerance: return ui_->doubleSpinBox;
-                    case eMinimumRA: return ui_->doubleSpinBox_2;
-                    case eLowMass: return ui_->doubleSpinBox_3;
-                    case eHighMass: return ui_->doubleSpinBox_4;
+                    case ePolynomialDegreeLabel: ref_ = ui_->label; return ref_;
+                    case eMassToleranceLabel: ref_ = ui_->label_2; return ref_;
+                    case eMinimumRALabel: ref_ = ui_->label_3; return ref_;
+                    case eLowMassLabel: ref_ = ui_->label_4; return ref_;
+                    case eHighMassLabel: ref_ = ui_->label_5; return ref_;
+                    case ePolynomialDegree: ref_ = ui_->spinBox; return ref_;
+                    case eMassTolerance: ref_ = ui_->doubleSpinBox; return ref_;
+                    case eMinimumRA: ref_ = ui_->doubleSpinBox_2; return ref_;
+                    case eLowMass: ref_ = ui_->doubleSpinBox_3; return ref_;
+                    case eHighMass: ref_ = ui_->doubleSpinBox_4; return ref_;
+                    case numItems:
+                        break;
                     }
-                    return static_cast<QLabel *>(0);
+                    class error : public boost::exception, public std::exception {};
+                    BOOST_THROW_EXCEPTION( error() );
                 }
             };
 
@@ -120,6 +123,16 @@ MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent)
     spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eMinimumRA)), 0.0, 100.0, 1.0); // %
     spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eLowMass)), 1.0, 10000, 1);
     spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eHighMass)), 1.0, 10000, 1);
+}
+
+void
+MSCalibrateForm::finalClose()
+{
+    if ( dlg_ ) {
+        dlg_->hide();
+        delete dlg_;
+        dlg_ = 0;
+    }
 }
 
 MSCalibrateForm::~MSCalibrateForm()
