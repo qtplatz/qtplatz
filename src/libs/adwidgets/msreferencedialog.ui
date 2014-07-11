@@ -50,26 +50,6 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QComboBox" name="comboBox">
-            <property name="font">
-             <font>
-              <family>Calibri</family>
-              <italic>true</italic>
-             </font>
-            </property>
-            <item>
-             <property name="text">
-              <string>Adduct</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Lose</string>
-             </property>
-            </item>
-           </widget>
-          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_11">
             <property name="sizePolicy">
@@ -217,23 +197,18 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QComboBox" name="comboBox_2">
-            <property name="font">
-             <font>
-              <family>Calibri</family>
-             </font>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Adduct/Lose</string>
             </property>
-            <item>
-             <property name="text">
-              <string>Positive</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Negative</string>
-             </property>
-            </item>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Polarity</string>
+            </property>
            </widget>
           </item>
          </layout>

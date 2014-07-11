@@ -39,8 +39,8 @@ namespace adwidgets {
             enum idItem {
                 idEndGroupLabel
                 , idRepeatLabel
-                , idAdductCombo
-                , idPositiveCombo
+                , idAdductLabel
+                , idPolarityLabel
                 , idClearFormButton
                 , idEndGroupLineEdit
                 , idRepeatLineEdit
@@ -59,8 +59,8 @@ namespace adwidgets {
                     switch( id ) {
                     case idEndGroupLabel: return ui_->label_12;
                     case idRepeatLabel:   return ui_->label_11;
-                    case idAdductCombo:   return ui_->comboBox;
-                    case idPositiveCombo:    return ui_->comboBox_2;
+                    case idAdductLabel:   return ui_->label;
+                    case idPolarityLabel:    return ui_->label_2;
                     case idClearFormButton:  return ui_->pushButton_3;
                     case idEndGroupLineEdit: return ui_->edtEndGroup_3;
                     case idRepeatLineEdit:   return ui_->edtRepeatGroup_3;
@@ -117,10 +117,10 @@ namespace adwidgets {
 using namespace adwidgets;
 using namespace adwidgets::detail::msreferencedialog;
 
-MSReferenceDialog::MSReferenceDialog(QWidget *parent) : QDialog(parent)
-                                                      , ui(new Ui::MSReferenceDialog)
+MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent )
+, ui( new Ui::MSReferenceDialog )
 {
-    ui->setupUi(this);
+    ui->setupUi( this );
     font_property()(ui->groupBox);
 
     ui_accessor accessor( ui );
@@ -129,22 +129,24 @@ MSReferenceDialog::MSReferenceDialog(QWidget *parent) : QDialog(parent)
         boost::apply_visitor( align_property(), accessor( idItem( i ) ) );
     }
 
-    auto materials = boost::get< QComboBox * >(accessor( idAdductsMaterialsCombo ));
+    auto materials = boost::get< QComboBox * >( accessor( idAdductsMaterialsCombo ) );
+    while ( materials->count() )
+        materials->removeItem( 0 );
+    materials->addItem( "PFTBA", "PFTBA" );
     materials->addItem( "Ar", "Ar" );
-	materials->addItem( "Xe", "Xe" );
-	materials->addItem( "PFTBA", "PFTBA" );
-	materials->addItem( "PEG", "H2O\tC2H4O\tH" );
-	materials->addItem( "Recerpine", "C33H40N2O9\t\tH" );
-	materials->addItem( "Polystyrene", "H2O\tC8H8\tH" );
-	materials->addItem( "Jeffamine(D230)", "CH3CH(NH2)CH2NH2\tOCH2CH(CH3)\tH" );
-	materials->addItem( "Sulfa drug (311)", "C12H14N4O4S\t\tH" );
-	materials->addItem( "AgilentTOF Mix(+)", "AgilentTOF Mix(+)" );
-	materials->addItem( "AgilentTOF Mix(-)", "AgilentTOF Mix(-)" );
-	materials->addItem( "Anionic Surfactants 1(-)", "C12H26SO4\tC2H4O\t-H\t" ); // negative
-	materials->addItem( "Anionic Surfactants 2(-)", "C13H28SO4\tC2H4O\t-H\t" ); // negative only
-	materials->addItem( "Sodium acetate", "\tCH3COONa\tNa\t" ); //
-   
-    connect( materials, static_cast< void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MSReferenceDialog::handleIndexChanged );
+    materials->addItem( "Xe", "Xe" );
+    materials->addItem( "PEG", "H2O\tC2H4O\tH" );
+    materials->addItem( "Recerpine", "C33H40N2O9\t\tH" );
+    materials->addItem( "Polystyrene", "H2O\tC8H8\tH" );
+    materials->addItem( "Jeffamine(D230)", "CH3CH(NH2)CH2NH2\tOCH2CH(CH3)\tH" );
+    materials->addItem( "Sulfa drug (311)", "C12H14N4O4S\t\tH" );
+    materials->addItem( "Agilent TOF Mix(+)", "Agilent TOF Mix(+)" );
+    materials->addItem( "Agilent TOF Mix(-)", "Agilent TOF Mix(-)" );
+    materials->addItem( "Anionic Surfactants 1(-)", "C12H26SO4\tC2H4O\t-H\t" ); // negative
+    materials->addItem( "Anionic Surfactants 2(-)", "C13H28SO4\tC2H4O\t-H\t" ); // negative only
+    materials->addItem( "Sodium acetate", "\tCH3COONa\tNa\t" ); //
+
+    connect( materials, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MSReferenceDialog::handleIndexChanged );
 
     auto button = boost::get< QPushButton * >( accessor( idAddReferenceButton ) );
     connect( button, &QPushButton::pressed, this, &MSReferenceDialog::handleAddReference );
@@ -182,16 +184,31 @@ MSReferenceDialog::handleIndexChanged( int index )
  
 	boost::char_separator<wchar_t> separator( L"\t", L"", boost::keep_empty_tokens );
     tokenizer_t tokens( userData, separator );
-    
-    auto token = tokens.begin();
-    if ( token != tokens.end() )
-        boost::apply_visitor( set_text( QString::fromStdWString(*token) ), accessor( idEndGroupLineEdit ) );
-    
-	if ( ++token != tokens.end() )
-        boost::apply_visitor( set_text( QString::fromStdWString(*token) ), accessor( idRepeatLineEdit ) );
 
-    if ( token != tokens.end() && ++token != tokens.end() )
+    std::wstring endGroup, repeat, adducts;
+
+    auto token = tokens.begin();
+    if ( token != tokens.end() ) {
+        endGroup = *token;
+        boost::apply_visitor( set_text( QString::fromStdWString(*token) ), accessor( idEndGroupLineEdit ) );
+    }
+    
+	if ( ++token != tokens.end() ) {
+        repeat = *token;
+        boost::apply_visitor( set_text( QString::fromStdWString(*token) ), accessor( idRepeatLineEdit ) );
+    }
+    
+    if ( token != tokens.end() && ++token != tokens.end() ) {
+        adducts = *token;
         boost::apply_visitor( set_text( QString::fromStdWString(*token) ), accessor( idAdductLineEdit ) );
+    }
+    auto positive = boost::get< QLabel *>( accessor( idPolarityLabel ) );
+    if ( adducts[ 0 ] == L'-' || endGroup == L"Agilent TOF Mix(-)" ) {
+        positive->setText( "Negative" );
+    }
+    else {
+        positive->setText( "Positive" );
+    }
 }
 
 void
@@ -233,7 +250,7 @@ MSReferenceDialog::handleAddReference()
                 reference_receiver_( adcontrols::MSReference( L"C9F20N",  true,  L"", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C12F22N", true,  L"", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C12F24N", true,  L"", false ) );
-            } else if ( endGroup == L"AgilentTOF Mix(-)" ) {
+            } else if ( endGroup == L"Agilent TOF Mix(-)" ) {
                 reference_receiver_( adcontrols::MSReference( L"C6F9N3",          false, L"OH", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C12F21N3",        false, L"OH", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C2F3O2NH4",       false, L"-NH4", false ) );
@@ -245,7 +262,7 @@ MSReferenceDialog::handleAddReference()
                 reference_receiver_( adcontrols::MSReference( L"C42H18F72N3O6P3", false, L"C2F3O2", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C48H18F84N3O6P3", false, L"C2F3O2", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C54H18F96N3O6P3", false, L"C2F3O2", false ) );
-            } else if ( endGroup == L"AgilentTOF Mix(+)" ) {
+            } else if ( endGroup == L"Agilent TOF Mix(+)" ) {
                 reference_receiver_( adcontrols::MSReference( L"C5H11NO2",        true, L"H", false, 0.0, 1, L"118.0868" ) );
                 reference_receiver_( adcontrols::MSReference( L"C6H18N3O6P3",     true, L"H", false, 0.0, 1, L"322.0486" ) );
                 reference_receiver_( adcontrols::MSReference( L"C12H18F12N3O6P3", true, L"H", false, 0.0, 1, L"622.0295" ) );
