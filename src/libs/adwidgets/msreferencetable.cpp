@@ -178,25 +178,31 @@ MSReferenceTable::setContents( const adcontrols::MSCalibrateMethod& m )
 
     model.setRowCount( nRows + 1 ); // be sure last empty line
     int row = 0;
-    for ( auto& ref: references ) {
-		std::wstring formula = ref.display_formula();
-        
-		model.setData( model.index( row, c_formula ),     QString::fromStdWString( formula ) );
-		model.setData( model.index( row, c_exact_mass ),  ref.exact_mass() );
-		model.setData( model.index( row, c_enable ),      ref.enable() );
-
-        if ( QStandardItem * chk = model.itemFromIndex( model.index( row, c_enable ) ) ) {
-            chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
-            chk->setEditable( true );
-            chk->setData( ref.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-        }
-        model.setData( model.index( row, c_description ), QString::fromStdWString( ref.description() ) );
-		model.setData( model.index( row, c_charge ), ref.charge_count() );
-        ++row;
-    }
+    for ( auto& ref: references )
+        addReference( ref, row++ );
 
     resizeColumnsToContents();
     resizeRowsToContents();
+}
+
+void
+MSReferenceTable::addReference( const adcontrols::MSReference& ref, int row )
+{
+    QStandardItemModel& model = *model_;
+
+    std::wstring formula = ref.display_formula();
+        
+    model.setData( model.index( row, c_formula ),     QString::fromStdWString( formula ) );
+    model.setData( model.index( row, c_exact_mass ),  ref.exact_mass() );
+    model.setData( model.index( row, c_enable ),      ref.enable() );
+
+    if ( QStandardItem * chk = model.itemFromIndex( model.index( row, c_enable ) ) ) {
+        chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
+        chk->setEditable( true );
+        chk->setData( ref.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    }
+    model.setData( model.index( row, c_description ), QString::fromStdWString( ref.description() ) );
+    model.setData( model.index( row, c_charge ), ref.charge_count() );
 }
 
 void
@@ -213,4 +219,14 @@ MSReferenceTable::handleValueChanged( const QModelIndex& index )
         double mass = formula_parser.getMonoIsotopicMass( formula, adducts );
         model.setData( model.index( index.row(), c_exact_mass ), mass );
     }
+}
+
+void
+MSReferenceTable::handleAddReference( const adcontrols::MSReference& ref )
+{
+    QStandardItemModel& model = *model_;
+    
+    int row = model.rowCount();
+    model.insertRow( row );
+    addReference( ref, row - 1 );
 }

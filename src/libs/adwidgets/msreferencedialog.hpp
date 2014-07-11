@@ -22,47 +22,38 @@
 **
 **************************************************************************/
 
-#ifndef MSCALIBRATEFORM_HPP
-#define MSCALIBRATEFORM_HPP
+#ifndef MSREFERENCEDIALOG_HPP
+#define MSREFERENCEDIALOG_HPP
 
-#include <QWidget>
+#include <QDialog>
+#include <functional>
 
 namespace Ui {
-class MSCalibrateForm;
+class MSReferenceDialog;
 }
 
-class QLabel;
-class QSpinBox;
-class QDoubleSpinBox;
-
-namespace adcontrols { class MSCalibrateMethod; class MSReference; }
+namespace adcontrols { class MSReference;  }
 
 namespace adwidgets {
 
-    namespace detail { namespace mscalibrateform { enum idItem : int; } };
-    class MSReferenceDialog;
-
-    class MSCalibrateForm : public QWidget  {
+    class MSReferenceDialog : public QDialog {
         Q_OBJECT
 
     public:
-        explicit MSCalibrateForm(QWidget *parent = 0);
-        ~MSCalibrateForm();
+        explicit MSReferenceDialog(QWidget *parent = 0);
+        ~MSReferenceDialog();
 
-        void getContents( adcontrols::MSCalibrateMethod& );
-        void setContents( const adcontrols::MSCalibrateMethod& );
+        void register_handler( std::function< void( const adcontrols::MSReference& ) > );
 
     private:
-        Ui::MSCalibrateForm *ui;
-        MSReferenceDialog * dlg_;
+        Ui::MSReferenceDialog *ui;
 
-        void handleReferenceDlg();
+        void handleIndexChanged( int index );
+        void handleAddReference();
 
-    signals:
-        void addReference( const adcontrols::MSReference& );
-
+        std::function< void( const adcontrols::MSReference& ) > reference_receiver_;
     };
 
 }
 
-#endif // MSCALIBRATEFORM_HPP
+#endif // MSREFERENCEDIALOG_HPP

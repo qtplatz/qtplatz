@@ -64,15 +64,7 @@ void
 MSCalibrateWidget::OnInitialUpdate()
 {
     table_->onInitialUpdate();
-
-    // adcontrols::TargetingMethod m; // default
-    // form_->setContents( m );
-    // table_->setContents( m );
-        
-    // if ( auto tree = findChild< TargetingAdducts * >() ) {
-    //     tree->OnInitialUpdate();
-    //     tree->setContents( m );
-    // }
+    connect( form_, &MSCalibrateForm::addReference, table_, &MSReferenceTable::handleAddReference );
 }
 
 void

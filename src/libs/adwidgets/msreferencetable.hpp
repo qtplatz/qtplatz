@@ -29,7 +29,7 @@
 
 class QStandardItemModel;
 
-namespace adcontrols { class MSCalibrateMethod; }
+namespace adcontrols { class MSCalibrateMethod; class MSReference; }
 
 namespace adwidgets {
 
@@ -42,13 +42,17 @@ namespace adwidgets {
         void onInitialUpdate();
         void getContents( adcontrols::MSCalibrateMethod& );
         void setContents( const adcontrols::MSCalibrateMethod& );
+
+        void handleAddReference( const adcontrols::MSReference& );
+
     private:
         QStandardItemModel * model_;
 
+        void addReference( const adcontrols::MSReference&, int row );
         void handleValueChanged( const QModelIndex& );
 
     signals:
-
+            
     public slots:
 
     };

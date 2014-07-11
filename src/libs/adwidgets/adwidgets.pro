@@ -40,7 +40,8 @@ SOURCES += adwidgets.cpp \
         msquantable.cpp \
     mscalibrateform.cpp \
     msreferencetable.cpp \
-    mscalibratewidget.cpp
+    mscalibratewidget.cpp \
+    msreferencedialog.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -60,7 +61,8 @@ HEADERS += adwidgets.hpp\
         msquantable.hpp \
     mscalibrateform.hpp \
     msreferencetable.hpp \
-    mscalibratewidget.hpp
+    mscalibratewidget.hpp \
+    msreferencedialog.hpp
 
 unix {
     target.path = /usr/lib
@@ -70,4 +72,5 @@ unix {
 FORMS += \
     targetingform.ui \
     centroidform.ui \
-    mscalibrateform.ui
+    mscalibrateform.ui \
+    msreferencedialog.ui

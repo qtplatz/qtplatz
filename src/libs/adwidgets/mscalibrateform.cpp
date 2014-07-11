@@ -25,6 +25,7 @@
 #include "mscalibrateform.hpp"
 #include "ui_mscalibrateform.h"
 #include "spin_t.hpp"
+#include "msreferencedialog.hpp"
 #include <adcontrols/mscalibratemethod.hpp>
 #include <boost/variant.hpp>
 
@@ -99,10 +100,12 @@ namespace adwidgets {
 using namespace adwidgets;
 using namespace adwidgets::detail::mscalibrateform;
 
-MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent),
-                                                     ui(new Ui::MSCalibrateForm)
+MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent)
+                                                  , ui(new Ui::MSCalibrateForm)
+                                                  , dlg_( 0 )
 {
     ui->setupUi(this);
+    connect( ui->commandLinkButton, &QCommandLinkButton::clicked, this, &MSCalibrateForm::handleReferenceDlg );
 
     font_property()(ui->groupBox);
 
@@ -121,6 +124,7 @@ MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent),
 
 MSCalibrateForm::~MSCalibrateForm()
 {
+    delete dlg_;
     delete ui;
 }
 
@@ -147,3 +151,16 @@ MSCalibrateForm::setContents( const adcontrols::MSCalibrateMethod& m )
     boost::get< QDoubleSpinBox *>( accessor( eLowMass ) )->setValue( m.lowMass() );
     boost::get< QDoubleSpinBox *>( accessor( eHighMass ) )->setValue( m.highMass() );
 }
+
+void
+MSCalibrateForm::handleReferenceDlg()
+{
+    if ( dlg_ == 0 ) {
+        dlg_ = new MSReferenceDialog;
+        dlg_->setModal( false );
+        dlg_->register_handler( [=] ( const adcontrols::MSReference& ref ){ emit addReference( ref ); } );
+    }
+    dlg_->show();
+    dlg_->raise();
+}
+
