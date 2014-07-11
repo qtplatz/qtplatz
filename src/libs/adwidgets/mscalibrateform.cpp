@@ -137,6 +137,14 @@ MSCalibrateForm::~MSCalibrateForm()
 }
 
 void
+MSCalibrateForm::finalClose()
+{
+    ADDEBUG() << "MSCalibrateForm::finalClose";
+    if ( dlg_ )
+        dlg_->close();    
+}
+
+void
 MSCalibrateForm::getContents( adcontrols::MSCalibrateMethod& m )
 {
     ui_locator accessor( ui );
@@ -164,9 +172,12 @@ void
 MSCalibrateForm::handleReferenceDlg()
 {
     if ( dlg_ == 0 ) {
-        dlg_ = new MSReferenceDialog;
-        dlg_->setModal( false );
+        dlg_ = new MSReferenceDialog(this);
         dlg_->register_handler( [=] ( const adcontrols::MSReference& ref ){ emit addReference( ref ); } );
+        dlg_->setWindowFlags( Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint );
+        dlg_->setModal( false );
+        dlg_->show();
+        dlg_->raise();
         dlg_->activateWindow();
     }
     dlg_->show();

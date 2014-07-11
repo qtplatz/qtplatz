@@ -825,11 +825,11 @@ MainWindow::OnFinalClose()
     }
 }
 
-void
-MainWindow::onMethodApply( adcontrols::ProcessMethod& pm )
-{
-    DataprocPlugin::instance()->applyMethod( pm );
-}
+// void
+// MainWindow::onMethodApply( adcontrols::ProcessMethod& pm )
+// {
+//     DataprocPlugin::instance()->applyMethod( pm );
+// }
 
 void
 MainWindow::handleProcessChecked()

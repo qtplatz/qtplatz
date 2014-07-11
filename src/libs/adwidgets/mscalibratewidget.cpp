@@ -77,6 +77,7 @@ void
 MSCalibrateWidget::OnFinalClose()
 {
     ADDEBUG() << "MSCalibrateWidget OnFinalClose";
+    form_->finalClose();
 }
 
 bool

@@ -108,7 +108,7 @@ namespace dataproc {
     public slots:
         void handleSessionAdded( Dataprocessor * );
         void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
-        void onMethodApply( adcontrols::ProcessMethod& );
+        // void onMethodApply( adcontrols::ProcessMethod& );
         void actionApply();
         void handle_add_mspeaks( const adcontrols::MSPeaks& );
         void actCreateSpectrogram();
