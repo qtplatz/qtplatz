@@ -121,7 +121,7 @@ namespace adwidgets {
 using namespace adwidgets;
 using namespace adwidgets::detail::msreferencedialog;
 
-MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent )
+MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent, Qt::Tool )
 , ui( new Ui::MSReferenceDialog )
 {
     ui->setupUi( this );
