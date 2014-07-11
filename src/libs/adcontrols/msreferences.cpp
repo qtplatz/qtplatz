@@ -73,6 +73,12 @@ MSReferences::name( const std::wstring& name )
     name_ = name;
 }
 
+void
+MSReferences::clear()
+{
+    vec_.clear();
+}
+
 size_t
 MSReferences::size() const
 {

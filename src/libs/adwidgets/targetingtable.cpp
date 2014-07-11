@@ -61,7 +61,7 @@ namespace adwidgets {
 
                 if ( index.column() == c_formula ) {
 
-                    std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
+                    std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                     DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
 
                 } else if ( index.column() == c_mass ) {

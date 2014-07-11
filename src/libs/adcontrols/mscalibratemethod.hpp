@@ -47,18 +47,20 @@ namespace adcontrols {
 
         unsigned int polynomialDegree() const;
         void polynomialDegree( unsigned int );
+
         double massToleranceDa() const;
         void massToleranceDa( double );
+
         double minimumRAPercent() const;
         void minimumRAPercent( double );
+
         double lowMass() const;
         void lowMass( double );
+
         double highMass() const;
         void highMass( double );
         
-        //const MSReferenceDefns& refDefns() const;
-        //void refDefns( const MSReferenceDefns& );
-
+        MSReferences& references();
         const MSReferences& references() const;
         void references( const MSReferences& );
 
@@ -69,23 +71,20 @@ namespace adcontrols {
         double lowMass_;
         double highMass_;
 
-        boost::scoped_ptr<MSReferenceDefns> refDefns_;
         boost::scoped_ptr<MSReferences> references_;
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
+        void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-	    (void)version;
-	    ar & BOOST_SERIALIZATION_NVP(polynomialDegree_);
-	    ar & BOOST_SERIALIZATION_NVP(massToleranceDa_);
-	    ar & BOOST_SERIALIZATION_NVP(minimumRAPercent_);
-	    ar & BOOST_SERIALIZATION_NVP(lowMass_);
-	    ar & BOOST_SERIALIZATION_NVP(highMass_);
-	    // ar & BOOST_SERIALIZATION_NVP(refDefns_);
-	    ar & BOOST_SERIALIZATION_NVP(references_);
-
-       }
+            (void)version;
+            ar & BOOST_SERIALIZATION_NVP( polynomialDegree_ );
+            ar & BOOST_SERIALIZATION_NVP( massToleranceDa_ );
+            ar & BOOST_SERIALIZATION_NVP( minimumRAPercent_ );
+            ar & BOOST_SERIALIZATION_NVP( lowMass_ );
+            ar & BOOST_SERIALIZATION_NVP( highMass_ );
+            ar & BOOST_SERIALIZATION_NVP( references_ );
+        }
 
     };
   

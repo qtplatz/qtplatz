@@ -61,6 +61,7 @@
 #include <adwidgets/peptidewidget.hpp>
 #include <adwidgets/targetingwidget.hpp>
 #include <adwidgets/mspeaktable.hpp>
+#include <adwidgets/mscalibratewidget.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/portfolio.hpp>
@@ -532,6 +533,7 @@ MainWindow::createDockWidgets()
         { "Centroid",         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { "MS Peaks",       "adwidgets::MSPeakTable",           "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
         , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod",  }
+        , { "MS Calibration", "adwidgets::MSCalibrateWidget",     "MSCalibrateWidget",   [] () { return new adwidgets::MSCalibrateWidget; } }
         , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod",  }
         , { "Targeting",      "adwidgets::TargetingWidget",       "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
         , { "Peptide",        "adwidgets::PeptideWidget",         "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }

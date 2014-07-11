@@ -37,7 +37,10 @@ SOURCES += adwidgets.cpp \
         controlmethodwidget.cpp \
         centroidform.cpp \
         mspeaktable.cpp \
-        msquantable.cpp
+        msquantable.cpp \
+    mscalibrateform.cpp \
+    msreferencetable.cpp \
+    mscalibratewidget.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -54,7 +57,10 @@ HEADERS += adwidgets.hpp\
         controlmethodwidget.hpp \
         centroidform.hpp \
         mspeaktable.hpp \
-        msquantable.hpp
+        msquantable.hpp \
+    mscalibrateform.hpp \
+    msreferencetable.hpp \
+    mscalibratewidget.hpp
 
 unix {
     target.path = /usr/lib
@@ -63,4 +69,5 @@ unix {
 
 FORMS += \
     targetingform.ui \
-    centroidform.ui
+    centroidform.ui \
+    mscalibrateform.ui

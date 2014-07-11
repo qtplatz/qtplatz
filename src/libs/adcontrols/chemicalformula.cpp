@@ -135,7 +135,6 @@ namespace adcontrols {
             }
 
             template< typename char_type > static std::basic_string<char_type> standardFormula( const std::basic_string<char_type>& formula ) {
-				
 
 				adportable::chem::comp_type map;
 				using adportable::chem::atom_type;
@@ -172,6 +171,57 @@ namespace adcontrols {
             }
         };
 
+        template< typename char_type > struct splitter {
+            template<typename char_type> struct delimitors { const char_type * operator()() const; };
+            template<> struct delimitors < wchar_t > { const wchar_t * operator()() const { return L"+-"; } };
+            template<> struct delimitors < char > { const char * operator()() const { return "+-"; } };
+
+            splitter() {}
+            
+            typename std::basic_string<char_type>::size_type operator()( typename const std::basic_string<char_type>& formula
+                , typename std::basic_string<char_type>::size_type pos = 0 ) {
+                return formula.find_first_of( delimitors<char_type>()(), pos );
+            }
+            //<-------------------------------------------
+            static void split( std::basic_string<char_type>& M
+                               , std::pair< std::basic_string< char_type >, std::basic_string< char_type > >& adducts
+                               , const std::basic_string< char_type >& formula ) {
+                
+                splitter< char_type > splitter;
+                std::basic_string<char_type>::size_type pos;
+
+                if ( (pos = splitter( formula )) != std::basic_string<char_type>::npos ) {
+                    M = formula.substr( 0, pos );
+
+                    while ( pos != std::basic_string<char_type>::npos ) {
+                        std::basic_string< char_type >::size_type next = splitter( formula, pos + 1 );
+                        if ( formula.at( pos ) == char_type( '+' ) )
+                            adducts.first += formula.substr( pos + 1, next - pos - 1 ); // skip (+) sign
+                        else if ( formula.at( pos ) == char_type( '-' ) )
+                            adducts.second += formula.substr( pos + 1, next - pos - 1 ); // skip (-) sign
+                        else
+                            throw std::logic_error( "bug" );
+                        pos = next;
+                    }
+                } else {
+                    M = formula; // no adduct/lose specified
+                }
+            }
+        };
+
+        template<typename char_type> std::basic_string<char_type> make_adduct_string( const std::pair < std::basic_string<char_type>, std::basic_string<char_type> >& adduct, bool leading_plus ) {
+            std::basic_string<char_type> result;
+            if ( !adduct.first.empty() ) {
+                if ( leading_plus )
+                    result += char_type( '+' );
+                std::for_each( adduct.first.begin(), adduct.first.end(), [&] ( const char_type& c ){ if ( c != char_type( '+' ) ) result += c; } );
+            }
+            if ( !adduct.second.empty() ) {
+                result += char_type( '-' );
+                std::for_each( adduct.second.begin(), adduct.second.end(), [&] ( const char_type& c ){ if ( c != char_type( '-' ) ) result += c; } );
+            }
+            return result;
+        }
 
     }
 
@@ -201,6 +251,28 @@ double
 ChemicalFormula::getMonoIsotopicMass( const std::string& formula ) const
 {
     return internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
+}
+
+double
+ChemicalFormula::getMonoIsotopicMass( const std::wstring& formula, const std::pair< std::wstring, std::wstring >& adducts ) const
+{
+    double mass = internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
+    if ( !adducts.first.empty() )
+        mass += internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.first );
+    if ( !adducts.second.empty() )
+        mass -= internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.second );
+    return mass;
+}
+
+double
+ChemicalFormula::getMonoIsotopicMass( const std::string& formula, const std::pair< std::string, std::string >& adducts ) const
+{
+    double mass = internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
+    if ( !adducts.first.empty() )
+        mass += internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.first );
+    if ( !adducts.second.empty() )
+        mass -= internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.second );
+    return mass;
 }
 
 double
@@ -330,6 +402,36 @@ ChemicalFormula::split( const std::string& formula, std::vector< std::string >& 
 }
 
 std::string
+ChemicalFormula::splitFormula( std::pair< std::string, std::string >& adducts, const std::string& formula, bool bStandardFormat )
+{
+    std::string M;
+    internal::splitter<char>::split( M, adducts, formula );
+    if ( bStandardFormat ) {
+        M = standardFormula( M );
+        if ( !adducts.first.empty() )
+            adducts.first = standardFormula( adducts.first );
+        if ( !adducts.second.empty() )
+            adducts.second = standardFormula( adducts.second );
+    }
+    return M;
+}
+
+std::wstring
+ChemicalFormula::splitFormula( std::pair< std::wstring, std::wstring >& adducts, const std::wstring& formula, bool bStandardFormat )
+{
+    std::wstring M;
+    internal::splitter<wchar_t>::split( M, adducts, formula );
+    if ( bStandardFormat ) {
+        M = standardFormula( M );
+        if ( !adducts.first.empty() )
+            adducts.first = standardFormula( adducts.first );
+        if ( !adducts.second.empty() )
+            adducts.second = standardFormula( adducts.second );
+    }
+    return M;
+}
+
+std::string
 ChemicalFormula::formatFormulae( const std::string& formula, const char * delims, bool richText )
 {
     typedef char char_type;
@@ -344,15 +446,25 @@ ChemicalFormula::formatFormulae( const std::string& formula, const char * delims
     std::ostringstream o;
 
     for( auto it = tokens.begin(); it != tokens.end(); ++it ) {
-        std::string formatted = formatFormula( *it, richText );
-        if ( formatted.empty() )
+        if ( it->length() == 1 && std::strchr( delims, (*it)[0] ) )
             o << *it;
         else
-            o << formatted;
+            o << formatFormula( *it, richText );
     }
     return o.str();
 }
 
+std::string
+ChemicalFormula::make_adduct_string( const std::pair< std::string, std::string >& adduct, bool leading_plus )
+{
+    return internal::make_adduct_string( adduct, leading_plus );
+}
+
+std::wstring
+ChemicalFormula::make_adduct_string( const std::pair< std::wstring, std::wstring >& adduct, bool leading_plus )
+{
+    return internal::make_adduct_string( adduct, leading_plus );
+}
 
 ///////////////
 using namespace adcontrols::internal;

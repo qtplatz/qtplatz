@@ -260,13 +260,17 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
             }
         }
         else {
-            o << "<hr>No dataInterpreterClsid specifidc.</hr>";
+            o << "<hr>No dataInterpreterClsid specifid.</hr>";
             ADERROR() << "no dataInterpreterClisidSpecified.";
         }
     }
     catch ( boost::exception& ex ) {
         o << "<hr>data exception: " << boost::diagnostic_information( ex ) << "</hr>";
         ADERROR() << boost::diagnostic_information( ex );
+    }
+    catch ( ... ) {
+        o << "<hr>data exception: " << boost::current_exception_diagnostic_information() << "</hr>";
+        ADERROR() << boost::current_exception_diagnostic_information();
     }
 }
 

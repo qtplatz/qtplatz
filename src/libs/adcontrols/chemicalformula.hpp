@@ -46,6 +46,8 @@ namespace adcontrols {
 
         double getMonoIsotopicMass( const std::wstring& formula ) const;
 		double getMonoIsotopicMass( const std::string& formula ) const;
+        double getMonoIsotopicMass( const std::wstring& formula, const std::pair< std::wstring, std::wstring >& ) const;
+        double getMonoIsotopicMass( const std::string& formula, const std::pair< std::string, std::string >& ) const;
 
         double getChemicalMass( const std::wstring& formula ) const;
 		double getChemicalMass( const std::string& formula ) const;
@@ -62,5 +64,11 @@ namespace adcontrols {
                            , const char * dropped_delims = "", const char * kept_delims = "+-" );
 
         static std::string formatFormulae( const std::string& formula, const char * delims = "+-", bool richText = true );
+
+        // <formula, <+adduct, -lose> >
+        static std::string splitFormula( std::pair< std::string, std::string >& adducts, const std::string& formula, bool bStandardFormula );
+        static std::wstring splitFormula( std::pair< std::wstring, std::wstring >& adducts, const std::wstring& formula, bool bStandardFormula );
+        static std::string make_adduct_string( const std::pair< std::string, std::string >& adducts, bool leading_plus = false );
+        static std::wstring make_adduct_string( const std::pair< std::wstring, std::wstring >& adducts, bool leading_plus = false );
     };
 }

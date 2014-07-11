@@ -48,6 +48,7 @@ namespace adcontrols {
         vector_type::iterator end();
         vector_type::const_iterator begin() const;
         vector_type::const_iterator end() const;
+        void clear();
 
         const std::wstring& name() const;
         void name( const std::wstring& );
