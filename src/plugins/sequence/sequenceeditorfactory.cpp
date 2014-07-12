@@ -66,8 +66,8 @@ SequenceEditorFactory::kind() const
 Core::IFile * 
 SequenceEditorFactory::open(const QString& filename )
 {
-  Core::EditorManager * em = Core::EditorManager::instance();
-  Core::IEditor * iface = em->openEditor( filename, kind_ );
-  return iface ? iface->file() : 0;
+    Core::EditorManager * em = Core::EditorManager::instance();
+    Core::IEditor * iface = em->openEditor( filename, kind_ );
+    return iface ? iface->file() : 0;
 }
 

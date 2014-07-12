@@ -89,7 +89,10 @@ namespace sequence {
 
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& objname = QString() );
         void createToolbar();
-        Utils::StyledBar * createMidStyledToolbar();
+        Utils::StyledBar * createTopStyledBar();
+        Utils::StyledBar * createMidStyledBar();
+        
+        // Utils::StyledBar * createMidStyledToolbar();
     };
 
 }

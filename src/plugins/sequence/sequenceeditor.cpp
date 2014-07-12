@@ -78,10 +78,11 @@ bool
 SequenceEditor::createNew(const QString &contents )
 {
     Q_UNUSED( contents );
+
 	widget_->OnInitialUpdate( file_->adsequence().schema() );
 	widget_->setSequenceName( "default.sequ" );
 	file_->fileName( "default.sequ" );
-    
+    file_->setModified( false );
 	return true;
 }
 

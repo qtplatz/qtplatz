@@ -29,14 +29,15 @@
 #include "dataprocessorfactory.hpp"
 #include "elementalcompwnd.hpp"
 #include "filepropertywidget.hpp"
+#include "isequenceimpl.hpp"
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mscalibspectrawnd.hpp"
 #include "mspeakswnd.hpp"
-#include "spectrogramwnd.hpp"
 #include "msspectrawnd.hpp"
 #include "mspropertyform.hpp"
 #include "sessionmanager.hpp"
+#include "spectrogramwnd.hpp"
 
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
@@ -532,15 +533,15 @@ MainWindow::createDockWidgets()
     } widgets [] = { 
         { "Centroid",         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { "MS Peaks",       "adwidgets::MSPeakTable",           "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
-        , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod",  }
+        , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSCalibrationForm", 0, 0 ); } }
         , { "MS Calibration", "adwidgets::MSCalibrateWidget",     "MSCalibrateWidget",   [] () { return new adwidgets::MSCalibrateWidget; } }
-        , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod",  }
+        , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSChromatogramWidget", 0, 0 ); } }
         , { "Targeting",      "adwidgets::TargetingWidget",       "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
         , { "Peptide",        "adwidgets::PeptideWidget",         "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
-        , { "Elemental Comp.","qtwidgets::ElementalCompositionForm", "EleCompMethod",  }
-        , { "Peak Find",      "qtwidgets::PeakMethodForm",        "PeakFindMethod",  }
+        //, { "Elemental Comp.","qtwidgets::ElementalCompositionForm", "EleCompMethod",  }
+        , { "Peak Find",      "qtwidgets::PeakMethodForm",        "PeakFindMethod",  [](){ return adplugin::widget_factory::create("qtwidgets::PeakMethodForm", 0, 0 ); } }
         , { "Data property",  "dataproc::MSPropertyForm",         "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
-        , { "TOF Peaks",      "qtwidgets2::MSPeakView",           "TOFPeaks",  }
+        , { "TOF Peaks",      "qtwidgets2::MSPeakView",           "TOFPeaks",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSPeakView", 0, 0 ); } }
     };
     
     for ( auto& widget: widgets ) {
@@ -1079,6 +1080,18 @@ MainWindow::saveDefaultMSCalibrateResult( portfolio::Folium& )
     
 }
 
+bool
+MainWindow::editor_factories( iSequenceImpl& impl ) 
+{
+    impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::CentroidForm( p ); }
+         , adextension::iEditorFactory::PROCESS_METHOD
+         , "Centroid" );
+
+     impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::TargetingWidget( p ); }
+         , adextension::iEditorFactory::PROCESS_METHOD
+         , "Targeting" );
+     return true;
+}
 
 ///
 void
@@ -1182,3 +1195,4 @@ MainWindow::currentDir()
     }
     return dir;
 }
+

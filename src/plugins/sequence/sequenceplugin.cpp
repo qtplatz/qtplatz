@@ -78,6 +78,7 @@ using namespace sequence;
 using namespace sequence::internal;
 
 SequencePlugin::SequencePlugin() : mainWindow_( new MainWindow )
+                                 , mode_( std::make_shared< Mode >( this ) )
 {
 }
 
@@ -93,42 +94,34 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     Q_UNUSED( arguments );
 
     adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
-    
-    Core::ICore * core = Core::ICore::instance();
-    if ( core == 0 )
-        return false;
-    
-    QList<int> context;
-    Core::UniqueIDManager * uidm = core->uniqueIDManager();
-    if ( uidm ) {
-        context.append( uidm->uniqueIdentifier( Constants::C_SEQUENCE ) );
-        // context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
-    }
 
     //---------
     std::wstring pluginpath = qtwrapper::application::path( L".." );  // remove 'bin' from "~/qtplatz/bin"
     
-    Core::MimeDatabase* mdb = core->mimeDatabase();
-    if ( ! ( mdb && mdb->addMimeTypes(":/sequence/sequence-mimetype.xml", error_message) ) )
-        return false;
 
-    Core::ActionManager * am = core->actionManager();
-    if ( am ) {
-        // Override system "New..." menu
-        Core::Command* cmd = am->registerAction( new QAction(this), Core::Constants::NEW, context );
-        cmd->action()->setText("New Sample Sequence"); // also change text on menu
-        connect( cmd->action(), SIGNAL( triggered(bool) ), this, SLOT( handleFileNew( bool ) ) );
+    if ( Core::ICore * core = Core::ICore::instance() ) {
+
+        Core::MimeDatabase* mdb = core->mimeDatabase();
+        if ( ! ( mdb && mdb->addMimeTypes(":/sequence/sequence-mimetype.xml", error_message) ) )
+            return false;
+        
+        QList<int> context;
+        Core::UniqueIDManager * uidm = core->uniqueIDManager();
+        if ( uidm )
+            context.append( uidm->uniqueIdentifier( Constants::C_SEQUENCE ) );
+        
+        if ( Core::ActionManager * am = core->actionManager() ) {
+            // Override system "New..." menu
+            Core::Command* cmd = am->registerAction( new QAction(this), Core::Constants::NEW, context );
+            cmd->action()->setText("New Sample Sequence"); // also change text on menu
+            connect( cmd->action(), SIGNAL( triggered(bool) ), this, SLOT( handleFileNew( bool ) ) );
+        }
+    } else {
+        return false;
     }
 
     // expose editor factory for sequence (table)
     addAutoReleasedObject( new SequenceEditorFactory(this) );
-
-    mode_.reset( new Mode( this ) );
-    if ( ! mode_ )
-        return false;
-    
-    if ( ! mainWindow_ )
-        return false;
 
     mainWindow_->activateLayout();
     mainWindow_->createActions();
@@ -144,6 +137,7 @@ void
 SequencePlugin::extensionsInitialized()
 {
 	mainWindow_->OnInitialUpdate();
+    handleFileNew( true );
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag

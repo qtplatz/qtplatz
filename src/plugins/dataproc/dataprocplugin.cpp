@@ -203,18 +203,6 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     }
     //------------------------------------------------
 
-    iSequence_.reset( new iSequenceImpl );
-    if ( iSequence_ && install_isequence( config, apppath, *iSequence_ ) )
-        addObject( iSequence_.get() );
-
-    iSnapshotHandler_.reset( new iSnapshotHandlerImpl );
-    if ( iSnapshotHandler_ && connect_isnapshothandler_signals() )
-        addObject( iSnapshotHandler_.get() );
-
-    iPeptideHandler_.reset( new iPeptideHandlerImpl );
-	if ( iPeptideHandler_ )
-        addObject( iPeptideHandler_.get() );
-
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( ! mdb ) {
         *error_message = "no mime database in Core plugin";
@@ -275,6 +263,18 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     mainWindow_->activateLayout();
     QWidget * widget = mainWindow_->createContents( mode_.get(), config, apppath );
     mode_->setWidget( widget );
+
+    iSequence_.reset( new iSequenceImpl );
+    if ( iSequence_ && mainWindow_->editor_factories( *iSequence_ ) )
+        addObject( iSequence_.get() );
+
+    iSnapshotHandler_.reset( new iSnapshotHandlerImpl );
+    if ( iSnapshotHandler_ && connect_isnapshothandler_signals() )
+        addObject( iSnapshotHandler_.get() );
+
+    iPeptideHandler_.reset( new iPeptideHandlerImpl );
+	if ( iPeptideHandler_ )
+        addObject( iPeptideHandler_.get() );
 
     addObject( mode_.get() );
     addAutoReleasedObject( new NavigationWidgetFactory );
@@ -359,7 +359,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                         progressBar.setVisible( true );
                     
                         adcontrols::MassSpectrum a;
-                        while ( pos < pos2	&& dset->getSpectrum( 0, pos++, a ) ) {
+                        while ( pos < int(pos2)	&& dset->getSpectrum( 0, pos++, a ) ) {
                             progressBar.setValue( pos );
                             ms += a;
                         }
@@ -420,29 +420,32 @@ DataprocPlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
-bool
-DataprocPlugin::install_isequence( const adportable::Configuration& config
-                                   , const std::wstring& , iSequenceImpl& impl )
-{
-    impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::CentroidForm( p ); }
-        , adextension::iEditorFactory::PROCESS_METHOD
-        , "Centroid" );
+// bool
+// DataprocPlugin::install_isequence( const adportable::Configuration& config
+//                                    , const std::wstring& , iSequenceImpl& impl )
+// {
+//     impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::CentroidForm( p ); }
+//         , adextension::iEditorFactory::PROCESS_METHOD
+//         , "Centroid" );
 
-    using adportable::Configuration;
-    const Configuration * tab = Configuration::find( config, "ProcessMethodEditors" );    
-    if ( tab ) {
-        for ( auto it : *tab ) {
-            // std::for_each( tab->begin(), tab->end(), [&] ( Configuration::vector_type::const_iterator it ){
-            const std::string& iid = it.component_interface();
-            impl << detail::iEditorFactoryImpl( [=] ( QWidget * p )->QWidget*{ return adplugin::widget_factory::create( iid.c_str(), 0, p ); }
-                , adextension::iEditorFactory::PROCESS_METHOD
-                , QString::fromStdWString( it.title() ) );
-        }
-    }
-        //for ( Configuration::vector_type::const_iterator it = tab->begin(); it != tab->end(); ++it )
-        // impl << iEditorFactoryPtr( new EditorFactory( *it, apppath ) );
-    return impl.size();
-}
+//     impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::TargetingWidget( p ); }
+//         , adextension::iEditorFactory::PROCESS_METHOD
+//         , "Targeting" );
+
+//     // using adportable::Configuration;
+//     // const Configuration * tab = Configuration::find( config, "ProcessMethodEditors" );    
+//     // if ( tab ) {
+//     //     for ( auto it : *tab ) {
+//     //         // std::for_each( tab->begin(), tab->end(), [&] ( Configuration::vector_type::const_iterator it ){
+//     //         const std::string& iid = it.component_interface();
+//     //         impl << detail::iEditorFactoryImpl( [=] ( QWidget * p )->QWidget*{ return adplugin::widget_factory::create( iid.c_str(), 0, p ); }
+//     //             , adextension::iEditorFactory::PROCESS_METHOD
+//     //             , QString::fromStdWString( it.title() ) );
+//     //     }
+//     // }
+
+//     return impl.size();
+// }
 
 void
 DataprocPlugin::delete_editorfactories( std::vector< EditorFactory * >& factories )
