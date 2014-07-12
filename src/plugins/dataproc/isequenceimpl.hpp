@@ -35,7 +35,9 @@
 namespace dataproc {
     
     namespace detail {
+
         class iEditorFactoryImpl : public adextension::iEditorFactory {
+
             std::tuple< std::function< QWidget * (QWidget *) >, METHOD_TYPE, QString > d_;
         public:
             iEditorFactoryImpl( const iEditorFactoryImpl& t ) : d_( t.d_ ) {

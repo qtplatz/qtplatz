@@ -47,7 +47,7 @@ class QComboBox;
 namespace dataproc {
 
     class Dataprocessor;
-
+    class iSequenceImpl;
 
     class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT
@@ -101,6 +101,8 @@ namespace dataproc {
 
         void selPage( idPage );
         enum idPage curPage() const;
+
+		bool editor_factories( iSequenceImpl& );
 
     private:
         void handleProcessed( Dataprocessor *, portfolio::Folium& );
