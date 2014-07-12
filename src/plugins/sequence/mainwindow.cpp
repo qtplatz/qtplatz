@@ -122,7 +122,7 @@ MainWindow::OnInitialUpdate()
                 if ( factory.method_type() == adextension::iEditorFactory::CONTROL_METHOD )
                     connect( widget, SIGNAL( onTriggerAdd( const adcontrols::controlmethod::MethodItem& ) )
                              , timeEvent, SLOT( handleAdd( const adcontrols::controlmethod::MethodItem& ) ) );
-
+                
                 adplugin::LifeCycleAccessor accessor( widget );
                 adplugin::LifeCycle * pLifeCycle = accessor.get();
                 if ( pLifeCycle ) {
