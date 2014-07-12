@@ -25,6 +25,7 @@
 #include "mainwindow.hpp"
 #include "sequenceplugin.hpp"
 #include "sequencewnd.hpp"
+#include "sequenceeditor.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adextension/isequence.hpp>
@@ -171,6 +172,7 @@ MainWindow::createActions()
 QWidget *
 MainWindow::createContents( Core::IMode * mode )
 {
+    // setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::East );
     setDocumentMode( true );
     setDockNestingEnabled( true );
 
@@ -181,13 +183,13 @@ MainWindow::createContents( Core::IMode * mode )
         if ( QWidget * editorWidget = new QWidget ) {
 
             editorWidget->setLayout( editorHolderLayout );
-            editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
-            editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorWidget ) );
+
+            editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) ); // toolbar [top]
 
             if ( Core::MiniSplitter * splitter1 = new Core::MiniSplitter ) {
 
                 splitter1->addWidget( editorWidget );        // [Editor]
-                splitter1->addWidget( new Core::RightPanePlaceHolder( mode ) );
+                // splitter1->addWidget( new Core::RightPanePlaceHolder( mode ) );
                 splitter1->setStretchFactor( 0, 1 );
                 splitter1->setStretchFactor( 1, 0 );
 
@@ -199,9 +201,10 @@ MainWindow::createContents( Core::IMode * mode )
                     centralWidget->setLayout( centralLayout );
                     centralLayout->setMargin( 1 );
                     centralLayout->setSpacing( 1 );
-
                     centralLayout->addWidget( splitter1 ); // editor
-                    centralLayout->addWidget( createMidStyledToolbar() ); // toolbar
+
+                    // ------------------ tool bar
+                    centralLayout->addWidget( createMidStyledBar() ); // toolbar [mid]
 
                     centralLayout->setStretch( 0, 1 );
                     centralLayout->setStretch( 1, 0 );
@@ -375,7 +378,14 @@ MainWindow::toolButton( const char * id )
 }
 
 Utils::StyledBar *
-MainWindow::createMidStyledToolbar()
+MainWindow::createTopStyledBar()
+{
+	Utils::StyledBar * toolBar = new Utils::StyledBar;
+    return toolBar;
+}
+
+Utils::StyledBar *
+MainWindow::createMidStyledBar()
 {
 	Utils::StyledBar * toolBar = new Utils::StyledBar;
 	if ( toolBar ) {

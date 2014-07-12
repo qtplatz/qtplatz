@@ -53,7 +53,7 @@ namespace sequence {
 
         private:
             MainWindow * mainWindow_;
-            std::unique_ptr< Mode > mode_;
+            std::shared_ptr< Mode > mode_;
         signals:
 
         private slots:
