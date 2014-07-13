@@ -72,7 +72,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
             
             size_t idx = std::distance( intens.begin(), hIt );
 
-            adcontrols::MSAssignedMass assigned( std::distance( references.begin(), it )
+            adcontrols::MSAssignedMass assigned( uint32_t( std::distance( references.begin(), it ) )
 				                                 , fcn
                                                  , uint32_t(idx)            // idMassSpectrum (index on centroid peak)
                                                  , it->display_formula()
