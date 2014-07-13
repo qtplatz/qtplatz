@@ -87,10 +87,10 @@ MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : proxy_in
 {
 }
 
-MassSpectrometer::MassSpectrometer( const MassSpectrometer& t ) : proxy_instance_( t.proxy_instance_ )
-                                                                , datafile_( t.datafile_ )
-{
-}
+//MassSpectrometer::MassSpectrometer( const MassSpectrometer& t ) : proxy_instance_( t.proxy_instance_ )
+//                                                                , datafile_( t.datafile_ )
+//{
+//}
 
 MassSpectrometer::~MassSpectrometer()
 {
@@ -134,7 +134,9 @@ MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
 void
 MassSpectrometer::setCalibration( int mode, const MSCalibrateResult& cr )
 {
-    mode_calib_map_[ mode ] = std::make_shared< MSCalibrateResult >( cr );
+    auto ptr = std::make_shared< MSCalibrateResult >( cr );
+    mode_calib_map_[ mode ] = 0;
+    mode_calib_map_[ mode ] = ptr;
 }
 
 const adcontrols::MSCalibration *

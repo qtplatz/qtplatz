@@ -53,11 +53,12 @@ namespace adcontrols {
         virtual double fLength( int mode ) const = 0;
     };
 
-	class ADCONTROLSSHARED_EXPORT MassSpectrometer : public std::enable_shared_from_this< MassSpectrometer > {
+	class ADCONTROLSSHARED_EXPORT MassSpectrometer {
+        MassSpectrometer( const MassSpectrometer& ) = delete;  // noncopyable
+        MassSpectrometer& operator = (const MassSpectrometer&) = delete;
     public:
         MassSpectrometer( void );
         MassSpectrometer( adcontrols::datafile * );
-        MassSpectrometer( const MassSpectrometer& );
         virtual ~MassSpectrometer(void);
         
         virtual const wchar_t * name() const;
@@ -85,12 +86,9 @@ namespace adcontrols {
 
     protected:
 
-#if defined _MSC_VER
-# pragma warning(disable:4251)
-#endif
         const MassSpectrometer * proxy_instance_;
-
         adcontrols::datafile * datafile_;
+
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > mode_calib_map_;
     };
 

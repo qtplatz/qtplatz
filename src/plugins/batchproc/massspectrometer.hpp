@@ -46,10 +46,10 @@ namespace batchproc {
     class MassSpectrometer : public adcontrols::MassSpectrometer
 		                   , public adcontrols::dataSubscriber
                            , public std::enable_shared_from_this< MassSpectrometer > {
+        MassSpectrometer( const MassSpectrometer& t ) = delete; // non copyable
     public:
         virtual ~MassSpectrometer();
         MassSpectrometer( adcontrols::datafile * datafile );
-        MassSpectrometer( const MassSpectrometer& t );
 
         // dataSubscriber
         bool subscribe( const adcontrols::LCMSDataset& ) override;

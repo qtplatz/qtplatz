@@ -149,11 +149,27 @@ rawdata::loadCalibrations()
                 auto calibResult = std::make_shared< MSCalibrateResult >();
                 if ( serializer< MSCalibrateResult >::deserialize( *calibResult, device.data(), device.size() ) ) {
                     calibResults_[ conf.objid ] = calibResult;
-					auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid.c_str() );
-					spectrometer.setCalibration( calibResult->mode(), *calibResult );
+                    auto& spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid.c_str() );
+                    spectrometer.setCalibration( calibResult->mode(), *calibResult );
                 }
             }
         });
+}
+
+adcontrols::MassSpectrometer&
+rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterClsid )
+{
+    auto it = spectrometers_.find( objid );
+    if ( it == spectrometers_.end() ) {
+		if ( auto ptr = adcontrols::MassSpectrometer::create( dataInterpreterClsid.c_str(), &parent_ ) ) {
+            spectrometers_[ objid ] = ptr;
+			it = spectrometers_.find( objid );
+		} else {
+			static adcontrols::MassSpectrometer x;
+			return x;
+		}
+    }
+    return *it->second;
 }
 
 const adcontrols::MassSpectrometer&

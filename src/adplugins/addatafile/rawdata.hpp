@@ -88,6 +88,7 @@ namespace addatafile {
         uint64_t npos0_;
         bool configLoaded_;
         const adcontrols::MassSpectrometer& getSpectrometer( uint64_t objid, const std::wstring& ) const;
+        adcontrols::MassSpectrometer& getSpectrometer( uint64_t objid, const std::wstring& );
     };
 
 }
