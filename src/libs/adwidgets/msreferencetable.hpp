@@ -25,7 +25,7 @@
 #ifndef MSREFERENCETABLE_HPP
 #define MSREFERENCETABLE_HPP
 
-#include <QTableView>
+#include "tableview.hpp"
 
 class QStandardItemModel;
 
@@ -33,7 +33,7 @@ namespace adcontrols { class MSCalibrateMethod; class MSReference; }
 
 namespace adwidgets {
 
-    class MSReferenceTable : public QTableView  {
+    class MSReferenceTable : public TableView  {
         Q_OBJECT
     public:
         explicit MSReferenceTable(QWidget *parent = 0);
@@ -50,8 +50,10 @@ namespace adwidgets {
 
         void addReference( const adcontrols::MSReference&, int row );
         void handleValueChanged( const QModelIndex& );
+        void handleContextMenu( const QPoint& pt );
 
     signals:
+        void selectedRowsDeleted();
             
     public slots:
 

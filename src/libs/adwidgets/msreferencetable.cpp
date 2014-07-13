@@ -32,6 +32,7 @@
 #include <QHeaderView>
 #include <QStyledItemDelegate>
 #include <QStandardItemModel>
+#include <QMenu>
 #include <functional>
 
 namespace adwidgets {
@@ -92,7 +93,7 @@ namespace adwidgets {
 using namespace adwidgets;
 using namespace adwidgets::detail::msreferencetable;
 
-MSReferenceTable::MSReferenceTable(QWidget *parent) :  QTableView(parent)
+MSReferenceTable::MSReferenceTable(QWidget *parent) :  TableView(parent)
                                                     , model_( new QStandardItemModel )
 {
     setModel( model_ );
@@ -100,6 +101,9 @@ MSReferenceTable::MSReferenceTable(QWidget *parent) :  QTableView(parent)
         delegate->register_handler( [=]( const QModelIndex& idx ){ handleValueChanged( idx ); } );
         setItemDelegate( delegate );
     }
+
+    setContextMenuPolicy( Qt::CustomContextMenu );
+    connect( this, &MSReferenceTable::customContextMenuRequested, this, &MSReferenceTable::handleContextMenu ); 
 
     QFont font;
     setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
@@ -126,20 +130,6 @@ MSReferenceTable::onInitialUpdate()
     setColumnWidth( c_charge, 80 );
     setSortingEnabled( true );
     verticalHeader()->setDefaultSectionSize( 18 );
-
-	// ui->comboBoxMaterials->addItem( "Ar", "Ar" );
-	// ui->comboBoxMaterials->addItem( "Xe", "Xe" );
-	// ui->comboBoxMaterials->addItem( "PFTBA", "PFTBA" );
-	// ui->comboBoxMaterials->addItem( "PEG", "H2O\tC2H4O\tH" );
-	// ui->comboBoxMaterials->addItem( "Recerpine", "C33H40N2O9\t\tH" );
-	// ui->comboBoxMaterials->addItem( "Polystyrene", "H2O\tC8H8\tH" );
-	// ui->comboBoxMaterials->addItem( "Jeffamine(D230)", "CH3CH(NH2)CH2NH2\tOCH2CH(CH3)\tH" );
-	// ui->comboBoxMaterials->addItem( "Sulfa drug (311)", "C12H14N4O4S\t\tH" );
-	// ui->comboBoxMaterials->addItem( "AgilentTOF Mix(+)", "AgilentTOF Mix(+)" );
-	// ui->comboBoxMaterials->addItem( "AgilentTOF Mix(-)", "AgilentTOF Mix(-)" );
-	// ui->comboBoxMaterials->addItem( "Anionic Surfactants 1(-)", "C12H26SO4\tC2H4O\t-H\t" ); // negative
-	// ui->comboBoxMaterials->addItem( "Anionic Surfactants 2(-)", "C13H28SO4\tC2H4O\t-H\t" ); // negative only
-	// ui->comboBoxMaterials->addItem( "Sodium acetate", "\tCH3COONa\tNa\t" ); //
 }
 
 void
@@ -229,4 +219,37 @@ MSReferenceTable::handleAddReference( const adcontrols::MSReference& ref )
     int row = model.rowCount();
     model.insertRow( row );
     addReference( ref, row - 1 );
+}
+
+void
+MSReferenceTable::handleContextMenu(const QPoint &pt)
+{
+    QMenu menu;
+
+    struct action_type { QAction * first; std::function<void()> second; };
+        
+    action_type actions [] = {
+        { menu.addAction("Clear"), [&]() {
+                model_->setRowCount(0);
+                model_->insertRow( 0 );
+            }
+        }
+        , { menu.addAction("Delete line(s)"), [=](){ 
+                if ( indexAt( pt ).row() != model_->rowCount() - 1 ) // don't delete last line
+                    handleDeleteSelection(); 
+            }
+        }
+    };
+
+    if ( indexAt( pt ).isValid() ) {
+
+        if ( QAction * selected = menu.exec( mapToGlobal( pt ) ) ) {
+            for ( auto& i: actions )  {
+                if ( i.first == selected ) {
+                    i.second();
+                    return;
+                }
+            }
+        }
+    }
 }
