@@ -230,8 +230,8 @@ namespace adcontrols {
                                                                                   , const char_type * kept_delims
                                                                                   , bool richText ) {
             typedef boost::tokenizer< boost::char_separator< char_type >
-                                      , std::basic_string< char_type >::const_iterator
-                                      , std::basic_string< char_type > > tokenizer_t;
+                                      , typename std::basic_string< char_type >::const_iterator
+                                      , typename std::basic_string< char_type > > tokenizer_t;
     
             boost::char_separator< char_type > separator( dropped_delims, kept_delims, boost::drop_empty_tokens );
             tokenizer_t tokens( formula, separator );
