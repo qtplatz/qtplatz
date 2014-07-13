@@ -175,7 +175,7 @@ ElementalCompModel::appendRow( int currentRow )
 {
     using adcontrols::ElementalCompositionMethod;
     Q_UNUSED( currentRow );
-    beginInsertRows( QModelIndex(), method_.size() + 1, method_.size() + 1 );
+    beginInsertRows( QModelIndex(), int(method_.size() + 1), int(method_.size() + 1) );
     method_.addCompositionConstraint( ElementalCompositionMethod::CompositionConstraint( "H", 0, 1 ) );
     endInsertRows();
 }
