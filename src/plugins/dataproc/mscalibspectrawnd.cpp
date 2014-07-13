@@ -41,6 +41,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
+#include <adwidgets/mscalibratesummarytable.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adportable/configuration.hpp>
 #include <adlog/logger.hpp>
@@ -222,7 +223,7 @@ MSCalibSpectraWnd::init()
         Core::MiniSplitter * splitter2 = new Core::MiniSplitter; // left pane split top (table) & bottom (time,mass plot)
         
         // summary table
-		if ( ( wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" ) ) ) {
+		if ( ( wndCalibSummary_ = new adwidgets::MSCalibrateSummaryTable() ) ) { // adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" ) ) ) {
             bool res;
             res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
             assert( res );

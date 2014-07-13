@@ -45,6 +45,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/computemass.hpp>
+#include <adwidgets/mscalibratesummarytable.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adwplot/peakmarker.hpp>
 #include <adwplot/plot_stderror.hpp>
@@ -82,7 +83,7 @@ namespace dataproc {
     public:
         ~MSCalibrationWndImpl() {}
         MSCalibrationWndImpl( QWidget * parent ) : processedSpectrum_( new adwplot::SpectrumWidget( parent ) )
-                                                 , calibSummaryWidget_( 0 )
+                                                 , summaryTable_( 0 )
                                                  , centroid_marker_( std::make_shared< adwplot::PeakMarker >() )
                                                  , timeAxis_( false ) {
 
@@ -92,7 +93,7 @@ namespace dataproc {
         }
 
         adwplot::SpectrumWidget * processedSpectrum_;
-        QWidget * calibSummaryWidget_;
+        adwidgets::MSCalibrateSummaryTable * summaryTable_;
         std::shared_ptr< adwplot::PeakMarker > centroid_marker_;
         std::weak_ptr< adcontrols::MassSpectrum > calibCentroid_;
         std::weak_ptr< adcontrols::MSCalibrateResult > calibResult_;
@@ -145,24 +146,17 @@ MSCalibrationWnd::init()
         splitter->addWidget( pImpl_->processedSpectrum_ );
 
         // summary table
-        pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
-        if ( QWidget * pSummary = pImpl_->calibSummaryWidget_ ) {
+        pImpl_->summaryTable_ = new adwidgets::MSCalibrateSummaryTable; //adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
+        if ( auto pSummary = pImpl_->summaryTable_ ) {
             bool res;
-            res = connect( pSummary, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
-            assert(res);
-            res = connect( pSummary, SIGNAL( valueChanged() ), this, SLOT( handleValueChanged() ) );
-            assert(res);
-            res = connect( pSummary, SIGNAL( on_recalibration_requested() ), this, SLOT( handle_recalibration_requested() ) );
-            assert(res);
-            res = connect( pSummary, SIGNAL( on_reassign_mass_requested() ), this, SLOT( handle_reassign_mass_requested() ) );
-            assert(res);
-            res = connect( pSummary, SIGNAL( on_apply_calibration_to_dataset() ), this, SLOT( handle_apply_calibration_to_dataset() ) );
-            assert(res);
-            res = connect( pSummary, SIGNAL( on_apply_calibration_to_default() ), this, SLOT( handle_apply_calibration_to_default() ) );
-            assert(res);
-            res = connect( pSummary, SIGNAL( on_add_selection_to_peak_table(const adcontrols::MSPeaks& ))
-                           , this, SLOT( handle_add_selection_to_peak_table( const adcontrols::MSPeaks& ) ) );
-            assert(res);
+            typedef adwidgets::MSCalibrateSummaryTable ST;
+            connect( pSummary, static_cast<void(ST::*)(size_t, size_t)>(&ST::currentChanged), this, &MSCalibrationWnd::handleSelSummary );
+            connect( pSummary, &ST::valueChanged, this, &MSCalibrationWnd::handleValueChanged );
+            connect( pSummary, &ST::on_recalibration_requested, this, &MSCalibrationWnd::handle_recalibration_requested );
+            connect( pSummary, &ST::on_reassign_mass_requested, this, &MSCalibrationWnd::handle_reassign_mass_requested );
+            connect( pSummary, &ST::on_apply_calibration_to_dataset, this, &MSCalibrationWnd::handle_apply_calibration_to_dataset );
+            connect( pSummary, &ST::on_apply_calibration_to_default, this, &MSCalibrationWnd::handle_apply_calibration_to_default );
+            connect( pSummary, &ST::on_add_selection_to_peak_table, this, &MSCalibrationWnd::handle_add_selection_to_peak_table );
 
             // Make a connection to zoomer in order to sync table in visible range
             res = connect( &pImpl_->processedSpectrum_->zoomer()
@@ -311,7 +305,7 @@ MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
 bool
 MSCalibrationWnd::readCalibSummary( adcontrols::MSAssignedMasses& assigned )
 {
-    adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
+    adplugin::LifeCycleAccessor accessor( pImpl_->summaryTable_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
         std::shared_ptr< adcontrols::MSAssignedMasses > ptr( new adcontrols::MSAssignedMasses );
@@ -569,10 +563,9 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
     // ---------- end calibration equestion -----
     
     if ( connect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
-                  , pImpl_->calibSummaryWidget_, SLOT(handlePrint(QPrinter&, QPainter&)) ) ) {
+                  , pImpl_->summaryTable_, SLOT(handlePrint(QPrinter&, QPainter&)) ) ) {
         emit onPrint( printer, painter );
-        bool res = disconnect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
-                               , pImpl_->calibSummaryWidget_, SLOT(handlePrint(QPrinter&, QPainter&)) );
+        bool res = disconnect( this, SIGNAL( onPrint(QPrinter&, QPainter&) ), pImpl_->summaryTable_, SLOT(handlePrint(QPrinter&, QPainter&)) );
         assert( res );
     }
 }
