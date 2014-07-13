@@ -533,7 +533,7 @@ MainWindow::createDockWidgets()
     } widgets [] = { 
         { "Centroid",         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { "MS Peaks",       "adwidgets::MSPeakTable",           "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
-        , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSCalibrationForm", 0, 0 ); } }
+        // , { "MS Calibration", "qtwidgets2::MSCalibrationForm",    "MSCalibrationMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSCalibrationForm", 0, 0 ); } }
         , { "MS Calibration", "adwidgets::MSCalibrateWidget",     "MSCalibrateWidget",   [] () { return new adwidgets::MSCalibrateWidget; } }
         , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSChromatogramWidget", 0, 0 ); } }
         , { "Targeting",      "adwidgets::TargetingWidget",       "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
