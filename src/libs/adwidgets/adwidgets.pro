@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += widgets svg
+QT       += widgets svg printsupport
 
 TARGET = adwidgets
 TEMPLATE = lib
@@ -16,6 +16,7 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adprot) \
         -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(qtwrapper)
 
 !win32 {
@@ -41,7 +42,8 @@ SOURCES += adwidgets.cpp \
     mscalibrateform.cpp \
     msreferencetable.cpp \
     mscalibratewidget.cpp \
-    msreferencedialog.cpp
+    msreferencedialog.cpp \
+    mscalibratesummarytable.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -62,7 +64,8 @@ HEADERS += adwidgets.hpp\
     mscalibrateform.hpp \
     msreferencetable.hpp \
     mscalibratewidget.hpp \
-    msreferencedialog.hpp
+    msreferencedialog.hpp \
+    mscalibratesummarytable.hpp
 
 unix {
     target.path = /usr/lib
