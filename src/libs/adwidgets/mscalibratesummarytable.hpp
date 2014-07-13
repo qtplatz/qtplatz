@@ -25,18 +25,90 @@
 #ifndef MSCALIBRATESUMMARYTABLE_HPP
 #define MSCALIBRATESUMMARYTABLE_HPP
 
+#pragma once
+
+#include "adwidgets_global.hpp"
+
 #include <QTableView>
+#include <QPrinter>
+#include <adplugin/lifecycle.hpp>
+#include <memory>
 
-class MSCalibrateSummaryTable : public QTableView
-{
-    Q_OBJECT
-public:
-    explicit MSCalibrateSummaryTable(QObject *parent = 0);
+namespace adcontrols {
+    class MassSpectrum;
+    class MSReferences;
+    class MSCalibrateResult;
+    class MSAssignedMasses;
+    class MSPeaks;
+}
 
-signals:
+class QStandardItemModel;
 
-public slots:
+namespace adwidgets {
 
-};
+    class ADWIDGETSSHARED_EXPORT MSCalibrateSummaryTable : public QTableView
+                                                         , public adplugin::LifeCycle {
+
+        Q_OBJECT
+
+    public:
+        ~MSCalibrateSummaryTable();
+        explicit MSCalibrateSummaryTable(QWidget *parent = 0);
+
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void onUpdate( boost::any& ) override;
+        void OnFinalClose() override;
+        bool getContents( boost::any& ) const;
+        bool setContents( boost::any& );
+
+    protected:
+        // reimplement QTableView
+        void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+        void keyPressEvent( QKeyEvent * event ) override;
+
+    signals:
+        void valueChanged();
+        void currentChanged( size_t idx, size_t fcn );
+        void on_recalibration_requested();
+        void on_reassign_mass_requested();
+        void on_apply_calibration_to_dataset();
+        void on_apply_calibration_to_all();
+        void on_apply_calibration_to_default();
+        void on_add_selection_to_peak_table( const adcontrols::MSPeaks& );
+
+    public slots:
+        void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+        void getLifeCycle( adplugin::LifeCycle*& );
+        void showContextMenu( const QPoint& );
+        void handle_zoomed( const QRectF& );   // zoomer zoomed
+        void handle_selected( const QRectF& ); // picker selected
+        void handlePrint( QPrinter&, QPainter& );
+
+   private slots:
+        void handleEraseFormula();
+        void handleCopyToClipboard();
+        void handlePasteFromClipboard();
+        void handleValueChanged( const QModelIndex& );
+
+    private:
+        bool inProgress_;
+        std::unique_ptr< QStandardItemModel > pModel_;
+        std::unique_ptr< adcontrols::MSReferences > pReferences_;
+        std::unique_ptr< adcontrols::MSCalibrateResult > pCalibResult_;
+        std::unique_ptr< adcontrols::MassSpectrum > pCalibrantSpectrum_;
+
+        void getAssignedMasses( adcontrols::MSAssignedMasses& ) const;
+        bool modifyModelData( const std::vector< std::pair< int, int > >& );
+        bool createModelData( const std::vector< std::pair< int, int > >& );
+        bool setAssignedData( int row, int fcn, int idx, const adcontrols::MSAssignedMasses& );
+        void setEditable( int row, bool enable = false );
+        void formulaChanged( const QModelIndex& );
+        void copySummaryToClipboard();
+        void addSelectionToPeakTable();
+    };
+
+}
 
 #endif // MSCALIBRATESUMMARYTABLE_HPP
