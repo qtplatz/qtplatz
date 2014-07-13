@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -52,7 +53,7 @@ namespace adcontrols {
         virtual double fLength( int mode ) const = 0;
     };
 
-	class ADCONTROLSSHARED_EXPORT MassSpectrometer {
+	class ADCONTROLSSHARED_EXPORT MassSpectrometer : public std::enable_shared_from_this< MassSpectrometer > {
     public:
         MassSpectrometer( void );
         MassSpectrometer( adcontrols::datafile * );
