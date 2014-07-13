@@ -26,7 +26,6 @@
 #include "factory.hpp"
 #include <QtCore/qplugin.h>
 #include "mscalibrationform.hpp"
-#include "mscalibsummarywidget.hpp"
 #include "mspeakview.hpp"
 #include "mschromatogramwidget.hpp"
 #include <adplugin/lifecycle.hpp>
@@ -44,8 +43,6 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
     QWidget * pWidget = 0;
     if ( std::wstring( iid ) == L"qtwidgets2::MSCalibrationForm" ) {
         pWidget = new qtwidgets2::MSCalibrationForm( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets2::MSCalibSummaryWidget" ) {
-        pWidget = new qtwidgets2::MSCalibSummaryWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets2::MSPeakView" ) {
         pWidget = new qtwidgets2::MSPeakView( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets2::MSChromatogramWidget" ) {

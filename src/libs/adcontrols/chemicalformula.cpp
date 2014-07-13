@@ -133,7 +133,7 @@ namespace adcontrols {
 
                 return boost::spirit::qi::parse( it, end, cf, fmt ) && it == end;
             }
-
+            
             template< typename char_type > static std::basic_string<char_type> standardFormula( const std::basic_string<char_type>& formula ) {
 
 				adportable::chem::comp_type map;
@@ -209,7 +209,9 @@ namespace adcontrols {
         };
 
 
-        template<typename char_type> std::basic_string<char_type> make_adduct_string( const std::pair < std::basic_string<char_type>, std::basic_string<char_type> >& adduct, bool leading_plus ) {
+        template<typename char_type> std::basic_string<char_type> make_adduct_string( const std::pair < std::basic_string<char_type>
+                                                                                      , std::basic_string<char_type> >& adduct
+                                                                                      , bool leading_plus ) {
             std::basic_string<char_type> result;
             if ( !adduct.first.empty() ) {
                 if ( leading_plus )
@@ -223,6 +225,29 @@ namespace adcontrols {
             return result;
         }
 
+        template<typename char_type> std::basic_string<char_type> formatFormulae( const std::basic_string<char_type>& formula
+                                                                                  , const char_type * dropped_delims
+                                                                                  , const char_type * kept_delims
+                                                                                  , bool richText ) {
+            typedef boost::tokenizer< boost::char_separator< char_type >
+                                      , std::basic_string< char_type >::const_iterator
+                                      , std::basic_string< char_type > > tokenizer_t;
+    
+            boost::char_separator< char_type > separator( dropped_delims, kept_delims, boost::drop_empty_tokens );
+            tokenizer_t tokens( formula, separator );
+            std::basic_string< char_type > kept( kept_delims );
+
+            std::basic_ostringstream<char_type> o;
+
+            for( auto it = tokens.begin(); it != tokens.end(); ++it ) {
+                if ( it->length() == 1 && kept.find( (*it) ) != std::basic_string< char_type >::npos )
+                    o << *it;
+                else
+                    o << adcontrols::ChemicalFormula::formatFormula( *it, richText );
+            }
+            return o.str();
+            
+        }
     }
 
 }
@@ -434,24 +459,13 @@ ChemicalFormula::splitFormula( std::pair< std::wstring, std::wstring >& adducts,
 std::string
 ChemicalFormula::formatFormulae( const std::string& formula, const char * delims, bool richText )
 {
-    typedef char char_type;
+    return internal::formatFormulae<char>( formula, "", delims, richText );
+}
 
-    typedef boost::tokenizer< boost::char_separator< char_type >
-                              , std::basic_string< char_type >::const_iterator
-                              , std::basic_string< char_type > > tokenizer_t;
-    
-    boost::char_separator< char > separator( "", delims, boost::drop_empty_tokens );
-    tokenizer_t tokens( formula, separator );
-
-    std::ostringstream o;
-
-    for( auto it = tokens.begin(); it != tokens.end(); ++it ) {
-        if ( it->length() == 1 && std::strchr( delims, (*it)[0] ) )
-            o << *it;
-        else
-            o << formatFormula( *it, richText );
-    }
-    return o.str();
+std::wstring
+ChemicalFormula::formatFormulae( const std::wstring& formula, const wchar_t * delims, bool richText )
+{
+    return internal::formatFormulae<wchar_t>( formula, L"", delims, richText );
 }
 
 std::string

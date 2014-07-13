@@ -36,8 +36,6 @@ DEFINES += QTWIDGETS2_LIBRARY
 SOURCES += factory.cpp \
         mscalibratedelegate.cpp \
         mscalibrationform.cpp \
-        mscalibsummarydelegate.cpp \
-        mscalibsummarywidget.cpp \
         mspeakview.cpp \
         mspeaksummary.cpp \
         standarditemhelper.cpp \
@@ -52,8 +50,6 @@ HEADERS += \
         mscalibrationform.hpp \
         mspeakview.hpp \
         mspeaksummary.hpp \
-        mscalibsummarydelegate.hpp \
-        mscalibsummarywidget.hpp \
         standarditemhelper.hpp \
         tableview.hpp \
         toftable.hpp \

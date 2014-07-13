@@ -64,6 +64,7 @@ namespace adcontrols {
                            , const char * dropped_delims = "", const char * kept_delims = "+-" );
 
         static std::string formatFormulae( const std::string& formula, const char * delims = "+-", bool richText = true );
+        static std::wstring formatFormulae( const std::wstring& formula, const wchar_t * delims = L"+-", bool richText = true );
 
         // <formula, <+adduct, -lose> >
         static std::string splitFormula( std::pair< std::string, std::string >& adducts, const std::string& formula, bool bStandardFormula );
