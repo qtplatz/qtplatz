@@ -250,7 +250,21 @@ MainWindow::setSimpleDockWidgetArrangement()
         removeDockWidget( widget );
     }
 
-	QDockWidget * master = 0;
+    QDockWidget * master = 0;
+    for ( auto widget: findChildren<QDockWidget *>( "ControlMethodEditor" ) ) {
+        addDockWidget( Qt::BottomDockWidgetArea, widget );
+        widget->show();
+	 	if ( master == 0 )
+	 		master = widget;
+	 	else
+            tabifyDockWidget( master, widget );
+    }
+    // if ( auto widget = findChild< QDockWidget *>( "ControlMethodWidget" ) ) {
+    //     addDockWidget( Qt::BottomDockWidgetArea, widget );
+    //     widget->show();
+    // }        
+    
+    //master = 0;
     for ( auto widget: findChildren<QDockWidget *>( "ProcessMethodEditor" ) ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
         widget->show();
@@ -260,20 +274,6 @@ MainWindow::setSimpleDockWidgetArrangement()
             tabifyDockWidget( master, widget );
     }
 
-    master = 0;
-    for ( auto widget: findChildren<QDockWidget *>( "ControlMethodEditor" ) ) {
-        addDockWidget( Qt::BottomDockWidgetArea, widget );
-        widget->show();
-	 	if ( master == 0 )
-	 		master = widget;
-	 	else
-            tabifyDockWidget( master, widget );
-    }
-    if ( auto widget = findChild< QDockWidget *>( "ControlMethodWidget" ) ) {
-        addDockWidget( Qt::BottomDockWidgetArea, widget );
-        widget->show();
-    }        
-    
     update();
 }
 
