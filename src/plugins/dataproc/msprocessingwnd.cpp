@@ -486,6 +486,7 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
 
         if ( lockmass.fit() ) {
             if ( lockmass( *ms ) ) {
+                pImpl_->processedSpectrum_->setZoomBase( ms->getAcquisitionMassRange() );
                 pImpl_->processedSpectrum_->update_annotation();
 
                 if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )

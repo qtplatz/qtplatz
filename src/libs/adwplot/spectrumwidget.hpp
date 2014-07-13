@@ -53,6 +53,7 @@ namespace adwplot {
         void setAutoAnnotation( bool enable = true );
         void update_annotation( bool replot = true );
         void setKeepZoomed( bool );
+        void setZoomBase( const std::pair< double, double >& range, bool horizontal = true );
         
     private:
         struct SpectrumWidgetImpl * impl_;

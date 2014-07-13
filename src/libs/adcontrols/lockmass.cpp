@@ -198,7 +198,10 @@ lockmass::fitter::operator()( MassSpectrum& ms ) const
     if ( coeffs_.empty() )
         return false;
 
+    std::pair< double, double > range(1000000.0, 0.0);
+    
     segment_wrapper<> segs( ms );
+
 
     for ( auto& fms: segs ) {
         const double * masses = fms.getMassArray();
@@ -206,7 +209,7 @@ lockmass::fitter::operator()( MassSpectrum& ms ) const
         if ( coeffs_.size() == 1 ) {
             // relative error correction
             for ( size_t i = 0; i < fms.size(); ++i ) {
-                double mass = masses[i] - masses[i] * coeffs_[0];
+                double mass = masses[ i ] - masses[ i ] * coeffs_[ 0 ];
                 fms.setMass( i, mass );
             }
 
@@ -218,8 +221,12 @@ lockmass::fitter::operator()( MassSpectrum& ms ) const
             }
 
         }
+        range.first = std::min( fms.getMass(0), range.first );
+        range.second = std::max( fms.getMass( fms.size() - 1 ), range.second );
     }
-
+    range.first = range.first - ( range.second - range.first ) / 100;
+    range.second = range.second + ( range.second - range.first ) / 100;
+    ms.setAcquisitionMassRange( range.first, range.second );
 	return true;
 }
 

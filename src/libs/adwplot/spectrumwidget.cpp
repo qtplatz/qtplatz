@@ -232,6 +232,20 @@ SpectrumWidget::update_annotation( bool bReplot )
         replot();
 }
 
+void
+SpectrumWidget::setZoomBase( const std::pair< double, double >& range, bool horizontal )
+{
+    QRectF bz = zoomer1_->zoomBase();
+    if ( horizontal ) {
+        bz.setLeft( range.first );
+        bz.setRight( range.second );
+    } else {
+        bz.setBottom( range.first );
+        bz.setTop( range.second );
+    }
+    zoomer1_->setZoomBase();
+}
+
 bool
 SpectrumWidget::scaleY( const QRectF& rc, std::pair< double, double >& left, std::pair< double, double >& right )
 {
