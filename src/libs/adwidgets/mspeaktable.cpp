@@ -70,6 +70,20 @@ namespace adwidgets {
         , c_mspeaktable_num_columns
     };
 
+    static QColor colors[] = {
+        { QColor( 0xff, 0x66, 0x44, 0x10 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0x20 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0x30 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0x40 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0x50 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0x60 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0x70 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0x80 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0x90 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0xa0 ) }
+        , { QColor( 0xff, 0x66, 0x44, 0xb0 ) }
+    };
+
 	using namespace adcontrols::metric;
 
     MSPeakTableDelegate::MSPeakTableDelegate(QObject *parent) : QItemDelegate( parent )
@@ -81,6 +95,13 @@ namespace adwidgets {
     {
         QStyleOptionViewItem op( option );
         op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
+
+        int fcn = index.model()->data( index.model()->index( index.row(), c_mspeaktable_fcn ) ).toInt();
+        if ( fcn > 0 ) {
+            painter->save();
+            painter->fillRect( option.rect, colors[ ( fcn - 1 ) % sizeof( colors ) / sizeof( colors[ 0 ] ) ] );
+            painter->restore();
+        }
 
         switch( index.column() ) {
         case c_mspeaktable_time:
@@ -300,7 +321,7 @@ MSPeakTable::onInitialUpdate()
     model.setHeaderData( c_mspeaktable_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_mspeaktable_delta_mass,  Qt::Horizontal, QObject::tr( "&delta;Da" ) );
     model.setHeaderData( c_mspeaktable_intensity,   Qt::Horizontal, QObject::tr( "Abandance" ) );
-    model.setHeaderData( c_mspeaktable_relative_intensity,   Qt::Horizontal, QObject::tr( "R. A." ) );
+    model.setHeaderData( c_mspeaktable_relative_intensity,   Qt::Horizontal, QObject::tr( "R. A. (%)" ) );
     model.setHeaderData( c_mspeaktable_mode,        Qt::Horizontal, QObject::tr( "mode" ) );
     model.setHeaderData( c_mspeaktable_protocol,    Qt::Horizontal, QObject::tr( "protocol" ) );
     model.setHeaderData( c_mspeaktable_formula,     Qt::Horizontal, QObject::tr( "formula" ) );
@@ -424,6 +445,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_mass ), mass );
             model.setData( model.index( row, c_mspeaktable_intensity ), fms.getIntensity( idx ) );
 
+            model.setData( model.index( row, c_mspeaktable_relative_intensity ), (fms.getIntensity( idx ) * 100 ) / fms.getMaxIntensity() );
+
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
 
             model.setData( model.index( row, c_mspeaktable_formula ), QString() ); // clear formula
@@ -463,8 +486,10 @@ MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
         setPeakInfo( ms );
         return;
     }
+
     setUpdatesEnabled( false );
     for ( int row = 0; row < int(total_size); ++row ) {
+
 
         int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
         int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
