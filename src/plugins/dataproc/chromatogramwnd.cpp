@@ -65,7 +65,7 @@ namespace dataproc {
         ChromatogramWndImpl() : chroWidget_(0)
                               , peakWidget_(0) {
         }
-        void setData( const adcontrols::Chromatogram&, const QString& );
+        void setData( const adcontrols::ChromatogramPtr&, const QString& );
         adwplot::ChromatogramWidget * chroWidget_;
         QWidget * peakWidget_; // adplutin::manager::widget_factory will make a widget
     };
@@ -143,10 +143,9 @@ ChromatogramWnd::draw2( adutils::MassSpectrumPtr& )
 void
 ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
-    adcontrols::Chromatogram& c = *ptr;
-    pImpl_->chroWidget_->setData( c );
-	if ( c.peaks().size() ) {
-		adcontrols::PeakResult r( c.baselines(), c.peaks() );
+    pImpl_->chroWidget_->setData( ptr );
+    if ( ptr->size() ) {
+        adcontrols::PeakResult r( ptr->baselines(), ptr->peaks() );
 		emit fireSetData( r );
 	}
 }
@@ -209,7 +208,7 @@ ChromatogramWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 ///////////////////////////
 
 void
-ChromatogramWndImpl::setData( const adcontrols::Chromatogram& c, const QString& )
+ChromatogramWndImpl::setData( const adcontrols::ChromatogramPtr& c, const QString& )
 {
     chroWidget_->setData( c );
 }

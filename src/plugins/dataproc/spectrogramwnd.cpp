@@ -227,13 +227,13 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
         if ( m2 < m1 )
             std::swap( m1, m2 );
 
-        adcontrols::Chromatogram c;
+        auto cp = std::make_shared< adcontrols::Chromatogram >();
 
         std::vector< double > seconds;
         for ( auto& x: ptr->x() )
             seconds.push_back( x * 60.0 );
-        c.resize( seconds.size() );
-        c.setTimeArray( seconds.data() );
+        cp->resize( seconds.size() );
+        cp->setTimeArray( seconds.data() );
 
         int idx = 0;
         for ( const auto& ms: *ptr ) {
@@ -245,10 +245,10 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
                 while ( *it++ <= m2 )
                     y += seg.getIntensity( std::distance( masses.begin(), it ) );
             }
-            c.setIntensity( idx++, y );
+            cp->setIntensity( idx++, y );
         }
-        chromatogr_->setData( c, 0 );
-        chromatogr_->setTitle( (boost::format("Chromatogram @ <i>m/z</i>=%.4f -- %.4f") % m1 % m2 ).str() );
+        chromatogr_->setData( cp, 0 );
+        chromatogr_->setTitle( (boost::format( "Chromatogram @ <i>m/z</i>=%.4f -- %.4f" ) % m1 % m2).str() );
     }        
 
 }

@@ -39,7 +39,8 @@ Peak::Peak( Dataplot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
                                                            , curve_( new QwtPlotCurve() ) 
 														   , bar_( new QwtPlotCurve() ) 
 {
-    curve_->setPen( QPen( Qt::red) );
+    QColor color( 0xff, 0, 0, 0x10 );
+    curve_->setPen( QPen( color ) );
     curve_->setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)
     curve_->attach( plot_ );
 
@@ -52,7 +53,7 @@ Peak::Peak( Dataplot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
 */
 	x[0] = x[1] = adcontrols::timeutil::toMinutes( peak.peakTime() );
     y[0] = 0; 
-	y[1] = peak.topHeight();
+	y[1] = std::min( peak.startHeight(), peak.endHeight() );
     
     curve_->setSamples(  x, y, 2 );
 }

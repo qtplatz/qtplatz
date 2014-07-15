@@ -59,15 +59,13 @@ namespace dataproc {
 
         void draw_profile( const std::wstring& id, std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw( std::shared_ptr< adcontrols::Chromatogram >& );
+        void draw( std::shared_ptr< adcontrols::Chromatogram >&, int idx );
         void draw( std::shared_ptr< adcontrols::PeakResult >& );
 
         void idSpectrumFolium( const std::wstring& );
         void idChromatogramFolium( const std::wstring& );
+        void handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked );
 
-    signals:
-        void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );
-      
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
@@ -116,6 +114,10 @@ namespace dataproc {
         std::pair<double, double> compute_minmax( double, double );
         bool power_spectrum( const adcontrols::MassSpectrum&, std::vector<double>& x, std::vector<double>& y
                              , const std::pair<size_t, size_t>&, double& dc, double& nyquist );
+
+    signals:
+        void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );
+
     };
 
 }

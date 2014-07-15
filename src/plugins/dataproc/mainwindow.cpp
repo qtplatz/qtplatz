@@ -173,7 +173,6 @@ namespace dataproc {
                                 , [=]( Dataprocessor* dp, portfolio::Folium& f, bool st ){ wnd->handleCheckStateChanged( dp, f, st ); });
         }
     };
-    template<> bool check_state_changed_connector::operator()( MSProcessingWnd * ) const { return false; }
     template<> bool check_state_changed_connector::operator()( ElementalCompWnd * ) const { return false; }
     template<> bool check_state_changed_connector::operator()( MSCalibrationWnd * ) const { return false; }
     template<> bool check_state_changed_connector::operator()( ChromatogramWnd * ) const { return false; }

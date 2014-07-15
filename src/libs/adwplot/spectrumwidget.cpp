@@ -73,7 +73,7 @@ namespace adwplot {
             , Qt::gray    // 16
             , Qt::transparent    // 17
         };
-
+        
         class xSeriesData : public QwtSeriesData<QPointF>, boost::noncopyable {
         public:
             virtual ~xSeriesData() {

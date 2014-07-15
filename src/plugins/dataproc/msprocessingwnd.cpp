@@ -253,10 +253,9 @@ MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 }
 
 void
-MSProcessingWnd::draw( adutils::ChromatogramPtr& ptr )
+MSProcessingWnd::draw( adutils::ChromatogramPtr& ptr, int idx )
 {
-    adcontrols::Chromatogram& c = *ptr;
-    pImpl_->ticPlot_->setData( c );
+    pImpl_->ticPlot_->setData( ptr, idx );
 }
 
 void
@@ -292,7 +291,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 
 		for ( size_t fcn = 0; fcn < nfcn; ++fcn ) {
             std::wstring title = ( boost::wformat( L"TIC.%1%" ) % (fcn + 1) ).str();
-
+            
 			portfolio::Folium folium = folder.findFoliumByName( std::wstring( L"TIC/" ) + title );
             if ( folium.nil() ) {   // add TIC if not yet added
 				adcontrols::Chromatogram c;
@@ -305,6 +304,8 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                     folium = processor->addChromatogram( c, m );
 				}
             }
+            if ( folium.attribute(L"protoId").empty() )
+                folium.setAttribute( L"protoId", (boost::wformat( L"%d" ) % fcn).str() );
 		}
         if ( portfolio::Folium folium = folder.findFoliumByName( L"TIC/TIC.1" ) ) {
 			if ( folium.empty() )
@@ -342,11 +343,9 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
     drawIdx1_ = 0;
     drawIdx2_ = 0;
 
-    //adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "selection changed:";
-
     if ( portfolio::Folder folder = folium.getParentFolder() ) {
 
-        if ( folder.name() == L"Spectra" || folder.name() == L"Chromatograms" ) {
+        if ( folder.name() == L"Spectra" ) { // || folder.name() == L"Chromatograms" ) {
 
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
@@ -405,10 +404,16 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
                     }
                     
                 }
-                
-            } else if ( portfolio::is_type< adcontrols::ChromatogramPtr >( folium ) ) {
+            }
+        }
+        else if ( folder.name() == L"Chromatograms" ) {
+            if ( portfolio::is_type< adcontrols::ChromatogramPtr >( folium ) ) {
                 if ( auto ptr = portfolio::get< adcontrols::ChromatogramPtr > ( folium ) ) {
-                    draw( ptr );
+                    auto idStr = folium.attribute( L"protoId" );
+                    int protoId = 0;
+                    if ( !idStr.empty() )
+                        protoId = std::stoi( idStr );
+                    draw( ptr, protoId );
                     idActiveFolium_ = folium.id();
                     idChromatogramFolium( folder.id() );
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
@@ -416,7 +421,6 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
                         auto pkresults = portfolio::get< adcontrols::PeakResultPtr >( f );
                         draw( pkresults );
                     }
-
                 }
             }
         }
@@ -507,6 +511,31 @@ MSProcessingWnd::handleDataMayChanged()
     pImpl_->profileSpectrum_->update();
     pImpl_->processedSpectrum_->update();
 }
+
+
+void
+MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked )
+{
+    (void)processor;    (void)isChecked;
+
+    portfolio::Folder folder = folium.getParentFolder();
+	if ( !folder )
+		return;
+    if ( folder.name() == L"Chromatograms" ) {
+        auto folio = folder.folio();
+        int idx = 0;
+        for ( auto& folium: folio ) {
+            if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                if ( folium.empty() )
+                    processor->fetch( folium );
+                auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium );
+                pImpl_->ticPlot_->setData( cptr, idx );
+            }
+            ++idx;
+        }
+    }
+}
+
 
 void
 MSProcessingWnd::selectedOnChromatogram( const QPointF& pos )
