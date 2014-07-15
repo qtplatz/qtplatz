@@ -89,6 +89,9 @@ namespace addatafile {
         bool configLoaded_;
         const adcontrols::MassSpectrometer& getSpectrometer( uint64_t objid, const std::wstring& ) const;
         adcontrols::MassSpectrometer& getSpectrometer( uint64_t objid, const std::wstring& );
+        std::vector< std::tuple< size_t, int, int> > fcnVec_; // <pos,fcn,rep,seconds>
+        std::vector< std::pair< size_t, int > > fcnIdx_;
+        std::vector< std::pair< double, int > > times_;
     };
 
 }

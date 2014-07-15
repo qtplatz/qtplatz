@@ -179,7 +179,7 @@ namespace adwplot {
                     const double * times = grab_->getTimeArray();
                     auto beg = std::lower_bound( times, times + grab_->size() - 1, adcontrols::Chromatogram::toSeconds( range.first ) );
                     auto end = std::lower_bound( beg, times + grab_->size() - 1, adcontrols::Chromatogram::toSeconds( range.second ) );
-                    if ( std::distance( beg, end ) < 40 ) {
+                    if ( std::distance( beg, end ) < 80 ) {
                         QPen pen( Qt::red );
                         curve_.p()->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::XCross ), Qt::NoBrush, pen, QSize( 5, 5 ) ) );
                         plot->replot();

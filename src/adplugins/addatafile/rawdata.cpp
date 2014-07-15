@@ -47,6 +47,7 @@
 #include <adutils/mscalibio.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
+#include <algorithm>
 #include <memory>
 #include <cstdint>
 #include <sstream>
@@ -82,7 +83,27 @@ rawdata::loadAcquiredConf()
     if ( adutils::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
 
         for ( const auto& conf: conf_ ) {
-            
+
+            if ( conf.trace_method == signalobserver::eTRACE_SPECTRA && conf.trace_id == L"MS.PROFILE" ) {
+                adfs::stmt sql( dbf_.db() );
+                if ( sql.prepare( "SELECT npos,fcn FROM AcquiredData WHERE oid = :oid" ) ) {
+                    sql.bind( 1 ) = conf.objid;
+                    int rep = 0;
+                    while ( sql.step() == adfs::sqlite_row ) {
+                        size_t pos = sql.get_column_value< uint64_t >(0);
+                        int fcn = int( sql.get_column_value< uint64_t >( 1 ) );
+                        if ( !fcnVec_.empty() && std::get<1>( fcnVec_.back() ) != fcn )
+                            rep = 0;
+                        fcnVec_.push_back( std::make_tuple( pos, fcn, rep++ ) );
+
+                        if ( fcnIdx_.empty() )
+                            fcnIdx_.push_back( std::make_pair( pos, fcn ) );
+                        if ( fcnIdx_.back().second != fcn )
+                            fcnIdx_.push_back( std::make_pair( pos, fcn ) );
+                    }
+                }
+            }
+
             if ( conf.trace_method == signalobserver::eTRACE_TRACE // timed trace := chromatogram
                  && conf.trace_id == L"MS.TIC" ) {
                 
@@ -93,9 +114,17 @@ rawdata::loadAcquiredConf()
                         cptr->addDescription( adcontrols::Description( L"create",  conf.trace_display_name ) );
                         accessor.copy_to( *cptr, fcn );
                         tic_.push_back( cptr );
+                        if ( const double * times = cptr->getTimeArray() ) {
+                            for ( int i = 0; i < cptr->size(); ++i )
+                                times_.push_back( std::make_pair( times[i], fcn ) );
+                        }
                     }
                 }
+
+                std::sort( times_.begin(), times_.end()
+                           , []( const std::pair<double, int>& a, const std::pair<double,int>&b ){ return a.first < b.first; });
             }
+
         }
         configLoaded_ = true;
         return true;
@@ -219,24 +248,20 @@ rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms, uint32_t o
         return false;
 
     uint64_t npos = npos0_ + idx;
+    typedef decltype(*fcnVec_.begin()) pos_type;
 
-    adfs::stmt sql( dbf_.db() );
-    if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = :fcn AND npos <= :npos" ) ) {
-        sql.bind( 1 ) = it->objid;
-        sql.bind( 2 ) = fcn;
-        sql.bind( 3 ) = npos;
-        if ( sql.step() == adfs::sqlite_row ) {
-            try {
-                npos = sql.get_column_value< uint64_t >( 0 );
-            } catch ( std::bad_cast& ) {
-                return false; // max() function returns nil raw as step() result, so this exception means no row
-            }
-        }
-    }
+    auto pos = std::lower_bound( fcnVec_.begin(), fcnVec_.end(), npos, [] ( const pos_type& a, size_t npos ){ return std::get<0>(a) < npos; } );
+    auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), npos, [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
+    while ( index != fcnIdx_.begin() && index->first > npos )
+        --index;
+    int rep = int( std::get<0>( *pos ) - index->first );
+    while ( index != fcnIdx_.begin() && index->second != 0 )
+        --index;
+
     adcontrols::translate_state state;
-	while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms, it->trace_id ) )
-            == adcontrols::translate_indeterminate )
-        ;
+    while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id )) == adcontrols::translate_indeterminate )
+        ++index;
+
     if ( ms.getMSProperty().dataInterpreterClsid() == 0 ) {
         // workaround for batchproc::import
         adcontrols::MSProperty prop = ms.getMSProperty();
@@ -270,11 +295,10 @@ rawdata::getFunctionCount() const
 size_t
 rawdata::posFromTime( double seconds ) const
 {
-	if ( ! tic_.empty() ) {
-		const adportable::array_wrapper< const double > times( tic_[0]->getTimeArray(), tic_[0]->size() );
-		auto it = std::lower_bound( times.begin(), times.end(), seconds ); 
-		
-		return std::distance( times.begin(), it );
+    if ( !times_.empty() ) {
+        typedef std::pair<double, int> time_type;
+        auto it = std::lower_bound( times_.begin(), times_.end(), seconds, [=] ( const time_type& pos, double seconds ){ return pos.first < seconds; } );
+        return std::distance( times_.begin(), it );
 	}
 	return 0;
 }
@@ -282,9 +306,8 @@ rawdata::posFromTime( double seconds ) const
 double
 rawdata::timeFromPos( size_t pos ) const
 {
-	if ( !tic_.empty() && pos < tic_[0]->size() ) {
-		return tic_[0]->getTimeArray()[ pos ]; // return in seconds
-	}
+    if ( !times_.empty() && pos < times_.size() )
+        return times_[ pos ].first;
 	return 0;
 }
 
