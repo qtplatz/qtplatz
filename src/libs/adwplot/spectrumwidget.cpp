@@ -271,8 +271,8 @@ SpectrumWidget::scaleY( const QRectF& rc, std::pair< double, double >& left, std
         }
     }
 
-    left.second = (left.second + (left.second - left.first));
-    right.second = (right.second + (right.second - right.first));
+    left.second = left.second + (left.second - left.first) * 0.12;
+    right.second = right.second + (right.second - right.first) * 0.12;
 
     if ( hasYLeft && hasYRight ) {
         if ( ( left.first <= 0 && left.second > 0 ) && ( right.first <= 0 && right.second > 0 ) ) {
@@ -675,7 +675,7 @@ TraceData::y_range( double left, double right ) const
 
                 top = std::max( top, max );
                 if ( ! isCentroid ) {
-                    bottom = min - (max - min) / 20;
+                    bottom = min - (max - min) / 25;
                 } else {
                     bottom = -10;
                 }

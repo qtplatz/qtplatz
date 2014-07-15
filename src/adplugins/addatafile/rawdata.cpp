@@ -259,15 +259,22 @@ rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms, uint32_t o
         --index;
 
     adcontrols::translate_state state;
-    while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id )) == adcontrols::translate_indeterminate )
-        ++index;
+    if ( fcn < 0 ) { // read all protocols
+        while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id )) == adcontrols::translate_indeterminate )
+            ++index;
+    }
+    else {
+        state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos, ms, it->trace_id );
+    }
 
     if ( ms.getMSProperty().dataInterpreterClsid() == 0 ) {
         // workaround for batchproc::import
         adcontrols::MSProperty prop = ms.getMSProperty();
         prop.setDataInterpreterClsid( adportable::utf::to_utf8( it->dataInterpreterClsid ).c_str() );
     }
-    return state == adcontrols::translate_complete;
+    if ( fcn < 0 )
+        return state == adcontrols::translate_complete;
+    return state == adcontrols::translate_complete || state == adcontrols::translate_indeterminate;
 }
 
 bool
