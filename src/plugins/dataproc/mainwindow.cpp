@@ -1119,6 +1119,7 @@ MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& inser
 
         if ( portfolio::Folium folium = portfolio.findFolium( id ) ) {
             std::wstring name = folium.name();
+            std::replace( name.begin(), name.end(), '/', '_' );
             boost::algorithm::trim( name );
             path += ( insertor + name );
 

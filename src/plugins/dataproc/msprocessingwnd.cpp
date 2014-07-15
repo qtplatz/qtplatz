@@ -81,6 +81,7 @@
 #include <array>
 #include <numeric>
 #include <complex>
+#include <functional>
 
 using namespace dataproc;
 
@@ -415,7 +416,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
                         protoId = std::stoi( idStr );
                     draw( ptr, protoId );
                     idActiveFolium_ = folium.id();
-                    idChromatogramFolium( folder.id() );
+                    idChromatogramFolium( folium.id() );
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
                                 return portfolio::is_type< adcontrols::PeakResultPtr >( a ); }) ) {
                         auto pkresults = portfolio::get< adcontrols::PeakResultPtr >( f );
@@ -546,7 +547,43 @@ MSProcessingWnd::selectedOnChromatogram( const QPointF& pos )
 void
 MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 {
-    DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); 
+	double x0 = pImpl_->ticPlot_->transform( QwtPlot::xBottom, rect.left() );
+	double x1 = pImpl_->ticPlot_->transform( QwtPlot::xBottom, rect.right() );
+
+	if ( int( std::abs( x1 - x0 ) ) <= 2 ) {
+        QMenu menu;
+        typedef std::pair < QAction *, std::function<void()> > action_type;
+        std::vector < action_type > actions;
+
+        actions.push_back( std::make_pair( menu.addAction( QString("Select a spectrum at %1 min").arg( rect.left() ) )
+            , [=] () { DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); } ) );
+
+        actions.push_back( std::make_pair( menu.addAction( QString("Copy image to clipboard" ) )
+                                           , [=] () { adwplot::Dataplot::copyToClipboard( pImpl_->ticPlot_ ); } ) );
+
+        actions.push_back( std::make_pair(
+                               menu.addAction( QString("Save SVG File" ) )
+                               , [=] () {
+                                   QString name
+                                       = QFileDialog::getSaveFileName( MainWindow::instance()
+                                                                       , "Save SVG File"
+                                                                       , MainWindow::makePrintFilename( idChromatogramFolium_, L"_" )
+                                                                       , tr("SVG (*.svg)") );
+                                   if ( ! name.isEmpty() )
+                                       adwplot::Dataplot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
+                               }) );
+
+        QAction * selected = menu.exec( QCursor::pos() );
+        if ( selected ) {
+            auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
+            if ( it != actions.end() )
+                (it->second)();
+        }
+    }
+    else {
+        DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
+    }
+
 }
 
 void
@@ -681,7 +718,8 @@ MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
     if ( fixedActions[ 0 ] == selectedItem )
         adwplot::Dataplot::copyToClipboard( pImpl_->pwplot_ );
     else if ( fixedActions[ 1 ] == selectedItem ) {
-        QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File", MainWindow::makePrintFilename( idSpectrumFolium_, L"_power_" ), tr( "SVG (*.svg)" ) );
+        QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
+                                                     , MainWindow::makePrintFilename( idSpectrumFolium_, L"_power_" ), tr( "SVG (*.svg)" ) );
         if ( !name.isEmpty() )
             adwplot::Dataplot::copyImageToFile( pImpl_->pwplot_, name, "svg" );
     }
