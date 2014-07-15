@@ -340,8 +340,8 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
 		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
-			size_t pos1 = dset->posFromTime( x1 * 60.0 ); // min --> sec
-			size_t pos2 = dset->posFromTime( x2 * 60.0 ); // min --> sec
+            size_t pos1 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x1 ) ); // min --> sec
+            size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) ); // min --> sec
 			int pos = static_cast<int>(pos1);
 			double t1 = dset->timeFromPos( pos1 ) / 60.0; // to minuites
 			double t2 = dset->timeFromPos( pos2 ) / 60.0; // to minutes
