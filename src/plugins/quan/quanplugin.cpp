@@ -24,7 +24,8 @@
 
 #include "quanplugin.hpp"
 #include "quanconstants.hpp"
-
+#include "mainwindow.hpp"
+#include "quanmode.hpp"
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -39,46 +40,44 @@
 
 #include <QtPlugin>
 
-using namespace Quan::Internal;
+using namespace quan;
 
-QuanPlugin::QuanPlugin()
+QuanPlugin::QuanPlugin() : mainWindow_( new MainWindow() )
+                         , mode_( std::make_shared< QuanMode >( this ) )
 {
     // Create your members
 }
 
 QuanPlugin::~QuanPlugin()
 {
-    // Unregister objects from the plugin manager's object pool
-    // Delete members
+	if ( mode_ )
+        removeObject( mode_.get() );
+    delete mainWindow_;
 }
 
-bool QuanPlugin::initialize(const QStringList &arguments, QString *errorString)
+bool
+QuanPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
 
-    QAction *action = new QAction(tr("Quan action"), this);
-    auto am = Core::ICore::instance()->actionManager();
+    mainWindow_->activateWindow();
+    mainWindow_->createActions();
 
-    const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    mode_->setContext( gc );
 
-    Core::Command *cmd = am->registerAction( action, Constants::ACTION_ID, gc ); // Core::Context( Core::Constants::C_GLOBAL ) );
-    cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
-    connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));
+    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
+        mode_->setWidget( widget );
 
-    Core::ActionContainer *menu = am->createMenu( Constants::MENU_ID );
-    menu->menu()->setTitle(tr("Quan"));
-    menu->addAction(cmd);
-    am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
+    addObject( mode_.get() );
 
     return true;
 }
 
 void QuanPlugin::extensionsInitialized()
 {
-    // Retrieve objects from the plugin manager's object pool
-    // In the extensionsInitialized function, a plugin can be sure that all
-    // plugins that depend on it are completely initialized.
+    mainWindow_->onInitialUpdate();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag QuanPlugin::aboutToShutdown()
@@ -87,13 +86,6 @@ ExtensionSystem::IPlugin::ShutdownFlag QuanPlugin::aboutToShutdown()
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
     return SynchronousShutdown;
-}
-
-void QuanPlugin::triggerAction()
-{
-    QMessageBox::information(Core::ICore::instance()->mainWindow(),
-                             tr("Action triggered"),
-                             tr("This is an action from Quan."));
 }
 
 Q_EXPORT_PLUGIN2(Quan, QuanPlugin)

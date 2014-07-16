@@ -8,11 +8,17 @@ INCLUDEPATH *= $$OUT_PWD/../../libs
 
 # Quan files
 
-SOURCES += quanplugin.cpp
+SOURCES += quanplugin.cpp \
+    mainwindow.cpp \
+    quanmode.cpp \
+    quandocument.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
-        quanconstants.hpp
+        quanconstants.hpp \
+    mainwindow.hpp \
+    quanmode.hpp \
+    quandocument.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \
@@ -38,3 +44,6 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
 
 linux-*: LIBS += -lqwt -ldl
 macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
+
+RESOURCES += \
+    quan.qrc

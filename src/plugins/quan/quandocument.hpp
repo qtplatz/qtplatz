@@ -1,14 +1,14 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
+** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with
+** the Software or, alternatively, in accordance with the terms contained in
 ** a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
@@ -21,17 +21,21 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#ifndef QUANCONSTANTS_HPP
-#define QUANCONSTANTS_HPP
 
-namespace Quan {
-namespace Constants {
+#ifndef QUANDOCUMENT_HPP
+#define QUANDOCUMENT_HPP
 
-const char ACTION_ID[] = "Quan.Action";
-const char MENU_ID[] = "Quan.Menu";
+#include <mutex>
 
-} // namespace Quan
-} // namespace Constants
+namespace quan {
 
-#endif // QUANCONSTANTS_HPP
+    class QuanDocument  {
+        QuanDocument();
+        static QuanDocument * instance_;
+        static std::mutex mutex_;
+    public:
+        static QuanDocument * instance();
+    };
+}
 
+#endif // QUANDOCUMENT_HPP

@@ -26,31 +26,35 @@
 #define QUAN_HPP
 
 #include "quan_global.hpp"
-
 #include <extensionsystem/iplugin.h>
+#include <memory>
 
-namespace Quan {
-namespace Internal {
+namespace quan {
 
-class QuanPlugin : public ExtensionSystem::IPlugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Quan.json")
+    class QuanMode;
+    class MainWindow;
+    
+    class QuanPlugin : public ExtensionSystem::IPlugin  {
+        Q_OBJECT
+        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Quan.json")
+        
+    public:
+        QuanPlugin();
+        ~QuanPlugin();
+        
+        bool initialize(const QStringList &arguments, QString *errorString);
+        void extensionsInitialized();
+        ShutdownFlag aboutToShutdown();
 
-public:
-    QuanPlugin();
-    ~QuanPlugin();
+    private:
+        std::shared_ptr< QuanMode > mode_;
+        MainWindow * mainWindow_;
 
-    bool initialize(const QStringList &arguments, QString *errorString);
-    void extensionsInitialized();
-    ShutdownFlag aboutToShutdown();
+    private slots:
 
-private slots:
-    void triggerAction();
-};
+    };
 
-} // namespace Internal
-} // namespace Quan
+} // namespace quan
 
 #endif // QUAN_HPP
 

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/quan">
+        <file>images/balance-icon.png</file>
+    </qresource>
+</RCC>
