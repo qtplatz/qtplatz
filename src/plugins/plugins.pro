@@ -7,7 +7,8 @@ TEMPLATE  = subdirs
 
 SUBDIRS   = plugin_coreplugin \
             plugin_servant \
-            plugin_batchproc
+            plugin_batchproc \
+    Quan/quan.pro
 
 contains( QTPLATZ_CONFIG, Acquire ) {
   SUBDIRS += plugin_acquire

@@ -147,3 +147,4 @@ examples/device_emulators/bcast/bcast
 examples/device_emulators/hello/hello
 examples/device_emulators/powersupply/powersupply
 src/version.tmp
+src/plugins/Quan/Quan.pluginspec
