@@ -139,6 +139,7 @@ namespace adwplot {
 			const QRectF& boundingRect() const { return rect_; };
 			QwtPlotCurve& plot_curve() { return *curve_.p(); }
             void drawMarkers( QwtPlot *, const std::pair< double, double >& ) {}
+
         private:
             PlotCurve curve_;
 			QRectF rect_;
@@ -189,6 +190,7 @@ namespace adwplot {
                     }
                 }
             }
+
         private:
             PlotCurve curve_;
             QRectF rect_;
@@ -207,7 +209,7 @@ namespace adwplot {
             updateMarkers_visitor( QwtPlot * plot, const std::pair< double, double >& range ) : plot_( plot ), range_( range ) {}
             template<typename T> void operator()( T& t ) const { t.drawMarkers( plot_, range_ ); }
         };
-        
+
         class zoomer : public QwtPlotZoomer {
             zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
                 QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
@@ -301,12 +303,14 @@ void
 ChromatogramWidget::clear()
 {
     impl_->clear();
+    replot();
 }
 
 void
 ChromatogramWidget::removeData( int idx, bool bReplot )
 {
-    impl_->removeData( idx );
+    if ( impl_->traces_.size() > idx )
+        impl_->traces_[ idx ] = chromatogram_widget::ChromatogramData( *this );
     if ( bReplot )
         replot();
 }
@@ -497,6 +501,7 @@ ChromatogramWidgetImpl::clear()
     peaks_.clear();
     baselines_.clear();
 	annotation_markers_.clear();
+    traces_.clear();
 }
 
 void
@@ -506,7 +511,6 @@ ChromatogramWidgetImpl::removeData( int idx )
         peaks_.clear();
         baselines_.clear();
         annotation_markers_.clear();
-        // traces_[ idx ] = 
     }
 }
 
