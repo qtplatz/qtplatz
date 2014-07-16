@@ -208,6 +208,8 @@ MSReferenceTable::handleValueChanged( const QModelIndex& index )
         
         double mass = formula_parser.getMonoIsotopicMass( formula, adducts );
         model.setData( model.index( index.row(), c_exact_mass ), mass );
+        if ( index.row() == model.rowCount() - 1 )
+            model.insertRow( model.rowCount() );
     }
 }
 
@@ -235,8 +237,11 @@ MSReferenceTable::handleContextMenu(const QPoint &pt)
             }
         }
         , { menu.addAction("Delete line(s)"), [=](){ 
-                if ( indexAt( pt ).row() != model_->rowCount() - 1 ) // don't delete last line
-                    handleDeleteSelection(); 
+                handleDeleteSelection();
+                if ( model_->rowCount() == 0 || 
+                     !model_->index( model_->rowCount() - 1, c_formula ).data( Qt::EditRole ).toString().isEmpty() ) {
+                    model_->insertRow( model_->rowCount() );
+                }
             }
         }
     };
