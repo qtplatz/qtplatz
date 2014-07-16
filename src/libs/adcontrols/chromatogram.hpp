@@ -101,6 +101,9 @@ namespace adcontrols {
         size_t eventsCount() const;
         const Event& getEvent( size_t idx ) const;
 
+        void setFcn( int );
+        int fcn() const;
+
         void setIntensity( size_t idx, double );
         void setTime( size_t idx, double );
         void setIntensityArray( const double * );

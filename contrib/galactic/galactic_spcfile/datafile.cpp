@@ -116,7 +116,7 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
 
 //virtual
 bool
-datafile::getSpectrum( int /* fcn*/, int idx, adcontrols::MassSpectrum& ms, uint32_t /* objid */) const
+datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, uint32_t /* objid */) const
 {
     if ( unsigned( idx ) < spcfile_->number_of_subfiles() ) {
 

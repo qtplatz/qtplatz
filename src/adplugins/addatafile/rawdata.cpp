@@ -113,6 +113,7 @@ rawdata::loadAcquiredConf()
                         std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
                         cptr->addDescription( adcontrols::Description( L"create",  conf.trace_display_name ) );
                         accessor.copy_to( *cptr, fcn );
+                        cptr->setFcn( fcn );
                         tic_.push_back( cptr );
                         if ( const double * times = cptr->getTimeArray() ) {
                             for ( int i = 0; i < cptr->size(); ++i )
@@ -236,7 +237,7 @@ rawdata::getSpectrumCount( int fcn ) const
 }
 
 bool
-rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms, uint32_t objid ) const
+rawdata::getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
     auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
             if ( objid == 0 )
@@ -246,22 +247,25 @@ rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms, uint32_t o
         });
     if ( it == conf_.end() )
         return false;
-
-    uint64_t npos = npos0_ + idx;
-    typedef decltype(*fcnVec_.begin()) pos_type;
-
-    auto pos = std::lower_bound( fcnVec_.begin(), fcnVec_.end(), npos, [] ( const pos_type& a, size_t npos ){ return std::get<0>(a) < npos; } );
-    auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), npos, [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
-    while ( index != fcnIdx_.begin() && index->first > npos )
-        --index;
-    int rep = int( std::get<0>( *pos ) - index->first );
-    while ( index != fcnIdx_.begin() && index->second != 0 )
-        --index;
-
+    
     adcontrols::translate_state state;
-    if ( fcn < 0 ) { // read all protocols
-        while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id )) == adcontrols::translate_indeterminate )
-            ++index;
+    uint64_t npos = npos0_ + idx;
+
+    if ( fcn < 0 ) {
+        typedef decltype(*fcnVec_.begin()) pos_type;
+
+        auto pos = std::lower_bound( fcnVec_.begin(), fcnVec_.end(), npos, [] ( const pos_type& a, size_t npos ){ return std::get<0>( a ) < npos; } );
+        auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), npos, [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
+        while ( index != fcnIdx_.begin() && index->first > npos )
+            --index;
+        int rep = int( std::get<0>( *pos ) - index->first );
+        while ( index != fcnIdx_.begin() && index->second != 0 )
+            --index;
+
+        if ( fcn < 0 ) { // read all protocols
+            while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id )) == adcontrols::translate_indeterminate )
+                ++index;
+        }
     }
     else {
         state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos, ms, it->trace_id );
@@ -277,11 +281,42 @@ rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms, uint32_t o
     return state == adcontrols::translate_complete || state == adcontrols::translate_indeterminate;
 }
 
+size_t
+rawdata::make_pos( int idx, int fcn ) const
+{
+    int count = 0;
+    for ( auto it = fcnVec_.begin(); it != fcnVec_.end(); ++it ) {
+        if ( std::get<1>(*it) == fcn ) {
+            if ( ++count == idx ) {
+                return std::distance( fcnVec_.begin(), it );
+            }
+        }
+    }
+    return 0;
+}
+
+int
+rawdata::make_index( size_t pos, int& fcn ) const
+{
+    fcn = 0;
+    if ( pos < fcnVec_.size() ) {
+
+        fcn = std::get<1>( fcnVec_[ pos ] );
+
+        typedef decltype( *fcnVec_.begin() ) iterator;
+        auto idx = std::count_if( fcnVec_.begin(), fcnVec_.begin() + pos, [=] ( const iterator& v ){return std::get<1>( v ) == fcn; } );
+
+        return int( idx );
+    }
+    return 0;
+}
+
 bool
 rawdata::getTIC( int fcn, adcontrols::Chromatogram& c ) const
 {
     if ( tic_.size() > unsigned( fcn ) ) {
         c = *tic_[ fcn ];
+        c.setFcn( fcn );
         return true;
     }
     return false;

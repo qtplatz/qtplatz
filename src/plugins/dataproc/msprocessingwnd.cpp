@@ -65,6 +65,8 @@
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot_renderer.h>
+#include <qwt_plot_marker.h>
+#include <qwt_symbol.h>
 #include <qapplication.h>
 #include <qsvggenerator.h>
 #include <qprinter.h>
@@ -127,12 +129,56 @@ namespace dataproc {
             processedSpectrum_->setFocusedFcn( fcn );
         }
 
+        bool ticFinder( double x, int& index, int& fcn, double& minutes ) {
+
+            if ( checkedChromatograms_.empty() )
+                return false;
+
+            int traceId = -1;
+            index = -1;
+
+            double s = adcontrols::Chromatogram::toSeconds( x );
+            double t = std::numeric_limits<double>::max();
+            for ( auto& chro: checkedChromatograms_ ) {
+                if ( auto pchr = chro.second.lock() ) {
+                    const double * times = pchr->getTimeArray();
+                    int idx = int( std::distance( times, std::lower_bound( times, times + pchr->size(), s ) ) );
+                    if ( std::abs( t - s ) > std::abs( times[ idx ] - s ) ) {
+                        traceId = chro.first;
+                        index = idx;
+                        fcn = pchr->fcn();
+                        t = times[ idx ];
+                    }
+                }
+            }
+            minutes = adcontrols::Chromatogram::toMinutes( t );
+            return ( traceId >= 0 ) && ( index >= 0 );
+        }
+
+        bool ticTracker( const QPointF& pos, QwtText& text ) {
+            int fcn, index;
+            double minutes;
+            if ( ticFinder( pos.x(), index, fcn, minutes ) ) {
+                QString ammend = QString::fromStdString( ( boost::format("%d #%d") % index % fcn ).str() );
+                text.setText( QString( "%1 %2" ).arg( text.text() ).arg( ammend ), QwtText::RichText );
+            }
+            return true;
+        }
+
+        void clearChromatograms() {
+            checkedChromatograms_.clear();
+        }
+
+        void setCheckedChromatogram( std::shared_ptr< adcontrols::Chromatogram >& ptr, int idx ) {
+            checkedChromatograms_[ idx ] = ptr;
+        }
         adwplot::ChromatogramWidget * ticPlot_;
         adwplot::SpectrumWidget * profileSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
         adwplot::TraceWidget * pwplot_;
         std::shared_ptr< adwplot::PeakMarker > profile_marker_;
         std::shared_ptr< adwplot::PeakMarker > processed_marker_;
+        std::map< int, std::weak_ptr< adcontrols::Chromatogram > > checkedChromatograms_;
         bool is_time_axis_;
     };
 
@@ -155,6 +201,7 @@ MSProcessingWnd::init()
             pImpl_->ticPlot_->setMinimumHeight( 80 );
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnChromatogram( const QPointF& ) ) );
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnChromatogram( const QRectF& ) ) );
+            pImpl_->ticPlot_->register_tracker( [=]( const QPointF& pos, QwtText& text ){ return pImpl_->ticTracker( pos, text ); } );
         }
 	
         if ( ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
@@ -179,7 +226,6 @@ MSProcessingWnd::init()
             pImpl_->processed_marker_->visible( true );
             pImpl_->processed_marker_->setYAxis( QwtPlot::yLeft );
         }
- 
 		pImpl_->ticPlot_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
 		pImpl_->profileSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
 		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
@@ -523,6 +569,7 @@ MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::F
 	if ( !folder )
 		return;
     if ( folder.name() == L"Chromatograms" ) {
+        pImpl_->clearChromatograms();
         auto folio = folder.folio();
         int idx = 0;
         for ( auto& folium: folio ) {
@@ -530,7 +577,10 @@ MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::F
                 if ( folium.empty() )
                     processor->fetch( folium );
                 auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium );
+                pImpl_->setCheckedChromatogram( cptr, idx );
                 pImpl_->ticPlot_->setData( cptr, idx );
+            } else {
+                pImpl_->ticPlot_->removeData( idx );
             }
             ++idx;
         }
@@ -555,12 +605,27 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         typedef std::pair < QAction *, std::function<void()> > action_type;
         std::vector < action_type > actions;
 
-        actions.push_back( std::make_pair( menu.addAction( QString("Select a spectrum at %1 min").arg( rect.left() ) )
-            , [=] () { DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); } ) );
+        int index, fcn;
+        double minutes;
+        pImpl_->ticFinder( rect.left(), index, fcn, minutes );
+        
+        actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a part of spectrum @%.3fmin (%d/%d)") % minutes % index % fcn ).str().c_str() )
+                                           , [=] () {
+                                               DataprocPlugin::instance()->onSelectSpectrum( minutes, index, fcn );
+                                           } ) );
+        if ( index < 0 || fcn < 0 )
+            actions.back().first->setEnabled( false );
+
+        actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a spectrum @%.3f min" ) % rect.left() ).str().c_str() )
+                                           , [=] () {
+                                               DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
+                                           } ) );
 
         actions.push_back( std::make_pair( menu.addAction( QString("Copy image to clipboard" ) )
-                                           , [=] () { adwplot::Dataplot::copyToClipboard( pImpl_->ticPlot_ ); } ) );
-
+                                           , [=] () {
+                                               adwplot::Dataplot::copyToClipboard( pImpl_->ticPlot_ );
+                                           } ) );
+        
         actions.push_back( std::make_pair(
                                menu.addAction( QString("Save SVG File" ) )
                                , [=] () {
@@ -572,7 +637,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                                    if ( ! name.isEmpty() )
                                        adwplot::Dataplot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
                                }) );
-
+        
         QAction * selected = menu.exec( QCursor::pos() );
         if ( selected ) {
             auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );

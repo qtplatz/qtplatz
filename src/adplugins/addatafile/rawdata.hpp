@@ -56,9 +56,12 @@ namespace addatafile {
         size_t getSpectrumCount( int fcn = 0 ) const override;
         size_t getChromatogramCount() const override;
         bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
-        bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum&, uint32_t objId ) const override;
+        bool getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum&, uint32_t objId ) const override;
 		size_t posFromTime( double ) const override;
 		double timeFromPos( size_t ) const override;
+        size_t make_pos( int idx, int fcn ) const override;
+        int make_index( size_t pos, int& fcn ) const override;
+        
 		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
 			                         , std::vector< adcontrols::Chromatogram >&
 									 , std::function< bool (long curr, long total ) > progress

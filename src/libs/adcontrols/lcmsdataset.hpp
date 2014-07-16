@@ -48,9 +48,11 @@ namespace adcontrols {
         virtual size_t getSpectrumCount( int fcn ) const = 0;
         virtual size_t getChromatogramCount() const = 0;
         virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const = 0;
-        virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum&, uint32_t objid = 0 ) const = 0;
+        virtual bool getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum&, uint32_t objid = 0 ) const = 0;
 		virtual size_t posFromTime( double x ) const = 0;
         virtual double timeFromPos( size_t ) const = 0;
+        virtual size_t make_pos( int idx, int /* fcn */ ) const { return idx; }
+        virtual int /* idx */ make_index( size_t pos, int& fcn ) const { fcn = 0; return int(pos); }
 		virtual bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
 			                         , std::vector< adcontrols::Chromatogram >&
 									 , std::function< bool (long curr, long total ) > progress

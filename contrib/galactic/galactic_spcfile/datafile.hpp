@@ -56,7 +56,7 @@ namespace galactic {
 		virtual size_t getSpectrumCount( int fcn = 0 ) const override;
 		virtual size_t getChromatogramCount() const override;
 		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
-		virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum&, uint32_t objid ) const override;
+		virtual bool getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum&, uint32_t objid ) const override;
         virtual size_t posFromTime( double ) const override;
 		double timeFromPos( size_t ) const override;
 		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&

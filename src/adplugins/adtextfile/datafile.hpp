@@ -60,7 +60,7 @@ namespace adtextfile {
         virtual size_t getSpectrumCount( int fcn = 0 ) const;
         virtual size_t getChromatogramCount() const;
         virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
-        virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum&, uint32_t objid ) const;
+        virtual bool getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum&, uint32_t objid ) const;
 		virtual size_t posFromTime( double ) const;
 		double timeFromPos( size_t ) const;
 		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&

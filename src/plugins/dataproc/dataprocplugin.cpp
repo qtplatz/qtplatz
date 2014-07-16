@@ -331,6 +331,35 @@ DataprocPlugin::handle_folium_added( const QString fname, const QString path, co
 }
 
 void
+DataprocPlugin::onSelectSpectrum( double minutes, int index, int fcn )
+{
+	qtwrapper::waitCursor w;
+
+	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
+	if ( dp ) {
+		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
+			adcontrols::MassSpectrum ms;
+            try {
+                std::wostringstream text;
+                size_t pos = dset->make_pos( index, fcn );
+                if ( dset->getSpectrum( fcn, pos, ms ) ) {
+                    double t = dset->timeFromPos( pos ) / 60.0;
+                    if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
+                        t = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
+                    text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t << "min";
+                    adcontrols::ProcessMethod m;
+                    ms.addDescription( adcontrols::Description( L"create", text.str() ) );
+                    portfolio::Folium folium = dp->addSpectrum( ms, m );
+                }
+            }
+            catch ( ... ) {
+                QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
+            }
+        }
+    }
+}
+
+void
 DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
 	qtwrapper::waitCursor w;
@@ -342,13 +371,13 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
             size_t pos1 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x1 ) ); // min --> sec
             size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) ); // min --> sec
-			int pos = static_cast<int>(pos1);
-			double t1 = dset->timeFromPos( pos1 ) / 60.0; // to minuites
-			double t2 = dset->timeFromPos( pos2 ) / 60.0; // to minutes
+            int pos = static_cast<int>(pos1);
+            double t1 = adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos1 ) ); // to minuites
+            double t2 = adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos2 ) ); // to minutes
 
 			adcontrols::MassSpectrum ms;
             try {
-                if ( dset->getSpectrum( 0, pos++, ms ) ) {
+                if ( dset->getSpectrum( -1, pos++, ms ) ) {
                     if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
                         t1 = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
                 

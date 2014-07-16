@@ -29,6 +29,7 @@
 #include <adwplot/annotation.hpp>
 #include <adwplot/baseline.hpp>
 #include <adwplot/peak.hpp>
+#include <functional>
 
 namespace adcontrols {
     class Trace;
@@ -60,6 +61,7 @@ namespace adwplot {
 		void setData( const adcontrols::PeakResult& );
         void clear();
         void removeData( int idx, bool report = true );
+        void register_tracker( std::function< bool( const QPointF&, QwtText& ) > );
 
 	private:
         void setBaseline( const adcontrols::Baseline& );

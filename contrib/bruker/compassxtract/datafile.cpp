@@ -161,13 +161,13 @@ datafile::findObjId( const std::wstring& traceId ) const
 #endif
 //virtual
 bool
-datafile::getSpectrum( int fcn, int pos, adcontrols::MassSpectrum& ms, uint32_t objId ) const
+datafile::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objId ) const
 {
 	(void)fcn;
 
 	try {
 		EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
-		EDAL::IMSSpectrumPtr pSpectrum = pSpectra->GetItem( pos + 1 ); // 1-origin
+		EDAL::IMSSpectrumPtr pSpectrum = pSpectra->GetItem( long(pos) + 1 ); // 1-origin
 
 		if ( pSpectrum->Polarity == EDAL::SpectrumPolarity::IonPolarity_Negative )
 			ms.setPolarity( adcontrols::MS_POLARITY::PolarityNegative );

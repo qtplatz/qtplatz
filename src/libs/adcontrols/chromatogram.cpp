@@ -110,27 +110,31 @@ namespace adcontrols {
             double samplingInterval_;
             std::wstring axisLabelHorizontal_;
             std::wstring axisLabelVertical_;
+            int32_t fcn_;
 	   
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-		(void)version;
-		ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
-		    & BOOST_SERIALIZATION_NVP(isConstantSampling_)
-		    & BOOST_SERIALIZATION_NVP(timeRange_.first) 
-		    & BOOST_SERIALIZATION_NVP(timeRange_.second) 
-		    & BOOST_SERIALIZATION_NVP(dataDelayPoints_) 
-		    & BOOST_SERIALIZATION_NVP(descriptions_)
-		    & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
-		    & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
-		    & BOOST_SERIALIZATION_NVP(dataArray_) 
-		    & BOOST_SERIALIZATION_NVP(timeArray_) 
-		    & BOOST_SERIALIZATION_NVP(evntVec_) 
-		    & BOOST_SERIALIZATION_NVP(peaks_) 
-		    ;
+                ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
+                    & BOOST_SERIALIZATION_NVP(isConstantSampling_)
+                    & BOOST_SERIALIZATION_NVP(timeRange_.first) 
+                    & BOOST_SERIALIZATION_NVP(timeRange_.second) 
+                    & BOOST_SERIALIZATION_NVP(dataDelayPoints_) 
+                    & BOOST_SERIALIZATION_NVP(descriptions_)
+                    & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
+                    & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
+                    & BOOST_SERIALIZATION_NVP(dataArray_) 
+                    & BOOST_SERIALIZATION_NVP(timeArray_) 
+                    & BOOST_SERIALIZATION_NVP(evntVec_) 
+                    & BOOST_SERIALIZATION_NVP(peaks_) 
+                    ;
+                if ( version >= 2 ) 
+                    ar & BOOST_SERIALIZATION_NVP( fcn_ );
             }
         };
     }
 }
+
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 2 )
 
 ///////////////////////////////////////////
 
@@ -179,6 +183,19 @@ Chromatogram::toMinutes( const std::pair<seconds_t, seconds_t>& pair )
 }
 
 /////////////////
+
+void
+Chromatogram::setFcn( int fcn )
+{
+    pImpl_->fcn_ = fcn;
+}
+
+int
+Chromatogram::fcn() const
+{
+    return pImpl_->fcn_;
+}
+
 size_t
 Chromatogram::size() const
 {
@@ -520,6 +537,7 @@ ChromatogramImpl::~ChromatogramImpl()
 ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true) 
                                      , dataDelayPoints_(0)
                                      , samplingInterval_(0)
+                                     , fcn_(0)
 {
 }
 
@@ -534,6 +552,7 @@ ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSamp
                                                                 , samplingInterval_( t.samplingInterval_ )
                                                                 , axisLabelHorizontal_( t.axisLabelHorizontal_ )
                                                                 , axisLabelVertical_( t.axisLabelVertical_ )
+                                                                , fcn_( t.fcn_ )
 {
     descriptions_ = t.descriptions_;
 }

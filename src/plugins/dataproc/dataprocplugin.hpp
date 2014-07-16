@@ -75,6 +75,7 @@ namespace dataproc {
         
         void applyMethod( const adcontrols::ProcessMethod& );
         void onSelectTimeRangeOnChromatogram( double x1, double x2 );
+        void onSelectSpectrum( double minutes, int idx, int fcn );
         //void handleCreateChromatograms( const adcontrols::MassSpectrum&, double lMass, double hMass );
         DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
         dataproc::ActionManager * actionManager() { return pActionManager_.get(); }
@@ -113,7 +114,7 @@ namespace dataproc {
         
         bool connect_isnapshothandler_signals();
         void disconnect_isnapshothandler_signals();
-
+        
     };
 }
 

@@ -207,7 +207,7 @@ namespace adwplot {
             updateMarkers_visitor( QwtPlot * plot, const std::pair< double, double >& range ) : plot_( plot ), range_( range ) {}
             template<typename T> void operator()( T& t ) const { t.drawMarkers( plot_, range_ ); }
         };
-
+        
         class zoomer : public QwtPlotZoomer {
             zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
                 QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
@@ -229,18 +229,18 @@ namespace adwplot {
             }
             
         };
-
-
+        
     }
-
+    
     struct ChromatogramWidgetImpl : boost::noncopyable {
-
+        
         adcontrols::annotations peak_annotations_;
         std::vector< Annotation > annotation_markers_;
         
         std::vector< chromatogram_widget::trace_variant > traces_;
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;	
+        std::function< bool( const QPointF&, QwtText& ) > tracker_hook_;
         
         void clear();
         void removeData( int );
@@ -250,7 +250,7 @@ namespace adwplot {
         
         QwtText tracker1( const QPointF& );
         QwtText tracker2( const QPointF&, const QPointF& );
-
+        
     };
     
 }
@@ -265,31 +265,36 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 {
     setAxisTitle(QwtPlot::xBottom, QwtText( "Time[min]", QwtText::RichText ) );
     setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
-
+    
     // -----------
     QFont font;
     qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
     setAxisFont( QwtPlot::xBottom, font );
     setAxisFont( QwtPlot::yLeft, font );
-
+    
     if ( zoomer1_ ) {
         using namespace std::placeholders;
         zoomer1_->tracker1( std::bind( &ChromatogramWidgetImpl::tracker1, impl_, _1 ) );
         zoomer1_->tracker2( std::bind( &ChromatogramWidgetImpl::tracker2, impl_, _1, _2 ) );
-
+        
         connect( zoomer1_.get(), static_cast<void(Zoomer::*)(QRectF&)>(&Zoomer::zoom_override), this, &ChromatogramWidget::override_zoom_rect );
         connect( zoomer1_.get(), &Zoomer::zoomed, this, &ChromatogramWidget::zoomed );
 	}
-
+    
 	if ( picker_ ) {
 		// picker_->setStateMachine( new QwtPickerClickPointMachine() );
 		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QPointF& ) ), this, SLOT( selected( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
-
+        
         picker_->setEnabled( true );
 	}
+}
 
+void
+ChromatogramWidget::register_tracker( std::function< bool( const QPointF&, QwtText& ) > f )
+{
+    impl_->tracker_hook_ = f;
 }
 
 void
@@ -313,10 +318,10 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yaxis2 )
 
     if ( c.size() < 2 )
         return;
-
+    
     using adcontrols::Trace;
     using chromatogram_widget::TraceData;
-
+    
     while ( int( impl_->traces_.size() ) <= idx )
         impl_->traces_.push_back( TraceData<Trace>( *this ) );
     
@@ -356,23 +361,23 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
 
     using adcontrols::Chromatogram;
     using chromatogram_widget::ChromatogramData; // TraceData;
-
+    
     while ( int ( impl_->traces_.size() ) <= idx )
 		impl_->traces_.push_back( ChromatogramData( *this ) );        
-
+    
 	auto& trace = boost::get< ChromatogramData >(impl_->traces_[ idx ] );
-
+    
 	trace.plot_curve().setPen( QPen( chromatogram_widget::color_table[idx] ) ); 
     trace.setData( cp );
     
     impl_->peak_annotations_.clear();
     for ( auto& pk: cp->peaks() )
         setPeak( pk, impl_->peak_annotations_ );
-
+    
     impl_->peak_annotations_.sort();
-
+    
     plotAnnotations( impl_->peak_annotations_ );
-
+    
     QRectF rect = trace.boundingRect();
     std::pair< double, double > horizontal( std::make_pair( rect.left(), rect.right() ) );
     std::pair< double, double > vertical( std::make_pair( rect.bottom(), rect.top() ) );
@@ -387,7 +392,7 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
     double h = vertical.second - vertical.first;
     vertical.first -= h * 0.05;
     vertical.second += h * 0.10;
-
+    
     setAxisScale( QwtPlot::xBottom, horizontal.first, horizontal.second );
     setAxisScale( QwtPlot::yLeft, vertical.first, vertical.second );
     zoomer1_->setZoomBase();
@@ -401,7 +406,7 @@ ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 
 	for ( Baselines::vector_type::const_iterator it = r.baselines().begin(); it != r.baselines().end(); ++it )
 		setBaseline( *it );
-
+    
     impl_->peak_annotations_.clear();
 	for ( Peaks::vector_type::const_iterator it = r.peaks().begin(); it != r.peaks().end(); ++it )
 		setPeak( *it, impl_->peak_annotations_ );
@@ -413,16 +418,16 @@ void
 ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotations& vec )
 {
     double tR = adcontrols::timeutil::toMinutes( peak.peakTime() );
-
+    
     int pri = 0;
     std::wstring label = peak.name();
     if ( label.empty() )
         label = ( boost::wformat( L"%.3lf" ) % tR ).str();
     pri = label.empty() ? int( peak.topHeight() ) : int( peak.topHeight() ) + 0x3fffffff;
-
+    
     adcontrols::annotation annot( label, tR, peak.topHeight(), pri );
     vec << annot;
-
+    
     impl_->peaks_.push_back( adwplot::Peak( *this, peak ) );
 }
 
@@ -436,7 +441,7 @@ void
 ChromatogramWidget::plotAnnotations( const adcontrols::annotations& vec )
 {
     adwplot::Annotations w( *this, impl_->annotation_markers_ );
-
+    
     for ( auto& a: vec ) {
 		QwtText text( QString::fromStdString( a.text() ), QwtText::RichText );
         text.setColor( Qt::darkGreen );
@@ -459,7 +464,7 @@ ChromatogramWidget::zoomed( const QRectF& rect )
     chromatogram_widget::updateMarkers_visitor drawMarker( this, range );
     for ( auto& trace : impl_->traces_ )
         boost::apply_visitor( drawMarker, trace );
-
+    
     adcontrols::annotations vec;
     impl_->update_annotations( range, vec );
     vec.sort();
@@ -512,7 +517,7 @@ ChromatogramWidgetImpl::clear_annotations()
 }
 
 void
-ChromatogramWidgetImpl::update_markers( const std::pair<double, double>& range ) const
+ChromatogramWidgetImpl::update_markers( const std::pair<double, double>& ) const
 {
 }
 
@@ -527,28 +532,40 @@ ChromatogramWidgetImpl::update_annotations( const std::pair<double, double>& ran
     auto end = std::lower_bound( peaks.begin(), peaks.end(), range.second, [=]( const adcontrols::annotation& a, double rhs ){
             return a.x() < rhs;
         });
-
+    
     std::for_each( beg, end, [&]( const adcontrols::annotation& a ){
             vec << a;
         });
-
+    
     vec.sort();
 }
 
 QwtText
 ChromatogramWidgetImpl::tracker1( const QPointF& pos )
 {
-    return QwtText( (boost::format("%.3fmin, %.1f") % pos.x() % pos.y() ).str().c_str(), QwtText::RichText );
+    QwtText text = QwtText( (boost::format("%.3fmin, %.1f") % pos.x() % pos.y() ).str().c_str(), QwtText::RichText );
+
+    if ( tracker_hook_ && tracker_hook_( pos, text ) )
+        return text;
+
+    return text;
 }
 
 QwtText
 ChromatogramWidgetImpl::tracker2( const QPointF& p1, const QPointF& pos )
 {
+    QwtText text;
+
     double d = ( pos.x() - p1.x() );
     if ( std::abs( d ) < 1.0 )
-        return QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>s</i>),%.1f") % pos.x() % (d * 60.0) % pos.y() ).str().c_str(), QwtText::RichText );
+        text = QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>s</i>),%.1f") % pos.x() % (d * 60.0) % pos.y() ).str().c_str(), QwtText::RichText );
     else
-        return QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>min</i>),%.1f") % pos.x() % d % pos.y() ).str().c_str(), QwtText::RichText );
+        text = QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>min</i>),%.1f") % pos.x() % d % pos.y() ).str().c_str(), QwtText::RichText );
+
+    if ( tracker_hook_ && tracker_hook_( pos, text ) )
+        return text;
+
+    return text;
 }
 
 
