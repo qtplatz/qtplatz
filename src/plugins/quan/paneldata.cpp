@@ -22,37 +22,29 @@
 **
 **************************************************************************/
 
-#include "quanmode.hpp"
-#include "quanconstants.hpp"
-#include <coreplugin/editormanager/editormanager.h>
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
-#include <coreplugin/modemanager.h>
-#include <coreplugin/editormanager/ieditor.h>
+#include "paneldata.hpp"
 
 using namespace quan;
 
-QuanMode::QuanMode(QObject *parent) : Core::BaseMode(parent)
+PanelData::PanelData() : widget_(0)
 {
-    setName(tr("Quan"));
-    setUniqueModeName( quan::Constants::C_QUAN_MODE );
-    setIcon(QIcon(":/quan/images/balance.png"));
-    setPriority( 60 );
-}
-
-QuanMode::~QuanMode()
-{
-    Core::EditorManager::instance()->setParent(0);
 }
 
 void
-QuanMode::grabEditorManager(Core::IMode *mode)
+PanelData::setDisplayName( const QString& v )
 {
-    if (mode != this)
-        return;
-
-    Core::EditorManager * em = Core::EditorManager::instance();
-    
-    if ( em->currentEditor() )
-        em->currentEditor()->widget()->setFocus();
+    displayName_ = v;
 }
+
+void
+PanelData::setIcon( const QIcon& icon )
+{
+    icon_ = icon;
+}
+
+void
+PanelData::setWidget( QWidget * w )
+{
+    widget_ = w;
+}
+

@@ -11,14 +11,22 @@ INCLUDEPATH *= $$OUT_PWD/../../libs
 SOURCES += quanplugin.cpp \
     mainwindow.cpp \
     quanmode.cpp \
-    quandocument.cpp
+    quandocument.cpp \
+    broadtabwidget.cpp \
+    panelswidget.cpp \
+    paneldata.cpp \
+    doubletabwidget.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
         quanconstants.hpp \
     mainwindow.hpp \
     quanmode.hpp \
-    quandocument.hpp
+    quandocument.hpp \
+    broadtabwidget.hpp \
+    panelswidget.hpp \
+    paneldata.hpp \
+    doubletabwidget.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \
@@ -47,3 +55,6 @@ macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
 
 RESOURCES += \
     quan.qrc
+
+FORMS += \
+    doubletabwidget.ui

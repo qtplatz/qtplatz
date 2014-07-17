@@ -24,6 +24,9 @@
 
 #include "mainwindow.hpp"
 #include "quanconstants.hpp"
+#include "doubletabwidget.hpp"
+#include "panelswidget.hpp"
+#include "paneldata.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/profile.hpp>
@@ -40,6 +43,7 @@
 
 #include <QFileDialog>
 #include <QLineEdit>
+#include <QStackedWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QToolButton>
@@ -60,18 +64,52 @@ MainWindow::~MainWindow()
 {
 }
 
-MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
+MainWindow::MainWindow(QWidget *parent) : QWidget( parent ) // Utils::FancyMainWindow(parent)
 {
 }
 
 QWidget *
 MainWindow::createContents( Core::IMode * mode )
 {
+    //QWidget * centralWidget = new QWidget;
+    //setCentralWidget( centralWidget );
+
+    QVBoxLayout * viewLayout = new QVBoxLayout( this );
+    viewLayout->setMargin(0);
+    viewLayout->setSpacing(0);
+    
+    auto tabWidget = new DoubleTabWidget( this );
+    QStringList tabs;
+    tabs << "Sub1" << "Sub2";
+    tabWidget->addTab( "Tab1", "Tab1 fullname", tabs );
+    tabs << "Sub3" << "Sub4";
+    tabWidget->addTab( "TabA", "TabA fullname", tabs );
+
+    viewLayout->addWidget( tabWidget );
+
+    auto stack = new QStackedWidget;
+    viewLayout->addWidget( stack );
+    // connect( tabWidget, DoubleTabWidget::currentIndexChanged, this, MainWindow::showProperties );
+
+    if ( auto panels = new PanelsWidget( stack ) ) {
+        auto panel = std::make_shared< PanelData >();
+        panel->setDisplayName( "Panel" );
+        panel->setWidget( new QTextEdit );
+        panel->setIcon( QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) ) );
+        panels->addPanel( panel.get() );
+
+        stack->addWidget( panel->widget() );
+        stack->setCurrentWidget( panel->widget() );
+    }
+    
+    return this;
+#if 0
     setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::East );
     setDocumentMode( true );
     setDockNestingEnabled( true );
 
     QBoxLayout * editorHolderLayout = new QVBoxLayout;
+
 	editorHolderLayout->setMargin( 0 );
 	editorHolderLayout->setSpacing( 0 );
 	    
@@ -128,8 +166,9 @@ MainWindow::createContents( Core::IMode * mode )
     }
 
     createDockWidgets();
-
 	return splitter;
+#endif
+
 }
 
 Utils::StyledBar *
@@ -216,6 +255,7 @@ MainWindow::createDockWidgets()
 QDockWidget *
 MainWindow::createDockWidget( QWidget * widget, const QString& title )
 {
+#if 0
     QDockWidget * dockWidget = addDockForWidget( widget );
 
     dockWidget->setObjectName( widget->objectName() );
@@ -227,33 +267,13 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
     addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
 
     return dockWidget;
+#endif
+    return 0;
 }
 
 void
 MainWindow::setSimpleDockWidgetArrangement()
 {
-    qtwrapper::TrackingEnabled< Utils::FancyMainWindow > x( *this );
-
-    QList< QDockWidget *> widgets = dockWidgets();
-
-    for ( auto widget: widgets ) {
-        widget->setFloating( false );
-        removeDockWidget( widget );
-    }
-  
-    size_t npos = 0;
-    for ( auto widget: widgets ) {
-        addDockWidget( Qt::BottomDockWidgetArea, widget );
-        widget->show();
-        if ( npos++ >= 2 )
-            tabifyDockWidget( widgets[1], widget );
-    }
-	// widgets[1]->raise();
-
-    // QDockWidget * toolBarDock = toolBarDockWidget();
-    // if ( toolBarDock )
-    //     toolBarDock->show();
-    update();
 }
 
 // static

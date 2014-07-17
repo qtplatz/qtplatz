@@ -25,7 +25,8 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
-#include <utils/fancymainwindow.h>
+//#include <utils/fancymainwindow.h>
+#include <QWidget>
 #include <memory>
 #include <array>
 
@@ -37,10 +38,11 @@ namespace adcontrols { class ChemicalFormula; }
 class QToolButton;
 class QAction;
 class QLineEdit;
+class QDockWidget;
 
 namespace quan {
 
-    class MainWindow : public Utils::FancyMainWindow {
+    class MainWindow : QWidget { // public Utils::FancyMainWindow {
         Q_OBJECT
     public:
         explicit MainWindow(QWidget *parent = 0);

@@ -22,37 +22,34 @@
 **
 **************************************************************************/
 
-#include "quanmode.hpp"
-#include "quanconstants.hpp"
-#include <coreplugin/editormanager/editormanager.h>
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
-#include <coreplugin/modemanager.h>
-#include <coreplugin/editormanager/ieditor.h>
+#ifndef PANELDATA_HPP
+#define PANELDATA_HPP
 
-using namespace quan;
+#include <memory>
+#include <QString>
+#include <QIcon>
 
-QuanMode::QuanMode(QObject *parent) : Core::BaseMode(parent)
-{
-    setName(tr("Quan"));
-    setUniqueModeName( quan::Constants::C_QUAN_MODE );
-    setIcon(QIcon(":/quan/images/balance.png"));
-    setPriority( 60 );
+class QWidget;
+
+namespace quan {
+
+    // may be inherit from iPanelData with extensionsystem
+    class PanelData : public std::enable_shared_from_this< PanelData > {
+    public:
+        PanelData();
+        QIcon icon() const { return icon_; }
+        QWidget * widget() const { return widget_; }
+        const QString& displayName() const { return displayName_; }
+
+        void setDisplayName( const QString& );
+        void setIcon( const QIcon& );
+        void setWidget( QWidget * );
+    private:
+        QString displayName_;
+        QWidget * widget_;
+        QIcon icon_;
+    };
+
 }
 
-QuanMode::~QuanMode()
-{
-    Core::EditorManager::instance()->setParent(0);
-}
-
-void
-QuanMode::grabEditorManager(Core::IMode *mode)
-{
-    if (mode != this)
-        return;
-
-    Core::EditorManager * em = Core::EditorManager::instance();
-    
-    if ( em->currentEditor() )
-        em->currentEditor()->widget()->setFocus();
-}
+#endif // PANELDATA_HPP

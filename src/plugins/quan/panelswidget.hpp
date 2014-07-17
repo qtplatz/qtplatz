@@ -22,37 +22,31 @@
 **
 **************************************************************************/
 
-#include "quanmode.hpp"
-#include "quanconstants.hpp"
-#include <coreplugin/editormanager/editormanager.h>
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
-#include <coreplugin/modemanager.h>
-#include <coreplugin/editormanager/ieditor.h>
+#ifndef PANELSWIDGET_HPP
+#define PANELSWIDGET_HPP
 
-using namespace quan;
+#include <QScrollArea>
+#include <QGridLayout>
+#include <vector>
+#include <memory>
 
-QuanMode::QuanMode(QObject *parent) : Core::BaseMode(parent)
-{
-    setName(tr("Quan"));
-    setUniqueModeName( quan::Constants::C_QUAN_MODE );
-    setIcon(QIcon(":/quan/images/balance.png"));
-    setPriority( 60 );
+namespace quan {
+
+    class PanelData;
+
+    class PanelsWidget : public QScrollArea  {
+        Q_OBJECT
+    public:
+        PanelsWidget( QWidget * parent );
+        ~PanelsWidget();
+        void addPanel( PanelData * );
+    private:
+        void addPanelWidget( PanelData *, int row );
+        std::vector< std::shared_ptr< PanelData > > panels_;
+        QGridLayout * layout_;
+        QWidget * root_;
+    };
+
 }
 
-QuanMode::~QuanMode()
-{
-    Core::EditorManager::instance()->setParent(0);
-}
-
-void
-QuanMode::grabEditorManager(Core::IMode *mode)
-{
-    if (mode != this)
-        return;
-
-    Core::EditorManager * em = Core::EditorManager::instance();
-    
-    if ( em->currentEditor() )
-        em->currentEditor()->widget()->setFocus();
-}
+#endif // PANELSWIDGET_HPP

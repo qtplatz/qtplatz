@@ -61,17 +61,15 @@ QuanPlugin::initialize(const QStringList &arguments, QString *errorString)
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
 
-    mainWindow_->activateWindow();
+    //mainWindow_->activateWindow();
     mainWindow_->createActions();
 
 	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
     mode_->setContext( gc );
-
-    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
-        mode_->setWidget( widget );
+    mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
 
     addObject( mode_.get() );
-
+    
     return true;
 }
 
