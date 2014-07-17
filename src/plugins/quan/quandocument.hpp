@@ -25,9 +25,14 @@
 #ifndef QUANDOCUMENT_HPP
 #define QUANDOCUMENT_HPP
 
+#include <memory>
 #include <mutex>
+#include <map>
+#include <vector>
 
 namespace quan {
+
+    class PanelData;
 
     class QuanDocument  {
         QuanDocument();
@@ -35,6 +40,15 @@ namespace quan {
         static std::mutex mutex_;
     public:
         static QuanDocument * instance();
+
+        PanelData * addPanel( int idx, int subIdx, std::shared_ptr< PanelData >& );
+        PanelData * findPanel( int idx, int subIdx, int pos );
+
+    private:
+        typedef std::vector< std::shared_ptr< PanelData > > page_type;
+        typedef std::map< int, page_type > chapter_type;
+
+        std::map< int, chapter_type > book_;
     };
 }
 

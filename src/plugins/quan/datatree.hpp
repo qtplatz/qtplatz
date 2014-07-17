@@ -22,50 +22,24 @@
 **
 **************************************************************************/
 
-#include "quandocument.hpp"
-#include "paneldata.hpp"
+#ifndef DATATREE_HPP
+#define DATATREE_HPP
 
-using namespace quan;
+#include <QTreeView>
 
-QuanDocument * QuanDocument::instance_ = 0;
-std::mutex QuanDocument::mutex_;
+namespace quan {
 
-QuanDocument::QuanDocument()
-{
+    class DataTree : public QTreeView {
+        Q_OBJECT
+    public:
+        explicit DataTree(QWidget *parent = 0);
+
+    signals:
+
+    public slots:
+
+    };
+
 }
 
-QuanDocument *
-QuanDocument::instance()
-{
-    if ( instance_ == 0 ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        if ( instance_ == 0 ) 
-            instance_ = new QuanDocument();
-    }
-    return instance_;
-}
-
-PanelData *
-QuanDocument::addPanel( int idx, int subIdx, std::shared_ptr< PanelData >& section )
-{
-    auto& a_chapter = book_[ idx ];
-    auto& a_page = a_chapter[ subIdx ];
-    a_page.push_back( section );
-    return findPanel( idx, subIdx, int( a_page.size() - 1 ) );
-    // return section.get();
-}
-
-PanelData *
-QuanDocument::findPanel( int idx, int subIdx, int pos )
-{
-    auto chapter = book_.find( idx );
-    if ( chapter != book_.end() ) {
-        auto page = chapter->second.find( subIdx );
-        if ( page != chapter->second.end() && page->second.size() > pos )
-            return page->second[ pos ].get();
-    }
-    return 0;
-}
-
-
-
+#endif // DATATREE_HPP

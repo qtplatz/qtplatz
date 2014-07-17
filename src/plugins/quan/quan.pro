@@ -14,7 +14,8 @@ SOURCES += quanplugin.cpp \
     quandocument.cpp \
     panelswidget.cpp \
     paneldata.cpp \
-    doubletabwidget.cpp
+    doubletabwidget.cpp \
+    datatree.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
@@ -24,7 +25,8 @@ HEADERS += quanplugin.hpp \
     quandocument.hpp \
     panelswidget.hpp \
     paneldata.hpp \
-    doubletabwidget.hpp
+    doubletabwidget.hpp \
+    datatree.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \

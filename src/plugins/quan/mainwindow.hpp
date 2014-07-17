@@ -61,6 +61,7 @@ namespace quan {
         void setSimpleDockWidgetArrangement();
         Utils::StyledBar * createTopStyledBar();
         Utils::StyledBar * createMidStyledBar();
+        QWidget * dataSelectionBar();
 
         QToolButton * toolButton( QAction * );
         QToolButton * toolButton( const char * );

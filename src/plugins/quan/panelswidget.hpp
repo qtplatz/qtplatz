@@ -40,6 +40,7 @@ namespace quan {
         PanelsWidget( QWidget * parent );
         ~PanelsWidget();
         void addPanel( PanelData * );
+        void addPanel( std::shared_ptr< PanelData >& );
     private:
         void addPanelWidget( PanelData *, int row );
         std::vector< std::shared_ptr< PanelData > > panels_;

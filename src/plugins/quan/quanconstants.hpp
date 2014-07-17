@@ -30,6 +30,7 @@ namespace Constants {
     const char ACTION_ID[] = "Quan.Action";
     const char MENU_ID[] = "Quan.Menu";
     const char * const C_QUAN_MODE   = "Quan.Mode";
+    const char * const FILE_OPEN     = "Quan.FileOpen";
 
     const int ICON_SIZE(64);
     

@@ -23,10 +23,12 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
-#include "quanconstants.hpp"
 #include "doubletabwidget.hpp"
 #include "panelswidget.hpp"
 #include "paneldata.hpp"
+#include "quanconstants.hpp"
+#include "quandocument.hpp"
+#include "datatree.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/profile.hpp>
@@ -87,32 +89,84 @@ MainWindow::createContents( Core::IMode * )
 
     viewLayout->addWidget( stack_ );
 
-    std::vector< std::shared_ptr< PanelData > > data;
-    data.push_back( std::make_shared< PanelData >( "Configuration"
-                                                   , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
-                                                   , new QLabel ) );
+    auto doc = QuanDocument::instance();
 
-    data.push_back( std::make_shared< PanelData >( "Select Data"
-                                                   , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
-                                                   , new QTextEdit ) );
-
-    data.push_back( std::make_shared< PanelData >( "Compounds"
-                                                   , QIcon( QLatin1String( ":/quan/images/unconfigured.png" ) )
-                                                   , new QLabel ) );
-
-    data.push_back( std::make_shared< PanelData >( "Reports"
-                                                   , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
-                                                   , new QTextEdit ) );
-
-    for ( auto& d: data ) {
-        if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
-            panelsWidget->addPanel( d.get() );
-            stack_->addWidget( panelsWidget );
-        }
+    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
+        auto panel = std::make_shared< PanelData >( "Configuration"
+                                                    , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
+                                                    , dataSelectionBar() );
+        panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
+        
+        stack_->addWidget( panelsWidget );
     }
+
+    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
+        panelsWidget->addPanel( std::make_shared< PanelData >( "Select Data"
+            , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
+            , dataSelectionBar() ) );
+        //panelsWidget->addPanel( std::make_shared< PanelData >( "Data Summary", QIcon(), new DataTree ) );
+
+        stack_->addWidget( panelsWidget );
+    }
+
+    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {    
+        auto data = std::make_shared< PanelData >( "Compounds"
+                                                   , QIcon( QLatin1String( ":/quan/images/unconfigured.png" ) )
+                                                   , new QLabel );
+        panelsWidget->addPanel( data.get() );
+        stack_->addWidget( panelsWidget );        
+    }
+
+    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {        
+        auto data = std::make_shared< PanelData >( "Reports"
+                                                   , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
+                                                   , new QTextEdit );
+        panelsWidget->addPanel( data.get() );
+        stack_->addWidget( panelsWidget );
+    }
+
     stack_->setCurrentIndex( 0 );
     
     return this;
+}
+
+QWidget *
+MainWindow::dataSelectionBar()
+{
+    //if ( Utils::StyledBar * toolBar = new Utils::StyledBar ) {
+    if ( auto toolBar = new QWidget ) {
+        // toolBar->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+
+        auto label = new QLabel;
+        label->setStyleSheet( "QLabel { color : blue; }" );
+        label->setText( "Open reference data (optional)" );
+        toolBarLayout->addWidget( label );
+
+        auto button = new QToolButton;
+        button->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
+        button->setToolTip( tr("Open data file...") );
+        toolBarLayout->addWidget( button );
+        
+        auto edit = new QLineEdit;
+        toolBarLayout->addWidget( edit );
+
+        connect( button, &QToolButton::clicked, this, [&] ( bool ){
+                auto doc = QuanDocument::instance();
+                if ( auto section = doc->findPanel( 0, 0, 0 ) ) {
+                    QString name = QFileDialog::getOpenFileName( this, tr("Open data file")
+                                                                 , adportable::profile::user_data_dir<char>().c_str()
+                                                                 , tr("Data Files(*.adfs *.csv *.txt *.spc)") );
+                    if ( auto edit = section->widget()->findChild< QLineEdit * >() )
+                        edit->setText( name );
+                }
+        } );
+
+        return toolBar;
+    }
+    return 0;
 }
 
 Utils::StyledBar *
@@ -195,6 +249,7 @@ MainWindow::createActions()
 void
 MainWindow::handleIndexChanged( int index, int subIndex )
 {
+    (void)index;
     if ( stack_ )
         stack_->setCurrentIndex( subIndex );
 }

@@ -46,5 +46,7 @@
         <file>images/targetunselected.png</file>
         <file>images/unconfigured.png</file>
         <file>images/window.png</file>
+        <file>images/fileopen.png</file>
+        <file>images/filesave.png</file>
     </qresource>
 </RCC>

@@ -42,10 +42,8 @@ namespace quan {
             QWidget::paintEvent(e);
 
             QPainter painter(this);
-            QColor light = Utils::StyleHelper::mergedColors(
-                palette().button().color(), Qt::white, 30);
-            QColor dark = Utils::StyleHelper::mergedColors(
-                palette().button().color(), Qt::black, 85);
+            QColor light = Utils::StyleHelper::mergedColors( palette().button().color(), Qt::white, 30);
+            QColor dark = Utils::StyleHelper::mergedColors( palette().button().color(), Qt::black, 85);
 
             painter.setPen(light);
             painter.drawLine(rect().topRight(), rect().bottomRight());
@@ -65,8 +63,7 @@ namespace quan {
         void paintEvent(QPaintEvent *e) {
             Q_UNUSED(e);
             QPainter p(this);
-            QColor fillColor = Utils::StyleHelper::mergedColors(
-                palette().button().color(), Qt::black, 80);
+            QColor fillColor = Utils::StyleHelper::mergedColors( palette().button().color(), Qt::darkBlue, 80);
             p.fillRect(contentsRect(), fillColor);
         }
     };
@@ -80,8 +77,8 @@ PanelsWidget::PanelsWidget( QWidget * parent ) : QScrollArea( parent )
 {
     // We want a 900px wide widget with and the scrollbar at the
     // side of the screen.
-    root_->setMaximumWidth(900);
-    root_->setContentsMargins(0, 0, 40, 0);
+    root_->setMaximumWidth( 900 );
+    root_->setContentsMargins( 0, 0, 40, 0 );
 
     QPalette pal;
     QColor background = Utils::StyleHelper::mergedColors( palette().window().color(), Qt::white, 85);
@@ -99,8 +96,7 @@ PanelsWidget::PanelsWidget( QWidget * parent ) : QScrollArea( parent )
     layout_->setColumnMinimumWidth(0, Constants::ICON_SIZE + 4);
     layout_->setSpacing(0);
     topLayout->addLayout(layout_);
-    topLayout->addStretch(100);
-
+    topLayout->addStretch( 1 );
     setWidget(root_);
     setFrameStyle(QFrame::NoFrame);
     setWidgetResizable(true);
@@ -125,6 +121,12 @@ PanelsWidget::~PanelsWidget()
 //  * +--------+-------------------------------------------+ BELOW_CONTENTS_MARGIN
 //  */
 void
+PanelsWidget::addPanel( std::shared_ptr< PanelData >& panel )
+{
+    addPanel( panel.get() );
+}
+
+void
 PanelsWidget::addPanel( PanelData *panel )
 {
     const int headerRow = layout_->rowCount();
@@ -133,8 +135,8 @@ PanelsWidget::addPanel( PanelData *panel )
     if (!panel->icon().isNull()) {
         QLabel *iconLabel = new QLabel(root_);
         iconLabel->setPixmap( panel->icon().pixmap( Constants::ICON_SIZE, Constants::ICON_SIZE ) );
-        iconLabel->setContentsMargins(0, Constants::ABOVE_HEADING_MARGIN, 0, 0);
-        layout_->addWidget(iconLabel, headerRow, 0, 3, 1, Qt::AlignTop | Qt::AlignHCenter);
+        iconLabel->setContentsMargins( 0, Constants::ABOVE_HEADING_MARGIN, 0, 0 );
+        layout_->addWidget( iconLabel, headerRow, 0, /*rowSpan=*/3, /*colSpan=*/1, Qt::AlignTop | Qt::AlignHCenter );
     }
 
     // name:
@@ -170,7 +172,8 @@ PanelsWidget::addPanelWidget(PanelData *panel, int row)
     if ( QWidget *widget = panel->widget() ) {
         widget->setContentsMargins( Constants::PANEL_LEFT_MARGIN, Constants::ABOVE_CONTENTS_MARGIN, 0, Constants::BELOW_CONTENTS_MARGIN );
         widget->setParent( root_ );
-        layout_->addWidget( widget, row, 0, 1, 2 );
+        //layout_->addWidget( widget, row, 0, 1, 2 );
+        layout_->addWidget( widget, row, 0, -1, -1 );
     }
     panels_.push_back( panel->shared_from_this() );
 }
