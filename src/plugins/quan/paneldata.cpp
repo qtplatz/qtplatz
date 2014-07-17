@@ -30,6 +30,14 @@ PanelData::PanelData() : widget_(0)
 {
 }
 
+PanelData::PanelData( const QString& displayName
+                      , const QIcon& icon
+                      , QWidget * widget ) : displayName_( displayName )
+                                           , icon_(icon)
+                                           , widget_(widget)
+{
+}
+
 void
 PanelData::setDisplayName( const QString& v )
 {

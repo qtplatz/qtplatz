@@ -31,10 +31,11 @@ namespace Constants {
     const char MENU_ID[] = "Quan.Menu";
     const char * const C_QUAN_MODE   = "Quan.Mode";
 
-    const int ICON_SIZE = 64;
-    const int ABOVE_HEADING_MARGIN = 10;
-    const int ABOVE_CONTENTS_MARGIN = 10;
-    const int BELOW_CONTENTS_MARGIN = 10;
+    const int ICON_SIZE(64);
+    
+    const int ABOVE_HEADING_MARGIN(10);
+    const int ABOVE_CONTENTS_MARGIN(4);
+    const int BELOW_CONTENTS_MARGIN(16);
     const int PANEL_LEFT_MARGIN = 70;
 
 } // namespace quan

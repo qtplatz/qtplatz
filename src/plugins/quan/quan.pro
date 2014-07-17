@@ -12,7 +12,6 @@ SOURCES += quanplugin.cpp \
     mainwindow.cpp \
     quanmode.cpp \
     quandocument.cpp \
-    broadtabwidget.cpp \
     panelswidget.cpp \
     paneldata.cpp \
     doubletabwidget.cpp
@@ -23,7 +22,6 @@ HEADERS += quanplugin.hpp \
     mainwindow.hpp \
     quanmode.hpp \
     quandocument.hpp \
-    broadtabwidget.hpp \
     panelswidget.hpp \
     paneldata.hpp \
     doubletabwidget.hpp

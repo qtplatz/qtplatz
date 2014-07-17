@@ -43,16 +43,15 @@
 using namespace quan;
 
 QuanPlugin::QuanPlugin() : mainWindow_( new MainWindow() )
-                         , mode_( std::make_shared< QuanMode >( this ) )
+                         , mode_( std::make_shared<QuanMode>( this ) )
 {
-    // Create your members
 }
 
 QuanPlugin::~QuanPlugin()
 {
-	if ( mode_ )
+    if ( mode_ )
         removeObject( mode_.get() );
-    delete mainWindow_;
+    // mainWindow has been deleted at BaseMode dtor
 }
 
 bool

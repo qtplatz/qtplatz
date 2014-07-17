@@ -39,10 +39,11 @@ class QToolButton;
 class QAction;
 class QLineEdit;
 class QDockWidget;
+class QStackedWidget;
 
 namespace quan {
 
-    class MainWindow : QWidget { // public Utils::FancyMainWindow {
+    class MainWindow : public QWidget { // public Utils::FancyMainWindow {
         Q_OBJECT
     public:
         explicit MainWindow(QWidget *parent = 0);
@@ -54,6 +55,7 @@ namespace quan {
         void onInitialUpdate();
 
     private:
+        QStackedWidget * stack_;
         void createDockWidgets();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
         void setSimpleDockWidgetArrangement();
@@ -63,6 +65,8 @@ namespace quan {
         QToolButton * toolButton( QAction * );
         QToolButton * toolButton( const char * );
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
+
+        void handleIndexChanged( int index, int subIndex );
 
     signals:
 

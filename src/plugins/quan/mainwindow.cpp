@@ -31,6 +31,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/profile.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/minisplitter.h>
@@ -65,110 +66,53 @@ MainWindow::~MainWindow()
 }
 
 MainWindow::MainWindow(QWidget *parent) : QWidget( parent ) // Utils::FancyMainWindow(parent)
+                                        , stack_( new QStackedWidget )
 {
 }
 
 QWidget *
-MainWindow::createContents( Core::IMode * mode )
+MainWindow::createContents( Core::IMode * )
 {
-    //QWidget * centralWidget = new QWidget;
-    //setCentralWidget( centralWidget );
-
     QVBoxLayout * viewLayout = new QVBoxLayout( this );
     viewLayout->setMargin(0);
     viewLayout->setSpacing(0);
     
     auto tabWidget = new DoubleTabWidget( this );
-    QStringList tabs;
-    tabs << "Sub1" << "Sub2";
-    tabWidget->addTab( "Tab1", "Tab1 fullname", tabs );
-    tabs << "Sub3" << "Sub4";
-    tabWidget->addTab( "TabA", "TabA fullname", tabs );
 
+    connect( tabWidget, &DoubleTabWidget::currentIndexChanged, this, &MainWindow::handleIndexChanged );
+
+    tabWidget->addTab( "Quan", "", QStringList() << "Configuration" << "Select Data" << "Compounds" << "Reports");
     viewLayout->addWidget( tabWidget );
+    tabWidget->setCurrentIndex( 0 );
 
-    auto stack = new QStackedWidget;
-    viewLayout->addWidget( stack );
-    // connect( tabWidget, DoubleTabWidget::currentIndexChanged, this, MainWindow::showProperties );
+    viewLayout->addWidget( stack_ );
 
-    if ( auto panels = new PanelsWidget( stack ) ) {
-        auto panel = std::make_shared< PanelData >();
-        panel->setDisplayName( "Panel" );
-        panel->setWidget( new QTextEdit );
-        panel->setIcon( QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) ) );
-        panels->addPanel( panel.get() );
+    std::vector< std::shared_ptr< PanelData > > data;
+    data.push_back( std::make_shared< PanelData >( "Configuration"
+                                                   , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
+                                                   , new QLabel ) );
 
-        stack->addWidget( panel->widget() );
-        stack->setCurrentWidget( panel->widget() );
-    }
-    
-    return this;
-#if 0
-    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::East );
-    setDocumentMode( true );
-    setDockNestingEnabled( true );
+    data.push_back( std::make_shared< PanelData >( "Select Data"
+                                                   , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
+                                                   , new QTextEdit ) );
 
-    QBoxLayout * editorHolderLayout = new QVBoxLayout;
+    data.push_back( std::make_shared< PanelData >( "Compounds"
+                                                   , QIcon( QLatin1String( ":/quan/images/unconfigured.png" ) )
+                                                   , new QLabel ) );
 
-	editorHolderLayout->setMargin( 0 );
-	editorHolderLayout->setSpacing( 0 );
-	    
-    if ( QWidget * editorWidget = new QWidget ) {
+    data.push_back( std::make_shared< PanelData >( "Reports"
+                                                   , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
+                                                   , new QTextEdit ) );
 
-        editorWidget->setLayout( editorHolderLayout );
-        editorHolderLayout->addWidget( new QTextEdit() );
-
-        Utils::StyledBar * toolBar1 = createTopStyledBar();
-        Utils::StyledBar * toolBar2 = createMidStyledBar();
-        
-        //---------- central widget ------------
-        QWidget * centralWidget = new QWidget;
-        if ( centralWidget ) {
-            setCentralWidget( centralWidget );
-            
-            QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-            centralWidget->setLayout( centralLayout );
-            centralLayout->setMargin( 0 );
-            centralLayout->setSpacing( 0 );
-            // ----------------- top tool bar -------------------
-            centralLayout->addWidget( toolBar1 );              // [1]
-            // ----------------------------------------------------
-            
-            centralLayout->addWidget( editorWidget ); // [0]
-            centralLayout->setStretch( 0, 1 );
-            centralLayout->setStretch( 1, 0 );
-            
-            // ----------------- mid tool bar -------------------
-            centralLayout->addWidget( toolBar2 );              // [1]
+    for ( auto& d: data ) {
+        if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
+            panelsWidget->addPanel( d.get() );
+            stack_->addWidget( panelsWidget );
         }
     }
-
-	// Right-side window with editor, output etc.
-	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-    if ( mainWindowSplitter ) {
-        QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
-        outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
-        mainWindowSplitter->addWidget( this );
-        mainWindowSplitter->addWidget( outputPane );
-        mainWindowSplitter->setStretchFactor( 0, 10 );
-        mainWindowSplitter->setStretchFactor( 1, 0 );
-        mainWindowSplitter->setOrientation( Qt::Vertical );
-    }
-
-	// Navigation and right-side window
-	Core::MiniSplitter * splitter = new Core::MiniSplitter;               // entier this view
-    if ( splitter ) {
-        splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) ); // navegate
-        splitter->addWidget( mainWindowSplitter );                            // *this + ontput
-        splitter->setStretchFactor( 0, 0 );
-        splitter->setStretchFactor( 1, 1 );
-        splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
-    }
-
-    createDockWidgets();
-	return splitter;
-#endif
-
+    stack_->setCurrentIndex( 0 );
+    
+    return this;
 }
 
 Utils::StyledBar *
@@ -195,84 +139,8 @@ MainWindow::createTopStyledBar()
     return toolBar;
 }
 
-Utils::StyledBar *
-MainWindow::createMidStyledBar()
-{
-    if ( Utils::StyledBar * toolBar = new Utils::StyledBar ) {
-
-        toolBar->setProperty( "topBorder", true );
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin(0);
-        toolBarLayout->setSpacing(0);
-        Core::ActionManager * am = Core::ICore::instance()->actionManager();
-        if ( am ) {
-            // print, method file open & save buttons
-            //toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
-            //toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));
-            //toolBarLayout->addWidget(toolButton(am->command(Constants::FILE_OPEN)->action()));
-            //----------
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            //----------
-            QList<int> context;
-            context << Core::Constants::C_GLOBAL_ID;
-            
-            // QComboBox * features = new QComboBox;
-            // features->addItem( "Centroid" );
-            // features->addItem( "Isotope" );
-            // features->addItem( "Calibration" );
-            // features->addItem( "Find peaks" );
-            // toolBarLayout->addWidget( features );
-
-            //connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
-            //connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
-
-            //----------
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-
-            toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
-        }
-		return toolBar;
-    }
-    return 0;
-}
-
 void
 MainWindow::onInitialUpdate()
-{
-    setSimpleDockWidgetArrangement();
-}
-
-void
-MainWindow::createDockWidgets()
-{
-    createDockWidget( new QTextEdit(), "Sequence" );
-    // if ( QWidget * w = new DropTargetForm( this ) ) {
-    //     connect( w, SIGNAL( dropped( const QList<QString>& ) ), this, SLOT( handleDropped( const QList<QString>& ) ) );
-    //     createDockWidget( w, "Drop Target" );
-    // }
-}
-
-QDockWidget *
-MainWindow::createDockWidget( QWidget * widget, const QString& title )
-{
-#if 0
-    QDockWidget * dockWidget = addDockForWidget( widget );
-
-    dockWidget->setObjectName( widget->objectName() );
-    if ( title.isEmpty() )
-        dockWidget->setWindowTitle( widget->objectName() );
-    else
-        dockWidget->setWindowTitle( title );
-
-    addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
-
-    return dockWidget;
-#endif
-    return 0;
-}
-
-void
-MainWindow::setSimpleDockWidgetArrangement()
 {
 }
 
@@ -322,4 +190,11 @@ MainWindow::createActions()
 
         am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
     }
+}
+
+void
+MainWindow::handleIndexChanged( int index, int subIndex )
+{
+    if ( stack_ )
+        stack_->setCurrentIndex( subIndex );
 }

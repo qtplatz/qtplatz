@@ -42,7 +42,7 @@ QuanMode::QuanMode(QObject *parent) : Core::BaseMode(parent)
 
 QuanMode::~QuanMode()
 {
-    Core::EditorManager::instance()->setParent(0);
+    //will delete mainWindow at BaseMode baseclass DTOR
 }
 
 void

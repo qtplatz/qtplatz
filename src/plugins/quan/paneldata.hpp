@@ -37,6 +37,7 @@ namespace quan {
     class PanelData : public std::enable_shared_from_this< PanelData > {
     public:
         PanelData();
+        PanelData( const QString&, const QIcon& icon, QWidget * );
         QIcon icon() const { return icon_; }
         QWidget * widget() const { return widget_; }
         const QString& displayName() const { return displayName_; }
