@@ -22,24 +22,36 @@
 **
 **************************************************************************/
 
-#ifndef DATATREE_HPP
-#define DATATREE_HPP
+#ifndef DATASEQUENCEWIDGET_HPP
+#define DATASEQUENCEWIDGET_HPP
 
-#include <QTreeView>
+#include <QWidget>
+#include <memory>
+
+class QGridLayout;
 
 namespace quan {
 
-    class DataTree : public QTreeView {
+    class DataSequenceTree;
+
+    class DataSequenceWidget : public QWidget
+    {
         Q_OBJECT
     public:
-        explicit DataTree(QWidget *parent = 0);
+        explicit DataSequenceWidget( QWidget *parent = 0 );
+
+    private:
+        QGridLayout * layout_;
+        std::unique_ptr< DataSequenceTree > dataSequenceTree_;
+        QWidget * dataSelectionBar();
+
 
     signals:
 
-    public slots:
+    public slots :
 
     };
 
 }
 
-#endif // DATATREE_HPP
+#endif // DATASEQUENCEWIDGET_HPP

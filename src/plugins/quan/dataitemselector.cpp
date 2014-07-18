@@ -155,7 +155,7 @@ DataItemSelector::setRaw( QStandardItem * parent )
             parent->setColumnCount( 3 );
 
             for ( int fcn = 0; fcn < n; ++fcn )
-                model.setData( model.index( fcn, 0, parent->index() ), QString( "TIC.%1" ).arg( fcn + 1 ), Qt::EditRole );
+                model.setData( model.index( fcn, 0, parent->index() ), QString( "Raw trace %1" ).arg( fcn + 1 ), Qt::EditRole );
 
             if ( data->ms() ) {
                 adcontrols::segment_wrapper<> segs( *data->ms() );

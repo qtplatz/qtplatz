@@ -15,10 +15,15 @@ SOURCES += quanplugin.cpp \
     panelswidget.cpp \
     paneldata.cpp \
     doubletabwidget.cpp \
-    datatree.cpp \
     dataitemselector.cpp \
     dataselectionwidget.cpp \
-    dataselectionform.cpp
+    dataselectionform.cpp \
+    datasequencewidget.cpp \
+    datasequencetree.cpp \
+    compoundswidget.cpp \
+    compoundstable.cpp \
+    quanconfigform.cpp \
+    quanconfigwidget.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
@@ -29,10 +34,15 @@ HEADERS += quanplugin.hpp \
         panelswidget.hpp \
         paneldata.hpp \
         doubletabwidget.hpp \
-        datatree.hpp \
         dataitemselector.hpp \
         dataselectionwidget.hpp \
-        dataselectionform.hpp
+        dataselectionform.hpp \
+    datasequencewidget.hpp \
+    datasequencetree.hpp \
+    compoundswidget.hpp \
+    compoundstable.hpp \
+    quanconfigform.hpp \
+    quanconfigwidget.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \
@@ -65,4 +75,5 @@ RESOURCES += \
 
 FORMS += \
     doubletabwidget.ui \
-    dataselectionform.ui
+    dataselectionform.ui \
+    quanconfigform.ui

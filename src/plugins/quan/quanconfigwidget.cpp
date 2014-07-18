@@ -22,13 +22,11 @@
 **
 **************************************************************************/
 
-#include "dataselectionwidget.hpp"
-#include "dataitemselector.hpp"
-#include "dataselectionform.hpp"
+#include "quanconfigwidget.hpp"
+#include "quanconfigform.hpp"
 #include "quandocument.hpp"
 #include "paneldata.hpp"
 #include <adportable/profile.hpp>
-#include <adcontrols/datafile.hpp>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -38,13 +36,13 @@
 
 using namespace quan;
 
-DataSelectionWidget::~DataSelectionWidget()
+QuanConfigWidget::~QuanConfigWidget()
 {
 }
 
-DataSelectionWidget::DataSelectionWidget(QWidget *parent) :  QWidget(parent)
-                                                          , layout_( new QGridLayout )
-                                                          , dataItemSelector_( new DataItemSelector )
+QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
+                                                    , layout_( new QGridLayout )
+                                                    , form_( new QuanConfigForm )
 {
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
@@ -52,47 +50,57 @@ DataSelectionWidget::DataSelectionWidget(QWidget *parent) :  QWidget(parent)
     topLayout->addLayout( layout_ );
 
     const int row = layout_->rowCount();
-    layout_->addWidget( dataSelectionBar(), row, 0 );
-    layout_->addWidget( dataItemSelector_.get(), row + 1, 0 );
-    layout_->addWidget( new DataSelectionForm, row + 2, 0 );
+    layout_->addWidget( fileSelectionBar(), row, 0 );
+    layout_->addWidget( form_.get(), row + 1, 0 );
 }
 
 QWidget *
-DataSelectionWidget::dataSelectionBar()
+QuanConfigWidget::fileSelectionBar()
 {
     if ( auto toolBar = new QWidget ) {
-        // toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
 
         auto label = new QLabel;
         label->setStyleSheet( "QLabel { color : blue; }" );
-        label->setText( "Open reference data (optional)" );
+        label->setText( "Configuration" );
         toolBarLayout->addWidget( label );
 
-        auto button = new QToolButton;
-        button->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
-        button->setToolTip( tr("Open data file...") );
-        toolBarLayout->addWidget( button );
+        auto btnOpen = new QToolButton;
+        btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
+        btnOpen->setToolTip( tr("Open configuration...") );
+        toolBarLayout->addWidget( btnOpen );
+
+        auto btnSave = new QToolButton;
+        btnSave->setIcon( QIcon( ":/quan/images/filesave.png" ) );
+        btnSave->setToolTip( tr("Save configuration...") );
+        toolBarLayout->addWidget( btnSave );
         
         auto edit = new QLineEdit;
         toolBarLayout->addWidget( edit );
 
-        connect( button, &QToolButton::clicked, this, [&] ( bool ){
+        connect( btnOpen, &QToolButton::clicked, this, [&] ( bool ){
 
-                QString name = QFileDialog::getOpenFileName( this, tr("Open data file")
+                QString name = QFileDialog::getOpenFileName( this
+                                                             , tr("Open Quantitative analysis configuration file")
                                                              , adportable::profile::user_data_dir<char>().c_str()
-                                                             , tr("Data Files(*.adfs *.csv *.txt *.spc)") );
+                                                             , tr("File(*.adfs *.adxml)") );
                 if ( !name.isEmpty() ) {
                     if ( auto edit = findChild< QLineEdit * >() ) {
-                        std::shared_ptr< adcontrols::datafile > file( adcontrols::datafile::open( name.toStdWString(), true ) );
-                        if ( file ) {
-                            edit->setText( name );
-                            dataItemSelector_->setData( file );
-                        } else {
-                            QMessageBox::information( 0, "Open data file", "Can't open selected file" );
-                        }
+                        edit->setText( name );
+                    }
+                }
+            } );
+        
+        connect( btnSave, &QToolButton::clicked, this, [&] ( bool ){
+                
+                QString name = QFileDialog::getSaveFileName( this, tr("Save configuration")
+                                                             , adportable::profile::user_data_dir<char>().c_str()
+                                                             , tr("File(*.adfs *.adxml)") );
+                if ( !name.isEmpty() ) {
+                    if ( auto edit = findChild< QLineEdit * >() ) {
+                        edit->setText( name );
                     }
                 }
             } );

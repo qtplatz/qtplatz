@@ -22,10 +22,21 @@
 **
 **************************************************************************/
 
-#include "datatree.hpp"
+#ifndef COMPOUNDSWIDGET_HPP
+#define COMPOUNDSWIDGET_HPP
 
-using namespace quan;
+#include <QWidget>
 
-DataTree::DataTree(QWidget *parent) : QTreeView(parent)
+class CompoundsWidget : public QWidget
 {
-}
+    Q_OBJECT
+public:
+    explicit CompoundsWidget(QWidget *parent = 0);
+
+signals:
+
+public slots:
+
+};
+
+#endif // COMPOUNDSWIDGET_HPP

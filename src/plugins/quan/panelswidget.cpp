@@ -173,7 +173,7 @@ PanelsWidget::addPanelWidget(PanelData *panel, int row)
         widget->setContentsMargins( Constants::PANEL_LEFT_MARGIN, Constants::ABOVE_CONTENTS_MARGIN, 0, Constants::BELOW_CONTENTS_MARGIN );
         widget->setParent( root_ );
         //layout_->addWidget( widget, row, 0, 1, 2 );
-        layout_->addWidget( widget, row, 0, -1, -1 );
+        layout_->addWidget( widget, row, 0, 1, -1 );
     }
     panels_.push_back( panel->shared_from_this() );
 }

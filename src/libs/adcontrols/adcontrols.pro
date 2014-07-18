@@ -93,7 +93,8 @@ SOURCES += acceptor.cpp \
     spectrogram.cpp \
     targeting.cpp \
     logging_hook.cpp \
-    profile_time_array.cpp
+    profile_time_array.cpp \
+    quanmethod.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -174,7 +175,8 @@ HEADERS += acceptor.hpp \
     targeting.hpp \
     logging_hook.hpp \
     controlmethodaccerror.hpp \
-    profile_time_array.hpp
+    profile_time_array.hpp \
+    quanmethod.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 

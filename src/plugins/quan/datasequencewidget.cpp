@@ -22,13 +22,13 @@
 **
 **************************************************************************/
 
-#include "dataselectionwidget.hpp"
-#include "dataitemselector.hpp"
-#include "dataselectionform.hpp"
+#include "datasequencewidget.hpp"
+#include "datasequencetree.hpp"
 #include "quandocument.hpp"
 #include "paneldata.hpp"
 #include <adportable/profile.hpp>
 #include <adcontrols/datafile.hpp>
+#include <boost/filesystem.hpp>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -38,13 +38,9 @@
 
 using namespace quan;
 
-DataSelectionWidget::~DataSelectionWidget()
-{
-}
-
-DataSelectionWidget::DataSelectionWidget(QWidget *parent) :  QWidget(parent)
-                                                          , layout_( new QGridLayout )
-                                                          , dataItemSelector_( new DataItemSelector )
+DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
+                                                        , layout_( new QGridLayout )
+                                                        , dataSequenceTree_( new DataSequenceTree )
 {
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
@@ -53,22 +49,20 @@ DataSelectionWidget::DataSelectionWidget(QWidget *parent) :  QWidget(parent)
 
     const int row = layout_->rowCount();
     layout_->addWidget( dataSelectionBar(), row, 0 );
-    layout_->addWidget( dataItemSelector_.get(), row + 1, 0 );
-    layout_->addWidget( new DataSelectionForm, row + 2, 0 );
+    layout_->addWidget( dataSequenceTree_.get(), row + 1, 0 );
 }
 
 QWidget *
-DataSelectionWidget::dataSelectionBar()
+DataSequenceWidget::dataSelectionBar()
 {
     if ( auto toolBar = new QWidget ) {
-        // toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
 
         auto label = new QLabel;
         label->setStyleSheet( "QLabel { color : blue; }" );
-        label->setText( "Open reference data (optional)" );
+        label->setText( "Open data files" );
         toolBarLayout->addWidget( label );
 
         auto button = new QToolButton;
@@ -80,20 +74,16 @@ DataSelectionWidget::dataSelectionBar()
         toolBarLayout->addWidget( edit );
 
         connect( button, &QToolButton::clicked, this, [&] ( bool ){
+                boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
+                dir /= L"data";
 
-                QString name = QFileDialog::getOpenFileName( this, tr("Open data file")
-                                                             , adportable::profile::user_data_dir<char>().c_str()
-                                                             , tr("Data Files(*.adfs *.csv *.txt *.spc)") );
-                if ( !name.isEmpty() ) {
-                    if ( auto edit = findChild< QLineEdit * >() ) {
-                        std::shared_ptr< adcontrols::datafile > file( adcontrols::datafile::open( name.toStdWString(), true ) );
-                        if ( file ) {
-                            edit->setText( name );
-                            dataItemSelector_->setData( file );
-                        } else {
-                            QMessageBox::information( 0, "Open data file", "Can't open selected file" );
-                        }
-                    }
+                QFileDialog dlg( 0, tr("Open data file(s)"), QString::fromStdWString( dir.wstring() ) );
+                dlg.setNameFilter( tr("Data Files(*.adfs *.csv *.txt *.spc)") );
+                dlg.setFileMode( QFileDialog::ExistingFiles );
+
+                if ( dlg.exec() == QDialog::Accepted ) {
+                    auto result = dlg.selectedFiles();
+                    dataSequenceTree_->setData( result );
                 }
             } );
         

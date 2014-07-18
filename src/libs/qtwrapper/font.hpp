@@ -39,6 +39,7 @@ namespace qtwrapper {
         , fontAxisTitle
         , fontPlotTitle
         , fontPlotFooter
+        , fontForm
         , nbrFontFamily
     };
 

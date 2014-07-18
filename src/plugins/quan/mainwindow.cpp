@@ -28,7 +28,9 @@
 #include "paneldata.hpp"
 #include "quanconstants.hpp"
 #include "quandocument.hpp"
-#include "dataselectionwidget.hpp"
+//#include "dataselectionwidget.hpp"
+#include "quanconfigwidget.hpp"
+#include "datasequencewidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
@@ -68,7 +70,7 @@ MainWindow::~MainWindow()
 {
 }
 
-MainWindow::MainWindow(QWidget *parent) : QWidget( parent ) // Utils::FancyMainWindow(parent)
+MainWindow::MainWindow(QWidget *parent) : QWidget( parent )
                                         , stack_( new QStackedWidget )
 {
 }
@@ -84,7 +86,7 @@ MainWindow::createContents( Core::IMode * )
 
     connect( tabWidget, &DoubleTabWidget::currentIndexChanged, this, &MainWindow::handleIndexChanged );
 
-    tabWidget->addTab( "Quan", "", QStringList() << "Configuration" << "Select Data" << "Compounds" << "Reports");
+    tabWidget->addTab( "Quan", "", QStringList() << "Select Data" << "Compounds & Protocols" << "Reports");
     viewLayout->addWidget( tabWidget );
     tabWidget->setCurrentIndex( 0 );
 
@@ -95,21 +97,18 @@ MainWindow::createContents( Core::IMode * )
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
         auto panel = std::make_shared< PanelData >( "Configuration"
                                                     , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
-                                                    , new DataSelectionWidget );
+                                                    , new QuanConfigWidget );
         panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
-
+        
+        panel = std::make_shared< PanelData >( "Select Data"
+                                               , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
+                                               , new DataSequenceWidget );
+        
+        panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );        
+        
         stack_->addWidget( panelsWidget );
     }
-#if 0
-    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
-        panelsWidget->addPanel( std::make_shared< PanelData >( "Select Data"
-                                                               , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
-                                                               , dataSelectionBar() ) );
-        //panelsWidget->addPanel( std::make_shared< PanelData >( "Data Summary", QIcon(), new DataTree ) );
-
-        stack_->addWidget( panelsWidget );
-    }
-#endif
+    
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {    
         auto data = std::make_shared< PanelData >( "Compounds"
                                                    , QIcon( QLatin1String( ":/quan/images/unconfigured.png" ) )

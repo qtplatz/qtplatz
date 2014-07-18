@@ -55,6 +55,7 @@ namespace qtwrapper {
           , "Calibri" // fontAxisTitle
           , "Calibri" // fontPlotTitle
           , "Calibri" // fontPlotFooter
+          , "Calibri" // fontForm
         }
     };
 }
