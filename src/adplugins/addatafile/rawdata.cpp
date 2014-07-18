@@ -287,9 +287,8 @@ rawdata::make_pos( int idx, int fcn ) const
     int count = 0;
     for ( auto it = fcnVec_.begin(); it != fcnVec_.end(); ++it ) {
         if ( std::get<1>(*it) == fcn ) {
-            if ( ++count == idx ) {
+            if ( count++ == idx )
                 return std::distance( fcnVec_.begin(), it );
-            }
         }
     }
     return 0;

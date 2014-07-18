@@ -22,51 +22,36 @@
 **
 **************************************************************************/
 
-#ifndef MAINWINDOW_HPP
-#define MAINWINDOW_HPP
+#ifndef DATAITEMSELECTOR_HPP
+#define DATAITEMSELECTOR_HPP
 
-//#include <utils/fancymainwindow.h>
-#include <QWidget>
+#include <QTreeView>
 #include <memory>
-#include <array>
 
-namespace Core { class IMode; }
-namespace Utils { class StyledBar; }
-namespace adprot { class protein; class protfile; class protease; }
-namespace adcontrols { class ChemicalFormula; }
+namespace adcontrols { class datafile; class dataSubscriber; }
 
-class QToolButton;
-class QAction;
-class QLineEdit;
-class QDockWidget;
-class QStackedWidget;
+class QStandardItemModel;
+class QStandardItem;
 
 namespace quan {
 
-    class MainWindow : public QWidget { // public Utils::FancyMainWindow {
+    class DataItemSelector : public QTreeView
+    {
         Q_OBJECT
     public:
-        explicit MainWindow(QWidget *parent = 0);
-        ~MainWindow();
+        explicit DataItemSelector(QWidget *parent = 0);
+        ~DataItemSelector();
 
-        void createActions();
-
-        QWidget * createContents( Core::IMode * );
-        void onInitialUpdate();
+        void setData( std::shared_ptr< adcontrols::datafile >& );
+        void clearData();
 
     private:
-        QStackedWidget * stack_;
-        void createDockWidgets();
-        QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
-        void setSimpleDockWidgetArrangement();
-        Utils::StyledBar * createTopStyledBar();
-        Utils::StyledBar * createMidStyledBar();
+        std::shared_ptr< QStandardItemModel > model_;
+        std::shared_ptr< adcontrols::dataSubscriber > subscriber_;
 
-        QToolButton * toolButton( QAction * );
-        QToolButton * toolButton( const char * );
-        QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
-
-        void handleIndexChanged( int index, int subIndex );
+        void setRaw( QStandardItem * parent );
+        void setProcessed( QStandardItem * parent );
+        void handleValueChanged( const QModelIndex& );
 
     signals:
 
@@ -76,4 +61,4 @@ namespace quan {
 
 }
 
-#endif // MAINWINDOW_HPP
+#endif // DATAITEMSELECTOR_HPP

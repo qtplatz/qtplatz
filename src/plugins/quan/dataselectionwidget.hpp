@@ -22,51 +22,30 @@
 **
 **************************************************************************/
 
-#ifndef MAINWINDOW_HPP
-#define MAINWINDOW_HPP
+#ifndef DATASELECTIONWIDGET_HPP
+#define DATASELECTIONWIDGET_HPP
 
-//#include <utils/fancymainwindow.h>
 #include <QWidget>
 #include <memory>
-#include <array>
 
-namespace Core { class IMode; }
-namespace Utils { class StyledBar; }
-namespace adprot { class protein; class protfile; class protease; }
-namespace adcontrols { class ChemicalFormula; }
-
-class QToolButton;
-class QAction;
-class QLineEdit;
-class QDockWidget;
-class QStackedWidget;
+class QGridLayout;
 
 namespace quan {
 
-    class MainWindow : public QWidget { // public Utils::FancyMainWindow {
+    class DataItemSelector;
+
+    class DataSelectionWidget : public QWidget {
         Q_OBJECT
     public:
-        explicit MainWindow(QWidget *parent = 0);
-        ~MainWindow();
-
-        void createActions();
-
-        QWidget * createContents( Core::IMode * );
-        void onInitialUpdate();
+        ~DataSelectionWidget();
+        explicit DataSelectionWidget(QWidget *parent = 0);
 
     private:
-        QStackedWidget * stack_;
-        void createDockWidgets();
-        QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
-        void setSimpleDockWidgetArrangement();
-        Utils::StyledBar * createTopStyledBar();
-        Utils::StyledBar * createMidStyledBar();
+        QGridLayout * layout_;
+        std::unique_ptr< DataItemSelector > dataItemSelector_;
 
-        QToolButton * toolButton( QAction * );
-        QToolButton * toolButton( const char * );
-        QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
-
-        void handleIndexChanged( int index, int subIndex );
+        QWidget * dataSelectionBar();
+        QWidget * dataItemSelector();
 
     signals:
 
@@ -76,4 +55,4 @@ namespace quan {
 
 }
 
-#endif // MAINWINDOW_HPP
+#endif // DATASELECTIONWIDGET_HPP

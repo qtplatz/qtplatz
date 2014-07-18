@@ -15,18 +15,24 @@ SOURCES += quanplugin.cpp \
     panelswidget.cpp \
     paneldata.cpp \
     doubletabwidget.cpp \
-    datatree.cpp
+    datatree.cpp \
+    dataitemselector.cpp \
+    dataselectionwidget.cpp \
+    dataselectionform.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
         quanconstants.hpp \
-    mainwindow.hpp \
-    quanmode.hpp \
-    quandocument.hpp \
-    panelswidget.hpp \
-    paneldata.hpp \
-    doubletabwidget.hpp \
-    datatree.hpp
+        mainwindow.hpp \
+        quanmode.hpp \
+        quandocument.hpp \
+        panelswidget.hpp \
+        paneldata.hpp \
+        doubletabwidget.hpp \
+        datatree.hpp \
+        dataitemselector.hpp \
+        dataselectionwidget.hpp \
+        dataselectionform.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \
@@ -38,6 +44,7 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adprot) \
         -l$$qtLibraryTarget(adextension) \
         -l$$qtLibraryTarget(adwplot) \
+        -l$$qtLibraryTarget(adwidgets) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper)
 
@@ -57,4 +64,5 @@ RESOURCES += \
     quan.qrc
 
 FORMS += \
-    doubletabwidget.ui
+    doubletabwidget.ui \
+    dataselectionform.ui

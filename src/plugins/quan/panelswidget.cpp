@@ -96,7 +96,7 @@ PanelsWidget::PanelsWidget( QWidget * parent ) : QScrollArea( parent )
     layout_->setColumnMinimumWidth(0, Constants::ICON_SIZE + 4);
     layout_->setSpacing(0);
     topLayout->addLayout(layout_);
-    topLayout->addStretch( 1 );
+    topLayout->addStretch( 100 );
     setWidget(root_);
     setFrameStyle(QFrame::NoFrame);
     setWidgetResizable(true);
