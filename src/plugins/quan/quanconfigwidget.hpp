@@ -45,7 +45,6 @@ namespace quan {
     private:
         QGridLayout * layout_;
         std::unique_ptr< QuanConfigForm > form_;
-        std::shared_ptr< adcontrols::QuanMethod > method_;
         QWidget * fileSelectionBar();
 
     signals:

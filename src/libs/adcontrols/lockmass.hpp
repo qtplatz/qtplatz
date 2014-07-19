@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <compiler/diagnostic_push.h>
 #include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
@@ -76,6 +77,11 @@ namespace adcontrols {
         std::vector< reference > references_;
         fitter fitter_;
     };
+
+    template class ADCONTROLSSHARED_EXPORT std::vector < lockmass::reference > ;
+
 }
+
+#include <compiler/diagnostic_pop.h>
 
 #endif // LOCKMASS_H

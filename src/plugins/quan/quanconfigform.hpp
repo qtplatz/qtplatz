@@ -42,14 +42,14 @@ namespace quan {
     public:
         explicit QuanConfigForm( QWidget *parent = 0 );
         ~QuanConfigForm();
-        void setData( std::shared_ptr< adcontrols::QuanMethod >& );
+        bool setContents( const adcontrols::QuanMethod& );
+        bool getContents( adcontrols::QuanMethod& );
 
     private slots:
         void on_pushButton_clicked();
 
     private:
         Ui::QuanConfigForm *ui;
-        std::weak_ptr< adcontrols::QuanMethod > method_;
     };
 
 }

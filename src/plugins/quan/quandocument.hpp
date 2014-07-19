@@ -30,6 +30,8 @@
 #include <map>
 #include <vector>
 
+namespace adcontrols { class QuanMethod; }
+
 namespace quan {
 
     class PanelData;
@@ -43,12 +45,15 @@ namespace quan {
 
         PanelData * addPanel( int idx, int subIdx, std::shared_ptr< PanelData >& );
         PanelData * findPanel( int idx, int subIdx, int pos );
+        std::shared_ptr< adcontrols::QuanMethod > quanMethod();
 
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
         typedef std::map< int, page_type > chapter_type;
-
         std::map< int, chapter_type > book_;
+
+        std::shared_ptr< adcontrols::QuanMethod > quanMethod_;
+        
     };
 }
 

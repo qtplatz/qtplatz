@@ -25,6 +25,8 @@
 #include "quanconfigform.hpp"
 #include "ui_quanconfigform.h"
 #include <qtwrapper/font.hpp>
+#include <adcontrols/quanmethod.hpp>
+#include <algorithm>
 
 namespace quan {
     namespace detail {
@@ -39,7 +41,7 @@ namespace quan {
             , idRadioEqLinear
             , idRadioEqPolynomials
             , idComboPolynomials
-            , idCbxWaiting
+            , idCbxWeighting
             , idRadio_C1
             , idRadio_C2        
             , idRadio_C3
@@ -73,7 +75,7 @@ namespace quan {
                 case idRadioEqLinear: return ui_->radioButton_5;
                 case idRadioEqPolynomials: return ui_->radioButton_6;
                 case idComboPolynomials: return ui_->comboBox;
-                case idCbxWaiting: return ui_->groupBox_5;
+                case idCbxWeighting: return ui_->groupBox_5;
                 case idRadio_C1: return ui_->radioButton_7;
                 case idRadio_C2: return ui_->radioButton_8;
                 case idRadio_C3: return ui_->radioButton_9;
@@ -86,10 +88,10 @@ namespace quan {
                 case idGroupBox_Levels: return ui_->groupBox_3;
                 case idLabelLevel: return ui_->label;
                 case idLabelReplicates: return ui_->label_2;
-                case idSpinLevel: ui_->spinBox;
-                case idSpinReplicates: ui_->spinBox_2;
-                case idCbxBracketing: ui_->checkBox;
-                case idComboBracketing: ui_->comboBox_2;
+                case idSpinLevel: return ui_->spinBox;
+                case idSpinReplicates: return ui_->spinBox_2;
+                case idCbxBracketing: return ui_->checkBox;
+                case idComboBracketing: return ui_->comboBox_2;
                 }
                 return 0;
             }
@@ -113,6 +115,14 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) :  QWidget(parent)
         if ( QWidget * w = accessor( idItem( id ) ) )
             w->setFont( font );
     }
+    if ( QComboBox * order = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
+        order->clear();
+        order->insertItems( 0, QStringList() << "Y=a+bX+cX^2" << "Y=a+bX+cX^2+dX^3" << "Y=a+bX+cX^2+dX^3+eX4" << "Y=a+bX+cX^2+dX^3+eX^4+fX^5" );
+    }
+    if ( QComboBox * combo = dynamic_cast<QComboBox *>(accessor( idComboBracketing )) ) {
+        combo->clear();
+        combo->insertItems( 0, QStringList() << "None" << "Standard" << "Moving(Overlapped)" << "Average" );
+    }
 }
 
 QuanConfigForm::~QuanConfigForm()
@@ -120,12 +130,127 @@ QuanConfigForm::~QuanConfigForm()
     delete ui;
 }
 
-void
-QuanConfigForm::setData( std::shared_ptr< adcontrols::QuanMethod >& ptr )
+bool
+QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
 {
-    method_ = ptr;
+    ui_accessor accessor(ui);
+
+    QWidget * w = 0;
+    
+    switch ( m.equation() ) {
+    case adcontrols::QuanMethod::idCalibOnePoint: w = accessor( idRadioEq1Point ); break;
+    case adcontrols::QuanMethod::idCalibLinear_origin: w = accessor( idRadioEqLinear_0 ); break;
+    case adcontrols::QuanMethod::idCalibLinear: w = accessor( idRadioEqLinear ); break;
+    case adcontrols::QuanMethod::idCalibPolynomials: w = accessor( idRadioEqPolynomials ); break;
+    }
+    if ( auto radioButton = dynamic_cast<QRadioButton *>((w)) )
+        radioButton->setChecked( true );
+
+    uint32_t order = m.polynomialOrder();
+    if ( auto combo = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) )
+        combo->setCurrentIndex( order - 2 );
+
+    if ( m.isChromatogram() ) {
+        if ( auto radioButton = dynamic_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) )
+            radioButton->setChecked( true );
+    } else {
+        if ( auto radioButton = dynamic_cast< QRadioButton * >( accessor( idRadioInfusion ) ) )
+            radioButton->setChecked( true );
+    }
+    if ( auto gbx = dynamic_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
+        if ( m.isWeighting() )
+            gbx->setChecked( true );
+        else
+            gbx->setChecked( false );
+    }
+    w = 0;
+    switch ( m.weighting() ) {
+    case adcontrols::QuanMethod::idWeight_C1: w = accessor( idRadio_C1 ); break;
+    case adcontrols::QuanMethod::idWeight_C2: w = accessor( idRadio_C2 ); break;
+    case adcontrols::QuanMethod::idWeight_C3: w = accessor( idRadio_C3 ); break;
+    case adcontrols::QuanMethod::idWeight_Y1: w = accessor( idRadio_Y1 ); break;
+    case adcontrols::QuanMethod::idWeight_Y2: w = accessor( idRadio_Y2 ); break;
+    case adcontrols::QuanMethod::idWeight_Y3: w = accessor( idRadio_Y3 ); break;
+    }
+    if ( auto radioButton = dynamic_cast<QRadioButton *>(w) ) {
+        radioButton->setChecked( true );
+    }
+    if ( m.ISTD() ) {
+        if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInternalStandard )) )
+            radioButton->setChecked( true );
+    } else {
+        if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioExternalStandard )) )
+            radioButton->setChecked( true );
+    }
+    if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinLevel))) {
+        spin->setValue( m.levels());
+    }
+    if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinReplicates))) {
+        spin->setValue( m.replicates() );
+    }
+    return true;
 }
 
+bool
+QuanConfigForm::getContents( adcontrols::QuanMethod& m )
+{
+    ui_accessor accessor(ui);
+
+    do {
+        static const idItem items [] = { idRadioEq1Point, idRadioEqLinear_0, idRadioEqLinear, idRadioEqPolynomials };
+        for ( auto& id : items ) {
+            if ( auto radio = dynamic_cast<QRadioButton *>(accessor( id )) ) {
+                if ( radio->isChecked() ) {
+                    m.equation( static_cast<adcontrols::QuanMethod::CalibEq>(id - items[ 0 ]) );
+                    break;
+                }
+            }
+        }
+    } while(0);
+
+    if ( auto combo = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
+        uint32_t order = combo->currentIndex() + 2;
+        m.polynomialOrder( order );
+    }
+
+    if ( auto radioButton = dynamic_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) )
+        if ( radioButton->isChecked() )
+            m.isChromatogram( true );
+    if ( auto radioButton = dynamic_cast< QRadioButton * >( accessor( idRadioInfusion ) ) ) {
+        if ( radioButton->isChecked() )
+            m.isChromatogram( false );
+    }
+    if ( auto gbx = dynamic_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
+        m.isWeighting( gbx->isChecked() );
+    }
+
+    do {
+        static const idItem items [] = { idRadio_C1, idRadio_C2, idRadio_C3, idRadio_Y1, idRadio_Y2, idRadio_Y3 };
+        for ( auto& id : items ) {
+            if ( auto radio = dynamic_cast<QRadioButton *>(accessor( id )) ) {
+                if ( radio->isChecked() ) {
+                    m.weighting( static_cast<adcontrols::QuanMethod::CalibWeighting>(id - items[ 0 ]) );
+                    break;
+                }
+            }
+        }
+    } while(0);
+
+    if ( m.ISTD() ) {
+        if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInternalStandard )) )
+            m.ISTD( true );
+    } else {
+        if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioExternalStandard )) )
+            m.ISTD( false );
+    }
+    if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinLevel))) {
+        m.levels( spin->value() );
+    }
+    if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinReplicates))) {
+        m.replicates( spin->value() );
+    }
+    return true;
+}
 
 void
 QuanConfigForm::on_pushButton_clicked()

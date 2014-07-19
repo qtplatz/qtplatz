@@ -29,12 +29,16 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
+#include <memory>
+
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT QuanMethod  {
+    class ADCONTROLSSHARED_EXPORT QuanMethod {
+
     public:
         QuanMethod();
+        QuanMethod( const QuanMethod& );
 
         enum CalibEq {
             idCalibOnePoint
@@ -43,26 +47,42 @@ namespace adcontrols {
             , idCalibPolynomials
         };
 
-        enum CalibWaiting {
-            idWait_C1
-            , idWait_C2
-            , idWait_C3
-            , idWait_Y1
-            , idWait_Y2
-            , idWait_Y3
+        enum CalibWeighting {
+            idWeight_C1
+            , idWeight_C2
+            , idWeight_C3
+            , idWeight_Y1
+            , idWeight_Y2
+            , idWeight_Y3
+        };
+
+        enum Bracketing {
+            idBracketNone
+            , idBracketStandard
+            , idBracketOverlapped
+            , idBracketAverage
         };
 
         CalibEq equation() const;
         void equation( CalibEq );
+        
+        uint32_t polynomialOrder() const;
+        void polynomialOrder( uint32_t );
 
         bool isChromatogram() const;
         void isChromatogram( bool );
 
-        bool isWaiting() const;
-        void isWaiting( bool );
+        bool isWeighting() const;
+        void isWeighting( bool );
+
+        bool isBracketing() const;
+        void isBracketing( bool );
+
+        Bracketing bracketing() const;
+        void bracketing( Bracketing );
         
-        CalibWaiting waiting() const;
-        void waiting( CalibWaiting );
+        CalibWeighting weighting() const;
+        void weighting( CalibWeighting );
 
         bool ISTD() const;
         void ISTD( bool );
@@ -75,26 +95,32 @@ namespace adcontrols {
 
     private:
         
-        CalibEq eq_;
         bool isChromatogram_;
         bool isISTD_;
-        bool use_waiting_;
-        CalibWaiting waiting_method_;
+        bool use_weighting_;
+        bool use_bracketing_;
+        CalibEq eq_;
+        CalibWeighting weighting_;
+        Bracketing bracketing_;
         uint32_t levels_;
         uint32_t replicates_;
+        uint32_t polynomialOrder_;
 
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
 
-            ar & BOOST_SERIALIZATION_NVP(isChromatogram_)
-                & BOOST_SERIALIZATION_NVP(eq_)
-                & BOOST_SERIALIZATION_NVP(isISTD_)
-                & BOOST_SERIALIZATION_NVP(use_waiting_)                
-                & BOOST_SERIALIZATION_NVP(waiting_method_)
-                & BOOST_SERIALIZATION_NVP(levels_)
-                & BOOST_SERIALIZATION_NVP(replicates_)
+            ar & BOOST_SERIALIZATION_NVP( isChromatogram_ )
+                & BOOST_SERIALIZATION_NVP( isISTD_ )
+                & BOOST_SERIALIZATION_NVP( use_weighting_ )
+                & BOOST_SERIALIZATION_NVP( use_bracketing_ )
+                & BOOST_SERIALIZATION_NVP( eq_ )
+                & BOOST_SERIALIZATION_NVP( weighting_ )
+                & BOOST_SERIALIZATION_NVP( bracketing_ )
+                & BOOST_SERIALIZATION_NVP( levels_ )
+                & BOOST_SERIALIZATION_NVP( replicates_ )
+                & BOOST_SERIALIZATION_NVP( polynomialOrder_ )
                 ;
         };
 
@@ -102,6 +128,6 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanMethod, 3 )
+BOOST_CLASS_VERSION( adcontrols::QuanMethod, 1 )
 
 #endif // QUANMETHOD_HPP

@@ -24,13 +24,14 @@
 
 #include "quandocument.hpp"
 #include "paneldata.hpp"
+#include <adcontrols/quanmethod.hpp>
 
 using namespace quan;
 
 QuanDocument * QuanDocument::instance_ = 0;
 std::mutex QuanDocument::mutex_;
 
-QuanDocument::QuanDocument()
+QuanDocument::QuanDocument() : quanMethod_( std::make_shared< adcontrols::QuanMethod >() )
 {
 }
 
@@ -67,5 +68,9 @@ QuanDocument::findPanel( int idx, int subIdx, int pos )
     return 0;
 }
 
-
+std::shared_ptr< adcontrols::QuanMethod >
+QuanDocument::quanMethod()
+{
+    return quanMethod_;
+}
 

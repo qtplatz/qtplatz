@@ -26,6 +26,7 @@
 #include "quanconfigform.hpp"
 #include "quandocument.hpp"
 #include "paneldata.hpp"
+#include <adcontrols/quanmethod.hpp>
 #include <adportable/profile.hpp>
 #include <QGridLayout>
 #include <QLabel>
@@ -33,6 +34,11 @@
 #include <QMessageBox>
 #include <QToolButton>
 #include <QFileDialog>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/exception/all.hpp>
+#include <fstream>
 
 using namespace quan;
 
@@ -52,6 +58,8 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
     const int row = layout_->rowCount();
     layout_->addWidget( fileSelectionBar(), row, 0 );
     layout_->addWidget( form_.get(), row + 1, 0 );
+
+    form_->setContents( *QuanDocument::instance()->quanMethod() );
 }
 
 QWidget *
@@ -81,27 +89,50 @@ QuanConfigWidget::fileSelectionBar()
         toolBarLayout->addWidget( edit );
 
         connect( btnOpen, &QToolButton::clicked, this, [&] ( bool ){
+                boost::filesystem::path dir( adportable::profile::user_data_dir<wchar_t>() );
+                dir /= L"data";
 
                 QString name = QFileDialog::getOpenFileName( this
-                                                             , tr("Open Quantitative analysis configuration file")
-                                                             , adportable::profile::user_data_dir<char>().c_str()
-                                                             , tr("File(*.adfs *.adxml)") );
+                                                             , tr("Open Quantitative Analysis Configuration file")
+                                                             , QString::fromStdWString( dir.wstring() )
+                                                             , tr("File(*.xml)") );
                 if ( !name.isEmpty() ) {
-                    if ( auto edit = findChild< QLineEdit * >() ) {
-                        edit->setText( name );
+                    adcontrols::QuanMethod m;
+                    try {
+                        std::ifstream inf( name.toStdString() );
+                        boost::archive::xml_iarchive ar( inf );
+                        ar >> BOOST_SERIALIZATION_NVP( m );
+                    } catch ( std::exception& ex ) {
+                        QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
+                        return;
                     }
+                    *QuanDocument::instance()->quanMethod() = m;
+                    if ( auto edit = findChild< QLineEdit * >() )
+                        edit->setText( name );
                 }
             } );
         
         connect( btnSave, &QToolButton::clicked, this, [&] ( bool ){
-                
-                QString name = QFileDialog::getSaveFileName( this, tr("Save configuration")
-                                                             , adportable::profile::user_data_dir<char>().c_str()
-                                                             , tr("File(*.adfs *.adxml)") );
+                boost::filesystem::path dir( adportable::profile::user_data_dir<wchar_t>() );
+                dir /= L"data";                
+                QString name = QFileDialog::getSaveFileName( this 
+                                                             , tr("Save Quantitative Analysis Configuration file")
+                                                             , QString::fromStdWString( dir.wstring() )
+                                                             , tr("File(*.xml)") );
                 if ( !name.isEmpty() ) {
-                    if ( auto edit = findChild< QLineEdit * >() ) {
-                        edit->setText( name );
+                    try {
+                        std::ofstream outf( name.toStdString() );
+                        boost::archive::xml_oarchive ar( outf );
+                        ar << boost::serialization::make_nvp( "QuanMethod", *QuanDocument::instance()->quanMethod() );
+                    } catch ( std::exception& ex ) {
+                        QMessageBox::warning( 0, "Save Quantitative Method", boost::diagnostic_information( ex ).c_str() );
+                        return;
                     }
+                    if ( auto edit = findChild< QLineEdit * >() )
+                        edit->setText( name );
+
+                    if ( auto edit = findChild< QLineEdit * >() )
+                        edit->setText( name );
                 }
             } );
         

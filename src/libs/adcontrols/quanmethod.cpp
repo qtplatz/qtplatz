@@ -27,12 +27,15 @@
 using namespace adcontrols;
 
 QuanMethod::QuanMethod() : eq_(idCalibLinear)
+                         , polynomialOrder_(2)
                          , isChromatogram_( false )
                          , isISTD_( false )
-                         , use_waiting_( false )
-                         , waiting_method_( idWait_C1 )
+                         , use_weighting_( false )
+                         , weighting_( idWeight_C1 )
                          , levels_(1)
                          , replicates_(1)
+                         , use_bracketing_( false )
+                         , bracketing_( idBracketNone )
 {
 }
 
@@ -48,6 +51,18 @@ QuanMethod::equation( CalibEq v )
     eq_ = v;
 }
 
+uint32_t
+QuanMethod::polynomialOrder() const
+{
+    return polynomialOrder_;
+}
+
+void
+QuanMethod::polynomialOrder( uint32_t v )
+{
+    polynomialOrder_ = v;
+}
+
 bool
 QuanMethod::isChromatogram() const
 {
@@ -61,27 +76,51 @@ QuanMethod::isChromatogram( bool v )
 }
 
 bool
-QuanMethod::isWaiting() const
+QuanMethod::isWeighting() const
 {
-    return use_waiting_;
+    return use_weighting_;
 }
 
 void
-QuanMethod::isWaiting( bool v )
+QuanMethod::isWeighting( bool v )
 {
-    use_waiting_ = v;
+    use_weighting_ = v;
 }
         
-QuanMethod::CalibWaiting
-QuanMethod::waiting() const
+QuanMethod::CalibWeighting
+QuanMethod::weighting() const
 {
-    return waiting_method_;
+    return weighting_;
 }
 
 void
-QuanMethod::waiting( CalibWaiting v )
+QuanMethod::weighting( CalibWeighting v )
 {
-    waiting_method_ = v;
+    weighting_ = v;
+}
+
+bool
+QuanMethod::isBracketing() const
+{
+    return use_bracketing_;
+}
+
+void
+QuanMethod::isBracketing( bool v )
+{
+    use_bracketing_ = v;
+}
+
+QuanMethod::Bracketing
+QuanMethod::bracketing() const
+{
+    return bracketing_;
+}
+
+void
+QuanMethod::bracketing( QuanMethod::Bracketing v )
+{
+    bracketing_ = v;
 }
 
 bool
