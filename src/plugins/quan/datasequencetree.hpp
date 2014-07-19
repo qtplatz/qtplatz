@@ -27,8 +27,12 @@
 
 #include <QTreeView>
 #include <memory>
+#include <thread>
+#include <mutex>
+#include <atomic>
 
 class QStandardItemModel;
+class QStandardItem;
 class QModelIndex;
 
 namespace adcontrols { class datafile;  }
@@ -52,15 +56,25 @@ namespace quan {
         void dropEvent( QDropEvent * ) override;
 
     private:
-        std::shared_ptr< datasequencetree::dataSubscriber > dataSubscriber_;
+        std::vector< std::shared_ptr< datasequencetree::dataSubscriber > > dataSubscribers_;
         std::shared_ptr< QStandardItemModel > model_;
+        std::vector< std::thread > threads_;
+        std::mutex mutex_;
 
         void handleValueChanged( const QModelIndex& );
         void dropIt( const std::wstring& );
+        void handleIt( datasequencetree::dataSubscriber * );
+        std::atomic< size_t > dropCount_;
+
+        void handleData( int row );
+        size_t setRaw( datasequencetree::dataSubscriber *, QStandardItem * );
+        size_t setProcessed( datasequencetree::dataSubscriber *, QStandardItem * );
 
     signals:
+        void onJoin( int row );
 
-    public slots:
+    private slots:
+        void handleJoin( int row );
 
     };
 

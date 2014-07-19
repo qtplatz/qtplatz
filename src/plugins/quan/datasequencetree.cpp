@@ -29,17 +29,29 @@
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/descriptions.hpp>
+#include <adportable/debug.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <QDragEnterEvent>
 #include <QMimeData>
+#include <QMessageBox>
+
+#include <QApplication>
+#include <QBrush>
+#include <QClipboard>
+#include <QHeaderView>
+#include <QKeyEvent>
+#include <QPainter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
-#include <QHeaderView>
+
 #include <boost/filesystem.hpp>
+#include <boost/exception/all.hpp>
 #include <functional>
 #include <array>
+#include <thread>
+#include <mutex>
 
 namespace quan {
 
@@ -48,10 +60,17 @@ namespace quan {
         static std::array< const wchar_t *, 3 > extensions = { L".adfs", L".csv", L".txt" };
 
         enum {
+            r_rowdata
+            , r_processed
+        };
+
+        enum {
             c_datafile
-            , c_sample_attr     // standard | unknown | QC
-            , c_trace_selection // chromaotgram generation | 
+            , c_data_type       // RAW | Spectrum | Chromatogram
+            , c_sample_type     // standard | unknown | QC
+            , c_process         // chromaotgram generation | 
             , c_level
+            , c_description
             , number_of_columns
         };
 
@@ -59,6 +78,8 @@ namespace quan {
         public:
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
+                if ( index.column() == c_datafile )
+                    op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
                 QStyledItemDelegate::paint( painter, op, index );
             }
             void setEditorData( QWidget * editor, const QModelIndex& index ) const {
@@ -81,11 +102,25 @@ namespace quan {
             std::function<void( const QModelIndex& )> valueChanged_;
         };
 
-        class dataSubscriber : public adcontrols::dataSubscriber {
+        ////////////////
+
+        class dataSubscriber : public adcontrols::dataSubscriber
+                             , public std::enable_shared_from_this< dataSubscriber > {
         public:
-            dataSubscriber( std::shared_ptr< adcontrols::datafile >& ptr ) : datafile_( ptr )
-                                                                           , raw_( 0 ) {
+            dataSubscriber( int row
+                            , const std::wstring& filename
+                            , std::function<void( dataSubscriber *)> f ) : raw_(0)
+                                                                         , row_( row )
+                                                                         , filename_( filename )
+                                                                         , callback_(f){
             }
+            void open() {
+                if ( datafile_ = std::shared_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename_, true ) ) )
+                    datafile_->accept( *this );
+                callback_( this );
+            }
+            
+            // implementation
             bool subscribe( const adcontrols::LCMSDataset& d ) override {
                 raw_ = &d;
                 size_t pos = d.make_pos( 0, 0 ); // find first data for  protoId = 0
@@ -93,10 +128,13 @@ namespace quan {
                 d.getSpectrum( -1, pos, *ms_ );
                 return true;
             }
+
             bool subscribe( const adcontrols::ProcessedDataset& d ) override {
                 portfolio_ = std::make_shared< portfolio::Portfolio >( d.xml() );
                 return true;
             }
+
+            // local impl
             const adcontrols::LCMSDataset * raw() {
                 return raw_;
             }
@@ -104,13 +142,18 @@ namespace quan {
                 return portfolio_.get();
             }
             adcontrols::MassSpectrum * ms() { return ms_.get(); }
-
+            const std::wstring& filename() const { return filename_;  }
+            int row() const { return row_; }
         private:
+            int row_;
+            std::wstring filename_;
             std::shared_ptr< adcontrols::MassSpectrum > ms_;
-            std::weak_ptr< adcontrols::datafile > datafile_;
+            std::shared_ptr< adcontrols::datafile > datafile_;
             std::shared_ptr< portfolio::Portfolio > portfolio_;
             const adcontrols::LCMSDataset * raw_;
+            std::function< void( dataSubscriber * ) > callback_;
         };
+
     }
 }
 
@@ -119,6 +162,7 @@ using namespace quan::datasequencetree;
 
 DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
                                                     , model_( new QStandardItemModel )
+                                                    , dropCount_( 0 )
 {
     auto delegate = new ItemDelegate;
     delegate->register_valueChanged( [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); } );
@@ -127,14 +171,15 @@ DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
     
     QStandardItemModel& model = *model_;
     model.setColumnCount( number_of_columns );
-    model.setHeaderData( c_datafile, Qt::Horizontal, tr("Data name") );
-    model.setHeaderData( c_sample_attr, Qt::Horizontal, tr("Sample type") );
-    model.setHeaderData( c_trace_selection, Qt::Horizontal, tr("Data manipuration") );
-    model.setHeaderData( c_level, Qt::Horizontal, tr("Level") );
+    model.setHeaderData( c_datafile, Qt::Horizontal, tr("Data name") );  // read only
+    model.setHeaderData( c_data_type, Qt::Horizontal, tr("Data type") ); // read only
+    model.setHeaderData( c_sample_type, Qt::Horizontal, tr("Sample type") ); // UNK/STD/QC
+    model.setHeaderData( c_process, Qt::Horizontal, tr("Process") ); // Average (start,end)
+    model.setHeaderData( c_level, Qt::Horizontal, tr("Level") );             // if standard
+
+    connect( this, &DataSequenceTree::onJoin, this, &DataSequenceTree::handleJoin );
 
     setAcceptDrops( true );
-
-
 }
 
 void
@@ -143,8 +188,42 @@ DataSequenceTree::setData( std::shared_ptr< adcontrols::datafile >& )
 }
 
 void
-DataSequenceTree::setData( const QStringList& )
+DataSequenceTree::setData( const QStringList& list )
 {
+    for ( int i = 0; i < list.size(); ++i ) {
+        boost::filesystem::path path( list.at( i ).toStdWString() );
+        auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
+        if ( it != extensions.end() ) {
+            dropIt( path.wstring() );
+        }
+    }
+}
+
+void
+DataSequenceTree::handleData( int row )
+{
+    QStandardItemModel& model = *model_;
+
+    dataSubscriber * data = 0;
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        auto it = std::find_if( dataSubscribers_.begin(), dataSubscribers_.end(), [row]( const std::shared_ptr< dataSubscriber >& d ){
+                return d->row() == row;
+            });
+        if ( it != dataSubscribers_.end() )
+            data = it->get();
+    } while(0);
+
+    if ( data ) {
+        model.setData( model.index( row, c_data_type ), "file" );
+        model.setData( model.index( row, c_sample_type ), "" );
+        model.setData( model.index( row, c_process ), "" ); // | Chromatogram Generation
+        model.setData( model.index( row, c_level ), 0 ); // level
+        
+        setRaw( data, model.itemFromIndex( model.index( row, 0 ) ) );
+        setProcessed( data, model.itemFromIndex( model.index( row, 0 ) ) );
+    }
+    expandAll();
 }
 
 void
@@ -153,12 +232,54 @@ DataSequenceTree::handleValueChanged( const QModelIndex& )
 }
 
 void
+DataSequenceTree::handleIt( dataSubscriber * ptr )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    dataSubscribers_.push_back( ptr->shared_from_this() );
+    emit onJoin( ptr->row() );
+}
+
+void
+DataSequenceTree::handleJoin( int row )
+{
+    if ( dropCount_ && (--dropCount_ == 0) ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        std::for_each( threads_.begin(), threads_.end(), [] ( std::thread& t ){ t.join(); } );
+        threads_.clear();
+    }
+    handleData( row );
+}
+
+void
 DataSequenceTree::dropIt( const std::wstring& path )
 {
     QStandardItemModel& model = *model_;
     int row = model.rowCount();
-    model.insertRow( row );
-    model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
+
+    if ( dataSubscribers_.empty() ) {
+        // this is the workaround for boost/msvc bug #6320 ref: https://svn.boost.org/trac/boost/ticket/6320
+        // so that make sure first call for boost::filesystem::path("") from main thread, and then safe to call from any thread.
+        // Simple dummy call for boost::filesystem::path("") does not work due to adcontrols::open() invokes several dynamically 
+        // loaded dlls such as Bruker, Agilent etc.
+        auto reader = std::make_shared< dataSubscriber >( row, path, [] ( dataSubscriber * ){} );
+        model.insertRow( row );
+        model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
+        reader->open(); 
+        dataSubscribers_.push_back( reader );
+        handleData( row );
+    }
+    else {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        auto reader = std::make_shared< dataSubscriber >( row, path, [this] ( dataSubscriber * p ){ handleIt( p ); } );
+        auto it = std::find_if( dataSubscribers_.begin(), dataSubscribers_.end()
+                                , [=] ( const std::shared_ptr<dataSubscriber>& d ){ return d->filename() == path; } );
+        if ( it == dataSubscribers_.end() ) {
+            model.insertRow( row );
+            model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
+            ++dropCount_;
+            threads_.push_back( std::thread( [reader] (){ reader->open(); } ) );
+        }
+    }
 }
 
 void
@@ -168,7 +289,7 @@ DataSequenceTree::dragEnterEvent( QDragEnterEvent * event )
         if ( mimeData->hasUrls() ) {
             event->acceptProposedAction();            
             return;
-
+            
             QList<QUrl> urlList = mimeData->urls();
             for ( int i = 0; i < urlList.size(); ++i ) {
                 boost::filesystem::path path( urlList.at(i).toLocalFile().toStdWString() );
@@ -194,7 +315,6 @@ DataSequenceTree::dragLeaveEvent( QDragLeaveEvent * event )
 	event->accept();
 }
 
-
 void
 DataSequenceTree::dropEvent( QDropEvent * event )
 {
@@ -205,10 +325,76 @@ DataSequenceTree::dropEvent( QDropEvent * event )
                 QString file( urlList.at(i).toLocalFile() );
                 boost::filesystem::path path( file.toStdWString() );
                 auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
-                if ( it != extensions.end() ) {
+                if ( it != extensions.end() )
                     dropIt( path.wstring() );
+            }
+        }
+    }
+}
+
+size_t // row count
+DataSequenceTree::setRaw( dataSubscriber * data, QStandardItem * parent )
+{
+    QStandardItemModel& model = *model_;    
+    if ( data ) {
+        if ( auto raw = data->raw() ) {
+            int n = int( raw->getFunctionCount() );
+            parent->setRowCount( n );
+            parent->setColumnCount( number_of_columns );
+
+            for ( int fcn = 0; fcn < n; ++fcn ) {
+                model.setData( model.index( fcn, c_datafile, parent->index() ),  QString( "Raw trace %1" ).arg( fcn + 1 ), Qt::EditRole );
+                model.setData( model.index( fcn, c_data_type, parent->index() ), "RAW", Qt::EditRole );
+                model.setData( model.index( fcn, c_sample_type, parent->index() ), "UNK", Qt::EditRole );
+                model.setData( model.index( fcn, c_process, parent->index() ),   "Average", Qt::EditRole );
+                model.setData( model.index( fcn, c_level, parent->index() ), 1,   Qt::EditRole );
+            }
+            
+            if ( data->ms() ) {
+                adcontrols::segment_wrapper<> segs( *data->ms() );
+                int fcn = 0;
+                for ( auto& fms : segs ) {
+                    std::wstring desc = fms.getDescriptions().toString();
+                    model.setData( model.index( fcn++, c_description, parent->index() ), QString::fromStdWString( desc ), Qt::EditRole );
+                }
+            }
+            return n;
+        }
+    }
+    return 0;
+}
+
+size_t
+DataSequenceTree::setProcessed( dataSubscriber * data, QStandardItem * parent )
+{
+    QStandardItemModel& model = *model_;
+
+    size_t rowCount = 0;
+    if ( data ) {
+
+        if ( auto pf = data->processed() ) {
+
+            for ( auto& folder : pf->folders() ) {
+
+                if ( folder.name() == L"Spectra" ) {
+
+                    int row = parent->rowCount();
+                    if ( rowCount = folder.folio().size() ) {
+                        parent->setRowCount( int( rowCount + row ) );
+                        parent->setColumnCount( number_of_columns );
+
+                        for ( auto& folium : folder.folio() ) {
+                            model.setData( model.index( row, 0, parent->index() ), QString::fromStdWString( folium.name() ), Qt::EditRole );
+                            model.setData( model.index( row, c_data_type, parent->index() ), "Spectrum", Qt::EditRole );
+                            model.setData( model.index( row, c_sample_type, parent->index() ), "UNK", Qt::EditRole );
+                            model.setData( model.index( row, c_process, parent->index() ), "n/a", Qt::EditRole );
+                            model.setData( model.index( row, c_level, parent->index() ), 1, Qt::EditRole );
+                            ++row;
+                        }
+                    }
                 }
             }
         }
     }
+    return rowCount;
 }
