@@ -87,15 +87,22 @@ QuanConfigWidget::fileSelectionBar()
         
         auto edit = new QLineEdit;
         toolBarLayout->addWidget( edit );
+        boost::filesystem::path dir( adportable::profile::user_data_dir<wchar_t>() );
+        dir /= L"data/quan.xml";
+        edit->setText( QString::fromStdWString( dir.wstring() ) );
 
         connect( btnOpen, &QToolButton::clicked, this, [&] ( bool ){
-                boost::filesystem::path dir( adportable::profile::user_data_dir<wchar_t>() );
-                dir /= L"data";
+                QString dir;
+                if ( auto edit = findChild< QLineEdit * >() )
+                    dir = edit->text();
+                if ( dir.isEmpty() ) {
+                    boost::filesystem::path path( adportable::profile::user_data_dir<wchar_t>() );
+                    dir = QString::fromStdWString( ( path / L"data/quant.xml" ).wstring() );
+                }
 
                 QString name = QFileDialog::getOpenFileName( this
                                                              , tr("Open Quantitative Analysis Configuration file")
-                                                             , QString::fromStdWString( dir.wstring() )
-                                                             , tr("File(*.xml)") );
+                                                             , dir, tr("File(*.xml)") );
                 if ( !name.isEmpty() ) {
                     adcontrols::QuanMethod m;
                     try {
@@ -113,12 +120,16 @@ QuanConfigWidget::fileSelectionBar()
             } );
         
         connect( btnSave, &QToolButton::clicked, this, [&] ( bool ){
-                boost::filesystem::path dir( adportable::profile::user_data_dir<wchar_t>() );
-                dir /= L"data";                
+                QString dir;
+                if ( auto edit = findChild< QLineEdit * >() )
+                    dir = edit->text();
+                if ( dir.isEmpty() ) {
+                    boost::filesystem::path path( adportable::profile::user_data_dir<wchar_t>() );
+                    dir = QString::fromStdWString( ( path / L"data/quant.xml" ).wstring() );
+                }
                 QString name = QFileDialog::getSaveFileName( this 
                                                              , tr("Save Quantitative Analysis Configuration file")
-                                                             , QString::fromStdWString( dir.wstring() )
-                                                             , tr("File(*.xml)") );
+                                                             , dir, tr("File(*.xml)") );
                 if ( !name.isEmpty() ) {
                     try {
                         std::ofstream outf( name.toStdString() );

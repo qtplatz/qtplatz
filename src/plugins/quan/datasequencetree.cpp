@@ -32,14 +32,20 @@
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
+#include <QDragEnterEvent>
+#include <QMimeData>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QHeaderView>
+#include <boost/filesystem.hpp>
 #include <functional>
+#include <array>
 
 namespace quan {
 
     namespace datasequencetree {
+
+        static std::array< const wchar_t *, 3 > extensions = { L".adfs", L".csv", L".txt" };
 
         enum {
             c_datafile
@@ -125,6 +131,10 @@ DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
     model.setHeaderData( c_sample_attr, Qt::Horizontal, tr("Sample type") );
     model.setHeaderData( c_trace_selection, Qt::Horizontal, tr("Data manipuration") );
     model.setHeaderData( c_level, Qt::Horizontal, tr("Level") );
+
+    setAcceptDrops( true );
+
+
 }
 
 void
@@ -140,4 +150,65 @@ DataSequenceTree::setData( const QStringList& )
 void
 DataSequenceTree::handleValueChanged( const QModelIndex& )
 {
+}
+
+void
+DataSequenceTree::dropIt( const std::wstring& path )
+{
+    QStandardItemModel& model = *model_;
+    int row = model.rowCount();
+    model.insertRow( row );
+    model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
+}
+
+void
+DataSequenceTree::dragEnterEvent( QDragEnterEvent * event )
+{
+	if ( const QMimeData * mimeData = event->mimeData() ) {
+        if ( mimeData->hasUrls() ) {
+            event->acceptProposedAction();            
+            return;
+
+            QList<QUrl> urlList = mimeData->urls();
+            for ( int i = 0; i < urlList.size(); ++i ) {
+                boost::filesystem::path path( urlList.at(i).toLocalFile().toStdWString() );
+                auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
+                if ( it != extensions.end() ) {
+                    event->acceptProposedAction();
+                    return;
+                }
+            }
+        }
+    }
+}
+
+void
+DataSequenceTree::dragMoveEvent( QDragMoveEvent * event )
+{
+    event->accept();
+}
+
+void
+DataSequenceTree::dragLeaveEvent( QDragLeaveEvent * event )
+{
+	event->accept();
+}
+
+
+void
+DataSequenceTree::dropEvent( QDropEvent * event )
+{
+	if ( const QMimeData * mimeData = event->mimeData() ) {
+        if ( mimeData->hasUrls() ) {
+            QList<QUrl> urlList = mimeData->urls();
+            for ( int i = 0; i < urlList.size(); ++i ) {
+                QString file( urlList.at(i).toLocalFile() );
+                boost::filesystem::path path( file.toStdWString() );
+                auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
+                if ( it != extensions.end() ) {
+                    dropIt( path.wstring() );
+                }
+            }
+        }
+    }
 }

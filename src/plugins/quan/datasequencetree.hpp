@@ -45,11 +45,18 @@ namespace quan {
         void setData( std::shared_ptr< adcontrols::datafile >& );
         void setData( const QStringList& );
 
+    protected:
+        void dragEnterEvent( QDragEnterEvent * ) override;
+        void dragMoveEvent( QDragMoveEvent * ) override;
+        void dragLeaveEvent( QDragLeaveEvent * ) override;
+        void dropEvent( QDropEvent * ) override;
+
     private:
         std::shared_ptr< datasequencetree::dataSubscriber > dataSubscriber_;
         std::shared_ptr< QStandardItemModel > model_;
 
         void handleValueChanged( const QModelIndex& );
+        void dropIt( const std::wstring& );
 
     signals:
 

@@ -40,6 +40,8 @@ namespace quan {
     public:
         explicit DataSequenceWidget( QWidget *parent = 0 );
 
+        QSize sizeHint() const { return QSize( 600, 600 ); }
+
     private:
         QGridLayout * layout_;
         std::unique_ptr< DataSequenceTree > dataSequenceTree_;

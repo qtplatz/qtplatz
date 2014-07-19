@@ -93,10 +93,10 @@ PanelsWidget::PanelsWidget( QWidget * parent ) : QScrollArea( parent )
     topLayout->setSpacing(0);
 
     layout_ = new QGridLayout;
-    layout_->setColumnMinimumWidth(0, Constants::ICON_SIZE + 4);
-    layout_->setSpacing(0);
-    topLayout->addLayout(layout_);
-    topLayout->addStretch( 100 );
+    layout_->setColumnMinimumWidth( 0, Constants::ICON_SIZE + 4 );
+    layout_->setSpacing( 0 );
+    topLayout->addLayout( layout_ );
+    topLayout->addStretch( 1 );
     setWidget(root_);
     setFrameStyle(QFrame::NoFrame);
     setWidgetResizable(true);
@@ -174,6 +174,9 @@ PanelsWidget::addPanelWidget(PanelData *panel, int row)
         widget->setParent( root_ );
         //layout_->addWidget( widget, row, 0, 1, 2 );
         layout_->addWidget( widget, row, 0, 1, -1 );
+        if ( row >= 6 ) {
+            layout_->setRowStretch( row, 2 );
+        }
     }
     panels_.push_back( panel->shared_from_this() );
 }
