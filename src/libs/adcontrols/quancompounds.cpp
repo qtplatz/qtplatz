@@ -22,42 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef QUANDOCUMENT_HPP
-#define QUANDOCUMENT_HPP
+#include "quancompounds.hpp"
 
-#include <memory>
-#include <mutex>
-#include <map>
-#include <vector>
+using namespace adcontrols;
 
-namespace adcontrols { class QuanMethod; class QuanCompounds; }
-
-namespace quan {
-
-    class PanelData;
-
-    class QuanDocument  {
-        ~QuanDocument();
-        QuanDocument();
-        static QuanDocument * instance_;
-        static std::mutex mutex_;
-    public:
-        static QuanDocument * instance();
-
-        PanelData * addPanel( int idx, int subIdx, std::shared_ptr< PanelData >& );
-        PanelData * findPanel( int idx, int subIdx, int pos );
-        std::shared_ptr< adcontrols::QuanMethod > quanMethod();
-        std::shared_ptr< adcontrols::QuanCompounds > quanCompounds();
-
-    private:
-        typedef std::vector< std::shared_ptr< PanelData > > page_type;
-        typedef std::map< int, page_type > chapter_type;
-        std::map< int, chapter_type > book_;
-
-        std::shared_ptr< adcontrols::QuanMethod > quanMethod_;
-        std::shared_ptr< adcontrols::QuanCompounds > quanCompounds_;
-        
-    };
+QuanCompounds::~QuanCompounds()
+{
 }
 
-#endif // QUANDOCUMENT_HPP
+QuanCompounds::QuanCompounds()
+{
+}
+
+QuanCompounds::QuanCompounds( const QuanCompounds& t ) : compounds_( t.compounds_ )
+{
+}
+
+QuanCompounds&
+QuanCompounds::operator << ( const QuanCompound& t )
+{
+    compounds_.push_back( t );
+    return *this;
+}

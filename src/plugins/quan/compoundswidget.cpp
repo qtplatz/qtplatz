@@ -23,8 +23,96 @@
 **************************************************************************/
 
 #include "compoundswidget.hpp"
+#include "compoundstable.hpp"
+#include "quandocument.hpp"
+#include <adcontrols/quancompounds.hpp>
+#include <adportable/profile.hpp>
+#include <utils/styledbar.h>
+#include <QFileDialog>
+#include <QGridLayout>
+#include <QLineEdit>
+#include <QToolButton>
+#include <QMessageBox>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/exception/all.hpp>
+#include <fstream>
 
-CompoundsWidget::CompoundsWidget(QWidget *parent) :
-    QWidget(parent)
+using namespace quan;
+
+CompoundsWidget::~CompoundsWidget()
 {
 }
+
+CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
+                                                  , layout_( new QGridLayout )
+                                                  , table_( new CompoundsTable )
+{
+    auto topLayout = new QVBoxLayout( this );
+    topLayout->setMargin( 0 );
+    topLayout->setSpacing( 0 );
+    topLayout->addLayout( layout_ );
+
+    if ( auto toolBar = new Utils::StyledBar ) {
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+        if ( auto btnOpen = new QToolButton ) {
+            btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
+            btnOpen->setToolTip( tr( "Open compoinent file..." ) );
+            toolBarLayout->addWidget( btnOpen );
+            
+            connect( btnOpen, &QToolButton::clicked, this, [this](bool){
+                    QString file;
+                    if ( auto edit = findChild< QLineEdit *>() ) {
+                        file = edit->text();
+                        if ( file.isEmpty() )
+                            file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
+                        file = QFileDialog::getOpenFileName( this, tr("Open compounds file"), file, tr("File(*.xml)"));
+                        if ( !file.isEmpty() ) {
+                            edit->setText( file );
+                            std::ofstream outf( file.toStdString() );
+                            boost::archive::xml_oarchive ar( outf );
+                            ar << boost::serialization::make_nvp( "Compounds", *QuanDocument::instance()->quanCompounds() );
+                        }
+                    }
+                });
+        }
+        if ( auto btnSave = new QToolButton ) {
+            btnSave->setIcon( QIcon( ":/quan/images/filesave.png" ) );
+            btnSave->setToolTip( tr( "Save compoinents..." ) );
+            toolBarLayout->addWidget( btnSave );
+            connect( btnSave, &QToolButton::clicked, this, [this](bool){
+                    QString file;
+                    if ( auto edit = findChild< QLineEdit *>() ) {
+                        file = edit->text();
+                        if ( file.isEmpty() )
+                            file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
+                        file = QFileDialog::getSaveFileName( this, tr("Save compounds"), file, tr("File(*.xml)"));
+                        if ( !file.isEmpty() ) {
+                            edit->setText( file );
+                            adcontrols::QuanCompounds m;
+                            try {
+                                std::ifstream inf( file.toStdString() );
+                                boost::archive::xml_iarchive ar( inf );
+                                ar >> BOOST_SERIALIZATION_NVP( m );
+                            } catch ( std::exception& ex ) {
+                                QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
+                                return;
+                            }
+                            *QuanDocument::instance()->quanCompounds() = m;
+                        }
+                    }
+                });
+        }
+        if ( auto edit = new QLineEdit ) {
+            toolBarLayout->addWidget( edit );
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+        }
+        layout_->addWidget( toolBar );
+    }
+    const int row = layout_->rowCount();
+    layout_->addWidget( table_.get(), row, 0 );
+}
+
+

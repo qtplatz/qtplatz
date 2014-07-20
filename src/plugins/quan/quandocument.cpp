@@ -25,6 +25,7 @@
 #include "quandocument.hpp"
 #include "paneldata.hpp"
 #include <adcontrols/quanmethod.hpp>
+#include <adcontrols/quancompounds.hpp>
 
 using namespace quan;
 
@@ -32,6 +33,7 @@ QuanDocument * QuanDocument::instance_ = 0;
 std::mutex QuanDocument::mutex_;
 
 QuanDocument::QuanDocument() : quanMethod_( std::make_shared< adcontrols::QuanMethod >() )
+                             , quanCompounds_( std::make_shared< adcontrols::QuanCompounds >() )
 {
 }
 
@@ -72,5 +74,11 @@ std::shared_ptr< adcontrols::QuanMethod >
 QuanDocument::quanMethod()
 {
     return quanMethod_;
+}
+
+std::shared_ptr< adcontrols::QuanCompounds >
+QuanDocument::quanCompounds()
+{
+    return quanCompounds_;
 }
 

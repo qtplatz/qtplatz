@@ -26,17 +26,30 @@
 #define COMPOUNDSWIDGET_HPP
 
 #include <QWidget>
+#include <memory>
 
-class CompoundsWidget : public QWidget
-{
-    Q_OBJECT
-public:
-    explicit CompoundsWidget(QWidget *parent = 0);
+class QGridLayout;
 
-signals:
+namespace quan {
 
-public slots:
+    class CompoundsTable;
 
-};
+    class CompoundsWidget : public QWidget {
+        Q_OBJECT
+    public:
+        ~CompoundsWidget();
+        explicit CompoundsWidget(QWidget *parent = 0);
+
+        QGridLayout * layout_;
+        std::unique_ptr< CompoundsTable > table_;
+        QWidget * dataSelectionBar();
+
+    signals:
+
+    public slots:
+
+    };
+
+}
 
 #endif // COMPOUNDSWIDGET_HPP

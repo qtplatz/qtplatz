@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "compoundswidget.hpp"
 #include "doubletabwidget.hpp"
 #include "panelswidget.hpp"
 #include "paneldata.hpp"
@@ -112,9 +113,9 @@ MainWindow::createContents( Core::IMode * )
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {    
         auto data = std::make_shared< PanelData >( "Compounds"
                                                    , QIcon( QLatin1String( ":/quan/images/unconfigured.png" ) )
-                                                   , new QLabel );
+                                                   , new CompoundsWidget );
         panelsWidget->addPanel( data.get() );
-        stack_->addWidget( panelsWidget );        
+        stack_->addWidget( panelsWidget );
     }
 
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {        
