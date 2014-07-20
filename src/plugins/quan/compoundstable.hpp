@@ -25,14 +25,25 @@
 #ifndef COMPOUNDSTABLE_HPP
 #define COMPOUNDSTABLE_HPP
 
-#include <QTableView>
+#include <adwidgets/tableview.hpp>
+class QModelIndex;
+class QStandardItemModel;
+class QPoint;
 
 namespace quan {
 
-    class CompoundsTable : public QTableView {
+    class CompoundsTable : public adwidgets::TableView {
         Q_OBJECT
     public:
+        ~CompoundsTable();
         explicit CompoundsTable(QWidget *parent = 0);
+        void onInitialUpdate();
+
+    private:
+        QStandardItemModel * model_;
+
+        void handleValueChanged( const QModelIndex& );
+        void handleContextMenu( const QPoint& );
 
     signals:
 
