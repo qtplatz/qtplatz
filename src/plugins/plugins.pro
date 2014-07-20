@@ -34,7 +34,7 @@ contains( QTPLATZ_CONFIG, Peptide ) {
   SUBDIRS += plugin_peptide
 }
 
-contains( QTPLATZ_CONFIG, QuanPlugin ) {
+contains( QTPLATZ_CONFIG, Quan ) {
   SUBDIRS += plugin_quanplugin
 }
 

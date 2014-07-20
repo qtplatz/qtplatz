@@ -24,6 +24,7 @@
 
 #include "fticr.hpp"
 #include "datafile_factory.hpp"
+#include <boost/filesystem.hpp>
 
 #if defined WIN32
 #  if defined _DEBUG
@@ -57,5 +58,10 @@ datafile_factory()
 adplugin::plugin *
 adplugin_plugin_instance()
 {
+#if defined _MSC_VER
+    // Workaround for boost/VC bug #6320 according to following artcile
+    // https://svn.boost.org/trac/boost/ticket/6320
+    boost::filesystem::path p("dummy");
+#endif   
     return new fticr::datafile_factory();
 }

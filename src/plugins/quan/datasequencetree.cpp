@@ -333,29 +333,28 @@ DataSequenceTree::dropIt( const std::wstring& path )
     QStandardItemModel& model = *model_;
     int row = model.rowCount();
 
-    if ( dataSubscribers_.empty() ) {
-        // this is the workaround for boost/msvc bug #6320 ref: https://svn.boost.org/trac/boost/ticket/6320
-        // so that make sure first call for boost::filesystem::path("") from main thread, and then safe to call from any thread.
-        // Simple dummy call for boost::filesystem::path("") does not work due to adcontrols::open() invokes several dynamically 
-        // loaded dlls such as Bruker, Agilent etc.
-        auto reader = std::make_shared< dataSubscriber >( row, path, [] ( dataSubscriber * ){} );
+    // if ( dataSubscribers_.empty() ) {
+    //     // this is the workaround for boost/msvc bug #6320 ref: https://svn.boost.org/trac/boost/ticket/6320
+    //     // so that make sure first call for boost::filesystem::path("") from main thread, and then safe to call from any thread.
+    //     // Simple dummy call for boost::filesystem::path("") does not work due to adcontrols::open() invokes several dynamically 
+    //     // loaded dlls such as Bruker, Agilent etc.
+    //     auto reader = std::make_shared< dataSubscriber >( row, path, [] ( dataSubscriber * ){} );
+    //     model.insertRow( row );
+    //     model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
+    //     reader->open(); 
+    //     dataSubscribers_.push_back( reader );
+    //     handleData( row );
+    // }
+    // else {
+    std::lock_guard< std::mutex > lock( mutex_ );
+    auto reader = std::make_shared< dataSubscriber >( row, path, [this] ( dataSubscriber * p ){ handleIt( p ); } );
+    auto it = std::find_if( dataSubscribers_.begin(), dataSubscribers_.end()
+                            , [=] ( const std::shared_ptr<dataSubscriber>& d ){ return d->filename() == path; } );
+    if ( it == dataSubscribers_.end() ) {
         model.insertRow( row );
         model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
-        reader->open(); 
-        dataSubscribers_.push_back( reader );
-        handleData( row );
-    }
-    else {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        auto reader = std::make_shared< dataSubscriber >( row, path, [this] ( dataSubscriber * p ){ handleIt( p ); } );
-        auto it = std::find_if( dataSubscribers_.begin(), dataSubscribers_.end()
-                                , [=] ( const std::shared_ptr<dataSubscriber>& d ){ return d->filename() == path; } );
-        if ( it == dataSubscribers_.end() ) {
-            model.insertRow( row );
-            model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
-            ++dropCount_;
-            threads_.push_back( std::thread( [reader] (){ reader->open(); } ) );
-        }
+        ++dropCount_;
+        threads_.push_back( std::thread( [reader] (){ reader->open(); } ) );
     }
 }
 

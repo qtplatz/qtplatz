@@ -25,6 +25,8 @@
 #include "galactic_spcfile.hpp"
 #include "datafile_factory.hpp"
 #include "galactic_spcfile_global.hpp"
+#include <boost/filesystem.hpp>
+
 //#include "spcfile.hpp"
 //#include "spc_h.hpp"
 //#include "spchdr.hpp"
@@ -38,5 +40,10 @@ extern "C" {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
+#if defined _MSC_VER
+    // Workaround for boost/VC bug #6320 according to following artcile
+    // https://svn.boost.org/trac/boost/ticket/6320
+    boost::filesystem::path p("dummy");
+#endif   
     return new galactic::datafile_factory();
 }

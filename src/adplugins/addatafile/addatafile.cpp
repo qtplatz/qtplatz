@@ -26,6 +26,7 @@
 #include "addatafile.hpp"
 #include "datafile_factory.hpp"
 #include <adplugin/plugin.hpp>
+#include <boost/filesystem.hpp>
 
 extern "C" {
     Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
@@ -34,6 +35,11 @@ extern "C" {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
+#if defined _MSC_VER
+    // Workaround for boost/VC bug #6320 according to following artcile
+    // https://svn.boost.org/trac/boost/ticket/6320
+    boost::filesystem::path p("dummy");
+#endif   
     return addatafile::datafile_factory::instance();
 }
 
