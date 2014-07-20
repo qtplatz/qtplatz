@@ -163,6 +163,7 @@ namespace quan {
             
             // implementation
             bool subscribe( const adcontrols::LCMSDataset& d ) override {
+                raw_ = &d;
                 try { 
                     size_t pos = d.make_pos( 0, 0 ); // find first data for  protoId = 0
                     ms_ = std::make_shared< adcontrols::MassSpectrum >();
@@ -291,7 +292,7 @@ DataSequenceTree::handleData( int row )
     if ( data ) {
         Infusion::setRow( model, row, "file" ); 
         setRaw( data, model.itemFromIndex( model.index( row, 0 ) ) );
-        setProcessed( data, model.itemFromIndex( model.index( row, 0 ) ) );
+        //setProcessed( data, model.itemFromIndex( model.index( row, 0 ) ) );
     }
     expandAll();
 }
