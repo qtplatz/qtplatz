@@ -40,6 +40,7 @@
 #include <QApplication>
 #include <QBrush>
 #include <QClipboard>
+#include <QComboBox>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QPainter>
@@ -78,9 +79,21 @@ namespace quan {
         public:
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
-                if ( index.column() == c_datafile )
-                    op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
-                QStyledItemDelegate::paint( painter, op, index );
+                painter->save();
+                std::string data_type = index.model()->index( index.row(), c_data_type, index.parent() ).data().toString().toStdString();
+                if ( data_type == "raw" ) {
+                    painter->fillRect( option.rect, QColor( 0xff, 0x66, 0x44, 0x10 ) );
+                } else if ( data_type == "file" ) {
+                    painter->setPen( Qt::gray );
+                }
+                if ( index.column() == c_datafile ) {
+                    op.textElideMode = Qt::ElideLeft;
+                    QStyledItemDelegate::paint( painter, op, index );
+                    // auto align = Qt::AlignRight | Qt::AlignVCenter;
+                    // painter->drawText( op.rect, align, index.data().toString() );
+                } else
+                    QStyledItemDelegate::paint( painter, op, index );
+                painter->restore();                
             }
             void setEditorData( QWidget * editor, const QModelIndex& index ) const {
                 QStyledItemDelegate::setEditorData( editor, index );
@@ -95,6 +108,28 @@ namespace quan {
                 return QStyledItemDelegate::sizeHint( option, index );
             }
 
+            QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+                if ( index.column() == c_sample_type ) {
+                    QComboBox * pCombo = new QComboBox( parent );
+                    pCombo->addItems( QStringList() << "UNK" << "STD" << "QC" );
+                    return pCombo;
+                }
+                if ( index.column() == c_process ) {
+                    const QAbstractItemModel& model = *index.model();
+                    QString data_type = model.index( index.row(), c_data_type, index.parent() ).data().toString();
+                    if ( data_type == "raw" ) {
+                        QComboBox * pCombo = new QComboBox( parent );
+                        pCombo->addItems( QStringList() << "Average all" << "Take 1st spc." << "Take 2nd spc." << "Take last spc." );
+                        return pCombo;
+                    } else if ( data_type == "spc" ) {
+                        QComboBox * pCombo = new QComboBox( parent );
+                        pCombo->addItems( QStringList() << "AS IS" );
+                        return pCombo;
+                    }
+                }
+                return QStyledItemDelegate::createEditor( parent, option, index );
+            }
+            
             void register_valueChanged( std::function<void( const QModelIndex& )> f ) { 
                 valueChanged_ = f;
             }
@@ -154,6 +189,34 @@ namespace quan {
             std::function< void( dataSubscriber * ) > callback_;
         };
 
+        struct Chromatography {
+            static void setRow( QStandardItemModel& model, int row, const QString& data_type, QModelIndex& parent = QModelIndex()) {
+                model.setData( model.index( row, c_data_type, parent ), data_type );
+                model.setData( model.index( row, c_sample_type, parent ), "UNK" );
+                model.setData( model.index( row, c_process, parent ), "TIC" ); // | Chromatogram Generation
+                model.setData( model.index( row, c_level, parent ), 0 ); // level
+            }
+        };
+
+        struct Infusion {
+            static void setRow( QStandardItemModel& model, int row, const QString& data_type, QModelIndex& parent = QModelIndex()) {
+                model.itemFromIndex( model.index( row, c_datafile, parent ) )->setEditable( false ); // not editable
+                model.setData( model.index( row, c_data_type, parent ), data_type );
+                model.itemFromIndex( model.index( row, c_data_type, parent ) )->setEditable( false );
+                model.setData( model.index( row, c_sample_type, parent ), "UNK" );
+                if ( data_type == "file" ) {
+                    model.itemFromIndex( model.index( row, c_process ) )->setEditable( false );
+                } else if ( data_type == "raw" ) {
+                    model.setData( model.index( row, c_process, parent ), "Average all" );
+                    if ( parent != QModelIndex() )
+                        model.itemFromIndex( model.index( row, c_sample_type, parent ) )->setEditable( false );
+                } else if ( data_type == "spc" ) {
+                    model.setData( model.index( row, c_process, parent ), "AS IS" );
+                }
+                model.setData( model.index( row, c_level, parent ), 0 ); // level
+            }
+        };
+
     }
 }
 
@@ -174,8 +237,9 @@ DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
     model.setHeaderData( c_datafile, Qt::Horizontal, tr("Data name") );  // read only
     model.setHeaderData( c_data_type, Qt::Horizontal, tr("Data type") ); // read only
     model.setHeaderData( c_sample_type, Qt::Horizontal, tr("Sample type") ); // UNK/STD/QC
-    model.setHeaderData( c_process, Qt::Horizontal, tr("Process") ); // Average (start,end)
+    model.setHeaderData( c_process, Qt::Horizontal, tr("Spectrum method") ); // Average (start,end)
     model.setHeaderData( c_level, Qt::Horizontal, tr("Level") );             // if standard
+    model.setHeaderData( c_description, Qt::Horizontal, tr("Description") );             // if standard
 
     connect( this, &DataSequenceTree::onJoin, this, &DataSequenceTree::handleJoin );
 
@@ -215,11 +279,7 @@ DataSequenceTree::handleData( int row )
     } while(0);
 
     if ( data ) {
-        model.setData( model.index( row, c_data_type ), "file" );
-        model.setData( model.index( row, c_sample_type ), "" );
-        model.setData( model.index( row, c_process ), "" ); // | Chromatogram Generation
-        model.setData( model.index( row, c_level ), 0 ); // level
-        
+        Infusion::setRow( model, row, "file" ); 
         setRaw( data, model.itemFromIndex( model.index( row, 0 ) ) );
         setProcessed( data, model.itemFromIndex( model.index( row, 0 ) ) );
     }
@@ -227,8 +287,19 @@ DataSequenceTree::handleData( int row )
 }
 
 void
-DataSequenceTree::handleValueChanged( const QModelIndex& )
+DataSequenceTree::handleValueChanged( const QModelIndex& index )
 {
+    QStandardItemModel& model = *model_;
+
+    if ( index.column() == c_sample_type ) {
+        if ( index.parent() == QModelIndex() ) {
+            auto parent = model.item( index.row() );
+            for ( int row = 0; row < parent->rowCount(); ++row ) {
+                model.setData( model.index( row, c_sample_type, parent->index() ), index.data() );
+            }
+        }
+    }
+    // QStandardItemModel& model = *model_;
 }
 
 void
@@ -344,10 +415,7 @@ DataSequenceTree::setRaw( dataSubscriber * data, QStandardItem * parent )
 
             for ( int fcn = 0; fcn < n; ++fcn ) {
                 model.setData( model.index( fcn, c_datafile, parent->index() ),  QString( "Raw trace %1" ).arg( fcn + 1 ), Qt::EditRole );
-                model.setData( model.index( fcn, c_data_type, parent->index() ), "RAW", Qt::EditRole );
-                model.setData( model.index( fcn, c_sample_type, parent->index() ), "UNK", Qt::EditRole );
-                model.setData( model.index( fcn, c_process, parent->index() ),   "Average", Qt::EditRole );
-                model.setData( model.index( fcn, c_level, parent->index() ), 1,   Qt::EditRole );
+                Infusion::setRow( model, fcn, "raw", parent->index() );
             }
             
             if ( data->ms() ) {
@@ -385,10 +453,7 @@ DataSequenceTree::setProcessed( dataSubscriber * data, QStandardItem * parent )
 
                         for ( auto& folium : folder.folio() ) {
                             model.setData( model.index( row, 0, parent->index() ), QString::fromStdWString( folium.name() ), Qt::EditRole );
-                            model.setData( model.index( row, c_data_type, parent->index() ), "Spectrum", Qt::EditRole );
-                            model.setData( model.index( row, c_sample_type, parent->index() ), "UNK", Qt::EditRole );
-                            model.setData( model.index( row, c_process, parent->index() ), "n/a", Qt::EditRole );
-                            model.setData( model.index( row, c_level, parent->index() ), 1, Qt::EditRole );
+                            Infusion::setRow( model, row, "spc", parent->index() );
                             ++row;
                         }
                     }

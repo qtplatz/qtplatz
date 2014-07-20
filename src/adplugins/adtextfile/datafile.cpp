@@ -60,7 +60,8 @@ void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
     // subscribe acquired dataset <LCMSDataset>
-    sub.subscribe( *this );
+    // No LC/GC data supported
+    // sub.subscribe( *this );
 
     // subscribe processed dataset
     if ( processedDataset_ )

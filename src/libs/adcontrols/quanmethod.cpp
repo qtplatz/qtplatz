@@ -34,8 +34,8 @@ QuanMethod::QuanMethod() : eq_(idCalibLinear)
                          , weighting_( idWeight_C1 )
                          , levels_(1)
                          , replicates_(1)
-                         , use_bracketing_( false )
-                         , bracketing_( idBracketNone )
+                         , use_bracketing_( true )
+                         , bracketing_( idBracketStandard )
 {
 }
 

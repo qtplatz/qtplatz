@@ -47,6 +47,7 @@ namespace quan {
         std::unique_ptr< DataSequenceTree > dataSequenceTree_;
         QWidget * dataSelectionBar();
 
+        void execute();
 
     signals:
 
