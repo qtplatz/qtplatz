@@ -6,9 +6,8 @@ include(../config.pri)
 TEMPLATE  = subdirs
 
 SUBDIRS   = plugin_coreplugin \
-            plugin_servant \
-            plugin_batchproc \
-            plugin_quan
+            plugin_servant
+
 
 
 contains( QTPLATZ_CONFIG, Acquire ) {
@@ -35,10 +34,14 @@ contains( QTPLATZ_CONFIG, Peptide ) {
   SUBDIRS += plugin_peptide
 }
 
-contains( QTPLATZ_CONFIG, Quan ) {
-  SUBDIRS += plugin_quan
+contains( QTPLATZ_CONFIG, QuanPlugin ) {
+  SUBDIRS += plugin_quanplugin
 }
 
+contains( QTPLATZ_CONFIG, Batch ) {
+  SUBDIRS += plugin_batchproc
+}
+            
 plugin_coreplugin.subdir = coreplugin
 
 plugin_chemspider.subdir = chemspider
@@ -65,6 +68,6 @@ plugin_batchproc.depends = plugin_coreplugin
 plugin_peptide.subdir = peptide
 plugin_peptide.depends = plugin_coreplugin
 
-plugin_quan.subdir = quan
-plugin_quan.depends = plugin_coreplugin
+plugin_quanplugin.subdir = quan
+plugin_quanplugin.depends = plugin_coreplugin
 

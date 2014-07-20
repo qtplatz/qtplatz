@@ -50,6 +50,7 @@ QTPLATZ_CONFIG += Dataproc
 QTPLATZ_CONFIG += Chemistry
 QTPLATZ_CONFIG += Peptide
 QTPLATZ_CONFIG += Quan
+QTPLATZ_CONFIG += Batch
 
 # no chemistry for ARM platform
 linux-arm-*: QTPLATZ_CONFIG -= ChemSpider Chemistry Peptide
