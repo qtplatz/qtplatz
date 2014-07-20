@@ -141,7 +141,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     using adportable::utf;
     using namespace adcontrols::metric;
 
-    static char * polarities [] = { "Indeterminant", "Positive", "Negative", "Mixed" };
+    static const char * const polarities [] = { "Indeterminant", "Positive", "Negative", "Mixed" };
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
 

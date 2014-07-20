@@ -72,6 +72,7 @@ namespace adcontrols {
         const std::wstring& dataGuid() const;
         
     private:
+        std::wstring dataGuid_;
         uint32_t idx_;  // peak index within a 'segment' spectrum
         uint32_t fcn_;  // protocol (function) id in a spectrum, which may contain segments
         double time_;
@@ -82,7 +83,6 @@ namespace adcontrols {
         uint32_t istd_;  // zero := not using istd | not an ISTD
         bool isSTD_;
         bool isIS_;
-        std::wstring dataGuid_;
         std::wstring compId_;  // component name as primary-key
         std::string description_;
         std::string formula_;

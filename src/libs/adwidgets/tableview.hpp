@@ -25,11 +25,12 @@
 #ifndef TABLEVIEW_HPP
 #define TABLEVIEW_HPP
 
+#include "adwidgets_global.hpp"
 #include <QTableView>
 
 namespace adwidgets {
 
-    class TableView : public QTableView
+    class ADWIDGETSSHARED_EXPORT TableView : public QTableView
     {
         Q_OBJECT
     public:

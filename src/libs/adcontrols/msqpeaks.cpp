@@ -88,7 +88,7 @@ MSQPeaks::iterator_type
 MSQPeaks::find( const std::wstring& dataGuid, int idx, int fcn )
 {
     return std::find_if( vec_.begin(), vec_.end(), [=]( value_type& t ){
-             return t.dataGuid() == dataGuid && t.fcn() == fcn && t.idx() == idx;
+            return t.dataGuid() == dataGuid && t.fcn() == unsigned(fcn) && t.idx() == unsigned(idx);
         });
 }
 
@@ -183,14 +183,14 @@ MSQPeaks::setData( const MassSpectrum& ms, const std::wstring& dataGuid, const s
                 pk.intensity( fms.getIntensity(idx) );
                 pk.mode( prop.mode() );
 
-                auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });
+                auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == int(idx); });
                 while ( it != annots.end() ) {
                     if ( it->dataFormat() == adcontrols::annotation::dataText ) {
                         pk.description( it->text() );
                     } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
                         pk.formula( it->text() );
                     }
-                    it = std::find_if( it + 1, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });                    
+                    it = std::find_if( it + 1, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == int(idx); });                    
                 }
                 vec_.push_back( pk );
             }

@@ -8,7 +8,8 @@ TEMPLATE  = subdirs
 SUBDIRS   = plugin_coreplugin \
             plugin_servant \
             plugin_batchproc \
-    Quan/quan.pro
+            plugin_quan
+
 
 contains( QTPLATZ_CONFIG, Acquire ) {
   SUBDIRS += plugin_acquire
@@ -32,6 +33,10 @@ contains( QTPLATZ_CONFIG, Chemistry ) {
 
 contains( QTPLATZ_CONFIG, Peptide ) {
   SUBDIRS += plugin_peptide
+}
+
+contains( QTPLATZ_CONFIG, Quan ) {
+  SUBDIRS += plugin_quan
 }
 
 plugin_coreplugin.subdir = coreplugin
@@ -59,4 +64,7 @@ plugin_batchproc.depends = plugin_coreplugin
 
 plugin_peptide.subdir = peptide
 plugin_peptide.depends = plugin_coreplugin
+
+plugin_quan.subdir = quan
+plugin_quan.depends = plugin_coreplugin
 

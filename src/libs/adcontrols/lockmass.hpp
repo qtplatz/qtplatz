@@ -78,8 +78,9 @@ namespace adcontrols {
         fitter fitter_;
     };
 
+#if defined _MSC_VER
     template class ADCONTROLSSHARED_EXPORT std::vector < lockmass::reference > ;
-
+#endif
 }
 
 #include <compiler/diagnostic_pop.h>

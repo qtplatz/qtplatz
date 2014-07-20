@@ -42,6 +42,10 @@
 
 using namespace quan;
 
+DataSequenceWidget::~DataSequenceWidget()
+{
+}
+
 DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
                                                         , layout_( new QGridLayout )
                                                         , dataSequenceTree_( new DataSequenceTree )

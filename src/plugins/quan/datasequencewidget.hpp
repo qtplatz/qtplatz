@@ -38,6 +38,7 @@ namespace quan {
     {
         Q_OBJECT
     public:
+        ~DataSequenceWidget();
         explicit DataSequenceWidget( QWidget *parent = 0 );
 
         QSize sizeHint() const { return QSize( 600, 600 ); }

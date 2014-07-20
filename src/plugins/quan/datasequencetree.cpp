@@ -29,6 +29,7 @@
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/descriptions.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
@@ -58,7 +59,7 @@ namespace quan {
 
     namespace datasequencetree {
 
-        static std::array< const wchar_t *, 3 > extensions = { L".adfs", L".csv", L".txt" };
+        static std::array< const wchar_t *, 3 > extensions = { { L".adfs", L".csv", L".txt" } };
 
         enum {
             r_rowdata
@@ -144,15 +145,20 @@ namespace quan {
         public:
             dataSubscriber( int row
                             , const std::wstring& filename
-                            , std::function<void( dataSubscriber *)> f ) : raw_(0)
-                                                                         , row_( row )
+                            , std::function<void( dataSubscriber *)> f ) : row_( row )
                                                                          , filename_( filename )
+                                                                         , raw_(0)
                                                                          , callback_(f){
             }
             void open() {
-                if ( datafile_ = std::shared_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename_, true ) ) )
-                    datafile_->accept( *this );
-                callback_( this );
+                try {
+                    if ( ( datafile_ = std::shared_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename_, true ) )  ) )
+                        datafile_->accept( *this );
+                    callback_( this );
+                } catch ( ... ) {
+                    ADERROR() << boost::current_exception_diagnostic_information();
+                    QMessageBox::warning(0, "Quan dataSubscriber", boost::current_exception_diagnostic_information().c_str() );
+                }
             }
             
             // implementation
@@ -190,7 +196,7 @@ namespace quan {
         };
 
         struct Chromatography {
-            static void setRow( QStandardItemModel& model, int row, const QString& data_type, QModelIndex& parent = QModelIndex()) {
+            static void setRow( QStandardItemModel& model, int row, const QString& data_type, const QModelIndex& parent = QModelIndex()) {
                 model.setData( model.index( row, c_data_type, parent ), data_type );
                 model.setData( model.index( row, c_sample_type, parent ), "UNK" );
                 model.setData( model.index( row, c_process, parent ), "TIC" ); // | Chromatogram Generation
@@ -199,7 +205,7 @@ namespace quan {
         };
 
         struct Infusion {
-            static void setRow( QStandardItemModel& model, int row, const QString& data_type, QModelIndex& parent = QModelIndex()) {
+            static void setRow( QStandardItemModel& model, int row, const QString& data_type, const QModelIndex& parent = QModelIndex()) {
                 model.itemFromIndex( model.index( row, c_datafile, parent ) )->setEditable( false ); // not editable
                 model.setData( model.index( row, c_data_type, parent ), data_type );
                 model.itemFromIndex( model.index( row, c_data_type, parent ) )->setEditable( false );
@@ -447,7 +453,7 @@ DataSequenceTree::setProcessed( dataSubscriber * data, QStandardItem * parent )
                 if ( folder.name() == L"Spectra" ) {
 
                     int row = parent->rowCount();
-                    if ( rowCount = folder.folio().size() ) {
+                    if ( ( rowCount = folder.folio().size() ) ) {
                         parent->setRowCount( int( rowCount + row ) );
                         parent->setColumnCount( number_of_columns );
 
