@@ -63,7 +63,7 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
 QWidget *
 DataSequenceWidget::dataSelectionBar()
 {
-    if ( auto toolBar = new QWidget ) {
+    if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );

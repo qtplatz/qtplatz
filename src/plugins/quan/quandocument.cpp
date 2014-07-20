@@ -76,9 +76,21 @@ QuanDocument::quanMethod()
     return quanMethod_;
 }
 
+void
+QuanDocument::quanMethod( const adcontrols::QuanMethod& t )
+{
+    *quanMethod_ = t;
+}
+
 std::shared_ptr< adcontrols::QuanCompounds >
 QuanDocument::quanCompounds()
 {
     return quanCompounds_;
+}
+
+void
+QuanDocument::quanCompounds( const adcontrols::QuanCompounds& t )
+{
+    *quanCompounds_ = t;
 }
 

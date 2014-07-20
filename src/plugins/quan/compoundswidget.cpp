@@ -69,11 +69,15 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
                         if ( file.isEmpty() )
                             file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
                         file = QFileDialog::getOpenFileName( this, tr("Open compounds file"), file, tr("File(*.xml)"));
-                        if ( !file.isEmpty() ) {
-                            edit->setText( file );
-                            std::ofstream outf( file.toStdString() );
-                            boost::archive::xml_oarchive ar( outf );
-                            ar << boost::serialization::make_nvp( "Compounds", *QuanDocument::instance()->quanCompounds() );
+                        try {
+                            std::ifstream inf( file.toStdString() );
+                            boost::archive::xml_iarchive ar( inf );
+                            adcontrols::QuanCompounds m;
+                            ar >> BOOST_SERIALIZATION_NVP( m );
+                            QuanDocument::instance()->quanCompounds( m );
+                        } catch ( std::exception& ex ) {
+                            QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
+                            return;
                         }
                     }
                 });
@@ -93,9 +97,10 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
                             edit->setText( file );
                             adcontrols::QuanCompounds m;
                             try {
-                                std::ifstream inf( file.toStdString() );
-                                boost::archive::xml_iarchive ar( inf );
-                                ar >> BOOST_SERIALIZATION_NVP( m );
+                                edit->setText( file );
+                                std::ofstream outf( file.toStdString() );
+                                boost::archive::xml_oarchive ar( outf );
+                                ar << boost::serialization::make_nvp( "Compounds", *QuanDocument::instance()->quanCompounds() );
                             } catch ( std::exception& ex ) {
                                 QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
                                 return;

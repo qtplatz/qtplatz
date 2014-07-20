@@ -26,6 +26,7 @@
 #include "quanconfigform.hpp"
 #include "quandocument.hpp"
 #include "paneldata.hpp"
+#include <utils/styledbar.h>
 #include <adcontrols/quanmethod.hpp>
 #include <adportable/profile.hpp>
 #include <QGridLayout>
@@ -55,9 +56,81 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
+    if ( auto toolBar = new Utils::StyledBar ) {
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+        auto label = new QLabel;
+        // label->setStyleSheet( "QLabel { color : blue; }" );
+        label->setText( "Configuration" );
+        toolBarLayout->addWidget( label );
+
+        if ( auto btnOpen = new QToolButton ) {
+            btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
+            btnOpen->setToolTip( tr( "Open configuration..." ) );
+            toolBarLayout->addWidget( btnOpen );
+            connect( btnOpen, &QToolButton::clicked, this, [this](bool){
+                    QString file;
+                    if ( auto edit = findChild< QLineEdit *>() ) {
+                        file = edit->text();
+                        if ( file.isEmpty() )
+                            file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
+                        file = QFileDialog::getOpenFileName( this, tr("Open configuration"), file, tr("File(*.xml)"));
+                        if ( !file.isEmpty() ) {
+                            edit->setText( file );
+                            try {
+                                std::ifstream inf( file.toStdString() );
+                                boost::archive::xml_iarchive ar( inf );
+                                adcontrols::QuanMethod m;
+                                ar >> BOOST_SERIALIZATION_NVP( m );
+                                QuanDocument::instance()->quanMethod( m );
+                            } catch ( std::exception& ex ) {
+                                QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
+                                return;
+                            }
+
+                        }
+                    }
+                });
+        }
+        if ( auto btnSave = new QToolButton ) {
+            btnSave->setIcon( QIcon( ":/quan/images/filesave.png" ) );
+            btnSave->setToolTip( tr( "Save configuration..." ) );
+            toolBarLayout->addWidget( btnSave );
+            connect( btnSave, &QToolButton::clicked, this, [this](bool){
+                    QString file;
+                    if ( auto edit = findChild< QLineEdit *>() ) {
+                        file = edit->text();
+                        if ( file.isEmpty() )
+                            file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
+                        file = QFileDialog::getSaveFileName( this, tr("Save Quantitative Method"), file, tr("File(*.xml)"));
+                        if ( !file.isEmpty() ) {
+                            edit->setText( file );
+                            try {
+                                std::ofstream outf( file.toStdString() );
+                                boost::archive::xml_oarchive ar( outf );
+                                ar << boost::serialization::make_nvp( "QuanMethod", *QuanDocument::instance()->quanMethod() );
+                            } catch ( std::exception& ex ) {
+                                QMessageBox::warning( 0, "Save Quantitative Method", boost::diagnostic_information( ex ).c_str() );
+                                return;
+                            }
+                        }
+                    }
+                });
+
+            auto edit = new QLineEdit;
+            toolBarLayout->addWidget( edit );
+            boost::filesystem::path dir( adportable::profile::user_data_dir<wchar_t>() );
+            dir /= L"data/quan.xml";
+            edit->setText( QString::fromStdWString( dir.wstring() ) );
+            
+            layout_->addWidget( toolBar );            
+        }
+        
+    }
+
     const int row = layout_->rowCount();
-    layout_->addWidget( fileSelectionBar(), row, 0 );
-    layout_->addWidget( form_.get(), row + 1, 0 );
+    layout_->addWidget( form_.get(), row, 0 );
 
     form_->setContents( *QuanDocument::instance()->quanMethod() );
 }

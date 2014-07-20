@@ -15,9 +15,6 @@ SOURCES += quanplugin.cpp \
     panelswidget.cpp \
     paneldata.cpp \
     doubletabwidget.cpp \
-    dataitemselector.cpp \
-    dataselectionwidget.cpp \
-    dataselectionform.cpp \
     datasequencewidget.cpp \
     datasequencetree.cpp \
     compoundswidget.cpp \
@@ -34,9 +31,6 @@ HEADERS += quanplugin.hpp \
         panelswidget.hpp \
         paneldata.hpp \
         doubletabwidget.hpp \
-        dataitemselector.hpp \
-        dataselectionwidget.hpp \
-        dataselectionform.hpp \
     datasequencewidget.hpp \
     datasequencetree.hpp \
     compoundswidget.hpp \

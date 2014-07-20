@@ -47,7 +47,9 @@ namespace quan {
         PanelData * addPanel( int idx, int subIdx, std::shared_ptr< PanelData >& );
         PanelData * findPanel( int idx, int subIdx, int pos );
         std::shared_ptr< adcontrols::QuanMethod > quanMethod();
+        void quanMethod( const adcontrols::QuanMethod & );
         std::shared_ptr< adcontrols::QuanCompounds > quanCompounds();
+        void quanCompounds( const adcontrols::QuanCompounds& );
 
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
