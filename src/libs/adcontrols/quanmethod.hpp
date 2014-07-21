@@ -37,6 +37,7 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT QuanMethod {
 
     public:
+        ~QuanMethod();
         QuanMethod();
         QuanMethod( const QuanMethod& );
 
@@ -84,8 +85,10 @@ namespace adcontrols {
         CalibWeighting weighting() const;
         void weighting( CalibWeighting );
 
-        bool ISTD() const;
-        void ISTD( bool );
+        bool isInternalStandard() const;
+        void isInternalStandard( bool );
+
+        bool isExternalStandard() const { return !isInternalStandard(); }
 
         uint32_t levels() const;
         void levels( uint32_t );

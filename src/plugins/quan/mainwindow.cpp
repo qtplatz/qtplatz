@@ -96,10 +96,12 @@ MainWindow::createContents( Core::IMode * )
     auto doc = QuanDocument::instance();
 
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
+        auto configWidget = new QuanConfigWidget;
         auto panel = std::make_shared< PanelData >( "Configuration"
                                                     , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
-                                                    , new QuanConfigWidget );
+                                                    , configWidget );
         panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
+        connect( panelsWidget, &PanelsWidget::onLeaving, configWidget, &QuanConfigWidget::commit );
         
         panel = std::make_shared< PanelData >( "Select Data"
                                                , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
@@ -212,6 +214,10 @@ void
 MainWindow::handleIndexChanged( int index, int subIndex )
 {
     (void)index;
-    if ( stack_ )
+    if ( stack_ ) {
+        QWidget * widget = stack_->widget( stack_->currentIndex() );
+        if ( auto panels = dynamic_cast< PanelsWidget * >( widget ) )
+            panels->leaving();
         stack_->setCurrentIndex( subIndex );
+    }
 }

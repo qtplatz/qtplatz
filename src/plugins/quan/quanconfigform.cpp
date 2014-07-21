@@ -26,6 +26,7 @@
 #include "ui_quanconfigform.h"
 #include <qtwrapper/font.hpp>
 #include <adcontrols/quanmethod.hpp>
+#include <QMessageBox>
 #include <algorithm>
 
 namespace quan {
@@ -175,7 +176,7 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
     if ( auto radioButton = dynamic_cast<QRadioButton *>(w) ) {
         radioButton->setChecked( true );
     }
-    if ( m.ISTD() ) {
+    if ( m.isInternalStandard() ) {
         if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInternalStandard )) )
             radioButton->setChecked( true );
     } else {
@@ -236,15 +237,14 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
         }
     } while(0);
 
-    if ( m.ISTD() ) {
-        if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInternalStandard )) )
-            m.ISTD( true );
-    } else {
-        if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioExternalStandard )) )
-            m.ISTD( false );
-    }
+    if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInternalStandard )) ) 
+        m.isInternalStandard( true );
+    else
+        m.isInternalStandard( false );
+
     if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinLevel))) {
-        m.levels( spin->value() );
+        int value = spin->value();
+        m.levels( value );
     }
     if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinReplicates))) {
         m.replicates( spin->value() );
@@ -255,5 +255,5 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
 void
 QuanConfigForm::on_pushButton_clicked()
 {
-
+    QMessageBox::information(0, "QuanConfigForm", "Sorry, not implemented yet");
 }

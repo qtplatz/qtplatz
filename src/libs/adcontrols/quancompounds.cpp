@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "quancompounds.hpp"
+#include <adportable/uuid.hpp>
 
 using namespace adcontrols;
 
@@ -30,11 +31,12 @@ QuanCompounds::~QuanCompounds()
 {
 }
 
-QuanCompounds::QuanCompounds()
+QuanCompounds::QuanCompounds() : uuid_( adportable::uuid()() )
 {
 }
 
-QuanCompounds::QuanCompounds( const QuanCompounds& t ) : compounds_( t.compounds_ )
+QuanCompounds::QuanCompounds( const QuanCompounds& t ) : uuid_( t.uuid_ )
+                                                       , compounds_( t.compounds_ )
 {
 }
 
@@ -44,3 +46,16 @@ QuanCompounds::operator << ( const QuanCompound& t )
     compounds_.push_back( t );
     return *this;
 }
+
+void
+QuanCompounds::uuid( const boost::uuids::uuid& uuid )
+{
+    uuid_ = uuid;
+}
+
+const boost::uuids::uuid&
+QuanCompounds::uuid() const
+{
+    return uuid_;
+}
+

@@ -48,6 +48,12 @@ QuanDocument::instance()
     return instance_;
 }
 
+void
+QuanDocument::register_dataChanged( std::function< void( int ) > f )
+{
+    clients_.push_back( f );
+}
+
 PanelData *
 QuanDocument::addPanel( int idx, int subIdx, std::shared_ptr< PanelData >& section )
 {
@@ -70,27 +76,31 @@ QuanDocument::findPanel( int idx, int subIdx, int pos )
     return 0;
 }
 
-std::shared_ptr< adcontrols::QuanMethod >
+const adcontrols::QuanMethod&
 QuanDocument::quanMethod()
 {
-    return quanMethod_;
+    return *quanMethod_;
 }
 
 void
 QuanDocument::quanMethod( const adcontrols::QuanMethod& t )
 {
     *quanMethod_ = t;
+    for ( auto& client: clients_ )
+        client( idQuanMethod );
 }
 
-std::shared_ptr< adcontrols::QuanCompounds >
+const adcontrols::QuanCompounds&
 QuanDocument::quanCompounds()
 {
-    return quanCompounds_;
+    return *quanCompounds_;
 }
 
 void
 QuanDocument::quanCompounds( const adcontrols::QuanCompounds& t )
 {
     *quanCompounds_ = t;
+    for ( auto& client: clients_ )
+        client( idQuanCompounds );
 }
 

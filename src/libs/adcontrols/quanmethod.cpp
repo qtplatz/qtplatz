@@ -26,6 +26,10 @@
 
 using namespace adcontrols;
 
+QuanMethod::~QuanMethod()
+{
+}
+
 QuanMethod::QuanMethod() : eq_(idCalibLinear)
                          , polynomialOrder_(2)
                          , isChromatogram_( false )
@@ -36,6 +40,19 @@ QuanMethod::QuanMethod() : eq_(idCalibLinear)
                          , replicates_(1)
                          , use_bracketing_( true )
                          , bracketing_( idBracketStandard )
+{
+}
+
+QuanMethod::QuanMethod( const QuanMethod& t ) : isChromatogram_( t.isChromatogram_ )
+                                              , isISTD_( t.isISTD_ )
+                                              , use_weighting_( t.use_weighting_) 
+                                              , use_bracketing_( t.use_bracketing_)
+                                              , eq_(t.eq_)
+                                              , weighting_( t.weighting_ )
+                                              , bracketing_( t.bracketing_ )
+                                              , levels_( t.levels_)
+                                              , replicates_( t.replicates_ )
+                                              , polynomialOrder_( t.polynomialOrder_ )
 {
 }
 
@@ -124,13 +141,13 @@ QuanMethod::bracketing( QuanMethod::Bracketing v )
 }
 
 bool
-QuanMethod::ISTD() const
+QuanMethod::isInternalStandard() const
 {
     return isISTD_;
 }
 
 void
-QuanMethod::ISTD( bool v )
+QuanMethod::isInternalStandard( bool v )
 {
     isISTD_ = v;
 }

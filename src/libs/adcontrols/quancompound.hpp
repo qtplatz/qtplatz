@@ -43,6 +43,9 @@ namespace adcontrols {
         QuanCompound();
         QuanCompound( const QuanCompound& );
 
+        uint64_t uniqId() const;
+        void uniqId( uint64_t );
+
         const wchar_t * display_name() const;
         void displya_name( const wchar_t * );
         const wchar_t * formula() const;
@@ -55,22 +58,41 @@ namespace adcontrols {
         size_t levels() const;
         const double * amounts() const;
         void amounts( const double *, size_t size );
-
+        double mass() const { return mass_; }
+        void mass( double v ) { mass_ = v; }
+        double tR() const { return tR_; }
+        void tR( double v ) { tR_ = v; };
+        const wchar_t * description() const;
+        void description( const wchar_t * );
+        
     private:
+        uint64_t uniqId_;
+
 #  include <compiler/diagnostic_push.h>
 #  include <compiler/disable_dll_interface.h>
         std::wstring display_name_;
         std::wstring formula_;
         std::vector< double > amounts_;  // added amounts[ level ]
+        std::wstring description_;
 #   include <compiler/diagnostic_pop.h>
+        double tR_;
+        double mass_;
         bool isISTD_;  // am I an internal standard?
         int32_t idISTD_; // index for internal standad (referenced from non-istd
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( display_name_ );
-            ar & BOOST_SERIALIZATION_NVP( formula_ );
+            ar & BOOST_SERIALIZATION_NVP( uniqId_ )
+                & BOOST_SERIALIZATION_NVP( formula_ )
+                & BOOST_SERIALIZATION_NVP( display_name_ )
+                & BOOST_SERIALIZATION_NVP( amounts_ )
+                & BOOST_SERIALIZATION_NVP( description_ )
+                & BOOST_SERIALIZATION_NVP( isISTD_ )
+                & BOOST_SERIALIZATION_NVP( idISTD_ )
+                & BOOST_SERIALIZATION_NVP( tR_ )
+                & BOOST_SERIALIZATION_NVP( mass_ )
+                ;
         }
     };
 

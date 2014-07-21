@@ -23,25 +23,55 @@
 **************************************************************************/
 
 #include "quancompound.hpp"
+#include <atomic>
+
+namespace adcontrols {
+    namespace quan {
+
+        std::atomic< uint64_t > __uniqCompoundKey;
+
+    }
+}
 
 using namespace adcontrols;
+
+
 
 QuanCompound::~QuanCompound()
 {
 }
 
-QuanCompound::QuanCompound() : isISTD_( false )
+QuanCompound::QuanCompound() : uniqId_( quan::__uniqCompoundKey++ )
+                             , isISTD_( false )
                              , idISTD_( -1 )
-                             , amounts_(1)
+                             , amounts_( 1 )
+                             , mass_( 0 )
+                             , tR_( 0 )
 {
 }
 
-QuanCompound::QuanCompound( const QuanCompound& t ) : display_name_( t.display_name_ )
+QuanCompound::QuanCompound( const QuanCompound& t ) : uniqId_( t.uniqId_ )
+                                                    , display_name_( t.display_name_ )
                                                     , formula_( t.formula_ )
                                                     , isISTD_( t.isISTD_ )
                                                     , idISTD_( t.idISTD_ )
                                                     , amounts_( t.amounts_ )
+                                                    , description_( t.description_ )
+                                                    , mass_( t.mass_ )
+                                                    , tR_( t.tR_ )
 {
+}
+
+uint64_t
+QuanCompound::uniqId() const
+{
+    return uniqId_;
+}
+
+void
+QuanCompound::uniqId( uint64_t v )
+{
+    uniqId_ = v;
 }
 
 const wchar_t *
@@ -54,6 +84,18 @@ void
 QuanCompound::displya_name( const wchar_t * v )
 {
     display_name_ = v;
+}
+
+const wchar_t *
+QuanCompound::description() const
+{
+    return description_.c_str();
+}
+
+void
+QuanCompound::description( const wchar_t * v )
+{
+    description_ = v;
 }
 
 const wchar_t *

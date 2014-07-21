@@ -30,6 +30,9 @@
 
 class QGridLayout;
 
+namespace boost { namespace filesystem { class path; } }
+namespace adcontrols { class QuanCompounds; }
+
 namespace quan {
 
     class CompoundsTable;
@@ -40,9 +43,16 @@ namespace quan {
         ~CompoundsWidget();
         explicit CompoundsWidget(QWidget *parent = 0);
 
+        void commit(); // comit ui data to document
+
+    private:
+
         QGridLayout * layout_;
         std::unique_ptr< CompoundsTable > table_;
-        QWidget * dataSelectionBar();
+
+        bool load( const boost::filesystem::path&, adcontrols::QuanCompounds& );
+        bool save( const boost::filesystem::path&, const adcontrols::QuanCompounds& );
+        void handleDataChanged( int );
 
     signals:
 

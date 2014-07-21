@@ -29,6 +29,7 @@
 #include <mutex>
 #include <map>
 #include <vector>
+#include <functional>
 
 namespace adcontrols { class QuanMethod; class QuanCompounds; }
 
@@ -36,7 +37,12 @@ namespace quan {
 
     class PanelData;
 
-    class QuanDocument  {
+    enum idDataChanged {
+        idQuanMethod
+        , idQuanCompounds
+    };
+
+    class QuanDocument {
         ~QuanDocument();
         QuanDocument();
         static QuanDocument * instance_;
@@ -46,10 +52,11 @@ namespace quan {
 
         PanelData * addPanel( int idx, int subIdx, std::shared_ptr< PanelData >& );
         PanelData * findPanel( int idx, int subIdx, int pos );
-        std::shared_ptr< adcontrols::QuanMethod > quanMethod();
+        const adcontrols::QuanMethod& quanMethod();
         void quanMethod( const adcontrols::QuanMethod & );
-        std::shared_ptr< adcontrols::QuanCompounds > quanCompounds();
+        const adcontrols::QuanCompounds& quanCompounds();
         void quanCompounds( const adcontrols::QuanCompounds& );
+        void register_dataChanged( std::function< void( int ) > );
 
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
@@ -58,7 +65,8 @@ namespace quan {
 
         std::shared_ptr< adcontrols::QuanMethod > quanMethod_;
         std::shared_ptr< adcontrols::QuanCompounds > quanCompounds_;
-        
+
+        std::vector< std::function< void( int ) > > clients_;
     };
 }
 

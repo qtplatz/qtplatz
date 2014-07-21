@@ -26,9 +26,12 @@
 #define COMPOUNDSTABLE_HPP
 
 #include <adwidgets/tableview.hpp>
+#include <cstdint>
 class QModelIndex;
 class QStandardItemModel;
 class QPoint;
+
+namespace adcontrols { class QuanCompounds; class QuanMethod; }
 
 namespace quan {
 
@@ -39,8 +42,13 @@ namespace quan {
         explicit CompoundsTable(QWidget *parent = 0);
         void onInitialUpdate();
 
+        bool setContents( const adcontrols::QuanCompounds& );
+        bool getContents( adcontrols::QuanCompounds& );
+        void handleQuanMethod( const adcontrols::QuanMethod& );
+
     private:
         QStandardItemModel * model_;
+        uint32_t levels_;
 
         void handleValueChanged( const QModelIndex& );
         void handleContextMenu( const QPoint& );

@@ -180,3 +180,9 @@ PanelsWidget::addPanelWidget(PanelData *panel, int row)
     }
     panels_.push_back( panel->shared_from_this() );
 }
+
+void
+PanelsWidget::leaving()
+{
+    emit onLeaving();
+}

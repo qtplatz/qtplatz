@@ -22,35 +22,10 @@
 **
 **************************************************************************/
 
-#ifndef PANELSWIDGET_HPP
-#define PANELSWIDGET_HPP
+#include "quanreport.hpp"
 
-#include <QScrollArea>
-#include <QGridLayout>
-#include <vector>
-#include <memory>
+using namespace adcontrols;
 
-namespace quan {
-
-    class PanelData;
-
-    class PanelsWidget : public QScrollArea  {
-        Q_OBJECT
-    public:
-        PanelsWidget( QWidget * parent );
-        ~PanelsWidget();
-        void addPanel( PanelData * );
-        void addPanel( std::shared_ptr< PanelData >& );
-        void leaving();
-    private:
-        void addPanelWidget( PanelData *, int row );
-        std::vector< std::shared_ptr< PanelData > > panels_;
-        QGridLayout * layout_;
-        QWidget * root_;
-    signals:
-        void onLeaving();
-    };
-
+QuanReport::QuanReport()
+{
 }
-
-#endif // PANELSWIDGET_HPP

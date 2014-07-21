@@ -35,7 +35,8 @@ SOURCES += configloader.cpp \
            textfile.cpp \
            bzip2.cpp \
            debug_core.cpp \
-           sgfilter.cpp
+           sgfilter.cpp \
+    uuid.cpp
 
 win32 {
    SOURCES += protocollifecycle.cpp
@@ -71,5 +72,6 @@ HEADERS += array_wrapper.hpp \
            textfile.hpp \
            bzip2.hpp \
            debug_core.hpp \
-           sgfilter.hpp
+           sgfilter.hpp \
+    uuid.hpp
 

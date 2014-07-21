@@ -30,6 +30,9 @@
 
 class QGridLayout;
 
+namespace boost { namespace filesystem { class path; } }
+namespace adcontrols { class QuanMethod; }
+
 namespace adcontrols { class QuanMethod; }
 
 namespace quan {
@@ -42,10 +45,15 @@ namespace quan {
         ~QuanConfigWidget();
         explicit QuanConfigWidget(QWidget *parent = 0);
 
+        void commit();
+
     private:
         QGridLayout * layout_;
         std::unique_ptr< QuanConfigForm > form_;
         QWidget * fileSelectionBar();
+
+        bool save( const boost::filesystem::path&, const adcontrols::QuanMethod& );
+        bool load( const boost::filesystem::path&, adcontrols::QuanMethod& );
 
     signals:
 

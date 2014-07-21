@@ -22,65 +22,58 @@
 **
 **************************************************************************/
 
-#ifndef QUANCOMPOUNDS_HPP
-#define QUANCOMPOUNDS_HPP
+#ifndef QUANREPORT_HPP
+#define QUANREPORT_HPP
 
 #include "adcontrols_global.h"
-#include "quancompound.hpp"
+#include <compiler/disable_dll_interface.h>
+//#include "quansequence.hpp"
+//#include "quancompounds.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp>
-#include <string>
-#include <vector>
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
+#include <cstdint>
+#include <memory>
+#include <vector>
 
 namespace adcontrols {
 
-#if defined _MSC_VER
-    template class ADCONTROLSSHARED_EXPORT std::vector < QuanCompound > ;
-#endif
+    class QuanCompounds;
+    class QuanSequence;
 
-    class ADCONTROLSSHARED_EXPORT QuanCompounds  {
+    class ADCONTROLSSHARED_EXPORT QuanReport {
     public:
-        ~QuanCompounds();
-        QuanCompounds();
-        QuanCompounds( const QuanCompounds& );
-        
-        typedef QuanCompound value_type;
-        typedef std::vector< value_type > vector_type;
-        typedef std::vector< QuanCompound >::iterator iterator_type;
-        
-        std::vector< QuanCompound >::iterator begin() { return compounds_.begin(); }
-        std::vector< QuanCompound >::iterator end() { return compounds_.end(); }
-        std::vector< QuanCompound >::const_iterator begin() const { return compounds_.begin(); }
-        std::vector< QuanCompound >::const_iterator end() const { return compounds_.end(); }
-        void clear() { compounds_.clear(); }
-        size_t size() const { return compounds_.size(); }
-        QuanCompounds& operator << ( const QuanCompound& t );
-
-        void uuid( const boost::uuids::uuid& );
-        const boost::uuids::uuid& uuid() const;
-
+        ~QuanReport();
+        QuanReport();
+        QuanReport( const QuanReport& );
     private:
         boost::uuids::uuid uuid_;
-        std::vector< QuanCompound > compounds_;
+
+        std::string processDate_;
+        std::string terminalId_;
+        std::string operatorId_;
+        std::wstring operatorName_;
+        std::shared_ptr< QuanCompounds > compounds_;
+        std::shared_ptr< QuanSequence > sequence_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( uuid_ )
+                & BOOST_SERIALIZATION_NVP( processDate_ )
+                & BOOST_SERIALIZATION_NVP( terminalId_ )
+                & BOOST_SERIALIZATION_NVP( operatorId_ )
+                & BOOST_SERIALIZATION_NVP( operatorName_ )
                 & BOOST_SERIALIZATION_NVP( compounds_ )
                 ;
         }
+        
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanCompounds, 1 )
+BOOST_CLASS_VERSION( adcontrols::QuanReport, 1 )
 
 
-#endif // QUANCOMPOUNDS_HPP
+#endif // QUANREPORT_HPP

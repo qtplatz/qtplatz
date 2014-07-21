@@ -22,35 +22,29 @@
 **
 **************************************************************************/
 
-#ifndef PANELSWIDGET_HPP
-#define PANELSWIDGET_HPP
+#ifndef UUID_HPP
+#define UUID_HPP
 
-#include <QScrollArea>
-#include <QGridLayout>
-#include <vector>
-#include <memory>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
 
-namespace quan {
+namespace adportable {
 
-    class PanelData;
-
-    class PanelsWidget : public QScrollArea  {
-        Q_OBJECT
+    class uuid {
+        uuid( const uuid& ) = delete;
     public:
-        PanelsWidget( QWidget * parent );
-        ~PanelsWidget();
-        void addPanel( PanelData * );
-        void addPanel( std::shared_ptr< PanelData >& );
-        void leaving();
-    private:
-        void addPanelWidget( PanelData *, int row );
-        std::vector< std::shared_ptr< PanelData > > panels_;
-        QGridLayout * layout_;
-        QWidget * root_;
-    signals:
-        void onLeaving();
+        uuid();
+        boost::uuids::uuid operator()();
+        boost::uuids::uuid operator()( const boost::uuids::uuid& base, const std::string& name );
+        template< typename char_type > std::basic_string< char_type > operator()( const boost::uuids::uuid& uuid ) {
+            return boost::lexical_cast<std::basic_string<char_type>>(uuid);
+        }
+        template< typename char_type > boost::uuids::uuid& operator()( const std::basic_string< char_type >& str ) {
+            return boost::lexical_cast<boost::uuids::uuid>(str);
+        }
     };
 
 }
 
-#endif // PANELSWIDGET_HPP
+#endif // UUID_HPP

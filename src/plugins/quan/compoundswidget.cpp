@@ -25,8 +25,10 @@
 #include "compoundswidget.hpp"
 #include "compoundstable.hpp"
 #include "quandocument.hpp"
+#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adportable/profile.hpp>
+#include <adlog/logger.hpp>
 #include <utils/styledbar.h>
 #include <QFileDialog>
 #include <QGridLayout>
@@ -36,12 +38,25 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <fstream>
 
 using namespace quan;
 
 CompoundsWidget::~CompoundsWidget()
 {
+    commit();
+    auto& c = QuanDocument::instance()->quanCompounds();
+    if ( c.size() > 0 ) {
+        boost::filesystem::path file( adportable::profile::user_data_dir< wchar_t >() + L"/data/quancomponents_default.xml" );
+        try {
+            save( file, c );
+        } catch ( ... ) {
+            // ignore error
+        }
+    }
 }
 
 CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
@@ -52,6 +67,8 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
     topLayout->setMargin( 0 );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
+
+    QuanDocument::instance()->register_dataChanged( [this](int id){ handleDataChanged( id ); } );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
@@ -70,11 +87,9 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
                             file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
                         file = QFileDialog::getOpenFileName( this, tr("Open compounds file"), file, tr("File(*.xml)"));
                         try {
-                            std::ifstream inf( file.toStdString() );
-                            boost::archive::xml_iarchive ar( inf );
                             adcontrols::QuanCompounds m;
-                            ar >> BOOST_SERIALIZATION_NVP( m );
-                            QuanDocument::instance()->quanCompounds( m );
+                            if ( load( file.toStdWString(), m ) )
+                                QuanDocument::instance()->quanCompounds( m );
                         } catch ( std::exception& ex ) {
                             QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
                             return;
@@ -95,17 +110,13 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
                         file = QFileDialog::getSaveFileName( this, tr("Save compounds"), file, tr("File(*.xml)"));
                         if ( !file.isEmpty() ) {
                             edit->setText( file );
-                            adcontrols::QuanCompounds m;
                             try {
-                                edit->setText( file );
-                                std::ofstream outf( file.toStdString() );
-                                boost::archive::xml_oarchive ar( outf );
-                                ar << boost::serialization::make_nvp( "Compounds", *QuanDocument::instance()->quanCompounds() );
+                                commit();
+                                save( file.toStdWString(), QuanDocument::instance()->quanCompounds() );
                             } catch ( std::exception& ex ) {
                                 QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
                                 return;
                             }
-                            *QuanDocument::instance()->quanCompounds() = m;
                         }
                     }
                 });
@@ -113,6 +124,18 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
         if ( auto edit = new QLineEdit ) {
             toolBarLayout->addWidget( edit );
             toolBarLayout->addWidget( new Utils::StyledSeparator );
+
+            boost::filesystem::path file( adportable::profile::user_data_dir< wchar_t >() + L"/data/quancomponents_default.xml" );
+            if ( boost::filesystem::exists( file ) ) {
+                try {
+                    adcontrols::QuanCompounds c;
+                    if ( load( file, c ) )
+                        QuanDocument::instance()->quanCompounds( c );
+                    edit->setText( QString::fromStdWString( file.wstring() ) );
+                } catch ( ... ) {
+                    ADERROR() << boost::current_exception_diagnostic_information();
+                }
+            }
         }
         layout_->addWidget( toolBar );
     }
@@ -121,3 +144,49 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
 }
 
 
+bool
+CompoundsWidget::load( const boost::filesystem::path& path, adcontrols::QuanCompounds& c )
+{
+    try {
+        boost::filesystem::ifstream inf( path );
+        boost::archive::xml_iarchive ar( inf );
+        ar >> BOOST_SERIALIZATION_NVP( c );
+    } catch ( std::exception& ex ) {
+        ADERROR() << boost::diagnostic_information( ex );
+        throw ex;
+    }
+    return true;
+}
+
+bool
+CompoundsWidget::save( const boost::filesystem::path& path, const adcontrols::QuanCompounds& c )
+{
+    try {
+        boost::filesystem::ofstream outf( path );
+        boost::archive::xml_oarchive ar( outf );
+        ar << boost::serialization::make_nvp( "QuanCompounds", c );
+    } catch ( std::exception& ex ) {
+        ADERROR() << boost::diagnostic_information( ex );
+        throw ex;
+    }
+    return false;
+}
+
+void
+CompoundsWidget::commit()
+{
+    adcontrols::QuanCompounds c; // uuid is bing updated.
+    table_->getContents( c );
+    QuanDocument::instance()->quanCompounds( c );
+}
+
+void
+CompoundsWidget::handleDataChanged( int id )
+{
+    if ( id == idQuanMethod ) {
+        table_->handleQuanMethod( QuanDocument::instance()->quanMethod() );
+    }
+    else if ( id == idQuanCompounds ) {
+        table_->setContents( QuanDocument::instance()->quanCompounds() );
+    }
+}

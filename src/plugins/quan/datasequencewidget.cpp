@@ -88,6 +88,7 @@ DataSequenceWidget::dataSelectionBar()
 
         auto toolButton = new QToolButton;
         toolButton->setIcon( QIcon( ":/quan/images/filesave.png" ) );
+        toolButton->setToolTip( tr("Set result file name...") );
         toolBarLayout->addWidget( toolButton );
 
         auto edit = new QLineEdit;
@@ -104,7 +105,15 @@ DataSequenceWidget::dataSelectionBar()
         } while(0);
 
         auto execButton = new QToolButton;
+        execButton->setIcon( QIcon( ":/quan/images/run.png" ) );
+        execButton->setToolTip( tr("Run quantitation process") );
         toolBarLayout->addWidget( execButton );
+
+        auto stopButton = new QToolButton;
+        stopButton->setIcon( QIcon( ":/quan/images/stop_small.png" ) );
+        stopButton->setToolTip( tr("Stop quantitation process") );
+        stopButton->setEnabled( false );
+        toolBarLayout->addWidget( stopButton );
 
         connect( button, &QToolButton::clicked, this, [this] ( bool ){
                 boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );

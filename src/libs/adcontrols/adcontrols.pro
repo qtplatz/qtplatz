@@ -96,7 +96,11 @@ SOURCES += acceptor.cpp \
     profile_time_array.cpp \
     quanmethod.cpp \
     quancompounds.cpp \
-    quancompound.cpp
+    quancompound.cpp \
+    quansequence.cpp \
+    quansample.cpp \
+    quanreport.cpp \
+    quanresponse.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -180,7 +184,11 @@ HEADERS += acceptor.hpp \
     profile_time_array.hpp \
     quanmethod.hpp \
     quancompounds.hpp \
-    quancompound.hpp
+    quancompound.hpp \
+    quansequence.hpp \
+    quansample.hpp \
+    quanreport.hpp \
+    quanresponse.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 
