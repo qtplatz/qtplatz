@@ -65,13 +65,15 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
     const int row = layout_->rowCount();
     layout_->addWidget( dataSelectionBar(), row, 0 );
     layout_->addWidget( dataSequenceTree_.get(), row + 1, 0 );
+
+    QuanDocument::instance()->register_dataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
 }
 
 void
 DataSequenceWidget::commit()
 {
     if ( auto sequence = std::make_shared< adcontrols::QuanSequence >() ) {
-        if ( auto edit = findChild< QLineEdit * >( "editOutfile" ) ) {
+        if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
             sequence->outfile( edit->text().toStdWString().c_str() );
         }
         if ( dataSequenceTree_->getContents( *sequence ) )
@@ -111,7 +113,7 @@ DataSequenceWidget::dataSelectionBar()
         toolBarLayout->addWidget( toolButton );
 
         auto edit = new QLineEdit;
-        edit->setObjectName( "editOutfile" );
+        edit->setObjectName( Constants::editOutfile );
         toolBarLayout->addWidget( edit );
         do { // insert default result file
             boost::filesystem::path path( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
@@ -157,17 +159,18 @@ DataSequenceWidget::dataSelectionBar()
         // target file
         connect( toolButton, &QToolButton::clicked, this, [this] ( bool ){
                 QString dstfile;
-                if ( auto edit = findChild< QLineEdit *>() )
+                if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
                     dstfile = edit->text();
-                if ( dstfile.isEmpty() ) {
-                    boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
-                    dstfile = QString::fromStdWString( (dir / L"data").wstring() );
-                }
-                
-                QString name = QFileDialog::getSaveFileName( this, "Data save in", dstfile, tr( "Quan result (*.adfs)" ) );
-                if ( !name.isEmpty() ) {
-                    if ( auto edit = findChild< QLineEdit *>() ) 
-                        edit->setText( name );
+                    if ( dstfile.isEmpty() ) {
+                        boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
+                        dstfile = QString::fromStdWString( (dir / L"data").wstring() );
+                    }
+                    
+                    QString name = QFileDialog::getSaveFileName( this, "Data save in", dstfile, tr( "Quan result (*.adfs)" ) );
+                    if ( !name.isEmpty() ) {
+                        if ( auto edit = findChild< QLineEdit *>( Constants::editOutfile ) ) 
+                            edit->setText( name );
+                    }
                 }
             } );
 
@@ -176,3 +179,12 @@ DataSequenceWidget::dataSelectionBar()
     return 0;
 }
 
+void
+DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
+{
+    if ( id == idQuanSequence && fnChanged ) {
+        if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
+            edit->setText( QString::fromStdWString( QuanDocument::instance()->quanSequence()->outfile() ) );
+        }
+    }
+}

@@ -47,6 +47,7 @@ QuanCompound::QuanCompound() : uniqId_( quan::__uniqCompoundKey++ )
                              , amounts_( 1 )
                              , mass_( 0 )
                              , tR_( 0 )
+                             , criteria_( 0 )
 {
 }
 
@@ -59,6 +60,7 @@ QuanCompound::QuanCompound( const QuanCompound& t ) : uniqId_( t.uniqId_ )
                                                     , description_( t.description_ )
                                                     , mass_( t.mass_ )
                                                     , tR_( t.tR_ )
+                                                    , criteria_( t.criteria_ )
 {
 }
 

@@ -34,6 +34,8 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -64,21 +66,21 @@ namespace adcontrols {
         void tR( double v ) { tR_ = v; };
         const wchar_t * description() const;
         void description( const wchar_t * );
+        double criteria() const { return criteria_; }
+        void criteria( double v ) { criteria_ = v; }
         
     private:
         uint64_t uniqId_;
 
-#  include <compiler/diagnostic_push.h>
-#  include <compiler/disable_dll_interface.h>
         std::wstring display_name_;
         std::wstring formula_;
         std::vector< double > amounts_;  // added amounts[ level ]
         std::wstring description_;
-#   include <compiler/diagnostic_pop.h>
         double tR_;
         double mass_;
-        bool isISTD_;  // am I an internal standard?
-        int32_t idISTD_; // index for internal standad (referenced from non-istd
+        bool isISTD_;     // am I an internal standard?
+        int32_t idISTD_;  // index for internal standad (referenced from non-istd
+        double criteria_; // pass/fail criteria
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
@@ -92,11 +94,14 @@ namespace adcontrols {
                 & BOOST_SERIALIZATION_NVP( idISTD_ )
                 & BOOST_SERIALIZATION_NVP( tR_ )
                 & BOOST_SERIALIZATION_NVP( mass_ )
+                & BOOST_SERIALIZATION_NVP( criteria_ )
                 ;
         }
     };
 
 }
+
+#include <compiler/diagnostic_pop.h>
 
 BOOST_CLASS_VERSION( adcontrols::QuanCompound, 1 )
 

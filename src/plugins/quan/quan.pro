@@ -22,7 +22,9 @@ SOURCES += quanplugin.cpp \
     quanconfigform.cpp \
     quanconfigwidget.cpp \
     quandatawriter.cpp \
-    quansampleprocessor.cpp
+    quansampleprocessor.cpp \
+    processmethodwidget.cpp \
+    quanreportwidget.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
@@ -40,7 +42,9 @@ HEADERS += quanplugin.hpp \
     quanconfigform.hpp \
     quanconfigwidget.hpp \
     quandatawriter.hpp \
-    quansampleprocessor.hpp
+    quansampleprocessor.hpp \
+    processmethodwidget.hpp \
+    quanreportwidget.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \

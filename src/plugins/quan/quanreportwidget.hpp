@@ -22,42 +22,28 @@
 **
 **************************************************************************/
 
-#ifndef DATASEQUENCEWIDGET_HPP
-#define DATASEQUENCEWIDGET_HPP
+#ifndef QUANREPORTWIDGET_HPP
+#define QUANREPORTWIDGET_HPP
 
 #include <QWidget>
-#include <memory>
 
 class QGridLayout;
 
 namespace quan {
 
-    class DataSequenceTree;
-
-    class DataSequenceWidget : public QWidget
-    {
+    class QuanReportWidget : public QWidget  {
         Q_OBJECT
     public:
-        ~DataSequenceWidget();
-        explicit DataSequenceWidget( QWidget *parent = 0 );
-
-        QSize sizeHint() const { return QSize( 600, 600 ); }
-
-        void commit();
-
+        explicit QuanReportWidget(QWidget *parent = 0);
     private:
         QGridLayout * layout_;
-        std::unique_ptr< DataSequenceTree > dataSequenceTree_;
-
-        QWidget * dataSelectionBar();
-        void handleDataChanged( int, bool );
 
     signals:
 
-    public slots :
+    public slots:
 
     };
 
 }
 
-#endif // DATASEQUENCEWIDGET_HPP
+#endif // QUANREPORTWIDGET_HPP

@@ -22,42 +22,36 @@
 **
 **************************************************************************/
 
-#ifndef DATASEQUENCEWIDGET_HPP
-#define DATASEQUENCEWIDGET_HPP
+#ifndef PROCESSMETHODWIDGET_HPP
+#define PROCESSMETHODWIDGET_HPP
 
 #include <QWidget>
-#include <memory>
 
 class QGridLayout;
 
+namespace adwidgets { class CentroidForm; }
+
 namespace quan {
 
-    class DataSequenceTree;
-
-    class DataSequenceWidget : public QWidget
-    {
+    class ProcessMethodWidget : public QWidget {
         Q_OBJECT
     public:
-        ~DataSequenceWidget();
-        explicit DataSequenceWidget( QWidget *parent = 0 );
-
-        QSize sizeHint() const { return QSize( 600, 600 ); }
+        ~ProcessMethodWidget();
+        explicit ProcessMethodWidget(QWidget *parent = 0);
 
         void commit();
 
     private:
         QGridLayout * layout_;
-        std::unique_ptr< DataSequenceTree > dataSequenceTree_;
-
-        QWidget * dataSelectionBar();
+        adwidgets::CentroidForm * form_;
         void handleDataChanged( int, bool );
 
     signals:
 
-    public slots :
+    public slots:
 
     };
 
 }
 
-#endif // DATASEQUENCEWIDGET_HPP
+#endif // PROCESSMETHODWIDGET_HPP

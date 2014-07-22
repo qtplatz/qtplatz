@@ -177,13 +177,24 @@ MassSpectrum::operator = ( const MassSpectrum& t )
 MassSpectrum&
 MassSpectrum::operator += ( const MassSpectrum& t )
 {
-    const size_t nSize = size();
-	if ( t.size() >= nSize && std::abs( t.getMass(0) - getMass(0) ) <= 1.0e-9 ) {
-		const double * src = t.getIntensityArray();
-		double * dst = &pImpl_->intsArray_[0];
-		for ( size_t i = 0; i < nSize; ++i )
-			*dst++ += *src++;
-	}
+    segment_wrapper<> lhs( *this );
+    segment_wrapper<const MassSpectrum > rhs( t );
+
+    if ( lhs.size() == rhs.size() ) {
+        auto rit = rhs.begin();
+        for ( auto lit = lhs.begin(); lit != lhs.end(); ++lit, ++rit ) {
+
+            if ( (*lit).size() == (*rit).size() ) {
+
+                const double * drhs = (*rit).getIntensityArray();
+                const double * dlhs = (*lit).getIntensityArray();
+                
+                for ( size_t i = 0; i < (*lit).size(); ++i )
+                    (*lit).setIntensity( i, *dlhs++ + *drhs++ );
+            }
+        }
+    }
+
 	return *this;
 }
 

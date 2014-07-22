@@ -29,6 +29,9 @@
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
 #include <adportable/profile.hpp>
 #include <adlog/logger.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -37,6 +40,7 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/serialization/variant.hpp>
 #include <QMessageBox>
 #include <QApplication>
 #include <algorithm>
@@ -93,6 +97,7 @@ QuanDocument::~QuanDocument()
 QuanDocument::QuanDocument() : quanMethod_( std::make_shared< adcontrols::QuanMethod >() )
                              , quanCompounds_( std::make_shared< adcontrols::QuanCompounds >() )
                              , quanSequence_( std::make_shared< adcontrols::QuanSequence >() )
+                             , procMethod_( std::make_shared< adcontrols::ProcessMethod >() )
                              , postCount_(0)
 {
     std::fill( dirty_flags_.begin(), dirty_flags_.end(), true );
@@ -137,12 +142,6 @@ QuanDocument::findPanel( int idx, int subIdx, int pos )
     return 0;
 }
 
-const adcontrols::QuanMethod&
-QuanDocument::quanMethod()
-{
-    return *quanMethod_;
-}
-
 bool
 QuanDocument::save_default_methods()
 {
@@ -166,13 +165,17 @@ QuanDocument::save_default_methods()
         if ( save( dir / L"quansequence_default.xml", *quanSequence_ ) )
             dirty_flags_[ idQuanSequence ] = false;            
     }
+    if ( dirty_flags_[ idProcMethod ] ) {
+        if ( save( dir / L"procmethod_default.xml", *procMethod_ ) )
+            dirty_flags_[ idProcMethod ] = false;            
+    }
     return true;
 }
 
 bool
 QuanDocument::load_default_methods()
 {
-    boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() + L"/data/.quan" ); // /quansequence_default.xml" );
+    boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() + L"/data/.quan" );
     if ( dirty_flags_[ idQuanMethod ] ) {
         if ( load( dir / L"quanconfig_default.xml", *quanMethod_ ) )
             dirty_flags_[ idQuanMethod ] = false;
@@ -185,7 +188,17 @@ QuanDocument::load_default_methods()
         if ( load( dir / L"quansequence_default.xml", *quanSequence_ ) )
             dirty_flags_[ idQuanSequence ] = false;
     }
+    if ( dirty_flags_[ idProcMethod ] ) {
+        if ( load( dir / L"procmethod_default.xml", *procMethod_ ) )
+            dirty_flags_[ idProcMethod ] = false;
+    }
     return std::find( dirty_flags_.begin(), dirty_flags_.end(), true ) == dirty_flags_.end();
+}
+
+const adcontrols::QuanMethod&
+QuanDocument::quanMethod() const
+{
+    return *quanMethod_;
 }
 
 void
@@ -198,7 +211,7 @@ QuanDocument::quanMethod( const adcontrols::QuanMethod& t )
 }
 
 const adcontrols::QuanCompounds&
-QuanDocument::quanCompounds()
+QuanDocument::quanCompounds() const
 {
     return *quanCompounds_;
 }
@@ -223,6 +236,18 @@ std::shared_ptr< adcontrols::QuanSequence >
 QuanDocument::quanSequence()
 {
     return quanSequence_;
+}
+
+const adcontrols::ProcessMethod&
+QuanDocument::procMethod() const
+{
+    return *procMethod_;
+}
+
+void
+QuanDocument::procMethod( adcontrols::ProcessMethod& m )
+{
+    *procMethod_ = m;
 }
 
 bool
@@ -259,6 +284,19 @@ bool
 QuanDocument::save( const boost::filesystem::path& file, const adcontrols::QuanSequence& t )
 {
     return detail::method_writer<adcontrols::QuanSequence>( "QuanSequence" )(file, t);
+}
+
+bool
+QuanDocument::load( const boost::filesystem::path& file, adcontrols::ProcessMethod& t )
+{
+    return detail::method_reader<adcontrols::ProcessMethod>()(file, t);
+}
+
+bool
+QuanDocument::save( const boost::filesystem::path& file, const adcontrols::ProcessMethod& t )
+{
+    return detail::method_writer<adcontrols::ProcessMethod>( "ProcessMethod" )(file, t);
+    return true;
 }
 
 void
@@ -326,6 +364,7 @@ QuanDocument::onInitialUpdate()
         client( idQuanMethod, true );
         client( idQuanCompounds, true );
         client( idQuanSequence, true );
+        client( idProcMethod, true );
     }
 }
 

@@ -35,7 +35,7 @@
 #include <vector>
 #include <QObject>
 
-namespace adcontrols { class QuanMethod; class QuanCompounds; class QuanSequence; class QuanSample; }
+namespace adcontrols { class QuanMethod; class QuanCompounds; class QuanSequence; class QuanSample; class ProcessMethod; }
 namespace boost { namespace filesystem { class path; } }
 
 namespace quan {
@@ -45,7 +45,7 @@ namespace quan {
     class PanelData;
     class QuanSampleProcessor;
 
-    enum idMethod { idQuanMethod, idQuanCompounds, idQuanSequence, idSize };
+    enum idMethod { idQuanMethod, idQuanCompounds, idQuanSequence, idProcMethod, idSize };
 
     class QuanDocument : public QObject {
         Q_OBJECT
@@ -62,14 +62,17 @@ namespace quan {
 
         void setMethodFilename( int idx, const std::wstring& filename );
 
-        const adcontrols::QuanMethod& quanMethod();
+        const adcontrols::QuanMethod& quanMethod() const;
         void quanMethod( const adcontrols::QuanMethod & );
 
-        const adcontrols::QuanCompounds& quanCompounds();
+        const adcontrols::QuanCompounds& quanCompounds() const;
         void quanCompounds( const adcontrols::QuanCompounds& );
 
         void quanSequence( std::shared_ptr< adcontrols::QuanSequence >& );
         std::shared_ptr< adcontrols::QuanSequence > quanSequence();
+
+        const adcontrols::ProcessMethod& procMethod() const;
+        void procMethod( adcontrols::ProcessMethod& );
 
         void register_dataChanged( std::function< void( int, bool ) > );
         void setResultFile( const std::wstring& );
@@ -86,6 +89,9 @@ namespace quan {
         bool load( const boost::filesystem::path&, adcontrols::QuanSequence& );
         bool save( const boost::filesystem::path&, const adcontrols::QuanSequence& );
 
+        bool load( const boost::filesystem::path&, adcontrols::ProcessMethod& );
+        bool save( const boost::filesystem::path&, const adcontrols::ProcessMethod& );
+
         void onInitialUpdate();
         void onFinalClose();
 
@@ -100,6 +106,8 @@ namespace quan {
         std::shared_ptr< adcontrols::QuanMethod > quanMethod_;
         std::shared_ptr< adcontrols::QuanCompounds > quanCompounds_;
         std::shared_ptr< adcontrols::QuanSequence > quanSequence_;
+        std::shared_ptr< adcontrols::ProcessMethod > procMethod_;
+
         std::vector< std::function< void( int, bool ) > > clients_;
 
         std::array< bool, idSize > dirty_flags_;
