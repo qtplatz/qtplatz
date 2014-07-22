@@ -53,17 +53,18 @@ namespace adportable { namespace detail {
 
             typedef BOOLEAN( WINAPI *api_type )(EXTENDED_NAME_FORMAT, char_type*, PULONG);
 
+            char_type path[ MAX_PATH ];
+            ZeroMemory( path, sizeof( path ) );
+
             if ( auto hModule = LoadLibraryA( "Secur32.dll" ) ) {
                 const char * entry_point = (sizeof( char_type ) == 1) ? "GetUserNameExA" : "GetUserNameExW";
                 if ( auto api = reinterpret_cast<api_type>(GetProcAddress( hModule, entry_point )) ) {
-                    char_type path[ MAX_PATH ];
                     DWORD size = sizeof( path ) / sizeof( char );
-                    if ( api( format, path, &size ) )
-                        return path;
+                    api( format, path, &size );
                 }
                 FreeLibrary( hModule );
             }
-            return std::basic_string<char_type>(); // return empty by means of error
+            return path;
         }
 	};
 	template<> std::string winapi::user_data_dir()
@@ -95,11 +96,11 @@ namespace adportable { namespace detail {
 
     template<> std::string winapi::user_login_id()
 	{
-        return user_login_name_<char>( NameCanonical );
+        return user_login_name_<char>( NameSamCompatible );
 	}
     template<> std::wstring winapi::user_login_id()
 	{
-        return user_login_name_<wchar_t>( NameCanonical );
+        return user_login_name_<wchar_t>( NameSamCompatible );
     }
 
     template<> std::string winapi::computer_name()
