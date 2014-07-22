@@ -30,8 +30,8 @@
 #include <boost/archive/basic_binary_oprimitive.hpp>
 #include <boost/archive/detail/common_oarchive.hpp>
 #include <boost/archive/detail/register_archive.hpp>
-
 #include "portable_binary_archive.hpp"
+#include <boost/uuid/uuid.hpp>
 
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // exception to be thrown if integer read from archive doesn't fit
@@ -114,6 +114,9 @@ protected:
         // this->primitive_base_t::save( t );
     }
     #endif
+    void save( const boost::uuids::uuid& t ){
+        this->primitive_base_t::save( t );
+    }
     void save(const float & t){
         this->primitive_base_t::save(t);
         // floats not supported

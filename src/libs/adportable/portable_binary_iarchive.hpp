@@ -30,7 +30,7 @@
 #include <boost/archive/detail/common_iarchive.hpp>
 #include <boost/archive/shared_ptr_helper.hpp>
 #include <boost/archive/detail/register_archive.hpp>
-
+#include <boost/uuid/uuid.hpp>
 #include "portable_binary_archive.hpp"
 
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
@@ -140,6 +140,9 @@ protected:
         t = wstring(u);
     }
     #endif
+    void load( boost::uuids::uuid& t ){
+        this->primitive_base_t::load( t );
+    }
     void load(float & t){
         this->primitive_base_t::load(t);
         // floats not supported

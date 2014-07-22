@@ -217,11 +217,12 @@ QuanConfigWidget::commit()
 }
 
 void
-QuanConfigWidget::handleDataChanged( int id, bool fnChanged )
+QuanConfigWidget::handleDataChanged( int id, bool )
 {
-    if ( id == idQuanMethod && fnChanged ) {
+    if ( id == idQuanMethod ) {
         if ( auto edit = findChild< QLineEdit * >( Constants::editQuanMethodFilename ) ) {
             edit->setText( QString::fromStdWString( QuanDocument::instance()->quanMethod().quanMethodFilename() ) );
+            form_->setContents( QuanDocument::instance()->quanMethod() );
         }
     }
 }

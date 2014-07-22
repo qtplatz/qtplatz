@@ -154,19 +154,19 @@ QuanDocument::save_default_methods()
         }
     }
     if ( dirty_flags_[ idQuanMethod ] ) {
-        if ( save( dir / L"quanconfig_default.xml", *quanMethod_ ) )
+        if ( save( dir / L"quanconfig.xml", *quanMethod_ ) )
             dirty_flags_[ idQuanMethod ] = false;
     }
     if ( dirty_flags_[ idQuanCompounds ] ) {
-        if ( save( dir / L"quancompounds_default.xml", *quanCompounds_ ) )
+        if ( save( dir / L"quancompounds.xml", *quanCompounds_ ) )
             dirty_flags_[ idQuanCompounds ] = false;
     }
     if ( dirty_flags_[ idQuanSequence ] ) {
-        if ( save( dir / L"quansequence_default.xml", *quanSequence_ ) )
+        if ( save( dir / L"quansequence.xml", *quanSequence_ ) )
             dirty_flags_[ idQuanSequence ] = false;            
     }
     if ( dirty_flags_[ idProcMethod ] ) {
-        if ( save( dir / L"procmethod_default.xml", *procMethod_ ) )
+        if ( save( dir / L"procmethod.xml", *procMethod_ ) )
             dirty_flags_[ idProcMethod ] = false;            
     }
     return true;
@@ -177,19 +177,19 @@ QuanDocument::load_default_methods()
 {
     boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() + L"/data/.quan" );
     if ( dirty_flags_[ idQuanMethod ] ) {
-        if ( load( dir / L"quanconfig_default.xml", *quanMethod_ ) )
+        if ( load( dir / L"quanconfig.xml", *quanMethod_ ) )
             dirty_flags_[ idQuanMethod ] = false;
     }
     if ( dirty_flags_[ idQuanCompounds ] ) {
-        if ( load( dir / L"quancompounds_default.xml", *quanCompounds_ ) )
+        if ( load( dir / L"quancompounds.xml", *quanCompounds_ ) )
             dirty_flags_[ idQuanCompounds ] = false;
     }
     if ( dirty_flags_[ idQuanSequence ] ) {
-        if ( load( dir / L"quansequence_default.xml", *quanSequence_ ) )
+        if ( load( dir / L"quansequence.xml", *quanSequence_ ) )
             dirty_flags_[ idQuanSequence ] = false;
     }
     if ( dirty_flags_[ idProcMethod ] ) {
-        if ( load( dir / L"procmethod_default.xml", *procMethod_ ) )
+        if ( load( dir / L"procmethod.xml", *procMethod_ ) )
             dirty_flags_[ idProcMethod ] = false;
     }
     return std::find( dirty_flags_.begin(), dirty_flags_.end(), true ) == dirty_flags_.end();
@@ -248,6 +248,7 @@ void
 QuanDocument::procMethod( adcontrols::ProcessMethod& m )
 {
     *procMethod_ = m;
+    dirty_flags_[ idProcMethod ] = true;
 }
 
 bool
@@ -296,7 +297,6 @@ bool
 QuanDocument::save( const boost::filesystem::path& file, const adcontrols::ProcessMethod& t )
 {
     return detail::method_writer<adcontrols::ProcessMethod>( "ProcessMethod" )(file, t);
-    return true;
 }
 
 void
@@ -308,13 +308,20 @@ QuanDocument::run()
 
         if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
             if ( writer->open() ) {
+
                 std::map< std::wstring, std::vector< adcontrols::QuanSample > > que;
+
                 for ( auto it = quanSequence_->begin(); it != quanSequence_->end(); ++it )
                     que[ it->dataSource() ].push_back( *it );
 
+                // deep copy which prepare for a long background process (e.g. chromatogram search...)
+                auto dup = std::make_shared< adcontrols::ProcessMethod >( *procMethod_ );
+                dup ->appendMethod( *quanMethod_ );    // calibration levels, replicates etc...
+                dup ->appendMethod( *quanCompounds_ ); // core of identification
+
                 for ( auto it = que.begin(); it != que.end(); ++it ) {
                     ++postCount_;
-                    threads_.push_back( std::thread( [=] () { QuanSampleProcessor( it->first, it->second )(writer); } ) );
+                    threads_.push_back( std::thread( [=] () { QuanSampleProcessor( it->second, dup )(writer); } ) );
                 }
             }
         }

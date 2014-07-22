@@ -26,9 +26,6 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <boost/variant.hpp>
-#include <vector>
-
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
@@ -36,6 +33,12 @@
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/mschromatogrammethod.hpp>
+#include <adcontrols/quancompounds.hpp>
+#include <adcontrols/quanmethod.hpp>
+#include <adcontrols/idaudit.hpp>
+#include <boost/variant.hpp>
+#include <vector>
+
 
 #include <compiler/disable_dll_interface.h>
 
@@ -50,9 +53,9 @@ namespace adcontrols {
         ProcessMethod();
         ProcessMethod( const ProcessMethod& );
         template< class T > ProcessMethod( const T& v ) {  vec_.push_back( v );   }
-
+        
         static const wchar_t * dataClass() { return L"adcontrols::ProcessMethod"; }
-
+        
         typedef boost::variant< CentroidMethod
                                 , IsotopeMethod
                                 , ElementalCompositionMethod
@@ -60,13 +63,15 @@ namespace adcontrols {
                                 , TargetingMethod 
                                 , PeakMethod 
                                 , MSChromatogramMethod
-                              > value_type;
-
+                                , QuanCompounds
+                                , QuanMethod
+                                > value_type;
+        
         typedef std::vector< value_type > vector_type;
-
+        
         template<class T> void appendMethod( const T& );
         template<class T> const T* find() const;
-
+        
         const value_type& operator [] ( int ) const;
         value_type& operator [] ( int );
         void clear();
@@ -83,10 +88,13 @@ namespace adcontrols {
 
     private:
         vector_type vec_;
+        idAudit ident_;
+
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
-            (void)version;
             ar & BOOST_SERIALIZATION_NVP( vec_ );
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( ident_ );
         }
 
     };
@@ -95,4 +103,5 @@ namespace adcontrols {
 
 }
 
+BOOST_CLASS_VERSION( adcontrols::ProcessMethod, 1 )
 

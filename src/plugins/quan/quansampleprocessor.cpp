@@ -53,11 +53,14 @@ QuanSampleProcessor::~QuanSampleProcessor()
 {
 }
 
-QuanSampleProcessor::QuanSampleProcessor( const std::wstring& path
-                                          , std::vector< adcontrols::QuanSample >& samples ) : raw_( 0 )
-                                                                                             , path_( path )
-                                                                                             , samples_( samples )
+QuanSampleProcessor::QuanSampleProcessor( std::vector< adcontrols::QuanSample >& samples
+                                        , std::shared_ptr< adcontrols::ProcessMethod > m )
+                                        : raw_( 0 )
+                                        , samples_( samples )
+                                        , procMethod_( m )
 {
+    if ( !samples.empty() )
+        path_ = samples[ 0 ].dataSource();
 }
 
 bool

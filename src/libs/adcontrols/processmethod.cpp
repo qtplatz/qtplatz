@@ -40,7 +40,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/base_object.hpp>
-
+#include <boost/uuid/uuid_serialize.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
@@ -108,6 +108,18 @@ namespace adcontrols {
         vec_.push_back( v );
     }
 
+    template<> void DECL_EXPORT
+    ProcessMethod::appendMethod( const QuanCompounds& v )
+    {
+        vec_.push_back( v );
+    }
+
+    template<> void DECL_EXPORT
+    ProcessMethod::appendMethod( const QuanMethod& v )
+    {
+        vec_.push_back( v );
+    }
+
 }; // namespace adcontrols
 
 //////
@@ -164,6 +176,18 @@ namespace adcontrols {
     ProcessMethod::find() const
     {
         return method_finder< MSChromatogramMethod >::find( vec_ );
+    }
+
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::QuanCompounds*
+    ProcessMethod::find() const
+    {
+        return method_finder< QuanCompounds >::find( vec_ );
+    }
+
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::QuanMethod*
+    ProcessMethod::find() const
+    {
+        return method_finder< QuanMethod >::find( vec_ );
     }
 
 }; // namespace adcontrols

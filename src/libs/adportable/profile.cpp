@@ -65,7 +65,7 @@ namespace adportable { namespace detail {
 	template<> std::string winapi::user_login_name()
 	{
 		char path[ MAX_PATH ];
-        DWORD size = sizeof( path );
+        DWORD size = sizeof( path ) / sizeof( char );
         if ( GetUserNameA( path, &size ) )
 			return std::string( path );
 		return std::string(); // return empty by means of error
@@ -73,7 +73,7 @@ namespace adportable { namespace detail {
 	template<> std::wstring winapi::user_login_name()
 	{
 		wchar_t path[ MAX_PATH ];
-        DWORD size = sizeof( path );
+        DWORD size = sizeof( path ) / sizeof( wchar_t );
         if ( GetUserNameW( path, &size ) )
 			return std::wstring( path );
 		return std::wstring(); // return empty by means of error
