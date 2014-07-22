@@ -31,16 +31,17 @@
 using namespace adcontrols;
 
 idAudit::idAudit() : uuid_( adportable::uuid()() )
-                   , idCreatedBy_( adportable::profile::user_login_name<wchar_t>() )
-                   , nameCreatedBy_( idCreatedBy_ )
                    , dateCreated_( adportable::date_string::logformat( std::chrono::system_clock::now() ) )
+                   , idComputer_( adportable::profile::computer_name<wchar_t>() )
+                   , idCreatedBy_( adportable::profile::user_login_id<wchar_t>() )
+                   , nameCreatedBy_( adportable::profile::user_login_name<wchar_t>() )
 {
 }
 
 idAudit::idAudit( const idAudit& t ) : uuid_( t.uuid_ )
                                      , digest_( t.digest_ )
                                      , dateCreated_( t.dateCreated_ )
-                                     , idTerminal_( t.idTerminal_ )
+                                     , idComputer_( t.idComputer_ )
                                      , idCreatedBy_( t.idCreatedBy_ )
                                      , nameCreatedBy_( t.nameCreatedBy_ )
 {

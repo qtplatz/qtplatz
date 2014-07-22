@@ -26,6 +26,9 @@
 #include "./string.hpp"
 
 #if defined WIN32
+# define SECURITY_WIN32 1
+# include <Windows.h>
+# include <security.h>
 # include <shlobj.h> // see ShGetFolderLocation API
 namespace adportable { namespace detail { struct winapi; } }
 typedef adportable::detail::winapi impl;
@@ -42,7 +45,26 @@ namespace adportable { namespace detail {
 #if defined WIN32
 	struct winapi {
 		template<class char_type> static std::basic_string<char_type> user_data_dir();
-		template<class char_type> static std::basic_string<char_type> user_login_name();
+        template<class char_type> static std::basic_string<char_type> user_login_name();
+        template<class char_type> static std::basic_string<char_type> user_login_id();
+        template<class char_type> static std::basic_string<char_type> computer_name();
+
+        template<typename char_type> static std::basic_string<char_type> user_login_name_( EXTENDED_NAME_FORMAT format ) {
+
+            typedef BOOLEAN( WINAPI *api_type )(EXTENDED_NAME_FORMAT, char_type*, PULONG);
+
+            if ( auto hModule = LoadLibraryA( "Secur32.dll" ) ) {
+                const char * entry_point = (sizeof( char_type ) == 1) ? "GetUserNameExA" : "GetUserNameExW";
+                if ( auto api = reinterpret_cast<api_type>(GetProcAddress( hModule, entry_point )) ) {
+                    char_type path[ MAX_PATH ];
+                    DWORD size = sizeof( path ) / sizeof( char );
+                    if ( api( format, path, &size ) )
+                        return path;
+                }
+                FreeLibrary( hModule );
+            }
+            return std::basic_string<char_type>(); // return empty by means of error
+        }
 	};
 	template<> std::string winapi::user_data_dir()
 	{
@@ -62,22 +84,41 @@ namespace adportable { namespace detail {
 			return path;
 		return std::wstring(); // return empty by means of error
 	}
-	template<> std::string winapi::user_login_name()
+    template<> std::string winapi::user_login_name()
 	{
-		char path[ MAX_PATH ];
-        DWORD size = sizeof( path ) / sizeof( char );
-        if ( GetUserNameA( path, &size ) )
-			return std::string( path );
-		return std::string(); // return empty by means of error
+        return user_login_name_<char>( NameDisplay );
 	}
-	template<> std::wstring winapi::user_login_name()
+    template<> std::wstring winapi::user_login_name()
 	{
-		wchar_t path[ MAX_PATH ];
-        DWORD size = sizeof( path ) / sizeof( wchar_t );
-        if ( GetUserNameW( path, &size ) )
-			return std::wstring( path );
-		return std::wstring(); // return empty by means of error
+        return user_login_name_<wchar_t>( NameDisplay );
+    }
+
+    template<> std::string winapi::user_login_id()
+	{
+        return user_login_name_<char>( NameCanonical );
 	}
+    template<> std::wstring winapi::user_login_id()
+	{
+        return user_login_name_<wchar_t>( NameCanonical );
+    }
+
+    template<> std::string winapi::computer_name()
+	{
+		char name[ MAX_PATH ];
+        DWORD size = sizeof( name ) / sizeof( name[0] );
+        if ( GetComputerNameExA( ComputerNamePhysicalDnsFullyQualified, name, &size ) )
+            return name;
+        return std::string();
+	}
+    template<> std::wstring winapi::computer_name()
+	{
+		wchar_t name[ MAX_PATH ];
+        DWORD size = sizeof( name ) / sizeof( name[0] );
+        if ( GetComputerNameExW( ComputerNamePhysicalDnsFullyQualified, name, &size ) )
+            return name;
+        return std::wstring();
+    }
+
 #else
 	struct posixapi {
 		template<class char_type> static std::basic_string<char_type> user_data_dir();
@@ -98,13 +139,39 @@ namespace adportable { namespace detail {
     template<> std::string posixapi::user_login_name()
 	{
 		struct passwd * pw = getpwuid( geteuid() );
-        return pw->pw_name;
+        return pw->pw_gecos;
 	}
 
     template<> std::wstring posixapi::user_login_name()
 	{
 		struct passwd * pw = getpwuid( geteuid() );
+        return adportable::string::convert( pw->pw_gecos );
+	}
+
+    template<> std::string posixapi::user_login_id()
+	{
+		struct passwd * pw = getpwuid( geteuid() );
+        return pw->pw_name;
+	}
+
+    template<> std::wstring posixapi::user_login_id()
+	{
+		struct passwd * pw = getpwuid( geteuid() );
         return adportable::string::convert( pw->pw_name );
+	}
+
+    template<> std::string posixapi::computer_name()
+	{
+        char hostname[1024];
+		gethostname( hostname, sizeof(hostname));
+        return return hostname;
+	}
+
+    template<> std::wstring posixapi::computer_name()
+    {
+        char hostname[1024];
+		gethostname( hostname, sizeof(hostname));
+        return adportable::string::convert( hostname );
 	}
 
 #endif
@@ -140,6 +207,30 @@ namespace adportable {
     profile::user_login_name()
     {
 		return impl::user_login_name<wchar_t>();
+    }
+
+    template<> std::string
+    profile::user_login_id()
+    {
+		return impl::user_login_id<char>();
+    }
+
+    template<> std::wstring
+    profile::user_login_id()
+    {
+		return impl::user_login_id<wchar_t>();
+    }
+
+    template<> std::string
+    profile::computer_name()
+    {
+		return impl::computer_name<char>();
+    }
+
+    template<> std::wstring
+    profile::computer_name()
+    {
+		return impl::computer_name<wchar_t>();
     }
 
 }

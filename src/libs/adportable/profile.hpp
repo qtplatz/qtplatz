@@ -33,7 +33,9 @@ namespace adportable {
     public:
         profile();
         template< class char_type > static std::basic_string<char_type> user_login_name();
+        template< class char_type > static std::basic_string<char_type> user_login_id();
         template< class char_type > static std::basic_string<char_type> user_data_dir();        
+        template< class char_type > static std::basic_string<char_type> computer_name();
     };
 
 }

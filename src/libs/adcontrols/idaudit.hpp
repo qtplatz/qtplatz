@@ -47,7 +47,7 @@ namespace adcontrols {
         
         std::string digest_;
         std::string dateCreated_;
-        std::wstring idTerminal_;
+        std::wstring idComputer_;
         std::wstring idCreatedBy_;
         std::wstring nameCreatedBy_;
         
@@ -58,7 +58,7 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( uuid_ )
                 & BOOST_SERIALIZATION_NVP( digest_ )
                 & BOOST_SERIALIZATION_NVP( dateCreated_ )
-                & BOOST_SERIALIZATION_NVP( idTerminal_ )
+                & BOOST_SERIALIZATION_NVP( idComputer_ )
                 & BOOST_SERIALIZATION_NVP( idCreatedBy_ )
                 & BOOST_SERIALIZATION_NVP( nameCreatedBy_ )
                 ;
