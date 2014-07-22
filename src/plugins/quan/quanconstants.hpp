@@ -39,6 +39,14 @@ namespace Constants {
     const int BELOW_CONTENTS_MARGIN(16);
     const int PANEL_LEFT_MARGIN = 70;
 
+    // actions
+    const char * const SEQUENCE_RUN = "quan.Run";
+    const char * const SEQUENCE_STOP = "quan.Stop";
+
+    // object names
+    const char * const editQuanMethodFilename = "editQuanMethodFilename";
+    const char * const editCompoundsFilename  = "editCompoundsFilename";
+
 } // namespace quan
 } // namespace Constants
 

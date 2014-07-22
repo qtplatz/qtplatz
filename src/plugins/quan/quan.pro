@@ -20,7 +20,9 @@ SOURCES += quanplugin.cpp \
     compoundswidget.cpp \
     compoundstable.cpp \
     quanconfigform.cpp \
-    quanconfigwidget.cpp
+    quanconfigwidget.cpp \
+    quandatawriter.cpp \
+    quansampleprocessor.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
@@ -36,7 +38,9 @@ HEADERS += quanplugin.hpp \
     compoundswidget.hpp \
     compoundstable.hpp \
     quanconfigform.hpp \
-    quanconfigwidget.hpp
+    quanconfigwidget.hpp \
+    quandatawriter.hpp \
+    quansampleprocessor.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \

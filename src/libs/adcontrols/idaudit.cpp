@@ -22,44 +22,27 @@
 **
 **************************************************************************/
 
-#ifndef QUANCONFIGWIDGET_HPP
-#define QUANCONFIGWIDGET_HPP
+#include "idaudit.hpp"
+#include <adportable/uuid.hpp>
+#include <adportable/date_string.hpp>
+#include <adportable/profile.hpp>
+#include <chrono>
 
-#include <QWidget>
-#include <memory>
+using namespace adcontrols;
 
-class QGridLayout;
-
-namespace boost { namespace filesystem { class path; } }
-namespace adcontrols { class QuanMethod; }
-
-namespace adcontrols { class QuanMethod; }
-
-namespace quan {
-
-    class QuanConfigForm;
-
-    class QuanConfigWidget : public QWidget {
-        Q_OBJECT
-    public:
-        ~QuanConfigWidget();
-        explicit QuanConfigWidget(QWidget *parent = 0);
-
-        void commit();
-
-    private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanConfigForm > form_;
-        QWidget * fileSelectionBar();
-
-        void handleDataChanged( int, bool );
-
-    signals:
-
-    public slots:
-
-    };
-
+idAudit::idAudit() : uuid_( adportable::uuid()() )
+                   , idCreatedBy_( adportable::profile::user_login_name<wchar_t>() )
+                   , nameCreatedBy_( idCreatedBy_ )
+                   , dateCreated_( adportable::date_string::logformat( std::chrono::system_clock::now() ) )
+{
 }
 
-#endif // QUANCONFIGWIDGET_HPP
+idAudit::idAudit( const idAudit& t ) : uuid_( t.uuid_ )
+                                     , digest_( t.digest_ )
+                                     , dateCreated_( t.dateCreated_ )
+                                     , idTerminal_( t.idTerminal_ )
+                                     , idCreatedBy_( t.idCreatedBy_ )
+                                     , nameCreatedBy_( t.nameCreatedBy_ )
+{
+}
+

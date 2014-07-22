@@ -252,19 +252,21 @@ rawdata::getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum& ms, uint32_
     uint64_t npos = npos0_ + idx;
 
     if ( fcn < 0 ) {
-        typedef decltype(*fcnVec_.begin()) pos_type;
-
-        auto pos = std::lower_bound( fcnVec_.begin(), fcnVec_.end(), npos, [] ( const pos_type& a, size_t npos ){ return std::get<0>( a ) < npos; } );
+        //typedef decltype(*fcnVec_.begin()) pos_type;
+        // find 'index' form <pos, fcn> array that indicates first 'pos' after protocol has been switched
         auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), npos, [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
+        if ( index == fcnIdx_.end() )
+            return false;
         while ( index != fcnIdx_.begin() && index->first > npos )
             --index;
-        int rep = int( std::get<0>( *pos ) - index->first );
+        int rep = int( npos - index->first );  // id within a replicates (rep'licates is the offset for npos from (fcn=0,rep=0) spectrum)
         while ( index != fcnIdx_.begin() && index->second != 0 )
             --index;
 
         if ( fcn < 0 ) { // read all protocols
             while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id )) == adcontrols::translate_indeterminate )
-                ++index;
+                if ( ++index == fcnIdx_.end() )  // move forward to next protocol (rep'licates is the offset for actual spectrum)
+                    break;
         }
     }
     else {

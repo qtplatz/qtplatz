@@ -28,16 +28,18 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
-
+#include <qtwrapper/font.hpp>
 #include <QHeaderView>
+#include <QLineEdit>
 #include <QMenu>
 #include <QPainter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QTextDocument>
 #include <boost/format.hpp>
-#include <qtwrapper/font.hpp>
+#include <sstream>
 #include <functional>
+
 
 namespace quan {
     namespace compounds_table {
@@ -121,7 +123,6 @@ namespace quan {
 
                 QStyleOptionViewItem opt(option);
                 initStyleOption( &opt, index );
-                opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
                 if ( index.column() == c_formula ) {
 
@@ -130,12 +131,23 @@ namespace quan {
 
                 } else if ( index.column() == c_mass ) {
 
+                    opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
                     QStyledItemDelegate::paint( painter, opt, index );
 
+                }
+                else if ( c_level_0 <= index.column() && index.column() <= c_level_last ) {
+
+                    double data = index.data( Qt::EditRole ).toDouble();
+                    const char * fmt = "%.4lf";
+                    if ( data > 1.0e4 || data < 1.0e-4 )
+                        fmt = "%.4le";
+                    std::string text = ( boost::format( fmt ) % data ).str();
+                    painter->drawText( opt.rect, Qt::AlignRight | Qt::AlignVCenter, text.c_str() );
+
+                } else if ( index.column() == c_description ) {
+                    adwidgets::DelegateHelper::render_html( painter, opt, index.data().toString() );
                 } else {
-                    
                     QStyledItemDelegate::paint( painter, opt, index );
-
                 }
             }
 
@@ -143,6 +155,16 @@ namespace quan {
                 QStyledItemDelegate::setModelData( editor, model, index );
                 if ( valueChanged_ )
                     valueChanged_( index );
+            }
+
+            QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+                if ( c_level_0 <= index.column() && index.column() <= c_level_last ) {
+                    QLineEdit * edit = new QLineEdit( parent );
+                    edit->setText( QString::fromStdString( (boost::format( "%g" ) % index.data().toDouble() ).str() ) );
+                    return edit;
+                } else {
+                    return QStyledItemDelegate::createEditor( parent, option, index );
+                }
             }
             
         public:
@@ -173,6 +195,8 @@ CompoundsTable::CompoundsTable(QWidget *parent) : TableView(parent)
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &CompoundsTable::handleContextMenu );
+
+    setEditTriggers( QAbstractItemView::AllEditTriggers );
 
 	model_->setColumnCount( nbrColums );
     model_->setRowCount( 1 );
@@ -237,8 +261,11 @@ CompoundsTable::handleValueChanged( const QModelIndex& index )
                 model_->setData( model_->index( index.row(), col ), double( col - c_level_0 + 1 ) );
         }
     }
-    if ( index.row() == model_->rowCount() - 1 )
-        model_->insertRow( index.row() + 1 );
+    if ( index.row() == model_->rowCount() - 1 ) {
+        auto data = model_->index( index.row(), c_formula ).data( Qt::EditRole );
+        if ( !data.isNull() && !data.toString().isEmpty() )
+            model_->insertRow( index.row() + 1 );
+    }
 
     resizeColumnsToContents();
     resizeRowsToContents();
@@ -308,6 +335,8 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
         model.setData( model.index( row, c_mass ), comp.mass() );
         model.setData( model.index( row, c_tR ), comp.tR() );
         model.setData( model.index( row, c_description ), QString::fromStdWString( comp.description() ) );
+
+        model.item( row, c_mass )->setEditable( false );
 
         // if ( auto cbx = model.item( row, c_isISTD ) )
         //     cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );

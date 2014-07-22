@@ -53,9 +53,18 @@ namespace quan {
 
         QWidget * createContents( Core::IMode * );
         void onInitialUpdate();
+        void onFinalClose();
+
+        enum idActions {
+            idActRun
+            , idActStop
+            , nActions
+        };
 
     private:
         QStackedWidget * stack_;
+        std::array< QAction *, nActions > actions_;
+
         void createDockWidgets();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
         void setSimpleDockWidgetArrangement();
@@ -65,13 +74,16 @@ namespace quan {
         QToolButton * toolButton( QAction * );
         QToolButton * toolButton( const char * );
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
-
+        
         void handleIndexChanged( int index, int subIndex );
+        void commit();
 
     signals:
 
     public slots:
-
+    private slots:
+        void run();
+        void stop();
     };
 
 }

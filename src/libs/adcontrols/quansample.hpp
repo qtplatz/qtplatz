@@ -31,6 +31,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -60,7 +61,7 @@ namespace adcontrols {
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int ) {
                 using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( status_ )
+                ar & BOOST_SERIALIZATION_NVP( identified_ )
                     & BOOST_SERIALIZATION_NVP( intensity_ )
                     & BOOST_SERIALIZATION_NVP( amounts_ )
                     ;
@@ -77,12 +78,23 @@ namespace adcontrols {
         ~QuanSample();
         QuanSample();
         QuanSample( const QuanSample& );
-
+        
         enum QuanSampleType {
             SAMPLE_TYPE_UNKNOWN
             , SAMPLE_TYPE_STD
             , SAMPLE_TYPE_QC
             , SAMPLE_TYPE_BLANK
+        };
+        
+        enum QuanInlet {
+            Chromatography
+            , Infusion
+        };
+
+        enum QuanDataGeneration {
+            ASIS
+            , GenerateSpectrum
+            , GenerateChromatogram
         };
 
         const wchar_t * name() const;
@@ -94,8 +106,17 @@ namespace adcontrols {
         const wchar_t * dataGuid() const;
         void dataGuid( const wchar_t * );
 
+        const wchar_t * dataType() const { return dataType_.c_str(); }
+        void dataType( const wchar_t * v ) { dataType_ = v; }
+
         QuanSampleType sampleType() const;
         void sampleType( QuanSampleType );
+
+        QuanDataGeneration dataGeneration() const { return dataGeneration_; }
+        void dataGeneration( QuanDataGeneration v ) { dataGeneration_ = v; }
+        uint32_t scan_range_first() const { return scan_range_.first; }
+        uint32_t scan_range_second() const { return scan_range_.second; }
+        void scan_range( int32_t first, int32_t second ) { scan_range_ = std::make_pair( first, second ); }
         
         int32_t istdId() const;
         void istdId( int32_t );
@@ -115,34 +136,36 @@ namespace adcontrols {
         QuanSample& operator << ( const quan::ISTD& );
 
     private:
-#     include <compiler/diagnostic_push.h>
-#     include <compiler/disable_dll_interface.h>
         std::wstring name_;
         std::wstring dataType_;
-        std::wstring dataSource_;             // fullpath for data file + "::" + data node
-        std::wstring dataGuid_;               // data guid on portfolio (for redisplay)
-#     include <compiler/diagnostic_pop.h>
-        QuanSampleType sampleType_; 
-        int32_t level_;                       // 0 for UNK, otherwise >= 1
-        int32_t istdId_;                      // id for istd sample (id for myself if this is ISTD)
-        double injVol_;                       // conc. for infusion
-        double amountsAdded_;                 // added amount for standard
-        std::vector< quan::ISTD > istd_;      // index is correspoinding to ISTD id
-        quan::Response quanResult_;           // result
+        std::wstring dataSource_;               // fullpath for data file + "::" + data node
+        std::wstring dataGuid_;                 // data guid on portfolio (for redisplay)
+        QuanSampleType sampleType_;
+        QuanInlet inletType_;                   // Infusion | Chromatogram
+        int32_t level_;                         // 0 for UNK, otherwise >= 1
+        int32_t istdId_;                        // id for istd sample (id for myself if this is ISTD)
+        double injVol_;                         // conc. for infusion
+        double amountsAdded_;                   // added amount for standard
+        std::vector< quan::ISTD > istd_;        // index is correspoinding to ISTD id
+        quan::Response quanResult_;             // result
+        QuanDataGeneration dataGeneration_;
+        std::pair<int32_t,int32_t> scan_range_;             // 0 := first spectrum, 1 := second spectrum, -1 := last spectrum
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( name_ )
-                & BOOST_SERIALIZATION_NVP( dataType_ )
                 & BOOST_SERIALIZATION_NVP( dataSource_ )
+                & BOOST_SERIALIZATION_NVP( dataType_ )
                 & BOOST_SERIALIZATION_NVP( dataGuid_ )
                 & BOOST_SERIALIZATION_NVP( sampleType_ )
                 & BOOST_SERIALIZATION_NVP( level_ )
                 & BOOST_SERIALIZATION_NVP( istdId_ )
                 & BOOST_SERIALIZATION_NVP( injVol_ )
-                & BOOST_SERIALIZATION_NVP( amountAdded_ )
+                & BOOST_SERIALIZATION_NVP( amountsAdded_ )
                 & BOOST_SERIALIZATION_NVP( istd_ )
+                & BOOST_SERIALIZATION_NVP( dataGeneration_ )
+                & BOOST_SERIALIZATION_NVP( scan_range_ )
                 & BOOST_SERIALIZATION_NVP( quanResult_ )
                 ;
         }

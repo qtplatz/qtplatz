@@ -25,24 +25,31 @@
 #ifndef QUANDOCUMENT_HPP
 #define QUANDOCUMENT_HPP
 
+#include <array>
+#include <atomic>
+#include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
-#include <map>
+#include <thread>
 #include <vector>
-#include <functional>
+#include <QObject>
 
-namespace adcontrols { class QuanMethod; class QuanCompounds; }
+namespace adcontrols { class QuanMethod; class QuanCompounds; class QuanSequence; class QuanSample; }
+namespace boost { namespace filesystem { class path; } }
 
 namespace quan {
+    
+    namespace detail { class dataWriter; }
 
     class PanelData;
+    class QuanSampleProcessor;
 
-    enum idDataChanged {
-        idQuanMethod
-        , idQuanCompounds
-    };
+    enum idMethod { idQuanMethod, idQuanCompounds, idQuanSequence, idSize };
 
-    class QuanDocument {
+    class QuanDocument : public QObject {
+        Q_OBJECT
+    private:
         ~QuanDocument();
         QuanDocument();
         static QuanDocument * instance_;
@@ -52,11 +59,38 @@ namespace quan {
 
         PanelData * addPanel( int idx, int subIdx, std::shared_ptr< PanelData >& );
         PanelData * findPanel( int idx, int subIdx, int pos );
+
+        void setMethodFilename( int idx, const std::wstring& filename );
+
         const adcontrols::QuanMethod& quanMethod();
         void quanMethod( const adcontrols::QuanMethod & );
+
         const adcontrols::QuanCompounds& quanCompounds();
         void quanCompounds( const adcontrols::QuanCompounds& );
-        void register_dataChanged( std::function< void( int ) > );
+
+        void quanSequence( std::shared_ptr< adcontrols::QuanSequence >& );
+        std::shared_ptr< adcontrols::QuanSequence > quanSequence();
+
+        void register_dataChanged( std::function< void( int, bool ) > );
+        void setResultFile( const std::wstring& );
+
+        void run();
+        void stop();
+
+        bool load( const boost::filesystem::path&, adcontrols::QuanMethod& );
+        bool save( const boost::filesystem::path&, const adcontrols::QuanMethod& );
+
+        bool load( const boost::filesystem::path&, adcontrols::QuanCompounds& );
+        bool save( const boost::filesystem::path&, const adcontrols::QuanCompounds& );
+
+        bool load( const boost::filesystem::path&, adcontrols::QuanSequence& );
+        bool save( const boost::filesystem::path&, const adcontrols::QuanSequence& );
+
+        void onInitialUpdate();
+        void onFinalClose();
+
+        void handle_completed( QuanSampleProcessor * );
+        void completed( QuanSampleProcessor * );
 
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
@@ -65,8 +99,20 @@ namespace quan {
 
         std::shared_ptr< adcontrols::QuanMethod > quanMethod_;
         std::shared_ptr< adcontrols::QuanCompounds > quanCompounds_;
+        std::shared_ptr< adcontrols::QuanSequence > quanSequence_;
+        std::vector< std::function< void( int, bool ) > > clients_;
 
-        std::vector< std::function< void( int ) > > clients_;
+        std::array< bool, idSize > dirty_flags_;
+
+        std::vector< std::thread > threads_;
+        std::atomic< size_t > postCount_;
+
+        bool processed( adcontrols::QuanSample& );
+
+        bool save_default_methods();
+        bool load_default_methods();
+    signals:
+        void onCompleted( QuanSampleProcessor * );
     };
 }
 

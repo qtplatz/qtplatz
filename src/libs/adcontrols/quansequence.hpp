@@ -61,15 +61,20 @@ namespace adcontrols {
         void uuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& uuid() const;
 
+        const wchar_t * outfile() const { return outfile_.c_str(); }
+        void outfile( const wchar_t * file ) { outfile_ = file; }
+
     private:
         boost::uuids::uuid uuid_;
         std::vector< QuanSample > samples_;
+        std::wstring outfile_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( uuid_ )
                 & BOOST_SERIALIZATION_NVP( samples_ )
+                & BOOST_SERIALIZATION_NVP( outfile_ )
                 ;
         }
 

@@ -26,11 +26,13 @@
 #define QUANMETHOD_HPP
 
 #include "adcontrols_global.h"
+#include "idaudit.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <memory>
-
+#include <string>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -96,8 +98,15 @@ namespace adcontrols {
         uint32_t replicates() const;
         void replicates( uint32_t );
 
+        const wchar_t * quanMethodFilename() const { return quanMethodFilename_.c_str(); }
+        void quanMethodFilename( const wchar_t * d ) { quanMethodFilename_ = d; }
+        const wchar_t * quanCompoundsFilename() const { return quanCompoundsFilename_.c_str(); }
+        void quanCompoundsFilename( const wchar_t * d ) { quanCompoundsFilename_ = d; }
+        const wchar_t * quanSequenceFilename() const { return quanCompoundsFilename_.c_str(); }
+        void quanSequenceFilename( const wchar_t * d ) { quanCompoundsFilename_ = d; }
+
     private:
-        
+        idAudit ident_;
         bool isChromatogram_;
         bool isISTD_;
         bool use_weighting_;
@@ -109,12 +118,17 @@ namespace adcontrols {
         uint32_t replicates_;
         uint32_t polynomialOrder_;
 
+        std::wstring quanMethodFilename_;
+        std::wstring quanCompoundsFilename_;
+        std::wstring quanSequenceFilename_;
+
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
 
-            ar & BOOST_SERIALIZATION_NVP( isChromatogram_ )
+            ar & BOOST_SERIALIZATION_NVP( ident_ )
+                & BOOST_SERIALIZATION_NVP( isChromatogram_ )
                 & BOOST_SERIALIZATION_NVP( isISTD_ )
                 & BOOST_SERIALIZATION_NVP( use_weighting_ )
                 & BOOST_SERIALIZATION_NVP( use_bracketing_ )
@@ -124,6 +138,9 @@ namespace adcontrols {
                 & BOOST_SERIALIZATION_NVP( levels_ )
                 & BOOST_SERIALIZATION_NVP( replicates_ )
                 & BOOST_SERIALIZATION_NVP( polynomialOrder_ )
+                & BOOST_SERIALIZATION_NVP( quanMethodFilename_ )
+                & BOOST_SERIALIZATION_NVP( quanCompoundsFilename_ )
+                & BOOST_SERIALIZATION_NVP( quanSequenceFilename_ )
                 ;
         };
 

@@ -82,6 +82,7 @@ ExtensionSystem::IPlugin::ShutdownFlag QuanPlugin::aboutToShutdown()
     // Save settings
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
+    mainWindow_->onFinalClose();
     return SynchronousShutdown;
 }
 

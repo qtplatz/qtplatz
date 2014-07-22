@@ -29,6 +29,8 @@
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/descriptions.hpp>
+#include <adcontrols/quansequence.hpp>
+#include <adcontrols/quansample.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <portfolio/portfolio.hpp>
@@ -47,6 +49,7 @@
 #include <QPainter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
+#include <QDebug>
 
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
@@ -292,7 +295,7 @@ DataSequenceTree::handleData( int row )
     if ( data ) {
         Infusion::setRow( model, row, "file" ); 
         setRaw( data, model.itemFromIndex( model.index( row, 0 ) ) );
-        //setProcessed( data, model.itemFromIndex( model.index( row, 0 ) ) );
+        setProcessed( data, model.itemFromIndex( model.index( row, 0 ) ) );
     }
     expandAll();
 }
@@ -463,4 +466,63 @@ DataSequenceTree::setProcessed( dataSubscriber * data, QStandardItem * parent )
         }
     }
     return rowCount;
+}
+
+bool
+DataSequenceTree::getContents( adcontrols::QuanSequence& seq )
+{
+    QStandardItemModel& model = *model_;    
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        auto parent = model.item( row, c_datafile );
+        std::wstring datafile = parent->data( Qt::EditRole ).toString().toStdWString();
+                
+        for ( int subRow = 0; subRow < parent->rowCount(); ++subRow ) {
+
+            adcontrols::QuanSample sample;
+            sample.dataSource( datafile.c_str() );
+            // dataGuid
+            sample.name( model.index( subRow, c_datafile, parent->index() ).data().toString().toStdWString().c_str( ) );
+
+            std::wstring data_type = model.index( subRow, c_data_type, parent->index() ).data().toString().toStdWString();
+            sample.dataType( data_type.c_str() );
+
+            std::wstring samp_type = model.index( subRow, c_sample_type, parent->index() ).data().toString().toStdWString();
+            if ( samp_type == L"UNK" )
+                sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_UNKNOWN );
+            else if ( samp_type == L"STD" )
+                sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_STD );
+            else if ( samp_type == L"QC" )
+                sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_QC );
+            else if ( samp_type == L"BLANK" )
+                sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_BLANK );
+
+            std::wstring process = model.index( subRow, c_process, parent->index() ).data().toString().toStdWString();
+            if ( process == L"Average all" ) {
+                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
+                sample.scan_range( 0, -1 );
+            }
+            else if ( process == L"Take 1st spc." ) {
+                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
+                sample.scan_range( 0, 0 );
+            }
+            else if ( process == L"Take 2nd spc." ) {
+                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
+                sample.scan_range( 1, 1 );
+            }
+            else if ( process == L"Take last spc." ) {
+                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
+                sample.scan_range( -1, -1 );
+            }
+            else if ( process == L"AS IS" ) {
+                sample.dataGeneration( adcontrols::QuanSample::ASIS );
+            }
+            
+            seq << sample;
+            //qDebug() << "data_type: " << model.index( subRow, c_data_type, parent->index() ).data().toString();
+            //qDebug() << "sample_type: " << model.index( subRow, c_sample_type, parent->index() ).data().toString();
+            qDebug() << "process: " << model.index( subRow, c_process, parent->index() ).data().toString();
+            qDebug() << "level: " << model.index( subRow, c_level, parent->index() ).data().toString();
+        }
+    }
+    return true;
 }

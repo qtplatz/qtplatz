@@ -50,6 +50,7 @@
 
 #include <QFileDialog>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QStackedWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QHBoxLayout>
@@ -96,18 +97,21 @@ MainWindow::createContents( Core::IMode * )
     auto doc = QuanDocument::instance();
 
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
-        auto configWidget = new QuanConfigWidget;
-        auto panel = std::make_shared< PanelData >( "Configuration"
-                                                    , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
-                                                    , configWidget );
-        panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
-        connect( panelsWidget, &PanelsWidget::onLeaving, configWidget, &QuanConfigWidget::commit );
+        if ( auto configWidget = new QuanConfigWidget ) {
+            auto panel = std::make_shared< PanelData >( "Configuration"
+                                                        , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
+                                                        , configWidget );
+            panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
+            connect( panelsWidget, &PanelsWidget::onCommit, configWidget, &QuanConfigWidget::commit );
+        }
         
-        panel = std::make_shared< PanelData >( "Select Data"
-                                               , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
-                                               , new DataSequenceWidget );
-        
-        panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );        
+        if ( auto widget = new DataSequenceWidget ) {
+            auto panel = std::make_shared< PanelData >( "Select Data"
+                                                        , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
+                                                        , widget );
+            panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
+            connect( panelsWidget, &PanelsWidget::onCommit, widget, &DataSequenceWidget::commit );
+        }
         
         stack_->addWidget( panelsWidget );
     }
@@ -160,6 +164,14 @@ MainWindow::createTopStyledBar()
 void
 MainWindow::onInitialUpdate()
 {
+    QuanDocument::instance()->onInitialUpdate();
+}
+
+void
+MainWindow::onFinalClose()
+{
+    commit();
+    QuanDocument::instance()->onFinalClose();
 }
 
 // static
@@ -200,7 +212,17 @@ MainWindow::createActions()
         
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( "Quan" );
-        
+
+        if ( auto p = actions_[ idActRun ] = new QAction( QIcon( ":/quan/images/run.png" ), tr("Run"), this ) ) {
+            am->registerAction( p, Constants::SEQUENCE_RUN, gc );
+            connect( p, &QAction::triggered, this, &MainWindow::run );
+        }
+        if ( auto p = actions_[ idActStop ] = new QAction( QIcon(":/quan/images/stop.png"), tr("Stop"), this ) ) {
+            am->registerAction( p, Constants::SEQUENCE_STOP, gc );
+            connect( p, &QAction::triggered, this, &MainWindow::stop );
+            p->setEnabled( false );
+        }
+
         //Core::Command * cmd = 0;
 
         //cmd = am->registerAction( actions_[ idActFileOpen ], Constants::FILE_OPEN, gc );
@@ -217,7 +239,36 @@ MainWindow::handleIndexChanged( int index, int subIndex )
     if ( stack_ ) {
         QWidget * widget = stack_->widget( stack_->currentIndex() );
         if ( auto panels = dynamic_cast< PanelsWidget * >( widget ) )
-            panels->leaving();
+            panels->commit();
         stack_->setCurrentIndex( subIndex );
     }
+}
+
+void
+MainWindow::commit()
+{
+    if ( stack_ ) {
+        for ( int idx = 0; idx < stack_->count(); ++idx ) {
+            QWidget * widget = stack_->widget( idx );
+            if ( auto panels = dynamic_cast< PanelsWidget * >( widget ) )
+                panels->commit();
+        }
+    }
+}
+
+void
+MainWindow::run()
+{
+    commit();
+
+    if ( auto stop = actions_[ idActStop ] )
+        stop->setEnabled( true );
+
+    QuanDocument::instance()->run();
+}
+
+void
+MainWindow::stop()
+{
+    QuanDocument::instance()->stop();
 }

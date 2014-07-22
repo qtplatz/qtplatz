@@ -50,9 +50,7 @@ namespace quan {
         QGridLayout * layout_;
         std::unique_ptr< CompoundsTable > table_;
 
-        bool load( const boost::filesystem::path&, adcontrols::QuanCompounds& );
-        bool save( const boost::filesystem::path&, const adcontrols::QuanCompounds& );
-        void handleDataChanged( int );
+        void handleDataChanged( int, bool );
 
     signals:
 

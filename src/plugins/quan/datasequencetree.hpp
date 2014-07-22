@@ -35,7 +35,7 @@ class QStandardItemModel;
 class QStandardItem;
 class QModelIndex;
 
-namespace adcontrols { class datafile;  }
+namespace adcontrols { class datafile; class QuanSequence; }
 
 namespace quan {
 
@@ -48,6 +48,8 @@ namespace quan {
 
         void setData( std::shared_ptr< adcontrols::datafile >& );
         void setData( const QStringList& );
+        bool setContents( const adcontrols::QuanSequence& );
+        bool getContents( adcontrols::QuanSequence& );
 
     protected:
         void dragEnterEvent( QDragEnterEvent * ) override;

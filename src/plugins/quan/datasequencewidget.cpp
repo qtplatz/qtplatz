@@ -26,10 +26,17 @@
 #include "datasequencetree.hpp"
 #include "quandocument.hpp"
 #include "paneldata.hpp"
+#include "quanconstants.hpp"
 #include <utils/styledbar.h>
+#include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/icore.h>
+
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/quansequence.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
+
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
 #include <boost/format.hpp>
@@ -58,6 +65,18 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
     const int row = layout_->rowCount();
     layout_->addWidget( dataSelectionBar(), row, 0 );
     layout_->addWidget( dataSequenceTree_.get(), row + 1, 0 );
+}
+
+void
+DataSequenceWidget::commit()
+{
+    if ( auto sequence = std::make_shared< adcontrols::QuanSequence >() ) {
+        if ( auto edit = findChild< QLineEdit * >( "editOutfile" ) ) {
+            sequence->outfile( edit->text().toStdWString().c_str() );
+        }
+        if ( dataSequenceTree_->getContents( *sequence ) )
+            QuanDocument::instance()->quanSequence( sequence );
+    }
 }
 
 QWidget *
@@ -92,33 +111,39 @@ DataSequenceWidget::dataSelectionBar()
         toolBarLayout->addWidget( toolButton );
 
         auto edit = new QLineEdit;
+        edit->setObjectName( "editOutfile" );
         toolBarLayout->addWidget( edit );
         do { // insert default result file
-            boost::filesystem::path path( adportable::profile::user_data_dir< wchar_t >() );
-            path /= L"data";
+            boost::filesystem::path path( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
             path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
             boost::filesystem::path name = path += "_quan.adfs";
             int i = 1;
             while ( boost::filesystem::exists( name ) )
                 name = (boost::wformat( L"%s_%d_quan.adfs" ) % path.wstring() % i++).str();
             edit->setText( QString::fromStdWString( path.wstring() ) );
+            edit->setEnabled( false );
         } while(0);
 
-        auto execButton = new QToolButton;
-        execButton->setIcon( QIcon( ":/quan/images/run.png" ) );
-        execButton->setToolTip( tr("Run quantitation process") );
-        toolBarLayout->addWidget( execButton );
+        if ( Core::ActionManager * am = Core::ICore::instance()->actionManager() ) {
 
-        auto stopButton = new QToolButton;
-        stopButton->setIcon( QIcon( ":/quan/images/stop_small.png" ) );
-        stopButton->setToolTip( tr("Stop quantitation process") );
-        stopButton->setEnabled( false );
-        toolBarLayout->addWidget( stopButton );
+            if ( auto execButton = new QToolButton ) { //( am->command( Constants::SEQUENCE_RUN )->action() );
+                execButton->setDefaultAction( am->command( Constants::SEQUENCE_RUN )->action() );
+                execButton->setToolTip( tr( "Run sequence in batch process" ) );
+                toolBarLayout->addWidget( execButton );
+            }
+            
+            if ( auto stopButton = new QToolButton ) { //( am->command( Constants::SEQUENCE_STOP )->action() );
+                stopButton->setDefaultAction( am->command( Constants::SEQUENCE_STOP )->action() );
+                stopButton->setToolTip( tr( "Stop sequence executeion" ) );
+                toolBarLayout->addWidget( stopButton );
+            }
+        }
 
+        // open datafile(s) 
         connect( button, &QToolButton::clicked, this, [this] ( bool ){
                 boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
                 dir /= L"data";
-
+                
                 QFileDialog dlg( 0, tr("Open data file(s)"), QString::fromStdWString( dir.wstring() ) );
                 dlg.setNameFilter( tr("Data Files(*.adfs *.csv *.txt *.spc)") );
                 dlg.setFileMode( QFileDialog::ExistingFiles );
@@ -129,6 +154,7 @@ DataSequenceWidget::dataSelectionBar()
                 }
             } );
 
+        // target file
         connect( toolButton, &QToolButton::clicked, this, [this] ( bool ){
                 QString dstfile;
                 if ( auto edit = findChild< QLineEdit *>() )
@@ -139,20 +165,14 @@ DataSequenceWidget::dataSelectionBar()
                 }
                 
                 QString name = QFileDialog::getSaveFileName( this, "Data save in", dstfile, tr( "Quan result (*.adfs)" ) );
-                if ( !name.isEmpty() ) 
+                if ( !name.isEmpty() ) {
                     if ( auto edit = findChild< QLineEdit *>() ) 
                         edit->setText( name );
+                }
             } );
 
-        connect( execButton, &QToolButton::clicked, this, [this] (){ execute(); } );
-        
         return toolBar;
     }
     return 0;
 }
 
-void
-DataSequenceWidget::execute()
-{
-    QMessageBox::information(this, "Execute", "Execute pressed" );
-}

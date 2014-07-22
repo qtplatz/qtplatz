@@ -100,7 +100,8 @@ SOURCES += acceptor.cpp \
     quansequence.cpp \
     quansample.cpp \
     quanreport.cpp \
-    quanresponse.cpp
+    quanresponse.cpp \
+    idaudit.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -188,7 +189,8 @@ HEADERS += acceptor.hpp \
     quansequence.hpp \
     quansample.hpp \
     quanreport.hpp \
-    quanresponse.hpp
+    quanresponse.hpp \
+    idaudit.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 

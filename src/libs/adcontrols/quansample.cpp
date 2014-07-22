@@ -32,9 +32,14 @@ QuanSample::~QuanSample()
 }
 
 QuanSample::QuanSample() : sampleType_( SAMPLE_TYPE_UNKNOWN )
+                         , inletType_( Infusion )
                          , level_(0)
                          , istdId_(-1)
+                         , injVol_(0)
                          , amountsAdded_( 1.0 )
+                         , istd_( 0 )
+                         , dataGeneration_( ASIS )
+                         , scan_range_( 0, -1 )
 {
 }
 
@@ -48,6 +53,9 @@ QuanSample::QuanSample( const QuanSample& t ) : name_( t.name_ )
                                               , injVol_( t.injVol_ )
                                               , amountsAdded_( t.amountsAdded_ )
                                               , istd_( t.istd_ )
+    , quanResult_( t.quanResult_ )
+    , dataGeneration_( t.dataGeneration_ )
+    , scan_range_( t.scan_range_ )
 {
 }
 

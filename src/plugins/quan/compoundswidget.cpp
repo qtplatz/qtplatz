@@ -25,6 +25,7 @@
 #include "compoundswidget.hpp"
 #include "compoundstable.hpp"
 #include "quandocument.hpp"
+#include "quanconstants.hpp"
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adportable/profile.hpp>
@@ -35,28 +36,18 @@
 #include <QLineEdit>
 #include <QToolButton>
 #include <QMessageBox>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
+//#include <boost/archive/xml_woarchive.hpp>
+//#include <boost/archive/xml_wiarchive.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <fstream>
+//#include <boost/filesystem/fstream.hpp>
+//#include <fstream>
 
 using namespace quan;
 
 CompoundsWidget::~CompoundsWidget()
 {
-    commit();
-    auto& c = QuanDocument::instance()->quanCompounds();
-    if ( c.size() > 0 ) {
-        boost::filesystem::path file( adportable::profile::user_data_dir< wchar_t >() + L"/data/quancomponents_default.xml" );
-        try {
-            save( file, c );
-        } catch ( ... ) {
-            // ignore error
-        }
-    }
 }
 
 CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
@@ -68,7 +59,7 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
-    QuanDocument::instance()->register_dataChanged( [this](int id){ handleDataChanged( id ); } );
+    QuanDocument::instance()->register_dataChanged( [this] ( int id, bool f ){ handleDataChanged( id, f ); } );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
@@ -81,14 +72,14 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
             
             connect( btnOpen, &QToolButton::clicked, this, [this](bool){
                     QString file;
-                    if ( auto edit = findChild< QLineEdit *>() ) {
+                    if ( auto edit = findChild< QLineEdit *>( Constants::editCompoundsFilename ) ) {
                         file = edit->text();
                         if ( file.isEmpty() )
                             file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
                         file = QFileDialog::getOpenFileName( this, tr("Open compounds file"), file, tr("File(*.xml)"));
                         try {
                             adcontrols::QuanCompounds m;
-                            if ( load( file.toStdWString(), m ) )
+                            if ( QuanDocument::instance()->load( file.toStdWString(), m ) )
                                 QuanDocument::instance()->quanCompounds( m );
                         } catch ( std::exception& ex ) {
                             QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
@@ -103,7 +94,7 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
             toolBarLayout->addWidget( btnSave );
             connect( btnSave, &QToolButton::clicked, this, [this](bool){
                     QString file;
-                    if ( auto edit = findChild< QLineEdit *>() ) {
+                    if ( auto edit = findChild< QLineEdit *>( Constants::editCompoundsFilename ) ) {
                         file = edit->text();
                         if ( file.isEmpty() )
                             file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
@@ -112,7 +103,7 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
                             edit->setText( file );
                             try {
                                 commit();
-                                save( file.toStdWString(), QuanDocument::instance()->quanCompounds() );
+                                QuanDocument::instance()->save( file.toStdWString(), QuanDocument::instance()->quanCompounds() );
                             } catch ( std::exception& ex ) {
                                 QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
                                 return;
@@ -122,20 +113,9 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
                 });
         }
         if ( auto edit = new QLineEdit ) {
+            edit->setObjectName( Constants::editCompoundsFilename );
             toolBarLayout->addWidget( edit );
             toolBarLayout->addWidget( new Utils::StyledSeparator );
-
-            boost::filesystem::path file( adportable::profile::user_data_dir< wchar_t >() + L"/data/quancomponents_default.xml" );
-            if ( boost::filesystem::exists( file ) ) {
-                try {
-                    adcontrols::QuanCompounds c;
-                    if ( load( file, c ) )
-                        QuanDocument::instance()->quanCompounds( c );
-                    edit->setText( QString::fromStdWString( file.wstring() ) );
-                } catch ( ... ) {
-                    ADERROR() << boost::current_exception_diagnostic_information();
-                }
-            }
         }
         layout_->addWidget( toolBar );
     }
@@ -143,34 +123,6 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
     layout_->addWidget( table_.get(), row, 0 );
 }
 
-
-bool
-CompoundsWidget::load( const boost::filesystem::path& path, adcontrols::QuanCompounds& c )
-{
-    try {
-        boost::filesystem::ifstream inf( path );
-        boost::archive::xml_iarchive ar( inf );
-        ar >> BOOST_SERIALIZATION_NVP( c );
-    } catch ( std::exception& ex ) {
-        ADERROR() << boost::diagnostic_information( ex );
-        throw ex;
-    }
-    return true;
-}
-
-bool
-CompoundsWidget::save( const boost::filesystem::path& path, const adcontrols::QuanCompounds& c )
-{
-    try {
-        boost::filesystem::ofstream outf( path );
-        boost::archive::xml_oarchive ar( outf );
-        ar << boost::serialization::make_nvp( "QuanCompounds", c );
-    } catch ( std::exception& ex ) {
-        ADERROR() << boost::diagnostic_information( ex );
-        throw ex;
-    }
-    return false;
-}
 
 void
 CompoundsWidget::commit()
@@ -181,10 +133,18 @@ CompoundsWidget::commit()
 }
 
 void
-CompoundsWidget::handleDataChanged( int id )
+CompoundsWidget::handleDataChanged( int id, bool fnChanged )
 {
     if ( id == idQuanMethod ) {
-        table_->handleQuanMethod( QuanDocument::instance()->quanMethod() );
+        auto& method = QuanDocument::instance()->quanMethod();
+        table_->handleQuanMethod( method );
+        
+        if ( fnChanged ) {
+            if ( auto edit = findChild< QLineEdit *>( Constants::editCompoundsFilename ) ) {
+                edit->setText( QString::fromStdWString( method.quanCompoundsFilename() ) );
+            }
+        }
+
     }
     else if ( id == idQuanCompounds ) {
         table_->setContents( QuanDocument::instance()->quanCompounds() );

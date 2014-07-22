@@ -43,12 +43,13 @@ namespace quan {
 
         QSize sizeHint() const { return QSize( 600, 600 ); }
 
+        void commit();
+
     private:
         QGridLayout * layout_;
         std::unique_ptr< DataSequenceTree > dataSequenceTree_;
-        QWidget * dataSelectionBar();
 
-        void execute();
+        QWidget * dataSelectionBar();
 
     signals:
 

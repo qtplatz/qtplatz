@@ -25,6 +25,7 @@
 #include "quanconfigwidget.hpp"
 #include "quanconfigform.hpp"
 #include "quandocument.hpp"
+#include "quanconstants.hpp"
 #include "paneldata.hpp"
 #include <utils/styledbar.h>
 #include <adcontrols/quanmethod.hpp>
@@ -36,11 +37,6 @@
 #include <QToolButton>
 #include <QFileDialog>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
 #include <fstream>
 
@@ -48,16 +44,6 @@ using namespace quan;
 
 QuanConfigWidget::~QuanConfigWidget()
 {
-    commit();  // force update method stored in QuanDocument
-
-    auto method = QuanDocument::instance()->quanMethod();
-    boost::filesystem::path file( adportable::profile::user_data_dir< wchar_t >() + L"/data/quanconfig_default.xml" );
-    try {
-        save( file, method );
-    }
-    catch ( ... ) {
-        // ignore error
-    }
 }
 
 QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
@@ -68,14 +54,6 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
     topLayout->setMargin( 0 );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
-
-    boost::filesystem::path file( adportable::profile::user_data_dir< wchar_t >() + L"/data/quanconfig_default.xml" );
-    if ( boost::filesystem::exists( file ) ) {
-        adcontrols::QuanMethod m;
-        if ( load( file, m ) ) {
-            QuanDocument::instance()->quanMethod( m );
-        }
-    }
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
@@ -92,7 +70,7 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
             toolBarLayout->addWidget( btnOpen );
             connect( btnOpen, &QToolButton::clicked, this, [this](bool){
                     QString file;
-                    if ( auto edit = findChild< QLineEdit *>() ) {
+                    if ( auto edit = findChild< QLineEdit *>( Constants::editQuanMethodFilename ) ) {
                         file = edit->text();
                         if ( file.isEmpty() )
                             file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
@@ -100,10 +78,8 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
                         if ( !file.isEmpty() ) {
                             edit->setText( file );
                             try {
-                                std::ifstream inf( file.toStdString() );
-                                boost::archive::xml_iarchive ar( inf );
                                 adcontrols::QuanMethod m;
-                                ar >> BOOST_SERIALIZATION_NVP( m );
+                                QuanDocument::instance()->load( file.toStdWString(), m );
                                 QuanDocument::instance()->quanMethod( m );
                             } catch ( std::exception& ex ) {
                                 QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
@@ -114,13 +90,14 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
                     }
                 });
         }
+
         if ( auto btnSave = new QToolButton ) {
             btnSave->setIcon( QIcon( ":/quan/images/filesave.png" ) );
             btnSave->setToolTip( tr( "Save configuration..." ) );
             toolBarLayout->addWidget( btnSave );
             connect( btnSave, &QToolButton::clicked, this, [this](bool){
                     QString file;
-                    if ( auto edit = findChild< QLineEdit *>() ) {
+                    if ( auto edit = findChild< QLineEdit *>( Constants::editQuanMethodFilename ) ) {
                         file = edit->text();
                         if ( file.isEmpty() )
                             file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
@@ -128,9 +105,8 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
                         if ( !file.isEmpty() ) {
                             edit->setText( file );
                             try {
-                                std::ofstream outf( file.toStdString() );
-                                boost::archive::xml_oarchive ar( outf );
-                                ar << boost::serialization::make_nvp( "QuanMethod", QuanDocument::instance()->quanMethod() );
+                                QuanDocument::instance()->setMethodFilename( idQuanMethod, file.toStdWString() );
+                                QuanDocument::instance()->save( file.toStdWString(), QuanDocument::instance()->quanMethod() );
                             } catch ( std::exception& ex ) {
                                 QMessageBox::warning( 0, "Save Quantitative Method", boost::diagnostic_information( ex ).c_str() );
                                 return;
@@ -140,18 +116,20 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
                 });
 
             auto edit = new QLineEdit;
+            edit->setObjectName( Constants::editQuanMethodFilename );
+            edit->setEnabled( false );
             toolBarLayout->addWidget( edit );
-            edit->setText( QString::fromStdWString( file.wstring() ) );
-            
+            // edit->setText( QString::fromStdWString( file.wstring() ) );
             layout_->addWidget( toolBar );            
         }
         
     }
 
+    QuanDocument::instance()->register_dataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
     const int row = layout_->rowCount();
     layout_->addWidget( form_.get(), row, 0 );
-
     form_->setContents( QuanDocument::instance()->quanMethod() );
+
 }
 
 QWidget *
@@ -178,6 +156,7 @@ QuanConfigWidget::fileSelectionBar()
         toolBarLayout->addWidget( btnSave );
         
         auto edit = new QLineEdit;
+        edit->setObjectName( "editQuanMethodName" );
         toolBarLayout->addWidget( edit );
         boost::filesystem::path dir( adportable::profile::user_data_dir<wchar_t>() );
         dir /= L"data/quan.xml";
@@ -185,7 +164,7 @@ QuanConfigWidget::fileSelectionBar()
 
         connect( btnOpen, &QToolButton::clicked, this, [&] ( bool ){
                 QString dir;
-                if ( auto edit = findChild< QLineEdit * >() )
+                if ( auto edit = findChild< QLineEdit * >( Constants::editQuanMethodFilename ) )
                     dir = edit->text();
                 if ( dir.isEmpty() ) {
                     boost::filesystem::path path( adportable::profile::user_data_dir<wchar_t>() );
@@ -197,23 +176,17 @@ QuanConfigWidget::fileSelectionBar()
                                                              , dir, tr("File(*.xml)") );
                 if ( !name.isEmpty() ) {
                     adcontrols::QuanMethod m;
-                    try {
-                        std::ifstream inf( name.toStdString() );
-                        boost::archive::xml_iarchive ar( inf );
-                        ar >> BOOST_SERIALIZATION_NVP( m );
-                    } catch ( std::exception& ex ) {
-                        QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
-                        return;
-                    }
+                    QuanDocument::instance()->load( name.toStdWString(), m );
                     QuanDocument::instance()->quanMethod( m );
-                    if ( auto edit = findChild< QLineEdit * >() )
+                    QuanDocument::instance()->setMethodFilename( idQuanMethod, name.toStdWString() );
+                    if ( auto edit = findChild< QLineEdit * >( Constants::editQuanMethodFilename ) )
                         edit->setText( name );
                 }
             } );
         
         connect( btnSave, &QToolButton::clicked, this, [&] ( bool ){
                 QString dir;
-                if ( auto edit = findChild< QLineEdit * >() )
+                if ( auto edit = findChild< QLineEdit * >( Constants::editQuanMethodFilename ) )
                     dir = edit->text();
                 if ( dir.isEmpty() ) {
                     boost::filesystem::path path( adportable::profile::user_data_dir<wchar_t>() );
@@ -223,18 +196,9 @@ QuanConfigWidget::fileSelectionBar()
                                                              , tr("Save Quantitative Analysis Configuration file")
                                                              , dir, tr("File(*.xml)") );
                 if ( !name.isEmpty() ) {
-                    try {
-                        std::ofstream outf( name.toStdString() );
-                        boost::archive::xml_oarchive ar( outf );
-                        ar << boost::serialization::make_nvp( "QuanMethod", QuanDocument::instance()->quanMethod() );
-                    } catch ( std::exception& ex ) {
-                        QMessageBox::warning( 0, "Save Quantitative Method", boost::diagnostic_information( ex ).c_str() );
-                        return;
-                    }
-                    if ( auto edit = findChild< QLineEdit * >() )
-                        edit->setText( name );
-
-                    if ( auto edit = findChild< QLineEdit * >() )
+                    QuanDocument::instance()->setMethodFilename( idQuanMethod, name.toStdWString() );
+                    QuanDocument::instance()->save( name.toStdWString(), QuanDocument::instance()->quanMethod() );
+                    if ( auto edit = findChild< QLineEdit * >( Constants::editQuanMethodFilename ) )
                         edit->setText( name );
                 }
             } );
@@ -252,28 +216,13 @@ QuanConfigWidget::commit()
     QuanDocument::instance()->quanMethod( m );
 }
 
-bool
-QuanConfigWidget::save( const boost::filesystem::path& file, const adcontrols::QuanMethod& m )
+void
+QuanConfigWidget::handleDataChanged( int id, bool fnChanged )
 {
-    try {
-        boost::filesystem::ofstream outf( file );
-        boost::archive::xml_oarchive ar( outf );
-        ar << boost::serialization::make_nvp( "QuanMethod", m );
-    } catch ( std::exception& ex ) {
-        throw ex;
+    if ( id == idQuanMethod && fnChanged ) {
+        if ( auto edit = findChild< QLineEdit * >( Constants::editQuanMethodFilename ) ) {
+            edit->setText( QString::fromStdWString( QuanDocument::instance()->quanMethod().quanMethodFilename() ) );
+        }
     }
-    return true;
 }
 
-bool
-QuanConfigWidget::load( const boost::filesystem::path& file, adcontrols::QuanMethod& m )
-{
-    try {
-        boost::filesystem::ifstream inf( file );
-        boost::archive::xml_iarchive ar( inf );
-        ar >> BOOST_SERIALIZATION_NVP( m );
-    } catch ( std::exception& ex ) {
-        throw ex;
-    }
-    return true;
-}

@@ -182,7 +182,7 @@ PanelsWidget::addPanelWidget(PanelData *panel, int row)
 }
 
 void
-PanelsWidget::leaving()
+PanelsWidget::commit()
 {
-    emit onLeaving();
+    emit onCommit();
 }

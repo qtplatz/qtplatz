@@ -22,44 +22,29 @@
 **
 **************************************************************************/
 
-#ifndef QUANCONFIGWIDGET_HPP
-#define QUANCONFIGWIDGET_HPP
+#ifndef QUANDATAWRITER_HPP
+#define QUANDATAWRITER_HPP
 
-#include <QWidget>
-#include <memory>
+#include <adfs/filesystem.hpp>
+#include <string>
 
-class QGridLayout;
-
-namespace boost { namespace filesystem { class path; } }
-namespace adcontrols { class QuanMethod; }
-
-namespace adcontrols { class QuanMethod; }
+namespace adcontrols { class MassSpectrum; }
 
 namespace quan {
 
-    class QuanConfigForm;
-
-    class QuanConfigWidget : public QWidget {
-        Q_OBJECT
+    class QuanDataWriter  {
     public:
-        ~QuanConfigWidget();
-        explicit QuanConfigWidget(QWidget *parent = 0);
+        ~QuanDataWriter();
+        QuanDataWriter( const std::wstring& path );
 
-        void commit();
+        bool open();
+        bool write( const adcontrols::MassSpectrum& ms, const std::wstring& tittle, std::wstring& id );
 
     private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanConfigForm > form_;
-        QWidget * fileSelectionBar();
-
-        void handleDataChanged( int, bool );
-
-    signals:
-
-    public slots:
-
+        std::wstring path_;
+        adfs::filesystem fs_;
     };
 
 }
 
-#endif // QUANCONFIGWIDGET_HPP
+#endif // QUANDATAWRITER_HPP

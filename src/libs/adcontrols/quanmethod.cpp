@@ -43,7 +43,8 @@ QuanMethod::QuanMethod() : eq_(idCalibLinear)
 {
 }
 
-QuanMethod::QuanMethod( const QuanMethod& t ) : isChromatogram_( t.isChromatogram_ )
+QuanMethod::QuanMethod( const QuanMethod& t ) : ident_( t.ident_ )
+                                              , isChromatogram_( t.isChromatogram_ )
                                               , isISTD_( t.isISTD_ )
                                               , use_weighting_( t.use_weighting_) 
                                               , use_bracketing_( t.use_bracketing_)
@@ -53,6 +54,9 @@ QuanMethod::QuanMethod( const QuanMethod& t ) : isChromatogram_( t.isChromatogra
                                               , levels_( t.levels_)
                                               , replicates_( t.replicates_ )
                                               , polynomialOrder_( t.polynomialOrder_ )
+    , quanMethodFilename_( t.quanMethodFilename_ )
+    , quanCompoundsFilename_( t.quanCompoundsFilename_ )
+    , quanSequenceFilename_( t.quanSequenceFilename_ )
 {
 }
 

@@ -41,14 +41,14 @@ namespace quan {
         ~PanelsWidget();
         void addPanel( PanelData * );
         void addPanel( std::shared_ptr< PanelData >& );
-        void leaving();
+        void commit();
     private:
         void addPanelWidget( PanelData *, int row );
         std::vector< std::shared_ptr< PanelData > > panels_;
         QGridLayout * layout_;
         QWidget * root_;
     signals:
-        void onLeaving();
+        void onCommit();
     };
 
 }

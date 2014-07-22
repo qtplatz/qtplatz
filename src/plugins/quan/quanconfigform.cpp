@@ -195,10 +195,10 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
 bool
 QuanConfigForm::getContents( adcontrols::QuanMethod& m )
 {
-    ui_accessor accessor(ui);
+    ui_accessor accessor( ui );
 
     do {
-        static const idItem items [] = { idRadioEq1Point, idRadioEqLinear_0, idRadioEqLinear, idRadioEqPolynomials };
+        static const idItem items[] = { idRadioEq1Point, idRadioEqLinear_0, idRadioEqLinear, idRadioEqPolynomials };
         for ( auto& id : items ) {
             if ( auto radio = dynamic_cast<QRadioButton *>(accessor( id )) ) {
                 if ( radio->isChecked() ) {
@@ -207,17 +207,17 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
                 }
             }
         }
-    } while(0);
+    } while ( 0 );
 
     if ( auto combo = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
         uint32_t order = combo->currentIndex() + 2;
         m.polynomialOrder( order );
     }
 
-    if ( auto radioButton = dynamic_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) )
+    if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioChromatogram )) )
         if ( radioButton->isChecked() )
             m.isChromatogram( true );
-    if ( auto radioButton = dynamic_cast< QRadioButton * >( accessor( idRadioInfusion ) ) ) {
+    if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInfusion )) ) {
         if ( radioButton->isChecked() )
             m.isChromatogram( false );
     }
@@ -226,7 +226,7 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
     }
 
     do {
-        static const idItem items [] = { idRadio_C1, idRadio_C2, idRadio_C3, idRadio_Y1, idRadio_Y2, idRadio_Y3 };
+        static const idItem items[] = { idRadio_C1, idRadio_C2, idRadio_C3, idRadio_Y1, idRadio_Y2, idRadio_Y3 };
         for ( auto& id : items ) {
             if ( auto radio = dynamic_cast<QRadioButton *>(accessor( id )) ) {
                 if ( radio->isChecked() ) {
@@ -235,12 +235,14 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
                 }
             }
         }
-    } while(0);
+    } while ( 0 );
 
-    if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInternalStandard )) ) 
-        m.isInternalStandard( true );
-    else
-        m.isInternalStandard( false );
+    if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInternalStandard )) ) {
+        if ( radioButton->isChecked() )
+            m.isInternalStandard( true );
+        else
+            m.isInternalStandard( false );
+    }
 
     if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinLevel))) {
         int value = spin->value();

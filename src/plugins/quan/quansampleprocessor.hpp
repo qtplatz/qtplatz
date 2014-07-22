@@ -22,44 +22,44 @@
 **
 **************************************************************************/
 
-#ifndef QUANCONFIGWIDGET_HPP
-#define QUANCONFIGWIDGET_HPP
+#ifndef QUANSAMPLEPROCESSOR_HPP
+#define QUANSAMPLEPROCESSOR_HPP
 
-#include <QWidget>
+#include <adcontrols/datasubscriber.hpp>
+//#include <adcontrols/quansample.hpp>
+#include <string>
+#include <vector>
 #include <memory>
 
-class QGridLayout;
 
-namespace boost { namespace filesystem { class path; } }
-namespace adcontrols { class QuanMethod; }
+namespace adcontrols { class datafile; class QuanSample; class LCMSDataset; }
+namespace portfolio { class Portfolio; class Folium;  }
 
-namespace adcontrols { class QuanMethod; }
 
 namespace quan {
 
-    class QuanConfigForm;
+    class QuanDataWriter;
 
-    class QuanConfigWidget : public QWidget {
-        Q_OBJECT
+    class QuanSampleProcessor : public adcontrols::dataSubscriber {
+        QuanSampleProcessor( const QuanSampleProcessor& ) = delete;
     public:
-        ~QuanConfigWidget();
-        explicit QuanConfigWidget(QWidget *parent = 0);
-
-        void commit();
-
+        ~QuanSampleProcessor();
+        QuanSampleProcessor( const std::wstring& path, std::vector< adcontrols::QuanSample >& samples );
+        bool operator()( std::shared_ptr< QuanDataWriter > writer );
+        
     private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanConfigForm > form_;
-        QWidget * fileSelectionBar();
+        std::wstring path_;
+        const adcontrols::LCMSDataset * raw_;
+        std::vector< adcontrols::QuanSample > samples_;
+        std::shared_ptr< adcontrols::datafile > datafile_;
+        std::shared_ptr< portfolio::Portfolio > portfolio_;
 
-        void handleDataChanged( int, bool );
-
-    signals:
-
-    public slots:
-
+        void open();
+        bool subscribe( const adcontrols::LCMSDataset& d ) override;
+        bool subscribe( const adcontrols::ProcessedDataset& d ) override;
+        bool fetch( portfolio::Folium& folium );
     };
 
 }
 
-#endif // QUANCONFIGWIDGET_HPP
+#endif // QUANSAMPLEPROCESSOR_HPP
