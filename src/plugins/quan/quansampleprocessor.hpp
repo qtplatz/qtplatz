@@ -32,20 +32,22 @@
 #include <memory>
 
 
-namespace adcontrols { class datafile; class QuanSample; class LCMSDataset; class ProcessMethod; }
+namespace adcontrols { class datafile; class QuanSample; class LCMSDataset; class ProcessMethod; class MassSpectrum; }
 namespace portfolio { class Portfolio; class Folium;  }
 
 
 namespace quan {
 
     class QuanDataWriter;
+    class QuanProcessor;
 
     class QuanSampleProcessor : public adcontrols::dataSubscriber {
         QuanSampleProcessor( const QuanSampleProcessor& ) = delete;
         QuanSampleProcessor& operator = (const QuanSampleProcessor&) = delete;
     public:
         ~QuanSampleProcessor();
-        QuanSampleProcessor( std::vector< adcontrols::QuanSample >&, std::shared_ptr< adcontrols::ProcessMethod > );
+
+        QuanSampleProcessor( QuanProcessor *, std::vector< adcontrols::QuanSample >& );
         bool operator()( std::shared_ptr< QuanDataWriter > writer );
         
     private:
@@ -54,13 +56,16 @@ namespace quan {
         std::vector< adcontrols::QuanSample > samples_;
         std::shared_ptr< adcontrols::datafile > datafile_;
         std::shared_ptr< portfolio::Portfolio > portfolio_;
-        std::shared_ptr< adcontrols::ProcessMethod > procMethod_;
+        const std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
 
         void open();
         bool subscribe( const adcontrols::LCMSDataset& d ) override;
         bool subscribe( const adcontrols::ProcessedDataset& d ) override;
         bool fetch( portfolio::Folium& folium );
 
+        bool generate_spectrum( const adcontrols::LCMSDataset *, const adcontrols::QuanSample&, adcontrols::MassSpectrum& );
+        size_t read_first_spectrum( const adcontrols::LCMSDataset *, adcontrols::MassSpectrum&, uint32_t tidx /* tic index */);
+        size_t read_next_spectrum( size_t pos, const adcontrols::LCMSDataset *, adcontrols::MassSpectrum& );
     };
 
 }

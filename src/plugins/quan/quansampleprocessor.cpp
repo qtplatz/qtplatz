@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "quansampleprocessor.hpp"
+#include "quanprocessor.hpp"
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
 #include <adcontrols/chromatogram.hpp>
@@ -53,11 +54,11 @@ QuanSampleProcessor::~QuanSampleProcessor()
 {
 }
 
-QuanSampleProcessor::QuanSampleProcessor( std::vector< adcontrols::QuanSample >& samples
-                                        , std::shared_ptr< adcontrols::ProcessMethod > m )
+QuanSampleProcessor::QuanSampleProcessor( QuanProcessor * processor
+                                        , std::vector< adcontrols::QuanSample >& samples )
                                         : raw_( 0 )
                                         , samples_( samples )
-                                        , procMethod_( m )
+                                        , procmethod_( processor->procmethod() )
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
@@ -77,33 +78,13 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
         case adcontrols::QuanSample::GenerateSpectrum:
             if ( raw_ ) {
-                //size_t nfcn = raw_->getFunctionCount();
-                adcontrols::Chromatogram chro;
-                if ( !raw_->getTIC( 0, chro ) )
-                    break;
-                size_t ndata = chro.size();
-                
-                auto range = std::make_pair( sample.scan_range_first(), sample.scan_range_second() );
-                if ( range.first >= 0 ) {
-                    range.second = std::min( uint32_t(ndata), range.second );
-                    auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                    size_t pos = raw_->make_pos( range.first, 0 );
-                    if ( raw_->getSpectrum( -1, pos, *ms ) ) {
-                        for ( uint32_t i = range.first + 1; i < range.second; ++i ) {
-                            size_t pos = raw_->make_pos( i, 0 );
-                            adcontrols::MassSpectrum t;
-                            if ( raw_->getSpectrum( -1, pos, t ) ) {
-                                *ms += t;
-                                ADDEBUG() << "getSpectrum( i=" << i << "," << pos << ")";
-                            }
-                        }
-                    }
+                adcontrols::MassSpectrum ms;
+                if ( generate_spectrum( raw_, sample, ms ) ) {
                     std::wstring id;
-                    writer->write( *ms, sample.name(), id );
+                    writer->write( ms, sample.name(), id );
                 }
             }
             break;
-
         case adcontrols::QuanSample::ASIS:
             do {
                 if ( auto folder = portfolio_->findFolder( L"Spectra" ) ) {
@@ -162,5 +143,77 @@ QuanSampleProcessor::fetch( portfolio::Folium& folium )
         }
     }
     catch ( std::bad_cast& ) {}
+    return true;
+}
+
+size_t 
+QuanSampleProcessor::read_first_spectrum( const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& ms, uint32_t tidx )
+{
+    size_t pos = 0;
+    if ( tidx == uint32_t(-1) ) { // select last spectrum
+        pos = raw->find_scan( -1, -1 ); // find last "safe" spectrum scan#
+    } else {
+        pos = raw->find_scan( tidx, -1 );
+    }
+    
+    int idx, fcn, rep;
+    if ( raw->index( pos, idx, fcn, rep ) ) {
+        assert( fcn == 0 );
+        if ( ( rep == 0 ) && raw->index( pos + 1, idx, fcn, rep ) )
+            ++pos; // increment for skip rep = 0 data;
+    }
+    if ( raw->getSpectrum( -1, pos, ms ) ) {
+        while ( raw->index( pos + 1, idx, fcn, rep ) && fcn == 0 ) {
+            adcontrols::MassSpectrum a;
+            if ( raw->getSpectrum( -1, ++pos, a ) )
+                ms += a;
+        }
+        return pos + 1; // return next pos
+    }
+    return 0;
+}
+
+size_t 
+QuanSampleProcessor::read_next_spectrum( size_t pos, const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& ms )
+{
+    int idx, fcn, rep;
+    while( raw->index( pos, idx, fcn, rep ) && fcn != 0 && rep != 0 ) // find next protocol=0 aligned data
+        ++pos;
+    if ( fcn == 0 && rep == 0 ) {
+        if ( raw->index( pos + 1, idx, fcn, rep ) ) 
+            ++pos;
+        if ( raw->getSpectrum( -1, pos, ms ) ) {
+            while ( raw->index( pos + 1, idx, fcn, rep ) && fcn == 0 ) {
+                adcontrols::MassSpectrum a;
+                if ( raw->getSpectrum( -1, ++pos, a ) )
+                    ms += a;
+            }
+            return pos + 1; // return next pos
+        }
+    }
+    return 0;
+}
+
+
+bool 
+QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
+                                        , const adcontrols::QuanSample& sample
+                                        , adcontrols::MassSpectrum& ms )
+{
+
+    auto range = std::make_pair( sample.scan_range_first(), sample.scan_range_second() );
+
+    if ( range.first == uint32_t( -1 ) )
+        return read_first_spectrum( raw, ms, range.first ) != 0;
+
+    size_t pos = read_first_spectrum( raw, ms, range.first++ );
+    if ( pos == 0 )
+        return false; // no spectrum have read
+
+    adcontrols::MassSpectrum a;
+    while ( pos && range.first++ < range.second ) {
+        if ( ( pos = read_next_spectrum( pos, raw, ms ) ) )
+            ms += a;
+    }
     return true;
 }

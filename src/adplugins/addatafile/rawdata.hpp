@@ -59,7 +59,8 @@ namespace addatafile {
         bool getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum&, uint32_t objId ) const override;
 		size_t posFromTime( double ) const override;
 		double timeFromPos( size_t ) const override;
-        size_t make_pos( int idx, int fcn ) const override;
+        bool index( size_t pos, int& idx, int& fcn, int& rep, double * t ) const override;
+        size_t find_scan( int idx, int fcn ) const override;
         int make_index( size_t pos, int& fcn ) const override;
         
 		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&

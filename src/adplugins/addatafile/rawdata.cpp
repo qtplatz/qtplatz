@@ -254,7 +254,8 @@ rawdata::getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum& ms, uint32_
     if ( fcn < 0 ) {
         //typedef decltype(*fcnVec_.begin()) pos_type;
         // find 'index' form <pos, fcn> array that indicates first 'pos' after protocol has been switched
-        auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), npos, [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
+        auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), npos
+                                       , [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
         if ( index == fcnIdx_.end() )
             return false;
         while ( index != fcnIdx_.begin() && index->first > npos )
@@ -264,7 +265,8 @@ rawdata::getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum& ms, uint32_
             --index;
 
         if ( fcn < 0 ) { // read all protocols
-            while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id )) == adcontrols::translate_indeterminate )
+            while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id ))
+                    == adcontrols::translate_indeterminate )
                 if ( ++index == fcnIdx_.end() )  // move forward to next protocol (rep'licates is the offset for actual spectrum)
                     break;
         }
@@ -283,17 +285,86 @@ rawdata::getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum& ms, uint32_
     return state == adcontrols::translate_complete || state == adcontrols::translate_indeterminate;
 }
 
-size_t
-rawdata::make_pos( int idx, int fcn ) const
+bool
+rawdata::index( size_t pos, int& idx, int& fcn, int& rep, double * time ) const
 {
-    int count = 0;
-    for ( auto it = fcnVec_.begin(); it != fcnVec_.end(); ++it ) {
-        if ( std::get<1>(*it) == fcn ) {
-            if ( count++ == idx )
-                return std::distance( fcnVec_.begin(), it );
-        }
+    // idx   pos   fcn   rep  (assume replicates = 3, protocols(fcn) = 3
+    // 0     1001   0     0
+    //       1002   0     1
+    //       1003   0     2
+    //       1004   1     0 << change fcn
+    //       1005   1     1
+    //       1006   1     2
+    //       1007   2     0 << chanee fcn
+    //       1008   2     1
+    //       1009   2     2
+    // 1     1010   0     0 << change fcn, back to 0
+    //       1011   0     1
+
+    auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), pos + npos0_
+                                       , [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
+    if ( index == fcnIdx_.end() )
+        return false;
+    while ( index != fcnIdx_.begin() && index->first > ( pos + npos0_ ) )
+        --index;
+    typedef decltype(*fcnIdx_.begin()) value_type;
+
+    idx = int( std::count_if( fcnIdx_.begin(), index, [] ( const value_type& a ){ return a.second == 0; } ) );
+
+    if ( pos < fcnVec_.size() ) {
+        fcn = std::get<1>( fcnVec_[ pos ] );
+        rep = std::get<2>( fcnVec_[ pos ] );
+        if ( time )
+            *time = timeFromPos( pos );
+        return true;
     }
-    return 0;
+    return false;
+}
+
+size_t
+rawdata::find_scan( int idx, int fcn ) const
+{
+    if ( fcnIdx_.empty() )
+        return size_t(-1);
+
+    if ( idx < 0 && fcn < 0 ) { // find last data can be read for a set of entire protocols
+        typedef decltype(*fcnIdx_.rbegin()) value_type;
+        auto it = std::find_if( fcnIdx_.rbegin(), fcnIdx_.rend(), [] ( const value_type& a ){ return a.second == 0; } );
+        if ( it != fcnIdx_.rend() ) {
+            // find next fcn=0
+            it = std::find_if( ++it, fcnIdx_.rend(), [] ( const value_type& a ){ return a.second == 0; } );
+            if ( it != fcnIdx_.rend() )
+                return it->first - npos0_;
+        }
+        return size_t(-1);
+    }
+
+    if ( idx >= 0 && fcn < 0 ) {  // find first "replicates-alinged" scan pos (idx means tic[fcn][idx])
+        typedef decltype(*fcnIdx_.rbegin()) value_type;
+        size_t count = 0;
+        for ( auto it = fcnIdx_.begin(); it != fcnIdx_.end(); ++it ) {
+            if ( it->second == 0 && count++ == idx )
+                return it->first - npos0_;  // 1st "replicate = 0" data for idx'th fcn = 0
+        }
+        return size_t( -1 );
+    }
+
+    if ( idx < 0 && fcn >= 0 ) { // find last data for specified protocol
+        typedef decltype(*fcnIdx_.rbegin()) value_type;
+        auto it = std::find_if( fcnIdx_.rbegin(), fcnIdx_.rend(), [fcn] ( const value_type& a ){ return a.second == fcn; } );
+        if ( it != fcnIdx_.rend() )
+            return it->first - npos0_; // 1st spectrum of a set of acquisition replicates for specified protocol (fcn)
+        return size_t(-1);
+    }
+
+    // TIC based scan#, this will return not "replicates" aligned data pos
+    if ( fcn < tic_.size() ) {
+        double t = tic_[ fcn ]->getTimeArray()[ idx ];
+        auto it = std::lower_bound( times_.begin(), times_.end(), t, [] ( const std::pair<double, int>& a, double t ){ return a.first < t; } );
+        if ( it != times_.end() )
+            return std::distance( times_.begin(), it );
+    }
+    return size_t(-1);
 }
 
 int
@@ -340,7 +411,8 @@ rawdata::posFromTime( double seconds ) const
 {
     if ( !times_.empty() ) {
         typedef std::pair<double, int> time_type;
-        auto it = std::lower_bound( times_.begin(), times_.end(), seconds, [=] ( const time_type& pos, double seconds ){ return pos.first < seconds; } );
+        auto it = std::lower_bound( times_.begin(), times_.end(), seconds,
+                                    [=] ( const time_type& pos, double seconds ){ return pos.first < seconds; } );
         return std::distance( times_.begin(), it );
 	}
 	return 0;

@@ -32,6 +32,7 @@
 #include <string>
 #include <tuple>
 #include <cstdint>
+#include <sys/types.h>
 
 namespace adfs { class sqlite; }
 
@@ -51,7 +52,8 @@ namespace adcontrols {
         virtual bool getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum&, uint32_t objid = 0 ) const = 0;
 		virtual size_t posFromTime( double x ) const = 0;
         virtual double timeFromPos( size_t ) const = 0;
-        virtual size_t make_pos( int idx, int /* fcn */ ) const { return idx; }
+        virtual bool index( size_t /*pos*/, int& /*idx*/, int& /*fcn*/, int& /*rep*/, double * t = 0 ) const { return false; (void)t; }
+        virtual size_t find_scan( int idx, int /* fcn */ ) const { return idx; }
         virtual int /* idx */ make_index( size_t pos, int& fcn ) const { fcn = 0; return int(pos); }
 		virtual bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
 			                         , std::vector< adcontrols::Chromatogram >&

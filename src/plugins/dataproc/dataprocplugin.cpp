@@ -341,7 +341,7 @@ DataprocPlugin::onSelectSpectrum( double minutes, int index, int fcn )
 			adcontrols::MassSpectrum ms;
             try {
                 std::wostringstream text;
-                size_t pos = dset->make_pos( index, fcn );
+                size_t pos = dset->find_scan( index, fcn );
                 if ( dset->getSpectrum( fcn, pos, ms ) ) {
                     double t = dset->timeFromPos( pos ) / 60.0;
                     if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )

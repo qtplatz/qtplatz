@@ -26,6 +26,7 @@
 #include "paneldata.hpp"
 #include "quandatawriter.hpp"
 #include "quansampleprocessor.hpp"
+#include "quanprocessor.hpp"
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansequence.hpp>
@@ -87,7 +88,7 @@ namespace quan {
 
 using namespace quan;
 
-QuanDocument * QuanDocument::instance_ = 0;
+std::atomic< QuanDocument * > QuanDocument::instance_ = 0;
 std::mutex QuanDocument::mutex_;
 
 QuanDocument::~QuanDocument()
@@ -107,12 +108,18 @@ QuanDocument::QuanDocument() : quanMethod_( std::make_shared< adcontrols::QuanMe
 QuanDocument *
 QuanDocument::instance()
 {
-    if ( instance_ == 0 ) {
+    QuanDocument * tmp = instance_.load( std::memory_order_relaxed );
+    std::atomic_thread_fence( std::memory_order_acquire );
+    if ( tmp == nullptr ) {
         std::lock_guard< std::mutex > lock( mutex_ );
-        if ( instance_ == 0 ) 
-            instance_ = new QuanDocument();
+        tmp = instance_.load( std::memory_order_relaxed );
+        if ( tmp == nullptr ) {
+            tmp = new QuanDocument();
+            std::atomic_thread_fence( std::memory_order_release );
+            instance_.store( tmp, std::memory_order_relaxed );
+        }
     }
-    return instance_;
+    return tmp;
 }
 
 void
@@ -307,22 +314,22 @@ QuanDocument::run()
         QApplication::setOverrideCursor( Qt::WaitCursor );
 
         if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
+
             if ( writer->open() ) {
-
-                std::map< std::wstring, std::vector< adcontrols::QuanSample > > que;
-
-                for ( auto it = quanSequence_->begin(); it != quanSequence_->end(); ++it )
-                    que[ it->dataSource() ].push_back( *it );
 
                 // deep copy which prepare for a long background process (e.g. chromatogram search...)
                 auto dup = std::make_shared< adcontrols::ProcessMethod >( *procMethod_ );
                 dup ->appendMethod( *quanMethod_ );    // calibration levels, replicates etc...
                 dup ->appendMethod( *quanCompounds_ ); // core of identification
 
-                for ( auto it = que.begin(); it != que.end(); ++it ) {
+                auto que = std::make_shared< QuanProcessor >( quanSequence_, dup );
+                exec_.push_back( que );
+
+                for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
-                    threads_.push_back( std::thread( [=] () { QuanSampleProcessor( it->second, dup )(writer); } ) );
+                    threads_.push_back( std::thread( [que, it, writer] () { QuanSampleProcessor( que.get(), it->second )(writer); } ) );
                 }
+                
             }
         }
     }

@@ -168,7 +168,7 @@ namespace quan {
             bool subscribe( const adcontrols::LCMSDataset& d ) override {
                 raw_ = &d;
                 try { 
-                    size_t pos = d.make_pos( 0, 0 ); // find first data for  protoId = 0
+                    size_t pos = d.find_scan( 0, 0 ); // find first data for  protoId = 0
                     ms_ = std::make_shared< adcontrols::MassSpectrum >();
                     d.getSpectrum( -1, pos, *ms_ );
                 } catch ( ... ) {

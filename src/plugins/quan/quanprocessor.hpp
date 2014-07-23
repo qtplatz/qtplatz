@@ -25,10 +25,40 @@
 #ifndef QUANPROCESSOR_HPP
 #define QUANPROCESSOR_HPP
 
-class QuanProcessor
-{
-public:
-    QuanProcessor();
-};
+#include <map>
+#include <memory>
+#include <vector>
+
+namespace adcontrols { class QuanSequence; class QuanSample;  class ProcessMethod; }
+
+namespace quan {
+
+    class QuanProcessor : public std::enable_shared_from_this<QuanProcessor> {
+        QuanProcessor& operator = (const QuanProcessor&) = delete;
+    public:
+        ~QuanProcessor();
+        QuanProcessor();
+        QuanProcessor( const QuanProcessor& );
+        QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >&
+                       , std::shared_ptr< adcontrols::ProcessMethod >& );
+
+        adcontrols::QuanSequence * sequence();
+        const adcontrols::QuanSequence * sequence() const;
+        const std::shared_ptr< adcontrols::ProcessMethod >& procmethod() const;
+
+        typedef std::map< std::wstring, std::vector< adcontrols::QuanSample > >::iterator iterator;
+        typedef std::map< std::wstring, std::vector< adcontrols::QuanSample > >::const_iterator const_iterator;
+        iterator begin() { return que_.begin(); }
+        iterator end() { return que_.end(); }
+        const_iterator begin() const { return que_.begin(); }
+        const_iterator end() const { return que_.end(); }
+        
+    protected:
+        std::shared_ptr< adcontrols::QuanSequence > sequence_;
+        std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
+        std::map< std::wstring, std::vector< adcontrols::QuanSample > > que_;
+    };
+
+}
 
 #endif // QUANPROCESSOR_HPP

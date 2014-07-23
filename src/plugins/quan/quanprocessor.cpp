@@ -23,7 +23,47 @@
 **************************************************************************/
 
 #include "quanprocessor.hpp"
+#include <adcontrols/quansequence.hpp>
+#include <adcontrols/quansample.hpp>
+#include <adcontrols/processmethod.hpp>
+
+using namespace quan;
+
+QuanProcessor::~QuanProcessor()
+{
+}
 
 QuanProcessor::QuanProcessor()
 {
+}
+
+QuanProcessor::QuanProcessor( const QuanProcessor& t ) : sequence_( t.sequence_ )
+                                                       , que_( t.que_ )
+{
+}
+
+QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >& s
+                            , std::shared_ptr< adcontrols::ProcessMethod >& pm ) : sequence_( s ), procmethod_( pm )
+{
+    // combine per dataSource
+    for ( auto it = sequence_->begin(); it != sequence_->end(); ++it )
+        que_[ it->dataSource() ].push_back( *it );
+}
+
+adcontrols::QuanSequence *
+QuanProcessor::sequence()
+{
+    return sequence_.get();
+}
+
+const adcontrols::QuanSequence *
+QuanProcessor::sequence() const
+{
+    return sequence_.get();
+}
+
+const std::shared_ptr< adcontrols::ProcessMethod >&
+QuanProcessor::procmethod() const
+{
+    return procmethod_;
 }

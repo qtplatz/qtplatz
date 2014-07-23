@@ -44,6 +44,7 @@ namespace quan {
 
     class PanelData;
     class QuanSampleProcessor;
+    class QuanProcessor;
 
     enum idMethod { idQuanMethod, idQuanCompounds, idQuanSequence, idProcMethod, idSize };
 
@@ -52,7 +53,7 @@ namespace quan {
     private:
         ~QuanDocument();
         QuanDocument();
-        static QuanDocument * instance_;
+        static std::atomic< QuanDocument * > instance_;
         static std::mutex mutex_;
     public:
         static QuanDocument * instance();
@@ -114,6 +115,8 @@ namespace quan {
 
         std::vector< std::thread > threads_;
         std::atomic< size_t > postCount_;
+
+        std::vector< std::shared_ptr< QuanProcessor > > exec_;
 
         bool processed( adcontrols::QuanSample& );
 
