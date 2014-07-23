@@ -44,7 +44,7 @@ date_string::string( const boost::gregorian::date& dt, const char * fmt )
 
 // static
 std::string
-date_string::utc_to_localtime_string( time_t utc, unsigned usec )
+date_string::utc_to_localtime_string( time_t utc, unsigned usec, bool add_utc_offset )
 {
 	try {
 		boost::posix_time::ptime putc = boost::posix_time::from_time_t( utc );
@@ -52,18 +52,25 @@ date_string::utc_to_localtime_string( time_t utc, unsigned usec )
 		std::ostringstream o;
 		o << boost::posix_time::to_simple_string( lt );
 		o << " " << std::fixed << std::setw(7) << std::setfill('0') << std::setprecision(3) << double( usec ) / 1000.0;
+
+        if ( add_utc_offset ) {
+            boost::posix_time::time_duration td( boost::posix_time::second_clock::local_time() - boost::posix_time::second_clock::universal_time() );
+            o << boost::format( "%c%02d%02d" )
+                % (td.is_negative() ? '-' : '+')
+                % boost::date_time::absolute_value( td.hours() )
+                % boost::date_time::absolute_value( td.minutes() );
+        }
 		return o.str();
 	} catch ( std::exception& ex ) {
-		adportable::debug(__FILE__, __LINE__) << "exception: " << ex.what();
-		assert(0);
+        BOOST_THROW_EXCEPTION( ex );
 	}
 	return "date_string::utc_to_localtime_string - conversion error";
 }
 
 std::string
-date_string::logformat( const std::chrono::system_clock::time_point& tp )
+date_string::logformat( const std::chrono::system_clock::time_point& tp, bool add_utc_offset )
 {
     time_t t = std::chrono::system_clock::to_time_t( tp );
     auto duration = tp - std::chrono::system_clock::from_time_t(t);
-    return utc_to_localtime_string( t, int(std::chrono::duration_cast< std::chrono::microseconds >( duration ).count()) );
+    return utc_to_localtime_string( t, int(std::chrono::duration_cast< std::chrono::microseconds >( duration ).count()), add_utc_offset );
 }

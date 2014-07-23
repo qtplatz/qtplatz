@@ -31,7 +31,7 @@
 using namespace adcontrols;
 
 idAudit::idAudit() : uuid_( adportable::uuid()() )
-                   , dateCreated_( adportable::date_string::logformat( std::chrono::system_clock::now() ) )
+                   , dateCreated_( adportable::date_string::logformat( std::chrono::system_clock::now(), true ) )
                    , idComputer_( adportable::profile::computer_name<wchar_t>() )
                    , idCreatedBy_( adportable::profile::user_login_id<wchar_t>() )
                    , nameCreatedBy_( adportable::profile::user_login_name<wchar_t>() )
