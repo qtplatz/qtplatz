@@ -33,6 +33,8 @@
 
 
 namespace adcontrols { class datafile; class QuanSample; class LCMSDataset; class ProcessMethod; class MassSpectrum; }
+namespace adcontrols { class MSPeakInfo; class CentroidMethod; }
+
 namespace portfolio { class Portfolio; class Folium;  }
 
 
@@ -66,6 +68,13 @@ namespace quan {
         bool generate_spectrum( const adcontrols::LCMSDataset *, const adcontrols::QuanSample&, adcontrols::MassSpectrum& );
         size_t read_first_spectrum( const adcontrols::LCMSDataset *, adcontrols::MassSpectrum&, uint32_t tidx /* tic index */);
         size_t read_next_spectrum( size_t pos, const adcontrols::LCMSDataset *, adcontrols::MassSpectrum& );
+
+        void processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer );
+
+        static bool doCentroid( adcontrols::MSPeakInfo& pkInfo
+            , adcontrols::MassSpectrum& res
+            , const adcontrols::MassSpectrum& profile
+            , const adcontrols::CentroidMethod& m );
     };
 
 }

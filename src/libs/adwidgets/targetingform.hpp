@@ -25,6 +25,7 @@
 #ifndef TARGETINGFORM_HPP
 #define TARGETINGFORM_HPP
 
+#include "adwidgets_global.hpp"
 #include <QWidget>
 
 namespace Ui {
@@ -35,13 +36,17 @@ namespace adcontrols { class TargetingMethod; }
 
 namespace adwidgets {
 
-    class TargetingForm : public QWidget
+    // TargetingForm is re-used in Quan plugin for peak assign parameter setup
+
+    class ADWIDGETSSHARED_EXPORT TargetingForm : public QWidget
     {
         Q_OBJECT
 
     public:
         explicit TargetingForm(QWidget *parent = 0);
         ~TargetingForm();
+
+        void setTitle( const QString&, bool enableCharge = false, bool enableLimits = false  ); 
 
         void getContents( adcontrols::TargetingMethod& );
         void setContents( const adcontrols::TargetingMethod& );

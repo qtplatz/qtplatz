@@ -22,40 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef QUANDATAWRITER_HPP
-#define QUANDATAWRITER_HPP
+#ifndef MSTOLERANCEFORM_HPP
+#define MSTOLERANCEFORM_HPP
 
-#include <adfs/filesystem.hpp>
-#include <adfs/file.hpp>
-#include <string>
+#include <QWidget>
 
-namespace adcontrols { class MassSpectrum; }
-
-namespace quan {
-
-    class QuanDataWriter  {
-    public:
-        ~QuanDataWriter();
-        QuanDataWriter( const std::wstring& path );
-
-        bool open();
-        adfs::file write( const adcontrols::MassSpectrum& ms, const std::wstring& tittle );
-
-        template< class T> adfs::file attach( adfs::file& file, const T& t, const std::wstring& name ) {
-            auto afile = file.addAttachment( adfs::create_uuid() );
-            afile.dataClass( T::dataClass() );
-            if ( !name.empty() )
-                afile.setAttribute( L"name", name );
-            if ( adfs::cpio< T >::save( t, afile ) )
-                afile.commit();
-            return afile;
-        }
-
-    private:
-        std::wstring path_;
-        adfs::filesystem fs_;
-    };
-
+namespace Ui {
+class MSToleranceForm;
 }
 
-#endif // QUANDATAWRITER_HPP
+class MSToleranceForm : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit MSToleranceForm(QWidget *parent = 0);
+    ~MSToleranceForm();
+
+private:
+    Ui::MSToleranceForm *ui;
+};
+
+#endif // MSTOLERANCEFORM_HPP

@@ -26,6 +26,7 @@
 #include "quandocument.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adwidgets/centroidform.hpp>
+#include <adwidgets/targetingform.hpp>
 
 #include <QVBoxLayout>
 #include <QGridLayout>
@@ -47,6 +48,13 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     topLayout->addLayout( layout_ );
 
     layout_->addWidget( form_ ); 
+
+    if ( auto targeting = new adwidgets::TargetingForm ) {
+        targeting->setTitle( "MS Peak Assign", false, false );
+        targeting->setObjectName( "TargetingForm" );
+        layout_->addWidget( targeting, 0, layout_->columnCount() );
+    }
+
     form_->OnInitialUpdate();
 
     connect( form_, &adwidgets::CentroidForm::valueChanged, this, &ProcessMethodWidget::commit );

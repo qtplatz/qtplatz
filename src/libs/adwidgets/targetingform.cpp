@@ -53,6 +53,22 @@ TargetingForm::~TargetingForm()
 }
 
 void
+TargetingForm::setTitle( const QString& title, bool enableCharge, bool enableLimits )
+{
+    ui->groupBox->setTitle( title );
+    if ( !enableCharge ) {
+        ui->cbxLowMass->setCheckState( Qt::Unchecked );
+        ui->cbxHighMass->setCheckState( Qt::Unchecked );
+        ui->cbxLowMass->setEnabled( false );
+        ui->cbxHighMass->setEnabled( false );
+    }
+    if ( !enableLimits ) {
+        ui->doubleSpinBoxLowMassLimit->setEnabled( false );
+        ui->doubleSpinBoxHighMassLimit->setEnabled( false );
+    }
+}
+
+void
 TargetingForm::getContents( adcontrols::TargetingMethod& m )
 {
 	m.resolving_power( ui->doubleSpinBoxRP->value() );

@@ -26,15 +26,25 @@
 #include "quanprocessor.hpp"
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
+#include "../plugins/dataproc/constants.hpp"
+#include <adcontrols/centroidmethod.hpp>
+#include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
-#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
+#include <adcontrols/waveform.hpp>
+#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/processeddataset.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
@@ -42,6 +52,7 @@
 #include <adfs/file.hpp>
 #include <adfs/cpio.hpp>
 #include <adlog/logger.hpp>
+#include <adutils/cpio.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -80,8 +91,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             if ( raw_ ) {
                 adcontrols::MassSpectrum ms;
                 if ( generate_spectrum( raw_, sample, ms ) ) {
-                    std::wstring id;
-                    writer->write( ms, sample.name(), id );
+                    processIt( sample, ms, writer.get() );
                 }
             }
             break;
@@ -91,9 +101,8 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     if ( auto folium = folder.findFoliumByName( sample.name() ) ) {
                         if ( fetch( folium ) ) {
                             adcontrols::MassSpectrumPtr ms;
-                            std::wstring id;
                             if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ms, folium ) )
-                                writer->write( *ms, folium.name(), id );
+                                writer->write( *ms, folium.name() );
                         }
                     }
                 }
@@ -216,4 +225,102 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
             ms += a;
     }
     return true;
+}
+
+void
+QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::MassSpectrum& profile, QuanDataWriter * writer )
+{
+    adfs::file file = writer->write( profile, sample.name() );
+
+    if ( auto pCentroidMethod = procmethod_->find< adcontrols::CentroidMethod >() ) {
+
+        adcontrols::MassSpectrum centroid;
+        adcontrols::MSPeakInfo pkInfo;
+
+        bool result(false);
+
+        if ( pCentroidMethod->noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter ) {
+
+            adcontrols::MassSpectrum filtered;
+            adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( filtered );
+            for ( auto& ms : segments ) {
+                adcontrols::waveform::fft::lowpass_filter( ms, pCentroidMethod->cutoffFreqHz() );
+                double base( 0 ), rms( 0 );
+                const double * intens = ms.getIntensityArray();
+                adportable::spectrum_processor::tic( uint32_t( ms.size() ), intens, base, rms );
+                for ( size_t i = 0; i < ms.size(); ++i )
+                    ms.setIntensity( i, intens[ i ] - base );
+            }
+            filtered.addDescription( adcontrols::Description( L"process", dataproc::Constants::F_DFT_FILTERD ) );
+
+            writer->attach<adcontrols::MassSpectrum>( file, filtered, dataproc::Constants::F_DFT_FILTERD );
+
+            result = doCentroid( pkInfo, centroid, filtered, *pCentroidMethod );
+
+        } else {
+
+            result = doCentroid( pkInfo, centroid, profile, *pCentroidMethod );
+
+        }
+
+        if ( result ) {
+            do {
+                auto afile = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
+                auto mfile = writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
+#if 0
+                auto afile = file.addAttachment( adfs::create_uuid() );
+                afile.dataClass( centroid.dataClass() );
+                afile.setAttribute( L"name", dataproc::Constants::F_CENTROID_SPECTRUM );
+                if ( adfs::cpio< adcontrols::MassSpectrum >::save( centroid, afile ) )
+                    afile.commit();
+                do {
+                    auto mfile = afile.addAttachment( adfs::create_uuid() );
+                    mfile.dataClass( procmethod_->dataClass() );
+                    mfile.setAttribute( L"name", L"ProcessMethod" );
+                    if ( adfs::cpio< adcontrols::ProcessMethod >::save( *procmethod_, mfile ) )
+                        mfile.commit();
+                } while ( 0 );
+#endif
+            } while ( 0 );
+            do {
+                auto afile = writer->attach< adcontrols::MSPeakInfo >( file, pkInfo, dataproc::Constants::F_MSPEAK_INFO );
+#if 0
+                auto afile = file.addAttachment( adfs::create_uuid() );
+                afile.dataClass( pkInfo.dataClass() );
+                afile.setAttribute( L"name", dataproc::Constants::F_MSPEAK_INFO );
+                if ( adfs::cpio< adcontrols::MSPeakInfo >::save( pkInfo, afile ) )
+                    afile.commit();
+#endif
+            } while ( 0 );
+        }
+    }
+
+}
+
+bool
+QuanSampleProcessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
+                                 , adcontrols::MassSpectrum& res
+                                 , const adcontrols::MassSpectrum& profile
+                                 , const adcontrols::CentroidMethod& m )
+{
+    adcontrols::CentroidProcess peak_detector;
+    bool result = false;
+    
+    res.clone( profile, false );
+    
+    if ( peak_detector( m, profile ) ) {
+        result = peak_detector.getCentroidSpectrum( res );
+        pkInfo = peak_detector.getPeakInfo();
+    }
+    
+    if ( profile.numSegments() > 0 ) {
+        for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
+            adcontrols::MassSpectrum centroid;
+            result |= peak_detector( profile.getSegment( fcn ) );
+            pkInfo.addSegment( peak_detector.getPeakInfo() );
+            peak_detector.getCentroidSpectrum( centroid );
+            res.addSegment( centroid );
+        }
+    }
+    return result;
 }

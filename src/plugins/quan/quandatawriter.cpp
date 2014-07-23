@@ -66,16 +66,16 @@ QuanDataWriter::open()
     return true;
 }
 
-bool
-QuanDataWriter::write( const adcontrols::MassSpectrum& ms, const std::wstring& tittle, std::wstring& id )
+adfs::file
+QuanDataWriter::write( const adcontrols::MassSpectrum& ms, const std::wstring& tittle )
 {
     if ( adfs::folder folder = fs_.addFolder( L"/Processed/Spectra" ) ) {
         if ( adfs::file file = folder.addFile( adfs::create_uuid(), tittle ) ) {
             file.dataClass( ms.dataClass() );
-            id = file.id();
             if ( adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
                 file.commit();
+            return file;
         }
     }
-    return true;
+    return adfs::file();
 }
