@@ -55,7 +55,7 @@ MSFinder::operator()( const MassSpectrum& ms, double mass )
     if ( findAlgorithm_ == idFindLargest ) {
 
         auto lIt = std::lower_bound( begin, end, lMass );
-        if ( lIt != end ) {
+        if ( lIt != end && std::abs(*lIt - mass ) < width_) {
             auto hIt = std::lower_bound( lIt, end, hMass );
 
             auto it = std::max_element( lIt, hIt );

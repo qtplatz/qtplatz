@@ -90,7 +90,8 @@ namespace quan {
                               , adcontrols::MassSpectrum& centroid // will override
                               , const adcontrols::MSLockMethod& m );
 
-        bool doMSFind( adcontrols::MassSpectrum& res
+        bool doMSFind( adcontrols::MSPeakInfo& pkInfo
+                       , adcontrols::MassSpectrum& res
                        , adcontrols::QuanSample&
                        , const adcontrols::QuanCompounds& 
                        , const adcontrols::TargetingMethod& m );

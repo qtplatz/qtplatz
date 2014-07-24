@@ -27,6 +27,8 @@
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
 #include "../plugins/dataproc/constants.hpp"
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -240,6 +242,7 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
 void
 QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::MassSpectrum& profile, QuanDataWriter * writer )
 {
+    // save profile spectrum
     adfs::file file = writer->write( profile, sample.name() );
 
     if ( auto pCentroidMethod = procmethod_->find< adcontrols::CentroidMethod >() ) {
@@ -275,19 +278,20 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::Mass
             
             // doMSLock if required.
             
-            auto afile = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
-            writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
-            writer->attach< adcontrols::MSPeakInfo >( file, pkInfo, dataproc::Constants::F_MSPEAK_INFO );
-
             ///////////////////
             
             if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
                 if ( auto pTgtMethod = procmethod_->find< adcontrols::TargetingMethod >() ) {
 
-                    doMSFind( centroid, sample, *pCompounds, *pTgtMethod );
+                    doMSFind( pkInfo, centroid, sample, *pCompounds, *pTgtMethod );
 
                 }
             }
+
+            auto afile = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
+            writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
+            writer->attach< adcontrols::MSPeakInfo >( file, pkInfo, dataproc::Constants::F_MSPEAK_INFO );
+
         }
     }
 }
@@ -347,7 +351,8 @@ QuanSampleProcessor::doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
 }
 
 bool
-QuanSampleProcessor::doMSFind( adcontrols::MassSpectrum& centroid
+QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
+                               , adcontrols::MassSpectrum& centroid
                                , adcontrols::QuanSample& sample
                                , const adcontrols::QuanCompounds& compounds
                                , const adcontrols::TargetingMethod& mtgt )
@@ -356,9 +361,11 @@ QuanSampleProcessor::doMSFind( adcontrols::MassSpectrum& centroid
 
     adcontrols::MSFinder find( tolerance, adcontrols::idFindLargest, adcontrols::idToleranceDaltons );
 
-    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( centroid );
+    adcontrols::segment_wrapper< adcontrols::MSPeakInfo > vPkInfo( pkInfo );
+    adcontrols::segment_wrapper<> segs( centroid );
     int fcn = 0;
     for ( auto& fms : segs ) {
+        auto& info = vPkInfo[ fcn ];
 
         for ( auto& compound : compounds ) {
             adcontrols::QuanResponse resp;
@@ -377,10 +384,16 @@ QuanSampleProcessor::doMSFind( adcontrols::MassSpectrum& centroid
                 resp.amounts_ = 0;
                 resp.tR_ = 0;
 
+                adcontrols::annotation anno( resp.formula(), resp.mass_, resp.intensity_, resp.idx_ );
+                fms.get_annotations() << anno;
+
+                (info.begin() + idx)->formula( adportable::utf::to_utf8( resp.formula() ) );
+
                 sample << resp;
             }
         }
         ++fcn;
+        break;
     }
     return false;
 }
