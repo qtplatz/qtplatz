@@ -28,6 +28,8 @@
 #include "adwidgets_global.hpp"
 #include <QWidget>
 
+namespace adcontrols { class TargetingMethod;  }
+
 namespace adwidgets {
 namespace Ui {
     class MSToleranceForm;
@@ -44,6 +46,9 @@ namespace Ui {
         void setTitle( const QString& );
         bool isChecked() const;
         void setChecked( bool );
+        
+        bool setContents( const adcontrols::TargetingMethod& );
+        bool getContents( adcontrols::TargetingMethod& );
 
         enum idWidthMethod { idWidthDaltons, idWidthRP };
         idWidthMethod widthMethod();

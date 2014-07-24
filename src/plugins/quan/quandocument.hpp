@@ -73,7 +73,7 @@ namespace quan {
         std::shared_ptr< adcontrols::QuanSequence > quanSequence();
 
         const adcontrols::ProcessMethod& procMethod() const;
-        void procMethod( adcontrols::ProcessMethod& );
+        void setProcMethod( adcontrols::ProcessMethod& );
 
         void register_dataChanged( std::function< void( int, bool ) > );
         void setResultFile( const std::wstring& );

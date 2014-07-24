@@ -123,7 +123,7 @@ DataSequenceWidget::dataSelectionBar()
             while ( boost::filesystem::exists( name ) )
                 name = (boost::wformat( L"%s_%d_quan.adfs" ) % path.wstring() % i++).str();
             edit->setText( QString::fromStdWString( path.wstring() ) );
-            edit->setEnabled( false );
+            // edit->setEnabled( false );
         } while(0);
 
         if ( Core::ActionManager * am = Core::ICore::instance()->actionManager() ) {
@@ -186,5 +186,6 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
         if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
             edit->setText( QString::fromStdWString( QuanDocument::instance()->quanSequence()->outfile() ) );
         }
+        dataSequenceTree_->setContents( *QuanDocument::instance()->quanSequence() );
     }
 }

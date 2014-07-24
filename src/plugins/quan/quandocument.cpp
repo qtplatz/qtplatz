@@ -261,7 +261,7 @@ QuanDocument::procMethod() const
 }
 
 void
-QuanDocument::procMethod( adcontrols::ProcessMethod& m )
+QuanDocument::setProcMethod( adcontrols::ProcessMethod& m )
 {
     *procMethod_ = m;
     dirty_flags_[ idProcMethod ] = true;

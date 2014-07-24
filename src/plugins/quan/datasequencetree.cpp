@@ -36,16 +36,18 @@
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
-#include <QDragEnterEvent>
-#include <QMimeData>
-#include <QMessageBox>
+
 
 #include <QApplication>
 #include <QBrush>
 #include <QClipboard>
 #include <QComboBox>
+#include <QDragEnterEvent>
 #include <QHeaderView>
 #include <QKeyEvent>
+#include <QMenu>
+#include <QMimeData>
+#include <QMessageBox>
 #include <QPainter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
@@ -57,6 +59,7 @@
 #include <array>
 #include <thread>
 #include <mutex>
+#include <set>
 
 namespace quan {
 
@@ -213,6 +216,7 @@ namespace quan {
         };
 
         struct Infusion {
+
             static void setRow( QStandardItemModel& model, int row, const QString& data_type, const QModelIndex& parent = QModelIndex()) {
                 model.itemFromIndex( model.index( row, c_datafile, parent ) )->setEditable( false ); // not editable
                 model.setData( model.index( row, c_data_type, parent ), data_type );
@@ -228,6 +232,45 @@ namespace quan {
                     model.setData( model.index( row, c_process, parent ), "AS IS" );
                 }
                 model.setData( model.index( row, c_level, parent ), 0 ); // level
+            }
+
+            static void setRow( QStandardItemModel& model
+                                , int row
+                                , const adcontrols::QuanSample& sample
+                                , const QModelIndex& parent = QModelIndex() ) {
+
+                model.itemFromIndex( model.index( row, c_datafile, parent ) )->setEditable( false ); // not editable
+
+                // name ( datafile )
+                model.setData( model.index( row, c_datafile, parent ), QString::fromStdWString( sample.name() ) );
+
+                // data_type
+                model.setData( model.index( row, c_data_type, parent ), QString::fromStdWString( sample.dataType() ) );
+                model.itemFromIndex( model.index( row, c_data_type, parent ) )->setEditable( false );
+
+                QString sample_type_string = "?";
+                switch ( sample.sampleType() ) {
+                case adcontrols::QuanSample::SAMPLE_TYPE_UNKNOWN: sample_type_string = "UNK"; break;
+                case adcontrols::QuanSample::SAMPLE_TYPE_STD:     sample_type_string = "STD"; break;
+                case adcontrols::QuanSample::SAMPLE_TYPE_QC:      sample_type_string = "QC"; break;
+                case adcontrols::QuanSample::SAMPLE_TYPE_BLANK:   sample_type_string = "BLANK"; break;
+                }
+                model.setData( model.index( row, c_sample_type, parent ), sample_type_string );
+
+                if ( sample.dataGeneration() == adcontrols::QuanSample::ASIS ) {
+                    model.setData( model.index( row, c_process, parent ), "AS IS" );
+                }
+                else if ( sample.dataGeneration() == adcontrols::QuanSample::GenerateSpectrum ) {
+                    std::pair< uint32_t, uint32_t > range = std::make_pair( sample.scan_range_first(), sample.scan_range_second() );
+                    if ( range.first == 0 && range.second == 0 ) // take 1st
+                        model.setData( model.index( row, c_process, parent ), "Take 1st spc." );
+                    if ( range.first == 1 && range.second == 1 ) // take 2nd
+                        model.setData( model.index( row, c_process, parent ), "Take 2nd spc." );
+                    if ( range.first == uint32_t( -1 ) ) // take last
+                        model.setData( model.index( row, c_process, parent ), "Take last spc." );
+                    if ( range.first == 0 && range.second == uint32_t( -1 ) ) // average all
+                        model.setData( model.index( row, c_process, parent ), "Average all" );
+                }
             }
         };
 
@@ -258,6 +301,8 @@ DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
     connect( this, &DataSequenceTree::onJoin, this, &DataSequenceTree::handleJoin );
 
     setAcceptDrops( true );
+    setContextMenuPolicy( Qt::CustomContextMenu );
+    connect( this, &QTreeView::customContextMenuRequested, this, &DataSequenceTree::handleContextMenu );
 }
 
 void
@@ -526,3 +571,62 @@ DataSequenceTree::getContents( adcontrols::QuanSequence& seq )
     }
     return true;
 }
+
+bool
+DataSequenceTree::setContents( const adcontrols::QuanSequence& seq )
+{
+    QStandardItemModel& model = *model_;    
+
+    if ( seq.size() == 0 )
+        return true;
+
+    model.setRowCount( 0 );
+
+    std::map< std::wstring, int > files;
+
+    for ( auto sample: seq ) {
+        if ( files.find( sample.dataSource() ) == files.end() ) {
+            int row = model.rowCount();
+            files[ sample.dataSource() ] = row;
+            
+            model.insertRow( row );
+            model.setData( model.index( row, c_datafile ), QString::fromStdWString( sample.dataSource() ) );
+            Infusion::setRow( model, row, "file" );
+        }
+        int row = files[ sample.dataSource() ];
+        if ( auto parent = model.itemFromIndex( model.index( row, c_datafile ) ) ) {
+            int subrow = parent->rowCount();
+            parent->insertRow( subrow, new QStandardItem() );
+            parent->setColumnCount( number_of_columns );
+            Infusion::setRow( model, subrow, sample, parent->index() );
+        }
+    }
+
+    expandAll();
+    return true;
+}
+
+void
+DataSequenceTree::handleContextMenu( const QPoint& pt )
+{
+    QMenu menu;
+
+    menu.addAction( "Delete line", this, SLOT( delLine() ) );
+    menu.addAction( "Clear all", this, SLOT( delAll() ) );
+    
+    menu.exec( mapToGlobal( pt ) );
+}
+
+void
+DataSequenceTree::delAll()
+{
+    model_->setRowCount( 0 );
+}
+
+void
+DataSequenceTree::delLine()
+{
+    QModelIndex index = currentIndex();
+    model_->removeRow( index.row(), index.parent() );
+}
+

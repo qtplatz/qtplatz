@@ -117,6 +117,9 @@ namespace adcontrols {
         uint32_t scan_range_first() const { return scan_range_.first; }
         uint32_t scan_range_second() const { return scan_range_.second; }
         void scan_range( int32_t first, int32_t second ) { scan_range_ = std::make_pair( first, second ); }
+
+        int32_t channel() const  { return channel_; }
+        void channel( int32_t t ) { channel_ = t; }
         
         int32_t istdId() const;
         void istdId( int32_t );
@@ -149,7 +152,8 @@ namespace adcontrols {
         std::vector< quan::ISTD > istd_;        // index is correspoinding to ISTD id
         quan::Response quanResult_;             // result
         QuanDataGeneration dataGeneration_;
-        std::pair<int32_t,int32_t> scan_range_;             // 0 := first spectrum, 1 := second spectrum, -1 := last spectrum
+        std::pair<int32_t,int32_t> scan_range_; // 0 := first spectrum, 1 := second spectrum, -1 := last spectrum
+        int32_t channel_;                       // quan protocol id (channel
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
@@ -166,6 +170,7 @@ namespace adcontrols {
                 & BOOST_SERIALIZATION_NVP( istd_ )
                 & BOOST_SERIALIZATION_NVP( dataGeneration_ )
                 & BOOST_SERIALIZATION_NVP( scan_range_ )
+                & BOOST_SERIALIZATION_NVP( channel_ )
                 & BOOST_SERIALIZATION_NVP( quanResult_ )
                 ;
         }

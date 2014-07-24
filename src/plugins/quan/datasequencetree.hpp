@@ -77,7 +77,9 @@ namespace quan {
 
     private slots:
         void handleJoin( int row );
-
+        void handleContextMenu( const QPoint& );
+        void delAll();
+        void delLine();
     };
 
 }

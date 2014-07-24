@@ -28,8 +28,10 @@
 #include "adcontrols_global.h"
 #include "chemicalformula.hpp"
 #include "element.hpp"
+#include <atomic>
 #include <string>
 #include <map>
+#include <mutex>
 #include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
@@ -37,13 +39,14 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT TableOfElement {
         ~TableOfElement();
         TableOfElement();
+        static std::mutex mutex_;
     public:
         static TableOfElement * instance();
 
         mol::element findElement( const std::string& ) const;
 
     private:
-        static TableOfElement * instance_;
+        static std::atomic< TableOfElement * > instance_;
         std::map< std::string, int > index_;
     };
 

@@ -30,7 +30,7 @@
 
 using namespace adlog;
 
-logging_handler * logging_handler::instance_ = 0;
+std::atomic<logging_handler * > logging_handler::instance_ = 0;
 std::mutex logging_handler::mutex_;
 
 logging_handler::logging_handler()
@@ -43,14 +43,20 @@ logging_handler::logging_handler()
 logging_handler *
 logging_handler::instance()
 {
-    if ( instance_ == 0 ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        
-        if ( instance_ == 0 )
-            instance_ = new logging_handler();
-    }
+    typedef logging_handler T;
 
-    return instance_;
+    T * tmp = instance_.load( std::memory_order_relaxed );
+    std::atomic_thread_fence( std::memory_order_acquire );
+    if ( tmp == nullptr ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        tmp = instance_.load( std::memory_order_relaxed );
+        if ( tmp == nullptr ) {
+            tmp = new T();
+            std::atomic_thread_fence( std::memory_order_release );
+            instance_.store( tmp, std::memory_order_relaxed );
+        }
+    }
+    return tmp;
 }
 
 void

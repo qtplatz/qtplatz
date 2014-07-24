@@ -43,7 +43,8 @@ QuanProcessor::QuanProcessor( const QuanProcessor& t ) : sequence_( t.sequence_ 
 }
 
 QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >& s
-                            , std::shared_ptr< adcontrols::ProcessMethod >& pm ) : sequence_( s ), procmethod_( pm )
+                              , std::shared_ptr< adcontrols::ProcessMethod >& pm )
+    : sequence_( s ), procmethod_( pm )
 {
     // combine per dataSource
     for ( auto it = sequence_->begin(); it != sequence_->end(); ++it )

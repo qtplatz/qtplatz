@@ -24,6 +24,7 @@
 
 #include "mstoleranceform.hpp"
 #include "ui_mstoleranceform.h"
+#include <adcontrols/targetingmethod.hpp>
 
 using namespace adwidgets;
 
@@ -92,3 +93,27 @@ MSToleranceForm::setValue( idWidthMethod which , double value )
         ui->doubleSpinBoxWidth->setValue( value );
 }
 
+bool
+MSToleranceForm::setContents( const adcontrols::TargetingMethod& tm )
+{
+    ui->groupBox->setCheckable( false );
+    ui->groupBox->setChecked( true );
+    setWidthMethod( tm.is_use_resolving_power() ? idWidthRP : idWidthDaltons );
+    setValue( idWidthRP, tm.resolving_power() );
+    setValue( idWidthDaltons, tm.peak_width() * 1000 ); // Da -> mDa
+    return true;
+}
+
+bool
+MSToleranceForm::getContents( adcontrols::TargetingMethod& tm )
+{
+    if ( widthMethod() == idWidthRP )
+        tm.is_use_resolving_power( true );
+    else
+        tm.is_use_resolving_power( false );
+
+    tm.resolving_power( value( idWidthRP ) );
+    tm.peak_width( value( idWidthDaltons ) / 1000.0 );
+
+    return true;
+}

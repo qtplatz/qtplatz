@@ -25,6 +25,7 @@
 #ifndef LOGGING_HANDLER_HPP
 #define LOGGING_HANDLER_HPP
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <mutex>
@@ -67,7 +68,7 @@ namespace adlog {
 
     private:
         static std::mutex mutex_;
-        static logging_handler * instance_;
+        static std::atomic< logging_handler * > instance_;
         std::string logfile_;
         std::vector< handler_type > loggers_;
     };

@@ -90,12 +90,7 @@ ProcessMethodWidget::handleDataChanged( int id, bool load )
         }
         if ( auto form = findChild< adwidgets::MSToleranceForm * >() ) {
             if ( auto pTgt = pm.find< adcontrols::TargetingMethod >() ) {
-                if ( pTgt->is_use_resolving_power() )
-                    form->setWidthMethod( adwidgets::MSToleranceForm::idWidthRP );
-                else
-                    form->setWidthMethod( adwidgets::MSToleranceForm::idWidthDaltons );
-                form->setValue( adwidgets::MSToleranceForm::idWidthRP, pTgt->resolving_power() );
-                form->setValue( adwidgets::MSToleranceForm::idWidthDaltons, pTgt->peak_width() * 1000 ); // Da -> mDa
+                form->setContents( *pTgt );
             }
         }
     }
@@ -106,5 +101,15 @@ ProcessMethodWidget::commit()
 {
     adcontrols::ProcessMethod pm;
     form_->getContents( pm );
-    QuanDocument::instance()->procMethod( pm );
+
+    if ( auto form = findChild< adwidgets::MSLockForm * >() )
+        form->getContents( pm );
+
+    if ( auto form = findChild< adwidgets::MSToleranceForm * >() ) {
+        adcontrols::TargetingMethod t;
+        form->getContents( t );
+        pm.appendMethod( t );
+    }
+
+    QuanDocument::instance()->setProcMethod( pm );
 }
