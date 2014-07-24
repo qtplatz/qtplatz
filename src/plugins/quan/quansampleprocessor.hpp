@@ -33,6 +33,7 @@
 namespace adcontrols {
     class datafile;
     class QuanSample;
+    class QuanCompounds;
     class LCMSDataset;
     class ProcessMethod;
     class MassSpectrum;
@@ -89,8 +90,9 @@ namespace quan {
                               , adcontrols::MassSpectrum& centroid // will override
                               , const adcontrols::MSLockMethod& m );
 
-        bool doMSFind( adcontrols::MSPeakInfo& pkInfo
-                       , adcontrols::MassSpectrum& res
+        bool doMSFind( adcontrols::MassSpectrum& res
+                       , adcontrols::QuanSample&
+                       , const adcontrols::QuanCompounds& 
                        , const adcontrols::TargetingMethod& m );
 
     };

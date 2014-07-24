@@ -22,54 +22,43 @@
 **
 **************************************************************************/
 
-#ifndef QUANRESPONSE_HPP
-#define QUANRESPONSE_HPP
+#ifndef QUANRESPONSES_HPP
+#define QUANRESPONSES_HPP
 
 #include "adcontrols_global.h"
+#include "quanresponse.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_serialize.hpp>
-#include <cstdint>
-#include <memory>
-#include <vector>
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT QuanResponse {
+#if defined _MSC_VER
+    template class ADCONTROLSSHARED_EXPORT std::vector < QuanResponse > ;
+#endif
+
+    class ADCONTROLSSHARED_EXPORT QuanResponses  {
     public:
-        ~QuanResponse();
-        QuanResponse();
-        QuanResponse( const QuanResponse& t );
+        QuanResponses();
+        QuanResponses( const QuanResponses& t ) : values_( t.values_ ) {}
 
-        const wchar_t * formula() const { return formula_.c_str(); }
-        void formula( const wchar_t * t ) { formula_ = t; }
+        QuanResponses& operator << (const QuanResponse& t) { values_.push_back( t ); return *this; }
 
-        int32_t idx_;         // index on centroid spectrum
-        int32_t fcn_;         // function (protocol) id on centroid spectrum
-        int64_t compoundId_;  // uniqId on compound class ( not identified if negative )
-        double intensity_;    // area | height from chromatogram/spectrum
-        double amounts_;      // result
-        double mass_;         // observed mass
-        double tR_;           // observed retention time
+        size_t size() const { return values_.size(); }
+        std::vector< QuanResponse >::iterator begin() { return values_.begin(); }
+        std::vector< QuanResponse >::iterator end() { return values_.end(); }
+        std::vector< QuanResponse >::const_iterator begin() const { return values_.begin(); }
+        std::vector< QuanResponse >::const_iterator end() const { return values_.end(); }
+
     private:
-        std::wstring formula_;
+        std::vector< QuanResponse > values_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( compoundId_ )
-                & BOOST_SERIALIZATION_NVP( formula_ )                
-                & BOOST_SERIALIZATION_NVP( idx_ )                
-                & BOOST_SERIALIZATION_NVP( fcn_ )                                
-                & BOOST_SERIALIZATION_NVP( intensity_ )
-                & BOOST_SERIALIZATION_NVP( amounts_ )
-                & BOOST_SERIALIZATION_NVP( mass_ )
-                & BOOST_SERIALIZATION_NVP( tR_ )
+            ar & BOOST_SERIALIZATION_NVP( values_ )
                 ;
-        }            
+        }
     };
-
 }
 
-#endif // QUANRESPONSE_HPP
+#endif // QUANRESPONSES_HPP

@@ -46,7 +46,9 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
+#include <adcontrols/quanresponse.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
@@ -106,8 +108,11 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     if ( auto folium = folder.findFoliumByName( sample.name() ) ) {
                         if ( fetch( folium ) ) {
                             adcontrols::MassSpectrumPtr ms;
-                            if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ms, folium ) )
-                                writer->write( *ms, folium.name() );
+                            if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ms, folium ) ) {
+                                sample.name( folium.name().c_str() );
+                                processIt( sample, *ms, writer.get() );
+                                // writer->write( *ms, folium.name() );
+                            }
                         }
                     }
                 }
@@ -274,24 +279,17 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::Mass
             writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
             writer->attach< adcontrols::MSPeakInfo >( file, pkInfo, dataproc::Constants::F_MSPEAK_INFO );
 
+            ///////////////////
+            
             if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
                 if ( auto pTgtMethod = procmethod_->find< adcontrols::TargetingMethod >() ) {
 
-                    double tolerance = pTgtMethod->tolerance( adcontrols::idToleranceDaltons );
-                    
-                    
-                    for ( auto& compound: *pCompounds ) {
-                        const std::wstring& formula = compound.formula();
-                        double exactMass = cformula_->getMonoIsotopicMass( formula );
-                    
-                    }
+                    doMSFind( centroid, sample, *pCompounds, *pTgtMethod );
+
                 }
             }
-
         }
-
     }
-
 }
 
 bool
@@ -349,10 +347,41 @@ QuanSampleProcessor::doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
 }
 
 bool
-QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
-                               , adcontrols::MassSpectrum& res
-                               , const adcontrols::TargetingMethod& m )
+QuanSampleProcessor::doMSFind( adcontrols::MassSpectrum& centroid
+                               , adcontrols::QuanSample& sample
+                               , const adcontrols::QuanCompounds& compounds
+                               , const adcontrols::TargetingMethod& mtgt )
 {
+    double tolerance = mtgt.tolerance( adcontrols::idToleranceDaltons );
+
+    adcontrols::MSFinder find( tolerance, adcontrols::idFindLargest, adcontrols::idToleranceDaltons );
+
+    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( centroid );
+    int fcn = 0;
+    for ( auto& fms : segs ) {
+
+        for ( auto& compound : compounds ) {
+            adcontrols::QuanResponse resp;
+
+            double exactMass = cformula_->getMonoIsotopicMass( compound.formula() );
+
+            size_t idx = find( centroid, exactMass );
+            if ( idx != adcontrols::MSFinder::npos ) {
+
+                resp.compoundId_ = compound.uniqId();
+                resp.formula( compound.formula() );
+                resp.idx_ = int32_t(idx);
+                resp.fcn_ = fcn;
+                resp.mass_ = fms.getMass( idx );
+                resp.intensity_ = fms.getIntensity( idx );
+                resp.amounts_ = 0;
+                resp.tR_ = 0;
+
+                sample << resp;
+            }
+        }
+        ++fcn;
+    }
     return false;
 }
 

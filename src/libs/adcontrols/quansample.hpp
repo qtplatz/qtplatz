@@ -26,6 +26,7 @@
 #define QUANSAMPLE_HPP
 
 #include "adcontrols_global.h"
+#include "quanresponses.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
@@ -34,6 +35,8 @@
 #include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
+
+    class QuanResponse;
 
     namespace quan {
 
@@ -50,22 +53,6 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP( amounts_ )
                     ;
             }
-        };
-
-        struct ADCONTROLSSHARED_EXPORT Response {
-            Response() : identified_( false ), intensity_(0), amounts_(0) {}
-            bool identified_;
-            double intensity_;
-            double amounts_;
-        private:
-            friend class boost::serialization::access;
-            template<class Archive> void serialize( Archive& ar, const unsigned int ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( identified_ )
-                    & BOOST_SERIALIZATION_NVP( intensity_ )
-                    & BOOST_SERIALIZATION_NVP( amounts_ )
-                    ;
-            }            
         };
 
 #if defined _MSC_VER
@@ -137,20 +124,21 @@ namespace adcontrols {
         void istd( const std::vector< quan::ISTD >& );
 
         QuanSample& operator << ( const quan::ISTD& );
+        QuanSample& operator << (const QuanResponse&);
 
     private:
         std::wstring name_;
         std::wstring dataType_;
-        std::wstring dataSource_;               // fullpath for data file + "::" + data node
-        std::wstring dataGuid_;                 // data guid on portfolio (for redisplay)
+        std::wstring dataSource_;                // fullpath for data file + "::" + data node
+        std::wstring dataGuid_;                  // data guid on portfolio (for redisplay)
         QuanSampleType sampleType_;
-        QuanInlet inletType_;                   // Infusion | Chromatogram
-        int32_t level_;                         // 0 for UNK, otherwise >= 1
-        int32_t istdId_;                        // id for istd sample (id for myself if this is ISTD)
-        double injVol_;                         // conc. for infusion
-        double amountsAdded_;                   // added amount for standard
-        std::vector< quan::ISTD > istd_;        // index is correspoinding to ISTD id
-        quan::Response quanResult_;             // result
+        QuanInlet inletType_;                    // Infusion | Chromatogram
+        int32_t level_;                          // 0 for UNK, otherwise >= 1
+        int32_t istdId_;                         // id for istd sample (id for myself if this is ISTD)
+        double injVol_;                          // conc. for infusion
+        double amountsAdded_;                    // added amount for standard
+        std::vector< quan::ISTD > istd_;         // index is correspoinding to ISTD id
+        QuanResponses results_;
         QuanDataGeneration dataGeneration_;
         std::pair<int32_t,int32_t> scan_range_; // 0 := first spectrum, 1 := second spectrum, -1 := last spectrum
         int32_t channel_;                       // quan protocol id (channel
@@ -171,7 +159,7 @@ namespace adcontrols {
                 & BOOST_SERIALIZATION_NVP( dataGeneration_ )
                 & BOOST_SERIALIZATION_NVP( scan_range_ )
                 & BOOST_SERIALIZATION_NVP( channel_ )
-                & BOOST_SERIALIZATION_NVP( quanResult_ )
+                & BOOST_SERIALIZATION_NVP( results_ )
                 ;
         }
     };
@@ -180,6 +168,5 @@ namespace adcontrols {
 
 BOOST_CLASS_VERSION( adcontrols::QuanSample, 1 )
 BOOST_CLASS_VERSION( adcontrols::quan::ISTD, 1 )
-BOOST_CLASS_VERSION( adcontrols::quan::Response, 1 )
 
 #endif // QUANSAMPLE_HPP

@@ -55,7 +55,7 @@ QuanSample::QuanSample( const QuanSample& t )
     , injVol_( t.injVol_ )
     , amountsAdded_( t.amountsAdded_ )
     , istd_( t.istd_ )
-    , quanResult_( t.quanResult_ )
+    , results_( t.results_ )
     , dataGeneration_( t.dataGeneration_ )
     , scan_range_( t.scan_range_ )
     , channel_( t.channel_ )
@@ -183,5 +183,12 @@ QuanSample::operator << ( const quan::ISTD& t )
         *it = t;
     else
         istd_.insert( it, t );
+    return *this;
+}
+
+QuanSample&
+QuanSample::operator << ( const QuanResponse& t )
+{
+    results_ << t;
     return *this;
 }

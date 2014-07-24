@@ -177,6 +177,6 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::TargetingMethod, 3 )
+BOOST_CLASS_VERSION( adcontrols::TargetingMethod, 4 )
 
 #endif // TARGETINGMETHOD_H

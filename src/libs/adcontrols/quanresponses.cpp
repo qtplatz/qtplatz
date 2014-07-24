@@ -22,46 +22,10 @@
 **
 **************************************************************************/
 
-#ifndef MSFINDER_HPP
-#define MSFINDER_HPP
+#include "quanresponses.hpp"
 
-#include "adcontrols_global.h"
+using namespace adcontrols;
 
-namespace adcontrols {
-
-    class MassSpectrum;
-
-    enum idFindAlgorithm {
-        idFindLargest
-        , idFindClosest
-    };
-        
-    enum idToleranceMethod {
-        idToleranceDaltons
-        , idTolerancePpm
-    };
-
-    class ADCONTROLSSHARED_EXPORT MSFinder  {
-    public:
-
-        ~MSFinder();
-        MSFinder( double width = 0.005, idFindAlgorithm a = idFindLargest, idToleranceMethod w = idToleranceDaltons );
-        MSFinder( const MSFinder& );
-
-        static const size_t npos = size_t( -1 ); // no peak has found
-
-        size_t operator()( const MassSpectrum&, double mass );
-        
-        double width() const { return width_; }
-        idToleranceMethod toleranceMethod() const { return toleranceMethod_; }
-        idFindAlgorithm findAlgorithm() const { return findAlgorithm_; }
-
-    private:
-        double width_;
-        idToleranceMethod toleranceMethod_;
-        idFindAlgorithm findAlgorithm_;
-    };
-
+QuanResponses::QuanResponses()
+{
 }
-
-#endif // MSFINDER_HPP
