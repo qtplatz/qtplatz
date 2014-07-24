@@ -196,8 +196,17 @@ QuanDocument::load_default_methods()
             dirty_flags_[ idQuanSequence ] = false;
     }
     if ( dirty_flags_[ idProcMethod ] ) {
-        if ( load( dir / L"procmethod.xml", *procMethod_ ) )
+
+        if ( load( dir / L"procmethod.xml", *procMethod_ ) ) {
+            
+            if ( !procMethod_->find< adcontrols::TargetingMethod >() )
+                procMethod_->appendMethod( adcontrols::TargetingMethod() );
+            
+            if ( !procMethod_->find< adcontrols::MSLockMethod >() )
+                procMethod_->appendMethod( adcontrols::MSLockMethod() );                
+            
             dirty_flags_[ idProcMethod ] = false;
+        }
     }
     return std::find( dirty_flags_.begin(), dirty_flags_.end(), true ) == dirty_flags_.end();
 }

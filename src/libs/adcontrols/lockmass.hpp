@@ -30,6 +30,8 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_dll_interface.h>
 
@@ -57,12 +59,31 @@ namespace adcontrols {
             double exactMass_;
             double matchedMass_;
             double time_;
+
+            friend class boost::serialization::access;
+            template<class Archive>
+                void serialize(Archive& ar, const unsigned int ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP(formula_)
+                    & BOOST_SERIALIZATION_NVP(exactMass_)
+                    & BOOST_SERIALIZATION_NVP(matchedMass_) // result
+                    & BOOST_SERIALIZATION_NVP(time_)        // result
+                    ;
+            }
         };
 
         struct ADCONTROLSSHARED_EXPORT fitter {
             std::vector< double > coeffs_;
             bool operator()( MassSpectrum& ) const; // correct mass array
             void clear();
+        private:
+            friend class boost::serialization::access;
+            template<class Archive>
+                void serialize(Archive& ar, const unsigned int ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP(coeffs_)
+                    ;
+            }
         };
 
         lockmass& operator << ( const reference& );
@@ -76,6 +97,16 @@ namespace adcontrols {
     private:
         std::vector< reference > references_;
         fitter fitter_;
+
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize(Archive& ar, const unsigned int ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP(references_)
+                & BOOST_SERIALIZATION_NVP(fitter_)
+                ;
+        }
+
     };
 
 #if defined _MSC_VER

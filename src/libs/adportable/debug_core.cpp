@@ -28,19 +28,9 @@
 #include <boost/format.hpp>
 #include "profile.hpp"
 
-//#include <boost/interprocess/shared_memory_object.hpp>
-//#include <boost/interprocess/mapped_region.hpp>
-//#include <boost/interprocess/sync/scoped_lock.hpp>
-
-namespace adportable { namespace core {
-
-        const char * share_mem_name = "adportable_debug_core";
-    }
-}
-
 using namespace adportable::core;
 
-debug_core * debug_core::instance_ = 0;
+std::atomic< debug_core * > debug_core::instance_ = 0;
 std::mutex debug_core::mutex_;
 
 debug_core::~debug_core()
@@ -54,12 +44,20 @@ debug_core::debug_core() : logfname_( profile::user_data_dir<char>() + "/debug.l
 debug_core *
 debug_core::instance()
 {
-    if ( instance_ == 0 ) {
+    typedef debug_core T;
+
+    T * tmp = instance_.load( std::memory_order_relaxed );
+    std::atomic_thread_fence( std::memory_order_acquire );
+    if ( tmp == nullptr ) {
         std::lock_guard< std::mutex > lock( mutex_ );
-        if ( instance_ == 0 )
-            instance_ = new debug_core();
+        tmp = instance_.load( std::memory_order_relaxed );
+        if ( tmp == nullptr ) {
+            tmp = new T();
+            std::atomic_thread_fence( std::memory_order_release );
+            instance_.store( tmp, std::memory_order_relaxed );
+        }
     }
-    return instance_;
+    return tmp;
 }
 
 const std::string&

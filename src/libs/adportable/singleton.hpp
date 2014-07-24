@@ -22,44 +22,31 @@
 **
 **************************************************************************/
 
-#ifndef DEBUG_CORE_HPP
-#define DEBUG_CORE_HPP
+#pragma once
 
 #include <atomic>
 #include <mutex>
-#include <memory>
-#include <string>
-#include <vector>
-#include <functional>
 
 namespace adportable {
 
-    namespace core {
-        
-        class debug_core : public std::enable_shared_from_this< debug_core > {
-            debug_core();
-            ~debug_core();
-        public:
-            static debug_core * instance();
-            
-            bool open( const std::string& logfile );
-            const std::string& logfile() const;
+    std::atomic<T*> T::instance_ = 0;
+    std::mutex T::mutex_;
 
-            virtual void log( int pri, const std::string& msg, const std::string& file, int line ) const;
-            
-            typedef std::function< void(int, const std::string&, const std::string&, int) > hook_handler_type;
-            void hook( hook_handler_type );
-            void unhook( hook_handler_type );
-            void unhook(); // unhook all
-
-        private:
-            std::string logfname_;
-            static std::mutex mutex_;
-            static std::atomic< debug_core * > instance_;
-            std::vector< hook_handler_type > hooks_;
-        };
-        
-    }
+    template<class T> class singleton {
+    public:
+        static T* instance() {
+            T * tmp = instance_.load( std::memory_order_relaxed );
+            std::atomic_thread_fence( std::memory_order_acquire );
+            if ( tmp == nullptr ) {
+                std::lock_guard< std::mutex > lock( mutex_ );
+                tmp = instance_.load( std::memory_order_relaxed );
+                if ( tmp == nullptr ) {
+                    tmp = new T();
+                    std::atomic_thread_fence( std::memory_order_release );
+                    instance_.store( tmp, std::memory_order_relaxed );
+                }
+            }
+            return tmp;
+        }
+    };
 }
-
-#endif // DEBUG_CORE_HPP

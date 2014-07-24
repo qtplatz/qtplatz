@@ -22,40 +22,8 @@
 **
 **************************************************************************/
 
-#ifndef MSTOLERANCEFORM_HPP
-#define MSTOLERANCEFORM_HPP
+#include "lkmsmethod.hpp"
 
-#include "adwidgets_global.hpp"
-#include <QWidget>
-
-namespace adwidgets {
-namespace Ui {
-    class MSToleranceForm;
+LKMSMethod::LKMSMethod()
+{
 }
-
-    class ADWIDGETSSHARED_EXPORT MSToleranceForm : public QWidget
-    {
-        Q_OBJECT
-
-    public:
-        explicit MSToleranceForm(QWidget *parent = 0);
-        ~MSToleranceForm();
-
-        void setTitle( const QString& );
-        bool isChecked() const;
-        void setChecked( bool );
-
-        enum idWidthMethod { idWidthDaltons, idWidthRP };
-        idWidthMethod widthMethod();
-        void setWidthMethod( idWidthMethod );
-
-        double value( idWidthMethod ) const;
-        void setValue( idWidthMethod, double );
-
-    private:
-        Ui::MSToleranceForm *ui;
-    };
-
-}
-
-#endif // MSTOLERANCEFORM_HPP

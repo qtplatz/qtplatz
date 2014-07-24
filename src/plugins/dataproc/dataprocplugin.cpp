@@ -331,7 +331,7 @@ DataprocPlugin::handle_folium_added( const QString fname, const QString path, co
 }
 
 void
-DataprocPlugin::onSelectSpectrum( double minutes, int index, int fcn )
+DataprocPlugin::onSelectSpectrum( double /*minutes*/, int index, int fcn )
 {
 	qtwrapper::waitCursor w;
 

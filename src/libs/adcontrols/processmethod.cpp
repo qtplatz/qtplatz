@@ -58,70 +58,6 @@ ProcessMethod::ProcessMethod( const ProcessMethod& t ) : vec_( t.vec_ )
 {
 }
 
-namespace adcontrols {
-
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const ProcessMethod::value_type& v )
-    {
-        vec_.push_back( v );
-    }
-    
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const adcontrols::CentroidMethod& v )
-    {
-        vec_.push_back( v );
-    }
-    
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const IsotopeMethod& v )
-    {
-        vec_.push_back( v );
-    }
-    
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const ElementalCompositionMethod& v )
-    {
-        vec_.push_back( v );
-    }
-    
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const MSCalibrateMethod& v )
-    {
-        vec_.push_back( v );
-    }
-    
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const TargetingMethod& v )
-    {
-        vec_.push_back( v );
-    }
-    
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const PeakMethod& v )
-    {
-        vec_.push_back( v );
-    }
-
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const MSChromatogramMethod& v )
-    {
-        vec_.push_back( v );
-    }
-
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const QuanCompounds& v )
-    {
-        vec_.push_back( v );
-    }
-
-    template<> void DECL_EXPORT
-    ProcessMethod::appendMethod( const QuanMethod& v )
-    {
-        vec_.push_back( v );
-    }
-
-}; // namespace adcontrols
-
 //////
 template<class T> struct method_finder {
     static const T * find( const ProcessMethod::vector_type& vec ) {
@@ -188,6 +124,12 @@ namespace adcontrols {
     ProcessMethod::find() const
     {
         return method_finder< QuanMethod >::find( vec_ );
+    }
+
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::MSLockMethod*
+    ProcessMethod::find() const
+    {
+        return method_finder< MSLockMethod >::find( vec_ );
     }
 
 }; // namespace adcontrols

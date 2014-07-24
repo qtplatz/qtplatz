@@ -25,9 +25,9 @@
 #include "mstoleranceform.hpp"
 #include "ui_mstoleranceform.h"
 
-MSToleranceForm::MSToleranceForm(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::MSToleranceForm)
+using namespace adwidgets;
+
+MSToleranceForm::MSToleranceForm(QWidget *parent) : QWidget(parent), ui( new Ui::MSToleranceForm )
 {
     ui->setupUi(this);
 }
@@ -36,3 +36,59 @@ MSToleranceForm::~MSToleranceForm()
 {
     delete ui;
 }
+
+void
+MSToleranceForm::setTitle( const QString& title )
+{
+    ui->groupBox->setTitle( title );
+}
+
+bool
+MSToleranceForm::isChecked() const
+{
+    return ui->groupBox->isChecked();
+}
+
+void
+MSToleranceForm::setChecked( bool checked )
+{
+    ui->groupBox->setChecked( checked );
+}
+
+
+MSToleranceForm::idWidthMethod
+MSToleranceForm::widthMethod()
+{
+    if ( ui->radioButtonRP->isChecked() )
+        return idWidthRP;
+    return idWidthDaltons;
+}
+
+void
+MSToleranceForm::setWidthMethod( idWidthMethod which )
+{
+    if ( which == idWidthRP )
+        ui->radioButtonRP->setChecked( true );
+    else
+        ui->radioButtonWidth->setChecked( true );
+}
+
+
+double
+MSToleranceForm::value( idWidthMethod which ) const
+{
+    if ( which == idWidthRP )
+        return ui->doubleSpinBoxRP->value();
+    else
+        return ui->doubleSpinBoxWidth->value();
+}
+
+void
+MSToleranceForm::setValue( idWidthMethod which , double value )
+{
+    if ( which == idWidthRP )
+        ui->doubleSpinBoxRP->setValue( value );
+    else
+        ui->doubleSpinBoxWidth->setValue( value );
+}
+

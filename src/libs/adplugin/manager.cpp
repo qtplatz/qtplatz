@@ -209,7 +209,7 @@ manager_data::visit( adplugin::plugin * plugin, const char * adpluginspec )
 void
 manager_data::populated()
 {
-#if defined _DEBUG || defined DEBUG
+#if ( defined _DEBUG || defined DEBUG ) && 0
     adportable::debug(__FILE__, __LINE__) << "==> populated";
 	std::for_each( plugins_.begin(), plugins_.end(), [&](const map_type::value_type& d){
             adportable::debug(__FILE__, __LINE__) << "\t" << d.second.iid();

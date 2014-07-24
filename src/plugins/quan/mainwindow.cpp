@@ -128,7 +128,7 @@ MainWindow::createContents( Core::IMode * )
         }
 
         if ( auto widget = new ProcessMethodWidget ) {
-            auto data = std::make_shared< PanelData >( "Peak Detection"
+            auto data = std::make_shared< PanelData >( "Peak Detection/Assign"
                                                        , QIcon( QLatin1String( ":/quan/images/unconfigured.png" ) )
                                                        , widget );
             panelsWidget->addPanel( data.get() );

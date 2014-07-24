@@ -44,7 +44,8 @@ SOURCES += adwidgets.cpp \
     mscalibratewidget.cpp \
     msreferencedialog.cpp \
     mscalibratesummarytable.cpp \
-    mstoleranceform.cpp
+    mstoleranceform.cpp \
+    mslockform.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -67,7 +68,8 @@ HEADERS += adwidgets.hpp\
     mscalibratewidget.hpp \
     msreferencedialog.hpp \
     mscalibratesummarytable.hpp \
-    mstoleranceform.hpp
+    mstoleranceform.hpp \
+    mslockform.hpp
 
 unix {
     target.path = /usr/lib
@@ -79,4 +81,5 @@ FORMS += \
     centroidform.ui \
     mscalibrateform.ui \
     msreferencedialog.ui \
-    mstoleranceform.ui
+    mstoleranceform.ui \
+    mslockform.ui

@@ -30,6 +30,7 @@
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/mslockmethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/mschromatogrammethod.hpp>
@@ -57,19 +58,20 @@ namespace adcontrols {
         static const wchar_t * dataClass() { return L"adcontrols::ProcessMethod"; }
         
         typedef boost::variant< CentroidMethod
-                                , IsotopeMethod
                                 , ElementalCompositionMethod
+                                , IsotopeMethod
                                 , MSCalibrateMethod
-                                , TargetingMethod 
-                                , PeakMethod 
                                 , MSChromatogramMethod
+                                , MSLockMethod
+                                , PeakMethod 
                                 , QuanCompounds
                                 , QuanMethod
+                                , TargetingMethod 
                                 > value_type;
         
         typedef std::vector< value_type > vector_type;
         
-        template<class T> void appendMethod( const T& );
+        template<class T> void appendMethod( const T& t ) { vec_.push_back( t ); }
         template<class T> const T* find() const;
         
         const value_type& operator [] ( int ) const;

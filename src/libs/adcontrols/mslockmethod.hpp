@@ -22,13 +22,11 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// MS-Cheminformatics LLC / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #ifndef MSLOCKMETHOD_H
 #define MSLOCKMETHOD_H
+
+#pragma once
 
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
@@ -42,38 +40,63 @@ namespace adcontrols {
 		~MSLockMethod(void);
 		MSLockMethod(void);
         MSLockMethod(const MSLockMethod &);
-        MSLockMethod & operator = ( const MSLockMethod & rhs );
+        MSLockMethod & operator = (const MSLockMethod & rhs);
 
-		bool operator == ( const MSLockMethod & rhs ) const;
-		bool operator != ( const MSLockMethod & rhs ) const;
-
-        enum eToleranceMethod {
-           eToleranceMethodDa
-           , eToleranceMethodPpm
+        enum idToleranceMethod {
+            idToleranceMethodDa
+            , idToleranceMethodPpm
         };
+        enum idAlgorithm {
+            idMostAbundantPeak
+            , idClosestPeak
+        };
+        
+        bool enabled() const;
+        void setEnabled( bool );
+
+        idToleranceMethod toleranceMethod() const;
+        void setToleranceMethod( idToleranceMethod );
+        double tolerance( idToleranceMethod ) const;
+        void setTolerance( idToleranceMethod, double );
+
+        bool enablePeakThreshold() const;
+        void setEnablePeakThreshold( bool );
+        double peakIntensityThreshold() const;
+        void setPeakIntensityThreshold( double );
+
+        idAlgorithm algorithm() const;
+        void setAlgorithm( idAlgorithm );
+
+        void setReferences( const wchar_t * dataClass, const wchar_t * xml );
+        const wchar_t * xmlDataClass() const;
+        const wchar_t * xmlReferences() const;
 
     private:
 #include <compiler/disable_dll_interface.h>
-        eToleranceMethod toleranceMethod_;
-        double massToleranceDa_;
-        double massTolerancePpm_;
-
-        double minimumPeakHeight_;
-
-        std::wstring refMassDefnsFullyQualifiedName_;
-        std::wstring refMassDefnsXML_;
+        bool enabled_;
+        bool enablePeakThreshold_;
+        idToleranceMethod toleranceMethod_;
+        idAlgorithm algorithm_;
+        double toleranceDa_;
+        double tolerancePpm_;
+        double peakIntensityThreshold_;
+        std::wstring xmlDataClass_;
+        std::wstring xmlReferences_; // << lockmass::references
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
+            void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
             (void)version;
-            ar & BOOST_SERIALIZATION_NVP(toleranceMethod_);
-            ar & BOOST_SERIALIZATION_NVP(massToleranceDa_);
-            ar & BOOST_SERIALIZATION_NVP(massTolerancePpm_);
-            ar & BOOST_SERIALIZATION_NVP(minimumPeakHeight_);
-            ar & BOOST_SERIALIZATION_NVP(refMassDefnsFullyQualifiedName_);
-            ar & BOOST_SERIALIZATION_NVP(refMassDefnsXML_);
+            ar & BOOST_SERIALIZATION_NVP(enabled_)
+                & BOOST_SERIALIZATION_NVP(toleranceMethod_)
+                & BOOST_SERIALIZATION_NVP(algorithm_)
+                & BOOST_SERIALIZATION_NVP(toleranceDa_)
+                & BOOST_SERIALIZATION_NVP(tolerancePpm_)
+                & BOOST_SERIALIZATION_NVP(peakIntensityThreshold_)
+                & BOOST_SERIALIZATION_NVP(xmlDataClass_)
+                & BOOST_SERIALIZATION_NVP(xmlReferences_)
+                ;
         }
 
     };

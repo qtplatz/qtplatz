@@ -26,10 +26,13 @@
 #include "quandocument.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adwidgets/centroidform.hpp>
-#include <adwidgets/targetingform.hpp>
+#include <adwidgets/mstoleranceform.hpp>
+#include <adwidgets/mslockform.hpp>
 
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QGridLayout>
+#include <QSpacerItem>
 #include <boost/any.hpp>
 
 using namespace quan;
@@ -42,18 +45,29 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
                                                           , layout_( new QGridLayout )
                                                           , form_( new adwidgets::CentroidForm )
 {
-    auto topLayout = new QVBoxLayout( this );
+    auto topLayout = new QHBoxLayout( this );
     topLayout->setMargin( 0 );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
+    topLayout->addStretch( 1 );
 
     layout_->addWidget( form_ ); 
 
-    if ( auto targeting = new adwidgets::TargetingForm ) {
-        targeting->setTitle( "MS Peak Assign", false, false );
-        targeting->setObjectName( "TargetingForm" );
-        layout_->addWidget( targeting, 0, layout_->columnCount() );
-    }
+    auto tolerances = new QWidget;
+    layout_->addWidget( tolerances, 0, 1 ); // row = 0; column = 1
+    auto tLayout = new QVBoxLayout( tolerances );
+    // ----------------------------
+    // |             | Lock mass  |
+    // |             --------------
+    // |             | assign     |
+    // |---------------------------
+    if ( auto form = new adwidgets::MSLockForm )
+        tLayout->addWidget( form );
+
+    if ( auto form = new adwidgets::MSToleranceForm )
+        tLayout->addWidget( form );
+
+    tLayout->addStretch( 1 );
 
     form_->OnInitialUpdate();
 
@@ -68,8 +82,22 @@ void
 ProcessMethodWidget::handleDataChanged( int id, bool load )
 {
     if ( id == idProcMethod && load ) {
-        boost::any a( QuanDocument::instance()->procMethod() );
+        const adcontrols::ProcessMethod pm = QuanDocument::instance()->procMethod();
+        boost::any a( pm );
         form_->setContents( a );
+        if ( auto form = findChild< adwidgets::MSLockForm * >() ) {
+            form->setContents( pm, true );
+        }
+        if ( auto form = findChild< adwidgets::MSToleranceForm * >() ) {
+            if ( auto pTgt = pm.find< adcontrols::TargetingMethod >() ) {
+                if ( pTgt->is_use_resolving_power() )
+                    form->setWidthMethod( adwidgets::MSToleranceForm::idWidthRP );
+                else
+                    form->setWidthMethod( adwidgets::MSToleranceForm::idWidthDaltons );
+                form->setValue( adwidgets::MSToleranceForm::idWidthRP, pTgt->resolving_power() );
+                form->setValue( adwidgets::MSToleranceForm::idWidthDaltons, pTgt->peak_width() * 1000 ); // Da -> mDa
+            }
+        }
     }
 }
 

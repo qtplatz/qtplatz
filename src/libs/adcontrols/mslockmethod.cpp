@@ -32,46 +32,130 @@ MSLockMethod::~MSLockMethod(void)
 {
 }
 
-MSLockMethod::MSLockMethod() : toleranceMethod_( eToleranceMethodDa )
-                             , massToleranceDa_(0.2)
-                             , massTolerancePpm_(10.0)
-                             , minimumPeakHeight_(10.0)
+MSLockMethod::MSLockMethod() : enabled_( false )
+                             , enablePeakThreshold_( false )
+                             , toleranceMethod_( idToleranceMethodDa )
+                             , algorithm_( idMostAbundantPeak )
+                             , toleranceDa_( 0.2 )
+                             , tolerancePpm_( 10.0 )
+                             , peakIntensityThreshold_( 10000.0 )
 {
 }
 
-MSLockMethod::MSLockMethod( const MSLockMethod & t )
+MSLockMethod::MSLockMethod(const MSLockMethod & t) : enabled_( t.enabled_ )
+                                                   , enablePeakThreshold_( t.enablePeakThreshold_ )
+                                                   , toleranceMethod_( t.toleranceMethod_)
+                                                   , algorithm_( t.algorithm_ )
+                                                   , toleranceDa_( t.toleranceDa_ )
+                                                   , tolerancePpm_( t.tolerancePpm_ )
+                                                   , peakIntensityThreshold_( t.peakIntensityThreshold_ )
 {
-    operator=(t);
 }
 
 MSLockMethod&
-MSLockMethod::operator = ( const MSLockMethod & rhs )
+MSLockMethod::operator=(const MSLockMethod& t)
 {
-    toleranceMethod_ = rhs.toleranceMethod_;
-    massToleranceDa_ = rhs.massToleranceDa_;
-    massTolerancePpm_ = rhs.massTolerancePpm_;
-    minimumPeakHeight_ = rhs.minimumPeakHeight_;
-    refMassDefnsFullyQualifiedName_ = rhs.refMassDefnsFullyQualifiedName_;
-    refMassDefnsXML_ = rhs.refMassDefnsXML_;
+    enabled_ = t.enabled_;
+    enablePeakThreshold_ = t.enablePeakThreshold_;
+    toleranceMethod_ = t.toleranceMethod_;
+    algorithm_ = t.algorithm_;
+    toleranceDa_ = t.toleranceDa_;
+    tolerancePpm_ = t.tolerancePpm_;
+    peakIntensityThreshold_ = t.peakIntensityThreshold_;
     return *this;
 }
 
 bool
-MSLockMethod::operator == ( const MSLockMethod & rhs ) const
+MSLockMethod::enabled() const
 {
-   if ( ( toleranceMethod_ == rhs.toleranceMethod_ ) &&
-       ( adportable::is_equal( massToleranceDa_, rhs.massToleranceDa_ ) ) &&
-       ( adportable::is_equal( massTolerancePpm_, rhs.massTolerancePpm_ ) ) &&
-       ( refMassDefnsFullyQualifiedName_ == rhs.refMassDefnsFullyQualifiedName_ ) &&
-       ( refMassDefnsXML_ == rhs.refMassDefnsXML_ ) ) {
-           return true;
-   }
-   return false;
+    return enabled_;
+}
+
+void
+MSLockMethod::setEnabled( bool t )
+{
+    enabled_ = t;
 }
 
 bool
-MSLockMethod::operator != ( const MSLockMethod & rhs ) const
+MSLockMethod::enablePeakThreshold() const
 {
-    return ! ( *this == rhs );
+    return enablePeakThreshold_;
+}
+
+void
+MSLockMethod::setEnablePeakThreshold( bool t )
+{
+    enablePeakThreshold_ = t;
+}
+
+MSLockMethod::idAlgorithm
+MSLockMethod::algorithm() const
+{
+    return algorithm_;
+}
+
+void
+MSLockMethod::setAlgorithm( idAlgorithm t )
+{
+    algorithm_ = t;
+}
+
+MSLockMethod::idToleranceMethod
+MSLockMethod::toleranceMethod() const
+{
+    return toleranceMethod_;
+}
+
+void
+MSLockMethod::setToleranceMethod( idToleranceMethod t )
+{
+    toleranceMethod_ = t;
+}
+
+double
+MSLockMethod::tolerance( idToleranceMethod t ) const
+{
+    return t == idToleranceMethodDa ? toleranceDa_ : tolerancePpm_;
+}
+
+void
+MSLockMethod::setTolerance( idToleranceMethod t, double value )
+{
+    if ( t == idToleranceMethodDa )
+        toleranceDa_ = value;
+    else 
+        tolerancePpm_ = value;
+}
+
+double
+MSLockMethod::peakIntensityThreshold() const
+{
+    return peakIntensityThreshold_;
+}
+
+void
+MSLockMethod::setPeakIntensityThreshold( double value )
+{
+    peakIntensityThreshold_ = value;
+}
+
+void
+MSLockMethod::setReferences( const wchar_t * dataClass, const wchar_t * xml )
+{
+    xmlDataClass_ = dataClass;
+    xmlReferences_ = xml;
+}
+
+const wchar_t *
+MSLockMethod::xmlDataClass() const
+{
+    return xmlDataClass_.c_str();
+}
+
+const wchar_t *
+MSLockMethod::xmlReferences() const
+{
+    return xmlReferences_.c_str();
 }
 

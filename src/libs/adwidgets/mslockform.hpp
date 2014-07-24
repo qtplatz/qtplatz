@@ -22,40 +22,43 @@
 **
 **************************************************************************/
 
-#ifndef MSTOLERANCEFORM_HPP
-#define MSTOLERANCEFORM_HPP
+#ifndef MSLOCKFORM_HPP
+#define MSLOCKFORM_HPP
 
 #include "adwidgets_global.hpp"
 #include <QWidget>
 
-namespace adwidgets {
-namespace Ui {
-    class MSToleranceForm;
-}
+namespace adcontrols { class MSLockMethod; class ProcessMethod; }
 
-    class ADWIDGETSSHARED_EXPORT MSToleranceForm : public QWidget
+namespace adwidgets {
+
+    namespace Ui {
+        class MSLockForm;
+    }
+
+    class ADWIDGETSSHARED_EXPORT MSLockForm : public QWidget
     {
         Q_OBJECT
 
     public:
-        explicit MSToleranceForm(QWidget *parent = 0);
-        ~MSToleranceForm();
+        explicit MSLockForm( QWidget *parent = 0 );
+        ~MSLockForm();
 
         void setTitle( const QString& );
-        bool isChecked() const;
+        bool isChecked();
         void setChecked( bool );
 
-        enum idWidthMethod { idWidthDaltons, idWidthRP };
-        idWidthMethod widthMethod();
-        void setWidthMethod( idWidthMethod );
+        bool setContents( const adcontrols::MSLockMethod& );
+        bool getContents( adcontrols::MSLockMethod& );
 
-        double value( idWidthMethod ) const;
-        void setValue( idWidthMethod, double );
+        bool setContents( const adcontrols::ProcessMethod&, bool forceCreate = false );
+        bool getContents( adcontrols::ProcessMethod& );
 
     private:
-        Ui::MSToleranceForm *ui;
+        Ui::MSLockForm *ui;
+
     };
 
 }
 
-#endif // MSTOLERANCEFORM_HPP
+#endif // MSLOCKFORM_HPP
