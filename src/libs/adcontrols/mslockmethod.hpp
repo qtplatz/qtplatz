@@ -29,11 +29,15 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include "msfinder.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <string>
 
 namespace adcontrols {
+
+    enum idToleranceMethod : int;
+    enum idFindAlgorithm : int;
 
     class ADCONTROLSSHARED_EXPORT MSLockMethod {
     public:
@@ -42,15 +46,6 @@ namespace adcontrols {
         MSLockMethod(const MSLockMethod &);
         MSLockMethod & operator = (const MSLockMethod & rhs);
 
-        enum idToleranceMethod {
-            idToleranceMethodDa
-            , idToleranceMethodPpm
-        };
-        enum idAlgorithm {
-            idMostAbundantPeak
-            , idClosestPeak
-        };
-        
         bool enabled() const;
         void setEnabled( bool );
 
@@ -64,8 +59,8 @@ namespace adcontrols {
         double peakIntensityThreshold() const;
         void setPeakIntensityThreshold( double );
 
-        idAlgorithm algorithm() const;
-        void setAlgorithm( idAlgorithm );
+        idFindAlgorithm algorithm() const;
+        void setAlgorithm( idFindAlgorithm );
 
         void setReferences( const wchar_t * dataClass, const wchar_t * xml );
         const wchar_t * xmlDataClass() const;
@@ -76,7 +71,7 @@ namespace adcontrols {
         bool enabled_;
         bool enablePeakThreshold_;
         idToleranceMethod toleranceMethod_;
-        idAlgorithm algorithm_;
+        idFindAlgorithm algorithm_;
         double toleranceDa_;
         double tolerancePpm_;
         double peakIntensityThreshold_;

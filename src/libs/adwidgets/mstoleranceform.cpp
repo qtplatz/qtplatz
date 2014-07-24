@@ -98,9 +98,9 @@ MSToleranceForm::setContents( const adcontrols::TargetingMethod& tm )
 {
     ui->groupBox->setCheckable( false );
     ui->groupBox->setChecked( true );
-    setWidthMethod( tm.is_use_resolving_power() ? idWidthRP : idWidthDaltons );
-    setValue( idWidthRP, tm.resolving_power() );
-    setValue( idWidthDaltons, tm.peak_width() * 1000 ); // Da -> mDa
+    setWidthMethod( tm.toleranceMethod() == adcontrols::idTolerancePpm ? idWidthRP : idWidthDaltons );
+    setValue( idWidthRP, tm.tolerance( adcontrols::idTolerancePpm ) );
+    setValue( idWidthDaltons, tm.tolerance( adcontrols::idToleranceDaltons ) * 1000 ); // Da -> mDa
     return true;
 }
 
@@ -108,12 +108,12 @@ bool
 MSToleranceForm::getContents( adcontrols::TargetingMethod& tm )
 {
     if ( widthMethod() == idWidthRP )
-        tm.is_use_resolving_power( true );
+        tm.setToleranceMethod( adcontrols::idTolerancePpm );
     else
-        tm.is_use_resolving_power( false );
+        tm.setToleranceMethod( adcontrols::idToleranceDaltons );
 
-    tm.resolving_power( value( idWidthRP ) );
-    tm.peak_width( value( idWidthDaltons ) / 1000.0 );
+    tm.setTolerance( adcontrols::idTolerancePpm, value( idWidthRP ) );
+    tm.setTolerance( adcontrols::idToleranceDaltons, value( idWidthDaltons ) / 1000.0 );
 
     return true;
 }

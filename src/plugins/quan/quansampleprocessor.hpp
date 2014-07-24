@@ -26,14 +26,22 @@
 #define QUANSAMPLEPROCESSOR_HPP
 
 #include <adcontrols/datasubscriber.hpp>
-//#include <adcontrols/quansample.hpp>
 #include <string>
 #include <vector>
 #include <memory>
 
-
-namespace adcontrols { class datafile; class QuanSample; class LCMSDataset; class ProcessMethod; class MassSpectrum; }
-namespace adcontrols { class MSPeakInfo; class CentroidMethod; }
+namespace adcontrols {
+    class datafile;
+    class QuanSample;
+    class LCMSDataset;
+    class ProcessMethod;
+    class MassSpectrum;
+    class MSPeakInfo;
+    class CentroidMethod;
+    class MSLockMethod;
+    class TargetingMethod;
+    class ChemicalFormula;
+}
 
 namespace portfolio { class Portfolio; class Folium;  }
 
@@ -58,6 +66,7 @@ namespace quan {
         std::vector< adcontrols::QuanSample > samples_;
         std::shared_ptr< adcontrols::datafile > datafile_;
         std::shared_ptr< portfolio::Portfolio > portfolio_;
+        std::shared_ptr< adcontrols::ChemicalFormula > cformula_;
         const std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
 
         void open();
@@ -72,9 +81,18 @@ namespace quan {
         void processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer );
 
         static bool doCentroid( adcontrols::MSPeakInfo& pkInfo
-            , adcontrols::MassSpectrum& res
-            , const adcontrols::MassSpectrum& profile
-            , const adcontrols::CentroidMethod& m );
+                                , adcontrols::MassSpectrum& res
+                                , const adcontrols::MassSpectrum& profile
+                                , const adcontrols::CentroidMethod& m );
+
+        bool doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
+                              , adcontrols::MassSpectrum& centroid // will override
+                              , const adcontrols::MSLockMethod& m );
+
+        bool doMSFind( adcontrols::MSPeakInfo& pkInfo
+                       , adcontrols::MassSpectrum& res
+                       , const adcontrols::TargetingMethod& m );
+
     };
 
 }

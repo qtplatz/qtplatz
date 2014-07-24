@@ -62,16 +62,16 @@ MSLockForm::setContents( const adcontrols::MSLockMethod& m )
 {
     setChecked( m.enabled() );
 
-    if ( m.toleranceMethod() == adcontrols::MSLockMethod::idToleranceMethodDa ) {
+    if ( m.toleranceMethod() == adcontrols::idToleranceDaltons ) {
         ui->radioButtonDa->setChecked( true );
     }
     else {
         ui->radioButtonPpm->setChecked( true );
     }
-    ui->doubleSpinBoxDa->setValue( m.tolerance( adcontrols::MSLockMethod::idToleranceMethodDa ) );
-    ui->doubleSpinBoxPpm->setValue( m.tolerance( adcontrols::MSLockMethod::idToleranceMethodPpm ) );
+    ui->doubleSpinBoxDa->setValue( m.tolerance( adcontrols::idToleranceDaltons ) );
+    ui->doubleSpinBoxPpm->setValue( m.tolerance( adcontrols::idTolerancePpm ) );
 
-    if ( m.algorithm() == adcontrols::MSLockMethod::idMostAbundantPeak )
+    if ( m.algorithm() == adcontrols::idFindLargest )
         ui->radioButtonAlgo0->setChecked( true );
     else
         ui->radioButtonAlgo1->setChecked( true );
@@ -87,14 +87,14 @@ MSLockForm::getContents( adcontrols::MSLockMethod& m )
 {
     m.setEnabled( ui->groupBox->isChecked() );
     if ( ui->radioButtonDa->isChecked() )
-        m.setToleranceMethod( adcontrols::MSLockMethod::idToleranceMethodDa );
+        m.setToleranceMethod( adcontrols::idToleranceDaltons );
     else
-        m.setToleranceMethod( adcontrols::MSLockMethod::idToleranceMethodPpm );
+        m.setToleranceMethod( adcontrols::idTolerancePpm );
 
-    m.setTolerance( adcontrols::MSLockMethod::idToleranceMethodDa, ui->doubleSpinBoxDa->value() );
-    m.setTolerance( adcontrols::MSLockMethod::idToleranceMethodPpm, ui->doubleSpinBoxPpm->value() );
+    m.setTolerance( adcontrols::idToleranceDaltons, ui->doubleSpinBoxDa->value() );
+    m.setTolerance( adcontrols::idTolerancePpm, ui->doubleSpinBoxPpm->value() );
 
-    m.setAlgorithm( ui->radioButtonAlgo0->isChecked() ? adcontrols::MSLockMethod::idMostAbundantPeak : adcontrols::MSLockMethod::idClosestPeak );
+    m.setAlgorithm( ui->radioButtonAlgo0->isChecked() ? adcontrols::idFindLargest : adcontrols::idFindClosest );
     m.setPeakIntensityThreshold( ui->doubleSpinBoxThreshold->value() );
     m.setEnablePeakThreshold( ui->checkBoxThreshold->isChecked() );
 

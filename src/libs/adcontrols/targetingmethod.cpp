@@ -28,16 +28,16 @@
 using namespace adcontrols;
 
 TargetingMethod::TargetingMethod( idTarget id ) : idTarget_( id )
-                                                , is_use_resolving_power_( false )
-                                                , resolving_power_( 10000 )
-                                                , peak_width_( 0.010 ) // 10mDa
+                                                , toleranceMethod_( idToleranceDaltons )
+                                                , tolerancePpm_( 10.0 )
+                                                , toleranceDaltons_( 0.010 ) // 10mDa
                                                 , chargeStateMin_( 1 )
                                                 , chargeStateMax_( 3 )
                                                 , isLowMassLimitEnabled_( false ) // auto
                                                 , isHighMassLimitEnabled_( false )
-    , lowMassLimit_( 1 )
-    , highMassLimit_( 1000 )
-    , tolerance_( 10.0 )
+                                                , lowMassLimit_( 1 )
+                                                , highMassLimit_( 1000 )
+    , tolerance_( 10.0 ) // deplicated
 {
     // reference, 
     // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
@@ -71,9 +71,9 @@ TargetingMethod::operator = ( const TargetingMethod& rhs )
 {
     idTarget_ = rhs.idTarget_;
 
-    is_use_resolving_power_ = rhs.is_use_resolving_power_;
-    resolving_power_        = rhs.resolving_power_;
-    peak_width_             = rhs.peak_width_;
+    toleranceMethod_        = rhs.toleranceMethod_;
+    tolerancePpm_           = rhs.tolerancePpm_;
+    toleranceDaltons_       = rhs.toleranceDaltons_;
     chargeStateMin_         = rhs.chargeStateMin_;
     chargeStateMax_         = rhs.chargeStateMax_;
     isLowMassLimitEnabled_  = rhs.isLowMassLimitEnabled_;
@@ -151,42 +151,33 @@ TargetingMethod::peptides() const
     return peptides_;
 }
 
-bool
-TargetingMethod::is_use_resolving_power() const
+idToleranceMethod
+TargetingMethod::toleranceMethod() const
 {
-    return is_use_resolving_power_;
+    return toleranceMethod_;
 }
 
 void
-TargetingMethod::is_use_resolving_power( bool value )
+TargetingMethod::setToleranceMethod( idToleranceMethod value )
 {
-    is_use_resolving_power_ = value;
+    toleranceMethod_ = value;
 }
 
 double
-TargetingMethod::resolving_power() const
+TargetingMethod::tolerance( idToleranceMethod id ) const
 {
-    return resolving_power_;
+    return id == idTolerancePpm ? tolerancePpm_ : toleranceDaltons_;
 }
 
 void
-TargetingMethod::resolving_power( double value )
+TargetingMethod::setTolerance( idToleranceMethod id, double value )
 {
-    resolving_power_ = value;
+    if ( id == idTolerancePpm )
+        tolerancePpm_ = value;
+    else
+        toleranceDaltons_ = value;
 }
 
-
-double
-TargetingMethod::peak_width() const
-{
-    return peak_width_;
-}
-
-void
-TargetingMethod::peak_width( double value )
-{
-    peak_width_ = value;
-}
 
 std::pair< bool, bool >
 TargetingMethod::isMassLimitsEnabled() const

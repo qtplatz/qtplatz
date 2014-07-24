@@ -37,7 +37,6 @@
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 
-
 #include <QApplication>
 #include <QBrush>
 #include <QClipboard>
@@ -603,6 +602,7 @@ DataSequenceTree::setContents( const adcontrols::QuanSequence& seq )
     }
 
     expandAll();
+
     return true;
 }
 
@@ -612,6 +612,7 @@ DataSequenceTree::handleContextMenu( const QPoint& pt )
     QMenu menu;
 
     menu.addAction( "Delete line", this, SLOT( delLine() ) );
+    menu.addAction( "Add line", this, SLOT( delAll() ) );
     menu.addAction( "Clear all", this, SLOT( delAll() ) );
     
     menu.exec( mapToGlobal( pt ) );
@@ -628,5 +629,13 @@ DataSequenceTree::delLine()
 {
     QModelIndex index = currentIndex();
     model_->removeRow( index.row(), index.parent() );
+}
+
+void
+DataSequenceTree::addLine()
+{
+    // QModelIndex index = currentIndex();
+    // model_->removeRow( index.row(), index.parent() );
+    QMessageBox::information( 0, "DataSequenceTree", "Not yet implemented, Sorry" );
 }
 

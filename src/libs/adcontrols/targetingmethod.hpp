@@ -27,6 +27,7 @@
 #define TARGETINGMETHOD_H
 
 #include "adcontrols_global.h"
+#include "msfinder.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
@@ -66,14 +67,11 @@ namespace adcontrols {
 		std::vector< peptide_type  >& peptides();
 		const std::vector< peptide_type >& peptides() const;
 
-        bool is_use_resolving_power() const;
-        void is_use_resolving_power( bool );
+        idToleranceMethod toleranceMethod() const;
+        void setToleranceMethod( idToleranceMethod );
 
-        double resolving_power() const;
-        void resolving_power( double );
-
-        double peak_width() const;
-        void peak_width( double );
+        double tolerance( idToleranceMethod ) const;
+        void setTolerance( idToleranceMethod, double );
 
         std::pair< bool, bool > isMassLimitsEnabled() const;
         void isLowMassLimitEnabled( bool );
@@ -101,9 +99,9 @@ namespace adcontrols {
 
     private:
         idTarget idTarget_;
-        bool is_use_resolving_power_;
-        double resolving_power_;
-        double peak_width_;
+        idToleranceMethod toleranceMethod_;
+        double tolerancePpm_;
+        double toleranceDaltons_;
         uint32_t chargeStateMin_;
         uint32_t chargeStateMax_;
         bool isLowMassLimitEnabled_;
@@ -121,15 +119,18 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
+
+            bool is_use_resolving_power; // workaround
+
             if ( version <= 1 ) {
                 std::vector< std::pair< std::wstring, bool > > adducts;
                 std::vector< std::pair< std::wstring, bool > > formulae;
                 bool isPositive;
 
                 ar & BOOST_SERIALIZATION_NVP( isPositive );
-                ar & BOOST_SERIALIZATION_NVP( is_use_resolving_power_ );
-                ar & BOOST_SERIALIZATION_NVP( resolving_power_ );
-                ar & BOOST_SERIALIZATION_NVP( peak_width_ );
+                ar & BOOST_SERIALIZATION_NVP( is_use_resolving_power );
+                ar & BOOST_SERIALIZATION_NVP( tolerancePpm_ );
+                ar & BOOST_SERIALIZATION_NVP( toleranceDaltons_ );
                 ar & BOOST_SERIALIZATION_NVP( chargeStateMin_ );
                 ar & BOOST_SERIALIZATION_NVP( chargeStateMax_ );
                 ar & BOOST_SERIALIZATION_NVP( isLowMassLimitEnabled_ );
@@ -142,9 +143,13 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( adducts ); // neg
             } else {
                 ar & BOOST_SERIALIZATION_NVP( idTarget_ )
-                    & BOOST_SERIALIZATION_NVP( is_use_resolving_power_ )
-                    & BOOST_SERIALIZATION_NVP( resolving_power_ )
-                    & BOOST_SERIALIZATION_NVP( peak_width_ )
+                    ;
+                if ( version < 4 )
+                    ar & BOOST_SERIALIZATION_NVP( is_use_resolving_power );
+                else if ( version >= 4 )
+                    ar & BOOST_SERIALIZATION_NVP( toleranceMethod_ );
+                ar & BOOST_SERIALIZATION_NVP( tolerancePpm_ )
+                    & BOOST_SERIALIZATION_NVP( toleranceDaltons_ )
                     & BOOST_SERIALIZATION_NVP( chargeStateMin_ )
                     & BOOST_SERIALIZATION_NVP( chargeStateMax_ )
                     & BOOST_SERIALIZATION_NVP( isLowMassLimitEnabled_ )

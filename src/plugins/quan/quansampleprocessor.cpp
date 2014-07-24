@@ -29,14 +29,17 @@
 #include "../plugins/dataproc/constants.hpp"
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
-#include <adcontrols/waveform.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/lockmass.hpp>
+#include <adcontrols/msfinder.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mslockmethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/processeddataset.hpp>
@@ -44,6 +47,7 @@
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adcontrols/waveform.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
 #include <adfs/adfs.hpp>
@@ -70,6 +74,7 @@ QuanSampleProcessor::QuanSampleProcessor( QuanProcessor * processor
                                         : raw_( 0 )
                                         , samples_( samples )
                                         , procmethod_( processor->procmethod() )
+                                        , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
@@ -258,41 +263,33 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::Mass
             result = doCentroid( pkInfo, centroid, filtered, *pCentroidMethod );
 
         } else {
-
             result = doCentroid( pkInfo, centroid, profile, *pCentroidMethod );
-
         }
 
         if ( result ) {
-            do {
-                auto afile = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
-                auto mfile = writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
-#if 0
-                auto afile = file.addAttachment( adfs::create_uuid() );
-                afile.dataClass( centroid.dataClass() );
-                afile.setAttribute( L"name", dataproc::Constants::F_CENTROID_SPECTRUM );
-                if ( adfs::cpio< adcontrols::MassSpectrum >::save( centroid, afile ) )
-                    afile.commit();
-                do {
-                    auto mfile = afile.addAttachment( adfs::create_uuid() );
-                    mfile.dataClass( procmethod_->dataClass() );
-                    mfile.setAttribute( L"name", L"ProcessMethod" );
-                    if ( adfs::cpio< adcontrols::ProcessMethod >::save( *procmethod_, mfile ) )
-                        mfile.commit();
-                } while ( 0 );
-#endif
-            } while ( 0 );
-            do {
-                auto afile = writer->attach< adcontrols::MSPeakInfo >( file, pkInfo, dataproc::Constants::F_MSPEAK_INFO );
-#if 0
-                auto afile = file.addAttachment( adfs::create_uuid() );
-                afile.dataClass( pkInfo.dataClass() );
-                afile.setAttribute( L"name", dataproc::Constants::F_MSPEAK_INFO );
-                if ( adfs::cpio< adcontrols::MSPeakInfo >::save( pkInfo, afile ) )
-                    afile.commit();
-#endif
-            } while ( 0 );
+            
+            // doMSLock if required.
+            
+            auto afile = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
+            writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
+            writer->attach< adcontrols::MSPeakInfo >( file, pkInfo, dataproc::Constants::F_MSPEAK_INFO );
+
+            if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
+                if ( auto pTgtMethod = procmethod_->find< adcontrols::TargetingMethod >() ) {
+
+                    double tolerance = pTgtMethod->tolerance( adcontrols::idToleranceDaltons );
+                    
+                    
+                    for ( auto& compound: *pCompounds ) {
+                        const std::wstring& formula = compound.formula();
+                        double exactMass = cformula_->getMonoIsotopicMass( formula );
+                    
+                    }
+                }
+            }
+
         }
+
     }
 
 }
@@ -324,3 +321,38 @@ QuanSampleProcessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
     }
     return result;
 }
+
+bool
+QuanSampleProcessor::doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
+                               , adcontrols::MassSpectrum& centroid // will override
+                               , const adcontrols::MSLockMethod& m )
+{
+    // find reference peak by mass window
+    std::string formula = "H2O";
+    double exactMass = cformula_->getMonoIsotopicMass( formula );
+
+    adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );
+
+    size_t idx = find( centroid, exactMass );
+    if ( idx != adcontrols::MSFinder::npos ) {
+
+        adcontrols::lockmass mslock;
+        // add found peaks into mslock
+        mslock << adcontrols::lockmass::reference( formula, exactMass, centroid.getMass( idx ), centroid.getTime( idx ) );
+
+        if ( mslock.fit() ) {
+            mslock( centroid ); // update spectrum
+            mslock( pkInfo );   // update peak info
+        }
+    }
+    return false;
+}
+
+bool
+QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
+                               , adcontrols::MassSpectrum& res
+                               , const adcontrols::TargetingMethod& m )
+{
+    return false;
+}
+

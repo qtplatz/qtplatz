@@ -38,6 +38,7 @@
 namespace adcontrols {
 
     class MassSpectrum;
+    class MSPeakInfo;
 
     class ADCONTROLSSHARED_EXPORT lockmass {
     public:
@@ -75,6 +76,7 @@ namespace adcontrols {
         struct ADCONTROLSSHARED_EXPORT fitter {
             std::vector< double > coeffs_;
             bool operator()( MassSpectrum& ) const; // correct mass array
+            bool operator()( MSPeakInfo& ) const;
             void clear();
         private:
             friend class boost::serialization::access;
@@ -93,6 +95,7 @@ namespace adcontrols {
         static bool findReferences( lockmass&,  const adcontrols::MassSpectrum&, int idx, int fcn );
         bool fit();
         bool operator()( MassSpectrum& ) const; // correct mass array
+        bool operator()( MSPeakInfo& ) const;
         
     private:
         std::vector< reference > references_;

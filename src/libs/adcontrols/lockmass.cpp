@@ -24,10 +24,12 @@
 **************************************************************************/
 
 #include "lockmass.hpp"
-#include "massspectrum.hpp"
-#include "chemicalformula.hpp"
-#include "annotations.hpp"
 #include "annotation.hpp"
+#include "annotations.hpp"
+#include "chemicalformula.hpp"
+#include "massspectrum.hpp"
+#include "mspeakinfo.hpp"
+#include "mspeakinfoitem.hpp"
 #include <adportable/polfit.hpp>
 
 using namespace adcontrols;
@@ -193,6 +195,12 @@ lockmass::operator()( MassSpectrum& ms ) const
 }
 
 bool
+lockmass::operator()( MSPeakInfo& info ) const
+{
+    return fitter_( info );
+}
+
+bool
 lockmass::fitter::operator()( MassSpectrum& ms ) const
 {
     if ( coeffs_.empty() )
@@ -227,6 +235,36 @@ lockmass::fitter::operator()( MassSpectrum& ms ) const
     range.first = range.first - ( range.second - range.first ) / 100;
     range.second = range.second + ( range.second - range.first ) / 100;
     ms.setAcquisitionMassRange( range.first, range.second );
+	return true;
+}
+
+bool
+lockmass::fitter::operator()( MSPeakInfo& pkInfo ) const
+{
+    if ( coeffs_.empty() )
+        return false;
+
+    std::pair< double, double > range(1000000.0, 0.0);
+    
+    segment_wrapper< MSPeakInfo > segs( pkInfo );
+
+    for ( auto& aseg: segs ) {
+        if ( coeffs_.size() == 1 ) {
+            // relative error correction
+            for ( auto& item: aseg ) {
+                double mass = item.mass() - item.mass() * coeffs_[ 0 ];
+                item.mass( mass );
+            }
+
+        } else {
+
+            for ( auto& item: aseg ) { 
+                double mass = item.mass() - adportable::polfit::estimate_y( coeffs_, item.mass() );
+                item.mass( mass );
+            }
+
+        }
+    }
 	return true;
 }
 

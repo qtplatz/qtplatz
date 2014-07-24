@@ -71,10 +71,10 @@ TargetingForm::setTitle( const QString& title, bool enableCharge, bool enableLim
 void
 TargetingForm::getContents( adcontrols::TargetingMethod& m )
 {
-	m.resolving_power( ui->doubleSpinBoxRP->value() );
+    m.setTolerance( adcontrols::idTolerancePpm, ui->doubleSpinBoxRP->value() );
 
-	m.peak_width( ui->doubleSpinBoxWidth->value() / 1000.0 ); // mDa --> Da
-    m.is_use_resolving_power( ui->radioButtonRP->isChecked() );
+    m.setTolerance( adcontrols::idToleranceDaltons, ui->doubleSpinBoxWidth->value() / 1000.0 ); // mDa --> Da
+    m.setToleranceMethod( ui->radioButtonRP->isChecked() ? adcontrols::idTolerancePpm : adcontrols::idToleranceDaltons );
 
     m.chargeState( ui->spinBoxChargeMin->value(), ui->spinBoxChargeMax->value() );
 
@@ -88,9 +88,9 @@ TargetingForm::getContents( adcontrols::TargetingMethod& m )
 void
 TargetingForm::setContents( const adcontrols::TargetingMethod& m )
 {
-	ui->doubleSpinBoxRP->setValue( m.resolving_power() );
-    ui->doubleSpinBoxWidth->setValue( m.peak_width() * 1000.0 );
-    ui->radioButtonRP->setChecked( m.is_use_resolving_power() );
+    ui->doubleSpinBoxRP->setValue( m.tolerance( adcontrols::idTolerancePpm ) );
+    ui->doubleSpinBoxWidth->setValue( m.tolerance( adcontrols::idToleranceDaltons ) * 1000.0 );
+    ui->radioButtonRP->setChecked( m.toleranceMethod() == adcontrols::idTolerancePpm );
     auto charge = m.chargeState();
     ui->spinBoxChargeMin->setValue( charge.first );
     ui->spinBoxChargeMax->setValue( charge.second );

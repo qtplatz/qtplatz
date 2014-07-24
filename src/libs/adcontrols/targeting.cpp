@@ -122,7 +122,7 @@ Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, uint32_t _charge,
 bool
 Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive, const std::vector< charge_adduct_type >& list )
 {
-    double tolerance = (method_) ? method_->peak_width() : 0.010;
+    double tolerance = (method_) ? method_->tolerance( method_->toleranceMethod() ) : 0.010;
 
     detail::target_finder< const double * > finder( ms.getMassArray(), ms.getMassArray() + ms.size(), tolerance );
 

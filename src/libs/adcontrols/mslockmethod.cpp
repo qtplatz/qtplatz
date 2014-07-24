@@ -34,8 +34,8 @@ MSLockMethod::~MSLockMethod(void)
 
 MSLockMethod::MSLockMethod() : enabled_( false )
                              , enablePeakThreshold_( false )
-                             , toleranceMethod_( idToleranceMethodDa )
-                             , algorithm_( idMostAbundantPeak )
+                             , toleranceMethod_( idToleranceDaltons )
+                             , algorithm_( idFindLargest )
                              , toleranceDa_( 0.2 )
                              , tolerancePpm_( 10.0 )
                              , peakIntensityThreshold_( 10000.0 )
@@ -89,19 +89,19 @@ MSLockMethod::setEnablePeakThreshold( bool t )
     enablePeakThreshold_ = t;
 }
 
-MSLockMethod::idAlgorithm
+idFindAlgorithm
 MSLockMethod::algorithm() const
 {
     return algorithm_;
 }
 
 void
-MSLockMethod::setAlgorithm( idAlgorithm t )
+MSLockMethod::setAlgorithm( idFindAlgorithm t )
 {
     algorithm_ = t;
 }
 
-MSLockMethod::idToleranceMethod
+idToleranceMethod
 MSLockMethod::toleranceMethod() const
 {
     return toleranceMethod_;
@@ -116,13 +116,13 @@ MSLockMethod::setToleranceMethod( idToleranceMethod t )
 double
 MSLockMethod::tolerance( idToleranceMethod t ) const
 {
-    return t == idToleranceMethodDa ? toleranceDa_ : tolerancePpm_;
+    return t == idToleranceDaltons ? toleranceDa_ : tolerancePpm_;
 }
 
 void
 MSLockMethod::setTolerance( idToleranceMethod t, double value )
 {
-    if ( t == idToleranceMethodDa )
+    if ( t == idToleranceDaltons )
         toleranceDa_ = value;
     else 
         tolerancePpm_ = value;

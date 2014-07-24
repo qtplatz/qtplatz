@@ -80,6 +80,7 @@ namespace quan {
         void handleContextMenu( const QPoint& );
         void delAll();
         void delLine();
+        void addLine();
     };
 
 }
