@@ -24,6 +24,12 @@
 
 #include "quansequence.hpp"
 #include <adportable/uuid.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 
 using namespace adcontrols;
 
@@ -58,3 +64,20 @@ QuanSequence::uuid() const
     return uuid_;
 }
 
+//static
+bool
+QuanSequence::archive( std::ostream& os, const QuanSequence& t )
+{
+    portable_binary_oarchive ar( os );
+    ar << t;
+    return true;
+}
+
+//static
+bool
+QuanSequence::restore( std::istream& is, QuanSequence& t )
+{
+    portable_binary_iarchive ar( is );
+    ar >> t;
+    return true;
+}

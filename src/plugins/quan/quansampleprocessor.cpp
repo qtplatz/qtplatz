@@ -291,6 +291,7 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::Mass
             auto afile = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
             writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
             writer->attach< adcontrols::MSPeakInfo >( file, pkInfo, dataproc::Constants::F_MSPEAK_INFO );
+            writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
 
         }
     }
@@ -363,18 +364,18 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
     adcontrols::segment_wrapper<> segs( centroid );
     int fcn = 0;
     for ( auto& fms : segs ) {
-
+        
         auto& info = vPkInfo[ fcn ];
         adcontrols::MSFinder find( tolerance, adcontrols::idFindLargest, adcontrols::idToleranceDaltons );
-
+        
         for ( auto& compound : compounds ) {
             adcontrols::QuanResponse resp;
-
+            
             double exactMass = cformula_->getMonoIsotopicMass( compound.formula() );
-
+            
             size_t idx = find( fms, exactMass );
             if ( idx != adcontrols::MSFinder::npos ) {
-
+                
                 resp.compoundId_ = compound.uniqId();
                 resp.formula( compound.formula() );
                 resp.idx_ = int32_t(idx);

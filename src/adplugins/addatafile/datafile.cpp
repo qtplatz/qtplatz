@@ -39,12 +39,15 @@
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/targeting.hpp>
+#include <adcontrols/quansample.hpp>
+#include <adcontrols/quansequence.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/exception/all.hpp>
 #include <adportable/string.hpp>
 #include <adportable/posix_path.hpp>
 #include <adlog/logger.hpp>
@@ -213,10 +216,18 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
                         
                         any = detail::serializer< adcontrols::Targeting >::deserialize( obuf );
 
+					} else if ( dataType == adcontrols::QuanSample::dataClass() ) {
+                        
+                        any = detail::serializer< adcontrols::QuanSample >::deserialize( obuf );
+
+					} else if ( dataType == adcontrols::QuanSequence::dataClass() ) {
+                        
+                        any = detail::serializer< adcontrols::QuanSequence >::deserialize( obuf );
+
                         
                     } else {
                         ADERROR() << "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType << ")";
-                        throw std::bad_typeid();
+                        BOOST_THROW_EXCEPTION( std::bad_typeid() );
                     }
                 }
             }

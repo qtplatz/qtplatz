@@ -66,6 +66,8 @@ namespace adcontrols {
             , idBracketAverage
         };
 
+        const idAudit& ident() const { return ident_; }
+
         CalibEq equation() const;
         void equation( CalibEq );
         

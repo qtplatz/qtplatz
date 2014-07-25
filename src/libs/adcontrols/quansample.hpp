@@ -29,6 +29,7 @@
 #include "quanresponses.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/serialization/utility.hpp>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -65,6 +66,7 @@ namespace adcontrols {
         ~QuanSample();
         QuanSample();
         QuanSample( const QuanSample& );
+        static const wchar_t * dataClass() { return L"adcontrols::QuanSample"; }
         
         enum QuanSampleType {
             SAMPLE_TYPE_UNKNOWN
@@ -125,6 +127,9 @@ namespace adcontrols {
 
         QuanSample& operator << ( const quan::ISTD& );
         QuanSample& operator << (const QuanResponse&);
+
+        static bool archive( std::ostream&, const QuanSample& );
+        static bool restore( std::istream&, QuanSample& );
 
     private:
         std::wstring name_;

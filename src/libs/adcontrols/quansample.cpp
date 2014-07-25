@@ -24,6 +24,12 @@
 
 #include "quansample.hpp"
 #include <algorithm>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 
 using namespace adcontrols;
 
@@ -192,3 +198,22 @@ QuanSample::operator << ( const QuanResponse& t )
     results_ << t;
     return *this;
 }
+
+//static
+bool
+QuanSample::archive( std::ostream& os, const QuanSample& t )
+{
+    portable_binary_oarchive ar( os );
+    ar << t;
+    return true;
+}
+
+//static
+bool
+QuanSample::restore( std::istream& is, QuanSample& t )
+{
+    portable_binary_iarchive ar( is );
+    ar >> t;
+    return true;
+}
+

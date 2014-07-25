@@ -83,6 +83,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/exception/all.hpp>
 #include <stack>
 #include <fstream>
 #include <QMessageBox>
@@ -236,7 +237,10 @@ Dataprocessor::fetch( portfolio::Folium& folium )
 				if ( att.empty() )
 					fetch( att ); // recursive call make sure for all blongings load up in memory.
 			}
-		} catch ( std::bad_cast& ) {
+		} catch ( boost::exception& ex ) {
+#if defined _DEBUG || DEBUG
+            QMessageBox::information( 0, "Dataprocessor", QString::fromStdString( boost::diagnostic_information( ex ) ) );
+#endif
 		}
 	}
 	return true;

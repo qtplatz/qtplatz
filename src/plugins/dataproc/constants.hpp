@@ -68,6 +68,9 @@ namespace dataproc {
         const wchar_t * const F_CENTROID_SPECTRUM  = L"Centroid Spectrum";
         const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
         const wchar_t * const F_TARGETING          = L"Targeting";
+
+        // shared with Quan
+        const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
     }
 
     enum ProcessType {

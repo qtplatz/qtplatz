@@ -47,6 +47,8 @@ namespace adcontrols {
         QuanSequence();
         QuanSequence( const QuanSequence& );
 
+        static const wchar_t * dataClass() { return L"adcontrols::QuanSequence"; }
+
         typedef QuanSample value_type;
         typedef std::vector< value_type > vector_type;
         typedef std::vector< QuanSample >::iterator iterator_type;
@@ -63,6 +65,9 @@ namespace adcontrols {
 
         const wchar_t * outfile() const { return outfile_.c_str(); }
         void outfile( const wchar_t * file ) { outfile_ = file; }
+
+        static bool archive( std::ostream&, const QuanSequence& );
+        static bool restore( std::istream&, QuanSequence& );
 
     private:
         boost::uuids::uuid uuid_;

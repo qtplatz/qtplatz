@@ -327,10 +327,23 @@ QuanDocument::run()
 
             if ( writer->open() ) {
 
+                writer->drop_table(); // make sure no old data exists
+                if ( !writer->create_table() ) {
+                    QMessageBox::information( 0, "QuanDocument", "Create result table failed" );
+                    return;
+                }
+
                 // deep copy which prepare for a long background process (e.g. chromatogram search...)
                 auto dup = std::make_shared< adcontrols::ProcessMethod >( *procMethod_ );
-                dup ->appendMethod( *quanMethod_ );    // calibration levels, replicates etc...
-                dup ->appendMethod( *quanCompounds_ ); // core of identification
+                dup ->appendMethod( *quanMethod_ );      // write data into QtPlatz filesystem region (for C++)
+                dup ->appendMethod( *quanCompounds_ );   // ibid
+
+                writer->write( *quanSequence_ );         // save into global space in a result file
+                writer->write( *dup );                   // ibid
+
+                writer->insert_table( *quanMethod_ );    // write data into sql table for user query
+                writer->insert_table( *quanCompounds_ ); // write data into sql table for user query
+                writer->insert_table( *quanSequence_ );  // ibid
 
                 auto que = std::make_shared< QuanProcessor >( quanSequence_, dup );
                 exec_.push_back( que );

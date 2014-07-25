@@ -28,18 +28,31 @@
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
 #include <string>
+#include <mutex>
 
-namespace adcontrols { class MassSpectrum; }
+namespace adcontrols { class MassSpectrum; class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds; class QuanMethod; }
 
 namespace quan {
 
     class QuanDataWriter  {
+        QuanDataWriter( const QuanDataWriter& ) = delete;
     public:
         ~QuanDataWriter();
         QuanDataWriter( const std::wstring& path );
 
         bool open();
         adfs::file write( const adcontrols::MassSpectrum& ms, const std::wstring& tittle );
+        adfs::file write( const adcontrols::ProcessMethod& );
+        adfs::file write( const adcontrols::QuanSequence& );
+        adfs::file write( const adcontrols::QuanSample& );
+
+        bool drop_table();
+        bool create_table();
+
+        bool insert_table( const adcontrols::QuanMethod& );
+        bool insert_table( const adcontrols::QuanSequence& );
+        bool insert_table( const adcontrols::QuanCompounds& );
+        bool insert_table( const adcontrols::QuanSample& );
 
         template< class T> adfs::file attach( adfs::file& file, const T& t, const std::wstring& name ) {
             auto afile = file.addAttachment( adfs::create_uuid() );
@@ -52,6 +65,7 @@ namespace quan {
         }
 
     private:
+        std::mutex mutex_;
         std::wstring path_;
         adfs::filesystem fs_;
     };
