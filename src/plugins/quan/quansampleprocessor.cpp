@@ -359,20 +359,20 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
 {
     double tolerance = mtgt.tolerance( adcontrols::idToleranceDaltons );
 
-    adcontrols::MSFinder find( tolerance, adcontrols::idFindLargest, adcontrols::idToleranceDaltons );
-
     adcontrols::segment_wrapper< adcontrols::MSPeakInfo > vPkInfo( pkInfo );
     adcontrols::segment_wrapper<> segs( centroid );
     int fcn = 0;
     for ( auto& fms : segs ) {
+
         auto& info = vPkInfo[ fcn ];
+        adcontrols::MSFinder find( tolerance, adcontrols::idFindLargest, adcontrols::idToleranceDaltons );
 
         for ( auto& compound : compounds ) {
             adcontrols::QuanResponse resp;
 
             double exactMass = cformula_->getMonoIsotopicMass( compound.formula() );
 
-            size_t idx = find( centroid, exactMass );
+            size_t idx = find( fms, exactMass );
             if ( idx != adcontrols::MSFinder::npos ) {
 
                 resp.compoundId_ = compound.uniqId();
@@ -393,7 +393,6 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
             }
         }
         ++fcn;
-        break;
     }
     return false;
 }
