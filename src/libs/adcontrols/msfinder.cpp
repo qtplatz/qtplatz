@@ -25,8 +25,64 @@
 #include "msfinder.hpp"
 #include "massspectrum.hpp"
 #include <algorithm>
+#include <iterator>
 
 using namespace adcontrols;
+
+namespace adcontrols { 
+    namespace detail {
+
+        template< typename It >
+        struct orderd_mass_finder {
+            It beg_;
+            It end_;
+            double tolerance_;
+            std::pair< It, It > range_;
+
+            orderd_mass_finder( It beg, It end, double tolerance )
+                : beg_( beg ), end_( end ), tolerance_( tolerance ), range_( 0, 0 ) {
+            }
+
+            std::pair< size_t, size_t > range() const {
+                return std::make_pair( std::distance( beg_, range_.first ), std::distance( beg_, range_.second ) );
+            }
+
+            inline bool unique() const { return std::distance( range_.first, range_.second ) <= 1;  }
+            inline size_t first() const { return std::distance( beg_, range_.first ); }
+            inline size_t second() const { return std::distance( beg_, range_.second ); } // CAUTION ! -- second may be points 'end' of the array which does not actually exist
+                    
+            size_t closest( double mass ) {
+
+                if ( range_.first && range_.second ) {
+                    auto it = std::min_element( range_.first, range_.second, [&] ( decltype(*range_.first)& a, decltype(*range_.first)& b ){ return std::abs( a - mass ) < std::abs( b - mass ); } );
+                    return std::distance( it, beg_ );
+                }
+
+                return size_t( -1 );
+            };
+
+            bool operator()( double target_mass ) {
+                
+                if ( target_mass < *beg_ || *(end_ - 1) < target_mass )
+                    return false;
+                
+                range_.first = std::lower_bound( beg_, end_, target_mass - tolerance_ );
+                if ( range_.first != end_ ) {
+                    
+                    double d = std::abs( *range_.first - target_mass );
+                    if ( d > tolerance_ )
+                        return false;
+                    
+                    range_.second = std::lower_bound( range_.first, end_, target_mass + tolerance_ ); // next to the last effective point
+
+                    return true;
+
+                }
+                return false;
+            }
+        };
+    }
+}
 
 MSFinder::~MSFinder()
 {
@@ -47,36 +103,31 @@ MSFinder::MSFinder( double width, idFindAlgorithm a, idToleranceMethod w ) : wid
 size_t
 MSFinder::operator()( const MassSpectrum& ms, double mass )
 {
-    const double * begin = ms.getMassArray();
-    const double * end = begin + ms.size();
-    double lMass = (toleranceMethod_ == idToleranceDaltons) ? (mass - width_) : (mass - (mass * width_ / 1.0e6));
-    double hMass = (toleranceMethod_ == idToleranceDaltons) ? (mass + width_) : (mass + (mass * width_ / 1.0e6));
+    double tolerance = (toleranceMethod_ == idToleranceDaltons) ? width_ : (mass * width_ / 1.0e6);
+    
+    detail::orderd_mass_finder<const double *> finder( ms.getMassArray(), ms.getMassArray() + ms.size(), tolerance );
 
-    if ( findAlgorithm_ == idFindLargest ) {
+    if ( finder( mass ) ) {
+        
+        if ( finder.unique() )
+            return finder.first();
+    
+        if ( findAlgorithm_ == idFindLargest ) {
 
-        auto lIt = std::lower_bound( begin, end, lMass );
-        if ( lIt != end && std::abs(*lIt - mass ) < width_) {
-            auto hIt = std::lower_bound( lIt, end, hMass );
+            const double * intens = ms.getIntensityArray();
 
-            auto it = std::max_element( lIt, hIt );
-            return std::distance( begin, it );
+            std::pair< size_t, size_t > range = finder.range();
+            auto it = std::max_element( intens + range.first, intens + range.second );
+
+            return std::distance( intens, it );
+
+        } else if ( findAlgorithm_ == idFindClosest ) {
+
+            return finder.closest( mass );
 
         }
-        return npos;
 
     }
-    else if ( findAlgorithm_ == idFindClosest ) {
-
-        auto it = std::lower_bound( begin, end, mass );
-        if ( lMass <= *it && *it <= hMass ) {
-            if ( it != begin ) {
-                if ( std::abs( *it - mass ) > std::abs( *(it - 1) - mass ) )
-                    --it;
-                return std::distance( begin, it );
-            }
-        }
-    }
-
     return npos;
 }
 
