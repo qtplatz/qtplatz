@@ -124,7 +124,7 @@ MSFinder::operator()( const MassSpectrum& ms, double mass )
         } else if ( findAlgorithm_ == idFindClosest ) {
 
             return finder.closest( mass );
-
+            
         }
 
     }
