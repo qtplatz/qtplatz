@@ -38,6 +38,7 @@ namespace adfs {
 
     class filesystem {
         std::shared_ptr< adfs::sqlite > db_;
+        int format_version_;
     public:
         ~filesystem();
         filesystem();
@@ -52,6 +53,7 @@ namespace adfs {
         file findFile( const folder&, const std::wstring& id );
         std::vector< folder > folders();
         inline sqlite& db() const { return *db_; }
+        int format_version() const;
     };
 
 } // adfs

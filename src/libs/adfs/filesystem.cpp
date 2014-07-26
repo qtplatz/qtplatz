@@ -44,6 +44,7 @@ filesystem::filesystem()
 }
 
 filesystem::filesystem( const filesystem& t ) : db_( t.db_ )
+                                              , format_version_(0)
 {
 }
 
@@ -68,13 +69,19 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
 
     db_.reset( new sqlite() );
     if ( db_->open( filepath.c_str() ) ) {
+
         adfs::stmt sql( *db_ );
+
         if ( page_size )
             sql.exec( ( boost::format( "PRAGMA page_size = %1%" ) % page_size ).str() );
+
         if ( alloc )
             internal::fs::prealloc( *db_, alloc );
-        bool res = internal::fs::format( *db_, filename );
-        return res;
+
+        if ( internal::fs::format( *db_, filename, format_version_ ) ) {
+            sql.exec( "PRAGMA FOREIGN_KEYS = ON" );
+            return true;
+        }
     }
     db_.reset();
 
@@ -89,8 +96,16 @@ filesystem::mount( const wchar_t * filename )
     db_.reset( new sqlite() );
 
     if ( db_->open( filepath.c_str() ) ) {
-        if ( internal::fs::mount( *db_ ) )
+
+        if ( internal::fs::mount( *db_, format_version_ ) ) {
+
+            if ( format_version_ >= 3 ) {
+                adfs::stmt sql( *db_ );
+                sql.exec( "PRAGMA FOREIGN_KEYS = ON" );
+            }
+
             return true;
+        }
     }
 
     db_.reset();

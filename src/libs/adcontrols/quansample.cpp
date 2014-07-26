@@ -51,7 +51,8 @@ QuanSample::QuanSample() : sampleType_( SAMPLE_TYPE_UNKNOWN )
 }
 
 QuanSample::QuanSample( const QuanSample& t )
-    : name_( t.name_ )
+    : sequence_uuid_( t.sequence_uuid_ )
+    , name_( t.name_ )
     , dataType_( t.dataType_ )
     , dataSource_( t.dataSource_ )
     , dataGuid_( t.dataGuid_ )

@@ -63,7 +63,6 @@ MSCalibrateWidget::OnCreate( const adportable::Configuration& )
 void
 MSCalibrateWidget::OnInitialUpdate()
 {
-    ADDEBUG() << "MSCalibrateWidget OnInitialUpdate";
     table_->onInitialUpdate();
     connect( form_, &MSCalibrateForm::addReference, table_, &MSReferenceTable::handleAddReference );
 }

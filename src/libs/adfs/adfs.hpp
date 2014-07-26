@@ -29,10 +29,11 @@
 #include <adfs/folder.hpp>
 #include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
+#include <exception>
 
 namespace adfs {
 
-    class exception {
+    class exception : public std::exception {
     public:
         exception( const std::string& msg, const char * cat ) : message(msg), category(cat) {}
         std::string message;

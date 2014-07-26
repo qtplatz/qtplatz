@@ -34,6 +34,7 @@
 #include <memory>
 #include <vector>
 #include <compiler/disable_dll_interface.h>
+#include <boost/uuid/uuid.hpp>
 
 namespace adcontrols {
 
@@ -86,6 +87,10 @@ namespace adcontrols {
             , GenerateChromatogram
         };
 
+        const boost::uuids::uuid& sequence_uuid() const { return sequence_uuid_; }
+        const int32_t row() const { return rowid_; }
+        void sequence_uuid( boost::uuids::uuid& d, int32_t rowid ) { sequence_uuid_ = d; rowid_ = rowid; }
+
         const wchar_t * name() const;
         void name( const wchar_t * );
 
@@ -132,12 +137,14 @@ namespace adcontrols {
         static bool restore( std::istream&, QuanSample& );
 
     private:
+        boost::uuids::uuid sequence_uuid_;       // points to parement
         std::wstring name_;
         std::wstring dataType_;
         std::wstring dataSource_;                // fullpath for data file + "::" + data node
         std::wstring dataGuid_;                  // data guid on portfolio (for redisplay)
         QuanSampleType sampleType_;
         QuanInlet inletType_;                    // Infusion | Chromatogram
+        int32_t rowid_;                          // row number on sequence
         int32_t level_;                          // 0 for UNK, otherwise >= 1
         int32_t istdId_;                         // id for istd sample (id for myself if this is ISTD)
         double injVol_;                          // conc. for infusion

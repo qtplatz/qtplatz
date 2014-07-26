@@ -27,14 +27,13 @@
 #include "adfs.hpp"
 #include "file.hpp"
 #include "sqlite.hpp"
-#include <boost/format.hpp>
-#include <boost/filesystem.hpp>
-//#include <compiler/disable_unused_parameter.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
-
-#include <boost/tokenizer.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
+#include <boost/format.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/tokenizer.hpp>
 
 #if defined WIN32
 # include "apiwin32.hpp"
@@ -60,8 +59,9 @@ using namespace adfs;
 using namespace adfs::internal;
 
 bool
-fs::format( adfs::sqlite& db, const std::wstring& filename )
+fs::format( adfs::sqlite& db, const std::wstring& filename, int& version )
 {
+    version = 3;
     return format_superblock( db, filename ) && format_directory( db );
 }
 
@@ -77,9 +77,9 @@ fs::format_superblock( adfs::sqlite& db, const std::wstring& filename )
     std::string date = ( boost::format( "%1%" ) % pt ).str();
 
     sql.prepare( "INSERT INTO superblock VALUES(:creator, :name, :magic, :ctime, :create_user)" );
-    sql.bind( 1 ) = std::string("adfs::filesystem version(1.0)"); // creator
+    sql.bind( 1 ) = std::string("adfs::filesystem version(1.3)"); // creator
     sql.bind( 2 ) = filename;  // unicode
-    sql.bind( 3 ) = 0x2011031111301102LL; // 2011.03.11-01 
+    sql.bind( 3 ) = 0x2011031111301100LL + fs::format_version; // 2011.03.11-01 (+3, at 20140726 for foreign key constraings)
     sql.bind( 4 ) = date; // create_date;
     sql.bind( 5 ) = impl::get_login_name<char>(); // mbcs
 
@@ -90,7 +90,7 @@ fs::format_superblock( adfs::sqlite& db, const std::wstring& filename )
 }
 
 bool
-fs::mount( adfs::sqlite& db )
+fs::mount( adfs::sqlite& db, int& version )
 {
     adfs::stmt sql( db );
     sql.prepare( "SELECT creator, magic from superblock" );
@@ -100,8 +100,11 @@ fs::mount( adfs::sqlite& db )
         std::wstring creator = sql.get_column_value<std::wstring>( 0 );
         int64_t magic =sql.get_column_value<int64_t>( 1 );
 
-        if ( magic == 0x2011031111301102LL )
+        if ( (magic & 0xffffffffffffff00LL) == 0x2011031111301100LL ) {
+            version = int( magic - 0x2011031111301100LL );
             return true;
+        }
+
     }
     return false;
 }
@@ -114,28 +117,44 @@ fs::format_directory( adfs::sqlite& db )
 
     adfs::stmt sql( db );
 
-    if ( sql.exec( "CREATE TABLE directory( \
-                    name TEXT \
-                    , parent_id INTEGER \
-                    , type INTEGER \
-                    , ctime DATE \
-                    , mtime DATE \
-                    , hash TEXT \
-                    , attr BLOB \
-                    , UNIQUE( parent_id, name ) )" ) ) {
+    if ( !sql.exec( "\
+CREATE TABLE directory(\
+fileid INTEGER PRIMARY KEY \
+,name TEXT\
+,parent_id INTEGER\
+,type INTEGER \
+,ctime DATE \
+,mtime DATE \
+,hash TEXT \
+,attr BLOB \
+,UNIQUE( parent_id, name ) )" ) ) {
 
-        if ( ! internal::dml::insert_directory( db, type_folder, 0, L"/" ) )
-            throw adfs::exception( "format directory failed: can't insert root directory", "sqlite3" );
         sql.reset();
+        BOOST_THROW_EXCEPTION( adfs::exception( "format directory failed: can't create directory table", "sqlite3" ) );
+
+    }
+
+    if ( ! internal::dml::insert_directory( db, type_folder, 0, L"/" ) ) {
+        sql.reset();
+        BOOST_THROW_EXCEPTION( adfs::exception( "format directory failed: can't insert root directory", "sqlite3" ) );
     }
 
     // fileid can duplicate for attachment
-    return sql.exec( "CREATE TABLE file(\
-                       fileid \
-                     , attr BLOB \
-                     , data BLOB \
-                     , UNIQUE (fileid) \
-                     , FOREIGN KEY(fileid) REFERENCES directory(rowid) )");
+    if ( !sql.exec( "\
+CREATE TABLE file(\
+fileid \
+,attr BLOB \
+,data BLOB \
+,UNIQUE (fileid) \
+,FOREIGN KEY(fileid) REFERENCES directory(fileid) )"   ) ) {
+
+        sql.reset();
+        BOOST_THROW_EXCEPTION( adfs::exception( "format directory failed: can't insert root directory", "sqlite3" ) );             
+    }
+
+    sql.exec( "CREATE INDEX dirindex on directory(name, parent_id)" );
+
+    return true;
 }
 
 bool
@@ -404,8 +423,8 @@ internal::dml::insert_directory( adfs::sqlite& db, dir_type type, int64_t parent
     boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
     std::string date = ( boost::format( "%1%" ) % pt ).str();
 
-    if ( sql.prepare( "INSERT INTO directory VALUES (?,?,?,?,?,NULL,NULL)" ) ) {
-        sql.bind( 1 ) = adportable::utf::to_utf8( name );
+    if ( sql.prepare( "INSERT INTO directory (name,parent_id,type,ctime,mtime) VALUES (?,?,?,?,?)" ) ) {
+        sql.bind( 1 ) = name;
         sql.bind( 2 ) = parent_id; // 
         sql.bind( 3 ) = int64_t( type ); // 1:directory, 2:file
         sql.bind( 4 ) = date;
@@ -421,7 +440,7 @@ internal::dml::select_directory( adfs::sqlite& db, dir_type type, int64_t parent
     adfs::stmt sql( db );
     sql.prepare( "SELECT rowid, type, name, parent_id FROM directory WHERE type = ? AND name = ? AND parent_id = ?" );
     sql.bind( 1 ) = static_cast< int64_t>(type);
-    sql.bind( 2 ) = adportable::utf::to_utf8( name ); // name
+    sql.bind( 2 ) = name; // name
     sql.bind( 3 ) = parent_id;
     if ( sql.step() == adfs::sqlite_row )
         return sql.get_column_value< int64_t >( 0 );
@@ -445,6 +464,54 @@ internal::dml::update_mtime( adfs::stmt& sql, int64_t fileid )
 adfs::file
 internal::dml::insert_file( adfs::sqlite& db, dir_type type, int64_t parentid, const std::wstring& name )
 {
+    //-----> start trial
+    do {
+        boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
+        std::string date = ( boost::format( "%1%" ) % pt ).str();
+
+        adfs::stmt sql( db );
+        // sql.begin();
+
+        // register 'guid (as filename)' into directory
+
+        if ( sql.prepare( "INSERT OR REPLACE INTO directory (name,parent_id,type,ctime,mtime,hash,attr) VALUES (?,?,?,?,?,NULL,NULL)" ) ) {
+            sql.bind( 1 ) = name;
+            sql.bind( 2 ) = parentid; // 
+            sql.bind( 3 ) = int64_t( type ); // 1:directory, 2:file
+            sql.bind( 4 ) = date;
+            sql.bind( 5 ) = date;
+
+            if ( sql.step() == adfs::sqlite_done ) {
+
+                // select rowid instead of fileid, due ot compatibility with V2 format
+                // that does not have fileid primary key on 'directory'
+
+                if ( sql.prepare( "INSERT OR REPLACE INTO file (fileid) SELECT rowid FROM directory WHERE type = ? AND name = ? and parent_id = ?" ) ) {
+                    sql.bind( 1 ) = int64_t( type );
+                    sql.bind( 2 ) = name;
+                    sql.bind( 3 ) = parentid;
+                    if ( sql.step() == adfs::sqlite_done ) {
+                        // sql.commit();
+                        if ( sql.prepare( "SELECT rowid FROM directory WHERE name = ? AND parent_id = ?" ) ) {
+                            sql.bind( 1 ) = name;
+                            sql.bind( 2 ) = parentid;
+                            adfs::sqlite_state rcode = sql.step();
+                            int64_t fileid = 0;
+                            while ( rcode == adfs::sqlite_row ) {
+                                fileid = sql.get_column_value< int64_t >( 0 );
+                                rcode = sql.step();
+                            }
+                            if ( fileid )
+                                return adfs::file( db, fileid, name );
+                        }
+                    }
+                }
+            }
+        }
+    } while(0);
+    
+    //<---- end trial
+
     int64_t fileid(0);
 
     // find or create entry on directory

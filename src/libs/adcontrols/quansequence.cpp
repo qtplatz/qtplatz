@@ -48,7 +48,9 @@ QuanSequence::QuanSequence( const QuanSequence& t ) : uuid_( t.uuid_ ), samples_
 QuanSequence&
 QuanSequence::operator << ( const QuanSample& t )
 {
+    int32_t rowid = int32_t( samples_.size() );
     samples_.push_back( t );
+    samples_.back().sequence_uuid( uuid_, rowid );
     return *this;
 }
 
