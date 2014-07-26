@@ -292,6 +292,7 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::Mass
             writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
             writer->attach< adcontrols::MSPeakInfo >( file, pkInfo, dataproc::Constants::F_MSPEAK_INFO );
             writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
+            writer->insert_table( sample );
 
         }
     }

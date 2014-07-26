@@ -37,7 +37,8 @@ QuanSample::~QuanSample()
 {
 }
 
-QuanSample::QuanSample() : sampleType_( SAMPLE_TYPE_UNKNOWN )
+QuanSample::QuanSample() : rowid_(0)
+                         , sampleType_( SAMPLE_TYPE_UNKNOWN )
                          , inletType_( Infusion )
                          , level_(0)
                          , istdId_(-1)
@@ -52,6 +53,7 @@ QuanSample::QuanSample() : sampleType_( SAMPLE_TYPE_UNKNOWN )
 
 QuanSample::QuanSample( const QuanSample& t )
     : sequence_uuid_( t.sequence_uuid_ )
+    , rowid_( t.rowid_ )
     , name_( t.name_ )
     , dataType_( t.dataType_ )
     , dataSource_( t.dataSource_ )

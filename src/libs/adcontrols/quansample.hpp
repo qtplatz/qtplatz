@@ -133,18 +133,20 @@ namespace adcontrols {
         QuanSample& operator << ( const quan::ISTD& );
         QuanSample& operator << (const QuanResponse&);
 
+        const QuanResponses& results() const { return results_; }
+
         static bool archive( std::ostream&, const QuanSample& );
         static bool restore( std::istream&, QuanSample& );
 
     private:
         boost::uuids::uuid sequence_uuid_;       // points to parement
+        int32_t rowid_;                          // row number on sequence
         std::wstring name_;
         std::wstring dataType_;
         std::wstring dataSource_;                // fullpath for data file + "::" + data node
         std::wstring dataGuid_;                  // data guid on portfolio (for redisplay)
         QuanSampleType sampleType_;
         QuanInlet inletType_;                    // Infusion | Chromatogram
-        int32_t rowid_;                          // row number on sequence
         int32_t level_;                          // 0 for UNK, otherwise >= 1
         int32_t istdId_;                         // id for istd sample (id for myself if this is ISTD)
         double injVol_;                          // conc. for infusion
@@ -158,7 +160,9 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( name_ )
+            ar & BOOST_SERIALIZATION_NVP( sequence_uuid_ )
+                & BOOST_SERIALIZATION_NVP( rowid_ )
+                & BOOST_SERIALIZATION_NVP( name_ )
                 & BOOST_SERIALIZATION_NVP( dataSource_ )
                 & BOOST_SERIALIZATION_NVP( dataType_ )
                 & BOOST_SERIALIZATION_NVP( dataGuid_ )

@@ -47,5 +47,6 @@ QuanResponse::QuanResponse( const QuanResponse& t) : idx_(t.idx_)
                                                    , amounts_(t.amounts_)
                                                    , mass_(t.mass_)
                                                    , tR_(t.tR_)
+                                                   , formula_( t.formula_ )
 {
 }
