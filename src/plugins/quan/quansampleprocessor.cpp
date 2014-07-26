@@ -198,7 +198,7 @@ size_t
 QuanSampleProcessor::read_next_spectrum( size_t pos, const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& ms )
 {
     int idx, fcn, rep;
-    while( raw->index( pos, idx, fcn, rep ) && fcn != 0 && rep != 0 ) // find next protocol=0 aligned data
+    while ( raw->index( pos, idx, fcn, rep ) && (fcn != 0 || rep != 0) ) // find next protocol=0 aligned data
         ++pos;
     if ( fcn == 0 && rep == 0 ) {
         if ( raw->index( pos + 1, idx, fcn, rep ) ) 
@@ -233,7 +233,7 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
 
     adcontrols::MassSpectrum a;
     while ( pos && range.first++ < range.second ) {
-        if ( ( pos = read_next_spectrum( pos, raw, ms ) ) )
+        if ( (pos = read_next_spectrum( pos, raw, a )) )
             ms += a;
     }
     return true;
