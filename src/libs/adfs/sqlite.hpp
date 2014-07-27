@@ -29,6 +29,7 @@
 #include <compiler/workaround.h>
 #include <string>
 #include <cstdint>
+#include <functional>
 
 struct sqlite3;
 struct sqlite3_stmt;
@@ -44,6 +45,7 @@ namespace adfs {
 
     class sqlite : boost::noncopyable {
         sqlite3 * db_;
+        std::function< void( const char *) > error_handler_;
     public:
         ~sqlite();
         sqlite();
@@ -54,6 +56,8 @@ namespace adfs {
         bool open( const char * path );
         bool open( const char * path, adfs::flags );
         bool close();
+        void error_message( const char * msg );
+        void register_error_handler( std::function<void( const char * )> );
     };
 
     class blob {

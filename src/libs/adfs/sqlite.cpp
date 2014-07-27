@@ -77,6 +77,19 @@ sqlite::sqlite() : db_(0)
 {
 }
 
+void
+sqlite::register_error_handler( std::function< void(const char * )> f )
+{
+    error_handler_ = f;
+}
+
+void
+sqlite::error_message( const char * msg )
+{
+    if ( error_handler_ )
+        error_handler_( msg );
+}
+
 bool
 sqlite::open( const wchar_t * path )
 {
@@ -136,6 +149,7 @@ stmt::begin()
         transaction_active_ = true;
         return true;
     }
+    sqlite_.error_message( msg.p );
     detail::error_log::log( "BEGIN DEFERRED", msg.p );
     return false;
 }
@@ -147,6 +161,7 @@ stmt::commit()
     transaction_active_ = false;
     if ( sqlite3_exec( sqlite_, "COMMIT", callback, 0, msg ) == SQLITE_OK )
         return true;
+    sqlite_.error_message( msg.p );
     detail::error_log::log( "COMMIT", msg.p );
     return false;
 }
@@ -158,6 +173,7 @@ stmt::rollback()
     transaction_active_ = false;
     if ( sqlite3_exec( sqlite_, "ROLLBACK", callback, 0, msg ) == SQLITE_OK )
         return true;
+    sqlite_.error_message( msg.p );
     detail::error_log::log( "ROOLBACK", msg.p );
     return false;
 }
@@ -169,6 +185,7 @@ stmt::exec( const std::string& sql )
     if ( sqlite3_exec( sqlite_, sql.c_str(), callback, 0, msg ) == SQLITE_OK )
         return true;
     detail::error_log::log( sql, msg.p );
+    sqlite_.error_message( msg.p );
     return false;
 }
 
@@ -188,6 +205,7 @@ stmt::prepare( const std::string& sql )
     if ( sqlite3_prepare_v2( sqlite_, sql.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
         return true;
     detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ) );
+    sqlite_.error_message( sqlite3_errmsg( sqlite_ ) );
     return false;
 }
 
@@ -206,6 +224,7 @@ stmt::prepare( const std::wstring& sql )
     if ( sqlite3_prepare_v2( sqlite_, utf8.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
         return true;
     detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ) );
+    sqlite_.error_message( sqlite3_errmsg( sqlite_ ) );
     return false;
 }
 
@@ -232,6 +251,7 @@ stmt::step()
     default: break;
     }
     detail::error_log::log( "", sqlite3_errmsg( sqlite_ ) );
+    sqlite_.error_message( sqlite3_errmsg( sqlite_ ) );
     return sqlite_error;
 }
 
