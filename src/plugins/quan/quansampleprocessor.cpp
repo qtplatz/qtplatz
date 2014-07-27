@@ -79,9 +79,16 @@ QuanSampleProcessor::QuanSampleProcessor( QuanProcessor * processor
                                         , samples_( samples )
                                         , procmethod_( processor->procmethod() )
                                         , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
+                                        , processor_( processor->shared_from_this() )
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
+}
+
+QuanProcessor *
+QuanSampleProcessor::processor()
+{
+    return processor_.get();
 }
 
 bool
@@ -122,7 +129,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             break;
         }
     }
-    QuanDocument::instance()->completed( this );
+    QuanDocument::instance()->sample_processed( this );
     return true;
 }
 
@@ -363,8 +370,15 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
 
     adcontrols::segment_wrapper< adcontrols::MSPeakInfo > vPkInfo( pkInfo );
     adcontrols::segment_wrapper<> segs( centroid );
+
+    int channel = sample.channel();
     int fcn = 0;
     for ( auto& fms : segs ) {
+
+        if ( channel != 0 && fcn != (channel - 1) ) {
+            ++fcn;
+            continue;
+        }
         
         auto& info = vPkInfo[ fcn ];
         adcontrols::MSFinder find( tolerance, adcontrols::idFindLargest, adcontrols::idToleranceDaltons );

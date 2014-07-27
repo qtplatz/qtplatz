@@ -22,40 +22,35 @@
 **
 **************************************************************************/
 
-#ifndef QUANREPORTWIDGET_HPP
-#define QUANREPORTWIDGET_HPP
+#ifndef QUANCONNECTION_HPP
+#define QUANCONNECTION_HPP
 
-#include <QWidget>
 #include <memory>
+#include <string>
+#include <vector>
+#include <boost/variant.hpp>
+#include <adfs/sqlite.hpp>
 
-class QGridLayout;
+namespace adfs { class filesystem; class stmt; class sqlite; }
 
 namespace quan {
 
-    class QuanQueryForm;
-    class QuanResultTable;
+    class QuanQuery;
 
-    class QuanReportWidget : public QWidget  {
-        Q_OBJECT
+    class QuanConnection : public std::enable_shared_from_this < QuanConnection > {
+        QuanConnection( const QuanConnection& ) = delete;
     public:
-        ~QuanReportWidget();
-        explicit QuanReportWidget(QWidget *parent = 0);
+        QuanConnection();
+        ~QuanConnection();
+
+        bool connect( const std::wstring& database );
+        std::shared_ptr< QuanQuery > query();
+
     private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanQueryForm > form_;
-        std::unique_ptr< QuanResultTable > table_;
-
-        void executeQuery();
-        void execSQL( const QString& );
-
-    signals:
-
-    public slots:
-
-    private slots:
-        void report( const QString& );
+        std::wstring filename_;
+        std::shared_ptr< adfs::filesystem > fs_;
     };
 
 }
 
-#endif // QUANREPORTWIDGET_HPP
+#endif // QUANCONNECTION_HPP

@@ -22,40 +22,37 @@
 **
 **************************************************************************/
 
-#ifndef QUANREPORTWIDGET_HPP
-#define QUANREPORTWIDGET_HPP
+#ifndef QUANRESULTTABLE_HPP
+#define QUANRESULTTABLE_HPP
 
-#include <QWidget>
+#include <adwidgets/tableview.hpp>
 #include <memory>
 
-class QGridLayout;
+class QStandardItemModel;
 
 namespace quan {
 
-    class QuanQueryForm;
-    class QuanResultTable;
+    class QuanQuery;
 
-    class QuanReportWidget : public QWidget  {
+    class QuanResultTable : public adwidgets::TableView  {
         Q_OBJECT
     public:
-        ~QuanReportWidget();
-        explicit QuanReportWidget(QWidget *parent = 0);
-    private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanQueryForm > form_;
-        std::unique_ptr< QuanResultTable > table_;
+        explicit QuanResultTable(QWidget *parent = 0);
 
-        void executeQuery();
-        void execSQL( const QString& );
+        void prepare( const QuanQuery& );
+        void addRecord( const QuanQuery& );
+
+        QSize sizeHint() const override { return QSize( 900, 900 ); }
+
+    private:
+        std::unique_ptr< QStandardItemModel > model_;
 
     signals:
 
     public slots:
 
-    private slots:
-        void report( const QString& );
     };
 
 }
 
-#endif // QUANREPORTWIDGET_HPP
+#endif // QUANRESULTTABLE_HPP

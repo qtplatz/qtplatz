@@ -33,6 +33,8 @@
 #include <compiler/disable_unused_variable.h>
 #include <boost/noncopyable.hpp>
 #include <boost/filesystem.hpp>
+#include <locale>
+#include <codecvt>
 
 namespace adfs {
 
@@ -52,6 +54,13 @@ namespace adfs {
 				ADDEBUG() << sql << "\terror : " << msg;
             }
         };
+    };
+
+    template<class Facet>
+    struct deletable_facet : Facet {
+        template<class ...Args>
+        deletable_facet( Args&& ...args) : Facet(std::forward<Args>(args)...) {}
+        ~deletable_facet() {}
     };
 
 } // adfs
@@ -185,8 +194,16 @@ stmt::prepare( const std::string& sql )
 bool
 stmt::prepare( const std::wstring& sql )
 {
-    const wchar_t * tail = 0;
-    if ( sqlite3_prepare16_v2( sqlite_, sql.c_str(), -1, &stmt_, reinterpret_cast< const void ** >(&tail) ) == SQLITE_OK )
+    //std::codecvt_utf16<wchar_t> cvt;
+
+//    if ( sqlite3_prepare16_v2( sqlite_, sql.c_str(), -1, &stmt_, reinterpret_cast<const void **>(&tail) ) == SQLITE_OK )
+    //return true;
+
+    std::wstring_convert< deletable_facet<std::codecvt<wchar_t, char, std::mbstate_t> >, wchar_t> convert;
+    auto utf8 = convert.to_bytes( sql );
+
+    const char * tail = 0;
+    if ( sqlite3_prepare_v2( sqlite_, utf8.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
         return true;
     detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ) );
     return false;
@@ -324,7 +341,7 @@ namespace adfs {
             return sqlite3_bind_zeroblob( stmt_, nnn_, blob.size() ) == SQLITE_OK;
     }
 
-    template<> std::string stmt::get_column_value( int nCol )
+    template<> std::string stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
@@ -333,7 +350,7 @@ namespace adfs {
         throw std::bad_cast();
     }
 
-    template<> std::wstring stmt::get_column_value( int nCol )
+    template<> std::wstring stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
@@ -342,28 +359,28 @@ namespace adfs {
         throw std::bad_cast();
     }
 
-    template<> double stmt::get_column_value( int nCol )
+    template<> double stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_FLOAT )
             return sqlite3_column_double( stmt_, nCol );
         throw std::bad_cast();
     }
 
-    template<> int64_t stmt::get_column_value( int nCol )
+    template<> int64_t stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
             return sqlite3_column_int64( stmt_, nCol );
         throw std::bad_cast();
     }
 
-    template<> uint64_t stmt::get_column_value( int nCol )
+    template<> uint64_t stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
             return sqlite3_column_int64( stmt_, nCol );
         throw std::bad_cast();
     }
 
-    template<> blob stmt::get_column_value( int nCol )
+    template<> blob stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_BLOB )
             return blob();
@@ -374,17 +391,23 @@ namespace adfs {
 
 //-------------
 int
-stmt::column_count()
+stmt::column_count() const
 {
     return sqlite3_column_count( stmt_ );
 }
 
 int
-stmt::column_type( int nCol )
+stmt::column_type( int nCol ) const
 {
     std::string decl = sqlite3_column_decltype( stmt_, nCol );
     (void)decl;
     return sqlite3_column_type( stmt_, nCol );
+}
+
+std::string
+stmt::column_name( int nCol ) const
+{
+    return sqlite3_column_name( stmt_, nCol );
 }
 
 // column_value_type

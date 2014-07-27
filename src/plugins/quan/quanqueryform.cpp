@@ -22,40 +22,42 @@
 **
 **************************************************************************/
 
-#ifndef QUANREPORTWIDGET_HPP
-#define QUANREPORTWIDGET_HPP
+#include "quanqueryform.hpp"
+#include "ui_quanqueryform.h"
 
-#include <QWidget>
-#include <memory>
+using namespace quan;
 
-class QGridLayout;
-
-namespace quan {
-
-    class QuanQueryForm;
-    class QuanResultTable;
-
-    class QuanReportWidget : public QWidget  {
-        Q_OBJECT
-    public:
-        ~QuanReportWidget();
-        explicit QuanReportWidget(QWidget *parent = 0);
-    private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanQueryForm > form_;
-        std::unique_ptr< QuanResultTable > table_;
-
-        void executeQuery();
-        void execSQL( const QString& );
-
-    signals:
-
-    public slots:
-
-    private slots:
-        void report( const QString& );
-    };
-
+QuanQueryForm::QuanQueryForm(QWidget *parent) :  QWidget(parent)
+                                              , ui(new Ui::QuanQueryForm)
+{
+    ui->setupUi(this);
 }
 
-#endif // QUANREPORTWIDGET_HPP
+QuanQueryForm::~QuanQueryForm()
+{
+    delete ui;
+}
+
+void
+QuanQueryForm::setSQL( const QString& t )
+{
+    ui->plainTextEdit->clear();
+    ui->plainTextEdit->insertPlainText( t );
+}
+
+QString
+QuanQueryForm::sql() const
+{
+    return ui->plainTextEdit->toPlainText();
+}
+
+void 
+QuanQueryForm::on_plainTextEdit_textChanged()
+{
+}
+
+void 
+QuanQueryForm::on_pushButton_pressed()
+{
+    emit triggerQuery( ui->plainTextEdit->toPlainText() );
+}

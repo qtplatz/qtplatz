@@ -22,40 +22,57 @@
 **
 **************************************************************************/
 
-#ifndef QUANREPORTWIDGET_HPP
-#define QUANREPORTWIDGET_HPP
+#include "quanquery.hpp"
+#include <adfs/sqlite.hpp>
+#include <adfs/sqlite3.h>
 
-#include <QWidget>
-#include <memory>
+using namespace quan;
 
-class QGridLayout;
-
-namespace quan {
-
-    class QuanQueryForm;
-    class QuanResultTable;
-
-    class QuanReportWidget : public QWidget  {
-        Q_OBJECT
-    public:
-        ~QuanReportWidget();
-        explicit QuanReportWidget(QWidget *parent = 0);
-    private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanQueryForm > form_;
-        std::unique_ptr< QuanResultTable > table_;
-
-        void executeQuery();
-        void execSQL( const QString& );
-
-    signals:
-
-    public slots:
-
-    private slots:
-        void report( const QString& );
-    };
-
+QuanQuery::QuanQuery( adfs::sqlite& db ) : sql_( db )
+{
 }
 
-#endif // QUANREPORTWIDGET_HPP
+QuanQuery::QuanQuery( const QuanQuery& t ) : sql_( t.sql_ )
+{
+}
+
+bool
+QuanQuery::prepare( std::wstring& sql )
+{
+    sql_.reset();
+    return sql_.prepare( sql );
+}
+
+adfs::sqlite_state
+QuanQuery::step()
+{
+    state_ = sql_.step();
+    return state_;
+}
+
+size_t
+QuanQuery::column_count() const
+{
+    return sql_.column_count();
+}
+
+QString
+QuanQuery::column_name( size_t idx ) const
+{
+    std::string name = sql_.column_name( int( idx ) );
+    return QString::fromStdString( name );
+}
+
+QVariant
+QuanQuery::column_value( size_t idx ) const
+{
+    switch ( sql_.column_type( int( idx ) ) ) {
+    case SQLITE_INTEGER: return QVariant( sql_.get_column_value< int64_t >( int( idx ) ) );
+    case SQLITE_FLOAT:   return QVariant( sql_.get_column_value< double >( int( idx ) ) );
+    case SQLITE_TEXT:    return QVariant( QString( sql_.get_column_value< std::string >( int( idx ) ).c_str() ) );
+    case SQLITE_BLOB:
+    case SQLITE_NULL:    return QVariant();
+    }
+    return QVariant();
+}
+

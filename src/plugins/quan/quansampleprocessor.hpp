@@ -60,6 +60,7 @@ namespace quan {
 
         QuanSampleProcessor( QuanProcessor *, std::vector< adcontrols::QuanSample >& );
         bool operator()( std::shared_ptr< QuanDataWriter > writer );
+        QuanProcessor * processor();
         
     private:
         std::wstring path_;
@@ -67,8 +68,9 @@ namespace quan {
         std::vector< adcontrols::QuanSample > samples_;
         std::shared_ptr< adcontrols::datafile > datafile_;
         std::shared_ptr< portfolio::Portfolio > portfolio_;
-        std::shared_ptr< adcontrols::ChemicalFormula > cformula_;
         const std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
+        std::shared_ptr< adcontrols::ChemicalFormula > cformula_;
+        std::shared_ptr< QuanProcessor > processor_;
 
         void open();
         bool subscribe( const adcontrols::LCMSDataset& d ) override;
@@ -80,6 +82,7 @@ namespace quan {
         size_t read_next_spectrum( size_t pos, const adcontrols::LCMSDataset *, adcontrols::MassSpectrum& );
 
         void processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer );
+        QuanProcessor * quanProcessor();
 
         static bool doCentroid( adcontrols::MSPeakInfo& pkInfo
                                 , adcontrols::MassSpectrum& res

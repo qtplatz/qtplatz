@@ -22,40 +22,38 @@
 **
 **************************************************************************/
 
-#ifndef QUANREPORTWIDGET_HPP
-#define QUANREPORTWIDGET_HPP
+#ifndef QUANQUERYFORM_HPP
+#define QUANQUERYFORM_HPP
 
 #include <QWidget>
-#include <memory>
-
-class QGridLayout;
 
 namespace quan {
+    namespace Ui {
+        class QuanQueryForm;
+    }
 
-    class QuanQueryForm;
-    class QuanResultTable;
-
-    class QuanReportWidget : public QWidget  {
+    class QuanQueryForm : public QWidget
+    {
         Q_OBJECT
+
     public:
-        ~QuanReportWidget();
-        explicit QuanReportWidget(QWidget *parent = 0);
-    private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanQueryForm > form_;
-        std::unique_ptr< QuanResultTable > table_;
+        explicit QuanQueryForm(QWidget *parent = 0);
+        ~QuanQueryForm();
 
-        void executeQuery();
-        void execSQL( const QString& );
-
-    signals:
-
-    public slots:
+        void setSQL( const QString& t);
+        QString sql() const;
+        QSize sizeHint() const override { return QSize( 40, 600 ); }
 
     private slots:
-        void report( const QString& );
-    };
+        void on_plainTextEdit_textChanged();
+        void on_pushButton_pressed();
 
+    signals:
+        void triggerQuery( const QString& );
+
+    private:
+        Ui::QuanQueryForm *ui;
+    };
 }
 
-#endif // QUANREPORTWIDGET_HPP
+#endif // QUANQUERYFORM_HPP

@@ -111,11 +111,13 @@ namespace adfs {
         bind_item bind( int );
         bind_item bind( const std::string& );
 
-        int column_count();
-        int column_type( int );
+        int column_count() const;
+        int column_type( int ) const;
+        std::string column_name( int ) const;
+        std::wstring wcolumn_name( int ) const;
 
         // column_value_type column_value( int );
-        template<typename T> T get_column_value( int );
+        template<typename T> T get_column_value( int ) const;
 
     private:
         sqlite& sqlite_;

@@ -35,7 +35,7 @@
 #include <vector>
 #include <QObject>
 
-namespace adcontrols { class QuanMethod; class QuanCompounds; class QuanSequence; class QuanSample; class ProcessMethod; }
+namespace adcontrols { class QuanMethod; class QuanCompounds; class QuanSequence; class QuanSample; class ProcessMethod; class QuanProcessor; }
 namespace boost { namespace filesystem { class path; } }
 
 namespace quan {
@@ -45,6 +45,7 @@ namespace quan {
     class PanelData;
     class QuanSampleProcessor;
     class QuanProcessor;
+    class QuanConnection;
 
     enum idMethod { idQuanMethod, idQuanCompounds, idQuanSequence, idProcMethod, idSize };
 
@@ -78,6 +79,9 @@ namespace quan {
         void register_dataChanged( std::function< void( int, bool ) > );
         void setResultFile( const std::wstring& );
 
+        void setConnection( QuanConnection * );
+        QuanConnection * connection();
+
         void run();
         void stop();
 
@@ -96,8 +100,8 @@ namespace quan {
         void onInitialUpdate();
         void onFinalClose();
 
-        void handle_completed( QuanSampleProcessor * );
-        void completed( QuanSampleProcessor * );
+        void handle_processed( QuanSampleProcessor * );
+        void sample_processed( QuanSampleProcessor * );
 
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
@@ -108,6 +112,7 @@ namespace quan {
         std::shared_ptr< adcontrols::QuanCompounds > quanCompounds_;
         std::shared_ptr< adcontrols::QuanSequence > quanSequence_;
         std::shared_ptr< adcontrols::ProcessMethod > procMethod_;
+        std::shared_ptr< QuanConnection > quanConnection_;
 
         std::vector< std::function< void( int, bool ) > > clients_;
 
@@ -123,7 +128,8 @@ namespace quan {
         bool save_default_methods();
         bool load_default_methods();
     signals:
-        void onCompleted( QuanSampleProcessor * );
+        void onProcessed( QuanSampleProcessor * );
+        void onReportTriggered( const QString& );
     };
 }
 

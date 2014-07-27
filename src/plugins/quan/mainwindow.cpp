@@ -145,6 +145,12 @@ MainWindow::createContents( Core::IMode * )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
         }
+        if ( auto widget = new QWidget ) {
+            auto data = std::make_shared< PanelData >( "Reports"
+                                                       , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
+                                                       , widget );
+            panelsWidget->addPanel( data.get() );
+        }
         
         stack_->addWidget( panelsWidget );
     }

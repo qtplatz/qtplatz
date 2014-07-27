@@ -77,6 +77,7 @@ namespace quan {
             , c_sample_type     // standard | unknown | QC
             , c_process         // chromaotgram generation | 
             , c_level
+            , c_channel
             , c_description
             , number_of_columns
         };
@@ -216,7 +217,7 @@ namespace quan {
 
         struct Infusion {
 
-            static void setRow( QStandardItemModel& model, int row, const QString& data_type, const QModelIndex& parent = QModelIndex()) {
+            static void setRow( QStandardItemModel& model, int row, const QString& data_type, const QModelIndex& parent = QModelIndex(), int ch = 0 ) {
                 model.itemFromIndex( model.index( row, c_datafile, parent ) )->setEditable( false ); // not editable
                 model.setData( model.index( row, c_data_type, parent ), data_type );
                 model.itemFromIndex( model.index( row, c_data_type, parent ) )->setEditable( false );
@@ -227,6 +228,7 @@ namespace quan {
                     model.setData( model.index( row, c_process, parent ), "Average all" );
                     if ( parent != QModelIndex() )
                         model.itemFromIndex( model.index( row, c_sample_type, parent ) )->setEditable( false );
+                    model.setData( model.index( row, c_channel, parent ), ch );
                 } else if ( data_type == "spc" ) {
                     model.setData( model.index( row, c_process, parent ), "AS IS" );
                 }
@@ -255,6 +257,8 @@ namespace quan {
                 case adcontrols::QuanSample::SAMPLE_TYPE_BLANK:   sample_type_string = "BLANK"; break;
                 }
                 model.setData( model.index( row, c_sample_type, parent ), sample_type_string );
+                model.setData( model.index( row, c_channel, parent ), sample.channel() );
+                model.setData( model.index( row, c_level, parent ), sample.level() );
 
                 if ( sample.dataGeneration() == adcontrols::QuanSample::ASIS ) {
                     model.setData( model.index( row, c_process, parent ), "AS IS" );
@@ -290,12 +294,13 @@ DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
     
     QStandardItemModel& model = *model_;
     model.setColumnCount( number_of_columns );
-    model.setHeaderData( c_datafile, Qt::Horizontal, tr("Data name") );  // read only
-    model.setHeaderData( c_data_type, Qt::Horizontal, tr("Data type") ); // read only
-    model.setHeaderData( c_sample_type, Qt::Horizontal, tr("Sample type") ); // UNK/STD/QC
-    model.setHeaderData( c_process, Qt::Horizontal, tr("Spectrum method") ); // Average (start,end)
-    model.setHeaderData( c_level, Qt::Horizontal, tr("Level") );             // if standard
-    model.setHeaderData( c_description, Qt::Horizontal, tr("Description") );             // if standard
+    model.setHeaderData( c_datafile, Qt::Horizontal, tr("Data name") );       // read only
+    model.setHeaderData( c_data_type, Qt::Horizontal, tr("Data type") );      // read only
+    model.setHeaderData( c_sample_type, Qt::Horizontal, tr("Sample type") );  // UNK/STD/QC
+    model.setHeaderData( c_process, Qt::Horizontal, tr("Spectrum method") );  // Average (start,end)
+    model.setHeaderData( c_level, Qt::Horizontal, tr("Level") );              // if standard
+    model.setHeaderData( c_channel, Qt::Horizontal, tr("ch#") );              // data channel (usually same as protocol#, but depends)
+    model.setHeaderData( c_description, Qt::Horizontal, tr("Description") );  // if standard
 
     connect( this, &DataSequenceTree::onJoin, this, &DataSequenceTree::handleJoin );
 
@@ -350,14 +355,23 @@ DataSequenceTree::handleValueChanged( const QModelIndex& index )
     QStandardItemModel& model = *model_;
 
     if ( index.column() == c_sample_type ) {
+
+        int level = 0;
+        if ( index.data().toString() == "STD" ) {
+            if ( (level = model.index( index.row(), c_level, index.parent() ).data().toInt()) == 0 )
+                level = 1;
+            // Level for STD must be 1 or grater; UNK/QC must be zero
+            model.setData( model.index( index.row(), c_level, index.parent() ), level ); 
+        }
+        
         if ( index.parent() == QModelIndex() ) {
             auto parent = model.item( index.row() );
             for ( int row = 0; row < parent->rowCount(); ++row ) {
                 model.setData( model.index( row, c_sample_type, parent->index() ), index.data() );
+                model.setData( model.index( row, c_level, parent->index() ), level );  // set parent's level
             }
         }
     }
-    // QStandardItemModel& model = *model_;
 }
 
 void
@@ -462,8 +476,8 @@ DataSequenceTree::setRaw( dataSubscriber * data, QStandardItem * parent )
             parent->setColumnCount( number_of_columns );
 
             for ( int fcn = 0; fcn < n; ++fcn ) {
-                model.setData( model.index( fcn, c_datafile, parent->index() ),  QString( "Raw trace %1" ).arg( fcn + 1 ), Qt::EditRole );
-                Infusion::setRow( model, fcn, "raw", parent->index() );
+                model.setData( model.index( fcn, c_datafile, parent->index() ),  QString( "Fcn# %1" ).arg( fcn + 1 ), Qt::EditRole );
+                Infusion::setRow( model, fcn, "raw", parent->index(), fcn + 1 );
             }
             
             if ( data->ms() ) {
@@ -519,7 +533,7 @@ DataSequenceTree::getContents( adcontrols::QuanSequence& seq )
     for ( int row = 0; row < model.rowCount(); ++row ) {
         auto parent = model.item( row, c_datafile );
         std::wstring datafile = parent->data( Qt::EditRole ).toString().toStdWString();
-                
+
         for ( int subRow = 0; subRow < parent->rowCount(); ++subRow ) {
 
             adcontrols::QuanSample sample;
@@ -540,6 +554,12 @@ DataSequenceTree::getContents( adcontrols::QuanSequence& seq )
             else if ( samp_type == L"BLANK" )
                 sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_BLANK );
 
+            int channel = model.index( subRow, c_channel, parent->index() ).data().toInt();
+            sample.channel( channel );
+
+            int level = model.index( subRow, c_level, parent->index() ).data().toInt();
+            sample.level( level );
+            
             std::wstring process = model.index( subRow, c_process, parent->index() ).data().toString().toStdWString();
             if ( process == L"Average all" ) {
                 sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
@@ -562,10 +582,6 @@ DataSequenceTree::getContents( adcontrols::QuanSequence& seq )
             }
             
             seq << sample;
-            //qDebug() << "data_type: " << model.index( subRow, c_data_type, parent->index() ).data().toString();
-            //qDebug() << "sample_type: " << model.index( subRow, c_sample_type, parent->index() ).data().toString();
-            qDebug() << "process: " << model.index( subRow, c_process, parent->index() ).data().toString();
-            qDebug() << "level: " << model.index( subRow, c_level, parent->index() ).data().toString();
         }
     }
     return true;

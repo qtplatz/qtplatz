@@ -22,40 +22,34 @@
 **
 **************************************************************************/
 
-#ifndef QUANREPORTWIDGET_HPP
-#define QUANREPORTWIDGET_HPP
+#ifndef QUANQUERY_HPP
+#define QUANQUERY_HPP
 
-#include <QWidget>
 #include <memory>
-
-class QGridLayout;
+#include <adfs/sqlite.hpp>
+#include <QString>
+#include <QVariant>
 
 namespace quan {
 
-    class QuanQueryForm;
-    class QuanResultTable;
-
-    class QuanReportWidget : public QWidget  {
-        Q_OBJECT
+    class QuanQuery : public std::enable_shared_from_this< QuanQuery > {
     public:
-        ~QuanReportWidget();
-        explicit QuanReportWidget(QWidget *parent = 0);
+        QuanQuery( adfs::sqlite& );
+        QuanQuery( const QuanQuery& );
+
+        bool prepare( std::wstring& sql );
+        adfs::sqlite_state step();
+
+        size_t column_count() const;
+
+        QString column_name( size_t idx ) const;
+        QVariant column_value( size_t idx ) const;
+            
     private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanQueryForm > form_;
-        std::unique_ptr< QuanResultTable > table_;
-
-        void executeQuery();
-        void execSQL( const QString& );
-
-    signals:
-
-    public slots:
-
-    private slots:
-        void report( const QString& );
+        adfs::sqlite_state state_;
+        adfs::stmt sql_;
     };
 
 }
 
-#endif // QUANREPORTWIDGET_HPP
+#endif // QUANQUERY_HPP

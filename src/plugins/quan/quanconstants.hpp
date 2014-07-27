@@ -47,6 +47,8 @@ namespace Constants {
     const char * const editQuanMethodFilename = "editQuanMethodFilename";
     const char * const editCompoundsFilename  = "editCompoundsFilename";
     const char * const editOutfile            = "editOutfile";
+    const char * const editQuanFilename       = "editQuanFilename";
+    const char * const editSQLFilename        = "editSQLFilename";
 
 } // namespace quan
 } // namespace Constants

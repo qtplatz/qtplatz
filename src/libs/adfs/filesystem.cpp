@@ -39,12 +39,12 @@ filesystem::~filesystem()
     close();
 }
 
-filesystem::filesystem()
+filesystem::filesystem() : format_version_(0)
 {
 }
 
 filesystem::filesystem( const filesystem& t ) : db_( t.db_ )
-                                              , format_version_(0)
+                                              , format_version_(t.format_version_)
 {
 }
 

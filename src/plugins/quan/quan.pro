@@ -25,7 +25,11 @@ SOURCES += quanplugin.cpp \
     quansampleprocessor.cpp \
     processmethodwidget.cpp \
     quanreportwidget.cpp \
-    quanprocessor.cpp
+    quanprocessor.cpp \
+    quanresulttable.cpp \
+    quanqueryform.cpp \
+    quanconnection.cpp \
+    quanquery.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
@@ -46,7 +50,11 @@ HEADERS += quanplugin.hpp \
     quansampleprocessor.hpp \
     processmethodwidget.hpp \
     quanreportwidget.hpp \
-    quanprocessor.hpp
+    quanprocessor.hpp \
+    quanresulttable.hpp \
+    quanqueryform.hpp \
+    quanconnection.hpp \
+    quanquery.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \
@@ -80,4 +88,5 @@ RESOURCES += \
 FORMS += \
     doubletabwidget.ui \
     dataselectionform.ui \
-    quanconfigform.ui
+    quanconfigform.ui \
+    quanqueryform.ui
