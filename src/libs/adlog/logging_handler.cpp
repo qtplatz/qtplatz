@@ -30,7 +30,7 @@
 
 using namespace adlog;
 
-std::atomic<logging_handler * > logging_handler::instance_ = 0;
+std::atomic<logging_handler * > logging_handler::instance_(0); // = 0
 std::mutex logging_handler::mutex_;
 
 logging_handler::logging_handler()

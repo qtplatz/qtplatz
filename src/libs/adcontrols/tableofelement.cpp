@@ -426,7 +426,7 @@ namespace adcontrols {
 ///////////////////////////////
 ////////////////////////
 
-std::atomic<TableOfElement * > TableOfElement::instance_ = 0;
+std::atomic<TableOfElement * > TableOfElement::instance_( 0 );
 std::mutex TableOfElement::mutex_;
 
 TableOfElement::~TableOfElement()

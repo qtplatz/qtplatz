@@ -35,6 +35,7 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace adcontrols {

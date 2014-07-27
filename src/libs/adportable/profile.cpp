@@ -123,6 +123,9 @@ namespace adportable { namespace detail {
 #else
 	struct posixapi {
 		template<class char_type> static std::basic_string<char_type> user_data_dir();
+        template<class char_type> static std::basic_string<char_type> user_login_name();
+        template<class char_type> static std::basic_string<char_type> user_login_id();
+        template<class char_type> static std::basic_string<char_type> computer_name();
 	};
 
     template<> std::string posixapi::user_data_dir()
@@ -165,7 +168,7 @@ namespace adportable { namespace detail {
 	{
         char hostname[1024];
 		gethostname( hostname, sizeof(hostname));
-        return return hostname;
+        return hostname;
 	}
 
     template<> std::wstring posixapi::computer_name()

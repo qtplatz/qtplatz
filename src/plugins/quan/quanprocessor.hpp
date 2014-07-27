@@ -48,10 +48,10 @@ namespace quan {
 
         typedef std::map< std::wstring, std::vector< adcontrols::QuanSample > >::iterator iterator;
         typedef std::map< std::wstring, std::vector< adcontrols::QuanSample > >::const_iterator const_iterator;
-        iterator begin() { return que_.begin(); }
-        iterator end() { return que_.end(); }
-        const_iterator begin() const { return que_.begin(); }
-        const_iterator end() const { return que_.end(); }
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
         
     protected:
         std::shared_ptr< adcontrols::QuanSequence > sequence_;

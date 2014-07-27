@@ -30,7 +30,7 @@
 
 using namespace adportable::core;
 
-std::atomic< debug_core * > debug_core::instance_ = 0;
+std::atomic< debug_core * > debug_core::instance_( 0 );
 std::mutex debug_core::mutex_;
 
 debug_core::~debug_core()

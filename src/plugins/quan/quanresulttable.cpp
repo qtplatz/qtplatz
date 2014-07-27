@@ -57,6 +57,10 @@ namespace quan {
 
 using namespace quan;
 
+QuanResultTable::~QuanResultTable()
+{
+}
+
 QuanResultTable::QuanResultTable(QWidget *parent) : adwidgets::TableView(parent)
                                                   , model_( new QStandardItemModel )
 {

@@ -89,7 +89,7 @@ namespace quan {
 
 using namespace quan;
 
-std::atomic< QuanDocument * > QuanDocument::instance_ = 0;
+std::atomic< QuanDocument * > QuanDocument::instance_( 0 );
 std::mutex QuanDocument::mutex_;
 
 QuanDocument::~QuanDocument()

@@ -37,6 +37,7 @@ namespace quan {
     class QuanResultTable : public adwidgets::TableView  {
         Q_OBJECT
     public:
+        ~QuanResultTable();
         explicit QuanResultTable(QWidget *parent = 0);
 
         void prepare( const QuanQuery& );

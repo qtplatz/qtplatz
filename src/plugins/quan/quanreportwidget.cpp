@@ -38,6 +38,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QMessageBox>
+#include <QStandardItemModel>
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
 #include <fstream>

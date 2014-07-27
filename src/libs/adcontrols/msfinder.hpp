@@ -31,12 +31,12 @@ namespace adcontrols {
 
     class MassSpectrum;
 
-    enum idFindAlgorithm {
+    enum idFindAlgorithm : int {
         idFindLargest
         , idFindClosest
     };
         
-    enum idToleranceMethod {
+    enum idToleranceMethod : int {
         idToleranceDaltons
         , idTolerancePpm
     };

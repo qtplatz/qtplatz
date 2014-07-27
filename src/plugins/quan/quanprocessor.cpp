@@ -23,8 +23,8 @@
 **************************************************************************/
 
 #include "quanprocessor.hpp"
-#include <adcontrols/quansequence.hpp>
 #include <adcontrols/quansample.hpp>
+#include <adcontrols/quansequence.hpp>
 #include <adcontrols/processmethod.hpp>
 
 using namespace quan;
@@ -67,4 +67,28 @@ const std::shared_ptr< adcontrols::ProcessMethod >&
 QuanProcessor::procmethod() const
 {
     return procmethod_;
+}
+
+QuanProcessor::iterator
+QuanProcessor::begin()
+{
+    return que_.begin();
+}
+
+QuanProcessor::iterator
+QuanProcessor::end()
+{
+    return que_.end();
+}
+
+QuanProcessor::const_iterator
+QuanProcessor::begin() const
+{
+    return que_.begin();
+}
+
+QuanProcessor::const_iterator
+QuanProcessor::end() const
+{
+    return que_.end();
 }

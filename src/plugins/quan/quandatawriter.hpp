@@ -25,6 +25,8 @@
 #ifndef QUANDATAWRITER_HPP
 #define QUANDATAWRITER_HPP
 
+#include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
 #include <string>

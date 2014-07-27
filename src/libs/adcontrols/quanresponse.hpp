@@ -33,6 +33,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <string>
 #include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
