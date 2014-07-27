@@ -24,6 +24,7 @@
 
 #include "quanqueryform.hpp"
 #include "ui_quanqueryform.h"
+#include <QStringList>
 
 using namespace quan;
 
@@ -31,6 +32,8 @@ QuanQueryForm::QuanQueryForm(QWidget *parent) :  QWidget(parent)
                                               , ui(new Ui::QuanQueryForm)
 {
     ui->setupUi(this);
+    ui->comboBox->clear();
+    ui->comboBox->addItems( QStringList() << "View all (simple)" << "View all" << "Viwe full" << "Standard/Calibration" << "Unknown" );
 }
 
 QuanQueryForm::~QuanQueryForm()
@@ -60,4 +63,57 @@ void
 QuanQueryForm::on_pushButton_pressed()
 {
     emit triggerQuery( ui->plainTextEdit->toPlainText() );
+}
+
+void 
+QuanQueryForm::on_comboBox_currentIndexChanged(int index)
+{
+    int idx = 0;
+    if ( index == idx++ ) { // view simple
+        setSQL("\
+SELECT dataSource, row, level, formula, mass, intensity, sampletype FROM QuanSample,QuanResponse \
+WHERE QuanSample.id = sampleId AND formula like '%' ORDER BY formula" );
+
+    } else if ( index == idx++ ) { // view all
+
+        setSQL("\
+SELECT dataSource, row, QuanSample.level, QuanResponse.formula, QuanResponse.mass, QuanResponse.intensity, QuanAmount.amount,sampletype \n\
+FROM QuanSample,QuanResponse,QuanAmount\n\
+WHERE QuanSample.id = sampleId\n\
+AND QuanAmount.CompoundId = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.compoundId)\n\
+AND QuanAmount.level = QuanSample.level\n\
+AND formula like '%' ORDER BY formula" );
+
+    } else if ( index == idx++ ) { // view full
+
+        setSQL("\
+SELECT dataSource, row, QuanSample.level, QuanResponse.formula, QuanCompound.mass AS 'exact mass', QuanResponse.mass, QuanResponse.intensity, QuanAmount.amount,sampletype,QuanCompound.description \n\
+FROM QuanSample,QuanResponse,QuanAmount,QuanCompound \n\
+WHERE QuanSample.id = sampleId AND QuanCompound.uniqId = QuanResponse.compoundId\n\
+AND QuanAmount.CompoundId = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.compoundId)\n\
+AND QuanAmount.level = QuanSample.level\n\
+AND QuanResponse.formula like '%' ORDER BY Quanresponse.formula");
+
+    } else if ( index == idx++ ) { // Standard/Calibration
+
+        setSQL("\
+SELECT QuanResponse.formula, QuanResponse.intensity, QuanAmount.amount,sampletype \n\
+FROM QuanSample,QuanResponse,QuanAmount \n\
+WHERE QuanSample.id = sampleId AND sampleType = 1\n\
+AND QuanAmount.CompoundId = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.compoundId)\n\
+AND QuanAmount.level = QuanSample.level\n\
+AND QuanResponse.formula like '%' ORDER BY Quanresponse.formula");
+
+
+    } else if ( index == idx++ ) { // Unknown
+
+        setSQL("\
+SELECT QuanResponse.formula, QuanResponse.intensity, sampletype \n\
+FROM QuanSample,QuanResponse \n\
+WHERE QuanSample.id = sampleId AND sampleType = 0\n\
+AND QuanResponse.formula like '%' ORDER BY QuanResponse.formula");
+
+    }
+
+
 }

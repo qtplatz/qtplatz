@@ -112,11 +112,18 @@ QuanReportWidget::report( const QString& file )
     }
 }
 
+// SELECT dataSource, row, QuanSample.level, formula, mass, intensity, amount, sampleType FROM QuanSample, QuanResponse, QuanAmount WHERE QuanSample.id = sampleId
+// AND QuanAmount.level = QuanSample.level 
+// AND QuanAmount.CompoundId = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.compoundId)
+// NAD sampleType = 1
+
 void
 QuanReportWidget::executeQuery()
 {
     if ( auto connection = QuanDocument::instance()->connection() ) {
-        form_->setSQL( "SELECT dataSource, row, level, formula, mass, intensity, sampletype FROM QuanSample,QuanResponse WHERE QuanSample.id = sampleId AND formula like '%'" );
+        form_->setSQL(
+            "SELECT dataSource, row, level, formula, mass, intensity, sampletype FROM QuanSample,QuanResponse \
+WHERE QuanSample.id = sampleId AND formula like '%' ORDER BY formula" );
         std::wstring sql = form_->sql().toStdWString();
         if ( auto query = connection->query() ) {
             if ( query->prepare( sql ) ) {

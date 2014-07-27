@@ -48,6 +48,8 @@ namespace quan {
         void on_plainTextEdit_textChanged();
         void on_pushButton_pressed();
 
+        void on_comboBox_currentIndexChanged(int index);
+
     signals:
         void triggerQuery( const QString& );
 
