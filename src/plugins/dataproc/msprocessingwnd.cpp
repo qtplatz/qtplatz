@@ -130,7 +130,9 @@ namespace dataproc {
         }
 
         bool ticFinder( double x, int& index, int& fcn, double& minutes ) {
-
+            index = 0;
+            fcn = (-1);
+            minutes = 0;
             if ( checkedChromatograms_.empty() )
                 return false;
 
@@ -348,7 +350,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                     c.addDescription( adcontrols::Description( L"acquire.title", title ) );
                     adcontrols::ProcessMethod m;
                     MainWindow::instance()->getProcessMethod( m );
-                    folium = processor->addChromatogram( c, m );
+                    folium = processor->addChromatogram( c, m, true );  // force checked
 				}
             }
             if ( folium.attribute(L"protoId").empty() )
@@ -468,11 +470,15 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
                 }
                 // redraw all chromatograms with check marked
                 auto folio = folder.folio();
+                int idx = 0;
                 for ( auto& folium: folio ) {
                     if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                        if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) )
+                        if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                            pImpl_->setCheckedChromatogram( cptr, idx );
                             pImpl_->ticPlot_->setData( cptr, cptr->fcn() );
+                        }
                     }
+                    ++idx;
                 }
             }
         }

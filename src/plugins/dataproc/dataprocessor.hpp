@@ -101,7 +101,7 @@ namespace dataproc {
         void findPeptide( const adprot::digestedPeptides& );
         
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
-        portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
+        portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod&, bool checked = false );
         portfolio::Folium addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& );
         portfolio::Folium addSpectrogramClusters( std::shared_ptr< adcontrols::SpectrogramClusters >& );
 

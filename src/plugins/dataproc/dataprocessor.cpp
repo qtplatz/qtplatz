@@ -695,7 +695,7 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
 }
 
 portfolio::Folium
-Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcontrols::ProcessMethod& m )
+Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcontrols::ProcessMethod& m, bool checked )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
 
@@ -712,6 +712,9 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
     
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
 		boost::apply_visitor( doChromatogramProcess( c, folium ), *it );
+
+    if ( checked )
+        folium.setAttribute( L"isChecked", L"true" );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 	return folium;
