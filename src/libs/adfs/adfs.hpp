@@ -40,9 +40,6 @@ namespace adfs {
         std::string category;
     };
 
-    //class sqlite;
-    //class file;
-
     std::wstring create_uuid();
 }
 

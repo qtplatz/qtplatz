@@ -25,12 +25,14 @@
 
 #include "sqlite.hpp"
 #include "sqlite3.h"
+#include "adfs.hpp"
 #include <adportable/string.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
 #include <iostream>
 
 #include <compiler/disable_unused_variable.h>
+#include <boost/exception/all.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/filesystem.hpp>
 #include <locale>
@@ -62,6 +64,8 @@ namespace adfs {
         deletable_facet( Args&& ...args) : Facet(std::forward<Args>(args)...) {}
         ~deletable_facet() {}
     };
+
+    class sqlite_exception : public boost::exception, public std::exception {};
 
 } // adfs
 
@@ -285,6 +289,12 @@ stmt::bind( const std::string& column )
     return bind_item( 0, 0 );
 }
 
+bool
+stmt::is_null_column( int nCol ) const
+{
+    return sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL;
+}
+
 namespace adfs {
 
     template<> bool
@@ -367,7 +377,7 @@ namespace adfs {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
             return std::string( reinterpret_cast< const char * >(text) );
         }
-        throw std::bad_cast();
+        BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
     template<> std::wstring stmt::get_column_value( int nCol ) const
@@ -376,35 +386,35 @@ namespace adfs {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
             return adportable::utf::to_wstring( text );
         }
-        throw std::bad_cast();
+        BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
     template<> double stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_FLOAT )
             return sqlite3_column_double( stmt_, nCol );
-        throw std::bad_cast();
+        BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
     template<> int64_t stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
             return sqlite3_column_int64( stmt_, nCol );
-        throw std::bad_cast();
+        BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
     template<> uint64_t stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
             return sqlite3_column_int64( stmt_, nCol );
-        throw std::bad_cast();
+        BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
     template<> blob stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_BLOB )
             return blob();
-        throw std::bad_cast();
+        BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
 } /* namespace adfs */

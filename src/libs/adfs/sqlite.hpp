@@ -122,6 +122,7 @@ namespace adfs {
 
         // column_value_type column_value( int );
         template<typename T> T get_column_value( int ) const;
+        bool is_null_column( int ) const; // no value assigned or no column does exist
 
     private:
         sqlite& sqlite_;
