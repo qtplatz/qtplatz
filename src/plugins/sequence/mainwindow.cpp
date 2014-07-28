@@ -166,7 +166,6 @@ void
 MainWindow::createActions()
 {
     actionConnect_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr( "Connect" ), this );
-    connect( actionConnect_, SIGNAL( triggered() ), this, SLOT( actionConnect_ ) );
 }
 
 QWidget *

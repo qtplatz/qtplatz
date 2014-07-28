@@ -84,7 +84,7 @@ namespace adcontrols {
         }
 
     };
-
+    typedef std::shared_ptr<QuanSequence> QuanSequencePtr;   
 
 }
 

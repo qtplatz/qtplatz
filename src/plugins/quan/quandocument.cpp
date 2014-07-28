@@ -144,7 +144,7 @@ QuanDocument::findPanel( int idx, int subIdx, int pos )
     auto chapter = book_.find( idx );
     if ( chapter != book_.end() ) {
         auto page = chapter->second.find( subIdx );
-        if ( page != chapter->second.end() && page->second.size() > pos )
+        if ( page != chapter->second.end() && page->second.size() > size_t( pos ) )
             return page->second[ pos ].get();
     }
     return 0;
@@ -367,11 +367,13 @@ QuanDocument::stop()
 void
 QuanDocument::sample_processed( QuanSampleProcessor * p )
 {
-    emit onProcessed( p );
+    // hear is in a sample processing thread; p is a pointer on thread's local stack (not a heap!!)
+    auto processor = p->processor();
+    emit onProcessed( processor );
 }
 
 void
-QuanDocument::handle_processed( QuanSampleProcessor * p )
+QuanDocument::handle_processed( QuanProcessor * processor )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     if ( postCount_ && ( --postCount_ == 0 ) ) {
@@ -380,12 +382,12 @@ QuanDocument::handle_processed( QuanSampleProcessor * p )
         threads_.clear();
         QApplication::restoreOverrideCursor();
 
-        if ( auto processor = p->processor() ) {
-            if ( auto sequence = processor->sequence() ) {
-                QString outfile = QString::fromStdWString( sequence->outfile() );
-                emit onReportTriggered( outfile );
-            }
+        if ( auto sequence = processor->sequence() ) {
+            QString outfile = QString::fromStdWString( sequence->outfile() );
+            emit onReportTriggered( outfile );
         }
+        auto shp = processor->shared_from_this();
+        exec_.erase( std::remove( exec_.begin(), exec_.end(), shp ) );
     }
 }
 

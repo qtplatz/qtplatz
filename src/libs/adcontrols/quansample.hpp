@@ -179,7 +179,7 @@ namespace adcontrols {
                 ;
         }
     };
-    
+    typedef std::shared_ptr<QuanSample> QuanSamplePtr;   
 }
 
 BOOST_CLASS_VERSION( adcontrols::QuanSample, 1 )

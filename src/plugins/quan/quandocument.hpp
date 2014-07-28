@@ -100,8 +100,8 @@ namespace quan {
         void onInitialUpdate();
         void onFinalClose();
 
-        void handle_processed( QuanSampleProcessor * );
-        void sample_processed( QuanSampleProcessor * );
+        void handle_processed( QuanProcessor * );  // UI thread
+        void sample_processed( QuanSampleProcessor * ); // within a sample process thread
 
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
@@ -128,7 +128,7 @@ namespace quan {
         bool save_default_methods();
         bool load_default_methods();
     signals:
-        void onProcessed( QuanSampleProcessor * );
+        void onProcessed( QuanProcessor * );
         void onReportTriggered( const QString& );
     };
 }
