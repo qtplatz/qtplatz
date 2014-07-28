@@ -111,11 +111,13 @@ namespace adcontrols {
            std::vector< unsigned char > colArray_;
 
            std::pair<double, double> acqRange_;
-           long long timeSinceInjTrigger_; // usec
-           long long timeSinceFirmwareUp_; // usec
-           unsigned long numSpectrumSinceInjTrigger_;
+           int64_t timeSinceInjTrigger_; // usec
+           int64_t timeSinceFirmwareUp_; // usec
+           uint32_t numSpectrumSinceInjTrigger_;
            std::string uuid_; // out of serialization scope
            std::vector< MassSpectrum > vec_;
+           int32_t protocolId_;
+           int32_t nProtocols_;
 
            // exclude from archive
            std::shared_ptr< ScanLaw > scanLaw_;
@@ -135,16 +137,21 @@ namespace adcontrols {
                    & BOOST_SERIALIZATION_NVP(intsArray_)
                    & BOOST_SERIALIZATION_NVP(tofArray_)
                    & BOOST_SERIALIZATION_NVP(colArray_)
-                   & BOOST_SERIALIZATION_NVP( annotations_ );
-               if ( version >= 2 ) {
+                   & BOOST_SERIALIZATION_NVP( annotations_ )
+                   ;
+               if ( version >= 2 ) 
                    ar & BOOST_SERIALIZATION_NVP( vec_ );
+               if ( version >= 3 ) {
+                   ar & BOOST_SERIALIZATION_NVP( protocolId_ )
+                       & BOOST_SERIALIZATION_NVP( nProtocols_ )
+                       ;
                }
            }
        };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 2 )
+BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 3 )
 
 ///////////////////////////////////////////
 
@@ -544,6 +551,30 @@ MassSpectrum::getMaxIntensity() const
     return 0;
 }
 
+int32_t
+MassSpectrum::protocolId() const
+{
+    return pImpl_->protocolId_;
+}
+
+void
+MassSpectrum::protocolId( int32_t v )
+{
+    pImpl_->protocolId_ = v;
+}
+
+int32_t
+MassSpectrum::nProtocols() const
+{
+    return pImpl_->nProtocols_;
+}
+
+void
+MassSpectrum::nProtocols( int32_t v )
+{
+    pImpl_->nProtocols_ = v;
+}
+
 std::wstring
 MassSpectrum::saveXml() const
 {
@@ -669,6 +700,8 @@ MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
                                      , timeSinceInjTrigger_(0)
                                      , timeSinceFirmwareUp_(0)
                                      , numSpectrumSinceInjTrigger_(0)
+                                     , protocolId_(0)
+                                     , nProtocols_(0)
 {
 }
 
@@ -686,6 +719,8 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 	descriptions_ = t.descriptions_;
     calibration_ = t.calibration_;
     property_ = t.property_;
+    protocolId_ = t.protocolId_;
+    nProtocols_ = t.nProtocols_;
 
 	if ( deep ) {
 		tofArray_ = t.tofArray_;

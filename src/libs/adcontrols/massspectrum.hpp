@@ -140,6 +140,11 @@ namespace adcontrols {
         const annotations& get_annotations() const;
 		annotations& get_annotations();
 
+        int32_t protocolId() const;
+        int32_t nProtocols() const;
+        void protocolId( int32_t );
+        void nProtocols( int32_t );
+
         std::wstring saveXml() const;
         void loadXml( const std::wstring& );
         
