@@ -321,6 +321,19 @@ void
 QuanDocument::run()
 {
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
+
+        bool remove_existing = false;
+        if ( boost::filesystem::exists( quanSequence_->outfile() ) ) {
+
+            QString file( QString::fromStdWString( quanSequence_->outfile() ) );
+            auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
+                                                , QString("File %1% already exists, remove?").arg( file )
+                                                , QMessageBox::Yes,QMessageBox::No,QMessageBox::Ignore );
+            if ( reply == QMessageBox::No )
+                return;
+            if ( reply == QMessageBox::Yes )
+                remove_existing = true;
+        }
         
         QApplication::setOverrideCursor( Qt::WaitCursor );
 
@@ -328,7 +341,9 @@ QuanDocument::run()
 
             if ( writer->open() ) {
                 
-                writer->drop_table(); // make sure no old data exists
+                if ( remove_existing )
+                    writer->drop_table(); // make sure no old data exists
+
                 if ( !writer->create_table() ) {
                     QMessageBox::information( 0, "QuanDocument", "Create result table failed" );
                     return;
@@ -336,8 +351,8 @@ QuanDocument::run()
                 
                 // deep copy which prepare for a long background process (e.g. chromatogram search...)
                 auto dup = std::make_shared< adcontrols::ProcessMethod >( *procMethod_ );
-                dup ->appendMethod( *quanMethod_ );      // write data into QtPlatz filesystem region (for C++)
-                dup ->appendMethod( *quanCompounds_ );   // ibid
+                dup->appendMethod( *quanMethod_ );      // write data into QtPlatz filesystem region (for C++)
+                dup->appendMethod( *quanCompounds_ );   // ibid
                 
                 writer->write( *quanSequence_ );         // save into global space in a result file
                 writer->write( *dup );                   // ibid
@@ -353,7 +368,10 @@ QuanDocument::run()
                     ++postCount_;
                     threads_.push_back( std::thread( [que, it, writer] () { QuanSampleProcessor( que.get(), it->second )(writer); } ) );
                 }
-                
+
+                // update result outfile name on sequence for next run
+                for ( auto& client : clients_ )
+                    client( idQuanSequence, true );
             }
         }
     }

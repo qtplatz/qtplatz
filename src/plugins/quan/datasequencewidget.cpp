@@ -184,7 +184,22 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
 {
     if ( id == idQuanSequence && fnChanged ) {
         if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
-            edit->setText( QString::fromStdWString( QuanDocument::instance()->quanSequence()->outfile() ) );
+            boost::filesystem::path path( QuanDocument::instance()->quanSequence()->outfile() );
+            if ( boost::filesystem::exists( path ) ) {
+                std::wstring stem = path.stem().wstring();
+                auto pos = stem.find_last_not_of( L"0123456789" );
+                int number = 0;
+                if ( pos != std::wstring::npos ) {
+                    number = std::stoi( stem.substr( pos + 1 ) );
+                    stem = stem.substr( 0, pos + 1 );
+                }
+                boost::filesystem::path next;
+                do {
+                    next = path.remove_filename() / boost::filesystem::path( stem + (boost::wformat( L"%d.adfs" ) % ++number).str() );
+                } while ( boost::filesystem::exists( next ) );
+                path = next;
+            }
+            edit->setText( QString::fromStdWString( path.wstring() ) );
         }
         dataSequenceTree_->setContents( *QuanDocument::instance()->quanSequence() );
     }

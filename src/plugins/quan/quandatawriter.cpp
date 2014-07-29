@@ -266,6 +266,9 @@ QuanDataWriter::drop_table()
             sql.exec( std::string("DROP TABLE ") + name );
         }
     }
+    sql.exec( "DELETE FROM file" );
+    sql.exec( "DELETE from directory" );
+    
     return true;
 }
 

@@ -87,6 +87,5 @@ RESOURCES += \
 
 FORMS += \
     doubletabwidget.ui \
-    dataselectionform.ui \
     quanconfigform.ui \
     quanqueryform.ui
