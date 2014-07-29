@@ -53,7 +53,7 @@
              <item row="1" column="0">
               <widget class="QRadioButton" name="radioButtonDa">
                <property name="text">
-                <string>mDa</string>
+                <string>Daltons</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
@@ -61,10 +61,21 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBoxDa"/>
+              <widget class="QDoubleSpinBox" name="doubleSpinBoxDa">
+               <property name="decimals">
+                <number>3</number>
+               </property>
+               <property name="singleStep">
+                <double>0.010000000000000</double>
+               </property>
+              </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBoxPpm"/>
+              <widget class="QDoubleSpinBox" name="doubleSpinBoxPpm">
+               <property name="maximum">
+                <double>100000.000000000000000</double>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -101,7 +112,14 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBoxThreshold"/>
+              <widget class="QDoubleSpinBox" name="doubleSpinBoxThreshold">
+               <property name="maximum">
+                <double>99999999.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>100.000000000000000</double>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>

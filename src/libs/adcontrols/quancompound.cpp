@@ -42,24 +42,28 @@ QuanCompound::~QuanCompound()
 }
 
 QuanCompound::QuanCompound() : uniqId_( quan::__uniqCompoundKey++ )
-                             , isISTD_( false )
-                             , idISTD_( -1 )
                              , amounts_( 1 )
-                             , mass_( 0 )
                              , tR_( 0 )
-                             , criteria_( 0 )
+                             , mass_( 0 )
+                             , isISTD_( false )
+                             , isLKMSRef_( false )
+                             , isTimeRef_( false )
+                             , idISTD_( -1 )
+                             , criteria_( std::make_pair( 0, 0 ) )
 {
 }
 
 QuanCompound::QuanCompound( const QuanCompound& t ) : uniqId_( t.uniqId_ )
                                                     , display_name_( t.display_name_ )
                                                     , formula_( t.formula_ )
-                                                    , isISTD_( t.isISTD_ )
-                                                    , idISTD_( t.idISTD_ )
                                                     , amounts_( t.amounts_ )
                                                     , description_( t.description_ )
-                                                    , mass_( t.mass_ )
                                                     , tR_( t.tR_ )
+                                                    , mass_( t.mass_ )
+                                                    , isISTD_( t.isISTD_ )
+                                                    , isLKMSRef_( t.isLKMSRef_ )
+                                                    , isTimeRef_( t.isTimeRef_ )
+                                                    , idISTD_( t.idISTD_ )
                                                     , criteria_( t.criteria_ )
 {
 }
@@ -113,14 +117,39 @@ QuanCompound::formula( const wchar_t * v )
 }
 
 bool
+QuanCompound::isLKMSRef() const
+{
+    return isLKMSRef_;
+}
+
+void
+QuanCompound::isLKMSRef( bool f )
+{
+    isLKMSRef_ = f;
+}
+
+bool
+QuanCompound::isTimeRef() const
+{
+    return isTimeRef_;
+}
+
+void
+QuanCompound::isTimeRef( bool f )
+{
+    isTimeRef_ = f;
+}
+
+bool
 QuanCompound::isISTD() const
 {
     return isISTD_;
 }
 
-void QuanCompound::isISTD( bool v )
+void
+QuanCompound::isISTD( bool f )
 {
-    isISTD_ = v;
+    isISTD_ = f;
 }
 
 int32_t
@@ -160,3 +189,19 @@ QuanCompound::amounts( const double * d, size_t size )
         amounts_.resize( size );
     std::copy( d, d + size, amounts_.begin() );
 }
+
+double
+QuanCompound::criteria( bool second ) const
+{
+    return second ? criteria_.second : criteria_.first;
+}
+
+void
+QuanCompound::criteria( double v, bool second )
+{
+    if ( second )
+        criteria_.second = v;
+    else
+        criteria_.first = v;
+}
+

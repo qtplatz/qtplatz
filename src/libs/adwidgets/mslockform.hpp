@@ -57,6 +57,8 @@ namespace adwidgets {
     private:
         Ui::MSLockForm *ui;
 
+    signals:
+        void toggled( bool );
     };
 
 }

@@ -72,9 +72,8 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( uuid_ )
-                & BOOST_SERIALIZATION_NVP( compounds_ )
-                ;
+            ar & BOOST_SERIALIZATION_NVP( uuid_ );
+            ar & BOOST_SERIALIZATION_NVP( compounds_ );
         }
     };
 

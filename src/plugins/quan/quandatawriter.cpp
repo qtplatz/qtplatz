@@ -205,14 +205,16 @@ QuanDataWriter::create_table()
 ,uniqId         INTEGER  \
 ,display_name   TEXT     \
 ,formula        TEXT     \
-,isISTD         INTEGER  \
 ,idISTD         INTEGER  \
 ,levels         INTEGER  \
 ,mass           REAL     \
 ,tR             REAL     \
+,isLKMSRef      INTEGER  \
+,isTimeRef      INTEGER  \
+,isISTD         INTEGER  \
 ,description    TEXT     \
-,criteria       REAL     \
-,lkms_reference INTEGER  \
+,criteria_0     REAL     \
+,criteria_1     REAL     \
 ,UNIQUE(uuid,uniqId)     \
 )" );
 
@@ -353,22 +355,24 @@ QuanDataWriter::insert_table( const adcontrols::QuanCompounds& t )
     for ( auto& c: t ) {
 
         if ( sql.prepare( "INSERT INTO QuanCompound \
-(uuid,uniqId,display_name,formula,isISTD,idISTD,levels,mass,tR,description,criteria,lkms_reference) \
-VALUES(?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
+(uuid,uniqId,display_name,formula,idISTD,levels,mass,tR,isLKMSRef,isTimeRef,isISTD,description,criteria_0,criteria_1) \
+VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
             int row = 1;
             sql.bind( row++ ) = uuid;
             sql.bind( row++ ) = c.uniqId();
             sql.bind( row++ ) = std::wstring( c.display_name() );
             sql.bind( row++ ) = std::wstring( c.formula() );        
-            sql.bind( row++ ) = int64_t( c.isISTD() );
             sql.bind( row++ ) = int64_t( c.idISTD() );
             sql.bind( row++ ) = int64_t( c.levels() );
             sql.bind( row++ ) = c.mass();
             sql.bind( row++ ) = c.tR();
+            sql.bind( row++ ) = int64_t( c.isLKMSRef() );  // lock mass reference
+            sql.bind( row++ ) = int64_t( c.isTimeRef() );  // relative retention reference
+            sql.bind( row++ ) = int64_t( c.isISTD() );     // amount reference
             sql.bind( row++ ) = std::wstring( c.description() );
-            sql.bind( row++ ) = c.criteria();
-            sql.bind( row++ ) = int64_t(0); // lock mass flag
-            
+            sql.bind( row++ ) = c.criteria(0);
+            sql.bind( row++ ) = c.criteria(1);
+
             if ( sql.step() != adfs::sqlite_done )
                 ADTRACE() << "sql error";
         }

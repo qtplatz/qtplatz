@@ -26,6 +26,7 @@
 #include "quandocument.hpp"
 #include <adwidgets/delegatehelper.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <qtwrapper/font.hpp>
@@ -48,6 +49,8 @@ namespace quan {
             c_formula
             , c_mass
             , c_tR
+            , c_isTimeReference // only for chromatography relative retention time
+            , c_isLKMSReference // for lock mass
             , c_isISTD
             , c_idISTD
             , c_level_0
@@ -82,6 +85,8 @@ namespace quan {
             , c_level_29
             , c_level_last
             , c_description
+            , c_criteria_0
+            , c_criteria_1
             , nbrColums
         };
 
@@ -92,28 +97,24 @@ namespace quan {
 			void paintSection( QPainter * painter, const QRect& rect, int logicalIndex ) const override {
 				if ( !rect.isValid() )
 					return;
-				if ( logicalIndex == c_mass || logicalIndex == c_tR ) {
-					QStyleOptionHeader op;
-					initStyleOption(&op);
-					op.text = "";
-					op.rect = rect;
-                    op.textAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
-					// draw the section
-					style()->drawControl( QStyle::CE_Header, &op, painter, this );
-					// html paiting
-					painter->save();
-					QRect textRect = style()->subElementRect( QStyle::SE_HeaderLabel, &op, this );
-					painter->translate( textRect.topLeft() );
-					QTextDocument doc;
-					doc.setTextWidth( textRect.width() );
-					doc.setDefaultTextOption( QTextOption( Qt::AlignHCenter ) );
-					doc.setDocumentMargin(0);
-					doc.setHtml( model()->headerData( logicalIndex, Qt::Horizontal ).toString() );
-					doc.drawContents( painter, QRect( QPoint( 0, 0 ), textRect.size() ) );
-					painter->restore();
-				} else {
-					QHeaderView::paintSection( painter, rect, logicalIndex );
-				}
+                QStyleOptionHeader op;
+                initStyleOption( &op );
+                op.text = "";
+                op.rect = rect;
+                op.textAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+                // draw the section
+                style()->drawControl( QStyle::CE_Header, &op, painter, this );
+                // html paiting
+                painter->save();
+                QRect textRect = style()->subElementRect( QStyle::SE_HeaderLabel, &op, this );
+                painter->translate( textRect.topLeft() );
+                QTextDocument doc;
+                doc.setTextWidth( textRect.width() );
+                doc.setDefaultTextOption( QTextOption( Qt::AlignHCenter ) );
+                doc.setDocumentMargin( 0 );
+                doc.setHtml( model()->headerData( logicalIndex, Qt::Horizontal ).toString() );
+                doc.drawContents( painter, QRect( QPoint( 0, 0 ), textRect.size() ) );
+                painter->restore();
 			}
         };
 
@@ -195,6 +196,7 @@ CompoundsTable::CompoundsTable(QWidget *parent) : TableView(parent)
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &CompoundsTable::handleContextMenu );
+    connect( QuanDocument::instance(), &QuanDocument::onMSLockEnabled, this, [=] ( bool checked ){ setColumnHidden( c_isLKMSReference, !checked ); } );
 
     setEditTriggers( QAbstractItemView::AllEditTriggers );
 
@@ -222,13 +224,17 @@ CompoundsTable::onInitialUpdate()
     model.setHeaderData( c_formula,  Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_mass,  Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
     model.setHeaderData( c_tR,  Qt::Horizontal, QObject::tr( "t<sub>R</sub>(min)" ) );
+    model.setHeaderData( c_isTimeReference,  Qt::Horizontal, QObject::tr( "t<sub>R</sub> ref." ) );
+    model.setHeaderData( c_isLKMSReference,  Qt::Horizontal, QObject::tr( "lock mass" ) );
     model.setHeaderData( c_isISTD,  Qt::Horizontal, QObject::tr( "ISTD" ) );
     model.setHeaderData( c_idISTD,  Qt::Horizontal, QObject::tr( "ISTD ID" ) );
     model.setHeaderData( c_description, Qt::Horizontal, QObject::tr( "memo" ) );
+    model.setHeaderData( c_criteria_0, Qt::Horizontal, QObject::tr( "Pass/Fail Criteria(1)" ) );
+    model.setHeaderData( c_criteria_1, Qt::Horizontal, QObject::tr( "Pass/Fail Criteria(2)" ) );
 
     for ( int col = c_level_0; col < c_level_last; ++col )
         model.setHeaderData( col, Qt::Horizontal, QString( "amounts [%1]" ).arg( col - c_level_0 + 1 ) );
-
+    
     handleQuanMethod( QuanDocument::instance()->quanMethod() );
 
     resizeColumnsToContents();
@@ -238,17 +244,11 @@ CompoundsTable::onInitialUpdate()
 void
 CompoundsTable::handleValueChanged( const QModelIndex& index )
 {
+    QStandardItemModel& model = *model_;
+
     if ( index.column() == c_formula ) {
 
         std::string formula = index.data( Qt::EditRole ).toString().toStdString();
-
-        // if ( auto item = model_->item( index.row(), c_formula ) ) {
-        //     if ( !(item->flags() & Qt::ItemIsUserCheckable) ) {
-        //         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-        //         item->setEditable( true );
-        //     }
-        // }
-        // model_->setData( index, formula.empty() ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole );
 
         adcontrols::ChemicalFormula cformula;
         double exactMass = cformula.getMonoIsotopicMass( formula );
@@ -260,6 +260,28 @@ CompoundsTable::handleValueChanged( const QModelIndex& index )
                  model_->index( index.row(), col ).data().toDouble() <= 1.0e-30 )
                 model_->setData( model_->index( index.row(), col ), double( col - c_level_0 + 1 ) );
         }
+
+        if ( auto cbx = model.itemFromIndex( model.index( index.row(), c_isLKMSReference ) ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model.setData( model.index( index.row(), c_isLKMSReference ), false, Qt::EditRole );
+            model.setData( model.index( index.row(), c_isLKMSReference ), Qt::Unchecked, Qt::CheckStateRole );
+        }
+
+        if ( auto cbx = model.itemFromIndex( model.index( index.row(), c_isTimeReference ) ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model.setData( model.index( index.row(), c_isTimeReference ), false, Qt::EditRole );
+            model.setData( model.index( index.row(), c_isTimeReference ), Qt::Unchecked, Qt::CheckStateRole );
+        }
+
+        if ( auto cbx = model.itemFromIndex( model.index( index.row(), c_isISTD ) ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model.setData( model.index( index.row(), c_isISTD ), false, Qt::EditRole );
+            model.setData( model.index( index.row(), c_isISTD ), Qt::Unchecked, Qt::CheckStateRole );
+        }
+
     }
     if ( index.row() == model_->rowCount() - 1 ) {
         auto data = model_->index( index.row(), c_formula ).data( Qt::EditRole );
@@ -308,6 +330,9 @@ CompoundsTable::getContents( adcontrols::QuanCompounds& c )
         a.tR( model.index( row, c_tR ).data().toDouble() );
         a.isISTD( model.index( row, c_isISTD ).data().toBool() );
         a.idISTD( model.index( row, c_isISTD ).data().toInt() );
+        a.isLKMSRef( model.index( row, c_isLKMSReference ).data().toBool() );
+        a.isTimeRef( model.index( row, c_isTimeReference ).data().toBool() );
+
         std::vector< double > amounts;
         for ( int i = c_level_0; i <= c_level_last; ++i ) {
             auto data = model.index( row, i ).data();
@@ -327,6 +352,10 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
     model.setRowCount( int( c.size() ) + 1 ); // add last empty line
 
     const adcontrols::QuanMethod& qm = QuanDocument::instance()->quanMethod();
+    const adcontrols::ProcessMethod& pm = QuanDocument::instance()->procMethod();
+
+    if ( auto lkms = pm.find< adcontrols::MSLockMethod >() )
+        setColumnHidden( c_isLKMSReference, !lkms->enabled() );
 
     int row = 0;
     for ( auto& comp: c ) {
@@ -338,9 +367,27 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
 
         model.item( row, c_mass )->setEditable( false );
 
-        // if ( auto cbx = model.item( row, c_isISTD ) )
-        //     cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
-        model.setData( model.index( row, c_isISTD ), comp.isISTD() );
+        if ( auto cbx = model.itemFromIndex( model.index( row, c_isLKMSReference ) ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model.setData( model.index( row, c_isLKMSReference ), comp.isLKMSRef(), Qt::EditRole );
+            model.setData( model.index( row, c_isLKMSReference ), comp.isLKMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
+
+        if ( auto cbx = model.itemFromIndex( model.index( row, c_isTimeReference ) ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model.setData( model.index( row, c_isTimeReference ), comp.isTimeRef(), Qt::EditRole );
+            model.setData( model.index( row, c_isTimeReference ), comp.isTimeRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
+
+        if ( auto cbx = model.itemFromIndex( model.index( row, c_isISTD ) ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model.setData( model.index( row, c_isISTD ), comp.isISTD(), Qt::EditRole );
+            model.setData( model.index( row, c_isISTD ), comp.isISTD() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
+
         model.setData( model.index( row, c_idISTD ), comp.idISTD() );
         const double * amounts = comp.amounts();
         size_t i;
@@ -360,8 +407,14 @@ CompoundsTable::handleQuanMethod( const adcontrols::QuanMethod& qm )
 {
     levels_ = qm.levels();
 
-    if ( !qm.isChromatogram() )
+    if ( !qm.isChromatogram() ) {
         setColumnHidden( c_tR, true );
+        setColumnHidden( c_isTimeReference, true );
+    }
+    else {
+        setColumnHidden( c_tR, false );
+        setColumnHidden( c_isTimeReference, false );
+    }
 
     if ( !qm.isInternalStandard() ) {
         setColumnHidden( c_isISTD, true );

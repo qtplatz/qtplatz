@@ -451,3 +451,9 @@ QuanDocument::connection()
 {
     return quanConnection_.get();
 }
+
+void
+QuanDocument::mslock_enabled( bool checked )
+{
+    emit onMSLockEnabled( checked );
+}

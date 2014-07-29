@@ -61,8 +61,11 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     // |             --------------
     // |             | assign     |
     // |---------------------------
-    if ( auto form = new adwidgets::MSLockForm )
+    if ( auto form = new adwidgets::MSLockForm ) {
         tLayout->addWidget( form );
+        // MSLock GroupBox check state --> reflect to MS Lock row in Compounds table
+        connect( form, &adwidgets::MSLockForm::toggled, this, [] ( bool checked ){ QuanDocument::instance()->mslock_enabled( checked ); } );
+    }
 
     if ( auto form = new adwidgets::MSToleranceForm )
         tLayout->addWidget( form );

@@ -31,6 +31,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
+#include <array>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -52,6 +53,10 @@ namespace adcontrols {
         void displya_name( const wchar_t * );
         const wchar_t * formula() const;
         void formula( const wchar_t * );
+        bool isLKMSRef() const;
+        void isLKMSRef( bool );
+        bool isTimeRef() const;
+        void isTimeRef( bool );
         bool isISTD() const;
         void isISTD( bool );
         int32_t idISTD() const;
@@ -66,12 +71,11 @@ namespace adcontrols {
         void tR( double v ) { tR_ = v; };
         const wchar_t * description() const;
         void description( const wchar_t * );
-        double criteria() const { return criteria_; }
-        void criteria( double v ) { criteria_ = v; }
+        double criteria( bool second = false ) const;
+        void criteria( double v, bool second = false );
         
     private:
         uint64_t uniqId_;
-
         std::wstring display_name_;
         std::wstring formula_;
         std::vector< double > amounts_;  // added amounts[ level ]
@@ -79,23 +83,26 @@ namespace adcontrols {
         double tR_;
         double mass_;
         bool isISTD_;     // am I an internal standard?
+        bool isLKMSRef_;
+        bool isTimeRef_;
         int32_t idISTD_;  // index for internal standad (referenced from non-istd
-        double criteria_; // pass/fail criteria
+        std::pair< double, double > criteria_;  // pass/fail criteria
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( uniqId_ )
-                & BOOST_SERIALIZATION_NVP( formula_ )
-                & BOOST_SERIALIZATION_NVP( display_name_ )
-                & BOOST_SERIALIZATION_NVP( amounts_ )
-                & BOOST_SERIALIZATION_NVP( description_ )
-                & BOOST_SERIALIZATION_NVP( isISTD_ )
-                & BOOST_SERIALIZATION_NVP( idISTD_ )
-                & BOOST_SERIALIZATION_NVP( tR_ )
-                & BOOST_SERIALIZATION_NVP( mass_ )
-                & BOOST_SERIALIZATION_NVP( criteria_ )
-                ;
+            ar & BOOST_SERIALIZATION_NVP( uniqId_ );
+            ar & BOOST_SERIALIZATION_NVP( formula_ );
+            ar & BOOST_SERIALIZATION_NVP( display_name_ );
+            ar & BOOST_SERIALIZATION_NVP( amounts_ );
+            ar & BOOST_SERIALIZATION_NVP( description_ );
+            ar & BOOST_SERIALIZATION_NVP( isISTD_ );
+            ar & BOOST_SERIALIZATION_NVP( isLKMSRef_ );
+            ar & BOOST_SERIALIZATION_NVP( isTimeRef_ );
+            ar & BOOST_SERIALIZATION_NVP( idISTD_ );
+            ar & BOOST_SERIALIZATION_NVP( tR_ );
+            ar & BOOST_SERIALIZATION_NVP( mass_ );
+            ar & BOOST_SERIALIZATION_NVP( criteria_ );
         }
     };
 

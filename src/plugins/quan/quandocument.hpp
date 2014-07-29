@@ -78,6 +78,7 @@ namespace quan {
 
         void register_dataChanged( std::function< void( int, bool ) > );
         void setResultFile( const std::wstring& );
+        void mslock_enabled( bool );
 
         void setConnection( QuanConnection * );
         QuanConnection * connection();
@@ -130,6 +131,7 @@ namespace quan {
     signals:
         void onProcessed( QuanProcessor * );
         void onReportTriggered( const QString& );
+        void onMSLockEnabled( bool );
     };
 }
 
