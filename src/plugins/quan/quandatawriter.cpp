@@ -361,7 +361,7 @@ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
             sql.bind( row++ ) = uuid;
             sql.bind( row++ ) = c.uniqId();
             sql.bind( row++ ) = std::wstring( c.display_name() );
-            sql.bind( row++ ) = std::wstring( c.formula() );        
+            sql.bind( row++ ) = std::string( c.formula() );        
             sql.bind( row++ ) = int64_t( c.idISTD() );
             sql.bind( row++ ) = int64_t( c.levels() );
             sql.bind( row++ ) = c.mass();
@@ -413,7 +413,7 @@ WHERE sequenceId = (SELECT id FROM QuanSequence WHERE uuid = :uuid) AND row = :r
             sql.bind( col++ ) = result.fcn_;
             sql.bind( col++ ) = result.compoundId_;
             sql.bind( col++ ) = result.intensity_;
-            sql.bind( col++ ) = std::wstring( result.formula() );
+            sql.bind( col++ ) = std::string( result.formula() );
             sql.bind( col++ ) = result.mass_;
             sql.bind( col++ ) = result.tR_;
             sql.bind( col++ ) = uuid;    // QuanSequence.uuid

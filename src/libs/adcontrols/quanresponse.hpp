@@ -44,8 +44,8 @@ namespace adcontrols {
         QuanResponse();
         QuanResponse( const QuanResponse& t );
 
-        const wchar_t * formula() const { return formula_.c_str(); }
-        void formula( const wchar_t * t ) { formula_ = t; }
+        const char * formula() const { return formula_.c_str(); }
+        void formula( const char * t ) { formula_ = t; }
 
         int32_t idx_;         // index on centroid spectrum
         int32_t fcn_;         // function (protocol) id on centroid spectrum
@@ -55,7 +55,7 @@ namespace adcontrols {
         double mass_;         // observed mass
         double tR_;           // observed retention time
     private:
-        std::wstring formula_;
+        std::string formula_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {

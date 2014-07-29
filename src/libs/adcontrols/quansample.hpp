@@ -85,6 +85,7 @@ namespace adcontrols {
             ASIS
             , GenerateSpectrum
             , GenerateChromatogram
+            , ProcessRawSpectra     // Process each raw spectrum and stored identified ions on db
         };
 
         const boost::uuids::uuid& sequence_uuid() const { return sequence_uuid_; }

@@ -51,8 +51,8 @@ namespace adcontrols {
 
         const wchar_t * display_name() const;
         void displya_name( const wchar_t * );
-        const wchar_t * formula() const;
-        void formula( const wchar_t * );
+        const char * formula() const;
+        void formula( const char * );
         bool isLKMSRef() const;
         void isLKMSRef( bool );
         bool isTimeRef() const;
@@ -77,7 +77,7 @@ namespace adcontrols {
     private:
         uint64_t uniqId_;
         std::wstring display_name_;
-        std::wstring formula_;
+        std::string formula_;
         std::vector< double > amounts_;  // added amounts[ level ]
         std::wstring description_;
         double tR_;

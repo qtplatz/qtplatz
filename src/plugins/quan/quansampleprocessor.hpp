@@ -91,7 +91,7 @@ namespace quan {
 
         bool doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
                               , adcontrols::MassSpectrum& centroid // will override
-                              , const adcontrols::MSLockMethod& m );
+                              , const adcontrols::MSLockMethod& m, const adcontrols::QuanCompounds& );
 
         bool doMSFind( adcontrols::MSPeakInfo& pkInfo
                        , adcontrols::MassSpectrum& res

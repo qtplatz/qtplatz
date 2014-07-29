@@ -104,14 +104,14 @@ QuanCompound::description( const wchar_t * v )
     description_ = v;
 }
 
-const wchar_t *
+const char *
 QuanCompound::formula() const
 {
     return formula_.c_str();
 }
 
 void
-QuanCompound::formula( const wchar_t * v )
+QuanCompound::formula( const char * v )
 {
     formula_ = v;
 }

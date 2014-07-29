@@ -282,16 +282,19 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::Mass
         }
 
         if ( result ) {
-            
+
             // doMSLock if required.
+            if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
+                if ( auto lkMethod = procmethod_->find< adcontrols::MSLockMethod >() ) {
+                    if ( lkMethod->enabled() )
+                        doMSLock( pkInfo, centroid, *lkMethod, *pCompounds );
+                }
+            }
             
-            ///////////////////
-            
+            // Look up compounds
             if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
                 if ( auto pTgtMethod = procmethod_->find< adcontrols::TargetingMethod >() ) {
-
                     doMSFind( pkInfo, centroid, sample, *pCompounds, *pTgtMethod );
-
                 }
             }
 
@@ -336,25 +339,30 @@ QuanSampleProcessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
 bool
 QuanSampleProcessor::doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
                                , adcontrols::MassSpectrum& centroid // will override
-                               , const adcontrols::MSLockMethod& m )
+                               , const adcontrols::MSLockMethod& m
+                               , const adcontrols::QuanCompounds& compounds )
 {
     // find reference peak by mass window
-    std::string formula = "H2O";
-    double exactMass = cformula_->getMonoIsotopicMass( formula );
+    adcontrols::lockmass mslock;
 
+    // TODO: consider how to handle segmented spectrum -- current impl is always process first 
     adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );
 
-    size_t idx = find( centroid, exactMass );
-    if ( idx != adcontrols::MSFinder::npos ) {
-
-        adcontrols::lockmass mslock;
-        // add found peaks into mslock
-        mslock << adcontrols::lockmass::reference( formula, exactMass, centroid.getMass( idx ), centroid.getTime( idx ) );
-
-        if ( mslock.fit() ) {
-            mslock( centroid ); // update spectrum
-            mslock( pkInfo );   // update peak info
+    for ( auto& compound : compounds ) {
+        if ( compound.isLKMSRef() ) {
+            double exactMass = cformula_->getMonoIsotopicMass( compound.formula() );
+            size_t idx = find( centroid, exactMass );
+            if ( idx != adcontrols::MSFinder::npos ) {
+                // add found peaks into mslock
+                mslock << adcontrols::lockmass::reference( compound.formula(), exactMass, centroid.getMass( idx ), centroid.getTime( idx ) );
+            }
         }
+    }
+    if ( mslock.fit() ) {
+        // this apply to all fragment spectra
+        mslock( centroid );
+        mslock( pkInfo );
+        return true;
     }
     return false;
 }
@@ -403,7 +411,7 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
                 adcontrols::annotation anno( resp.formula(), resp.mass_, resp.intensity_, resp.idx_ );
                 fms.get_annotations() << anno;
 
-                (info.begin() + idx)->formula( adportable::utf::to_utf8( resp.formula() ) );
+                (info.begin() + idx)->formula( resp.formula() );
 
                 sample << resp;
             }

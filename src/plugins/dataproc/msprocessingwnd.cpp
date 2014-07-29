@@ -208,7 +208,8 @@ MSProcessingWnd::init()
 	
         if ( ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
-			connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProfile( const QRectF& ) ) );
+            using adwplot::SpectrumWidget;
+            connect( pImpl_->profileSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected), this, &MSProcessingWnd::selectedOnProfile );
             pImpl_->profile_marker_ = std::make_shared< adwplot::PeakMarker >();
             pImpl_->profile_marker_->attach( pImpl_->profileSpectrum_ );
             pImpl_->profile_marker_->visible( true );
@@ -217,10 +218,10 @@ MSProcessingWnd::init()
 
         if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             pImpl_->processedSpectrum_->setMinimumHeight( 80 );
-			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProcessed( const QPointF& ) ) );
-			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProcessed( const QRectF& ) ) );
+            using adwplot::SpectrumWidget;
+            connect( pImpl_->processedSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected), this, &MSProcessingWnd::selectedOnProcessed );
             adwplot::Zoomer * zoomer = &pImpl_->processedSpectrum_->zoomer();
-            connect( zoomer, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
+            connect( zoomer, &adwplot::Zoomer::zoomed, this, &MSProcessingWnd::handleZoomedOnSpectrum );
 
             pImpl_->processed_marker_ = std::make_shared< adwplot::PeakMarker >();
             pImpl_->processed_marker_->attach( pImpl_->processedSpectrum_ );

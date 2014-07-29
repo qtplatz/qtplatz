@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "datasequencetree.hpp"
+#include "quanconstants.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -126,7 +127,7 @@ namespace quan {
                     QString data_type = model.index( index.row(), c_data_type, index.parent() ).data().toString();
                     if ( data_type == "raw" ) {
                         QComboBox * pCombo = new QComboBox( parent );
-                        pCombo->addItems( QStringList() << "Average all" << "Take 1st spc." << "Take 2nd spc." << "Take last spc." );
+                        pCombo->addItems( QStringList() << Constants::cmbAvgAll << Constants::cmbTake1st << Constants::cmbTake2nd << Constants::cmbTakeLast << Constants::cmbProcEach );
                         return pCombo;
                     } else if ( data_type == "spc" ) {
                         QComboBox * pCombo = new QComboBox( parent );
@@ -225,7 +226,7 @@ namespace quan {
                 if ( data_type == "file" ) {
                     model.itemFromIndex( model.index( row, c_process ) )->setEditable( false );
                 } else if ( data_type == "raw" ) {
-                    model.setData( model.index( row, c_process, parent ), "Average all" );
+                    model.setData( model.index( row, c_process, parent ), Constants::cmbAvgAll );
                     if ( parent != QModelIndex() )
                         model.itemFromIndex( model.index( row, c_sample_type, parent ) )->setEditable( false );
                     model.setData( model.index( row, c_channel, parent ), ch );
@@ -560,27 +561,30 @@ DataSequenceTree::getContents( adcontrols::QuanSequence& seq )
             int level = model.index( subRow, c_level, parent->index() ).data().toInt();
             sample.level( level );
             
-            std::wstring process = model.index( subRow, c_process, parent->index() ).data().toString().toStdWString();
-            if ( process == L"Average all" ) {
+            QString process = model.index( subRow, c_process, parent->index() ).data().toString();
+            if ( process == Constants::cmbAvgAll ) {
                 sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
                 sample.scan_range( 0, -1 );
             }
-            else if ( process == L"Take 1st spc." ) {
+            else if ( process == Constants::cmbTake1st ) {
                 sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
                 sample.scan_range( 0, 0 );
             }
-            else if ( process == L"Take 2nd spc." ) {
+            else if ( process == Constants::cmbTake2nd ) {
                 sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
                 sample.scan_range( 1, 1 );
             }
-            else if ( process == L"Take last spc." ) {
+            else if ( process == Constants::cmbTakeLast ) {
                 sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
                 sample.scan_range( -1, -1 );
             }
-            else if ( process == L"AS IS" ) {
+            else if ( process == Constants::cmbProcEach ) {
+                sample.dataGeneration( adcontrols::QuanSample::ProcessRawSpectra );
+                sample.scan_range( 0, -1 );
+            }
+            else if ( process == "AS IS" ) {
                 sample.dataGeneration( adcontrols::QuanSample::ASIS );
             }
-            
             seq << sample;
         }
     }

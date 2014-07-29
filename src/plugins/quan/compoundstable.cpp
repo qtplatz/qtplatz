@@ -322,8 +322,8 @@ CompoundsTable::getContents( adcontrols::QuanCompounds& c )
     c.clear();
     for ( int row = 0; row < model.rowCount(); ++row ) {
         adcontrols::QuanCompound a;
-        a.formula( model.index( row, c_formula ).data().toString().toStdWString().c_str() );
-        if ( std::wstring( a.formula() ).empty() )
+        a.formula( model.index( row, c_formula ).data().toString().toStdString().c_str() );
+        if ( std::string( a.formula() ).empty() )
             continue;
         a.description( model.index( row, c_description ).data().toString().toStdWString().c_str() );
         a.mass( model.index( row, c_mass ).data().toDouble() );
@@ -359,8 +359,8 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
 
     int row = 0;
     for ( auto& comp: c ) {
-        std::wstring formula = comp.formula();
-        model.setData( model.index( row, c_formula ), QString::fromStdWString( formula ) );
+        std::string formula = comp.formula();
+        model.setData( model.index( row, c_formula ), QString::fromStdString( formula ) );
         model.setData( model.index( row, c_mass ), comp.mass() );
         model.setData( model.index( row, c_tR ), comp.tR() );
         model.setData( model.index( row, c_description ), QString::fromStdWString( comp.description() ) );

@@ -50,6 +50,13 @@ namespace Constants {
     const char * const editQuanFilename       = "editQuanFilename";
     const char * const editSQLFilename        = "editSQLFilename";
 
+    // Combo box
+    const char * const cmbAvgAll            = "Average all";
+    const char * const cmbTake1st           = "Take 1st spc.";
+    const char * const cmbTake2nd           = "Take 2nd spc.";
+    const char * const cmbTakeLast          = "Take last spc.";
+    const char * const cmbProcEach          = "Proc. ea. spc.";
+
 } // namespace quan
 } // namespace Constants
 
