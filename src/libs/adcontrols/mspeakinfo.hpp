@@ -66,6 +66,12 @@ namespace adcontrols {
         size_t numSegments() const;
         int mode() const;
         void mode( int );
+        void protocol( int32_t protId, int32_t nProtocols );
+        int32_t protocolId() const;
+        int32_t nProtocols() const;
+        MSPeakInfo * findProtocol( int32_t );
+        const MSPeakInfo * findProtocol( int32_t ) const;
+        void clearSegments();
 
         static bool archive( std::ostream&, const MSPeakInfo& );
         static bool restore( std::istream&, MSPeakInfo& );
@@ -73,12 +79,16 @@ namespace adcontrols {
     private:
         std::vector< MSPeakInfoItem > vec_;
         std::vector< MSPeakInfo > siblings_;
-        int mode_;
+        int32_t mode_;
+        int32_t protocolId_;
+        int32_t nProtocols_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
             if ( version >= 2 )
                 ar & mode_;
+            if ( version >= 3 )
+                ar & protocolId_ & nProtocols_;
             ar  & vec_
                 & siblings_
                 ;
@@ -89,6 +99,6 @@ namespace adcontrols {
 	typedef std::shared_ptr< MSPeakInfo > MSPeakInfoPtr;
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSPeakInfo, 2 )
+BOOST_CLASS_VERSION( adcontrols::MSPeakInfo, 3 )
 
 #endif // MSPEAKINFO_HPP

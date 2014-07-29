@@ -35,7 +35,58 @@ MSPeakInfo::MSPeakInfo( int mode ) : mode_( mode )
 
 MSPeakInfo::MSPeakInfo( const MSPeakInfo& t ) : vec_( t.vec_ )
                                               , mode_( t.mode_ )
+                                              , protocolId_( 0 )
+                                              , nProtocols_( 0 )
 {
+}
+
+MSPeakInfo *
+MSPeakInfo::findProtocol( int32_t proto )
+{
+    if ( protocolId_ == proto )
+        return this;
+
+    auto it = std::find_if( siblings_.begin(), siblings_.end(), [=]( const MSPeakInfo& p ){ return p.protocolId() == proto; } );
+    if ( it != siblings_.end() )
+        return &(*it);
+    return 0;
+}
+
+const MSPeakInfo *
+MSPeakInfo::findProtocol( int32_t proto ) const
+{
+    if ( protocolId_ == proto )
+        return this;
+
+    auto it = std::find_if( siblings_.begin(), siblings_.end(), [=]( const MSPeakInfo& p ){ return p.protocolId() == proto; } );
+    if ( it != siblings_.end() )
+        return &(*it);
+    return 0;
+}
+
+void
+MSPeakInfo::clearSegments()
+{
+    siblings_.clear();
+}
+
+int32_t
+MSPeakInfo::protocolId() const
+{
+    return protocolId_;
+}
+
+int32_t
+MSPeakInfo::nProtocols() const
+{
+    return nProtocols_;
+}
+
+void
+MSPeakInfo::protocol( int32_t id, int32_t n )
+{
+    protocolId_ = id;
+    nProtocols_ = n;
 }
 
 void

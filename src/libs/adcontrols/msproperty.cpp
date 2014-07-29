@@ -124,6 +124,18 @@ MSProperty::instTimeRange() const
     return std::make_pair( t0, t1 );
 }
 
+uint32_t
+MSProperty::numAverage() const
+{
+    return samplingData_.nAverage;
+}
+
+void
+MSProperty::setNumAverage(uint32_t v)
+{
+    samplingData_.nAverage = v;
+}
+
 void
 MSProperty::setSamplingDelay( uint32_t v )
 {

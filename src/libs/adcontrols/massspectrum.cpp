@@ -198,11 +198,23 @@ MassSpectrum::operator += ( const MassSpectrum& t )
                 
                 for ( size_t i = 0; i < (*lit).size(); ++i )
                     (*lit).setIntensity( i, *dlhs++ + *drhs++ );
+
             }
+            // update sampleInfo.numAverage
+            (*lit).getMSProperty().setNumAverage( (*lit).getMSProperty().numAverage() + (*rit).getMSProperty().numAverage() );
         }
     }
 
 	return *this;
+}
+
+void
+MassSpectrum::normalizeIntensities( uint32_t nImaginalAverage )
+{
+    // no segment handling due to each segment may have different number of average
+    uint32_t nAvg = pImpl_->property_.getSamplingInfo().nAverage;
+    std::transform( pImpl_->intsArray_.begin(), pImpl_->intsArray_.end(), pImpl_->intsArray_.begin(), [=] ( double d ) { return d * nImaginalAverage / nAvg; } );
+    pImpl_->property_.setNumAverage( nImaginalAverage );
 }
 
 void
@@ -476,6 +488,12 @@ MassSpectrum::getMSProperty() const
     return pImpl_->getMSProperty();
 }
 
+MSProperty&
+MassSpectrum::getMSProperty()
+{
+    return pImpl_->property_;
+}
+
 void
 MassSpectrum::setMSProperty( const MSProperty& prop )
 {
@@ -683,6 +701,28 @@ void
 MassSpectrum::clearSegments()
 {
     pImpl_->vec_.clear();
+}
+
+MassSpectrum *
+MassSpectrum::findProtocol( int32_t proto )
+{
+    if ( protocolId() == proto )
+        return this;
+    auto it = std::find_if( pImpl_->vec_.begin(), pImpl_->vec_.end(), [=]( const MassSpectrum& ms ){ return ms.protocolId() == proto; } );
+    if ( it != pImpl_->vec_.end() )
+        return &(*it);
+    return 0;
+}
+
+const MassSpectrum *
+MassSpectrum::findProtocol( int32_t proto ) const
+{
+    if ( protocolId() == proto )
+        return this;
+    auto it = std::find_if( pImpl_->vec_.begin(), pImpl_->vec_.end(), [=]( const MassSpectrum& ms ){ return ms.protocolId() == proto; } );
+    if ( it != pImpl_->vec_.end() )
+        return &(*it);
+    return 0;
 }
 
 size_t

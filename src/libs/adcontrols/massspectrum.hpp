@@ -122,6 +122,8 @@ namespace adcontrols {
         
         void setMSProperty( const adcontrols::MSProperty& );
         const MSProperty& getMSProperty() const;
+        MSProperty& getMSProperty();
+        void normalizeIntensities( uint32_t nImaginalAverage );
 
         const ScanLaw& scanLaw() const;
         
@@ -159,8 +161,10 @@ namespace adcontrols {
 
         // on trial
         size_t addSegment( const MassSpectrum& );
-        MassSpectrum& getSegment( size_t fcn /* 1..n */ );
-        const MassSpectrum& getSegment( size_t fcn /* 1..n */ ) const;
+        MassSpectrum& getSegment( size_t fcn /* o..n */ );
+        const MassSpectrum& getSegment( size_t fcn /* 0..n */ ) const;
+        MassSpectrum * findProtocol( int32_t proto );
+        const MassSpectrum * findProtocol( int32_t proto ) const;
         void clearSegments();
         size_t numSegments() const;
         void uuid( const char * uuid );
@@ -181,7 +185,6 @@ namespace adcontrols {
         static std::pair<int, int> base_peak_index( const MassSpectrum&, double lMass, double uMass );
         static double get_mass( const MassSpectrum&, const std::pair< int, int >& );
         static double get_intensity( const MassSpectrum&, const std::pair< int, int >& );
-		// static size_t selected_indecies( std::vector< std::pair< int, int > >&, const MassSpectrum&, double lMass, double uMass, double threshold ); 
     };
     
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );

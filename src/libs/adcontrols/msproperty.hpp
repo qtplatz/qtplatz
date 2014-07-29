@@ -56,10 +56,6 @@ namespace adcontrols {
         const MassSpectrometer& spectrometer() const;
         std::shared_ptr< ScanLaw > scanLaw() const;
 
-        // number of average for waveform
-        size_t numAverage() const;
-        void setNumAverage( size_t );
-
         double time( size_t pos ); // return flight time for data[pos] in seconds
 
         double timeSinceInjection() const;
@@ -82,6 +78,8 @@ namespace adcontrols {
         const char * deviceData() const;
         size_t deviceDataSize() const;
 
+        uint32_t numAverage() const;
+        void setNumAverage( uint32_t );
         void setSamplingDelay( uint32_t );
         void setSamplingInterval( uint32_t ); // ps
         void setfSamplingInterval( double ); // seconds

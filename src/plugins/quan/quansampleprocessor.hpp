@@ -80,8 +80,9 @@ namespace quan {
         bool generate_spectrum( const adcontrols::LCMSDataset *, const adcontrols::QuanSample&, adcontrols::MassSpectrum& );
         size_t read_first_spectrum( const adcontrols::LCMSDataset *, adcontrols::MassSpectrum&, uint32_t tidx /* tic index */);
         size_t read_next_spectrum( size_t pos, const adcontrols::LCMSDataset *, adcontrols::MassSpectrum& );
+        size_t read_raw_spectrum( size_t pos, const adcontrols::LCMSDataset *, adcontrols::MassSpectrum& );
 
-        void processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer );
+        void processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer, bool bSerialize = true );
         QuanProcessor * quanProcessor();
 
         static bool doCentroid( adcontrols::MSPeakInfo& pkInfo

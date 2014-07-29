@@ -107,8 +107,17 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             if ( raw_ ) {
                 adcontrols::MassSpectrum ms;
                 if ( generate_spectrum( raw_, sample, ms ) ) {
+                    ms.normalizeIntensities( 10000 ); // normalize to 10k average equivalent
                     processIt( sample, ms, writer.get() );
                 }
+            }
+            break;
+        case adcontrols::QuanSample::ProcessRawSpectra:
+            if ( raw_ ) {
+                adcontrols::MassSpectrum ms;
+                size_t pos = 0;
+                while ( ( pos = read_raw_spectrum( pos, raw_, ms ) ) ) 
+                    processIt( sample, ms, writer.get(), false );                    
             }
             break;
         case adcontrols::QuanSample::ASIS:
@@ -120,7 +129,6 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                             if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ms, folium ) ) {
                                 sample.name( folium.name().c_str() );
                                 processIt( sample, *ms, writer.get() );
-                                // writer->write( *ms, folium.name() );
                             }
                         }
                     }
@@ -222,6 +230,17 @@ QuanSampleProcessor::read_next_spectrum( size_t pos, const adcontrols::LCMSDatas
     return 0;
 }
 
+size_t 
+QuanSampleProcessor::read_raw_spectrum( size_t pos, const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& ms )
+{
+    int idx, fcn, rep;
+    while ( raw->index( pos, idx, fcn, rep ) && fcn != 0 )  // skip until 'fcn = 0' data 
+        ++pos;
+    if ( raw->getSpectrum( -1, pos, ms ) ) // read all corresponding segments
+        return pos + 1;
+    return 0;
+}
+
 
 bool 
 QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
@@ -243,27 +262,27 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
         if ( (pos = read_next_spectrum( pos, raw, a )) )
             ms += a;
     }
+
     return true;
 }
 
 void
-QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::MassSpectrum& profile, QuanDataWriter * writer )
+QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
+                                , adcontrols::MassSpectrum& profile
+                                , QuanDataWriter * writer
+                                , bool bSerialize )
 {
-    // save profile spectrum
-    adfs::file file = writer->write( profile, sample.name() );
-
     if ( auto pCentroidMethod = procmethod_->find< adcontrols::CentroidMethod >() ) {
 
         adcontrols::MassSpectrum centroid;
         adcontrols::MSPeakInfo pkInfo;
+        adcontrols::MassSpectrum filtered;
 
         bool result(false);
 
         if ( pCentroidMethod->noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter ) {
-
-            adcontrols::MassSpectrum filtered;
-            adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( filtered );
-            for ( auto& ms : segments ) {
+            filtered.clone( profile, true );
+            for ( auto& ms : adcontrols::segment_wrapper<>( filtered ) ) {
                 adcontrols::waveform::fft::lowpass_filter( ms, pCentroidMethod->cutoffFreqHz() );
                 double base( 0 ), rms( 0 );
                 const double * intens = ms.getIntensityArray();
@@ -272,8 +291,6 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::Mass
                     ms.setIntensity( i, intens[ i ] - base );
             }
             filtered.addDescription( adcontrols::Description( L"process", dataproc::Constants::F_DFT_FILTERD ) );
-
-            writer->attach<adcontrols::MassSpectrum>( file, filtered, dataproc::Constants::F_DFT_FILTERD );
 
             result = doCentroid( pkInfo, centroid, filtered, *pCentroidMethod );
 
@@ -297,13 +314,42 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample, adcontrols::Mass
                     doMSFind( pkInfo, centroid, sample, *pCompounds, *pTgtMethod );
                 }
             }
+            
+            if ( bSerialize ) {
+                adcontrols::MassSpectrum * pProfile = &profile;
+                adcontrols::MassSpectrum * pFiltered = (filtered.size() > 0 ) ? &filtered : 0;
+                adcontrols::MassSpectrum * pCentroid = &centroid;
+                adcontrols::MSPeakInfo * pPkInfo = &pkInfo;
+                if ( sample.channel() > 0 ) {
+                    if ( auto p = profile.findProtocol( sample.channel() - 1 ) ) {
+                        p->clearSegments();
+                        pProfile = p;
+                    }
+                    if ( auto p = filtered.findProtocol( sample.channel() - 1 ) ) {
+                        p->clearSegments();
+                        pFiltered = p;
+                    }
+                    if ( auto p = centroid.findProtocol( sample.channel() - 1 ) ) {
+                        p->clearSegments();
+                        pCentroid = p;
+                    }
+                    if ( auto p = pkInfo.findProtocol( sample.channel() - 1 ) ) {
+                        p->clearSegments();
+                        pPkInfo = p;
+                    }
+                }
+                adfs::file file = writer->write( *pProfile, sample.name() );
+                if ( pFiltered )
+                    writer->attach<adcontrols::MassSpectrum>( file, *pFiltered, dataproc::Constants::F_DFT_FILTERD );
 
-            auto afile = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
-            writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
-            writer->attach< adcontrols::MSPeakInfo >( file, pkInfo, dataproc::Constants::F_MSPEAK_INFO );
-            writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
+                auto afile = writer->attach< adcontrols::MassSpectrum >( file, *pCentroid, dataproc::Constants::F_CENTROID_SPECTRUM );
+
+                writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
+                writer->attach< adcontrols::MSPeakInfo >( file, *pPkInfo, dataproc::Constants::F_MSPEAK_INFO );
+                writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
+            }
+
             writer->insert_table( sample );
-
         }
     }
 }
