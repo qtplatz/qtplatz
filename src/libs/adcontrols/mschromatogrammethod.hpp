@@ -59,7 +59,8 @@ namespace adcontrols {
         double upper_limit() const;
         void lower_limit( double );
         void upper_limit( double );
-
+        double width_at_mass( double mass ) const;
+        
     private:
 
         DataSource dataSource_;

@@ -105,3 +105,13 @@ MSChromatogramMethod::upper_limit( double v )
     mass_limits_.second = v;
 }
 
+//static
+double
+MSChromatogramMethod::width_at_mass( double mass ) const
+{
+    if ( widthMethod_ == widthInRP )
+        return mass / width_[ widthMethod_ ];
+    else 
+        return width_[ widthMethod_ ];
+}
+

@@ -36,6 +36,7 @@
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/mschromatogrammethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -201,14 +202,12 @@ MSProcessingWnd::init()
 
         if ( ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) ) {
             pImpl_->ticPlot_->setMinimumHeight( 80 );
-			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnChromatogram( const QPointF& ) ) );
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnChromatogram( const QRectF& ) ) );
             pImpl_->ticPlot_->register_tracker( [=]( const QPointF& pos, QwtText& text ){ return pImpl_->ticTracker( pos, text ); } );
         }
 	
         if ( ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
-			connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProfile( const QPointF& ) ) );
 			connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProfile( const QRectF& ) ) );
             pImpl_->profile_marker_ = std::make_shared< adwplot::PeakMarker >();
             pImpl_->profile_marker_->attach( pImpl_->profileSpectrum_ );
@@ -599,12 +598,6 @@ MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::F
 
 
 void
-MSProcessingWnd::selectedOnChromatogram( const QPointF& pos )
-{
-    DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( pos.x(), pos.x() ); 
-}
-
-void
 MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 {
 	double x0 = pImpl_->ticPlot_->transform( QwtPlot::xBottom, rect.left() );
@@ -659,11 +652,6 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
     }
 
-}
-
-void
-MSProcessingWnd::selectedOnProfile( const QPointF& )
-{
 }
 
 void
@@ -803,40 +791,38 @@ MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
 }
 
 void
-MSProcessingWnd::selectedOnProcessed( const QPointF& pos )
-{
-    ADTRACE() << "MSProcessingWnd::selectedOnProcessed: " << pos.x() << ", " << pos.y();
-}
-
-void
 MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 {
 	double x0 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.left() );
 	double x1 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.right() );
 
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
-        // todo: chromatogram creation from base peak in range
 
         if ( auto ptr = pProcessedSpectrum_.second.lock() ) {
-#if defined BASEPEAK_SELECTION
-            // find base peak
-			auto idx = adcontrols::segments_helper::base_peak_index( *ptr, rect.left(), rect.right() );
-            double mass = adcontrols::segments_helper::get_mass( *ptr, idx );
-			std::vector< std::tuple< int, double, double > > ranges( 1, std::make_tuple( idx.second, mass, 0.05 ) );
-			Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
-			DataprocessWorker::instance()->createChromatograms( processor, ranges );
-#else
-            std::vector< std::pair< int, int > > indecies;
-            if ( adcontrols::segments_helper::selected_indecies( indecies, *ptr, rect.left(), rect.right(), rect.top() ) ) {
+
+            adcontrols::ProcessMethod pm;
+            MainWindow::instance()->getProcessMethod( pm );
+            if ( const auto mchro = pm.find< adcontrols::MSChromatogramMethod >() ) {
+
                 std::vector< std::tuple< int, double, double > > ranges;
-                for ( auto& index: indecies ) {
-                    double mass = adcontrols::segments_helper::get_mass( *ptr, index );
-                    ranges.push_back( std::make_tuple( index.second, mass, 0.005 ) );
+                auto& fgms = adcontrols::segment_wrapper<>( *ptr );
+                for ( auto& xms : fgms ) {
+                    std::pair< size_t, size_t > range = std::make_pair( xms.lower_bound( rect.left() ), xms.lower_bound( rect.right() ) );
+                    for ( size_t i = range.first; i != xms.npos && i < range.second; ++i ) {
+                        if ( xms.getIntensity( i ) >= rect.top() )
+                            ranges.push_back( std::make_tuple( xms.protocolId(), xms.getMass( i ), mchro->width_at_mass( xms.getMass( i ) ) ) );
+                    }
+
+
+                    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )
+                        DataprocessWorker::instance()->createChromatograms( processor, ranges );
                 }
-                Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
-                DataprocessWorker::instance()->createChromatograms( processor, ranges );
+
             }
-#endif
+            else {
+                // no method found
+            }
+
         }
 
     } else {
@@ -870,7 +856,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 
                 if ( adcontrols::MassSpectrumPtr ptr = pProcessedSpectrum_.second.lock() ) {
 					// create chromatograms for all peaks in current zoomed scope
-					Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
+                    Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
 					DataprocessWorker::instance()->createChromatograms( processor, ptr, rc.left(), rc.right() );
 				}
             }

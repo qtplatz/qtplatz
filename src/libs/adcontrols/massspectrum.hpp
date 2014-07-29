@@ -83,7 +83,12 @@ namespace adcontrols {
         MassSpectrum( const MassSpectrum& );
         MassSpectrum& operator = ( const MassSpectrum& );
         MassSpectrum& operator += ( const MassSpectrum& );
-        
+
+        // algorithm
+        const static size_t npos = size_t(-1);
+        size_t lower_bound( double mass ) const;
+
+        // methods
         void clone( const MassSpectrum&, bool deep = false );
         static const wchar_t * dataClass() { return L"MassSpectrum"; }
         
@@ -94,7 +99,7 @@ namespace adcontrols {
         const double * getTimeArray() const;
         size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
         size_t operator << ( const std::pair< double, double >& ); // add (mass,intensity), return index
-        
+
         void setMass( size_t idx, double mass );
         void setIntensity( size_t idx, double intensity );
         void setTime( size_t idx, double time );
@@ -148,6 +153,7 @@ namespace adcontrols {
         std::wstring saveXml() const;
         void loadXml( const std::wstring& );
         
+        // adfs::cpio (serializer)
         static bool archive( std::ostream&, const MassSpectrum& );
         static bool restore( std::istream&, MassSpectrum& );
 
@@ -175,7 +181,7 @@ namespace adcontrols {
         static std::pair<int, int> base_peak_index( const MassSpectrum&, double lMass, double uMass );
         static double get_mass( const MassSpectrum&, const std::pair< int, int >& );
         static double get_intensity( const MassSpectrum&, const std::pair< int, int >& );
-		static size_t selected_indecies( std::vector< std::pair< int, int > >&, const MassSpectrum&, double lMass, double uMass, double threshold ); 
+		// static size_t selected_indecies( std::vector< std::pair< int, int > >&, const MassSpectrum&, double lMass, double uMass, double threshold ); 
     };
     
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
