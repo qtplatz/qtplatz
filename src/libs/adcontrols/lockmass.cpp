@@ -189,15 +189,37 @@ lockmass::fit()
 }
 
 bool
-lockmass::operator()( MassSpectrum& ms ) const
+lockmass::operator()( MassSpectrum& ms, bool applyToAll ) const
 {
-    return fitter_( ms );
+    if ( applyToAll ) {
+        std::pair< double, double > range(1000000.0, 0.0);
+
+        for ( auto& fms : adcontrols::segment_wrapper<>( ms ) ) {
+            fitter_( fms );
+            range.first = std::min( fms.getMass( 0 ), range.first );
+            range.second = std::max( fms.getMass( fms.size() - 1 ), range.second );
+        }
+
+        range.first = range.first - ( range.second - range.first ) / 100;
+        range.second = range.second + ( range.second - range.first ) / 100;
+
+        ms.setAcquisitionMassRange( range.first, range.second );
+
+        return true;
+
+    } else
+        return fitter_( ms );
 }
 
 bool
-lockmass::operator()( MSPeakInfo& info ) const
+lockmass::operator()( MSPeakInfo& info, bool applyToAll ) const
 {
-    return fitter_( info );
+    if ( applyToAll ) {
+        for ( auto& xinfo : adcontrols::segment_wrapper< MSPeakInfo >( info ) )
+            fitter_( xinfo );
+        return true;
+    } else
+        return fitter_( info );
 }
 
 bool
@@ -205,36 +227,25 @@ lockmass::fitter::operator()( MassSpectrum& ms ) const
 {
     if ( coeffs_.empty() )
         return false;
-
-    std::pair< double, double > range(1000000.0, 0.0);
     
-    segment_wrapper<> segs( ms );
+    const double * masses = ms.getMassArray();
 
-
-    for ( auto& fms: segs ) {
-        const double * masses = fms.getMassArray();
-
-        if ( coeffs_.size() == 1 ) {
-            // relative error correction
-            for ( size_t i = 0; i < fms.size(); ++i ) {
-                double mass = masses[ i ] - masses[ i ] * coeffs_[ 0 ];
-                fms.setMass( i, mass );
-            }
-
-        } else {
-
-            for ( size_t i = 0; i < fms.size(); ++i ) {
-				double mass = masses[i] - adportable::polfit::estimate_y( coeffs_, masses[ i ] );
-                fms.setMass( i, mass );
-            }
-
+    if ( coeffs_.size() == 1 ) {
+        // relative error correction
+        for ( size_t i = 0; i < ms.size(); ++i ) {
+            double mass = masses[ i ] - masses[ i ] * coeffs_[ 0 ];
+            ms.setMass( i, mass );
         }
-        range.first = std::min( fms.getMass(0), range.first );
-        range.second = std::max( fms.getMass( fms.size() - 1 ), range.second );
+
+    } else {
+
+        for ( size_t i = 0; i < ms.size(); ++i ) {
+            double mass = masses[i] - adportable::polfit::estimate_y( coeffs_, masses[ i ] );
+            ms.setMass( i, mass );
+        }
+
     }
-    range.first = range.first - ( range.second - range.first ) / 100;
-    range.second = range.second + ( range.second - range.first ) / 100;
-    ms.setAcquisitionMassRange( range.first, range.second );
+
 	return true;
 }
 
@@ -244,27 +255,22 @@ lockmass::fitter::operator()( MSPeakInfo& pkInfo ) const
     if ( coeffs_.empty() )
         return false;
 
-    std::pair< double, double > range(1000000.0, 0.0);
-    
-    segment_wrapper< MSPeakInfo > segs( pkInfo );
-
-    for ( auto& aseg: segs ) {
-        if ( coeffs_.size() == 1 ) {
-            // relative error correction
-            for ( auto& item: aseg ) {
-                double mass = item.mass() - item.mass() * coeffs_[ 0 ];
-                item.mass( mass );
-            }
-
-        } else {
-
-            for ( auto& item: aseg ) { 
-                double mass = item.mass() - adportable::polfit::estimate_y( coeffs_, item.mass() );
-                item.mass( mass );
-            }
-
+    if ( coeffs_.size() == 1 ) {
+        // relative error correction
+        for ( auto& item: pkInfo ) {
+            double mass = item.mass() - item.mass() * coeffs_[ 0 ];
+            item.mass( mass );
         }
+
+    } else {
+
+        for ( auto& item: pkInfo ) { 
+            double mass = item.mass() - adportable::polfit::estimate_y( coeffs_, item.mass() );
+            item.mass( mass );
+        }
+
     }
+
 	return true;
 }
 

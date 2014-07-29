@@ -94,8 +94,8 @@ namespace adcontrols {
         static bool findReferences( lockmass&,  const adcontrols::MassSpectrum& );
         static bool findReferences( lockmass&,  const adcontrols::MassSpectrum&, int idx, int fcn );
         bool fit();
-        bool operator()( MassSpectrum& ) const; // correct mass array
-        bool operator()( MSPeakInfo& ) const;
+        bool operator()( MassSpectrum&, bool applyToAll = true ) const; // correct mass array
+        bool operator()( MSPeakInfo&, bool applyToAll = true ) const;
         
     private:
         std::vector< reference > references_;

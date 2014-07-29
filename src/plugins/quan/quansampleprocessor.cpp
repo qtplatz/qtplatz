@@ -358,10 +358,10 @@ QuanSampleProcessor::doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
             }
         }
     }
+
     if ( mslock.fit() ) {
-        // this apply to all fragment spectra
-        mslock( centroid );
-        mslock( pkInfo );
+        mslock( centroid, true );
+        mslock( pkInfo, true );
         return true;
     }
     return false;
