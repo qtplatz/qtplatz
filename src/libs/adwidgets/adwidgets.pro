@@ -45,7 +45,8 @@ SOURCES += adwidgets.cpp \
     msreferencedialog.cpp \
     mscalibratesummarytable.cpp \
     mstoleranceform.cpp \
-    mslockform.cpp
+    mslockform.cpp \
+    progresswnd.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -69,7 +70,8 @@ HEADERS += adwidgets.hpp\
     msreferencedialog.hpp \
     mscalibratesummarytable.hpp \
     mstoleranceform.hpp \
-    mslockform.hpp
+    mslockform.hpp \
+    progresswnd.hpp
 
 unix {
     target.path = /usr/lib

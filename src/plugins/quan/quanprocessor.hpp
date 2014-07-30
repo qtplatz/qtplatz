@@ -30,6 +30,7 @@
 #include <vector>
 
 namespace adcontrols { class QuanSequence; class QuanSample;  class ProcessMethod; }
+namespace adwidgets { class Progress; }
 
 namespace quan {
 
@@ -52,11 +53,16 @@ namespace quan {
         iterator end();
         const_iterator begin() const;
         const_iterator end() const;
+
+        void complete( const adcontrols::QuanSample * );
         
     protected:
         std::shared_ptr< adcontrols::QuanSequence > sequence_;
         std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
         std::map< std::wstring, std::vector< adcontrols::QuanSample > > que_;
+        std::shared_ptr< adwidgets::Progress > progress_;
+        int progress_total_;
+        int progress_count_;
     };
 
 }

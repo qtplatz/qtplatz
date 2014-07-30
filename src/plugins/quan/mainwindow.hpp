@@ -74,9 +74,10 @@ namespace quan {
         QToolButton * toolButton( QAction * );
         QToolButton * toolButton( const char * );
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
-        
-        void handleIndexChanged( int index, int subIndex );
+
         void commit();
+        void handleIndexChanged( int index, int subIndex );
+        void handleSequenceCompleted();
 
     signals:
 

@@ -135,6 +135,7 @@ namespace adcontrols {
         QuanSample& operator << (const QuanResponse&);
 
         const QuanResponses& results() const { return results_; }
+        QuanResponses& results() { return results_; }
 
         static bool archive( std::ostream&, const QuanSample& );
         static bool restore( std::istream&, QuanSample& );
