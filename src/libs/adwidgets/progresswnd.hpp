@@ -41,8 +41,8 @@ namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT ProgressWnd : public QDialog  {
         Q_OBJECT
-        explicit ProgressWnd(QWidget *parent = 0);
         ~ProgressWnd();
+        explicit ProgressWnd(QWidget *parent = 0);
         static ProgressWnd * instance_;
     public:
         static ProgressWnd * instance();
@@ -75,8 +75,8 @@ namespace adwidgets {
         Progress( const Progress& ) = delete;
         Progress& operator = ( const Progress& ) = delete;
     public:
-        Progress::~Progress();
-        Progress::Progress( ProgressWnd *, int id );
+        Progress( ProgressWnd *, int id );
+        ~Progress();
         bool operator()( int, int );
     };
 
