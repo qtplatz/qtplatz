@@ -806,8 +806,8 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
             if ( const auto mchro = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
                 std::vector< std::tuple< int, double, double > > ranges;
-                auto& fgms = adcontrols::segment_wrapper<>( *ptr );
-                for ( auto& xms : fgms ) {
+                // auto& fgms = adcontrols::segment_wrapper<>( *ptr );
+                for ( auto& xms : adcontrols::segment_wrapper<>( *ptr ) ) {
                     std::pair< size_t, size_t > range = std::make_pair( xms.lower_bound( rect.left() ), xms.lower_bound( rect.right() ) );
                     for ( size_t i = range.first; i != xms.npos && i < range.second; ++i ) {
                         if ( xms.getIntensity( i ) >= rect.top() )
