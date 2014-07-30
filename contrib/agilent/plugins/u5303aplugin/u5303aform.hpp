@@ -46,8 +46,9 @@ namespace u5303a {
 
     private slots:
         void on_pushButton_clicked();
+
     signals:
-        void on_trigger_apply();
+        void trigger_apply();
 
     private:
         Ui::u5303AForm *ui;

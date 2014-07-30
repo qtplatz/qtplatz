@@ -55,7 +55,7 @@ u5303AMethodWidget::onInitialUpdate()
 {
     if ( auto form = findChild< u5303AForm * >() ) {
         form->onInitialUpdate();
-        connect( form, SIGNAL( on_trigger_apply() ), this, SLOT( handle_trigger_apply() ) );
+        connect( form, &u5303AForm::trigger_apply, this, &u5303AMethodWidget::handle_trigger_apply );
     }
     if ( auto table = findChild< u5303AMethodTable * >() ) {
         table->onInitialUpdate();
