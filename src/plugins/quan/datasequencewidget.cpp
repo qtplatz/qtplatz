@@ -185,13 +185,15 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
     if ( id == idQuanSequence && fnChanged ) {
         if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
             boost::filesystem::path path( QuanDocument::instance()->quanSequence()->outfile() );
+            int number = 0;
             if ( boost::filesystem::exists( path ) ) {
                 std::wstring stem = path.stem().wstring();
-                auto pos = stem.find_last_not_of( L"0123456789" );
-                int number = 0;
-                if ( pos != std::wstring::npos ) {
-                    number = std::stoi( stem.substr( pos + 1 ) );
-                    stem = stem.substr( 0, pos + 1 );
+                if ( std::isdigit( stem.at( stem.size() - 1 ) ) ) {
+                    auto pos = stem.find_last_not_of( L"0123456789" );
+                    if ( pos != std::wstring::npos ) {
+                        number = std::stoi( stem.substr( pos + 1 ) );
+                        stem = stem.substr( 0, pos + 1 );
+                    }
                 }
                 boost::filesystem::path next;
                 do {
