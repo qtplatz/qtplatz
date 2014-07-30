@@ -61,6 +61,7 @@
 #include <adfs/cpio.hpp>
 #include <adlog/logger.hpp>
 #include <adutils/cpio.hpp>
+#include <adwidgets/progresswnd.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -80,6 +81,9 @@ QuanSampleProcessor::QuanSampleProcessor( QuanProcessor * processor
                                         , procmethod_( processor->procmethod() )
                                         , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
                                         , processor_( processor->shared_from_this() )
+                                        , progress_( adwidgets::ProgressWnd::instance()->addbar() )
+                                        , progress_current_( 0 )
+                                        , progress_total_( 0 )
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
@@ -91,10 +95,43 @@ QuanSampleProcessor::processor()
     return processor_.get();
 }
 
+void
+QuanSampleProcessor::dryrun()
+{
+    nFcn_ = 0;
+    nSpectra_ = 0;
+    adcontrols::Chromatogram tic;
+    if ( raw_ ) {
+        nFcn_ = raw_->getFunctionCount();
+        raw_->getTIC( 0, tic );
+        nSpectra_ = tic.size();
+    }
+
+    for ( auto& sample : samples_ ) {
+        switch ( sample.dataGeneration() ) {
+        case adcontrols::QuanSample::GenerateSpectrum:
+            if ( nFcn_ && sample.scan_range_first() == 0 && sample.scan_range_second() == (-1) )
+                progress_total_ += int( nSpectra_ / nFcn_ );
+            progress_total_++;
+            break;
+        case adcontrols::QuanSample::ProcessRawSpectra:
+            progress_total_ += int( nSpectra_ );
+            break;
+        case adcontrols::QuanSample::ASIS:
+            progress_total_++;
+            break;
+        }
+    }
+    progress_current_ = 0;
+    (*progress_)(progress_current_, int( progress_total_ ));
+}
+
 bool
 QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 {
     open();
+
+    dryrun();
 
     for ( auto& sample : samples_ ) {
 
@@ -109,6 +146,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 if ( generate_spectrum( raw_, sample, ms ) ) {
                     ms.normalizeIntensities( 10000 ); // normalize to 10k average equivalent
                     processIt( sample, ms, writer.get() );
+                    writer->insert_table( sample );
                 }
             }
             break;
@@ -116,8 +154,13 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             if ( raw_ ) {
                 adcontrols::MassSpectrum ms;
                 size_t pos = 0;
-                while ( ( pos = read_raw_spectrum( pos, raw_, ms ) ) ) 
-                    processIt( sample, ms, writer.get(), false );                    
+                while ( ( pos = read_raw_spectrum( pos, raw_, ms ) ) ) {
+                    if ( (*progress_)(progress_current_++, progress_total_) )
+                        return false;
+                    processIt( sample, ms, writer.get(), false );       
+                    writer->insert_table( sample );
+                    sample.results().clear();
+                } 
             }
             break;
         case adcontrols::QuanSample::ASIS:
@@ -125,10 +168,13 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 if ( auto folder = portfolio_->findFolder( L"Spectra" ) ) {
                     if ( auto folium = folder.findFoliumByName( sample.name() ) ) {
                         if ( fetch( folium ) ) {
+                            if ( (*progress_)(progress_current_++, progress_total_) )
+                                return false;
                             adcontrols::MassSpectrumPtr ms;
                             if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ms, folium ) ) {
                                 sample.name( folium.name().c_str() );
                                 processIt( sample, *ms, writer.get() );
+                                writer->insert_table( sample );
                             }
                         }
                     }
@@ -136,6 +182,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             } while ( 0 );
             break;
         }
+        processor_->complete( &sample );
     }
     QuanDocument::instance()->sample_processed( this );
     return true;
@@ -250,15 +297,26 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
 
     auto range = std::make_pair( sample.scan_range_first(), sample.scan_range_second() );
 
+    if ( (*progress_)(progress_current_++, progress_total_) )
+        return false;
+
+    // select last data
     if ( range.first == uint32_t( -1 ) )
         return read_first_spectrum( raw, ms, range.first ) != 0;
+
+    // anything else
 
     size_t pos = read_first_spectrum( raw, ms, range.first++ );
     if ( pos == 0 )
         return false; // no spectrum have read
 
+    if ( nFcn_ == 1 )
+        return true;  // no protocol/segmented data
+
     adcontrols::MassSpectrum a;
     while ( pos && range.first++ < range.second ) {
+        if ( (*progress_)(progress_current_++, progress_total_) )
+            return false;
         if ( (pos = read_next_spectrum( pos, raw, a )) )
             ms += a;
     }
@@ -348,8 +406,6 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
                 writer->attach< adcontrols::MSPeakInfo >( file, *pPkInfo, dataproc::Constants::F_MSPEAK_INFO );
                 writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
             }
-
-            writer->insert_table( sample );
         }
     }
 }

@@ -31,6 +31,7 @@
 #include <adfs/file.hpp>
 #include <string>
 #include <mutex>
+#include <functional>
 
 namespace adcontrols { class MassSpectrum; class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds; class QuanMethod; }
 

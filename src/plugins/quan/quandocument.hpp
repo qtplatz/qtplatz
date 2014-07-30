@@ -36,6 +36,7 @@
 #include <QObject>
 
 namespace adcontrols { class QuanMethod; class QuanCompounds; class QuanSequence; class QuanSample; class ProcessMethod; class QuanProcessor; }
+namespace adwidgets { class ProgressWnd; }
 namespace boost { namespace filesystem { class path; } }
 
 namespace quan {
@@ -132,6 +133,7 @@ namespace quan {
         void onProcessed( QuanProcessor * );
         void onReportTriggered( const QString& );
         void onMSLockEnabled( bool );
+        void onSequenceCompleted();
     };
 }
 

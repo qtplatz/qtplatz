@@ -44,6 +44,7 @@ namespace adcontrols {
         QuanResponses& operator << (const QuanResponse& t) { values_.push_back( t ); return *this; }
 
         size_t size() const { return values_.size(); }
+        void clear() { values_.clear(); }
         std::vector< QuanResponse >::iterator begin() { return values_.begin(); }
         std::vector< QuanResponse >::iterator end() { return values_.end(); }
         std::vector< QuanResponse >::const_iterator begin() const { return values_.begin(); }

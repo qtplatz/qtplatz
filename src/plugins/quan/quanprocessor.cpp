@@ -26,6 +26,10 @@
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adlog/logger.hpp>
+#include <adwidgets/progresswnd.hpp>
+#include <algorithm>
+#include <numeric>
 
 using namespace quan;
 
@@ -39,16 +43,24 @@ QuanProcessor::QuanProcessor()
 
 QuanProcessor::QuanProcessor( const QuanProcessor& t ) : sequence_( t.sequence_ )
                                                        , que_( t.que_ )
+                                                       , progress_( t.progress_ )
+                                                       , progress_total_( t.progress_total_ )
+                                                       , progress_count_( t.progress_count_ )
 {
 }
 
 QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >& s
-                              , std::shared_ptr< adcontrols::ProcessMethod >& pm )
-    : sequence_( s ), procmethod_( pm )
+                              , std::shared_ptr< adcontrols::ProcessMethod >& pm ) : sequence_( s )
+                                                                                   , procmethod_( pm )
+                                                                                   , progress_( adwidgets::ProgressWnd::instance()->addbar() )
+                                                                                   , progress_total_(0)
+                                                                                   , progress_count_(0)
 {
     // combine per dataSource
     for ( auto it = sequence_->begin(); it != sequence_->end(); ++it )
         que_[ it->dataSource() ].push_back( *it );
+    progress_total_ = std::accumulate( que_.begin(), que_.end(), 0, [] ( int n, const decltype(*que_.begin())& q ){ return n + int( q.second.size() ); } );
+    (*progress_)(0, progress_total_);
 }
 
 adcontrols::QuanSequence *
@@ -91,4 +103,10 @@ QuanProcessor::const_iterator
 QuanProcessor::end() const
 {
     return que_.end();
+}
+
+void
+QuanProcessor::complete( const adcontrols::QuanSample * )
+{
+    (*progress_)(++progress_count_, int( que_.size() ));
 }

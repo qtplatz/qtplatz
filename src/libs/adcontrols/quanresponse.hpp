@@ -46,7 +46,6 @@ namespace adcontrols {
 
         const char * formula() const { return formula_.c_str(); }
         void formula( const char * t ) { formula_ = t; }
-
         int32_t idx_;         // index on centroid spectrum
         int32_t fcn_;         // function (protocol) id on centroid spectrum
         int64_t compoundId_;  // uniqId on compound class ( not identified if negative )

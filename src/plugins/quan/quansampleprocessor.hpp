@@ -45,7 +45,7 @@ namespace adcontrols {
 }
 
 namespace portfolio { class Portfolio; class Folium;  }
-
+namespace adwidgets { class Progress; }
 
 namespace quan {
 
@@ -71,6 +71,11 @@ namespace quan {
         const std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
         std::shared_ptr< adcontrols::ChemicalFormula > cformula_;
         std::shared_ptr< QuanProcessor > processor_;
+        std::shared_ptr< adwidgets::Progress > progress_;
+        size_t nFcn_;
+        size_t nSpectra_;
+        int progress_total_;
+        int progress_current_;
 
         void open();
         bool subscribe( const adcontrols::LCMSDataset& d ) override;
@@ -81,6 +86,8 @@ namespace quan {
         size_t read_first_spectrum( const adcontrols::LCMSDataset *, adcontrols::MassSpectrum&, uint32_t tidx /* tic index */);
         size_t read_next_spectrum( size_t pos, const adcontrols::LCMSDataset *, adcontrols::MassSpectrum& );
         size_t read_raw_spectrum( size_t pos, const adcontrols::LCMSDataset *, adcontrols::MassSpectrum& );
+
+        void dryrun();
 
         void processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer, bool bSerialize = true );
         QuanProcessor * quanProcessor();

@@ -97,6 +97,7 @@ MainWindow::createContents( Core::IMode * )
     viewLayout->addWidget( stack_ );
 
     auto doc = QuanDocument::instance();
+    connect( doc, &QuanDocument::onSequenceCompleted, this, &MainWindow::handleSequenceCompleted );
 
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
         if ( auto configWidget = new QuanConfigWidget ) {
@@ -287,6 +288,9 @@ MainWindow::run()
     if ( auto stop = actions_[ idActStop ] )
         stop->setEnabled( true );
 
+    if ( auto stop = actions_[ idActRun ] )
+        stop->setEnabled( false );
+
     QuanDocument::instance()->run();
 }
 
@@ -294,4 +298,13 @@ void
 MainWindow::stop()
 {
     QuanDocument::instance()->stop();
+}
+
+void
+MainWindow::handleSequenceCompleted()
+{
+    if ( auto stop = actions_[ idActStop ] )
+        stop->setEnabled( false );
+    if ( auto stop = actions_[ idActRun ] )
+        stop->setEnabled( true );
 }

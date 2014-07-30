@@ -36,6 +36,8 @@
 #include <adcontrols/msreference.hpp>
 #include <adportable/profile.hpp>
 #include <adlog/logger.hpp>
+#include <adwidgets/progresswnd.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -320,6 +322,8 @@ QuanDocument::save( const boost::filesystem::path& file, const adcontrols::Proce
 void
 QuanDocument::run()
 {
+    qtwrapper::waitCursor wait;
+
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
 
         bool remove_existing = false;
@@ -334,9 +338,10 @@ QuanDocument::run()
             if ( reply == QMessageBox::Yes )
                 remove_existing = true;
         }
-        
-        QApplication::setOverrideCursor( Qt::WaitCursor );
 
+        adwidgets::ProgressWnd::instance()->show();
+        adwidgets::ProgressWnd::instance()->raise();
+        
         if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
 
             if ( writer->open() ) {
@@ -353,6 +358,9 @@ QuanDocument::run()
                 auto dup = std::make_shared< adcontrols::ProcessMethod >( *procMethod_ );
                 dup->appendMethod( *quanMethod_ );      // write data into QtPlatz filesystem region (for C++)
                 dup->appendMethod( *quanCompounds_ );   // ibid
+
+                auto que = std::make_shared< QuanProcessor >( quanSequence_, dup );
+                exec_.push_back( que );
                 
                 writer->write( *quanSequence_ );         // save into global space in a result file
                 writer->write( *dup );                   // ibid
@@ -360,9 +368,6 @@ QuanDocument::run()
                 writer->insert_table( *quanMethod_ );    // write data into sql table for user query
                 writer->insert_table( *quanCompounds_ ); // write data into sql table for user query
                 writer->insert_table( *quanSequence_ );  // ibid
-                
-                auto que = std::make_shared< QuanProcessor >( quanSequence_, dup );
-                exec_.push_back( que );
                 
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
@@ -380,6 +385,7 @@ QuanDocument::run()
 void
 QuanDocument::stop()
 {
+    adwidgets::ProgressWnd::instance()->stop();
 }
 
 void
@@ -398,7 +404,8 @@ QuanDocument::handle_processed( QuanProcessor * processor )
 
         std::for_each( threads_.begin(), threads_.end(), [] ( std::thread& t ){ t.join(); } );
         threads_.clear();
-        QApplication::restoreOverrideCursor();
+
+        adwidgets::ProgressWnd::instance()->hide();
 
         if ( auto sequence = processor->sequence() ) {
             QString outfile = QString::fromStdWString( sequence->outfile() );
@@ -406,6 +413,8 @@ QuanDocument::handle_processed( QuanProcessor * processor )
         }
         auto shp = processor->shared_from_this();
         exec_.erase( std::remove( exec_.begin(), exec_.end(), shp ) );
+
+        emit onSequenceCompleted();
     }
 }
 

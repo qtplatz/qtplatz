@@ -56,5 +56,5 @@ u5303AForm::onStatus( int status )
 void
 u5303AForm::on_pushButton_clicked()
 {
-    emit on_trigger_apply();
+    emit trigger_apply();
 }
