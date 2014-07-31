@@ -24,6 +24,7 @@
 
 #include "datasequencetree.hpp"
 #include "quanconstants.hpp"
+#include "quandocument.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -32,6 +33,7 @@
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quansample.hpp>
+#include <adcontrols/quanmethod.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <portfolio/portfolio.hpp>
@@ -85,14 +87,21 @@ namespace quan {
 
         class ItemDelegate : public QStyledItemDelegate {
         public:
+
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
                 painter->save();
+                std::string samp_type = index.model()->index( index.row(), c_sample_type, index.parent() ).data().toString().toStdString();
                 std::string data_type = index.model()->index( index.row(), c_data_type, index.parent() ).data().toString().toStdString();
-                if ( data_type == "raw" ) {
-                    painter->fillRect( option.rect, QColor( 0xff, 0x66, 0x44, 0x10 ) );
-                } else if ( data_type == "file" ) {
-                    painter->setPen( Qt::gray );
+                size_t level = index.model()->index( index.row(), c_level, index.parent() ).data().toInt();
+                if ( data_type != "file" ) {  // "raw" | "spc"
+                    if ( samp_type == "STD" ) {
+                        if ( level <= 0 || level > levels_ )
+                            painter->fillRect( option.rect, QColor( 0xff, 0x66, 0x44, 0x40 ) ); // tomato (error; either this is, or number of levels in QuanMethod)
+                        else
+                            painter->fillRect( option.rect, QColor( 174, 198, 207, 0x20 ) ); // pastel blue
+                    } else
+                        painter->fillRect( option.rect, QColor( 119, 221, 119, 0x10 ) ); // pastel green (UNK/QC/BLANK)
                 }
                 if ( index.column() == c_datafile ) {
                     op.textElideMode = Qt::ElideLeft;
@@ -127,7 +136,8 @@ namespace quan {
                     QString data_type = model.index( index.row(), c_data_type, index.parent() ).data().toString();
                     if ( data_type == "raw" ) {
                         QComboBox * pCombo = new QComboBox( parent );
-                        pCombo->addItems( QStringList() << Constants::cmbAvgAll << Constants::cmbTake1st << Constants::cmbTake2nd << Constants::cmbTakeLast << Constants::cmbProcEach );
+                        pCombo->addItems( QStringList() << Constants::cmbAvgAll
+                                          << Constants::cmbTake1st << Constants::cmbTake2nd << Constants::cmbTakeLast << Constants::cmbProcEach );
                         return pCombo;
                     } else if ( data_type == "spc" ) {
                         QComboBox * pCombo = new QComboBox( parent );
@@ -141,8 +151,12 @@ namespace quan {
             void register_valueChanged( std::function<void( const QModelIndex& )> f ) { 
                 valueChanged_ = f;
             }
+            void levels( int value ) { levels_ = value; }
+            void replicates( int value ) { replicates_ = value; }
         private:
             std::function<void( const QModelIndex& )> valueChanged_;
+            int levels_;
+            int replicates_;
         };
 
         ////////////////
@@ -233,7 +247,12 @@ namespace quan {
                 } else if ( data_type == "spc" ) {
                     model.setData( model.index( row, c_process, parent ), "AS IS" );
                 }
-                model.setData( model.index( row, c_level, parent ), 0 ); // level
+                if ( model.index( row, c_sample_type, parent ).data().toString() == "STD" )
+                    model.setData( model.index( row, c_level, parent ), 1 ); // level
+                else {
+                    model.setData( model.index( row, c_level, parent ), 0 ); // level = 0 for UNK/QC/BLANK; and not editable
+                    model.itemFromIndex( model.index( row, c_level, parent ) )->setEditable( false );
+                }
             }
 
             static void setRow( QStandardItemModel& model
@@ -267,13 +286,16 @@ namespace quan {
                 else if ( sample.dataGeneration() == adcontrols::QuanSample::GenerateSpectrum ) {
                     std::pair< uint32_t, uint32_t > range = std::make_pair( sample.scan_range_first(), sample.scan_range_second() );
                     if ( range.first == 0 && range.second == 0 ) // take 1st
-                        model.setData( model.index( row, c_process, parent ), "Take 1st spc." );
+                        model.setData( model.index( row, c_process, parent ), Constants::cmbTake1st );
                     if ( range.first == 1 && range.second == 1 ) // take 2nd
-                        model.setData( model.index( row, c_process, parent ), "Take 2nd spc." );
+                        model.setData( model.index( row, c_process, parent ), Constants::cmbTake2nd );
                     if ( range.first == uint32_t( -1 ) ) // take last
-                        model.setData( model.index( row, c_process, parent ), "Take last spc." );
+                        model.setData( model.index( row, c_process, parent ), Constants::cmbTakeLast );
                     if ( range.first == 0 && range.second == uint32_t( -1 ) ) // average all
-                        model.setData( model.index( row, c_process, parent ), "Average all" );
+                        model.setData( model.index( row, c_process, parent ), Constants::cmbAvgAll );
+                }
+                else if ( sample.dataGeneration() == adcontrols::QuanSample::ProcessRawSpectra ) {
+                    model.setData( model.index( row, c_process, parent ), Constants::cmbProcEach );
                 }
             }
         };
@@ -290,6 +312,10 @@ DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
 {
     auto delegate = new ItemDelegate;
     delegate->register_valueChanged( [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); } );
+    auto& qm = QuanDocument::instance()->quanMethod();
+    delegate->levels( qm.levels() );
+    delegate->replicates( qm.replicates() );
+
     setItemDelegate( delegate );
     setModel( model_.get() );
     
@@ -361,8 +387,13 @@ DataSequenceTree::handleValueChanged( const QModelIndex& index )
         if ( index.data().toString() == "STD" ) {
             if ( (level = model.index( index.row(), c_level, index.parent() ).data().toInt()) == 0 )
                 level = 1;
-            // Level for STD must be 1 or grater; UNK/QC must be zero
+            // Level for STD must be >1
             model.setData( model.index( index.row(), c_level, index.parent() ), level ); 
+            model.itemFromIndex( model.index( index.row(), c_level, index.parent() ) )->setEditable( true );
+        } else {
+            // UNK/QC/BLAND must be 0 (n/a)
+            model.setData( model.index( index.row(), c_level, index.parent() ), 0 ); 
+            model.itemFromIndex( model.index( index.row(), c_level, index.parent() ) )->setEditable( false );
         }
         
         if ( index.parent() == QModelIndex() ) {
@@ -657,5 +688,17 @@ DataSequenceTree::addLine()
     // QModelIndex index = currentIndex();
     // model_->removeRow( index.row(), index.parent() );
     QMessageBox::information( 0, "DataSequenceTree", "Not yet implemented, Sorry" );
+}
+
+void
+DataSequenceTree::handleLevelChaged( int value )
+{
+    dynamic_cast<ItemDelegate *>(itemDelegate())->levels( value );
+}
+
+void
+DataSequenceTree::handleReplicatesChanged( int value )
+{
+    dynamic_cast<ItemDelegate *>(itemDelegate())->replicates( value );
 }
 

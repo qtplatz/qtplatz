@@ -100,12 +100,14 @@ MainWindow::createContents( Core::IMode * )
     connect( doc, &QuanDocument::onSequenceCompleted, this, &MainWindow::handleSequenceCompleted );
 
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
-        if ( auto configWidget = new QuanConfigWidget ) {
+        QuanConfigWidget * mw = 0;
+        if ( auto widget = new QuanConfigWidget ) {
             auto panel = std::make_shared< PanelData >( "Configuration"
                                                         , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
-                                                        , configWidget );
+                                                        , widget );
             panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
-            connect( panelsWidget, &PanelsWidget::onCommit, configWidget, &QuanConfigWidget::commit );
+            connect( panelsWidget, &PanelsWidget::onCommit, widget, &QuanConfigWidget::commit );
+            mw = widget;
         }
         
         if ( auto widget = new DataSequenceWidget ) {
@@ -114,6 +116,8 @@ MainWindow::createContents( Core::IMode * )
                                                         , widget );
             panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
             connect( panelsWidget, &PanelsWidget::onCommit, widget, &DataSequenceWidget::commit );
+            connect( mw, &QuanConfigWidget::onLevelChanged, widget, &DataSequenceWidget::handleLevelChaged );
+            connect( mw, &QuanConfigWidget::onReplicatesChanged, widget, &DataSequenceWidget::handleReplicatesChanged );
         }
         
         stack_->addWidget( panelsWidget );

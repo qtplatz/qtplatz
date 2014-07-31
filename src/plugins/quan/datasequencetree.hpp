@@ -51,6 +51,9 @@ namespace quan {
         bool setContents( const adcontrols::QuanSequence& );
         bool getContents( adcontrols::QuanSequence& );
 
+        void handleLevelChaged( int );
+        void handleReplicatesChanged( int );
+
     protected:
         void dragEnterEvent( QDragEnterEvent * ) override;
         void dragMoveEvent( QDragMoveEvent * ) override;

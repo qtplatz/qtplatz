@@ -28,6 +28,7 @@
 #include <QWidget>
 #include <memory>
 
+class QSpinBox;
 namespace adcontrols { class QuanMethod; }
 
 namespace quan {
@@ -44,6 +45,9 @@ namespace quan {
         ~QuanConfigForm();
         bool setContents( const adcontrols::QuanMethod& );
         bool getContents( adcontrols::QuanMethod& );
+
+        QSpinBox * spinLevels();
+        QSpinBox * spinReplicates();
 
     private slots:
         void on_pushButton_clicked();

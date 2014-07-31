@@ -55,7 +55,8 @@ namespace quan {
     signals:
 
     public slots :
-
+        void handleLevelChaged( int );
+        void handleReplicatesChanged( int );
     };
 
 }

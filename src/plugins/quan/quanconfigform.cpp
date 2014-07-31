@@ -37,10 +37,6 @@ namespace quan {
             , idRadioInfusion
             , idGroupBox2
             , idLabelCalibEq
-            // , idRadioEq1Point
-            // , idRadioEqLinear_0
-            // , idRadioEqLinear
-            // , idRadioEqPolynomials
             , idComboPolynomials
             , idCbxWeighting
             , idRadio_C1
@@ -71,10 +67,6 @@ namespace quan {
                 case idRadioInfusion: return ui_->radioButton_2;
                 case idGroupBox2: return ui_->groupBox;
                 case idLabelCalibEq: return ui_->groupBox_6;
-                    //case idRadioEq1Point: return ui_->radioButton_3;
-                    //case idRadioEqLinear_0:return ui_->radioButton_4;
-                    //case idRadioEqLinear: return ui_->radioButton_5;
-                    //case idRadioEqPolynomials: return ui_->radioButton_6;
                 case idComboPolynomials: return ui_->comboBox;
                 case idCbxWeighting: return ui_->groupBox_5;
                 case idRadio_C1: return ui_->radioButton_7;
@@ -105,7 +97,7 @@ namespace quan {
 using namespace quan;
 using namespace quan::detail;
 
-QuanConfigForm::QuanConfigForm(QWidget *parent) :  QWidget(parent)
+QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
                                                 , ui(new Ui::QuanConfigForm)
 {
     ui->setupUi(this);
@@ -138,6 +130,20 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) :  QWidget(parent)
 QuanConfigForm::~QuanConfigForm()
 {
     delete ui;
+}
+
+QSpinBox *
+QuanConfigForm::spinLevels()
+{
+    ui_accessor accessor( ui );
+    return dynamic_cast<QSpinBox *>(accessor( idSpinLevel ));
+}
+
+QSpinBox *
+QuanConfigForm::spinReplicates()
+{
+    ui_accessor accessor( ui );
+    return dynamic_cast<QSpinBox *>(accessor( idSpinReplicates ));
 }
 
 bool
@@ -262,3 +268,4 @@ QuanConfigForm::on_pushButton_clicked()
 {
     QMessageBox::information(0, "QuanConfigForm", "Sorry, not implemented yet");
 }
+

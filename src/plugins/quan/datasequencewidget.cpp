@@ -34,6 +34,7 @@
 
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adcontrols/quanmethod.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
 
@@ -205,4 +206,21 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
         }
         dataSequenceTree_->setContents( *QuanDocument::instance()->quanSequence() );
     }
+    if ( id == idQuanMethod ) {
+        auto& qm = QuanDocument::instance()->quanMethod();
+        dataSequenceTree_->handleLevelChaged( qm.levels() );
+        dataSequenceTree_->handleReplicatesChanged( qm.replicates() );
+    }
+}
+
+void
+DataSequenceWidget::handleLevelChaged( int value )
+{
+    dataSequenceTree_->handleLevelChaged( value );
+}
+
+void
+DataSequenceWidget::handleReplicatesChanged( int value )
+{
+    dataSequenceTree_->handleReplicatesChanged( value );
 }

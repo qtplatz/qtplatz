@@ -30,12 +30,14 @@
 #include <utils/styledbar.h>
 #include <adcontrols/quanmethod.hpp>
 #include <adportable/profile.hpp>
+#include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QSpinBox>
 #include <QToolButton>
-#include <QFileDialog>
+
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
 #include <fstream>
@@ -46,7 +48,7 @@ QuanConfigWidget::~QuanConfigWidget()
 {
 }
 
-QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
+QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QGridLayout )
                                                     , form_( new QuanConfigForm )
 {
@@ -54,6 +56,9 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) :  QWidget(parent)
     topLayout->setMargin( 0 );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
+
+    connect( form_->spinLevels(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this] ( int value ){ emit onLevelChanged( value ); } );
+    connect( form_->spinReplicates(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this] ( int value ){ emit onReplicatesChanged( value ); } );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );

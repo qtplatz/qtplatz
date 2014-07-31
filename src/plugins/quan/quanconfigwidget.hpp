@@ -55,6 +55,8 @@ namespace quan {
         void handleDataChanged( int, bool );
 
     signals:
+        void onLevelChanged( int );
+        void onReplicatesChanged( int );
 
     public slots:
 
