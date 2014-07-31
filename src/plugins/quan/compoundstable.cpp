@@ -145,8 +145,8 @@ namespace quan {
                     std::string text = ( boost::format( fmt ) % data ).str();
                     painter->drawText( opt.rect, Qt::AlignRight | Qt::AlignVCenter, text.c_str() );
 
-                } else if ( index.column() == c_description ) {
-                    adwidgets::DelegateHelper::render_html( painter, opt, index.data().toString() );
+                // } else if ( index.column() == c_description ) {
+                //     adwidgets::DelegateHelper::render_html( painter, opt, index.data().toString() );
                 } else {
                     QStyledItemDelegate::paint( painter, opt, index );
                 }
@@ -294,7 +294,7 @@ CompoundsTable::handleValueChanged( const QModelIndex& index )
 }
 
 void
-CompoundsTable::handleContextMenu( const QPoint& pt )
+CompoundsTable::handleContextMenu( const QPoint& )
 {
     QMenu menu;
 #if 0
@@ -351,7 +351,7 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
     QStandardItemModel& model = *model_;
     model.setRowCount( int( c.size() ) + 1 ); // add last empty line
 
-    const adcontrols::QuanMethod& qm = QuanDocument::instance()->quanMethod();
+    //const adcontrols::QuanMethod& qm = QuanDocument::instance()->quanMethod();
     const adcontrols::ProcessMethod& pm = QuanDocument::instance()->procMethod();
 
     if ( auto lkms = pm.find< adcontrols::MSLockMethod >() )

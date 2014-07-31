@@ -42,8 +42,8 @@
 
 using namespace quan;
 
-QuanPlugin::QuanPlugin() : mainWindow_( new MainWindow() )
-                         , mode_( std::make_shared<QuanMode>( this ) )
+QuanPlugin::QuanPlugin() : mode_( std::make_shared<QuanMode>( this ) )
+                         , mainWindow_( new MainWindow() )
 {
 }
 

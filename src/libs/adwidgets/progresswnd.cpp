@@ -45,12 +45,12 @@ ProgressWnd::~ProgressWnd()
 {
 }
 
-ProgressWnd::ProgressWnd(QWidget *parent) : QDialog(parent)
+ProgressWnd::ProgressWnd(QWidget *parent) : QDialog( parent, Qt::Tool )
                                           , stop_requested_( false )
 {
     QPalette pal;
-    QColor background( 128, 128, 128 );
-    pal.setColor( QPalette::All, QPalette::Window, background ); // QPalette::Window, background.darker( 102 ));
+    QColor background( 128, 128, 128, 128 );
+    pal.setColor( QPalette::All, QPalette::Window, background );
     setPalette(pal);
 
     resize(200,100);
@@ -67,8 +67,9 @@ ProgressWnd::ProgressWnd(QWidget *parent) : QDialog(parent)
     layout_ = new QGridLayout;
     topLayout->addLayout( layout_ );
 
-    setWindowFlags( windowFlags() & ~Qt::WindowContextHelpButtonHint );
-    setWindowFlags( windowFlags() | Qt::FramelessWindowHint );
+    //setWindowFlags seems not working on Mac, so change Qt:Tool in QDialog ctor
+    //setWindowFlags( windowFlags() & ~Qt::WindowContextHelpButtonHint );
+    //setWindowFlags( windowFlags() | Qt::FramelessWindowHint );
 
     connect( this, &ProgressWnd::onProgress, this, &ProgressWnd::handleProgress );
     connect( this, &ProgressWnd::onRemove, this, &ProgressWnd::handleRemove );
@@ -113,6 +114,8 @@ ProgressWnd::addbar()
 void
 ProgressWnd::handleProgress( int id, int current, int total )
 {
+    show();
+    raise();
     auto it = progressive_.find( id );
     if ( it != progressive_.end() ) {
         auto bar = it->second;
@@ -131,12 +134,12 @@ ProgressWnd::handleRemove( int id )
 {
     auto it = progressive_.find( id );
     if ( it != progressive_.end() ) {
-        //completed_.push_back( std::make_pair( it->first, it->second ) );
+
         progressive_.erase( it );
         if ( progressive_.empty() ) { // this is GUI thread
             ProgressWnd * tmp = instance_;
             instance_ = 0;
-            //std::for_each( completed_.begin(), completed_.end(), [] ( std::pair<int, QProgressBar *>& bar ){ delete bar.second; } ));
+
             QLayoutItem * child;
             while ( (child = layout_->takeAt( 0 )) != 0 )
                 delete child;

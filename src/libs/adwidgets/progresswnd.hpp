@@ -52,7 +52,6 @@ namespace adwidgets {
     private:
         QGridLayout * layout_;
         std::map< int, QProgressBar * > progressive_;
-        //std::vector< std::pair< int, QProgressBar * > > completed_;
         std::atomic<int> idGen_;
         bool stop_requested_;
         friend class Progress;

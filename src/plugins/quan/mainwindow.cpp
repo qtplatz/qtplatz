@@ -307,4 +307,5 @@ MainWindow::handleSequenceCompleted()
         stop->setEnabled( false );
     if ( auto stop = actions_[ idActRun ] )
         stop->setEnabled( true );
+    stack_->setCurrentIndex( 2 ); // switch to Report
 }
