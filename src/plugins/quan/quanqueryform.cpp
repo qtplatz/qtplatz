@@ -33,7 +33,10 @@ QuanQueryForm::QuanQueryForm(QWidget *parent) :  QWidget(parent)
 {
     ui->setupUi(this);
     ui->comboBox->clear();
-    ui->comboBox->addItems( QStringList() << "View all (simple)" << "View all" << "Viwe full" << "Standard/Calibration" << "Unknown" );
+    ui->comboBox->addItems( QStringList()
+                            << "View all (simple)" << "View all" << "Viwe full" << "Standard"
+                            << "Unknown"
+                            << "Calibration" );
 }
 
 QuanQueryForm::~QuanQueryForm()
@@ -92,18 +95,19 @@ FROM QuanSample,QuanResponse,QuanAmount,QuanCompound \n\
 WHERE QuanSample.id = idSample AND QuanCompound.uniqId = QuanResponse.uniqId\n\
 AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.uniqId)\n\
 AND QuanAmount.level = QuanSample.level\n\
-AND QuanResponse.formula like '%' ORDER BY Quanresponse.formula");
+ORDER BY QuanCompound.id");
 
-    } else if ( index == idx++ ) { // Standard/Calibration
+    } else if ( index == idx++ ) { // Standard
 
         setSQL("\
-SELECT QuanResponse.formula, QuanResponse.intensity, QuanAmount.amount,sampletype \n\
-FROM QuanSample,QuanResponse,QuanAmount \n\
-WHERE QuanSample.id = idSample AND sampleType = 1\n\
+SELECT QuanCompound.id, QuanResponse.formula, QuanResponse.intensity, QuanAmount.amount, QuanSample.level, QuanSample.sampleType\n\
+FROM QuanSample,QuanResponse,QuanAmount,QuanCompound\n\
+WHERE QuanSample.id = idSample\n\
+AND QuanCompound.id = idCompound\n\
+AND sampleType = 1\n\
 AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.uniqId)\n\
 AND QuanAmount.level = QuanSample.level\n\
-AND QuanResponse.formula like '%' ORDER BY Quanresponse.formula");
-
+ORDER BY QuanCompound.id");
 
     } else if ( index == idx++ ) { // Unknown
 
@@ -112,6 +116,10 @@ SELECT QuanResponse.formula, QuanResponse.intensity, sampletype \n\
 FROM QuanSample,QuanResponse \n\
 WHERE QuanSample.id = idSample AND sampleType = 0\n\
 AND QuanResponse.formula like '%' ORDER BY QuanResponse.formula");
+
+    } else if ( index == idx++ ) { // Calibration
+
+        setSQL("SELECT * from QuanCalib");
 
     }
 
