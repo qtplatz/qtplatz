@@ -27,7 +27,11 @@
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adlog/logger.hpp>
+#include <adfs/filesystem.hpp>
+#include <adfs/sqlite.hpp>
 #include <adwidgets/progresswnd.hpp>
+
+#include <boost/filesystem.hpp>
 #include <algorithm>
 #include <numeric>
 
@@ -110,3 +114,37 @@ QuanProcessor::complete( const adcontrols::QuanSample * )
 {
     (*progress_)(++progress_count_, int( que_.size() ));
 }
+
+void
+QuanProcessor::doCalibration()
+{
+    // std::shared_ptr< adcontrols::QuanSequence > sequence_;
+    // std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
+    // std::map< std::wstring, std::vector< adcontrols::QuanSample > > que_;
+
+    boost::filesystem::path database( sequence_->outfile() );
+    if ( !boost::filesystem::exists( database ) )
+        return;
+
+    int nLevels = 1;
+    int nReplicates = 1;
+    if ( auto qm = procmethod_->find< adcontrols::QuanMethod >() ) {
+        nLevels = qm->levels();
+        nReplicates = qm->replicates();
+    }    
+
+    adfs::filesystem fs;
+    if ( fs.mount( database.wstring().c_str() ) ) {
+        adfs::stmt sql( fs.db() );
+        
+    }    
+
+
+    
+}
+
+void
+QuanProcessor::doQuantification()
+{
+}
+

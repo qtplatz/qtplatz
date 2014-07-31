@@ -55,6 +55,8 @@ namespace quan {
         const_iterator end() const;
 
         void complete( const adcontrols::QuanSample * );
+        void doCalibration();
+        void doQuantification();
         
     protected:
         std::shared_ptr< adcontrols::QuanSequence > sequence_;

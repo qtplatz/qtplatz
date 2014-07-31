@@ -411,6 +411,9 @@ QuanDocument::handle_processed( QuanProcessor * processor )
             QString outfile = QString::fromStdWString( sequence->outfile() );
             emit onReportTriggered( outfile );
         }
+        processor->doCalibration();
+        processor->doQuantification();
+
         auto shp = processor->shared_from_this();
         exec_.erase( std::remove( exec_.begin(), exec_.end(), shp ) );
 

@@ -32,6 +32,7 @@
 #include <adfs/sqlite.hpp>
 
 namespace adfs { class filesystem; class stmt; class sqlite; }
+namespace adcontrols { class QuanMethod; class QuanSequence; };
 
 namespace quan {
 
