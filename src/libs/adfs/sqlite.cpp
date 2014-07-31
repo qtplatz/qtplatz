@@ -216,13 +216,10 @@ stmt::prepare( const std::string& sql )
 bool
 stmt::prepare( const std::wstring& sql )
 {
-    //std::codecvt_utf16<wchar_t> cvt;
-
-//    if ( sqlite3_prepare16_v2( sqlite_, sql.c_str(), -1, &stmt_, reinterpret_cast<const void **>(&tail) ) == SQLITE_OK )
-    //return true;
-
-    std::wstring_convert< deletable_facet<std::codecvt<wchar_t, char, std::mbstate_t> >, wchar_t> convert;
-    auto utf8 = convert.to_bytes( sql );
+    // I've trying to use std::codecvt for wstring to utf8 conversion, but it raise 'range_error' exeception when sql contains janese kanji-chars.
+    // std::wstring_convert< deletable_facet<std::codecvt<wchar_t, char, std::mbstate_t> >, wchar_t> convert;
+    // auto utf8 = convert.to_bytes( sql );
+    auto utf8 = adportable::utf::to_utf8( sql );
 
     const char * tail = 0;
     if ( sqlite3_prepare_v2( sqlite_, utf8.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
