@@ -48,7 +48,7 @@ namespace adcontrols {
         void formula( const char * t ) { formula_ = t; }
         int32_t idx_;         // index on centroid spectrum
         int32_t fcn_;         // function (protocol) id on centroid spectrum
-        int64_t compoundId_;  // uniqId on compound class ( not identified if negative )
+        int64_t uniqId_;      // uniqId on compound class (not a SQLite primary key)
         double intensity_;    // area | height from chromatogram/spectrum
         double amounts_;      // result
         double mass_;         // observed mass
@@ -59,7 +59,7 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( compoundId_ )
+            ar & BOOST_SERIALIZATION_NVP( uniqId_ )
                 & BOOST_SERIALIZATION_NVP( formula_ )                
                 & BOOST_SERIALIZATION_NVP( idx_ )                
                 & BOOST_SERIALIZATION_NVP( fcn_ )                                

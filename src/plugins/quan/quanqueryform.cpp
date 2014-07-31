@@ -72,15 +72,15 @@ QuanQueryForm::on_comboBox_currentIndexChanged(int index)
     if ( index == idx++ ) { // view simple
         setSQL("\
 SELECT dataSource, row, level, formula, mass, intensity, sampletype FROM QuanSample,QuanResponse \
-WHERE QuanSample.id = sampleId AND formula like '%' ORDER BY formula" );
+WHERE QuanSample.id = idSample AND formula like '%' ORDER BY formula" );
 
     } else if ( index == idx++ ) { // view all
 
         setSQL("\
 SELECT dataSource, row, QuanSample.level, QuanResponse.formula, QuanResponse.mass, QuanResponse.intensity, QuanAmount.amount,sampletype \n\
 FROM QuanSample,QuanResponse,QuanAmount\n\
-WHERE QuanSample.id = sampleId\n\
-AND QuanAmount.CompoundId = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.compoundId)\n\
+WHERE QuanSample.id = idSample\n\
+AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.uniqId)\n\
 AND QuanAmount.level = QuanSample.level\n\
 AND formula like '%' ORDER BY formula" );
 
@@ -89,8 +89,8 @@ AND formula like '%' ORDER BY formula" );
         setSQL("\
 SELECT dataSource, row, QuanSample.level, QuanResponse.formula, QuanCompound.mass AS 'exact mass', QuanResponse.mass, QuanResponse.intensity, QuanAmount.amount,sampletype,QuanCompound.description \n\
 FROM QuanSample,QuanResponse,QuanAmount,QuanCompound \n\
-WHERE QuanSample.id = sampleId AND QuanCompound.uniqId = QuanResponse.compoundId\n\
-AND QuanAmount.CompoundId = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.compoundId)\n\
+WHERE QuanSample.id = idSample AND QuanCompound.uniqId = QuanResponse.uniqId\n\
+AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.uniqId)\n\
 AND QuanAmount.level = QuanSample.level\n\
 AND QuanResponse.formula like '%' ORDER BY Quanresponse.formula");
 
@@ -99,8 +99,8 @@ AND QuanResponse.formula like '%' ORDER BY Quanresponse.formula");
         setSQL("\
 SELECT QuanResponse.formula, QuanResponse.intensity, QuanAmount.amount,sampletype \n\
 FROM QuanSample,QuanResponse,QuanAmount \n\
-WHERE QuanSample.id = sampleId AND sampleType = 1\n\
-AND QuanAmount.CompoundId = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.compoundId)\n\
+WHERE QuanSample.id = idSample AND sampleType = 1\n\
+AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.uniqId)\n\
 AND QuanAmount.level = QuanSample.level\n\
 AND QuanResponse.formula like '%' ORDER BY Quanresponse.formula");
 
@@ -110,7 +110,7 @@ AND QuanResponse.formula like '%' ORDER BY Quanresponse.formula");
         setSQL("\
 SELECT QuanResponse.formula, QuanResponse.intensity, sampletype \n\
 FROM QuanSample,QuanResponse \n\
-WHERE QuanSample.id = sampleId AND sampleType = 0\n\
+WHERE QuanSample.id = idSample AND sampleType = 0\n\
 AND QuanResponse.formula like '%' ORDER BY QuanResponse.formula");
 
     }

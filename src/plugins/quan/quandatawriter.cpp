@@ -163,14 +163,15 @@ QuanDataWriter::create_table()
 ,FOREIGN KEY ( idAudit ) REFERENCES idAudit ( id ) )" );
 
     result &= sql.exec( 
-        "CREATE TABLE QuanSequence (id INTEGER PRIMARY KEY \
+        "CREATE TABLE QuanSequence (\
+ id INTEGER PRIMARY KEY \
 ,uuid    TEXT \
 ,outfile TEXT)" );
 
     result &= sql.exec(
         "CREATE TABLE QuanSample (\
  id INTEGER PRIMARY KEY \
-,sequenceId      INTEGER \
+,idSequence      INTEGER \
 ,row             INTEGER \
 ,name            TEXT    \
 ,dataType        TEXT    \
@@ -185,13 +186,14 @@ QuanDataWriter::create_table()
 ,dataGeneration  INTEGER \
 ,scan_range_first INTEGER  \
 ,scan_range_second INTEGER \
-,FOREIGN KEY( sequenceId ) REFERENCES QuanSequence( id ))" );
+,FOREIGN KEY( idSequence ) REFERENCES QuanSequence( id ))" );
 
     result &= sql.exec(
-        "CREATE TABLE QuanISTD ( sampleId INTEGER \
+        "CREATE TABLE QuanISTD (\
+ idSample INTEGER \
 ,ISTDID         INTEGAR \
 ,amounts        REAL    \
-,FOREIGN KEY( sampleId ) REFERENCES QuanSample( id ) \
+,FOREIGN KEY( idSample ) REFERENCES QuanSample( id ) \
 )" );
 
 
@@ -200,7 +202,7 @@ QuanDataWriter::create_table()
 // 'id' is actual unique key within a database
     result &= sql.exec(
         "CREATE TABLE QuanCompound (\
- id  INTEGER PRIMARY KEY  \
+ id  INTEGER PRIMARY KEY \
 ,uuid           TEXT     \
 ,uniqId         INTEGER  \
 ,display_name   TEXT     \
@@ -215,26 +217,36 @@ QuanDataWriter::create_table()
 ,description    TEXT     \
 ,criteria_0     REAL     \
 ,criteria_1     REAL     \
-,UNIQUE(uuid,uniqId)     \
+,UNIQUE(uuid,uniqId) \
 )" );
 
     result &= sql.exec(
         "CREATE TABLE QuanAmount ( \
- CompoundId INTEGER \
+idCompound INTEGER \
 ,level INTEGER, amount REAL \
-,FOREIGN KEY( CompoundId ) REFERENCES QuanCompound ( id ) )" );
+,FOREIGN KEY( idCompound ) REFERENCES QuanCompound ( id ) )" );
 
     result &= sql.exec(
         "CREATE TABLE QuanResponse ( \
- sampleId INTEGAR \
+ id     INTEGER PRIMARY KEY \
+,idSample       INTEGAR \
 ,idx            INTEGER \
 ,fcn            INTEGAR \
-,compoundId     INTEGAR \
+,uniqId         INTEGAR \
 ,intensity      REAL    \
 ,formula        TEXT    \
 ,mass           REAL    \
 ,tR             REAL    \
-,FOREIGN KEY( sampleId ) REFERENCES QuanSample ( id ) )" );
+,calibId        INTEGER \
+,amount         REAL    \
+,FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
+
+    result &= sql.exec("\
+CREATE TABLE QuanCalib (\
+ id INTEGER PRIMARY KEY\
+,idCompound INTEGER \
+,coeffs  REAL \
+,FOREIGN KEY ( idCompound ) REFERENCES QuanCompound( id ))" );
 
     return result;
 }
@@ -323,7 +335,7 @@ QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
 
     for ( auto& sample: t ) {
         if ( sql.prepare( "INSERT INTO QuanSample\
-(sequenceid,row,name,dataType,dataSource,dataGuid,sampleType,level,ISTDID,injVol,amountsAdded,channel,dataGeneration,scan_range_first,scan_range_second)\
+(idSequence,row,name,dataType,dataSource,dataGuid,sampleType,level,ISTDID,injVol,amountsAdded,channel,dataGeneration,scan_range_first,scan_range_second)\
 SELECT id,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {
             sql.bind( 1 ) = sample.row();
             sql.bind( 2 ) = std::wstring( sample.name() );
@@ -382,13 +394,16 @@ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
 
         for ( int i = 0; i < c.levels(); ++i ) {
             if ( sql.prepare( 
-                     "INSERT INTO QuanAmount (CompoundId, level, amount)  \
-SELECT id,:level,:amount FROM QuanCompound      \
+                     "\
+INSERT INTO QuanAmount (idCompound, level, amount)  \
+SELECT QuanCompound.id, :level, :amount \
+FROM QuanCompound \
 WHERE uuid = :uuid and uniqId = :uniqId" ) ) {
-                sql.bind(1) = i;                 // :level
+                sql.bind(1) = i + 1;             // :level (1-origin)
                 sql.bind(2) = c.amounts()[i];    // :amount
                 sql.bind(3) = uuid;              // QuanCompound.uuid
                 sql.bind(4) = c.uniqId();        // QuanCompound.uniqId
+
                 if ( sql.step() != adfs::sqlite_done )
                     ADTRACE() << "sql error";                    
             }
@@ -397,35 +412,31 @@ WHERE uuid = :uuid and uniqId = :uniqId" ) ) {
     return false;
 }
 
-// query formula;
-// select formula from quancompound where uniqid = (select uniqid from quanresponse);
-
 bool
 QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
 {
     adfs::stmt sql( fs_.db() );
 
     std::string uuid = boost::lexical_cast<std::string>(t.sequence_uuid());
-    
+
     for ( auto& result: t.results() ) {
         if ( sql.prepare( "INSERT INTO QuanResponse \
-(sampleId,idx,fcn,compoundId,intensity,formula,mass,tR) SELECT id,?,?,?,?,?,?,? from QuanSample \
-WHERE sequenceId = (SELECT id FROM QuanSequence WHERE uuid = :uuid) AND row = :row" ) ) {
+(idSample,idx,fcn,uniqId,intensity,formula,mass,tR) SELECT QuanSample.id,?,?,?,?,?,?,? FROM QuanSample \
+WHERE QuanSample.row = :row AND idSequence = (SELECT QuanSequence.id FROM QuanSequence WHERE uuid = :uuid)" ) ) {
             int col = 1;
             sql.bind( col++ ) = result.idx_;
             sql.bind( col++ ) = result.fcn_;
-            sql.bind( col++ ) = result.compoundId_;
+            sql.bind( col++ ) = result.uniqId_;
             sql.bind( col++ ) = result.intensity_;
             sql.bind( col++ ) = std::string( result.formula() );
             sql.bind( col++ ) = result.mass_;
             sql.bind( col++ ) = result.tR_;
-            sql.bind( col++ ) = uuid;    // QuanSequence.uuid
             sql.bind( col++ ) = t.row(); // QuanSample.row
+            sql.bind( col++ ) = uuid;    // QuanSequence.uuid
 
             if ( sql.step() != adfs::sqlite_done )
                 ADERROR() << "sql error";
         }
     }
-
     return true;
 }

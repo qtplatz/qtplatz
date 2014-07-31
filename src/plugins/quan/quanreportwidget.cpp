@@ -118,8 +118,8 @@ QuanReportWidget::executeQuery()
 {
     if ( auto connection = QuanDocument::instance()->connection() ) {
         form_->setSQL(
-            "SELECT dataSource, row, level, formula, mass, intensity, sampletype FROM QuanSample,QuanResponse \
-WHERE QuanSample.id = sampleId AND formula like '%' ORDER BY formula" );
+            "SELECT dataSource, row, level, formula, mass, intensity, sampleType FROM QuanSample,QuanResponse \
+WHERE QuanSample.id = idSample AND formula like '%' ORDER BY formula" );
         std::wstring sql = form_->sql().toStdWString();
         if ( auto query = connection->query() ) {
             if ( query->prepare( sql ) ) {
