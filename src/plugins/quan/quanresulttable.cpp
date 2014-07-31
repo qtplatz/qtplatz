@@ -24,9 +24,13 @@
 
 #include "quanresulttable.hpp"
 #include "quanquery.hpp"
+#include <adwidgets/delegatehelper.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <QStyledItemDelegate>
 #include <QStandardItemModel>
 #include <QVariant>
+#include <QPainter>
+#include <boost/filesystem.hpp>
 
 namespace quan {
     namespace quanresulttable {
@@ -35,9 +39,20 @@ namespace quan {
         public:
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
-                //if ( index.data().type() == QVariant::String )
-                op.textElideMode = Qt::ElideLeft;
-                QStyledItemDelegate::paint( painter, op, index );
+                if ( index.data().type() == QVariant::Double ) {
+                    painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) );
+                } else if ( index.data().type() == QVariant::String ) {
+                    std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
+                    if ( !formula.empty() )
+                        adwidgets::DelegateHelper::render_html( painter, op, QString::fromStdString( formula ) );
+                    else {
+                        boost::filesystem::path path( index.data().toString().toStdWString() );
+                        if ( path.is_complete() )
+                            op.textElideMode = Qt::ElideLeft; // elide left for filename, otherwise stay default
+                        QStyledItemDelegate::paint( painter, op, index );
+                    }
+                } else
+                    QStyledItemDelegate::paint( painter, op, index );
             }
             void setEditorData( QWidget * editor, const QModelIndex& index ) const {
                 QStyledItemDelegate::setEditorData( editor, index );
@@ -88,5 +103,6 @@ QuanResultTable::addRecord( const QuanQuery& q )
         for ( int col = 0; col < int( q.column_count() ); ++col )
             model_->setData( model_->index( row, col ), q.column_value( col ) );
     }
-
+    resizeColumnsToContents();
+    resizeRowsToContents();
 }
