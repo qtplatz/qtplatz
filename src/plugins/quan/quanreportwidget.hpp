@@ -46,14 +46,15 @@ namespace quan {
         std::unique_ptr< QuanResultTable > table_;
 
         void executeQuery();
-        void execSQL( const QString& );
 
     signals:
 
     public slots:
 
     private slots:
-        void report( const QString& );
+
+        void handleReport( const QString& );
+        void handleQuery( const QString& );
     };
 
 }

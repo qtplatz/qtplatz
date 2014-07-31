@@ -59,8 +59,8 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
-    connect( QuanDocument::instance(), &QuanDocument::onReportTriggered, this, &QuanReportWidget::report );
-    connect( form_.get(), &QuanQueryForm::triggerQuery, this, &QuanReportWidget::execSQL );
+    connect( QuanDocument::instance(), &QuanDocument::onReportTriggered, this, &QuanReportWidget::handleReport );
+    connect( form_.get(), &QuanQueryForm::triggerQuery, this, &QuanReportWidget::handleQuery );
     
     if ( auto toolBar = new Utils::StyledBar ) {
 
@@ -85,7 +85,7 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
                                                          , tr("Open Quantitative Analysis Result file")
                                                          , name, tr("File(*.adfs)") );
                     if ( !name.isEmpty() )
-                        report( name );
+                        handleReport( name );
                 } );
         }
 
@@ -101,7 +101,7 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
 }
 
 void
-QuanReportWidget::report( const QString& file )
+QuanReportWidget::handleReport( const QString& file )
 {
     if ( auto connection = std::make_shared< QuanConnection >() ) {
         if ( connection->connect( file.toStdWString() ) ) {
@@ -112,11 +112,6 @@ QuanReportWidget::report( const QString& file )
         }
     }
 }
-
-// SELECT dataSource, row, QuanSample.level, formula, mass, intensity, amount, sampleType FROM QuanSample, QuanResponse, QuanAmount WHERE QuanSample.id = sampleId
-// AND QuanAmount.level = QuanSample.level 
-// AND QuanAmount.CompoundId = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.compoundId)
-// NAD sampleType = 1
 
 void
 QuanReportWidget::executeQuery()
@@ -138,7 +133,7 @@ WHERE QuanSample.id = sampleId AND formula like '%' ORDER BY formula" );
 }
 
 void
-QuanReportWidget::execSQL( const QString& sql )
+QuanReportWidget::handleQuery( const QString& sql )
 {
     if ( auto connection = QuanDocument::instance()->connection() ) {
         if ( auto query = connection->query() ) {
