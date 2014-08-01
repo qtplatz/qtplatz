@@ -44,17 +44,16 @@ namespace adportable {
         static double weight_value( polfit::WeightingType wmode, double yi );
         //----------------------------
         static void normalCoefficients( size_t count
-                                       , const double* x, const double* y, int degree
-                                       , boost::numeric::ublas::vector<double>& xSum
-                                       , boost::numeric::ublas::vector<double>& yxSum
-                                       , boost::numeric::ublas::matrix<double>& a
-                                       , boost::numeric::ublas::vector<double>& b );
+                                        , const double* x, const double* y, int degree
+                                        , boost::numeric::ublas::vector<double>& xSum
+                                        , boost::numeric::ublas::vector<double>& yxSum
+                                        , boost::numeric::ublas::matrix<double>& a
+                                        , boost::numeric::ublas::vector<double>& b );
 	
         static void normalCoefficients( size_t count
-                                      , const double* x, const double * y
-                                      , int degree
-                                      , boost::numeric::ublas::matrix<double>& a
-                                      , boost::numeric::ublas::vector<double>& b );
+                                        , const double* x, const double * y, int degree
+                                        , boost::numeric::ublas::matrix<double>& a
+                                        , boost::numeric::ublas::vector<double>& b );
     }
 }
 
@@ -152,7 +151,7 @@ internal::determ( boost::numeric::ublas::matrix<double>& a, int n ) // double **
 }
 
 
-int 
+bool
 polfit::fit( const double *x
             , const double *y
             , size_t npts
@@ -173,27 +172,26 @@ polfit::fit( const double *x
     chisqr = 0;
     double chisq = 0.0;
     double xi, yi, wt, xterm, yterm, delta, xfree;
-    for (i = 0; i < npts; ++i) { // DO 50
+    for (i = 0; i < npts; ++i) {
         xi = x[i];
         yi = y[i];
         wt = internal::weight_value( wmode, yi );
 
         xterm = wt;
-        // DO 44 N + 1, NMAX
+
         for (n = 0; n < nmax; ++n) {
             sumx[n] = sumx[n] + xterm;
             xterm = xterm * xi;
         }
-        // DO 48 N=1, NTERMS
+
         yterm = wt * yi;
         for (n = 0; n < nterms; ++n) {
             sumy[n] = sumy[n] + yterm;
             yterm = yterm * xi;
         }
         chisq = chisq + wt * (yi * yi);
-    }//L50:
+    }
 
-    /* L51 */
     for (j = 0; j < nterms; ++j) {
         for (k = 0; k < nterms; ++k) {
             n = j + k; // - 1;
@@ -203,7 +201,7 @@ polfit::fit( const double *x
     delta = internal::determ(array, nterms);
     if (delta == 0) {
         chisqr = 0;
-        return 0;
+        return false;
     } else {
         for (l = 0; l < nterms; ++l) {
             for (j = 0; j < nterms; ++j) {
@@ -226,7 +224,7 @@ polfit::fit( const double *x
     }
     xfree = double( npts - nterms );
     chisqr = chisq / xfree;
-    return 0;
+    return true;
 }
 
 double

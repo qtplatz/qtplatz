@@ -61,7 +61,7 @@ ProgressWnd::ProgressWnd(QWidget *parent) : QDialog( parent, Qt::Tool )
     
     auto topLayout = new QVBoxLayout(this);
     //topLayout->setMargin( 0 );
-    topLayout->setSpacing( 2 );
+    topLayout->setSpacing( 6 );
     topLayout->setContentsMargins( 9, 9, 7, 7 );
     
     layout_ = new QGridLayout;

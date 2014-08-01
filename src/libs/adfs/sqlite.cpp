@@ -368,6 +368,14 @@ namespace adfs {
             return sqlite3_bind_zeroblob( stmt_, nnn_, blob.size() ) == SQLITE_OK;
     }
 
+    template<> bool
+    stmt::bind_item::operator = ( const null& )
+    {
+        return sqlite3_bind_null( stmt_, nnn_ ) == SQLITE_OK;
+    }
+
+    //------------------------------------
+
     template<> std::string stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
