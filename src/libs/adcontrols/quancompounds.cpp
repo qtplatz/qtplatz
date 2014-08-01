@@ -31,11 +31,11 @@ QuanCompounds::~QuanCompounds()
 {
 }
 
-QuanCompounds::QuanCompounds() : uuid_( adportable::uuid()() )
+QuanCompounds::QuanCompounds()
 {
 }
 
-QuanCompounds::QuanCompounds( const QuanCompounds& t ) : uuid_( t.uuid_ )
+QuanCompounds::QuanCompounds( const QuanCompounds& t ) : ident_( t.ident_ )
                                                        , compounds_( t.compounds_ )
 {
 }
@@ -47,15 +47,9 @@ QuanCompounds::operator << ( const QuanCompound& t )
     return *this;
 }
 
-void
-QuanCompounds::uuid( const boost::uuids::uuid& uuid )
-{
-    uuid_ = uuid;
-}
-
 const boost::uuids::uuid&
 QuanCompounds::uuid() const
 {
-    return uuid_;
+    return ident_.uuid();
 }
 

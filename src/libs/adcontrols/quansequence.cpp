@@ -37,11 +37,11 @@ QuanSequence::~QuanSequence()
 {
 }
 
-QuanSequence::QuanSequence() : uuid_(adportable::uuid()())
+QuanSequence::QuanSequence()
 {
 }
 
-QuanSequence::QuanSequence( const QuanSequence& t ) : uuid_( t.uuid_ ), samples_( t.samples_ )
+QuanSequence::QuanSequence( const QuanSequence& t ) : ident_( t.ident_ ), samples_( t.samples_ )
 {
 }
 
@@ -50,20 +50,8 @@ QuanSequence::operator << ( const QuanSample& t )
 {
     int32_t rowid = int32_t( samples_.size() );
     samples_.push_back( t );
-    samples_.back().sequence_uuid( uuid_, rowid );
+    samples_.back().sequence_uuid( ident_.uuid(), rowid );
     return *this;
-}
-
-void
-QuanSequence::uuid( const boost::uuids::uuid& uuid )
-{
-    uuid_ = uuid;
-}
-
-const boost::uuids::uuid&
-QuanSequence::uuid() const
-{
-    return uuid_;
 }
 
 //static

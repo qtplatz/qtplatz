@@ -55,6 +55,8 @@ namespace quan {
 
     private:
         Ui::QuanQueryForm *ui;
+        bool semiColonCaptured_;
+        bool eventFilter( QObject *object, QEvent *event );
     };
 }
 

@@ -30,6 +30,7 @@ using namespace quan;
 
 QuanQueryForm::QuanQueryForm(QWidget *parent) :  QWidget(parent)
                                               , ui(new Ui::QuanQueryForm)
+                                              , semiColonCaptured_( false )
 {
     ui->setupUi(this);
     ui->comboBox->clear();
@@ -37,6 +38,7 @@ QuanQueryForm::QuanQueryForm(QWidget *parent) :  QWidget(parent)
                             << "View all (simple)" << "View all" << "Viwe full" << "Standard"
                             << "Unknown"
                             << "Calibration" );
+    ui->plainTextEdit->installEventFilter( this );
 }
 
 QuanQueryForm::~QuanQueryForm()
@@ -124,4 +126,20 @@ AND QuanResponse.formula like '%' ORDER BY QuanResponse.formula");
     }
 
 
+}
+
+bool
+QuanQueryForm::eventFilter( QObject * object, QEvent * event )
+{
+    if ( object == ui->plainTextEdit && event->type() == QEvent::KeyPress ) {
+        if ( QKeyEvent * keyEvent = static_cast<QKeyEvent *>(event) ) {
+            if ( keyEvent->key() == ';' )
+                semiColonCaptured_ = true;
+            else if ( keyEvent->key() == Qt::Key_Return && semiColonCaptured_ )
+                emit triggerQuery( ui->plainTextEdit->toPlainText() );
+            else
+                semiColonCaptured_ = false;
+        }
+    }
+    return QWidget::eventFilter( object, event );
 }

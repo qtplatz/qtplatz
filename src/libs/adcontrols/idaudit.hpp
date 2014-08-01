@@ -46,8 +46,10 @@ namespace adcontrols {
         const wchar_t * idComputer() const { return idComputer_.c_str(); }
         const wchar_t * idCreatedBy() const { return idCreatedBy_.c_str(); }
         const wchar_t * nameCreatedBy() const { return nameCreatedBy_.c_str(); }
+
         const boost::uuids::uuid& uuid() const { return uuid_; }
         
+
     private:
         boost::uuids::uuid uuid_;
         

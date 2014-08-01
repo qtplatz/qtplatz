@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include "quancompound.hpp"
+#include "idaudit.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
@@ -62,17 +63,17 @@ namespace adcontrols {
         size_t size() const { return compounds_.size(); }
         QuanCompounds& operator << ( const QuanCompound& t );
 
-        void uuid( const boost::uuids::uuid& );
+        const idAudit& ident() const { return ident_; }
         const boost::uuids::uuid& uuid() const;
 
     private:
-        boost::uuids::uuid uuid_;
+        idAudit ident_;
         std::vector< QuanCompound > compounds_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( uuid_ );
+            ar & BOOST_SERIALIZATION_NVP( ident_ );
             ar & BOOST_SERIALIZATION_NVP( compounds_ );
         }
     };

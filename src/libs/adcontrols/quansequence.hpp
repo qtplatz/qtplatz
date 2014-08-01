@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include "quansample.hpp"
+#include "idaudit.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
@@ -60,8 +61,9 @@ namespace adcontrols {
         size_t size() const { return samples_.size(); }
         QuanSequence& operator << ( const QuanSample& t );
 
-        void uuid( const boost::uuids::uuid& );
-        const boost::uuids::uuid& uuid() const;
+        const boost::uuids::uuid& uuid() const { return ident_.uuid(); }
+
+        const idAudit& ident() const { return ident_; }
 
         const wchar_t * outfile() const { return outfile_.c_str(); }
         void outfile( const wchar_t * file ) { outfile_ = file; }
@@ -70,14 +72,14 @@ namespace adcontrols {
         static bool restore( std::istream&, QuanSequence& );
 
     private:
-        boost::uuids::uuid uuid_;
+        idAudit ident_;
         std::vector< QuanSample > samples_;
         std::wstring outfile_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( uuid_ )
+            ar & BOOST_SERIALIZATION_NVP( ident_ )
                 & BOOST_SERIALIZATION_NVP( samples_ )
                 & BOOST_SERIALIZATION_NVP( outfile_ )
                 ;

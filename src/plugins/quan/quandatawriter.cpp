@@ -137,41 +137,53 @@ QuanDataWriter::create_table()
     result &= sql.exec(
         "CREATE TABLE idAudit (\
  id INTEGER PRIMARY KEY \
-,uuid                   TEXT    \
-,digest                 TEXT    \
-,dateCreated            DATE    \
-,idComputer             TEXT    \
-,idCreatedBy            TEXT    \
-,nameCreatedBy          TEXT)" );
+,uuid          TEXT \
+,digest        TEXT \
+,dateCreated   DATE \
+,idComputer    TEXT \
+,idCreatedBy   TEXT \
+,nameCreatedBy TEXT \
+,reason        TEXT\
+,UNIQUE(uuid) )" );
 
     result &= sql.exec( 
         "CREATE TABLE QuanMethod (\
- idAudit INTEGER \
-,equation               INTEGER \
-,polynomialOrder        INTEGER \
-,isChromatogram         INTEGER \
-,isWighting             INTEGER \
-,isBracketing           INTEGER \
-,bracketing             INTEGER \
-,weighting              INTEGER \
-,isISTD                 INTEGER \
-,levels                 INTEGER \
-,replicates             INTEGER \
-,quanMethodFilename     TEXT    \
-,quanCompoundsFilename  TEXT    \
-,quanSequenceFilename   TEXT    \
-,FOREIGN KEY ( idAudit ) REFERENCES idAudit ( id ) )" );
+ id      INTEGER PRIMARY KEY \
+,idAudit         INTEGER \
+,uuid            TEXT \
+,equation        INTEGER \
+,polynomialOrder INTEGER \
+,isChromatogram  INTEGER \
+,isWeighting     INTEGER \
+,isBracketing    INTEGER \
+,bracketing      INTEGER \
+,weighting       INTEGER \
+,isISTD          INTEGER \
+,levels          INTEGER \
+,replicates      INTEGER \
+,fnMethod        TEXT \
+,fnCompounds     TEXT \
+,fnSequence      TEXT \
+,FOREIGN KEY ( idAudit ) REFERENCES idAudit ( id ) \
+,FOREIGN KEY ( uuid ) REFERENCES idAudit ( uuid ) )" );
 
     result &= sql.exec( 
         "CREATE TABLE QuanSequence (\
- id INTEGER PRIMARY KEY \
+ id      INTEGER PRIMARY KEY \
+,idAudit INTEGER \
 ,uuid    TEXT \
-,outfile TEXT)" );
+,outfile TEXT \
+,UNIQUE(uuid) \
+,FOREIGN KEY ( idAudit ) REFERENCES idAudit ( id ) )" );
+
+// QuanSample is corresponding to a sample, which is consisted from several compounds.
+// It is equivalent to a chromatogram, or a spectrum.  Each peak detected from them are stroing into QuanResponse
 
     result &= sql.exec(
-        "CREATE TABLE QuanSample (\
+        "CREATE TABLE IF NOT EXISTS QuanSample (\
  id INTEGER PRIMARY KEY \
 ,idSequence      INTEGER \
+,uuid            TEXT    \
 ,row             INTEGER \
 ,name            TEXT    \
 ,dataType        TEXT    \
@@ -184,15 +196,17 @@ QuanDataWriter::create_table()
 ,amountsAdded    REAL    \
 ,channel         INTAGER \
 ,dataGeneration  INTEGER \
-,scan_range_first INTEGER  \
-,scan_range_second INTEGER \
-,FOREIGN KEY( idSequence ) REFERENCES QuanSequence( id ))" );
+,data_first      INTEGER  \
+,data_second     INTEGER \
+,UNIQUE(uuid,row) \
+,FOREIGN KEY( uuid ) REFERENCES QuanSequence( uuid ))" );
+
 
     result &= sql.exec(
         "CREATE TABLE QuanISTD (\
  idSample INTEGER \
-,ISTDID         INTEGAR \
-,amounts        REAL    \
+,ISTDID  INTEGAR \
+,amounts REAL    \
 ,FOREIGN KEY( idSample ) REFERENCES QuanSample( id ) \
 )" );
 
@@ -200,6 +214,7 @@ QuanDataWriter::create_table()
 // QuanCompound := table of compounds so that all compound in a table share uuid
 // uniqId is unique within a table, but not unique across the tables
 // 'id' is actual unique key within a database
+
     result &= sql.exec(
         "CREATE TABLE QuanCompound (\
  id  INTEGER PRIMARY KEY \
@@ -217,23 +232,24 @@ QuanDataWriter::create_table()
 ,description    TEXT     \
 ,criteria_0     REAL     \
 ,criteria_1     REAL     \
-,UNIQUE(uuid,uniqId) \
-)" );
+,UNIQUE(uuid,uniqId)     \
+,FOREIGN KEY( uuid ) REFERENCES idAudit( uuid ))" );
 
     result &= sql.exec(
-        "CREATE TABLE QuanAmount ( \
-idCompound INTEGER \
-,level INTEGER, amount REAL \
+        "CREATE TABLE QuanAmount (\
+ idCompound INTEGER \
+,level INTEGER \
+,amount REAL \
 ,FOREIGN KEY( idCompound ) REFERENCES QuanCompound ( id ) )" );
 
     result &= sql.exec(
         "CREATE TABLE QuanResponse ( \
  id     INTEGER PRIMARY KEY \
 ,idSample       INTEGAR \
-,idCompound     INTEGER \
 ,idx            INTEGER \
 ,fcn            INTEGAR \
 ,uniqId         INTEGAR \
+,uniqGuid       TEXT    \
 ,intensity      REAL    \
 ,formula        TEXT    \
 ,mass           REAL    \
@@ -245,11 +261,27 @@ idCompound INTEGER \
     result &= sql.exec("\
 CREATE TABLE QuanCalib (\
  id INTEGER PRIMARY KEY\
-,idCompound INTEGER \
-,coeffs  REAL \
-,FOREIGN KEY ( idCompound ) REFERENCES QuanCompound( id ))" );
-
+,idAudit       INTEGER \
+,uuid          TEXT \
+,idCompound    INTEGER \
+,uniqGuid      TEXT \
+,uniqId        INTEGER \
+,uuidMethod    TEXT \
+,n             INTEGER \
+,min_x         REAL \
+,max_x         REAL \
+,chisqr        REAL \
+,a REAL, b REAL, c REAL, d REAL, e REAL, f REAL \
+,date       TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL \
+,FOREIGN KEY ( idCompound ) REFERENCES QuanCompound ( id ) \
+,FOREIGN KEY ( uniqGuid, uniqId ) REFERENCES QuanCompound ( uuid,uniqId ) \
+,FOREIGN KEY ( idAudit ) REFERENCES idAudit ( id ) \
+,FOREIGN KEY ( uuid ) REFERENCES idAudit ( uuid ) \
+)" );
     return result;
+// ,FOREIGN KEY ( idCompound ) REFERENCES QuanCompound( id )\
+// ,FOREIGN KEY ( idAudit ) REFERENCES idAudit( id )\
+
 }
 
 bool
@@ -285,39 +317,55 @@ QuanDataWriter::drop_table()
     return true;
 }
 
+// static
+bool
+QuanDataWriter::insert_table( adfs::stmt& sql, const adcontrols::idAudit& t, const std::string& what )
+{
+    if ( sql.prepare("INSERT INTO idAudit (uuid,digest,dateCreated,idComputer,idCreatedBy,nameCreatedBy,reason) VALUES (?,?,?,?,?,?,?)" ) ) {
+        
+        sql.bind( 1 ) = boost::lexical_cast< std::string >( t.uuid() );
+        sql.bind( 2 ) = std::string( t.digest() );
+        sql.bind( 3 ) = std::string( t.dateCreated() );
+        sql.bind( 4 ) = std::wstring( t.idComputer() );
+        sql.bind( 5 ) = std::wstring( t.idCreatedBy() );
+        sql.bind( 6 ) = std::wstring( t.nameCreatedBy() );
+        sql.bind( 7 ) = what;
+
+        return sql.step() == adfs::sqlite_done;
+    }
+    return false;
+}
+
 bool
 QuanDataWriter::insert_table( const adcontrols::QuanMethod& t )
 {
     adfs::stmt sql( fs_.db() );
 
-    if ( sql.prepare("INSERT INTO idAudit (uuid,digest,dateCreated,idComputer,idCreatedBy,nameCreatedBy) VALUES (?,?,?,?,?,?)" ) ) {
-        sql.bind( 1 ) = boost::lexical_cast< std::string >( t.ident().uuid() );
-        sql.bind( 2 ) = std::string( t.ident().digest() );
-        sql.bind( 3 ) = std::string( t.ident().dateCreated() );
-        sql.bind( 4 ) = std::wstring( t.ident().idComputer() );
-        sql.bind( 5 ) = std::wstring( t.ident().idCreatedBy() );
-        sql.bind( 6 ) = std::wstring( t.ident().nameCreatedBy() );
-        if ( sql.step() != adfs::sqlite_done )
-            ADTRACE() << "sql error";
-    }
+    insert_table( sql, t.ident(), "Create QuanMethod" );
 
-    if ( sql.prepare( "INSERT INTO QuanMethod SELECT rowid,?,?,?,?,?,?,?,?,?,?,?,?,? from idAudit WHERE uuid = :uuid" ) ) {
-        sql.bind( 1 ) = int64_t(t.equation());
-        sql.bind( 2 ) = int64_t(t.polynomialOrder());
-        sql.bind( 3 ) = int64_t(t.isChromatogram());
-        sql.bind( 4 ) = int64_t(t.isWeighting());
-        sql.bind( 5 ) = int64_t(t.isBracketing());
-        sql.bind( 6 ) = int64_t(t.bracketing());
-        sql.bind( 7 ) = int64_t(t.weighting());
-        sql.bind( 8 ) = int64_t(t.isInternalStandard());
-        sql.bind( 9 ) = t.levels();
-        sql.bind( 10 ) = t.replicates();
-        sql.bind( 11 ) = std::wstring( t.quanMethodFilename() );
-        sql.bind( 12 ) = std::wstring( t.quanCompoundsFilename() );
-        sql.bind( 13 ) = std::wstring( t.quanSequenceFilename() );
-        sql.bind( 14 ) = boost::lexical_cast< std::string >( t.ident().uuid() ); // :uuid (idAudit.rowid)
+    if ( sql.prepare( "\
+INSERT INTO QuanMethod (idAudit,uuid,equation,polynomialOrder,isChromatogram,isWeighting,isBracketing\
+,bracketing,weighting,isISTD,levels,replicates,fnMethod,fnCompounds,fnSequence) \
+SELECT idAudit.id,:uuid,?,?,?,?,?,?,?,?,?,?,?,?,? from idAudit WHERE uuid = :uuid" ) ) {
+        int row = 1;
+        sql.bind( row++ ) = boost::lexical_cast< std::string >( t.ident().uuid() ); // :uuid (idAudit.rowid)
+        sql.bind( row++ ) = int64_t(t.equation());
+        sql.bind( row++ ) = int64_t(t.polynomialOrder());
+        sql.bind( row++ ) = int64_t(t.isChromatogram());
+        sql.bind( row++ ) = int64_t(t.isWeighting());
+        sql.bind( row++ ) = int64_t(t.isBracketing());
+        sql.bind( row++ ) = int64_t(t.bracketing());
+        sql.bind( row++ ) = int64_t(t.weighting());
+        sql.bind( row++ ) = int64_t(t.isInternalStandard());
+        sql.bind( row++ ) = t.levels();
+        sql.bind( row++ ) = t.replicates();
+        sql.bind( row++ ) = std::wstring( t.quanMethodFilename() );
+        sql.bind( row++ ) = std::wstring( t.quanCompoundsFilename() );
+        sql.bind( row++ ) = std::wstring( t.quanSequenceFilename() );
+
         if ( sql.step() != adfs::sqlite_done )
             ADTRACE() << "sql error";
+
     }
     return true;
 }
@@ -326,39 +374,61 @@ bool
 QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
 {
     adfs::stmt sql( fs_.db() );
-    
-    if ( sql.prepare( "INSERT INTO QuanSequence (uuid,outfile) VALUES(?,?)" ) ) {
-        sql.bind( 1 ) = boost::lexical_cast< std::string >( t.uuid() );
-        sql.bind( 2 ) = std::wstring( t.outfile() );
-        if ( sql.step() != adfs::sqlite_done )
-            ADTRACE() << "sql error";
-    }
 
-    for ( auto& sample: t ) {
-        if ( sql.prepare( "INSERT INTO QuanSample\
-(idSequence,row,name,dataType,dataSource,dataGuid,sampleType,level,ISTDID,injVol,amountsAdded,channel,dataGeneration,scan_range_first,scan_range_second)\
-SELECT id,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {
-            sql.bind( 1 ) = sample.row();
-            sql.bind( 2 ) = std::wstring( sample.name() );
-            sql.bind( 3 ) = std::wstring( sample.dataType() );
-            sql.bind( 4 ) = std::wstring( sample.dataSource() );
-            sql.bind( 5 ) = std::wstring( sample.dataGuid() );
-            sql.bind( 6 ) = int64_t( sample.sampleType() );
-            sql.bind( 7 ) = sample.level();
-            sql.bind( 8 ) = sample.istdId();
-            sql.bind( 9 ) = sample.injVol();
-            sql.bind( 10 ) = sample.addedAmounts();
-            sql.bind( 11 ) = sample.channel();
-            sql.bind( 12 ) = int64_t( sample.dataGeneration() );
-            sql.bind( 13 ) = sample.scan_range_first();
-            sql.bind( 14 ) = sample.scan_range_second();
-            sql.bind( 15 ) = boost::lexical_cast< std::string >( t.uuid() ); // :uuid
-            if ( sql.step() != adfs::sqlite_done )
-                ADTRACE() << "sql error";
+    sql.begin();
+
+    insert_table( sql, t.ident(), "Create QuanSequence" );
+    bool success = false;
+    if ( sql.prepare( "INSERT INTO QuanSequence (idAudit,uuid,outfile) SELECT id, uuid, :outdata from idAudit WHERE uuid = :uuid" ) ) {
+
+        sql.bind( 1 ) = std::wstring( t.outfile() );
+        sql.bind( 2 ) = boost::lexical_cast<std::string>(t.uuid());
+        
+        if ( sql.step() == adfs::sqlite_done ) {
+            success = true;
+            sql.commit();
         }
     }
+    if ( !success )
+        sql.rollback();
 
-    return true;
+    success = false;
+    sql.begin();
+    for ( auto& sample: t ) {
+
+        if ( sql.prepare( "INSERT INTO QuanSample\
+(idSequence,uuid,row,name,dataType,dataSource,dataGuid,sampleType,level,ISTDID,injVol,amountsAdded,channel,dataGeneration,data_first,data_second)\
+SELECT id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {
+            int row = 1;
+            sql.bind( row++ ) = sample.row();
+            sql.bind( row++ ) = std::wstring( sample.name() );
+            sql.bind( row++ ) = std::wstring( sample.dataType() );
+            sql.bind( row++ ) = std::wstring( sample.dataSource() );
+            sql.bind( row++ ) = std::wstring( sample.dataGuid() );
+            sql.bind( row++ ) = int64_t( sample.sampleType() );
+            sql.bind( row++ ) = sample.level();
+            sql.bind( row++ ) = sample.istdId();
+            sql.bind( row++ ) = sample.injVol();
+            sql.bind( row++ ) = sample.addedAmounts();
+            sql.bind( row++ ) = sample.channel();
+            sql.bind( row++ ) = int64_t( sample.dataGeneration() );
+            sql.bind( row++ ) = sample.scan_range_first();
+            sql.bind( row++ ) = sample.scan_range_second();
+
+            sql.bind( row++ ) = boost::lexical_cast< std::string >( t.uuid() ); // :uuid
+
+            if ( sql.step() == adfs::sqlite_done )
+                success = true;
+            else {
+                ADTRACE() << "sql error";
+                break;
+            }
+        }
+    }
+    if ( success )
+        sql.commit();
+
+    return success;
 }
 
 bool
@@ -366,8 +436,11 @@ QuanDataWriter::insert_table( const adcontrols::QuanCompounds& t )
 {
     adfs::stmt sql( fs_.db() );
 
+    sql.begin();
+
+    insert_table( sql, t.ident(), "Create QuanCompounds" );
+    
     std::string uuid = boost::lexical_cast<std::string>(t.uuid());
-    uuidQuanCompound_ = uuid;
 
     for ( auto& c: t ) {
 
@@ -411,6 +484,7 @@ WHERE uuid = :uuid and uniqId = :uniqId" ) ) {
             }
         }
     }
+    sql.commit();
     return true;
 }
 
@@ -419,27 +493,24 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
 {
     adfs::stmt sql( fs_.db() );
 
-    std::string uuid = boost::lexical_cast<std::string>(t.sequence_uuid());
+    std::string uuidQuanSequence = boost::lexical_cast<std::string>(t.sequence_uuid());
 
     for ( auto& result: t.results() ) {
         if ( sql.prepare( "INSERT INTO QuanResponse \
-(idSample,idCompound,idx,fcn,uniqId,intensity,formula,mass,tR) \
-SELECT QuanSample.id,QuanCompound.id,:idx,:fcn,:uniqId,:resp,:formula,:mass,:tR \
-FROM QuanSample,QuanCompound \
-WHERE QuanSample.row = :row \
-AND QuanSample.idSequence = (SELECT QuanSequence.id FROM QuanSequence WHERE uuid = :uuid)\
-AND QuanCompound.uniqId = :uniqId AND QuanCompound.uuid = :uuid2" ) ) {
+(idSample,idx,fcn,uniqId,uniqGuid,intensity,formula,mass,tR) \
+SELECT QuanSample.id,?,?,?,?,?,?,?,? \
+FROM QuanSample WHERE QuanSample.idSequence = (SELECT QuanSequence.id FROM QuanSequence WHERE uuid = :uuid) AND QuanSample.row = :row" ) ) {
             int col = 1;
             sql.bind( col++ ) = result.idx_;
             sql.bind( col++ ) = result.fcn_;
             sql.bind( col++ ) = result.uniqId_;
+            sql.bind( col++ ) = boost::lexical_cast<std::string>(result.uniqGuid_);
             sql.bind( col++ ) = result.intensity_;
             sql.bind( col++ ) = std::string( result.formula() );
             sql.bind( col++ ) = result.mass_;
             sql.bind( col++ ) = result.tR_;
-            sql.bind( col++ ) = t.row(); // QuanSample.row
-            sql.bind( col++ ) = uuid;    // QuanSequence.uuid
-            sql.bind( col++ ) = uuidQuanCompound_;      // QuanCompound.uuid
+            sql.bind( col++ ) = uuidQuanSequence;    // QuanSequence.uuid
+            sql.bind( col++ ) = uint64_t( t.row() );            // QuanSequence.uuid
 
             if ( sql.step() != adfs::sqlite_done )
                 ADERROR() << "sql error";

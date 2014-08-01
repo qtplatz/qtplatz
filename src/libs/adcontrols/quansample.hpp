@@ -90,7 +90,7 @@ namespace adcontrols {
 
         const boost::uuids::uuid& sequence_uuid() const { return sequence_uuid_; }
         int32_t row() const { return rowid_; }
-        void sequence_uuid( boost::uuids::uuid& d, int32_t rowid ) { sequence_uuid_ = d; rowid_ = rowid; }
+        void sequence_uuid( const boost::uuids::uuid& d, int32_t rowid ) { sequence_uuid_ = d; rowid_ = rowid; }
 
         const wchar_t * name() const;
         void name( const wchar_t * );

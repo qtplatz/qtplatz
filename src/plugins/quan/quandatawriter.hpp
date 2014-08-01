@@ -33,7 +33,8 @@
 #include <mutex>
 #include <functional>
 
-namespace adcontrols { class MassSpectrum; class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds; class QuanMethod; }
+namespace adcontrols { class MassSpectrum; class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds; class QuanMethod; class idAudit; }
+namespace adfs { class stmt; }
 
 namespace quan {
 
@@ -56,6 +57,8 @@ namespace quan {
         bool insert_table( const adcontrols::QuanSequence& );
         bool insert_table( const adcontrols::QuanCompounds& );
         bool insert_table( const adcontrols::QuanSample& );
+
+        static bool insert_table( adfs::stmt&, const adcontrols::idAudit&, const std::string& what );
 
         template< class T> adfs::file attach( adfs::file& file, const T& t, const std::wstring& name ) {
             auto afile = file.addAttachment( adfs::create_uuid() );
