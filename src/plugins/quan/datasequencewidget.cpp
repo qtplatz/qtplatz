@@ -186,6 +186,7 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
     if ( id == idQuanSequence && fnChanged ) {
         if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
             boost::filesystem::path path( QuanDocument::instance()->quanSequence()->outfile() );
+            path.normalize();
             int number = 0;
             if ( boost::filesystem::exists( path ) ) {
                 std::wstring stem = path.stem().wstring();
@@ -197,8 +198,9 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
                     }
                 }
                 boost::filesystem::path next;
+                path.remove_filename();
                 do {
-                    next = path.remove_filename() / boost::filesystem::path( stem + (boost::wformat( L"%d.adfs" ) % ++number).str() );
+                    next = path / boost::filesystem::path( stem + (boost::wformat( L"%d.adfs" ) % ++number).str() );
                 } while ( boost::filesystem::exists( next ) );
                 path = next;
             }
