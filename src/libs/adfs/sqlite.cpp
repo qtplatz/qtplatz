@@ -434,8 +434,6 @@ stmt::column_count() const
 int
 stmt::column_type( int nCol ) const
 {
-    std::string decl = sqlite3_column_decltype( stmt_, nCol );
-    (void)decl;
     return sqlite3_column_type( stmt_, nCol );
 }
 
