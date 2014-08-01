@@ -46,13 +46,14 @@ namespace adcontrols {
 
         const char * formula() const { return formula_.c_str(); }
         void formula( const char * t ) { formula_ = t; }
-        int32_t idx_;         // index on centroid spectrum
-        int32_t fcn_;         // function (protocol) id on centroid spectrum
-        int64_t uniqId_;      // uniqId on compound class (not a SQLite primary key)
-        double intensity_;    // area | height from chromatogram/spectrum
-        double amounts_;      // result
-        double mass_;         // observed mass
-        double tR_;           // observed retention time
+        int32_t idx_;                  // index on centroid spectrum
+        boost::uuids::uuid uniqGuid_;  // foreign key reference to QuanCompounds
+        int64_t uniqId_;               // foreign key reference to QuanCompound; uniq(uniqId,identGuid)
+        int32_t fcn_;                  // function (protocol) id on centroid spectrum
+        double intensity_;             // area | height from chromatogram/spectrum
+        double amounts_;               // result
+        double mass_;                  // observed mass
+        double tR_;                    // observed retention time
     private:
         std::string formula_;
 
@@ -60,6 +61,7 @@ namespace adcontrols {
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( uniqId_ )
+                & BOOST_SERIALIZATION_NVP( uniqGuid_ )                
                 & BOOST_SERIALIZATION_NVP( formula_ )                
                 & BOOST_SERIALIZATION_NVP( idx_ )                
                 & BOOST_SERIALIZATION_NVP( fcn_ )                                
