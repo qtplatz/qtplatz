@@ -30,24 +30,23 @@ QuanResponse::~QuanResponse()
 {
 }
 
-QuanResponse::QuanResponse() : idx_(0)
-                             , fcn_(0)
-                             , uniqId_(0)
-                             , intensity_(0)
-                             , amounts_(0)
-                             , mass_(0)
-                             , tR_(0)
+QuanResponse::QuanResponse() : idx_( 0 )
+                             , fcn_( 0 )
+                             , intensity_( 0 )
+                             , amounts_( 0 )
+                             , mass_( 0 )
+                             , tR_( 0 )
 {
 }
 
-QuanResponse::QuanResponse( const QuanResponse& t) : idx_(t.idx_)
-                                                   , fcn_(t.fcn_)
-                                                   , uniqId_(t.uniqId_)
-                                                   , uniqGuid_(t.uniqGuid_)
-                                                   , intensity_(t.intensity_)
-                                                   , amounts_(t.amounts_)
-                                                   , mass_(t.mass_)
-                                                   , tR_(t.tR_)
-                                                   , formula_( t.formula_ )
+QuanResponse::QuanResponse( const QuanResponse& t ) : idx_( t.idx_ )
+                                                    , fcn_( t.fcn_ )
+                                                    , idCompound_( t.idCompound_ )
+                                                    , idTable_( t.idTable_ )
+                                                    , intensity_( t.intensity_ )
+                                                    , amounts_( t.amounts_ )
+                                                    , mass_( t.mass_ )
+                                                    , tR_( t.tR_ )
+                                                    , formula_( t.formula_ )
 {
 }

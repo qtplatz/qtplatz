@@ -31,6 +31,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <array>
 #include <string>
 #include <vector>
@@ -41,13 +42,17 @@
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT QuanCompound {
+        QuanCompound( const boost::uuids::uuid& );
     public:
         ~QuanCompound();
         QuanCompound();
         QuanCompound( const QuanCompound& );
 
-        uint64_t uniqId() const;
-        void uniqId( uint64_t );
+        static QuanCompound null(); // null compound reference for not identifid;
+
+        const boost::uuids::uuid& uuid() const { return uuid_; } // 'refCmpd'
+        uint32_t row() const;
+        void row( uint32_t );
 
         const wchar_t * display_name() const;
         void displya_name( const wchar_t * );
@@ -73,9 +78,10 @@ namespace adcontrols {
         void description( const wchar_t * );
         double criteria( bool second = false ) const;
         void criteria( double v, bool second = false );
-        
+
     private:
-        uint64_t uniqId_;
+        boost::uuids::uuid uuid_;
+        int32_t row_;                    // row# in Compounds, useful for report order by 'row'
         std::wstring display_name_;
         std::string formula_;
         std::vector< double > amounts_;  // added amounts[ level ]
@@ -91,7 +97,8 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( uniqId_ );
+            ar & BOOST_SERIALIZATION_NVP( uuid_ );
+            ar & BOOST_SERIALIZATION_NVP( row_ );
             ar & BOOST_SERIALIZATION_NVP( formula_ );
             ar & BOOST_SERIALIZATION_NVP( display_name_ );
             ar & BOOST_SERIALIZATION_NVP( amounts_ );

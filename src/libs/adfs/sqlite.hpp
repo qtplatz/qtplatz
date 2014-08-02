@@ -39,6 +39,7 @@ namespace adfs {
 
     enum flags { readonly, readwrite, opencreate };
     enum sqlite_state { sqlite_done, sqlite_row, sqlite_error, sqlite_constraint };
+    enum uuid_format { uuid_text, uuid_binary };
 
     class blob;
     class null;
@@ -46,10 +47,12 @@ namespace adfs {
     class sqlite : boost::noncopyable {
         sqlite3 * db_;
         std::function< void( const char *) > error_handler_;
+        sqlite( const sqlite& ) = delete;
+        sqlite& operator = (const sqlite&) = delete;
+        static uuid_format uuid_format_;
     public:
         ~sqlite();
         sqlite();
-        sqlite( const sqlite& );
 
         inline operator sqlite3 * () { return db_; }
         bool open( const wchar_t * path );
@@ -58,6 +61,8 @@ namespace adfs {
         bool close();
         void error_message( const char * msg );
         void register_error_handler( std::function<void( const char * )> );
+        static void uuid_storage_format( uuid_format );
+        static uuid_format uuid_storage_format();
     };
 
     class blob {
@@ -110,8 +115,9 @@ namespace adfs {
             sqlite3_stmt * stmt_;
             int nnn_;
             bind_item( sqlite3_stmt * stmt, int nnn ) : stmt_(stmt), nnn_(nnn) {}
-            template<typename T> bool operator = ( const T& t ); // { stmt_.bind( nnn_, t ); }
+            template<typename T> bool operator = ( const T& t );
         };
+
         bind_item bind( int );
         bind_item bind( const std::string& );
 
@@ -119,6 +125,7 @@ namespace adfs {
         int column_type( int ) const;
         std::string column_name( int ) const;
         std::wstring wcolumn_name( int ) const;
+        std::string column_decltype( int ) const;
 
         // column_value_type column_value( int );
         template<typename T> T get_column_value( int ) const;

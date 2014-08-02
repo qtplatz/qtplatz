@@ -85,7 +85,7 @@ WHERE QuanSample.id = idSample AND formula like '%' ORDER BY formula" );
 SELECT dataSource, row, QuanSample.level, QuanResponse.formula, QuanResponse.mass, QuanResponse.intensity, QuanAmount.amount,sampletype \n\
 FROM QuanSample,QuanResponse,QuanAmount\n\
 WHERE QuanSample.id = idSample\n\
-AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.uniqId)\n\
+AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE idCmpd = QuanResponse.idCmpd)\n\
 AND QuanAmount.level = QuanSample.level\n\
 AND formula like '%' ORDER BY formula" );
 
@@ -94,8 +94,8 @@ AND formula like '%' ORDER BY formula" );
         setSQL("\
 SELECT dataSource, row, QuanSample.level, QuanResponse.formula, QuanCompound.mass AS 'exact mass', QuanResponse.mass, QuanResponse.intensity, QuanAmount.amount,sampletype,QuanCompound.description \n\
 FROM QuanSample,QuanResponse,QuanAmount,QuanCompound \n\
-WHERE QuanSample.id = idSample AND QuanCompound.uniqId = QuanResponse.uniqId\n\
-AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.uniqId)\n\
+WHERE QuanSample.id = idSample AND QuanCompound.idCmpd = QuanResponse.idCmpd\n\
+AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE idCmpd = QuanResponse.idCmpd)\n\
 AND QuanAmount.level = QuanSample.level\n\
 ORDER BY QuanCompound.id");
 
@@ -107,7 +107,7 @@ FROM QuanSample,QuanResponse,QuanAmount,QuanCompound\n\
 WHERE QuanSample.id = idSample\n\
 AND QuanCompound.id = idCompound\n\
 AND sampleType = 1\n\
-AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.uniqId)\n\
+AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE idCmpd = QuanResponse.idCmpd)\n\
 AND QuanAmount.level = QuanSample.level\n\
 ORDER BY QuanCompound.id");
 

@@ -37,12 +37,15 @@ namespace adportable {
         uuid();
         boost::uuids::uuid operator()();
         boost::uuids::uuid operator()( const boost::uuids::uuid& base, const std::string& name );
-        template< typename char_type > std::basic_string< char_type > operator()( const boost::uuids::uuid& uuid ) {
+
+        template< typename char_type > static std::basic_string< char_type > make_string( const boost::uuids::uuid& uuid ) {
             return boost::lexical_cast<std::basic_string<char_type>>(uuid);
         }
-        template< typename char_type > boost::uuids::uuid& operator()( const std::basic_string< char_type >& str ) {
+
+        template< typename char_type > static boost::uuids::uuid& make_uuid( const std::basic_string< char_type >& str ) {
             return boost::lexical_cast<boost::uuids::uuid>(str);
         }
+
     };
 
 }

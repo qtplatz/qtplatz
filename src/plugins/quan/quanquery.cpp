@@ -25,6 +25,9 @@
 #include "quanquery.hpp"
 #include <adfs/sqlite.hpp>
 #include <adfs/sqlite3.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace quan;
 
@@ -70,7 +73,14 @@ QuanQuery::column_value( size_t idx ) const
     case SQLITE_INTEGER: return QVariant( sql_.get_column_value< int64_t >( int( idx ) ) );
     case SQLITE_FLOAT:   return QVariant( sql_.get_column_value< double >( int( idx ) ) );
     case SQLITE_TEXT:    return QVariant( QString( sql_.get_column_value< std::string >( int( idx ) ).c_str() ) );
-    case SQLITE_BLOB:
+    case SQLITE_BLOB: {
+        try {
+            auto uuid = sql_.get_column_value< boost::uuids::uuid >( int( idx ) );
+            return QVariant( QString( boost::lexical_cast<std::string>(uuid).c_str() ) );
+        }
+        catch ( boost::bad_lexical_cast& ) {
+        }
+    }
     case SQLITE_NULL:    return QVariant();
     }
     return QVariant();

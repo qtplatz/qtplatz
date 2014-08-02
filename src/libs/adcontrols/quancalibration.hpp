@@ -51,10 +51,12 @@ namespace adcontrols {
         };
         void formula( const char * );
         const char * formula() const;
-        const boost::uuids::uuid& uniqGuid() const;
-        void uniqGuid( const boost::uuids::uuid& );
-        uint32_t uniqId() const;
-        void uniqId( uint32_t );
+
+        const boost::uuids::uuid& uuid_cmpd_table() const;
+        void uuid_cmpd_table( const boost::uuids::uuid& );
+
+        const boost::uuids::uuid& uuid_cmpd() const;
+        void uuid_cmpd( const boost::uuids::uuid& );
 
         void operator << (const std::pair<double, double>& amount_intensity_pair);
 
@@ -71,11 +73,11 @@ namespace adcontrols {
         const size_t nTerms() const;
         
     private:
-        uint32_t uniqId_;             // QuanCompounds[ uniqId ] = 'QuanCompound'
-        boost::uuids::uuid uniqGuid_; // QuanCompounds id
-        std::string formula_;         // for convenience, equal to QuanCompund.formula
-        std::vector< double > x_;     // intensity (x-y exchange due to this is calibrating amount(y) from intensity(x)
-        std::vector< double > y_;     // amount
+        boost::uuids::uuid idCompound_;
+        boost::uuids::uuid idTable_;
+        std::string formula_;            // for convenience, equal to QuanCompund.formula
+        std::vector< double > x_;        // intensity (x-y exchange due to this is calibrating amount(y) from intensity(x)
+        std::vector< double > y_;        // amount
         double chisqr_;
         std::vector< double > coefficients_;
     };

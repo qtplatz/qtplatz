@@ -44,6 +44,7 @@ QuanCompounds&
 QuanCompounds::operator << ( const QuanCompound& t )
 {
     compounds_.push_back( t );
+    compounds_.back().row( uint32_t( compounds_.size() - 1 ) );
     return *this;
 }
 

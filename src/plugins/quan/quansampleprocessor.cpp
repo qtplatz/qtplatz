@@ -501,8 +501,8 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
             size_t idx = find( fms, exactMass );
             if ( idx != adcontrols::MSFinder::npos ) {
                 
-                resp.uniqId_   = compound.uniqId();
-                resp.uniqGuid_ = compounds.uuid();
+                resp.uuid_cmpd( compound.uuid() );
+                resp.uuid_cmpd_table( compounds.uuid() );
                 resp.formula( compound.formula() );
                 resp.idx_ = int32_t(idx);
                 resp.fcn_ = fcn;

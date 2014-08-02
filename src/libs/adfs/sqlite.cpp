@@ -35,6 +35,9 @@
 #include <boost/exception/all.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
 #include <locale>
 #include <codecvt>
 
@@ -67,9 +70,24 @@ namespace adfs {
 
     class sqlite_exception : public boost::exception, public std::exception {};
 
+    uuid_format sqlite::uuid_format_ = uuid_text;
 } // adfs
 
 using namespace adfs;
+
+//static
+void
+sqlite::uuid_storage_format( uuid_format fmt )
+{
+    uuid_format_ = fmt;
+}
+
+//static
+uuid_format
+sqlite::uuid_storage_format()
+{
+    return uuid_format_;
+}
 
 sqlite::~sqlite()
 { 
@@ -77,7 +95,7 @@ sqlite::~sqlite()
         sqlite3_close( db_ );
 }
 
-sqlite::sqlite() : db_(0)
+sqlite::sqlite() : db_( 0 )
 {
 }
 
@@ -319,13 +337,13 @@ namespace adfs {
     }
 
 #if (defined __x86_64__ && defined __linux__ )    
+    // int64_t and long is identical on gcc x86_64
     template<> bool 
     stmt::bind_item::operator = ( const long long & v )
     {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
 #else
-    // int64_t and long is identical on gcc x86_64
     template<> bool
     stmt::bind_item::operator = ( const int64_t& v )
     {
@@ -372,6 +390,15 @@ namespace adfs {
     stmt::bind_item::operator = ( const null& )
     {
         return sqlite3_bind_null( stmt_, nnn_ ) == SQLITE_OK;
+    }
+
+    template<> bool
+    stmt::bind_item::operator = ( const boost::uuids::uuid& uuid )
+    {
+        if ( sqlite::uuid_storage_format() == uuid_binary )
+            return sqlite3_bind_blob( stmt_, nnn_, uuid.begin(), int( uuid.size() ), [] ( void * )->void{} ) == SQLITE_OK;
+        else
+            return sqlite3_bind_text( stmt_, nnn_, boost::lexical_cast<std::string>(uuid).c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
     }
 
     //------------------------------------
@@ -422,6 +449,25 @@ namespace adfs {
         BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
+    template<> boost::uuids::uuid stmt::get_column_value( int nCol ) const
+    {
+        if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
+
+            const unsigned char * text = sqlite3_column_text( stmt_, nCol );
+            return boost::lexical_cast<boost::uuids::uuid>( text );
+            
+        } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_BLOB ) {
+
+            boost::uuids::uuid uuid;
+            auto pBlob = sqlite3_column_blob( stmt_, nCol );
+            int octets = std::min( sqlite3_column_bytes( stmt_, nCol ), int( uuid.size() ) );
+            std::copy( static_cast<const char *>(pBlob), static_cast<const char *>(pBlob)+octets, reinterpret_cast<char *>(uuid.begin()) );
+
+            return uuid;
+        }
+        BOOST_THROW_EXCEPTION( std::bad_cast() );
+    }
+
 } /* namespace adfs */
 
 //-------------
@@ -441,6 +487,12 @@ std::string
 stmt::column_name( int nCol ) const
 {
     return sqlite3_column_name( stmt_, nCol );
+}
+
+std::string
+stmt::column_decltype( int nCol ) const
+{
+    return null_safe( sqlite3_column_decltype( stmt_, nCol ) );
 }
 
 // column_value_type

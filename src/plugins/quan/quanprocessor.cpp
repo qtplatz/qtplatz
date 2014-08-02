@@ -42,17 +42,18 @@
 #include <vector>
 
 namespace quan {
-
+    /*
     struct QuanUnknown {
         uint64_t idResponse_; // QuanResponse primary id
         uint64_t idCompound_; // QuanCompound primary id (or NULL)
-        uint64_t uniqId_;
-        std::string uniqGuid_;
+        boost::uuids::uuid idCmpd_;
+        boost::uuids::uuid idCmpdTable_;
         double intensity_;
-        QuanUnknown() : idResponse_( 0 ), idCompound_(0), uniqId_(0), intensity_( 0 ) {}
-        QuanUnknown( const QuanUnknown& t ) : idResponse_( t.idResponse_ ), idCompound_( t.idCompound_ ), uniqId_( t.uniqId_ ), intensity_( t.intensity_ ) {
+        QuanUnknown() : idResponse_( 0 ), idCompound_(0), idCmpd_(0), intensity_( 0 ) {}
+        QuanUnknown( const QuanUnknown& t ) : idResponse_( t.idResponse_ ), idCompound_( t.idCompound_ ), idCmpd_( t.idCmpd_ ), intensity_( t.intensity_ ) {
         }
     };
+*/
 
 }
 
@@ -168,7 +169,7 @@ QuanProcessor::doCalibration()
 
     if ( sql.prepare( "\
 SELECT QuanCompound.id \
-, QuanCompound.uniqId \
+, QuanCompound.idCmpd \
 , QuanCompound.uuid \
 , QuanResponse.formula \
 , QuanResponse.intensity \
@@ -179,15 +180,15 @@ FROM QuanSample,QuanResponse,QuanAmount,QuanCompound \
 WHERE QuanSample.id = idSample \
 AND QuanCompound.id = QuanAmount.idCompound \
 AND sampleType = 1 \
-AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE uniqId = QuanResponse.uniqId) \
+AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE idCmpd = QuanResponse.idCmpd) \
 AND QuanAmount.level = QuanSample.level \
 ORDER BY QuanCompound.id") ) {
 
         while ( sql.step() == adfs::sqlite_row ) {
             int row = 0;
             uint64_t idCompound = sql.get_column_value< uint64_t >( row++ );     // QuanCompound.id
-            uint64_t uniqId = sql.get_column_value< uint64_t >( row++ );         // QuanCompound.uniqId
-            std::string uniqGuid = sql.get_column_value< std::string >( row++ ); // QuanCompound.uniqGuid
+            boost::uuids::uuid idCmpd = sql.get_column_value< boost::uuids::uuid >( row++ );         // QuanCompound.idCmpd
+            boost::uuids::uuid idTable = sql.get_column_value< boost::uuids::uuid >( row++ ); // QuanCompound.idCmpdTable
             std::string formula = sql.get_column_value< std::string >( row++ );  // QuanResponse.formula
             double intensity = sql.get_column_value< double >( row++ );          // QuanResponse.intensity
             double amount = sql.get_column_value< double >( row++ );             // QuanAmount.amount (standard amount added)
@@ -197,12 +198,12 @@ ORDER BY QuanCompound.id") ) {
             auto it = calibrants.find( idCompound );
             if ( it == calibrants.end() ) {
                 adcontrols::QuanCalibration& d = calibrants[ idCompound ];
-                d.uniqId( uint32_t( uniqId ) );
-                d.uniqGuid( boost::uuids::string_generator()(uniqGuid) );
+                d.uuid_cmpd( idCmpd );
+                d.uuid_cmpd_table( idTable );
                 d.formula( formula.c_str() );
             }
             adcontrols::QuanCalibration& d = calibrants[ idCompound ];
-            if ( d.uniqId() != uniqId || d.uniqGuid() != boost::uuids::string_generator()(uniqGuid) )
+            if ( d.uuid_cmpd() != idCmpd || d.uuid_cmpd_table() != idTable )
                 ADERROR() << "wrong calibrant data selected";
             
             d << std::make_pair( amount, intensity );
@@ -215,15 +216,15 @@ ORDER BY QuanCompound.id") ) {
         results << map.second;
 
         if ( sql.prepare( "\
-INSERT INTO QuanCalib (idAudit, uuid, idCompound, uniqGuid, uniqId, uuidMethod, n, min_x, max_x, chisqr, a, b, c, d, e, f) \
+INSERT INTO QuanCalib (idAudit, uuid, idCompound, idTable, idCmpd, uuidMethod, n, min_x, max_x, chisqr, a, b, c, d, e, f) \
 SELECT idAudit.id, :uuid, ?, ?, ?, ?, :n, :min_x, :max_x, :chisqr, :a, :b, :c, :d, :e, :f \
 FROM idAudit WHERE uuid = :uuid") ) {
             int row = 1;
-            sql.bind( row++ ) = boost::lexical_cast<std::string>(results.ident().uuid()); // :uuid
+            sql.bind( row++ ) = results.ident().uuid(); // :uuid
             sql.bind( row++ ) = map.first;                                                // ?idCompound
-            sql.bind( row++ ) = boost::lexical_cast<std::string>(map.second.uniqGuid());  // ?uniqGuid
-            sql.bind( row++ ) = map.second.uniqId();                                      // ?uniqId
-            sql.bind( row++ ) = boost::lexical_cast<std::string>(qM->ident().uuid());     // ?uuidMethod
+            sql.bind( row++ ) = map.second.uuid_cmpd_table();  // ?idCmpdTable
+            sql.bind( row++ ) = map.second.uuid_cmpd();                                      // ?idCmpd
+            sql.bind( row++ ) = qM->ident().uuid();     // ?uuidMethod
             sql.bind( row++ ) = uint64_t( map.second.size() );                            // :n
             sql.bind( row++ ) = double( map.second.min_x() );                             // :min_x
             sql.bind( row++ ) = double( map.second.max_x() );                             // :max_x
@@ -243,7 +244,7 @@ FROM idAudit WHERE uuid = :uuid") ) {
 
 #if 0
         if ( sql.prepare( "\
-SELECT QuanResponse.id, QuanResponse.idCompound, QuanResponse.uniqId, QuanResponse.uniqGuid, QuanResponse.intensity \
+SELECT QuanResponse.id, QuanResponse.idCompound, QuanResponse.idCmpd, QuanResponse.idCmpdTable, QuanResponse.intensity \
 FROM QuanSample, QuanResponse \
 WHERE sampleType = 0 AND QuanResponse.idSample = QuanSample.id" ) ) {
             
@@ -252,8 +253,8 @@ WHERE sampleType = 0 AND QuanResponse.idSample = QuanSample.id" ) ) {
                 QuanUnknown unk;
                 unk.idResponse_ = sql.get_column_value< uint64_t >( row++ );
                 unk.idCompound_ = sql.get_column_value< uint64_t >( row++ );
-                unk.uniqId_     = sql.get_column_value< uint64_t >( row++ );
-                unk.uniqGuid_   = sql.get_column_value< uint64_t >( row++ );
+                unk.idCmpd_     = sql.get_column_value< uint64_t >( row++ );
+                unk.idCmpdTable_   = sql.get_column_value< uint64_t >( row++ );
                 unk.intensity_  = sql.get_column_value< double >( row++ );
                 unknowns.push_back( unk );
             }

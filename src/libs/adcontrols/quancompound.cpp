@@ -23,37 +23,32 @@
 **************************************************************************/
 
 #include "quancompound.hpp"
-#include <atomic>
-
-namespace adcontrols {
-    namespace quan {
-
-        std::atomic< uint64_t > __uniqCompoundKey;
-
-    }
-}
+#include <adportable/uuid.hpp>
 
 using namespace adcontrols;
-
-
 
 QuanCompound::~QuanCompound()
 {
 }
 
-QuanCompound::QuanCompound() : uniqId_( quan::__uniqCompoundKey++ )
-                             , amounts_( 1 )
-                             , tR_( 0 )
-                             , mass_( 0 )
-                             , isISTD_( false )
-                             , isLKMSRef_( false )
-                             , isTimeRef_( false )
-                             , idISTD_( -1 )
-                             , criteria_( std::make_pair( 0, 0 ) )
+QuanCompound::QuanCompound( const boost::uuids::uuid& uuid )
+    : uuid_( uuid )
+    , amounts_( 1 )
+    , tR_( 0 )
+    , mass_( 0 )
+    , isISTD_( false )
+    , isLKMSRef_( false )
+    , isTimeRef_( false )
+    , idISTD_( -1 )
+    , criteria_( std::make_pair( 0, 0 ) )
 {
 }
 
-QuanCompound::QuanCompound( const QuanCompound& t ) : uniqId_( t.uniqId_ )
+QuanCompound::QuanCompound() : QuanCompound( adportable::uuid()() )
+{
+}
+
+QuanCompound::QuanCompound( const QuanCompound& t ) : uuid_( t.uuid_ )
                                                     , display_name_( t.display_name_ )
                                                     , formula_( t.formula_ )
                                                     , amounts_( t.amounts_ )
@@ -68,16 +63,23 @@ QuanCompound::QuanCompound( const QuanCompound& t ) : uniqId_( t.uniqId_ )
 {
 }
 
-uint64_t
-QuanCompound::uniqId() const
+QuanCompound
+QuanCompound::null()
 {
-    return uniqId_;
+    static boost::uuids::uuid uuid; // all zero
+    return QuanCompound( uuid );
+}
+
+uint32_t
+QuanCompound::row() const
+{
+    return row_;
 }
 
 void
-QuanCompound::uniqId( uint64_t v )
+QuanCompound::row( uint32_t t )
 {
-    uniqId_ = v;
+    row_ = t;
 }
 
 const wchar_t *

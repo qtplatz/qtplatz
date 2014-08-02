@@ -46,22 +46,29 @@ namespace adcontrols {
 
         const char * formula() const { return formula_.c_str(); }
         void formula( const char * t ) { formula_ = t; }
-        int32_t idx_;                  // index on centroid spectrum
-        boost::uuids::uuid uniqGuid_;  // foreign key reference to QuanCompounds
-        int64_t uniqId_;               // foreign key reference to QuanCompound; uniq(uniqId,identGuid)
-        int32_t fcn_;                  // function (protocol) id on centroid spectrum
-        double intensity_;             // area | height from chromatogram/spectrum
-        double amounts_;               // result
-        double mass_;                  // observed mass
-        double tR_;                    // observed retention time
+
+        const boost::uuids::uuid& uuid_cmpd_table() const { return idTable_; }
+        void uuid_cmpd_table( const boost::uuids::uuid& u ) { idTable_ = u; }
+
+        void uuid_cmpd( const boost::uuids::uuid& u ) { idCompound_ = u; }
+        const boost::uuids::uuid& uuid_cmpd() const { return idCompound_; }
+
+        int32_t idx_;                    // index on centroid spectrum
+        boost::uuids::uuid idTable_; // foreign key reference to QuanCompounds (a file of molecles)
+        boost::uuids::uuid idCompound_;  // foreign key reference to QuanCompound (a molecule)
+        int32_t fcn_;                    // function (protocol) id on centroid spectrum
+        double intensity_;               // area | height from chromatogram/spectrum
+        double amounts_;                 // result
+        double mass_;                    // observed mass
+        double tR_;                      // observed retention time
     private:
         std::string formula_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( uniqId_ )
-                & BOOST_SERIALIZATION_NVP( uniqGuid_ )                
+            ar & BOOST_SERIALIZATION_NVP(  idCompound_ )
+                & BOOST_SERIALIZATION_NVP( idTable_ )                
                 & BOOST_SERIALIZATION_NVP( formula_ )                
                 & BOOST_SERIALIZATION_NVP( idx_ )                
                 & BOOST_SERIALIZATION_NVP( fcn_ )                                

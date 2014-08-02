@@ -40,6 +40,8 @@ namespace adfs {
         std::string category;
     };
 
+    const char * null_safe( const char * s );// { return ( s ? s : "" ); }
+
     std::wstring create_uuid();
 }
 

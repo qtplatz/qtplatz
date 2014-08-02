@@ -34,19 +34,42 @@ QuanCalibration::~QuanCalibration()
 {
 }
 
-QuanCalibration::QuanCalibration() : uniqId_(0)
-                                   , chisqr_(0)
+QuanCalibration::QuanCalibration() : chisqr_(0)
 {
 }
 
-QuanCalibration::QuanCalibration( const QuanCalibration& t ) : uniqId_( t.uniqId_ )
-                                                             , uniqGuid_( t.uniqGuid_ )
+QuanCalibration::QuanCalibration( const QuanCalibration& t ) : idCompound_( t.idCompound_ )
+                                                             , idTable_( t.idTable_ )
                                                              , formula_( t.formula_ )
                                                              , x_( t.x_ )
                                                              , y_( t.y_ )
                                                              , chisqr_( t.chisqr_ )
                                                              , coefficients_( t.coefficients_ )
 {
+}
+
+const boost::uuids::uuid&
+QuanCalibration::uuid_cmpd_table() const
+{
+    return idTable_;
+}
+
+void
+QuanCalibration::uuid_cmpd_table( const boost::uuids::uuid& u )
+{
+    idTable_ = u;
+}
+
+const boost::uuids::uuid&
+QuanCalibration::uuid_cmpd() const
+{
+    return idCompound_;
+}
+
+void
+QuanCalibration::uuid_cmpd( const boost::uuids::uuid& u )
+{
+    idCompound_ = u;
 }
 
 void
@@ -60,31 +83,6 @@ QuanCalibration::formula() const
 {
     return formula_.c_str();
 }
-
-const boost::uuids::uuid&
-QuanCalibration::uniqGuid() const
-{
-    return uniqGuid_;
-}
-
-void
-QuanCalibration::uniqGuid( const boost::uuids::uuid& value )
-{
-    uniqGuid_ = value;
-}
-
-uint32_t
-QuanCalibration::uniqId() const
-{
-    return uniqId_;
-}
-
-void
-QuanCalibration::uniqId( uint32_t value )
-{
-    uniqId_ = value;
-}
-
 
 void
 QuanCalibration::operator << ( const std::pair<double, double>& amount_intensity_pair )

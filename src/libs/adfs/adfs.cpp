@@ -42,11 +42,15 @@ typedef adfs::detail::win32api impl;
 typedef adfs::detail::posixapi impl;
 #endif
 
-
 std::wstring
 adfs::create_uuid()
 {
     return impl::create_uuid();
 }
 
+const char * 
+adfs::null_safe( const char * s )
+{
+    return ( s ? s : "" );
+}
 ////////////////////
