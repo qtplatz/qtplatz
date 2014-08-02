@@ -42,6 +42,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
 #include <fstream>
+#include <algorithm>
 
 using namespace quan;
 
@@ -138,6 +139,9 @@ QuanReportWidget::handleQuery( const QString& sql )
     if ( auto connection = QuanDocument::instance()->connection() ) {
         if ( auto query = connection->query() ) {
             std::wstring wsql = sql.toStdWString();
+
+            wsql.erase( std::remove( wsql.begin(), wsql.end(), '\\' ) );
+            
             if ( query->prepare( wsql ) ) {
                 table_->prepare( *query );
                 while ( query->step() == adfs::sqlite_row ) {

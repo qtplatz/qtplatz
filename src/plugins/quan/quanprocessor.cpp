@@ -169,17 +169,17 @@ QuanProcessor::doCalibration()
 
     if ( sql.prepare( "\
 SELECT QuanCompound.id \
-, QuanCompound.idCmpd \
 , QuanCompound.uuid \
+, QuanCompound.idFile \
 , QuanResponse.formula \
 , QuanResponse.intensity \
 , QuanAmount.amount \
 , QuanSample.level \
 , QuanSample.sampleType \
 FROM QuanSample,QuanResponse,QuanAmount,QuanCompound \
-WHERE QuanSample.id = idSample \
+WHERE sampleType = 1 \
+AND QuanSample.id = idSample \
 AND QuanCompound.id = QuanAmount.idCompound \
-AND sampleType = 1 \
 AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE idCmpd = QuanResponse.idCmpd) \
 AND QuanAmount.level = QuanSample.level \
 ORDER BY QuanCompound.id") ) {

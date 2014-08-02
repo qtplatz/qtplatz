@@ -35,7 +35,9 @@ QuanQueryForm::QuanQueryForm(QWidget *parent) :  QWidget(parent)
     ui->setupUi(this);
     ui->comboBox->clear();
     ui->comboBox->addItems( QStringList()
-                            << "View all (simple)" << "View all" << "Viwe full" << "Standard"
+                            << "View all (simple)" << "View STD (simple)" << "View UNK (simple)"
+                            << "Viwe full"
+                            << "Standard"
                             << "Unknown"
                             << "Calibration" );
     ui->plainTextEdit->installEventFilter( this );
@@ -76,25 +78,36 @@ QuanQueryForm::on_comboBox_currentIndexChanged(int index)
     int idx = 0;
     if ( index == idx++ ) { // view simple
         setSQL("\
-SELECT dataSource, row, level, formula, mass, intensity, sampletype FROM QuanSample,QuanResponse \
-WHERE QuanSample.id = idSample AND formula like '%' ORDER BY formula" );
+SELECT dataSource, QuanSample.name, level, formula, mass, intensity, sampletype FROM QuanSample, QuanResponse \
+WHERE QuanSample.id = QuanResponse.idSample ORDER BY mass" );
 
-    } else if ( index == idx++ ) { // view all
+    } else if ( index == idx++ ) { // view STD
 
         setSQL("\
-SELECT dataSource, row, QuanSample.level, QuanResponse.formula, QuanResponse.mass, QuanResponse.intensity, QuanAmount.amount,sampletype \n\
-FROM QuanSample,QuanResponse,QuanAmount\n\
-WHERE QuanSample.id = idSample\n\
-AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE idCmpd = QuanResponse.idCmpd)\n\
-AND QuanAmount.level = QuanSample.level\n\
-AND formula like '%' ORDER BY formula" );
+SELECT dataSource, QuanSample.name, level, formula, mass, intensity, sampletype FROM QuanSample, QuanResponse \
+WHERE QuanSample.id = QuanResponse.idSample AND sampleType = 1 ORDER BY mass" );
+
+    } else if ( index == idx++ ) { // view UNK
+
+        setSQL("\
+SELECT dataSource, QuanSample.name, level, formula, mass, intensity, sampletype FROM QuanSample, QuanResponse \
+WHERE QuanSample.id = QuanResponse.idSample AND sampleType = 0 ORDER BY mass" );
+
+    } else if ( index == idx++ ) {
+
+        setSQL("\
+SELECT dataSource, QuanSample.name, level, QuanCompound.formula, QuanCompound.description, QuanCompound.mass AS \"exact mass\", QuanResponse.mass, intensity, sampletype \
+FROM QuanSample, QuanResponse, QuanCompound \
+WHERE QuanSample.id = QuanResponse.idSample \
+AND QuanResponse.idCmpd = QuanCompound.uuid \
+ORDER BY QuanCompound.mass");
 
     } else if ( index == idx++ ) { // view full
 
         setSQL("\
 SELECT dataSource, row, QuanSample.level, QuanResponse.formula, QuanCompound.mass AS 'exact mass', QuanResponse.mass, QuanResponse.intensity, QuanAmount.amount,sampletype,QuanCompound.description \n\
 FROM QuanSample,QuanResponse,QuanAmount,QuanCompound \n\
-WHERE QuanSample.id = idSample AND QuanCompound.idCmpd = QuanResponse.idCmpd\n\
+WHERE QuanSample.id = idSample AND QuanCompound.uuid = QuanResponse.idCmpd\n\
 AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE idCmpd = QuanResponse.idCmpd)\n\
 AND QuanAmount.level = QuanSample.level\n\
 ORDER BY QuanCompound.id");
