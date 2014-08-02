@@ -92,6 +92,8 @@ namespace adcontrols {
         int32_t row() const { return rowid_; }
         void sequence_uuid( const boost::uuids::uuid& d, int32_t rowid ) { sequence_uuid_ = d; rowid_ = rowid; }
 
+        const boost::uuids::uuid& uuid() const { return uuid_; }        
+
         const wchar_t * name() const;
         void name( const wchar_t * );
 
@@ -141,6 +143,7 @@ namespace adcontrols {
         static bool restore( std::istream&, QuanSample& );
 
     private:
+        boost::uuids::uuid uuid_;                // own id
         boost::uuids::uuid sequence_uuid_;       // points to parement
         int32_t rowid_;                          // row number on sequence
         std::wstring name_;
@@ -162,7 +165,8 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( sequence_uuid_ )
+            ar & BOOST_SERIALIZATION_NVP( uuid_ )
+                & BOOST_SERIALIZATION_NVP( sequence_uuid_ )
                 & BOOST_SERIALIZATION_NVP( rowid_ )
                 & BOOST_SERIALIZATION_NVP( name_ )
                 & BOOST_SERIALIZATION_NVP( dataSource_ )

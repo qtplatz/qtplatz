@@ -183,6 +183,7 @@ QuanDataWriter::create_table()
     result &= sql.exec(
         "CREATE TABLE IF NOT EXISTS QuanSample (\
  id INTEGER PRIMARY KEY \
+,uuid            UUID \
 ,idSequence      INTEGER \
 ,uidQuanSequence UUID    \
 ,row             INTEGER \
@@ -199,6 +200,7 @@ QuanDataWriter::create_table()
 ,dataGeneration  INTEGER \
 ,data_first      INTEGER \
 ,data_second     INTEGER \
+,UNIQUE(uuid) \
 ,UNIQUE(idSequence,row)  \
 ,FOREIGN KEY( uidQuanSequence ) REFERENCES QuanSequence( uuid ))" );
 
@@ -399,11 +401,13 @@ QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
     for ( auto& sample: t ) {
 
         if ( sql.prepare( "INSERT INTO QuanSample\
-(idSequence,uidQuanSequence,row,name,dataType,dataSource,dataGuid,sampleType,level,ISTDID,injVol,amountsAdded,channel,dataGeneration,data_first,data_second)\
-SELECT id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {
+(uuid,idSequence,uidQuanSequence,row,name,dataType,dataSource,dataGuid,sampleType,level,ISTDID,injVol,amountsAdded,channel,dataGeneration,data_first,data_second)\
+SELECT ?,id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {
             int row = 1;
-            sql.bind( row++ ) = sample.row();
-            sql.bind( row++ ) = std::wstring( sample.name() );
+            sql.bind( row++ ) = sample.uuid();  // own unique id
+            // QuanSequence.id where QuanSequence.uuid = t.uuid // parent (sequence) id
+            sql.bind( row++ ) = sample.row();                   // parent row#
+            sql.bind( row++ ) = std::wstring( sample.name() );  
             sql.bind( row++ ) = std::wstring( sample.dataType() );
             sql.bind( row++ ) = std::wstring( sample.dataSource() );
             sql.bind( row++ ) = std::wstring( sample.dataGuid() );
@@ -417,7 +421,7 @@ SELECT id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid"
             sql.bind( row++ ) = sample.scan_range_first();
             sql.bind( row++ ) = sample.scan_range_second();
 
-            sql.bind( row++ ) = t.uuid(); // :uuid
+            sql.bind( row++ ) = t.uuid(); // QuanSequence.uuid (uidQuanSequence)
 
             if ( sql.step() == adfs::sqlite_done )
                 success = true;

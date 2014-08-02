@@ -30,6 +30,7 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/uuid.hpp>
 
 using namespace adcontrols;
 
@@ -37,7 +38,8 @@ QuanSample::~QuanSample()
 {
 }
 
-QuanSample::QuanSample() : rowid_(0)
+QuanSample::QuanSample() : uuid_( adportable::uuid()() )
+                         , rowid_(0)
                          , sampleType_( SAMPLE_TYPE_UNKNOWN )
                          , inletType_( Infusion )
                          , level_(0)
@@ -52,7 +54,8 @@ QuanSample::QuanSample() : rowid_(0)
 }
 
 QuanSample::QuanSample( const QuanSample& t )
-    : sequence_uuid_( t.sequence_uuid_ )
+    : uuid_( t.uuid_ )
+    , sequence_uuid_( t.sequence_uuid_ )
     , rowid_( t.rowid_ )
     , name_( t.name_ )
     , dataType_( t.dataType_ )
