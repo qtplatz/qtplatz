@@ -328,19 +328,6 @@ QuanDocument::run()
 
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
 
-        bool remove_existing = false;
-        if ( boost::filesystem::exists( quanSequence_->outfile() ) ) {
-
-            QString file( QString::fromStdWString( quanSequence_->outfile() ) );
-            auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
-                                                , QString("File %1% already exists, remove?").arg( file )
-                                                , QMessageBox::Yes,QMessageBox::No,QMessageBox::Ignore );
-            if ( reply == QMessageBox::No )
-                return;
-            if ( reply == QMessageBox::Yes )
-                remove_existing = true;
-        }
-
         adwidgets::ProgressWnd::instance()->show();
         adwidgets::ProgressWnd::instance()->raise();
         
@@ -348,9 +335,6 @@ QuanDocument::run()
 
             if ( writer->open() ) {
                 
-                if ( remove_existing )
-                    writer->drop_table(); // make sure no old data exists
-
                 if ( !writer->create_table() ) {
                     QMessageBox::information( 0, "QuanDocument", "Create result table failed" );
                     return;

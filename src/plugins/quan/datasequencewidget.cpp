@@ -116,16 +116,16 @@ DataSequenceWidget::dataSelectionBar()
         auto edit = new QLineEdit;
         edit->setObjectName( Constants::editOutfile );
         toolBarLayout->addWidget( edit );
-        do { // insert default result file
-            boost::filesystem::path path( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
-            path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
-            boost::filesystem::path name = path += "_quan.adfs";
-            int i = 1;
-            while ( boost::filesystem::exists( name ) )
-                name = (boost::wformat( L"%s_%d_quan.adfs" ) % path.wstring() % i++).str();
-            edit->setText( QString::fromStdWString( path.wstring() ) );
-            // edit->setEnabled( false );
-        } while(0);
+        // do { // insert default result file
+        //     boost::filesystem::path path( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
+        //     path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+        //     boost::filesystem::path name = path += "_quan.adfs";
+        //     int i = 1;
+        //     while ( boost::filesystem::exists( name ) )
+        //         name = (boost::wformat( L"%s_%d_quan.adfs" ) % path.wstring() % i++).str();
+        //     edit->setText( QString::fromStdWString( path.wstring() ) );
+        //     // edit->setEnabled( false );
+        // } while(0);
 
         if ( Core::ActionManager * am = Core::ICore::instance()->actionManager() ) {
 
@@ -157,7 +157,7 @@ DataSequenceWidget::dataSelectionBar()
                 }
             } );
 
-        // target file
+        // target file 'data save in'
         connect( toolButton, &QToolButton::clicked, this, [this] ( bool ){
                 QString dstfile;
                 if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {

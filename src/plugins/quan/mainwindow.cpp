@@ -33,10 +33,10 @@
 #include "quandocument.hpp"
 #include "quanconfigwidget.hpp"
 #include "quanreportwidget.hpp"
-
 #include <qtwrapper/trackingenabled.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/quansequence.hpp>
 #include <adportable/profile.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
@@ -65,6 +65,7 @@
 #include <QDockWidget>
 #include <QStandardItemModel>
 #include <QMenu>
+#include <QMessageBox>
 
 #include <boost/filesystem.hpp>
 
@@ -288,6 +289,33 @@ void
 MainWindow::run()
 {
     commit();
+
+    if ( auto sequence = QuanDocument::instance()->quanSequence() ) {
+
+        if ( sequence->size() == 0 ) {
+            QMessageBox::critical( this, "Quan Execution Error", "Empty sample sequence." );
+            return;
+        }
+
+        boost::filesystem::path path( sequence->outfile() );
+        if ( path.empty() ) {
+            QMessageBox::critical( this, "Quan Execution Error", "Empty data output filename." );
+            return;
+        }
+        
+        if ( boost::filesystem::exists( path ) ) {
+            
+            QString file( QString::fromStdWString( path.normalize().wstring() ) );
+            auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
+                                                , QString("File %1% already exists, remove?").arg( file )
+                                                , QMessageBox::Yes,QMessageBox::No,QMessageBox::Ignore );
+            if ( reply == QMessageBox::No )
+                return;
+
+            if ( reply == QMessageBox::Yes )
+                boost::filesystem::remove( path );
+        }
+    }
 
     if ( auto stop = actions_[ idActStop ] )
         stop->setEnabled( true );
