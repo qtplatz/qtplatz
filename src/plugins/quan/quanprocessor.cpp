@@ -42,22 +42,6 @@
 #include <set>
 #include <vector>
 
-namespace quan {
-    /*
-    struct QuanUnknown {
-        uint64_t idResponse_; // QuanResponse primary id
-        uint64_t idCompound_; // QuanCompound primary id (or NULL)
-        boost::uuids::uuid idCmpd_;
-        boost::uuids::uuid idCmpdTable_;
-        double intensity_;
-        QuanUnknown() : idResponse_( 0 ), idCompound_(0), idCmpd_(0), intensity_( 0 ) {}
-        QuanUnknown( const QuanUnknown& t ) : idResponse_( t.idResponse_ ), idCompound_( t.idCompound_ ), idCmpd_( t.idCmpd_ ), intensity_( t.intensity_ ) {
-        }
-    };
-*/
-
-}
-
 using namespace quan;
 
 QuanProcessor::~QuanProcessor()
@@ -139,23 +123,18 @@ QuanProcessor::complete( const adcontrols::QuanSample * )
 }
 
 void
-QuanProcessor::doCalibration()
+QuanProcessor::doCalibration( adfs::sqlite& db )
 {
-    boost::filesystem::path database( sequence_->outfile() );
-    if ( !boost::filesystem::exists( database ) )
-        return;
-
-    adfs::filesystem fs;
-    if ( !fs.mount( database.wstring().c_str() ) )
-        return;
-    
     auto qM = procmethod_->find< adcontrols::QuanMethod >();
     if ( !qM )
         return;
 
     adcontrols::QuanCalibrations results;
+    std::map< uint64_t, adcontrols::QuanCalibration > calibrants;
 
-    adfs::stmt sql( fs.db() );
+    adfs::stmt sql( db );
+
+    sql.begin();
 
     if ( !QuanDataWriter::insert_table( sql, results.ident(), "Create QuanCalib a.k.a. ResultSet" ) )
         return;
@@ -165,7 +144,7 @@ QuanProcessor::doCalibration()
     // adcontrols::QuanMethod::CalibEq eq = qM->equation();
     // int order = qM->polynomialOrder(); // if CalibEq >= isCalibLinear, otherwise taking an average
 
-    std::map< uint64_t, adcontrols::QuanCalibration > calibrants;
+
     std::map< uint64_t, std::set< int > > levels;
 
     if ( sql.prepare( "\
@@ -196,7 +175,8 @@ ORDER BY QuanCompound.id" ) ) {
                 double intensity = sql.get_column_value< double >( row++ );          // QuanResponse.intensity
                 double amount = sql.get_column_value< double >( row++ );             // QuanAmount.amount (standard amount added)
                 uint64_t level = sql.get_column_value< uint64_t >( row++ );          // QuanSample.level
-                (void)level;
+                levels[ idCompound ].insert( level );  // count how meny levels are actually exists
+
                 auto it = calibrants.find( idCompound );
                 if ( it == calibrants.end() ) {
                     adcontrols::QuanCalibration& d = calibrants[ idCompound ];
@@ -244,47 +224,62 @@ VALUES (:uuid, ?, ?, ?, ?, :n, :min_x, :max_x, :chisqr, :a, :b, :c, :d, :e, :f)"
         }
     }
 
-#if 0
-        if ( sql.prepare( "\
-SELECT QuanResponse.id, QuanResponse.idCompound, QuanResponse.idCmpd, QuanResponse.idCmpdTable, QuanResponse.intensity \
-FROM QuanSample, QuanResponse \
-WHERE sampleType = 0 AND QuanResponse.idSample = QuanSample.id" ) ) {
-            
-            while ( sql.step() == adfs::sqlite_row ) {
-                int row = 0;
-                QuanUnknown unk;
-                unk.idResponse_ = sql.get_column_value< uint64_t >( row++ );
-                unk.idCompound_ = sql.get_column_value< uint64_t >( row++ );
-                unk.idCmpd_     = sql.get_column_value< uint64_t >( row++ );
-                unk.idCmpdTable_   = sql.get_column_value< uint64_t >( row++ );
-                unk.intensity_  = sql.get_column_value< double >( row++ );
-                unknowns.push_back( unk );
-            }
-        }
-
-        for ( auto& unk : unknowns ) {
-            auto it = calibrants.find( unk.idCompound_ );
-            if ( it != calibrants.end() && it->second.coeffs_.empty() ) {
-                double est_a = adportable::polfit::estimate_y( it->second.coeffs_, unk.idResponse_ );
-
-                if ( sql.prepare( "\
-UPDATE QuanResponse SET calibId = (SELECT id from QuanCalib WHERE idCompound = ? ORDER BY id DESC)\
-, amount = ? WHERE QuanResponse.id = ?" ) ) {
-                    sql.bind( 1 ) = est_a;
-                    sql.bind( 2 ) = unk.idCompound_;
-                    sql.bind( 3 ) = unk.idResponse_;
-
-                    if ( sql.step() != adfs::sqlite_row )
-                        ADTRACE() << "sel error.";
-                }
-            }
-        }
-
-    }    
-#endif
+    sql.commit();
 }
 
 void
-QuanProcessor::doQuantification()
+QuanProcessor::doQuantification( adfs::sqlite& db )
 {
+    adfs::stmt sql( db );
+
+    struct unknown {
+        uint64_t idSamp;
+        std::string formula;
+        double intensity;
+        double amount;
+        std::vector< double > coeffs;
+        unknown() : idSamp(0), intensity(0), amount(0) {}
+        unknown( const unknown& t ) : formula( t.formula), intensity( t.intensity ), amount( t.amount ), coeffs( t.coeffs ) {}
+    };
+
+    std::map< uint64_t, unknown > unknowns;
+
+    if ( sql.prepare( "\
+SELECT QuanResponse.id, QuanSample.id, QuanCompound.formula, intensity, a, b, c, d, e, f \
+FROM QuanResponse, QuanCompound, QuanSample, QuanCalib \
+WHERE QuanResponse.idCmpd = QuanCompound.uuid \
+AND QuanSample.id = QuanResponse.idSample \
+AND QuanSample.sampleType = 0 \
+AND QuanResponse.idCmpd = QuanCalib.idCmpd" ) ) {
+        
+        while ( sql.step() == adfs::sqlite_row ) {
+            int row = 0;
+            uint64_t idResp = sql.get_column_value< uint64_t >( row++ ); // QuanResponse.id
+            unknown& u = unknowns[ idResp ];
+
+            u.idSamp = sql.get_column_value< uint64_t >( row++ ); // QuanSample.id
+            u.formula = sql.get_column_value< std::string >( row++ ); // 
+            u.intensity = sql.get_column_value< double >( row++ ); // QuanResponse.id
+            for ( int i = 0; i < 5; ++i ) {
+                if ( sql.is_null_column( row ) )
+                    break;
+                u.coeffs.push_back( sql.get_column_value< double >( row++ ) );
+            }
+        }
+    }
+
+    sql.begin();
+    for ( auto& unk : unknowns ) {
+        if ( !unk.second.coeffs.empty() ) {
+            unk.second.amount = adportable::polfit::estimate_y( unk.second.coeffs, unk.second.intensity );
+            if ( sql.prepare( "UPDATE QuanResponse SET amount = :amount WHERE id = :id" ) ) {
+                sql.bind( 1 ) = unk.second.amount;
+                sql.bind( 2 ) = unk.first;
+                if ( sql.step() != adfs::sqlite_done )
+                    ADERROR() << "sql error";
+            }
+        }
+    }
+    sql.commit();
+
 }

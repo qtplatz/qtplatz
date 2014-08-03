@@ -29,7 +29,8 @@
 #include <memory>
 #include <vector>
 
-namespace adcontrols { class QuanSequence; class QuanSample;  class ProcessMethod; }
+namespace adcontrols { class QuanSequence; class QuanSample;  class ProcessMethod; class QuanCalibration; }
+namespace adfs { class sqlite; }
 namespace adwidgets { class Progress; }
 
 namespace quan {
@@ -55,9 +56,9 @@ namespace quan {
         const_iterator end() const;
 
         void complete( const adcontrols::QuanSample * );
-        void doCalibration();
-        void doQuantification();
-        
+        void doCalibration( adfs::sqlite& db );
+        void doQuantification( adfs::sqlite& db );
+
     protected:
         std::shared_ptr< adcontrols::QuanSequence > sequence_;
         std::shared_ptr< adcontrols::ProcessMethod > procmethod_;

@@ -29,6 +29,7 @@
 #include "quansampleprocessor.hpp"
 #include "quanprocessor.hpp"
 #include <adcontrols/quanmethod.hpp>
+#include <adcontrols/quancalibration.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -38,6 +39,7 @@
 #include <adlog/logger.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -405,14 +407,23 @@ QuanDocument::handle_processed( QuanProcessor * processor )
         std::for_each( threads_.begin(), threads_.end(), [] ( std::thread& t ){ t.join(); } );
         threads_.clear();
 
-        adwidgets::ProgressWnd::instance()->hide();
+        if ( auto sequence = processor->sequence() ) {
+            boost::filesystem::path database( sequence->outfile() );
+            if ( boost::filesystem::exists( database ) ) {
+                adfs::filesystem fs;
+                if ( fs.mount( database.wstring().c_str() ) ) {
+                    processor->doCalibration( fs.db() );
+                    processor->doQuantification( fs.db() );
+                }
+            }
+        }
 
         if ( auto sequence = processor->sequence() ) {
             QString outfile = QString::fromStdWString( sequence->outfile() );
             emit onReportTriggered( outfile );
         }
-        processor->doCalibration();
-        processor->doQuantification();
+
+        adwidgets::ProgressWnd::instance()->hide();
 
         auto shp = processor->shared_from_this();
         exec_.erase( std::remove( exec_.begin(), exec_.end(), shp ) );

@@ -116,7 +116,7 @@ ORDER BY QuanCompound.id, QuanSample.level");
 
         setSQL("\
 SELECT QuanSample.name, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
-, intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
+, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
 WHERE QuanSample.id = QuanResponse.idSample \
 AND QuanResponse.idCmpd = QuanCompound.uuid \
@@ -127,8 +127,8 @@ ORDER BY QuanCompound.id, QuanSample.level");
     } else if ( index == idx++ ) { // view UNK
 
         setSQL("\
-SELECT QuanSample.name, level, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
-, intensity, QuanResponse.amount, QuanCompound.description, sampleType, dataSource \
+SELECT QuanSample.name, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound \
 WHERE QuanSample.id = QuanResponse.idSample \
 AND QuanResponse.idCmpd = QuanCompound.uuid \
