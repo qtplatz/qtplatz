@@ -505,6 +505,7 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
     adfs::stmt sql( fs_.db() );
 
     sql.begin();
+    size_t rows_processed = 0;
     for ( auto& result: t.results() ) {
 
         if ( sql.prepare( "INSERT INTO QuanResponse \
@@ -522,11 +523,13 @@ FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
             sql.bind( col++ ) = result.mass_;                    // obserbed mass
             sql.bind( col++ ) = result.tR_;                      // observed retention time
             sql.bind( col++ ) = t.uuid();                        // QuanSample.uuid            
-            //sql.bind( col++ ) = t.sequence_uuid();               // QuanSequence.uuid
-            //sql.bind( col++ ) = uint64_t( t.row() );             // QuanSequence.row := QuanSample.row
 
-            if ( sql.step() != adfs::sqlite_done )
-                ADERROR() << "sql error";
+            if ( sql.step() == adfs::sqlite_done ) {
+                if ( ++rows_processed >= 100 ) {
+                    sql.commit();                    
+                    sql.begin();
+                }
+            }
         }
     }
     sql.commit();
