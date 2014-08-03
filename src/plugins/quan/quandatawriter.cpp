@@ -221,7 +221,7 @@ QuanDataWriter::create_table()
         "CREATE TABLE QuanCompound (\
  id  INTEGER PRIMARY KEY \
 ,uuid           UUID     \
-,idFile         UUID     \
+,idTable        UUID     \
 ,row            INTEGER  \
 ,display_name   TEXT     \
 ,formula        TEXT     \
@@ -236,13 +236,15 @@ QuanDataWriter::create_table()
 ,criteria_0     REAL     \
 ,criteria_1     REAL     \
 ,UNIQUE(uuid) \
-,FOREIGN KEY( idFile ) REFERENCES idAudit( uuid ))" );
+,FOREIGN KEY( idTable ) REFERENCES idAudit( uuid ))" );
 
     result &= sql.exec(
         "CREATE TABLE QuanAmount (\
  idCompound INTEGER \
+,idCmpd UUID \
 ,level INTEGER \
 ,amount REAL \
+,FOREIGN KEY( idCmpd ) REFERENCES QuanCompound ( uuid ) \
 ,FOREIGN KEY( idCompound ) REFERENCES QuanCompound ( id ) )" );
 
     result &= sql.exec(
@@ -264,12 +266,11 @@ QuanDataWriter::create_table()
     result &= sql.exec("\
 CREATE TABLE QuanCalib (\
  id INTEGER PRIMARY KEY\
-,idAudit       INTEGER \
 ,uuid          UUID    \
 ,idCompound    INTEGER \
 ,idTable       UUID \
 ,idCmpd        UUID \
-,uuidMethod    UUID \
+,idMethod      UUID \
 ,n             INTEGER \
 ,min_x         REAL \
 ,max_x         REAL \
@@ -277,8 +278,6 @@ CREATE TABLE QuanCalib (\
 ,a REAL, b REAL, c REAL, d REAL, e REAL, f REAL \
 ,date       TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL \
 ,FOREIGN KEY ( idCompound ) REFERENCES QuanCompound ( id ) \
-,FOREIGN KEY ( idCmpd ) REFERENCES QuanCompound ( idCmpd ) \
-,FOREIGN KEY ( idAudit ) REFERENCES idAudit ( id ) \
 ,FOREIGN KEY ( uuid ) REFERENCES idAudit ( uuid ) \
 )" );
     return result;
@@ -405,7 +404,7 @@ QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
 SELECT ?,id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {
             int row = 1;
             sql.bind( row++ ) = sample.uuid();  // own unique id
-            // QuanSequence.id where QuanSequence.uuid = t.uuid // parent (sequence) id
+            // <-- QuanSequence.id where QuanSequence.uuid = t.uuid // parent (sequence) id
             sql.bind( row++ ) = sample.row();                   // parent row#
             sql.bind( row++ ) = std::wstring( sample.name() );  
             sql.bind( row++ ) = std::wstring( sample.dataType() );
@@ -414,7 +413,11 @@ SELECT ?,id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uui
             sql.bind( row++ ) = int64_t( sample.sampleType() );
             sql.bind( row++ ) = sample.level();
             sql.bind( row++ ) = sample.istdId();
-            sql.bind( row++ ) = sample.injVol();
+            if ( sample.inletType() == adcontrols::QuanSample::Chromatography )
+                sql.bind( row++ ) = sample.injVol();
+            else
+                sql.bind( row++ ) = adfs::null();
+
             sql.bind( row++ ) = sample.addedAmounts();
             sql.bind( row++ ) = sample.channel();
             sql.bind( row++ ) = int64_t( sample.dataGeneration() );
@@ -442,19 +445,18 @@ QuanDataWriter::insert_table( const adcontrols::QuanCompounds& t )
 {
     adfs::stmt sql( fs_.db() );
 
-    sql.begin();
-
     insert_table( sql, t.ident(), "Create QuanCompounds" );
     
+    sql.begin();
     for ( auto& c: t ) {
 
         if ( sql.prepare( "INSERT INTO QuanCompound \
-(uuid,idFile,row,display_name,formula,idISTD,levels,mass,tR,isLKMSRef,isTimeRef,isISTD,description,criteria_0,criteria_1) \
+(uuid,idTable,row,display_name,formula,idISTD,levels,mass,tR,isLKMSRef,isTimeRef,isISTD,description,criteria_0,criteria_1) \
 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
 
             int row = 1;
             sql.bind( row++ ) = c.uuid(); // uuid reference as 'idCmpd'
-            sql.bind( row++ ) = t.uuid(); // idFile
+            sql.bind( row++ ) = t.uuid(); // idTable
             sql.bind( row++ ) = c.row();  // row
             sql.bind( row++ ) = std::wstring( c.display_name() );
             sql.bind( row++ ) = std::string( c.formula() );        
@@ -469,24 +471,31 @@ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
             sql.bind( row++ ) = c.criteria(0);
             sql.bind( row++ ) = c.criteria(1);
 
-            if ( sql.step() != adfs::sqlite_done )
+            if ( sql.step() != adfs::sqlite_done ) {
                 ADTRACE() << "sql error";
+                return false;
+            }
+
         }
 
         for ( int i = 0; i < c.levels(); ++i ) {
             if ( sql.prepare( 
                      "INSERT INTO QuanAmount (idCompound, level, amount) SELECT QuanCompound.id, :level, :amount FROM QuanCompound WHERE uuid = :idCmpd" ) ) {
+                int row = 1;
+                sql.bind( row++ ) = i + 1;             // :level (1-origin)
+                sql.bind( row++ ) = c.amounts()[ i ];  // :amount
+                sql.bind( row++ ) = c.uuid();          // QuanCompound.idCmpd
 
-                sql.bind( 1 ) = i + 1;             // :level (1-origin)
-                sql.bind( 2 ) = c.amounts()[ i ];  // :amount
-                sql.bind( 4 ) = c.uuid();          // QuanCompound.idCmpd
+                if ( sql.step() != adfs::sqlite_done ) {
+                    ADTRACE() << "sql error";
+                    return false;
+                }
 
-                if ( sql.step() != adfs::sqlite_done )
-                    ADTRACE() << "sql error";                    
             }
         }
     }
     sql.commit();
+
     return true;
 }
 
@@ -495,28 +504,31 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
 {
     adfs::stmt sql( fs_.db() );
 
+    sql.begin();
     for ( auto& result: t.results() ) {
 
         if ( sql.prepare( "INSERT INTO QuanResponse \
 (idSample,idx,fcn,intensity,idCmpd,idTable,formula,mass,tR) \
 SELECT QuanSample.id,?,?,?,?,?,?,?,? \
-FROM QuanSample WHERE QuanSample.idSequence = (SELECT QuanSequence.id FROM QuanSequence WHERE uuid = :uuid) AND QuanSample.row = :row" ) ) {
+FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
 
             int col = 1;
             sql.bind( col++ ) = result.idx_;
             sql.bind( col++ ) = result.fcn_;
             sql.bind( col++ ) = result.intensity_;
-            sql.bind( col++ ) = result.uuid_cmpd();              // identified result (compound)
-            sql.bind( col++ ) = result.uuid_cmpd_table();        // identified result on idfile
+            sql.bind( col++ ) = result.uuid_cmpd();              // QuanCompound.uuid
+            sql.bind( col++ ) = result.uuid_cmpd_table();        // QuanCompounds.uuid (idTable)
             sql.bind( col++ ) = std::string( result.formula() ); // identified formula (not equal to formula on compound if targeting applied)
             sql.bind( col++ ) = result.mass_;                    // obserbed mass
             sql.bind( col++ ) = result.tR_;                      // observed retention time
-            sql.bind( col++ ) = t.sequence_uuid();               // QuanSequence.uuid
-            sql.bind( col++ ) = uint64_t( t.row() );             // QuanSequence.row := QuanSample.row
+            sql.bind( col++ ) = t.uuid();                        // QuanSample.uuid            
+            //sql.bind( col++ ) = t.sequence_uuid();               // QuanSequence.uuid
+            //sql.bind( col++ ) = uint64_t( t.row() );             // QuanSequence.row := QuanSample.row
 
             if ( sql.step() != adfs::sqlite_done )
                 ADERROR() << "sql error";
         }
     }
+    sql.commit();
     return true;
 }

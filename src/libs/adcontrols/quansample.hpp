@@ -130,6 +130,9 @@ namespace adcontrols {
         double addedAmounts() const;
         void addedAmounts( double );
 
+        QuanInlet inletType() const { return inletType_; }
+        void inletType( QuanInlet v ) { inletType_ = v; }
+
         const std::vector< quan::ISTD >& istd() const;
         void istd( const std::vector< quan::ISTD >& );
 

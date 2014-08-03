@@ -30,6 +30,7 @@
 #include "quanqueryform.hpp"
 #include "quanresulttable.hpp"
 #include <adportable/profile.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <utils/styledbar.h>
 #include <QFileDialog>
 #include <QLabel>
@@ -138,6 +139,9 @@ QuanReportWidget::handleQuery( const QString& sql )
 {
     if ( auto connection = QuanDocument::instance()->connection() ) {
         if ( auto query = connection->query() ) {
+            
+            qtwrapper::waitCursor wait;
+
             std::wstring wsql = sql.toStdWString();
 
             wsql.erase( std::remove( wsql.begin(), wsql.end(), '\\' ) );

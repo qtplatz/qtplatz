@@ -570,6 +570,7 @@ DataSequenceTree::getContents( adcontrols::QuanSequence& seq )
 
             adcontrols::QuanSample sample;
             sample.dataSource( datafile.c_str() );
+            sample.inletType( adcontrols::QuanSample::Infusion );
             // dataGuid
             sample.name( model.index( subRow, c_datafile, parent->index() ).data().toString().toStdWString().c_str( ) );
 

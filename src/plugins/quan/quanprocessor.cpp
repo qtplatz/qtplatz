@@ -36,6 +36,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/exception/all.hpp>
 #include <algorithm>
 #include <numeric>
 #include <set>
@@ -156,91 +157,92 @@ QuanProcessor::doCalibration()
 
     adfs::stmt sql( fs.db() );
 
-    if ( !QuanDataWriter::insert_table( sql, results.ident(), "Create QuanCalibration" ) )
+    if ( !QuanDataWriter::insert_table( sql, results.ident(), "Create QuanCalib a.k.a. ResultSet" ) )
         return;
 
     int nLevels = qM->levels(); // must be 1 or larger
-    int nReplicates = qM->replicates(); // must be 1 or larger
-    adcontrols::QuanMethod::CalibEq eq = qM->equation();
-    int order = qM->polynomialOrder(); // if CalibEq >= isCalibLinear, otherwise taking an average
+    // int nReplicates = qM->replicates(); // must be 1 or larger
+    // adcontrols::QuanMethod::CalibEq eq = qM->equation();
+    // int order = qM->polynomialOrder(); // if CalibEq >= isCalibLinear, otherwise taking an average
 
     std::map< uint64_t, adcontrols::QuanCalibration > calibrants;
     std::map< uint64_t, std::set< int > > levels;
 
     if ( sql.prepare( "\
-SELECT QuanCompound.id \
+SELECT QuanCompound.id\
 , QuanCompound.uuid \
-, QuanCompound.idFile \
+, QuanCompound.idTable \
+, QuanResponse.id \
 , QuanResponse.formula \
 , QuanResponse.intensity \
 , QuanAmount.amount \
 , QuanSample.level \
-, QuanSample.sampleType \
-FROM QuanSample,QuanResponse,QuanAmount,QuanCompound \
-WHERE sampleType = 1 \
-AND QuanSample.id = idSample \
-AND QuanCompound.id = QuanAmount.idCompound \
-AND QuanAmount.idCompound = (SELECT id from QuanCompound WHERE idCmpd = QuanResponse.idCmpd) \
-AND QuanAmount.level = QuanSample.level \
-ORDER BY QuanCompound.id") ) {
+FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
+WHERE QuanSample.id = QuanResponse.idSample \
+AND QuanResponse.idCmpd = QuanCompound.uuid \
+AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level \
+AND sampleType = 1 \
+ORDER BY QuanCompound.id" ) ) {
 
         while ( sql.step() == adfs::sqlite_row ) {
             int row = 0;
-            uint64_t idCompound = sql.get_column_value< uint64_t >( row++ );     // QuanCompound.id
-            boost::uuids::uuid idCmpd = sql.get_column_value< boost::uuids::uuid >( row++ );         // QuanCompound.idCmpd
-            boost::uuids::uuid idTable = sql.get_column_value< boost::uuids::uuid >( row++ ); // QuanCompound.idCmpdTable
-            std::string formula = sql.get_column_value< std::string >( row++ );  // QuanResponse.formula
-            double intensity = sql.get_column_value< double >( row++ );          // QuanResponse.intensity
-            double amount = sql.get_column_value< double >( row++ );             // QuanAmount.amount (standard amount added)
-            uint64_t level = sql.get_column_value< uint64_t >( row++ );          // QuanSample.level
-            uint64_t sampType = sql.get_column_value< uint64_t >( row++ );       // STD (1)
-            
-            auto it = calibrants.find( idCompound );
-            if ( it == calibrants.end() ) {
+            try {
+                uint64_t idCompound = sql.get_column_value< uint64_t >( row++ );     // QuanCompound.id
+                boost::uuids::uuid idCmpd = sql.get_column_value< boost::uuids::uuid >( row++ );  // QuanCompound.idCmpd
+                boost::uuids::uuid idTable = sql.get_column_value< boost::uuids::uuid >( row++ ); // QuanCompound.idCmpdTable
+                uint64_t idResp = sql.get_column_value< uint64_t >( row++ );
+                (void)idResp;
+                std::string formula = sql.get_column_value< std::string >( row++ );  // QuanResponse.formula
+                double intensity = sql.get_column_value< double >( row++ );          // QuanResponse.intensity
+                double amount = sql.get_column_value< double >( row++ );             // QuanAmount.amount (standard amount added)
+                uint64_t level = sql.get_column_value< uint64_t >( row++ );          // QuanSample.level
+                (void)level;
+                auto it = calibrants.find( idCompound );
+                if ( it == calibrants.end() ) {
+                    adcontrols::QuanCalibration& d = calibrants[ idCompound ];
+                    d.uuid_cmpd( idCmpd );
+                    d.uuid_cmpd_table( idTable );
+                    d.formula( formula.c_str() );
+                }
                 adcontrols::QuanCalibration& d = calibrants[ idCompound ];
-                d.uuid_cmpd( idCmpd );
-                d.uuid_cmpd_table( idTable );
-                d.formula( formula.c_str() );
+                // verify
+                if ( d.uuid_cmpd() != idCmpd || d.uuid_cmpd_table() != idTable )
+                    ADERROR() << "wrong calibrant data selected";
+                d << std::make_pair( amount, intensity );
             }
-            adcontrols::QuanCalibration& d = calibrants[ idCompound ];
-            if ( d.uuid_cmpd() != idCmpd || d.uuid_cmpd_table() != idTable )
-                ADERROR() << "wrong calibrant data selected";
-            
-            d << std::make_pair( amount, intensity );
+            catch ( std::bad_cast& ex ) {
+                BOOST_THROW_EXCEPTION( ex );
+            }
         }
     }
 
-    sql.begin();
     for ( auto& map : calibrants ) {
         map.second.fit( nLevels );
         results << map.second;
 
         if ( sql.prepare( "\
-INSERT INTO QuanCalib (idAudit, uuid, idCompound, idTable, idCmpd, uuidMethod, n, min_x, max_x, chisqr, a, b, c, d, e, f) \
-SELECT idAudit.id, :uuid, ?, ?, ?, ?, :n, :min_x, :max_x, :chisqr, :a, :b, :c, :d, :e, :f \
-FROM idAudit WHERE uuid = :uuid") ) {
+INSERT INTO QuanCalib (uuid, idCompound, idTable, idCmpd, idMethod, n, min_x, max_x, chisqr, a, b, c, d, e, f) \
+VALUES (:uuid, ?, ?, ?, ?, :n, :min_x, :max_x, :chisqr, :a, :b, :c, :d, :e, :f)" ) ) {
             int row = 1;
-            sql.bind( row++ ) = results.ident().uuid(); // :uuid
-            sql.bind( row++ ) = map.first;                                                // ?idCompound
+            sql.bind( row++ ) = results.ident().uuid();        // :uuid
+            sql.bind( row++ ) = map.first;                     // ?idCompound
             sql.bind( row++ ) = map.second.uuid_cmpd_table();  // ?idCmpdTable
-            sql.bind( row++ ) = map.second.uuid_cmpd();                                      // ?idCmpd
-            sql.bind( row++ ) = qM->ident().uuid();     // ?uuidMethod
-            sql.bind( row++ ) = uint64_t( map.second.size() );                            // :n
-            sql.bind( row++ ) = double( map.second.min_x() );                             // :min_x
-            sql.bind( row++ ) = double( map.second.max_x() );                             // :max_x
-            sql.bind( row++ ) = double( map.second.chisqr() );                            // chisqr
+            sql.bind( row++ ) = map.second.uuid_cmpd();        // ?idCmpd
+            sql.bind( row++ ) = qM->ident().uuid();            // ?idMethod
+            sql.bind( row++ ) = uint64_t( map.second.size() ); // :n
+            sql.bind( row++ ) = double( map.second.min_x() );  // :min_x
+            sql.bind( row++ ) = double( map.second.max_x() );  // :max_x
+            sql.bind( row++ ) = double( map.second.chisqr() ); // chisqr
             size_t i = 0;
             while ( i < map.second.nTerms() )
                 sql.bind( row++ ) = map.second.coefficients()[ i++ ];                     // a..f
             while ( i++ < 5 )
                 sql.bind( row++ ) = adfs::null();                                         // a..f
 
-            if ( sql.step() != adfs::sqlite_done ) {
+            if ( sql.step() != adfs::sqlite_done )
                 ADERROR() << "sql error";
-            }
         }
     }
-    sql.commit();
 
 #if 0
         if ( sql.prepare( "\

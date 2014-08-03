@@ -32,10 +32,11 @@ class QModelIndex;
 #include <QHeaderView>
 #include <QPainter>
 #include <QTextDocument>
+#include "adwidgets_global.hpp"
 
 namespace adwidgets {
 
-    class HtmlHeaderView : public QHeaderView {
+    class ADWIDGETSSHARED_EXPORT HtmlHeaderView : public QHeaderView {
     public:
         HtmlHeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0) : QHeaderView( orientation, parent ) {
             setClickable( true );
@@ -68,6 +69,7 @@ namespace adwidgets {
                 }
             }
         }
+
     };
 
 }

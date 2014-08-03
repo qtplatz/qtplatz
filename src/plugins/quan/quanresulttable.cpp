@@ -25,7 +25,9 @@
 #include "quanresulttable.hpp"
 #include "quanquery.hpp"
 #include <adwidgets/delegatehelper.hpp>
+#include <adwidgets/htmlheaderview.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <qtwrapper/font.hpp>
 #include <QStyledItemDelegate>
 #include <QStandardItemModel>
 #include <QVariant>
@@ -63,7 +65,19 @@ namespace quan {
             }
             
             QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-                return QStyledItemDelegate::sizeHint( option, index );
+                QStyleOptionViewItem op( option );
+                if ( index.data().isNull() ) {
+                    return QSize();
+                } else if ( index.data().type() == QVariant::Double ) {
+                    QFont font;
+                    qtwrapper::font::setFont( font, qtwrapper::fontSizeNormal, qtwrapper::fontTableBody );
+                    QFontMetricsF fm( font );
+                    double width = fm.boundingRect( op.rect, Qt::AlignJustify | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) ).width();
+                    QSize sz = QStyledItemDelegate::sizeHint( option, index );
+                    sz.setWidth( width );
+                    return sz;
+                } else
+                    return QStyledItemDelegate::sizeHint( option, index );
             }
         
         };
@@ -81,6 +95,7 @@ QuanResultTable::QuanResultTable(QWidget *parent) : adwidgets::TableView(parent)
 {
     setModel( model_.get() );
     setItemDelegate( new quanresulttable::ItemDelegate );
+    setHorizontalHeader( new adwidgets::HtmlHeaderView );
 }
 
 void
@@ -91,6 +106,15 @@ QuanResultTable::prepare( const QuanQuery& q )
 
     for ( int col = 0; col < int( q.column_count() ); ++col  )
         model_->setHeaderData( col, Qt::Horizontal, q.column_name( col ) );
+
+    for ( int col = 0; col < int( q.column_count() ); ++col ) {
+        QTextDocument document;
+        // document.setDefaultFont( option.font );
+        document.setHtml( q.column_name( col ) );
+        QSize size( document.size().width(), document.size().height() );
+        horizontalHeader()->model()->setHeaderData( col, Qt::Horizontal, QVariant( size ), Qt::SizeHintRole );
+    }    
+
 }
 
 void
