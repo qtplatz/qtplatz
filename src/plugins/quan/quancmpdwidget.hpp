@@ -25,10 +25,18 @@
 #ifndef QUANCMPDWIDGET_HPP
 #define QUANCMPDWIDGET_HPP
 
-class QuanCmpdWidget
-{
-public:
-    QuanCmpdWidget();
-};
+#include <QWidget>
+
+namespace quan {
+
+    class QuanResultTable;
+
+    class QuanCmpdWidget : public QWidget {
+        Q_OBJECT
+    public:
+        QuanCmpdWidget( QuanResultTable *, QWidget * parent = 0 );
+    };
+
+}
 
 #endif // QUANCMPDWIDGET_HPP

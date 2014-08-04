@@ -44,7 +44,6 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) :  QWidget(parent)
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
         auto label = new QLabel;
-        label->setStyleSheet( "QLabel { color : blue; }" );
         label->setText( "Results" );
         toolBarLayout->addWidget( label );
 

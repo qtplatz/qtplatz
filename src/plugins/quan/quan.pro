@@ -33,7 +33,8 @@ SOURCES += quanplugin.cpp \
     quanquery.cpp \
     quanplotwidget.cpp \
     quanresultwnd.cpp \
-    quanresultwidget.cpp
+    quanresultwidget.cpp \
+    quancmpdwidget.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
@@ -61,7 +62,8 @@ HEADERS += quanplugin.hpp \
     quanquery.hpp \
     quanplotwidget.hpp \
     quanresultwidget.hpp \
-    quanresultwnd.hpp
+    quanresultwnd.hpp \
+    quancmpdwidget.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \

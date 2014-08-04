@@ -28,6 +28,7 @@
 #include "quanresulttable.hpp"
 #include "quanconnection.hpp"
 #include "quanquery.hpp"
+#include "quancmpdwidget.hpp"
 #include <adwplot/dataplot.hpp>
 #include <utils/styledbar.h>
 #include <coreplugin/minisplitter.h>
@@ -56,15 +57,6 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     
     splitter->setOrientation( Qt::Horizontal );
     
-    // QSizePolicy sizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
-    // sizePolicy.setHorizontalStretch( 0 );
-    // sizePolicy.setVerticalStretch( 0 );
-    // cmpdTable_->setSizePolicy( sizePolicy );
-    //cmpdTable_->setMaximumSize( QSize( 200, 99999 ) );
-    // topLayout->addWidget( cmpdTable_ );
-    //splitter->addWidget( cmpdWidget );
-
-    
     // compound-table on left
     if ( Core::MiniSplitter * wndSplitter = new Core::MiniSplitter ) {
         splitter->addWidget( wndSplitter ); // <<------------ add to splitter
@@ -80,7 +72,7 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
             splitter2->addWidget( new QTextEdit );
         }
     }
-    splitter->addWidget( cmpdTable_ );
+    splitter->addWidget( new QuanCmpdWidget( cmpdTable_ ) );
     splitter->setStretchFactor( 0, 5 );
     splitter->setStretchFactor( 1, 1 );
     
@@ -92,58 +84,6 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanResultWnd::handleConnectionChanged );
 
 }
-
-#if 0
-    if ( auto cmpdWidget = new QWidget( this ) ) {
-        
-        auto topLayout = new QVBoxLayout( cmpdWidget );
-        topLayout->setMargin( 0 );
-        topLayout->setSpacing( 0 );
-        
-        if ( auto toolBar = new Utils::StyledBar ) {
-            auto toolBarLayout = new QHBoxLayout( toolBar );
-            toolBarLayout->setSpacing( 0 );
-            toolBarLayout->setSpacing( 0 );
-            
-            auto label = new QLabel;
-            label->setText( "Compounds" );
-            toolBarLayout->addWidget( label );
-            
-            //topLayout->addWidget( new QLabel() );
-            topLayout->addWidget( toolBar );
-        }
-#endif
-
-#if 0        
-            splitter->addWidget( wndSplitter );
-            wndSplitter->setOrientation( Qt::Vertical );  // horizontal line
-            
-            if ( Core::MiniSplitter  * splitter2 = new Core::MiniSplitter ) { // left pane split top (table) & bottom (time,mass plot)
-                splitter2->setOrientation( Qt::Vertical );
-                
-                splitter2->addWidget( respTable_ );
-                
-                if ( Core::MiniSplitter * splitter3 = new Core::MiniSplitter ) { // time vs length | slope, intercept vs m/z
-                    splitter3->setOrientation( Qt::Horizontal );
-                    
-                    if ( auto w = new adwplot::Dataplot ) {
-                        splitter3->addWidget( w );
-                    }
-                    if ( auto w = new QTextEdit ) {
-                        w->setText( "3rd" );
-                        splitter3->addWidget( w );
-                    }
-                    
-                    splitter2->addWidget( splitter3 );
-                    splitter2->setStretchFactor( 0, 1 );
-                    splitter2->setStretchFactor( 1, 1 );
-                }
-                splitter->addWidget( splitter2 );
-            }
-            splitter->setStretchFactor(0, 1);
-            splitter->setStretchFactor( 1, 10 );
-#endif
-            
 
 void
 QuanResultWnd::handleConnectionChanged()

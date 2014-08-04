@@ -23,7 +23,28 @@
 **************************************************************************/
 
 #include "quancmpdwidget.hpp"
+#include "quanresulttable.hpp"
+#include <QBoxLayout>
+#include <QLabel>
+#include <utils/styledbar.h>
 
-QuanCmpdWidget::QuanCmpdWidget()
+using namespace quan;
+
+QuanCmpdWidget::QuanCmpdWidget( QuanResultTable * table, QWidget * parent ) : QWidget( parent )
 {
+    auto topLayout = new QVBoxLayout( this );
+    topLayout->setMargin( 0 );
+    topLayout->setSpacing( 0 );
+
+    if ( auto toolBar = new Utils::StyledBar ) {
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+        auto label = new QLabel;
+        label->setText( "Compounds" );
+        toolBarLayout->addWidget( label );
+
+        topLayout->addWidget( toolBar );
+    }
+    topLayout->addWidget( table );
 }
