@@ -197,8 +197,16 @@ QuanDocument::load_default_methods()
             dirty_flags_[ idQuanCompounds ] = false;
     }
     if ( dirty_flags_[ idQuanSequence ] ) {
-        if ( load( dir / L"quansequence.xml", *quanSequence_ ) )
+        if ( load( dir / L"quansequence.xml", *quanSequence_ ) ) {
+            if ( std::wstring( quanSequence_->outfile() ).empty() && quanSequence_->size() > 0 ) {
+
+                boost::filesystem::path path( quanSequence_->begin()->dataSource() );
+                path.remove_filename();
+                path /= "quan_results.adfs";
+                quanSequence_->outfile( path.normalize().wstring().c_str() );
+            }
             dirty_flags_[ idQuanSequence ] = false;
+        }
     }
     if ( dirty_flags_[ idProcMethod ] ) {
 

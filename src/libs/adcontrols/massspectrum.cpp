@@ -184,26 +184,14 @@ MassSpectrum::operator = ( const MassSpectrum& t )
 MassSpectrum&
 MassSpectrum::operator += ( const MassSpectrum& t )
 {
-    segment_wrapper<> lhs( *this );
-    segment_wrapper<const MassSpectrum > rhs( t );
+    const double * rhs = getIntensityArray();
+    const double * lhs = t.getIntensityArray();
+    
+    for ( size_t i = 0; i < size() && i < t.size(); ++i )
+        setIntensity( i, *rhs++ + *lhs++ );
 
-    if ( lhs.size() == rhs.size() ) {
-        auto rit = rhs.begin();
-        for ( auto lit = lhs.begin(); lit != lhs.end(); ++lit, ++rit ) {
-
-            if ( (*lit).size() == (*rit).size() ) {
-
-                const double * drhs = (*rit).getIntensityArray();
-                const double * dlhs = (*lit).getIntensityArray();
-                
-                for ( size_t i = 0; i < (*lit).size(); ++i )
-                    (*lit).setIntensity( i, *dlhs++ + *drhs++ );
-
-            }
-            // update sampleInfo.numAverage
-            (*lit).getMSProperty().setNumAverage( (*lit).getMSProperty().numAverage() + (*rit).getMSProperty().numAverage() );
-        }
-    }
+    // update sampleInfo.numAverage
+    getMSProperty().setNumAverage( getMSProperty().numAverage() + t.getMSProperty().numAverage() );
 
 	return *this;
 }
@@ -984,5 +972,19 @@ segments_helper::base_peak_index( const MassSpectrum& ms, double lMass, double h
         ++fcn;
     }
     return idx;
+}
+
+bool
+segments_helper::add( MassSpectrum& lhs, const MassSpectrum& rhs )
+{
+    if ( lhs.numSegments() != rhs.numSegments() )
+        return false;
+
+    lhs += rhs;
+
+    for ( size_t fcn = 0; fcn < lhs.numSegments(); ++fcn )
+        lhs.getSegment( fcn ) += rhs.getSegment( fcn );
+
+    return true;
 }
 

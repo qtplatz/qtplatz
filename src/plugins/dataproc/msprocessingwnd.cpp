@@ -130,12 +130,20 @@ namespace dataproc {
             processedSpectrum_->setFocusedFcn( fcn );
         }
 
-        bool ticFinder( double x, int& index, int& fcn, double& minutes ) {
+        bool ticFinder( double x, size_t& pos, int& index, int& rep, int& fcn, double& minutes ) {
             index = 0;
             fcn = (-1);
             minutes = 0;
-            if ( checkedChromatograms_.empty() )
-                return false;
+
+            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                if ( auto rawfile = dp->getLCMSDataset() ) {
+                    pos = rawfile->posFromTime( adcontrols::Chromatogram::toSeconds( x ) );
+                    if ( rawfile->index( pos, index, fcn, rep ) ) {
+                        minutes = adcontrols::Chromatogram::toMinutes( rawfile->timeFromPos( pos ) );
+                        return true;
+                    }
+                }
+            }
 
             int traceId = -1;
             index = -1;
@@ -159,10 +167,11 @@ namespace dataproc {
         }
 
         bool ticTracker( const QPointF& pos, QwtText& text ) {
-            int fcn, index;
+            size_t npos;
+            int fcn, rep, index;
             double minutes;
-            if ( ticFinder( pos.x(), index, fcn, minutes ) ) {
-                QString ammend = QString::fromStdString( ( boost::format("[%d #%d]") % index % fcn ).str() );
+            if ( ticFinder( pos.x(), npos, index, rep, fcn, minutes ) ) {
+                QString ammend = QString::fromStdString( ( boost::format("[data#%d idx:%d [rep:%d] fcn:%d]") % npos % index % rep % fcn ).str() );
                 text.setText( QString( "%1 %2" ).arg( text.text() ).arg( ammend ), QwtText::RichText );
             }
             return true;
@@ -609,13 +618,14 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         typedef std::pair < QAction *, std::function<void()> > action_type;
         std::vector < action_type > actions;
 
-        int index, fcn;
+        size_t pos;
+        int index, rep, fcn;
         double minutes;
-        pImpl_->ticFinder( rect.left(), index, fcn, minutes );
+        pImpl_->ticFinder( rect.left(), pos, index, rep, fcn, minutes );
         
         actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a part of spectrum @%.3fmin (%d/%d)") % minutes % index % fcn ).str().c_str() )
                                            , [=] () {
-                                               DataprocPlugin::instance()->onSelectSpectrum( minutes, index, fcn );
+                                               DataprocPlugin::instance()->onSelectSpectrum( minutes, pos, fcn );
                                            } ) );
         if ( index < 0 || fcn < 0 )
             actions.back().first->setEnabled( false );

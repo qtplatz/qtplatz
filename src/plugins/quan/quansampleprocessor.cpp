@@ -249,7 +249,7 @@ QuanSampleProcessor::read_first_spectrum( const adcontrols::LCMSDataset * raw, a
         while ( raw->index( pos + 1, idx, fcn, rep ) && fcn == 0 ) {
             adcontrols::MassSpectrum a;
             if ( raw->getSpectrum( -1, ++pos, a ) )
-                ms += a;
+                adcontrols::segments_helper::add( ms, a );
         }
         return pos + 1; // return next pos
     }
@@ -269,7 +269,7 @@ QuanSampleProcessor::read_next_spectrum( size_t pos, const adcontrols::LCMSDatas
             while ( raw->index( pos + 1, idx, fcn, rep ) && fcn == 0 ) {
                 adcontrols::MassSpectrum a;
                 if ( raw->getSpectrum( -1, ++pos, a ) )
-                    ms += a;
+                    adcontrols::segments_helper::add( ms, a );
             }
             return pos + 1; // return next pos
         }
@@ -318,7 +318,7 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
         if ( (*progress_)(progress_current_++, progress_total_) )
             return false;
         if ( (pos = read_next_spectrum( pos, raw, a )) )
-            ms += a;
+            adcontrols::segments_helper::add( ms, a );
     }
 
     return true;

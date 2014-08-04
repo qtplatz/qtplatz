@@ -254,7 +254,7 @@ rawdata::getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum& ms, uint32_
 
     if ( fcn < 0 ) {
         //typedef decltype(*fcnVec_.begin()) pos_type;
-        // find 'index' form <pos, fcn> array that indicates first 'pos' after protocol has been switched
+        // find 'index' from <pos, fcn> array that indicates first 'pos' after protocol has been switched
         auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), npos
                                        , [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
         if ( index == fcnIdx_.end() )

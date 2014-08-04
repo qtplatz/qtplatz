@@ -185,6 +185,7 @@ namespace adcontrols {
         static std::pair<int, int> base_peak_index( const MassSpectrum&, double lMass, double uMass );
         static double get_mass( const MassSpectrum&, const std::pair< int, int >& );
         static double get_intensity( const MassSpectrum&, const std::pair< int, int >& );
+        static bool add( MassSpectrum&, const MassSpectrum& );
     };
     
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );

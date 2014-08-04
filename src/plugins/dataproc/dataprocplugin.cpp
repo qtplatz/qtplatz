@@ -331,7 +331,7 @@ DataprocPlugin::handle_folium_added( const QString fname, const QString path, co
 }
 
 void
-DataprocPlugin::onSelectSpectrum( double /*minutes*/, int index, int fcn )
+DataprocPlugin::onSelectSpectrum( double /*minutes*/, size_t pos, int fcn )
 {
 	qtwrapper::waitCursor w;
 
@@ -341,12 +341,12 @@ DataprocPlugin::onSelectSpectrum( double /*minutes*/, int index, int fcn )
 			adcontrols::MassSpectrum ms;
             try {
                 std::wostringstream text;
-                size_t pos = dset->find_scan( index, fcn );
+                // size_t pos = dset->find_scan( index, fcn );
                 if ( dset->getSpectrum( fcn, pos, ms ) ) {
                     double t = dset->timeFromPos( pos ) / 60.0;
                     if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
                         t = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
-                    text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t << "min";
+                    text << boost::wformat( L"Spectrum #%d fcn:%d/%d @ %.3lfmin" ) % pos % ms.protocolId() % ms.nProtocols() % t;
                     adcontrols::ProcessMethod m;
                     ms.addDescription( adcontrols::Description( L"create", text.str() ) );
                     portfolio::Folium folium = dp->addSpectrum( ms, m );
