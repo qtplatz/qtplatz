@@ -339,5 +339,7 @@ MainWindow::handleSequenceCompleted()
         stop->setEnabled( false );
     if ( auto stop = actions_[ idActRun ] )
         stop->setEnabled( true );
-    stack_->setCurrentIndex( 2 ); // switch to Report
+
+    if ( auto tab = findChild< DoubleTabWidget * >() )
+        tab->setCurrentIndex( -1, 2 );
 }

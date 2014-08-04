@@ -80,6 +80,7 @@ namespace quan {
         void setCurrentIndex(int index);
 
         int currentSubIndex() const;
+        void setCurrentIndex( int index, int subIndex );
 
     signals:
         void currentIndexChanged(int index, int subIndex);

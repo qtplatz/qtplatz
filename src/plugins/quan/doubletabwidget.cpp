@@ -137,6 +137,24 @@ DoubleTabWidget::setCurrentIndex(int index)
     update();
 }
 
+void
+DoubleTabWidget::setCurrentIndex( int index, int subTab )
+{
+    Q_ASSERT(index < tabs_.size());
+
+    if ( index < 0 )
+        index = currentIndex_;
+
+    if (index == currentIndex_ && tabs_.at(currentIndex_).currentSubTab == subTab )
+        return;
+
+    currentIndex_ = index;
+    tabs_[ currentIndex_ ].currentSubTab = subTab;
+
+    emit currentIndexChanged(currentIndex_, tabs_.at(currentIndex_).currentSubTab);
+    update();
+}
+
 int
 DoubleTabWidget::currentSubIndex() const
 {
