@@ -49,7 +49,7 @@ namespace adcontrols {
         virtual size_t getSpectrumCount( int fcn ) const = 0;
         virtual size_t getChromatogramCount() const = 0;
         virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const = 0;
-        virtual bool getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum&, uint32_t objid = 0 ) const = 0;
+        virtual bool getSpectrum( int fcn, size_t npos, adcontrols::MassSpectrum&, uint32_t objid = 0 ) const = 0;
 		virtual size_t posFromTime( double x ) const = 0;
         virtual double timeFromPos( size_t ) const = 0;
         virtual bool index( size_t /*pos*/, int& /*idx*/, int& /*fcn*/, int& /*rep*/, double * t = 0 ) const { return false; (void)t; }

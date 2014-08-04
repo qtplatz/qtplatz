@@ -238,7 +238,7 @@ rawdata::getSpectrumCount( int fcn ) const
 }
 
 bool
-rawdata::getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum& ms, uint32_t objid ) const
+rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
     auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
             if ( objid == 0 )
@@ -250,10 +250,9 @@ rawdata::getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum& ms, uint32_
         return false;
     
     adcontrols::translate_state state;
-    uint64_t npos = npos0_ + idx;
+    uint64_t npos = npos0_ + pos;
 
     if ( fcn < 0 ) {
-        //typedef decltype(*fcnVec_.begin()) pos_type;
         // find 'index' from <pos, fcn> array that indicates first 'pos' after protocol has been switched
         auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), npos
                                        , [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
@@ -261,16 +260,15 @@ rawdata::getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum& ms, uint32_
             return false;
         while ( index != fcnIdx_.begin() && index->first > npos )
             --index;
-        int rep = int( npos - index->first );  // id within a replicates (rep'licates is the offset for npos from (fcn=0,rep=0) spectrum)
-        while ( index != fcnIdx_.begin() && index->second != 0 )
+        int rep = int( npos - index->first );  // id within a replicates (rep'licates is the offset from (fcn=0,rep=0) spectrum)
+        while ( index != fcnIdx_.begin() && index->second != 0 ) // find fcn=0
             --index;
 
-        if ( fcn < 0 ) { // read all protocols
-            while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id ))
-                    == adcontrols::translate_indeterminate )
-                if ( ++index == fcnIdx_.end() )  // move forward to next protocol (rep'licates is the offset for actual spectrum)
-                    break;
-        }
+        // read all protocols
+        while ( (state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id ))
+                == adcontrols::translate_indeterminate )
+            if ( ++index == fcnIdx_.end() )  // move forward to next protocol (rep'licates is the offset for actual spectrum)
+                break;
     }
     else {
         state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos, ms, it->trace_id );
@@ -602,33 +600,21 @@ rawdata::fetchSpectrum( int64_t objid
 
     adfs::stmt sql( dbf_.db() );
 
-    if ( sql.prepare( "SELECT rowid, fcn FROM AcquiredData WHERE oid = :oid AND npos = :npos" ) ) {
-
+    if ( sql.prepare( "SELECT fcn, data, meta FROM AcquiredData WHERE oid = :oid AND npos = :npos" ) ) {
+        
         sql.bind( 1 ) = objid;
         sql.bind( 2 ) = npos;
 
-        adfs::blob blob;
-        std::vector< char > xdata;
-        std::vector< char > xmeta;
-
         if ( sql.step() == adfs::sqlite_row ) {
-			uint64_t rowid  = sql.get_column_value< uint64_t >( 0 );
-			int fcn    = int( sql.get_column_value< int64_t >( 1 ) );
+			int fcn          = int( sql.get_column_value< int64_t >( 0 ) );
             (void)fcn;
-            
-            if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
-                xdata.resize( blob.size() );
-                if ( blob.size() )
-                    blob.read( reinterpret_cast< int8_t *>( xdata.data() ), blob.size() );
-            }
-            if ( blob.open( dbf_.db(), "main", "AcquiredData", "meta", rowid, adfs::readonly ) ) {
-                xmeta.resize( blob.size() );
-                if ( blob.size() )
-                    blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
-            }
+            adfs::blob xdata = sql.get_column_value< adfs::blob >( 1 );
+            adfs::blob xmeta = sql.get_column_value< adfs::blob >( 2 );
+
             size_t idData = 0;
-            return interpreter.translate( ms, xdata.data(), xdata.size()
-                                          , xmeta.data(), xmeta.size(), spectrometer, idData++, traceId.c_str() );
+            return interpreter.translate( ms, reinterpret_cast< const char *>(xdata.data()), xdata.size()
+                , reinterpret_cast<const char *>(xmeta.data()), xmeta.size(), spectrometer, idData++, traceId.c_str() );
+
         }
     }
     return adcontrols::translate_error;

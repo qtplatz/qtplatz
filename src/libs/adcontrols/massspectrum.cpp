@@ -30,7 +30,9 @@
 #include "annotations.hpp"
 #include "massspectra.hpp"
 #include <adportable/array_wrapper.hpp>
-
+# if defined _DEBUG || defined DEBUG
+# include <adportable/debug.hpp>
+# endif
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 
@@ -184,6 +186,12 @@ MassSpectrum::operator = ( const MassSpectrum& t )
 MassSpectrum&
 MassSpectrum::operator += ( const MassSpectrum& t )
 {
+#if defined _DEBUG || defined DEBUG
+    if ( protocolId() != t.protocolId() ) {
+        ADDEBUG() << "add unmached spectrum " << protocolId() << " + " << t.protocolId();
+        assert( 0 );
+    }
+#endif
     const double * rhs = getIntensityArray();
     const double * lhs = t.getIntensityArray();
     
@@ -988,3 +996,12 @@ segments_helper::add( MassSpectrum& lhs, const MassSpectrum& rhs )
     return true;
 }
 
+// static
+bool
+segments_helper::normalize( MassSpectrum& vms, uint32_t imaginalNumAverage )
+{
+    for ( auto& ms: segment_wrapper< MassSpectrum >( vms ) ) {
+        ms.normalizeIntensities( imaginalNumAverage );
+    }
+    return true;
+}

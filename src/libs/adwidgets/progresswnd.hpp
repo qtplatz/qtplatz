@@ -58,11 +58,14 @@ namespace adwidgets {
 
     signals:
         void onAdd( int );
+        void onSetRange( int, int, int );
         void onProgress( int, int, int );
+        void onSetValue( int, int );
         void onRemove( int );
 
     private slots:
-        void handleProgress( int, int, int );
+        void handleSetRange( int, int, int );
+        void handleSetValue( int, int );
         void handleRemove( int );
         void handleAdd( int );
     };
@@ -71,12 +74,15 @@ namespace adwidgets {
     class ADWIDGETSSHARED_EXPORT Progress : public std::enable_shared_from_this < Progress > {
         ProgressWnd * wnd_;
         int id_;
+        std::pair< int, int > range_;
         Progress( const Progress& ) = delete;
         Progress& operator = ( const Progress& ) = delete;
     public:
         Progress( ProgressWnd *, int id );
         ~Progress();
-        bool operator()( int, int );
+        void setRange( int, int );
+        bool operator()( int );
+        bool operator()(); // step forward
     };
 
 }

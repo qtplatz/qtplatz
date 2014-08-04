@@ -75,7 +75,7 @@ namespace adfs {
         blob( std::size_t octets, const int8_t *p = 0 );
         blob( std::size_t octets, const char *p = 0 );
         uint32_t size() const;
-        inline const int8_t * get() const { return p_; }
+        inline const int8_t * data() const { return p_; }
         inline operator bool () const { return pBlob_ != 0; }
         bool close();
         bool open( sqlite& db, const char * zDb, const char * zTable, const char * zColumn, int64_t rowid, flags );

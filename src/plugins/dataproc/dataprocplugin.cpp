@@ -26,15 +26,16 @@
 #include "dataprocplugin.hpp"
 #include "actionmanager.hpp"
 #include "constants.hpp"
-#include "mode.hpp"
-#include "editorfactory.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
+#include "document.hpp"
+#include "editorfactory.hpp"
 #include "isequenceimpl.hpp"
 #include "isnapshothandlerimpl.hpp"
 #include "ipeptidehandlerimpl.hpp"
 #include "mainwindow.hpp"
+#include "mode.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
 #include <coreplugin/editormanager/editormanager.h>
@@ -66,8 +67,11 @@
 #include <adlog/logging_handler.hpp>
 #include <adportable/float.hpp>
 #include <adwidgets/centroidform.hpp>
+#include <adwidgets/progresswnd.hpp>
 #include <portfolio/logging_hook.hpp>
 #include <portfolio/folium.hpp>
+//#include <portfolio/folder.hpp>
+//#include <portfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -112,6 +116,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <functional>
+#include <thread>
 
 namespace dataproc {
     class mimeTypeHelper {
@@ -368,32 +373,50 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
-		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
-            size_t pos1 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x1 ) ); // min --> sec
-            size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) ); // min --> sec
-            int pos = static_cast<int>(pos1);
-            double t1 = adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos1 ) ); // to minuites
-            double t2 = adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos2 ) ); // to minutes
 
-			adcontrols::MassSpectrum ms;
+		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
+            
+            auto cptr = document::findTIC( dp, 0 );
+            if ( !cptr )
+                return;
+
+            size_t cidx1 = cptr->toDataIndex( adcontrols::Chromatogram::toSeconds( x1 ) );
+            size_t cidx2 = cptr->toDataIndex( adcontrols::Chromatogram::toSeconds( x2 ) );
+
+            double t1 = x1; //adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos1 ) ); // to minuites
+            double t2 = x2; // adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos2 ) ); // to minutes
+            
             try {
-                if ( dset->getSpectrum( -1, pos++, ms ) ) {
+                adcontrols::MassSpectrum ms;
+                int cidx = int( cidx1 );
+                if ( dset->getSpectrum( -1, cidx++, ms ) ) {
                     if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
                         t1 = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
                 
                     std::wostringstream text;
-                    if ( pos2 > pos1 ) {
-                        QProgressBar progressBar;
-                        progressBar.setRange( static_cast<int>(pos1), static_cast<int>(pos2) );
-                        progressBar.setVisible( true );
+                    if ( cidx2 > cidx1 ) {
+                        auto progress = adwidgets::ProgressWnd::instance()->addbar();
+                        adwidgets::ProgressWnd::instance()->show();
+                        adwidgets::ProgressWnd::instance()->raise();
+
+                        //QProgressBar progressBar;
+                        //progressBar.setRange( static_cast<int>(pos1), static_cast<int>(pos2) );
+                        //progressBar.setVisible( true );
+                        
+                        std::thread t( [&] (){
+                                progress->setRange( int( cidx1 ), int( cidx2 ) );
+                                adcontrols::MassSpectrum a;
+                                while ( cidx < int( cidx2 ) && dset->getSpectrum( -1, cidx++, a ) ) {
+                                    adcontrols::segments_helper::add( ms, a );
+                                    (*progress)();
+                                }
+                                if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
+                                    t2 = a.getMSProperty().timeSinceInjection() / 60.0; // to min
+                            } );
+
+                        t.join();
                     
-                        adcontrols::MassSpectrum a;
-                        while ( pos < int(pos2)	&& dset->getSpectrum( 0, pos++, a ) ) {
-                            progressBar.setValue( pos );
-                            ms += a;
-                        }
-                        if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
-                            t2 = a.getMSProperty().timeSinceInjection() / 60.0; // to min
+
                         text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")min";
                     } else {
                         text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t1 << "min";
@@ -405,9 +428,9 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
                     if ( folium ) {
                         bool hasCentroid( false );
-                        if ( pos1 == pos2 && dset->hasProcessedSpectrum( 0, static_cast<int>(pos1) ) ) {
+                        if ( cidx1 == cidx2 && dset->hasProcessedSpectrum( 0, static_cast<int>(cidx1) ) ) {
                             adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-                            if ( dset->getSpectrum( 0, static_cast<int>(pos1), *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
+                            if ( dset->getSpectrum( 0, static_cast<int>(cidx1), *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
                                 hasCentroid = true;
                                 portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
                                 att.assign( pCentroid, pCentroid->dataClass() );
@@ -448,33 +471,6 @@ DataprocPlugin::aboutToShutdown()
     ADTRACE() << "====== DataprocPlugin shutdown complete ===============";
 	return SynchronousShutdown;
 }
-
-// bool
-// DataprocPlugin::install_isequence( const adportable::Configuration& config
-//                                    , const std::wstring& , iSequenceImpl& impl )
-// {
-//     impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::CentroidForm( p ); }
-//         , adextension::iEditorFactory::PROCESS_METHOD
-//         , "Centroid" );
-
-//     impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::TargetingWidget( p ); }
-//         , adextension::iEditorFactory::PROCESS_METHOD
-//         , "Targeting" );
-
-//     // using adportable::Configuration;
-//     // const Configuration * tab = Configuration::find( config, "ProcessMethodEditors" );    
-//     // if ( tab ) {
-//     //     for ( auto it : *tab ) {
-//     //         // std::for_each( tab->begin(), tab->end(), [&] ( Configuration::vector_type::const_iterator it ){
-//     //         const std::string& iid = it.component_interface();
-//     //         impl << detail::iEditorFactoryImpl( [=] ( QWidget * p )->QWidget*{ return adplugin::widget_factory::create( iid.c_str(), 0, p ); }
-//     //             , adextension::iEditorFactory::PROCESS_METHOD
-//     //             , QString::fromStdWString( it.title() ) );
-//     //     }
-//     // }
-
-//     return impl.size();
-// }
 
 void
 DataprocPlugin::delete_editorfactories( std::vector< EditorFactory * >& factories )

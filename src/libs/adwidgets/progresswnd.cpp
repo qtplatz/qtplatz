@@ -71,7 +71,8 @@ ProgressWnd::ProgressWnd(QWidget *parent) : QDialog( parent, Qt::Tool )
     //setWindowFlags( windowFlags() & ~Qt::WindowContextHelpButtonHint );
     //setWindowFlags( windowFlags() | Qt::FramelessWindowHint );
 
-    connect( this, &ProgressWnd::onProgress, this, &ProgressWnd::handleProgress );
+    connect( this, &ProgressWnd::onSetRange, this, &ProgressWnd::handleSetRange );
+    connect( this, &ProgressWnd::onSetValue, this, &ProgressWnd::handleSetValue );
     connect( this, &ProgressWnd::onRemove, this, &ProgressWnd::handleRemove );
     connect( this, &ProgressWnd::onAdd, this, &ProgressWnd::handleAdd );
 }
@@ -112,20 +113,26 @@ ProgressWnd::addbar()
 }
 
 void
-ProgressWnd::handleProgress( int id, int current, int total )
+ProgressWnd::handleSetRange( int id, int beg, int end )
+{
+    auto it = progressive_.find( id );
+    if ( it != progressive_.end() ) {
+        auto bar = it->second;
+        bar->setRange( beg, end );
+        bar->setVisible( true );
+        bar->setTextVisible( true );
+    }
+}
+
+void
+ProgressWnd::handleSetValue( int id, int value )
 {
     show();
     raise();
     auto it = progressive_.find( id );
     if ( it != progressive_.end() ) {
         auto bar = it->second;
-        if ( current == 0 ) {
-            bar->setRange( 0, total );
-            bar->setVisible( true );
-            bar->setTextVisible( true );
-            bar->setValue( 3.0 );
-        } else 
-            bar->setValue( current );
+        bar->setValue( value );
     }
 }
 
@@ -150,7 +157,8 @@ ProgressWnd::handleRemove( int id )
 
 ////////////////////////////
 
-Progress::Progress(ProgressWnd * p, int id) : wnd_(p), id_(id)
+Progress::Progress(ProgressWnd * p, int id) : wnd_(p), id_(id), range_( 0, 0 )
+
 {
 }
 
@@ -159,9 +167,25 @@ Progress::~Progress()
     emit wnd_->onRemove( id_ );
 }
 
-bool
-Progress::operator()( int current, int total )
+void
+Progress::setRange( int beg, int end )
 {
-    emit wnd_->onProgress( id_, current, total );
+    range_ = std::make_pair( beg, end );
+    emit wnd_->onSetRange( id_, range_.first, range_.second );
+}
+
+bool
+Progress::operator()()
+{
+    emit wnd_->onSetValue( id_, ++(range_.first) );
     return wnd_->stop_requested_;
 }
+
+bool
+Progress::operator()( int value )
+{
+    range_.first = value;
+    emit wnd_->onSetValue( id_, value );
+    return wnd_->stop_requested_;
+}
+

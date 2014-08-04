@@ -380,8 +380,8 @@ namespace adfs {
     template<> bool
     stmt::bind_item::operator = ( const blob& blob )
     {
-        if ( blob.get() )
-            return sqlite3_bind_blob( stmt_, nnn_, blob.get(), blob.size(), 0 ) == SQLITE_OK;
+        if ( blob.data() )
+            return sqlite3_bind_blob( stmt_, nnn_, blob.data(), blob.size(), 0 ) == SQLITE_OK;
         else
             return sqlite3_bind_zeroblob( stmt_, nnn_, blob.size() ) == SQLITE_OK;
     }
@@ -444,8 +444,12 @@ namespace adfs {
 
     template<> blob stmt::get_column_value( int nCol ) const
     {
-        if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_BLOB )
-            return blob();
+        if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_BLOB ) {
+            const void * pvoid = sqlite3_column_blob( stmt_, nCol );
+            int octets = sqlite3_column_bytes( stmt_, nCol );
+            return blob( octets, reinterpret_cast<const int8_t *>(pvoid) );
+            // return blob();
+        }
         BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 

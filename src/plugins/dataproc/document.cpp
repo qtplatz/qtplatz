@@ -23,7 +23,13 @@
 **************************************************************************/
 
 #include "document.hpp"
+#include "dataprocessor.hpp"
 #include <adcontrols/msqpeaks.hpp>
+#include <adcontrols/chromatogram.hpp>
+#include <portfolio/portfolio.hpp>
+#include <portfolio/folder.hpp>
+#include <portfolio/folium.hpp>
+#include <boost/format.hpp>
 
 using namespace dataproc;
 
@@ -59,3 +65,43 @@ document::setMSQuanTable( const adcontrols::MSQPeaks& v )
 {
     quant_ = std::make_shared< adcontrols::MSQPeaks >( v );
 }
+
+// static
+size_t
+document::findCheckedTICs( Dataprocessor * dp, std::set< int >& vfcn )
+{
+    vfcn.clear();
+    if ( dp ) {
+        auto cfolder = dp->portfolio().findFolder( L"Chromatograms" );
+        for ( auto& folium: cfolder.folio() ) {
+            if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                const std::wstring& name = folium.name();
+                auto found = name.find( std::wstring( L"TIC/TIC.") );
+                if ( found != std::wstring::npos ) {
+                    auto dot = name.find_last_of( L'.' );
+                    if ( dot != std::wstring::npos ) {
+                        int fcn = std::stoi( name.substr( dot + 1 ) );
+                        vfcn.insert( fcn - 1 );
+                    }
+                }
+            }
+        }
+    }
+    return vfcn.size();
+}
+
+//static
+const std::shared_ptr< adcontrols::Chromatogram >
+document::findTIC( Dataprocessor * dp, int fcn )
+{
+    if ( dp ) {
+        auto cfolder = dp->portfolio().findFolder( L"Chromatograms" );
+        std::wstring name = ( boost::wformat( L"TIC/TIC.%d" ) % ( fcn + 1 ) ).str();
+        if ( auto folium = cfolder.findFoliumByName( name ) ) {
+            auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
+            return cptr;
+        }
+    }
+    return 0;
+}
+

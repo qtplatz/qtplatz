@@ -186,6 +186,7 @@ namespace adcontrols {
         static double get_mass( const MassSpectrum&, const std::pair< int, int >& );
         static double get_intensity( const MassSpectrum&, const std::pair< int, int >& );
         static bool add( MassSpectrum&, const MassSpectrum& );
+        static bool normalize( MassSpectrum&, uint32_t imaginalNumAverage = 10000 );
     };
     
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );

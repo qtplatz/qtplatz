@@ -27,12 +27,16 @@
 
 #include <QObject>
 #include <memory>
+#include <set>
 
 namespace adcontrols {
     class MSQPeaks;
+    class Chromatogram;
 }
 
 namespace dataproc {
+
+    class Dataprocessor;
 
     class document : public QObject
     {
@@ -44,6 +48,9 @@ namespace dataproc {
         void setMSQuanTable( const adcontrols::MSQPeaks& );
         adcontrols::MSQPeaks * msQuanTable();
         const adcontrols::MSQPeaks * msQuanTable() const;
+
+        static size_t findCheckedTICs( Dataprocessor *, std::set< int >& vfcn );
+        static const std::shared_ptr< adcontrols::Chromatogram > findTIC( Dataprocessor *, int );
 
     private:    
         std::shared_ptr< adcontrols::MSQPeaks > quant_;

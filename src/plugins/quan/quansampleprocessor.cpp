@@ -123,7 +123,7 @@ QuanSampleProcessor::dryrun()
         }
     }
     progress_current_ = 0;
-    (*progress_)(progress_current_, int( progress_total_ ));
+    progress_->setRange( int( progress_current_ ), int( progress_total_ ) );
 }
 
 bool
@@ -144,7 +144,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             if ( raw_ ) {
                 adcontrols::MassSpectrum ms;
                 if ( generate_spectrum( raw_, sample, ms ) ) {
-                    ms.normalizeIntensities( 10000 ); // normalize to 10k average equivalent
+                    adcontrols::segments_helper::normalize( ms ); // normalize to 10k average equivalent
                     processIt( sample, ms, writer.get() );
                     writer->insert_table( sample );
                 }
@@ -155,7 +155,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 adcontrols::MassSpectrum ms;
                 size_t pos = 0;
                 while ( ( pos = read_raw_spectrum( pos, raw_, ms ) ) ) {
-                    if ( (*progress_)(progress_current_++, progress_total_) )
+                    if ( (*progress_)() )
                         return false;
                     processIt( sample, ms, writer.get(), false );       
                     writer->insert_table( sample );
@@ -168,7 +168,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 if ( auto folder = portfolio_->findFolder( L"Spectra" ) ) {
                     if ( auto folium = folder.findFoliumByName( sample.name() ) ) {
                         if ( fetch( folium ) ) {
-                            if ( (*progress_)(progress_current_++, progress_total_) )
+                            if ( (*progress_)() )
                                 return false;
                             adcontrols::MassSpectrumPtr ms;
                             if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ms, folium ) ) {
@@ -297,7 +297,7 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
 
     auto range = std::make_pair( sample.scan_range_first(), sample.scan_range_second() );
 
-    if ( (*progress_)(progress_current_++, progress_total_) )
+    if ( (*progress_)() )
         return false;
 
     // select last data
@@ -315,7 +315,7 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
 
     adcontrols::MassSpectrum a;
     while ( pos && range.first++ < range.second ) {
-        if ( (*progress_)(progress_current_++, progress_total_) )
+        if ( (*progress_)() )
             return false;
         if ( (pos = read_next_spectrum( pos, raw, a )) )
             adcontrols::segments_helper::add( ms, a );
