@@ -1,5 +1,6 @@
 DEFINES += QUAN_LIBRARY
 PROVIDER = MS-Cheminformatics
+QT += core svg printsupport
 
 include(../../qtplatzplugin.pri)
 include(../../qwt.pri)
@@ -29,7 +30,10 @@ SOURCES += quanplugin.cpp \
     quanresulttable.cpp \
     quanqueryform.cpp \
     quanconnection.cpp \
-    quanquery.cpp
+    quanquery.cpp \
+    quanplotwidget.cpp \
+    quanresultwnd.cpp \
+    quanresultwidget.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
@@ -54,7 +58,10 @@ HEADERS += quanplugin.hpp \
     quanresulttable.hpp \
     quanqueryform.hpp \
     quanconnection.hpp \
-    quanquery.hpp
+    quanquery.hpp \
+    quanplotwidget.hpp \
+    quanresultwidget.hpp \
+    quanresultwnd.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \

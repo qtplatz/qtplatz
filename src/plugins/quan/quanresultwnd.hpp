@@ -22,36 +22,27 @@
 **
 **************************************************************************/
 
-#ifndef QUANRESULTTABLE_HPP
-#define QUANRESULTTABLE_HPP
+#ifndef QUANPLOTWND_HPP
+#define QUANPLOTWND_HPP
 
-#include <adwidgets/tableview.hpp>
-#include <memory>
-#include <set>
-
-class QStandardItemModel;
+#include <QWidget>
 
 namespace quan {
 
-    class QuanQuery;
+    class QuanResultTable;
+    class QuanResultWidget;
 
-    class QuanResultTable : public adwidgets::TableView  {
+    class QuanResultWnd : public QWidget
+    {
         Q_OBJECT
     public:
-        ~QuanResultTable();
-        explicit QuanResultTable(QWidget *parent = 0);
-
-        void prepare( const QuanQuery& );
-        void addRecord( const QuanQuery& );
-
-        QSize sizeHint() const override { return QSize( 900, 900 ); }
-
-        void setColumnHide( const std::string& );
-        void clear();
+        explicit QuanResultWnd(QWidget *parent = 0);
 
     private:
-        std::unique_ptr< QStandardItemModel > model_;
-        std::set< std::string > hideColumns_;
+        QuanResultTable * cmpdTable_;
+        QuanResultWidget * respTable_;
+
+        void handleConnectionChanged();
 
     signals:
 
@@ -61,4 +52,4 @@ namespace quan {
 
 }
 
-#endif // QUANRESULTTABLE_HPP
+#endif // QUANPLOTWND_HPP

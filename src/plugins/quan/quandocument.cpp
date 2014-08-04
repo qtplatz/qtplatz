@@ -477,6 +477,8 @@ void
 QuanDocument::setConnection( QuanConnection * conn )
 {
     quanConnection_ = conn->shared_from_this();
+
+    emit onConnectionChanged();
 }
 
 QuanConnection *

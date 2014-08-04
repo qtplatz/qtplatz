@@ -32,6 +32,7 @@
 #include "quanconstants.hpp"
 #include "quandocument.hpp"
 #include "quanconfigwidget.hpp"
+#include "quanresultwnd.hpp"
 #include "quanreportwidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -91,7 +92,7 @@ MainWindow::createContents( Core::IMode * )
 
     connect( tabWidget, &DoubleTabWidget::currentIndexChanged, this, &MainWindow::handleIndexChanged );
 
-    tabWidget->addTab( "Quan", "", QStringList() << "Select Data" << "Compounds & Protocols" << "Reports");
+    tabWidget->addTab( "Quan", "", QStringList() << "Select Data" << "Compounds & Protocols" << "Reports" << "Review Result");
     viewLayout->addWidget( tabWidget );
     tabWidget->setCurrentIndex( 0 );
 
@@ -151,14 +152,12 @@ MainWindow::createContents( Core::IMode * )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
         }
-        if ( auto widget = new QWidget ) {
-            auto data = std::make_shared< PanelData >( "Reports"
-                                                       , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
-                                                       , widget );
-            panelsWidget->addPanel( data.get() );
-        }
-        
         stack_->addWidget( panelsWidget );
+    }
+
+    if ( auto wnd = new QuanResultWnd( stack_ ) ) {
+        
+        stack_->addWidget( wnd );
     }
 
     stack_->setCurrentIndex( 0 );

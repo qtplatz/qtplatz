@@ -134,6 +134,7 @@ namespace quan {
         void onReportTriggered( const QString& );
         void onMSLockEnabled( bool );
         void onSequenceCompleted();
+        void onConnectionChanged();
     };
 }
 

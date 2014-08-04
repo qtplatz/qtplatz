@@ -104,8 +104,11 @@ QuanResultTable::prepare( const QuanQuery& q )
     model_->clear();
     model_->setColumnCount( int( q.column_count() ) );
 
-    for ( int col = 0; col < int( q.column_count() ); ++col  )
+    for ( int col = 0; col < int( q.column_count() ); ++col  ) {
         model_->setHeaderData( col, Qt::Horizontal, q.column_name( col ) );
+        if ( hideColumns_.find( q.column_name( col ).toStdString() ) != hideColumns_.end() )
+            setColumnHidden( col, true );
+    }
 
     for ( int col = 0; col < int( q.column_count() ); ++col ) {
         QTextDocument document;
@@ -129,4 +132,16 @@ QuanResultTable::addRecord( const QuanQuery& q )
     }
     resizeColumnsToContents();
     resizeRowsToContents();
+}
+
+void
+QuanResultTable::setColumnHide( const std::string& hide )
+{
+    hideColumns_.insert( hide );
+}
+
+void
+QuanResultTable::clear()
+{
+    hideColumns_.clear();
 }

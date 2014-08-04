@@ -22,37 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef QUANRESULTTABLE_HPP
-#define QUANRESULTTABLE_HPP
+#ifndef QUANRESULTWIDGET_HPP
+#define QUANRESULTWIDGET_HPP
 
-#include <adwidgets/tableview.hpp>
-#include <memory>
-#include <set>
-
-class QStandardItemModel;
+#include <QWidget>
 
 namespace quan {
 
-    class QuanQuery;
+    class QuanConnection;
+    class QuanResultTable;
 
-    class QuanResultTable : public adwidgets::TableView  {
+    class QuanResultWidget : public QWidget
+    {
         Q_OBJECT
     public:
-        ~QuanResultTable();
-        explicit QuanResultTable(QWidget *parent = 0);
-
-        void prepare( const QuanQuery& );
-        void addRecord( const QuanQuery& );
-
-        QSize sizeHint() const override { return QSize( 900, 900 ); }
-
-        void setColumnHide( const std::string& );
-        void clear();
+        explicit QuanResultWidget(QWidget *parent = 0);
+        void setConnection( QuanConnection * );
 
     private:
-        std::unique_ptr< QStandardItemModel > model_;
-        std::set< std::string > hideColumns_;
-
+        QuanResultTable * table_;
     signals:
 
     public slots:
@@ -61,4 +49,4 @@ namespace quan {
 
 }
 
-#endif // QUANRESULTTABLE_HPP
+#endif // QUANRESULTWIDGET_HPP
