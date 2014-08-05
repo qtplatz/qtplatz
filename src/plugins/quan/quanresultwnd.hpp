@@ -56,12 +56,15 @@ namespace quan {
         std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
         std::map< boost::uuids::uuid, std::shared_ptr< detail::calib_curve > > calib_curves_;
         std::map< boost::uuids::uuid, std::shared_ptr< detail::calib_data > > calib_data_;
+        boost::uuids::uuid uuid_plot_;
         
         void handleConnectionChanged();
         void handleCompoundSelected( const QModelIndex& );
-
+        void handleResponseSelected( int );
+        bool loadCalibration( const boost::uuids::uuid& );
         void plot_calib_curve_xy( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
         void plot_calib_curve_yx( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
+        void plot_response_marker_yx( adwplot::Dataplot *, double i, double a );
 
     signals:
 

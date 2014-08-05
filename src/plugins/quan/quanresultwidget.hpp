@@ -51,6 +51,7 @@ namespace quan {
         void handleCurrentChanged( const QModelIndex& );
 
     signals:
+        void onResponseSelected( int );
 
     public slots:
 

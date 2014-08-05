@@ -31,6 +31,7 @@
 #include "quancmpdwidget.hpp"
 #include <adfs/sqlite.hpp>
 #include <adportable/polfit.hpp>
+#include <adportable/float.hpp>
 #include <adwplot/dataplot.hpp>
 #include <utils/styledbar.h>
 #include <coreplugin/minisplitter.h>
@@ -48,6 +49,7 @@
 #include <QSplitter>
 #include <QTextEdit>
 #include <QLabel>
+#include <QColor>
 #include <boost/uuid/uuid.hpp>
 
 namespace quan {
@@ -73,7 +75,6 @@ namespace quan {
             calib_data( const calib_data& t ) = delete;
         };
 
-
     }
 }
 
@@ -87,8 +88,6 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     QwtPlotGrid * grid = new QwtPlotGrid;
     grid->setMajorPen( Qt::gray, 0, Qt::DotLine );
     grid->attach( calibplot_.get() );
-    //calibplot_->setAxisTitle( QwtPlot::xBottom, "intensity" );
-    //calibplot_->setAxisTitle( QwtPlot::yLeft, "amount" );
 
     Core::MiniSplitter * splitter = new Core::MiniSplitter;// compound-table | plots
     
@@ -120,6 +119,7 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
 
     connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanResultWnd::handleConnectionChanged );
     connect( &cmpdWidget_->table(), &QuanResultTable::onCurrentChanged, this, &QuanResultWnd::handleCompoundSelected );
+    connect( respTable_, &QuanResultWidget::onResponseSelected, this, &QuanResultWnd::handleResponseSelected );
 }
 
 void
@@ -130,7 +130,7 @@ QuanResultWnd::handleConnectionChanged()
 
         if ( auto query = connection->query() ) {
             if ( query->prepare( std::wstring ( L"SELECT uuid, formula, description FROM QuanCompound" ) ) ) {
-                //cmpdWidget_->table().setColumnHide( "uuid" );
+                cmpdWidget_->table().setColumnHide( "uuid" );
                 cmpdWidget_->table().prepare( *query );
                 while ( query->step() == adfs::sqlite_row ) {
                     cmpdWidget_->table().addRecord( *query );
@@ -141,64 +141,112 @@ QuanResultWnd::handleConnectionChanged()
     }
 }
 
-void
-QuanResultWnd::handleCompoundSelected( const QModelIndex& index )
+bool
+QuanResultWnd::loadCalibration( const boost::uuids::uuid& uuid )
 {
-    boost::uuids::uuid uuid = cmpdWidget_->uuid( index.row() );
-    if ( uuid != boost::uuids::uuid() ) {
-        if ( auto conn = QuanDocument::instance()->connection() ) {
+    if ( uuid == boost::uuids::uuid() )
+        return false;
 
-            auto calib = std::make_shared< detail::calib_curve >();
-            auto data = std::make_shared< detail::calib_data >();
+    if ( auto conn = QuanDocument::instance()->connection() ) {
             
-            adfs::stmt sql( conn->db() );
-            if ( sql.prepare("SELECT formula, description, n, min_x, max_x, date, a, b, c, d, e, f \
+        auto calib = std::make_shared< detail::calib_curve >();
+        auto data = std::make_shared< detail::calib_data >();
+            
+        adfs::stmt sql( conn->db() );
+        if ( sql.prepare("SELECT formula, description, n, min_x, max_x, date, a, b, c, d, e, f \
 FROM QuanCalib, QuanCompound WHERE idCmpd = :uuid AND QuanCalib.idCmpd = QuanCompound.uuid") ) {
-                sql.bind(1) = uuid;
+            sql.bind(1) = uuid;
+                
+            while ( sql.step() == adfs::sqlite_row ) {
+                int row = 0;
+                calib->uuid = uuid;
+                calib->formula = sql.get_column_value< std::string >( row++ );
+                calib->description = sql.get_column_value< std::wstring >( row++ );                    
+                calib->n = sql.get_column_value< uint64_t >( row++ );
+                calib->min_x = sql.get_column_value< double >( row++ );
+                calib->max_x = sql.get_column_value< double >( row++ );
+                calib->date = sql.get_column_value< std::string >( row++ );
 
-                while ( sql.step() == adfs::sqlite_row ) {
-                    int row = 0;
-                    calib->uuid = uuid;
-                    calib->formula = sql.get_column_value< std::string >( row++ );
-                    calib->description = sql.get_column_value< std::wstring >( row++ );                    
-                    calib->n = sql.get_column_value< uint64_t >( row++ );
-                    calib->min_x = sql.get_column_value< double >( row++ );
-                    calib->max_x = sql.get_column_value< double >( row++ );
-                    calib->date = sql.get_column_value< std::string >( row++ );
-
-                    for ( int i = 0; i < 5; ++i ) {
-                        if ( sql.is_null_column( row ) )
-                            break;
-                        calib->coeffs.push_back( sql.get_column_value< double >( row++ ) );
-                    }
+                for ( int i = 0; i < 5; ++i ) {
+                    if ( sql.is_null_column( row ) )
+                        break;
+                    calib->coeffs.push_back( sql.get_column_value< double >( row++ ) );
                 }
-                calib_curves_[ uuid ] = calib;
             }
+            calib_curves_[ uuid ] = calib;
+        }
 
-            if ( sql.prepare( "\
+        if ( sql.prepare( "\
 SELECT QuanSample.name, QuanSample.level, formula, mass, intensity, QuanAmount.amount \
 FROM QuanSample, QuanResponse, QuanAmount \
 WHERE sampleType = 1 \
 AND QuanResponse.idCmpd = :uuid \
 AND QuanSample.id = QuanResponse.idSample \
 AND QuanAmount.level = QuanSample.level AND QuanAmount.idCmpd = QuanResponse.idCmpd" ) ) {
-                sql.bind( 1 ) = uuid;
+            sql.bind( 1 ) = uuid;
                 
-                while( sql.step() == adfs::sqlite_row ) {
-                    int row = 0;
-                    std::string name = sql.get_column_value< std::string >( row++ );                    
-                    uint64_t level = sql.get_column_value< uint64_t >( row++ );
-                    std::string formula = sql.get_column_value< std::string >( row++ );
-                    double mass = sql.get_column_value< double >( row++ );
-                    (void)level;
-                    (void)mass;
-                    double intensity = sql.get_column_value< double >( row++ );
-                    double amount = sql.get_column_value< double >( row++ );
-                    data->xy.push_back( QPointF( intensity, amount ) );
-                    calib_data_[ uuid ] = data;
-                }
+            while( sql.step() == adfs::sqlite_row ) {
+                int row = 0;
+                std::string name = sql.get_column_value< std::string >( row++ );                    
+                uint64_t level = sql.get_column_value< uint64_t >( row++ );
+                std::string formula = sql.get_column_value< std::string >( row++ );
+                double mass = sql.get_column_value< double >( row++ );
+                (void)level;
+                (void)mass;
+                double intensity = sql.get_column_value< double >( row++ );
+                double amount = sql.get_column_value< double >( row++ );
+                data->xy.push_back( QPointF( intensity, amount ) );
+                calib_data_[ uuid ] = data;
             }
-            plot_calib_curve_yx( calibplot_.get(), *calib, *data );
+        }
+    }
+    return true;
+}
+
+void
+QuanResultWnd::handleCompoundSelected( const QModelIndex& index )
+{
+    boost::uuids::uuid uuid = cmpdWidget_->uuid( index.row() );
+    if ( loadCalibration( uuid ) ) {
+        if ( calib_curves_.find( uuid ) != calib_curves_.end() && calib_data_.find( uuid ) != calib_data_.end() ) {
+            plot_calib_curve_yx( calibplot_.get(), *calib_curves_[ uuid ], *calib_data_[ uuid ] );
+            uuid_plot_ = uuid;
+        }
+    }
+}
+
+void
+QuanResultWnd::handleResponseSelected( int respId )
+{
+    if ( auto conn = QuanDocument::instance()->connection() ) {
+        adfs::stmt sql( conn->db() );
+        if ( sql.prepare( "SELECT idCmpd, intensity, amount from QuanResponse WHERE id = ?" ) ) {
+
+            sql.bind( 1 ) = respId;
+            while ( sql.step() == adfs::sqlite_row ) {
+                int row = 0;
+                try {
+                    boost::uuids::uuid uuid = sql.get_column_value< boost::uuids::uuid >( row++ );
+                    double intensity = sql.get_column_value< double >( row++ );
+                    double amount = 0;
+                    if ( !sql.is_null_column( row ) )
+                        amount = sql.get_column_value< double >( row );
+                    ++row;
+
+                    if ( calib_curves_.find( uuid ) == calib_curves_.end() )
+                        loadCalibration( uuid );
+
+                    if ( calib_curves_.find( uuid ) != calib_curves_.end() && calib_data_.find( uuid ) != calib_data_.end() ) {
+                        if ( uuid_plot_ != uuid )
+                            plot_calib_curve_yx( calibplot_.get(), *calib_curves_[ uuid ], *calib_data_[ uuid ] );
+                        plot_response_marker_yx( calibplot_.get(), intensity, amount );
+                    }
+                }
+                catch ( std::bad_cast& ) {
+                    // amount can be null
+                }
+
+            }
         }
     }
 }
@@ -303,6 +351,27 @@ QuanResultWnd::plot_calib_curve_yx( adwplot::Dataplot* plot, const detail::calib
     }
     regression->setSamples( yx );
     regression->attach( plot );
+    
+    plot->replot();
+}
+
+void
+QuanResultWnd::plot_response_marker_yx( adwplot::Dataplot* plot, double intensity, double amount )
+{
+    markers_.clear();
+
+    auto marker = std::make_shared< QwtPlotMarker >();
+    markers_.push_back( marker );
+    marker->attach ( plot );
+    
+    marker->setValue( amount, intensity );
+    //marker->setLinePen( QColor( 0x0, 0x7f, 0, 0x80 ), 1.0, Qt::DashLine );
+    marker->setLinePen( Qt::red, 0.0, Qt::DashLine );
+
+    if ( adportable::compare<double>::approximatelyEqual( 0.0, amount ) )
+        marker->setLineStyle( QwtPlotMarker::HLine );
+    else
+        marker->setLineStyle( QwtPlotMarker::Cross );
 
     plot->replot();
 }

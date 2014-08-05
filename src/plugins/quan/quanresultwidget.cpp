@@ -33,6 +33,7 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QSpacerItem>
+#include <QStandardItemModel>
 
 using namespace quan;
 
@@ -107,7 +108,7 @@ QuanResultWidget::handleIndexChanged( int idx )
     if ( idx == 0 ) { // All
 
         execQuery("\
-SELECT QuanSample.name, sampleType, QuanSample.level, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+SELECT QuanResponse.id, QuanSample.name, sampleType, QuanSample.level, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
 , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound \
 WHERE QuanSample.id = QuanResponse.idSample \
@@ -118,7 +119,7 @@ ORDER BY QuanCompound.id, QuanSample.level");
     else if ( idx == 1 ) { // Unknown
 
         execQuery("\
-SELECT QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+SELECT QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
 , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound \
 WHERE QuanSample.id = QuanResponse.idSample \
@@ -130,7 +131,7 @@ ORDER BY QuanCompound.id");
     else if ( idx == 2 ) { // Standard
 
         execQuery("\
-SELECT QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
+SELECT QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
 , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
 WHERE QuanSample.id = QuanResponse.idSample \
@@ -143,7 +144,7 @@ ORDER BY QuanCompound.id, QuanSample.level");
     else if ( idx == 3 ) { // QC
 
         execQuery("\
-SELECT QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
 , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
 WHERE QuanSample.id = QuanResponse.idSample \
@@ -156,7 +157,7 @@ ORDER BY QuanCompound.id, QuanSample.level");
     else if ( idx == 4 ) { // Blank
 
         execQuery("\
-SELECT QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
 , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
 WHERE QuanSample.id = QuanResponse.idSample \
@@ -169,6 +170,11 @@ ORDER BY QuanCompound.id, QuanSample.level");
 }
 
 void
-QuanResultWidget::handleCurrentChanged( const QModelIndex& )
+QuanResultWidget::handleCurrentChanged( const QModelIndex& index )
 {
+    int column = table_->findColumn( "id" );
+    if ( column >= 0 ) {
+        int respId = table_->model().index( index.row(), column ).data().toInt();
+        emit onResponseSelected( respId );
+    }
 }
