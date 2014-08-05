@@ -66,5 +66,9 @@
       <File Id="u5303aplugin.pluginspec" Source="$(var.InMSCheminfo)/u5303aplugin.pluginspec" ProcessorArchitecture="x64" />
       <File Id="u5303aplugin.dll" Source="$(var.InMSCheminfo)/u5303aplugin.dll" ProcessorArchitecture="x64" />
     </Component>
+    <Component Id="Quan.dll" Guid="A3C85400-2817-4845-9F07-994633473B36" Win64="yes">
+      <File Id="Quan.pluginspec" Source="$(var.InMSCheminfo)/Quan.pluginspec" ProcessorArchitecture="x64" />
+      <File Id="Quan.dll" Source="$(var.InMSCheminfo)/Quan.dll" ProcessorArchitecture="x64" />
+    </Component>
   </ComponentGroup>
 </Include>
