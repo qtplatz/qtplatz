@@ -66,7 +66,7 @@ namespace adcontrols {
         double min_x() const;
         double max_x() const;
 
-        bool fit( int nTerm, WEIGHTING wType = WEIGHTING_NONE );
+        bool fit( int nTerm, bool forceOrigin = false, WEIGHTING wType = WEIGHTING_NONE );
         double chisqr() const;
         double estimate_y( double x ) const;
         const double * coefficients() const;

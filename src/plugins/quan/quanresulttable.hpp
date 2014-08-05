@@ -48,6 +48,9 @@ namespace quan {
 
         void setColumnHide( const std::string& );
         void clear();
+        int findColumn( const QString& );
+
+        inline QStandardItemModel& model() { return *model_; }
 
     private:
         std::unique_ptr< QStandardItemModel > model_;

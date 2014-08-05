@@ -123,7 +123,6 @@ QuanResultTable::prepare( const QuanQuery& q )
 void
 QuanResultTable::addRecord( const QuanQuery& q )
 {
-
     int row = model_->rowCount();
 
     if ( model_->insertRow( row ) ) {
@@ -152,4 +151,15 @@ void
 QuanResultTable::currentChanged( const QModelIndex& current, const QModelIndex& )
 {
     emit onCurrentChanged( current );
+}
+
+int
+QuanResultTable::findColumn( const QString& name )
+{
+    int nColumn = model_->columnCount();
+    for ( int col = 0; col < nColumn; ++col ) {
+        if ( model_->headerData( col, Qt::Horizontal, Qt::EditRole ).toString() == name )
+            return col;
+    }
+    return -1;
 }

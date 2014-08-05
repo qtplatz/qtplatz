@@ -59,3 +59,11 @@ QuanConnection::query()
     return 0;
 }
 
+adfs::sqlite&
+QuanConnection::db()
+{
+    if ( fs_ )
+        return fs_->db();
+    static adfs::sqlite dummy;
+    return dummy;
+}

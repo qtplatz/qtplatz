@@ -27,6 +27,8 @@
 
 #include <QWidget>
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace quan {
 
     class QuanResultTable;
@@ -38,6 +40,8 @@ namespace quan {
         QuanCmpdWidget( QWidget * parent = 0 );
         inline operator QuanResultTable * () { return table_; }
         inline QuanResultTable& table() { return *table_; }
+
+        boost::uuids::uuid uuid( int row );
 
     private:
         QuanResultTable * table_;

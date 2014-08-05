@@ -26,8 +26,17 @@
 #define QUANPLOTWND_HPP
 
 #include <QWidget>
+#include <boost/uuid/uuid.hpp>
+#include <map>
+#include <memory>
+
+namespace adwplot { class Dataplot; }
+class QwtPlotMarker;
+class QwtPlotCurve;
 
 namespace quan {
+
+    namespace detail { struct calib_curve; struct calib_data; }
 
     class QuanCmpdWidget;
     class QuanResultTable;
@@ -42,9 +51,17 @@ namespace quan {
     private:
         QuanCmpdWidget * cmpdWidget_;
         QuanResultWidget * respTable_;
-
+        std::shared_ptr< adwplot::Dataplot > calibplot_;
+        std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
+        std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
+        std::map< boost::uuids::uuid, std::shared_ptr< detail::calib_curve > > calib_curves_;
+        std::map< boost::uuids::uuid, std::shared_ptr< detail::calib_data > > calib_data_;
+        
         void handleConnectionChanged();
         void handleCompoundSelected( const QModelIndex& );
+
+        void plot_calib_curve_xy( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
+        void plot_calib_curve_yx( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
 
     signals:
 

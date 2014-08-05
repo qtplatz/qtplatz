@@ -480,11 +480,11 @@ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
 
         for ( int i = 0; i < c.levels(); ++i ) {
             if ( sql.prepare( 
-                     "INSERT INTO QuanAmount (idCompound, level, amount) SELECT QuanCompound.id, :level, :amount FROM QuanCompound WHERE uuid = :idCmpd" ) ) {
+                     "INSERT INTO QuanAmount (idCompound, idCmpd, level, amount) SELECT QuanCompound.id, :idCmpd, :level, :amount FROM QuanCompound WHERE uuid = :idCmpd" ) ) {
                 int row = 1;
+                sql.bind( row++ ) = c.uuid();          // QuanCompound.idCmpd
                 sql.bind( row++ ) = i + 1;             // :level (1-origin)
                 sql.bind( row++ ) = c.amounts()[ i ];  // :amount
-                sql.bind( row++ ) = c.uuid();          // QuanCompound.idCmpd
 
                 if ( sql.step() != adfs::sqlite_done ) {
                     ADTRACE() << "sql error";

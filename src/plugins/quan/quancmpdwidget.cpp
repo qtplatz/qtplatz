@@ -24,9 +24,15 @@
 
 #include "quancmpdwidget.hpp"
 #include "quanresulttable.hpp"
+#include <utils/styledbar.h>
 #include <QBoxLayout>
 #include <QLabel>
-#include <utils/styledbar.h>
+#include <QStandardItemModel>
+#include <QMessageBox>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
+
 
 using namespace quan;
 
@@ -53,4 +59,21 @@ QuanCmpdWidget::QuanCmpdWidget( QWidget * parent ) : QWidget( parent )
         topLayout->addWidget( toolBar );
     }
     topLayout->addWidget( table_ );
+}
+
+boost::uuids::uuid
+QuanCmpdWidget::uuid( int row )
+{
+    int col = table_->findColumn( "uuid" );
+    if ( col >= 0 ) {
+        QStandardItemModel& model = table_->model();
+        std::string data = model.index( row, col ).data().toString().toStdString();
+        try {
+            return boost::lexical_cast<boost::uuids::uuid>(data);
+        }
+        catch ( boost::bad_lexical_cast& ) {
+            QMessageBox::warning( this, "QuanCmpdWidget", QString( "Can't convert to uuid from '%1'" ).arg( data.c_str() ) );
+        }
+    }
+    return boost::uuids::uuid(); // null 
 }

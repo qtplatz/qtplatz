@@ -25,6 +25,7 @@
 #include "quanprocessor.hpp"
 #include "quandatawriter.hpp"
 #include <adcontrols/quancalibrations.hpp>
+#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -141,8 +142,8 @@ QuanProcessor::doCalibration( adfs::sqlite& db )
 
     int nLevels = qM->levels(); // must be 1 or larger
     // int nReplicates = qM->replicates(); // must be 1 or larger
-    // adcontrols::QuanMethod::CalibEq eq = qM->equation();
-    // int order = qM->polynomialOrder(); // if CalibEq >= isCalibLinear, otherwise taking an average
+    adcontrols::QuanMethod::CalibEq eq = qM->equation();
+    int order = qM->polynomialOrder(); // if CalibEq >= isCalibLinear, otherwise taking an average
 
 
     std::map< uint64_t, std::set< int > > levels;
@@ -195,9 +196,27 @@ ORDER BY QuanCompound.id" ) ) {
             }
         }
     }
-
+    
     for ( auto& map : calibrants ) {
-        map.second.fit( nLevels );
+
+        switch( eq ) {
+        case adcontrols::QuanMethod::idCalibOnePoint:
+            do {
+                map.second.fit( 1 ); // single point, average 
+            } while (0);
+        case adcontrols::QuanMethod::idCalibLinear_origin:
+            do {
+                map.second.fit( 2, true ); // force zero for 1'st term
+            } while(0);
+            break;
+        case adcontrols::QuanMethod::idCalibLinear:
+            map.second.fit( 2 );
+            break;
+        case adcontrols::QuanMethod::idCalibPolynomials:
+            map.second.fit( std::min( order + 1, nLevels ) );
+            break;
+        }
+
         results << map.second;
 
         if ( sql.prepare( "\
@@ -256,7 +275,7 @@ AND QuanResponse.idCmpd = QuanCalib.idCmpd" ) ) {
             int row = 0;
             uint64_t idResp = sql.get_column_value< uint64_t >( row++ ); // QuanResponse.id
             unknown& u = unknowns[ idResp ];
-
+            
             u.idSamp = sql.get_column_value< uint64_t >( row++ ); // QuanSample.id
             u.formula = sql.get_column_value< std::string >( row++ ); // 
             u.intensity = sql.get_column_value< double >( row++ ); // QuanResponse.id

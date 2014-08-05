@@ -43,9 +43,10 @@ namespace quan {
     public:
         QuanConnection();
         ~QuanConnection();
-
+        
         bool connect( const std::wstring& database );
         std::shared_ptr< QuanQuery > query();
+        adfs::sqlite& db();
 
     private:
         std::wstring filename_;

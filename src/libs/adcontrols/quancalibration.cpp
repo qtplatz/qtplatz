@@ -27,6 +27,8 @@
 #include <adportable/date_string.hpp>
 #include <adportable/polfit.hpp>
 #include <chrono>
+#include <algorithm>
+#include <numeric>
 
 using namespace adcontrols;
 
@@ -122,10 +124,20 @@ QuanCalibration::max_x() const
 }
 
 bool
-QuanCalibration::fit( int nTerm, WEIGHTING wType )
+QuanCalibration::fit( int nTerm, bool forceOrigin, WEIGHTING wType )
 {
-    return 
-        adportable::polfit::fit( x_.data(), y_.data(), x_.size(), nTerm, coefficients_, chisqr_, adportable::polfit::WeightingType( wType ) );
+    coefficients_.clear();
+    if ( nTerm <= 1 ) {
+        double sum_x = std::accumulate( x_.begin(), x_.end(), 0.0, [](double a, double b) { return a + b; } );
+        double sum_y = std::accumulate( y_.begin(), y_.end(), 0.0, [](double a, double b) { return a + b; } );
+        coefficients_.push_back( sum_y / sum_x );
+    }
+    if ( adportable::polfit::fit( x_.data(), y_.data(), x_.size(), nTerm, coefficients_, chisqr_, adportable::polfit::WeightingType( wType ) ) ) {
+        if ( forceOrigin )
+            coefficients_[ 0 ] = 0;
+        return true;
+    }
+    return false;
 }
 
 double
