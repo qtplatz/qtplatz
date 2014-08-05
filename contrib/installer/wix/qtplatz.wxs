@@ -19,6 +19,7 @@
             <ComponentGroupRef Id="QtPlatformsComponents" />
             <ComponentGroupRef Id="QtCreatorComponents" />
             <ComponentGroupRef Id="QtPlatzComponents" />
+            <ComponentGroupRef Id="QtPlatzTranslations" />
             <ComponentGroupRef Id="SPCFileComponents" />
             <ComponentGroupRef Id="SPCFilePluginComponents" />
             <ComponentGroupRef Id="XSDComponents" />
@@ -38,6 +39,11 @@
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="ProgramFiles64Folder">
                 <Directory Id="INSTALLFOLDER" Name="QtPlatz">
+                    <Directory Id="SHARE" Name="share">
+		      <Directory Id="SHARE_QTPLATZ" Name="qtplatz">
+			<Directory Id="TRANSLATIONS" Name="translations" />			
+		      </Directory>
+		    </Directory>
                     <Directory Id="BIN" Name="bin" />
                     <Directory Id="LIB" Name="lib">
                         <Directory Id="LIB_QTPLATZ" Name="qtplatz">
@@ -87,6 +93,7 @@
         <?include qt_platforms_components.wxi ?>
         <?include qt_creator_components.wxi ?>
         <?include qtplatz_components.wxi ?>
+        <?include qtplatz_translations.wxi ?>
         <ComponentGroup Id="XSDComponents" Directory="PLUGINS_XSD">
             <Component Id="config.xsd" Guid="830AB06B-0540-4A65-8B38-D1A7365F0918" Win64="yes">
                 <File Id="config.xsd" Source="$(var.TOP)/src/plugins/xsd/config.xsd" ProcessorArchitecture="x64" />

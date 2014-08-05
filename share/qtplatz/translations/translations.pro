@@ -1,6 +1,6 @@
 include(../../../qtplatz.pri)
 
-LANGUAGES = cs de fr ja pl ru sl zh_CN zh_TW
+LANGUAGES = de fr ja
 # *don't* re-enable these without a prior rework
 BAD_LANGUAGES = hu
 

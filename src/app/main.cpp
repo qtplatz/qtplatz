@@ -377,6 +377,7 @@ int main(int argc, char **argv)
     foreach (QString locale, uiLanguages) {
 #if (QT_VERSION >= 0x050000)
         locale = QLocale(locale).name();
+        locale = "ja_JP";
 #else
         locale.replace(QLatin1Char('-'), QLatin1Char('_')); // work around QTBUG-25973
 #endif

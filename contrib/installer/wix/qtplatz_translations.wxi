@@ -1,0 +1,31 @@
+<Include>
+  <ComponentGroup Id="QtPlatzTranslations" Directory="TRANSLATIONS">
+    <Component Id="qtplatz_cs.qm" Guid="F9642441-6844-4A69-9DBD-0033F39B5152" Win64="yes">
+      <File Id="qtplatz_cs.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_cs.qm" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="qtplatz_de.qm" Guid="30E91373-FF96-4227-AC91-215A9572C85A" Win64="yes">
+      <File Id="qtplatz_de.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_de.qm" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="qtplatz_fr.qm" Guid="40563947-C1B7-4A0B-A5B4-875DC72B1AD1" Win64="yes">
+      <File Id="qtplatz_cs.fr" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_fr.qm" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="qtplatz_ja.qm" Guid="2D16645D-CAA0-4D24-BCAD-FA47757872E7" Win64="yes">
+      <File Id="qtplatz_ja.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_ja.qm" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="qtplatz_pl.qm" Guid="64C93723-0938-42EA-B8A3-2D92CCE38318" Win64="yes">
+      <File Id="qtplatz_pl.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_pl.qm" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="qtplatz_ru.qm" Guid="A9C20544-EAFC-44A1-BDC4-F1734740C235" Win64="yes">
+      <File Id="qtplatz_ru.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_ru.qm" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="qtplatz_sl.qm" Guid="C904743F-ECBA-48C5-94D4-D6AC85237D51" Win64="yes">
+      <File Id="qtplatz_sl.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_sl.qm" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="qtplatz_zh_CN.qm" Guid="CF2AE7D6-D976-439B-8FBA-055DA7845F36" Win64="yes">
+      <File Id="qtplatz_zh_CN.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_zh_CN.qm" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+    <Component Id="qtplatz_zh_TW.qm" Guid="21D3895C-4E99-475D-BA55-06791E5D9D06" Win64="yes">
+      <File Id="qtplatz_zh_TW.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_zh_TW.qm" ProcessorArchitecture="x64" KeyPath="yes" />
+    </Component>
+  </ComponentGroup>
+</Include>
