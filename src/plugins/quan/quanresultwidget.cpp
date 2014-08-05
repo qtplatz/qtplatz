@@ -27,9 +27,12 @@
 #include "quandocument.hpp"
 #include "quanconnection.hpp"
 #include "quanquery.hpp"
+#include <qtwrapper/waitcursor.hpp>
 #include <utils/styledbar.h>
 #include <QBoxLayout>
 #include <QLabel>
+#include <QComboBox>
+#include <QSpacerItem>
 
 using namespace quan;
 
@@ -43,26 +46,129 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) :  QWidget(parent)
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-        auto label = new QLabel;
-        label->setText( "Results" );
-        toolBarLayout->addWidget( label );
 
-        topLayout->addWidget( toolBar );
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+
+        if ( auto label = new QLabel ) {
+            label->setText( "Results" );
+            toolBarLayout->addWidget( label );
+        }
+
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+
+        if ( auto pCombo = new QComboBox ) {
+            pCombo->addItems( QStringList() << "All" << "Unknown" << "Standards" << "QC" << "Blank" );
+            toolBarLayout->addWidget( pCombo );
+
+            toolBarLayout->addWidget( new Utils::StyledSeparator );            
+            toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
+
+            connect( pCombo, static_cast< void(QComboBox::*)(int) >(&QComboBox::currentIndexChanged), this, &QuanResultWidget::handleIndexChanged );
+        }
+        
+        topLayout->addWidget( toolBar ); // <-------- add to toolbar
     }
     if ( table_ = new QuanResultTable )
         topLayout->addWidget( table_ );
+
+    connect( table_, &QuanResultTable::onCurrentChanged, this, &QuanResultWidget::handleCurrentChanged );
 }
 
 void
 QuanResultWidget::setConnection( QuanConnection * connection )
 {
-    if ( auto query = connection->query() ) {
+    connection_ = connection->shared_from_this();
+    handleIndexChanged( 0 );
+}
 
-        if ( query->prepare( std::wstring( L"SELECT * from QuanResponse" ) ) ) {
-            table_->prepare( *query );
-            while ( query->step() == adfs::sqlite_row ) {
-                table_->addRecord( *query );
+void
+QuanResultWidget::execQuery( const std::string& sqlString )
+{
+    qtwrapper::waitCursor wait;
+
+    if ( auto conn = connection_.lock() ) {
+        if ( auto query = conn->query() ) {
+
+            if ( query->prepare( sqlString ) ) {
+
+                table_->prepare( *query );
+                while ( query->step() == adfs::sqlite_row ) {
+                    table_->addRecord( *query );
+                }                
             }
+
         }
     }
+}
+
+void
+QuanResultWidget::handleIndexChanged( int idx )
+{
+    if ( idx == 0 ) { // All
+
+        execQuery("\
+SELECT QuanSample.name, sampleType, QuanSample.level, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
+FROM QuanSample, QuanResponse, QuanCompound \
+WHERE QuanSample.id = QuanResponse.idSample \
+AND QuanResponse.idCmpd = QuanCompound.uuid \
+ORDER BY QuanCompound.id, QuanSample.level");
+        
+    }
+    else if ( idx == 1 ) { // Unknown
+
+        execQuery("\
+SELECT QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
+FROM QuanSample, QuanResponse, QuanCompound \
+WHERE QuanSample.id = QuanResponse.idSample \
+AND QuanResponse.idCmpd = QuanCompound.uuid \
+AND sampleType = 0 \
+ORDER BY QuanCompound.id");
+
+    }
+    else if ( idx == 2 ) { // Standard
+
+        execQuery("\
+SELECT QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
+, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
+FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
+WHERE QuanSample.id = QuanResponse.idSample \
+AND QuanResponse.idCmpd = QuanCompound.uuid \
+AND sampleType = 1 \
+AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level \
+ORDER BY QuanCompound.id, QuanSample.level");
+
+    }
+    else if ( idx == 3 ) { // QC
+
+        execQuery("\
+SELECT QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
+FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
+WHERE QuanSample.id = QuanResponse.idSample \
+AND QuanResponse.idCmpd = QuanCompound.uuid \
+AND sampleType = 2 \
+AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level \
+ORDER BY QuanCompound.id, QuanSample.level");
+
+    }
+    else if ( idx == 4 ) { // Blank
+
+        execQuery("\
+SELECT QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
+FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
+WHERE QuanSample.id = QuanResponse.idSample \
+AND QuanResponse.idCmpd = QuanCompound.uuid \
+AND sampleType = 3 \
+AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level \
+ORDER BY QuanCompound.id, QuanSample.level");
+
+    }
+}
+
+void
+QuanResultWidget::handleCurrentChanged( const QModelIndex& )
+{
 }

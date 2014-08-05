@@ -50,7 +50,7 @@
 using namespace quan;
 
 QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
-                                              , cmpdTable_( new QuanResultTable )
+                                              , cmpdWidget_( new QuanCmpdWidget )
                                               , respTable_( new QuanResultWidget )
 {
     Core::MiniSplitter * splitter = new Core::MiniSplitter;// compound-table | plots
@@ -72,7 +72,7 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
             splitter2->addWidget( new QTextEdit );
         }
     }
-    splitter->addWidget( new QuanCmpdWidget( cmpdTable_ ) );
+    splitter->addWidget( cmpdWidget_ );
     splitter->setStretchFactor( 0, 5 );
     splitter->setStretchFactor( 1, 1 );
     
@@ -82,7 +82,7 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     layout->addWidget( splitter );
 
     connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanResultWnd::handleConnectionChanged );
-
+    connect( &cmpdWidget_->table(), &QuanResultTable::onCurrentChanged, this, &QuanResultWnd::handleCompoundSelected );
 }
 
 void
@@ -93,13 +93,19 @@ QuanResultWnd::handleConnectionChanged()
 
         if ( auto query = connection->query() ) {
             if ( query->prepare( std::wstring ( L"SELECT uuid, formula, description FROM QuanCompound" ) ) ) {
-                cmpdTable_->setColumnHide( "uuid" );
-                cmpdTable_->prepare( *query );
+                cmpdWidget_->table().setColumnHide( "uuid" );
+                cmpdWidget_->table().prepare( *query );
                 while ( query->step() == adfs::sqlite_row ) {
-                    cmpdTable_->addRecord( *query );
+                    cmpdWidget_->table().addRecord( *query );
                 }
             }
         }
 
     }
+}
+
+void
+QuanResultWnd::handleCompoundSelected( const QModelIndex& )
+{
+    
 }

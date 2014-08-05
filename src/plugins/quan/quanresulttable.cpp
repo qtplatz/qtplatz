@@ -127,8 +127,10 @@ QuanResultTable::addRecord( const QuanQuery& q )
     int row = model_->rowCount();
 
     if ( model_->insertRow( row ) ) {
-        for ( int col = 0; col < int( q.column_count() ); ++col )
+        for ( int col = 0; col < int( q.column_count() ); ++col ) {
             model_->setData( model_->index( row, col ), q.column_value( col ) );
+            model_->itemFromIndex( model_->index( row, col ) )->setEditable( false );
+        }
     }
     resizeColumnsToContents();
     resizeRowsToContents();
@@ -144,4 +146,10 @@ void
 QuanResultTable::clear()
 {
     hideColumns_.clear();
+}
+
+void
+QuanResultTable::currentChanged( const QModelIndex& current, const QModelIndex& )
+{
+    emit onCurrentChanged( current );
 }

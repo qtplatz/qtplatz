@@ -53,7 +53,10 @@ namespace quan {
         std::unique_ptr< QStandardItemModel > model_;
         std::set< std::string > hideColumns_;
 
+        void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+
     signals:
+        void onCurrentChanged( const QModelIndex& );
 
     public slots:
 

@@ -29,6 +29,7 @@
 
 namespace quan {
 
+    class QuanCmpdWidget;
     class QuanResultTable;
     class QuanResultWidget;
 
@@ -39,10 +40,11 @@ namespace quan {
         explicit QuanResultWnd(QWidget *parent = 0);
 
     private:
-        QuanResultTable * cmpdTable_;
+        QuanCmpdWidget * cmpdWidget_;
         QuanResultWidget * respTable_;
 
         void handleConnectionChanged();
+        void handleCompoundSelected( const QModelIndex& );
 
     signals:
 

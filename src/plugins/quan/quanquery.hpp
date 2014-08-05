@@ -37,7 +37,9 @@ namespace quan {
         QuanQuery( adfs::sqlite& );
         QuanQuery( const QuanQuery& );
 
-        bool prepare( std::wstring& sql );
+        bool prepare( const std::string& sql );
+        bool prepare( const std::wstring& sql );
+
         adfs::sqlite_state step();
 
         size_t column_count() const;

@@ -26,6 +26,8 @@
 #define QUANRESULTWIDGET_HPP
 
 #include <QWidget>
+#include <memory>
+#include <string>
 
 namespace quan {
 
@@ -41,6 +43,13 @@ namespace quan {
 
     private:
         QuanResultTable * table_;
+        std::weak_ptr< QuanConnection > connection_;
+
+        void execQuery( const std::string& );
+
+        void handleIndexChanged( int );
+        void handleCurrentChanged( const QModelIndex& );
+
     signals:
 
     public slots:

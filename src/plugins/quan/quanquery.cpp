@@ -40,7 +40,14 @@ QuanQuery::QuanQuery( const QuanQuery& t ) : sql_( t.sql_ )
 }
 
 bool
-QuanQuery::prepare( std::wstring& sql )
+QuanQuery::prepare( const std::wstring& sql )
+{
+    sql_.reset();
+    return sql_.prepare( sql );
+}
+
+bool
+QuanQuery::prepare( const std::string& sql )
 {
     sql_.reset();
     return sql_.prepare( sql );

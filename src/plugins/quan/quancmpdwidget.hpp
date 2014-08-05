@@ -34,7 +34,13 @@ namespace quan {
     class QuanCmpdWidget : public QWidget {
         Q_OBJECT
     public:
-        QuanCmpdWidget( QuanResultTable *, QWidget * parent = 0 );
+        ~QuanCmpdWidget();
+        QuanCmpdWidget( QWidget * parent = 0 );
+        inline operator QuanResultTable * () { return table_; }
+        inline QuanResultTable& table() { return *table_; }
+
+    private:
+        QuanResultTable * table_;
     };
 
 }

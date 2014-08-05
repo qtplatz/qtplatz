@@ -30,7 +30,13 @@
 
 using namespace quan;
 
-QuanCmpdWidget::QuanCmpdWidget( QuanResultTable * table, QWidget * parent ) : QWidget( parent )
+QuanCmpdWidget::~QuanCmpdWidget()
+{
+    delete table_;
+}
+
+QuanCmpdWidget::QuanCmpdWidget( QWidget * parent ) : QWidget( parent )
+                                                   , table_( new QuanResultTable )
 {
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
@@ -46,5 +52,5 @@ QuanCmpdWidget::QuanCmpdWidget( QuanResultTable * table, QWidget * parent ) : QW
 
         topLayout->addWidget( toolBar );
     }
-    topLayout->addWidget( table );
+    topLayout->addWidget( table_ );
 }
