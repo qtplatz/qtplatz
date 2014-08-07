@@ -238,44 +238,44 @@ MainWindow::createStyledBarTop()
         if ( am ) {
             Core::Context globalcontext( (Core::Id( Core::Constants::C_GLOBAL )) );
 
-            if ( auto p = selPages_[ idSelMSProcess ] = new QAction( "MS Process", this ) ) {
+            if ( auto p = selPages_[ idSelMSProcess ] = new QAction( tr("MS Process"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSProcess ); } );
                 am->registerAction( p, "dataproc.selMSProcess", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
-            if ( auto p = selPages_[ idSelElementalComp] = new QAction( "Elemental Comp", this ) ) {
+            if ( auto p = selPages_[ idSelElementalComp] = new QAction( tr("Elemental Comp"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelElementalComp ); } );
                 am->registerAction( p, "dataproc.selElementalComp", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
-            if ( auto p = selPages_[ idSelMSCalibration ] = new QAction( "MS Calibration", this ) ) {
+            if ( auto p = selPages_[ idSelMSCalibration ] = new QAction( tr("MS Calibration"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibration ); } );
                 am->registerAction( p, "dataproc.selMSCalibration", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
-            if ( auto p = selPages_[ idSelMSCalibSpectra ] = new QAction( "MS Calib. Spectra", this ) ) {
+            if ( auto p = selPages_[ idSelMSCalibSpectra ] = new QAction( tr("MS Calib. Spectra"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibSpectra ); } );
                 am->registerAction( p, "dataproc.selMSCalibSpectra", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
-            if ( auto p = selPages_[ idSelChromatogram ] = new QAction( "Chromatogram", this ) ) {
+            if ( auto p = selPages_[ idSelChromatogram ] = new QAction( tr("Chromatogram"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelChromatogram ); } );
                 am->registerAction( p, "dataproc.selChromatogram", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
-            if ( auto p = selPages_[ idSelMSPeaks ] = new QAction( "TOF Plots", this ) ) {
+            if ( auto p = selPages_[ idSelMSPeaks ] = new QAction( tr("TOF Plots"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSPeaks ); } );
                 am->registerAction( p, "dataproc.selTOFPlots", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
 
-            if ( auto p = selPages_[ idSelSpectrogram ] = new QAction( "Spectrogram", this ) ) {
+            if ( auto p = selPages_[ idSelSpectrogram ] = new QAction( tr("Spectrogram"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
                 am->registerAction( p, "dataproc.selSpectrogram", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
 
-            if ( auto p = selPages_[ idSelSpectra ] = new QAction( "Spectra", this ) ) {
+            if ( auto p = selPages_[ idSelSpectra ] = new QAction( tr("Spectra"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectra ); } );
                 am->registerAction( p, "dataproc.selSpectra", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
@@ -285,8 +285,8 @@ MainWindow::createStyledBarTop()
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
         
         axisChoice_ = new QComboBox;
-        axisChoice_->addItem( "m/z" );
-        axisChoice_->addItem( "time" );
+        axisChoice_->addItem( tr("m/z") );
+        axisChoice_->addItem( tr("time") );
         toolBarLayout->addWidget( new QLabel( tr("Axis:") ) );
         toolBarLayout->addWidget( axisChoice_ );
         
@@ -347,10 +347,10 @@ MainWindow::createStyledBarMiddle()
             toolBarLayout->addWidget( toolButton( am->command( Constants::METHOD_APPLY )->action() ) );
 
             QComboBox * features = new QComboBox;
-            features->addItem( "Centroid" );
-            features->addItem( "Targeting" ); // Centroid + find targets
-            features->addItem( "Calibration" );
-            features->addItem( "Find peaks" );
+            features->addItem( tr("Centroid") );
+            features->addItem( tr("Targeting") ); // Centroid + find targets
+            features->addItem( tr("MS Calibration") );
+            features->addItem( tr("Find peaks") );
             toolBarLayout->addWidget( features );
 
             connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MainWindow::handleFeatureSelected ); // (int) ) );
@@ -399,28 +399,28 @@ MainWindow::createContents( Core::IMode * mode )
         connect( stack_, &QStackedWidget::currentChanged, this, &MainWindow::currentPageChanged );
 
         wnd.push_back( new MSProcessingWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Process" ), wnd.back() ) );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Process") ), wnd.back() ) );
 
         wnd.push_back( new ElementalCompWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( "Elemental Comp." ), wnd.back() ) );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Elemental Comp.") ), wnd.back() ) );
 
         wnd.push_back( new MSCalibrationWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Calibration" ), wnd.back() ) );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Calibration") ), wnd.back() ) );
 
         wnd.push_back( new MSCalibSpectraWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Calibration(2)" ), wnd.back() ) );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Calibration(2)") ), wnd.back() ) );
 
         wnd.push_back( new ChromatogramWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( "Chromatogram" ), wnd.back() ) );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Chromatogram") ), wnd.back() ) );
 
         wnd.push_back( new MSPeaksWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( "TOF Peaks" ), wnd.back() ) );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("TOF Peaks") ), wnd.back() ) );
 
         wnd.push_back( new SpectrogramWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( "Spectrogram" ), wnd.back() ) );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Spectrogram") ), wnd.back() ) );
 
         wnd.push_back( new MSSpectraWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( "Spectra" ), wnd.back() ) );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Spectra") ), wnd.back() ) );
     }
     if ( auto pSrc = stack_->widget( idSelMSProcess ) ) {
         if ( auto pDst = stack_->widget( idSelSpectra ) )
@@ -521,20 +521,20 @@ MainWindow::createDockWidgets()
     using adportable::Configuration;
 
     static const struct { 
-        const char * title;
+        const QString title;
         const char * wiid;
         const char * pageName;
         std::function<QWidget *()> factory;
     } widgets [] = { 
-        { "Centroid",         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
-        , { "MS Peaks",       "adwidgets::MSPeakTable",           "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
-        , { "MS Calibration", "adwidgets::MSCalibrateWidget",     "MSCalibrateWidget",   [] () { return new adwidgets::MSCalibrateWidget; } }
-        , { "MS Chromatogr.", "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSChromatogramWidget", 0, 0 ); } }
-        , { "Targeting",      "adwidgets::TargetingWidget",       "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
-        , { "Peptide",        "adwidgets::PeptideWidget",         "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
-        , { "Peak Find",      "qtwidgets::PeakMethodForm",        "PeakFindMethod",  [](){ return adplugin::widget_factory::create("qtwidgets::PeakMethodForm", 0, 0 ); } }
-        , { "Data property",  "dataproc::MSPropertyForm",         "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
-        , { "TOF Peaks",      "qtwidgets2::MSPeakView",           "TOFPeaks",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSPeakView", 0, 0 ); } }
+        { tr("Centroid"),         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
+        , { tr("MS Peaks"),       "adwidgets::MSPeakTable", "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
+        , { tr("MS Calibration"), "adwidgets::MSCalibrateWidget",     "MSCalibrateWidget",   [] () { return new adwidgets::MSCalibrateWidget; } }
+        , { tr("MS Chromatogr."), "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSChromatogramWidget", 0, 0 ); } }
+        , { tr("Targeting"),      "adwidgets::TargetingWidget",       "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
+        , { tr("Peptide"),        "adwidgets::PeptideWidget",         "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
+        , { tr("Peak Find"),      "qtwidgets::PeakMethodForm",        "PeakFindMethod",  [](){ return adplugin::widget_factory::create("qtwidgets::PeakMethodForm", 0, 0 ); } }
+        , { tr("Data property"),  "dataproc::MSPropertyForm",         "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
+        , { tr("TOF Peaks"),      "qtwidgets2::MSPeakView",           "TOFPeaks",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSPeakView", 0, 0 ); } }
     };
     
     for ( auto& widget: widgets ) {
@@ -744,7 +744,7 @@ MainWindow::handlePeptideTarget( const QVector<QPair<QString, QString> >& peptid
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
         processor->findPeptide( digested );
     } else {
-		QMessageBox::information( 0, "Dataproc", "No data exist for peptide targeting" );
+		QMessageBox::information( 0, "Dataproc", tr("No data exist for peptide targeting") );
     }
 }
 
