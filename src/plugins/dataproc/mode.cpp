@@ -25,10 +25,10 @@
 #include "mode.hpp"
 #include "dataprocconstants.hpp"
 #include <coreplugin/coreconstants.h>
-// #include <coreplugin/editormanager/editormanager.h>
-// #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/editormanager/ieditor.h>
 // #include <coreplugin/id.h>
-// #include <coreplugin/modemanager.h>
+#include <coreplugin/modemanager.h>
 
 using namespace dataproc;
 
@@ -41,6 +41,17 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
 
     setId( Constants::C_DATAPROCESSOR );
     setContextHelpId( QLatin1String( "Qt Creator Manual " ) );
-    setContext( Core::Context( Constants::C_DATAPROCESSOR ) );
+    setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::C_EDIT_MODE ) );
+
+    connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
+
+}
+
+void
+Mode::grabEditorManager(Core::IMode *mode)
+{
+    if (mode != this)
+        return;
+    Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
 }
 

@@ -29,6 +29,8 @@
 #include <coreplugin/editormanager/ieditor.h>
 #include <memory>
 
+class QEveng;
+
 namespace Core { class IEditorFactory; }
 
 namespace dataproc {
@@ -65,6 +67,8 @@ namespace dataproc {
         Core::IEditorFactory * factory_;
         Core::Context context_;
         QString displayName_;
+
+        bool eventFilter( QObject * object, QEvent * event );
     };
 
 }

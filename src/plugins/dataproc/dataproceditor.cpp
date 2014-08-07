@@ -31,6 +31,7 @@
 #include "msprocessingwnd.hpp"
 #include "sessionmanager.hpp"
 #include <coreplugin/id.h>
+#include <coreplugin/modemanager.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/coreconstants.h>
@@ -41,8 +42,9 @@ using namespace dataproc;
 
 DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor( 0 )
                                                                  , factory_(factory)
-                                                                 , widget_( new QTextEdit )
+                                                                 , widget_( new QWidget )
 {
+    widget_->installEventFilter( this );
     setWidget( widget_ );
     context_.add( Constants::C_DATAPROCESSOR );
 }
@@ -62,7 +64,6 @@ DataprocEditor::setDataprocessor( Dataprocessor * processor )
 bool
 DataprocEditor::portfolio_create( const QString& filename )
 {
-    // processor_ = std::make_shared< Dataprocessor >();
     if ( processor_ && processor_->create( filename ) ) {
         SessionManager::instance()->addDataprocessor( processor_, this );
         return true;
@@ -75,7 +76,6 @@ DataprocEditor::open( QString*, const QString &filename, const QString& )
 {
 	qtwrapper::waitCursor wait;
 
-    // processor_ = std::make_shared< Dataprocessor >();
     if ( processor_ && processor_->open( filename ) ) {
         SessionManager::instance()->addDataprocessor( processor_, this );
 
@@ -122,4 +122,13 @@ DataprocEditor::context() const
     return context_;
 }
 
-
+bool
+DataprocEditor::eventFilter( QObject * object, QEvent * event )
+{
+    if ( object == widget_ ) {
+        if ( event->type() == QEvent::ShowToParent ) {
+            Core::ModeManager::activateMode( Core::Id( Constants::C_DATAPROCESSOR ) );
+        }
+    }
+    return false;
+}
