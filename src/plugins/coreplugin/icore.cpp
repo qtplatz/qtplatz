@@ -399,7 +399,7 @@ QString ICore::userInterfaceLanguage()
 QString ICore::resourcePath()
 {
     const QString sharePath = QLatin1String(Utils::HostOsInfo::isMacHost()
-                                            ? "/../Resources" : "/../share/qtcreator");
+                                            ? "/../Resources" : "/../share/qtplatz");  // overrided by toshi, for qtplatz (7/8/14)
     return QDir::cleanPath(QCoreApplication::applicationDirPath() + sharePath);
 }
 

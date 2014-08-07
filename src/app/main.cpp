@@ -282,7 +282,7 @@ static inline QSettings *userSettings()
 #ifdef Q_OS_MAC
 #  define SHARE_PATH "/../Resources"
 #else
-#  define SHARE_PATH "/../share/qtcreator"
+#  define SHARE_PATH "/../share/qtplatz"
 #endif
 
 int main(int argc, char **argv)
