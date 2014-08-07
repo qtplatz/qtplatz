@@ -13,6 +13,7 @@ SOURCES += dataprocplugin.cpp \
            mode.cpp \
            mainwindow.cpp \
            document.cpp \
+           navigationdelegate.cpp \
            navigationwidgetfactory.cpp \
            navigationwidget.cpp \
            dataprocessor.hpp \
@@ -25,7 +26,6 @@ SOURCES += dataprocplugin.cpp \
            dataprocessor.cpp \
            dataprocessorfactory.cpp \
            dataprochandler.cpp \
-           dataprocplugin.cpp \
            elementalcompwnd.cpp \
            isequenceimpl.cpp \
            isnapshothandlerimpl.cpp \
@@ -33,9 +33,6 @@ SOURCES += dataprocplugin.cpp \
            mscalibspectrawnd.cpp \
            msprocessingwnd.cpp \
            msspectrawnd.cpp \
-           navigationdelegate.cpp \
-           navigationwidget.cpp \
-           navigationwidgetfactory.cpp \
            sessionmanager.cpp \
            editorfactory.cpp \
            mspropertyform.cpp \
@@ -44,8 +41,7 @@ SOURCES += dataprocplugin.cpp \
            filepropertywidget.cpp \
            mspeakswnd.cpp \
            spectrogramwnd.cpp \
-           ipeptidehandlerimpl.cpp \
-           document.cpp
+           ipeptidehandlerimpl.cpp
 
 HEADERS += dataproc_global.hpp \
            mimetypehelper.hpp \
@@ -89,8 +85,7 @@ HEADERS += dataproc_global.hpp \
            filepropertywidget.hpp \
            mspeakswnd.hpp \
            spectrogramwnd.hpp \
-           ipeptidehandlerimpl.hpp \
-           document.hpp
+           ipeptidehandlerimpl.hpp
 
 LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget(adwplot) \
