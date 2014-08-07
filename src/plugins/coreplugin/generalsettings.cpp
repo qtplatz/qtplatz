@@ -85,7 +85,7 @@ void GeneralSettings::fillLanguageBox() const
         m_page->languageBox->setCurrentIndex(m_page->languageBox->count() - 1);
 
     const QString creatorTrPath = ICore::resourcePath() + QLatin1String("/translations");
-    const QStringList languageFiles = QDir(creatorTrPath).entryList(QStringList(QLatin1String("qtcreator*.qm")));
+    const QStringList languageFiles = QDir(creatorTrPath).entryList(QStringList(QLatin1String("qtplatz*.qm")));
 
     foreach (const QString &languageFile, languageFiles) {
         int start = languageFile.indexOf(QLatin1Char('_'))+1;
@@ -272,7 +272,7 @@ void GeneralSettings::setLanguage(const QString &locale)
     QSettings *settings = ICore::settings();
     if (settings->value(QLatin1String("General/OverrideLanguage")).toString() != locale)
         QMessageBox::information(ICore::mainWindow(), tr("Restart required"),
-                                 tr("The language change will take effect after a restart of Qt Creator."));
+                                 tr("The language change will take effect after a restart of QtPlatz."));
 
     if (locale.isEmpty())
         settings->remove(QLatin1String("General/OverrideLanguage"));

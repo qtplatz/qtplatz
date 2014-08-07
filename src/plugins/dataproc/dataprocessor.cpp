@@ -135,7 +135,7 @@ void
 Dataprocessor::setDisplayName( const QString& fullpath )
 {
     QFontMetrics fm( QApplication::fontMetrics() );
-    IDocument::setDisplayName( fm.elidedText( fullpath, Qt::ElideLeft, 100 ) );
+    IDocument::setDisplayName( fm.elidedText( fullpath, Qt::ElideLeft, 200 ) );
 }
 
 void

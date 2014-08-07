@@ -43,7 +43,7 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     setContextHelpId( QLatin1String( "Qt Creator Manual " ) );
     setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::C_EDIT_MODE ) );
 
-    connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
+    //connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
 
 }
 

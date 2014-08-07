@@ -221,16 +221,16 @@ CompoundsTable::onInitialUpdate()
     // horizontalHeader()->setResizeMode( QHeaderView::Stretch );
 
     model.setColumnCount( nbrColums );
-    model.setHeaderData( c_formula,  Qt::Horizontal, QObject::tr( "formula" ) );
-    model.setHeaderData( c_mass,  Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
-    model.setHeaderData( c_tR,  Qt::Horizontal, QObject::tr( "t<sub>R</sub>(min)" ) );
-    model.setHeaderData( c_isTimeReference,  Qt::Horizontal, QObject::tr( "t<sub>R</sub> ref." ) );
-    model.setHeaderData( c_isLKMSReference,  Qt::Horizontal, QObject::tr( "lock mass" ) );
-    model.setHeaderData( c_isISTD,  Qt::Horizontal, QObject::tr( "ISTD" ) );
-    model.setHeaderData( c_idISTD,  Qt::Horizontal, QObject::tr( "ISTD ID" ) );
-    model.setHeaderData( c_description, Qt::Horizontal, QObject::tr( "memo" ) );
-    model.setHeaderData( c_criteria_0, Qt::Horizontal, QObject::tr( "Pass/Fail Criteria(1)" ) );
-    model.setHeaderData( c_criteria_1, Qt::Horizontal, QObject::tr( "Pass/Fail Criteria(2)" ) );
+    model.setHeaderData( c_formula,  Qt::Horizontal, tr( "formula" ) );
+    model.setHeaderData( c_mass,  Qt::Horizontal, tr( "<i>m/z</i>" ) );
+    model.setHeaderData( c_tR,  Qt::Horizontal, tr( "t<sub>R</sub>(min)" ) );
+    model.setHeaderData( c_isTimeReference,  Qt::Horizontal, tr( "t<sub>R</sub> ref." ) );
+    model.setHeaderData( c_isLKMSReference,  Qt::Horizontal, tr( "lock mass" ) );
+    model.setHeaderData( c_isISTD,  Qt::Horizontal, tr( "ISTD" ) );
+    model.setHeaderData( c_idISTD,  Qt::Horizontal, tr( "ISTD ID" ) );
+    model.setHeaderData( c_description, Qt::Horizontal, tr( "memo" ) );
+    model.setHeaderData( c_criteria_0, Qt::Horizontal, tr( "Pass/Fail Criteria(1)" ) );
+    model.setHeaderData( c_criteria_1, Qt::Horizontal, tr( "Pass/Fail Criteria(2)" ) );
 
     for ( int col = c_level_0; col < c_level_last; ++col )
         model.setHeaderData( col, Qt::Horizontal, QString( "amounts [%1]" ).arg( col - c_level_0 + 1 ) );
