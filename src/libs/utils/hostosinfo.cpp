@@ -1,6 +1,6 @@
 /**************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -30,7 +30,9 @@
 #include "hostosinfo.h"
 
 #ifdef Q_OS_WIN
-#include <windows.h>
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501 /* WinXP, needed for GetNativeSystemInfo() */
+#include <qt_windows.h>
 #endif
 
 using namespace Utils;

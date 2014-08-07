@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -70,7 +70,7 @@ void PluginErrorOverview::showDetails(QListWidgetItem *item)
         PluginSpec *spec = item->data(Qt::UserRole).value<PluginSpec *>();
         m_ui->pluginError->setText(spec->errorString());
     } else {
-        m_ui->pluginError->setText(QString());
+        m_ui->pluginError->clear();
     }
 }
 

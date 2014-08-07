@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,23 +21,26 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "core_global.h"
+#include "icontext.h"
+#include "icore.h"
+#include "dialogs/newdialog.h"
 
-#include "eventfilteringmainwindow.h"
+#include <utils/appmainwindow.h>
 
-#include <QtCore/QMap>
+#include <QMap>
+#include <QColor>
 
 QT_BEGIN_NAMESPACE
 class QSettings;
-class QShortcut;
 class QPrinter;
 class QToolButton;
 QT_END_NAMESPACE
@@ -46,38 +48,38 @@ QT_END_NAMESPACE
 namespace Core {
 
 class ActionManager;
-class BaseMode;
-class BaseView;
+class StatusBarWidget;
 class EditorManager;
-class FileManager;
-class IContext;
-class IWizard;
+class ExternalToolManager;
+class DocumentManager;
+class HelpManager;
+class IDocument;
+class IWizardFactory;
 class MessageManager;
 class MimeDatabase;
 class ModeManager;
 class ProgressManager;
+class NavigationWidget;
 class RightPaneWidget;
-class ScriptManager;
 class SettingsDatabase;
-class UniqueIDManager;
 class VariableManager;
-class VCSManager;
-class ViewManagerInterface;
-class IMode;
+class VcsManager;
 
 namespace Internal {
 
 class ActionManagerPrivate;
-class CoreImpl;
 class FancyTabWidget;
 class GeneralSettings;
-class NavigationWidget;
 class ProgressManagerPrivate;
 class ShortcutSettings;
-class ViewManager;
+class ToolSettings;
+class MimeTypeSettings;
+class StatusBarManager;
 class VersionDialog;
+class WindowSupport;
+class SystemEditor;
 
-class CORE_EXPORT MainWindow : public EventFilteringMainWindow
+class MainWindow : public Utils::AppMainWindow
 {
     Q_OBJECT
 
@@ -87,68 +89,52 @@ public:
 
     bool init(QString *errorMessage);
     void extensionsInitialized();
-    void shutdown();
+    void aboutToShutdown();
 
     IContext *contextObject(QWidget *widget);
     void addContextObject(IContext *contex);
     void removeContextObject(IContext *contex);
-    void resetContext();
 
-    void openFiles(const QStringList &fileNames);
+    Core::IDocument *openFiles(const QStringList &fileNames, ICore::OpenFilesFlags flags);
 
-    Core::ActionManager *actionManager() const;
-    Core::FileManager *fileManager() const;
-    Core::UniqueIDManager *uniqueIDManager() const;
-    Core::MessageManager *messageManager() const;
-    Core::EditorManager *editorManager() const;
-    Core::ProgressManager *progressManager() const;
-    Core::ScriptManager *scriptManager() const;
-    Core::VariableManager *variableManager() const;
-    Core::ModeManager *modeManager() const;
-    Core::MimeDatabase *mimeDatabase() const;
-
-    VCSManager *vcsManager() const;
-    inline QSettings *settings() const { return m_settings; }
     inline SettingsDatabase *settingsDatabase() const { return m_settingsDatabase; }
     virtual QPrinter *printer() const;
     IContext * currentContextObject() const;
     QStatusBar *statusBar() const;
-    void addAdditionalContext(int context);
-    void removeAdditionalContext(int context);
-    bool hasContext(int context) const;
 
-    void updateContext();
+    void updateAdditionalContexts(const Context &remove, const Context &add);
 
     void setSuppressNavigationWidget(bool suppress);
 
+    void setOverrideColor(const QColor &color);
+
+    bool isNewItemDialogRunning() const;
+
 signals:
     void windowActivated();
+    void newItemDialogRunningChanged();
 
 public slots:
     void newFile();
     void openFileWith();
     void exit();
-    void setFullScreen(bool on);
 
-    QStringList showNewItemDialog(const QString &title,
-                                  const QList<IWizard *> &wizards,
-                                  const QString &defaultLocation = QString());
+    void showNewItemDialog(const QString &title,
+                           const QList<IWizardFactory *> &factories,
+                           const QString &defaultLocation = QString(),
+                           const QVariantMap &extraVariables = QVariantMap());
 
-    bool showOptionsDialog(const QString &category = QString(),
-                           const QString &page = QString(),
-                           QWidget *parent = 0);
+    bool showOptionsDialog(Id category = Id(), Id page = Id(), QWidget *parent = 0);
 
     bool showWarningWithOptions(const QString &title, const QString &text,
                                 const QString &details = QString(),
-                                const QString &settingsCategory = QString(),
-                                const QString &settingsId = QString(),
+                                Id settingsCategory = Id(),
+                                Id settingsId = Id(),
                                 QWidget *parent = 0);
 
 protected:
     virtual void changeEvent(QEvent *e);
     virtual void closeEvent(QCloseEvent *event);
-    virtual void dragEnterEvent(QDragEnterEvent *event);
-    virtual void dropEvent(QDropEvent *event);
 
 private slots:
     void openFile();
@@ -161,50 +147,55 @@ private slots:
     void updateFocusWidget(QWidget *old, QWidget *now);
     void setSidebarVisible(bool visible);
     void destroyVersionDialog();
-    void modeChanged(Core::IMode *mode);
+    void openDroppedFiles(const QStringList &files);
+    void restoreWindowState();
+    void newItemDialogFinished();
 
 private:
-    void updateContextObject(IContext *context);
+    void updateContextObject(const QList<IContext *> &context);
+    void updateContext();
+
     void registerDefaultContainers();
     void registerDefaultActions();
 
     void readSettings();
     void writeSettings();
 
-    CoreImpl *m_coreImpl;
-    UniqueIDManager *m_uniqueIDManager;
-    QList<int> m_globalContext;
-    QList<int> m_additionalContexts;
-    QSettings *m_settings;
+    ICore *m_coreImpl;
+    Context m_additionalContexts;
     SettingsDatabase *m_settingsDatabase;
     mutable QPrinter *m_printer;
-    ActionManagerPrivate *m_actionManager;
+    WindowSupport *m_windowSupport;
+    ActionManager *m_actionManager;
     EditorManager *m_editorManager;
-    FileManager *m_fileManager;
+    ExternalToolManager *m_externalToolManager;
     MessageManager *m_messageManager;
     ProgressManagerPrivate *m_progressManager;
-    ScriptManager *m_scriptManager;
     VariableManager *m_variableManager;
-    VCSManager *m_vcsManager;
-    ViewManager *m_viewManager;
+    VcsManager *m_vcsManager;
+    StatusBarManager *m_statusBarManager;
     ModeManager *m_modeManager;
     MimeDatabase *m_mimeDatabase;
+    HelpManager *m_helpManager;
     FancyTabWidget *m_modeStack;
     NavigationWidget *m_navigationWidget;
     RightPaneWidget *m_rightPaneWidget;
-    Core::BaseView *m_outputView;
+    Core::StatusBarWidget *m_outputView;
     VersionDialog *m_versionDialog;
+    QPointer<NewDialog> m_newDialog;
 
-    IContext * m_activeContext;
+    QList<IContext *> m_activeContext;
 
     QMap<QWidget *, IContext *> m_contextWidgets;
 
-    BaseMode *m_outputMode;
     GeneralSettings *m_generalSettings;
     ShortcutSettings *m_shortcutSettings;
+    ToolSettings *m_toolSettings;
+    MimeTypeSettings *m_mimeTypeSettings;
+    SystemEditor *m_systemEditor;
 
     // actions
-    QShortcut *m_focusToEditor;
+    QAction *m_focusToEditor;
     QAction *m_newAction;
     QAction *m_openAction;
     QAction *m_openWithAction;
@@ -212,13 +203,10 @@ private:
     QAction *m_exitAction;
     QAction *m_optionsAction;
     QAction *m_toggleSideBarAction;
-    QAction *m_toggleFullScreenAction;
-#ifdef Q_WS_MAC
-    QAction *m_minimizeAction;
-    QAction *m_zoomAction;
-#endif
+    QAction *m_toggleModeSelectorAction;
 
     QToolButton *m_toggleSideBarButton;
+    QColor m_overrideColor;
 };
 
 } // namespace Internal

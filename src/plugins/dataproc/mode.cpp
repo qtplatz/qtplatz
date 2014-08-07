@@ -1,16 +1,15 @@
-// -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this
-** file in accordance with the MS-Cheminformatics Commercial License Agreement
-** provided with the Software or, alternatively, in accordance with the terms
-** contained in a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with
+** the Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -24,47 +23,24 @@
 **************************************************************************/
 
 #include "mode.hpp"
-#include "constants.hpp"
-#include <coreplugin/editormanager/editormanager.h>
+#include "dataprocconstants.hpp"
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
-#include <coreplugin/modemanager.h>
-#include <coreplugin/editormanager/ieditor.h>
+// #include <coreplugin/editormanager/editormanager.h>
+// #include <coreplugin/editormanager/ieditor.h>
+// #include <coreplugin/id.h>
+// #include <coreplugin/modemanager.h>
 
 using namespace dataproc;
 
-Mode::~Mode()
+Mode::Mode(QObject *parent) : Core::IMode(parent)
 {
-    Core::EditorManager::instance()->setParent(0);
-}
-
-Mode::Mode(QObject *parent) :
-    Core::BaseMode(parent)
-{
-    setName(tr("Processing"));
-    setUniqueModeName( dataproc::Constants::C_DATAPROC_MODE );
+    setDisplayName( tr( "Processing" ) );
     setIcon(QIcon(":/dataproc/image/ViewResults.png"));
+
     setPriority( 80 );
 
-    QList<int> contexts = QList<int>() <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( Constants::C_DATAPROCESSOR ) <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_EDIT_MODE) <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_EDITORMANAGER) <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_NAVIGATION_PANE);
-    setContext( contexts );
-
-    Core::ModeManager *modeManager = Core::ModeManager::instance();
-    connect(modeManager, SIGNAL(currentModeChanged(Core::IMode*)), this, SLOT(grabEditorManager(Core::IMode*)));
+    setId( Constants::C_DATAPROCESSOR );
+    setContextHelpId( QLatin1String( "Qt Creator Manual " ) );
+    setContext( Core::Context( Constants::C_DATAPROCESSOR ) );
 }
 
-void
-Mode::grabEditorManager(Core::IMode *mode)
-{
-    if (mode != this)
-        return;
-
-    Core::EditorManager * em = Core::EditorManager::instance();
-    
-    if ( em->currentEditor() )
-        em->currentEditor()->widget()->setFocus();
-}

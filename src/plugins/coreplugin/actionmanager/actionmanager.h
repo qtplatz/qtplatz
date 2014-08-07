@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,45 +21,68 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef ACTIONMANAGER_H
 #define ACTIONMANAGER_H
 
 #include "coreplugin/core_global.h"
-
-#include <coreplugin/actionmanager/actioncontainer.h>
+#include "coreplugin/id.h"
 #include <coreplugin/actionmanager/command.h>
 
-#include <QtCore/QObject>
-#include <QtCore/QList>
+#include <QObject>
+#include <QList>
 
 QT_BEGIN_NAMESPACE
 class QAction;
+class QSettings;
 class QShortcut;
 class QString;
 QT_END_NAMESPACE
 
 namespace Core {
 
+class ActionContainer;
+
+namespace Internal { class MainWindow; }
+
 class CORE_EXPORT ActionManager : public QObject
 {
     Q_OBJECT
 public:
-    ActionManager(QObject *parent = 0) : QObject(parent) {}
-    virtual ~ActionManager() {}
+    static ActionManager *instance();
 
-    virtual ActionContainer *createMenu(const QString &id) = 0;
-    virtual ActionContainer *createMenuBar(const QString &id) = 0;
+    static ActionContainer *createMenu(Id id);
+    static ActionContainer *createMenuBar(Id id);
 
-    virtual Command *registerAction(QAction *action, const QString &id, const QList<int> &context) = 0;
-    virtual Command *registerShortcut(QShortcut *shortcut, const QString &id, const QList<int> &context) = 0;
+    static Command *registerAction(QAction *action, Id id, const Context &context, bool scriptable = false);
 
-    virtual Command *command(const QString &id) const = 0;
-    virtual ActionContainer *actionContainer(const QString &id) const = 0;
+    static Command *command(Id id);
+    static ActionContainer *actionContainer(Id id);
+
+    static QList<Command *> commands();
+
+    static void unregisterAction(QAction *action, Id id);
+
+    static void setPresentationModeEnabled(bool enabled);
+    static bool isPresentationModeEnabled();
+
+signals:
+    void commandListChanged();
+    void commandAdded(const QString &id);
+
+private:
+    ActionManager(QObject *parent = 0);
+    ~ActionManager();
+    static void initialize();
+    void saveSettings(QSettings *settings);
+    void setContext(const Context &context);
+
+    friend class Core::Internal::MainWindow;
 };
 
 } // namespace Core

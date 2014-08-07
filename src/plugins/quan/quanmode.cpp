@@ -26,16 +26,17 @@
 #include "quanconstants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 
 using namespace quan;
 
-QuanMode::QuanMode(QObject *parent) : Core::BaseMode(parent)
+QuanMode::QuanMode(QObject *parent) : Core::IMode(parent)
 {
-    setName(tr("Quan"));
-    setUniqueModeName( quan::Constants::C_QUAN_MODE );
+    //setName( tr( "Quan" ) );
+    //setUniqueModeName( quan::Constants::C_QUAN_MODE );
+    setDisplayName( tr( "Quan" ) );
     setIcon(QIcon(":/quan/images/balance.png"));
     setPriority( 60 );
 }

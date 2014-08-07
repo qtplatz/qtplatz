@@ -90,7 +90,7 @@
 #include <utils/fancymainwindow.h>
 
 #include <coreplugin/icore.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/minisplitter.h>
@@ -101,6 +101,9 @@
 #include <coreplugin/modemanager.h>
 #include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
+
+#include <QAction>
+#include <QComboBox>
 #include <QtCore/qplugin.h>
 
 #if QT_VERSION >= 0x050000
@@ -271,14 +274,13 @@ AcquirePlugin::initialize_actions()
     actionSnapshot_->setEnabled( true );
   
     //const AcquireManagerActions& actions = mainWindow_->acquireManagerActions();
-    QList<int> globalcontext;
-    globalcontext << Core::Constants::C_GLOBAL_ID;
-    Core::ActionManager *am = Core::ICore::instance()->actionManager();
-    if ( am ) {
+    Core::Context globalcontext( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
+
+    if ( auto am = Core::ActionManager::instance() ) {
         Core::Command * cmd = 0;
         cmd = am->registerAction( actionConnect_, constants::CONNECT, globalcontext );
         do {
-            Core::ICore::instance()->modeManager()->addAction( cmd, 90 );
+            //Core::ICore::instance()->modeManager()->addAction( cmd, 90 );
         } while(0);
 
         cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, globalcontext );
@@ -297,17 +299,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
-    Core::ICore * core = Core::ICore::instance();
-
-    QList<int> context;
-    if ( core ) {
-        Core::UniqueIDManager * uidm = core->uniqueIDManager();
-        if ( uidm ) {
-            context.append( uidm->uniqueIdentifier( QLatin1String("Acquire.MainView") ) );
-            context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
-        }
-    } else
-        return false;
+    Core::Context context( (Core::Id( "Acquire.MainView" )), (Core::Id( Core::Constants::C_NAVIGATION_PANE )) );
 
     AcquireMode * mode = new AcquireMode(this);
     if ( mode )
@@ -1063,8 +1055,8 @@ AcquirePlugin::createContents( Core::IMode * mode )
             QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
             toolBarLayout->setMargin(0);
             toolBarLayout->setSpacing(0);
-            Core::ActionManager *am = Core::ICore::instance()->actionManager();
-            if ( am ) {
+            // Core::ActionManager *am = Core::ICore::instance()->actionManager();
+            if ( auto am = Core::ActionManager::instance() ) {
                 toolBarLayout->addWidget(toolButton(am->command(constants::CONNECT)->action()));
                 toolBarLayout->addWidget(toolButton(am->command(constants::INITIALRUN)->action()));
                 toolBarLayout->addWidget(toolButton(am->command(constants::RUN)->action()));
@@ -1080,8 +1072,8 @@ AcquirePlugin::createContents( Core::IMode * mode )
             QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
             toolBarLayout->setMargin(0);
             toolBarLayout->setSpacing(0);
-            Core::ActionManager *am = Core::ICore::instance()->actionManager();
-            if ( am ) {
+            //Core::ActionManager *am = Core::ICore::instance()->actionManager();
+            if ( auto am = Core::ActionManager::instance() ) {
                 toolBarLayout->addWidget( toolButton( actionSnapshot_ ) );
                 toolBarLayout->addWidget( new Utils::StyledSeparator );
                 toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );

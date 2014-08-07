@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,13 +21,13 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "findplaceholder.h"
-#include "modemanager.h"
 
 #include <extensionsystem/pluginmanager.h>
 
@@ -45,12 +44,12 @@ FindToolBarPlaceHolder::FindToolBarPlaceHolder(QWidget *owner, QWidget *parent)
     setLayout(new QVBoxLayout);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     layout()->setMargin(0);
-    ExtensionSystem::PluginManager::instance()->addObject(this);
+    ExtensionSystem::PluginManager::addObject(this);
 }
 
 FindToolBarPlaceHolder::~FindToolBarPlaceHolder()
 {
-    ExtensionSystem::PluginManager::instance()->removeObject(this);
+    ExtensionSystem::PluginManager::removeObject(this);
     if (m_subWidget) {
         m_subWidget->setVisible(false);
         m_subWidget->setParent(0);
@@ -62,6 +61,20 @@ FindToolBarPlaceHolder::~FindToolBarPlaceHolder()
 QWidget *FindToolBarPlaceHolder::owner() const
 {
     return m_owner;
+}
+
+/*!
+ * Returns if \a widget is a subwidget of the place holder's owner
+ */
+bool FindToolBarPlaceHolder::isUsedByWidget(QWidget *widget)
+{
+    QWidget *current = widget;
+    while (current) {
+        if (current == m_owner)
+            return true;
+        current = current->parentWidget();
+    }
+    return false;
 }
 
 void FindToolBarPlaceHolder::setWidget(QWidget *widget)

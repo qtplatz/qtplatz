@@ -28,7 +28,7 @@
 #include "outputwindow.hpp"
 #include "logger.hpp"
 #include <coreplugin/icore.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
@@ -111,16 +111,9 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     }
 
     ///////////////////////////////////
-    Core::ICore * core = Core::ICore::instance();
-    QList<int> context;
-    if ( core ) {
-        Core::UniqueIDManager * uidm = core->uniqueIDManager();
-        if ( uidm ) {
-            context.append( uidm->uniqueIdentifier( QLatin1String("Servant.MainView") ) );
-            context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
-        }
-    } else
-        return false;
+    Core::Context context;
+    context.add( Core::Id( "Servant.MainView" ) );
+    context.add( Core::Id( Core::Constants::C_NAVIGATION_PANE ) );
     
 	boost::filesystem::path plugindir;
     do {

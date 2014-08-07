@@ -30,8 +30,8 @@
 #include "ifileimpl.hpp"
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
-#include <coreplugin/uniqueidmanager.h>
-#include <coreplugin/filemanager.h>
+#include <coreplugin/id.h>
+#include <coreplugin/documentmanager.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/coreconstants.h>
 #include <qtwrapper/waitcursor.hpp>
@@ -39,13 +39,11 @@
 using namespace dataproc;
 
 DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor( 0 )
-                                                                   , widget_( new QWidget ) // dummy for Core::EditorManager
-                                                                   , factory_(factory)
-                                                                   , file_(0)
+                                                                 , widget_( new QWidget ) // dummy for Core::EditorManager
+                                                                 , factory_(factory)
 {
-    Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
-    context_ << uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR )
-             << uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER );
+    setWidget( widget_ );
+    context_.add( Constants::C_DATAPROCESSOR );
 }
 
 DataprocEditor::~DataprocEditor()
@@ -54,82 +52,49 @@ DataprocEditor::~DataprocEditor()
 	delete widget_;
 }
 
-// implement Core::IEditor
-bool
-DataprocEditor::createNew( const QString &contents )
+void
+DataprocEditor::setDataprocessor( Dataprocessor * processor )
 {
-    Q_UNUSED( contents );
-    return true;
+    processor_ = processor->shared_from_this();
 }
 
 bool
 DataprocEditor::portfolio_create( const QString& filename )
 {
-    std::shared_ptr<Dataprocessor> processor( new Dataprocessor );
-    if ( processor->create( filename ) ) {
-        SessionManager::instance()->addDataprocessor( processor, this );
-        file_ = processor->ifile();
-        return file_;
+    // processor_ = std::make_shared< Dataprocessor >();
+    if ( processor_ && processor_->create( filename ) ) {
+        SessionManager::instance()->addDataprocessor( processor_, this );
+        return true;
     }
     return false;
 }
 
 bool
-DataprocEditor::open( const QString &filename )
+DataprocEditor::open( QString*, const QString &filename, const QString& )
 {
 	qtwrapper::waitCursor wait;
 
-    std::shared_ptr<Dataprocessor> processor( new Dataprocessor );
+    // processor_ = std::make_shared< Dataprocessor >();
+    if ( processor_ && processor_->open( filename ) ) {
+        SessionManager::instance()->addDataprocessor( processor_, this );
 
-    if ( processor->open( filename ) ) {
-        SessionManager::instance()->addDataprocessor( processor, this );
+        Core::DocumentManager::addDocument( processor_->document() );
+        Core::DocumentManager::addToRecentFiles( filename );
 
-        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
-        if ( filemgr->addFile( processor->ifile() ) )
-            filemgr->addToRecentFiles( filename );
-
-        file_ = processor->ifile();
-
-        return file_; // processor->ifile();
+        return true;
     }
     return false;
 }
 
-Core::IFile *
-DataprocEditor::file()
+Core::IDocument *
+DataprocEditor::document()
 {
-    return file_;
-}
-
-const char *
-DataprocEditor::kind() const
-{
-    return Constants::C_DATAPROCESSOR;
-}
-
-QString
-DataprocEditor::displayName() const
-{
-    if ( file_ )
-        return file_->fileName();
-    return "DataprocEditor::displayName()";
+    return processor_ ? processor_->document() : 0;
 }
 
 void
-DataprocEditor::setDisplayName(const QString & /* title */)
+DataprocEditor::handleTitleChanged( const QString & /* title */ )
 {
-}
-
-bool
-DataprocEditor::duplicateSupported() const
-{
-    return false;
-}
-
-Core::IEditor *
-DataprocEditor::duplicate(QWidget * /* parent */)
-{
-    return 0;
 }
 
 QByteArray
@@ -144,35 +109,13 @@ DataprocEditor::restoreState(const QByteArray & /* state */ )
     return true;
 }
 
-//virtual int currentLine() const { return 0; }
-//virtual int currentColumn() const { return 0; }
-
-bool
-DataprocEditor::isTemporary() const
-{
-    return false;
-}
-
 QWidget *
 DataprocEditor::toolBar()
 {
     return 0;
 }
 
-const char * 
-DataprocEditor::uniqueModeName() const
-{
-    return dataproc::Constants::C_DATAPROC_MODE;
-}
-
-// Core::IContext
-QWidget *
-DataprocEditor::widget()
-{
-    return widget_;
-}
-
-QList<int>
+Core::Context
 DataprocEditor::context() const
 {
     return context_;

@@ -40,7 +40,7 @@
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/qfiledialog.hpp>
 #include <coreplugin/icore.h>
-#include <coreplugin/filemanager.h>
+#include <coreplugin/documentmanager.h>
 #include <coreplugin/modemanager.h>
 #include <QDataStream>
 #include <QDebug>
@@ -265,13 +265,13 @@ NavigationWidget::setAutoSynchronization( bool sync )
         return;
     autoSync_ = sync;
 
-    Core::FileManager *fileManager = Core::ICore::instance()->fileManager();
-    if ( autoSync_ ) {
+//    Core::DocumentManager *fileManager = Core::ICore::instance()->documentManager();
+//    if ( autoSync_ ) {
         // connect(fileManager, SIGNAL(currentFileChanged(QString)), this, SLOT(setCurrentFile(QString)));
         // setCurrentFile(fileManager->currentFile());
-    } else {
-        disconnect(fileManager, SIGNAL(currentFileChanged(QString)), this, SLOT(setCurrentFile(QString)));
-    }
+//    } else {
+//        disconnect(fileManager, SIGNAL(currentFileChanged(QString)), this, SLOT(setCurrentFile(QString)));
+//    }
 }
 
 bool
@@ -419,7 +419,7 @@ void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
     adcontrols::datafile& file = processor->file();
-    QString filename( qtwrapper::qstring::copy( file.filename() ) );
+    QString filename = QString::fromStdWString( file.filename() );
 
     QStandardItemModel& model = *pModel_;
 

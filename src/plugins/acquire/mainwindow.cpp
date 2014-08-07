@@ -156,6 +156,9 @@ MainWindow::setSimpleDockWidgetArrangement()
     
     QList< QDockWidget *> dockWidgets = this->dockWidgets();
 
+    if ( dockWidgets.isEmpty() )
+        return;
+
     for ( auto widget: dockWidgets ) {
 		widget->setFloating( false );
 		removeDockWidget( widget );

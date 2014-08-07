@@ -46,20 +46,20 @@ namespace dataproc {
         // void setEditor( QWidget * );
 
         // implement IEditorFactory
-        virtual Core::IEditor *createEditor(QWidget *parent);
+        Core::IEditor *createEditor() override;
 
         // implement IFileFactory
-        virtual QStringList mimeTypes() const;
-        virtual QString kind() const;
-        virtual Core::IFile * open(const QString& filename );
+        //virtual QStringList mimeTypes() const override;
+        //virtual QString kind() const override;
+        //virtual Core::IDocument * open( const QString& filename ) override;
         // <---
     signals:
 
     public slots:
 
     private:
-        QString kind_;
-        QStringList mimeTypes_;
+        // const char * kind_;
+        // QStringList mimeTypes_;
     };
 
 }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -48,14 +48,15 @@
     \mainclass
     \threadsafe
 
-    \brief Defines a collection of related components that can be viewed as a unit.
+    \brief The Aggregate class defines a collection of related components that
+    can be viewed as a unit.
 
     An Aggregate is a collection of components that are handled as a unit,
     such that each component exposes the properties and behavior of the
     other components in the Aggregate to the outside.
     Specifically that means:
     \list
-    \li They can be "cast" to each other (using query and query_all methods).
+    \li They can be "cast" to each other (using query and query_all functions).
     \li Their life cycle is coupled, i.e. whenever one is deleted all of them are.
     \endlist
     Components can be of any QObject derived type.
@@ -68,7 +69,7 @@
         [...]
         MyInterface *object = new MyInterface; // this is single inheritance
     \endcode
-    The query method works like a qobject_cast with normal objects:
+    The query function works like a qobject_cast with normal objects:
     \code
         Q_ASSERT(query<MyInterface>(object) == object);
         Q_ASSERT(query<MyInterfaceEx>(object) == 0);
@@ -104,7 +105,7 @@
 /*!
     \fn T *Aggregate::component()
 
-    Template method that returns the component with the given type, if there is one.
+    Template function that returns the component with the given type, if there is one.
     If there are multiple components with that type a random one is returned.
 
     \sa Aggregate::components()
@@ -114,7 +115,7 @@
 /*!
     \fn QList<T *> Aggregate::components()
 
-    Template method that returns all components with the given type, if there are any.
+    Template function that returns all components with the given type, if there are any.
 
     \sa Aggregate::component()
     \sa Aggregate::add()

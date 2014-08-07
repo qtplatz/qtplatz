@@ -27,49 +27,43 @@
 #define DATAPROCEDITOR_H
 
 #include <coreplugin/editormanager/ieditor.h>
+#include <memory>
 
 namespace Core { class IEditorFactory; }
 
 namespace dataproc {
 
-    class datafileimpl;
+    class Dataprocessor;
 
     class DataprocEditor : public Core::IEditor {
         Q_OBJECT
     public:
         ~DataprocEditor();
         DataprocEditor( Core::IEditorFactory * );
+        void setDataprocessor( Dataprocessor * );
 
         bool portfolio_create( const QString &token );
         // implement Core::IEditor
-        virtual bool createNew( const QString &contents );
-        virtual bool open( const QString &fileName );
-        virtual Core::IFile *file();
-        virtual const char *kind() const;
-        virtual QString displayName() const;
-        virtual void setDisplayName(const QString &title);
 
-        virtual bool duplicateSupported() const;
-        virtual IEditor *duplicate(QWidget *parent);
+        bool open( QString*, const QString&, const QString& ) override;
+        Core::IDocument * document() override;
 
-        virtual QByteArray saveState() const;
-        virtual bool restoreState(const QByteArray &state);
-        virtual bool isTemporary() const;
-        virtual QWidget *toolBar();
-        virtual const char * uniqueModeName() const;
+        QByteArray saveState() const override;
+        bool restoreState( const QByteArray &state ) override;
+        // bool isTemporary() const override;
+        QWidget *toolBar() override;
+        // const char * uniqueModeName() const override;
 
-        // Core::IContext
-        QWidget * widget();
-        QList<int> context() const;
+        Core::Context context() const override;
 
     protected slots:
-        void slotTitleChanged( const QString& title ) { setDisplayName( title ); }
+        void handleTitleChanged( const QString& title );
 
     private:
+        std::shared_ptr< Dataprocessor > processor_; // IDocument
 		QWidget * widget_;  // dummy
         Core::IEditorFactory * factory_;
-        Core::IFile * file_;
-        QList<int> context_;
+        Core::Context context_;
         QString displayName_;
     };
 

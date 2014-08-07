@@ -29,7 +29,7 @@
 #include <memory>
 
 class QProgressBar;
-namespace Core { class FutureProgress; }
+//namespace Core { class FutureProgress; }
 
 namespace qtwrapper {
 
@@ -64,7 +64,7 @@ namespace qtwrapper {
 
     private:
 		QString type_;
-		Core::FutureProgress * progress_;
+        // Core::FutureProgress * progress_;
     };
 
 }

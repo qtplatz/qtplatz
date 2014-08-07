@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -27,15 +27,16 @@
 **
 ****************************************************************************/
 
-#include "qtsingleapplication.h"
-//#include "../tools/qtcreatorcrashhandler/crashhandlersetup.h"
+#include "../tools/qtcreatorcrashhandler/crashhandlersetup.h"
 
-//#include <app/app_version.h>
-#include <coreplugin/coreconstants.h>
+#include <app/app_version.h>
 #include <extensionsystem/iplugin.h>
 #include <extensionsystem/pluginerroroverview.h>
 #include <extensionsystem/pluginmanager.h>
 #include <extensionsystem/pluginspec.h>
+#include <qtsingleapplication.h>
+#include <utils/hostosinfo.h>
+#include <utils/logging.h>
 
 #include <QDebug>
 #include <QDir>
@@ -54,7 +55,6 @@
 #include <QApplication>
 #include <QDesktopServices>
 #include <QMessageBox>
-#include <string>
 
 #ifdef ENABLE_QT_BREAKPAD
 #include <qtsystemexceptionhandler.h>
@@ -64,9 +64,9 @@ using namespace ExtensionSystem;
 
 enum { OptionIndent = 4, DescriptionIndent = 34 };
 
-static const char appNameC[] = "qtplatz";
-static const char corePluginNameC[] = "Core";
-static const char fixedOptionsC[] =
+const char appNameC[] = "Qt Platz";
+const char corePluginNameC[] = "Core";
+const char fixedOptionsC[] =
 " [OPTION]... [FILE]...\n"
 "Options:\n"
 "    -help                         Display this help\n"
@@ -74,18 +74,20 @@ static const char fixedOptionsC[] =
 "    -client                       Attempt to connect to already running first instance\n"
 "    -settingspath <path>          Override the default path where user settings are stored\n"
 "    -pid <pid>                    Attempt to connect to instance given by pid\n"
-"    -block                        Block until editor is closed\n";
+"    -block                        Block until editor is closed\n"
+"    -pluginpath <path>            Add a custom search path for plugins\n";
 
-
-static const char HELP_OPTION1[] = "-h";
-static const char HELP_OPTION2[] = "-help";
-static const char HELP_OPTION3[] = "/h";
-static const char HELP_OPTION4[] = "--help";
-static const char VERSION_OPTION[] = "-version";
-static const char CLIENT_OPTION[] = "-client";
-static const char SETTINGS_OPTION[] = "-settingspath";
-static const char PID_OPTION[] = "-pid";
-static const char BLOCK_OPTION[] = "-block";
+const char HELP_OPTION1[] = "-h";
+const char HELP_OPTION2[] = "-help";
+const char HELP_OPTION3[] = "/h";
+const char HELP_OPTION4[] = "--help";
+const char VERSION_OPTION[] = "-version";
+const char CLIENT_OPTION[] = "-client";
+const char SETTINGS_OPTION[] = "-settingspath";
+const char TEST_OPTION[] = "-test";
+const char PID_OPTION[] = "-pid";
+const char BLOCK_OPTION[] = "-block";
+const char PLUGINPATH_OPTION[] = "-pluginpath";
 
 typedef QList<PluginSpec *> PluginSpecSet;
 
@@ -209,36 +211,33 @@ static inline QStringList getPluginPaths()
 #endif
     // 3) <localappdata>/plugins/<ideversion>
     //    where <localappdata> is e.g.
-    //    "%LOCALAPPDATA%\QtProject\qtplatz" on Windows Vista and later
-    //    "$XDG_DATA_HOME/data/QtProject/qtplatz" or "~/.local/share/data/QtProject/qtplatz" on Linux
+    //    "%LOCALAPPDATA%\QtProject\qtcreator" on Windows Vista and later
+    //    "$XDG_DATA_HOME/data/QtProject/qtcreator" or "~/.local/share/data/QtProject/qtcreator" on Linux
     //    "~/Library/Application Support/QtProject/Qt Creator" on Mac
     pluginPath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
     pluginPath += QLatin1Char('/')
-//            + QLatin1String(Core::Constants::IDE_SETTINGSVARIANT_STR)
-//            + QLatin1Char('/');
-	;
+            + QLatin1String(Core::Constants::IDE_SETTINGSVARIANT_STR)
+            + QLatin1Char('/');
 #if !defined(Q_OS_MAC)
     pluginPath += QLatin1String("qtplatz");
 #else
-    pluginPath += QLatin1String("qtplatz");
+    pluginPath += QLatin1String("Qt Platz");
 #endif
-    pluginPath += QLatin1String("/plugins");
-    // pluginPath += QLatin1String(Core::Constants::IDE_VERSION_LONG);
+    pluginPath += QLatin1String("/plugins/");
+    pluginPath += QLatin1String(Core::Constants::IDE_VERSION_LONG);
     rc.push_back(pluginPath);
     return rc;
 }
 
 static QSettings *createUserSettings()
 {
-    return new QSettings( QSettings::IniFormat
-                          , QSettings::UserScope
-                          , QLatin1String( "MS-Cheminformatics LLC" )
-                          , QLatin1String( "qtplatz" ) );
+    return new QSettings(QSettings::IniFormat, QSettings::UserScope,
+                         QLatin1String(Core::Constants::IDE_SETTINGSVARIANT_STR),
+                         QLatin1String("QtPlatz"));
 }
 
 static inline QSettings *userSettings()
 {
-#if 0
     QSettings *settings = createUserSettings();
     const QString fromVariant = QLatin1String(Core::Constants::IDE_COPY_SETTINGS_FROM_VARIANT_STR);
     if (fromVariant.isEmpty())
@@ -268,6 +267,7 @@ static inline QSettings *userSettings()
                 || lowerFile.startsWith(QLatin1String("toolchains.xml"))
                 || lowerFile.startsWith(QLatin1String("qtversion.xml"))
                 || lowerFile.startsWith(QLatin1String("devices.xml"))
+                || lowerFile.startsWith(QLatin1String("debuggers.xml"))
                 || lowerFile.startsWith(QLatin1String("qtplatz.")))
             QFile::copy(srcDir.absoluteFilePath(file), destDir.absoluteFilePath(file));
         if (file == QLatin1String("qtplatz"))
@@ -276,18 +276,18 @@ static inline QSettings *userSettings()
 
     // Make sure to use the copied settings:
     delete settings;
-#endif
     return createUserSettings();
 }
 
 #ifdef Q_OS_MAC
 #  define SHARE_PATH "/../Resources"
 #else
-#  define SHARE_PATH "/../share/qtplatz"
+#  define SHARE_PATH "/../share/qtcreator"
 #endif
 
 int main(int argc, char **argv)
 {
+    QLoggingCategory::setFilterRules(QLatin1String("qtc.*.debug=false"));
 #ifdef Q_OS_MAC
     // increase the number of file that can be opened in Qt Creator.
     struct rlimit rl;
@@ -301,22 +301,13 @@ int main(int argc, char **argv)
     // QML is unusable with the xlib backend
     QApplication::setGraphicsSystem(QLatin1String("raster"));
 #endif
-	// workaround -- Either QApplication and QtSingleApplcation ctor fails due to failed to load platform plugin
-	// However, in order to set load path to QApplication, need to have an instance for QCoreApplication in order
-	// to use applicationDirPath() method.
-	QString appDir;
-	do {
-		QCoreApplication a( argc, argv );
-		appDir = a.applicationDirPath();
-	} while (0);
-	QApplication::addLibraryPath( appDir + "/../plugins" );
-    SharedTools::QtSingleApplication app((QLatin1String(appNameC)), argc, argv);
 
+    SharedTools::QtSingleApplication app((QLatin1String(appNameC)), argc, argv);
 
     const int threadCount = QThreadPool::globalInstance()->maxThreadCount();
     QThreadPool::globalInstance()->setMaxThreadCount(qMax(4, 2 * threadCount));
 
-//    setupCrashHandler(); // Display a backtrace once a serious signal is delivered.
+    setupCrashHandler(); // Display a backtrace once a serious signal is delivered.
 
 #ifdef ENABLE_QT_BREAKPAD
     QtSystemExceptionHandler systemExceptionHandler;
@@ -330,8 +321,10 @@ int main(int argc, char **argv)
     // We can't use the regular way of the plugin manager, because that needs to parse pluginspecs
     // but the settings path can influence which plugins are enabled
     QString settingsPath;
+    QStringList customPluginPaths;
     QStringList arguments = app.arguments(); // adapted arguments list is passed to plugin manager later
     QMutableStringListIterator it(arguments);
+    bool testOptionProvided = false;
     while (it.hasNext()) {
         const QString &arg = it.next();
         if (arg == QLatin1String(SETTINGS_OPTION)) {
@@ -340,7 +333,20 @@ int main(int argc, char **argv)
                 settingsPath = QDir::fromNativeSeparators(it.next());
                 it.remove();
             }
+        } else if (arg == QLatin1String(PLUGINPATH_OPTION)) {
+            it.remove();
+            if (it.hasNext()) {
+                customPluginPaths << QDir::fromNativeSeparators(it.next());
+                it.remove();
+            }
+        } else if (arg == QLatin1String(TEST_OPTION)) {
+            testOptionProvided = true;
         }
+    }
+    if (settingsPath.isEmpty() && testOptionProvided) {
+        settingsPath = QDir::tempPath() + QString::fromLatin1("/qtc-%1-test-settings")
+                .arg(QLatin1String(Core::Constants::IDE_VERSION_LONG));
+        settingsPath = QDir::cleanPath(settingsPath);
     }
     if (!settingsPath.isEmpty())
         QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settingsPath);
@@ -353,8 +359,8 @@ int main(int argc, char **argv)
     QSettings *settings = userSettings();
 
     QSettings *globalSettings = new QSettings(QSettings::IniFormat, QSettings::SystemScope,
-                                              QLatin1String("MS-Cheminformatics LLC"),
-                                              QLatin1String("qtplatz"));
+                                              QLatin1String(Core::Constants::IDE_SETTINGSVARIANT_STR),
+                                              QLatin1String("QtPlatz"));
     PluginManager pluginManager;
     PluginManager::setFileExtension(QLatin1String("pluginspec"));
     PluginManager::setGlobalSettings(globalSettings);
@@ -377,7 +383,6 @@ int main(int argc, char **argv)
     foreach (QString locale, uiLanguages) {
 #if (QT_VERSION >= 0x050000)
         locale = QLocale(locale).name();
-        locale = "ja_JP";
 #else
         locale.replace(QLatin1Char('-'), QLatin1Char('_')); // work around QTBUG-25973
 #endif
@@ -408,19 +413,17 @@ int main(int argc, char **argv)
         QNetworkProxy proxy(QNetworkProxy::HttpProxy, proxyUrl.host(),
                             proxyUrl.port(), proxyUrl.userName(), proxyUrl.password());
         QNetworkProxy::setApplicationProxy(proxy);
-    }
 # if defined(Q_OS_MAC) // unix and mac
-    else {
+    } else {
         QNetworkProxyFactory::setUseSystemConfiguration(true);
-    }
 # endif
+    }
 #else // windows
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 #endif
     // Load
-    const QStringList pluginPaths = getPluginPaths();
+    const QStringList pluginPaths = getPluginPaths() + customPluginPaths;
     PluginManager::setPluginPaths(pluginPaths);
-
     QMap<QString, QString> foundAppOptions;
     if (arguments.size() > 1) {
         QMap<QString, bool> appOptions;
@@ -509,28 +512,27 @@ int main(int argc, char **argv)
         return 1;
     }
     if (PluginManager::hasError()) {
-        PluginErrorOverview errorOverview;
-        errorOverview.exec();
+        PluginErrorOverview *errorOverview = new PluginErrorOverview(QApplication::activeWindow());
+        errorOverview->setAttribute(Qt::WA_DeleteOnClose);
+        errorOverview->setModal(true);
+        errorOverview->show();
     }
 
-    // Set up lock and remote arguments.
-    app.initialize();
+    // Set up remote arguments.
     QObject::connect(&app, SIGNAL(messageReceived(QString,QObject*)),
                      &pluginManager, SLOT(remoteArguments(QString,QObject*)));
 
-    // QObject::connect(&app, SIGNAL(fileOpenRequest(QString)), coreplugin->plugin(),
-    //                  SLOT(fileOpenRequest(QString)));
+    QObject::connect(&app, SIGNAL(fileOpenRequest(QString)), coreplugin->plugin(),
+                     SLOT(fileOpenRequest(QString)));
 
+    // quit when last window (relevant window, see WA_QuitOnClose) is closed
+    // this should actually be the default, but doesn't work in Qt 5
+    // QTBUG-31569
+    QObject::connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
     // shutdown plugin manager on the exit
     QObject::connect(&app, SIGNAL(aboutToQuit()), &pluginManager, SLOT(shutdown()));
 
-#ifdef WITH_TESTS
-    // Do this after the event loop has started
-    if (PluginManager::testRunRequested())
-        QTimer::singleShot(100, &pluginManager, SLOT(startTests()));
-#endif
-
     const int r = app.exec();
-    //cleanupCrashHandler();
+    cleanupCrashHandler();
     return r;
 }

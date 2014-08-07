@@ -42,7 +42,7 @@ ChemFile::~ChemFile()
     // adcontrols::datafile::close( file_ );
 }
 
-ChemFile::ChemFile( QObject * parent ) : Core::IFile( parent )
+ChemFile::ChemFile( QObject * parent ) : Core::IDocument( parent )
                                        , modified_( false )
                                        , nread_( 0 )
                                        , filesize_( 0 )

@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,36 +21,32 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef SIDEBAR_H
 #define SIDEBAR_H
 
-#include <QtCore/QMap>
-#include <QtCore/QPointer>
-#include <QWidget>
-#include <QComboBox>
+#include "core_global.h"
+#include "minisplitter.h"
 
-#include <coreplugin/minisplitter.h>
+#include <QMap>
+#include <QList>
 
 QT_BEGIN_NAMESPACE
 class QSettings;
-class QToolBar;
-class QAction;
 class QToolButton;
 QT_END_NAMESPACE
 
 namespace Core {
 
 class Command;
+struct SideBarPrivate;
 
-namespace Internal {
-class SideBarWidget;
-class ComboBox;
-} // namespace Internal
+namespace Internal { class SideBarWidget; }
 
 /*
  * An item in the sidebar. Has a widget that is displayed in the sidebar and
@@ -60,16 +55,17 @@ class ComboBox;
  *
  * The SideBarItem takes ownership over the widget.
  */
-class CORE_EXPORT SideBarItem
+class CORE_EXPORT SideBarItem : public QObject
 {
+    Q_OBJECT
 public:
-    SideBarItem(QWidget *widget)
-        : m_widget(widget)
-    {}
-
+    // id is non-localized string of the item that's used to store the settings.
+    explicit SideBarItem(QWidget *widget, const QString &id);
     virtual ~SideBarItem();
 
-    QWidget *widget() { return m_widget; }
+    QWidget *widget() const;
+    QString id() const;
+    QString title() const;
 
     /* Should always return a new set of tool buttons.
      *
@@ -77,37 +73,49 @@ public:
      * that have been added to a QToolBar without either not deleting the
      * associated QAction or causing the QToolButton to be deleted.
      */
-    virtual QList<QToolButton *> createToolBarWidgets()
-    {
-        return QList<QToolButton *>();
-    }
+    virtual QList<QToolButton *> createToolBarWidgets();
 
 private:
+    const QString m_id;
     QWidget *m_widget;
 };
 
 class CORE_EXPORT SideBar : public MiniSplitter
 {
     Q_OBJECT
+
 public:
     /*
-     * The SideBar takes ownership of the SideBarItems.
+     * The SideBar takes explicit ownership of the SideBarItems
+     * if you have one SideBar, or shared ownership in case
+     * of multiple SideBars.
      */
-    SideBar(QList<SideBarItem*> widgetList,
-            QList<SideBarItem*> defaultVisible);
-    ~SideBar();
+    SideBar(QList<SideBarItem *> widgetList, QList<SideBarItem *> defaultVisible);
+    virtual ~SideBar();
 
-    QStringList availableItems() const;
+    QStringList availableItemIds() const;
+    QStringList availableItemTitles() const;
+    QStringList unavailableItemIds() const;
     void makeItemAvailable(SideBarItem *item);
+    void setUnavailableItemIds(const QStringList &itemTitles);
+    QString idForTitle(const QString &itemId) const;
+
     SideBarItem *item(const QString &title);
 
-    void saveSettings(QSettings *settings);
-    void readSettings(QSettings *settings);
+    bool closeWhenEmpty() const;
+    void setCloseWhenEmpty(bool value);
 
+    void saveSettings(QSettings *settings, const QString &name);
+    void readSettings(QSettings *settings, const QString &name);
+    void closeAllWidgets();
     void activateItem(SideBarItem *item);
 
-    void setShortcutMap(const QMap<QString, Core::Command*> &shortcutMap);
-    QMap<QString, Core::Command*> shortcutMap() const;
+    void setShortcutMap(const QMap<QString, Core::Command *> &shortcutMap);
+    QMap<QString, Core::Command *> shortcutMap() const;
+
+signals:
+    void sideBarClosed();
+    void availableItemsChanged();
 
 private slots:
     void splitSubWidget();
@@ -119,65 +127,9 @@ private:
                                                  const QString &title = QString());
     void removeSideBarWidget(Internal::SideBarWidget *widget);
 
-    QList<Internal::SideBarWidget*> m_widgets;
-
-    QMap<QString, SideBarItem*> m_itemMap;
-    QStringList m_availableItems;
-    QStringList m_defaultVisible;
-    QMap<QString, Core::Command*> m_shortcutMap;
+    SideBarPrivate *d;
 };
 
-namespace Internal {
-
-class SideBarWidget : public QWidget
-{
-    Q_OBJECT
-public:
-    SideBarWidget(SideBar *sideBar, const QString &title);
-    ~SideBarWidget();
-
-    QString currentItemTitle() const;
-    void setCurrentItem(const QString &title);
-
-    void updateAvailableItems();
-    void removeCurrentItem();
-
-    Core::Command *command(const QString &title) const;
-
-signals:
-    void splitMe();
-    void closeMe();
-    void currentWidgetChanged();
-
-private slots:
-    void setCurrentIndex(int);
-
-private:
-    ComboBox *m_comboBox;
-    SideBarItem *m_currentItem;
-    QToolBar *m_toolbar;
-    QAction *m_splitAction;
-    QList<QAction *> m_addedToolBarActions;
-    SideBar *m_sideBar;
-    QToolButton *m_splitButton;
-    QToolButton *m_closeButton;
-};
-
-class ComboBox : public QComboBox
-{
-    Q_OBJECT
-
-public:
-    ComboBox(SideBarWidget *sideBarWidget);
-
-protected:
-    bool event(QEvent *event);
-
-private:
-    SideBarWidget *m_sideBarWidget;
-};
-
-} // namespace Internal
 } // namespace Core
 
 #endif // SIDEBAR_H

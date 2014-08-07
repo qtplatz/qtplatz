@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,87 +21,165 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef FANCYLINEEDIT_H
 #define FANCYLINEEDIT_H
 
 #include "utils_global.h"
+#include "completinglineedit.h"
 
-#include <QtGui/QLineEdit>
+#include <QAbstractButton>
+
+QT_BEGIN_NAMESPACE
+class QEvent;
+QT_END_NAMESPACE
 
 namespace Utils {
 
 class FancyLineEditPrivate;
 
-/* A line edit with an embedded pixmap on one side that is connected to
- * a menu. Additionally, it can display a grayed hintText (like "Type Here to")
- * when not focussed and empty. When connecting to the changed signals and
- * querying text, one has to be aware that the text is set to that hint
- * text if isShowingHintText() returns true (that is, does not contain
- * valid user input).
- */
-class QTCREATOR_UTILS_EXPORT FancyLineEdit : public QLineEdit
+class QTCREATOR_UTILS_EXPORT IconButton: public QAbstractButton
 {
-    Q_DISABLE_COPY(FancyLineEdit)
+    Q_OBJECT
+    Q_PROPERTY(float iconOpacity READ iconOpacity WRITE setIconOpacity)
+    Q_PROPERTY(bool autoHide READ hasAutoHide WRITE setAutoHide)
+    Q_PROPERTY(QPixmap pixmap READ pixmap WRITE setPixmap)
+public:
+    explicit IconButton(QWidget *parent = 0);
+    void paintEvent(QPaintEvent *event);
+    void setPixmap(const QPixmap &pixmap) { m_pixmap = pixmap; update(); }
+    QPixmap pixmap() const { return m_pixmap; }
+    float iconOpacity() { return m_iconOpacity; }
+    void setIconOpacity(float value) { m_iconOpacity = value; update(); }
+    void animateShow(bool visible);
+
+    void setAutoHide(bool hide) { m_autoHide = hide; }
+    bool hasAutoHide() const { return m_autoHide; }
+
+    QSize sizeHint() const;
+
+protected:
+    void keyPressEvent(QKeyEvent *ke);
+    void keyReleaseEvent(QKeyEvent *ke);
+
+private:
+    float m_iconOpacity;
+    bool m_autoHide;
+    QPixmap m_pixmap;
+};
+
+class QTCREATOR_UTILS_EXPORT FancyLineEdit : public CompletingLineEdit
+{
     Q_OBJECT
     Q_ENUMS(Side)
-    Q_PROPERTY(QPixmap pixmap READ pixmap WRITE setPixmap DESIGNABLE true)
-    Q_PROPERTY(Side side READ side WRITE setSide DESIGNABLE isSideStored STORED isSideStored)
-    Q_PROPERTY(bool useLayoutDirection READ useLayoutDirection WRITE setUseLayoutDirection DESIGNABLE true)
-    Q_PROPERTY(bool menuTabFocusTrigger READ hasMenuTabFocusTrigger WRITE setMenuTabFocusTrigger  DESIGNABLE true)
-    Q_PROPERTY(QString hintText READ hintText WRITE setHintText DESIGNABLE true)
+
+    // Validation.
+    Q_PROPERTY(QString initialText READ initialText WRITE setInitialText DESIGNABLE true)
+    Q_PROPERTY(QColor errorColor READ errorColor WRITE setErrorColor DESIGNABLE true)
 
 public:
-    enum Side {Left, Right};
+    enum Side {Left = 0, Right = 1};
 
     explicit FancyLineEdit(QWidget *parent = 0);
     ~FancyLineEdit();
 
-    QPixmap pixmap() const;
+    QPixmap buttonPixmap(Side side) const;
+    void setButtonPixmap(Side side, const QPixmap &pixmap);
 
-    void setMenu(QMenu *menu);
-    QMenu *menu() const;
+    QMenu *buttonMenu(Side side) const;
+    void setButtonMenu(Side side, QMenu *menu);
 
-    void setSide(Side side);
-    Side side() const;
+    void setButtonVisible(Side side, bool visible);
+    bool isButtonVisible(Side side) const;
+    QAbstractButton *button(Side side) const;
 
-    bool useLayoutDirection() const;
-    void setUseLayoutDirection(bool v);
+    void setButtonToolTip(Side side, const QString &);
+    void setButtonFocusPolicy(Side side, Qt::FocusPolicy policy);
 
     // Set whether tabbing in will trigger the menu.
-    bool hasMenuTabFocusTrigger() const;
-    void setMenuTabFocusTrigger(bool v);
+    void setMenuTabFocusTrigger(Side side, bool v);
+    bool hasMenuTabFocusTrigger(Side side) const;
 
-    // Hint text that is displayed when no focus is set.
-    QString hintText() const;
+    // Set if icon should be hidden when text is empty
+    void setAutoHideButton(Side side, bool h);
+    bool hasAutoHideButton(Side side) const;
 
-    bool isShowingHintText() const;
 
-    // Convenience for accessing the text that returns "" in case of isShowingHintText().
-    QString typedText() const;
+    // Completion
 
-public slots:
-    void setPixmap(const QPixmap &pixmap);
-    void setHintText(const QString &ht);
-    void showHintText();
-    void hideHintText();
+    // Enable a history completer with a history of entries.
+    void setHistoryCompleter(const QString &historyKey);
+    // Sets a completer that is not a history completer.
+    void setSpecialCompleter(QCompleter *completer);
+
+
+    // Filtering
+
+    // Enables fitering
+    void setFiltering(bool on);
+
+
+    //  Validation
+
+    enum State { Invalid, DisplayingInitialText, Valid };
+
+    State state() const;
+    bool isValid() const;
+    QString errorMessage() const;
+
+    QString initialText() const;
+    void setInitialText(const QString &);
+
+    QColor errorColor() const;
+    void setErrorColor(const  QColor &);
+
+    // Trigger an update (after changing settings)
+    void triggerChanged();
+
+    static QColor textColor(const QWidget *w);
+    static void setTextColor(QWidget *w, const QColor &c);
+
+protected slots:
+    // Custom behaviour can be added here.
+    virtual void handleChanged(const QString &) {}
+
+signals:
+    void buttonClicked(Utils::FancyLineEdit::Side side);
+    void leftButtonClicked();
+    void rightButtonClicked();
+
+    void filterChanged(const QString &);
+
+    void validChanged();
+    void validChanged(bool validState);
+    void validReturnPressed();
+
+private slots:
+    void iconClicked();
+    void onTextChanged(const QString &);
+    void onEditingFinished();
 
 protected:
-    virtual void resizeEvent(QResizeEvent *e);
-    virtual void focusInEvent(QFocusEvent *e);
-    virtual void focusOutEvent(QFocusEvent *e);
+    void resizeEvent(QResizeEvent *e);
+
+    virtual bool validate(const QString &value, QString *errorMessage) const;
+    virtual QString fixInputString(const QString &string);
 
 private:
-    bool isSideStored() const;
-    void updateMenuLabel();
-    void positionMenuLabel();
-    void updateStyleSheet(Side side);
+    // Unimplemented, to force the user to make a decision on
+    // whether to use setHistoryCompleter() or setSpecialCompleter().
+    void setCompleter(QCompleter *);
 
-    FancyLineEditPrivate *m_d;
+    void updateMargins();
+    void updateButtonPositions();
+    friend class FancyLineEditPrivate;
+
+    FancyLineEditPrivate *d;
 };
 
 } // namespace Utils

@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,47 +21,60 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef PATHCHOOSER_H
 #define PATHCHOOSER_H
 
-#include "utils_global.h"
+#include "fileutils.h"
 
 #include <QWidget>
-#include <QAbstractButton>
+
+QT_BEGIN_NAMESPACE
+class QAbstractButton;
+class QLineEdit;
+QT_END_NAMESPACE
+
 
 namespace Utils {
 
-struct PathChooserPrivate;
+class FancyLineEdit;
+class Environment;
+class PathChooserPrivate;
 
-/**
- * A control that let's the user choose a path, consisting of a QLineEdit and
- * a "Browse" button. Has some validation logic for embedding into QWizardPage.
- */
 class QTCREATOR_UTILS_EXPORT PathChooser : public QWidget
 {
-    Q_DISABLE_COPY(PathChooser)
     Q_OBJECT
     Q_ENUMS(Kind)
-    Q_PROPERTY(QString path READ path WRITE setPath DESIGNABLE true)
+    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged DESIGNABLE true)
     Q_PROPERTY(QString promptDialogTitle READ promptDialogTitle WRITE setPromptDialogTitle DESIGNABLE true)
+    Q_PROPERTY(QString promptDialogFilter READ promptDialogFilter WRITE setPromptDialogFilter DESIGNABLE true)
     Q_PROPERTY(Kind expectedKind READ expectedKind WRITE setExpectedKind DESIGNABLE true)
+    Q_PROPERTY(QString baseDirectory READ baseDirectory WRITE setBaseDirectory DESIGNABLE true)
+    Q_PROPERTY(QStringList commandVersionArguments READ commandVersionArguments WRITE setCommandVersionArguments)
+    Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly DESIGNABLE true)
+    // Designer does not know this type, so force designable to false:
+    Q_PROPERTY(Utils::FileName fileName READ fileName WRITE setFileName DESIGNABLE false)
+    Q_PROPERTY(Utils::FileName baseFileName READ baseFileName WRITE setBaseFileName DESIGNABLE false)
 
 public:
-    static const char * const browseButtonLabel;
+    static QString browseButtonLabel();
 
     explicit PathChooser(QWidget *parent = 0);
     virtual ~PathChooser();
 
     enum Kind {
-        Directory,
+        ExistingDirectory,
+        Directory, // A directory, doesn't need to exist
         File,
-        Command
-        // ,Any
+        SaveFile,
+        ExistingCommand, // A command that must exist at the time of selection
+        Command, // A command that may or may not exist at the time of selection (e.g. result of a build)
+        Any
     };
 
     // Default is <Directory>
@@ -81,6 +93,16 @@ public:
     QString errorMessage() const;
 
     QString path() const;
+    QString rawPath() const; // The raw unexpanded input.
+    FileName fileName() const;
+
+    QString baseDirectory() const;
+    void setBaseDirectory(const QString &directory);
+
+    FileName baseFileName() const;
+    void setBaseFileName(const FileName &base);
+
+    void setEnvironment(const Environment &env);
 
     /** Returns the suggested label title when used in a form layout. */
     static QString label();
@@ -91,8 +113,29 @@ public:
     static QString homePath();
 
     void addButton(const QString &text, QObject *receiver, const char *slotFunc);
+    void insertButton(int index, const QString &text, QObject *receiver, const char *slotFunc);
     QAbstractButton *buttonAtIndex(int index) const;
 
+    FancyLineEdit *lineEdit() const;
+
+    // For PathChoosers of 'Command' type, this property specifies the arguments
+    // required to obtain the tool version (commonly, '--version'). Setting them
+    // causes the version to be displayed as a tooltip.
+    QStringList commandVersionArguments() const;
+    void setCommandVersionArguments(const QStringList &arguments);
+
+    // Utility to run a tool and return its stdout.
+    static QString toolVersion(const QString &binary, const QStringList &arguments);
+    // Install a tooltip on lineedits used for binaries showing the version.
+    static void installLineEditVersionToolTip(QLineEdit *le, const QStringList &arguments);
+
+    // Enable a history completer with a history of entries.
+    void setHistoryCompleter(const QString &historyKey);
+
+    bool isReadOnly() const;
+    void setReadOnly(bool b);
+
+    void triggerChanged();
 private:
     // Returns overridden title or the one from <title>
     QString makeDialogTitle(const QString &title);
@@ -101,6 +144,7 @@ signals:
     void validChanged();
     void validChanged(bool validState);
     void changed(const QString &text);
+    void pathChanged(const QString &path);
     void editingFinished();
     void beforeBrowsing();
     void browsingFinished();
@@ -108,12 +152,14 @@ signals:
 
 public slots:
     void setPath(const QString &);
+    void setFileName(const Utils::FileName &);
 
 private slots:
     void slotBrowse();
+    void slotTextChanged();
 
 private:
-    PathChooserPrivate *m_d;
+    PathChooserPrivate *d;
 };
 
 } // namespace Utils

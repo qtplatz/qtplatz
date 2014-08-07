@@ -25,9 +25,8 @@
 
 #pragma once
 
+#include <coreplugin/idocument.h>
 
-
-#include <coreplugin/ifile.h>
 #if ! defined Q_MOC_RUN
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/datafile.hpp>
@@ -49,7 +48,7 @@ namespace dataproc {
 
     class Dataprocessor;
 
-    class IFileImpl : public Core::IFile
+    class IFileImpl : public Core::IDocument
                        , public adcontrols::dataSubscriber
                        , boost::noncopyable {
         Q_OBJECT
@@ -59,8 +58,10 @@ namespace dataproc {
 
         void setModified( bool val = true );
 
-        // implement Core::IFile
-        virtual bool save(const QString &fileName);
+        // implement Core::IDocument
+        bool save( QString*, const QString&, bool ) override;
+        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
+
         virtual QString fileName() const;
       
         virtual QString defaultPath() const;

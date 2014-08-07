@@ -34,11 +34,10 @@ AcquireMode::~AcquireMode()
     Core::EditorManager::instance()->setParent(0);
 }
 
-AcquireMode::AcquireMode(QObject *parent) :
-    Core::BaseMode(parent)
+AcquireMode::AcquireMode(QObject *parent) : Core::IMode(parent)
 {
-    setName(tr("Acquire"));
-    setUniqueModeName( "Acquire.Mode" );
+    setDisplayName( tr( "Acquire" ) );
+    // setUniqueModeName( "Acquire.Mode" );
     setIcon(QIcon(":/acquire/images/RunControl.png"));
     setPriority( 90 );
 }

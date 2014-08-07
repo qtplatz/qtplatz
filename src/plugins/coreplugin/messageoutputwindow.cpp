@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,22 +21,37 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "messageoutputwindow.h"
+#include "outputwindow.h"
+#include "icontext.h"
+#include "coreconstants.h"
+#include "find/basetextfind.h"
 
-#include <QTextEdit>
+#include <aggregation/aggregate.h>
 
 using namespace Core::Internal;
 
 MessageOutputWindow::MessageOutputWindow()
 {
-    m_widget = new QTextEdit;
+    m_widget = new Core::OutputWindow(Core::Context(Core::Constants::C_GENERAL_OUTPUT_PANE));
     m_widget->setReadOnly(true);
-    m_widget->setFrameStyle(QFrame::NoFrame);
+    // Let selected text be colored as if the text edit was editable,
+    // otherwise the highlight for searching is too light
+    QPalette p = m_widget->palette();
+    QColor activeHighlight = p.color(QPalette::Active, QPalette::Highlight);
+    p.setColor(QPalette::Highlight, activeHighlight);
+    QColor activeHighlightedText = p.color(QPalette::Active, QPalette::HighlightedText);
+    p.setColor(QPalette::HighlightedText, activeHighlightedText);
+    m_widget->setPalette(p);
+    Aggregation::Aggregate *agg = new Aggregation::Aggregate;
+    agg->add(m_widget);
+    agg->add(new Core::BaseTextFind(m_widget));
 }
 
 MessageOutputWindow::~MessageOutputWindow()
@@ -45,12 +59,12 @@ MessageOutputWindow::~MessageOutputWindow()
     delete m_widget;
 }
 
-bool MessageOutputWindow::hasFocus()
+bool MessageOutputWindow::hasFocus() const
 {
     return m_widget->hasFocus();
 }
 
-bool MessageOutputWindow::canFocus()
+bool MessageOutputWindow::canFocus() const
 {
     return true;
 }
@@ -71,9 +85,9 @@ QWidget *MessageOutputWindow::outputWidget(QWidget *parent)
     return m_widget;
 }
 
-QString MessageOutputWindow::name() const
+QString MessageOutputWindow::displayName() const
 {
-    return tr("General");
+    return tr("General Messages");
 }
 
 void MessageOutputWindow::visibilityChanged(bool /*b*/)
@@ -82,7 +96,7 @@ void MessageOutputWindow::visibilityChanged(bool /*b*/)
 
 void MessageOutputWindow::append(const QString &text)
 {
-    m_widget->append(text);
+    m_widget->appendText(text);
 }
 
 int MessageOutputWindow::priorityInStatusBar() const
@@ -90,12 +104,12 @@ int MessageOutputWindow::priorityInStatusBar() const
     return -1;
 }
 
-bool MessageOutputWindow::canNext()
+bool MessageOutputWindow::canNext() const
 {
     return false;
 }
 
-bool MessageOutputWindow::canPrevious()
+bool MessageOutputWindow::canPrevious() const
 {
     return false;
 }
@@ -110,7 +124,7 @@ void MessageOutputWindow::goToPrev()
 
 }
 
-bool MessageOutputWindow::canNavigate()
+bool MessageOutputWindow::canNavigate() const
 {
     return false;
 }

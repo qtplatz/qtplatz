@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,41 +21,60 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef PROGRESSMANAGER_H
 #define PROGRESSMANAGER_H
 
 #include <coreplugin/core_global.h>
-#include <coreplugin/progressmanager/futureprogress.h>
+#include <coreplugin/id.h>
 
-#include <QtCore/QObject>
-#include <QtCore/QFuture>
+#include <QObject>
+#include <QFuture>
 
 namespace Core {
+class FutureProgress;
+
+namespace Internal { class ProgressManagerPrivate; }
 
 class CORE_EXPORT ProgressManager : public QObject
 {
     Q_OBJECT
 public:
-    enum PersistentType { CloseOnSuccess, KeepOnFinish };
+    enum ProgressFlag {
+        KeepOnFinish = 0x01,
+        ShowInApplicationIcon = 0x02
+    };
+    Q_DECLARE_FLAGS(ProgressFlags, ProgressFlag)
 
-    ProgressManager(QObject *parent = 0) : QObject(parent) {}
-    virtual ~ProgressManager() {}
+    static QObject *instance();
 
-    virtual FutureProgress *addTask(const QFuture<void> &future, const QString &title, const QString &type, PersistentType persistency = KeepOnFinish) = 0;
+    static FutureProgress *addTask(const QFuture<void> &future, const QString &title,
+                                   Core::Id type, ProgressFlags flags = 0);
+    static FutureProgress *addTimedTask(const QFutureInterface<void> &fi, const QString &title,
+                                   Core::Id type, int expectedSeconds, ProgressFlags flags = 0);
+    static void setApplicationLabel(const QString &text);
 
 public slots:
-    virtual void cancelTasks(const QString &type) = 0;
+    static void cancelTasks(Id type);
 
 signals:
-    void taskStarted(const QString &type);
-    void allTasksFinished(const QString &type);
+    void taskStarted(Core::Id type);
+    void allTasksFinished(Core::Id type);
+
+private:
+    ProgressManager();
+    ~ProgressManager();
+
+    friend class Core::Internal::ProgressManagerPrivate;
 };
 
 } // namespace Core
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Core::ProgressManager::ProgressFlags)
 
 #endif //PROGRESSMANAGER_H

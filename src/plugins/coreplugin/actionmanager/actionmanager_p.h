@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,96 +21,75 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef ACTIONMANAGERPRIVATE_H
 #define ACTIONMANAGERPRIVATE_H
 
-#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/actionmanager/command_p.h>
+#include <coreplugin/actionmanager/actioncontainer_p.h>
+#include <coreplugin/icontext.h>
 
-#include <QtCore/QMap>
-#include <QtCore/QHash>
-#include <QtCore/QMultiHash>
+#include <QMap>
+#include <QHash>
+#include <QMultiHash>
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
+class QLabel;
 class QSettings;
 QT_END_NAMESPACE
 
-struct CommandLocation
-{
-    int m_container;
-    int m_position;
-};
-
 namespace Core {
-
-class UniqueIDManager;
 
 namespace Internal {
 
+class Action;
 class ActionContainerPrivate;
 class MainWindow;
-class CommandPrivate;
 
-class ActionManagerPrivate : public Core::ActionManager
+class ActionManagerPrivate : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit ActionManagerPrivate(MainWindow *mainWnd);
+    typedef QHash<Core::Id, Action *> IdCmdMap;
+    typedef QHash<Core::Id, ActionContainerPrivate *> IdContainerMap;
+
+    explicit ActionManagerPrivate();
     ~ActionManagerPrivate();
-
-    void setContext(const QList<int> &context);
-    static ActionManagerPrivate *instance();
-
-    void saveSettings(QSettings *settings);
-    QList<int> defaultGroups() const;
-
-    QList<CommandPrivate *> commands() const;
-    QList<ActionContainerPrivate *> containers() const;
-
-    bool hasContext(int context) const;
-
-    Command *command(int uid) const;
-    ActionContainer *actionContainer(int uid) const;
 
     void initialize();
 
-    //ActionManager Interface
-    ActionContainer *createMenu(const QString &id);
-    ActionContainer *createMenuBar(const QString &id);
+    void setContext(const Context &context);
+    bool hasContext(int context) const;
 
-    Command *registerAction(QAction *action, const QString &id,
-        const QList<int> &context);
-    Command *registerShortcut(QShortcut *shortcut, const QString &id,
-        const QList<int> &context);
+    void saveSettings(QSettings *settings);
 
-    Core::Command *command(const QString &id) const;
-    Core::ActionContainer *actionContainer(const QString &id) const;
+    void showShortcutPopup(const QString &shortcut);
+    bool hasContext(const Context &context) const;
+    Action *overridableAction(Id id);
 
-private:
-    bool hasContext(QList<int> context) const;
-    Command *registerOverridableAction(QAction *action, const QString &id,
-        bool checkUnique);
+    void readUserSettings(Id id, Action *cmd);
 
-    static ActionManagerPrivate* m_instance;
-    QList<int> m_defaultGroups;
+public slots:
+    void containerDestroyed();
 
-    typedef QHash<int, CommandPrivate *> IdCmdMap;
+    void actionTriggered();
+
+public:
     IdCmdMap m_idCmdMap;
 
-    typedef QHash<int, ActionContainerPrivate *> IdContainerMap;
     IdContainerMap m_idContainerMap;
 
-//    typedef QMap<int, int> GlobalGroupMap;
-//    GlobalGroupMap m_globalgroups;
-//
-    QList<int> m_context;
+    Context m_context;
 
-    MainWindow *m_mainWnd;
+    QLabel *m_presentationLabel;
+    QTimer m_presentationLabelTimer;
 };
 
 } // namespace Internal

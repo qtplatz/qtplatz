@@ -27,11 +27,11 @@
 
 #pragma once
 
-#include <coreplugin/basemode.h>
+#include <coreplugin/imode.h>
 
 namespace u5303a {
 
-    class u5303AMode : public Core::BaseMode {
+    class u5303AMode : public Core::IMode {
         Q_OBJECT
     public:
         explicit u5303AMode(QObject *parent = 0);

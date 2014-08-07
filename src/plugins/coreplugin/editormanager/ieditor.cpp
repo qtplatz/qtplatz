@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,19 +21,21 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "ieditor.h"
 
 /*!
   \class Core::IEditor
-  \brief The IEditor is an interface for providing different editors for different file types.
+  \brief The IEditor class is an interface for providing different editors for
+  different file types.
 
   Classes that implement this interface are for example the editors for
-  C++ files, ui-files and resource files.
+  C++ files, UI files and resource files.
 
   Whenever a user wants to edit or create a file, the EditorManager scans all
   EditorFactoryInterfaces for suitable editors. The selected EditorFactory
@@ -42,14 +43,34 @@
 
   Guidelines for implementing:
   \list
-  \o displayName() is used as a user visible description of the document (usually filename w/o path).
-  \o kind() must be the same value as the kind() of the corresponding EditorFactory.
-  \o The changed() signal should be emitted when the modified state of the document changes
-     (so /bold{not} every time the document changes, but /bold{only once}).
-  \o If duplication is supported, you need to ensure that all duplicates
-        return the same file().
+  \li \c displayName() is used as a user visible description of the document
+      (usually filename w/o path).
+  \li \c kind() must be the same value as the \c kind() of the corresponding
+      EditorFactory.
+  \li If duplication is supported, you need to ensure that all duplicates
+        return the same \c file().
+  \li QString \c preferredMode() const is the mode the editor manager should
+      activate. Some editors use a special mode (such as \gui Design mode).
   \endlist
 
   \sa Core::EditorFactoryInterface Core::IContext
 
 */
+
+namespace Core {
+
+IEditor::IEditor(QObject *parent)
+    : IContext(parent), m_duplicateSupported(false)
+{}
+
+bool IEditor::duplicateSupported() const
+{
+    return m_duplicateSupported;
+}
+
+void IEditor::setDuplicateSupported(bool duplicatesSupported)
+{
+    m_duplicateSupported = duplicatesSupported;
+}
+
+} // namespace Core

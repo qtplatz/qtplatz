@@ -27,6 +27,14 @@
 
 using namespace adcontrols;
 
+datafile::datafile()
+{
+}
+
+datafile::~datafile()
+{
+}
+
 // static
 bool
 datafile::access( const std::wstring& filename )

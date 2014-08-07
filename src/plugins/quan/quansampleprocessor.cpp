@@ -26,7 +26,7 @@
 #include "quanprocessor.hpp"
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
-#include "../plugins/dataproc/constants.hpp"
+#include "../plugins/dataproc/dataprocconstants.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/centroidmethod.hpp>

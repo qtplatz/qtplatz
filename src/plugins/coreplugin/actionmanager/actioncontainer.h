@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,47 +21,60 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef ACTIONCONTAINER_H
 #define ACTIONCONTAINER_H
 
-#include <QtCore/QObject>
-#include <QMenu>
-#include <QMenuBar>
-#include <QAction>
+#include "coreplugin/core_global.h"
+#include "coreplugin/icontext.h"
+
+#include <QObject>
+
+QT_BEGIN_NAMESPACE
+class QMenu;
+class QMenuBar;
+class QAction;
+QT_END_NAMESPACE
 
 namespace Core {
 
 class Command;
 
-class ActionContainer : public QObject
+class CORE_EXPORT ActionContainer : public QObject
 {
+    Q_OBJECT
+
 public:
-    enum EmptyAction {
-        EA_Mask             = 0xFF00,
-        EA_None             = 0x0100,
-        EA_Hide             = 0x0200,
-        EA_Disable          = 0x0300
+    enum OnAllDisabledBehavior {
+        Disable,
+        Hide,
+        Show
     };
 
-    virtual void setEmptyAction(EmptyAction ea) = 0;
+    virtual void setOnAllDisabledBehavior(OnAllDisabledBehavior behavior) = 0;
+    virtual ActionContainer::OnAllDisabledBehavior onAllDisabledBehavior() const = 0;
 
-    virtual int id() const = 0;
+    virtual Id id() const = 0;
 
     virtual QMenu *menu() const = 0;
     virtual QMenuBar *menuBar() const = 0;
 
-    virtual QAction *insertLocation(const QString &group) const = 0;
-    virtual void appendGroup(const QString &group) = 0;
-    virtual void addAction(Core::Command *action, const QString &group = QString()) = 0;
-    virtual void addMenu(Core::ActionContainer *menu, const QString &group = QString()) = 0;
+    virtual QAction *insertLocation(Id group) const = 0;
+    virtual void appendGroup(Id group) = 0;
+    virtual void insertGroup(Id before, Id group) = 0;
+    virtual void addAction(Command *action, Id group = Id()) = 0;
+    virtual void addMenu(ActionContainer *menu, Id group = Id()) = 0;
+    virtual void addMenu(ActionContainer *before, ActionContainer *menu, Id group = Id()) = 0;
+    virtual Command *addSeparator(const Context &context, Id group = Id(), QAction **outSeparator = 0) = 0;
 
-    virtual bool update() = 0;
-    virtual ~ActionContainer() {}
+    // This clears this menu and submenus from all actions and submenus.
+    // It does not destroy the submenus and commands, just removes them from their parents.
+    virtual void clear() = 0;
 };
 
 } // namespace Core

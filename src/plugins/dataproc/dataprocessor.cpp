@@ -34,8 +34,8 @@
 #include <adcontrols/lockmass.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <extensionsystem/pluginmanager.h>
-#include <coreplugin/uniqueidmanager.h>
-#include <coreplugin/ifile.h>
+#include <coreplugin/id.h>
+#include <coreplugin/idocument.h>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
@@ -123,7 +123,94 @@ Dataprocessor::~Dataprocessor()
 }
 
 Dataprocessor::Dataprocessor() : portfolio_( new portfolio::Portfolio() )
+                               , rawDataset_( 0 )
+                               , modified_( false )
 {
+}
+
+void
+Dataprocessor::setModified( bool modified )
+{
+    modified_ = modified;
+}
+
+// IDocument
+
+bool
+Dataprocessor::isModified() const
+{
+    return modified_;
+}
+
+bool
+Dataprocessor::isFileReadOnly() const
+{
+    return false;
+}
+
+bool
+Dataprocessor::save( QString * errorString, const QString& filename, bool autoSave )
+{
+	boost::filesystem::path path( file_->filename() ); // original name
+	if ( path.extension() != L".adfs" )
+		path.replace_extension( L".adfs" );
+
+    if ( filename.isEmpty() || ( path == boost::filesystem::path( filename.toStdString() ) ) ) {
+        // Save
+        if ( !file_->saveContents( L"/Processed", *portfolio_ ) )
+			return false;
+
+    } else { // save as 'filename
+
+        path = filename.toStdWString();
+
+		if ( boost::filesystem::exists( path ) ) {
+            *errorString = "File already exists";
+            // QMessageBox::warning( 0, "Datafile save", "file already exists" );
+            return false;
+        }
+        std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
+        if ( !(file_ && file_->saveContents( L"/Processed", *portfolio_, *file_ )) )
+			return false;
+    }
+
+    // for debug convension
+    do {
+        path.replace_extension( ".xml" );
+        boost::filesystem::remove( path );
+        pugi::xml_document dom;
+        dom.load( portfolio_->xml().c_str() );
+        dom.save_file( path.string().c_str() );
+    } while(0);
+
+    setModified( false );
+    return true;
+}
+
+bool
+Dataprocessor::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType )
+{
+    return true;
+}
+
+QString
+Dataprocessor::defaultPath() const
+{
+	return adportable::profile::user_data_dir<char>().c_str();
+}
+
+QString
+Dataprocessor::suggestedFileName() const
+{
+	boost::filesystem::path path( file_->filename() );
+	path.replace_extension( L".adfs" );
+    return QString::fromStdWString( path.normalize().wstring() );
+}
+
+bool
+Dataprocessor::isSaveAsAllowed() const
+{
+    return true;
 }
 
 bool
@@ -133,10 +220,12 @@ Dataprocessor::create(const QString& filename )
     path.replace_extension( L".adfs" );
     portfolio_->create_with_fullpath( path.wstring() );
 
-    adcontrols::datafile * file = adcontrols::datafile::create( path.wstring() );
+    auto file = adcontrols::datafile::create( path.wstring() );
     if ( file ) {
-        ifileimpl_.reset( new IFileImpl( file, *this ) );
-        file->accept( *ifileimpl_ );
+        file_.reset( file );
+        file_->open( filename.toStdWString() );
+        // ifileimpl_.reset( new IFileImpl( file, *this ) );
+        // file->accept( *ifileimpl_ );
         file->accept( *this );
         return true;
     }
@@ -148,9 +237,8 @@ Dataprocessor::open(const QString &fileName )
 {
     try {
         if ( adcontrols::datafile * file = adcontrols::datafile::open( fileName.toStdWString(), false ) ) {
-            ifileimpl_.reset( new IFileImpl( file, *this ) );
+            file_.reset( file );
             try {
-                file->accept( *ifileimpl_ );
                 file->accept( *this );
                 return true;
             } catch ( boost::exception& ex ) {
@@ -169,34 +257,34 @@ Dataprocessor::open(const QString &fileName )
     return false;
 }
 
-Core::IFile *
-Dataprocessor::ifile()
-{
-    return static_cast<Core::IFile *>( ifileimpl_.get() );
-}
+//Core::IDocument *
+//Dataprocessor::ifile()
+//{
+//    return static_cast<Core::IDocument *>(ifileimpl_.get());
+//}
 
 adcontrols::datafile&
 Dataprocessor::file()
 {
-    return ifileimpl_->file();
+    return *file_;// ifileimpl_->file();
 }
 
 const std::wstring&
 Dataprocessor::filename() const
 {
-	return ifileimpl_->file().filename();
+    return file_->filename();
 }
 
 bool
 Dataprocessor::load( const std::wstring& path, const std::wstring& id )
 {
-    return ifileimpl_->file().loadContents( path, id, *this );
+    return false; // ifileimpl_->file().loadContents( path, id, *this );
 }
 
 const adcontrols::LCMSDataset *
 Dataprocessor::getLCMSDataset()
 {
-    return ifileimpl_->getLCMSDataset();
+    return rawDataset_;
 }
 
 portfolio::Portfolio
@@ -360,7 +448,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
      
         for ( auto it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( processIt(*it, folium), data );
-		ifileimpl_->setModified();
+        setModified( true );
         SessionManager::instance()->processed( this, folium );
     }
 }
@@ -435,7 +523,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
             }
         }
     }
-	ifileimpl_->setModified();
+    setModified( true );
 }
 
 
@@ -466,7 +554,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 
 			addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
 		}
-		ifileimpl_->setModified();
+		setModified( true );
     }
 }
 
@@ -501,7 +589,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
 			boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
 
 		SessionManager::instance()->updateDataprocessor( this, folium );
-		ifileimpl_->setModified();
+		setModified( true );
 	}
 }
 
@@ -530,7 +618,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
         if ( pCalibMethod )
             addCalibration( *profile, *centroid, *pCalibMethod, assigned );
     }
-	ifileimpl_->setModified();
+	setModified( true );
 }
 
 void
@@ -561,7 +649,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
     if ( DataprocessorImpl::applyMethod( folium, calibMethod, assigned ) ) 
         SessionManager::instance()->updateDataprocessor( this, folium );
 
-	ifileimpl_->setModified();
+	setModified( true );
 }
 
 void
@@ -625,7 +713,7 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
         }
     }
 	file().applyCalibration( dataInterpreterClsid, calibration );
-    ifileimpl_->setModified();
+    setModified( true );
 }
 
 void
@@ -660,7 +748,7 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
                 }
 
                 lockmass( *ptr ); // update profile spectrum
-                ifileimpl_->setModified();
+                setModified( true );
             }
         }
 	}
@@ -669,7 +757,7 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
 void
 Dataprocessor::formulaChanged()
 {
-    ifileimpl_->setModified();
+    setModified( true );
 }
 
 portfolio::Folium
@@ -785,7 +873,7 @@ Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
 bool
 Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 {
-    (void)data;
+    rawDataset_ = &data;
 	return true;
 }
 

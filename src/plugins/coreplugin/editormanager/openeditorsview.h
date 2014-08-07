@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,35 +21,59 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
-    
+****************************************************************************/
+
 #ifndef OPENEDITORSVIEW_H
 #define OPENEDITORSVIEW_H
 
-#include "ui_openeditorsview.h"
-
-#include <coreplugin/editormanager/ieditor.h>
+#include <utils/itemviews.h>
 #include <coreplugin/inavigationwidgetfactory.h>
 
-#include <QtCore/QList>
-#include <QWidget>
-#include <QtGui/QKeySequence>
-#include <QAbstractButton>
-#include <QTreeWidgetItem>
+#include <QAbstractProxyModel>
 #include <QStyledItemDelegate>
+#include <QTreeView>
 
 namespace Core {
+class IEditor;
+
 namespace Internal {
+
+class ProxyModel : public QAbstractProxyModel
+{
+    Q_OBJECT
+public:
+    explicit ProxyModel(QObject *parent = 0);
+    QModelIndex mapFromSource(const QModelIndex & sourceIndex) const;
+    QModelIndex mapToSource(const QModelIndex & proxyIndex) const;
+
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+    QModelIndex parent(const QModelIndex &child) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+    void setSourceModel(QAbstractItemModel *sourceModel);
+
+#if QT_VERSION >= 0x050000
+    // QAbstractProxyModel::sibling is broken in Qt 5
+    QModelIndex sibling(int row, int column, const QModelIndex &idx) const;
+#endif
+
+private slots:
+    void sourceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+    void sourceRowsRemoved(const QModelIndex &parent, int start, int end);
+    void sourceRowsInserted(const QModelIndex &parent, int start, int end);
+    void sourceRowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
+    void sourceRowsAboutToBeInserted(const QModelIndex &parent, int start, int end);
+};
 
 class OpenEditorsDelegate : public QStyledItemDelegate
 {
-    Q_OBJECT
-
 public:
-    OpenEditorsDelegate(QObject *parent = 0);
+    explicit OpenEditorsDelegate(QObject *parent = 0);
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
                const QModelIndex &index) const;
@@ -58,8 +81,7 @@ public:
     mutable QModelIndex pressedIndex;
 };
 
-
-class OpenEditorsWidget : public QWidget
+class OpenEditorsWidget : public Utils::TreeView
 {
     Q_OBJECT
 
@@ -70,7 +92,7 @@ public:
     bool eventFilter(QObject *obj, QEvent *event);
 
 private slots:
-    void handleClicked(const QModelIndex &);
+    void handleActivated(const QModelIndex &);
     void handlePressed(const QModelIndex &);
     void updateCurrentItem(Core::IEditor*);
     void contextMenuRequested(QPoint pos);
@@ -78,19 +100,19 @@ private slots:
 private:
     void activateEditor(const QModelIndex &index);
     void closeEditor(const QModelIndex &index);
+    using QAbstractItemView::closeEditor;
 
-    Ui::OpenEditorsView m_ui;
-    QWidget *m_widget;
     OpenEditorsDelegate *m_delegate;
+    ProxyModel *m_model;
 };
 
 class OpenEditorsViewFactory : public Core::INavigationWidgetFactory
 {
+    Q_OBJECT
+
 public:
     OpenEditorsViewFactory();
-    virtual ~OpenEditorsViewFactory();
-    QString displayName();
-    virtual QKeySequence activationSequence();
+
     Core::NavigationView createWidget();
 };
 

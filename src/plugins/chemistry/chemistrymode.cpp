@@ -26,7 +26,7 @@
 #include "constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 
@@ -34,19 +34,20 @@ using namespace chemistry;
 
 ChemistryMode::ChemistryMode( QObject * /* parent */ )
 {
-	setName( tr("Chemistry") );
-	setUniqueModeName( Constants::C_CHEM_MODE );
+	setDisplayName( tr("Chemistry") );
+    // setUniqueModeName( Constants::C_CHEM_MODE );
     setIcon( QIcon( ":/chemistry/images/applications-science-3.png" ) );
 	setPriority( 40 );
 	
-	QList<int> contexts = QList<int>() <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( chemistry::Constants::C_CHEM_MODE ) <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE );
+    Core::Context contexts(
+        (Core::Id( chemistry::Constants::C_CHEM_MODE ))
+        , (Core::Id( Core::Constants::C_EDITORMANAGER ))
+        , (Core::Id( Core::Constants::C_NAVIGATION_PANE )) );
+
     setContext( contexts );
 
-    Core::ModeManager *modeManager = Core::ModeManager::instance();
-    connect(modeManager, SIGNAL(currentModeChanged(Core::IMode*)), this, SLOT(grabEditorManager(Core::IMode*)));
+    //Core::ModeManager *modeManager = Core::ModeManager::instance();
+    //connect( modeManager, SIGNAL( currentModeChanged( Core::IMode* ) ), this, SLOT( grabEditorManager( Core::IMode* ) ) );
 
 }
 

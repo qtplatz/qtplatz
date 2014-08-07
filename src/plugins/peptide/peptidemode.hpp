@@ -27,11 +27,11 @@
 
 #pragma once
 
-#include <coreplugin/basemode.h>
+#include <coreplugin/imode.h>
 
 namespace peptide {
 
-    class PeptideMode : public Core::BaseMode {
+    class PeptideMode : public Core::IMode {
         Q_OBJECT
     public:
         explicit PeptideMode(QObject *parent = 0);

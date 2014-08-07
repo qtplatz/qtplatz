@@ -63,7 +63,8 @@ QuanPlugin::initialize(const QStringList &arguments, QString *errorString)
     //mainWindow_->activateWindow();
     mainWindow_->createActions();
 
-	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    Core::Context gc;
+    gc.add( Core::Id( Core::Constants::C_GLOBAL ) );
     mode_->setContext( gc );
     mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
 

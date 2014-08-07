@@ -127,7 +127,7 @@ DataSequenceWidget::dataSelectionBar()
         //     // edit->setEnabled( false );
         // } while(0);
 
-        if ( Core::ActionManager * am = Core::ICore::instance()->actionManager() ) {
+        if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
 
             if ( auto execButton = new QToolButton ) { //( am->command( Constants::SEQUENCE_RUN )->action() );
                 execButton->setDefaultAction( am->command( Constants::SEQUENCE_RUN )->action() );

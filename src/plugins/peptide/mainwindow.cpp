@@ -161,8 +161,8 @@ MainWindow::createTopStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-        Core::ActionManager * am = Core::ICore::instance()->actionManager();
-        if ( am ) {
+        // Core::ActionManager * am = Core::ICore::instance()->actionManager();
+        if ( auto am = Core::ActionManager::instance() ) {
             // [file open] button
             toolBarLayout->addWidget(toolButton(am->command(Constants::FILE_OPEN)->action()));
             //-- separator --
@@ -185,8 +185,8 @@ MainWindow::createMidStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin(0);
         toolBarLayout->setSpacing(0);
-        Core::ActionManager * am = Core::ICore::instance()->actionManager();
-        if ( am ) {
+        // Core::ActionManager * am = Core::ICore::instance()->actionManager();
+        if( auto am = Core::ActionManager::instance() ) {
             // print, method file open & save buttons
             //toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
             //toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));
@@ -194,8 +194,8 @@ MainWindow::createMidStyledBar()
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
-            QList<int> context;
-            context << Core::Constants::C_GLOBAL_ID;
+            Core::Context context( (Core::Id( Core::Constants::C_GLOBAL )) );
+            // context << Core::Constants::C_GLOBAL_ID;
             
             // QComboBox * features = new QComboBox;
             // features->addItem( "Centroid" );
@@ -291,8 +291,8 @@ MainWindow::toolButton( QAction * action )
 QToolButton * 
 MainWindow::toolButton( const char * id )
 {
-    Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
-    return toolButton( mgr->command(id)->action() );
+    //Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
+    return toolButton( Core::ActionManager::instance()->command( id )->action() );
 }
 
 QAction *
@@ -309,9 +309,9 @@ MainWindow::createActions()
     actions_[ idActFileOpen ] = createAction( Constants::ICON_FILE_OPEN, tr("Open protain file..."), this );
     connect( actions_[ idActFileOpen ], SIGNAL( triggered() ), this, SLOT( actFileOpen() ) );
 
-    const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
 
-    if ( Core::ActionManager * am = Core::ICore::instance()->actionManager() ) {
+    if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
 
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( "Peptide" );

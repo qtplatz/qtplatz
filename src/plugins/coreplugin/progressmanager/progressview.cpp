@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,121 +21,90 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "progressview.h"
-#include "futureprogress.h"
 
-#include <utils/qtcassert.h>
-
-#include <QHBoxLayout>
+#include <QEvent>
+#include <QVBoxLayout>
 
 using namespace Core;
 using namespace Core::Internal;
 
 ProgressView::ProgressView(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent), m_referenceWidget(0), m_hovered(false)
 {
     m_layout = new QVBoxLayout;
     setLayout(m_layout);
-    m_layout->setMargin(0);
+    m_layout->setContentsMargins(0, 0, 0, 1);
     m_layout->setSpacing(0);
+    m_layout->setSizeConstraint(QLayout::SetFixedSize);
     setWindowTitle(tr("Processes"));
 }
 
 ProgressView::~ProgressView()
 {
-    qDeleteAll(m_taskList);
-    m_taskList.clear();
-    m_type.clear();
-    m_keep.clear();
 }
 
-FutureProgress *ProgressView::addTask(const QFuture<void> &future,
-                                      const QString &title,
-                                      const QString &type,
-                                      ProgressManager::PersistentType persistency)
+void ProgressView::addProgressWidget(QWidget *widget)
 {
-    removeOldTasks(type);
-    if (m_taskList.size() == 3)
-        removeOneOldTask();
-    FutureProgress *progress = new FutureProgress(this);
-    progress->setTitle(title);
-    progress->setFuture(future);
-    m_layout->insertWidget(0, progress);
-    m_taskList.append(progress);
-    m_type.insert(progress, type);
-    m_keep.insert(progress, (persistency == ProgressManager::KeepOnFinish));
-    connect(progress, SIGNAL(finished()), this, SLOT(slotFinished()));
-    return progress;
+    m_layout->insertWidget(0, widget);
 }
 
-void ProgressView::removeOldTasks(const QString &type, bool keepOne)
+void ProgressView::removeProgressWidget(QWidget *widget)
 {
-    bool firstFound = !keepOne; // start with false if we want to keep one
-    QList<FutureProgress *>::iterator i = m_taskList.end();
-    while (i != m_taskList.begin()) {
-        --i;
-        if (m_type.value(*i) == type) {
-            if (firstFound && (*i)->future().isFinished()) {
-                deleteTask(*i);
-                i = m_taskList.erase(i);
-            }
-            firstFound = true;
-        }
+    m_layout->removeWidget(widget);
+}
+
+bool ProgressView::isHovered() const
+{
+    return m_hovered;
+}
+
+void ProgressView::setReferenceWidget(QWidget *widget)
+{
+    if (m_referenceWidget)
+        removeEventFilter(this);
+    m_referenceWidget = widget;
+    if (m_referenceWidget)
+        installEventFilter(this);
+    reposition();
+}
+
+bool ProgressView::event(QEvent *event)
+{
+    if (event->type() == QEvent::ParentAboutToChange && parentWidget()) {
+        parentWidget()->removeEventFilter(this);
+    } else if (event->type() == QEvent::ParentChange && parentWidget()) {
+        parentWidget()->installEventFilter(this);
+    } else if (event->type() == QEvent::Resize) {
+        reposition();
+    } else if (event->type() == QEvent::Enter) {
+        m_hovered = true;
+        emit hoveredChanged(m_hovered);
+    } else if (event->type() == QEvent::Leave) {
+        m_hovered = false;
+        emit hoveredChanged(m_hovered);
     }
+    return QWidget::event(event);
 }
 
-void ProgressView::deleteTask(FutureProgress *progress)
+bool ProgressView::eventFilter(QObject *obj, QEvent *event)
 {
-    m_type.remove(progress);
-    m_keep.remove(progress);
-    layout()->removeWidget(progress);
-    progress->hide();
-    progress->deleteLater();
+    if ((obj == parentWidget() || obj == m_referenceWidget) && event->type() == QEvent::Resize)
+        reposition();
+    return false;
 }
 
-void ProgressView::removeOneOldTask()
+void ProgressView::reposition()
 {
-    if (m_taskList.isEmpty())
+    if (!parentWidget() || !m_referenceWidget)
         return;
-    // look for oldest ended process
-    for (QList<FutureProgress *>::iterator i = m_taskList.begin(); i != m_taskList.end(); ++i) {
-        if ((*i)->future().isFinished()) {
-            deleteTask(*i);
-            i = m_taskList.erase(i);
-            return;
-        }
-    }
-    // no ended process, look for a task type with multiple running tasks and remove the oldest one
-    for (QList<FutureProgress *>::iterator i = m_taskList.begin(); i != m_taskList.end(); ++i) {
-        QString type = m_type.value(*i);
-        if (m_type.keys(type).size() > 1) { // don't care for optimizations it's only a handful of entries
-            deleteTask(*i);
-            i = m_taskList.erase(i);
-            return;
-        }
-    }
-
-    // no ended process, no type with multiple processes, just remove the oldest task
-    FutureProgress *task = m_taskList.takeFirst();
-    deleteTask(task);
-}
-
-void ProgressView::removeTask(FutureProgress *task)
-{
-    m_taskList.removeAll(task);
-    deleteTask(task);
-}
-
-void ProgressView::slotFinished()
-{
-    FutureProgress *progress = qobject_cast<FutureProgress *>(sender());
-    QTC_ASSERT(progress, return);
-    if (m_keep.contains(progress) && !m_keep.value(progress) && !progress->hasError())
-        removeTask(progress);
-    removeOldTasks(m_type.value(progress), true);
+    QPoint topRightReferenceInParent =
+            m_referenceWidget->mapTo(parentWidget(), m_referenceWidget->rect().topRight());
+    move(topRightReferenceInParent - rect().bottomRight());
 }

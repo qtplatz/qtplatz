@@ -1,10 +1,9 @@
-import qbs.base 1.0
-import "../QtcLibrary.qbs" as QtcLibrary
+import qbs 1.0
+import QtcLibrary
 
 QtcLibrary {
     name: "Aggregation"
 
-    Depends { name: "cpp" }
     Depends { name: "Qt.core" }
     cpp.defines: base.concat("AGGREGATION_LIBRARY")
 

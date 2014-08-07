@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,12 +21,15 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "styleanimator.h"
+
+#include <utils/algorithm.h>
 
 #include <QStyleOption>
 
@@ -35,11 +37,7 @@ Animation * StyleAnimator::widgetAnimation(const QWidget *widget) const
 {
     if (!widget)
         return 0;
-    foreach (Animation *a, animations) {
-        if (a->widget() == widget)
-            return a;
-    }
-    return 0;
+    return Utils::findOrDefault(animations, Utils::equal(&Animation::widget, widget));
 }
 
 void Animation::paint(QPainter *painter, const QStyleOption *option)
@@ -48,7 +46,7 @@ void Animation::paint(QPainter *painter, const QStyleOption *option)
     Q_UNUSED(painter)
 }
 
-void Animation::drawBlendedImage(QPainter *painter, QRect rect, float alpha)
+void Animation::drawBlendedImage(QPainter *painter, const QRect &rect, float alpha)
 {
     if (m_secondaryImage.isNull() || m_primaryImage.isNull())
         return;
@@ -65,8 +63,8 @@ void Animation::drawBlendedImage(QPainter *painter, QRect rect, float alpha)
     case 32:
         {
             uchar *mixed_data = m_tempImage.bits();
-            const uchar *back_data = m_primaryImage.bits();
-            const uchar *front_data = m_secondaryImage.bits();
+            const uchar *back_data = m_primaryImage.constBits();
+            const uchar *front_data = m_secondaryImage.constBits();
             for (int sy = 0; sy < sh; sy++) {
                 quint32 *mixed = (quint32*)mixed_data;
                 const quint32* back = (const quint32*)back_data;
@@ -105,8 +103,7 @@ void Transition::paint(QPainter *painter, const QStyleOption *option)
             m_running = false;
             alpha = 1.0;
         }
-    }
-    else {
+    } else {
         m_running = false;
     }
     drawBlendedImage(painter, option->rect, alpha);
@@ -128,9 +125,8 @@ void StyleAnimator::timerEvent(QTimerEvent *)
             delete a;
         }
     }
-    if (animations.size() == 0 && animationTimer.isActive()) {
+    if (animations.size() == 0 && animationTimer.isActive())
         animationTimer.stop();
-    }
 }
 
 void StyleAnimator::stopAnimation(const QWidget *w)
@@ -148,7 +144,6 @@ void StyleAnimator::startAnimation(Animation *t)
 {
     stopAnimation(t->widget());
     animations.append(t);
-    if (animations.size() > 0 && !animationTimer.isActive()) {
+    if (animations.size() > 0 && !animationTimer.isActive())
         animationTimer.start(35, this);
-    }
 }

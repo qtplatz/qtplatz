@@ -35,6 +35,7 @@
 #include "isnapshothandlerimpl.hpp"
 #include "ipeptidehandlerimpl.hpp"
 #include "mainwindow.hpp"
+#include "mimetypehelper.hpp"
 #include "mode.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
@@ -78,7 +79,7 @@
 #include <xmlparser/pugixml.hpp>
 
 #include <coreplugin/icore.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
@@ -117,31 +118,6 @@
 #include <algorithm>
 #include <functional>
 #include <thread>
-
-namespace dataproc {
-    class mimeTypeHelper {
-    public:
-        static bool add( Core::MimeDatabase * mdb, const char * xml, int len, QString*& emsg ) {
-            if ( mdb && xml ) {
-                QBuffer io;
-                io.setData( xml, len );
-                io.open( QIODevice::ReadOnly );
-                return  mdb->addMimeTypes( &io, emsg );
-            }
-            return false;
-        }
-        static bool populate( QStringList& vec, const char * xml ) {
-            pugi::xml_document doc;
-            if ( doc.load( xml ) ) {
-                pugi::xpath_node_set list = doc.select_nodes( "/mime-info/mime-type" );
-                for ( auto it = list.begin(); it != list.end(); ++it )
-                    vec << it->node().attribute( "type" ).value();
-				return true;
-			}
-			return false;
-        }
-    };
-}
 
 using namespace dataproc;
 
@@ -186,10 +162,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     if ( core == 0 )
         return false;
 
-    QList<int> context;
-    if ( Core::UniqueIDManager * uidm = core->uniqueIDManager() ) {
-        context.append( uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR ) );
-    }
+    Core::Context context( (Core::Id( Constants::C_DATAPROCESSOR )) );
 
     //-------------------------------------------------------------------------------------------
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
@@ -208,11 +181,11 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     }
     //------------------------------------------------
 
-    Core::MimeDatabase* mdb = core->mimeDatabase();
-    if ( ! mdb ) {
-        *error_message = "no mime database in Core plugin";
-        return false;
-    }
+    //Core::MimeDatabase* mdb = core->mimeDatabase();
+    //if ( !mdb ) {
+    //*error_message = "no mime database in Core plugin";
+    //return false;
+    //}
 
     do {
         std::vector< std::string > mime;
@@ -233,9 +206,10 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         QStringList mTypes;
         
         // externally installed mime-types
-        std::wstring mimefile
-            = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
-        if ( mdb->addMimeTypes( qtwrapper::qstring( mimefile ), error_message) ) {
+        std::wstring mimefile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
+
+        if ( Core::MimeDatabase::addMimeTypes( QString::fromStdWString( mimefile ), error_message ) ) {
+
             pugi::xml_document doc;
             if ( doc.load_file( mimefile.c_str() ) ) {
                 pugi::xpath_node_set list = doc.select_nodes( "/mime-info/mime-type" );
@@ -245,13 +219,13 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         }
 
         std::for_each( mime.begin(), mime.end(), [&](const std::string& xml){
-                if ( mimeTypeHelper::add( mdb, xml.c_str(), static_cast<int>(xml.size()), error_message ) )
+                if ( mimeTypeHelper::add( xml.c_str(), static_cast<int>(xml.size()), error_message ) )
 					mimeTypeHelper::populate( mTypes, xml.c_str() );
             });
 
 
         // core mime-types
-        if ( ! mdb->addMimeTypes(":/dataproc/mimetype.xml", error_message) )
+        if ( !Core::MimeDatabase::addMimeTypes( ":/dataproc/mimetype.xml", error_message ) )
             ADWARN() << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
 
 
@@ -267,6 +241,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     pActionManager_->initialize_actions( context );
     mainWindow_->activateLayout();
     QWidget * widget = mainWindow_->createContents( mode_.get(), config, apppath );
+    widget->setObjectName( QLatin1String( "DataprocessingPage") );
     mode_->setWidget( widget );
 
     iSequence_.reset( new iSequenceImpl );
@@ -305,12 +280,13 @@ DataprocPlugin::handle_portfolio_created( const QString filename )
     // simulate file->open()
     Core::ICore * core = Core::ICore::instance();
     if ( core ) {
-        Core::EditorManager * em = core->editorManager();
+        auto em = Core::EditorManager::instance();
+        // Core::EditorManager * em = core->editorManager();
         if ( em && dataprocFactory_ ) {
-            if ( Core::IEditor * ie = dataprocFactory_->createEditor( 0 ) ) {
+            if ( Core::IEditor * ie = dataprocFactory_->createEditor() ) {
                 if ( DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie ) ) {
                     editor->portfolio_create( filename );
-                    em->pushEditor( editor );
+                    // em->pushEditor( editor );
                 }
             }
         }

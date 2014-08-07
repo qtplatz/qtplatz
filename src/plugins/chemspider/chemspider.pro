@@ -4,9 +4,7 @@ TEMPLATE = lib
 
 PROVIDER = MS-Cheminformatics
 include( ../../qtplatz_plugin.pri )
-include( ../../plugins/coreplugin/coreplugin.pri )
 include( ../../boost.pri )
-include( ../../ace_tao.pri )
 
 DEFINES += CHEMSPIDER_LIBRARY
 

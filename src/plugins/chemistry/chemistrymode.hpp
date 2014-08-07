@@ -25,11 +25,11 @@
 #ifndef CHEMISTRYMODE_HPP
 #define CHEMISTRYMODE_HPP
 
-#include <coreplugin/basemode.h>
+#include <coreplugin/imode.h>
 
 namespace chemistry {
 
-	class ChemistryMode : public Core::BaseMode {
+	class ChemistryMode : public Core::IMode {
 		Q_OBJECT
 	public:
 		explicit ChemistryMode( QObject * parent = 0 );

@@ -26,13 +26,13 @@
 #ifndef ACQUIREMODE_H
 #define ACQUIREMODE_H
 
-#include <coreplugin/basemode.h>
+#include <coreplugin/imode.h>
 
 namespace acquire {
 
     namespace internal {
     
-        class AcquireMode : public Core::BaseMode {
+        class AcquireMode : public Core::IMode {
             Q_OBJECT
                 ;
         public:

@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,63 +21,98 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef VCSMANAGER_H
 #define VCSMANAGER_H
 
 #include "core_global.h"
 
-#include <QtCore/QString>
-#include <QtCore/QObject>
+#include <QString>
+#include <QObject>
 
 namespace Core {
 
-struct VCSManagerPrivate;
 class IVersionControl;
 
-// The VCSManager has only one notable function:
-// findVersionControlFor(), which returns the IVersionControl * for a given
-// filename. Note that the VCSManager assumes that if a IVersionControl *
-// manages a directory, then it also manages all the files and all the
-// subdirectories.
-//
-// It works by asking all IVersionControl * if they manage the file, and ask
-// for the topmost directory it manages. This information is cached and
-// VCSManager thus knows pretty fast which IVersionControl * is responsible.
+namespace Internal { class MainWindow; }
 
-class CORE_EXPORT VCSManager : public QObject
+/* VcsManager:
+ * 1) Provides functionality for finding the IVersionControl * for a given
+ *    filename (findVersionControlForDirectory). Note that the VcsManager assumes
+ *    that if a IVersionControl * manages a directory, then it also manages
+ *    all the files and all the subdirectories.
+ *    It works by asking all IVersionControl * if they manage the file, and ask
+ *    for the topmost directory it manages. This information is cached and
+ *    VCSManager thus knows pretty fast which IVersionControl * is responsible.
+ * 2) Passes on the changes from the version controls caused by updating or
+ *    branching repositories and routes them to its signals (repositoryChanged,
+ *    filesChanged). */
+
+class CORE_EXPORT VcsManager : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(VCSManager)
+
 public:
-    explicit VCSManager(QObject *parent = 0);
-    virtual ~VCSManager();
+    static VcsManager *instance();
 
-    void extensionsInitialized();
+    static void extensionsInitialized();
 
-    IVersionControl *findVersionControlForDirectory(const QString &directory);
+    static void resetVersionControlForDirectory(const QString &inputDirectory);
+    static IVersionControl *findVersionControlForDirectory(const QString &directory,
+                                                           QString *topLevelDirectory = 0);
+    static QString findTopLevelForDirectory(const QString &directory);
 
-    // Enable the VCS managing a certain directory only. This should
-    // be used by project manager classes.
-    void setVCSEnabled(const QString &directory);
-    // Enable all VCS.
-    void setAllVCSEnabled();
+    static QStringList repositories(const IVersionControl *);
+
+    static IVersionControl *checkout(const QString &versionControlType,
+                              const QString &directory,
+                              const QByteArray &url);
 
     // Shows a confirmation dialog, whether the file should also be deleted
-    // from revision control Calls sccDelete on the file. Returns false
+    // from revision control. Calls vcsDelete on the file. Returns false
     // if a failure occurs
-    bool showDeleteDialog(const QString &fileName);
+    static bool promptToDelete(const QString &fileName);
+    static bool promptToDelete(IVersionControl *versionControl, const QString &fileName);
+
+    // Shows a confirmation dialog, whether the files in the list should be
+    // added to revision control. Calls vcsAdd for each file.
+    static void promptToAdd(const QString &directory, const QStringList &fileNames);
+
+    static void emitRepositoryChanged(const QString &repository);
+
+    // Utility messages for adding files
+    static QString msgAddToVcsTitle();
+    static QString msgPromptToAddToVcs(const QStringList &files, const IVersionControl *vc);
+    static QString msgAddToVcsFailedTitle();
+    static QString msgToAddToVcsFailed(const QStringList &files, const IVersionControl *vc);
+
+    /*!
+     * Return a list of paths where tools that came with the VCS may be installed.
+     * This is helpful on windows where e.g. git comes with a lot of nice unix tools.
+     */
+    static QStringList additionalToolsPath();
 
 signals:
     void repositoryChanged(const QString &repository);
-    void filesChanged(const QStringList &files);
+    void configurationChanged(const IVersionControl *vcs);
+
+public slots:
+    static void clearVersionControlCache();
+
+private slots:
+    static void configureVcs();
+    void handleConfigurationChanges();
 
 private:
-    VCSManagerPrivate *m_d;
+    explicit VcsManager(QObject *parent = 0);
+    ~VcsManager();
+
+    friend class Core::Internal::MainWindow;
 };
 
 } // namespace Core

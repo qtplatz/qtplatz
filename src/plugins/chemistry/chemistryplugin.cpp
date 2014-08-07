@@ -39,7 +39,7 @@
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/mimedatabase.h>
 #include <coreplugin/modemanager.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 
@@ -88,8 +88,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 
     mainWindow_->activateWindow();
     mainWindow_->createActions();
-
-	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
     mode_->setContext( gc );
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
@@ -106,8 +105,8 @@ ChemistryPlugin::initialize_actions()
     actSDFileOpen_ = new QAction( iconOpen, tr("SDFile open..."), this );
     connect( actSDFileOpen_, SIGNAL( triggered() ), mainWindow_.get(), SLOT( actSDFileOpen() ) );
 
-	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
-    if ( Core::ActionManager * am = Core::ICore::instance()->actionManager() ) {
+    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
+    if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( "Chemistry" );
 

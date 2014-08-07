@@ -30,12 +30,12 @@
 #ifndef SERVANTMODE_H
 #define SERVANTMODE_H
 
-#include <coreplugin/basemode.h>
+#include <coreplugin/imode.h>
 
 namespace servant {
   namespace internal {
 
-	class ServantMode : public Core::BaseMode {
+	class ServantMode : public Core::IMode {
 	  Q_OBJECT
 	public:
       ~ServantMode();

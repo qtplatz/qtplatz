@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/dataproc">
+        <file>image/apply_small.png</file>
+        <file>image/continue_small.png</file>
+        <file>mimetype.xml</file>
+        <file>image/ViewResults.png</file>
+        <file>image/fileopen.png</file>
+        <file>image/filesave.png</file>
+        <file>image/file_pdf.png</file>
+        <file>image/pdf.png</file>
+        <file>image/calibration32.png</file>
+        <file>image/calibration64.png</file>
+        <file>image/calibration96.png</file>
+    </qresource>
+</RCC>

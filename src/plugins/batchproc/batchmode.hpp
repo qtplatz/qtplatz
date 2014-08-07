@@ -27,11 +27,11 @@
 
 #pragma once
 
-#include <coreplugin/basemode.h>
+#include <coreplugin/imode.h>
 
 namespace batchproc {
 
-    class BatchMode : public Core::BaseMode {
+    class BatchMode : public Core::IMode {
         Q_OBJECT
     public:
         explicit BatchMode(QObject *parent = 0);

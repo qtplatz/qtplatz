@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
+  <mime-type type="application/mzxml">
+      <sub-class-of type="application/octet-stream"/>
+      <comment>mzXML data file</comment>
+      <glob pattern="*.mzxml"/>
+      <glob pattern="*.mzdata"/>
+  </mime-type>
+  <mime-type type="application/baf">
+      <sub-class-of type="application/octet-stream"/>
+      <comment>Bruker analysis.baf file</comment>
+      <glob pattern="*.baf"/>
+  </mime-type>
+  <mime-type type="application/d">
+    <sub-class-of type="application/octet-stream"/>
+    <comment>Bruker data file</comment>
+    <glob pattern="*.d"/>
+  </mime-type>
+  <mime-type type="application/data">
+      <sub-class-of type="application/octet-stream"/>
+      <comment>MC4 data file</comment>
+      <glob pattern="*.data"/>
+  </mime-type>
+</mime-info>

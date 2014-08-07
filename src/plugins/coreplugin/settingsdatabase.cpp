@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,27 +21,29 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "settingsdatabase.h"
 
-#include <QtCore/QDir>
-#include <QtCore/QMap>
-#include <QtCore/QString>
-#include <QtCore/QStringList>
-#include <QtCore/QVariant>
+#include <QDir>
+#include <QMap>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
 
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlError>
-#include <QtSql/QSqlQuery>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
 #include <QDebug>
 
 /*!
     \class Core::SettingsDatabase
-    \brief An alternative to the application-wide QSettings that is more
+    \brief The SettingsDatabase class offers an alternative to the
+    application-wide QSettings that is more
     suitable for storing large amounts of data.
 
     The settings database is SQLite based, and lazily retrieves data when it
@@ -67,7 +68,7 @@ class SettingsDatabasePrivate
 public:
     QString effectiveGroup() const
     {
-        return m_groups.join(QLatin1String("/"));
+        return m_groups.join(QString(QLatin1Char('/')));
     }
 
     QString effectiveKey(const QString &key) const
@@ -109,7 +110,7 @@ SettingsDatabase::SettingsDatabase(const QString &path,
     fileName += application;
     fileName += QLatin1String(".db");
 
-    d->m_db = QSqlDatabase::addDatabase("QSQLITE", QLatin1String("settings"));
+    d->m_db = QSqlDatabase::addDatabase(QLatin1String("QSQLITE"), QLatin1String("settings"));
     d->m_db.setDatabaseName(fileName);
     if (!d->m_db.open()) {
         qWarning().nospace() << "Warning: Failed to open settings database at " << fileName << " ("
@@ -130,6 +131,9 @@ SettingsDatabase::SettingsDatabase(const QString &path,
                 d->m_settings.insert(query.value(0).toString(), QVariant());
             }
         }
+
+        // syncing can be slow, especially on Linux and Windows
+        d->m_db.exec(QLatin1String("PRAGMA synchronous = OFF;"));
     }
 }
 
@@ -238,18 +242,31 @@ QString SettingsDatabase::group() const
 
 QStringList SettingsDatabase::childKeys() const
 {
-    QStringList childs;
+    QStringList children;
 
     const QString g = group();
     QMapIterator<QString, QVariant> i(d->m_settings);
     while (i.hasNext()) {
         const QString &key = i.next().key();
-        if (key.startsWith(g) && key.indexOf(QLatin1Char('/'), g.length() + 1) == -1) {
-            childs.append(key.mid(g.length() + 1));
-        }
+        if (key.startsWith(g) && key.indexOf(QLatin1Char('/'), g.length() + 1) == -1)
+            children.append(key.mid(g.length() + 1));
     }
 
-    return childs;
+    return children;
+}
+
+void SettingsDatabase::beginTransaction()
+{
+    if (!d->m_db.isOpen())
+        return;
+    d->m_db.exec(QLatin1String("BEGIN TRANSACTION;"));
+}
+
+void SettingsDatabase::endTransaction()
+{
+    if (!d->m_db.isOpen())
+        return;
+    d->m_db.exec(QLatin1String("END TRANSACTION;"));
 }
 
 void SettingsDatabase::sync()

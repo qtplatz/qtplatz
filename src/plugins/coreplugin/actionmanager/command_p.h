@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,135 +21,85 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef COMMAND_P_H
 #define COMMAND_P_H
 
 #include "command.h"
-#include "actionmanager_p.h"
 
-#include <QtCore/QList>
-#include <QtCore/QMultiMap>
-#include <QtCore/QPointer>
-#include <QtGui/QKeySequence>
+#include <coreplugin/id.h>
+#include <coreplugin/icontext.h>
+
+#include <utils/proxyaction.h>
+
+#include <QList>
+#include <QMultiMap>
+#include <QPointer>
+#include <QMap>
+#include <QKeySequence>
 
 namespace Core {
 namespace Internal {
 
-class CommandPrivate : public Core::Command
+class Action : public Core::Command
 {
     Q_OBJECT
 public:
-    CommandPrivate(int id);
-    virtual ~CommandPrivate() {}
+    Action(Id id);
 
-    virtual QString name() const = 0;
+    Id id() const;
 
     void setDefaultKeySequence(const QKeySequence &key);
     QKeySequence defaultKeySequence() const;
 
-    void setDefaultText(const QString &text);
-    QString defaultText() const;
+    void setKeySequence(const QKeySequence &key);
+    QKeySequence keySequence() const;
 
-    int id() const;
+    void setDescription(const QString &text);
+    QString description() const;
 
     QAction *action() const;
-    QShortcut *shortcut() const;
+
+    QString stringWithAppendedShortcut(const QString &str) const;
+
+    Context context() const;
+    void setCurrentContext(const Context &context);
+
+    bool isActive() const;
+    void addOverrideAction(QAction *action, const Context &context, bool scriptable);
+    void removeOverrideAction(QAction *action);
+    bool isEmpty() const;
+
+    bool isScriptable() const;
+    bool isScriptable(const Context &context) const;
 
     void setAttribute(CommandAttribute attr);
     void removeAttribute(CommandAttribute attr);
     bool hasAttribute(CommandAttribute attr) const;
 
-    virtual bool setCurrentContext(const QList<int> &context) = 0;
+private slots:
+    void updateActiveState();
 
-    QString stringWithAppendedShortcut(const QString &str) const;
+private:
+    void setActive(bool state);
 
-protected:
-    QString m_category;
-    int m_attributes;
-    int m_id;
+    Context m_context;
+    CommandAttributes m_attributes;
+    Id m_id;
     QKeySequence m_defaultKey;
     QString m_defaultText;
-};
+    bool m_isKeyInitialized;
 
-class Shortcut : public CommandPrivate
-{
-    Q_OBJECT
-public:
-    Shortcut(int id);
-
-    QString name() const;
-
-    void setDefaultKeySequence(const QKeySequence &key);
-    void setKeySequence(const QKeySequence &key);
-    QKeySequence keySequence() const;
-
-    virtual void setDefaultText(const QString &key);
-    virtual QString defaultText() const;
-
-    void setShortcut(QShortcut *shortcut);
-    QShortcut *shortcut() const;
-
-    void setContext(const QList<int> &context);
-    QList<int> context() const;
-    bool setCurrentContext(const QList<int> &context);
-
-    bool isActive() const;
-private:
-    QList<int> m_context;
-    QShortcut *m_shortcut;
-    QString m_defaultText;
-};
-
-class Action : public CommandPrivate
-{
-    Q_OBJECT
-public:
-    Action(int id);
-
-    QString name() const;
-
-    void setDefaultKeySequence(const QKeySequence &key);
-    void setKeySequence(const QKeySequence &key);
-    QKeySequence keySequence() const;
-
-    virtual void setAction(QAction *action);
-    QAction *action() const;
-
-    void setLocations(const QList<CommandLocation> &locations);
-    QList<CommandLocation> locations() const;
-
-protected:
-    void updateToolTipWithKeySequence();
-    
-    QAction *m_action;
-    QList<CommandLocation> m_locations;
+    Utils::ProxyAction *m_action;
     QString m_toolTip;
-};
 
-class OverrideableAction : public Action
-{
-    Q_OBJECT
-
-public:
-    OverrideableAction(int id);
-
-    void setAction(QAction *action);
-    bool setCurrentContext(const QList<int> &context);
-    void addOverrideAction(QAction *action, const QList<int> &context);
-    bool isActive() const;
-
-private slots:
-    void actionChanged();
-
-private:
-    QPointer<QAction> m_currentAction;
-    QList<int> m_context;
-    QMap<int, QPointer<QAction> > m_contextActionMap;
+    QMap<Id, QPointer<QAction> > m_contextActionMap;
+    QMap<QAction*, bool> m_scriptableMap;
     bool m_active;
     bool m_contextInitialized;
 };

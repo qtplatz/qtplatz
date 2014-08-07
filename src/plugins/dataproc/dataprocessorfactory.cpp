@@ -32,9 +32,9 @@
 #include "msprocessingwnd.hpp"
 #include <QTabWidget>
 #include <coreplugin/editormanager/editormanager.h>
-#include <coreplugin/ifilefactory.h>
+#include <coreplugin/idocumentfactory.h>
 #include <coreplugin/icore.h>
-#include <coreplugin/filemanager.h>
+#include <coreplugin/documentmanager.h>
 #include <QStringList>
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -47,49 +47,24 @@ DataprocessorFactory::~DataprocessorFactory()
 
 DataprocessorFactory::DataprocessorFactory( QObject * owner, 
 										    const QStringList& types ) : Core::IEditorFactory( owner )
-																	   , kind_( "Dataprocessor" )
-											                           , mimeTypes_ ( types )
 {
-    mimeTypes_ 
-        << Constants::C_DATA_TEXT_MIMETYPE
-        << Constants::C_DATA_NATIVE_MIMETYPE
-		<< "application/octet-stream";
-}
+    setId( Constants::C_DATAPROCESSOR );
 
-/*
-void
-DataprocessorFactory::setEditor( QWidget * p )
-{
-    editorWidget_ = p;
+    setDisplayName( tr( "OpenWidth::Dataprocessor", "Data processor" ) );
+    addMimeType( "application/adfs" );
+    addMimeType( "application/csv" );
+    addMimeType( "application/txt" );
+    addMimeType( "application/octet-stream" );
 }
-*/
 
 // implementation for IEditorFactory
 Core::IEditor *
-DataprocessorFactory::createEditor( QWidget * /* parent */)
+DataprocessorFactory::createEditor()
 {
-    return new DataprocEditor( this );
-}
-
-// implementation for IFileFactory
-
-QStringList 
-DataprocessorFactory::mimeTypes() const
-{
-    return mimeTypes_;
-}
-
-QString 
-DataprocessorFactory::kind() const
-{
-    return kind_;
-}
-
-Core::IFile * 
-DataprocessorFactory::open( const QString& filename )
-{
-    Core::EditorManager * em = Core::EditorManager::instance();
-    Core::IEditor * iface = em->openEditor( filename, kind_ );
-    return iface ? iface->file() : 0;
+    auto doc = std::make_shared< Dataprocessor >();
+    doc->setId( Constants::C_DATAPROCESSOR );
+    auto editor = new DataprocEditor( this );
+    editor->setDataprocessor( doc.get() );
+    return editor;
 }
 

@@ -39,7 +39,7 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 
 #include <QAction>
@@ -74,16 +74,17 @@ batchprocPlugin::initialize(const QStringList &arguments, QString *errorString)
     adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
     QAction *action = new QAction(tr("batchproc action"), this);
-	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
-	Core::Command * cmd = Core::ICore::instance()->actionManager()->registerAction( action, Constants::ACTION_ID, gc );
+    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
+    Core::Command * cmd = Core::ActionManager::registerAction( action, Constants::ACTION_ID, gc );
 
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
     connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));
 
-	Core::ActionContainer *menu = Core::ICore::instance()->actionManager()->createMenu(Constants::MENU_ID);
+	Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
     menu->menu()->setTitle(tr("Batch process"));
     menu->addAction(cmd);
-	Core::ICore::instance()->actionManager()->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
+    Core::ActionManager::actionContainer( Core::Id( Core::Constants::M_TOOLS ) )->addMenu( menu );
+    // Core::ActionContainer::addMenu( menu, (Core::Id( Core::Constants::M_TOOLS )) ); // ()->actionManager()->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
 
     mainWindow_->activateWindow();
     mainWindow_->createActions();

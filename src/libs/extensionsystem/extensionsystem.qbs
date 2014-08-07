@@ -1,5 +1,5 @@
-import qbs.base 1.0
-import "../QtcLibrary.qbs" as QtcLibrary
+import qbs 1.0
+import QtcLibrary
 
 QtcLibrary {
     name: "ExtensionSystem"
@@ -9,9 +9,9 @@ QtcLibrary {
         "IDE_TEST_DIR=\".\""
     ])
 
-    Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core", "widgets"] }
     Depends { name: "Aggregation" }
+    Depends { name: "Utils" }
 
     files: [
         "extensionsystem_global.h",
@@ -42,9 +42,12 @@ QtcLibrary {
         "pluginview.cpp",
         "pluginview.h",
         "pluginview.qrc",
-        "pluginview.ui",
         "images/error.png",
         "images/notloaded.png",
         "images/ok.png",
     ]
+
+    Export {
+        Depends { name: "Qt.core" }
+    }
 }

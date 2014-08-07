@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,93 +21,74 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "openeditorswindow.h"
-#include "openeditorsmodel.h"
-#include "editormanager.h"
-#include "editorview.h"
 
+#include "documentmodel.h"
+#include "editormanager.h"
+#include "editormanager_p.h"
+#include "editorview.h"
+#include <coreplugin/idocument.h>
+
+#include <utils/hostosinfo.h>
 #include <utils/qtcassert.h>
 
+#include <QFocusEvent>
 #include <QHeaderView>
+#include <QVBoxLayout>
+#include <QScrollBar>
 
 Q_DECLARE_METATYPE(Core::Internal::EditorView*)
-Q_DECLARE_METATYPE(Core::IFile *)
+Q_DECLARE_METATYPE(Core::IDocument*)
 
 using namespace Core;
 using namespace Core::Internal;
 
-const int OpenEditorsWindow::WIDTH = 300;
-const int OpenEditorsWindow::HEIGHT = 200;
-const int OpenEditorsWindow::MARGIN = 4;
-
 OpenEditorsWindow::OpenEditorsWindow(QWidget *parent) :
-    QWidget(parent, Qt::Popup),
-    m_editorList(new QTreeWidget(this))
+    QFrame(parent, Qt::Popup),
+    m_emptyIcon(QLatin1String(":/core/images/empty14.png")),
+    m_editorList(new OpenEditorsTreeWidget(this))
 {
-    resize(QSize(WIDTH, HEIGHT));
+    setMinimumSize(300, 200);
     m_editorList->setColumnCount(1);
     m_editorList->header()->hide();
     m_editorList->setIndentation(0);
     m_editorList->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_editorList->setSelectionBehavior(QAbstractItemView::SelectItems);
     m_editorList->setTextElideMode(Qt::ElideMiddle);
-#ifdef Q_WS_MAC
-    m_editorList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-#endif
+    if (Utils::HostOsInfo::isMacHost())
+        m_editorList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     m_editorList->installEventFilter(this);
-    m_editorList->setGeometry(MARGIN, MARGIN, WIDTH-2*MARGIN, HEIGHT-2*MARGIN);
 
-    connect(m_editorList, SIGNAL(itemClicked(QTreeWidgetItem*, int)),
+    // We disable the frame on this list view and use a QFrame around it instead.
+    // This improves the look with QGTKStyle.
+    if (!Utils::HostOsInfo::isMacHost())
+        setFrameStyle(m_editorList->frameStyle());
+    m_editorList->setFrameStyle(QFrame::NoFrame);
+
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->setMargin(0);
+    layout->addWidget(m_editorList);
+
+    connect(m_editorList, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
             this, SLOT(editorClicked(QTreeWidgetItem*)));
-
-    m_autoHide.setSingleShot(true);
-    connect(&m_autoHide, SIGNAL(timeout()), this, SLOT(selectAndHide()));
 }
 
 void OpenEditorsWindow::selectAndHide()
 {
-    selectEditor(m_editorList->currentItem());
     setVisible(false);
+    selectEditor(m_editorList->currentItem());
 }
 
 void OpenEditorsWindow::setVisible(bool visible)
 {
     QWidget::setVisible(visible);
-    if (visible) {
-        m_autoHide.start(600);
+    if (visible)
         setFocus();
-    }
-}
-
-bool OpenEditorsWindow::isCentering()
-{
-    int internalMargin = m_editorList->viewport()->mapTo(m_editorList, QPoint(0,0)).y();
-    QRect rect0 = m_editorList->visualItemRect(m_editorList->topLevelItem(0));
-    QRect rect1 = m_editorList->visualItemRect(m_editorList->topLevelItem(m_editorList->topLevelItemCount()-1));
-    int height = rect1.y() + rect1.height() - rect0.y();
-    height += 2*internalMargin + 2*MARGIN;
-    if (height > HEIGHT)
-        return true;
-    return false;
-}
-
-
-bool OpenEditorsWindow::event(QEvent *e) {
-    if (e->type() == QEvent::KeyRelease) {
-        QKeyEvent *ke = static_cast<QKeyEvent*>(e);
-        m_autoHide.stop();
-        if (ke->modifiers() == 0
-            /*HACK this is to overcome some event inconsistencies between platforms*/
-            || (ke->modifiers() == Qt::AltModifier && (ke->key() == Qt::Key_Alt || ke->key() == -1))) {
-            selectAndHide();
-        }
-    }
-    return QWidget::event(e);
 }
 
 bool OpenEditorsWindow::eventFilter(QObject *obj, QEvent *e)
@@ -120,9 +100,18 @@ bool OpenEditorsWindow::eventFilter(QObject *obj, QEvent *e)
                 setVisible(false);
                 return true;
             }
-            if (ke->key() == Qt::Key_Return) {
+            if (ke->key() == Qt::Key_Return
+                    || ke->key() == Qt::Key_Enter) {
                 selectEditor(m_editorList->currentItem());
                 return true;
+            }
+        } else if (e->type() == QEvent::KeyRelease) {
+            QKeyEvent *ke = static_cast<QKeyEvent*>(e);
+            if (ke->modifiers() == 0
+                    /*HACK this is to overcome some event inconsistencies between platforms*/
+                    || (ke->modifiers() == Qt::AltModifier
+                    && (ke->key() == Qt::Key_Alt || ke->key() == -1))) {
+                selectAndHide();
             }
         }
     }
@@ -168,105 +157,38 @@ void OpenEditorsWindow::selectPreviousEditor()
     selectUpDown(false);
 }
 
+QSize OpenEditorsTreeWidget::sizeHint() const
+{
+    return QSize(sizeHintForColumn(0) + verticalScrollBar()->width() + frameWidth() * 2,
+#if QT_VERSION < 0x050200
+                 minimumHeight());
+#else
+                 viewportSizeHint().height() + frameWidth() * 2);
+#endif
+}
+
+QSize OpenEditorsWindow::sizeHint() const
+{
+    return m_editorList->sizeHint() + QSize(frameWidth() * 2, frameWidth() * 2);
+}
+
 void OpenEditorsWindow::selectNextEditor()
 {
     selectUpDown(true);
 }
 
-void OpenEditorsWindow::centerOnItem(int selectedIndex)
+void OpenEditorsWindow::setEditors(const QList<EditLocation> &globalHistory, EditorView *view)
 {
-    if (selectedIndex >= 0) {
-        QTreeWidgetItem *item;
-        int num = m_editorList->topLevelItemCount();
-        int rotate = selectedIndex-(num-1)/2;
-        for (int i = 0; i < rotate; ++i) {
-            item = m_editorList->takeTopLevelItem(0);
-            m_editorList->addTopLevelItem(item);
-        }
-        rotate = -rotate;
-        for (int i = 0; i < rotate; ++i) {
-            item = m_editorList->takeTopLevelItem(num-1);
-            m_editorList->insertTopLevelItem(0, item);
-        }
-    }
-}
-
-void OpenEditorsWindow::setEditors(EditorView *mainView, EditorView *view, OpenEditorsModel *model)
-{
-    static const QIcon lockedIcon(QLatin1String(":/core/images/locked.png"));
-    static const QIcon emptyIcon(QLatin1String(":/core/images/empty14.png"));
-
     m_editorList->clear();
-    bool first = true;
 
-    QSet<IFile*> filesDone;
-    foreach (const EditLocation &hi, view->editorHistory()) {
-        if (hi.file.isNull() || filesDone.contains(hi.file))
-            continue;
-        QString title = model->displayNameForFile(hi.file);
-        QTC_ASSERT(!title.isEmpty(), continue;)
-        filesDone.insert(hi.file.data());
-        QTreeWidgetItem *item = new QTreeWidgetItem();
-        if (hi.file->isModified())
-            title += tr("*");
-        item->setIcon(0, hi.file->isReadOnly() ? lockedIcon : emptyIcon);
-        item->setText(0, title);
-        item->setToolTip(0, hi.file->fileName());
-        item->setData(0, Qt::UserRole, QVariant::fromValue(hi.file.data()));
-        item->setData(0, Qt::UserRole+1, QVariant::fromValue(view));
-        item->setTextAlignment(0, Qt::AlignLeft);
+    QSet<IDocument*> documentsDone;
+    addHistoryItems(view->editorHistory(), view, documentsDone);
 
-        m_editorList->addTopLevelItem(item);
-
-        if (first){
-            m_editorList->setCurrentItem(item);
-            first = false;
-        }
-    }
-
-    // add missing editors from the main view
-    if (mainView != view) {
-        foreach (const EditLocation &hi, mainView->editorHistory()) {
-            if (hi.file.isNull() || filesDone.contains(hi.file))
-                continue;
-            filesDone.insert(hi.file.data());
-
-            QTreeWidgetItem *item = new QTreeWidgetItem();
-
-            QString title = model->displayNameForFile(hi.file);
-            if (hi.file->isModified())
-                title += tr("*");
-            item->setIcon(0, hi.file->isReadOnly() ? lockedIcon : emptyIcon);
-            item->setText(0, title);
-            item->setToolTip(0, hi.file->fileName());
-            item->setData(0, Qt::UserRole, QVariant::fromValue(hi.file.data()));
-            item->setData(0, Qt::UserRole+1, QVariant::fromValue(view));
-            item->setData(0, Qt::UserRole+2, QVariant::fromValue(hi.kind));
-            item->setTextAlignment(0, Qt::AlignLeft);
-
-            m_editorList->addTopLevelItem(item);
-
-            if (first){
-                m_editorList->setCurrentItem(item);
-                first = false;
-            }
-        }
-}
+    // add missing editors from the global history
+    addHistoryItems(globalHistory, view, documentsDone);
 
     // add purely restored editors which are not initialised yet
-    foreach (OpenEditorsModel::Entry entry, model->entries()) {
-        if (entry.editor)
-            continue;
-        QTreeWidgetItem *item = new QTreeWidgetItem();
-        QString title = entry.displayName();
-        item->setIcon(0, emptyIcon);
-        item->setText(0, title);
-        item->setToolTip(0, entry.fileName());
-        item->setData(0, Qt::UserRole+2, QVariant::fromValue(entry.kind()));
-        item->setTextAlignment(0, Qt::AlignLeft);
-
-        m_editorList->addTopLevelItem(item);
-    }
+    addRestoredItems();
 }
 
 
@@ -274,11 +196,15 @@ void OpenEditorsWindow::selectEditor(QTreeWidgetItem *item)
 {
     if (!item)
         return;
-    if (IFile *file = item->data(0, Qt::UserRole).value<IFile*>()) {
+    if (IDocument *document = item->data(0, Qt::UserRole).value<IDocument*>()) {
         EditorView *view = item->data(0, Qt::UserRole+1).value<EditorView*>();
-        EditorManager::instance()->activateEditor(view, file);
+        EditorManagerPrivate::activateEditorForDocument(view, document);
     } else {
-        EditorManager::instance()->openEditor(item->toolTip(0), item->data(0, Qt::UserRole+2).toByteArray());
+        if (!EditorManager::openEditor(
+                    item->toolTip(0), item->data(0, Qt::UserRole+2).value<Core::Id>())) {
+            DocumentModel::removeDocument(item->toolTip(0));
+            delete item;
+        }
     }
 }
 
@@ -294,3 +220,47 @@ void OpenEditorsWindow::ensureCurrentVisible()
     m_editorList->scrollTo(m_editorList->currentIndex(), QAbstractItemView::PositionAtCenter);
 }
 
+
+void OpenEditorsWindow::addHistoryItems(const QList<EditLocation> &history, EditorView *view,
+                                        QSet<IDocument *> &documentsDone)
+{
+    foreach (const EditLocation &hi, history) {
+        if (hi.document.isNull() || documentsDone.contains(hi.document))
+            continue;
+        documentsDone.insert(hi.document.data());
+        QString title = hi.document->displayName();
+        QTC_ASSERT(!title.isEmpty(), continue);
+        QTreeWidgetItem *item = new QTreeWidgetItem();
+        if (hi.document->isModified())
+            title += tr("*");
+        item->setIcon(0, !hi.document->filePath().isEmpty() && hi.document->isFileReadOnly()
+                      ? DocumentModel::lockedIcon() : m_emptyIcon);
+        item->setText(0, title);
+        item->setToolTip(0, hi.document->filePath());
+        item->setData(0, Qt::UserRole, QVariant::fromValue(hi.document.data()));
+        item->setData(0, Qt::UserRole+1, QVariant::fromValue(view));
+        item->setTextAlignment(0, Qt::AlignLeft);
+
+        m_editorList->addTopLevelItem(item);
+
+        if (m_editorList->topLevelItemCount() == 1)
+            m_editorList->setCurrentItem(item);
+    }
+}
+
+void OpenEditorsWindow::addRestoredItems()
+{
+    foreach (DocumentModel::Entry *entry, DocumentModel::entries()) {
+        if (entry->document)
+            continue;
+        QTreeWidgetItem *item = new QTreeWidgetItem();
+        QString title = entry->displayName();
+        item->setIcon(0, m_emptyIcon);
+        item->setText(0, title);
+        item->setToolTip(0, entry->fileName());
+        item->setData(0, Qt::UserRole+2, QVariant::fromValue(entry->id()));
+        item->setTextAlignment(0, Qt::AlignLeft);
+
+        m_editorList->addTopLevelItem(item);
+    }
+}
