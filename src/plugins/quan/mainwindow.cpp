@@ -93,7 +93,7 @@ MainWindow::createContents( Core::IMode * )
 
     connect( tabWidget, &DoubleTabWidget::currentIndexChanged, this, &MainWindow::handleIndexChanged );
 
-    tabWidget->addTab( "Quan", "", QStringList() << "Select Data" << "Compounds & Protocols" << "Reports" << "Review Result");
+    tabWidget->addTab( tr( "Quan" ), "", QStringList() << tr( "Select Data" ) << tr( "Compounds & Protocols" ) << tr( "Reports" ) << tr( "Review Result" ) );
     viewLayout->addWidget( tabWidget );
     tabWidget->setCurrentIndex( 0 );
 
@@ -105,7 +105,7 @@ MainWindow::createContents( Core::IMode * )
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
         QuanConfigWidget * mw = 0;
         if ( auto widget = new QuanConfigWidget ) {
-            auto panel = std::make_shared< PanelData >( "Configuration"
+            auto panel = std::make_shared< PanelData >( tr("Configuration")
                                                         , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
                                                         , widget );
             panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
@@ -114,7 +114,7 @@ MainWindow::createContents( Core::IMode * )
         }
         
         if ( auto widget = new DataSequenceWidget ) {
-            auto panel = std::make_shared< PanelData >( "Select Data"
+            auto panel = std::make_shared< PanelData >( tr("Select Data")
                                                         , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
                                                         , widget );
             panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
@@ -128,7 +128,7 @@ MainWindow::createContents( Core::IMode * )
     
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {    
         if ( auto widget = new CompoundsWidget ) {
-            auto data = std::make_shared< PanelData >( "Compounds"
+            auto data = std::make_shared< PanelData >( tr("Compounds")
                                                        , QIcon( QLatin1String( ":/quan/images/unconfigured.png" ) )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
@@ -136,7 +136,7 @@ MainWindow::createContents( Core::IMode * )
         }
 
         if ( auto widget = new ProcessMethodWidget ) {
-            auto data = std::make_shared< PanelData >( "Peak Detection/Assign"
+            auto data = std::make_shared< PanelData >( tr("Peak Detection/Assign")
                                                        , QIcon( QLatin1String( ":/quan/images/unconfigured.png" ) )
                                                        , widget );
             panelsWidget->addPanel( data.get() );

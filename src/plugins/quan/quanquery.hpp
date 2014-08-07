@@ -45,6 +45,7 @@ namespace quan {
         size_t column_count() const;
 
         QString column_name( size_t idx ) const;
+        static QString column_name_tr( const QString& );
         QVariant column_value( size_t idx ) const;
             
     private:

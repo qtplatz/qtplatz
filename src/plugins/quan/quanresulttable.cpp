@@ -105,7 +105,7 @@ QuanResultTable::prepare( const QuanQuery& q )
     model_->setColumnCount( int( q.column_count() ) );
 
     for ( int col = 0; col < int( q.column_count() ); ++col  ) {
-        model_->setHeaderData( col, Qt::Horizontal, q.column_name( col ) );
+        model_->setHeaderData( col, Qt::Horizontal, QuanQuery::column_name_tr( q.column_name( col ) ) );
         if ( hideColumns_.find( q.column_name( col ).toStdString() ) != hideColumns_.end() )
             setColumnHidden( col, true );
     }
@@ -113,7 +113,7 @@ QuanResultTable::prepare( const QuanQuery& q )
     for ( int col = 0; col < int( q.column_count() ); ++col ) {
         QTextDocument document;
         // document.setDefaultFont( option.font );
-        document.setHtml( q.column_name( col ) );
+        document.setHtml( QuanQuery::column_name_tr( q.column_name( col ) ) );
         QSize size( document.size().width(), document.size().height() );
         horizontalHeader()->model()->setHeaderData( col, Qt::Horizontal, QVariant( size ), Qt::SizeHintRole );
     }    

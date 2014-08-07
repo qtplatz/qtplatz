@@ -35,14 +35,14 @@ QuanQueryForm::QuanQueryForm(QWidget *parent) :  QWidget(parent)
     ui->setupUi(this);
     ui->comboBox->clear();
     ui->comboBox->addItems( QStringList()
-                            << "View all (simple)"
-                            << "View STD (simple)"
-                            << "View UNK (simple)"
-                            << "View amounts"
-                            << "Viwe all"
-                            << "View STD"
-                            << "View UNK"
-                            << "Calibration" );
+                            << tr("View all (simple)")
+                            << tr("View STD (simple)")
+                            << tr("View UNK (simple)")
+                            << tr("View amounts")
+                            << tr("Viwe all")
+                            << tr("View STD")
+                            << tr("View UNK")
+                            << tr("Calibration") );
     ui->plainTextEdit->installEventFilter( this );
 }
 

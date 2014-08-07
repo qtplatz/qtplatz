@@ -28,6 +28,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
+#include <QObject>
 
 using namespace quan;
 
@@ -72,6 +73,37 @@ QuanQuery::column_name( size_t idx ) const
     std::string name = sql_.column_name( int( idx ) );
     return QString::fromStdString( name );
 }
+
+QString
+QuanQuery::column_name_tr( const QString& d )
+{
+    struct column_name {
+        const QString loc_c;
+        const QString i10n;
+    };
+    column_name names[] = {
+            { "dataSource", QObject::tr( "dataSource" ) }
+            , { "formula", QObject::tr( "formula" ) }
+            , { "mass", QObject::tr( "mass" ) }
+            , { "exact mass", QObject::tr( "exact mass" ) }
+            , { "error(Da)", QObject::tr( "error(Da)" ) }
+            , { "row", QObject::tr( "row" ) }
+            , { "level", QObject::tr( "level" ) }
+            , { "intensity", QObject::tr( "intensity" ) }
+            , { "sampleType", QObject::tr( "sample type" ) }
+            , { "name", QObject::tr( "name" ) }
+            , { "description", QObject::tr( "description" ) }
+            , { "amount", QObject::tr( "amount" ) }
+            , { "idCompound", QObject::tr( "id" ) }
+    };
+    
+    for ( auto& t : names ) {
+        if ( t.loc_c == d )
+            return t.i10n;
+    }
+    return d;
+}
+
 
 QVariant
 QuanQuery::column_value( size_t idx ) const

@@ -42054,10 +42054,8 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/dataproc/backup/dialogspectrometerchoice.ui"/>
         <location filename="../../../src/plugins/dataproc/dialogspectrometerchoice.ui"/>
-        <location filename="../../../src/plugins/dataproc.org/dialogspectrometerchoice.ui"/>
         <location filename="../../../src/plugins/dataproc/backup/ui_dialogspectrometerchoice.h" line="+52"/>
         <location filename="../../../src/plugins/dataproc/ui_dialogspectrometerchoice.h" line="+52"/>
-        <location filename="../../../src/plugins/dataproc.org/ui_dialogspectrometerchoice.h" line="+52"/>
         <source>Dialog</source>
         <translation type="unfinished">ダイアログ</translation>
     </message>
@@ -42067,10 +42065,8 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/dataproc/backup/mspropertyform.ui"/>
         <location filename="../../../src/plugins/dataproc/mspropertyform.ui"/>
-        <location filename="../../../src/plugins/dataproc.org/mspropertyform.ui"/>
         <location filename="../../../src/plugins/dataproc/backup/ui_mspropertyform.h" line="+60"/>
         <location filename="../../../src/plugins/dataproc/ui_mspropertyform.h" line="+60"/>
-        <location filename="../../../src/plugins/dataproc.org/ui_mspropertyform.h" line="+60"/>
         <source>Form</source>
         <translation>フォーム</translation>
     </message>
@@ -42234,6 +42230,46 @@ p, li { white-space: pre-wrap; }
         <location filename="../../../src/plugins/quan/ui_quanqueryform.h" line="+1"/>
         <source>Execute Query</source>
         <translation>クエリ実行</translation>
+    </message>
+    <message>
+        <location filename="../../../src/plugins/quan/quanqueryform.cpp" line="+38"/>
+        <source>View all (simple)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>View STD (simple)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>View UNK (simple)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>View amounts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Viwe all</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>View STD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>View UNK</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Calibration</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -42435,49 +42471,50 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/libs/adwidgets/controlmethodtable.cpp" line="+60"/>
         <source>time(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>経過時間(s)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>module</source>
-        <translation type="unfinished"></translation>
+        <translation>装置ユニット</translation>
     </message>
     <message>
         <location line="+1"/>
         <location filename="../../../src/libs/adwidgets/mspeaktable.cpp" line="+328"/>
         <location filename="../../../src/libs/adwidgets/msquantable.cpp" line="+213"/>
+        <location filename="../../../src/plugins/quan/quanquery.cpp" line="+95"/>
         <source>description</source>
-        <translation type="unfinished"></translation>
+        <translation>説明</translation>
     </message>
     <message>
         <location filename="../../../src/libs/adwidgets/mscalibratesummarytable.cpp" line="+147"/>
         <source>time(us)</source>
-        <translation type="unfinished"></translation>
+        <translation>時間(us)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>time(us/m)</source>
-        <translation type="unfinished"></translation>
+        <translation>速度(us/m)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>m/z</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>m/z(calibrated)</source>
-        <translation type="unfinished"></translation>
+        <translation>m/z(キャリブレーション後)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>#turns</source>
-        <translation type="unfinished"></translation>
+        <translation>周回数</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Intensity</source>
-        <translation type="unfinished"></translation>
+        <translation>強度</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -42486,245 +42523,253 @@ p, li { white-space: pre-wrap; }
         <location filename="../../../src/libs/adwidgets/peptidetable.cpp" line="+55"/>
         <location filename="../../../src/libs/adwidgets/targetingtable.cpp" line="+142"/>
         <location filename="../../../src/plugins/peptide/digestedpeptidetable.cpp" line="+155"/>
-        <location filename="../../../src/plugins/quan/compoundstable.cpp" line="+224"/>
+        <location filename="../../../src/plugins/quan/quanquery.cpp" line="-9"/>
         <source>formula</source>
-        <translation type="unfinished"></translation>
+        <translation>化学式</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>m/z(exact)</source>
-        <translation type="unfinished"></translation>
+        <translation>m/z(exact)</translation>
     </message>
     <message>
         <location line="+1"/>
         <location filename="../../../src/libs/adwidgets/mspeaktable.cpp" line="-6"/>
         <source>error(mDa)</source>
-        <translation type="unfinished"></translation>
+        <translation>質量誤差(mDa)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>error(mDa) calibrated</source>
-        <translation type="unfinished"></translation>
+        <translation>質量誤差(mDa) キャリブレーション後</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>enable</source>
-        <translation type="unfinished"></translation>
+        <translation>キャリブラント</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>delta m/z</source>
-        <translation type="unfinished"></translation>
+        <translation>質量差</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>fcn</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>index</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../src/libs/adwidgets/mspeaktable.cpp" line="-2"/>
         <location filename="../../../src/libs/adwidgets/msquantable.cpp" line="+6"/>
         <source>time(&amp;mu;s)</source>
-        <translation type="unfinished"></translation>
+        <translation>時間(&amp;mu;s)</translation>
     </message>
     <message>
         <location line="+1"/>
         <location filename="../../../src/libs/adwidgets/msquantable.cpp" line="-5"/>
-        <location filename="../../../src/plugins/quan/compoundstable.cpp" line="+1"/>
         <source>&lt;i&gt;m/z&lt;/i&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+2"/>
         <location filename="../../../src/libs/adwidgets/msquantable.cpp" line="+1"/>
         <source>&amp;delta;Da</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <location filename="../../../src/libs/adwidgets/msquantable.cpp" line="+1"/>
         <source>Abandance</source>
-        <translation type="unfinished"></translation>
+        <translation>強度</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>R. A. (%)</source>
-        <translation type="unfinished"></translation>
+        <translation>相対強度(RA%)</translation>
     </message>
     <message>
         <location line="+1"/>
         <location filename="../../../src/libs/adwidgets/msquantable.cpp" line="+2"/>
         <source>mode</source>
-        <translation type="unfinished"></translation>
+        <translation>アナライザモード</translation>
     </message>
     <message>
         <location line="+1"/>
         <location filename="../../../src/libs/adwidgets/msquantable.cpp" line="+2"/>
         <source>protocol</source>
-        <translation type="unfinished"></translation>
+        <translation>測定プロトコル</translation>
     </message>
     <message>
         <location filename="../../../src/libs/adwidgets/msquantable.cpp" line="-9"/>
         <source>data source</source>
-        <translation type="unfinished"></translation>
+        <translation>データソース</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>component</source>
-        <translation type="unfinished"></translation>
+        <translation>化合物</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>R.A.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Amount</source>
-        <translation type="unfinished"></translation>
+        <translation>アマウント</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Std.</source>
-        <translation type="unfinished"></translation>
+        <translation>標準</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>I.S.#</source>
-        <translation type="unfinished"></translation>
+        <translation>内標参照＃</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Data ID</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>idx#</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>fcn#</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../src/libs/adwidgets/peptidetable.cpp" line="-1"/>
         <location filename="../../../src/libs/adwidgets/targetingtable.cpp" line="-1"/>
         <source>peptide</source>
-        <translation type="unfinished"></translation>
+        <translation>ペプチド</translation>
     </message>
     <message>
         <location line="+2"/>
         <location filename="../../../src/libs/adwidgets/targetingtable.cpp" line="+2"/>
+        <location filename="../../../src/plugins/quan/quanquery.cpp" line="+1"/>
         <source>mass</source>
-        <translation type="unfinished"></translation>
+        <translation>質量</translation>
     </message>
     <message>
         <location filename="../../../src/libs/adwidgets/targetingtable.cpp" line="+1"/>
-        <location filename="../../../src/plugins/quan/compoundstable.cpp" line="+6"/>
         <source>memo</source>
-        <translation type="unfinished"></translation>
+        <translation>説明</translation>
     </message>
     <message>
         <location filename="../../../src/plugins/batchproc/mainwindow.cpp" line="+185"/>
         <source>#</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>File name</source>
-        <translation type="unfinished"></translation>
+        <translation>ファイル名</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Process</source>
-        <translation type="unfinished"></translation>
+        <translation>プロセス</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Progress</source>
-        <translation type="unfinished"></translation>
+        <translation>進捗</translation>
     </message>
     <message>
         <location filename="../../../src/plugins/dataproc/backup/navigationwidget.cpp" line="+540"/>
         <location filename="../../../src/plugins/dataproc/navigationwidget.cpp" line="+546"/>
-        <location filename="../../../src/plugins/dataproc.org/navigationwidget.cpp" line="+540"/>
         <source>Save spectrum</source>
-        <translation type="unfinished"></translation>
+        <translation>スペクトルの保存</translation>
     </message>
     <message>
         <location line="+3"/>
         <location filename="../../../src/plugins/dataproc/navigationwidget.cpp" line="+3"/>
-        <location filename="../../../src/plugins/dataproc.org/navigationwidget.cpp" line="+3"/>
         <source>qtplatz (*.adfs);;Text files (*.txt)</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../src/plugins/peptide/digestedpeptidetable.cpp" line="-1"/>
         <location filename="../../../src/plugins/peptide/proteintable.cpp" line="+121"/>
         <source>sequence</source>
-        <translation type="unfinished"></translation>
+        <translation>配列</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>M</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>M+H&lt;sup&gt;+&lt;/sup&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>M+H&lt;sup&gt;+&lt;/sup&gt;(&lt;sup&gt;18&lt;/sup&gt;O)</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../src/plugins/peptide/proteintable.cpp" line="-1"/>
+        <location filename="../../../src/plugins/quan/quanquery.cpp" line="+7"/>
         <source>name</source>
-        <translation type="unfinished"></translation>
+        <translation>名前</translation>
     </message>
     <message>
-        <location filename="../../../src/plugins/quan/compoundstable.cpp" line="-5"/>
-        <source>t&lt;sub&gt;R&lt;/sub&gt;(min)</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../../src/plugins/quan/quanquery.cpp" line="-9"/>
+        <source>dataSource</source>
+        <translation type="unfinished">データファイル名</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>t&lt;sub&gt;R&lt;/sub&gt; ref.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>lock mass</source>
-        <translation type="unfinished"></translation>
+        <location line="+3"/>
+        <source>exact mass</source>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>ISTD</source>
-        <translation type="unfinished"></translation>
+        <source>error(Da)</source>
+        <translation>質量誤差(Da)</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>ISTD ID</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Pass/Fail Criteria(1)</source>
-        <translation type="unfinished"></translation>
+        <source>row</source>
+        <translation>列番号</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Pass/Fail Criteria(2)</source>
-        <translation type="unfinished"></translation>
+        <source>level</source>
+        <translation>検量線点数</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>intensity</source>
+        <translation>強度</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>sample type</source>
+        <translation>サンプル属性</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>amount</source>
+        <translation type="unfinished">定量</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>id</source>
+        <translation type="unfinished">化合物番号</translation>
     </message>
 </context>
 <context>
@@ -42909,7 +42954,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+2"/>
         <source>Structure Data files(*.sdf)</source>
-        <translation>構造データファイル(SDFile)</translation>
+        <translation>構造データファイル(*.sdf)</translation>
     </message>
 </context>
 <context>
@@ -43355,98 +43400,84 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/dataproc/actionmanager.cpp" line="+103"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+102"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+102"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
         <location line="+5"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+5"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+5"/>
         <source>Save As</source>
         <translation>名前を付けて保存</translation>
     </message>
     <message>
         <location line="+10"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+10"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+10"/>
         <source>Process method open...</source>
         <translation>解析メソッドを開く...</translation>
     </message>
     <message>
         <location line="+5"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+5"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+5"/>
         <source>Process method save...</source>
         <translation>解析メソッドを保存...</translation>
     </message>
     <message>
         <location line="+5"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+5"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+5"/>
         <source>Print current view...</source>
         <translation>現在のビューを印刷...</translation>
     </message>
     <message>
         <location line="+6"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+6"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+6"/>
         <source>Apply mass calibration to this...</source>
         <translation>質量キャリブレーションを指定するデータファイルに適用...</translation>
     </message>
     <message>
         <location line="+5"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+5"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+5"/>
         <source>Apply process to all checked spectra</source>
         <translation>チェックされたスペクトルに処理を駅用</translation>
     </message>
     <message>
         <location line="+5"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+5"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+5"/>
         <source>Export peak list on all checked spectra...</source>
         <translation>ピークリストのエクスポート...</translation>
     </message>
     <message>
         <location line="+5"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+5"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+5"/>
         <source>Import and merge all checked spectra...</source>
         <translation>チェックされたスペクトルをファイルへマージ...</translation>
     </message>
     <message>
         <location line="+5"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+5"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+5"/>
         <source>Create Spectrogram</source>
         <translation>スペクトログラムの生成</translation>
     </message>
     <message>
         <location line="+5"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+5"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+5"/>
         <source>Cluster Spectrogram</source>
         <translation>質量ピークのクラスタリング</translation>
     </message>
     <message>
         <location line="+6"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+6"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+6"/>
         <source>Check all spectra</source>
         <translation>すべてのスペクトルをチェック</translation>
     </message>
     <message>
         <location line="+3"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+3"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+3"/>
         <source>Uncheck all spectra</source>
         <translation>スペクトルのすべてのチェックを外す</translation>
     </message>
     <message>
         <location line="+47"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+47"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+47"/>
         <source>Save process method</source>
         <translation>解析メソッドの保存</translation>
     </message>
@@ -43455,45 +43486,38 @@ p, li { white-space: pre-wrap; }
         <location line="+37"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+1"/>
         <location line="+37"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+1"/>
-        <location line="+37"/>
         <source>Process method files(*.pmth)</source>
-        <translation>解析メソッドファイル</translation>
+        <translation>解析メソッドファイル(*.pmth)</translation>
     </message>
     <message>
         <location line="-2"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="-2"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="-2"/>
         <source>Open process method</source>
         <translation>解析メソッドを開く</translation>
     </message>
     <message>
         <location line="+125"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+125"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+125"/>
         <source>PDF (*.pdf *.svg)</source>
         <translation></translation>
     </message>
     <message>
         <location line="+3"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+3"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+3"/>
         <source>Print current view</source>
         <translation>現在のビューを印刷</translation>
     </message>
     <message>
         <location line="+0"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+0"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+0"/>
         <source>No current data exist</source>
         <translation>データが選択されていません</translation>
     </message>
     <message>
         <location line="+11"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+11"/>
-        <location filename="../../../src/plugins/dataproc.org/actionmanager.cpp" line="+11"/>
         <source>MSCalibrations(*.msclb)</source>
-        <translation>質量キャリブレーション</translation>
+        <translation>質量キャリブレーション(*.msclb)</translation>
     </message>
 </context>
 <context>
@@ -43501,58 +43525,50 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/dataproc/backup/mainwindow.cpp" line="+290"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+290"/>
-        <location filename="../../../src/plugins/dataproc.org/mainwindow.cpp" line="+290"/>
         <source>Axis:</source>
         <translation>軸:</translation>
     </message>
     <message>
         <location line="+3"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+3"/>
-        <location filename="../../../src/plugins/dataproc.org/mainwindow.cpp" line="+3"/>
         <source>Sequence:</source>
         <translation>サンプルシーケンス:</translation>
     </message>
     <message>
         <location line="+51"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+50"/>
-        <location filename="../../../src/plugins/dataproc.org/mainwindow.cpp" line="+51"/>
         <source>Apply</source>
         <translation>適用</translation>
     </message>
     <message>
         <location line="+25"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+25"/>
-        <location filename="../../../src/plugins/dataproc.org/mainwindow.cpp" line="+25"/>
         <source>Process Method:</source>
         <translation>解析メソッド:</translation>
     </message>
     <message>
         <location line="+490"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+490"/>
-        <location filename="../../../src/plugins/dataproc.org/mainwindow.cpp" line="+494"/>
         <source>Save peak list for all checked spectra</source>
         <translation>チェックされたピークをすべて保存</translation>
     </message>
     <message>
         <location line="+2"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+2"/>
-        <location filename="../../../src/plugins/dataproc.org/mainwindow.cpp" line="+2"/>
         <source>Text files(*.txt)</source>
-        <translation>テキスト</translation>
+        <translation>テキスト(*.txt)</translation>
     </message>
     <message>
         <location line="+59"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+59"/>
-        <location filename="../../../src/plugins/dataproc.org/mainwindow.cpp" line="+59"/>
         <source>Import checked data into a file</source>
         <translation>チェックされたデータをファイルにインポート</translation>
     </message>
     <message>
         <location line="+2"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+2"/>
-        <location filename="../../../src/plugins/dataproc.org/mainwindow.cpp" line="+2"/>
         <source>QtPlatz files(*.adfs)</source>
-        <translation>QtPlatz ファイル</translation>
+        <translation type="unfinished">QtPlatzデータ(*.adfs)</translation>
     </message>
 </context>
 <context>
@@ -43575,12 +43591,8 @@ p, li { white-space: pre-wrap; }
         <location line="+113"/>
         <location line="+33"/>
         <location line="+64"/>
-        <location filename="../../../src/plugins/dataproc.org/msprocessingwnd.cpp" line="+650"/>
-        <location line="+113"/>
-        <location line="+33"/>
-        <location line="+64"/>
         <source>SVG (*.svg)</source>
-        <translation>SVG 画像</translation>
+        <translation>SVG 画像(*.svg)</translation>
     </message>
 </context>
 <context>
@@ -43596,14 +43608,8 @@ p, li { white-space: pre-wrap; }
     <name>dataproc::NavigationWidgetFactory</name>
     <message>
         <location filename="../../../src/plugins/dataproc/navigationwidgetfactory.cpp" line="+58"/>
-        <location filename="../../../src/plugins/dataproc.org/navigationwidgetfactory.cpp" line="+65"/>
         <source>Synchronize with Editor</source>
         <translation type="unfinished">エディタと同期</translation>
-    </message>
-    <message>
-        <location filename="../../../src/plugins/dataproc.org/navigationwidgetfactory.cpp" line="-20"/>
-        <source>Processing files</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -43621,7 +43627,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+2"/>
         <source>Protain sequence files(*.fas)</source>
-        <translation>タンパク質配列ファイル</translation>
+        <translation>タンパク質配列ファイル(*.fas)</translation>
     </message>
 </context>
 <context>
@@ -43661,7 +43667,7 @@ p, li { white-space: pre-wrap; }
         <location line="+0"/>
         <location line="+22"/>
         <source>File(*.xml)</source>
-        <translation>定量物質テーブル</translation>
+        <translation>定量物質テーブル(*.xml)</translation>
     </message>
     <message>
         <location line="-8"/>
@@ -43742,18 +43748,59 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+1"/>
         <source>Data Files(*.adfs *.csv *.txt *.spc)</source>
-        <translation>データファイル</translation>
+        <translation>データファイル(*.adfs,*.csv,*.txt,*.spc)</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Quan result (*.adfs)</source>
-        <translation>定量結果</translation>
+        <translation>定量結果(*.adfs)</translation>
     </message>
 </context>
 <context>
     <name>quan::MainWindow</name>
     <message>
-        <location filename="../../../src/plugins/quan/mainwindow.cpp" line="+246"/>
+        <location filename="../../../src/plugins/quan/mainwindow.cpp" line="+96"/>
+        <source>Quan</source>
+        <translation type="unfinished">定量</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <location line="+21"/>
+        <source>Select Data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-21"/>
+        <source>Compounds &amp; Protocols</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Reports</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Review Result</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>Compounds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Peak Detection/Assign</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+107"/>
         <source>Run</source>
         <translation>実行</translation>
     </message>
@@ -43782,7 +43829,7 @@ p, li { white-space: pre-wrap; }
         <location line="+72"/>
         <location line="+21"/>
         <source>File(*.xml)</source>
-        <translation>ファイル</translation>
+        <translation>ファイル(*.xml)</translation>
     </message>
     <message>
         <location line="-101"/>
@@ -43829,7 +43876,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+1"/>
         <source>File(*.adfs)</source>
-        <translation>ファイル</translation>
+        <translation>ファイル(*.adfs)</translation>
     </message>
 </context>
 <context>
@@ -44045,6 +44092,59 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+3"/>
         <source>, float size: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>quan::CompoundsTable</name>
+    <message>
+        <location filename="../../../src/plugins/quan/compoundstable.cpp" line="+224"/>
+        <source>formula</source>
+        <translation type="unfinished">化学式</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>&lt;i&gt;m/z&lt;/i&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>t&lt;sub&gt;R&lt;/sub&gt;(min)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>t&lt;sub&gt;R&lt;/sub&gt; ref.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>lock mass</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>ISTD</source>
+        <translation type="unfinished">定量計算方法</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>ISTD ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>memo</source>
+        <translation type="unfinished">説明</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Pass/Fail Criteria(1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Pass/Fail Criteria(2)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
