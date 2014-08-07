@@ -57,7 +57,7 @@ namespace dataproc {
 
         static MainWindow * instance();
         
-        QWidget * createContents( Core::IMode *, const adportable::Configuration&, const std::wstring& apppath );
+        QWidget * createContents( Core::IMode * );
         // if you are looking for 'create_actions', you should see dataproc::ActionManager
         
         void activateLayout();

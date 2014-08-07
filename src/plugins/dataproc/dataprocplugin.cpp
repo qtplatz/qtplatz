@@ -181,12 +181,6 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     }
     //------------------------------------------------
 
-    //Core::MimeDatabase* mdb = core->mimeDatabase();
-    //if ( !mdb ) {
-    //*error_message = "no mime database in Core plugin";
-    //return false;
-    //}
-
     do {
         std::vector< std::string > mime;
         std::vector< adplugin::plugin_ptr > dataproviders;
@@ -240,7 +234,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
     pActionManager_->initialize_actions( context );
     mainWindow_->activateLayout();
-    QWidget * widget = mainWindow_->createContents( mode_.get(), config, apppath );
+    QWidget * widget = mainWindow_->createContents( mode_.get() );
     widget->setObjectName( QLatin1String( "DataprocessingPage") );
     mode_->setWidget( widget );
 
@@ -431,6 +425,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 void
 DataprocPlugin::extensionsInitialized()
 {
+    // auto editMode = Core::ModeManager::mode( Core::Id( Core::EDIT_MODE ) );
     mainWindow_->OnInitialUpdate();
     pActionManager_->loadDefaults();
 }

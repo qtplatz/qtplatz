@@ -24,23 +24,24 @@
 **************************************************************************/
 
 #include "dataproceditor.hpp"
-#include "dataprocessorfactory.hpp"
-#include "constants.hpp"
-#include "msprocessingwnd.hpp"
-#include "ifileimpl.hpp"
 #include "dataprocessor.hpp"
+#include "dataprocessorfactory.hpp"
+#include "dataprocconstants.hpp"
+#include "mainwindow.hpp"
+#include "msprocessingwnd.hpp"
 #include "sessionmanager.hpp"
 #include <coreplugin/id.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/coreconstants.h>
 #include <qtwrapper/waitcursor.hpp>
+#include <QTextEdit>
 
 using namespace dataproc;
 
 DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor( 0 )
-                                                                 , widget_( new QWidget ) // dummy for Core::EditorManager
                                                                  , factory_(factory)
+                                                                 , widget_( new QTextEdit )
 {
     setWidget( widget_ );
     context_.add( Constants::C_DATAPROCESSOR );
@@ -49,7 +50,7 @@ DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor
 DataprocEditor::~DataprocEditor()
 {
     SessionManager::instance()->removeEditor( this );
-	delete widget_;
+    delete widget_;
 }
 
 void

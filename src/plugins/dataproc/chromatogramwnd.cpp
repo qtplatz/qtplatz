@@ -95,17 +95,16 @@ ChromatogramWnd::~ChromatogramWnd()
 {
 }
 
-ChromatogramWnd::ChromatogramWnd(const std::wstring& apppath, QWidget *parent) :  QWidget(parent)
+ChromatogramWnd::ChromatogramWnd( QWidget *parent ) : QWidget(parent)
 {
-    init( apppath );
+    init();
 }
 
 void
-ChromatogramWnd::init( const std::wstring& apppath )
+ChromatogramWnd::init()
 {
-	(void)apppath;
-
     pImpl_.reset( new ChromatogramWndImpl );
+
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
         if ( ( pImpl_->chroWidget_ = new adwplot::ChromatogramWidget( this ) ) ) {

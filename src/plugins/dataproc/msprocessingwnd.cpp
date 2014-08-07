@@ -152,13 +152,14 @@ namespace dataproc {
             double t = std::numeric_limits<double>::max();
             for ( auto& chro: checkedChromatograms_ ) {
                 if ( auto pchr = chro.second.lock() ) {
-                    const double * times = pchr->getTimeArray();
-                    int idx = int( std::distance( times, std::lower_bound( times, times + pchr->size(), s ) ) );
-                    if ( std::abs( t - s ) > std::abs( times[ idx ] - s ) ) {
-                        traceId = chro.first;
-                        index = idx;
-                        fcn = pchr->fcn();
-                        t = times[ idx ];
+                    if ( const double * times = pchr->getTimeArray() ) {
+                        int idx = int( std::distance( times, std::lower_bound( times, times + pchr->size(), s ) ) );
+                        if ( std::abs( t - s ) > std::abs( times[ idx ] - s ) ) {
+                            traceId = chro.first;
+                            index = idx;
+                            fcn = pchr->fcn();
+                            t = times[ idx ];
+                        }
                     }
                 }
             }
