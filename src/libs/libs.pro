@@ -3,8 +3,8 @@ CONFIG   += ordered
 
 SUBDIRS   = \
     aggregation \
-    extensionsystem \
     utils \
+    extensionsystem \
     adportable \
     adextension \
     adinterface \
