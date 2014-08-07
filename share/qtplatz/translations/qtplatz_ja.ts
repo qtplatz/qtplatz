@@ -43526,7 +43526,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../../src/plugins/dataproc/backup/mainwindow.cpp" line="+290"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+290"/>
         <source>Axis:</source>
-        <translation>軸:</translation>
+        <translation type="unfinished">水平軸:</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -43568,7 +43568,127 @@ p, li { white-space: pre-wrap; }
         <location line="+2"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+2"/>
         <source>QtPlatz files(*.adfs)</source>
-        <translation type="unfinished">QtPlatzデータ(*.adfs)</translation>
+        <translation>QtPlatzデータ(*.adfs)</translation>
+    </message>
+    <message>
+        <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="-680"/>
+        <location line="+161"/>
+        <source>MS Process</source>
+        <translation>スペクトル処理</translation>
+    </message>
+    <message>
+        <location line="-156"/>
+        <source>Elemental Comp</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+101"/>
+        <location line="+56"/>
+        <location line="+123"/>
+        <source>MS Calibration</source>
+        <translation>質量キャリブレーション</translation>
+    </message>
+    <message>
+        <location line="-275"/>
+        <source>MS Calib. Spectra</source>
+        <translation>質量キャリブレーション(MT)</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+153"/>
+        <source>Chromatogram</source>
+        <translation>クロマトグラム</translation>
+    </message>
+    <message>
+        <location line="-148"/>
+        <source>TOF Plots</source>
+        <translation>飛行時間プロット</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <location line="+148"/>
+        <source>Spectrogram</source>
+        <translation>スペクトログラム</translation>
+    </message>
+    <message>
+        <location line="-142"/>
+        <location line="+145"/>
+        <source>Spectra</source>
+        <translation>スペクトル</translation>
+    </message>
+    <message>
+        <location line="-135"/>
+        <source>m/z</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>time</source>
+        <translation>飛行時間</translation>
+    </message>
+    <message>
+        <location line="+61"/>
+        <location line="+179"/>
+        <source>Centroid</source>
+        <translation>重心計算</translation>
+    </message>
+    <message>
+        <location line="-178"/>
+        <location line="+182"/>
+        <source>Targeting</source>
+        <translation>ターゲティング</translation>
+    </message>
+    <message>
+        <location line="-180"/>
+        <source>Find peaks</source>
+        <translation>クロマトグラムピーク検出</translation>
+    </message>
+    <message>
+        <location line="+52"/>
+        <source>Elemental Comp.</source>
+        <translation>元素組成</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>MS Calibration(2)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <location line="+120"/>
+        <source>TOF Peaks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-7"/>
+        <source>MS Peaks</source>
+        <translation>MS ピークリスト</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>MS Chromatogr.</source>
+        <translation>質量クロマトグラム</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Peptide</source>
+        <translation>ペプチド</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Peak Find</source>
+        <translation>クロマトグラフィーピーク検出</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Data property</source>
+        <translation>データ属性</translation>
+    </message>
+    <message>
+        <location line="+211"/>
+        <source>No data exist for peptide targeting</source>
+        <translation>ペプチドターゲッティングのためのデータがありません</translation>
     </message>
 </context>
 <context>
