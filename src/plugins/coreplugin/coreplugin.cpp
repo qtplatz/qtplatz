@@ -99,11 +99,13 @@ bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
     parseArguments(arguments);
     const bool success = m_mainWindow->init(errorMessage);
     if (success) {
+#if 0   // disable edit mode for QtPlatz, toshi
         m_editMode = new EditMode;
-        addObject(m_editMode);
+        addObject( m_editMode );
         ModeManager::activateMode(m_editMode->id());
         m_designMode = new DesignMode;
         InfoBar::initializeGloballySuppressed();
+#endif
     }
 
     // Make sure we respect the process's umask when creating new files
@@ -118,8 +120,10 @@ bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
 void CorePlugin::extensionsInitialized()
 {
     MimeDatabase::syncUserModifiedMimeTypes();
+#if 0 // disabled, toshi
     if (m_designMode->designModeIsRequired())
         addObject(m_designMode);
+#endif
     //m_findPlugin->extensionsInitialized();
     //m_locator->extensionsInitialized();
     m_mainWindow->extensionsInitialized();

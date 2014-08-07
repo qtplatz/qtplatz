@@ -375,11 +375,8 @@ MainWindow::createStyledBarMiddle()
 }
 
 QWidget *
-MainWindow::createContents( Core::IMode * mode
-                            , const adportable::Configuration& config, const std::wstring& apppath )
+MainWindow::createContents( Core::IMode * mode )
 {
-	(void)config;
-
     setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
     setDocumentMode( true );
     setDockNestingEnabled( true );
@@ -413,7 +410,7 @@ MainWindow::createContents( Core::IMode * mode
         wnd.push_back( new MSCalibSpectraWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "MS Calibration(2)" ), wnd.back() ) );
 
-        wnd.push_back( new ChromatogramWnd( apppath ) );
+        wnd.push_back( new ChromatogramWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( "Chromatogram" ), wnd.back() ) );
 
         wnd.push_back( new MSPeaksWnd );

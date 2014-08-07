@@ -61,7 +61,7 @@ namespace dataproc {
 
     private:
         std::shared_ptr< Dataprocessor > processor_; // IDocument
-		QWidget * widget_;  // dummy
+        QWidget * widget_;  // dummy widget (fake display for EditorManager)
         Core::IEditorFactory * factory_;
         Core::Context context_;
         QString displayName_;
