@@ -42057,7 +42057,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../../src/plugins/dataproc/backup/ui_dialogspectrometerchoice.h" line="+52"/>
         <location filename="../../../src/plugins/dataproc/ui_dialogspectrometerchoice.h" line="+52"/>
         <source>Dialog</source>
-        <translation type="unfinished">ダイアログ</translation>
+        <translation>ダイアログ</translation>
     </message>
 </context>
 <context>
@@ -42269,7 +42269,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+1"/>
         <source>Calibration</source>
-        <translation type="unfinished"></translation>
+        <translation>検量線</translation>
     </message>
 </context>
 <context>
@@ -42622,7 +42622,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+5"/>
         <source>Amount</source>
-        <translation>アマウント</translation>
+        <translation type="unfinished">定量値</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -42729,7 +42729,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/quan/quanquery.cpp" line="-9"/>
         <source>dataSource</source>
-        <translation type="unfinished">データファイル名</translation>
+        <translation>データファイル名</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -42764,12 +42764,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+3"/>
         <source>amount</source>
-        <translation type="unfinished">定量</translation>
+        <translation type="unfinished">定量値</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>id</source>
-        <translation type="unfinished">化合物番号</translation>
+        <translation>化合物番号</translation>
     </message>
 </context>
 <context>
@@ -43761,43 +43761,43 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/quan/mainwindow.cpp" line="+96"/>
         <source>Quan</source>
-        <translation type="unfinished">定量</translation>
+        <translation>定量</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+21"/>
         <source>Select Data</source>
-        <translation type="unfinished"></translation>
+        <translation>データ選択</translation>
     </message>
     <message>
         <location line="-21"/>
         <source>Compounds &amp; Protocols</source>
-        <translation type="unfinished"></translation>
+        <translation>化合物＆解析手順</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Reports</source>
-        <translation type="unfinished"></translation>
+        <translation>レポート生成</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Review Result</source>
-        <translation type="unfinished"></translation>
+        <translation>検量線＆定量結果</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Configuration</source>
-        <translation type="unfinished"></translation>
+        <translation>定量方法＆サンプル</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Compounds</source>
-        <translation type="unfinished"></translation>
+        <translation>化合物</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Peak Detection/Assign</source>
-        <translation type="unfinished"></translation>
+        <translation>ピーク検出・ピーク同定</translation>
     </message>
     <message>
         <location line="+107"/>
@@ -44100,52 +44100,52 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/quan/compoundstable.cpp" line="+224"/>
         <source>formula</source>
-        <translation type="unfinished">化学式</translation>
+        <translation>化学式</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>&lt;i&gt;m/z&lt;/i&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>t&lt;sub&gt;R&lt;/sub&gt;(min)</source>
-        <translation type="unfinished"></translation>
+        <translation>保持時間(min)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>t&lt;sub&gt;R&lt;/sub&gt; ref.</source>
-        <translation type="unfinished"></translation>
+        <translation>保持時間</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>lock mass</source>
-        <translation type="unfinished"></translation>
+        <translation>ロックマス</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>ISTD</source>
-        <translation type="unfinished">定量計算方法</translation>
+        <translation>定量計算方法</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>ISTD ID</source>
-        <translation type="unfinished"></translation>
+        <translation>内標ID</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>memo</source>
-        <translation type="unfinished">説明</translation>
+        <translation>説明</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Pass/Fail Criteria(1)</source>
-        <translation type="unfinished"></translation>
+        <translation>合否判定基準(1)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Pass/Fail Criteria(2)</source>
-        <translation type="unfinished"></translation>
+        <translation>合否判定基準(2)</translation>
     </message>
 </context>
 </TS>
