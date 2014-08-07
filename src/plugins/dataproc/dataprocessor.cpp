@@ -24,32 +24,23 @@
 **************************************************************************/
 
 #include "dataprocessor.hpp"
-#include "ifileimpl.hpp"
 #include "constants.hpp"
 #include "sessionmanager.hpp"
 #include "dataprochandler.hpp"
 #include "mainwindow.hpp"
 #include "dataprocessworker.hpp"
-#include <adcontrols/datafile.hpp>
-#include <adcontrols/lockmass.hpp>
-#include <qtwrapper/qstring.hpp>
-#include <extensionsystem/pluginmanager.h>
-#include <coreplugin/id.h>
-#include <coreplugin/idocument.h>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folium.hpp>
-#include <portfolio/folder.hpp>
-#include <adcontrols/lcmsdataset.hpp>
-#include <adcontrols/processeddataset.hpp>
-#include <adcontrols/processmethod.hpp>
-#include <adutils/processeddata.hpp>
 
+#include <adportable/array_wrapper.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/datafile.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/lockmass.hpp>
+#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -63,22 +54,32 @@
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/peakmethod.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/processeddataset.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adcontrols/peakresult.hpp>
+#include <adcontrols/spectrogram.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/targetingmethod.hpp>
-#include <adcontrols/spectrogram.hpp>
-#include <adportable/array_wrapper.hpp>
-#include <adportable/profile.hpp>
-#include <adlog/logger.hpp>
-#include <adportable/serializer.hpp>
-#include <adportable/xml_serializer.hpp>
-#include <adportable/spectrum_processor.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
+#include <adlog/logger.hpp>
+#include <adportable/profile.hpp>
+#include <adportable/serializer.hpp>
+#include <adportable/xml_serializer.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adutils/fsio.hpp>
+#include <adutils/processeddata.hpp>
+#include <portfolio/portfolio.hpp>
+#include <portfolio/folium.hpp>
+#include <portfolio/folder.hpp>
+#include <extensionsystem/pluginmanager.h>
+#include <coreplugin/id.h>
+#include <coreplugin/idocument.h>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/qstring.hpp>
+
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
@@ -87,6 +88,8 @@
 #include <stack>
 #include <fstream>
 #include <QMessageBox>
+#include <QFontMetrics>
+#include <QApplication>
 
 using namespace dataproc;
 
@@ -126,6 +129,13 @@ Dataprocessor::Dataprocessor() : portfolio_( new portfolio::Portfolio() )
                                , rawDataset_( 0 )
                                , modified_( false )
 {
+}
+
+void
+Dataprocessor::setDisplayName( const QString& fullpath )
+{
+    QFontMetrics fm( QApplication::fontMetrics() );
+    IDocument::setDisplayName( fm.elidedText( fullpath, Qt::ElideLeft, 100 ) );
 }
 
 void
@@ -224,22 +234,22 @@ Dataprocessor::create(const QString& filename )
     if ( file ) {
         file_.reset( file );
         file_->open( filename.toStdWString() );
-        // ifileimpl_.reset( new IFileImpl( file, *this ) );
-        // file->accept( *ifileimpl_ );
         file->accept( *this );
+        setDisplayName( filename );
         return true;
     }
     return false;
 }
 
 bool
-Dataprocessor::open(const QString &fileName )
+Dataprocessor::open(const QString &filename )
 {
     try {
-        if ( adcontrols::datafile * file = adcontrols::datafile::open( fileName.toStdWString(), false ) ) {
+        if ( adcontrols::datafile * file = adcontrols::datafile::open( filename.toStdWString(), false ) ) {
             file_.reset( file );
             try {
                 file->accept( *this );
+                setDisplayName( filename );
                 return true;
             } catch ( boost::exception& ex ) {
                 ADERROR() << boost::diagnostic_information( ex );
