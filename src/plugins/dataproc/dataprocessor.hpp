@@ -149,8 +149,8 @@ namespace dataproc {
         std::wstring idActiveFolium_;
         const adcontrols::LCMSDataset * rawDataset_;
         bool modified_;
-    signals:
-        void changed();
+
+        void setDisplayName( const QString& );
     };
 
 } // dataproc

@@ -256,8 +256,9 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 
     adportable::path name( path );
 
-    for ( const portfolio::Folder& folder: portfolio.folders() )
+    for ( const portfolio::Folder& folder : portfolio.folders() ) {
         detail::folder::save( dbf_, name, source, folder );
+    }
 
     sql.commit();
     return true;
@@ -393,10 +394,21 @@ namespace addatafile {
                 adfs::file dbf = folder.addFile( folium.id() );
 
                 import::attributes( dbf, folium.attributes() );
-                adutils::cpio::save( dbf, any );
+                try {
+                    adutils::cpio::save( dbf, any );
+                }
+                catch ( boost::exception& ex ) {
+                    ADTRACE() << boost::diagnostic_information( ex );
+                }
 
-                for ( const portfolio::Folium& att: folium.attachments() )
-                    detail::attachment::save( dbf, filename, source, att );
+                for ( const portfolio::Folium& att : folium.attachments() ) {
+                    try {
+                        detail::attachment::save( dbf, filename, source, att );
+                    }
+                    catch ( boost::exception& ex) {
+                        ADTRACE() << boost::diagnostic_information( ex );
+                    }
+                }
             }
             return true;
         }

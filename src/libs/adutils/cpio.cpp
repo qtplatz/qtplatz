@@ -45,6 +45,7 @@
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/spectrogram.hpp>
 #include <adcontrols/targeting.hpp>
+#include <adcontrols/quansequence.hpp>
 #include <boost/exception/all.hpp>
 
 using namespace adutils;
@@ -113,6 +114,16 @@ cpio::save( adfs::file& dbf, const boost::any& a )
     else if ( adportable::a_type< adcontrols::TargetingPtr >::is_a( a ) ) {
 
         return internal::cpio_handler< adcontrols::Targeting >::save( dbf, a );
+
+    }
+    else if ( adportable::a_type< adcontrols::QuanSamplePtr >::is_a( a ) ) {
+
+        return internal::cpio_handler< adcontrols::QuanSample >::save( dbf, a );
+    }
+
+    else if ( adportable::a_type< adcontrols::QuanSequencePtr >::is_a( a ) ) {
+
+        return internal::cpio_handler< adcontrols::QuanSequence >::save( dbf, a );
 
     }
 

@@ -27,7 +27,6 @@ SOURCES += dataprocplugin.cpp \
            dataprochandler.cpp \
            dataprocplugin.cpp \
            elementalcompwnd.cpp \
-           ifileimpl.cpp \
            isequenceimpl.cpp \
            isnapshothandlerimpl.cpp \
            mscalibrationwnd.cpp \
@@ -68,7 +67,6 @@ HEADERS += dataproc_global.hpp \
            dataprochandler.hpp \
            dataprocplugin.hpp \
            elementalcompwnd.hpp \
-           ifileimpl.hpp \
            isequenceimpl.hpp \
            isnapshothandlerimpl.hpp \
            mscalibrationwnd.hpp \
