@@ -26,7 +26,7 @@
 #include "batchprocconstants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 
@@ -37,17 +37,13 @@ BatchMode::~BatchMode()
     Core::EditorManager::instance()->setParent(0);
 }
 
-BatchMode::BatchMode(QObject *parent) :  Core::BaseMode(parent)
+BatchMode::BatchMode(QObject *parent) :  Core::IMode(parent)
 {
-    setName(tr("Batch"));
-    setUniqueModeName( batchproc::Constants::C_BATCHPROC_MODE );
+    setDisplayName( tr( "Batch" ) );
+    // setUniqueModeName( batchproc::Constants::C_BATCHPROC_MODE );
     setIcon(QIcon(":/batchproc/images/file_batch.png"));
     setPriority( 30 );
-    QList<int> contexts = QList<int>() <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( Constants::C_BATCHPROC_MODE );
-    //     Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_EDIT_MODE) <<
-    //     Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_EDITORMANAGER) <<
-    //     Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_NAVIGATION_PANE);
+    Core::Context contexts( (Core::Id( Constants::C_BATCHPROC_MODE )) );
     setContext( contexts );
 
     // Core::ModeManager *modeManager = Core::ModeManager::instance();

@@ -12,7 +12,7 @@ will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.</license>
     <description>data analysis sample plugin.</description>
     <url>http://www.ms-cheminfo.com</url>
     <dependencyList>
-        <dependency name="Core" version="1.3.1"/>
-	<dependency name="servant" version="2.2.7"/>
+        <dependency name="Core" version="3.2.81"/>
+	<dependency name="servant" version="2.7.8"/>
     </dependencyList>
 </plugin>

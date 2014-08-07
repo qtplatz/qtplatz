@@ -47,7 +47,7 @@ IFileImpl::~IFileImpl()
 
 IFileImpl::IFileImpl( adcontrols::datafile * file
                      , Dataprocessor& dprocessor
-                     , QObject *parent) : Core::IFile(parent)
+                     , QObject *parent) : Core::IDocument(parent)
                                         , modified_(false)
                                         , file_(file)
                                         , accessor_(0)
@@ -82,7 +82,7 @@ IFileImpl::mimeType() const
 }
 
 bool
-IFileImpl::save( const QString& filename )
+IFileImpl::save( QString *, const QString& filename, bool )
 {
     portfolio::Portfolio portfolio = dprocessor_.getPortfolio();
 
@@ -118,6 +118,12 @@ IFileImpl::save( const QString& filename )
     } while(0);
 
 	setModified( false );
+    return true;
+}
+
+bool
+IFileImpl::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType )
+{
     return true;
 }
 

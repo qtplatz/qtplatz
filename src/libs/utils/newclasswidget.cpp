@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,24 +21,30 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "newclasswidget.h"
 #include "ui_newclasswidget.h"
 
-#include <utils/filewizardpage.h>
 
-#include <QtGui/QFileDialog>
-#include <QtCore/QFileInfo>
-#include <QtCore/QStringList>
-#include <QtCore/QDir>
-#include <QtCore/QDebug>
-#include <QtCore/QRegExp>
+#include <QFileDialog>
+#include <QDebug>
+#include <QRegExp>
 
 enum { debugNewClassWidget = 0 };
+
+/*! \class Utils::NewClassWidget
+
+    \brief The NewClassWidget class is a utility widget for 'New Class' wizards.
+
+    This widget prompts the user
+    to enter a class name (optionally derived from some base class) and file
+    names for header, source and form files. Has some smart logic to derive
+    the file names from the class name. */
 
 namespace Utils {
 
@@ -56,9 +61,12 @@ struct NewClassWidgetPrivate {
     // fooled by a temporarily hidden widget
     bool m_baseClassInputVisible;
     bool m_formInputVisible;
+    bool m_headerInputVisible;
+    bool m_sourceInputVisible;
     bool m_pathInputVisible;
     bool m_qobjectCheckBoxVisible;
     bool m_formInputCheckable;
+    QRegExp m_classNameValidator;
 };
 
 NewClassWidgetPrivate:: NewClassWidgetPrivate() :
@@ -69,6 +77,8 @@ NewClassWidgetPrivate:: NewClassWidgetPrivate() :
     m_classEdited(false),
     m_baseClassInputVisible(true),
     m_formInputVisible(true),
+    m_headerInputVisible(true),
+    m_sourceInputVisible(true),
     m_pathInputVisible(true),
     m_qobjectCheckBoxVisible(false),
     m_formInputCheckable(false)
@@ -79,69 +89,74 @@ NewClassWidgetPrivate:: NewClassWidgetPrivate() :
 // --------------------- NewClassWidget
 NewClassWidget::NewClassWidget(QWidget *parent) :
     QWidget(parent),
-    m_d(new NewClassWidgetPrivate)
+    d(new NewClassWidgetPrivate)
 {
-    m_d->m_ui.setupUi(this);
+    d->m_ui.setupUi(this);
 
-    m_d->m_ui.baseClassComboBox->setEditable(false);
+    d->m_ui.baseClassComboBox->setEditable(false);
 
-    connect(m_d->m_ui.classLineEdit, SIGNAL(updateFileName(QString)),
+    setNamesDelimiter(QLatin1String("::"));
+
+    connect(d->m_ui.classLineEdit, SIGNAL(updateFileName(QString)),
             this, SLOT(slotUpdateFileNames(QString)));
-    connect(m_d->m_ui.classLineEdit, SIGNAL(textEdited(QString)),
+    connect(d->m_ui.classLineEdit, SIGNAL(textEdited(QString)),
             this, SLOT(classNameEdited()));
-    connect(m_d->m_ui.baseClassComboBox, SIGNAL(currentIndexChanged(int)),
+    connect(d->m_ui.baseClassComboBox, SIGNAL(currentIndexChanged(int)),
             this, SLOT(suggestClassNameFromBase()));
-    connect(m_d->m_ui.baseClassComboBox, SIGNAL(editTextChanged(QString)),
+    connect(d->m_ui.baseClassComboBox, SIGNAL(editTextChanged(QString)),
             this, SLOT(slotValidChanged()));
-    connect(m_d->m_ui.classLineEdit, SIGNAL(validChanged()),
+    connect(d->m_ui.classLineEdit, SIGNAL(validChanged()),
             this, SLOT(slotValidChanged()));
-    connect(m_d->m_ui.headerFileLineEdit, SIGNAL(validChanged()),
+    connect(d->m_ui.headerFileLineEdit, SIGNAL(validChanged()),
             this, SLOT(slotValidChanged()));
-    connect(m_d->m_ui.sourceFileLineEdit, SIGNAL(validChanged()),
+    connect(d->m_ui.sourceFileLineEdit, SIGNAL(validChanged()),
             this, SLOT(slotValidChanged()));
-    connect(m_d->m_ui.formFileLineEdit, SIGNAL(validChanged()),
+    connect(d->m_ui.formFileLineEdit, SIGNAL(validChanged()),
             this, SLOT(slotValidChanged()));
-    connect(m_d->m_ui.pathChooser, SIGNAL(validChanged()),
+    connect(d->m_ui.pathChooser, SIGNAL(validChanged()),
+            this, SLOT(slotValidChanged()));
+    connect(d->m_ui.generateFormCheckBox, SIGNAL(toggled(bool)),
             this, SLOT(slotValidChanged()));
 
-    connect(m_d->m_ui.classLineEdit, SIGNAL(validReturnPressed()),
+    connect(d->m_ui.classLineEdit, SIGNAL(validReturnPressed()),
             this, SLOT(slotActivated()));
-    connect(m_d->m_ui.headerFileLineEdit, SIGNAL(validReturnPressed()),
+    connect(d->m_ui.headerFileLineEdit, SIGNAL(validReturnPressed()),
             this, SLOT(slotActivated()));
-    connect(m_d->m_ui.sourceFileLineEdit, SIGNAL(validReturnPressed()),
+    connect(d->m_ui.sourceFileLineEdit, SIGNAL(validReturnPressed()),
             this, SLOT(slotActivated()));
-    connect(m_d->m_ui.formFileLineEdit, SIGNAL(validReturnPressed()),
+    connect(d->m_ui.formFileLineEdit, SIGNAL(validReturnPressed()),
             this, SLOT(slotActivated()));
-    connect(m_d->m_ui.formFileLineEdit, SIGNAL(validReturnPressed()),
+    connect(d->m_ui.formFileLineEdit, SIGNAL(validReturnPressed()),
             this, SLOT(slotActivated()));
-    connect(m_d->m_ui.pathChooser, SIGNAL(returnPressed()),
+    connect(d->m_ui.pathChooser, SIGNAL(returnPressed()),
              this, SLOT(slotActivated()));
 
-    connect(m_d->m_ui.generateFormCheckBox, SIGNAL(stateChanged(int)),
+    connect(d->m_ui.generateFormCheckBox, SIGNAL(stateChanged(int)),
             this, SLOT(slotFormInputChecked()));
-
-    m_d->m_ui.generateFormCheckBox->setChecked(true);
+    connect(d->m_ui.baseClassComboBox, SIGNAL(editTextChanged(QString)),
+            this, SLOT(slotBaseClassEdited(QString)));
+    d->m_ui.generateFormCheckBox->setChecked(true);
     setFormInputCheckable(false, true);
     setClassType(NoClassType);
 }
 
 NewClassWidget::~NewClassWidget()
 {
-    delete m_d;
+    delete d;
 }
 
 void NewClassWidget::classNameEdited()
 {
     if (debugNewClassWidget)
-        qDebug() << Q_FUNC_INFO << m_d->m_headerExtension << m_d->m_sourceExtension;
-    m_d->m_classEdited = true;
+        qDebug() << Q_FUNC_INFO << d->m_headerExtension << d->m_sourceExtension;
+    d->m_classEdited = true;
 }
 
 void NewClassWidget::suggestClassNameFromBase()
 {
     if (debugNewClassWidget)
-        qDebug() << Q_FUNC_INFO << m_d->m_headerExtension << m_d->m_sourceExtension;
-    if (m_d->m_classEdited)
+        qDebug() << Q_FUNC_INFO << d->m_headerExtension << d->m_sourceExtension;
+    if (d->m_classEdited)
         return;
     // Suggest a class unless edited ("QMainWindow"->"MainWindow")
     QString base = baseClassName();
@@ -154,50 +169,74 @@ void NewClassWidget::suggestClassNameFromBase()
 QStringList NewClassWidget::baseClassChoices() const
 {
     QStringList rc;
-    const int count = m_d->m_ui.baseClassComboBox->count();
+    const int count = d->m_ui.baseClassComboBox->count();
     for (int i = 0; i <  count; i++)
-        rc.push_back(m_d->m_ui.baseClassComboBox->itemText(i));
+        rc.push_back(d->m_ui.baseClassComboBox->itemText(i));
     return rc;
 }
 
 void NewClassWidget::setBaseClassChoices(const QStringList &choices)
 {
-    m_d->m_ui.baseClassComboBox->clear();
-    m_d->m_ui.baseClassComboBox->addItems(choices);
+    d->m_ui.baseClassComboBox->clear();
+    d->m_ui.baseClassComboBox->addItems(choices);
 }
 
 void NewClassWidget::setBaseClassInputVisible(bool visible)
 {
-    m_d->m_baseClassInputVisible = visible;
-    m_d->m_ui.baseClassLabel->setVisible(visible);
-    m_d->m_ui.baseClassComboBox->setVisible(visible);
+    d->m_baseClassInputVisible = visible;
+    d->m_ui.baseClassLabel->setVisible(visible);
+    d->m_ui.baseClassComboBox->setVisible(visible);
 }
 
 void NewClassWidget::setBaseClassEditable(bool editable)
 {
-    m_d->m_ui.baseClassComboBox->setEditable(editable);
+    d->m_ui.baseClassComboBox->setEditable(editable);
 }
 
 bool NewClassWidget::isBaseClassInputVisible() const
 {
-    return  m_d->m_baseClassInputVisible;
+    return  d->m_baseClassInputVisible;
 }
 
 bool NewClassWidget::isBaseClassEditable() const
 {
-    return  m_d->m_ui.baseClassComboBox->isEditable();
+    return  d->m_ui.baseClassComboBox->isEditable();
 }
 
 void NewClassWidget::setFormInputVisible(bool visible)
 {
-    m_d->m_formInputVisible = visible;
-    m_d->m_ui.formLabel->setVisible(visible);
-    m_d->m_ui.formFileLineEdit->setVisible(visible);
+    d->m_formInputVisible = visible;
+    d->m_ui.formLabel->setVisible(visible);
+    d->m_ui.formFileLineEdit->setVisible(visible);
 }
 
 bool NewClassWidget::isFormInputVisible() const
 {
-    return m_d->m_formInputVisible;
+    return d->m_formInputVisible;
+}
+
+void NewClassWidget::setHeaderInputVisible(bool visible)
+{
+    d->m_headerInputVisible = visible;
+    d->m_ui.headerLabel->setVisible(visible);
+    d->m_ui.headerFileLineEdit->setVisible(visible);
+}
+
+bool NewClassWidget::isHeaderInputVisible() const
+{
+    return d->m_headerInputVisible;
+}
+
+void NewClassWidget::setSourceInputVisible(bool visible)
+{
+    d->m_sourceInputVisible = visible;
+    d->m_ui.sourceLabel->setVisible(visible);
+    d->m_ui.sourceFileLineEdit->setVisible(visible);
+}
+
+bool NewClassWidget::isSourceInputVisible() const
+{
+    return d->m_sourceInputVisible;
 }
 
 void NewClassWidget::setFormInputCheckable(bool checkable)
@@ -207,242 +246,285 @@ void NewClassWidget::setFormInputCheckable(bool checkable)
 
 void NewClassWidget::setFormInputCheckable(bool checkable, bool force)
 {
-    if (!force && checkable == m_d->m_formInputCheckable)
+    if (!force && checkable == d->m_formInputCheckable)
         return;
-    m_d->m_formInputCheckable = checkable;
-    m_d->m_ui.generateFormLabel->setVisible(checkable);
-    m_d->m_ui.generateFormCheckBox->setVisible(checkable);
+    d->m_formInputCheckable = checkable;
+    d->m_ui.generateFormLabel->setVisible(checkable);
+    d->m_ui.generateFormCheckBox->setVisible(checkable);
 }
 
 void NewClassWidget::setFormInputChecked(bool v)
 {
-    m_d->m_ui.generateFormCheckBox->setChecked(v);
+    d->m_ui.generateFormCheckBox->setChecked(v);
 }
 
 bool NewClassWidget::formInputCheckable() const
 {
-    return m_d->m_formInputCheckable;
+    return d->m_formInputCheckable;
 }
 
 bool NewClassWidget::formInputChecked() const
 {
-    return m_d->m_ui.generateFormCheckBox->isChecked();
+    return d->m_ui.generateFormCheckBox->isChecked();
 }
 
 void NewClassWidget::slotFormInputChecked()
 {
     const bool checked = formInputChecked();
-    m_d->m_ui.formLabel->setEnabled(checked);
-    m_d->m_ui.formFileLineEdit->setEnabled(checked);
+    d->m_ui.formLabel->setEnabled(checked);
+    d->m_ui.formFileLineEdit->setEnabled(checked);
 }
 
 void NewClassWidget::setPathInputVisible(bool visible)
 {
-    m_d->m_pathInputVisible = visible;
-    m_d->m_ui.pathLabel->setVisible(visible);
-    m_d->m_ui.pathChooser->setVisible(visible);
+    d->m_pathInputVisible = visible;
+    d->m_ui.pathLabel->setVisible(visible);
+    d->m_ui.pathChooser->setVisible(visible);
 }
 
 bool NewClassWidget::isPathInputVisible() const
 {
-    return m_d->m_pathInputVisible;
+    return d->m_pathInputVisible;
 }
 
 void NewClassWidget::setClassName(const QString &suggestedName)
 {
     if (debugNewClassWidget)
-        qDebug() << Q_FUNC_INFO << suggestedName << m_d->m_headerExtension << m_d->m_sourceExtension;
-    m_d->m_ui.classLineEdit->setText(ClassNameValidatingLineEdit::createClassName(suggestedName));
+        qDebug() << Q_FUNC_INFO << suggestedName << d->m_headerExtension << d->m_sourceExtension;
+    d->m_ui.classLineEdit->setText(ClassNameValidatingLineEdit::createClassName(suggestedName));
 }
 
 QString NewClassWidget::className() const
 {
-    return m_d->m_ui.classLineEdit->text();
+    return d->m_ui.classLineEdit->text();
 }
 
 QString NewClassWidget::baseClassName() const
 {
-    return m_d->m_ui.baseClassComboBox->currentText();
+    return d->m_ui.baseClassComboBox->currentText();
 }
 
 void NewClassWidget::setBaseClassName(const QString &c)
 {
-    const int index = m_d->m_ui.baseClassComboBox->findText(c);
+    const int index = d->m_ui.baseClassComboBox->findText(c);
     if (index != -1) {
-        m_d->m_ui.baseClassComboBox->setCurrentIndex(index);
+        d->m_ui.baseClassComboBox->setCurrentIndex(index);
         suggestClassNameFromBase();
     }
 }
 
 QString NewClassWidget::sourceFileName() const
 {
-    return m_d->m_ui.sourceFileLineEdit->text();
+    return d->m_ui.sourceFileLineEdit->text();
 }
 
 QString NewClassWidget::headerFileName() const
 {
-    return m_d->m_ui.headerFileLineEdit->text();
+    return d->m_ui.headerFileLineEdit->text();
 }
 
 QString NewClassWidget::formFileName() const
 {
-    return m_d->m_ui.formFileLineEdit->text();
+    return d->m_ui.formFileLineEdit->text();
 }
 
 QString NewClassWidget::path() const
 {
-    return m_d->m_ui.pathChooser->path();
+    return d->m_ui.pathChooser->path();
 }
 
 void NewClassWidget::setPath(const QString &path)
 {
-     m_d->m_ui.pathChooser->setPath(path);
+     d->m_ui.pathChooser->setPath(path);
 }
 
 bool NewClassWidget::namespacesEnabled() const
 {
-    return  m_d->m_ui.classLineEdit->namespacesEnabled();
+    return  d->m_ui.classLineEdit->namespacesEnabled();
 }
 
 void NewClassWidget::setNamespacesEnabled(bool b)
 {
-    m_d->m_ui.classLineEdit->setNamespacesEnabled(b);
+    d->m_ui.classLineEdit->setNamespacesEnabled(b);
 }
 
 QString NewClassWidget::sourceExtension() const
 {
-    return m_d->m_sourceExtension;
+    return d->m_sourceExtension;
 }
 
 void NewClassWidget::setSourceExtension(const QString &e)
 {
     if (debugNewClassWidget)
         qDebug() << Q_FUNC_INFO << e;
-    m_d->m_sourceExtension = fixSuffix(e);
+    d->m_sourceExtension = fixSuffix(e);
 }
 
 QString NewClassWidget::headerExtension() const
 {
-    return m_d->m_headerExtension;
+    return d->m_headerExtension;
 }
 
 void NewClassWidget::setHeaderExtension(const QString &e)
 {
     if (debugNewClassWidget)
         qDebug() << Q_FUNC_INFO << e;
-    m_d->m_headerExtension = fixSuffix(e);
+    d->m_headerExtension = fixSuffix(e);
 }
 
 QString NewClassWidget::formExtension() const
 {
-    return m_d->m_formExtension;
+    return d->m_formExtension;
 }
 
 void NewClassWidget::setFormExtension(const QString &e)
 {
     if (debugNewClassWidget)
         qDebug() << Q_FUNC_INFO << e;
-    m_d->m_formExtension = fixSuffix(e);
+    d->m_formExtension = fixSuffix(e);
 }
 
 bool NewClassWidget::allowDirectories() const
 {
-    return m_d->m_ui.headerFileLineEdit->allowDirectories();
+    return d->m_ui.headerFileLineEdit->allowDirectories();
 }
 
 void NewClassWidget::setAllowDirectories(bool v)
 {
     // We keep all in sync
     if (allowDirectories() != v) {
-        m_d->m_ui.sourceFileLineEdit->setAllowDirectories(v);
-        m_d->m_ui.headerFileLineEdit->setAllowDirectories(v);
-        m_d->m_ui.formFileLineEdit->setAllowDirectories(v);
+        d->m_ui.sourceFileLineEdit->setAllowDirectories(v);
+        d->m_ui.headerFileLineEdit->setAllowDirectories(v);
+        d->m_ui.formFileLineEdit->setAllowDirectories(v);
     }
 }
 
 bool NewClassWidget::lowerCaseFiles() const
 {
-    return m_d->m_ui.classLineEdit->lowerCaseFileName();
+    return d->m_ui.classLineEdit->lowerCaseFileName();
 }
 
 void NewClassWidget::setLowerCaseFiles(bool v)
 {
-    m_d->m_ui.classLineEdit->setLowerCaseFileName(v);
+    d->m_ui.classLineEdit->setLowerCaseFileName(v);
 }
 
 NewClassWidget::ClassType NewClassWidget::classType() const
 {
-    return static_cast<ClassType>(m_d->m_ui.classTypeComboBox->currentIndex());
+    return static_cast<ClassType>(d->m_ui.classTypeComboBox->currentIndex());
+}
+
+QString NewClassWidget::namesDelimiter() const
+{
+    return d->m_ui.classLineEdit->namespaceDelimiter();
 }
 
 void NewClassWidget::setClassType(ClassType ct)
 {
-    m_d->m_ui.classTypeComboBox->setCurrentIndex(ct);
+    d->m_ui.classTypeComboBox->setCurrentIndex(ct);
+}
+
+void NewClassWidget::setNamesDelimiter(const QString &delimiter)
+{
+    d->m_ui.classLineEdit->setNamespaceDelimiter(delimiter);
+    const QString escaped = QRegExp::escape(delimiter);
+    d->m_classNameValidator = QRegExp(QLatin1String("[a-zA-Z_][a-zA-Z0-9_]*(")
+                                      + escaped
+                                      + QLatin1String("[a-zA-Z_][a-zA-Z0-9_]*)*"));
 }
 
 bool NewClassWidget::isClassTypeComboVisible() const
 {
-    return m_d->m_ui.classTypeLabel->isVisible();
+    return d->m_ui.classTypeLabel->isVisible();
 }
 
 void NewClassWidget::setClassTypeComboVisible(bool v)
 {
-    m_d->m_ui.classTypeLabel->setVisible(v);
-    m_d->m_ui.classTypeComboBox->setVisible(v);
+    d->m_ui.classTypeLabel->setVisible(v);
+    d->m_ui.classTypeComboBox->setVisible(v);
+}
+
+// Guess suitable type information with some smartness
+static inline NewClassWidget::ClassType classTypeForBaseClass(const QString &baseClass)
+{
+    if (!baseClass.startsWith(QLatin1Char('Q')))
+        return NewClassWidget::NoClassType;
+    // QObject types: QObject as such and models.
+    if (baseClass == QLatin1String("QObject") ||
+        (baseClass.startsWith(QLatin1String("QAbstract")) && baseClass.endsWith(QLatin1String("Model"))))
+        return NewClassWidget::ClassInheritsQObject;
+    // Widgets.
+    if (baseClass == QLatin1String("QWidget") || baseClass == QLatin1String("QMainWindow")
+        || baseClass == QLatin1String("QDialog"))
+        return NewClassWidget::ClassInheritsQWidget;
+    // Declarative Items
+    if (baseClass == QLatin1String("QDeclarativeItem"))
+        return NewClassWidget::ClassInheritsQDeclarativeItem;
+    if (baseClass == QLatin1String("QQuickItem"))
+        return NewClassWidget::ClassInheritsQQuickItem;
+    return NewClassWidget::NoClassType;
+}
+
+void NewClassWidget::slotBaseClassEdited(const QString &baseClass)
+{
+    // Set type information with some smartness.
+    const ClassType currentClassType = classType();
+    const ClassType recommendedClassType = classTypeForBaseClass(baseClass);
+    if (recommendedClassType != NoClassType && currentClassType != recommendedClassType)
+        setClassType(recommendedClassType);
 }
 
 void NewClassWidget::slotValidChanged()
 {
     const bool newValid = isValid();
-    if (newValid != m_d->m_valid) {
-        m_d->m_valid = newValid;
+    if (newValid != d->m_valid) {
+        d->m_valid = newValid;
         emit validChanged();
     }
 }
 
 bool NewClassWidget::isValid(QString *error) const
 {
-    if (!m_d->m_ui.classLineEdit->isValid()) {
+    if (!d->m_ui.classLineEdit->isValid()) {
         if (error)
-            *error = m_d->m_ui.classLineEdit->errorMessage();
+            *error = d->m_ui.classLineEdit->errorMessage();
         return false;
     }
 
     if (isBaseClassInputVisible() && isBaseClassEditable()) {
-        // TODO: Should this be a ClassNameValidatingComboBox?
-        QRegExp classNameValidator(QLatin1String("[a-zA-Z_][a-zA-Z0-9_]*(::[a-zA-Z_][a-zA-Z0-9_]*)*"));
-        const QString baseClass = m_d->m_ui.baseClassComboBox->currentText().trimmed();
-        if (!baseClass.isEmpty() && !classNameValidator.exactMatch(baseClass)) {
+        const QString baseClass = d->m_ui.baseClassComboBox->currentText().trimmed();
+        if (!baseClass.isEmpty() && !d->m_classNameValidator.exactMatch(baseClass)) {
             if (error)
                 *error = tr("Invalid base class name");
             return false;
         }
     }
 
-    if (!m_d->m_ui.headerFileLineEdit->isValid()) {
+    if (isHeaderInputVisible() && !d->m_ui.headerFileLineEdit->isValid()) {
         if (error)
-            *error = tr("Invalid header file name: '%1'").arg(m_d->m_ui.headerFileLineEdit->errorMessage());
+            *error = tr("Invalid header file name: \"%1\"").arg(d->m_ui.headerFileLineEdit->errorMessage());
         return false;
     }
 
-    if (!m_d->m_ui.sourceFileLineEdit->isValid()) {
+    if (isSourceInputVisible() && !d->m_ui.sourceFileLineEdit->isValid()) {
         if (error)
-            *error = tr("Invalid source file name: '%1'").arg(m_d->m_ui.sourceFileLineEdit->errorMessage());
+            *error = tr("Invalid source file name: \"%1\"").arg(d->m_ui.sourceFileLineEdit->errorMessage());
         return false;
     }
 
-    if (isFormInputVisible()) {
-        if (!m_d->m_ui.formFileLineEdit->isValid()) {
+    if (isFormInputVisible() &&
+        (!d->m_formInputCheckable || d->m_ui.generateFormCheckBox->isChecked())) {
+        if (!d->m_ui.formFileLineEdit->isValid()) {
             if (error)
-                *error = tr("Invalid form file name: '%1'").arg(m_d->m_ui.formFileLineEdit->errorMessage());
+                *error = tr("Invalid form file name: \"%1\"").arg(d->m_ui.formFileLineEdit->errorMessage());
             return false;
         }
     }
 
     if (isPathInputVisible()) {
-        if (!m_d->m_ui.pathChooser->isValid()) {
+        if (!d->m_ui.pathChooser->isValid()) {
             if (error)
-                *error =  m_d->m_ui.pathChooser->errorMessage();
+                *error =  d->m_ui.pathChooser->errorMessage();
             return false;
         }
     }
@@ -451,22 +533,22 @@ bool NewClassWidget::isValid(QString *error) const
 
 void NewClassWidget::triggerUpdateFileNames()
 {
-    m_d->m_ui.classLineEdit->triggerChanged();
+    d->m_ui.classLineEdit->triggerChanged();
 }
 
 void NewClassWidget::slotUpdateFileNames(const QString &baseName)
 {
     if (debugNewClassWidget)
-        qDebug() << Q_FUNC_INFO << baseName << m_d->m_headerExtension << m_d->m_sourceExtension;
+        qDebug() << Q_FUNC_INFO << baseName << d->m_headerExtension << d->m_sourceExtension;
     const QChar dot = QLatin1Char('.');
-    m_d->m_ui.sourceFileLineEdit->setText(baseName + dot + m_d->m_sourceExtension);
-    m_d->m_ui.headerFileLineEdit->setText(baseName + dot + m_d->m_headerExtension);
-    m_d->m_ui.formFileLineEdit->setText(baseName + dot + m_d->m_formExtension);
+    d->m_ui.sourceFileLineEdit->setText(baseName + dot + d->m_sourceExtension);
+    d->m_ui.headerFileLineEdit->setText(baseName + dot + d->m_headerExtension);
+    d->m_ui.formFileLineEdit->setText(baseName + dot + d->m_formExtension);
 }
 
 void NewClassWidget::slotActivated()
 {
-    if (m_d->m_valid)
+    if (d->m_valid)
         emit activated();
 }
 
@@ -490,7 +572,7 @@ static QString ensureSuffix(QString f, const QString &extension)
 }
 
 // If a non-empty name was passed, expand to directory and suffix
-static QString expandFileName(const QDir &dir, const QString name, const QString &extension)
+static QString expandFileName(const QDir &dir, const QString &name, const QString &extension)
 {
     if (name.isEmpty())
         return QString();
@@ -501,8 +583,10 @@ QStringList NewClassWidget::files() const
 {
     QStringList rc;
     const QDir dir = QDir(path());
-    rc.push_back(expandFileName(dir, headerFileName(), headerExtension()));
-    rc.push_back(expandFileName(dir, sourceFileName(), sourceExtension()));
+    if (isHeaderInputVisible())
+        rc.push_back(expandFileName(dir, headerFileName(), headerExtension()));
+    if (isSourceInputVisible())
+        rc.push_back(expandFileName(dir, sourceFileName(), sourceExtension()));
     if (isFormInputVisible())
         rc.push_back(expandFileName(dir, formFileName(), formExtension()));
     return rc;

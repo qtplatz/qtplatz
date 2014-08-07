@@ -1,48 +1,23 @@
-TEMPLATE = lib
-TARGET = Utils
-QT += gui \
-    network
+QT += gui network
 
-DEFINES += QTCREATOR_UTILS_LIB
 include(../../qtplatzlibrary.pri)
+include(utils-lib.pri)
 
-SOURCES += \
-    appmainwindow.cpp \
-    pathchooser.cpp \
-    filewizardpage.cpp \
-    filewizarddialog.cpp \
-    basevalidatinglineedit.cpp \
-    filenamevalidatinglineedit.cpp \
-    qtcolorbutton.cpp \
-    treewidgetcolumnstretcher.cpp \
-    styledbar.cpp \
-    stylehelper.cpp \
-    fancymainwindow.cpp
-
-win32 { 
-    SOURCES += \
-        winutils.cpp
-    HEADERS += winutils.h
+lessThan(QT_MAJOR_VERSION, 5) {
+#   Needed for QtCore/private/qwineventnotifier_p.h
+    win32:include(../../private_headers.pri)
+    linux-*: DEFINES += QTC_USE_QX11INFO
+} else:linux-* {
+    !isEmpty(QT.x11extras.name) {
+        QT += x11extras
+        CONFIG += x11
+        DEFINES += QTC_USE_QX11INFO
+    } else {
+        warning("x11extras module not found, raising the main window might not work. " \
+                "(The x11extras module is part of Qt 5.1 and later.)")
+    }
 }
 
-HEADERS += utils_global.h \
-    appmainwindow.h \
-    listutils.h \
-    pathchooser.h \
-    filewizardpage.h \
-    filewizarddialog.h \
-    basevalidatinglineedit.h \
-    filenamevalidatinglineedit.h \
-    qtcolorbutton.h \
-    treewidgetcolumnstretcher.h \
-    qtcassert.h \
-    styledbar.h \
-    stylehelper.h \
-    fancymainwindow.h
-
-FORMS += filewizardpage.ui \
-    projectintropage.ui \
-    newclasswidget.ui \
-    submiteditorwidget.ui \
-    checkablemessagebox.ui
-RESOURCES += utils.qrc
+win32: LIBS += -luser32 -lshell32
+# PortsGatherer
+win32: LIBS += -liphlpapi -lws2_32

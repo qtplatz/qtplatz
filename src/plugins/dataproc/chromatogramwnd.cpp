@@ -39,7 +39,7 @@
 #include <boost/any.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/minisplitter.h>
-#include <QBoxLayout>
+
 #include <adportable/configuration.hpp>
 
 #include <adplugin/lifecycle.hpp>
@@ -51,6 +51,8 @@
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include "qtwidgets_name.hpp"
+#include <QBoxLayout>
+#include <QMessageBox>
 
 using namespace dataproc;
 
@@ -111,17 +113,21 @@ ChromatogramWnd::init( const std::wstring& apppath )
             pImpl_->peakWidget_ = adplugin::widget_factory::create( "qtwidgets::PeakResultWidget" );
 
             if ( pImpl_->peakWidget_ ) {
-                adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >(pImpl_->peakWidget_);
-				if ( p )
-					p->OnInitialUpdate();
-				connect( this, SIGNAL( fireSetData( const adcontrols::PeakResult& ) ),
-					pImpl_->peakWidget_, SLOT( setData( const adcontrols::PeakResult& ) ) );
-            }
+                adplugin::LifeCycle * p = dynamic_cast<adplugin::LifeCycle *>(pImpl_->peakWidget_);
+                if ( p )
+                    p->OnInitialUpdate();
+                connect( this, SIGNAL( fireSetData( const adcontrols::PeakResult& ) ),
+                    pImpl_->peakWidget_, SLOT( setData( const adcontrols::PeakResult& ) ) );
 
-            splitter->addWidget( pImpl_->chroWidget_ );
-            splitter->addWidget( pImpl_->peakWidget_ );
-            splitter->setOrientation( Qt::Vertical );
+                splitter->addWidget( pImpl_->chroWidget_ );
+                splitter->addWidget( pImpl_->peakWidget_ );
+                splitter->setOrientation( Qt::Vertical );
+            }
+            else
+                QMessageBox::warning( this, "ChromatogramWnd", "PeakResultWidget in qtwidgets.dll can not be loaded." );
         }
+        else
+            QMessageBox::warning( this, "ChromatogramWnd", "ChromatogramWidget in qtwidgets.dll can not be loaded." );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -70,6 +70,8 @@ public:
     static QColor sidebarHighlight() { return QColor(255, 255, 255, 40); }
     static QColor sidebarShadow() { return QColor(0, 0, 0, 40); }
 
+    static QColor notTooBrightHighlightColor();
+
     // Sets the base color and makes sure all top level widgets are updated
     static void setBaseColor(const QColor &color);
 
@@ -85,11 +87,13 @@ public:
     static void drawIconWithShadow(const QIcon &icon, const QRect &rect, QPainter *p, QIcon::Mode iconMode,
                                    int dipRadius = 3, const QColor &color = QColor(0, 0, 0, 130),
                                    const QPoint &dipOffset = QPoint(1, -2));
-    static void drawCornerImage(const QImage &img, QPainter *painter, QRect rect,
+    static void drawCornerImage(const QImage &img, QPainter *painter, const QRect &rect,
                          int left = 0, int top = 0, int right = 0, int bottom = 0);
 
     static void tintImage(QImage &img, const QColor &tintColor);
     static QLinearGradient statusBarGradient(const QRect &statusBarRect);
+
+    static QString dpiSpecificImageFile(const QString &fileName);
 
 private:
     static QColor m_baseColor;

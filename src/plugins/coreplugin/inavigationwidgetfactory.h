@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,21 +21,23 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef INAVIGATIONWIDGET_H
 #define INAVIGATIONWIDGET_H
 
-#include <coreplugin/core_global.h>
-#include <QtCore/QObject>
-#include <QtCore/QList>
+#include "id.h"
+
+#include <QObject>
+#include <QList>
+#include <QKeySequence>
 
 QT_BEGIN_NAMESPACE
 class QToolButton;
-class QKeySequence;
 class QWidget;
 QT_END_NAMESPACE
 
@@ -44,6 +45,8 @@ namespace Core {
 
 struct NavigationView
 {
+    NavigationView(QWidget *w = 0) : widget(w) {}
+
     QWidget *widget;
     QList<QToolButton *> dockToolBarWidgets;
 };
@@ -51,23 +54,34 @@ struct NavigationView
 class CORE_EXPORT INavigationWidgetFactory : public QObject
 {
     Q_OBJECT
+
 public:
     INavigationWidgetFactory();
-    virtual ~INavigationWidgetFactory();
 
-    virtual QString displayName() = 0;
-    virtual QKeySequence activationSequence();
+    void setDisplayName(const QString &displayName);
+    void setPriority(int priority);
+    void setId(Id id);
+    void setActivationSequence(const QKeySequence &keys);
+
+    QString displayName() const { return m_displayName ; }
+    int priority() const { return m_priority; }
+    Id id() const { return m_id; }
+    QKeySequence activationSequence() const;
+
     // This design is not optimal, think about it again once we need to extend it
-    // It could be implemented as returning an object which has both the widget 
+    // It could be implemented as returning an object which has both the widget
     // and the docktoolbar widgets
     // Similar to how IView
     virtual NavigationView createWidget() = 0;
 
-    // Read and store settings for the widget, created by this factory
-    // and beeing at position position. (The position is important since
-    // a certain type of widget could exist multiple times.)
     virtual void saveSettings(int position, QWidget *widget);
     virtual void restoreSettings(int position, QWidget *widget);
+
+private:
+    QString m_displayName;
+    int m_priority;
+    Id m_id;
+    QKeySequence m_activationSequence;
 };
 
 } // namespace Core

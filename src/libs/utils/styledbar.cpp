@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,19 +21,15 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "styledbar.h"
 
-#include "stylehelper.h"
-
-#include <QtCore/QVariant>
-#include <QtGui/QPainter>
-#include <QtGui/QPixmapCache>
-#include <QStyle>
+#include <QPainter>
 #include <QStyleOption>
 
 using namespace Utils;
@@ -44,6 +39,7 @@ StyledBar::StyledBar(QWidget *parent)
 {
     setProperty("panelwidget", true);
     setProperty("panelwidget_singlerow", true);
+    setProperty("lightColored", false);
 }
 
 void StyledBar::setSingleRow(bool singleRow)
@@ -54,6 +50,16 @@ void StyledBar::setSingleRow(bool singleRow)
 bool StyledBar::isSingleRow() const
 {
     return property("panelwidget_singlerow").toBool();
+}
+
+void StyledBar::setLightColored(bool lightColored)
+{
+    setProperty("lightColored", lightColored);
+}
+
+bool StyledBar::isLightColored() const
+{
+    return property("lightColored").toBool();
 }
 
 void StyledBar::paintEvent(QPaintEvent *event)

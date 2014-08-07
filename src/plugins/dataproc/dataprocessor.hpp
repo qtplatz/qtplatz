@@ -26,7 +26,7 @@
 #ifndef DATAPROCESSOR_H
 #define DATAPROCESSOR_H
 
-#include <coreplugin/ifile.h>
+#include <coreplugin/idocument.h>
 #include <adcontrols/datasubscriber.hpp>
 #include "constants.hpp"
 #include <memory>
@@ -62,16 +62,31 @@ namespace dataproc {
 
     class IFileImpl;
 
-    class Dataprocessor : public QObject
-                        , public adcontrols::dataSubscriber {
+    class Dataprocessor : public Core::IDocument
+                        , public adcontrols::dataSubscriber
+                        , public std::enable_shared_from_this< Dataprocessor > {
         Q_OBJECT
     public:
         ~Dataprocessor();
         Dataprocessor();
 
+        inline Core::IDocument * document() { return this; };
+        
+        // Core::IDocument
+        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
+        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
+
+        QString defaultPath() const override;
+        QString suggestedFileName() const override;
+        bool isModified() const override;
+        bool isSaveAsAllowed() const override;
+        bool isFileReadOnly() const override;
+
+        // Dataprocessor
+        void setModified( bool );
         bool create( const QString& token );
         bool open( const QString& );
-        Core::IFile * ifile();
+        // Core::IDocument * ifile();
         
 		const std::wstring& filename() const;
         adcontrols::datafile& file();
@@ -115,9 +130,10 @@ namespace dataproc {
         static bool loadMSCalibration( const std::wstring&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
 
         // implement adcontrols::dataSubscriber
-        virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
-        virtual bool subscribe( const adcontrols::ProcessedDataset& ) override;
-		virtual bool onFileAdded( const std::wstring& path, adfs::file& ) override;
+        bool subscribe( const adcontrols::LCMSDataset& ) override;
+        bool subscribe( const adcontrols::ProcessedDataset& ) override;
+        //
+		bool onFileAdded( const std::wstring& path, adfs::file& ) override;
         // <------------------------
     private:
         void addCalibration( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
@@ -128,9 +144,13 @@ namespace dataproc {
     public slots:
 
     private:
-        std::unique_ptr< IFileImpl > ifileimpl_;
+        std::shared_ptr< adcontrols::datafile > file_;
         std::unique_ptr< portfolio::Portfolio > portfolio_;
         std::wstring idActiveFolium_;
+        const adcontrols::LCMSDataset * rawDataset_;
+        bool modified_;
+    signals:
+        void changed();
     };
 
 } // dataproc

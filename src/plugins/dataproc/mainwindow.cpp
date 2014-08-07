@@ -81,7 +81,7 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/imode.h>
 #include <coreplugin/editormanager/editormanager.h>
-#include <coreplugin/filemanager.h>
+#include <coreplugin/documentmanager.h>
 #include <coreplugin/findplaceholder.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/minisplitter.h>
@@ -92,6 +92,7 @@
 #include <utils/styledbar.h>
 
 //#include <QCheckBox>
+#include <QComboBox>
 #include <QPushButton>
 #include <QDir>
 #include <QDockWidget>
@@ -233,10 +234,9 @@ MainWindow::createStyledBarTop()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-        Core::ActionManager * am = Core::ICore::instance()->actionManager();
+        Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
-            QList<int> globalcontext;
-            globalcontext << Core::Constants::C_GLOBAL_ID;
+            Core::Context globalcontext( (Core::Id( Core::Constants::C_GLOBAL )) );
 
             if ( auto p = selPages_[ idSelMSProcess ] = new QAction( "MS Process", this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSProcess ); } );
@@ -328,7 +328,7 @@ MainWindow::createStyledBarMiddle()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
         toolBarLayout->setMargin(0);
         toolBarLayout->setSpacing(0);
-        Core::ActionManager * am = Core::ICore::instance()->actionManager();
+        Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
             // print, method file open & save buttons
             toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
@@ -338,8 +338,7 @@ MainWindow::createStyledBarMiddle()
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
-            QList<int> context;
-            context << Core::Constants::C_GLOBAL_ID;
+            Core::Context context( (Core::Id( Core::Constants::C_GLOBAL )) );
             
             actionApply_ = new QAction( QIcon( Constants::ICON_METHOD_APPLY ), tr("Apply" ), this );
             bool res = connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
@@ -611,8 +610,7 @@ MainWindow::toolButton( QAction * action )
 QToolButton * 
 MainWindow::toolButton( const char * id )
 {
-    Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
-    return toolButton( mgr->command(id)->action() );
+    return toolButton( Core::ActionManager::instance()->command(id)->action() );
 }
 
 void
@@ -1186,7 +1184,7 @@ MainWindow::currentDir()
 {
     static QString dir = QString::fromStdWString( adportable::profile::user_data_dir<wchar_t>() );
 
-    QString currentFile = Core::ICore::instance()->fileManager()->currentFile();
+    QString currentFile = Core::DocumentManager::currentFile(); // Core::ICore::instance()->fileManager()->currentFile();
     if ( !currentFile.isEmpty() ) {
         const QFileInfo fi( currentFile );
         dir = fi.absolutePath();

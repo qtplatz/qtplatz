@@ -40,8 +40,8 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT datafile { // visitable
     public:
-        datafile(void) {}
-        virtual ~datafile(void) {}
+        datafile(void);
+        virtual ~datafile(void);
 
         typedef datafile * (*factory_type)(void);
         virtual factory_type factory() = 0;

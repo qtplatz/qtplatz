@@ -1,0 +1,13 @@
+#ifndef DATAPROC_GLOBAL_HPP
+#define DATAPROC_GLOBAL_HPP
+
+#include <QtGlobal>
+
+#if defined(DATAPROC_LIBRARY)
+#  define DATAPROCSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define DATAPROCSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // DATAPROC_GLOBAL_H
+

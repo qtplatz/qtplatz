@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,74 +21,72 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "messagemanager.h"
 #include "messageoutputwindow.h"
 
 #include <extensionsystem/pluginmanager.h>
 
-#include <QStatusBar>
-#include <QApplication>
-
 using namespace Core;
 
-MessageManager *MessageManager::m_instance = 0;
+static MessageManager *m_instance = 0;
+Internal::MessageOutputWindow *m_messageOutputWindow = 0;
+
+QObject *MessageManager::instance()
+{
+    return m_instance;
+}
 
 MessageManager::MessageManager()
-    : m_messageOutputWindow(0)
 {
     m_instance = this;
+    m_messageOutputWindow = 0;
+    qRegisterMetaType<Core::MessageManager::PrintToOutputPaneFlags>();
 }
 
 MessageManager::~MessageManager()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    if (pm && m_messageOutputWindow) {
-        pm->removeObject(m_messageOutputWindow);
+    if (m_messageOutputWindow) {
+        ExtensionSystem::PluginManager::removeObject(m_messageOutputWindow);
         delete m_messageOutputWindow;
     }
-
     m_instance = 0;
 }
 
 void MessageManager::init()
 {
     m_messageOutputWindow = new Internal::MessageOutputWindow;
-    ExtensionSystem::PluginManager::instance()->addObject(m_messageOutputWindow);
+    ExtensionSystem::PluginManager::addObject(m_messageOutputWindow);
 }
 
 void MessageManager::showOutputPane()
 {
     if (m_messageOutputWindow)
-        m_messageOutputWindow->popup(false);
+        m_messageOutputWindow->popup(IOutputPane::ModeSwitch);
 }
 
-void MessageManager::displayStatusBarMessage(const QString & /*text*/, int /*ms*/)
+void MessageManager::write(const QString &text)
 {
-    // TODO: Currently broken, but noone really notices, so...
-    //m_mainWindow->statusBar()->showMessage(text, ms);
+    write(text, NoModeSwitch);
 }
 
-void MessageManager::printToOutputPane(const QString &text, bool bringToForeground)
+void MessageManager::write(const QString &text, PrintToOutputPaneFlags flags)
 {
     if (!m_messageOutputWindow)
         return;
-    if (bringToForeground)
-        m_messageOutputWindow->popup(false);
-    m_messageOutputWindow->append(text);
-}
+    if (flags & Flash) {
+        m_messageOutputWindow->flash();
+    } else if (flags & Silent) {
+        // Do nothing
+    } else {
+        m_messageOutputWindow->popup(Core::IOutputPane::Flag(int(flags)));
+    }
 
-void MessageManager::printToOutputPanePopup(const QString &text)
-{
-    printToOutputPane(text, true);
-}
-
-void MessageManager::printToOutputPane(const QString &text)
-{
-    printToOutputPane(text, false);
+    m_messageOutputWindow->append(text + QLatin1Char('\n'));
 }
 

@@ -43,6 +43,7 @@
 #include <adportable/debug.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
+#include <coreplugin/id.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/outputpane.h>
@@ -174,7 +175,7 @@ MainWindow::createTopStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-        Core::ActionManager * am = Core::ICore::instance()->actionManager();
+        Core::ActionManager * am = Core::ActionManager::instance(); // ->actionManager();
         if ( am ) {
             // [file open] button
             //toolBarLayout->addWidget( toolButton( am->command( Constants::FILE_OPEN )->action() ) );
@@ -216,7 +217,7 @@ MainWindow::toolButton( QAction * action )
 QToolButton * 
 MainWindow::toolButton( const char * id )
 {
-    Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
+    Core::ActionManager * mgr = Core::ActionManager::instance(); // ->actionManager();
     return toolButton( mgr->command(id)->action() );
 }
 
@@ -234,9 +235,10 @@ MainWindow::createActions()
     //actions_[ idActFileOpen ] = createAction( Constants::ICON_FILE_OPEN, tr("Open protain file..."), this );
     //connect( actions_[ idActFileOpen ], SIGNAL( triggered() ), this, SLOT( actFileOpen() ) );
 
-    const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    Core::Context gc;
+    gc.add( Core::Id( Core::Constants::C_GLOBAL ) );
 
-    if ( Core::ActionManager * am = Core::ICore::instance()->actionManager() ) {
+    if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
         
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( "Quan" );

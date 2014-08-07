@@ -1,41 +1,44 @@
 include(../../qtplatz.pri)
 include(../shared/qtsingleapplication/qtsingleapplication.pri)
+
 TEMPLATE = app
+CONFIG += qtc_runnable
 TARGET = $$IDE_APP_TARGET
 DESTDIR = $$IDE_APP_PATH
 
-SOURCES += main.cpp
-# Qt4 is no longer supported due to using new signal/slot syntax
-QT += widgets
+HEADERS += ../tools/qtcreatorcrashhandler/crashhandlersetup.h
+SOURCES += main.cpp ../tools/qtcreatorcrashhandler/crashhandlersetup.cpp
 
-include(../config.pri)
 include(../rpath.pri)
-include(../version.pri)
 
-LIBS += -L$$IDE_LIBRARY_PATH
+LIBS *= -l$$qtLibraryName(ExtensionSystem) -l$$qtLibraryName(Aggregation) -l$$qtLibraryName(Utils)
 
+QT_BREAKPAD_ROOT_PATH = $$(QT_BREAKPAD_ROOT_PATH)
+!isEmpty(QT_BREAKPAD_ROOT_PATH) {
+    include($$QT_BREAKPAD_ROOT_PATH/qtbreakpad.pri)
+}
 win32 {
-    CONFIG(debug, debug|release):LIBS *= -lExtensionSystemd -lAggregationd
-    else:LIBS *= -lExtensionSystem -lAggregation
-
     RC_FILE = qtplatz.rc
-    target.path = /bin
+    target.path = $$QTC_PREFIX/bin
     INSTALLS += target
 } else:macx {
-    CONFIG(debug, debug|release):LIBS *= -lExtensionSystem_debug -lAggregation_debug
-    else:LIBS *= -lExtensionSystem -lAggregation
     LIBS += -framework CoreFoundation
-    ICON = qtPlatz.icns
-    QMAKE_INFO_PLIST = Info.plist
+    ICON = qtplatz.icns
     FILETYPES.files = profile.icns prifile.icns
     FILETYPES.path = Contents/Resources
     QMAKE_BUNDLE_DATA += FILETYPES
+    info.input = Info.plist.in
+    info.output = $$IDE_BIN_PATH/../Info.plist
+    QMAKE_SUBSTITUTES = info
 } else {
-    LIBS *= -lExtensionSystem -lAggregation
-
-    target.path  = /bin
+    target.path  = $$QTC_PREFIX/bin
     INSTALLS    += target
 }
 
-OTHER_FILES += qtplatz.rc
+OTHER_FILES += qtplatz.rc \
+    Info.plist.in \
+    $$PWD/app_version.h.in
 
+QMAKE_SUBSTITUTES += $$PWD/app_version.h.in
+
+CONFIG += no_batch

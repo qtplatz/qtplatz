@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,37 +21,34 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "navigationwidget.h"
-
+#include "navigationsubwidget.h"
+#include "icontext.h"
 #include "icore.h"
 #include "coreconstants.h"
 #include "inavigationwidgetfactory.h"
 #include "modemanager.h"
-#include "uniqueidmanager.h"
 #include "actionmanager/actionmanager.h"
+#include "actionmanager/command.h"
+#include "id.h"
 
-#include <extensionsystem/pluginmanager.h>
-
-#include <utils/styledbar.h>
-
-#include <QtCore/QDebug>
-#include <QtCore/QSettings>
+#include <QDebug>
+#include <QSettings>
 
 #include <QAction>
 #include <QHBoxLayout>
-#include <QtGui/QResizeEvent>
-#include <QToolButton>
-#include <QShortcut>
+#include <QResizeEvent>
+#include <QStandardItemModel>
 
 Q_DECLARE_METATYPE(Core::INavigationWidgetFactory *)
 
-using namespace Core;
-using namespace Core::Internal;
+namespace Core {
 
 NavigationWidgetPlaceHolder *NavigationWidgetPlaceHolder::m_current = 0;
 
@@ -66,15 +62,17 @@ NavigationWidgetPlaceHolder::NavigationWidgetPlaceHolder(Core::IMode *mode, QWid
 {
     setLayout(new QVBoxLayout);
     layout()->setMargin(0);
-    connect(Core::ModeManager::instance(), SIGNAL(currentModeAboutToChange(Core::IMode *)),
-            this, SLOT(currentModeAboutToChange(Core::IMode *)));
+    connect(Core::ModeManager::instance(), SIGNAL(currentModeAboutToChange(Core::IMode*)),
+            this, SLOT(currentModeAboutToChange(Core::IMode*)));
 }
 
 NavigationWidgetPlaceHolder::~NavigationWidgetPlaceHolder()
 {
     if (m_current == this) {
-        NavigationWidget::instance()->setParent(0);
-        NavigationWidget::instance()->hide();
+        if (NavigationWidget *nw = NavigationWidget::instance()) {
+            nw->setParent(0);
+            nw->hide();
+        }
     }
 }
 
@@ -132,89 +130,168 @@ void NavigationWidgetPlaceHolder::currentModeAboutToChange(Core::IMode *mode)
     }
 }
 
-NavigationWidget *NavigationWidget::m_instance = 0;
-
-NavigationWidget::NavigationWidget(QAction *toggleSideBarAction)
-    : m_shown(true),
-      m_suppressed(false),
-      m_width(0),
-      m_toggleSideBarAction(toggleSideBarAction)
+struct NavigationWidgetPrivate
 {
-    connect(ExtensionSystem::PluginManager::instance(), SIGNAL(objectAdded(QObject*)),
-            this, SLOT(objectAdded(QObject*)));
+    explicit NavigationWidgetPrivate(QAction *toggleSideBarAction);
+    ~NavigationWidgetPrivate() { delete m_factoryModel; }
 
+    QList<Internal::NavigationSubWidget *> m_subWidgets;
+    QHash<QAction *, Core::Id> m_actionMap;
+    QHash<Core::Id, Core::Command *> m_commandMap;
+    QStandardItemModel *m_factoryModel;
+
+    bool m_shown;
+    bool m_suppressed;
+    int m_width;
+    static NavigationWidget* m_instance;
+    QAction *m_toggleSideBarAction; // does not take ownership
+};
+
+NavigationWidgetPrivate::NavigationWidgetPrivate(QAction *toggleSideBarAction) :
+    m_factoryModel(new QStandardItemModel),
+    m_shown(true),
+    m_suppressed(false),
+    m_width(0),
+    m_toggleSideBarAction(toggleSideBarAction)
+{
+}
+
+NavigationWidget *NavigationWidgetPrivate::m_instance = 0;
+
+NavigationWidget::NavigationWidget(QAction *toggleSideBarAction) :
+    d(new NavigationWidgetPrivate(toggleSideBarAction))
+{
+    d->m_factoryModel->setSortRole(FactoryPriorityRole);
     setOrientation(Qt::Vertical);
-    insertSubItem(0);
-    m_instance = this;
+    d->m_instance = this;
 }
 
 NavigationWidget::~NavigationWidget()
 {
-    m_instance = 0;
+    NavigationWidgetPrivate::m_instance = 0;
+    delete d;
 }
 
 NavigationWidget *NavigationWidget::instance()
 {
-    return m_instance;
+    return NavigationWidgetPrivate::m_instance;
+}
+
+void NavigationWidget::setFactories(const QList<INavigationWidgetFactory *> &factories)
+{
+    Context navicontext(Core::Constants::C_NAVIGATION_PANE);
+
+    foreach (INavigationWidgetFactory *factory, factories) {
+        const Id id = factory->id();
+
+        QAction *action= new QAction(tr("Activate %1 Pane").arg(factory->displayName()), this);
+        connect(action, SIGNAL(triggered()), this, SLOT(activateSubWidget()));
+        d->m_actionMap.insert(action, id);
+
+        Command *cmd = ActionManager::registerAction(action,
+            id.withPrefix("QtCreator.Sidebar."), navicontext);
+        cmd->setDefaultKeySequence(factory->activationSequence());
+        d->m_commandMap.insert(id, cmd);
+
+        QStandardItem *newRow = new QStandardItem(factory->displayName());
+        newRow->setData(qVariantFromValue(factory), FactoryObjectRole);
+        newRow->setData(QVariant::fromValue(factory->id()), FactoryIdRole);
+        newRow->setData(factory->priority(), FactoryPriorityRole);
+        d->m_factoryModel->appendRow(newRow);
+    }
+    d->m_factoryModel->sort(0);
+    updateToggleText();
 }
 
 int NavigationWidget::storedWidth()
 {
-    return m_width;
+    return d->m_width;
+}
+
+QAbstractItemModel *NavigationWidget::factoryModel() const
+{
+    return d->m_factoryModel;
+}
+
+void NavigationWidget::updateToggleText()
+{
+    bool haveData = d->m_factoryModel->rowCount();
+    d->m_toggleSideBarAction->setVisible(haveData);
+    d->m_toggleSideBarAction->setEnabled(haveData && NavigationWidgetPlaceHolder::m_current);
+
+    if (isShown())
+        d->m_toggleSideBarAction->setToolTip(tr("Hide Sidebar"));
+    else
+        d->m_toggleSideBarAction->setToolTip(tr("Show Sidebar"));
 }
 
 void NavigationWidget::placeHolderChanged(NavigationWidgetPlaceHolder *holder)
 {
-    m_toggleSideBarAction->setEnabled(holder);
-    m_toggleSideBarAction->setChecked(holder && isShown());
+    d->m_toggleSideBarAction->setChecked(holder && isShown());
+    updateToggleText();
 }
 
 void NavigationWidget::resizeEvent(QResizeEvent *re)
 {
-    if (m_width && re->size().width())
-        m_width = re->size().width();
+    if (d->m_width && re->size().width())
+        d->m_width = re->size().width();
     MiniSplitter::resizeEvent(re);
 }
 
-NavigationSubWidget *NavigationWidget::insertSubItem(int position)
+Internal::NavigationSubWidget *NavigationWidget::insertSubItem(int position,int index)
 {
-    NavigationSubWidget *nsw = new NavigationSubWidget(this);
+    for (int pos = position + 1; pos < d->m_subWidgets.size(); ++pos) {
+        d->m_subWidgets.at(pos)->setPosition(pos + 1);
+    }
+
+    Internal::NavigationSubWidget *nsw = new Internal::NavigationSubWidget(this, position, index);
     connect(nsw, SIGNAL(splitMe()), this, SLOT(splitSubWidget()));
     connect(nsw, SIGNAL(closeMe()), this, SLOT(closeSubWidget()));
     insertWidget(position, nsw);
-    m_subWidgets.insert(position, nsw);
+    d->m_subWidgets.insert(position, nsw);
+
     return nsw;
 }
 
 void NavigationWidget::activateSubWidget()
 {
-    setShown(true);
-    QShortcut *original = qobject_cast<QShortcut *>(sender());
-    QString title = m_shortcutMap[original];
+    QAction *original = qobject_cast<QAction *>(sender());
+    Id id = d->m_actionMap[original];
+    activateSubWidget(id);
+}
 
-    foreach (NavigationSubWidget *subWidget, m_subWidgets)
-        if (subWidget->factory()->displayName() == title) {
+void NavigationWidget::activateSubWidget(Id factoryId)
+{
+    setShown(true);
+    foreach (Internal::NavigationSubWidget *subWidget, d->m_subWidgets) {
+        if (subWidget->factory()->id() == factoryId) {
             subWidget->setFocusWidget();
+            ICore::raiseWindow(this);
             return;
         }
+    }
 
-    m_subWidgets.first()->setFactory(title);
-    m_subWidgets.first()->setFocusWidget();
+    int index = factoryIndex(factoryId);
+    if (index >= 0) {
+        d->m_subWidgets.first()->setFactoryIndex(index);
+        d->m_subWidgets.first()->setFocusWidget();
+        ICore::raiseWindow(this);
+    }
 }
 
 void NavigationWidget::splitSubWidget()
 {
-    NavigationSubWidget *original = qobject_cast<NavigationSubWidget *>(sender());
+    Internal::NavigationSubWidget *original = qobject_cast<Internal::NavigationSubWidget *>(sender());
     int pos = indexOf(original) + 1;
-    NavigationSubWidget *newnsw = insertSubItem(pos);
-    newnsw->setFactory(original->factory());
+    insertSubItem(pos, original->factoryIndex());
 }
 
 void NavigationWidget::closeSubWidget()
 {
-    if (m_subWidgets.count() != 1) {
-        NavigationSubWidget *subWidget = qobject_cast<NavigationSubWidget *>(sender());
-        m_subWidgets.removeOne(subWidget);
+    if (d->m_subWidgets.count() != 1) {
+        Internal::NavigationSubWidget *subWidget = qobject_cast<Internal::NavigationSubWidget *>(sender());
+        subWidget->saveSettings();
+        d->m_subWidgets.removeOne(subWidget);
         subWidget->hide();
         subWidget->deleteLater();
     } else {
@@ -222,316 +299,132 @@ void NavigationWidget::closeSubWidget()
     }
 }
 
-
-
 void NavigationWidget::saveSettings(QSettings *settings)
 {
-    QStringList views;
-    for (int i=0; i<m_subWidgets.count(); ++i) {
-        views.append(m_subWidgets.at(i)->factory()->displayName());
+    QStringList viewIds;
+    for (int i=0; i<d->m_subWidgets.count(); ++i) {
+        d->m_subWidgets.at(i)->saveSettings();
+        viewIds.append(d->m_subWidgets.at(i)->factory()->id().toString());
     }
-    settings->setValue("Navigation/Views", views);
-    settings->setValue("Navigation/Visible", isShown());
-    settings->setValue("Navigation/VerticalPosition", saveState());
-    settings->setValue("Navigation/Width", m_width);
-
-    for (int i=0; i<m_subWidgets.count(); ++i)
-        m_subWidgets.at(i)->saveSettings(i);
+    settings->setValue(QLatin1String("Navigation/Views"), viewIds);
+    settings->setValue(QLatin1String("Navigation/Visible"), isShown());
+    settings->setValue(QLatin1String("Navigation/VerticalPosition"), saveState());
+    settings->setValue(QLatin1String("Navigation/Width"), d->m_width);
 }
 
 void NavigationWidget::restoreSettings(QSettings *settings)
 {
-    int version = settings->value("Navigation/Version", 1).toInt();
-    QStringList views = settings->value("Navigation/Views").toStringList();
+    if (!d->m_factoryModel->rowCount()) {
+        // We have no widgets to show!
+        setShown(false);
+        return;
+    }
 
-	if ( ! views.contains( "Processing files" ) ) // qtplatz modification: make sure "processing files" are visible
-		views.push_front( "Processing files" );
+    int version = settings->value(QLatin1String("Navigation/Version"), 1).toInt();
+    QStringList viewIds = settings->value(QLatin1String("Navigation/Views"),
+                                          QStringList(QLatin1String("Projects"))).toStringList();
 
     bool restoreSplitterState = true;
     if (version == 1) {
-        if (views.isEmpty())
-           views += "Projects";
-        if (!views.contains("Open Documents")) {
-            views += "Open Documents";
+        if (!viewIds.contains(QLatin1String("Open Documents"))) {
+            viewIds += QLatin1String("Open Documents");
             restoreSplitterState = false;
         }
-        settings->setValue("Navigation/Version", 2);
+        settings->setValue(QLatin1String("Navigation/Version"), 2);
     }
 
-    for (int i=0; i<views.count()-1; ++i) {
-        insertSubItem(0);
-    }
-    for (int i=0; i<views.count(); ++i) {
-        const QString &view = views.at(i);
-        NavigationSubWidget *nsw = m_subWidgets.at(i);
-        nsw->setFactory(view);
-    }
-
-    if (settings->contains("Navigation/Visible")) {
-        setShown(settings->value("Navigation/Visible").toBool());
-    } else {
-        setShown(true);
+    int position = 0;
+    foreach (const QString &id, viewIds) {
+        int index = factoryIndex(Id::fromString(id));
+        if (index >= 0) {
+            // Only add if the id was actually found!
+            insertSubItem(position, index);
+            ++position;
+        } else {
+            restoreSplitterState = false;
+        }
     }
 
-    if (restoreSplitterState && settings->contains("Navigation/VerticalPosition")) {
-        restoreState(settings->value("Navigation/VerticalPosition").toByteArray());
+    if (d->m_subWidgets.isEmpty())
+        // Make sure we have at least the projects widget
+        insertSubItem(0, qMax(0, factoryIndex("Projects")));
+
+    setShown(settings->value(QLatin1String("Navigation/Visible"), true).toBool());
+
+    if (restoreSplitterState && settings->contains(QLatin1String("Navigation/VerticalPosition"))) {
+        restoreState(settings->value(QLatin1String("Navigation/VerticalPosition")).toByteArray());
     } else {
         QList<int> sizes;
         sizes += 256;
-        for (int i = views.size()-1; i > 0; --i)
+        for (int i = viewIds.size()-1; i > 0; --i)
             sizes.prepend(512);
         setSizes(sizes);
     }
 
-    if (settings->contains("Navigation/Width")) {
-        m_width = settings->value("Navigation/Width").toInt();
-        if (!m_width)
-            m_width = 240;
-    } else {
-        m_width = 240; //pixel
-    }
-    // Apply
-    if (NavigationWidgetPlaceHolder::m_current) {
-        NavigationWidgetPlaceHolder::m_current->applyStoredSize(m_width);
-    }
+    d->m_width = settings->value(QLatin1String("Navigation/Width"), 240).toInt();
+    if (d->m_width < 40)
+        d->m_width = 40;
 
-    for (int i=0; i<m_subWidgets.count(); ++i)
-        m_subWidgets.at(i)->restoreSettings(i);
+    // Apply
+    if (NavigationWidgetPlaceHolder::m_current)
+        NavigationWidgetPlaceHolder::m_current->applyStoredSize(d->m_width);
+}
+
+void NavigationWidget::closeSubWidgets()
+{
+    foreach (Internal::NavigationSubWidget *subWidget, d->m_subWidgets) {
+        subWidget->saveSettings();
+        delete subWidget;
+    }
+    d->m_subWidgets.clear();
 }
 
 void NavigationWidget::setShown(bool b)
 {
-    if (m_shown == b)
+    if (d->m_shown == b)
         return;
-    m_shown = b;
+    bool haveData = d->m_factoryModel->rowCount();
+    d->m_shown = b;
     if (NavigationWidgetPlaceHolder::m_current) {
-        NavigationWidgetPlaceHolder::m_current->setVisible(m_shown && !m_suppressed);
-        m_toggleSideBarAction->setChecked(m_shown);
+        NavigationWidgetPlaceHolder::m_current->setVisible(d->m_shown && !d->m_suppressed && haveData);
+        d->m_toggleSideBarAction->setChecked(d->m_shown && !d->m_suppressed && haveData);
     } else {
-        m_toggleSideBarAction->setChecked(false);
+        d->m_toggleSideBarAction->setChecked(false);
     }
+    updateToggleText();
 }
 
 bool NavigationWidget::isShown() const
 {
-    return m_shown;
+    return d->m_shown;
 }
 
 bool NavigationWidget::isSuppressed() const
 {
-    return m_suppressed;
+    return d->m_suppressed;
 }
 
 void NavigationWidget::setSuppressed(bool b)
 {
-    if (m_suppressed == b)
+    if (d->m_suppressed == b)
         return;
-    m_suppressed = b;
+    d->m_suppressed = b;
     if (NavigationWidgetPlaceHolder::m_current)
-        NavigationWidgetPlaceHolder::m_current->setVisible(m_shown && !m_suppressed);
+        NavigationWidgetPlaceHolder::m_current->setVisible(d->m_shown && !d->m_suppressed);
 }
 
-void NavigationWidget::objectAdded(QObject * obj)
+int NavigationWidget::factoryIndex(Id id)
 {
-    INavigationWidgetFactory *factory = Aggregation::query<INavigationWidgetFactory>(obj);
-    if (!factory)
-        return;
-
-    ICore *core = ICore::instance();
-    ActionManager *am = core->actionManager();
-    QList<int> navicontext = QList<int>() << core->uniqueIDManager()->
-        uniqueIdentifier(Core::Constants::C_NAVIGATION_PANE);
-
-    QString displayName = factory->displayName();
-    QShortcut *shortcut = new QShortcut(this);
-    shortcut->setWhatsThis(tr("Activate %1 Pane").arg(displayName));
-    Core::Command *cmd = am->registerShortcut(shortcut,
-        QLatin1String("QtCreator.Sidebar.") + displayName, navicontext);
-    cmd->setDefaultKeySequence(factory->activationSequence());
-    connect(shortcut, SIGNAL(activated()), this, SLOT(activateSubWidget()));
-
-    m_shortcutMap.insert(shortcut, displayName);
-    m_commandMap.insert(displayName, cmd);
-}
-
-////
-// NavigationSubWidget
-////
-
-
-NavigationSubWidget::NavigationSubWidget(NavigationWidget *parentWidget)
-    : m_parentWidget(parentWidget)
-{
-    connect(ExtensionSystem::PluginManager::instance(), SIGNAL(objectAdded(QObject*)),
-            this, SLOT(objectAdded(QObject*)));
-    connect(ExtensionSystem::PluginManager::instance(), SIGNAL(aboutToRemoveObject(QObject*)),
-            this, SLOT(aboutToRemoveObject(QObject*)));
-
-    m_navigationComboBox = new NavComboBox(this);
-    m_navigationComboBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    m_navigationComboBox->setMinimumContentsLength(0);
-    m_navigationWidget = 0;
-
-    m_toolBar = new Utils::StyledBar(this);
-    QHBoxLayout *toolBarLayout = new QHBoxLayout;
-    toolBarLayout->setMargin(0);
-    toolBarLayout->setSpacing(0);
-    m_toolBar->setLayout(toolBarLayout);
-    toolBarLayout->addWidget(m_navigationComboBox);
-
-    QToolButton *splitAction = new QToolButton();
-    splitAction->setIcon(QIcon(":/core/images/splitbutton_horizontal.png"));
-    splitAction->setToolTip(tr("Split"));
-    QToolButton *close = new QToolButton();
-    close->setIcon(QIcon(":/core/images/closebutton.png"));
-    close->setToolTip(tr("Close"));
-
-    toolBarLayout->addWidget(splitAction);
-    toolBarLayout->addWidget(close);
-
-    QVBoxLayout *lay = new QVBoxLayout();
-    lay->setMargin(0);
-    lay->setSpacing(0);
-    setLayout(lay);
-    lay->addWidget(m_toolBar);
-
-    connect(splitAction, SIGNAL(clicked()), this, SIGNAL(splitMe()));
-    connect(close, SIGNAL(clicked()), this, SIGNAL(closeMe()));
-    connect(m_navigationComboBox, SIGNAL(currentIndexChanged(int)),
-            this, SLOT(setCurrentIndex(int)));
-
-    foreach (INavigationWidgetFactory *factory, ExtensionSystem::PluginManager::instance()->getObjects<INavigationWidgetFactory>()) {
-        QVariant v;
-        v.setValue(factory);
-        m_navigationComboBox->addItem(factory->displayName(), v);
+    for (int row = 0; row < d->m_factoryModel->rowCount(); ++row) {
+        if (d->m_factoryModel->data(d->m_factoryModel->index(row, 0), FactoryIdRole).value<Core::Id>() == id)
+            return row;
     }
+    return -1;
 }
 
-NavigationSubWidget::~NavigationSubWidget()
+QHash<Id, Command *> NavigationWidget::commandMap() const
 {
+    return d->m_commandMap;
 }
 
-void NavigationSubWidget::setCurrentIndex(int index)
-{
-    // Remove toolbutton
-    foreach (QWidget *w, m_additionalToolBarWidgets)
-        delete w;
-
-    // Remove old Widget
-    delete m_navigationWidget;
-    if (index == -1)
-        return;
-
-    // Get new stuff
-    INavigationWidgetFactory *factory = m_navigationComboBox->itemData(index).value<INavigationWidgetFactory *>();
-    NavigationView n = factory->createWidget();
-    m_navigationWidget = n.widget;
-    layout()->addWidget(m_navigationWidget);
-
-    // Add Toolbutton
-    m_additionalToolBarWidgets = n.dockToolBarWidgets;
-    QHBoxLayout *layout = qobject_cast<QHBoxLayout *>(m_toolBar->layout());
-    foreach (QToolButton *w, m_additionalToolBarWidgets) {
-        layout->insertWidget(layout->count()-2, w);
-    }
-}
-
-void NavigationSubWidget::setFocusWidget()
-{
-    if (m_navigationWidget)
-        m_navigationWidget->setFocus();
-}
-
-void NavigationSubWidget::objectAdded(QObject * obj)
-{
-    INavigationWidgetFactory *factory = Aggregation::query<INavigationWidgetFactory>(obj);
-    if (!factory)
-        return;
-
-    QVariant v;
-    v.setValue(factory);
-    m_navigationComboBox->addItem(factory->displayName(), v);
-    //qDebug()<<"added factory :"<<factory<<m_navigationComboBox->findData(v);
-}
-
-void NavigationSubWidget::aboutToRemoveObject(QObject *obj)
-{
-    INavigationWidgetFactory *factory = Aggregation::query<INavigationWidgetFactory>(obj);
-    if (!factory)
-        return;
-    QVariant v;
-    v.setValue(factory);
-    int index = m_navigationComboBox->findData(v);
-    if (index == -1) {
-        qDebug()<<"factory not found not removing" << factory;
-        return;
-    }
-    m_navigationComboBox->removeItem(index);
-}
-
-void NavigationSubWidget::setFactory(INavigationWidgetFactory *factory)
-{
-    QVariant v;
-    v.setValue(factory);
-    int index = m_navigationComboBox->findData(v);
-    if (index == -1)
-        return;
-    m_navigationComboBox->setCurrentIndex(index);
-}
-
-void NavigationSubWidget::setFactory(const QString &name)
-{
-    for (int i = 0; i < m_navigationComboBox->count(); ++i) {
-        INavigationWidgetFactory *factory =
-                m_navigationComboBox->itemData(i).value<INavigationWidgetFactory *>();
-        if (factory->displayName() == name)
-            m_navigationComboBox->setCurrentIndex(i);
-    }
-}
-
-INavigationWidgetFactory *NavigationSubWidget::factory()
-{
-    int index = m_navigationComboBox->currentIndex();
-    if (index == -1)
-        return 0;
-    return m_navigationComboBox->itemData(index).value<INavigationWidgetFactory *>();
-}
-
-void NavigationSubWidget::saveSettings(int position)
-{
-    factory()->saveSettings(position, m_navigationWidget);
-}
-
-void NavigationSubWidget::restoreSettings(int position)
-{
-    factory()->restoreSettings(position, m_navigationWidget);
-}
-
-Core::Command *NavigationSubWidget::command(const QString &title) const
-{
-    const QHash<QString, Core::Command*> commandMap = m_parentWidget->commandMap();
-    QHash<QString, Core::Command*>::const_iterator r = commandMap.find(title);
-    if (r != commandMap.end())
-        return r.value();
-    return 0;
-}
-
-NavComboBox::NavComboBox(NavigationSubWidget *navSubWidget)
-    : m_navSubWidget(navSubWidget)
-{
-}
-
-bool NavComboBox::event(QEvent *e)
-{
-    if (e->type() == QEvent::ToolTip) {
-        QString txt = currentText();
-        Core::Command *cmd = m_navSubWidget->command(txt);
-        if (cmd) {
-            txt = tr("Activate %1").arg(txt);
-            setToolTip(cmd->stringWithAppendedShortcut(txt));
-        } else {
-            setToolTip(txt);
-        }
-    }
-    return QComboBox::event(e);
-}
+} // namespace Core

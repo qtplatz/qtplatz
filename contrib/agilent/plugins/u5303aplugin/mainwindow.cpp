@@ -243,19 +243,18 @@ MainWindow::toolButton( QAction * action )
 QToolButton * 
 MainWindow::toolButton( const char * id )
 {
-    Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
-    return toolButton( mgr->command(id)->action() );
+    return toolButton( Core::ActionManager::instance()->command( id )->action() );
 }
 
 void
-MainWindow::setData( const adcontrols::MassSpectrum& ms )
+MainWindow::setData( const adcontrols::MassSpectrum& )
 {
     // if ( monitorView_ )
     //     monitorView_->setData( ms );
 }
 
 void
-MainWindow::setData( const adcontrols::Trace& trace, const std::wstring& traceId )
+MainWindow::setData( const adcontrols::Trace&, const std::wstring& )
 {
     // if ( monitorView_ )
     //     monitorView_->setData( trace, traceId );
@@ -270,8 +269,7 @@ MainWindow::createTopStyledToolbar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-        Core::ActionManager * am = Core::ICore::instance()->actionManager();
-        if ( am ) {
+        if ( auto am = Core::ActionManager::instance() ) {
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_CONNECT)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_INITRUN)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_RUN)->action()));
@@ -298,7 +296,7 @@ MainWindow::createMidStyledToolbar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin(0);
         toolBarLayout->setSpacing(0);
-        Core::ActionManager * am = Core::ICore::instance()->actionManager();
+        Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
             // print, method file open & save buttons
             //toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
@@ -308,8 +306,7 @@ MainWindow::createMidStyledToolbar()
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
-            QList<int> context;
-            context << Core::Constants::C_GLOBAL_ID;
+            Core::Context context( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
             
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -341,9 +338,9 @@ MainWindow::createActions()
     connect( actions_[ idActSnapshot ], SIGNAL( triggered() ), this, SLOT( actSnapshot() ) );
     connect( actions_[ idActFileOpen ], SIGNAL( triggered() ), this, SLOT( actFileOpen() ) );
 
-    const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
 
-    if ( Core::ActionManager * am = Core::ICore::instance()->actionManager() ) {
+    if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
 
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( "U5303A" );

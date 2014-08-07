@@ -26,7 +26,7 @@
 #include "u5303a_constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 
@@ -37,10 +37,11 @@ u5303AMode::~u5303AMode()
     Core::EditorManager::instance()->setParent(0);
 }
 
-u5303AMode::u5303AMode(QObject *parent) :  Core::BaseMode(parent)
+u5303AMode::u5303AMode(QObject *parent) :  Core::IMode(parent)
 {
-    setName(tr("U5303A"));
-    setUniqueModeName( u5303a::Constants::U5303A_MODE );
+    //setName( tr( "U5303A" ) );
+    //setUniqueModeName( u5303a::Constants::U5303A_MODE );
+    setDisplayName( tr( "U5303A" ) );
     setIcon(QIcon(":/u5303a/images/image001_512.png"));
     setPriority( 50 );
 }

@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,106 +21,121 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef ICORE_H
 #define ICORE_H
 
 #include "core_global.h"
-#include <QtCore/QObject>
+#include "id.h"
+
+#include <QObject>
+#include <QSettings>
 
 QT_BEGIN_NAMESPACE
-class QMainWindow;
 class QPrinter;
-class QSettings;
+class QStatusBar;
+class QWidget;
 template <class T> class QList;
 QT_END_NAMESPACE
 
 namespace Core {
-
-class ActionManager;
-class EditorManager;
-class FileManager;
+class IWizardFactory;
+class Context;
 class IContext;
-class IWizard;
-class MessageManager;
-class MimeDatabase;
-class ModeManager;
 class ProgressManager;
-class ScriptManager;
 class SettingsDatabase;
-class UniqueIDManager;
-class VariableManager;
-class VCSManager;
+class VcsManager;
+
+namespace Internal { class MainWindow; }
 
 class CORE_EXPORT ICore : public QObject
 {
     Q_OBJECT
 
-public:
-    ICore() {}
-    virtual ~ICore() {}
+    friend class Internal::MainWindow;
+    explicit ICore(Internal::MainWindow *mw);
+    ~ICore();
 
+public:
+    // This should only be used to acccess the signals, so it could
+    // theoretically return an QObject *. For source compatibility
+    // it returns a ICore.
     static ICore *instance();
 
-    virtual QStringList showNewItemDialog(const QString &title,
-                                          const QList<IWizard *> &wizards,
-                                          const QString &defaultLocation = QString()) = 0;
+    static bool isNewItemDialogRunning();
+    static void showNewItemDialog(const QString &title,
+                                  const QList<IWizardFactory *> &factories,
+                                  const QString &defaultLocation = QString(),
+                                  const QVariantMap &extraVariables = QVariantMap());
 
-    virtual bool showOptionsDialog(const QString &group = QString(),
-                                   const QString &page = QString(),
-                                   QWidget *parent = 0) = 0;
+    static bool showOptionsDialog(Id group, Id page, QWidget *parent = 0);
+    static QString msgShowOptionsDialog();
+    static QString msgShowOptionsDialogToolTip();
 
-    virtual bool showWarningWithOptions(const QString &title, const QString &text,
+    static bool showWarningWithOptions(const QString &title, const QString &text,
                                        const QString &details = QString(),
-                                       const QString &settingsCategory = QString(),
-                                       const QString &settingsId = QString(),
-                                       QWidget *parent = 0) = 0;
+                                       Id settingsCategory = Id(),
+                                       Id settingsId = Id(),
+                                       QWidget *parent = 0);
 
-    virtual ActionManager *actionManager() const = 0;
-    virtual FileManager *fileManager() const = 0;
-    virtual UniqueIDManager *uniqueIDManager() const = 0;
-    virtual MessageManager *messageManager() const = 0;
-    virtual EditorManager *editorManager() const = 0;
-    virtual ProgressManager *progressManager() const = 0;
-    virtual ScriptManager *scriptManager() const = 0;
-    virtual VariableManager *variableManager() const = 0;
-    virtual VCSManager *vcsManager() const = 0;
-    virtual ModeManager *modeManager() const = 0;
-    virtual MimeDatabase *mimeDatabase() const = 0;
+    static QSettings *settings(QSettings::Scope scope = QSettings::UserScope);
+    static SettingsDatabase *settingsDatabase();
+    static QPrinter *printer();
+    static QString userInterfaceLanguage();
 
-    virtual QSettings *settings() const = 0;
-    virtual SettingsDatabase *settingsDatabase() const = 0;
-    virtual QPrinter *printer() const = 0;
+    static QString resourcePath();
+    static QString userResourcePath();
+    static QString documentationPath();
+    static QString libexecPath();
 
-    virtual QString resourcePath() const = 0;
+    static QString versionString();
+    static QString buildCompatibilityString();
 
-    virtual QMainWindow *mainWindow() const = 0;
+    static QWidget *mainWindow();
+    static QWidget *dialogParent();
+    static QStatusBar *statusBar();
+    /* Raises and activates the window for the widget. This contains workarounds for X11. */
+    static void raiseWindow(QWidget *widget);
 
-    // adds and removes additional active contexts, this context is appended to the
-    // currently active contexts. call updateContext after changing
-    virtual IContext *currentContextObject() const = 0;
-    virtual void addAdditionalContext(int context) = 0;
-    virtual void removeAdditionalContext(int context) = 0;
-    virtual bool hasContext(int context) const = 0;
-    virtual void addContextObject(IContext *context) = 0;
-    virtual void removeContextObject(IContext *context) = 0;
+    static IContext *currentContextObject();
+    // Adds and removes additional active contexts, these contexts are appended
+    // to the currently active contexts.
+    static void updateAdditionalContexts(const Context &remove, const Context &add);
+    static void addContextObject(IContext *context);
+    static void removeContextObject(IContext *context);
 
-    virtual void updateContext() = 0;
+    // manages the minimize, zoom and fullscreen actions for the window
+    static void registerWindow(QWidget *window, const Context &context);
 
-    virtual void openFiles(const QStringList &fileNames) = 0;
+    enum OpenFilesFlags {
+        None = 0,
+        SwitchMode = 1,
+        CanContainLineNumbers = 2,
+         /// Stop loading once the first file fails to load
+        StopOnLoadFail = 4
+    };
+    static void openFiles(const QStringList &fileNames, OpenFilesFlags flags = None);
+
+    static void emitNewItemsDialogRequested();
+
+public slots:
+    static void saveSettings();
 
 signals:
     void coreAboutToOpen();
     void coreOpened();
+    void newItemsDialogRequested();
+    void newItemDialogRunningChanged();
     void saveSettingsRequested();
     void optionsDialogRequested();
     void coreAboutToClose();
-    void contextAboutToChange(Core::IContext *context);
-    void contextChanged(Core::IContext *context);
+    void contextAboutToChange(const QList<Core::IContext *> &context);
+    void contextChanged(const QList<Core::IContext *> &context, const Core::Context &additionalContexts);
 };
 
 } // namespace Core

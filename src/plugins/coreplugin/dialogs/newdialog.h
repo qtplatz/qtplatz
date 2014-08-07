@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,32 +21,36 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef NEWDIALOG_H
 #define NEWDIALOG_H
 
+#include "../iwizardfactory.h"
+
 #include <QDialog>
-#include <QtCore/QList>
+#include <QIcon>
+#include <QList>
 
 QT_BEGIN_NAMESPACE
+class QAbstractProxyModel;
+class QModelIndex;
+class QSortFilterProxyModel;
 class QPushButton;
-class QTreeWidgetItem;
+class QStandardItem;
+class QStandardItemModel;
 class QStringList;
 QT_END_NAMESPACE
 
 namespace Core {
 
-class IWizard;
-
 namespace Internal {
 
-namespace Ui {
-    class NewDialog;
-}
+namespace Ui { class NewDialog; }
 
 class NewDialog : public QDialog
 {
@@ -57,20 +60,38 @@ public:
     explicit NewDialog(QWidget *parent);
     virtual ~NewDialog();
 
-    void setWizards(const QList<IWizard*> wizards);
+    void setWizardFactories(QList<IWizardFactory*> factories, const QString &defaultLocation, const QVariantMap &extraVariables);
 
-    Core::IWizard *showDialog();
+    void showDialog();
+    QString selectedPlatform() const;
+
+protected:
+    bool event(QEvent *);
 
 private slots:
-    void currentItemChanged(QTreeWidgetItem *cat);
+    void currentCategoryChanged(const QModelIndex &);
+    void currentItemChanged(const QModelIndex &);
     void okButtonClicked();
+    void reject();
     void updateOkButton();
+    void setSelectedPlatform(const QString &platform);
 
 private:
-    Core::IWizard *currentWizard() const;
+    Core::IWizardFactory *currentWizardFactory() const;
+    void addItem(QStandardItem *topLevelCategoryItem, IWizardFactory *factory);
+    void saveState();
+
+    static QString m_lastCategory;
 
     Ui::NewDialog *m_ui;
+    QStandardItemModel *m_model;
+    QAbstractProxyModel *m_twoLevelProxyModel;
+    QSortFilterProxyModel *m_filterProxyModel;
     QPushButton *m_okButton;
+    QIcon m_dummyIcon;
+    QList<QStandardItem*> m_categoryItems;
+    QString m_defaultLocation;
+    QVariantMap m_extraVariables;
 };
 
 } // namespace Internal

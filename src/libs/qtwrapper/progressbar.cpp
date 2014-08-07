@@ -30,8 +30,9 @@
 
 using namespace qtwrapper;
 
-qtwrapper::ProgressBar::ProgressBar(QObject *parent) : QObject(parent), progress_(0)
+qtwrapper::ProgressBar::ProgressBar(QObject *parent) : QObject(parent)//, progress_(0)
 {
+#if 0
     static int ident;
     
 	if ( Core::ProgressManager * pMgr = Core::ICore::instance()->progressManager() ) {
@@ -45,6 +46,7 @@ qtwrapper::ProgressBar::ProgressBar(QObject *parent) : QObject(parent), progress
     connect( this, SIGNAL( progressRange(int, int) ), this, SLOT( handleProgressRange(int, int) ) );
     connect( this, SIGNAL( progressValue(int) ), this, SLOT( handleProgressValue(int) ) );
     connect( this, SIGNAL( progressText(const QString&) ), this, SLOT( handleProgressText(const QString&) ) );
+#endif
 }
 
 qtwrapper::ProgressBar::~ProgressBar()
@@ -91,15 +93,15 @@ qtwrapper::ProgressBar::setProgressText( const QString& text )
 void
 qtwrapper::ProgressBar::handleStarted()
 {
-    progress_->setVisible( true );
+    //progress_->setVisible( true );
 }
 
 void
 qtwrapper::ProgressBar::handleFinished()
 {
-	progress_->setFinished();
-	progress_->setVisible( false );
-    progress_ = 0; // will reuse | destroy by Core library
+    //progress_->setFinished();
+    //progress_->setVisible( false );
+    //progress_ = 0; // will reuse | destroy by Core library
 	delete this;
 }
 
@@ -112,18 +114,18 @@ qtwrapper::ProgressBar::handleDispose()
 void
 qtwrapper::ProgressBar::handleProgressRange( int min, int max )
 {
-    progress_->setProgressRange( min, max );
+    //progress_->setProgressRange( min, max );
 }
 
 void
 qtwrapper::ProgressBar::handleProgressValue( int val )
 {
-    progress_->setProgressValue( val );
+    //progress_->setProgressValue( val );
 }
 
 void
 qtwrapper::ProgressBar::handleProgressText( const QString& text )
 {
-	progress_->setProgressText( text );
+    //progress_->setProgressText( text );
 }
 

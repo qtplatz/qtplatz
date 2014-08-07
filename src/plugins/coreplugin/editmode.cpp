@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,42 +21,47 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
-#include "editmode.h"
-#include "editormanager.h"
 #include "coreconstants.h"
+#include "editmode.h"
+#include "icore.h"
 #include "modemanager.h"
-#include "uniqueidmanager.h"
 #include "minisplitter.h"
-#include "findplaceholder.h"
-#include "outputpane.h"
 #include "navigationwidget.h"
+#include "outputpane.h"
 #include "rightpane.h"
-#include "ieditor.h"
-#include "ifile.h"
+#include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/editormanager/ieditor.h>
 
-#include <QtCore/QLatin1String>
+#include <QLatin1String>
 #include <QHBoxLayout>
 #include <QWidget>
-#include <QSplitter>
+#include <QIcon>
 
 using namespace Core;
 using namespace Core::Internal;
 
-EditMode::EditMode(EditorManager *editorManager) :
-    m_editorManager(editorManager),
+EditMode::EditMode() :
     m_splitter(new MiniSplitter),
     m_rightSplitWidgetLayout(new QVBoxLayout)
 {
+    setObjectName(QLatin1String("EditMode"));
+    setDisplayName(tr("Edit"));
+    setIcon(QIcon(QLatin1String(":/fancyactionbar/images/mode_Edit.png")));
+    setPriority(Constants::P_MODE_EDIT);
+    setId(Constants::MODE_EDIT);
+
     m_rightSplitWidgetLayout->setSpacing(0);
     m_rightSplitWidgetLayout->setMargin(0);
     QWidget *rightSplitWidget = new QWidget;
     rightSplitWidget->setLayout(m_rightSplitWidgetLayout);
-    m_rightSplitWidgetLayout->insertWidget(0, new Core::EditorManagerPlaceHolder(this));
+    auto editorPlaceHolder = new EditorManagerPlaceHolder(this);
+    m_rightSplitWidgetLayout->insertWidget(0, editorPlaceHolder);
 
     MiniSplitter *rightPaneSplitter = new MiniSplitter;
     rightPaneSplitter->insertWidget(0, rightSplitWidget);
@@ -68,7 +72,9 @@ EditMode::EditMode(EditorManager *editorManager) :
     MiniSplitter *splitter = new MiniSplitter;
     splitter->setOrientation(Qt::Vertical);
     splitter->insertWidget(0, rightPaneSplitter);
-    splitter->insertWidget(1, new Core::OutputPanePlaceHolder(this));
+    QWidget *outputPane = new Core::OutputPanePlaceHolder(this, splitter);
+    outputPane->setObjectName(QLatin1String("EditModeOutputPanePlaceHolder"));
+    splitter->insertWidget(1, outputPane);
     splitter->setStretchFactor(0, 3);
     splitter->setStretchFactor(1, 0);
 
@@ -77,51 +83,23 @@ EditMode::EditMode(EditorManager *editorManager) :
     m_splitter->setStretchFactor(0, 0);
     m_splitter->setStretchFactor(1, 1);
 
-    ModeManager *modeManager = ModeManager::instance();
-    connect(modeManager, SIGNAL(currentModeChanged(Core::IMode*)),
+    connect(ModeManager::instance(), SIGNAL(currentModeChanged(Core::IMode*)),
             this, SLOT(grabEditorManager(Core::IMode*)));
-    m_splitter->setFocusProxy(m_editorManager);
+    m_splitter->setFocusProxy(editorPlaceHolder);
+
+    IContext *modeContextObject = new IContext(this);
+    modeContextObject->setContext(Context(Constants::C_EDITORMANAGER));
+    modeContextObject->setWidget(m_splitter);
+    ICore::addContextObject(modeContextObject);
+
+    setWidget(m_splitter);
+    setContext(Context(Constants::C_EDIT_MODE,
+                       Constants::C_NAVIGATION_PANE));
 }
 
 EditMode::~EditMode()
 {
-    // Make sure the editor manager does not get deleted
-    m_editorManager->setParent(0);
     delete m_splitter;
-}
-
-QString EditMode::name() const
-{
-    return tr("Edit");
-}
-
-QIcon EditMode::icon() const
-{
-    return QIcon(QLatin1String(":/fancyactionbar/images/mode_Edit.png"));
-}
-
-int EditMode::priority() const
-{
-    return Constants::P_MODE_EDIT;
-}
-
-QWidget* EditMode::widget()
-{
-    return m_splitter;
-}
-
-const char* EditMode::uniqueModeName() const
-{
-    return Constants::MODE_EDIT;
-}
-
-QList<int> EditMode::context() const
-{
-    static QList<int> contexts = QList<int>() <<
-        UniqueIDManager::instance()->uniqueIdentifier(Constants::C_EDIT_MODE) <<
-        UniqueIDManager::instance()->uniqueIdentifier(Constants::C_EDITORMANAGER) <<
-        UniqueIDManager::instance()->uniqueIdentifier(Constants::C_NAVIGATION_PANE);
-    return contexts;
 }
 
 void EditMode::grabEditorManager(Core::IMode *mode)
@@ -129,6 +107,6 @@ void EditMode::grabEditorManager(Core::IMode *mode)
     if (mode != this)
         return;
 
-    if (m_editorManager->currentEditor())
-        m_editorManager->currentEditor()->widget()->setFocus();
+    if (EditorManager::currentEditor())
+        EditorManager::currentEditor()->widget()->setFocus();
 }

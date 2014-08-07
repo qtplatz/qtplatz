@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,78 +21,143 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "fileiconprovider.h"
 #include "mimedatabase.h"
 
+#include <utils/hostosinfo.h>
+#include <utils/qtcassert.h>
+
 #include <QApplication>
 #include <QStyle>
-#include <QtGui/QPainter>
+#include <QPainter>
+#include <QFileInfo>
+#include <QHash>
+#include <QDebug>
 
-using namespace Core;
+#include <QFileIconProvider>
+#include <QIcon>
+
+using namespace Utils;
 
 /*!
-  \class FileIconProvider
+  \class Core::FileIconProvider
 
-  Provides icons based on file suffixes.
+  Provides icons based on file suffixes with the ability to overwrite system
+  icons for specific subtypes. The underlying QFileIconProvider
+  can be used for QFileSystemModel.
 
-  The class is a singleton: It's instance can be accessed via the static instance() method.
-  Plugins can register custom icons via registerIconSuffix(), and retrieve icons via the icon()
-  method.
+  Note: Registering overlay icons currently completely replaces the system
+        icon and is therefore not recommended on platforms that have their
+        own overlay icon handling (Mac/Windows).
+
+  Plugins can register custom overlay icons via registerIconOverlayForSuffix(), and
+  retrieve icons via the icon() function.
   */
 
-FileIconProvider *FileIconProvider::m_instance = 0;
+// Cache icons in a list of pairs suffix/icon which should be faster than
+// hashes for small lists.
 
-FileIconProvider::FileIconProvider()
-    : m_unknownFileIcon(qApp->style()->standardIcon(QStyle::SP_FileIcon))
+namespace Core {
+namespace FileIconProvider {
+
+enum { debug = 0 };
+
+class FileIconProviderImplementation : public QFileIconProvider
 {
+public:
+    FileIconProviderImplementation()
+        : m_unknownFileIcon(qApp->style()->standardIcon(QStyle::SP_FileIcon))
+    {}
+
+    QIcon icon(const QFileInfo &info);
+    using QFileIconProvider::icon;
+
+    void registerIconOverlayForSuffix(const QIcon &icon, const QString &suffix)
+    {
+        if (debug)
+            qDebug() << "FileIconProvider::registerIconOverlayForSuffix" << suffix;
+
+        QTC_ASSERT(!icon.isNull() && !suffix.isEmpty(), return);
+
+        const QPixmap fileIconPixmap = FileIconProvider::overlayIcon(QStyle::SP_FileIcon, icon, QSize(16, 16));
+        // replace old icon, if it exists
+        m_cache.insert(suffix, fileIconPixmap);
+    }
+
+    void registerIconOverlayForMimeType(const QIcon &icon, const MimeType &mimeType)
+    {
+        foreach (const QString &suffix, mimeType.suffixes())
+            registerIconOverlayForSuffix(icon, suffix);
+    }
+
+    // Mapping of file suffix to icon.
+    QHash<QString, QIcon> m_cache;
+
+    QIcon m_unknownFileIcon;
+};
+
+FileIconProviderImplementation *instance()
+{
+    static FileIconProviderImplementation theInstance;
+    return &theInstance;
 }
 
-FileIconProvider::~FileIconProvider()
+QFileIconProvider *iconProvider()
 {
-    m_instance = 0;
+    return instance();
+}
+
+QIcon FileIconProviderImplementation::icon(const QFileInfo &fileInfo)
+{
+    if (debug)
+        qDebug() << "FileIconProvider::icon" << fileInfo.absoluteFilePath();
+    // Check for cached overlay icons by file suffix.
+    bool isDir = fileInfo.isDir();
+    QString suffix = !isDir ? fileInfo.suffix() : QString();
+    if (!m_cache.isEmpty() && !isDir && !suffix.isEmpty()) {
+        if (m_cache.contains(suffix))
+            return m_cache.value(suffix);
+    }
+    // Get icon from OS.
+    QIcon icon;
+    if (HostOsInfo::isWindowsHost() || HostOsInfo::isMacHost())
+        icon = QFileIconProvider::icon(fileInfo);
+    else // File icons are unknown on linux systems.
+        icon = isDir ? QFileIconProvider::icon(fileInfo) : m_unknownFileIcon;
+    if (!isDir && !suffix.isEmpty())
+        m_cache.insert(suffix, icon);
+    return icon;
 }
 
 /*!
   Returns the icon associated with the file suffix in fileInfo. If there is none,
   the default icon of the operating system is returned.
   */
-QIcon FileIconProvider::icon(const QFileInfo &fileInfo)
+
+QIcon icon(const QFileInfo &info)
 {
-    const QString suffix = fileInfo.suffix();
-    QIcon icon = iconForSuffix(suffix);
+    return instance()->icon(info);
+}
 
-    if (icon.isNull()) {
-        // Get icon from OS and store it in the cache
-
-        // Disabled since for now we'll make sure that all icons fit with our
-        // own custom icons by returning an empty one if we don't know it.
-#if defined(Q_WS_WIN) || defined(Q_WS_MAC)
-        // This is incorrect if the OS does not always return the same icon for the
-        // same suffix (Mac OS X), but should speed up the retrieval a lot ...
-        icon = m_systemIconProvider.icon(fileInfo);
-        if (!suffix.isEmpty())
-            registerIconOverlayForSuffix(icon, suffix);
-#else
-        if (fileInfo.isDir()) {
-            icon = m_systemIconProvider.icon(fileInfo);
-        } else {
-            icon = m_unknownFileIcon;
-        }
-#endif
-    }
-
-    return icon;
+/*!
+ * \overload
+ */
+QIcon icon(QFileIconProvider::IconType type)
+{
+    return instance()->icon(type);
 }
 
 /*!
   Creates a pixmap with baseicon at size and overlays overlayIcon over it.
+  See platform note in class documentation about recommended usage.
   */
-QPixmap FileIconProvider::overlayIcon(QStyle::StandardPixmap baseIcon, const QIcon &overlayIcon, const QSize &size) const
+QPixmap overlayIcon(QStyle::StandardPixmap baseIcon, const QIcon &overlayIcon, const QSize &size)
 {
     QPixmap iconPixmap = qApp->style()->standardIcon(baseIcon).pixmap(size);
     QPainter painter(&iconPixmap);
@@ -104,61 +168,28 @@ QPixmap FileIconProvider::overlayIcon(QStyle::StandardPixmap baseIcon, const QIc
 
 /*!
   Registers an icon for a given suffix, overlaying the system file icon.
+  See platform note in class documentation about recommended usage.
   */
-void FileIconProvider::registerIconOverlayForSuffix(const QIcon &icon, const QString &suffix)
+void registerIconOverlayForSuffix(const char *path, const char *suffix)
 {
-    QPixmap fileIconPixmap = overlayIcon(QStyle::SP_FileIcon, icon, QSize(16, 16));
-    // delete old icon, if it exists
-    QList<QPair<QString,QIcon> >::iterator iter = m_cache.begin();
-    for (; iter != m_cache.end(); ++iter) {
-        if ((*iter).first == suffix) {
-            iter = m_cache.erase(iter);
-            break;
-        }
-    }
-
-    QPair<QString,QIcon> newEntry(suffix, fileIconPixmap);
-    m_cache.append(newEntry);
+    instance()->registerIconOverlayForSuffix(QIcon(QLatin1String(path)), QLatin1String(suffix));
 }
 
 /*!
   Registers an icon for all the suffixes of a given mime type, overlaying the system file icon.
   */
-void FileIconProvider::registerIconOverlayForMimeType(const QIcon &icon, const MimeType &mimeType)
+void registerIconOverlayForMimeType(const QIcon &icon, const char *mimeType)
 {
-    foreach (const QString &suffix, mimeType.suffixes())
-        registerIconOverlayForSuffix(icon, suffix);
+    instance()->registerIconOverlayForMimeType(icon, MimeDatabase::findByType(QString::fromLatin1(mimeType)));
 }
 
 /*!
-  Returns an icon for the given suffix, or an empty one if none registered.
-  */
-QIcon FileIconProvider::iconForSuffix(const QString &suffix) const
+ * \overload
+ */
+void registerIconOverlayForMimeType(const char *path, const char *mimeType)
 {
-    QIcon icon;
-#if defined(Q_WS_WIN) || defined(Q_WS_MAC) // On Windows and Mac we use the file system icons
-    Q_UNUSED(suffix)
-#else
-    if (suffix.isEmpty())
-        return icon;
-
-    QList<QPair<QString,QIcon> >::const_iterator iter = m_cache.constBegin();
-    for (; iter != m_cache.constEnd(); ++iter) {
-        if ((*iter).first == suffix) {
-            icon = (*iter).second;
-            break;
-        }
-    }
-#endif
-    return icon;
+    instance()->registerIconOverlayForMimeType(QIcon(QLatin1String(path)), MimeDatabase::findByType(QString::fromLatin1(mimeType)));
 }
 
-/*!
-  Returns the sole instance of FileIconProvider.
-  */
-FileIconProvider *FileIconProvider::instance()
-{
-    if (!m_instance)
-        m_instance = new FileIconProvider;
-    return m_instance;
-}
+} // namespace FileIconProvider
+} // namespace Core

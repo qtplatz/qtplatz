@@ -36,7 +36,7 @@ using namespace servant;
 OutputWindow::OutputWindow(void)
 {
     widget_ = new QStackedWidget;
-    widget_->setWindowTitle( name() );
+    widget_->setWindowTitle( "Output" );
 
     //textWidget_ = new QTextEdit; // new QPlainTextEdit;
     textWidget_ = new QPlainTextEdit;
@@ -93,33 +93,9 @@ OutputWindow::visibilityChanged(bool visible)
     Q_UNUSED(visible);   
 }
 
-bool
-OutputWindow::hasFocus()
-{
-    return false;
-}
-
-bool
-OutputWindow::canFocus()
-{
-    return false;
-}
-
 void
 OutputWindow::setFocus()
 {
-}
-
-bool
-OutputWindow::canNext()
-{
-    return false;
-}
-
-bool
-OutputWindow::canPrevious()
-{
-    return false;
 }
 
 void
@@ -130,12 +106,6 @@ OutputWindow::goToNext()
 void
 OutputWindow::goToPrev()
 {
-}
-
-bool
-OutputWindow::canNavigate()
-{
-    return false;
 }
 
 void

@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,35 +21,51 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef IMODE_H
 #define IMODE_H
 
 #include "icontext.h"
+#include "id.h"
 
-#include <coreplugin/core_global.h>
-
-QT_BEGIN_NAMESPACE
-class QIcon;
-QT_END_NAMESPACE
+#include <QIcon>
 
 namespace Core {
 
 class CORE_EXPORT IMode : public IContext
 {
     Q_OBJECT
-public:
-    IMode(QObject *parent = 0) : IContext(parent) {}
-    virtual ~IMode() {}
+    Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled)
 
-    virtual QString name() const = 0;
-    virtual QIcon icon() const = 0;
-    virtual int priority() const = 0;
-    virtual const char *uniqueModeName() const = 0;
+public:
+    IMode(QObject *parent = 0);
+
+    QString displayName() const { return m_displayName; }
+    QIcon icon() const { return m_icon; }
+    int priority() const { return m_priority; }
+    Id id() const { return m_id; }
+    bool isEnabled() const;
+
+    void setEnabled(bool enabled);
+    void setDisplayName(const QString &displayName) { m_displayName = displayName; }
+    void setIcon(const QIcon &icon) { m_icon = icon; }
+    void setPriority(int priority) { m_priority = priority; }
+    void setId(Id id) { m_id = id; }
+
+signals:
+    void enabledStateChanged(bool enabled);
+
+private:
+    QString m_displayName;
+    QIcon m_icon;
+    int m_priority;
+    Id m_id;
+    bool m_isEnabled;
 };
 
 } // namespace Core

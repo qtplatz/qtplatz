@@ -9,11 +9,10 @@
 using namespace servant;
 using namespace servant::internal;
 
-ServantMode::ServantMode(QObject *parent) :
-    Core::BaseMode(parent)
+ServantMode::ServantMode(QObject *parent) : Core::IMode(parent)
 {
-    setName(tr("Servant"));
-    setUniqueModeName( "Servant.Mode" );
+    setDisplayName( tr( "Servant" ) );
+    // setUniqueModeName( "Servant.Mode" );
     setIcon(QIcon(":/fancyactionbar/images/mode_Edit.png"));
     setPriority( 999 );
 }

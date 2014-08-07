@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -34,7 +34,6 @@
 #include <aggregation/aggregate.h>
 
 #include <QObject>
-#include <QReadWriteLock>
 #include <QStringList>
 
 QT_BEGIN_NAMESPACE
@@ -44,13 +43,10 @@ QT_END_NAMESPACE
 
 namespace ExtensionSystem {
 class PluginCollection;
-
-namespace Internal {
-class PluginManagerPrivate;
-}
-
 class IPlugin;
 class PluginSpec;
+
+namespace Internal { class PluginManagerPrivate; }
 
 class EXTENSIONSYSTEM_EXPORT PluginManager : public QObject
 {
@@ -60,35 +56,58 @@ public:
     static PluginManager *instance();
 
     PluginManager();
-    virtual ~PluginManager();
+    ~PluginManager();
 
     // Object pool operations
     static void addObject(QObject *obj);
     static void removeObject(QObject *obj);
     static QList<QObject *> allObjects();
+    static QReadWriteLock *listLock();
     template <typename T> static QList<T *> getObjects()
     {
-        QReadLocker lock(&m_instance->m_lock);
+        QReadLocker lock(listLock());
         QList<T *> results;
         QList<QObject *> all = allObjects();
-        QList<T *> result;
         foreach (QObject *obj, all) {
-            result = Aggregation::query_all<T>(obj);
-            if (!result.isEmpty())
+            T *result = qobject_cast<T *>(obj);
+            if (result)
+                results += result;
+        }
+        return results;
+    }
+    template <typename T, typename Predicate>
+    static QList<T *> getObjects(Predicate predicate)
+    {
+        QReadLocker lock(listLock());
+        QList<T *> results;
+        QList<QObject *> all = allObjects();
+        foreach (QObject *obj, all) {
+            T *result = qobject_cast<T *>(obj);
+            if (result && predicate(result))
                 results += result;
         }
         return results;
     }
     template <typename T> static T *getObject()
     {
-        QReadLocker lock(&m_instance->m_lock);
+        QReadLocker lock(listLock());
         QList<QObject *> all = allObjects();
-        T *result = 0;
         foreach (QObject *obj, all) {
-            if ((result = Aggregation::query<T>(obj)) != 0)
-                break;
+            if (T *result = qobject_cast<T *>(obj))
+                return result;
         }
-        return result;
+        return 0;
+    }
+    template <typename T, typename Predicate> static T *getObject(Predicate predicate)
+    {
+        QReadLocker lock(listLock());
+        QList<QObject *> all = allObjects();
+        foreach (QObject *obj, all) {
+            if (T *result = qobject_cast<T *>(obj))
+                if (predicate(result))
+                    return result;
+        }
+        return 0;
     }
 
     static QObject *getObjectByName(const QString &name);
@@ -129,6 +148,8 @@ public:
 
     static void profilingReport(const char *what, const PluginSpec *spec = 0);
 
+    static QString platformName();
+
 signals:
     void objectAdded(QObject *obj);
     void aboutToRemoveObject(QObject *obj);
@@ -142,12 +163,6 @@ public slots:
 
 private slots:
     void startTests();
-
-private:
-    Internal::PluginManagerPrivate *d;
-    static PluginManager *m_instance;
-    mutable QReadWriteLock m_lock;
-
     friend class Internal::PluginManagerPrivate;
 };
 

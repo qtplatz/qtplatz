@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,49 +21,59 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef MESSAGEMANAGER_H
 #define MESSAGEMANAGER_H
 
 #include "core_global.h"
-#include <QtCore/QObject>
+#include "ioutputpane.h"
+#include <QMetaType>
+
+#include <QObject>
 
 namespace Core {
 
-namespace Internal {
-class MessageOutputWindow;
-}
+namespace Internal { class MainWindow; }
 
 class CORE_EXPORT MessageManager : public QObject
 {
     Q_OBJECT
 
 public:
-    MessageManager();
-    ~MessageManager();
+    static QObject *instance();
 
-    void init();
+    static void showOutputPane();
 
-    static MessageManager *instance() { return m_instance; }
+    enum PrintToOutputPaneFlag {
+        NoModeSwitch   = IOutputPane::NoModeSwitch,
+        ModeSwitch     = IOutputPane::ModeSwitch,
+        WithFocus      = IOutputPane::WithFocus,
+        EnsureSizeHint = IOutputPane::EnsureSizeHint,
+        Silent         = 256,
+        Flash          = 512
+    };
 
-    void displayStatusBarMessage(const QString &text, int ms = 0);
-    void showOutputPane();
+    Q_DECLARE_FLAGS(PrintToOutputPaneFlags, PrintToOutputPaneFlag)
+
+    static void write(const QString &text); // imply NoModeSwitch
 
 public slots:
-    void printToOutputPane(const QString &text, bool bringToForeground);
-    void printToOutputPanePopup(const QString &text); // pops up
-    void printToOutputPane(const QString &text);
+    static void write(const QString &text, Core::MessageManager::PrintToOutputPaneFlags flags);
 
 private:
-    Internal::MessageOutputWindow *m_messageOutputWindow;
-
-    static MessageManager *m_instance;
+    MessageManager();
+    ~MessageManager();
+    static void init();
+    friend class Core::Internal::MainWindow;
 };
 
 } // namespace Core
+
+Q_DECLARE_METATYPE(Core::MessageManager::PrintToOutputPaneFlags)
 
 #endif // MESSAGEMANAGER_H

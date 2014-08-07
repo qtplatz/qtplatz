@@ -40,9 +40,9 @@ namespace dataproc {
         explicit NavigationWidgetFactory();
         virtual ~NavigationWidgetFactory();
 
-        virtual QString displayName();
-        virtual QKeySequence activationSequence();
-        virtual Core::NavigationView createWidget();
+        // QString displayName();
+        // QKeySequence activationSequence();
+        Core::NavigationView createWidget() override;
 
     signals:
 

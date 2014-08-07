@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,10 +21,11 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "plugindialog.h"
 
@@ -40,9 +40,12 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QPushButton>
-#include <QtDebug>
+#include <QLabel>
+#include <QDebug>
 
 using namespace Core::Internal;
+
+bool PluginDialog::m_isRestartRequired = false;
 
 PluginDialog::PluginDialog(QWidget *parent)
     : QDialog(parent),
@@ -59,13 +62,20 @@ PluginDialog::PluginDialog(QWidget *parent)
     m_closeButton->setEnabled(true);
     m_closeButton->setDefault(true);
 
+    m_restartRequired = new QLabel(tr("Restart required."), this);
+    if (!m_isRestartRequired)
+        m_restartRequired->setVisible(false);
+
     QHBoxLayout *hl = new QHBoxLayout;
     hl->addWidget(m_detailsButton);
     hl->addWidget(m_errorDetailsButton);
+    hl->addSpacing(10);
+    hl->addWidget(m_restartRequired);
     hl->addStretch(5);
     hl->addWidget(m_closeButton);
 
     vl->addLayout(hl);
+
 
     resize(650, 400);
     setWindowTitle(tr("Installed Plugins"));
@@ -74,10 +84,25 @@ PluginDialog::PluginDialog(QWidget *parent)
             this, SLOT(updateButtons()));
     connect(m_view, SIGNAL(pluginActivated(ExtensionSystem::PluginSpec*)),
             this, SLOT(openDetails(ExtensionSystem::PluginSpec*)));
+    connect(m_view, SIGNAL(pluginSettingsChanged(ExtensionSystem::PluginSpec*)),
+            this, SLOT(updateRestartRequired()));
     connect(m_detailsButton, SIGNAL(clicked()), this, SLOT(openDetails()));
     connect(m_errorDetailsButton, SIGNAL(clicked()), this, SLOT(openErrorDetails()));
-    connect(m_closeButton, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(m_closeButton, SIGNAL(clicked()), this, SLOT(closeDialog()));
     updateButtons();
+}
+
+void PluginDialog::closeDialog()
+{
+    ExtensionSystem::PluginManager::writeSettings();
+    accept();
+}
+
+void PluginDialog::updateRestartRequired()
+{
+    // just display the notice all the time after once changing something
+    m_isRestartRequired = true;
+    m_restartRequired->setVisible(true);
 }
 
 void PluginDialog::updateButtons()

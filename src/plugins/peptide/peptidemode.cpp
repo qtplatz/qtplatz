@@ -26,7 +26,7 @@
 #include "peptideconstants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 
@@ -37,10 +37,10 @@ PeptideMode::~PeptideMode()
     Core::EditorManager::instance()->setParent(0);
 }
 
-PeptideMode::PeptideMode(QObject *parent) :  Core::BaseMode(parent)
+PeptideMode::PeptideMode(QObject *parent) :  Core::IMode(parent)
 {
-    setName(tr("Peptide"));
-    setUniqueModeName( peptide::Constants::C_PEPTIDE_MODE );
+    setDisplayName( tr( "Peptide" ) );
+    // setUniqueModeName( peptide::Constants::C_PEPTIDE_MODE );
     setIcon(QIcon(":/peptide/images/fingerprint.png"));
     setPriority( 50 );
 }

@@ -249,8 +249,7 @@ MainWindow::toolButton( QAction * action )
 QToolButton * 
 MainWindow::toolButton( const char * id )
 {
-	Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
-	return toolButton( mgr->command(id)->action() );
+	return toolButton( Core::ActionManager::instance()->command(id)->action() );
 }
 
 // slot
@@ -307,10 +306,7 @@ MainWindow::createTopStyledBar()
         topLineEdit_ = new QLineEdit;
         toolBarLayout->addWidget( topLineEdit_ );
 
-        Core::ActionManager * am = Core::ICore::instance()->actionManager();
-        if ( am ) {
-            QList<int> globalcontext;
-            globalcontext << Core::Constants::C_GLOBAL_ID;
+        if ( auto am = Core::ActionManager::instance() ) {
             toolBarLayout->addWidget(toolButton(am->command(Constants::SDFILE_OPEN)->action()));
         }
         

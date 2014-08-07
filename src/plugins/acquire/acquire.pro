@@ -41,7 +41,7 @@ win32 {
 }
 linux-*: LIBS += -lqwt # order matter on linux
 
-include(../../plugins/coreplugin/coreplugin.pri)
+#include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += ACQUIRE_LIBRARY
 

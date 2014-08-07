@@ -6,7 +6,7 @@
   </mime-type>
   <mime-type type="application/adfs">
       <sub-class-of type="application/octet-stream"/>
-      <comment> qtPlatz data file</comment>
+      <comment> qtplatz data file</comment>
       <glob pattern="*.adfs"/>
   </mime-type>
   <mime-type type="application/txt">

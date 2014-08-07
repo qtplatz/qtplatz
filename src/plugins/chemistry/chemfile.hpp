@@ -25,7 +25,7 @@
 #ifndef CHEMFILE_HPP
 #define CHEMFILE_HPP
 
-#include <coreplugin/ifile.h>
+#include <coreplugin/idocument.h>
 #include <boost/noncopyable.hpp>
 #ifndef Q_MOC_RUN
 //#include <adchem/conversion.hpp>
@@ -40,7 +40,7 @@ namespace OpenBabel {
 
 namespace chemistry {
     
-	class ChemFile : public Core::IFile, boost::noncopyable  {
+	class ChemFile : public Core::IDocument, boost::noncopyable  {
         Q_OBJECT
     public:
         ~ChemFile();

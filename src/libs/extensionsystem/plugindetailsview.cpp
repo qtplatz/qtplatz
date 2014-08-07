@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -29,13 +29,17 @@
 
 #include "plugindetailsview.h"
 #include "ui_plugindetailsview.h"
+
+#include "pluginmanager.h"
 #include "pluginspec.h"
 
 #include <QDir>
+#include <QRegExp>
 
 /*!
     \class ExtensionSystem::PluginDetailsView
-    \brief Widget that displays the contents of a PluginSpec.
+    \brief The PluginDetailsView class implements a widget that displays the
+    contents of a PluginSpec.
 
     Can be used for integration in the application that
     uses the plugin manager.
@@ -46,7 +50,6 @@
 using namespace ExtensionSystem;
 
 /*!
-    \fn PluginDetailsView::PluginDetailsView(QWidget *parent)
     Constructs a new view with given \a parent widget.
 */
 PluginDetailsView::PluginDetailsView(QWidget *parent)
@@ -57,7 +60,6 @@ PluginDetailsView::PluginDetailsView(QWidget *parent)
 }
 
 /*!
-    \fn PluginDetailsView::~PluginDetailsView()
     \internal
 */
 PluginDetailsView::~PluginDetailsView()
@@ -66,7 +68,6 @@ PluginDetailsView::~PluginDetailsView()
 }
 
 /*!
-    \fn void PluginDetailsView::update(PluginSpec *spec)
     Reads the given \a spec and displays its values
     in this PluginDetailsView.
 */
@@ -86,6 +87,11 @@ void PluginDetailsView::update(PluginSpec *spec)
     m_ui->description->setText(spec->description());
     m_ui->copyright->setText(spec->copyright());
     m_ui->license->setText(spec->license());
+    const QRegExp platforms = spec->platformSpecification();
+    const QString pluginPlatformString = platforms.isEmpty() ? tr("All") : platforms.pattern();
+    const QString platformString = tr("%1 (current: \"%2\")").arg(pluginPlatformString,
+                                                                  PluginManager::platformName());
+    m_ui->platforms->setText(platformString);
     QStringList depStrings;
     foreach (const PluginDependency &dep, spec->dependencies()) {
         QString depString = dep.name;

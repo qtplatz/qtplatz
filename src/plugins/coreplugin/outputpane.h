@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,123 +21,57 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef OUTPUTPANE_H
 #define OUTPUTPANE_H
 
 #include "core_global.h"
 
-#include <QtCore/QMap>
 #include <QWidget>
 
 QT_BEGIN_NAMESPACE
-class QAction;
-class QComboBox;
-class QToolButton;
-class QStackedWidget;
-class QPushButton;
+class QSplitter;
 QT_END_NAMESPACE
 
 namespace Core {
 
 class IMode;
-class IOutputPane;
 
-namespace Internal {
-class OutputPaneManager;
-class MainWindow;
-}
-
+namespace Internal { class OutputPaneManager; }
+struct OutputPanePlaceHolderPrivate;
 
 class CORE_EXPORT OutputPanePlaceHolder : public QWidget
 {
-    friend class Core::Internal::OutputPaneManager; // needs to set m_visible and thus access m_current
     Q_OBJECT
+    friend class Core::Internal::OutputPaneManager; // needs to set m_visible and thus access m_current
+
 public:
-    OutputPanePlaceHolder(Core::IMode *mode, QWidget *parent = 0);
+    explicit OutputPanePlaceHolder(Core::IMode *mode, QSplitter *parent = 0);
     ~OutputPanePlaceHolder();
-    void setCloseable(bool b);
-    bool closeable();
-    static OutputPanePlaceHolder *getCurrent() { return m_current; }
+
+    static OutputPanePlaceHolder *getCurrent();
+    static bool isCurrentVisible();
+
+    void unmaximize();
+    bool isMaximized() const;
+    void setDefaultHeight(int height);
+    void ensureSizeHintAsMinimum();
 
 private slots:
     void currentModeChanged(Core::IMode *);
-private:
-    Core::IMode *m_mode;
-    bool m_closeable;
-    static OutputPanePlaceHolder* m_current;
-};
-
-namespace Internal {
-
-class OutputPaneManager : public QWidget
-{
-    Q_OBJECT
-
-public:
-    void init();
-    static OutputPaneManager *instance();
-    void setCloseable(bool b);
-    bool closeable();
-    QWidget *buttonsWidget();
-    void updateStatusButtons(bool visible);
-
-public slots:
-    void slotHide();
-    void slotNext();
-    void slotPrev();
-    void shortcutTriggered();
-
-protected:
-    void focusInEvent(QFocusEvent *e);
-
-private slots:
-    void changePage();
-    void showPage(bool focus);
-    void togglePage(bool focus);
-    void clearPage();
-    void updateToolTip();
-    void buttonTriggered();
-    void updateNavigateState();
 
 private:
-    // the only class that is allowed to create and destroy
-    friend class MainWindow;
+    bool canMaximizeOrMinimize() const;
+    void maximizeOrMinimize(bool maximize);
 
-    static void create();
-    static void destroy();
-
-    OutputPaneManager(QWidget *parent = 0);
-    ~OutputPaneManager();
-
-    void showPage(int idx, bool focus);
-    void ensurePageVisible(int idx);
-    int findIndexForPage(IOutputPane *out);
-    QComboBox *m_widgetComboBox;
-    QToolButton *m_clearButton;
-    QToolButton *m_closeButton;
-
-    QAction *m_nextAction;
-    QAction *m_prevAction;
-    QToolButton *m_prevToolButton;
-    QToolButton *m_nextToolButton;
-    QWidget *m_toolBar;
-
-    QMap<int, Core::IOutputPane*> m_pageMap;
-    int m_lastIndex;
-
-    QStackedWidget *m_outputWidgetPane;
-    QStackedWidget *m_opToolBarWidgets;
-    QWidget *m_buttonsWidget;
-    QMap<int, QPushButton *> m_buttons;
-    QMap<QAction *, int> m_actions;
+    OutputPanePlaceHolderPrivate *d;
 };
 
-} // namespace Internal
 } // namespace Core
 
 #endif // OUTPUTPANE_H

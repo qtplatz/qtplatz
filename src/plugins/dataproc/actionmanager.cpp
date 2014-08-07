@@ -41,7 +41,7 @@
 #include <portfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/icore.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/editormanager/ieditor.h>
@@ -65,7 +65,7 @@ ActionManager::ActionManager(QObject *parent) : QObject(parent)
 bool
 ActionManager::install_file_actions()
 {
-	if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
+	if ( Core::ActionManager *am = Core::ActionManager::instance() ) {
 
         // File->Processing
         if ( Core::ActionContainer * menu = am->createMenu( "dataproc.menu" ) ) {
@@ -96,9 +96,9 @@ ActionManager::install_toolbar_actions()
 }
 
 bool
-ActionManager::initialize_actions( const QList<int>& context )
+ActionManager::initialize_actions( const Core::Context& context )
 {
-	if ( auto * am = Core::ICore::instance()->actionManager() ) {
+	if ( auto * am = Core::ActionManager::instance() ) {
 
         if ( auto p = actions_[ idActSave ] = create( Constants::ICON_SAVE, tr("Save"), this ) ) {
             am->registerAction( p, Core::Constants::SAVE, context );
@@ -181,7 +181,7 @@ ActionManager::connect_navigation_pointer( NavigationWidget * navi )
     connect( actions_[ idActCheckAllSpectra ], &QAction::triggered, navi, &NavigationWidget::handleCheckAllSpectra );
     connect( actions_[ idActUncheckAllSpectra ], &QAction::triggered, navi, &NavigationWidget::handleUncheckAllSpectra );
 
-	if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
+	if ( Core::ActionManager *am = Core::ActionManager::instance() ) {
         auto edit = am->actionContainer( Core::Constants::M_EDIT );
         edit->addAction( am->command( Constants::CHECK_ALL_SPECTRA ) );
         edit->addAction( am->command( Constants::UNCHECK_ALL_SPECTRA ) );
@@ -412,23 +412,23 @@ ActionManager::actCalibFileApply()
 void
 ActionManager::handleSave()
 {
-	Core::EditorManager::instance()->saveFile();
+	Core::EditorManager::instance()->saveDocument();
 }
 
 void
 ActionManager::handleSaveAs()
 {
-	Core::EditorManager::instance()->saveFileAs();
+	Core::EditorManager::instance()->saveDocumentAs();
 }
 
 void
-ActionManager::handleContextChanged( Core::IContext * context )
+ActionManager::handleContextChanged( const QList<Core::IContext *>& t1, const Core::Context& t2 )
 {
-	Core::IEditor *editor = context ? qobject_cast< Core::IEditor *>( context ) : 0;
-	if ( editor && editor->file() ) {
-        boost::filesystem::path path = editor->file()->fileName().toStdWString();
-        QString text = QString::fromStdWString( ( boost::wformat( L"Save \"%1%\" As..." ) % path.stem().wstring() ).str() );
-        actions_[ idActSaveAs ]->setText( text );
-	}
+    for ( auto& context : t1 ) {
+        if ( Core::IEditor * editor = qobject_cast<Core::IEditor *>(context) ) {
+            QString text = QString( "Save '%1' As..." ).arg( editor->document()->filePath() );
+            actions_[ idActSaveAs ]->setText( text );
+        }
+    }
 }
 

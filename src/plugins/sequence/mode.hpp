@@ -25,11 +25,11 @@
 #ifndef MODE_HPP
 #define MODE_HPP
 
-#include <coreplugin/basemode.h>
+#include <coreplugin/imode.h>
 
 namespace sequence {
 
-    class Mode : public Core::BaseMode {
+    class Mode : public Core::IMode {
         Q_OBJECT
     public:
         explicit Mode(QObject *parent = 0);

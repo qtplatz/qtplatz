@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,30 +21,28 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include <utils/savedaction.h>
 
 #include <utils/qtcassert.h>
 #include <utils/pathchooser.h>
+#include <utils/pathlisteditor.h>
 
-#include <QtCore/QDebug>
-#include <QtCore/QSettings>
+#include <QDebug>
+#include <QSettings>
 
-#include <QtGui/QAbstractButton>
-#include <QtGui/QAction>
-#include <QtGui/QActionGroup>
-#include <QtGui/QCheckBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QRadioButton>
-#include <QtGui/QSpinBox>
-
+#include <QAbstractButton>
+#include <QGroupBox>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QTextEdit>
 
 using namespace Utils;
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -55,12 +52,9 @@ using namespace Utils;
 
 /*!
     \class Utils::SavedAction
-    
+
     \brief The SavedAction class is a helper class for actions with persistent
     state.
-
-    \ingroup utils
-
 */
 
 SavedAction::SavedAction(QObject *parent)
@@ -193,12 +187,10 @@ QString SavedAction::toString() const
     return QLatin1String("value: ") + m_value.toString()
         + QLatin1String("  defaultvalue: ") + m_defaultValue.toString()
         + QLatin1String("  settingskey: ") + m_settingsGroup
-        + '/' + m_settingsKey;
+        + QLatin1Char('/') + m_settingsKey;
 }
 
 /*!
-    \fn QAction *SavedAction::updatedAction(const QString &text)
-
     Adjust the \c text() of the underlying action.
 
     This can be used to update the item shortly before e.g. a menu is shown.
@@ -219,8 +211,8 @@ QAction *SavedAction::updatedAction(const QString &text0)
     if (!m_textPattern.isEmpty()) {
         if (text.isEmpty()) {
             text = m_textPattern;
-            text.remove("\"%1\"");
-            text.remove("%1");
+            text.remove(QLatin1String("\"%1\""));
+            text.remove(QLatin1String("%1"));
             enabled = false;
         } else {
             text = m_textPattern.arg(text0);
@@ -233,28 +225,26 @@ QAction *SavedAction::updatedAction(const QString &text0)
 }
 
 /*
-    Uses \c settingsGroup() and \c settingsKey() to restore the 
+    Uses \c settingsGroup() and \c settingsKey() to restore the
     item from \a settings,
 
     \sa settingsKey(), settingsGroup(), writeSettings()
 */
-void SavedAction::readSettings(QSettings *settings)
+void SavedAction::readSettings(const QSettings *settings)
 {
     if (m_settingsGroup.isEmpty() || m_settingsKey.isEmpty())
         return;
-    settings->beginGroup(m_settingsGroup);
-    QVariant var = settings->value(m_settingsKey, m_defaultValue);
+    QVariant var = settings->value(m_settingsGroup + QLatin1Char('/') + m_settingsKey, m_defaultValue);
     // work around old ini files containing @Invalid() entries
     if (isCheckable() && !var.isValid())
         var = false;
     setValue(var);
     //qDebug() << "READING: " << var.isValid() << m_settingsKey << " -> " << m_value
     //    << " (default: " << m_defaultValue << ")" << var;
-    settings->endGroup();
 }
 
 /*
-    Uses \c settingsGroup() and \c settingsKey() to write the 
+    Uses \c settingsGroup() and \c settingsKey() to write the
     item to \a settings,
 
     \sa settingsKey(), settingsGroup(), readSettings()
@@ -268,12 +258,12 @@ void SavedAction::writeSettings(QSettings *settings)
     //qDebug() << "WRITING: " << m_settingsKey << " -> " << toString();
     settings->endGroup();
 }
-   
+
 /*
     A \c SavedAction can be connected to a widget, typically a
     checkbox, radiobutton, or a lineedit in some configuration dialog.
 
-    The widget will retrieve its contents from the SavedAction's 
+    The widget will retrieve its contents from the SavedAction's
     value, and - depending on the \a ApplyMode - either write
     changes back immediately, or when \s SavedAction::apply()
     is called explicitly.
@@ -286,7 +276,7 @@ void SavedAction::connectWidget(QWidget *widget, ApplyMode applyMode)
         qDebug() << "ALREADY CONNECTED: " << widget << m_widget << toString(); return);
     m_widget = widget;
     m_applyMode = applyMode;
-    
+
     if (QAbstractButton *button = qobject_cast<QAbstractButton *>(widget)) {
         if (button->isCheckable()) {
             button->setChecked(m_value.toBool());
@@ -298,14 +288,14 @@ void SavedAction::connectWidget(QWidget *widget, ApplyMode applyMode)
         }
     } else if (QSpinBox *spinBox = qobject_cast<QSpinBox *>(widget)) {
         spinBox->setValue(m_value.toInt());
-        //qDebug() << "SETTING VALUE" << spinBox->value(); 
+        //qDebug() << "SETTING VALUE" << spinBox->value();
         connect(spinBox, SIGNAL(valueChanged(int)),
             this, SLOT(spinBoxValueChanged(int)));
         connect(spinBox, SIGNAL(valueChanged(QString)),
             this, SLOT(spinBoxValueChanged(QString)));
     } else if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(widget)) {
         lineEdit->setText(m_value.toString());
-        //qDebug() << "SETTING TEXT" << lineEdit->text(); 
+        //qDebug() << "SETTING TEXT" << lineEdit->text();
         connect(lineEdit, SIGNAL(editingFinished()),
             this, SLOT(lineEditEditingFinished()));
     } else if (PathChooser *pathChooser = qobject_cast<PathChooser *>(widget)) {
@@ -314,6 +304,16 @@ void SavedAction::connectWidget(QWidget *widget, ApplyMode applyMode)
             this, SLOT(pathChooserEditingFinished()));
         connect(pathChooser, SIGNAL(browsingFinished()),
             this, SLOT(pathChooserEditingFinished()));
+    } else if (QGroupBox *groupBox = qobject_cast<QGroupBox *>(widget)) {
+        if (!groupBox->isCheckable())
+            qDebug() << "connectWidget to non-checkable group box" << widget << toString();
+        groupBox->setChecked(m_value.toBool());
+        connect(groupBox, SIGNAL(toggled(bool)), this, SLOT(groupBoxToggled(bool)));
+    } else if (QTextEdit *textEdit = qobject_cast<QTextEdit *>(widget)) {
+        textEdit->setPlainText(m_value.toString());
+        connect(textEdit, SIGNAL(textChanged()), this, SLOT(textEditTextChanged()));
+    } else if (PathListEditor *editor = qobject_cast<PathListEditor *>(widget)) {
+        editor->setPathList(m_value.toStringList());
     } else {
         qDebug() << "Cannot connect widget " << widget << toString();
     }
@@ -339,6 +339,12 @@ void SavedAction::apply(QSettings *s)
         setValue(spinBox->value());
     else if (PathChooser *pathChooser = qobject_cast<PathChooser *>(m_widget))
         setValue(pathChooser->path());
+    else if (const QGroupBox *groupBox = qobject_cast<QGroupBox *>(m_widget))
+        setValue(groupBox->isChecked());
+    else if (const QTextEdit *textEdit = qobject_cast<QTextEdit *>(m_widget))
+        setValue(textEdit->toPlainText());
+    else if (const PathListEditor *editor = qobject_cast<PathListEditor *>(m_widget))
+        setValue(editor->pathList());
     if (s)
        writeSettings(s);
 }
@@ -392,6 +398,20 @@ void SavedAction::pathChooserEditingFinished()
         setValue(pathChooser->path());
 }
 
+void SavedAction::textEditTextChanged()
+{
+    QTextEdit *textEdit = qobject_cast<QTextEdit *>(sender());
+    QTC_ASSERT(textEdit, return);
+    if (m_applyMode == ImmediateApply)
+        setValue(textEdit->toPlainText());
+}
+
+void SavedAction::groupBoxToggled(bool checked)
+{
+    if (m_applyMode == ImmediateApply)
+        setValue(QVariant(checked));
+}
+
 void SavedAction::actionTriggered(bool)
 {
     if (isCheckable())
@@ -409,7 +429,6 @@ void SavedAction::trigger(const QVariant &data)
     setData(data);
     QAction::trigger();
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //

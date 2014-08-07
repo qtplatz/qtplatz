@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,95 +21,132 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
+#include "execmenu.h"
 #include "fancylineedit.h"
+#include "historycompleter.h"
+#include "hostosinfo.h"
+#include "qtcassert.h"
 
-#include <QtCore/QEvent>
-#include <QtCore/QDebug>
-#include <QtCore/QString>
-#include <QtGui/QApplication>
-#include <QtGui/QMenu>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QLabel>
+#include <QAbstractItemView>
+#include <QDebug>
+#include <QKeyEvent>
+#include <QMenu>
+#include <QStylePainter>
+#include <QPropertyAnimation>
+#include <QStyle>
+
+/*!
+    \class Utils::FancyLineEdit
+
+    \brief The FancyLineEdit class is an enhanced line edit with several
+    opt-in features.
+
+    A FancyLineEdit instance can have:
+
+    \list
+    \li An embedded pixmap on one side that is connected to a menu.
+
+    \li A grayed hintText (like "Type Here to")
+    when not focused and empty. When connecting to the changed signals and
+    querying text, one has to be aware that the text is set to that hint
+    text if isShowingHintText() returns true (that is, does not contain
+    valid user input).
+
+    \li A history completer.
+
+    \li The ability to validate the contents of the text field by overriding
+    virtual \c validate() function in derived clases.
+    \endlist
+
+    When invalid, the text color will turn red and a tooltip will
+    contain the error message. This approach is less intrusive than a
+    QValidator which will prevent the user from entering certain characters.
+
+    A visible hint text results validation to be in state 'DisplayingInitialText',
+    which is not valid, but is not marked red.
+
+ */
 
 enum { margin = 6 };
 
+#define ICONBUTTON_HEIGHT 18
+#define FADE_TIME 160
+
 namespace Utils {
 
-static inline QString sideToStyleSheetString(FancyLineEdit::Side side)
+// --------- FancyLineEditPrivate
+class FancyLineEditPrivate : public QObject
 {
-    return side == FancyLineEdit::Left ? QLatin1String("left") : QLatin1String("right");
-}
-
-// Format style sheet for the label containing the pixmap. It has a margin on
-// the outer side of the whole FancyLineEdit.
-static QString labelStyleSheet(FancyLineEdit::Side side)
-{
-    QString rc = QLatin1String("QLabel { margin-");
-    rc += sideToStyleSheetString(side);
-    rc += QLatin1String(": ");
-    rc += QString::number(margin);
-    rc += QLatin1Char('}');
-    return rc;
-}
-
-// --------- FancyLineEditPrivate as QObject with label
-//           event filter
-
-class FancyLineEditPrivate : public QObject {
 public:
-    explicit FancyLineEditPrivate(QLineEdit *parent);
+    explicit FancyLineEditPrivate(FancyLineEdit *parent);
 
     virtual bool eventFilter(QObject *obj, QEvent *event);
 
-    const QString m_leftLabelStyleSheet;
-    const QString m_rightLabelStyleSheet;
+    FancyLineEdit *m_lineEdit;
+    QString m_oldText;
+    QPixmap m_pixmap[2];
+    QMenu *m_menu[2];
+    bool m_menuTabFocusTrigger[2];
+    IconButton *m_iconbutton[2];
+    bool m_iconEnabled[2];
 
-    QLineEdit *m_lineEdit;
-    QPixmap m_pixmap;
-    QMenu *m_menu;
-    QLabel *m_menuLabel;
-    FancyLineEdit::Side m_side;
-    bool m_useLayoutDirection;
-    bool m_menuTabFocusTrigger;
-    QString m_hintText;
-    bool m_showingHintText;
+    HistoryCompleter *m_historyCompleter;
+
+    bool m_isFiltering;
+    QString m_lastFilterText;
+
+    const QColor m_okTextColor;
+    QColor m_errorTextColor;
+    FancyLineEdit::State m_state;
+    QString m_errorMessage;
+    QString m_initialText;
+    bool m_firstChange;
 };
 
 
-FancyLineEditPrivate::FancyLineEditPrivate(QLineEdit *parent) :
+FancyLineEditPrivate::FancyLineEditPrivate(FancyLineEdit *parent) :
     QObject(parent),
-    m_leftLabelStyleSheet(labelStyleSheet(FancyLineEdit::Left)),
-    m_rightLabelStyleSheet(labelStyleSheet(FancyLineEdit::Right)),
     m_lineEdit(parent),
-    m_menu(0),
-    m_menuLabel(0),
-    m_side(FancyLineEdit::Left),
-    m_useLayoutDirection(false),
-    m_menuTabFocusTrigger(false),
-    m_showingHintText(false)
+    m_historyCompleter(0),
+    m_isFiltering(false),
+    m_okTextColor(FancyLineEdit::textColor(parent)),
+    m_errorTextColor(Qt::red),
+    m_state(FancyLineEdit::Invalid),
+    m_firstChange(true)
 {
+    for (int i = 0; i < 2; ++i) {
+        m_menu[i] = 0;
+        m_menuTabFocusTrigger[i] = false;
+        m_iconbutton[i] = new IconButton(parent);
+        m_iconbutton[i]->installEventFilter(this);
+        m_iconbutton[i]->hide();
+        m_iconbutton[i]->setAutoHide(false);
+        m_iconEnabled[i] = false;
+    }
 }
 
 bool FancyLineEditPrivate::eventFilter(QObject *obj, QEvent *event)
 {
-    if (!m_menu || obj != m_menuLabel)
-        return QObject::eventFilter(obj, event);
-
-    switch (event->type()) {
-    case QEvent::MouseButtonPress: {
-        const QMouseEvent *me = static_cast<QMouseEvent *>(event);
-        m_menu->exec(me->globalPos());
-        return true;
+    int buttonIndex = -1;
+    for (int i = 0; i < 2; ++i) {
+        if (obj == m_iconbutton[i]) {
+            buttonIndex = i;
+            break;
+        }
     }
+    if (buttonIndex == -1)
+        return QObject::eventFilter(obj, event);
+    switch (event->type()) {
     case QEvent::FocusIn:
-        if (m_menuTabFocusTrigger) {
+        if (m_menuTabFocusTrigger[buttonIndex] && m_menu[buttonIndex]) {
             m_lineEdit->setFocus();
-            m_menu->exec(m_menuLabel->mapToGlobal(m_menuLabel->rect().center()));
+            execMenuAtWidget(m_menu[buttonIndex], m_iconbutton[buttonIndex]);
             return true;
         }
     default:
@@ -119,194 +155,413 @@ bool FancyLineEditPrivate::eventFilter(QObject *obj, QEvent *event)
     return QObject::eventFilter(obj, event);
 }
 
+
 // --------- FancyLineEdit
 FancyLineEdit::FancyLineEdit(QWidget *parent) :
-    QLineEdit(parent),
-    m_d(new FancyLineEditPrivate(this))
+    CompletingLineEdit(parent),
+    d(new FancyLineEditPrivate(this))
 {
-    m_d->m_menuLabel = new QLabel(this);
-    m_d->m_menuLabel->installEventFilter(m_d);
-    updateMenuLabel();
-    showHintText();
+    ensurePolished();
+    updateMargins();
+
+    connect(d->m_iconbutton[Left], SIGNAL(clicked()), this, SLOT(iconClicked()));
+    connect(d->m_iconbutton[Right], SIGNAL(clicked()), this, SLOT(iconClicked()));
+    connect(this, SIGNAL(textChanged(QString)), this, SLOT(onTextChanged(QString)));
 }
 
 FancyLineEdit::~FancyLineEdit()
 {
 }
 
-// Position the menu label left or right according to size.
-// Called when switching side and from resizeEvent.
-void FancyLineEdit::positionMenuLabel()
+void FancyLineEdit::setButtonVisible(Side side, bool visible)
 {
-    switch (side()) {
-    case Left:
-        m_d->m_menuLabel->setGeometry(0, 0, m_d->m_pixmap.width()+margin, height());
-        break;
-    case Right:
-        m_d->m_menuLabel->setGeometry(width() - m_d->m_pixmap.width() - margin, 0,
-                                      m_d->m_pixmap.width()+margin, height());
-        break;
+    d->m_iconbutton[side]->setVisible(visible);
+    d->m_iconEnabled[side] = visible;
+    updateMargins();
+}
+
+bool FancyLineEdit::isButtonVisible(Side side) const
+{
+    return d->m_iconEnabled[side];
+}
+
+QAbstractButton *FancyLineEdit::button(FancyLineEdit::Side side) const
+{
+    return d->m_iconbutton[side];
+}
+
+void FancyLineEdit::iconClicked()
+{
+    IconButton *button = qobject_cast<IconButton *>(sender());
+    int index = -1;
+    for (int i = 0; i < 2; ++i)
+        if (d->m_iconbutton[i] == button)
+            index = i;
+    if (index == -1)
+        return;
+    if (d->m_menu[index]) {
+        execMenuAtWidget(d->m_menu[index], button);
+    } else {
+        emit buttonClicked((Side)index);
+        if (index == Left)
+            emit leftButtonClicked();
+        else if (index == Right)
+            emit rightButtonClicked();
     }
 }
 
-void FancyLineEdit::updateStyleSheet(Side side)
+void FancyLineEdit::updateMargins()
 {
-    // Udate the LineEdit style sheet. Make room for the label on the
-    // respective side and set color according to whether we are showing the
-    // hint text
-    QString sheet = QLatin1String("QLineEdit{ padding-");
-    sheet += sideToStyleSheetString(side);
-    sheet += QLatin1String(": ");
-    sheet += QString::number(m_d->m_pixmap.width() + margin);
-    sheet += QLatin1Char(';');
-    if (m_d->m_showingHintText)
-        sheet += QLatin1String(" color: #BBBBBB;");
-    sheet += QLatin1Char('}');
-    setStyleSheet(sheet);
-}
+    bool leftToRight = (layoutDirection() == Qt::LeftToRight);
+    Side realLeft = (leftToRight ? Left : Right);
+    Side realRight = (leftToRight ? Right : Left);
 
-void FancyLineEdit::updateMenuLabel()
-{
-    m_d->m_menuLabel->setPixmap(m_d->m_pixmap);
-    const Side s = side();
-    switch (s) {
-    case Left:
-        m_d->m_menuLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-        m_d->m_menuLabel->setStyleSheet(m_d->m_leftLabelStyleSheet);
-        break;
-    case Right:
-        m_d->m_menuLabel->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
-        m_d->m_menuLabel->setStyleSheet(m_d->m_rightLabelStyleSheet);
-        break;
+    int leftMargin = d->m_iconbutton[realLeft]->sizeHint().width() + 8;
+    int rightMargin = d->m_iconbutton[realRight]->sizeHint().width() + 8;
+    // Note KDE does not reserve space for the highlight color
+    if (style()->inherits("OxygenStyle")) {
+        leftMargin = qMax(24, leftMargin);
+        rightMargin = qMax(24, rightMargin);
     }
-    updateStyleSheet(s);
-    positionMenuLabel();
+
+    QMargins margins((d->m_iconEnabled[realLeft] ? leftMargin : 0), 0,
+                     (d->m_iconEnabled[realRight] ? rightMargin : 0), 0);
+
+    setTextMargins(margins);
 }
 
-void FancyLineEdit::setSide(Side side)
+void FancyLineEdit::updateButtonPositions()
 {
-    m_d->m_side = side;
-    updateMenuLabel();
-}
+    QRect contentRect = rect();
+    for (int i = 0; i < 2; ++i) {
+        Side iconpos = (Side)i;
+        if (layoutDirection() == Qt::RightToLeft)
+            iconpos = (iconpos == Left ? Right : Left);
 
-FancyLineEdit::Side FancyLineEdit::side() const
-{
-    if (m_d->m_useLayoutDirection)
-        return qApp->layoutDirection() == Qt::LeftToRight ? Left : Right;
-    return  m_d->m_side;
+        if (iconpos == FancyLineEdit::Right) {
+            const int iconoffset = textMargins().right() + 4;
+            d->m_iconbutton[i]->setGeometry(contentRect.adjusted(width() - iconoffset, 0, 0, 0));
+        } else {
+            const int iconoffset = textMargins().left() + 4;
+            d->m_iconbutton[i]->setGeometry(contentRect.adjusted(0, 0, -width() + iconoffset, 0));
+        }
+    }
 }
 
 void FancyLineEdit::resizeEvent(QResizeEvent *)
 {
-    positionMenuLabel();
+    updateButtonPositions();
 }
 
-void FancyLineEdit::setPixmap(const QPixmap &pixmap)
+void FancyLineEdit::setButtonPixmap(Side side, const QPixmap &buttonPixmap)
 {
-    m_d->m_pixmap = pixmap;
-    updateMenuLabel();
+    d->m_iconbutton[side]->setPixmap(buttonPixmap);
+    updateMargins();
+    updateButtonPositions();
+    update();
 }
 
-QPixmap FancyLineEdit::pixmap() const
+QPixmap FancyLineEdit::buttonPixmap(Side side) const
 {
-    return m_d->m_pixmap;
+    return d->m_pixmap[side];
 }
 
-void FancyLineEdit::setMenu(QMenu *menu)
+void FancyLineEdit::setButtonMenu(Side side, QMenu *buttonMenu)
 {
-     m_d->m_menu = menu;
+     d->m_menu[side] = buttonMenu;
+     d->m_iconbutton[side]->setIconOpacity(1.0);
+ }
+
+QMenu *FancyLineEdit::buttonMenu(Side side) const
+{
+    return  d->m_menu[side];
 }
 
-QMenu *FancyLineEdit::menu() const
+bool FancyLineEdit::hasMenuTabFocusTrigger(Side side) const
 {
-    return  m_d->m_menu;
+    return d->m_menuTabFocusTrigger[side];
 }
 
-bool FancyLineEdit::useLayoutDirection() const
+void FancyLineEdit::setMenuTabFocusTrigger(Side side, bool v)
 {
-    return m_d->m_useLayoutDirection;
-}
-
-void FancyLineEdit::setUseLayoutDirection(bool v)
-{
-    m_d->m_useLayoutDirection = v;
-}
-
-bool FancyLineEdit::isSideStored() const
-{
-    return !m_d->m_useLayoutDirection;
-}
-
-bool FancyLineEdit::hasMenuTabFocusTrigger() const
-{
-    return m_d->m_menuTabFocusTrigger;
-}
-
-void FancyLineEdit::setMenuTabFocusTrigger(bool v)
-{
-    if (m_d->m_menuTabFocusTrigger == v)
+    if (d->m_menuTabFocusTrigger[side] == v)
         return;
 
-    m_d->m_menuTabFocusTrigger = v;
-    m_d->m_menuLabel->setFocusPolicy(v ? Qt::TabFocus : Qt::NoFocus);
+    d->m_menuTabFocusTrigger[side] = v;
+    d->m_iconbutton[side]->setFocusPolicy(v ? Qt::TabFocus : Qt::NoFocus);
 }
 
-QString FancyLineEdit::hintText() const
+bool FancyLineEdit::hasAutoHideButton(Side side) const
 {
-    return m_d->m_hintText;
+    return d->m_iconbutton[side]->hasAutoHide();
 }
 
-void FancyLineEdit::setHintText(const QString &ht)
+void FancyLineEdit::setHistoryCompleter(const QString &historyKey)
 {
-    // Updating magic to make the property work in Designer.
-    if (ht == m_d->m_hintText)
+    QTC_ASSERT(!d->m_historyCompleter, return);
+    d->m_historyCompleter = new HistoryCompleter(historyKey, this);
+    QLineEdit::setCompleter(d->m_historyCompleter);
+
+    // Hitting <Return> in the popup first causes editingFinished()
+    // being emitted and more updates finally calling setText() (again).
+    // To make sure we report the "final" content delay the addEntry()
+    // "a bit".
+    connect(this, SIGNAL(editingFinished()),
+            this, SLOT(onEditingFinished()), Qt::QueuedConnection);
+}
+
+void FancyLineEdit::onEditingFinished()
+{
+    d->m_historyCompleter->addEntry(text());
+}
+
+void FancyLineEdit::setSpecialCompleter(QCompleter *completer)
+{
+    QTC_ASSERT(!d->m_historyCompleter, return);
+    QLineEdit::setCompleter(completer);
+}
+
+void FancyLineEdit::setAutoHideButton(Side side, bool h)
+{
+    d->m_iconbutton[side]->setAutoHide(h);
+    if (h)
+        d->m_iconbutton[side]->setIconOpacity(text().isEmpty() ?  0.0 : 1.0);
+    else
+        d->m_iconbutton[side]->setIconOpacity(1.0);
+}
+
+void FancyLineEdit::setButtonToolTip(Side side, const QString &tip)
+{
+    d->m_iconbutton[side]->setToolTip(tip);
+}
+
+void FancyLineEdit::setButtonFocusPolicy(Side side, Qt::FocusPolicy policy)
+{
+    d->m_iconbutton[side]->setFocusPolicy(policy);
+}
+
+void FancyLineEdit::setFiltering(bool on)
+{
+    if (on == d->m_isFiltering)
         return;
-    hideHintText();
-    m_d->m_hintText = ht;
-    if (!hasFocus() && !ht.isEmpty())
-        showHintText();
-}
 
-void FancyLineEdit::showHintText()
-{
-    if (!m_d->m_showingHintText && text().isEmpty() && !m_d->m_hintText.isEmpty()) {
-        m_d->m_showingHintText = true;
-        setText(m_d->m_hintText);
-        updateStyleSheet(side());
+    d->m_isFiltering = on;
+    if (on) {
+        d->m_lastFilterText = text();
+        // KDE has custom icons for this. Notice that icon namings are counter intuitive.
+        // If these icons are not available we use the freedesktop standard name before
+        // falling back to a bundled resource.
+        QIcon icon = QIcon::fromTheme(layoutDirection() == Qt::LeftToRight ?
+                         QLatin1String("edit-clear-locationbar-rtl") :
+                         QLatin1String("edit-clear-locationbar-ltr"),
+                         QIcon::fromTheme(QLatin1String("edit-clear"), QIcon(QLatin1String(":/core/images/editclear.png"))));
+
+        setButtonPixmap(Right, icon.pixmap(16));
+        setButtonVisible(Right, true);
+        setPlaceholderText(tr("Filter"));
+        setButtonToolTip(Right, tr("Clear text"));
+        setAutoHideButton(Right, true);
+        connect(this, SIGNAL(rightButtonClicked()), this, SLOT(clear()));
+    } else {
+        disconnect(this, SIGNAL(rightButtonClicked()), this, SLOT(clear()));
     }
 }
 
-void FancyLineEdit::hideHintText()
+QString FancyLineEdit::initialText() const
 {
-    if (m_d->m_showingHintText && !m_d->m_hintText.isEmpty()) {
-        m_d->m_showingHintText = false;
-        setText(QString());
-        updateStyleSheet(side());
+    return d->m_initialText;
+}
+
+void FancyLineEdit::setInitialText(const QString &t)
+{
+    if (d->m_initialText != t) {
+        d->m_initialText = t;
+        d->m_firstChange = true;
+        setText(t);
     }
 }
 
-void FancyLineEdit::focusInEvent(QFocusEvent *e)
+QColor FancyLineEdit::errorColor() const
 {
-    hideHintText();
-    QLineEdit::focusInEvent(e);
+    return d->m_errorTextColor;
 }
 
-void FancyLineEdit::focusOutEvent(QFocusEvent *e)
+void FancyLineEdit::setErrorColor(const  QColor &c)
 {
-    // Focus out: Switch to displaying the hint text unless
-    // there is user input
-    showHintText();
-    QLineEdit::focusOutEvent(e);
+     d->m_errorTextColor = c;
 }
 
-bool FancyLineEdit::isShowingHintText() const
+QColor FancyLineEdit::textColor(const QWidget *w)
 {
-    return m_d->m_showingHintText;
+    return w->palette().color(QPalette::Active, QPalette::Text);
 }
 
-QString FancyLineEdit::typedText() const
+void FancyLineEdit::setTextColor(QWidget *w, const QColor &c)
 {
-    return m_d->m_showingHintText ? QString() : text();
+    QPalette palette = w->palette();
+    palette.setColor(QPalette::Active, QPalette::Text, c);
+    w->setPalette(palette);
+}
+
+bool FancyLineEdit::validate(const QString &value, QString *errorMessage) const
+{
+    Q_UNUSED(value);
+    Q_UNUSED(errorMessage);
+    return true;
+}
+
+FancyLineEdit::State FancyLineEdit::state() const
+{
+    return d->m_state;
+}
+
+bool FancyLineEdit::isValid() const
+{
+    return d->m_state == Valid;
+}
+
+QString FancyLineEdit::errorMessage() const
+{
+    return d->m_errorMessage;
+}
+
+void FancyLineEdit::onTextChanged(const QString &t)
+{
+    if (d->m_isFiltering){
+        if (t != d->m_lastFilterText) {
+            d->m_lastFilterText = t;
+            emit filterChanged(t);
+        }
+    }
+
+    d->m_errorMessage.clear();
+    // Are we displaying the initial text?
+    const bool isDisplayingInitialText = !d->m_initialText.isEmpty() && t == d->m_initialText;
+    const State newState = isDisplayingInitialText ?
+                               DisplayingInitialText :
+                               (validate(t, &d->m_errorMessage) ? Valid : Invalid);
+    setToolTip(d->m_errorMessage);
+    // Changed..figure out if valid changed. DisplayingInitialText is not valid,
+    // but should not show error color. Also trigger on the first change.
+    if (newState != d->m_state || d->m_firstChange) {
+        const bool validHasChanged = (d->m_state == Valid) != (newState == Valid);
+        d->m_state = newState;
+        d->m_firstChange = false;
+        setTextColor(this, newState == Invalid ? d->m_errorTextColor : d->m_okTextColor);
+        if (validHasChanged) {
+            emit validChanged(newState == Valid);
+            emit validChanged();
+        }
+    }
+    bool block = blockSignals(true);
+    const QString fixedString = fixInputString(t);
+    if (t != fixedString) {
+        const int cursorPos = cursorPosition();
+        setText(fixedString);
+        setCursorPosition(qMin(cursorPos, fixedString.length()));
+    }
+    blockSignals(block);
+
+    // Check buttons.
+    if (d->m_oldText.isEmpty() || t.isEmpty()) {
+        for (int i = 0; i < 2; ++i) {
+            if (d->m_iconbutton[i]->hasAutoHide())
+                d->m_iconbutton[i]->animateShow(!t.isEmpty());
+        }
+        d->m_oldText = t;
+    }
+
+    handleChanged(t);
+}
+
+void FancyLineEdit::triggerChanged()
+{
+    onTextChanged(text());
+}
+
+QString FancyLineEdit::fixInputString(const QString &string)
+{
+    return string;
+}
+
+
+//
+// IconButton - helper class to represent a clickable icon
+//
+
+IconButton::IconButton(QWidget *parent)
+    : QAbstractButton(parent), m_autoHide(false)
+{
+    setCursor(Qt::ArrowCursor);
+    setFocusPolicy(Qt::NoFocus);
+}
+
+void IconButton::paintEvent(QPaintEvent *)
+{
+    qreal pixmapRatio = 1.0;
+#if QT_VERSION >= 0x050100
+    pixmapRatio = m_pixmap.devicePixelRatio();
+#endif
+    QStylePainter painter(this);
+    QRect pixmapRect = QRect(0, 0, m_pixmap.width()/pixmapRatio, m_pixmap.height()/pixmapRatio);
+    pixmapRect.moveCenter(rect().center());
+
+    if (m_autoHide)
+        painter.setOpacity(m_iconOpacity);
+
+    painter.drawPixmap(pixmapRect, m_pixmap);
+
+    if (hasFocus()) {
+        QStyleOptionFocusRect focusOption;
+        focusOption.initFrom(this);
+        focusOption.rect = pixmapRect;
+        if (HostOsInfo::isMacHost()) {
+            focusOption.rect.adjust(-4, -4, 4, 4);
+            painter.drawControl(QStyle::CE_FocusFrame, focusOption);
+        } else {
+            painter.drawPrimitive(QStyle::PE_FrameFocusRect, focusOption);
+        }
+    }
+}
+
+void IconButton::animateShow(bool visible)
+{
+    if (visible) {
+        QPropertyAnimation *animation = new QPropertyAnimation(this, "iconOpacity");
+        animation->setDuration(FADE_TIME);
+        animation->setEndValue(1.0);
+        animation->start(QAbstractAnimation::DeleteWhenStopped);
+    } else {
+        QPropertyAnimation *animation = new QPropertyAnimation(this, "iconOpacity");
+        animation->setDuration(FADE_TIME);
+        animation->setEndValue(0.0);
+        animation->start(QAbstractAnimation::DeleteWhenStopped);
+    }
+}
+
+QSize IconButton::sizeHint() const
+{
+    qreal pixmapRatio = 1.0;
+#if QT_VERSION >= 0x050100
+    pixmapRatio = m_pixmap.devicePixelRatio();
+#endif
+    return QSize(m_pixmap.width()/pixmapRatio, m_pixmap.height()/pixmapRatio);
+}
+
+void IconButton::keyPressEvent(QKeyEvent *ke)
+{
+    QAbstractButton::keyPressEvent(ke);
+    if (!ke->modifiers() && (ke->key() == Qt::Key_Enter || ke->key() == Qt::Key_Return))
+        click();
+    // do not forward to line edit
+    ke->accept();
+}
+
+void IconButton::keyReleaseEvent(QKeyEvent *ke)
+{
+    QAbstractButton::keyReleaseEvent(ke);
+    // do not forward to line edit
+    ke->accept();
 }
 
 } // namespace Utils

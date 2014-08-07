@@ -37,7 +37,7 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 
 #include <QAction>
@@ -72,7 +72,7 @@ bool u5303APlugin::initialize(const QStringList &arguments, QString *errorString
     mainWindow_->activateWindow();
     mainWindow_->createActions();
 
-	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
     mode_->setContext( gc );
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
@@ -80,11 +80,8 @@ bool u5303APlugin::initialize(const QStringList &arguments, QString *errorString
 
     QAction *action = new QAction(tr("u5303A action"), this);
 
-    QList<int> globalcontext;
-    globalcontext << Core::Constants::C_GLOBAL_ID;
-
-	Core::ActionManager * am = Core::ICore::instance()->actionManager();
-    Core::Command * cmd = am->registerAction(action, Constants::ACTION_ID, globalcontext );
+    Core::ActionManager * am = Core::ActionManager::instance();// ICore::instance()->actionManager();
+    Core::Command * cmd = am->registerAction(action, Constants::ACTION_ID, gc );
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
     connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));
 

@@ -33,7 +33,7 @@
 
 class QAction;
 
-namespace Core { class IContext; }
+namespace Core { class IContext; class Context; }
 
 namespace dataproc {
     
@@ -68,7 +68,7 @@ namespace dataproc {
             , numOfActions
         };
 
-        bool initialize_actions( const QList<int>& context );
+        bool initialize_actions( const Core::Context& context );
         void connect_navigation_pointer( dataproc::NavigationWidget * navi );
         bool saveDefaults();
         bool loadDefaults();
@@ -86,7 +86,7 @@ namespace dataproc {
         void handleSave();
         void handleSaveAs();
 
-        void handleContextChanged( Core::IContext * );
+        void handleContextChanged( const QList<Core::IContext *>&, const Core::Context& );
 
         bool importFile();
 

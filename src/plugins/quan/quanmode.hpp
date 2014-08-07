@@ -25,11 +25,11 @@
 #ifndef QUANMODE_HPP
 #define QUANMODE_HPP
 
-#include <coreplugin/basemode.h>
+#include <coreplugin/imode.h>
 
 namespace quan {
 
-    class QuanMode : public Core::BaseMode  {
+    class QuanMode : public Core::IMode  {
         Q_OBJECT
     public:
         explicit QuanMode(QObject *parent = 0);

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -34,7 +34,7 @@
 using namespace ExtensionSystem;
 using namespace ExtensionSystem::Internal;
 
-static const char END_OF_OPTIONS[] = "--";
+const char END_OF_OPTIONS[] = "--";
 const char *OptionsParser::NO_LOAD_OPTION = "-noload";
 const char *OptionsParser::LOAD_OPTION = "-load";
 const char *OptionsParser::TEST_OPTION = "-test";
@@ -120,7 +120,7 @@ bool OptionsParser::checkForTestOption()
                 if (m_pmPrivate->containsTestSpec(spec)) {
                     if (m_errorString)
                         *m_errorString = QCoreApplication::translate("PluginManager",
-                                                                     "The plugin '%1' is specified twice for testing.").arg(pluginName);
+                                                                     "The plugin \"%1\" is specified twice for testing.").arg(pluginName);
                     m_hasError = true;
                 } else {
                     m_pmPrivate->testSpecs.append(PluginManagerPrivate::TestSpec(spec, args));
@@ -128,7 +128,7 @@ bool OptionsParser::checkForTestOption()
             } else  {
                 if (m_errorString)
                     *m_errorString = QCoreApplication::translate("PluginManager",
-                                                                 "The plugin '%1' does not exist.").arg(pluginName);
+                                                                 "The plugin \"%1\" does not exist.").arg(pluginName);
                 m_hasError = true;
             }
         }
@@ -145,7 +145,7 @@ bool OptionsParser::checkForLoadOption()
         if (!spec) {
             if (m_errorString)
                 *m_errorString = QCoreApplication::translate("PluginManager",
-                                                             "The plugin '%1' does not exist.")
+                                                             "The plugin \"%1\" does not exist.")
                     .arg(m_currentArg);
             m_hasError = true;
         } else {
@@ -165,7 +165,7 @@ bool OptionsParser::checkForNoLoadOption()
         if (!spec) {
             if (m_errorString)
                 *m_errorString = QCoreApplication::translate("PluginManager",
-                                                             "The plugin '%1' does not exist.").arg(m_currentArg);
+                                                             "The plugin \"%1\" does not exist.").arg(m_currentArg);
             m_hasError = true;
         } else {
             spec->setForceDisabled(true);

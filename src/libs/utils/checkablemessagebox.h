@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,27 +21,27 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #ifndef CHECKABLEMESSAGEBOX_H
 #define CHECKABLEMESSAGEBOX_H
 
 #include "utils_global.h"
 
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QMessageBox>
-#include <QtGui/QDialog>
+#include <QDialogButtonBox>
+#include <QMessageBox>
+
+QT_BEGIN_NAMESPACE
+class QSettings;
+QT_END_NAMESPACE
 
 namespace Utils {
 
-struct CheckableMessageBoxPrivate;
-
-/* A messagebox suitable for questions with a
- * "Do not ask me again" checkbox. Emulates the QMessageBox API with
- * static conveniences. */
+class CheckableMessageBoxPrivate;
 
 class QTCREATOR_UTILS_EXPORT CheckableMessageBox : public QDialog
 {
@@ -53,6 +52,7 @@ class QTCREATOR_UTILS_EXPORT CheckableMessageBox : public QDialog
     Q_PROPERTY(QString checkBoxText READ checkBoxText WRITE setCheckBoxText)
     Q_PROPERTY(QDialogButtonBox::StandardButtons buttons READ standardButtons WRITE setStandardButtons)
     Q_PROPERTY(QDialogButtonBox::StandardButton defaultButton READ defaultButton WRITE setDefaultButton)
+
 public:
     explicit CheckableMessageBox(QWidget *parent);
     virtual ~CheckableMessageBox();
@@ -66,6 +66,25 @@ public:
                  QDialogButtonBox::StandardButtons buttons = QDialogButtonBox::Yes|QDialogButtonBox::No,
                  QDialogButtonBox::StandardButton defaultButton = QDialogButtonBox::No);
 
+    static QDialogButtonBox::StandardButton
+        information(QWidget *parent,
+                 const QString &title,
+                 const QString &text,
+                 const QString &checkBoxText,
+                 bool *checkBoxSetting,
+                 QDialogButtonBox::StandardButtons buttons = QDialogButtonBox::Ok,
+                 QDialogButtonBox::StandardButton defaultButton = QDialogButtonBox::NoButton);
+
+    static QDialogButtonBox::StandardButton
+        doNotAskAgainQuestion(QWidget *parent,
+                              const QString &title,
+                              const QString &text,
+                              QSettings *settings,
+                              const QString &settingsSubKey,
+                              QDialogButtonBox::StandardButtons buttons = QDialogButtonBox::Yes|QDialogButtonBox::No,
+                              QDialogButtonBox::StandardButton defaultButton = QDialogButtonBox::No,
+                              QDialogButtonBox::StandardButton acceptButton = QDialogButtonBox::Yes);
+
     QString text() const;
     void setText(const QString &);
 
@@ -75,28 +94,36 @@ public:
     QString checkBoxText() const;
     void setCheckBoxText(const QString &);
 
-   QDialogButtonBox::StandardButtons standardButtons() const;
-   void setStandardButtons(QDialogButtonBox::StandardButtons s);
+    bool isCheckBoxVisible() const;
+    void setCheckBoxVisible(bool);
 
-   QDialogButtonBox::StandardButton defaultButton() const;
-   void setDefaultButton(QDialogButtonBox::StandardButton s);
+    QDialogButtonBox::StandardButtons standardButtons() const;
+    void setStandardButtons(QDialogButtonBox::StandardButtons s);
+    QPushButton *button(QDialogButtonBox::StandardButton b) const;
+    QPushButton *addButton(const QString &text, QDialogButtonBox::ButtonRole role);
 
-    // see static QMessageBox::standardPixmap()
+    QDialogButtonBox::StandardButton defaultButton() const;
+    void setDefaultButton(QDialogButtonBox::StandardButton s);
+
+    // See static QMessageBox::standardPixmap()
     QPixmap iconPixmap() const;
     void setIconPixmap (const QPixmap &p);
 
-   // Query the result
-   QAbstractButton *clickedButton() const;
-   QDialogButtonBox::StandardButton clickedStandardButton() const;
+    // Query the result
+    QAbstractButton *clickedButton() const;
+    QDialogButtonBox::StandardButton clickedStandardButton() const;
 
-   // Conversion convenience
-   static QMessageBox::StandardButton dialogButtonBoxToMessageBoxButton(QDialogButtonBox::StandardButton);
+    // Conversion convenience
+    static QMessageBox::StandardButton dialogButtonBoxToMessageBoxButton(QDialogButtonBox::StandardButton);
+    static void resetAllDoNotAskAgainQuestions(QSettings *settings);
+    static bool hasSuppressedQuestions(QSettings *settings);
+    static QString msgDoNotAskAgain();
 
 private slots:
-   void slotClicked(QAbstractButton *b);
+    void slotClicked(QAbstractButton *b);
 
 private:
-   CheckableMessageBoxPrivate *m_d;
+    CheckableMessageBoxPrivate *d;
 };
 
 } // namespace Utils

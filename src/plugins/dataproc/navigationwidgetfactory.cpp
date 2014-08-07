@@ -25,6 +25,7 @@
 
 #include "navigationwidgetfactory.hpp"
 #include "navigationwidget.hpp"
+#include "dataprocconstants.hpp"
 #include <QKeySequence>
 #include <QTreeView>
 #include <QToolButton>
@@ -33,23 +34,15 @@ using namespace dataproc;
 
 NavigationWidgetFactory::NavigationWidgetFactory()
 {
+    setId( Core::Id( Constants::C_DATAPROCESSOR ) );
+    setDisplayName( "Processing files" );
+    setActivationSequence( QKeySequence( Qt::ALT + Qt::Key_X ) );
 }
 
 NavigationWidgetFactory::~NavigationWidgetFactory()
 {
 }
 
-QString
-NavigationWidgetFactory::displayName()
-{
-    return tr("Processing files");
-}
-
-QKeySequence
-NavigationWidgetFactory::activationSequence()
-{
-    return QKeySequence( Qt::ALT + Qt::Key_X );
-}
 
 Core::NavigationView
 NavigationWidgetFactory::createWidget()

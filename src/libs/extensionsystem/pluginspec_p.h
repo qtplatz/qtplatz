@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -36,6 +36,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QXmlStreamReader>
+#include <QRegExp>
 
 namespace ExtensionSystem {
 
@@ -64,6 +65,7 @@ public:
     QString name;
     QString version;
     QString compatVersion;
+    bool required;
     bool experimental;
     bool disabledByDefault;
     QString vendor;
@@ -72,6 +74,7 @@ public:
     QString description;
     QString url;
     QString category;
+    QRegExp platformSpecification;
     QList<PluginDependency> dependencies;
     bool enabledInSettings;
     bool disabledIndirectly;

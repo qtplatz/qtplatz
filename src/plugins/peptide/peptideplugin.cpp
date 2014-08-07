@@ -37,7 +37,7 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 
 #include <QAction>
@@ -73,7 +73,7 @@ bool peptideplugin::initialize(const QStringList &arguments, QString *errorStrin
     mainWindow_->activateWindow();
     mainWindow_->createActions();
 
-	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
     mode_->setContext( gc );
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );

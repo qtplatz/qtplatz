@@ -45,9 +45,9 @@ namespace sequence {
         explicit SequenceEditor(QObject *parent = 0);
         
         // implement Core::IEditor
-        virtual bool createNew(const QString &contents = QString());
-        virtual bool open(const QString &fileName = QString());
-        virtual Core::IFile *file();
+        bool createNew( const QString &contents = QString() ) override;
+        virtual bool open( const QString &fileName = QString() ) override;
+        Core::IDocument *file() override;
         virtual const char *kind() const;
         virtual QString displayName() const;
         virtual void setDisplayName(const QString &title);
@@ -64,7 +64,7 @@ namespace sequence {
         // <-- end Core::IEditor
         
         // implement IContext
-        virtual QList<int> context() const;
+        Core::Context context() const override;
         virtual QWidget * widget();
         // <--
 		void setSequence( const adsequence::sequence& );
