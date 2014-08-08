@@ -148,3 +148,4 @@ examples/device_emulators/hello/hello
 examples/device_emulators/powersupply/powersupply
 src/version.tmp
 src/plugins/Quan/Quan.pluginspec
+contrib/installer/wix/translations.wxi
