@@ -54,10 +54,12 @@
       <File Id="dataproc.pluginspec" Source="$(var.InMSCheminfo)/dataproc.pluginspec" ProcessorArchitecture="x64" />
       <File Id="dataproc.config" Source="$(var.InMSCheminfo)/dataproc.config" ProcessorArchitecture="x64" />
     </Component>
+    <!--
     <Component Id="sequence.dll" Guid="D9734BC0-7D34-4255-BC4C-7A511F569DC7" Win64="yes">
       <File Id="sequence.pluginspec" Source="$(var.InMSCheminfo)/sequence.pluginspec" ProcessorArchitecture="x64" />
       <File Id="sequence.dll" Source="$(var.InMSCheminfo)/sequence.dll" ProcessorArchitecture="x64" />
     </Component>
+    -->
     <Component Id="servant.dll" Guid="AAD693ED-3B3A-417A-8B32-5F8DD75E7C0E" Win64="yes">
       <File Id="servant.pluginspec" Source="$(var.InMSCheminfo)/servant.pluginspec" ProcessorArchitecture="x64" />
       <File Id="servant.dll" Source="$(var.InMSCheminfo)/servant.dll" ProcessorArchitecture="x64" />
