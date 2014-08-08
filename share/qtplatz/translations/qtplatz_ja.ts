@@ -43727,9 +43727,14 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>dataproc::NavigationWidgetFactory</name>
     <message>
-        <location filename="../../../src/plugins/dataproc/navigationwidgetfactory.cpp" line="+58"/>
+        <location filename="../../../src/plugins/dataproc/navigationwidgetfactory.cpp" line="+38"/>
+        <source>Processing files</source>
+        <translation>解析データ</translation>
+    </message>
+    <message>
+        <location line="+20"/>
         <source>Synchronize with Editor</source>
-        <translation type="unfinished">エディタと同期</translation>
+        <translation>エディタと同期</translation>
     </message>
 </context>
 <context>
