@@ -35,7 +35,7 @@ using namespace dataproc;
 NavigationWidgetFactory::NavigationWidgetFactory()
 {
     setId( Core::Id( Constants::C_DATAPROCESSOR ) );
-    setDisplayName( "Processing files" );
+    setDisplayName( tr( "Processing files" ) );
     setActivationSequence( QKeySequence( Qt::ALT + Qt::Key_X ) );
 }
 
