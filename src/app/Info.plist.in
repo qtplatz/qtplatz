@@ -15,10 +15,10 @@
 			<string>profile.icns</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
-				<string>pro</string>
+				<string>adfs</string>
 			</array>
 			<key>CFBundleTypeName</key>
-			<string>Qt Project File</string>
+			<string>QtPlatz DATA File</string>
 			<key>LSHandlerRank</key>
 			<string>Default</string>
 		</dict>
@@ -233,7 +233,7 @@
 		</dict>
 	</array>
         <key>NSHumanReadableCopyright</key>
-        <string>(C) 2014 Digia Plc</string>
+        <string>(C) 2013-2014 MS-Cheminformatics LLC</string>
 	<key>CFBundleIconFile</key>
 	<string>$$ICON</string>
 	<key>CFBundlePackageType</key>
@@ -241,9 +241,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleExecutable</key>
-	<string>Qt Creator</string>
+	<string>qtplatz</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.qt-project.qtcreator</string>
+	<string>com.ms-cheminfo.qtplatz</string>
 	<key>CFBundleVersion</key>
 	<string>$$QTCREATOR_VERSION</string>
 	<key>CFBundleShortVersionString</key>
