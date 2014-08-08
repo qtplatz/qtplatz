@@ -38,7 +38,6 @@ veryclean: clean
 	git clean -d -x -f
 	cd $(MAKEDIR)
 
-
 qtplatz:
 	-$(RM) version.wxi
 	cd $(QTPLATZ_PATH)
