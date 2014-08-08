@@ -109,7 +109,7 @@ infitof:
 	(cd ../../../../infitof; qmake; make -j4)
 
 clean:
-	rm -rf qtplatz.app
+	rm -rf qtplatz.app qtplatz-`git describe`.dmg
 
 veryclean: clean_infitof clean_qtplatz
 
