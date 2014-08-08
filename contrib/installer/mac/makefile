@@ -1,8 +1,13 @@
-QT_VERSION=5.3.0
-QT_VERSION_DIR=5.3/clang_64
-DEPLOYQT = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION_DIR)/bin/macdeployqt
-APATH = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION_DIR)/lib
-APLUGINS = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION_DIR)/plugins
+#QT_VERSION=5.3.1
+#QT_VERSION_DIR=5.3/clang_64
+#DEPLOYQT = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION_DIR)/bin/macdeployqt
+#APATH = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION_DIR)/lib
+#APLUGINS = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION_DIR)/plugins
+
+DEPLOYQT = ${QTDIR}/bin/macdeployqt
+APATH = ${QTDIR}/lib
+APLUGINS = ${QTDIR}/plugins
+
 EPATH = @executable_path/../Frameworks
 FRAMEWORK = ./qtplatz.app/Contents/Frameworks
 PLUGINS   = ./qtplatz.app/Contents/PlugIns
@@ -208,7 +213,7 @@ fix_rdkit:
 	done
 
 dmg: qtplatz.app
-	hdiutil create -size 120m qtplatz-`git describe`.dmg -srcfolder ./qtplatz.app
+	hdiutil create -size 200m qtplatz-`git describe`.dmg -srcfolder ./qtplatz.app
 
 mount:
 	open ./qtplatz.dmg
