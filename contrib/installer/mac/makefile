@@ -1,8 +1,3 @@
-#QT_VERSION=5.3.1
-#QT_VERSION_DIR=5.3/clang_64
-#DEPLOYQT = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION_DIR)/bin/macdeployqt
-#APATH = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION_DIR)/lib
-#APLUGINS = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION_DIR)/plugins
 
 DEPLOYQT = ${QTDIR}/bin/macdeployqt
 APATH = ${QTDIR}/lib
@@ -14,13 +9,11 @@ PLUGINS   = ./qtplatz.app/Contents/PlugIns
 
 #ACE_VERSION = 6.1.4
 #TAO_VERSION = 2.1.4
-#BOOST_VERSION = 1_51
+#BOOST_VERSION = 1_55
 #OPENBABEL_VERSION = 4.0.0
+
 RDKit_VERSION = 2014.03.1pre
 RDKITDEST = $(FRAMEWORK)
-
-#QTDIR = /usr/local/qt/${QT_VERSION}
-#DEST  = /Volumes/qtplatz
 
 $(worning $(RDBASE) $(origin RDBASE)
 $(warning $(ACE_ROOT) $(origin ACE_ROOT))
@@ -124,6 +117,9 @@ app:
 	find . -name "*_debug.*.dylib" -exec rm -f {} \;
 	find . -name "*_debug.*.a" -exec rm -f {} \;
 
+translations:
+	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
+
 thank:
 	sh ./thankslasconic.sh ./qtplatz.app/Contents/MacOS/qtplatz
 
@@ -212,7 +208,7 @@ fix_rdkit:
 	  done; \
 	done
 
-dmg: qtplatz.app
+dmg: qtplatz.app translations
 	hdiutil create -size 200m qtplatz-`git describe`.dmg -srcfolder ./qtplatz.app
 
 mount:
