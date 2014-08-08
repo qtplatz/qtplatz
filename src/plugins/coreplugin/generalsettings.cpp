@@ -70,7 +70,7 @@ static bool hasQmFilesForLocale(const QString &locale, const QString &creatorTrP
 {
     static const QString qtTrPath = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
 
-    const QString trFile = QLatin1String("/qt_") + locale + QLatin1String(".qm");
+    const QString trFile = QLatin1String("/qtplatz_") + locale + QLatin1String(".qm"); // modified for qtplatz, 8/8/14 toshi
     return QFile::exists(qtTrPath + trFile) || QFile::exists(creatorTrPath + trFile);
 }
 
