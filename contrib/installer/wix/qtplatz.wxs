@@ -7,7 +7,7 @@
         <Package Id="*" Keywords="installer"
 		 Platform="x64" Manufacturer="MS-Cheminformatics LLC" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
         <MajorUpgrade Schedule="afterInstallInitialize"
-		      DowngradeErrorMessage="A newer version of QtPlatz is already installed." AllowSameVersionUpgrades="yes" />
+		      DowngradeErrorMessage="A newer version of QtPlatz is already installed." />
         <Property Id="INSTALLDESKTOPSHORTCUT" Value="1" />
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
         <UIRef Id="WixUI_InstallDir" />
@@ -16,6 +16,7 @@
             <ComponentGroupRef Id="LicenseComponents" />
             <ComponentGroupRef Id="RDKitComponents" />
             <ComponentGroupRef Id="QtComponents" />
+            <ComponentGroupRef Id="QtTranslations" />
             <ComponentGroupRef Id="QtPlatformsComponents" />
             <ComponentGroupRef Id="QtCreatorComponents" />
             <ComponentGroupRef Id="QtPlatzComponents" />

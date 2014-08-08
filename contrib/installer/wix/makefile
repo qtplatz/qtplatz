@@ -60,8 +60,8 @@ version.wxi: version.exe ../../../.git
 copy.bat: version.exe
 	git describe | version -b > copy.bat
 
-qtplatz.msi: qtplatz.wixobj version.wxi
-	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll qtplatz.wixobj
+qtplatz.msi: qtplatz.wixobj version.wxi translations.wixobj
+	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll qtplatz.wixobj translations.wixobj -o qtplatz.msi
 	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 	copy.bat
 
@@ -71,5 +71,12 @@ sign:
 qtplatz.wixobj: version.wxi copy.bat qtplatz.wxs
 	$(CANDLE) qtplatz.wxs
 
+translations.wixobj: translations.wxi
+	$(CANDLE) -dQtTranslations=$(QTDIR)\translations translations.wxi
 
+translations.wxi: translations
 
+translations:
+	$(HEAT) dir $(QTDIR)\translations \
+	-dr TRANSLATIONS -cg QtTranslations -sfrag -gg -g1 -sf -srd -var "var.QtTranslations" \
+	-t heat_transform.xslt -o translations.wxi
