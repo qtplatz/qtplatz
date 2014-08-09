@@ -28,6 +28,8 @@ CP	= $(SH) /c copy
 MD      = $(SH) /c mkdir
 STAGEDIR = .\stage
 
+OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj bruker.wixobj
+
 all: qtplatz.msi
 
 world: qtplatz infitof qtplatz.msi
@@ -73,7 +75,7 @@ version.wxi: version.exe ../../../.git
 rename.bat: version.exe
 	git describe | version -b > rename.bat
 
-qtplatz.msi: qtplatz.wixobj version.wxi translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj
+qtplatz.msi: version.wxi $(OBJS)
 	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll \
 		qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj \
 		vc120.wixobj bruker.wixobj -o qtplatz.msi
