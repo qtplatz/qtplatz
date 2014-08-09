@@ -28,16 +28,16 @@ CP	= $(SH) /c copy
 MD      = $(SH) /c mkdir
 STAGEDIR = .\stage
 
-first:
+all: qtplatz.msi
+
+world: qtplatz infitof qtplatz.msi
+
+help:
 	@echo "*	make world	will do full rebuild qtplatz, and generate .MSI setup"
 	@echo "*	make harvent	make translations; make qt; and make plugins' for update .wxi files from scratch"
 	@echo "*	make all	make .msi from existing binary"
 	@echo "*	make clean	cleans up current dir"
 	@echo "*	make veryclean	CAUTION this cleans all fules according to git repository. == This makes a state right after clean git clone."
-
-all: qtplatz.msi
-
-world: qtplatz infitof qtplatz.msi
 
 clean:
 	$(RM) /S /F /Q $(STAGEDIR)
@@ -73,9 +73,10 @@ version.wxi: version.exe ../../../.git
 rename.bat: version.exe
 	git describe | version -b > rename.bat
 
-qtplatz.msi: qtplatz.wixobj version.wxi translations.wixobj plugins.wixobj qt.wixobj
+qtplatz.msi: qtplatz.wixobj version.wxi translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj
 	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll \
-		qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj -o qtplatz.msi
+		qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj \
+		vc120.wixobj bruker.wixobj -o qtplatz.msi
 	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 	rename.bat
 
@@ -93,6 +94,12 @@ plugins.wixobj: plugins.wxi
 
 qt.wixobj: qt.wxi 
 	$(CANDLE) -dQtBinDir=$(QTDIR)\bin qt.wxi
+
+vc120.wixobj: vc120.wxi 
+	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC120.CRT" vc120.wxi
+
+bruker.wixobj: bruker.wxi 
+	$(CANDLE) -dSourceDir="C:\Program Files (x86)\Bruker Daltonik\3.1.2" bruker.wxi
 
 #translations.wxi: translations
 #qt.wxi: qt
@@ -117,8 +124,17 @@ qt:
 
 qt_full:
 	$(HEAT) dir $(QTDIR)\bin \
-	-dr BIN -cg QtComponents -sfrag -gg -g1 -sf -srd -var "var.QtBinDir" \
-	-t qt.xslt -o qt.wxi
+	-dr BIN -cg QtComponents -sfrag -gg -g1 -sf -srd -var "var.QtBinDir" -t qt.xslt -o qt.wxi
+
+vc120:
+	$(HEAT) dir "$(VCINSTALLDIR)redist\x64\Microsoft.VC120.CRT" \
+	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
+	-t x64transform.xslt -o vc120.wxi
+
+bruker:
+	$(HEAT) dir "C:\Program Files (x86)\Bruker Daltonik\3.1.2" \
+	-dr LIB_BRUKER -cg BrukerComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
+	-t x64transform.xslt -o bruker.wxi
 
 copy_stage_files:
 	rm -rf $(STAGEDIR)

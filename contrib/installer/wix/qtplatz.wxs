@@ -77,8 +77,6 @@
     <?define EZUSBDir     = "$(var.InfiTOFDir)/libusb-win32/usbdriver" ?>
     <?define InMSCheminfo = "$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics" ?>
     <?define InQt         = "$(env.QTDIR)" ?>
-    <?define InVC110      = "$(env.VCINSTALLDIR)/redist/x64/Microsoft.VC110.CRT" ?>
-    <?define InVC120      = "$(env.VCINSTALLDIR)/redist/x64/Microsoft.VC120.CRT" ?>
     <?define InTAOLib     = "$(env.ACE_ROOT)/lib" ?>
     <?define InTAOBin     = "$(env.ACE_ROOT)/bin" ?>
     <Fragment>
@@ -100,8 +98,6 @@
         <?include spcfile_components.wxi ?>
         <?include infitof_components.wxi ?>
         <?include tao_components.wxi ?>
-        <?include microsoft_components.wxi ?>
-        <?include bruker.wxi ?>
     </Fragment>
 
     <?include $(var.InfiTOFDir)/libusb-win32/ezusb_components.wxi ?>
