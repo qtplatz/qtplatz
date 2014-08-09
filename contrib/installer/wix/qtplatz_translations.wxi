@@ -1,31 +1,48 @@
-<Include>
-  <ComponentGroup Id="QtPlatzTranslations" Directory="TRANSLATIONS">
-    <Component Id="qtplatz_cs.qm" Guid="F9642441-6844-4A69-9DBD-0033F39B5152" Win64="yes">
-      <File Id="qtplatz_cs.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_cs.qm" ProcessorArchitecture="x64" KeyPath="yes" />
-    </Component>
-    <Component Id="qtplatz_de.qm" Guid="30E91373-FF96-4227-AC91-215A9572C85A" Win64="yes">
-      <File Id="qtplatz_de.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_de.qm" ProcessorArchitecture="x64" KeyPath="yes" />
-    </Component>
-    <Component Id="qtplatz_fr.qm" Guid="40563947-C1B7-4A0B-A5B4-875DC72B1AD1" Win64="yes">
-      <File Id="qtplatz_cs.fr" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_fr.qm" ProcessorArchitecture="x64" KeyPath="yes" />
-    </Component>
-    <Component Id="qtplatz_ja.qm" Guid="2D16645D-CAA0-4D24-BCAD-FA47757872E7" Win64="yes">
-      <File Id="qtplatz_ja.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_ja.qm" ProcessorArchitecture="x64" KeyPath="yes" />
-    </Component>
-    <Component Id="qtplatz_pl.qm" Guid="64C93723-0938-42EA-B8A3-2D92CCE38318" Win64="yes">
-      <File Id="qtplatz_pl.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_pl.qm" ProcessorArchitecture="x64" KeyPath="yes" />
-    </Component>
-    <Component Id="qtplatz_ru.qm" Guid="A9C20544-EAFC-44A1-BDC4-F1734740C235" Win64="yes">
-      <File Id="qtplatz_ru.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_ru.qm" ProcessorArchitecture="x64" KeyPath="yes" />
-    </Component>
-    <Component Id="qtplatz_sl.qm" Guid="C904743F-ECBA-48C5-94D4-D6AC85237D51" Win64="yes">
-      <File Id="qtplatz_sl.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_sl.qm" ProcessorArchitecture="x64" KeyPath="yes" />
-    </Component>
-    <Component Id="qtplatz_zh_CN.qm" Guid="CF2AE7D6-D976-439B-8FBA-055DA7845F36" Win64="yes">
-      <File Id="qtplatz_zh_CN.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_zh_CN.qm" ProcessorArchitecture="x64" KeyPath="yes" />
-    </Component>
-    <Component Id="qtplatz_zh_TW.qm" Guid="21D3895C-4E99-475D-BA55-06791E5D9D06" Win64="yes">
-      <File Id="qtplatz_zh_TW.qm" Source="$(var.TOP)/share/qtplatz/translations/qtplatz_zh_TW.qm" ProcessorArchitecture="x64" KeyPath="yes" />
-    </Component>
-  </ComponentGroup>
-</Include>
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+        <DirectoryRef Id="TRANSLATIONS">
+            
+            <Component Id="cmp1B388A86A1671785286AEFFD0D8F364D" Guid="9DCC8AC6-FFE6-494E-9D7B-3A2CC44F7986" Win64="yes">
+                <File Id="filE4E063105EBBF9257BCDD153A5383686" KeyPath="yes" Source="$(var.SourceDir)\qtplatz_cs.qm" />
+            </Component>
+            <Component Id="cmpFE51658CDB694A78AF7209E11CF3136E" Guid="8C573B1B-1914-4161-8D16-D272098C5654" Win64="yes">
+                <File Id="filF03939217D0E7F4B004A679BCBD3FAD3" KeyPath="yes" Source="$(var.SourceDir)\qtplatz_de.qm" />
+            </Component>
+            <Component Id="cmp0687BF886F84BA6A3FB296B0464A808A" Guid="C43CB452-8463-4679-A2FC-050D56B12C80" Win64="yes">
+                <File Id="fil1CB54A6BDAF7A0F7085FF9B2CD83B025" KeyPath="yes" Source="$(var.SourceDir)\qtplatz_fr.qm" />
+            </Component>
+            <Component Id="cmp29AC80BFDAC243A356FDECB12A901647" Guid="E94DCC33-F0AF-483F-9C57-CD943F77170C" Win64="yes">
+                <File Id="fil608A93673A4C986DAD6236FA70C2CCB7" KeyPath="yes" Source="$(var.SourceDir)\qtplatz_ja.qm" />
+            </Component>
+            <Component Id="cmp7BABA421677994A554A3B9BBCA3C595E" Guid="96E596D5-D784-4A04-8CE7-8847D155CCBB" Win64="yes">
+                <File Id="filE50010D806EF458F8629501BC48FAC09" KeyPath="yes" Source="$(var.SourceDir)\qtplatz_pl.qm" />
+            </Component>
+            <Component Id="cmpC54DC17369A2D10C1FF7A47DE5450711" Guid="B4FC1584-74B7-453B-AD31-D93F92057708" Win64="yes">
+                <File Id="fil796A7A1B8280A78EA4DD14374B681D0D" KeyPath="yes" Source="$(var.SourceDir)\qtplatz_ru.qm" />
+            </Component>
+            <Component Id="cmpC5ACCADFBBC50211696D3545EE1561AA" Guid="50F32266-1116-43E2-AA5C-F2AE86227BA5" Win64="yes">
+                <File Id="fil66EB61A0B2C9DAD6A886AD68B0122BEC" KeyPath="yes" Source="$(var.SourceDir)\qtplatz_sl.qm" />
+            </Component>
+            <Component Id="cmpBA88C962B37D7AFE52215AA43CF06DC0" Guid="71C111FD-03BB-43E8-AC02-197C7ACC6CA6" Win64="yes">
+                <File Id="fil6A99CD69A8E20D7FE9B4DF02DBD5AF5C" KeyPath="yes" Source="$(var.SourceDir)\qtplatz_zh_CN.qm" />
+            </Component>
+            <Component Id="cmpDADCF340EFA7C24A5D521E39121C8DFA" Guid="DF45F293-8C4F-49ED-8204-8520D8FB64EB" Win64="yes">
+                <File Id="fil63BCF1BB1450D901E65C8742A1B91B77" KeyPath="yes" Source="$(var.SourceDir)\qtplatz_zh_TW.qm" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="QtPlatzTranslations">
+            <ComponentRef Id="cmp1B388A86A1671785286AEFFD0D8F364D" />
+            <ComponentRef Id="cmpFE51658CDB694A78AF7209E11CF3136E" />
+            <ComponentRef Id="cmp0687BF886F84BA6A3FB296B0464A808A" />
+            <ComponentRef Id="cmp29AC80BFDAC243A356FDECB12A901647" />
+            <ComponentRef Id="cmp7BABA421677994A554A3B9BBCA3C595E" />
+            <ComponentRef Id="cmpC54DC17369A2D10C1FF7A47DE5450711" />
+            <ComponentRef Id="cmpC5ACCADFBBC50211696D3545EE1561AA" />
+            <ComponentRef Id="cmpBA88C962B37D7AFE52215AA43CF06DC0" />
+            <ComponentRef Id="cmpDADCF340EFA7C24A5D521E39121C8DFA" />
+        </ComponentGroup>
+    </Fragment>
+</Wix>
