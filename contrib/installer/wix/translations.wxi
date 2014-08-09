@@ -1,0 +1,615 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Fragment>
+        <DirectoryRef Id="TRANSLATIONS">
+            <Component Id="cmp1E8C8EEE3D9886CE1E22E8C3B3E49962" Guid="606FC1A0-0F67-46B0-88B7-3E73FC516AA1" Win64="yes">
+                <File Id="filF7A3BB8318C44DEDA6C4A41BAC8DD470" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_cs.qm" />
+            </Component>
+            <Component Id="cmpD1021B27D0C06FCE1B3260B07E54527A" Guid="1B829BB1-A836-415D-B992-CE36FD27F3B7" Win64="yes">
+                <File Id="filE705743A05378D46FBA29972EDBC90E3" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_da.qm" />
+            </Component>
+            <Component Id="cmpEB1F8DD2C1DA2F8C97F3293E5E6EEFBC" Guid="5A846010-C1BC-4879-8F04-DF63B16DB1C2" Win64="yes">
+                <File Id="filB28F022B26CA957D78E6FB8CB22C0377" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_de.qm" />
+            </Component>
+            <Component Id="cmp8FC1B10743287B086AEAB0EE4F9060CB" Guid="5F88704E-5947-4D28-9A4A-FF6A511C107F" Win64="yes">
+                <File Id="fil65DAEFFFF8826C4E7A2850052B4AE5CB" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_fr.qm" />
+            </Component>
+            <Component Id="cmpC61A0CA565CB43605086F1A123B86D27" Guid="8980BB1E-4543-464F-8937-BC5C13DD3EF1" Win64="yes">
+                <File Id="fil96B0E8F8F47CBCA1B16C07DE2D75FDD3" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_hu.qm" />
+            </Component>
+            <Component Id="cmp72C80C8E92C0F4F67588F085192CA76D" Guid="7993E85D-F585-4E4E-AAD7-D07D48F0EF4A" Win64="yes">
+                <File Id="filE9CFA2D0AC00FFBFAFA41885749C9757" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_ja.qm" />
+            </Component>
+            <Component Id="cmp677B0705581DA823408288A4EF9CFF39" Guid="E44A01A6-394E-4996-A567-542BAABF6024" Win64="yes">
+                <File Id="fil53A836B908A8E11C242C532E1FAD4F2F" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_ko.qm" />
+            </Component>
+            <Component Id="cmp1819FE6657E4C50324298564969070C3" Guid="10F00178-1741-450C-9749-21E821A9A4A1" Win64="yes">
+                <File Id="fil32ED815301B68DE5EF4D6FAFD4491AB4" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_pl.qm" />
+            </Component>
+            <Component Id="cmpE426FBEF88A06A2F73321CD3176EC841" Guid="46ED40C0-9173-4872-B38A-D0E49ECAAF10" Win64="yes">
+                <File Id="fil57A36D15A99249F53DAEBA218425A767" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_ru.qm" />
+            </Component>
+            <Component Id="cmp70958A455635C6E7A67706122F8CDC1E" Guid="B4E471F2-F37C-499E-BD03-4B737C177788" Win64="yes">
+                <File Id="filF1BCBD196D71D783E626567EB50388A2" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_sk.qm" />
+            </Component>
+            <Component Id="cmpF5D73ABD368C1CEDC3C67EEF8461115C" Guid="0588A4E3-1BCA-480D-9851-44F342FFA4D2" Win64="yes">
+                <File Id="filB417747D63DF0FFD87BBF0F65064272C" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_sl.qm" />
+            </Component>
+            <Component Id="cmp275A737A07A3BE7CDE3D404CCDDD2D9A" Guid="EA346929-8B90-4132-9EE1-D5BCBE365D8D" Win64="yes">
+                <File Id="fil719B086FF05024A0B1C8DC0C9A76E0BD" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_uk.qm" />
+            </Component>
+            <Component Id="cmp613E063E7AC3ED6F790433485E0A1A0F" Guid="CF51D0BD-B25E-4890-98EE-E1C6DC318001" Win64="yes">
+                <File Id="fil0C2828F6ECAAF68F8268C58974BE4AA8" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_zh_CN.qm" />
+            </Component>
+            <Component Id="cmp22312FC102451315BED90793FAFA66A5" Guid="075C26B3-7A9F-4366-BDC6-F21872C21E87" Win64="yes">
+                <File Id="fil3DA5E2726262A1B637E0A4591C4CEBAC" KeyPath="yes" Source="$(var.QtTranslationsDir)\assistant_zh_TW.qm" />
+            </Component>
+            <Component Id="cmpD2DF4AE0FF198118C47ED17ED7997450" Guid="2B816A75-F4D8-4CEF-8E15-CA135F1E8A40" Win64="yes">
+                <File Id="filABC06A1DF5BBC9A5146C305CC14AF79C" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_cs.qm" />
+            </Component>
+            <Component Id="cmp6AE179627B7C80CC6C04EFF80A009C9D" Guid="00049185-D173-4247-B8EC-8D8EEDCF74A3" Win64="yes">
+                <File Id="fil3389451EC5ECF7B8AFEA30AB9EF3B4BB" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_de.qm" />
+            </Component>
+            <Component Id="cmp70CDCC86315E8B2B61DBEA0BED94E98E" Guid="F2452334-6DF4-4E4B-BAAB-89967C9FEF29" Win64="yes">
+                <File Id="filE4C9E379EE8C9F3A6F97F2CA2CC3103A" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_fr.qm" />
+            </Component>
+            <Component Id="cmpC99C65FB6C371239B302BB8B4C7967D9" Guid="A7B0AAC1-9148-4512-ACBC-FDF8CD6E37BE" Win64="yes">
+                <File Id="fil2F7CB511B8AA1721C71AE09414AC15B9" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_hu.qm" />
+            </Component>
+            <Component Id="cmp08A1700DD5427DDB196C3362EDEAC7D2" Guid="EB2A77D1-1C74-43B6-8E5E-805C9D635A04" Win64="yes">
+                <File Id="fil8EE3E73BFE84ECDB95CF5A3B41EFF5E1" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_ja.qm" />
+            </Component>
+            <Component Id="cmp7D39D10F680D3A2BCB593217195F3BDE" Guid="BD6E3137-EB37-46A1-A0EC-184C3F51B113" Win64="yes">
+                <File Id="fil6C404F93F566F9C6D9B5D8DC72C95A18" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_ko.qm" />
+            </Component>
+            <Component Id="cmp509D9722DD3FA84CE067CDE366621D2F" Guid="E8180835-1051-44CA-9A87-3073099365EF" Win64="yes">
+                <File Id="filD9FD3D2E081F810BF7BDBE6CA378F0CB" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_pl.qm" />
+            </Component>
+            <Component Id="cmp9A345F37ED058AF8A062C46AC43F1574" Guid="748605FF-FCE1-45B1-9E01-D3EA18CCFFA2" Win64="yes">
+                <File Id="fil32ECC7E5A531D29CEE5AF4638E934FA7" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_ru.qm" />
+            </Component>
+            <Component Id="cmp53E5C6E2A6BAD0263CC3209F9B4B6735" Guid="691A1BAD-93FD-4359-BCA7-D59FCCDFF498" Win64="yes">
+                <File Id="filDA87EE468E10C268A398CBD2402558EE" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_sk.qm" />
+            </Component>
+            <Component Id="cmpF172A056B39673D6F9D4D72C0628FD79" Guid="9A13F658-EC16-4D95-A345-D35FAEF59F52" Win64="yes">
+                <File Id="filD5417FFFBF7E32F3ADD618965AC463D3" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_sl.qm" />
+            </Component>
+            <Component Id="cmpBFECCF06353137B777CF3193F80D63FA" Guid="5DBAD1B7-F33C-473F-9A47-BC71C4EFBB63" Win64="yes">
+                <File Id="filFE07DDB28A6ECDCF3A487488FC0B812C" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_uk.qm" />
+            </Component>
+            <Component Id="cmpD8901ECAE825AC2AFDE10B6EDACCD26D" Guid="33D17FAF-7755-481E-BED5-EAF9CD5BD20B" Win64="yes">
+                <File Id="fil3CB02B76D95BE37BDCC8C2FB79120125" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_zh_CN.qm" />
+            </Component>
+            <Component Id="cmp746A7FBD834C338026537C2802D21A28" Guid="C7EBBA3D-0B1F-422F-89B5-441490B3AC62" Win64="yes">
+                <File Id="fil033013BC845D3A5065ADD20CDA405DFF" KeyPath="yes" Source="$(var.QtTranslationsDir)\designer_zh_TW.qm" />
+            </Component>
+            <Component Id="cmpE8E88D6975C351FC37FDC726D613B5D8" Guid="04B170B6-59D4-4BAC-8AC5-9E29322DB8C4" Win64="yes">
+                <File Id="filE16F3A94AE2DEF261C91D4EDFD678CFC" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_cs.qm" />
+            </Component>
+            <Component Id="cmpEC5DFDC623A4BA5571D8E4B2A2BEB282" Guid="8CC4F35C-0D2F-40D2-9612-44B182C0DAD2" Win64="yes">
+                <File Id="filCAE3958E8BF64FDA165681C4806BCDB9" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_de.qm" />
+            </Component>
+            <Component Id="cmpA67518220C358C08F8E119891C7556DC" Guid="DB39487F-E338-4F7F-AD15-27ABC3893FC2" Win64="yes">
+                <File Id="filE72D4D805E6E5D377414E1139DFC22FD" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_fr.qm" />
+            </Component>
+            <Component Id="cmp58572A31CFA02714E67AF1C83BF25917" Guid="BA1BCCFF-55AF-4A5C-B2F6-F691AFCF8DD5" Win64="yes">
+                <File Id="fil066861FDBAB6C90BA6FDC22A9D7204A5" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_hu.qm" />
+            </Component>
+            <Component Id="cmp5C9F9D2522A3CE9E113D318EB4D1421C" Guid="4206DBBA-7D1A-4FEB-B293-8ED432D4C4EE" Win64="yes">
+                <File Id="fil3C26A086B8A7500308A9BD49B07DD51D" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_ja.qm" />
+            </Component>
+            <Component Id="cmp99AB58225C84637223904DC94DB0A56F" Guid="551CD462-B1A4-460C-A727-E1C03F9CD759" Win64="yes">
+                <File Id="fil7DB7C98591E0E90612975D93B08D0AA1" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_ko.qm" />
+            </Component>
+            <Component Id="cmpEAFCE5F45BAA5959AC1EC82700D9CAFB" Guid="B249EAD9-CDCB-4124-A188-45A612635A79" Win64="yes">
+                <File Id="filEB66F16A1144ACBE21217CDFF9824E9B" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_pl.qm" />
+            </Component>
+            <Component Id="cmpC2F569885A39EB97DFF574B54B3B0213" Guid="03B1AA56-9711-49C7-9177-2B655B846D7C" Win64="yes">
+                <File Id="filBE277E09CBCB875434B9746695D5F1FD" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_ru.qm" />
+            </Component>
+            <Component Id="cmp2A2AB3424BB3AAB8416954655025781F" Guid="84EFC43E-B57D-4868-8F59-67B76AC1D700" Win64="yes">
+                <File Id="filD157D2FC956148BB023ACA72B51BD45C" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_sk.qm" />
+            </Component>
+            <Component Id="cmp75162A73A547871EB60FC4FDFFED51FF" Guid="60C58FBE-B75B-4BDC-BED1-85211E309379" Win64="yes">
+                <File Id="filC500A9F1D2FA9F3B502BCBEB5B7850B8" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_sl.qm" />
+            </Component>
+            <Component Id="cmp053A7F399F1714C095A6A5F9B47998C5" Guid="11A3C42A-B342-4C03-A361-D51C220B3591" Win64="yes">
+                <File Id="fil0FD96A95B3A87825B468061F6E94F10E" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_uk.qm" />
+            </Component>
+            <Component Id="cmp4567030569DA539FFEEDB3DD6E5D3482" Guid="67236153-FECC-4782-B8E1-DEA6A271EE60" Win64="yes">
+                <File Id="fil1E245D9D381B9E5AA9731BABD82E65BE" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_zh_CN.qm" />
+            </Component>
+            <Component Id="cmpD0EA2FBC2F2DE6A775726E72A118B220" Guid="D6BB5B0D-1330-41CC-AD15-AA07E04102FD" Win64="yes">
+                <File Id="filB0D780E2BF105B60575ED757290AABA5" KeyPath="yes" Source="$(var.QtTranslationsDir)\linguist_zh_TW.qm" />
+            </Component>
+            <Component Id="cmpB7D7D44B7527422CAFFC5B61B33899FC" Guid="00C34F47-B29F-40D6-AC86-B116D573E491" Win64="yes">
+                <File Id="fil0A015C66E9381D5A135ABB988F2D7FE7" KeyPath="yes" Source="$(var.QtTranslationsDir)\qmlviewer_cs.qm" />
+            </Component>
+            <Component Id="cmp0095D40CFDF343895B28FA81E5A4105C" Guid="BF847692-76FB-4530-9AEF-BEDF0A2557C6" Win64="yes">
+                <File Id="filE852FDC0521BD7B8578F2C57F6DC329D" KeyPath="yes" Source="$(var.QtTranslationsDir)\qmlviewer_fi.qm" />
+            </Component>
+            <Component Id="cmp7D4277C548CE2AEFCFB7B60D39697053" Guid="5C36D6ED-6AF0-4E86-9BC0-9467E66DF1F9" Win64="yes">
+                <File Id="fil22E65CC832F38604A91CEB5AEBD2BEC8" KeyPath="yes" Source="$(var.QtTranslationsDir)\qmlviewer_hu.qm" />
+            </Component>
+            <Component Id="cmp5DFAB80BEF8C6125714FB93B4C8D509E" Guid="0B646384-136A-42F9-9F1B-6E494A94149A" Win64="yes">
+                <File Id="filCC490A3511F6EFAF73E0B220B8896EFF" KeyPath="yes" Source="$(var.QtTranslationsDir)\qmlviewer_ja.qm" />
+            </Component>
+            <Component Id="cmp1563823FE6249532EC8D77B56387447B" Guid="84FC3221-1663-4457-A678-A3CBFAD61016" Win64="yes">
+                <File Id="filF9120018A0ED6F88C3A32D797D597217" KeyPath="yes" Source="$(var.QtTranslationsDir)\qmlviewer_ru.qm" />
+            </Component>
+            <Component Id="cmp7B72BB99BC746CA4195811865E664AAE" Guid="95F682AA-A629-4703-8862-99BECECDC43A" Win64="yes">
+                <File Id="fil7589C0C61C967DAFE8B88854F6AB6A35" KeyPath="yes" Source="$(var.QtTranslationsDir)\qmlviewer_sk.qm" />
+            </Component>
+            <Component Id="cmp72B69C73D1DDBA4194E37FB8F50A50EF" Guid="D065C8F8-4F4A-47FE-B430-13EB172AD490" Win64="yes">
+                <File Id="fil3A9A43388E9C2C8A289B780F3D2D00F7" KeyPath="yes" Source="$(var.QtTranslationsDir)\qmlviewer_uk.qm" />
+            </Component>
+            <Component Id="cmpD704DE22271DBF392858C91AFA14208A" Guid="EE100909-1A97-4E45-A4A8-ED9CBAA4FE53" Win64="yes">
+                <File Id="filAC2E587B78425810EC7D3016A45C2DD5" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtbase_cs.qm" />
+            </Component>
+            <Component Id="cmp31A4EC5F9DC96C0C7481B3D21DCC762B" Guid="8806D324-7C5B-4D63-9042-E4C7B7ACCCBE" Win64="yes">
+                <File Id="filC395D0187F3722EBEE8107DC6ABD75D1" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtbase_de.qm" />
+            </Component>
+            <Component Id="cmp8C5F220343DC8473705CAC5ED3A60096" Guid="C1E71425-B4E6-4706-A570-AC29A9716734" Win64="yes">
+                <File Id="filE6C0431D70778CB062A1B399D2B71DB2" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtbase_fi.qm" />
+            </Component>
+            <Component Id="cmpDC42748490EB7544AF0E6582CBBDDA02" Guid="205B19E4-EE54-4935-AC7D-09D0A67E7E74" Win64="yes">
+                <File Id="filCC9E5B9CFDDCD26B3DE38470BB87798E" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtbase_hu.qm" />
+            </Component>
+            <Component Id="cmpD7A98E790FEE96CE20BD5B5AF79FBAC1" Guid="A7DEE128-DE83-487B-914C-40B40C2B6DDD" Win64="yes">
+                <File Id="fil99B7D496FDFEEC20921CEF1E225644F2" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtbase_it.qm" />
+            </Component>
+            <Component Id="cmp60177B344258B084C1376887161245CC" Guid="5743B25A-5140-436D-9815-DCCF9D7361F1" Win64="yes">
+                <File Id="filAFF9221439BABDF6472AF1F29C723B1A" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtbase_ja.qm" />
+            </Component>
+            <Component Id="cmp8DD37214E1E405389BD0479479C820CC" Guid="86D55AF9-087C-41DA-ADFF-BAB9D5A7FC9D" Win64="yes">
+                <File Id="fil5F1DD9426184E4A2AC24D5D258307200" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtbase_ru.qm" />
+            </Component>
+            <Component Id="cmp1251842FEA288AA6383EDDAA83417282" Guid="4721B257-6018-4F12-8B04-F671A2A10F7D" Win64="yes">
+                <File Id="fil3AEB421994173ED521FC3D72092156C6" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtbase_sk.qm" />
+            </Component>
+            <Component Id="cmpD4830575DF1C03C081B11C2C9A3F2793" Guid="FB12CD23-4E8A-4F7A-801F-EDD32C5E1D6B" Win64="yes">
+                <File Id="filFAB62FEEF53A74AB3DB9B553A41186D6" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtbase_uk.qm" />
+            </Component>
+            <Component Id="cmpF108FCC58E188AE25CD4BEFCA17F4477" Guid="3E5E0A1D-5BC0-4DD1-949D-6E81A5C4D605" Win64="yes">
+                <File Id="fil5E2936B39680028B58F3E9693C99A646" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_hu.qm" />
+            </Component>
+            <Component Id="cmp09C89D31349D93AD007590A717A73D73" Guid="05261BDA-CB11-45B2-81BB-6CDFF8F830E6" Win64="yes">
+                <File Id="filD7B6DB91436A1438DEC5D2292254B6FB" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_ja.qm" />
+            </Component>
+            <Component Id="cmp0A26F7677533DD141676B29CBE1250AE" Guid="BAA06D57-AB7F-4511-9750-C4A6251E5654" Win64="yes">
+                <File Id="fil06765A42659E11D3ABC92AEB0684B62C" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_ko.qm" />
+            </Component>
+            <Component Id="cmp3285CDA5B84383B43908400674D59AF5" Guid="03750AB1-46B9-4B86-9544-521F8B5D7724" Win64="yes">
+                <File Id="filC39390524DB74390DAF2FB3E4A3BA78C" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_pl.qm" />
+            </Component>
+            <Component Id="cmp70FBDD8CD4D990DC55D0FEA2769A6EA9" Guid="9B7B39BC-F1DB-4630-87FD-19E60399949B" Win64="yes">
+                <File Id="filEAD9D09559D72094242A7CFD3FB04658" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_ru.qm" />
+            </Component>
+            <Component Id="cmpF69D9CE925DF89F3073F0E324D3408BB" Guid="48733EA8-4D17-4B0A-962C-87B86AF39353" Win64="yes">
+                <File Id="fil22307D3BF7F86A7643B3A0873E12C271" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_sk.qm" />
+            </Component>
+            <Component Id="cmpD5EDBAAFA8E471B8C4F447BBBD72E8BB" Guid="9C1B8003-3657-402D-B2FB-278BEDA2B947" Win64="yes">
+                <File Id="fil96FE5A323A1D8096EB37DEABE0B240BD" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_sl.qm" />
+            </Component>
+            <Component Id="cmp1B48A2A8B72D1866473C1514BCA884BF" Guid="9856E7DB-1E45-48F8-9FDF-4192699D60AA" Win64="yes">
+                <File Id="fil92C77FB8B5DAFBA007EBC96616DC0467" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_uk.qm" />
+            </Component>
+            <Component Id="cmp8AA6FF59A379218D5988DD87F82F71A6" Guid="0A342710-1A46-4CC0-AA83-942FAE01FB6D" Win64="yes">
+                <File Id="filC5640D51BE54F3D536613DE2606F9287" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_zh_CN.qm" />
+            </Component>
+            <Component Id="cmp1CC790E77485F62E25A725EA0E37240B" Guid="5F83AD15-582E-484E-B56A-B66BFB207568" Win64="yes">
+                <File Id="fil398FC2364BDB0AD94DA94E0DB12AB502" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconfig_zh_TW.qm" />
+            </Component>
+            <Component Id="cmp859586B1BD6D3D115C4276940D13D4EE" Guid="85D4075B-63FB-4024-80FE-A491B51B2B03" Win64="yes">
+                <File Id="fil0903DC7B00E8B1254356F7FC45442BAA" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconnectivity_de.qm" />
+            </Component>
+            <Component Id="cmp1A11C7B06DC4102E576EF778887B71BF" Guid="75594B93-CF0F-44BF-A5EA-E868C0ADB4AD" Win64="yes">
+                <File Id="filED10FE20E7A2D3CCBC2AC15D6EA08FEF" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtconnectivity_uk.qm" />
+            </Component>
+            <Component Id="cmp9131E99A1AE9509B694E2BE28C0DED7A" Guid="15878EEF-4656-4809-BD9D-78BBBAE011C4" Win64="yes">
+                <File Id="fil30135B2AE6E91828E2D3EC0BCD2661E0" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtdeclarative_de.qm" />
+            </Component>
+            <Component Id="cmp3A0F7485F6463F930B892EBCF1B9F239" Guid="5CCE05BD-997A-4278-AF4B-3C058CF613C0" Win64="yes">
+                <File Id="fil8D8943B96B1896CE99A06D6BD0A7065B" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtdeclarative_fi.qm" />
+            </Component>
+            <Component Id="cmp0AA5AEFD6AF9271769786DCADC25C345" Guid="075C52F8-00CA-4C3C-9E9A-42A47DDB596A" Win64="yes">
+                <File Id="fil5FF17AB2744444010F229428173F7E49" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtdeclarative_ja.qm" />
+            </Component>
+            <Component Id="cmp3BC7CC53F81E4F556D92B93C96FD0F63" Guid="A79A572B-7838-4525-9DEE-C893213AB58A" Win64="yes">
+                <File Id="fil210E2A7C4E8C02903ABDCE86AE8102B4" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtdeclarative_ru.qm" />
+            </Component>
+            <Component Id="cmp3B2A2D7694C9DF731D07714E18DC7CA9" Guid="516542E7-8276-44FE-87B2-0BB3E8938B80" Win64="yes">
+                <File Id="fil5DEAF52963EDA4391D1BF1083998E813" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtdeclarative_sk.qm" />
+            </Component>
+            <Component Id="cmpC7DDD450B3A8BC3BD248CC51CD001BA6" Guid="A1ED7C10-6AA3-4202-96BA-68E71C8870AA" Win64="yes">
+                <File Id="fil37A415F1E36D9BF4D558D4691854C79A" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtdeclarative_uk.qm" />
+            </Component>
+            <Component Id="cmp6C19E0DC3464C766567CA9F3065201CB" Guid="2A5A8225-A24B-4855-8DEF-0CDF79041FD1" Win64="yes">
+                <File Id="filAE9DCB393DDE6E5EB0C480A2EFD2FA30" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtlocation_de.qm" />
+            </Component>
+            <Component Id="cmp3BF3BE63A24732C8785B24380D54DA63" Guid="224A35CF-7C04-4322-BE4A-373A9CD5CA04" Win64="yes">
+                <File Id="fil92DC21FF126C6F960C4E0763BFEB6A70" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtlocation_uk.qm" />
+            </Component>
+            <Component Id="cmpC6CB70F99D8BD519939009665884665F" Guid="0FDA45CA-D3C4-42CA-B97B-B1349BA3C43E" Win64="yes">
+                <File Id="fil0C7FDF095E1027CC6B5E8760BD9ECEF4" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtmultimedia_cs.qm" />
+            </Component>
+            <Component Id="cmpBAA824BD3FF27C1B8FB866B3F856E5E1" Guid="090D8056-DAD2-410C-B4ED-EE2B3D68ECD2" Win64="yes">
+                <File Id="fil5653B5E6CC1189FE0A879D286FA034C5" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtmultimedia_de.qm" />
+            </Component>
+            <Component Id="cmp5128EA8D7807F12B4DFC2F96A21D1DC8" Guid="DD27CDE2-CDD6-4833-923A-6C6394CE5B2F" Win64="yes">
+                <File Id="fil786415B1E2F89DBF5A8F79409CE5E6FA" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtmultimedia_fi.qm" />
+            </Component>
+            <Component Id="cmp991233BCE81AE2157B7254F60D41BB62" Guid="71C23255-E3C5-4D4E-A5AA-243BCB2B0906" Win64="yes">
+                <File Id="fil0A0B3B6127476DA06F9F52DE4957F805" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtmultimedia_hu.qm" />
+            </Component>
+            <Component Id="cmp900EF46224B883E31ABA336D73021417" Guid="8F20A779-9187-4C6D-8E00-497F358CE052" Win64="yes">
+                <File Id="filFCAA1CF7C6BF347BB44D7A74EBD33813" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtmultimedia_it.qm" />
+            </Component>
+            <Component Id="cmp553BCE60B24E7E4D713B5B71DB8BEB12" Guid="C708AB8B-098D-44A5-89F7-8B27C2C1E958" Win64="yes">
+                <File Id="fil600DF5E71E1591D62D2D80219B9C0E3B" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtmultimedia_ja.qm" />
+            </Component>
+            <Component Id="cmp2A8A9AA6B0F8C0BD67C7B111D932976A" Guid="5CE0E11C-20C2-41CD-82A4-612E5626BC52" Win64="yes">
+                <File Id="fil5A9CAC8AF85A40B3C47CEDB91612F4A7" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtmultimedia_ru.qm" />
+            </Component>
+            <Component Id="cmp0D2E112DA968901B6CE4544622A5D0CD" Guid="398BE402-CAB8-4110-BDC2-053D7B18A0D7" Win64="yes">
+                <File Id="fil98C24811694C736BE17D068CC0C6CE80" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtmultimedia_sk.qm" />
+            </Component>
+            <Component Id="cmp5D9D5822C95A98EB76415A0FAB18F612" Guid="795A791B-B3DA-46CA-B4A3-1BB4FA78808E" Win64="yes">
+                <File Id="fil0B2C0640E800BA3CF174E8CBCBD88990" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtmultimedia_uk.qm" />
+            </Component>
+            <Component Id="cmp03B5EB08F1B60F77250FADCC1F6F87CC" Guid="BF86F45A-01AC-41EA-9941-BF60259D2138" Win64="yes">
+                <File Id="fil3BE3BDD396DDBAE635D934A6451AFF5A" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtquick1_cs.qm" />
+            </Component>
+            <Component Id="cmpEADDB68F3F9957EB01482C0B93E29CFB" Guid="F77FC437-D631-4647-918C-7DB4D104B51C" Win64="yes">
+                <File Id="fil2D2675948FE6AB72562C72B703CA21F3" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtquick1_de.qm" />
+            </Component>
+            <Component Id="cmp61AC0B52C2945A8BB8370D2BFC735DED" Guid="D6802B1A-96D9-4632-A4C3-257363D3F3DC" Win64="yes">
+                <File Id="fil64D2DA4D20B754740D8295AC160AEDB4" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtquick1_fi.qm" />
+            </Component>
+            <Component Id="cmp7072D093D549D60104A01076736B41A6" Guid="AA09C2A2-48EB-4915-89A8-18873A10FBE7" Win64="yes">
+                <File Id="fil72805B70202A8C8CDBCF46A9BFD23447" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtquick1_hu.qm" />
+            </Component>
+            <Component Id="cmp27C0C0A59D4D7BE76ED6951BF23D81A9" Guid="96AC7F94-FC3F-4357-8B88-27DBB411D994" Win64="yes">
+                <File Id="fil9E10D7B687DE085EFFED71973E223B1E" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtquick1_it.qm" />
+            </Component>
+            <Component Id="cmp507CD29F44634E3E564BBA057126B741" Guid="5EB83E8E-9E61-455F-851B-F9D5E37D695E" Win64="yes">
+                <File Id="fil4EFF26DEB47E2B9C5AD42C09917AC700" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtquick1_ja.qm" />
+            </Component>
+            <Component Id="cmpC8A9A25F56B2A7D7B0601DCCF9CE0582" Guid="77C1F130-7AAC-48A7-9DAD-02F4046809D5" Win64="yes">
+                <File Id="fil18B0EC607ADCE305BCA3582475F4F169" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtquick1_ru.qm" />
+            </Component>
+            <Component Id="cmp43411E4D54E802B421E676B284A332D9" Guid="ED534308-43A9-4052-8E14-153543454A9D" Win64="yes">
+                <File Id="filB8493F099FE620CC744069505453FECA" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtquick1_sk.qm" />
+            </Component>
+            <Component Id="cmp83D227438B196799FDC109A3AA512B27" Guid="53BD35CF-249F-427E-8D34-F3BAFD28AC54" Win64="yes">
+                <File Id="filE2471A0473D2F368A6A282D8223334BA" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtquick1_uk.qm" />
+            </Component>
+            <Component Id="cmp4A79A2AC0BE03A15007D89724006129C" Guid="91EE369A-3DB2-4924-A68E-7525A5ECF7EB" Win64="yes">
+                <File Id="fil6B8CDBBDEA3691C70D0259656A2F3444" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtscript_cs.qm" />
+            </Component>
+            <Component Id="cmp455A52EDD106C3CE54CBB7B187100011" Guid="CD4787EF-6BF4-4096-BB31-92F4ECFE523E" Win64="yes">
+                <File Id="fil717C189725FD2533FE78E4746D3E8F15" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtscript_de.qm" />
+            </Component>
+            <Component Id="cmpE6194DEC09AD9C3F25CE60F9388BAF75" Guid="9F9F0D05-E036-493B-A4ED-EBDC8AD60D07" Win64="yes">
+                <File Id="fil45D8E7408AC85022FDE25B502B106969" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtscript_fi.qm" />
+            </Component>
+            <Component Id="cmp67FC35B4F9C4EBD9C9F0EE09DE65AABB" Guid="8A06C05D-CDF0-4733-9582-A82B4162CC4F" Win64="yes">
+                <File Id="filFB3DCBB22C3001ADDE7E7ED46FA391BA" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtscript_hu.qm" />
+            </Component>
+            <Component Id="cmp76DCBF7AFDE1ABB02F2CB6B908B94350" Guid="EDBB25FE-74BA-42C0-8F3B-3ED3F1B7B209" Win64="yes">
+                <File Id="filD5E4F04E8250320878C2E88EE1E842AC" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtscript_it.qm" />
+            </Component>
+            <Component Id="cmpDE111422C45AEEEB3274E0566DABF978" Guid="D106AA11-4283-4C68-AB9E-735C386FD18F" Win64="yes">
+                <File Id="fil4528BA03E19F2EE14D07FE1C3B24A119" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtscript_ja.qm" />
+            </Component>
+            <Component Id="cmpB97FCBC9B25A58CFFC15FD1E27903AAD" Guid="86F1ECF4-465E-44C6-ABEA-6D282F113C5A" Win64="yes">
+                <File Id="filD55E4A203297AD87AF90EDA899668183" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtscript_ru.qm" />
+            </Component>
+            <Component Id="cmp4BB336C77A49FEFC835807AA3BA784B4" Guid="83E72822-20AB-4FA5-BA26-61009FF039F7" Win64="yes">
+                <File Id="filD92DE5D7C9C6161CBD55E31A4C7C8012" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtscript_sk.qm" />
+            </Component>
+            <Component Id="cmp45F13AF5D4E34692B59323B988BE5AC7" Guid="FE3A2908-899B-4122-906E-ACBCB0DA9143" Win64="yes">
+                <File Id="fil60EA8A74EB55FEBF4BCAE64D558CF10F" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtscript_uk.qm" />
+            </Component>
+            <Component Id="cmp6B260AE2452948F08213DF0A85E0A36B" Guid="5113CA8A-0BD8-4EF0-9769-879D5CBFAAB1" Win64="yes">
+                <File Id="filABDE312187A924ED678E14E62C191232" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtxmlpatterns_cs.qm" />
+            </Component>
+            <Component Id="cmp1C8FA5C785C97D893DCEFD8A475B1FED" Guid="056AFE3C-0214-49DA-9BCC-8518C111BB7B" Win64="yes">
+                <File Id="fil8211AB4963272155565A93661F185BFD" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtxmlpatterns_de.qm" />
+            </Component>
+            <Component Id="cmp68AF3AA479A59298FD318B6A2388F97C" Guid="FDE81E46-2568-46D1-B800-B53C5C02E31B" Win64="yes">
+                <File Id="filEFFB21AAFA41EE69032BBC455CD7DF58" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtxmlpatterns_hu.qm" />
+            </Component>
+            <Component Id="cmpCBC2864AC41A910993DCABEC48502B25" Guid="0CD10A48-35E4-41DE-93F6-01408C609A0E" Win64="yes">
+                <File Id="filAABD09369E356402AE0CCB88491EFEEB" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtxmlpatterns_it.qm" />
+            </Component>
+            <Component Id="cmp6F0AEFB2DF0E4878A875171862A32D56" Guid="9BAD8305-FA12-4793-9571-DE982912EA9B" Win64="yes">
+                <File Id="fil80BB0469B9D0715DDC79D371ED15EA84" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtxmlpatterns_ja.qm" />
+            </Component>
+            <Component Id="cmpA4AB667510B54F58385F55FB863C1A0D" Guid="353A3713-55AD-41C9-858C-F819B0A8E410" Win64="yes">
+                <File Id="fil07A3F77F7CE16BD6FF2D858835DAA284" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtxmlpatterns_ru.qm" />
+            </Component>
+            <Component Id="cmpC422C09128BD38BE7E774A647A8FA8BE" Guid="30A2B8B0-9936-4EDA-BFC1-8776F3C470BE" Win64="yes">
+                <File Id="fil6AB604D291BAD46ED94FBC1499431B2E" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtxmlpatterns_sk.qm" />
+            </Component>
+            <Component Id="cmp2C1E4ECE2B432712E0FDE61FA07240B7" Guid="E4601263-09A5-4718-B0FA-6A003B1FF610" Win64="yes">
+                <File Id="filD55C74813DD15294C8BDEFCBB6D74F3A" KeyPath="yes" Source="$(var.QtTranslationsDir)\qtxmlpatterns_uk.qm" />
+            </Component>
+            <Component Id="cmp04E3F1AD06CC8C98285D0C6875A17144" Guid="D2F93BDA-EF3D-4F52-91E4-EE0CF311B020" Win64="yes">
+                <File Id="fil7673C278AFCD568E9824FEB939723E8D" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_ar.qm" />
+            </Component>
+            <Component Id="cmp49A1F16EC88A1B05354823428E979412" Guid="27CB06B7-8707-47F5-AC9B-7BC56712F125" Win64="yes">
+                <File Id="fil7786661DEE09D331A62F715572625347" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_cs.qm" />
+            </Component>
+            <Component Id="cmpFB1B1F3C9A832C7663036B63BA19FDB6" Guid="EC63EAD8-DBC4-42F1-914C-B68DF90585E2" Win64="yes">
+                <File Id="fil765539DBACADD1553B93867BB2CBEB9A" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_da.qm" />
+            </Component>
+            <Component Id="cmpDD4C88DA5CC465D6E07AE391C397E0EA" Guid="5073BD3E-11AF-4ABF-BE17-2E36AC12FF88" Win64="yes">
+                <File Id="filDBC5503ADC8682C3494909FB4A646596" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_de.qm" />
+            </Component>
+            <Component Id="cmpAA192041ED61ABBDBAD31AF2F1B95973" Guid="6143B134-5E7E-44C6-8FDC-DF637F1C56CD" Win64="yes">
+                <File Id="fil2B02C71ECBEA2B34B09443467D55F961" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_es.qm" />
+            </Component>
+            <Component Id="cmp7761B5CF7F17DC346792B0931C1596EC" Guid="AAA94C26-2D2E-40FA-9C45-8A03827F8867" Win64="yes">
+                <File Id="fil3EA117BFAC74095D6037E0FDB8938BC1" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_fa.qm" />
+            </Component>
+            <Component Id="cmp5D33DA33C50F39270D31545825EB70E2" Guid="DE8A4BB6-D9E3-4FD0-A82D-4DEAC075F4D2" Win64="yes">
+                <File Id="fil3D9BA292EFE231EF7D319A49238527EB" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_fi.qm" />
+            </Component>
+            <Component Id="cmp8BFA8368D02238BE29F8ED9FA3ECAFBD" Guid="FE613EDE-4A2E-43F0-A10D-13205C453109" Win64="yes">
+                <File Id="fil7FA6D9510D069ECDDA0A890F3274FD67" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_fr.qm" />
+            </Component>
+            <Component Id="cmpB90B1F32C39301405990C3B2C4BFC04F" Guid="8536B1A5-311A-4DC2-8634-3AF6FDBC5C7D" Win64="yes">
+                <File Id="filB54DDD1DAD730D8B41EB38EC3C03EBEB" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_gl.qm" />
+            </Component>
+            <Component Id="cmp1F16EF023001820BA7575F923B76C7F0" Guid="10F9F130-BF5D-490C-9582-EDC284D13E7A" Win64="yes">
+                <File Id="filFF5F1BACD3C3621FEE4696E096AA6D5D" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_he.qm" />
+            </Component>
+            <Component Id="cmp178AA1B8097AF70AE41DB4962F64975E" Guid="8A2A36F7-20B6-4A8C-831D-43CAFEEFA98F" Win64="yes">
+                <File Id="filEB7D8395F42B7B30776AD42965A5D8F1" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_cs.qm" />
+            </Component>
+            <Component Id="cmp8C7DB9B0CAB18E4D13D0B971B8578901" Guid="F9544652-63DB-4217-AB37-BF279208506F" Win64="yes">
+                <File Id="fil2AC8695C5629B85B49737255EE160A32" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_da.qm" />
+            </Component>
+            <Component Id="cmp6316185FAD4053B9B9244AB7E0B8C7CC" Guid="1BA486A7-C823-4D11-84C5-F1E8CA4935AC" Win64="yes">
+                <File Id="filD079C5B6EA571B3702049189924CCA49" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_de.qm" />
+            </Component>
+            <Component Id="cmpB66D27241B834EA60C62A9F42AAA4C55" Guid="A69876A5-F70A-4B7D-8BE7-04577B17DE30" Win64="yes">
+                <File Id="fil3020AEE78375DBD11C642382487BB9B5" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_fr.qm" />
+            </Component>
+            <Component Id="cmpA5A95F858BEAAA36FB12EAE02E2A8B44" Guid="98BBF2E2-58B9-46D2-9075-2B127943B83B" Win64="yes">
+                <File Id="fil823F7C938A5AAFE18011DDCAB491A3C7" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_gl.qm" />
+            </Component>
+            <Component Id="cmp88F39E30095E50D3726A7C460822B9A2" Guid="0BBCAE6C-4D5A-43EC-A071-BA256D12F5A1" Win64="yes">
+                <File Id="fil97166BD3001E6AB8B85D0B58956CD3DC" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_hu.qm" />
+            </Component>
+            <Component Id="cmpC77EE6C1C1598E58930F230C912E9B49" Guid="4081B996-203C-45E5-8376-3CE69E971C83" Win64="yes">
+                <File Id="filE49F91881E9FAFE28C193CFAA57949B1" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_it.qm" />
+            </Component>
+            <Component Id="cmpC0BCFE2BCE36562DE3A27ACDAD164F5C" Guid="B23A005F-1BC2-47AC-B10E-309895B78C2E" Win64="yes">
+                <File Id="filC6F2D0958B5F8B9FB7C56F77A81777E3" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_ja.qm" />
+            </Component>
+            <Component Id="cmpC47E93019B1604B4BEB21EE5944CA947" Guid="C9126A86-EF3E-4F8A-98A1-E0F69DE4CCB2" Win64="yes">
+                <File Id="fil929CF5FF6F4516F39D2185FA758B0611" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_ko.qm" />
+            </Component>
+            <Component Id="cmpFBC7F76C2928D17C8720B1D3EACDAFE1" Guid="C1343AE1-B777-4344-9CF4-AF1220294C99" Win64="yes">
+                <File Id="fil3BB75F9F0BB2E2B8497567ADFAC7334F" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_pl.qm" />
+            </Component>
+            <Component Id="cmpEB63E6473FB8F268F4C4DFB96DD39AA0" Guid="C721668F-0E40-467C-998B-12689AC1C663" Win64="yes">
+                <File Id="filE11DAEB111DB3DA2BA61BDA60F7A4755" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_ru.qm" />
+            </Component>
+            <Component Id="cmp8EE407B6D9FD97C6A4609C227BAE9C2F" Guid="1FBD20D3-17B3-426D-857A-15B4C0BE6AD2" Win64="yes">
+                <File Id="fil985496E2385201CCF2970F3C77F1A8EC" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_sk.qm" />
+            </Component>
+            <Component Id="cmpF6CF50F67E0260DE58CFC7FA033C6423" Guid="2F771D9E-2A87-4ACF-8F1E-79016E4D135A" Win64="yes">
+                <File Id="filECAD14893FDA30DB400668264E0BEF0F" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_sl.qm" />
+            </Component>
+            <Component Id="cmpEB7774A64AC0B51E8EADB684F0D0BDCE" Guid="7DE1E59A-7D3D-429D-8488-81B787198A95" Win64="yes">
+                <File Id="fil515F7E97B40ADFAD9C2A6C03B4389764" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_uk.qm" />
+            </Component>
+            <Component Id="cmp8E9244DEBD54526053D637924D092349" Guid="45026DC3-2065-440F-B235-99E6CF04326C" Win64="yes">
+                <File Id="fil1EDDD493A1317DE69674120EAEEDFB86" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_zh_CN.qm" />
+            </Component>
+            <Component Id="cmp203DD88673ABE71D64D3562CD85A11D3" Guid="9D4F6855-56F0-46FF-B646-7A64FA9EE9DC" Win64="yes">
+                <File Id="fil00D9EB945BA2D115FF2C169D6E7738CC" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_help_zh_TW.qm" />
+            </Component>
+            <Component Id="cmp8B9456695DB32A41A25E5710B6CC93E0" Guid="3EC8E79B-98AE-4C3B-AE96-73C07133D9F9" Win64="yes">
+                <File Id="filA9AE4D9D5715C093AB5EDCBE6BDF676E" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_hu.qm" />
+            </Component>
+            <Component Id="cmpA04E10649E0028FD5FB50E6D5FE97340" Guid="165F9320-ED31-4974-89F2-C8F5A13884F3" Win64="yes">
+                <File Id="filE9351E89834DD07D979E23AAB0265EC4" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_it.qm" />
+            </Component>
+            <Component Id="cmp7A21D520D280194C763B1EF4E5668CBF" Guid="D4A20957-D83D-4C1E-933C-1958D06528A3" Win64="yes">
+                <File Id="fil70B88303626E632E8D56AAFF0748EB19" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_ja.qm" />
+            </Component>
+            <Component Id="cmpC21DDB84E6B29961CFC773FD4BF826AB" Guid="8CC4C684-D38F-4B79-A63B-BF6FB89D6FE1" Win64="yes">
+                <File Id="filDB674558E99197658D56E4937636143C" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_ko.qm" />
+            </Component>
+            <Component Id="cmp7B4C2332C2E12FFF94E31C42D4C75674" Guid="5CA9A42A-62C5-4841-BB7C-C73034534580" Win64="yes">
+                <File Id="fil384159462BE36CFC939CB6781C4638D3" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_lt.qm" />
+            </Component>
+            <Component Id="cmp2597518581A33672BF6595AF646A8D14" Guid="9F876DC8-6EEC-4D39-8D75-5C08E30AFB71" Win64="yes">
+                <File Id="filE70BEB0A121260FFECC0981ED91132AE" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_pl.qm" />
+            </Component>
+            <Component Id="cmpF8C893F7E6C400AFD928015F338BA890" Guid="D401DBA6-1743-4A55-B175-05DCCF000F2D" Win64="yes">
+                <File Id="fil663D137F4EF5D06602813AC36246605B" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_pt.qm" />
+            </Component>
+            <Component Id="cmp057529D3291EAF5C5248EABA6413FFC3" Guid="6495400F-67CF-4D70-9E0B-B69C9DEB64A7" Win64="yes">
+                <File Id="fil2F59E0BDCE4163C1414373380C73B09D" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_ru.qm" />
+            </Component>
+            <Component Id="cmpF432392167769E47BDE9A24CA9BF4A1C" Guid="764EF454-4AD1-4EEB-8098-8AC20CB041DC" Win64="yes">
+                <File Id="fil84F127C4AFFA8DD16F2CDF75B115B18B" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_sk.qm" />
+            </Component>
+            <Component Id="cmp0F31A141447784B8E2253615A53004CA" Guid="AC8FD94D-12C1-4090-A82A-8D8ABDA16D36" Win64="yes">
+                <File Id="fil3687EA28574A3367E5FAEFA8648748F4" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_sl.qm" />
+            </Component>
+            <Component Id="cmp3737E38D6627014FBFCF88E37B81A1B0" Guid="222801C2-840B-40D1-A602-867AA9A55372" Win64="yes">
+                <File Id="filD36793C84AE561C60066ECE2FAD30230" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_sv.qm" />
+            </Component>
+            <Component Id="cmp72BF5CA6AE2D233962B45348324975D6" Guid="C2BAEB66-069D-4094-9A28-D543E23A728C" Win64="yes">
+                <File Id="fil09B6ED8547543CF92323EC82640AE244" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_uk.qm" />
+            </Component>
+            <Component Id="cmp4CD3C39E72640C410F04BD2E3EC5C1C2" Guid="35C34017-2105-49FE-AE13-41A43E02CDCD" Win64="yes">
+                <File Id="filB1132EE31ED15F728D6B8D71C814803C" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_zh_CN.qm" />
+            </Component>
+            <Component Id="cmp76900639314D355607E6329F20B7E819" Guid="2F2CA6DF-C288-4E36-98A0-ED424875FD20" Win64="yes">
+                <File Id="filB35BA2C1602E20F34ED87CFC6316AAAA" KeyPath="yes" Source="$(var.QtTranslationsDir)\qt_zh_TW.qm" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="QtTranslations">
+            <ComponentRef Id="cmp1E8C8EEE3D9886CE1E22E8C3B3E49962" />
+            <ComponentRef Id="cmpD1021B27D0C06FCE1B3260B07E54527A" />
+            <ComponentRef Id="cmpEB1F8DD2C1DA2F8C97F3293E5E6EEFBC" />
+            <ComponentRef Id="cmp8FC1B10743287B086AEAB0EE4F9060CB" />
+            <ComponentRef Id="cmpC61A0CA565CB43605086F1A123B86D27" />
+            <ComponentRef Id="cmp72C80C8E92C0F4F67588F085192CA76D" />
+            <ComponentRef Id="cmp677B0705581DA823408288A4EF9CFF39" />
+            <ComponentRef Id="cmp1819FE6657E4C50324298564969070C3" />
+            <ComponentRef Id="cmpE426FBEF88A06A2F73321CD3176EC841" />
+            <ComponentRef Id="cmp70958A455635C6E7A67706122F8CDC1E" />
+            <ComponentRef Id="cmpF5D73ABD368C1CEDC3C67EEF8461115C" />
+            <ComponentRef Id="cmp275A737A07A3BE7CDE3D404CCDDD2D9A" />
+            <ComponentRef Id="cmp613E063E7AC3ED6F790433485E0A1A0F" />
+            <ComponentRef Id="cmp22312FC102451315BED90793FAFA66A5" />
+            <ComponentRef Id="cmpD2DF4AE0FF198118C47ED17ED7997450" />
+            <ComponentRef Id="cmp6AE179627B7C80CC6C04EFF80A009C9D" />
+            <ComponentRef Id="cmp70CDCC86315E8B2B61DBEA0BED94E98E" />
+            <ComponentRef Id="cmpC99C65FB6C371239B302BB8B4C7967D9" />
+            <ComponentRef Id="cmp08A1700DD5427DDB196C3362EDEAC7D2" />
+            <ComponentRef Id="cmp7D39D10F680D3A2BCB593217195F3BDE" />
+            <ComponentRef Id="cmp509D9722DD3FA84CE067CDE366621D2F" />
+            <ComponentRef Id="cmp9A345F37ED058AF8A062C46AC43F1574" />
+            <ComponentRef Id="cmp53E5C6E2A6BAD0263CC3209F9B4B6735" />
+            <ComponentRef Id="cmpF172A056B39673D6F9D4D72C0628FD79" />
+            <ComponentRef Id="cmpBFECCF06353137B777CF3193F80D63FA" />
+            <ComponentRef Id="cmpD8901ECAE825AC2AFDE10B6EDACCD26D" />
+            <ComponentRef Id="cmp746A7FBD834C338026537C2802D21A28" />
+            <ComponentRef Id="cmpE8E88D6975C351FC37FDC726D613B5D8" />
+            <ComponentRef Id="cmpEC5DFDC623A4BA5571D8E4B2A2BEB282" />
+            <ComponentRef Id="cmpA67518220C358C08F8E119891C7556DC" />
+            <ComponentRef Id="cmp58572A31CFA02714E67AF1C83BF25917" />
+            <ComponentRef Id="cmp5C9F9D2522A3CE9E113D318EB4D1421C" />
+            <ComponentRef Id="cmp99AB58225C84637223904DC94DB0A56F" />
+            <ComponentRef Id="cmpEAFCE5F45BAA5959AC1EC82700D9CAFB" />
+            <ComponentRef Id="cmpC2F569885A39EB97DFF574B54B3B0213" />
+            <ComponentRef Id="cmp2A2AB3424BB3AAB8416954655025781F" />
+            <ComponentRef Id="cmp75162A73A547871EB60FC4FDFFED51FF" />
+            <ComponentRef Id="cmp053A7F399F1714C095A6A5F9B47998C5" />
+            <ComponentRef Id="cmp4567030569DA539FFEEDB3DD6E5D3482" />
+            <ComponentRef Id="cmpD0EA2FBC2F2DE6A775726E72A118B220" />
+            <ComponentRef Id="cmpB7D7D44B7527422CAFFC5B61B33899FC" />
+            <ComponentRef Id="cmp0095D40CFDF343895B28FA81E5A4105C" />
+            <ComponentRef Id="cmp7D4277C548CE2AEFCFB7B60D39697053" />
+            <ComponentRef Id="cmp5DFAB80BEF8C6125714FB93B4C8D509E" />
+            <ComponentRef Id="cmp1563823FE6249532EC8D77B56387447B" />
+            <ComponentRef Id="cmp7B72BB99BC746CA4195811865E664AAE" />
+            <ComponentRef Id="cmp72B69C73D1DDBA4194E37FB8F50A50EF" />
+            <ComponentRef Id="cmpD704DE22271DBF392858C91AFA14208A" />
+            <ComponentRef Id="cmp31A4EC5F9DC96C0C7481B3D21DCC762B" />
+            <ComponentRef Id="cmp8C5F220343DC8473705CAC5ED3A60096" />
+            <ComponentRef Id="cmpDC42748490EB7544AF0E6582CBBDDA02" />
+            <ComponentRef Id="cmpD7A98E790FEE96CE20BD5B5AF79FBAC1" />
+            <ComponentRef Id="cmp60177B344258B084C1376887161245CC" />
+            <ComponentRef Id="cmp8DD37214E1E405389BD0479479C820CC" />
+            <ComponentRef Id="cmp1251842FEA288AA6383EDDAA83417282" />
+            <ComponentRef Id="cmpD4830575DF1C03C081B11C2C9A3F2793" />
+            <ComponentRef Id="cmpF108FCC58E188AE25CD4BEFCA17F4477" />
+            <ComponentRef Id="cmp09C89D31349D93AD007590A717A73D73" />
+            <ComponentRef Id="cmp0A26F7677533DD141676B29CBE1250AE" />
+            <ComponentRef Id="cmp3285CDA5B84383B43908400674D59AF5" />
+            <ComponentRef Id="cmp70FBDD8CD4D990DC55D0FEA2769A6EA9" />
+            <ComponentRef Id="cmpF69D9CE925DF89F3073F0E324D3408BB" />
+            <ComponentRef Id="cmpD5EDBAAFA8E471B8C4F447BBBD72E8BB" />
+            <ComponentRef Id="cmp1B48A2A8B72D1866473C1514BCA884BF" />
+            <ComponentRef Id="cmp8AA6FF59A379218D5988DD87F82F71A6" />
+            <ComponentRef Id="cmp1CC790E77485F62E25A725EA0E37240B" />
+            <ComponentRef Id="cmp859586B1BD6D3D115C4276940D13D4EE" />
+            <ComponentRef Id="cmp1A11C7B06DC4102E576EF778887B71BF" />
+            <ComponentRef Id="cmp9131E99A1AE9509B694E2BE28C0DED7A" />
+            <ComponentRef Id="cmp3A0F7485F6463F930B892EBCF1B9F239" />
+            <ComponentRef Id="cmp0AA5AEFD6AF9271769786DCADC25C345" />
+            <ComponentRef Id="cmp3BC7CC53F81E4F556D92B93C96FD0F63" />
+            <ComponentRef Id="cmp3B2A2D7694C9DF731D07714E18DC7CA9" />
+            <ComponentRef Id="cmpC7DDD450B3A8BC3BD248CC51CD001BA6" />
+            <ComponentRef Id="cmp6C19E0DC3464C766567CA9F3065201CB" />
+            <ComponentRef Id="cmp3BF3BE63A24732C8785B24380D54DA63" />
+            <ComponentRef Id="cmpC6CB70F99D8BD519939009665884665F" />
+            <ComponentRef Id="cmpBAA824BD3FF27C1B8FB866B3F856E5E1" />
+            <ComponentRef Id="cmp5128EA8D7807F12B4DFC2F96A21D1DC8" />
+            <ComponentRef Id="cmp991233BCE81AE2157B7254F60D41BB62" />
+            <ComponentRef Id="cmp900EF46224B883E31ABA336D73021417" />
+            <ComponentRef Id="cmp553BCE60B24E7E4D713B5B71DB8BEB12" />
+            <ComponentRef Id="cmp2A8A9AA6B0F8C0BD67C7B111D932976A" />
+            <ComponentRef Id="cmp0D2E112DA968901B6CE4544622A5D0CD" />
+            <ComponentRef Id="cmp5D9D5822C95A98EB76415A0FAB18F612" />
+            <ComponentRef Id="cmp03B5EB08F1B60F77250FADCC1F6F87CC" />
+            <ComponentRef Id="cmpEADDB68F3F9957EB01482C0B93E29CFB" />
+            <ComponentRef Id="cmp61AC0B52C2945A8BB8370D2BFC735DED" />
+            <ComponentRef Id="cmp7072D093D549D60104A01076736B41A6" />
+            <ComponentRef Id="cmp27C0C0A59D4D7BE76ED6951BF23D81A9" />
+            <ComponentRef Id="cmp507CD29F44634E3E564BBA057126B741" />
+            <ComponentRef Id="cmpC8A9A25F56B2A7D7B0601DCCF9CE0582" />
+            <ComponentRef Id="cmp43411E4D54E802B421E676B284A332D9" />
+            <ComponentRef Id="cmp83D227438B196799FDC109A3AA512B27" />
+            <ComponentRef Id="cmp4A79A2AC0BE03A15007D89724006129C" />
+            <ComponentRef Id="cmp455A52EDD106C3CE54CBB7B187100011" />
+            <ComponentRef Id="cmpE6194DEC09AD9C3F25CE60F9388BAF75" />
+            <ComponentRef Id="cmp67FC35B4F9C4EBD9C9F0EE09DE65AABB" />
+            <ComponentRef Id="cmp76DCBF7AFDE1ABB02F2CB6B908B94350" />
+            <ComponentRef Id="cmpDE111422C45AEEEB3274E0566DABF978" />
+            <ComponentRef Id="cmpB97FCBC9B25A58CFFC15FD1E27903AAD" />
+            <ComponentRef Id="cmp4BB336C77A49FEFC835807AA3BA784B4" />
+            <ComponentRef Id="cmp45F13AF5D4E34692B59323B988BE5AC7" />
+            <ComponentRef Id="cmp6B260AE2452948F08213DF0A85E0A36B" />
+            <ComponentRef Id="cmp1C8FA5C785C97D893DCEFD8A475B1FED" />
+            <ComponentRef Id="cmp68AF3AA479A59298FD318B6A2388F97C" />
+            <ComponentRef Id="cmpCBC2864AC41A910993DCABEC48502B25" />
+            <ComponentRef Id="cmp6F0AEFB2DF0E4878A875171862A32D56" />
+            <ComponentRef Id="cmpA4AB667510B54F58385F55FB863C1A0D" />
+            <ComponentRef Id="cmpC422C09128BD38BE7E774A647A8FA8BE" />
+            <ComponentRef Id="cmp2C1E4ECE2B432712E0FDE61FA07240B7" />
+            <ComponentRef Id="cmp04E3F1AD06CC8C98285D0C6875A17144" />
+            <ComponentRef Id="cmp49A1F16EC88A1B05354823428E979412" />
+            <ComponentRef Id="cmpFB1B1F3C9A832C7663036B63BA19FDB6" />
+            <ComponentRef Id="cmpDD4C88DA5CC465D6E07AE391C397E0EA" />
+            <ComponentRef Id="cmpAA192041ED61ABBDBAD31AF2F1B95973" />
+            <ComponentRef Id="cmp7761B5CF7F17DC346792B0931C1596EC" />
+            <ComponentRef Id="cmp5D33DA33C50F39270D31545825EB70E2" />
+            <ComponentRef Id="cmp8BFA8368D02238BE29F8ED9FA3ECAFBD" />
+            <ComponentRef Id="cmpB90B1F32C39301405990C3B2C4BFC04F" />
+            <ComponentRef Id="cmp1F16EF023001820BA7575F923B76C7F0" />
+            <ComponentRef Id="cmp178AA1B8097AF70AE41DB4962F64975E" />
+            <ComponentRef Id="cmp8C7DB9B0CAB18E4D13D0B971B8578901" />
+            <ComponentRef Id="cmp6316185FAD4053B9B9244AB7E0B8C7CC" />
+            <ComponentRef Id="cmpB66D27241B834EA60C62A9F42AAA4C55" />
+            <ComponentRef Id="cmpA5A95F858BEAAA36FB12EAE02E2A8B44" />
+            <ComponentRef Id="cmp88F39E30095E50D3726A7C460822B9A2" />
+            <ComponentRef Id="cmpC77EE6C1C1598E58930F230C912E9B49" />
+            <ComponentRef Id="cmpC0BCFE2BCE36562DE3A27ACDAD164F5C" />
+            <ComponentRef Id="cmpC47E93019B1604B4BEB21EE5944CA947" />
+            <ComponentRef Id="cmpFBC7F76C2928D17C8720B1D3EACDAFE1" />
+            <ComponentRef Id="cmpEB63E6473FB8F268F4C4DFB96DD39AA0" />
+            <ComponentRef Id="cmp8EE407B6D9FD97C6A4609C227BAE9C2F" />
+            <ComponentRef Id="cmpF6CF50F67E0260DE58CFC7FA033C6423" />
+            <ComponentRef Id="cmpEB7774A64AC0B51E8EADB684F0D0BDCE" />
+            <ComponentRef Id="cmp8E9244DEBD54526053D637924D092349" />
+            <ComponentRef Id="cmp203DD88673ABE71D64D3562CD85A11D3" />
+            <ComponentRef Id="cmp8B9456695DB32A41A25E5710B6CC93E0" />
+            <ComponentRef Id="cmpA04E10649E0028FD5FB50E6D5FE97340" />
+            <ComponentRef Id="cmp7A21D520D280194C763B1EF4E5668CBF" />
+            <ComponentRef Id="cmpC21DDB84E6B29961CFC773FD4BF826AB" />
+            <ComponentRef Id="cmp7B4C2332C2E12FFF94E31C42D4C75674" />
+            <ComponentRef Id="cmp2597518581A33672BF6595AF646A8D14" />
+            <ComponentRef Id="cmpF8C893F7E6C400AFD928015F338BA890" />
+            <ComponentRef Id="cmp057529D3291EAF5C5248EABA6413FFC3" />
+            <ComponentRef Id="cmpF432392167769E47BDE9A24CA9BF4A1C" />
+            <ComponentRef Id="cmp0F31A141447784B8E2253615A53004CA" />
+            <ComponentRef Id="cmp3737E38D6627014FBFCF88E37B81A1B0" />
+            <ComponentRef Id="cmp72BF5CA6AE2D233962B45348324975D6" />
+            <ComponentRef Id="cmp4CD3C39E72640C410F04BD2E3EC5C1C2" />
+            <ComponentRef Id="cmp76900639314D355607E6329F20B7E819" />
+        </ComponentGroup>
+    </Fragment>
+</Wix>

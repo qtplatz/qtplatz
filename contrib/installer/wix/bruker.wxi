@@ -2,13 +2,13 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
         <DirectoryRef Id="LIB_BRUKER">
-            <Component Id="cmp5416E4BF474007AC4C9B859CF5B45FE9" Guid="41747ED7-5D50-416B-A742-50C719135090" Win64="yes">
+            <Component Id="cmp5416E4BF474007AC4C9B859CF5B45FE9" Guid="CB833FF2-5949-497F-9F93-9B1D96238635" Win64="yes">
                 <File Id="fil4B5278593F23AFBAF266B768806577BC" KeyPath="yes" Source="$(var.SourceDir)\Bruker Daltonics CompassXtract.msi" />
             </Component>
-            <Component Id="cmpC60DAE3C41A88656B998C6A5309D6513" Guid="66B4FAA7-7EE2-4C28-A7FE-7B95A9AAF2E3" Win64="yes">
+            <Component Id="cmpC60DAE3C41A88656B998C6A5309D6513" Guid="9E3EC21B-ECA1-4C14-9BBE-971447936012" Win64="yes">
                 <File Id="filBE2C0E099BD07D2E5E35DB4FBE6D2B74" KeyPath="yes" Source="$(var.SourceDir)\CompassXtract 3.1.2 Release Notes.pdf" />
             </Component>
-            <Component Id="cmp4C956EC307B0DCE97A48E67E8465C941" Guid="E7EB9C51-50DF-4F07-B0E6-D9C3D9065887" Win64="yes">
+            <Component Id="cmp4C956EC307B0DCE97A48E67E8465C941" Guid="32672136-7B68-4146-AD0D-71A7D6BB420F" Win64="yes">
                 <File Id="fil08E1BF90D74A465420185CEF733FD278" KeyPath="yes" Source="$(var.SourceDir)\Data1.cab" />
             </Component>
         </DirectoryRef>
