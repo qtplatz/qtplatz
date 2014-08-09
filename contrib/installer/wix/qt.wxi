@@ -112,13 +112,13 @@
             <Component Id="cmp4C66D396CBE526BF4461C43935D2B7E7" Guid="E0265B5F-E850-4037-9583-32C3C15ACDC7" Win64="yes">
                 <File Id="fil7713A782C915BAE476A6D6ED02AFCEF2" KeyPath="yes" Source="$(var.QtBinDir)\Qt5QuickWidgets.dll" />
             </Component>
-            
+            -->
             
             <Component Id="cmp23155141F4A9513411AAC86044BA06D4" Guid="521B0EE8-28F3-4C0E-A764-76394ECB5FBC" Win64="yes">
                 <File Id="filDCA7D906C6A90192979B46B9A437E640" KeyPath="yes" Source="$(var.QtBinDir)\Qt5Script.dll" />
             </Component>
             
-            
+            <!--
             <Component Id="cmpCF0BAF08E5893B88EB9E3F7D8CE6B863" Guid="90CDE2BF-4659-4C8A-BDE7-10F1934D239A" Win64="yes">
                 <File Id="filAC5061A45936115B0D5AFF2085FA2ED6" KeyPath="yes" Source="$(var.QtBinDir)\Qt5ScriptTools.dll" />
             </Component>
@@ -227,7 +227,9 @@
             <ComponentRef Id="cmpE5EEA48C405ED9F7411B9E8584C1A2CB" />
             <ComponentRef Id="cmpE367C8C5D6FA7777BBF61C9981DA0964" />
             <ComponentRef Id="cmp4C66D396CBE526BF4461C43935D2B7E7" />
+	    -->
             <ComponentRef Id="cmp23155141F4A9513411AAC86044BA06D4" />
+	    <!--
             <ComponentRef Id="cmpCF0BAF08E5893B88EB9E3F7D8CE6B863" />
             <ComponentRef Id="cmp54179365F2D55D78C208C656145C5046" />
             <ComponentRef Id="cmp43AE0A7836E9F2A0166F534FBD77F233" />

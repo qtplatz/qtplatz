@@ -28,7 +28,7 @@ CP	= $(SH) /c copy
 MD      = $(SH) /c mkdir
 STAGEDIR = .\stage
 
-OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj bruker.wixobj
+OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj bruker.wixobj qtplatz_translations.wixobj
 
 all: qtplatz.msi
 
@@ -76,9 +76,7 @@ rename.bat: version.exe
 	git describe | version -b > rename.bat
 
 qtplatz.msi: version.wxi $(OBJS)
-	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll \
-		qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj \
-		vc120.wixobj bruker.wixobj -o qtplatz.msi
+	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll $(OBJS) -o qtplatz.msi
 	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 	rename.bat
 
@@ -90,6 +88,9 @@ qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
 
 translations.wixobj: translations.wxi
 	$(CANDLE) -dQtTranslationsDir=$(QTDIR)\translations translations.wxi
+
+qtplatz_translations.wixobj: qtplatz_translations.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\share\qtplatz\translations qtplatz_translations.wxi
 
 plugins.wixobj: plugins.wxi
 	$(CANDLE) -dQtPluginsDir=$(QTDIR)\plugins plugins.wxi
@@ -103,11 +104,13 @@ vc120.wixobj: vc120.wxi
 bruker.wixobj: bruker.wxi 
 	$(CANDLE) -dSourceDir="C:\Program Files (x86)\Bruker Daltonik\3.1.2" bruker.wxi
 
-#translations.wxi: translations
-#qt.wxi: qt
-#plugins.wxi: plugins
 
-harvest: copy_stage_files qt plugins translations
+harvest: copy_stage_files qt plugins translations qtplatz_translations bruker
+
+qtplatz_translations:
+	$(HEAT) dir $(QTPLATZ_PATH)\share\qtplatz\translations \
+	-dr TRANSLATIONS -cg QtPlatzTranslations -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
+	-t qm.xslt -o qtplatz_translations.wxi
 
 translations:
 	$(HEAT) dir $(QTDIR)\translations \
