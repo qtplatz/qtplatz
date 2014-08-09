@@ -1,16 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
         <DirectoryRef Id="BIN">
-            
-            
-            
-            
             <Component Id="cmpB8E6F82B3460D153249B6C14DCDA75C4" Guid="2F72B50C-0D5E-47BC-BE7B-904C7851DB52" Win64="yes">
                 <File Id="fil1DF78484A3E14F1A8C67B3D753C409E9" KeyPath="yes" Source="$(var.QtBinDir)\Enginio.dll" />
             </Component>
-            
-            
             <Component Id="cmp802361B3D4945D34C3B389779AC7FD90" Guid="6B05B941-EE51-42AC-8C1D-4D6851E7CC6E" Win64="yes">
                 <File Id="fil2ABB7A62136354A16D1DA217077B17D3" KeyPath="yes" Source="$(var.QtBinDir)\icudt52.dll" />
             </Component>
@@ -21,30 +15,6 @@
                 <File Id="filC4ECE9B128395290AF9D58AB393A80A9" KeyPath="yes" Source="$(var.QtBinDir)\icuuc52.dll" />
             </Component>
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
             <Component Id="cmp59141FE0429211EF7477B4BFFB343188" Guid="BEA89503-8DD0-4825-92A3-643FC9FADF71" Win64="yes">
                 <File Id="filF28C99A756BF7398D4EE300A762A312D" KeyPath="yes" Source="$(var.QtBinDir)\qt.conf" />
             </Component>
@@ -52,41 +22,27 @@
                 <File Id="fil80DBA5D5D5B285FEB063C90CCB4B50EC" KeyPath="yes" Source="$(var.QtBinDir)\Qt5Bluetooth.dll" />
             </Component>
             
-            
             <Component Id="cmp2984098B7F029921C7066474949F7E91" Guid="0EAB4C46-893C-43AD-A3B3-74D265C40872" Win64="yes">
                 <File Id="filFB8EBDA56D9761DAE25AFD0BA40A9D64" KeyPath="yes" Source="$(var.QtBinDir)\Qt5CLucene.dll" />
             </Component>
-            
-            
             <Component Id="cmpA3402D7DBEE5DC98F730EF578AFDE138" Guid="6B1D919B-DE40-4D8F-84BE-ACD1943048A0" Win64="yes">
                 <File Id="filBEE51DCD3188E91213A7CF07C032E07E" KeyPath="yes" Source="$(var.QtBinDir)\Qt5Concurrent.dll" />
             </Component>
-            
-            
             <Component Id="cmp7F620AB4AC93088C99A40A7AAA17ECF6" Guid="E08F727A-9D8B-4161-B159-67D6C7122541" Win64="yes">
                 <File Id="filD809D61B2F93FFFA2064197ABB68C96D" KeyPath="yes" Source="$(var.QtBinDir)\Qt5Core.dll" />
             </Component>
-            
-            
             <Component Id="cmpEA2BE7267ECB4C4D88047E9FFF9AA1F0" Guid="4B91281A-2A16-4422-AD1A-A05794500763" Win64="yes">
                 <File Id="fil28EBB701A81D33FCAF3AC21038DF230D" KeyPath="yes" Source="$(var.QtBinDir)\Qt5Declarative.dll" />
             </Component>
-            
-            
             <Component Id="cmp7447A24F847C6F281486EC085EF5F1E1" Guid="ADA3A68A-7B2A-4B1F-8453-D507D54A34FB" Win64="yes">
                 <File Id="fil79C5B31AEE7C8D66CFB1C9FA6C2B232E" KeyPath="yes" Source="$(var.QtBinDir)\Qt5Designer.dll" />
             </Component>
             <Component Id="cmp2BB56891E6C7D0A7D0FADE94FA1964B6" Guid="8B71DBEC-68E3-43E5-8CAB-7608ADE30F9B" Win64="yes">
                 <File Id="fil3E4A6CB9244732A18AD239761F6BEB02" KeyPath="yes" Source="$(var.QtBinDir)\Qt5DesignerComponents.dll" />
             </Component>
-            
-            
-            
-            
             <Component Id="cmp814DDAF76A9F4479C04BB799F7E7CAAA" Guid="D2CB8B54-E456-4638-AF5F-3389FDB9D0ED" Win64="yes">
                 <File Id="filFBCE06EE36D6ABF4C2F89C8AB7737587" KeyPath="yes" Source="$(var.QtBinDir)\Qt5Gui.dll" />
             </Component>
-            
             
             <Component Id="cmpE88F93DDF43F8B41DA7C2A7671DD78CF" Guid="E867ABA7-2EAD-4B70-80EB-24B259C07781" Win64="yes">
                 <File Id="fil562BBC2183B664713DD7D052942E3CCD" KeyPath="yes" Source="$(var.QtBinDir)\Qt5Help.dll" />
@@ -132,7 +88,7 @@
                 <File Id="fil2AF3B84A6CBEB7D1D12527EC563886A4" KeyPath="yes" Source="$(var.QtBinDir)\Qt5PrintSupport.dll" />
             </Component>
             
-            
+            <!--
             <Component Id="cmp8CA7FB9594EAF8B9EC383DD867003310" Guid="3205EAE3-A4E1-4B3E-9CB1-B53B8A403439" Win64="yes">
                 <File Id="filE1DE17142CEE9D0A265897177A1FB941" KeyPath="yes" Source="$(var.QtBinDir)\Qt5Qml.dll" />
             </Component>
@@ -176,6 +132,7 @@
             <Component Id="cmp43AE0A7836E9F2A0166F534FBD77F233" Guid="41AF0C7D-E2A5-4F73-AADC-1CBF38AF7CE7" Win64="yes">
                 <File Id="fil2181B16C2828C2B495359DAD3CEC92E7" KeyPath="yes" Source="$(var.QtBinDir)\Qt5SerialPort.dll" />
             </Component>
+	    -->
             
             
             <Component Id="cmp976487CD7711897873191ED6D4F0A1A1" Guid="CEA93101-928A-4C1D-91CA-3D5BE635D178" Win64="yes">
@@ -228,179 +185,67 @@
             </Component>
             
             
-            
+            <!--
             <Component Id="cmpE91120CF6F3E89FF62FB9017522F3FAF" Guid="B4FDECC0-9802-4320-AA67-FF68088C6D6F" Win64="yes">
                 <File Id="fil7768C6D6F5D94A07269EE6A2A4D2AA7C" KeyPath="yes" Source="$(var.QtBinDir)\qtenv2.bat" />
             </Component>
-            
-            
-            
+
             <Component Id="cmp132167883E08726F791378E3665D39C3" Guid="50A26BB9-1FD9-4E28-ADEC-2614F968CBA6" Win64="yes">
                 <File Id="fil1AB66757B3BFDE267A50075903325DF6" KeyPath="yes" Source="$(var.QtBinDir)\syncqt.pl" />
             </Component>
-            
-            
-            
-            
+            -->
             
         </DirectoryRef>
     </Fragment>
     <Fragment>
         <ComponentGroup Id="QtComponents">
-            
-            
-            
-            
             <ComponentRef Id="cmpB8E6F82B3460D153249B6C14DCDA75C4" />
-            
-            
             <ComponentRef Id="cmp802361B3D4945D34C3B389779AC7FD90" />
             <ComponentRef Id="cmpE72FF1876B103B5CE5E4A3D60EE57C02" />
             <ComponentRef Id="cmpD0B22C444119A7319919B04571AC8B22" />
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
             <ComponentRef Id="cmp59141FE0429211EF7477B4BFFB343188" />
             <ComponentRef Id="cmpA256F8A122735CCD13D074657FE2E2E1" />
-            
-            
             <ComponentRef Id="cmp2984098B7F029921C7066474949F7E91" />
-            
-            
             <ComponentRef Id="cmpA3402D7DBEE5DC98F730EF578AFDE138" />
-            
-            
             <ComponentRef Id="cmp7F620AB4AC93088C99A40A7AAA17ECF6" />
-            
-            
             <ComponentRef Id="cmpEA2BE7267ECB4C4D88047E9FFF9AA1F0" />
-            
-            
             <ComponentRef Id="cmp7447A24F847C6F281486EC085EF5F1E1" />
             <ComponentRef Id="cmp2BB56891E6C7D0A7D0FADE94FA1964B6" />
-            
-            
-            
-            
             <ComponentRef Id="cmp814DDAF76A9F4479C04BB799F7E7CAAA" />
-            
-            
             <ComponentRef Id="cmpE88F93DDF43F8B41DA7C2A7671DD78CF" />
-            
-            
             <ComponentRef Id="cmp02E112CED222479CF68CA2AB37EFE572" />
-            
-            
             <ComponentRef Id="cmp4EFCF659471870D02CD6D5E45D828001" />
-            
-            
             <ComponentRef Id="cmp80A8A9EF77C5FDCFDC8E14D36411137B" />
-            
-            
             <ComponentRef Id="cmpEDD326D4D55ECAC9DF2D81D1CB66BE30" />
-            
-            
             <ComponentRef Id="cmp082A441C6C629406B0AAA89E3062532F" />
-            
-            
             <ComponentRef Id="cmp8F90B951EB4D6C61AD2BEDDAD06AF3B0" />
-            
-            
             <ComponentRef Id="cmp06688F118C91CE12F24F5C5E7B068791" />
-            
-            
             <ComponentRef Id="cmpC9F5B7AAFCF99C4B03864C53BFCD5F41" />
-            
-            
+	    <!--
             <ComponentRef Id="cmp8CA7FB9594EAF8B9EC383DD867003310" />
-            
-            
             <ComponentRef Id="cmpA05BC886123563BD674DE3D22B596AED" />
-            
-            
             <ComponentRef Id="cmpE5EEA48C405ED9F7411B9E8584C1A2CB" />
-            
-            
             <ComponentRef Id="cmpE367C8C5D6FA7777BBF61C9981DA0964" />
-            
-            
             <ComponentRef Id="cmp4C66D396CBE526BF4461C43935D2B7E7" />
-            
-            
             <ComponentRef Id="cmp23155141F4A9513411AAC86044BA06D4" />
-            
-            
             <ComponentRef Id="cmpCF0BAF08E5893B88EB9E3F7D8CE6B863" />
-            
-            
             <ComponentRef Id="cmp54179365F2D55D78C208C656145C5046" />
-            
-            
             <ComponentRef Id="cmp43AE0A7836E9F2A0166F534FBD77F233" />
-            
-            
+	    -->
             <ComponentRef Id="cmp976487CD7711897873191ED6D4F0A1A1" />
-            
-            
             <ComponentRef Id="cmp592AD34F0EE88A95EEC059DB9A43E193" />
-            
-            
             <ComponentRef Id="cmp51A0E5705F4E18CADD71D8350D5F9782" />
-            
-            
             <ComponentRef Id="cmpDB85E2B68D82ACCEE8A43A0965C1E648" />
-            
-            
             <ComponentRef Id="cmp1AEF810FDD20D2378F9EB6F28AD08ED5" />
-            
-            
             <ComponentRef Id="cmpF0CBB21425D0D72E1AD029444461B56F" />
-            
-            
             <ComponentRef Id="cmp101E5291CC27A11C4D24E5CE98E5BC75" />
-            
-            
             <ComponentRef Id="cmp259C78171F740EDE9E31681AC9FC75D7" />
-            
-            
             <ComponentRef Id="cmp4D3719D50704DAA5E9CDB38746AE775C" />
-            
-            
             <ComponentRef Id="cmpB1FB3A9896DC5E75816456D254536FAB" />
-            
-            
-            
+	    <!--
             <ComponentRef Id="cmpE91120CF6F3E89FF62FB9017522F3FAF" />
-            
-            
-            
             <ComponentRef Id="cmp132167883E08726F791378E3665D39C3" />
-            
-            
-            
-            
+	    -->
             
         </ComponentGroup>
     </Fragment>
