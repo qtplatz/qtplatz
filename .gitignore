@@ -149,3 +149,4 @@ examples/device_emulators/powersupply/powersupply
 src/version.tmp
 src/plugins/Quan/Quan.pluginspec
 contrib/installer/wix/translations.wxi
+contrib/installer/wix/rename.bat
