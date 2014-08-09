@@ -17,7 +17,7 @@
             <ComponentGroupRef Id="RDKitComponents" />
             <ComponentGroupRef Id="QtComponents" />
             <ComponentGroupRef Id="QtTranslations" />
-            <ComponentGroupRef Id="QtPlatformsComponents" />
+            <ComponentGroupRef Id="QtPluginsComponents" />
             <ComponentGroupRef Id="QtCreatorComponents" />
             <ComponentGroupRef Id="QtPlatzComponents" />
             <ComponentGroupRef Id="QtPlatzTranslations" />
@@ -57,9 +57,7 @@
                     </Directory>
                     <Directory Id="LIB_RDKIT" Name="rdkit" />
                     <Directory Id="LIB_BRUKER" Name="Bruker" />
-                    <Directory Id="PLUGINS" Name="plugins">
-                        <Directory Id="PLATFORMS" Name="platforms" />
-                    </Directory>
+                    <Directory Id="PLUGINS" Name="plugins"/>
                 </Directory>
             </Directory>
             <Directory Id="ProgramMenuFolder">
@@ -90,8 +88,6 @@
             </Component>
         </ComponentGroup>
         <?include rdkit_components.wxi ?>
-        <?include qt_opengl_components.wxi ?>
-        <?include qt_platforms_components.wxi ?>
         <?include qt_creator_components.wxi ?>
         <?include qtplatz_components.wxi ?>
         <?include qtplatz_translations.wxi ?>
