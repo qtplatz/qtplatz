@@ -23,32 +23,24 @@
 **************************************************************************/
 
 #include "qbroker.hpp"
+#include "orbconnection.hpp"
 #include <adinterface/brokerC.h>
 
 using namespace acquire;
 
-QBroker::QBroker( Broker::Manager * ptr
-                  , QObject *parent) : adextension::iBroker(parent)
-                                     , ptr_(ptr)
+QBroker::QBroker( QObject *parent ) : adextension::iBroker(parent)
 {
 }
 
 QBroker::~QBroker()
 {
-	CORBA::release( ptr_ );
 }
 
 Broker::Manager * 
 QBroker::brokerManager() const
 {
-    return Broker::Manager::_duplicate( ptr_ );
-}
-
-void
-QBroker::setBrokerManager( Broker::Manager * mgr )
-{
-    if ( ptr_ )
-		CORBA::release( ptr_ );
-    ptr_ = Broker::Manager::_duplicate( mgr );
+    if ( OrbConnection::instance()->initialize() )
+        emit const_cast<QBroker *>(this)->initialized();
+    return OrbConnection::instance()->brokerManager();
 }
 

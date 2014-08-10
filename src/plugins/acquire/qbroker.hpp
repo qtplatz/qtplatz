@@ -34,27 +34,19 @@ namespace acquire {
     class QBroker : public adextension::iBroker  {
         Q_OBJECT
     public:
-        explicit QBroker( Broker::Manager *, QObject *parent = 0);
+        explicit QBroker( QObject *parent = 0 );
         ~QBroker();
 
         Broker::Manager * brokerManager() const override;
-        //
-        void setBrokerManager( Broker::Manager* );
         
     signals:
+        void initialized();
 
     public slots:
 
     private:
-        Broker::Manager * ptr_;
-
-#if defined _MSC_VER
-        QBroker(const QBroker&) {}
-        QBroker& operator=(const QBroker&) {}
-#else
         QBroker(const QBroker&) = delete;
         QBroker& operator=(const QBroker&) = delete;
-#endif
     };
 
 }
