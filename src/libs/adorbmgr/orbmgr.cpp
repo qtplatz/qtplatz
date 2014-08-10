@@ -31,18 +31,26 @@
 
 using namespace adorbmgr;
 
-orbmgr * orbmgr::instance_ = 0;
+std::atomic<orbmgr * >orbmgr::instance_ = 0;
 std::mutex orbmgr::mutex_;
 
 orbmgr *
 orbmgr::instance()
 {
-    if ( instance_ == 0 ) {
-        std::lock_guard< std::mutex > lock( orbmgr::mutex_ );
-        if ( instance_ == 0 ) 
-            instance_ = new orbmgr();
+    typedef orbmgr T;
+
+    T * tmp = instance_.load( std::memory_order_relaxed );
+    std::atomic_thread_fence( std::memory_order_acquire );
+    if ( tmp == nullptr ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        tmp = instance_.load( std::memory_order_relaxed );
+        if ( tmp == nullptr ) {
+            tmp = new T();
+            std::atomic_thread_fence( std::memory_order_release );
+            instance_.store( tmp, std::memory_order_relaxed );
+        }
     }
-    return instance_;
+    return tmp;
 }
 
 orbmgr::~orbmgr()
@@ -127,8 +135,8 @@ orbmgr::poa_manager()
 std::string
 orbmgr::activate( PortableServer::Servant servant )
 {
-    if ( instance_ ) {
-        CORBA::String_var id = instance_->taomgr_->activate( servant );
+    if ( auto mgr = orbmgr::instance() ) {
+        CORBA::String_var id = mgr->taomgr_->activate( servant );
         return std::string ( id.in() );
     }
     return "";
@@ -138,16 +146,18 @@ orbmgr::activate( PortableServer::Servant servant )
 void
 orbmgr::deactivate( const std::string& id )
 {
-    if ( instance_ && instance_->taomgr_ )
-        instance_->taomgr_->deactivate( id.c_str() );
+    if ( auto mgr = orbmgr::instance() ) {
+        if ( mgr->taomgr_ )
+            mgr->taomgr_->deactivate( id.c_str() );
+    }
 }
 
 // static
 void
 orbmgr::deactivate( CORBA::Object_ptr obj )
 {
-    if ( instance_ && instance_->taomgr_ ) {
-        PortableServer::POA_ptr poa = instance_->taomgr_->root_poa();
+    if ( orbmgr::instance()->taomgr_ ) {
+        PortableServer::POA_ptr poa = orbmgr::instance()->taomgr_->root_poa();
         if ( poa ) {
             try {
                 PortableServer::ObjectId_var objid = poa->reference_to_id( obj );
@@ -163,8 +173,8 @@ orbmgr::deactivate( CORBA::Object_ptr obj )
 void
 orbmgr::deactivate( PortableServer::ServantBase * p_servant )
 {
-    if ( instance_ && instance_->taomgr_ ) {
-        PortableServer::POA_ptr poa = instance_->taomgr_->root_poa();
+    if ( orbmgr::instance()->taomgr_ ) {
+        PortableServer::POA_ptr poa = orbmgr::instance()->taomgr_->root_poa();
         if ( poa ) {
             try {
                 PortableServer::ObjectId_var objid = poa->servant_to_id( p_servant );

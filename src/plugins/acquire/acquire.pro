@@ -48,12 +48,14 @@ DEFINES += ACQUIRE_LIBRARY
 SOURCES += \
 	acquiremode.cpp \
 	acquireplugin.cpp \
+        orbconnection.cpp \
 	mainwindow.cpp \
-    qbroker.cpp
+        qbroker.cpp
 
 HEADERS +=  acquire_global.h \
 	acquiremode.hpp \
 	acquireplugin.hpp \
+        orbconnection.hpp \
 	mainwindow.hpp \
 	constants.hpp \
     qbroker.hpp
