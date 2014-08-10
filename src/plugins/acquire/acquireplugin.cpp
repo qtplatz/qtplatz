@@ -182,8 +182,10 @@ namespace acquire {
 
             void terminate_broker_session() {
                 // disconnect broker session
-                brokerSession_->disconnect( brokerEvent_->_this() );
-                adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
+                if ( !CORBA::is_nil( brokerSession_ ) && brokerEvent_ ) {
+                    brokerSession_->disconnect( brokerEvent_->_this() );
+                    adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
+                }
             }
 
         protected:
