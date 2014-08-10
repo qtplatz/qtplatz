@@ -28,7 +28,7 @@
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_dll_interface.h>
-
+#include <atomic>
 #include <mutex>
 #include <thread>
 #include <condition_variable>
@@ -75,7 +75,7 @@ namespace adorbmgr {
 
 		void run();
 
-        static orbmgr * instance_;
+        static std::atomic< orbmgr * > instance_;
         static std::mutex mutex_;
         bool thread_running_;
         size_t init_count_;

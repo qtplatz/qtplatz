@@ -201,8 +201,8 @@ namespace acquire {
             void handle_receiver_shutdown();
             void handle_receiver_debug_print( int32_t, int32_t, std::string );
 
-            typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
-            std::vector< adplugin::orbServant * > orbServants_;
+            //typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
+            //std::vector< adplugin::orbServant * > orbServants_;
 
         public:
             static QToolButton * toolButton( QAction * action );

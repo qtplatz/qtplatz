@@ -109,61 +109,73 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
     typedef boost::error_info< struct tag_errmsg, std::string > info;
 
     if ( plugin ) {
-    
+
         adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
         if ( adplugin::orbFactory * factory = plugin->query_interface< adplugin::orbFactory >() ) {
-            
+
             if ( adplugin::orbServant * orbServant = factory->create_instance() ) {
-                
+
                 orbServant->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
                 std::string ior;
                 try {
                     ior = orbServant->activate();
-                } catch ( ... ) {
+                    ADTRACE() << ior;
+                }
+                catch ( CORBA::Exception& ex ) {
+                    BOOST_THROW_EXCEPTION( error() << info( ex._info().c_str() ) );
+                }
+                catch ( ... ) {
                     ADERROR() << "Exception at orbServant::activate call";
                     BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
                 }
                 if ( !ior.empty() ) {
-                    
+
                     CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
 
                     if ( CORBA::is_nil( obj ) ) {
                         ADERROR() << "can't get object reference for ior: " << ior;
                         return 0;
                     }
-                    
+
                     BrokerClient::Accessor_var accessor;
                     try {
                         accessor = BrokerClient::Accessor::_narrow( obj );
+                    } catch ( CORBA::Exception& ex ) {
+                        ADERROR() << "CORBA::Exception when narrow CORBA::Object to BrokerClient::Accessor obj = " << obj.in();
+                        BOOST_THROW_EXCEPTION( error() << info( ex._info().c_str() ) );
                     } catch ( ... ) {
                         ADERROR() << "Exception when narrow CORBA::Object to BrokerClient::Accessor obj = " << obj.in();
                         BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
                     }
 
                     if ( !CORBA::is_nil( accessor ) ) {
-                        
-						Broker::Manager_var mgr = adbroker::manager_i::instance()->impl()._this();
+
+                        Broker::Manager_var mgr = adbroker::manager_i::instance()->impl()._this();
                         accessor->setBrokerManager( mgr.in() );
                         accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );
 
                         try {
                             mgr->register_object( orbServant->object_name(), obj );
-                        } catch ( CORBA::Exception& ex ) {
+                        }
+                        catch ( CORBA::Exception& ex ) {
                             factory->release( orbServant );
                             BOOST_THROW_EXCEPTION( error() << info( ex._info().c_str() ) );
-                        } catch ( ... ) {
+                        }
+                        catch ( ... ) {
                             ADERROR() << "register_object";
                             BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
                         }
                     }
                     return orbServant;
                 }
-                
-            } else {
+
+            }
+            else {
                 ADTRACE() << plugin->clsid() << " nil instance created.";
             }
-            
-        } else {
+
+        }
+        else {
             ADTRACE() << plugin->clsid() << " has on adplugin::orbFactory class.";
         }
     }

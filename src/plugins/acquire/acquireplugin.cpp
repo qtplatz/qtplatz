@@ -24,12 +24,13 @@
 **************************************************************************/
 
 #include "acquireplugin.hpp"
-#include "constants.hpp"
 #include "acquiremode.hpp"
-#include "mainwindow.hpp"
-#include "receiver_i.hpp"
 #include "brokerevent_i.hpp"
+#include "constants.hpp"
+#include "mainwindow.hpp"
+#include "orbconnection.hpp"
 #include "qbroker.hpp"
+#include "receiver_i.hpp"
 
 #include <acewrapper/constants.hpp>
 #include <acewrapper/ifconfig.hpp>
@@ -332,9 +333,11 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     }
 
     try {
-        initialize_broker();
-    }
-    catch ( ... ) {
+        // initialize_broker();
+        OrbConnection::instance()->initialize();
+        Broker::Manager_var mgr = OrbConnection::instance()->brokerManager();
+        addObject ( new QBroker( mgr._retn() ) );
+    } catch ( ... ) {
         ADERROR() << "exception handled for initailize_broker: " << boost::current_exception_diagnostic_information();
     }
 
@@ -355,21 +358,15 @@ AcquirePlugin::extensionsInitialized()
         });
 	mainWindow_->OnInitialUpdate();
 
-    if ( ! orbServants_.empty() ) { // adbroker instance should be on top of vector by definition
-        if ( adplugin::orbServant * svrBroker = orbServants_[0] ) {
-            Broker::Manager_var mgr = Broker::Manager::_narrow( svrBroker->_this() );
-            if ( ! CORBA::is_nil( mgr ) ) {
-                pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
-                if ( ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
-                    pImpl_->initialize_broker_session();
-                } else {
-                    return;
-                }
-            } else {
-                return;
-            }    
-        }
-    }
+    Broker::Manager_var mgr = OrbConnection::instance()->brokerManager();
+    if ( CORBA::is_nil( mgr ) )
+        return;
+
+    pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
+    if ( CORBA::is_nil( pImpl_->brokerSession_ ) )
+        return;
+
+    pImpl_->initialize_broker_session();
     threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 }
 
@@ -400,12 +397,11 @@ AcquirePlugin::actionConnect()
         for ( auto& iController : iControllers ) {
             iController->wait_for_connection_ready();
         }
-
     }
 
-    if ( CORBA::is_nil( session_.in() ) && !orbServants_.empty() ) {
+    if ( CORBA::is_nil( session_.in() ) ) { //&& !orbServants_.empty() ) {
 
-		Broker::Manager_var broker = Broker::Manager::_narrow( orbServants_[0]->_this() );
+        Broker::Manager_var broker = OrbConnection::instance()->brokerManager(); // Broker::Manager::_narrow( orbServants_[ 0 ]->_this() );
         if ( ! CORBA::is_nil( broker ) ) {
             using namespace acewrapper::constants;
             CORBA::Object_var obj = broker->find_object( adcontroller::manager::_name() );
@@ -920,6 +916,7 @@ AcquirePlugin::handle_receiver_debug_print( int32_t, int32_t, std::string text )
     mainWindow_->eventLog( qtext );
 }
 
+#if 0
 void
 AcquirePlugin::initialize_broker()
 {
@@ -985,6 +982,7 @@ Please make sure you have up-to-date for Windows");
         }
     }
 }
+#endif
 
 void
 AcquirePlugin::shutdown_broker()
@@ -994,6 +992,8 @@ AcquirePlugin::shutdown_broker()
     auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
 	removeObject( iBroker );
 
+    OrbConnection::instance()->shutdown();
+#if 0
     // destriction must be reverse order
     for ( orbservant_vector_type::reverse_iterator it = orbServants_.rbegin(); it != orbServants_.rend(); ++it )
         (*it)->deactivate();
@@ -1014,7 +1014,7 @@ AcquirePlugin::shutdown_broker()
             
         }
     }
-
+#endif
     ADTRACE() << "AcquirePlugin::shutdown_broker() completed.";
 }
 
