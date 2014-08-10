@@ -327,19 +327,21 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     try {
         initialize_actions();
-    }
-    catch ( ... ) {
+    } catch ( ... ) {
         ADERROR() << "exception handled for initailize_actions: " << boost::current_exception_diagnostic_information();
     }
 
-    try {
-        // initialize_broker();
-        OrbConnection::instance()->initialize();
-        Broker::Manager_var mgr = OrbConnection::instance()->brokerManager();
-        addObject ( new QBroker( mgr._retn() ) );
-    } catch ( ... ) {
-        ADERROR() << "exception handled for initailize_broker: " << boost::current_exception_diagnostic_information();
-    }
+    auto qbroker = new QBroker();
+    connect( qbroker, &QBroker::initialized, this, &AcquirePlugin::handle_broker_initialized );
+    addObject( qbroker );
+
+    // try {
+    //     // initialize_broker();
+    //     OrbConnection::instance()->initialize();
+    //     Broker::Manager_var mgr = OrbConnection::instance()->brokerManager();
+    // } catch ( ... ) {
+    //     ADERROR() << "exception handled for initailize_broker: " << boost::current_exception_diagnostic_information();
+    // }
 
     mode->setWidget( createContents( mode ) );
 
@@ -357,7 +359,11 @@ AcquirePlugin::extensionsInitialized()
             mainWindow_->addMonitorWidget( factory->create(), factory->title() );
         });
 	mainWindow_->OnInitialUpdate();
+}
 
+void
+AcquirePlugin::handle_broker_initialized()
+{
     Broker::Manager_var mgr = OrbConnection::instance()->brokerManager();
     if ( CORBA::is_nil( mgr ) )
         return;
@@ -365,7 +371,7 @@ AcquirePlugin::extensionsInitialized()
     pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
     if ( CORBA::is_nil( pImpl_->brokerSession_ ) )
         return;
-
+    
     pImpl_->initialize_broker_session();
     threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 }

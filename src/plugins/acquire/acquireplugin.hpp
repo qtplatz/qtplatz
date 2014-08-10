@@ -119,6 +119,8 @@ namespace acquire {
 			void handleSelected( const QPointF& );
 			void handleSelected( const QRectF& );
 
+            void handle_broker_initialized();
+
         signals:
             // observer signals
             void onUpdateUIData( unsigned long, long );
