@@ -156,6 +156,7 @@ MainWindow::createContents( Core::IMode * )
         stack_->addWidget( panelsWidget );
     }
 
+    // Browse calibration curve & results
     if ( auto wnd = new QuanResultWnd( stack_ ) ) {
         
         stack_->addWidget( wnd );
@@ -217,8 +218,7 @@ MainWindow::toolButton( QAction * action )
 QToolButton * 
 MainWindow::toolButton( const char * id )
 {
-    Core::ActionManager * mgr = Core::ActionManager::instance(); // ->actionManager();
-    return toolButton( mgr->command(id)->action() );
+    return toolButton( Core::ActionManager::instance()->command(id)->action() );
 }
 
 QAction *
@@ -235,28 +235,29 @@ MainWindow::createActions()
     //actions_[ idActFileOpen ] = createAction( Constants::ICON_FILE_OPEN, tr("Open protain file..."), this );
     //connect( actions_[ idActFileOpen ], SIGNAL( triggered() ), this, SLOT( actFileOpen() ) );
 
-    Core::Context gc;
-    gc.add( Core::Id( Core::Constants::C_GLOBAL ) );
+    Core::Context context( Core::Constants::C_GLOBAL, Constants::C_QUAN_MODE );
 
     if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
         
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
-        menu->menu()->setTitle( "Quan" );
+        menu->menu()->setTitle( tr("Quan") );
 
         if ( auto p = actions_[ idActRun ] = new QAction( QIcon( ":/quan/images/run.png" ), tr("Run"), this ) ) {
-            am->registerAction( p, Constants::SEQUENCE_RUN, gc );
+            am->registerAction( p, Constants::SEQUENCE_RUN, context );
             connect( p, &QAction::triggered, this, &MainWindow::run );
         }
         if ( auto p = actions_[ idActStop ] = new QAction( QIcon(":/quan/images/stop.png"), tr("Stop"), this ) ) {
-            am->registerAction( p, Constants::SEQUENCE_STOP, gc );
+            am->registerAction( p, Constants::SEQUENCE_STOP, context );
             connect( p, &QAction::triggered, this, &MainWindow::stop );
             p->setEnabled( false );
         }
 
         //Core::Command * cmd = 0;
-
-        //cmd = am->registerAction( actions_[ idActFileOpen ], Constants::FILE_OPEN, gc );
-        //menu->addAction( cmd );
+        if ( auto p = actions_[ idActFileOpen ] = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Quan result file open..." ), this ) ) {
+            am->registerAction( actions_[ idActFileOpen ], Constants::FILE_OPEN, context );
+            connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanResult );
+            menu->addAction( am->command( Constants::FILE_OPEN ) );
+        }
 
         am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
     }
@@ -343,4 +344,20 @@ MainWindow::handleSequenceCompleted()
 
     if ( auto tab = findChild< DoubleTabWidget * >() )
         tab->setCurrentIndex( -1, 2 );
+}
+
+void
+MainWindow::handleOpenQuanResult()
+{
+    if ( auto widget = findChild<QuanReportWidget *>() ) {
+        QString name;
+        if ( auto edit = widget->findChild< QLineEdit * >( Constants::editQuanFilename ) ) {
+            name = edit->text();
+            if ( name.isEmpty() )
+                name = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
+        }
+        name = QFileDialog::getOpenFileName( this, tr( "Open Quantitative Analysis Result file" ), name, tr( "File(*.adfs)" ) );
+        if ( ! name.isEmpty() )
+            widget->handleReport( name );
+    }
 }

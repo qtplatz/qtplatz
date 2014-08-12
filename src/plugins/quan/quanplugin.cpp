@@ -60,12 +60,8 @@ QuanPlugin::initialize(const QStringList &arguments, QString *errorString)
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
 
-    //mainWindow_->activateWindow();
     mainWindow_->createActions();
 
-    //Core::Context gc;
-    //gc.add( Core::Id( Core::Constants::C_GLOBAL ) );
-    //mode_->setContext( gc );
     mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
 
     addObject( mode_.get() );

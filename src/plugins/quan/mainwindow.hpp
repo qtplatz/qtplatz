@@ -58,6 +58,7 @@ namespace quan {
         enum idActions {
             idActRun
             , idActStop
+            , idActFileOpen
             , nActions
         };
 
@@ -78,6 +79,7 @@ namespace quan {
         void commit();
         void handleIndexChanged( int index, int subIndex );
         void handleSequenceCompleted();
+        void handleOpenQuanResult();
 
     signals:
 
