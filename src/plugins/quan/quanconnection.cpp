@@ -23,9 +23,19 @@
 **************************************************************************/
 
 #include "quanconnection.hpp"
+#include "quanplotdata.hpp"
 #include "quanquery.hpp"
+#include <adfs/cpio.hpp>
 #include <adfs/filesystem.hpp>
+#include <adfs/folder.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
+#include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
+#include <dataproc/dataprocconstants.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/exception/all.hpp>
 #include <QMessageBox>
 
 using namespace quan;
@@ -67,3 +77,66 @@ QuanConnection::db()
     static adfs::sqlite dummy;
     return dummy;
 }
+
+adfs::file
+QuanConnection::select_file( const std::wstring& dataGuid )
+{
+    if ( auto folder = fs_->findFolder( L"/Processed/Spectra" ) )
+        return folder.selectFile( dataGuid );
+    return adfs::file();
+}
+
+QuanPlotData *
+QuanConnection::fetch( const std::wstring& dataGuid )
+{
+    if ( cache_.find( dataGuid ) != cache_.end() )
+        return cache_[ dataGuid ].get();
+    
+    if ( auto file = select_file( dataGuid ) ) {
+        
+        auto d = std::make_shared< QuanPlotData >();
+
+        ADDEBUG() << "file::dataClass=" << file.dataClass() << "\tname:" << file.name();
+
+        if ( file.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
+
+            try {
+                if ( file.fetch( *d->profile ) ) {
+
+                    auto atts = file.attachments();
+                    for ( auto& att : atts ) {
+
+                        ADDEBUG() << "att::dataClass=" << att.dataClass() << "\tname:" << att.name();
+
+                        if ( att.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
+
+                            if ( att.attribute( L"name" ) == dataproc::Constants::F_CENTROID_SPECTRUM ) {
+                                if ( !att.fetch( *d->centroid ) )
+                                    return 0;
+
+                            } else if ( att.attribute( L"name" ) == dataproc::Constants::F_DFT_FILTERD ) {
+
+                                att.fetch( *d->profile );
+                            }
+
+                        } else if ( att.dataClass() == adcontrols::MSPeakInfo::dataClass() ) {
+
+                            if ( !att.fetch( *d->pkinfo ) )
+                                return 0;
+
+                        }
+                    }
+                }
+            } catch ( std::exception& ex ) {
+                ADERROR() << boost::diagnostic_information( ex );
+                return 0;
+            }
+        }
+
+        cache_[ dataGuid ] = d;
+
+        return cache_[ dataGuid ].get();
+    }
+    return 0;
+}
+

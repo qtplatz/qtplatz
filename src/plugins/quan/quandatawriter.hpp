@@ -56,7 +56,7 @@ namespace quan {
         bool insert_table( const adcontrols::QuanMethod& );
         bool insert_table( const adcontrols::QuanSequence& );
         bool insert_table( const adcontrols::QuanCompounds& );
-        bool insert_table( const adcontrols::QuanSample& );
+        bool insert_table( const adcontrols::QuanSample&, const std::wstring& dataGuid /* file.name() */ );
 
         static bool insert_table( adfs::stmt&, const adcontrols::idAudit&, const std::string& what );
 

@@ -89,9 +89,13 @@ folder::files() const
 }
 
 file
-folder::selectFile( const std::wstring& )
+folder::selectFile( const std::wstring& id )
 {
-    return file();
+    adfs::file file;
+    if ( db_ && rowid_ ) {
+        internal::fs::select_file( *db_, rowid_, id, file );
+    }
+    return file;
 }
 
 /////////////////////////

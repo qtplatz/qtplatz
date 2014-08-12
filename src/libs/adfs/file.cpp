@@ -38,7 +38,8 @@ file::~file()
 }
 
 file::file() : db_(0)
-             , rowid_(0)
+             , rowid_(0)  // directory rowid
+             , fileid_(0) // file rowid
              , is_attachment_(false)
 {
 }
@@ -48,6 +49,7 @@ file::file( const file& t ) : attributes( t )
                             , db_( t.db_ )
                             , name_( t.name_ )  
                             , rowid_( t.rowid_ )
+                            , fileid_( t.fileid_ )
                             , is_attachment_( t.is_attachment_ )
 {
 }
@@ -58,11 +60,13 @@ file::file( sqlite& db
             , bool is_attachment ) : db_( &db )
                                    , name_( name )  
                                    , rowid_( rowid )
+                                   , fileid_( 0 )
                                    , is_attachment_( is_attachment ) 
 {
     attributes::fetch();
 	if ( attributes::id() != name_ )
 		attributes::id( name_ );
+    fileid_ = internal::fs::rowid_from_fileid( *db_, rowid_ );
 }
 
 
@@ -114,14 +118,21 @@ file::write( std::size_t size, const char_t * p )
 std::size_t
 file::read( std::size_t size, char_t * p )
 {
-    if ( internal::fs::read( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ), size, p ) )
-        return size;
+    if ( fileid_ > 0 ) {
+        if ( internal::fs::read( *db_, fileid_, size, p ) )
+            return size;
+    } else { 
+        if ( internal::fs::read( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ), size, p ) )
+            return size;
+    }
     return 0;
 }
 
 std::size_t
 file::size() const
 {
-    size_t size = internal::fs::size( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ) );
-    return size;
+    if ( fileid_ > 0 )
+        return internal::fs::size( *db_, fileid_ );
+    else
+        return internal::fs::size( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ) );
 }
