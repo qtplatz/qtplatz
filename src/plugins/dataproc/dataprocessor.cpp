@@ -428,6 +428,7 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType pro
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
     if ( folium )
         applyProcess( folium, m, procType );
+    setModified( true );
 }
 
 void
@@ -470,6 +471,7 @@ Dataprocessor::removeCheckedItems()
         for ( auto& folium: folder.folio() ) {
             if ( folium.attribute( L"isChecked" ) == L"false" ) {
                 folder.removeFolium( folium );
+                setModified( true );
             }
         }
     }
@@ -683,7 +685,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 		// replace calibration
 		if ( DataprocessorImpl::applyMethod( folium, *mcalib, assigned ) )
 			SessionManager::instance()->updateDataprocessor( this, folium );
-
+        setModified( true );
     }
 }
 
@@ -691,6 +693,8 @@ void
 Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibration )
 {
     if ( portfolio::Folder folder = portfolio_->findFolder( L"Spectra" ) ) {
+
+        setModified( true );
 
         for ( portfolio::Folium folium: folder.folio() ) {
 
@@ -815,6 +819,9 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
         folium.setAttribute( L"isChecked", L"true" );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
+
+    setModified( true );
+
 	return folium;
 }
 
@@ -824,7 +831,10 @@ Dataprocessor::addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& spect
     portfolio::Folder folder = portfolio_->addFolder( L"Spectrograms" );
     portfolio::Folium folium = folder.addFolium( L"Spectrogram" );  // "Spectrograms/Spectrogram"
 	folium.assign( spectra, spectra->dataClass() );
+
     SessionManager::instance()->updateDataprocessor( this, folium );
+    setModified( true );
+
 	return folium;
 }
 
@@ -836,7 +846,9 @@ Dataprocessor::addSpectrogramClusters( std::shared_ptr< adcontrols::SpectrogramC
     if ( folium ) {
         portfolio::Folium att = folium.addAttachment( L"Clusters" );
         att.assign( clusters, clusters->dataClass() );
+
         SessionManager::instance()->updateDataprocessor( this, folium );
+        setModified( true );
     }
 	return folium;
 }
@@ -845,12 +857,14 @@ void
 Dataprocessor::createSpectrogram()
 {
 	DataprocessWorker::instance()->createSpectrogram( this );
+    setModified( true );
 }
 
 void
 Dataprocessor::clusterSpectrogram()
 {
 	DataprocessWorker::instance()->clusterSpectrogram( this );
+    setModified( true );
 }
 
 void
@@ -875,6 +889,7 @@ Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
 
 			xms.addDescription( adcontrols::Description( L"processed", ( boost::wformat( L"%1% - %2%" ) % target.name() % base.name() ).str() ) );
             addSpectrum( xms, adcontrols::ProcessMethod() );
+            setModified( true );
         }
     }
 }
@@ -915,6 +930,7 @@ Dataprocessor::onFileAdded( const std::wstring& path, adfs::file& file )
 	// 	folium.setAttribute( attrib->first, attrib->second );
 	
 	SessionManager::instance()->updateDataprocessor( this, folium );
+    setModified( true );
 
 	return true;
 }
