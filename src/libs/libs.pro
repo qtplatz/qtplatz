@@ -23,5 +23,6 @@ SUBDIRS   = \
     adorbmgr \
     adchem \
     adprot \
-    adwidgets
+    adwidgets \
+    adpublisher
 
