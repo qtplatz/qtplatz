@@ -70,7 +70,7 @@ ActionManager::install_file_actions()
         // File->Processing
         if ( Core::ActionContainer * menu = am->createMenu( "dataproc.menu" ) ) {
 
-            menu->menu()->setTitle( "Processing" );
+            menu->menu()->setTitle( tr("Processing") );
 
             menu->addAction( am->command( Constants::METHOD_OPEN ) );
             menu->addAction( am->command( Constants::METHOD_SAVE ) );
@@ -83,7 +83,7 @@ ActionManager::install_file_actions()
             menu->addAction( am->command( Constants::CREATE_SPECTROGRAM ) );
             menu->addAction( am->command( Constants::CLUSTER_SPECTROGRAM ) );
 
-            am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
+            am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
         }
     }
     return true;

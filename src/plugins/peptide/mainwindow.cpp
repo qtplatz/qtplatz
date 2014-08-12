@@ -314,7 +314,7 @@ MainWindow::createActions()
     if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
 
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
-        menu->menu()->setTitle( "Peptide" );
+        menu->menu()->setTitle( tr("Peptide") );
 
         Core::Command * cmd = 0;
 
@@ -328,7 +328,7 @@ MainWindow::createActions()
 void
 MainWindow::setDemoData()
 {
-    topLineEdit_->setText( "select a file contains protein sequences by clicking file open icon..." );
+    topLineEdit_->setText( tr( "select a file contains protein sequences by clicking file open icon..." ) );
     adprot::protein protein( "Bovin serum albumin",
                              " MKWVTFISLL LLFSSAYSRG VFRRDTHKSE IAHRFKDLGE EHFKGLVLIA FSQYLQQCPF" \
                              " DEHVKLVNEL TEFAKTCVAD ESHAGCEKSL HTLFGDELCK VASLRETYGD MADCCEKQEP" \
