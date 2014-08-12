@@ -57,6 +57,8 @@ namespace dataproc {
 
         static MainWindow * instance();
         
+        void contextMenuEvent( QContextMenuEvent * ) override { /* disable */ }; // from Utils::FancyMainWindow <- QMainWindow <= QWidget
+
         QWidget * createContents( Core::IMode * );
         // if you are looking for 'create_actions', you should see dataproc::ActionManager
         
