@@ -53,6 +53,8 @@ namespace adwplot {
         void setPeak( const adcontrols::MassSpectrum&, int idx, bool isTime = false, adcontrols::metric::prefix pfx = adcontrols::metric::micro );
         void visible( bool );
 
+        QwtPlotMarker * marker( idAxis );
+
     private:
         std::array< QwtPlotMarker *, numMarkers > markers_;
     };

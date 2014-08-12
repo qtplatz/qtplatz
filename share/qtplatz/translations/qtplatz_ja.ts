@@ -42749,7 +42749,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+1"/>
         <source>level</source>
-        <translation type="unfinished">検量線レベル</translation>
+        <translation type="unfinished">検量線レベルqt</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -43467,13 +43467,13 @@ p, li { white-space: pre-wrap; }
         <location line="+6"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+6"/>
         <source>Check all spectra</source>
-        <translation>すべてのスペクトルをチェック</translation>
+        <translation>すべてのスペクトルにチェック</translation>
     </message>
     <message>
         <location line="+3"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+3"/>
         <source>Uncheck all spectra</source>
-        <translation>スペクトルのすべてのチェックを外す</translation>
+        <translation>すべてのスペクトルからチェックを外す</translation>
     </message>
     <message>
         <location line="+47"/>

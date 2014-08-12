@@ -30,6 +30,8 @@
 
 #include <adwplot/dataplot.hpp>
 
+namespace adwplot { class PeakMarker; }
+
 namespace quan {
 
     class QuanPlotData;
@@ -42,11 +44,12 @@ namespace quan {
         ~QuanPlotWidget();
         QuanPlotWidget( QWidget * parent = 0 );
 
-        void setData( const QuanPlotData *, size_t idx, int fcn );
+        void setData( const QuanPlotData *, size_t idx, int fcn, const std::wstring& dataSource );
         adwplot::Dataplot * dataplot() { return dplot_.get(); }
         void dataplot( adwplot::Dataplot * p ) { dplot_.reset( p ); }
     private:
         std::unique_ptr< adwplot::Dataplot > dplot_;
+        std::unique_ptr< adwplot::PeakMarker > marker_;
         void handleDataChanged( int id, bool f );
     };
 

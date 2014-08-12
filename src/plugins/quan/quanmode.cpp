@@ -34,8 +34,8 @@ using namespace quan;
 
 QuanMode::QuanMode(QObject *parent) : Core::IMode(parent)
 {
-    //setName( tr( "Quan" ) );
-    //setUniqueModeName( quan::Constants::C_QUAN_MODE );
+    setId( Constants::C_QUAN_MODE );
+    setContext( Core::Context( Core::Constants::C_GLOBAL, Constants::C_QUAN_MODE ) );
     setDisplayName( tr( "Quan" ) );
     setIcon(QIcon(":/quan/images/balance.png"));
     setPriority( 60 );
@@ -52,8 +52,6 @@ QuanMode::grabEditorManager(Core::IMode *mode)
     if (mode != this)
         return;
 
-    Core::EditorManager * em = Core::EditorManager::instance();
-    
-    if ( em->currentEditor() )
-        em->currentEditor()->widget()->setFocus();
+    if ( Core::EditorManager::instance()->currentEditor() )
+        Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
 }

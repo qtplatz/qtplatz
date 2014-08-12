@@ -176,6 +176,7 @@ void
 CentroidProcessImpl::setup( const MassSpectrum& profile )
 {
     clone_.clone( profile, false ); // keep meta data
+    info_.protocol( profile.protocolId(), profile.nProtocols() );
 }
 
 void
