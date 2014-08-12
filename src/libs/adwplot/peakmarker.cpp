@@ -55,6 +55,12 @@ PeakMarker::PeakMarker()
     markers_[ idPeakTop ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
 }
 
+QwtPlotMarker *
+PeakMarker::marker( idAxis id )
+{
+    return markers_[ id ];
+}
+
 PeakMarker::~PeakMarker()
 {
     for ( auto marker: markers_ )

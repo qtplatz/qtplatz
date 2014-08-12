@@ -162,7 +162,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     if ( core == 0 )
         return false;
 
-    Core::Context context( (Core::Id( Constants::C_DATAPROCESSOR )) );
+    // Core::Context context( (Core::Id( Constants::C_DATAPROCESSOR )) );
 
     //-------------------------------------------------------------------------------------------
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
@@ -230,9 +230,9 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     mode_.reset( new dataproc::Mode( this ) );
     if ( ! mode_ )
         return false;
-    mode_->setContext( context );
+    // mode_->setContext( context );
 
-    pActionManager_->initialize_actions( context );
+    pActionManager_->initialize_actions( mode_->context() );
     mainWindow_->activateLayout();
     QWidget * widget = mainWindow_->createContents( mode_.get() );
     widget->setObjectName( QLatin1String( "DataprocessingPage") );

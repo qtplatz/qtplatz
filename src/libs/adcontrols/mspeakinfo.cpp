@@ -35,8 +35,8 @@ MSPeakInfo::MSPeakInfo( int mode ) : mode_( mode )
 
 MSPeakInfo::MSPeakInfo( const MSPeakInfo& t ) : vec_( t.vec_ )
                                               , mode_( t.mode_ )
-                                              , protocolId_( 0 )
-                                              , nProtocols_( 0 )
+                                              , protocolId_( t.protocolId_ )
+                                              , nProtocols_( t.nProtocols_ )
 {
 }
 

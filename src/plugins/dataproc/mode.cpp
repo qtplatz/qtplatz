@@ -40,8 +40,8 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     setPriority( 80 );
 
     setId( Constants::C_DATAPROCESSOR );
-    setContextHelpId( QLatin1String( "Qt Creator Manual " ) );
-    setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::C_EDIT_MODE ) );
+    setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
+    setContext( Core::Context( Core::Constants::C_GLOBAL, Constants::C_DATAPROCESSOR, Core::Constants::C_EDIT_MODE ) );
 
     //connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
 

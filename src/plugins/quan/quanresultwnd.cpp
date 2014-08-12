@@ -258,18 +258,20 @@ QuanResultWnd::handleResponseSelected( int respId )
             }
         }
         std::wstring dataGuid;
+        std::wstring dataSource;
         size_t idx;
         int fcn;
-        if ( sql.prepare( "SELECT dataGuid,idx,fcn from QuanSample, QuanResponse WHERE QuanResponse.id = ? AND QuanSample.id = QuanResponse.idSample" ) ) {
+        if ( sql.prepare( "SELECT dataGuid,idx,fcn,dataSource FROM QuanSample, QuanResponse WHERE QuanResponse.id = ? AND QuanSample.id = QuanResponse.idSample" ) ) {
             sql.bind( 1 ) = respId;
             if ( sql.step() == adfs::sqlite_row ) {
                 dataGuid = sql.get_column_value< std::wstring >( 0 );
                 idx = size_t( sql.get_column_value< uint64_t >( 1 ) );
                 fcn = int( sql.get_column_value< int64_t >( 2 ) );
+                dataSource = sql.get_column_value< std::wstring >( 3 );
             }
         }
         if ( auto d = conn->fetch( dataGuid ) ) {
-            dplot_->setData( d, idx, fcn );
+            dplot_->setData( d, idx, fcn, dataSource );
         }
     }
 }
