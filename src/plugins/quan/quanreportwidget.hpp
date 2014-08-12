@@ -40,6 +40,9 @@ namespace quan {
     public:
         ~QuanReportWidget();
         explicit QuanReportWidget(QWidget *parent = 0);
+
+        void handleReport( const QString& );
+
     private:
         QGridLayout * layout_;
         std::unique_ptr< QuanQueryForm > form_;
@@ -52,8 +55,6 @@ namespace quan {
     public slots:
 
     private slots:
-
-        void handleReport( const QString& );
         void handleQuery( const QString& );
     };
 

@@ -43898,11 +43898,12 @@ p, li { white-space: pre-wrap; }
     <name>quan::MainWindow</name>
     <message>
         <location filename="../../../src/plugins/quan/mainwindow.cpp" line="+96"/>
+        <location line="+147"/>
         <source>Quan</source>
         <translation>定量</translation>
     </message>
     <message>
-        <location line="+0"/>
+        <location line="-147"/>
         <location line="+21"/>
         <source>Select Data</source>
         <translation>データ選択</translation>
@@ -43938,7 +43939,7 @@ p, li { white-space: pre-wrap; }
         <translation>ピーク検出・ピーク同定</translation>
     </message>
     <message>
-        <location line="+107"/>
+        <location line="+106"/>
         <source>Run</source>
         <translation>実行</translation>
     </message>
@@ -43946,6 +43947,21 @@ p, li { white-space: pre-wrap; }
         <location line="+4"/>
         <source>Stop</source>
         <translation>停止</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Quan result file open...</source>
+        <translation>定量結果を開く...</translation>
+    </message>
+    <message>
+        <location line="+103"/>
+        <source>Open Quantitative Analysis Result file</source>
+        <translation>定量結果を開く</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>File(*.adfs)</source>
+        <translation>ファイル(*.adfs)</translation>
     </message>
 </context>
 <context>
@@ -44002,19 +44018,17 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>quan::QuanReportWidget</name>
     <message>
-        <location filename="../../../src/plugins/quan/quanreportwidget.cpp" line="+77"/>
+        <location filename="../../../src/plugins/quan/quanreportwidget.cpp" line="+79"/>
         <source>Open result file...</source>
         <translation>定量結果ファイル...</translation>
     </message>
     <message>
-        <location line="+10"/>
         <source>Open Quantitative Analysis Result file</source>
-        <translation>定量結果を開く</translation>
+        <translation type="vanished">定量結果を開く</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>File(*.adfs)</source>
-        <translation>ファイル(*.adfs)</translation>
+        <translation type="vanished">ファイル(*.adfs)</translation>
     </message>
 </context>
 <context>

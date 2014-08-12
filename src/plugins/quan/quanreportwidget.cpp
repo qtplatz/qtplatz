@@ -31,6 +31,7 @@
 #include "quanresulttable.hpp"
 #include <adportable/profile.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <coreplugin/actionmanager/actionmanager.h>
 #include <utils/styledbar.h>
 #include <QFileDialog>
 #include <QLabel>
@@ -73,22 +74,9 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
         toolBarLayout->setSpacing( 2 );
 
         if ( auto btnOpen = new QToolButton ) {
-            btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
+            btnOpen->setDefaultAction( Core::ActionManager::instance()->command( Constants::FILE_OPEN )->action() );
             btnOpen->setToolTip( tr("Open result file...") );
             toolBarLayout->addWidget( btnOpen );
-            connect( btnOpen, &QToolButton::clicked, this, [&] ( bool ){
-                    QString name;
-                    if ( auto edit = findChild< QLineEdit * >( Constants::editQuanFilename ) ) {
-                        name = edit->text();
-                        if ( name.isEmpty() )
-                            name = QString::fromStdWString( adportable::profile::user_data_dir<wchar_t>() + L"/data" );
-                    }
-                    name = QFileDialog::getOpenFileName( this
-                                                         , tr("Open Quantitative Analysis Result file")
-                                                         , name, tr("File(*.adfs)") );
-                    if ( !name.isEmpty() )
-                        handleReport( name );
-                } );
         }
 
         auto edit = new QLineEdit;
