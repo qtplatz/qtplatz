@@ -42054,7 +42054,6 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/dataproc/backup/dialogspectrometerchoice.ui"/>
         <location filename="../../../src/plugins/dataproc/dialogspectrometerchoice.ui"/>
-        <location filename="../../../src/plugins/dataproc/backup/ui_dialogspectrometerchoice.h" line="+52"/>
         <location filename="../../../src/plugins/dataproc/ui_dialogspectrometerchoice.h" line="+52"/>
         <source>Dialog</source>
         <translation>ダイアログ</translation>
@@ -42065,7 +42064,6 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/dataproc/backup/mspropertyform.ui"/>
         <location filename="../../../src/plugins/dataproc/mspropertyform.ui"/>
-        <location filename="../../../src/plugins/dataproc/backup/ui_mspropertyform.h" line="+60"/>
         <location filename="../../../src/plugins/dataproc/ui_mspropertyform.h" line="+60"/>
         <source>Form</source>
         <translation>フォーム</translation>
@@ -42276,26 +42274,21 @@ p, li { white-space: pre-wrap; }
     <name>SequenceWidget</name>
     <message>
         <location filename="../../../src/plugins/sequence/sequencewidget.ui"/>
-        <location filename="../../../src/plugins/sequence/ui_sequencewidget.h" line="+110"/>
         <source>Form</source>
         <translation type="unfinished">フォーム</translation>
     </message>
     <message>
         <location/>
-        <location filename="../../../src/plugins/sequence/ui_sequencewidget.h" line="+1"/>
         <source>Data save in:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location/>
-        <location filename="../../../src/plugins/sequence/ui_sequencewidget.h" line="+1"/>
         <source>Name:</source>
         <translation type="unfinished">名前:</translation>
     </message>
     <message>
         <location/>
-        <location filename="../../../src/plugins/sequence/ui_sequencewidget.h" line="+1"/>
-        <location line="+1"/>
         <source>...</source>
         <translation type="unfinished">...</translation>
     </message>
@@ -42622,7 +42615,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+5"/>
         <source>Amount</source>
-        <translation type="unfinished">定量値</translation>
+        <translation>定量値</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -42749,7 +42742,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+1"/>
         <source>level</source>
-        <translation type="unfinished">検量線レベルqt</translation>
+        <translation>検量線レベル</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -42764,7 +42757,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+3"/>
         <source>amount</source>
-        <translation type="unfinished">定量値</translation>
+        <translation>定量値</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -42814,7 +42807,7 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>acquire::internal::AcquirePlugin</name>
     <message>
-        <location filename="../../../src/plugins/acquire/acquireplugin.cpp" line="+250"/>
+        <location filename="../../../src/plugins/acquire/acquireplugin.cpp" line="+253"/>
         <source>Connect to control server...</source>
         <translation>装置制御サーバへ接続...</translation>
     </message>
@@ -42844,7 +42837,7 @@ p, li { white-space: pre-wrap; }
         <translation>スペクトルスナップショット</translation>
     </message>
     <message>
-        <location line="+801"/>
+        <location line="+806"/>
         <source>Sequence:</source>
         <translation>サンプルシーケンス:</translation>
     </message>
@@ -42887,7 +42880,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+4"/>
         <source>Batch process</source>
-        <translation type="unfinished"></translation>
+        <translation>バッチ処理</translation>
     </message>
     <message>
         <location line="+33"/>
@@ -42921,10 +42914,15 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/chemistry/chemistryplugin.cpp" line="+105"/>
         <source>SDFile open...</source>
-        <translation type="unfinished"></translation>
+        <translation>ＳＤファイルを開く</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+6"/>
+        <source>Chemistry</source>
+        <translation>化合物検索</translation>
+    </message>
+    <message>
+        <location line="+27"/>
         <source>Action triggered</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42942,7 +42940,7 @@ p, li { white-space: pre-wrap; }
         <translation>検索</translation>
     </message>
     <message>
-        <location line="+203"/>
+        <location line="+199"/>
         <source>&gt;&gt; Drop SD File on table: </source>
         <translation>化合物構造ファイル(SD File) をテーブルにドロップ:</translation>
     </message>
@@ -43398,7 +43396,12 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>dataproc::ActionManager</name>
     <message>
-        <location filename="../../../src/plugins/dataproc/actionmanager.cpp" line="+103"/>
+        <location filename="../../../src/plugins/dataproc/actionmanager.cpp" line="+73"/>
+        <source>Processing</source>
+        <translation type="unfinished">データ解析</translation>
+    </message>
+    <message>
+        <location line="+30"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+102"/>
         <source>Save</source>
         <translation>保存</translation>
@@ -43473,7 +43476,7 @@ p, li { white-space: pre-wrap; }
         <location line="+3"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+3"/>
         <source>Uncheck all spectra</source>
-        <translation>すべてのスペクトルからチェックを外す</translation>
+        <translation type="unfinished">質量キャリブレーション(MT)</translation>
     </message>
     <message>
         <location line="+47"/>
@@ -43745,7 +43748,17 @@ p, li { white-space: pre-wrap; }
         <translation>タンパク質配列ファイルを開く...</translation>
     </message>
     <message>
-        <location line="+51"/>
+        <location line="+8"/>
+        <source>Peptide</source>
+        <translation>ペプチド</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>select a file contains protein sequences by clicking file open icon...</source>
+        <translation>タンパク質配列ファイルを開く</translation>
+    </message>
+    <message>
+        <location line="+29"/>
         <source>Open protein definition file</source>
         <translation>酵素定義ファイルを開く</translation>
     </message>

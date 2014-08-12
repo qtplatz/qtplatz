@@ -108,7 +108,7 @@ ChemistryPlugin::initialize_actions()
     const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
     if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
-        menu->menu()->setTitle( "Chemistry" );
+        menu->menu()->setTitle( tr("Chemistry") );
 
         Core::Command * cmd = 0;
 
