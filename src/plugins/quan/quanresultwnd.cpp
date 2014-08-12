@@ -24,12 +24,16 @@
 
 #include "quanresultwnd.hpp"
 #include "quandocument.hpp"
+#include "quanplotwidget.hpp"
 #include "quanresultwidget.hpp"
 #include "quanresulttable.hpp"
 #include "quanconnection.hpp"
 #include "quanquery.hpp"
 #include "quancmpdwidget.hpp"
+#include <adcontrols/massspectrum.hpp>
 #include <adfs/sqlite.hpp>
+#include <adfs/folder.hpp>
+#include <adfs/file.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
 #include <adwplot/dataplot.hpp>
@@ -80,10 +84,15 @@ namespace quan {
 
 using namespace quan;
 
+QuanResultWnd::~QuanResultWnd()
+{
+}
+
 QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
                                               , cmpdWidget_( new QuanCmpdWidget )
                                               , respTable_( new QuanResultWidget )
-                                              , calibplot_( std::make_shared< adwplot::Dataplot >() )
+                                              , calibplot_( new adwplot::Dataplot )
+                                              , dplot_( new QuanPlotWidget )
 {
     QwtPlotGrid * grid = new QwtPlotGrid;
     grid->setMajorPen( Qt::gray, 0, Qt::DotLine );
@@ -103,9 +112,9 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
         if ( Core::MiniSplitter  * splitter2 = new Core::MiniSplitter ) { // left pane split top (table) & bottom (time,mass plot)
             splitter2->setOrientation( Qt::Horizontal );        // Plot | Text
             wndSplitter->addWidget( splitter2 );
-            
+           
             splitter2->addWidget( calibplot_.get() );
-            splitter2->addWidget( new QTextEdit );
+            splitter2->addWidget( dplot_.get() );
         }
     }
     splitter->addWidget( cmpdWidget_ );
@@ -247,6 +256,20 @@ QuanResultWnd::handleResponseSelected( int respId )
                 }
 
             }
+        }
+        std::wstring dataGuid;
+        size_t idx;
+        int fcn;
+        if ( sql.prepare( "SELECT dataGuid,idx,fcn from QuanSample, QuanResponse WHERE QuanResponse.id = ? AND QuanSample.id = QuanResponse.idSample" ) ) {
+            sql.bind( 1 ) = respId;
+            if ( sql.step() == adfs::sqlite_row ) {
+                dataGuid = sql.get_column_value< std::wstring >( 0 );
+                idx = size_t( sql.get_column_value< uint64_t >( 1 ) );
+                fcn = int( sql.get_column_value< int64_t >( 2 ) );
+            }
+        }
+        if ( auto d = conn->fetch( dataGuid ) ) {
+            dplot_->setData( d, idx, fcn );
         }
     }
 }

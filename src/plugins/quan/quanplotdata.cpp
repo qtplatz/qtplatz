@@ -22,44 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef QUANCONNECTION_HPP
-#define QUANCONNECTION_HPP
+#include "quanplotdata.hpp"
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 
-#include <memory>
-#include <string>
-#include <vector>
-#include <boost/variant.hpp>
-#include <adfs/sqlite.hpp>
-#include <adfs/file.hpp>
+using namespace quan;
 
-namespace adfs { class filesystem; class stmt; class sqlite; }
-namespace adcontrols { class QuanMethod; class QuanSequence; class MassSpectrum; class MSPeakInfo; }
-
-namespace quan {
-
-    class QuanQuery;
-    class QuanPlotData;
-
-    class QuanConnection : public std::enable_shared_from_this < QuanConnection > {
-        QuanConnection( const QuanConnection& ) = delete;
-    public:
-        QuanConnection();
-        ~QuanConnection();
-
-        bool connect( const std::wstring& database );
-        std::shared_ptr< QuanQuery > query();
-        adfs::sqlite& db();
-
-        adfs::file select_file( const std::wstring& dataClass );
-
-        QuanPlotData * fetch( const std::wstring& dataGuid );
-
-    private:
-        std::wstring filename_;
-        std::shared_ptr< adfs::filesystem > fs_;
-        std::map< std::wstring, std::shared_ptr< QuanPlotData > > cache_;
-    };
-
+QuanPlotData::~QuanPlotData()
+{
 }
 
-#endif // QUANCONNECTION_HPP
+QuanPlotData::QuanPlotData() : profile( std::make_shared< adcontrols::MassSpectrum >() )
+                             , centroid( std::make_shared< adcontrols::MassSpectrum >() )
+                             , pkinfo( std::make_shared< adcontrols::MSPeakInfo >() )
+{
+}
+
+QuanPlotData::QuanPlotData( const QuanPlotData& t ) : profile( t.profile )
+                                                    , centroid( t.centroid )
+                                                    , pkinfo( t.pkinfo )
+{
+}

@@ -500,12 +500,20 @@ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
 }
 
 bool
-QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
+QuanDataWriter::insert_table( const adcontrols::QuanSample& t, const std::wstring& dataGuid )
 {
     adfs::stmt sql( fs_.db() );
 
     sql.begin();
-    size_t rows_processed = 0;
+
+    if ( sql.prepare( "UPDATE QuanSample SET dataGuid = :dataGuid WHERE uuid = :uuid" ) ) {
+        int col = 1;
+        sql.bind( col++ ) = dataGuid;
+        sql.bind( col++ ) = t.uuid();
+        if ( sql.step() != adfs::sqlite_done )
+            ADTRACE() << "sql error";
+    }
+
     for ( auto& result: t.results() ) {
 
         if ( sql.prepare( "INSERT INTO QuanResponse \
@@ -524,12 +532,8 @@ FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
             sql.bind( col++ ) = result.tR_;                      // observed retention time
             sql.bind( col++ ) = t.uuid();                        // QuanSample.uuid            
 
-            if ( sql.step() == adfs::sqlite_done ) {
-                if ( ++rows_processed >= 100 ) {
-                    sql.commit();                    
-                    sql.begin();
-                }
-            }
+            if ( sql.step() != adfs::sqlite_done )
+                ADTRACE() << "sql error";                
         }
     }
     sql.commit();

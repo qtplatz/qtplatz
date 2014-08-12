@@ -89,7 +89,7 @@ namespace quan {
 
         void dryrun();
 
-        void processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer, bool bSerialize = true );
+        adfs::file processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer, bool bSerialize = true );
         QuanProcessor * quanProcessor();
 
         static bool doCentroid( adcontrols::MSPeakInfo& pkInfo

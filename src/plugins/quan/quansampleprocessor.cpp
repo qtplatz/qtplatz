@@ -145,8 +145,8 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 adcontrols::MassSpectrum ms;
                 if ( generate_spectrum( raw_, sample, ms ) ) {
                     adcontrols::segments_helper::normalize( ms ); // normalize to 10k average equivalent
-                    processIt( sample, ms, writer.get() );
-                    writer->insert_table( sample );
+                    auto file = processIt( sample, ms, writer.get() );
+                    writer->insert_table( sample, file.name() );
                 }
             }
             break;
@@ -157,8 +157,8 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 while ( ( pos = read_raw_spectrum( pos, raw_, ms ) ) ) {
                     if ( (*progress_)() )
                         return false;
-                    processIt( sample, ms, writer.get(), false );       
-                    writer->insert_table( sample );
+                    auto file = processIt( sample, ms, writer.get(), false );       
+                    writer->insert_table( sample, file.name() );
                     sample.results().clear();
                 } 
             }
@@ -173,8 +173,8 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                             adcontrols::MassSpectrumPtr ms;
                             if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ms, folium ) ) {
                                 sample.name( folium.name().c_str() );
-                                processIt( sample, *ms, writer.get() );
-                                writer->insert_table( sample );
+                                auto file = processIt( sample, *ms, writer.get() );
+                                writer->insert_table( sample, file.name() );
                             }
                         }
                     }
@@ -324,7 +324,7 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
     return true;
 }
 
-void
+adfs::file
 QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
                                 , adcontrols::MassSpectrum& profile
                                 , QuanDataWriter * writer
@@ -405,9 +405,11 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
                 writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
                 writer->attach< adcontrols::MSPeakInfo >( file, *pPkInfo, dataproc::Constants::F_MSPEAK_INFO );
                 writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
+                return file;
             }
         }
     }
+    return adfs::file();
 }
 
 bool

@@ -42749,7 +42749,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+1"/>
         <source>level</source>
-        <translation>検量線点数</translation>
+        <translation type="unfinished">検量線レベル</translation>
     </message>
     <message>
         <location line="+1"/>

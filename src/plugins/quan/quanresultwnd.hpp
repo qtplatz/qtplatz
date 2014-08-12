@@ -27,6 +27,9 @@
 
 #include <QWidget>
 #include <boost/uuid/uuid.hpp>
+#if !defined Q_MOC_RUN
+#include <boost/variant.hpp>
+#endif
 #include <map>
 #include <memory>
 
@@ -41,17 +44,21 @@ namespace quan {
     class QuanCmpdWidget;
     class QuanResultTable;
     class QuanResultWidget;
+    class QuanPlotWidget;
 
     class QuanResultWnd : public QWidget
     {
         Q_OBJECT
     public:
         explicit QuanResultWnd(QWidget *parent = 0);
+        ~QuanResultWnd();
 
     private:
         QuanCmpdWidget * cmpdWidget_;
         QuanResultWidget * respTable_;
-        std::shared_ptr< adwplot::Dataplot > calibplot_;
+        std::unique_ptr< adwplot::Dataplot > calibplot_;
+        std::unique_ptr< QuanPlotWidget > dplot_;
+
         std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
         std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
         std::map< boost::uuids::uuid, std::shared_ptr< detail::calib_curve > > calib_curves_;

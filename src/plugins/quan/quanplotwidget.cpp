@@ -23,9 +23,96 @@
 **************************************************************************/
 
 #include "quanplotwidget.hpp"
+#include "quandocument.hpp"
+#include "quanplotdata.hpp"
+#include <adcontrols/quanmethod.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adwplot/chromatogramwidget.hpp>
+#include <adwplot/spectrumwidget.hpp>
+
+
+#include <QBoxLayout>
+
+namespace quan { 
+    namespace detail {
+
+        template<typename T > struct widget_get {
+            QuanPlotWidget& parent;
+            widget_get( QuanPlotWidget& t ) : parent( t ) {
+            }
+
+            T* operator ()() {
+                if ( auto t = dynamic_cast<T*>(parent.dataplot()) )
+                    return t;
+                auto pT = new T;
+                parent.dataplot( pT );
+                if ( auto layout = parent.findChild<QHBoxLayout *>() )
+                    layout->addWidget( parent.dataplot() );
+                return pT;
+            }
+        };
+    }
+}
 
 using namespace quan;
 
-QuanPlotWidget::QuanPlotWidget( QWidget * parent ) : QWidget( parent )
+QuanPlotWidget::~QuanPlotWidget()
 {
 }
+
+QuanPlotWidget::QuanPlotWidget( QWidget * parent ) : QWidget( parent )
+                                                   , dplot_( new adwplot::SpectrumWidget )
+{
+    auto layout = new QHBoxLayout(this);
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    
+    QuanDocument::instance()->register_dataChanged( [this]( int id, bool f ){ handleDataChanged( id, f ); } );
+    layout->addWidget( dplot_.get() );
+}
+
+void
+QuanPlotWidget::handleDataChanged( int id, bool )
+{
+    auto layout = findChild< QHBoxLayout * >();
+
+    if ( id == idQuanMethod ) {
+        auto& method = QuanDocument::instance()->quanMethod();
+        if ( method.isChromatogram() ) {
+            if ( dynamic_cast< adwplot::SpectrumWidget * >( dplot_.get() ) ) {
+                // replace to chromatogram
+                dplot_.reset( new adwplot::ChromatogramWidget );
+                layout->addWidget( dplot_.get() );
+            }
+        } else {
+            if ( dynamic_cast< adwplot::ChromatogramWidget * >( dplot_.get() ) ) {
+                // replace to spectrum
+                dplot_.reset( new adwplot::SpectrumWidget );
+                layout->addWidget( dplot_.get() );
+            }
+        }
+    }
+}
+
+void
+QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn )
+{
+    if ( auto spw = detail::widget_get< adwplot::SpectrumWidget >( *this )() ) {
+
+        spw->enableAxis( QwtPlot::yRight );
+
+        if ( d->profile->protocolId() == fcn ) {
+
+            spw->setData( d->profile, 0 );
+            spw->setData( d->centroid, 1, true );
+
+            double mass = d->centroid->getMass( idx );
+            QRectF rc = spw->zoomer().zoomRect();
+            rc.setLeft( mass - 2 );
+            rc.setRight( mass + 2 );
+            spw->zoomer().zoom( rc );
+
+        }
+    }
+}
+

@@ -176,7 +176,7 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
         assert( n <= 1 );  // should only be one results
 
         boost::int64_t rowid = sql.get_column_value<int64_t>( 0 );  // file id
-
+        
         adfs::blob blob;
         if ( rowid && blob.open( dbf_.db(), "main", "file", "data", rowid, adfs::readonly ) ) {
             if ( blob.size() ) {

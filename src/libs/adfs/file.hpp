@@ -69,10 +69,18 @@ namespace adfs {
         inline const std::wstring& name() const { return name_; }
         inline int64_t rowid() const { return rowid_; }  // rowid on table 'directory'
 
+        template<typename T> bool fetch( T& t ) { // this may raise std::exception
+            std::vector< adfs::char_t > iobuf( size() );
+            if ( read( iobuf.size(), iobuf.data() ) == iobuf.size() )
+                return adfs::cpio<T>::deserialize( t, iobuf.data(), iobuf.size() );
+            return false;
+        }
+
     private:
         sqlite * db_;
         std::wstring name_;
-        int64_t rowid_;  // rowid on 'directory'
+        int64_t rowid_;   // rowid on 'directory'
+        int64_t fileid_;  // rowid on 'file'
         bool is_attachment_;
     };
 

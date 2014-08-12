@@ -26,15 +26,28 @@
 #define QUANPLOTWIDGET_HPP
 
 #include <QWidget>
+#include <memory>
+
+#include <adwplot/dataplot.hpp>
 
 namespace quan {
 
-    class QuanPlotWidget : public QWidget
-    {
+    class QuanPlotData;
+
+    namespace detail { template<typename T> struct widget_get; };
+
+    class QuanPlotWidget : public QWidget  {
         Q_OBJECT
     public:
+        ~QuanPlotWidget();
         QuanPlotWidget( QWidget * parent = 0 );
 
+        void setData( const QuanPlotData *, size_t idx, int fcn );
+        adwplot::Dataplot * dataplot() { return dplot_.get(); }
+        void dataplot( adwplot::Dataplot * p ) { dplot_.reset( p ); }
+    private:
+        std::unique_ptr< adwplot::Dataplot > dplot_;
+        void handleDataChanged( int id, bool f );
     };
 
 }
