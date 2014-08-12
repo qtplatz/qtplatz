@@ -34,6 +34,7 @@
 #include <QComboBox>
 #include <QSpacerItem>
 #include <QStandardItemModel>
+#include <QLineEdit>
 
 using namespace quan;
 
@@ -51,14 +52,14 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) :  QWidget(parent)
         toolBarLayout->addWidget( new Utils::StyledSeparator );
 
         if ( auto label = new QLabel ) {
-            label->setText( "Results" );
+            label->setText( tr("Results") );
             toolBarLayout->addWidget( label );
         }
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
 
         if ( auto pCombo = new QComboBox ) {
-            pCombo->addItems( QStringList() << "All" << "Unknown" << "Standards" << "QC" << "Blank" );
+            pCombo->addItems( QStringList() << tr("All") << tr("Unknown") << tr("Standards") << tr("QC") << tr("Blank") );
             toolBarLayout->addWidget( pCombo );
 
             toolBarLayout->addWidget( new Utils::StyledSeparator );            
@@ -66,6 +67,11 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) :  QWidget(parent)
 
             connect( pCombo, static_cast< void(QComboBox::*)(int) >(&QComboBox::currentIndexChanged), this, &QuanResultWidget::handleIndexChanged );
         }
+
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+        toolBarLayout->addWidget( new QLabel( tr("File:") ) );
+        toolBarLayout->addWidget( new QLineEdit );
         
         topLayout->addWidget( toolBar ); // <-------- add to toolbar
     }
@@ -80,6 +86,9 @@ QuanResultWidget::setConnection( QuanConnection * connection )
 {
     connection_ = connection->shared_from_this();
     handleIndexChanged( 0 );
+    if ( auto edit = findChild< QLineEdit * >() ) {
+        edit->setText( QString::fromStdWString( connection->filepath() ) );
+    }
 }
 
 void

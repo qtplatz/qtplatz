@@ -93,14 +93,13 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
 void
 QuanReportWidget::handleReport( const QString& file )
 {
-    if ( auto connection = std::make_shared< QuanConnection >() ) {
-        if ( connection->connect( file.toStdWString() ) ) {
-            QuanDocument::instance()->setConnection( connection.get() );
-            if ( auto edit = findChild< QLineEdit * >( Constants::editQuanFilename ) )
-                edit->setText( file );
-            executeQuery();
-        }
-    }
+    //if ( auto connection = std::make_shared< QuanConnection >() ) {
+    //if ( connection->connect( file.toStdWString() ) ) {
+    // QuanDocument::instance()->setConnection( connection.get() );
+
+    if ( auto edit = findChild< QLineEdit * >( Constants::editQuanFilename ) )
+        edit->setText( file );
+    executeQuery();
 }
 
 void

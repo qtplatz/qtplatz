@@ -54,6 +54,8 @@ namespace quan {
 
         QuanPlotData * fetch( const std::wstring& dataGuid );
 
+        const std::wstring& filepath() const { return filename_; }
+
     private:
         std::wstring filename_;
         std::shared_ptr< adfs::filesystem > fs_;

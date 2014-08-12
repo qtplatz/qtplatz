@@ -30,6 +30,7 @@
 #include "paneldata.hpp"
 #include "processmethodwidget.hpp"
 #include "quanconstants.hpp"
+#include "quanconnection.hpp"
 #include "quandocument.hpp"
 #include "quanconfigwidget.hpp"
 #include "quanresultwnd.hpp"
@@ -357,7 +358,14 @@ MainWindow::handleOpenQuanResult()
                 name = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
         }
         name = QFileDialog::getOpenFileName( this, tr( "Open Quantitative Analysis Result file" ), name, tr( "File(*.adfs)" ) );
-        if ( ! name.isEmpty() )
+        if ( ! name.isEmpty() ) {
+            if ( auto connection = std::make_shared< QuanConnection >() ) {
+                if ( connection->connect( name.toStdWString() ) ) {
+                    // kick QuanReportWidget (calibartion & result view) updae
+                    QuanDocument::instance()->setConnection( connection.get() );
+                }
+            }
             widget->handleReport( name );
+        }
     }
 }
