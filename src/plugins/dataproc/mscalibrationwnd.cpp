@@ -148,7 +148,7 @@ MSCalibrationWnd::init()
         // summary table
         pImpl_->summaryTable_ = new adwidgets::MSCalibrateSummaryTable; //adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
         if ( auto pSummary = pImpl_->summaryTable_ ) {
-            bool res;
+
             typedef adwidgets::MSCalibrateSummaryTable ST;
             connect( pSummary, static_cast<void(ST::*)(size_t, size_t)>(&ST::currentChanged), this, &MSCalibrationWnd::handleSelSummary );
             connect( pSummary, &ST::valueChanged, this, &MSCalibrationWnd::handleValueChanged );
@@ -159,14 +159,11 @@ MSCalibrationWnd::init()
             connect( pSummary, &ST::on_add_selection_to_peak_table, this, &MSCalibrationWnd::handle_add_selection_to_peak_table );
 
             // Make a connection to zoomer in order to sync table in visible range
-            res = connect( &pImpl_->processedSpectrum_->zoomer()
-                           , SIGNAL( zoomed( const QRectF& ) ), pSummary, SLOT( handle_zoomed( const QRectF& ) ) );
-            assert(res);
+            connect( &pImpl_->processedSpectrum_->zoomer(), &adwplot::Zoomer::zoomed, pSummary, &ST::handle_zoomed );
 
-            res = connect( pImpl_->processedSpectrum_
-                           , SIGNAL( onSelected( const QRectF& ) ), pSummary, SLOT( handle_selected( const QRectF& ) ) );
-            assert(res);
-            (void)res;
+            typedef adwplot::SpectrumWidget SW;
+            connect( pImpl_->processedSpectrum_, static_cast<void(SW::*)(const QRectF&)>(&SW::onSelected), pSummary, &ST::handle_selected );
+
 
             adplugin::LifeCycleAccessor accessor( pSummary );
             adplugin::LifeCycle * p = accessor.get();

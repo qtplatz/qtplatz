@@ -15431,7 +15431,7 @@ Would you like to overwrite them?</source>
     <message>
         <location line="+1354"/>
         <source>Open With</source>
-        <translation type="unfinished">エディタを指定して開く</translation>
+        <translation>エディタを指定して開く</translation>
     </message>
     <message>
         <location line="+305"/>
@@ -24642,7 +24642,7 @@ msysgit が、git bash 外で実行された時に自身のインストール先
     <message>
         <location line="+57"/>
         <source>Help</source>
-        <translation type="unfinished">ヘルプ</translation>
+        <translation>ヘルプ</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -24653,7 +24653,7 @@ msysgit が、git bash 外で実行された時に自身のインストール先
     <message>
         <location line="+0"/>
         <source>OK</source>
-        <translation type="unfinished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location line="+63"/>
@@ -38612,7 +38612,7 @@ Will not be applied to whitespace in comments and strings.</source>
     <message>
         <location line="+38"/>
         <source>Filter:</source>
-        <translation type="unfinished">フィルタ:</translation>
+        <translation>フィルタ:</translation>
     </message>
     <message>
         <location line="+26"/>
@@ -42298,37 +42298,37 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/shared/proparser/proeditor.ui"/>
         <source>New</source>
-        <translation type="unfinished">新規作成</translation>
+        <translation>新規作成</translation>
     </message>
     <message>
         <location/>
         <source>Remove</source>
-        <translation type="unfinished">削除</translation>
+        <translation>削除</translation>
     </message>
     <message>
         <location/>
         <source>Up</source>
-        <translation type="unfinished">上</translation>
+        <translation>上へ移動</translation>
     </message>
     <message>
         <location/>
         <source>Down</source>
-        <translation type="unfinished">下</translation>
+        <translation>下へ移動</translation>
     </message>
     <message>
         <location filename="../../../src/shared/proparser/proeditor.cpp" line="+51"/>
         <source>Cut</source>
-        <translation type="unfinished">切り取り</translation>
+        <translation>切り取り</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy</source>
-        <translation type="unfinished">コピー</translation>
+        <translation>コピー</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Paste</source>
-        <translation type="unfinished">貼り付け</translation>
+        <translation>貼り付け</translation>
     </message>
     <message>
         <location line="+37"/>
@@ -43398,7 +43398,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/dataproc/actionmanager.cpp" line="+73"/>
         <source>Processing</source>
-        <translation type="unfinished">データ解析</translation>
+        <translation>データ解析</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -43476,7 +43476,7 @@ p, li { white-space: pre-wrap; }
         <location line="+3"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+3"/>
         <source>Uncheck all spectra</source>
-        <translation type="unfinished">質量キャリブレーション(MT)</translation>
+        <translation>すべてのスペクトルのチェックを外す</translation>
     </message>
     <message>
         <location line="+47"/>
@@ -43529,7 +43529,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../../src/plugins/dataproc/backup/mainwindow.cpp" line="+290"/>
         <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+290"/>
         <source>Axis:</source>
-        <translation type="unfinished">水平軸:</translation>
+        <translation>水平軸:</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -43897,7 +43897,7 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>quan::MainWindow</name>
     <message>
-        <location filename="../../../src/plugins/quan/mainwindow.cpp" line="+96"/>
+        <location filename="../../../src/plugins/quan/mainwindow.cpp" line="+97"/>
         <location line="+147"/>
         <source>Quan</source>
         <translation>定量</translation>
@@ -43911,7 +43911,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="-21"/>
         <source>Compounds &amp; Protocols</source>
-        <translation>化合物＆解析手順</translation>
+        <translation>化合物＆解析メソッド</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -44018,7 +44018,7 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>quan::QuanReportWidget</name>
     <message>
-        <location filename="../../../src/plugins/quan/quanreportwidget.cpp" line="+79"/>
+        <location filename="../../../src/plugins/quan/quanreportwidget.cpp" line="+78"/>
         <source>Open result file...</source>
         <translation>定量結果ファイル...</translation>
     </message>
@@ -44184,7 +44184,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+1"/>
         <source>Connecting to %1...</source>
-        <translation type="unfinished">%1 に接続中...</translation>
+        <translation>%1 に接続中...</translation>
     </message>
 </context>
 <context>
@@ -44298,6 +44298,109 @@ p, li { white-space: pre-wrap; }
         <location line="+1"/>
         <source>Pass/Fail Criteria(2)</source>
         <translation>合否判定基準(2)</translation>
+    </message>
+</context>
+<context>
+    <name>dataproc::NavigationWidget</name>
+    <message>
+        <location filename="../../../src/plugins/dataproc/navigationwidget.cpp" line="+88"/>
+        <source>Check all for %1</source>
+        <translation>すべての &quot;%1&quot; にチェック</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Uncheck all for %1</source>
+        <translation>すべての &quot;%1&quot; からチェックを外す</translation>
+    </message>
+    <message>
+        <location line="+29"/>
+        <source>Save profile spectrum as...</source>
+        <translation>プロファイルスペクトルに名前をつけて保存...</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Save centroid spectrum as...</source>
+        <translation>セントロイドスペクトルに名前をつけて保存...</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Save DFT filtered spectrum as...</source>
+        <translation type="unfinished">DFTノイズ除去スペクトルに名前をつけて保存...</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Send checked spectra to calibration folder</source>
+        <translation>チェックされたスペクトルをキャリブレーションフォルダにコピー</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Subtract background &apos;%1&apos; from &apos;%2&apos;</source>
+        <translation>&quot;%2%&quot; からバックグラウンド &quot;%1&quot; を差し引く</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Remove unchecked items</source>
+        <translation>チェックされていない項目を削除</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Create Spectrogram</source>
+        <translation>スペクトログラムの生成</translation>
+    </message>
+</context>
+<context>
+    <name>quan::QuanResultWidget</name>
+    <message>
+        <location filename="../../../src/plugins/quan/quanresultwidget.cpp" line="+55"/>
+        <source>Results</source>
+        <translation>結果</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>All</source>
+        <translation>すべて</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Unknown</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Standards</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>QC</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Blank</source>
+        <translation>ブランク</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>File:</source>
+        <translation>ファイル:</translation>
+    </message>
+</context>
+<context>
+    <name>adwidgets::TargetingAdducts</name>
+    <message>
+        <location filename="../../../src/libs/adwidgets/targetingadducts.cpp" line="+160"/>
+        <source>Adducts(pos)</source>
+        <translation>付加イオン（ポジティブモード）</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Adducts/Losses(neg)</source>
+        <translation type="unfinished">付加・脱離イオン（ネガティブモード）</translation>
+    </message>
+    <message>
+        <source>Adducts(neg)</source>
+        <translation type="vanished">付加・脱離イオン（ネガティブモード）</translation>
     </message>
 </context>
 </TS>

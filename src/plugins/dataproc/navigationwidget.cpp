@@ -634,8 +634,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             QVariant data = pModel_->data( index, Qt::UserRole );
             if ( qVariantCanConvert< portfolio::Folder >( data ) ) {
                 if ( auto folder = qVariantValue< portfolio::Folder >( data ) ) {
-                    menu.add( QString( "Check all for %1" ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
-                    menu.add( QString( "Uncheck all for %1" ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
+                    menu.add( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
+                    menu.add( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
                 }
             }
             else if ( qVariantCanConvert< portfolio::Folium >( data ) ) { // an item of [Spectrum|Chrmatogram] selected
@@ -664,27 +664,27 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             } );
                         bool hasFilterd = itFiltered != atts.end();
 
-                        menu.add( "Save profile spectrum as...", SaveSpectrumAs( asProfile, folium ), isSpectrum );
+                        menu.add( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium ), isSpectrum );
                         portfolio::Folium centroid = itCentroid != atts.end() ? *itCentroid : portfolio::Folium();
 
-                        menu.add( "Save centroid spectrum as...", SaveSpectrumAs( asCentroid, centroid ), hasCentroid );
+                        menu.add( tr("Save centroid spectrum as..."), SaveSpectrumAs( asCentroid, centroid ), hasCentroid );
                         portfolio::Folium filtered = itFiltered != atts.end() ? *itCentroid : portfolio::Folium();
-                        menu.add( "Save DFT filtered spectrum as...", SaveSpectrumAs( asDFTProfile, filtered ), hasFilterd );
+                        menu.add( tr("Save DFT filtered spectrum as..."), SaveSpectrumAs( asDFTProfile, filtered ), hasFilterd );
 
-                        menu.add( "Send checked spectra to calibration folder", CalibrationAction() );
+                        menu.add( tr("Send checked spectra to calibration folder"), CalibrationAction() );
 
                         menu.menu.addSeparator();
 
-                        menu.add( QString( "Subtract background '%1' from '%2'" ).arg( selected_spectrum, active_spectrum )
+                        menu.add( QString( tr("Subtract background '%1' from '%2'") ).arg( selected_spectrum, active_spectrum )
                             , BackgroundSubtraction( active_folium, folium ), !active_spectrum.isEmpty() );
 
-                        menu.add( "Remove unchecked items", RemoveChecked( this ) );
+                        menu.add( tr("Remove unchecked items"), RemoveChecked( this ) );
                     }
                 }
                 if ( folium.getParentFolder().name() == L"Chromatograms" ) {
                     QMenu menu;
                     QAction * doSpectrogram = 0;
-                    doSpectrogram = menu.addAction( "Create Spectrogram" );
+                    doSpectrogram = menu.addAction( tr( "Create Spectrogram" ) );
                     if ( QAction* selectedItem = menu.exec( globalPos ) ) {
                         if ( doSpectrogram == selectedItem ) {
                             processor->createSpectrogram();

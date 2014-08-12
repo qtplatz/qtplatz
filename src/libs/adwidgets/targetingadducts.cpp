@@ -157,7 +157,7 @@ TargetingAdducts::OnInitialUpdate()
 
     model.setRowCount( nbrRows );
     
-    model.setData( model.index( r_pos_adducts, c_header ),  "Adducts(pos)" );
-    model.setData( model.index( r_neg_adducts, c_header ),  "Adducts(neg)" );
+    model.setData( model.index( r_pos_adducts, c_header ),  tr("Adducts(pos)") );
+    model.setData( model.index( r_neg_adducts, c_header ),  tr("Adducts/Losses(neg)") );
 
 }
