@@ -27,8 +27,12 @@
 
 #include <string>
 #include <vector>
-#include <boost/any.hpp>
+#include <functional>
 #include <boost/cstdint.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 #include "attributes.hpp"
 
 namespace adfs {
@@ -51,8 +55,8 @@ namespace adfs {
     public:
 
         bool empty() const;
-        void operator = ( boost::any& );
-        operator boost::any& ();
+        // void operator = ( boost::any& );
+        // operator boost::any& ();
 
         std::vector< file > attachments();
         const std::vector< file > attachments() const;
@@ -69,11 +73,21 @@ namespace adfs {
         inline const std::wstring& name() const { return name_; }
         inline int64_t rowid() const { return rowid_; }  // rowid on table 'directory'
 
-        template<typename T> bool fetch( T& t ) { // this may raise std::exception
+        template<typename data_type> bool fetch( data_type& t, std::function<bool( std::istream&, data_type& )> deserializer = &data_type::restore ) {
             std::vector< adfs::char_t > iobuf( size() );
-            if ( read( iobuf.size(), iobuf.data() ) == iobuf.size() )
-                return adfs::cpio<T>::deserialize( t, iobuf.data(), iobuf.size() );
+            if ( read( iobuf.size(), iobuf.data() ) == iobuf.size() ) {
+                boost::iostreams::basic_array_source< char > device( iobuf.data(), iobuf.size() );
+                boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+                return deserializer( st, t );
+            }
             return false;
+        }
+
+        template<class data_type> bool save( const data_type& t, std::function<bool(std::ostream&,const data_type&)> serializer = &data_type::archive ) {
+            std::string ar;
+            boost::iostreams::back_insert_device< std::string > inserter( ar );
+            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+            return serializer( device, t ) && write( ar.size(), ar.data() );
         }
 
     private:

@@ -44396,7 +44396,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+1"/>
         <source>Adducts/Losses(neg)</source>
-        <translation type="unfinished">付加・脱離イオン（ネガティブモード）</translation>
+        <translation>付加・脱離イオン（ネガティブモード）</translation>
     </message>
     <message>
         <source>Adducts(neg)</source>

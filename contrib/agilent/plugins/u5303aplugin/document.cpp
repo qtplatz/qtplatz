@@ -219,7 +219,7 @@ document::appendOnFile( const std::wstring& path
         if ( file ) {
             file.dataClass( ms.dataClass() );
             id = file.id();
-            if ( adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
+            if ( file.save( ms ) ) //adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
 				file.commit();
         }
 	}

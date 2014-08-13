@@ -47,8 +47,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/serialization/variant.hpp>
-#include <QMessageBox>
+#include <app/app_version.h>
 #include <QApplication>
+#include <QMessageBox>
+#include <QSettings>
 #include <algorithm>
 
 namespace quan {
@@ -88,6 +90,13 @@ namespace quan {
             }
         };
 
+        struct user_preference {
+            static boost::filesystem::path path( QSettings * settings ) {
+                boost::filesystem::path dir( settings->fileName().toStdWString() );
+                return dir.remove_filename() / "Quan";                
+            }
+        };
+
     }
 }
 
@@ -100,7 +109,10 @@ QuanDocument::~QuanDocument()
 {
 }
 
-QuanDocument::QuanDocument() : quanMethod_( std::make_shared< adcontrols::QuanMethod >() )
+QuanDocument::QuanDocument() : settings_( new QSettings(QSettings::IniFormat, QSettings::UserScope
+                                                        , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                                        , QLatin1String( "Quan" ) ) )
+                             , quanMethod_( std::make_shared< adcontrols::QuanMethod >() )
                              , quanCompounds_( std::make_shared< adcontrols::QuanCompounds >() )
                              , quanSequence_( std::make_shared< adcontrols::QuanSequence >() )
                              , procMethod_( std::make_shared< adcontrols::ProcessMethod >() )
@@ -157,7 +169,7 @@ QuanDocument::findPanel( int idx, int subIdx, int pos )
 bool
 QuanDocument::save_default_methods()
 {
-    boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() + L"/data/.quan" ); // /quansequence_default.xml" );
+    boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "QuanDocument"
@@ -187,7 +199,8 @@ QuanDocument::save_default_methods()
 bool
 QuanDocument::load_default_methods()
 {
-    boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() + L"/data/.quan" );
+    boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
+
     if ( dirty_flags_[ idQuanMethod ] ) {
         if ( load( dir / L"quanconfig.xml", *quanMethod_ ) )
             dirty_flags_[ idQuanMethod ] = false;

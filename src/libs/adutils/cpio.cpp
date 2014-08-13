@@ -57,7 +57,7 @@ namespace adutils {
             static bool save( adfs::file& dbf, const boost::any& a ) {
                 const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
 				dbf.dataClass( T::dataClass() );
-                return adfs::cpio< T >::save( *p, dbf );
+                return dbf.save( *p ); // adfs::cpio< T >::save( *p, dbf );
             }
             
         };

@@ -258,7 +258,7 @@ Task::appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum
         if ( file ) {
             file.dataClass( ms.dataClass() );
             id = file.id();
-            if ( adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
+            if ( file.save( ms ) ) // adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
 				file.commit();
         }
 	}
