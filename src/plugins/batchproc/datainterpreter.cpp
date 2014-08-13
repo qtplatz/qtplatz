@@ -155,12 +155,12 @@ DataInterpreter::translate_processed( adcontrols::MassSpectrum& ms
         std::string ar;
         adportable::bzip2::decompress( ar, data, dsize );
 
-        if ( ! adfs::cpio< adcontrols::MassSpectrum >::deserialize( ms, ar.data(), ar.size() ) )
+        if ( ! adfs::cpio::deserialize( ms, ar.data(), ar.size() ) )
             return adcontrols::translate_error;
 
     } else {
 
-		if ( ! adfs::cpio< adcontrols::MassSpectrum >::deserialize( ms, data, dsize ) ) 
+		if ( ! adfs::cpio::deserialize( ms, data, dsize ) ) 
             return adcontrols::translate_error;
 
     }
@@ -181,10 +181,10 @@ DataInterpreter::translate( adcontrols::TraceAccessor& trace
     if ( adportable::bzip2::is_a( data, dsize ) ) {
         std::string ar;
         adportable::bzip2::decompress( ar, data, dsize );
-        if ( !adfs::cpio< adcontrols::Chromatogram >::deserialize( c, ar.data(), ar.size() ) )
+        if ( !adfs::cpio::deserialize( c, ar.data(), ar.size() ) )
             return adcontrols::translate_error;
     } else
-        if ( ! adfs::cpio< adcontrols::Chromatogram >::deserialize( c, data, dsize ) )
+        if ( ! adfs::cpio::deserialize( c, data, dsize ) )
             return adcontrols::translate_error;
 
     const double * intens = c.getIntensityArray();

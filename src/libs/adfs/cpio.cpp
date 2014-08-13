@@ -28,7 +28,7 @@
 using namespace adfs;
 
 static const size_t unit_size = 1024 * 64;
-
+#if 0
 std::streamsize
 detail::cpio::xsputn( const char_t * s, std::streamsize num )
 {
@@ -77,3 +77,4 @@ detail::cpio::underflow()
     return *gptr();
 }
 
+#endif
