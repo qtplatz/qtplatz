@@ -85,6 +85,7 @@ TableView::handleCopyToClipboard()
         if ( !isRowHidden( prev.row() ) && !isColumnHidden( prev.column() ) ) {
             
             QString text = prev.data( Qt::DisplayRole ).toString(); 
+
             selected_text.append( text );
 
             if ( index.row() != prev.row() )
