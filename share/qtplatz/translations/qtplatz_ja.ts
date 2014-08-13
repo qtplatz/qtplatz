@@ -15884,9 +15884,8 @@ Would you like to overwrite them?</source>
 <context>
     <name>Core::Internal::MainWindow</name>
     <message>
-        <location filename="../../../src/plugins/coreplugin/mainwindow.cpp" line="+153"/>
         <source>Qt Creator</source>
-        <translation>Qt Creator</translation>
+        <translation type="vanished">Qt Creator</translation>
     </message>
     <message>
         <source>Exit Full Screen</source>
@@ -15897,7 +15896,7 @@ Would you like to overwrite them?</source>
         <translation type="vanished">全画面表示にする</translation>
     </message>
     <message>
-        <location line="+260"/>
+        <location filename="../../../src/plugins/coreplugin/mainwindow.cpp" line="+413"/>
         <source>&amp;File</source>
         <translation>ファイル(&amp;F)</translation>
     </message>
@@ -16103,7 +16102,12 @@ Would you like to overwrite them?</source>
         <translation>全画面表示</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="-494"/>
+        <source>QtPlatz</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+499"/>
         <source>Ctrl+Meta+F</source>
         <translation>Ctrl+Meta+F</translation>
     </message>
@@ -43499,7 +43503,7 @@ p, li { white-space: pre-wrap; }
         <translation>解析メソッドを開く</translation>
     </message>
     <message>
-        <location line="+125"/>
+        <location line="+128"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+125"/>
         <source>PDF (*.pdf *.svg)</source>
         <translation></translation>
@@ -43521,6 +43525,11 @@ p, li { white-space: pre-wrap; }
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+11"/>
         <source>MSCalibrations(*.msclb)</source>
         <translation>質量キャリブレーション(*.msclb)</translation>
+    </message>
+    <message>
+        <location line="+39"/>
+        <source>Save &apos;%1&apos; As...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -44363,12 +44372,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+0"/>
         <source>Unknown</source>
-        <translation></translation>
+        <translation>未知試料</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Standards</source>
-        <translation></translation>
+        <translation>スタンダード</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -44401,6 +44410,38 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>Adducts(neg)</source>
         <translation type="vanished">付加・脱離イオン（ネガティブモード）</translation>
+    </message>
+</context>
+<context>
+    <name>quan::QuanResultWnd</name>
+    <message>
+        <location filename="../../../src/plugins/quan/quanresultwnd.cpp" line="+333"/>
+        <source>amounts</source>
+        <translation>アマウント</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>response</source>
+        <translation>ピーク強度</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Calibration curve for %1</source>
+        <translation>&quot;%1&quot; 検量線</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Amounts = </source>
+        <translation>定量値 =</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>&amp;nbsp;&amp;nbsp;where I is the response</source>
+        <translation>&amp;nbsp;&amp;nbsp;ここに I はピーク強度</translation>
+    </message>
+    <message>
+        <source>&amp;bsp;&amp;bsp;where I is the response</source>
+        <translation type="vanished">ここに、I はピーク強度</translation>
     </message>
 </context>
 </TS>

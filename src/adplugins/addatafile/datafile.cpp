@@ -87,10 +87,11 @@ namespace addatafile { namespace detail {
         };
 
         template< class T > struct serializer {
-            static std::shared_ptr< T > deserialize( adfs::detail::cpio& obuf ) {
+
+            static std::shared_ptr< T > deserialize( const std::vector<char>& obuf ) { //adfs::detail::cpio& obuf ) {
                 std::shared_ptr<T> ptr = std::make_shared<T>();
                 try {
-                    adfs::cpio<T>::deserialize( *ptr, obuf );
+                    adfs::cpio::deserialize( *ptr, obuf.data(), obuf.size() );
                 } catch ( std::exception& e ) {
                     ADERROR() << "exception: " << e.what() << " while deserializing " << typeid(T).name();
                     ptr.reset();
@@ -180,9 +181,8 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
         adfs::blob blob;
         if ( rowid && blob.open( dbf_.db(), "main", "file", "data", rowid, adfs::readonly ) ) {
             if ( blob.size() ) {
-                std::unique_ptr< boost::int8_t [] > p ( new boost::int8_t[ blob.size() ] );
-                if ( blob.read( p.get(), blob.size() ) ) {
-                    adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
+                std::vector< char > obuf( blob.size() );
+                if ( blob.read( reinterpret_cast<int8_t *>(obuf.data()), blob.size() ) ) {
 
 					if ( dataType == adcontrols::MassSpectrum::dataClass() ) {
                         

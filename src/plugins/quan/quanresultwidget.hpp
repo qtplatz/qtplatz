@@ -28,6 +28,9 @@
 #include <QWidget>
 #include <memory>
 #include <string>
+#include <set>
+
+namespace boost { namespace uuids { struct uuid;  } }
 
 namespace quan {
 
@@ -40,13 +43,13 @@ namespace quan {
     public:
         explicit QuanResultWidget(QWidget *parent = 0);
         void setConnection( QuanConnection * );
+        void setCompoundSelected( const std::set<boost::uuids::uuid>& );
 
     private:
         QuanResultTable * table_;
         std::weak_ptr< QuanConnection > connection_;
 
         void execQuery( const std::string& );
-
         void handleIndexChanged( int );
         void handleCurrentChanged( const QModelIndex& );
 

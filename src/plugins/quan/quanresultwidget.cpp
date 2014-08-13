@@ -35,6 +35,9 @@
 #include <QSpacerItem>
 #include <QStandardItemModel>
 #include <QLineEdit>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 using namespace quan;
 
@@ -78,6 +81,8 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) :  QWidget(parent)
     if ( table_ = new QuanResultTable )
         topLayout->addWidget( table_ );
 
+    table_->setColumnHide( "uuid" );
+
     connect( table_, &QuanResultTable::onCurrentChanged, this, &QuanResultWidget::handleCurrentChanged );
 }
 
@@ -117,7 +122,7 @@ QuanResultWidget::handleIndexChanged( int idx )
     if ( idx == 0 ) { // All
 
         execQuery("\
-SELECT QuanResponse.id, QuanSample.name, sampleType, QuanSample.level, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
+SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name, sampleType, QuanSample.level, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
 , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound \
 WHERE QuanSample.id = QuanResponse.idSample \
@@ -128,7 +133,7 @@ ORDER BY QuanCompound.id, QuanSample.level");
     else if ( idx == 1 ) { // Unknown
 
         execQuery("\
-SELECT QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
+SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
 , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound \
 WHERE QuanSample.id = QuanResponse.idSample \
@@ -140,7 +145,7 @@ ORDER BY QuanCompound.id");
     else if ( idx == 2 ) { // Standard
 
         execQuery("\
-SELECT QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
+SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
 , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
 FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
 WHERE QuanSample.id = QuanResponse.idSample \
@@ -185,5 +190,22 @@ QuanResultWidget::handleCurrentChanged( const QModelIndex& index )
     if ( column >= 0 ) {
         int respId = table_->model().index( index.row(), column ).data().toInt();
         emit onResponseSelected( respId );
+    }
+}
+
+void
+QuanResultWidget::setCompoundSelected( const std::set< boost::uuids::uuid >& uuids )
+{
+    int column = table_->findColumn( "uuid" );
+    if ( !uuids.empty() ) {
+        int rows = table_->model().rowCount();
+        for ( int row = 0; row < rows; ++row ) {
+            std::string data = table_->model().index( row, column ).data().toString().toStdString();
+            auto uuid = boost::lexical_cast<boost::uuids::uuid>(data);
+            if ( uuids.find( uuid ) == uuids.end() )
+                table_->setRowHidden( row, true );
+            else
+                table_->setRowHidden( row, false );
+        }
     }
 }

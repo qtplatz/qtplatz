@@ -31,11 +31,13 @@
 #include <boost/variant.hpp>
 #endif
 #include <map>
+#include <set>
 #include <memory>
 
 namespace adwplot { class Dataplot; }
 class QwtPlotMarker;
 class QwtPlotCurve;
+class QItemSelection;
 
 namespace quan {
 
@@ -64,8 +66,10 @@ namespace quan {
         std::map< boost::uuids::uuid, std::shared_ptr< detail::calib_curve > > calib_curves_;
         std::map< boost::uuids::uuid, std::shared_ptr< detail::calib_data > > calib_data_;
         boost::uuids::uuid uuid_plot_;
+        std::set< boost::uuids::uuid > cmpds_;
         
         void handleConnectionChanged();
+        void handleCompoundSelectionChanged( const QItemSelection&, const QItemSelection& );
         void handleCompoundSelected( const QModelIndex& );
         void handleResponseSelected( int );
         bool loadCalibration( const boost::uuids::uuid& );
