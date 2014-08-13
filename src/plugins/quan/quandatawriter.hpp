@@ -65,7 +65,7 @@ namespace quan {
             afile.dataClass( T::dataClass() );
             if ( !name.empty() )
                 afile.setAttribute( L"name", name );
-            if ( afile.save( t ) ) //adfs::cpio< T >::save( t, afile ) )
+            if ( afile.save( t ) )
                 afile.commit();
             return afile;
         }

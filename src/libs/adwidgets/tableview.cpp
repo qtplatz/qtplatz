@@ -33,6 +33,7 @@
 using namespace adwidgets;
 
 TableView::TableView(QWidget *parent) : QTableView(parent)
+                                      , allowDelete_( true )
 {
 }
 
@@ -41,7 +42,8 @@ TableView::keyPressEvent( QKeyEvent * event )
 {
 	if ( event->matches( QKeySequence::Copy ) ) {
         handleCopyToClipboard();
-    } else if ( event->matches( QKeySequence::Delete ) ) {
+    }
+    else if ( event->matches( QKeySequence::Delete ) && allowDelete_ ) {
 		handleDeleteSelection();
 	} else
 		QTableView::keyPressEvent( event );
@@ -80,15 +82,22 @@ TableView::handleCopyToClipboard()
     indecies.removeFirst();
     for( int i = 0; i < indecies.size(); ++i ) {
         QModelIndex index = indecies.at( i );
-		QString text = model()->data( prev, Qt::DisplayRole ).toString();
-        selected_text.append( text );
-        if ( index.row() != prev.row() )
-            selected_text.append( '\n' );
-        else
-            selected_text.append( '\t' );
+
+        if ( !isRowHidden( prev.row() ) && !isColumnHidden( prev.column() ) ) {
+            
+            QString text = prev.data( Qt::DisplayRole ).toString(); //model()->data( prev, Qt::DisplayRole ).toString();
+            selected_text.append( text );
+
+            if ( index.row() != prev.row() )
+                selected_text.append( '\n' );
+            else
+                selected_text.append( '\t' );
+
+        }
         prev = index;
     }
-	selected_text.append( model()->data( indecies.last() ).toString() );
+    if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
+        selected_text.append( last.data( Qt::DisplayRole ).toString() );
 
     QApplication::clipboard()->setText( selected_text );
 }

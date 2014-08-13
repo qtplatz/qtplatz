@@ -36,6 +36,7 @@
 #include <adfs/file.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
+#include <adportable/debug.hpp>
 #include <adwplot/dataplot.hpp>
 #include <utils/styledbar.h>
 #include <coreplugin/minisplitter.h>
@@ -55,6 +56,8 @@
 #include <QLabel>
 #include <QColor>
 #include <boost/uuid/uuid.hpp>
+#include <iomanip>
+#include <sstream>
 
 namespace quan {
     namespace detail {
@@ -112,7 +115,7 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
         if ( Core::MiniSplitter  * splitter2 = new Core::MiniSplitter ) { // left pane split top (table) & bottom (time,mass plot)
             splitter2->setOrientation( Qt::Horizontal );        // Plot | Text
             wndSplitter->addWidget( splitter2 );
-           
+            
             splitter2->addWidget( calibplot_.get() );
             splitter2->addWidget( dplot_.get() );
         }
@@ -127,7 +130,10 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     layout->addWidget( splitter );
 
     connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanResultWnd::handleConnectionChanged );
+    cmpdWidget_->table().setSelectionMode( QAbstractItemView::MultiSelection );
+    cmpdWidget_->table().setSelectionBehavior( QAbstractItemView::SelectRows );
     connect( &cmpdWidget_->table(), &QuanResultTable::onCurrentChanged, this, &QuanResultWnd::handleCompoundSelected );
+    connect( cmpdWidget_->table().selectionModel(), &QItemSelectionModel::selectionChanged, this, &QuanResultWnd::handleCompoundSelectionChanged );
     connect( respTable_, &QuanResultWidget::onResponseSelected, this, &QuanResultWnd::handleResponseSelected );
 }
 
@@ -136,7 +142,7 @@ QuanResultWnd::handleConnectionChanged()
 {
     if ( auto connection = QuanDocument::instance()->connection() ) {
         respTable_->setConnection ( connection );
-
+        
         if ( auto query = connection->query() ) {
             if ( query->prepare( std::wstring ( L"SELECT uuid, formula, description FROM QuanCompound" ) ) ) {
                 cmpdWidget_->table().setColumnHide( "uuid" );
@@ -210,6 +216,17 @@ AND QuanAmount.level = QuanSample.level AND QuanAmount.idCmpd = QuanResponse.idC
         }
     }
     return true;
+}
+
+void
+QuanResultWnd::handleCompoundSelectionChanged( const QItemSelection&, const QItemSelection& )
+{
+    std::set< boost::uuids::uuid> cmpds;
+
+    QModelIndexList indecies = cmpdWidget_->table().selectionModel()->selectedIndexes();
+    for ( auto& index : indecies )
+        cmpds.insert( cmpdWidget_->uuid( index.row() ) );
+    respTable_->setCompoundSelected( cmpds );
 }
 
 void
@@ -328,10 +345,22 @@ QuanResultWnd::plot_calib_curve_xy( adwplot::Dataplot* plot, const detail::calib
 void
 QuanResultWnd::plot_calib_curve_yx( adwplot::Dataplot* plot, const detail::calib_curve& calib, const detail::calib_data& data )
 {
-    plot->setAxisTitle( QwtPlot::xBottom, "amounts" );
-    plot->setAxisTitle( QwtPlot::yLeft, "response" );
+    plot->setAxisTitle( QwtPlot::xBottom, tr( "amounts" ) );
+    plot->setAxisTitle( QwtPlot::yLeft, tr( "response" ) );
+    plot->setTitle( QString( tr( "Calibration curve for %1" ) ).arg( QString::fromStdWString( calib.description ) ) );
 
-    plot->setTitle( QString::fromStdWString( calib.description ) );
+    std::ostringstream o;
+    o << tr( "Amounts = " ).toStdString();
+    if ( calib.coeffs.size() == 1 )
+        o << std::setprecision( 6 ) << calib.coeffs[ 0 ] << "&times;I";
+    else if ( calib.coeffs.size() >= 2 ) { 
+        o << std::setprecision( 6 ) << calib.coeffs[ 0 ] << "+" << calib.coeffs[ 1 ] << "&times;<i>I</i>";
+        for ( int i = 2; i < calib.coeffs.size(); ++i )
+            o << std::setprecision( 6 ) << "+" << calib.coeffs[ i ] << "&times;I<sup>" << i << "</sup>";
+    }
+    o << tr( "&nbsp;&nbsp;where I is the response" ).toStdString();
+    
+    plot->setFooter( o.str() );
 
     curves_.clear();
     curves_.push_back( std::make_shared< QwtPlotCurve >() );

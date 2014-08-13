@@ -31,7 +31,6 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <compiler/diagnostic_pop.h>
-
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
@@ -132,8 +131,7 @@ attributes::fetch()
         if ( blob.size() ) {
 			std::unique_ptr< boost::int8_t [] > p( new boost::int8_t [ blob.size() ] );
             if ( blob.read( p.get(), blob.size() ) ) {
-                adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
-                if ( adfs::cpio<attributes>::deserialize( *this, obuf ) )
+                if ( adfs::cpio::deserialize( *this, reinterpret_cast< const char *>(p.get()), blob.size() ) )
                     dirty_ = false;
             }
         }
@@ -145,11 +143,11 @@ bool
 attributes::commit()
 {
     if ( dirty_ ) {
-        adfs::detail::cpio ibuf;
-        if ( adfs::cpio<attributes>::serialize( *this, ibuf ) ) {
+        std::string device;
+        if ( adfs::cpio::serialize( *this, device ) ) {
             adfs::stmt sql( db() );
-            if ( sql.prepare( "UPDATE directory SET attr = :attr WHERE rowid = :rowid" ) ) {
-                sql.bind( 1 ) = blob( ibuf.size(), reinterpret_cast<const int8_t *>( ibuf.get() ) );
+            if ( sql.prepare( "UPDATE directory SET attr = ? WHERE rowid = ?" ) ) {
+                sql.bind( 1 ) = blob( device.size(), reinterpret_cast<const int8_t *>(device.data()) );
                 sql.bind( 2 ) = rowid();
                 if ( sql.step() == adfs::sqlite_done )
                     dirty_ = false;

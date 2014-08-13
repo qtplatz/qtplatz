@@ -202,5 +202,4 @@ HEADERS += acceptor.hpp \
 
 !win32: HEADERS += metric/prefix.hpp
 
-OTHER_FILES += \
-    adcontrols.pri
+

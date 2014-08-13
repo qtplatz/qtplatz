@@ -148,7 +148,7 @@ import::operator()()
                 size_t nSpectra = chro.size();
                 if ( nSpectra > 0 ) {
                     std::string archived;
-                    if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, archived ) ) {
+                    if ( adfs::cpio::serialize( chro, archived ) ) {
                         std::string compressed;
                         adportable::bzip2::compress( compressed, archived.data(), archived.size() );
                         
@@ -302,7 +302,7 @@ import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
                 continue;
 
             std::string ar;
-            if ( adfs::cpio< adcontrols::MassSpectrum >::serialize( ms, ar ) ) {
+            if ( adfs::cpio::serialize( ms, ar ) ) {
 
                 uint64_t time = static_cast<uint64_t>( adcontrols::metric::scale_to_micro( ms.getMSProperty().timeSinceInjection() ) );
                 uint32_t events = 0;

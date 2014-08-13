@@ -67,7 +67,7 @@ fsio::save(  adfs::filesystem& fs, const adcontrols::MassSpectrum& t, const std:
 {
     adfs::folder folder = fs.addFolder( folder_name );
     adfs::file file = folder.addFile( id );
-    return file.save( t ); // adfs::cpio< adcontrols::MassSpectrum >::save( t, file );
+    return file.save( t );
 }
 
 bool
