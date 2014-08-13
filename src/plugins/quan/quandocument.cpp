@@ -424,8 +424,13 @@ QuanDocument::handle_processed( QuanProcessor * processor )
         }
 
         if ( auto sequence = processor->sequence() ) {
-            QString outfile = QString::fromStdWString( sequence->outfile() );
-            emit onReportTriggered( outfile );
+            //QString outfile = QString::fromStdWString( sequence->outfile() );
+            //emit onReportTriggered( outfile );
+
+            if ( auto connection = std::make_shared< QuanConnection >() ) {
+                if ( connection->connect( sequence->outfile() ) )
+                    setConnection( connection.get() );
+            }
         }
 
         adwidgets::ProgressWnd::instance()->hide();
@@ -490,7 +495,6 @@ void
 QuanDocument::setConnection( QuanConnection * conn )
 {
     quanConnection_ = conn->shared_from_this();
-
     emit onConnectionChanged();
 }
 

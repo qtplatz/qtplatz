@@ -62,7 +62,7 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
-    connect( QuanDocument::instance(), &QuanDocument::onReportTriggered, this, &QuanReportWidget::handleReport );
+    connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanReportWidget::handleConnectionChanged );
     connect( form_.get(), &QuanQueryForm::triggerQuery, this, &QuanReportWidget::handleQuery );
     
     if ( auto toolBar = new Utils::StyledBar ) {
@@ -91,14 +91,10 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
 }
 
 void
-QuanReportWidget::handleReport( const QString& file )
+QuanReportWidget::handleConnectionChanged()
 {
-    //if ( auto connection = std::make_shared< QuanConnection >() ) {
-    //if ( connection->connect( file.toStdWString() ) ) {
-    // QuanDocument::instance()->setConnection( connection.get() );
-
     if ( auto edit = findChild< QLineEdit * >( Constants::editQuanFilename ) )
-        edit->setText( file );
+        edit->setText( QString::fromStdWString( QuanDocument::instance()->connection()->filepath() ) );
     executeQuery();
 }
 
