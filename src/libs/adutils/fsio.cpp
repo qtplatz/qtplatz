@@ -67,7 +67,7 @@ fsio::save(  adfs::filesystem& fs, const adcontrols::MassSpectrum& t, const std:
 {
     adfs::folder folder = fs.addFolder( folder_name );
     adfs::file file = folder.addFile( id );
-    return adfs::cpio< adcontrols::MassSpectrum >::save( t, file );
+    return file.save( t ); // adfs::cpio< adcontrols::MassSpectrum >::save( t, file );
 }
 
 bool
@@ -86,8 +86,8 @@ fsio::load( adfs::filesystem& fs, adcontrols::MassSpectrum& t, const std::wstrin
 
     std::vector< adfs::file > files = folder.files();
     auto it = std::find_if( files.begin(), files.end(), [=]( const adfs::file& f ){ return f.name() == id; });
-    if ( it != files.end() ) 
-        return adfs::cpio< adcontrols::MassSpectrum >::load( t, *it );
+    if ( it != files.end() )
+        return it->fetch( t ); // adfs::cpio< adcontrols::MassSpectrum >::load( t, *it );
     return false;
 }
 

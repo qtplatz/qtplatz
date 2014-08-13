@@ -35,9 +35,13 @@
 #include <vector>
 #include <QObject>
 
-namespace adcontrols { class QuanMethod; class QuanCompounds; class QuanSequence; class QuanSample; class ProcessMethod; class QuanProcessor; }
+namespace adcontrols { class QuanMethod; class QuanCompounds; class QuanSequence; class QuanSample;
+    class ProcessMethod; class QuanProcessor; }
+
 namespace adwidgets { class ProgressWnd; }
 namespace boost { namespace filesystem { class path; } }
+
+class QSettings;
 
 namespace quan {
     
@@ -105,11 +109,14 @@ namespace quan {
         void handle_processed( QuanProcessor * );  // UI thread
         void sample_processed( QuanSampleProcessor * ); // within a sample process thread
 
+        QSettings * settings() { return settings_.get(); }
+
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
         typedef std::map< int, page_type > chapter_type;
         std::map< int, chapter_type > book_;
-
+        
+        std::unique_ptr< QSettings > settings_;
         std::shared_ptr< adcontrols::QuanMethod > quanMethod_;
         std::shared_ptr< adcontrols::QuanCompounds > quanCompounds_;
         std::shared_ptr< adcontrols::QuanSequence > quanSequence_;

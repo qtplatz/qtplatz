@@ -36,7 +36,6 @@
 namespace adfs {
 
     class file;
-    //typedef char char_t;
 
     namespace detail { 
         class cpio : public std::basic_streambuf<char> {
@@ -81,18 +80,6 @@ namespace adfs {
             boost::iostreams::basic_array_source< char > device( data, length );
             boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
             return data_type::restore( st, t );
-        }
-
-        template<class T> static bool save( const T& t, adfs::file& f ) {
-            detail::cpio obuf;
-            std::ostream os( &obuf );
-            return data_type::archive( os, t ) && f.write( obuf.size(), obuf.get() );
-        }
-
-        template<class T> static bool load( T& t, adfs::file& f ) {
-            detail::cpio ibuf( f.size() );
-            std::istream is( &ibuf );
-            return f.read( ibuf.size(), ibuf.get() ) && data_type::restore( is, t );
         }
 
     };

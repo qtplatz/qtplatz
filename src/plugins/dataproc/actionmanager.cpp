@@ -231,7 +231,7 @@ ActionManager::actMethodSave()
         adcontrols::ProcessMethod m;
         MainWindow::instance()->getProcessMethod( m );
         try {
-            adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
+            adfile.save( m ); // adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
         } catch ( std::exception& e ) {
             QMessageBox::warning( 0, "Save process method", 
                                   (boost::format("%1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );
@@ -269,7 +269,8 @@ ActionManager::actMethodOpen()
         auto it = files.begin();
         adcontrols::ProcessMethod m;
         try {
-            adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
+            //adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
+            it->fetch( m );
         } catch ( std::exception& ex ) {
             QMessageBox::warning( 0, "Open process method"
                                   , (boost::format("%1% @ %2% #%3%") % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
@@ -302,7 +303,8 @@ ActionManager::saveDefaults()
     adcontrols::ProcessMethod m;
     MainWindow::instance()->getProcessMethod( m );
     try {
-        adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
+        //adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
+        adfile.save( m );
     } catch ( std::exception& e ) {
         QMessageBox::warning( 0, "Save default process method", 
                               (boost::format("%1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );        
@@ -336,7 +338,8 @@ ActionManager::loadDefaults()
     auto it = files.begin();
     adcontrols::ProcessMethod m;
     try {
-        adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
+        //adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
+        it->fetch( m );
     } catch ( std::exception& ex ) {
         QMessageBox::information( 0, "dataproc -- Open default process method"
                                   , (boost::format("Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%")
