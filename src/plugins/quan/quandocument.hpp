@@ -138,7 +138,6 @@ namespace quan {
         bool load_default_methods();
     signals:
         void onProcessed( QuanProcessor * );
-        void onReportTriggered( const QString& );
         void onMSLockEnabled( bool );
         void onSequenceCompleted();
         void onConnectionChanged();

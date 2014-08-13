@@ -46,6 +46,7 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/id.h>
 #include <coreplugin/minisplitter.h>
+#include <coreplugin/modemanager.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
@@ -344,7 +345,7 @@ MainWindow::handleSequenceCompleted()
         stop->setEnabled( true );
 
     if ( auto tab = findChild< DoubleTabWidget * >() )
-        tab->setCurrentIndex( -1, 2 );
+        tab->setCurrentIndex( -1, 3 );
 }
 
 void
@@ -365,7 +366,11 @@ MainWindow::handleOpenQuanResult()
                     QuanDocument::instance()->setConnection( connection.get() );
                 }
             }
-            widget->handleReport( name );
+            // widget->handleReport( name );
+
+            if ( auto tab = findChild< DoubleTabWidget * >() )
+                tab->setCurrentIndex( -1, 3 );
+            Core::ModeManager::activateMode( Core::Id( Constants::C_QUAN_MODE ) );
         }
     }
 }
