@@ -93,6 +93,7 @@ QuanResultTable::~QuanResultTable()
 QuanResultTable::QuanResultTable(QWidget *parent) : adwidgets::TableView(parent)
                                                   , model_( new QStandardItemModel )
 {
+    setAllowDelete( false );
     setModel( model_.get() );
     setItemDelegate( new quanresulttable::ItemDelegate );
     setHorizontalHeader( new adwidgets::HtmlHeaderView );

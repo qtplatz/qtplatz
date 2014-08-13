@@ -138,15 +138,15 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     const QwtInterval zInterval = spectrogram_->data()->interval( Qt::ZAxis );
     // A color bar on the right axis
     QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
-    rightAxis->setTitle( QwtText( "Intensity", QwtText::RichText ) );
+    rightAxis->setTitle( QwtText( tr("Intensity"), QwtText::RichText ) );
     rightAxis->setColorBarEnabled( true );
 	rightAxis->setColorMap( zInterval, new spectrogram::ColorMap );
 
     setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
     enableAxis( QwtPlot::yRight );
 
-    axisWidget( QwtPlot::xBottom )->setTitle( QwtText( "Time[min]", QwtText::RichText ) );
-    axisWidget( QwtPlot::yLeft )->setTitle( QwtText( "<i>m/z</i>", QwtText::RichText ) );
+    axisWidget( QwtPlot::xBottom )->setTitle( QwtText( tr("Time[min]"), QwtText::RichText ) );
+    axisWidget( QwtPlot::yLeft )->setTitle( QwtText( tr("<i>m/z</i>"), QwtText::RichText ) );
 
     QwtScaleWidget *yAxis = axisWidget( QwtPlot::yLeft );    
     yAxis->setTitle( "m/z" );

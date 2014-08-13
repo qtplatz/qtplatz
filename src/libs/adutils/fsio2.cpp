@@ -32,11 +32,10 @@
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibration.hpp>
-#include <adinterface/method.hpp>
 #include <adfs/cpio.hpp>
-#include <adportable/debug.hpp>
-
 #include <adfs/sqlite.hpp>
+#include <adinterface/method.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/posix_path.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
@@ -67,20 +66,6 @@ namespace adutils { namespace detail {
             static void attributes( portfolio::Folium&, const adfs::attributes& );
             static void attributes( portfolio::Folder&, const adfs::attributes& );
         };
-
-        template< class T > struct serializer {
-            static std::shared_ptr< T > deserialize( adfs::detail::cpio& obuf ) {
-                std::shared_ptr<T> ptr = std::make_shared<T>();
-                try {
-                    adfs::cpio<T>::deserialize( *ptr, obuf );
-                } catch ( std::exception& e ) {
-                    adportable::debug(__FILE__, __LINE__) << "exception: " << e.what() << " while deserializing " << typeid(T).name();
-                    ptr.reset();
-                }
-                return ptr;
-            }
-        };
-
 }
 }
 

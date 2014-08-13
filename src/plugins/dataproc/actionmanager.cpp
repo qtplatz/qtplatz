@@ -425,11 +425,11 @@ ActionManager::handleSaveAs()
 }
 
 void
-ActionManager::handleContextChanged( const QList<Core::IContext *>& t1, const Core::Context& t2 )
+ActionManager::handleContextChanged( const QList<Core::IContext *>& t1, const Core::Context& )
 {
     for ( auto& context : t1 ) {
         if ( Core::IEditor * editor = qobject_cast<Core::IEditor *>(context) ) {
-            QString text = QString( "Save '%1' As..." ).arg( editor->document()->filePath() );
+            QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath() );
             actions_[ idActSaveAs ]->setText( text );
         }
     }
