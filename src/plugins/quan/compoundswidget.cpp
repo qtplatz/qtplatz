@@ -95,18 +95,11 @@ CompoundsWidget::commit()
 }
 
 void
-CompoundsWidget::handleDataChanged( int id, bool fnChanged )
+CompoundsWidget::handleDataChanged( int id, bool )
 {
     if ( id == idQuanMethod ) {
         auto& method = QuanDocument::instance()->quanMethod();
         table_->handleQuanMethod( method );
-#if 0        
-        if ( fnChanged ) {
-            if ( auto edit = findChild< QLineEdit *>( Constants::editQuanMethodName ) ) {
-                edit->setText( QString::fromStdWString( method.quanMethodFilename() ) );
-            }
-        }
-#endif
     }
     else if ( id == idQuanCompounds ) {
         table_->setContents( QuanDocument::instance()->quanCompounds() );
