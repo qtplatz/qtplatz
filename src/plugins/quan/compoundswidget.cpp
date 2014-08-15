@@ -26,23 +26,21 @@
 #include "compoundstable.hpp"
 #include "quandocument.hpp"
 #include "quanconstants.hpp"
+#include "quanmethodcomplex.hpp"
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adportable/profile.hpp>
 #include <adlog/logger.hpp>
 #include <utils/styledbar.h>
+#include <coreplugin/actionmanager/actionmanager.h>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QToolButton>
 #include <QMessageBox>
-//#include <boost/archive/xml_woarchive.hpp>
-//#include <boost/archive/xml_wiarchive.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-//#include <boost/filesystem/fstream.hpp>
-//#include <fstream>
 
 using namespace quan;
 
@@ -67,53 +65,17 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
         toolBarLayout->setSpacing( 0 );
         if ( auto btnOpen = new QToolButton ) {
             btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
-            btnOpen->setToolTip( tr( "Open compoinent file..." ) );
+            btnOpen->setToolTip( tr( "Import Compounds..." ) );
             toolBarLayout->addWidget( btnOpen );
-            
-            connect( btnOpen, &QToolButton::clicked, this, [this](bool){
-                    QString file;
-                    if ( auto edit = findChild< QLineEdit *>( Constants::editCompoundsFilename ) ) {
-                        file = edit->text();
-                        if ( file.isEmpty() )
-                            file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
-                        file = QFileDialog::getOpenFileName( this, tr("Open compounds file"), file, tr("File(*.xml)"));
-                        try {
-                            adcontrols::QuanCompounds m;
-                            if ( QuanDocument::instance()->load( file.toStdWString(), m ) )
-                                QuanDocument::instance()->quanCompounds( m );
-                        } catch ( std::exception& ex ) {
-                            QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
-                            return;
-                        }
-                    }
-                });
+            connect( btnOpen, &QToolButton::clicked, this, [this](bool){ importCompounds(); } );
         }
         if ( auto btnSave = new QToolButton ) {
-            btnSave->setIcon( QIcon( ":/quan/images/filesave.png" ) );
-            btnSave->setToolTip( tr( "Save compoinents..." ) );
+            btnSave->setDefaultAction( Core::ActionManager::instance()->command( Constants::QUAN_METHOD_SAVE )->action() );
+            btnSave->setToolTip( tr( "Save Quan Method..." ) );
             toolBarLayout->addWidget( btnSave );
-            connect( btnSave, &QToolButton::clicked, this, [this](bool){
-                    QString file;
-                    if ( auto edit = findChild< QLineEdit *>( Constants::editCompoundsFilename ) ) {
-                        file = edit->text();
-                        if ( file.isEmpty() )
-                            file = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
-                        file = QFileDialog::getSaveFileName( this, tr("Save compounds"), file, tr("File(*.xml)"));
-                        if ( !file.isEmpty() ) {
-                            edit->setText( file );
-                            try {
-                                commit();
-                                QuanDocument::instance()->save( file.toStdWString(), QuanDocument::instance()->quanCompounds() );
-                            } catch ( std::exception& ex ) {
-                                QMessageBox::warning( 0, "Open Quantitative Method", boost::diagnostic_information( ex ).c_str() );
-                                return;
-                            }
-                        }
-                    }
-                });
         }
         if ( auto edit = new QLineEdit ) {
-            edit->setObjectName( Constants::editCompoundsFilename );
+            edit->setObjectName( Constants::editQuanMethodName );
             toolBarLayout->addWidget( edit );
             toolBarLayout->addWidget( new Utils::StyledSeparator );
         }
@@ -138,15 +100,29 @@ CompoundsWidget::handleDataChanged( int id, bool fnChanged )
     if ( id == idQuanMethod ) {
         auto& method = QuanDocument::instance()->quanMethod();
         table_->handleQuanMethod( method );
-        
+#if 0        
         if ( fnChanged ) {
-            if ( auto edit = findChild< QLineEdit *>( Constants::editCompoundsFilename ) ) {
-                edit->setText( QString::fromStdWString( method.quanCompoundsFilename() ) );
+            if ( auto edit = findChild< QLineEdit *>( Constants::editQuanMethodName ) ) {
+                edit->setText( QString::fromStdWString( method.quanMethodFilename() ) );
             }
         }
-
+#endif
     }
     else if ( id == idQuanCompounds ) {
         table_->setContents( QuanDocument::instance()->quanCompounds() );
+    }
+}
+
+void
+CompoundsWidget::importCompounds()
+{
+    QString name = QFileDialog::getOpenFileName( this
+                                                 , tr( "Import Compounds..." )
+                                                 , QuanDocument::instance()->lastMethodDir()
+                                                 , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
+    if ( !name.isEmpty() ) {
+        QuanMethodComplex m;
+        QuanDocument::instance()->load( name.toStdWString(), m );
+        QuanDocument::instance()->method( m.quanCompounds() );
     }
 }

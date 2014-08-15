@@ -24,6 +24,10 @@
 
 #include "document.hpp"
 #include <xmlparser/pugixml.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 
 using namespace adpublisher;
 
@@ -49,3 +53,24 @@ document::load_file( const char * filepath )
     return doc_->load_file( filepath );
 }
 
+bool
+document::save( std::ostream& o ) const
+{
+    doc_->save( o );
+    return true;
+}
+
+bool
+document::save( std::string& ar ) const
+{
+    boost::iostreams::back_insert_device< std::string > inserter( ar );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+    doc_->save( device );
+    return true;
+}
+
+bool
+document::load( const char * xml )
+{
+    return doc_->load( xml );
+}

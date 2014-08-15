@@ -295,7 +295,7 @@ ActionManager::saveDefaults()
         if ( !file.create( fname.wstring().c_str() ) )
             return false;
     } catch ( adfs::exception& ex ) {
-        QMessageBox::warning( 0, "Process method", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
+        QMessageBox::warning( 0, tr( "Process method" ), (boost::format( "%1% on %2%" ) % ex.message % ex.category).str().c_str() );
         return false;
     }
     adfs::folder folder = file.addFolder( L"/ProcessMethod" );
@@ -306,7 +306,7 @@ ActionManager::saveDefaults()
         //adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
         adfile.save( m );
     } catch ( std::exception& e ) {
-        QMessageBox::warning( 0, "Save default process method", 
+        QMessageBox::warning( 0, tr( "Save default process method" ),
                               (boost::format("%1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );        
     }
     adfile.dataClass( adcontrols::ProcessMethod::dataClass() );

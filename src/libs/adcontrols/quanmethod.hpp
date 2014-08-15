@@ -104,8 +104,8 @@ namespace adcontrols {
         void quanMethodFilename( const wchar_t * d ) { quanMethodFilename_ = d; }
         const wchar_t * quanCompoundsFilename() const { return quanCompoundsFilename_.c_str(); }
         void quanCompoundsFilename( const wchar_t * d ) { quanCompoundsFilename_ = d; }
-        const wchar_t * quanSequenceFilename() const { return quanCompoundsFilename_.c_str(); }
-        void quanSequenceFilename( const wchar_t * d ) { quanCompoundsFilename_ = d; }
+        const wchar_t * quanSequenceFilename() const { return quanSequenceFilename_.c_str(); }
+         void quanSequenceFilename( const wchar_t * d ) { quanSequenceFilename_ = d; }
 
     private:
         idAudit ident_;

@@ -25,18 +25,23 @@
 #pragma once
 
 #include <memory>
+#include <ostream>
+#include "adpublisher_global.hpp"
 
 namespace pugi { class xml_document; }
 
 namespace adpublisher {
 
-    class document {
+    class ADPUBLISHERSHARED_EXPORT document {
     public:
         document();
         document( const document& ) = delete;
 
         bool save_file( const char * filepath ) const;
         bool load_file( const char * filepath );
+        bool save( std::ostream& ) const;
+        bool save( std::string& ) const;
+        bool load( const char * );
 
     private:
         std::shared_ptr< pugi::xml_document > doc_;

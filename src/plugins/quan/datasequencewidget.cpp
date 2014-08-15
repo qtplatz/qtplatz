@@ -129,14 +129,14 @@ DataSequenceWidget::dataSelectionBar()
 
         if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
 
-            if ( auto execButton = new QToolButton ) { //( am->command( Constants::SEQUENCE_RUN )->action() );
-                execButton->setDefaultAction( am->command( Constants::SEQUENCE_RUN )->action() );
+            if ( auto execButton = new QToolButton ) {
+                execButton->setDefaultAction( am->command( Constants::QUAN_SEQUENCE_RUN )->action() );
                 execButton->setToolTip( tr( "Run sequence in batch process" ) );
                 toolBarLayout->addWidget( execButton );
             }
             
-            if ( auto stopButton = new QToolButton ) { //( am->command( Constants::SEQUENCE_STOP )->action() );
-                stopButton->setDefaultAction( am->command( Constants::SEQUENCE_STOP )->action() );
+            if ( auto stopButton = new QToolButton ) {
+                stopButton->setDefaultAction( am->command( Constants::QUAN_SEQUENCE_STOP )->action() );
                 stopButton->setToolTip( tr( "Stop sequence executeion" ) );
                 toolBarLayout->addWidget( stopButton );
             }
@@ -186,7 +186,7 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
     if ( id == idQuanSequence && fnChanged ) {
         if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
             boost::filesystem::path path( QuanDocument::instance()->quanSequence()->outfile() );
-            path.normalize();
+            path = path.generic_wstring(); // posix format
             int number = 0;
             if ( boost::filesystem::exists( path ) ) {
                 std::wstring stem = path.stem().wstring();
@@ -202,9 +202,9 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
                 do {
                     next = path / boost::filesystem::path( stem + (boost::wformat( L"%d.adfs" ) % ++number).str() );
                 } while ( boost::filesystem::exists( next ) );
-                path = next;
+                path = next.generic_wstring();
             }
-            edit->setText( QString::fromStdWString( path.wstring() ) );
+            edit->setText( QString::fromStdWString( path.wstring() ) ); // native format
         }
         dataSequenceTree_->setContents( *QuanDocument::instance()->quanSequence() );
     }

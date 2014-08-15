@@ -22,8 +22,7 @@
 **
 **************************************************************************/
 
-#ifndef QUANREPORTWIDGET_HPP
-#define QUANREPORTWIDGET_HPP
+#pragma once
 
 #include <QWidget>
 #include <memory>
@@ -35,11 +34,11 @@ namespace quan {
     class QuanQueryForm;
     class QuanResultTable;
 
-    class QuanReportWidget : public QWidget  {
+    class QuanQueryWidget : public QWidget  {
         Q_OBJECT
     public:
-        ~QuanReportWidget();
-        explicit QuanReportWidget(QWidget *parent = 0);
+        ~QuanQueryWidget();
+        explicit QuanQueryWidget(QWidget *parent = 0);
 
     private:
         QGridLayout * layout_;
@@ -47,7 +46,6 @@ namespace quan {
         std::unique_ptr< QuanResultTable > table_;
 
         void executeQuery();
-        void importDocTemplate();
 
     signals:
 
@@ -60,4 +58,4 @@ namespace quan {
 
 }
 
-#endif // QUANREPORTWIDGET_HPP
+

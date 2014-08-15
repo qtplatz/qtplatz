@@ -68,6 +68,9 @@ namespace adcontrols {
         const wchar_t * outfile() const { return outfile_.c_str(); }
         void outfile( const wchar_t * file ) { outfile_ = file; }
 
+        const wchar_t * filename() const { return filename_.c_str(); }
+        void filename( const wchar_t * file ) { filename_ = file; }
+
         static bool archive( std::ostream&, const QuanSequence& );
         static bool restore( std::istream&, QuanSequence& );
 
@@ -75,19 +78,24 @@ namespace adcontrols {
         idAudit ident_;
         std::vector< QuanSample > samples_;
         std::wstring outfile_;
+        std::wstring filename_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( ident_ )
                 & BOOST_SERIALIZATION_NVP( samples_ )
                 & BOOST_SERIALIZATION_NVP( outfile_ )
                 ;
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( filename_ );
         }
 
     };
     typedef std::shared_ptr<QuanSequence> QuanSequencePtr;   
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::QuanSequence, 1 )
 
 #endif // QUANSEQUENCE_HPP

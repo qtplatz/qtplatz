@@ -51,6 +51,7 @@ namespace quan {
         std::unique_ptr< CompoundsTable > table_;
 
         void handleDataChanged( int, bool );
+        void importCompounds();
 
     signals:
 

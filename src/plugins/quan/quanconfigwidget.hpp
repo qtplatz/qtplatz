@@ -53,6 +53,7 @@ namespace quan {
         QWidget * fileSelectionBar();
 
         void handleDataChanged( int, bool );
+        void importQuanMethod();
 
     signals:
         void onLevelChanged( int );
