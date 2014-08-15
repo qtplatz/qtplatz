@@ -26,6 +26,7 @@ SOURCES += quanplugin.cpp \
     quansampleprocessor.cpp \
     processmethodwidget.cpp \
     quanreportwidget.cpp \
+    quanquerywidget.cpp \
     quanprocessor.cpp \
     quanresulttable.cpp \
     quanqueryform.cpp \
@@ -35,7 +36,8 @@ SOURCES += quanplugin.cpp \
     quanresultwnd.cpp \
     quanresultwidget.cpp \
     quancmpdwidget.cpp \
-    quanplotdata.cpp
+    quanplotdata.cpp \
+    quanmethodcomplex.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
@@ -56,6 +58,7 @@ HEADERS += quanplugin.hpp \
     quansampleprocessor.hpp \
     processmethodwidget.hpp \
     quanreportwidget.hpp \
+    quanquerywidget.hpp \
     quanprocessor.hpp \
     quanresulttable.hpp \
     quanqueryform.hpp \
@@ -65,7 +68,8 @@ HEADERS += quanplugin.hpp \
     quanresultwidget.hpp \
     quanresultwnd.hpp \
     quancmpdwidget.hpp \
-    quanplotdata.hpp
+    quanplotdata.hpp \
+    quanmethodcomplex.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \
@@ -79,6 +83,7 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adwplot) \
         -l$$qtLibraryTarget(adwidgets) \
         -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(adpublisher) \
         -l$$qtLibraryTarget(qtwrapper)
 
 !win32 {

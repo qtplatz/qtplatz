@@ -27,10 +27,18 @@
 namespace quan {
 namespace Constants {
 
-    const char ACTION_ID[] = "Quan.Action";
-    const char MENU_ID[] = "Quan.Menu";
-    const char * const C_QUAN_MODE   = "Quan.Mode";
-    const char * const FILE_OPEN     = "Quan.FileOpen";
+    const char ACTION_ID[]                 = "Quan.Action";
+    const char MENU_ID[]                   = "Quan.Menu";
+    const char * const C_QUAN_MODE         = "Quan.Mode";
+    const char * const FILE_OPEN           = "Quan.FileOpen";
+    const char * const QUAN_METHOD_OPEN    = "Quan.MethodOpen";
+    const char * const QUAN_METHOD_SAVE    = "Quan.MethodSave";
+    const char * const QUAN_SEQUENCE_OPEN  = "Quan.SequenceOpen";
+    const char * const QUAN_SEQUENCE_SAVE  = "Quan.SequenceSave";
+
+    // actions
+    const char * const QUAN_SEQUENCE_RUN   = "Quan.Run";
+    const char * const QUAN_SEQUENCE_STOP  = "Quan.Stop";
 
     const int ICON_SIZE(64);
     
@@ -39,16 +47,10 @@ namespace Constants {
     const int BELOW_CONTENTS_MARGIN(16);
     const int PANEL_LEFT_MARGIN = 70;
 
-    // actions
-    const char * const SEQUENCE_RUN = "quan.Run";
-    const char * const SEQUENCE_STOP = "quan.Stop";
-
     // object names
-    const char * const editQuanMethodFilename = "editQuanMethodFilename";
-    const char * const editCompoundsFilename  = "editCompoundsFilename";
+    const char * const editQuanMethodName     = "editQuanMethodName";
     const char * const editOutfile            = "editOutfile";
-    const char * const editQuanFilename       = "editQuanFilename";
-    const char * const editSQLFilename        = "editSQLFilename";
+    const char * const editQuanFilename       = "editQuanFilename"; // result filename
 
     // Combo box
     const char * const cmbAvgAll            = "Average all";
@@ -56,6 +58,13 @@ namespace Constants {
     const char * const cmbTake2nd           = "Take 2nd spc.";
     const char * const cmbTakeLast          = "Take last spc.";
     const char * const cmbProcEach          = "Proc. ea. spc.";
+
+    // settings
+    const char * const GRP_SEQUENCE_FILES   = "SequenceFiles";
+    const char * const GRP_METHOD_FILES     = "MethodFiles";
+    const char * const KEY_FILES            = "Files";
+    const char * const KEY_REFERENCE        = "ReferenceFiles";
+    const char * const GRP_DIRECTORIES      = "Directories";
 
 } // namespace quan
 } // namespace Constants

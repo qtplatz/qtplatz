@@ -22,11 +22,10 @@
 **
 **************************************************************************/
 
-#include "quanreportwidget.hpp"
+#include "quanquerywidget.hpp"
 #include "quanconnection.hpp"
 #include "quanconstants.hpp"
 #include "quandocument.hpp"
-#include "quanmethodcomplex.hpp"
 #include "quanquery.hpp"
 #include "quanqueryform.hpp"
 #include "quanresulttable.hpp"
@@ -49,11 +48,11 @@
 
 using namespace quan;
 
-QuanReportWidget::~QuanReportWidget()
+QuanQueryWidget::~QuanQueryWidget()
 {
 }
 
-QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
+QuanQueryWidget::QuanQueryWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QGridLayout )
                                                     , form_( new QuanQueryForm )
                                                     , table_( new QuanResultTable )
@@ -63,8 +62,8 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
-    // connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanReportWidget::handleConnectionChanged );
-    // connect( form_.get(), &QuanQueryForm::triggerQuery, this, &QuanReportWidget::handleQuery );
+    connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanQueryWidget::handleConnectionChanged );
+    connect( form_.get(), &QuanQueryForm::triggerQuery, this, &QuanQueryWidget::handleQuery );
     
     if ( auto toolBar = new Utils::StyledBar ) {
 
@@ -75,19 +74,13 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
         toolBarLayout->setSpacing( 2 );
 
         if ( auto btnOpen = new QToolButton ) {
-            btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
-            btnOpen->setToolTip( tr("Import Report Format...") );
+            btnOpen->setDefaultAction( Core::ActionManager::instance()->command( Constants::FILE_OPEN )->action() );
+            btnOpen->setToolTip( tr("Open result file...") );
             toolBarLayout->addWidget( btnOpen );
-            connect( btnOpen, &QToolButton::clicked, this, [this]( bool ){ importDocTemplate(); } );
-        }
-        if ( auto btnSave = new QToolButton ) {
-            btnSave->setDefaultAction( Core::ActionManager::instance()->command( Constants::QUAN_METHOD_SAVE )->action() );
-            btnSave->setToolTip( tr("Save Quan Method...") );
-            toolBarLayout->addWidget( btnSave );
         }
 
         auto edit = new QLineEdit;
-        edit->setObjectName( Constants::editQuanMethodName );
+        edit->setObjectName( Constants::editQuanFilename );
         toolBarLayout->addWidget( edit );
     } // end toolbar
     
@@ -98,7 +91,7 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
 }
 
 void
-QuanReportWidget::handleConnectionChanged()
+QuanQueryWidget::handleConnectionChanged()
 {
     if ( auto edit = findChild< QLineEdit * >( Constants::editQuanFilename ) )
         edit->setText( QString::fromStdWString( QuanDocument::instance()->connection()->filepath() ) );
@@ -106,7 +99,7 @@ QuanReportWidget::handleConnectionChanged()
 }
 
 void
-QuanReportWidget::executeQuery()
+QuanQueryWidget::executeQuery()
 {
     if ( auto connection = QuanDocument::instance()->connection() ) {
         form_->setSQL(
@@ -125,7 +118,7 @@ WHERE QuanSample.id = idSample AND formula like '%' ORDER BY formula" );
 }
 
 void
-QuanReportWidget::handleQuery( const QString& sql )
+QuanQueryWidget::handleQuery( const QString& sql )
 {
     if ( auto connection = QuanDocument::instance()->connection() ) {
         if ( auto query = connection->query() ) {
@@ -145,18 +138,3 @@ QuanReportWidget::handleQuery( const QString& sql )
         }
     }
 }
-
-void
-QuanReportWidget::importDocTemplate()
-{
-    QString name = QFileDialog::getOpenFileName( this
-                                                 , tr( "Import ReportFormat..." )
-                                                 , QuanDocument::instance()->lastMethodDir()
-                                                 , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
-    if ( !name.isEmpty() ) {
-        QuanMethodComplex m;
-        QuanDocument::instance()->load( name.toStdWString(), m );
-        QuanDocument::instance()->method( m.docTemplate() );
-    }
-}
-
