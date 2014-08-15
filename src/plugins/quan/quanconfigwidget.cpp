@@ -170,14 +170,6 @@ QuanConfigWidget::commit()
 void
 QuanConfigWidget::handleDataChanged( int id, bool )
 {
-#if 0
-    if ( id == idQuanMethod ) {
-        if ( auto edit = findChild< QLineEdit * >( Constants::editQuanMethodName ) ) {
-            edit->setText( QString::fromStdWString( QuanDocument::instance()->quanMethod().quanMethodFilename() ) );
-            form_->setContents( QuanDocument::instance()->quanMethod() );
-        }
-    }
-#endif
 }
 
 void
