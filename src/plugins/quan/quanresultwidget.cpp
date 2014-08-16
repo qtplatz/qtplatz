@@ -64,7 +64,7 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) :  QWidget(parent)
         if ( auto pCombo = new QComboBox ) {
             pCombo->addItems( QStringList() << tr("All") << tr("Unknown") << tr("Standards") << tr("QC") << tr("Blank") );
             toolBarLayout->addWidget( pCombo );
-
+            
             toolBarLayout->addWidget( new Utils::StyledSeparator );            
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
 

@@ -148,8 +148,6 @@ MainWindow::createContents( Core::IMode * )
             panelsWidget->addPanel( data.get() );
             connect( panelsWidget, &PanelsWidget::onCommit, widget, &ProcessMethodWidget::commit );
         }
-        //panelsWidget->layout()->setRowMinimumHeight( 2, 100 );
-        //panelsWidget->layout()->setRowStretch( 3, 10 );
         stack_->addWidget( panelsWidget );
     }
 
@@ -162,10 +160,6 @@ MainWindow::createContents( Core::IMode * )
             panelsWidget->addPanel( data.get() );
             widget->setMaximumHeight( std::numeric_limits<int>::max() );
         }
-        //QLayout * p = panelsWidget->layout();
-        //auto layout = dynamic_cast<QGridLayout *>(p);
-        //layout->setRowMinimumHeight( 3, 600 );
-        //layout->setRowStretch( 3, 10 );
 #if 0
         if ( auto widget = new QuanQueryWidget ) {
             auto data = std::make_shared< PanelData >( "Query"
@@ -179,9 +173,16 @@ MainWindow::createContents( Core::IMode * )
     }
 
     // Browse calibration curve & results
-    if ( auto wnd = new QuanResultWnd( stack_ ) ) {
-        
-        stack_->addWidget( wnd );
+    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
+
+        if ( auto widget = new QuanResultWnd ) {
+            auto data = std::make_shared< PanelData >( "Review Result"
+                                                       , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
+                                                       , widget );
+            panelsWidget->addPanel( data.get() );
+            widget->setMaximumHeight( std::numeric_limits<int>::max() );
+        }
+        stack_->addWidget( panelsWidget );
     }
 
     stack_->setCurrentIndex( 0 );
@@ -430,21 +431,19 @@ MainWindow::handleOpenQuanResult()
 void
 MainWindow::handleOpenQuanMethod()
 {
-    if ( auto widget = findChild<QuanConfigWidget *>() ) {
-        auto name = QFileDialog::getOpenFileName( this, tr( "Open Quantitation Method File" )
-                                                  , QuanDocument::instance()->lastMethodDir()
-                                                  , tr( "Quan Method Files(*.qmth);;Result Files(*.adfs);;XML Files(*.xml)" ) );
-        if ( ! name.isEmpty() ) {
-            boost::filesystem::path path( name.toStdWString() );
-            QuanMethodComplex complex;
-            if ( QuanDocument::instance()->load( path, complex ) ) {
-                complex.setFilename( path.generic_wstring().c_str() );
-                QuanDocument::instance()->method( complex );
+    auto name = QFileDialog::getOpenFileName( this, tr( "Open Quantitation Method File" )
+                                              , QuanDocument::instance()->lastMethodDir()
+                                              , tr( "Quan Method Files(*.qmth);;Result Files(*.adfs);;XML Files(*.xml)" ) );
+    if ( ! name.isEmpty() ) {
+        boost::filesystem::path path( name.toStdWString() );
+        QuanMethodComplex complex;
+        if ( QuanDocument::instance()->load( path, complex ) ) {
+            complex.setFilename( path.generic_wstring().c_str() );
+            QuanDocument::instance()->method( complex );
 
-                auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
-                for ( auto& edit : list )
-                    edit->setText( QString::fromStdString( path.native() ) );
-            }
+            auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
+            for ( auto& edit : list )
+                edit->setText( QString::fromStdString( path.native() ) );
         }
     }
 }
@@ -452,33 +451,31 @@ MainWindow::handleOpenQuanMethod()
 void
 MainWindow::handleSaveQuanMethod()
 {
-    if ( auto widget = findChild<QuanQueryWidget *>() ) {
-        auto name = QFileDialog::getSaveFileName( this
-                                                  , tr( "Save Quantitation Method File" )
-                                                  , QuanDocument::instance()->lastMethodDir()
-                                                  , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
-        if ( ! name.isEmpty() ) {
+    auto name = QFileDialog::getSaveFileName( this
+                                              , tr( "Save Quantitation Method File" )
+                                              , QuanDocument::instance()->lastMethodDir()
+                                              , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
+    if ( ! name.isEmpty() ) {
 
-            boost::filesystem::path path( name.toStdWString() );
-            QuanDocument::instance()->save( path, QuanDocument::instance()->method() );
+        boost::filesystem::path path( name.toStdWString() );
+        QuanDocument::instance()->save( path, QuanDocument::instance()->method() );
 
-            if ( path != QuanDocument::instance()->method().filename() ) {
+        if ( path != QuanDocument::instance()->method().filename() ) {
 
-                // reload from file & replace own filename
+            // reload from file & replace own filename
 
-                QuanMethodComplex complex;
-                if ( QuanDocument::instance()->load( path, complex ) ) {
+            QuanMethodComplex complex;
+            if ( QuanDocument::instance()->load( path, complex ) ) {
 
-                    complex.setFilename( path.generic_wstring().c_str() );
-                    QuanDocument::instance()->method( complex );
+                complex.setFilename( path.generic_wstring().c_str() );
+                QuanDocument::instance()->method( complex );
 
-                    auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
-                    for ( auto& edit : list )
-                        edit->setText( QString::fromStdString( path.native() ) );
-
-                }
+                auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
+                for ( auto& edit : list )
+                    edit->setText( QString::fromStdString( path.native() ) );
 
             }
+
         }
     }
 }
