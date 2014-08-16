@@ -41,7 +41,7 @@ namespace adpublisher {
         ~docText();
         explicit docText(QWidget *parent = 0);
 
-        std::shared_ptr< adpublisher::document > document();
+        // std::shared_ptr< adpublisher::document > document();
         void setDocument( std::shared_ptr< adpublisher::document >& );
 
     private:

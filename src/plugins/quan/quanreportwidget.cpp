@@ -35,20 +35,30 @@
 #include <adpublisher/document.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/coreconstants.h>
 #include <utils/styledbar.h>
 #include <QFileDialog>
+#include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QGridLayout>
+#include <QMenu>
+#include <QMessageBox>
+#include <QToolBar>
 #include <QToolButton>
 #include <QTreeView>
 #include <QVBoxLayout>
-#include <QMessageBox>
-#include <QStandardItemModel>
+//#include <QStandardItemModel>
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
 #include <fstream>
 #include <algorithm>
+
+#ifdef Q_OS_MAC
+const QString qrcpath = ":/adpublisher/images/mac";
+#else
+const QString qrcpath = ":/adpublisher/images/win";
+#endif
 
 using namespace quan;
 
@@ -60,6 +70,7 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QVBoxLayout( this ) )
                                                     , docEditor_( new adpublisher::docEditor )
 {
+#if 0
     if ( auto toolBar = new Utils::StyledBar ) {
 
         layout_->addWidget( toolBar );
@@ -92,10 +103,27 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
         }
 
     } // end toolbar
-    //QSizePolicy policy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    //docEditor_->setSizePolicy( policy );
-    //auto w = new QWidget;
-    //docEditor_.reset( new adpublisher::docEditor( w ) );
+#endif
+    if ( auto am = Core::ActionManager::instance() ) {
+        if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_FILE_MENU ) ) {
+            menuContainer->menu()->setTitle( tr( "Publisher" ) );
+            // docEditor_->setupFileActions( menuContainer->menu() );
+            setupFileActions( menuContainer->menu() );
+            am->actionContainer( Core::Constants::M_FILE )->addMenu( menuContainer );
+        }
+        if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_EDIT_MENU ) ) {
+            menuContainer->menu()->setTitle( tr( "Publisher" ) );
+            docEditor_->setupEditActions( menuContainer->menu() );
+            am->actionContainer( Core::Constants::M_EDIT )->addMenu( menuContainer );
+        }
+        if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_TEXT_MENU ) ) {
+            menuContainer->menu()->setTitle( tr( "Format" ) );
+            docEditor_->setupTextActions( menuContainer->menu() );
+            am->actionContainer( Core::Constants::MENU_BAR )->addMenu( menuContainer, Core::Constants::G_VIEW );
+        }
+
+    }
+
     layout_->addWidget( docEditor_.get() );
     layout_->setStretch( 1, 10 );
     QSizePolicy policy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -133,3 +161,63 @@ QuanReportWidget::exportDocTemplate()
     }
 }
 
+void
+QuanReportWidget::setupFileActions( QMenu * menu )
+{
+    QToolBar *tb = new QToolBar( docEditor_.get() );
+    tb->setWindowTitle(tr("File Actions"));
+    docEditor_->addToolBar( tb );
+
+    QAction *a;
+
+    QIcon newIcon = QIcon::fromTheme("document-new", QIcon(qrcpath + "/filenew.png"));
+    a = new QAction( newIcon, tr("&New"), docEditor_.get());
+    a->setPriority(QAction::LowPriority);
+    a->setShortcut(QKeySequence::New);
+    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileNew()));
+    tb->addAction(a);
+    menu->addAction( a );
+
+    a = new QAction(QIcon::fromTheme("document-open", QIcon(qrcpath + "/fileopen.png")),
+                    tr("&Open..."), docEditor_.get());
+    a->setShortcut(QKeySequence::Open);
+    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileOpen()));
+    tb->addAction(a);
+    menu->addAction( a );
+
+    menu->addSeparator();
+
+    a = new QAction( QIcon::fromTheme( "document-save", QIcon( qrcpath + "/filesave.png" ) ), tr( "&Save" ), docEditor_.get() );
+    a->setShortcut(QKeySequence::Save);
+    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileSave()));
+    a->setEnabled(false);
+    tb->addAction(a);
+    menu->addAction( a );
+
+    a = new QAction(tr("Save &As..."), docEditor_.get());
+    a->setPriority(QAction::LowPriority);
+    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileSaveAs()));
+    menu->addAction(a);
+    menu->addSeparator();
+
+#ifndef QT_NO_PRINTER
+    a = new QAction(QIcon::fromTheme("document-print", QIcon(qrcpath + "/fileprint.png")),  tr("&Print..."), docEditor_.get());
+    a->setPriority(QAction::LowPriority);
+    a->setShortcut(QKeySequence::Print);
+    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(filePrint()));
+    tb->addAction(a);
+    menu->addAction( a );
+
+    a = new QAction(QIcon::fromTheme("fileprint", QIcon(qrcpath + "/fileprint.png")), tr("Print Preview..."), docEditor_.get());
+    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(filePrintPreview()));
+    menu->addAction( a );
+
+    a = new QAction(QIcon::fromTheme("exportpdf", QIcon(qrcpath + "/exportpdf.png")), tr("&Export PDF..."), docEditor_.get());
+    a->setPriority(QAction::LowPriority);
+    a->setShortcut(Qt::CTRL + Qt::Key_D);
+    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(filePrintPdf()));
+    tb->addAction(a);
+    menu->addAction( a );
+#endif
+
+}

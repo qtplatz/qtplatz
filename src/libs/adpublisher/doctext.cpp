@@ -94,3 +94,4 @@ docText::repaint( const pugi::xml_document& doc )
     }
 
 }
+

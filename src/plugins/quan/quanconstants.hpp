@@ -36,6 +36,10 @@ namespace Constants {
     const char * const QUAN_SEQUENCE_OPEN  = "Quan.SequenceOpen";
     const char * const QUAN_SEQUENCE_SAVE  = "Quan.SequenceSave";
 
+    const char * const PUBLISHER_FILE_MENU = "Quan.Publisher.FileMenu";
+    const char * const PUBLISHER_EDIT_MENU = "Quan.Publisher.EditMenu";
+    const char * const PUBLISHER_TEXT_MENU = "Quan.Publisher.TextMenu";
+
     // actions
     const char * const QUAN_SEQUENCE_RUN   = "Quan.Run";
     const char * const QUAN_SEQUENCE_STOP  = "Quan.Stop";
