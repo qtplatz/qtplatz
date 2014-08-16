@@ -52,6 +52,7 @@
 #include <memory>
 #include <cstdint>
 #include <sstream>
+#include <set>
 
 using namespace addatafile;
 
