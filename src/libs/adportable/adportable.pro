@@ -56,6 +56,9 @@ HEADERS += array_wrapper.hpp \
            is_equal.hpp \
            moment.hpp \
            polfit.hpp \
+           portable_binary_archive.hpp \
+           portable_binary_oarchive.hpp \
+           portable_binary_iarchive.hpp \
            posix_path.hpp \
            protocollifecycle.hpp \
            safearray.hpp \
