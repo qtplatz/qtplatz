@@ -164,6 +164,7 @@ PanelsWidget::addPanel( PanelData *panel )
     // add the widget:
     const int widgetRow(lineRow + 1);
     addPanelWidget(panel, widgetRow);
+    layout_->setRowStretch( lineRow + 1, 100 );
 }
 
 void
