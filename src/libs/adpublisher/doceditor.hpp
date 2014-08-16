@@ -27,6 +27,7 @@
 
 #include <QMainWindow>
 #include <memory>
+#include <array>
 #include "adpublisher_global.hpp"
 
 namespace pugi { class xml_document; }
@@ -54,29 +55,35 @@ namespace adpublisher {
         std::shared_ptr< adpublisher::document > document();
         void setDocument( std::shared_ptr< adpublisher::document >& );
 
-        // void setupFileActions( QMenu* );
         void setupEditActions( QMenu* );
         void setupTextActions( QMenu* );
+
+        void onInitialUpdate();
+        
+        enum idAction {
+            idActionSave
+            , idActionTextBold
+            , idActionTextUnderline
+            , idActionTextItalic
+            , idActionTextColor
+            , idActionAlignLeft
+            , idActionAlignCenter
+            , idActionAlignRight
+            , idActionAlignJustify
+            , idActionUndo
+            , idActionRedo
+            , idActionCut
+            , idActionCopy
+            , idActionPaste
+            , nIdActions
+        };
+        void setAction( idAction, QAction * );
 
     private:
         std::shared_ptr< adpublisher::document > doc_;
         std::unique_ptr< docTree > tree_;
         std::unique_ptr< docText > text_;
-
-        QAction *actionSave;
-        QAction *actionTextBold;
-        QAction *actionTextUnderline;
-        QAction *actionTextItalic;
-        QAction *actionTextColor;
-        QAction *actionAlignLeft;
-        QAction *actionAlignCenter;
-        QAction *actionAlignRight;
-        QAction *actionAlignJustify;
-        QAction *actionUndo;
-        QAction *actionRedo;
-        QAction *actionCut;
-        QAction *actionCopy;
-        QAction *actionPaste;
+        std::array< QAction *, nIdActions > actions_;
 
         QComboBox *comboStyle;
         QFontComboBox *comboFont;

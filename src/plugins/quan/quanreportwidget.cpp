@@ -70,58 +70,27 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QVBoxLayout( this ) )
                                                     , docEditor_( new adpublisher::docEditor )
 {
-#if 0
-    if ( auto toolBar = new Utils::StyledBar ) {
-
-        layout_->addWidget( toolBar );
-        
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 2 );
-        toolBarLayout->setSpacing( 2 );
-
-        if ( auto btnOpen = new QToolButton ) {
-            btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
-            btnOpen->setToolTip( tr("Import Report Format...") );
-            toolBarLayout->addWidget( btnOpen );
-            connect( btnOpen, &QToolButton::clicked, this, [this] ( bool ){ importDocTemplate(); } );
-        }
-        if ( auto btnSave = new QToolButton ) {
-            btnSave->setDefaultAction( Core::ActionManager::instance()->command( Constants::QUAN_METHOD_SAVE )->action() );
-            btnSave->setToolTip( tr("Save Quan Method...") );
-            toolBarLayout->addWidget( btnSave );
-        }
-
-        auto edit = new QLineEdit;
-        edit->setObjectName( Constants::editQuanMethodName );
-        toolBarLayout->addWidget( edit );
-
-        if ( auto btnExport = new QToolButton ) {
-            btnExport->setIcon( QIcon( ":/quan/images/filesave.png" ) );
-            btnExport->setToolTip( tr("Export XML...") );
-            toolBarLayout->addWidget( btnExport );
-            connect( btnExport, &QToolButton::clicked, this, [this]( bool ){ exportDocTemplate(); } );
-        }
-
-    } // end toolbar
-#endif
     if ( auto am = Core::ActionManager::instance() ) {
+
         if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_FILE_MENU ) ) {
             menuContainer->menu()->setTitle( tr( "Publisher" ) );
             // docEditor_->setupFileActions( menuContainer->menu() );
             setupFileActions( menuContainer->menu() );
             am->actionContainer( Core::Constants::M_FILE )->addMenu( menuContainer );
         }
+
         if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_EDIT_MENU ) ) {
             menuContainer->menu()->setTitle( tr( "Publisher" ) );
             docEditor_->setupEditActions( menuContainer->menu() );
             am->actionContainer( Core::Constants::M_EDIT )->addMenu( menuContainer );
         }
+
         if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_TEXT_MENU ) ) {
             menuContainer->menu()->setTitle( tr( "Format" ) );
             docEditor_->setupTextActions( menuContainer->menu() );
             am->actionContainer( Core::Constants::MENU_BAR )->addMenu( menuContainer, Core::Constants::G_VIEW );
         }
-
+        docEditor_->onInitialUpdate();
     }
 
     layout_->addWidget( docEditor_.get() );
@@ -178,8 +147,7 @@ QuanReportWidget::setupFileActions( QMenu * menu )
     tb->addAction(a);
     menu->addAction( a );
 
-    a = new QAction(QIcon::fromTheme("document-open", QIcon(qrcpath + "/fileopen.png")),
-                    tr("&Open..."), docEditor_.get());
+    a = new QAction(QIcon::fromTheme("document-open", QIcon(qrcpath + "/fileopen.png")), tr("&Open..."), docEditor_.get());
     a->setShortcut(QKeySequence::Open);
     connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileOpen()));
     tb->addAction(a);
@@ -188,6 +156,7 @@ QuanReportWidget::setupFileActions( QMenu * menu )
     menu->addSeparator();
 
     a = new QAction( QIcon::fromTheme( "document-save", QIcon( qrcpath + "/filesave.png" ) ), tr( "&Save" ), docEditor_.get() );
+    docEditor_->setAction( adpublisher::docEditor::idActionSave, a );
     a->setShortcut(QKeySequence::Save);
     connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileSave()));
     a->setEnabled(false);
