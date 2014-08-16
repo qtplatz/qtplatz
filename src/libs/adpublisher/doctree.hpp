@@ -22,42 +22,42 @@
 **
 **************************************************************************/
 
-#ifndef QUANQUERYFORM_HPP
-#define QUANQUERYFORM_HPP
+#pragma once
 
-#include <QWidget>
+#include <QTreeView>
+#include <memory>
+#include "adpublisher_global.hpp"
 
-namespace quan {
-    namespace Ui {
-        class QuanQueryForm;
-    }
+namespace pugi { class xml_document; }
 
-    class QuanQueryForm : public QWidget
-    {
+class QStandardItemModel;
+
+namespace adpublisher {
+
+    class document;
+
+    class ADPUBLISHERSHARED_EXPORT docTree : public QTreeView {
         Q_OBJECT
-
+        docTree( const docTree& ) = delete;
     public:
-        explicit QuanQueryForm(QWidget *parent = 0);
-        ~QuanQueryForm();
+        ~docTree();
+        explicit docTree(QWidget *parent = 0);
 
-        void setSQL( const QString& t);
-        QString sql() const;
-        //QSize sizeHint() const override { return QSize( 40, 600 ); }
-
-    private slots:
-        void on_plainTextEdit_textChanged();
-        void on_pushButton_pressed();
-
-        void on_comboBox_currentIndexChanged(int index);
-
-    signals:
-        void triggerQuery( const QString& );
+        std::shared_ptr< adpublisher::document > document();
+        void setDocument( std::shared_ptr< adpublisher::document >& );
 
     private:
-        Ui::QuanQueryForm *ui;
-        bool semiColonCaptured_;
-        bool eventFilter( QObject *object, QEvent *event );
+        std::unique_ptr< QStandardItemModel > model_;
+        std::shared_ptr< adpublisher::document > doc_;
+
+        void repaint( const pugi::xml_document& );
+
+    signals:
+
+    public slots:
+
     };
+
 }
 
-#endif // QUANQUERYFORM_HPP
+

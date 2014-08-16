@@ -75,6 +75,7 @@
 #include <QMessageBox>
 
 #include <boost/filesystem.hpp>
+#include <numeric>
 
 using namespace quan;
 
@@ -147,25 +148,33 @@ MainWindow::createContents( Core::IMode * )
             panelsWidget->addPanel( data.get() );
             connect( panelsWidget, &PanelsWidget::onCommit, widget, &ProcessMethodWidget::commit );
         }
-
+        //panelsWidget->layout()->setRowMinimumHeight( 2, 100 );
+        //panelsWidget->layout()->setRowStretch( 3, 10 );
         stack_->addWidget( panelsWidget );
     }
 
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {        
+
         if ( auto widget = new QuanReportWidget ) {
             auto data = std::make_shared< PanelData >( "Reports"
                                                        , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
+            widget->setMaximumHeight( std::numeric_limits<int>::max() );
         }
-
+        //QLayout * p = panelsWidget->layout();
+        //auto layout = dynamic_cast<QGridLayout *>(p);
+        //layout->setRowMinimumHeight( 3, 600 );
+        //layout->setRowStretch( 3, 10 );
+#if 0
         if ( auto widget = new QuanQueryWidget ) {
             auto data = std::make_shared< PanelData >( "Query"
                                                        , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
                                                        , widget );
+            widget->setMinimumHeight( 40 );
             panelsWidget->addPanel( data.get() );
         }
-
+#endif
         stack_->addWidget( panelsWidget );
     }
 
@@ -212,8 +221,10 @@ MainWindow::onInitialUpdate()
     boost::filesystem::path path( QuanDocument::instance()->method().filename() );
     if ( !path.empty() ) {
         auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
-        for ( auto& edit : list )
+        for ( auto& edit : list ) {
             edit->setText( QString::fromStdWString( path.wstring() ) );
+            edit->setEnabled( false );
+        }
     }
 
 }
@@ -260,31 +271,31 @@ MainWindow::createActions()
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("Quan") );
 
-        if ( auto p = actions_[ idActFileOpen ] = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Quan result file open..." ), this ) ) {
+        if ( auto p = actions_[ idActFileOpen ] = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan result file..." ), this ) ) {
             am->registerAction( actions_[ idActFileOpen ], Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );
             connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanResult );
             menu->addAction( am->command( Constants::FILE_OPEN ) );
         }
         //------------ method --------------
-        if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Quan Method Open..." ), this ) ) {
+        if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan Method..." ), this ) ) {
             am->registerAction( p, Constants::QUAN_METHOD_OPEN, Core::Context( Constants::C_QUAN_MODE ) );
             connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanMethod );
             menu->addAction( am->command( Constants::QUAN_METHOD_OPEN ) );
         }
 
-        if ( auto p = new QAction( QIcon( ":/quan/images/filesave.png" ), tr( "Quan Method Save..." ), this ) ) {
+        if ( auto p = new QAction( QIcon( ":/quan/images/filesave.png" ), tr( "Save Quan Method..." ), this ) ) {
             am->registerAction( p, Constants::QUAN_METHOD_SAVE, Core::Context( Constants::C_QUAN_MODE ) );
             connect( p, &QAction::triggered, this, &MainWindow::handleSaveQuanMethod );
             menu->addAction( am->command( Constants::QUAN_METHOD_SAVE ) );
         }
         //------------ sequence --------------
-        if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Quan Sequence Open..." ), this ) ) {
+        if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan Sequence..." ), this ) ) {
             am->registerAction( p, Constants::QUAN_SEQUENCE_OPEN, Core::Context( Constants::C_QUAN_MODE ) );
             connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanSequence );
             menu->addAction( am->command( Constants::QUAN_SEQUENCE_OPEN ) );
         }
 
-        if ( auto p = new QAction( QIcon( ":/quan/images/filesave.png" ), tr( "Quan Sequence Save..." ), this ) ) {
+        if ( auto p = new QAction( QIcon( ":/quan/images/filesave.png" ), tr( "Save Quan Sequence..." ), this ) ) {
             am->registerAction( p, Constants::QUAN_SEQUENCE_SAVE, Core::Context( Constants::C_QUAN_MODE ) );
             connect( p, &QAction::triggered, this, &MainWindow::handleSaveQuanSequence );
             menu->addAction( am->command( Constants::QUAN_SEQUENCE_SAVE ) );
@@ -427,12 +438,12 @@ MainWindow::handleOpenQuanMethod()
             boost::filesystem::path path( name.toStdWString() );
             QuanMethodComplex complex;
             if ( QuanDocument::instance()->load( path, complex ) ) {
-                complex.setFilename( path.normalize().wstring().c_str() );
+                complex.setFilename( path.generic_wstring().c_str() );
                 QuanDocument::instance()->method( complex );
 
                 auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
                 for ( auto& edit : list )
-                    edit->setText( QString::fromStdWString( path.normalize().wstring() ) );
+                    edit->setText( QString::fromStdWString( path.native() ) );
             }
         }
     }
@@ -442,17 +453,32 @@ void
 MainWindow::handleSaveQuanMethod()
 {
     if ( auto widget = findChild<QuanQueryWidget *>() ) {
-        QString name;
-        if ( auto edit = widget->findChild< QLineEdit * >( Constants::editQuanMethodName ) ) {
-            name = edit->text();
-            if ( name.isEmpty() )
-                name = QString::fromStdWString( boost::filesystem::path(adportable::profile::user_data_dir< wchar_t >() + L"/data").normalize().wstring() );
-        }
-        name = QFileDialog::getSaveFileName( this, tr( "Save Quantitation Method File" ), name
-                                             , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
+        auto name = QFileDialog::getSaveFileName( this
+                                                  , tr( "Save Quantitation Method File" )
+                                                  , QuanDocument::instance()->lastMethodDir()
+                                                  , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
         if ( ! name.isEmpty() ) {
+
             boost::filesystem::path path( name.toStdWString() );
             QuanDocument::instance()->save( path, QuanDocument::instance()->method() );
+
+            if ( path != QuanDocument::instance()->method().filename() ) {
+
+                // reload from file & replace own filename
+
+                QuanMethodComplex complex;
+                if ( QuanDocument::instance()->load( path, complex ) ) {
+
+                    complex.setFilename( path.generic_wstring().c_str() );
+                    QuanDocument::instance()->method( complex );
+
+                    auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
+                    for ( auto& edit : list )
+                        edit->setText( QString::fromStdWString( path.native() ) );
+
+                }
+
+            }
         }
     }
 }
@@ -464,13 +490,17 @@ MainWindow::handleOpenQuanSequence()
                                                  , tr( "Open Quantitation Method File" )
                                                  , QuanDocument::instance()->lastSequenceDir()
                                                  , tr( "Quan Sequence Files(*.qseq)" ) );
+
     if ( ! name.isEmpty() ) {
+
         boost::filesystem::path path( name.toStdWString() );
         auto seq = std::make_shared< adcontrols::QuanSequence >();
+
         if ( QuanDocument::instance()->load( path, *seq ) ) {
             seq->filename( path.generic_wstring().c_str() );
             QuanDocument::instance()->quanSequence( seq );
         }
+
     }
 }
 

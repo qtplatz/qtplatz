@@ -77,7 +77,7 @@ PanelsWidget::PanelsWidget( QWidget * parent ) : QScrollArea( parent )
 {
     // We want a 900px wide widget with and the scrollbar at the
     // side of the screen.
-    root_->setMaximumWidth( 900 );
+    //root_->setMaximumWidth( 900 );
     root_->setContentsMargins( 0, 0, 40, 0 );
 
     QPalette pal;
@@ -96,7 +96,7 @@ PanelsWidget::PanelsWidget( QWidget * parent ) : QScrollArea( parent )
     layout_->setColumnMinimumWidth( 0, Constants::ICON_SIZE + 4 );
     layout_->setSpacing( 0 );
     topLayout->addLayout( layout_ );
-    topLayout->addStretch( 1 );
+    //topLayout->addStretch( 1 );
     setWidget(root_);
     setFrameStyle(QFrame::NoFrame);
     setWidgetResizable(true);
@@ -172,11 +172,7 @@ PanelsWidget::addPanelWidget(PanelData *panel, int row)
     if ( QWidget *widget = panel->widget() ) {
         widget->setContentsMargins( Constants::PANEL_LEFT_MARGIN, Constants::ABOVE_CONTENTS_MARGIN, 0, Constants::BELOW_CONTENTS_MARGIN );
         widget->setParent( root_ );
-        //layout_->addWidget( widget, row, 0, 1, 2 );
-        layout_->addWidget( widget, row, 0, 1, -1 );
-        if ( row >= 6 ) {
-            layout_->setRowStretch( row, 2 );
-        }
+        layout_->addWidget( widget, row, 0, 1, 2 );
     }
     panels_.push_back( panel->shared_from_this() );
 }

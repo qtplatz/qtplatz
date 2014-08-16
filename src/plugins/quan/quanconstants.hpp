@@ -60,6 +60,7 @@ namespace Constants {
     const char * const cmbProcEach          = "Proc. ea. spc.";
 
     // settings
+    const char * const GRP_DATA_FILES       = "QuanDataFiles";
     const char * const GRP_SEQUENCE_FILES   = "SequenceFiles";
     const char * const GRP_METHOD_FILES     = "MethodFiles";
     const char * const KEY_FILES            = "Files";

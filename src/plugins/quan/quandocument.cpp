@@ -572,6 +572,7 @@ QuanDocument::setConnection( QuanConnection * conn )
 {
     quanConnection_ = conn->shared_from_this();
     emit onConnectionChanged();
+    addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, QString::fromStdWString( conn->filepath() ) );
 }
 
 QuanConnection *

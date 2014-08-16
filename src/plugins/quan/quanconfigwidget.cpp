@@ -97,68 +97,6 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
 
 }
 
-QWidget *
-QuanConfigWidget::fileSelectionBar()
-{
-    if ( auto toolBar = new QWidget ) {
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
-        toolBarLayout->setSpacing( 0 );
-
-        auto label = new QLabel;
-        label->setStyleSheet( "QLabel { color : blue; }" );
-        label->setText( "Configuration" );
-        toolBarLayout->addWidget( label );
-
-        auto btnOpen = new QToolButton;
-        btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
-        btnOpen->setToolTip( tr("Open configuration...") );
-        toolBarLayout->addWidget( btnOpen );
-
-        auto btnSave = new QToolButton;
-        btnSave->setIcon( QIcon( ":/quan/images/filesave.png" ) );
-        btnSave->setToolTip( tr( "Save Quan Method..." ) );
-        toolBarLayout->addWidget( btnSave );
-        
-        auto edit = new QLineEdit;
-        edit->setObjectName( "editQuanMethodName" );
-        toolBarLayout->addWidget( edit );
-
-        connect( btnOpen, &QToolButton::clicked, this, [&] ( bool ){
-
-            QString name = QFileDialog::getOpenFileName( this
-                                                         , tr( "Import Quan Configuration..." )
-                                                         , QuanDocument::instance()->lastMethodDir()
-                                                         , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
-            if ( !name.isEmpty() ) {
-                    QuanMethodComplex m;
-                    QuanDocument::instance()->load( name.toStdWString(), m );
-                    QuanDocument::instance()->quanMethod( *m.quanMethod() );
-                    QuanDocument::instance()->setMethodFilename( idQuanMethod, name.toStdWString() );
-                    if ( auto edit = findChild< QLineEdit * >( Constants::editQuanMethodName ) )
-                        edit->setText( name );
-                }
-            } );
-#if 0        
-        connect( btnSave, &QToolButton::clicked, this, [&] ( bool ){
-                QString name = QFileDialog::getSaveFileName( this
-                                                             , tr( "Save Quantitative Analysis Configuration file" )
-                                                             , QuanDocument::instance()->lastMethodDir()
-                                                             , tr( "Quan Method Files(*.qmth);;XML File(*.xml)" ) );
-                QuanDocument::instance()->save()
-                if ( !name.isEmpty() ) {
-                    QuanDocument::instance()->setMethodFilename( idQuanMethod, name.toStdWString() );
-                    //QuanDocument::instance()->save( name.toStdWString(), QuanDocument::instance()->quanMethod() );
-                    if ( auto edit = findChild< QLineEdit * >( Constants::editQuanMethodFilename ) )
-                        edit->setText( name );
-                }
-            } );
-#endif        
-        return toolBar;
-    }
-    return 0;
-}
-
 void
 QuanConfigWidget::commit()
 {
@@ -170,6 +108,8 @@ QuanConfigWidget::commit()
 void
 QuanConfigWidget::handleDataChanged( int id, bool )
 {
+    if ( id == idQuanMethod ) 
+        form_->setContents( QuanDocument::instance()->quanMethod() );
 }
 
 void

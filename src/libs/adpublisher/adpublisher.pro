@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += sql svg xml
+QT       += sql svg xml printsupport
 
-QT       -= gui
+#QT       -= gui
 
 TARGET = adpublisher
 TEMPLATE = lib
@@ -18,12 +18,17 @@ include(../../qtplatzlibrary.pri)
 DEFINES += ADPUBLISHER_LIBRARY
 
 SOURCES += adpublisher.cpp \
-           document.cpp
+           document.cpp \
+           doceditor.cpp \
+           doctree.cpp \
+           doctext.cpp
 
 HEADERS += adpublisher.hpp\
            adpublisher_global.hpp \
-           document.hpp
-
+           document.hpp \
+           doceditor.hpp \
+           doctree.hpp \
+           doctext.hpp
 
 LIBS *= -L$$IDE_LIBRARY_PATH 
 LIBS += -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adportable)
@@ -34,3 +39,6 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
 }
+
+RESOURCES += \
+    adpublisher.qrc
