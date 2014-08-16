@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_4267.h>
 #include "adcontroller.hpp"
 #include <adplugin/plugin.hpp>
 #include <adplugin/visitor.hpp>
@@ -38,6 +39,7 @@
 #include "manager_i.hpp"
 #include "task.hpp"
 #include <mutex>
+
 
 using namespace acewrapper;
 
