@@ -38,8 +38,8 @@
 
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/shared_ptr.hpp>
+//#include <boost/serialization/base_object.hpp>
+//#include <boost/serialization/shared_ptr.hpp>
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
