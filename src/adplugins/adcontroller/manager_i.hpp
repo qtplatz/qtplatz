@@ -27,6 +27,7 @@
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_deprecated.h>
+#include <compiler/disable_4250.h> // inherits via dominance
 
 #include <adinterface/brokerS.h>
 #include <adinterface/brokerclientS.h>
