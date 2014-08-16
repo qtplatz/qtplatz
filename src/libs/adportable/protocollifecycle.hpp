@@ -26,6 +26,7 @@
 #pragma once
 
 #include <boost/variant.hpp>
+#include <string>
 #include <memory>
 
 namespace adportable {
