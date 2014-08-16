@@ -37,9 +37,9 @@ namespace adpublisher {
             
         };
 
-        static const char* node_types[] = {
-            "null", "document", "element", "pcdata", "cdata", "comment", "pi", "declaration"
-        };
+        // static const char* node_types[] = {
+        //     "null", "document", "element", "pcdata", "cdata", "comment", "pi", "declaration"
+        // };
 
         class model_writer {
             QStandardItemModel& model;
@@ -47,7 +47,7 @@ namespace adpublisher {
             model_writer( QStandardItemModel& _model ) : model( _model ) {
             }
 
-            void operator()( const pugi::xpath_node& node, QModelIndex& parent ) const {
+            void operator()( const pugi::xpath_node& node, const QModelIndex& parent ) const {
 
                 int row = model.rowCount( parent );
 

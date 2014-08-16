@@ -443,7 +443,7 @@ MainWindow::handleOpenQuanMethod()
 
                 auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
                 for ( auto& edit : list )
-                    edit->setText( QString::fromStdWString( path.native() ) );
+                    edit->setText( QString::fromStdString( path.native() ) );
             }
         }
     }
@@ -474,7 +474,7 @@ MainWindow::handleSaveQuanMethod()
 
                     auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
                     for ( auto& edit : list )
-                        edit->setText( QString::fromStdWString( path.native() ) );
+                        edit->setText( QString::fromStdString( path.native() ) );
 
                 }
 
