@@ -72,10 +72,16 @@ docEditor::~docEditor()
 }
 
 docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
-                                      , doc_( std::make_shared< adpublisher::document >() )
-                                      , tree_( new docTree )
-                                      , text_( new docText )
+                                        , doc_( std::make_shared< adpublisher::document >() )
+                                        , tree_( new docTree )
+                                        , text_( new docText )
+                                        , comboStyle(0)
+                                        , comboFont(0)
+                                        , comboSize(0)
+                                        , tb(0)
 {
+    std::fill( actions_.begin(), actions_.end(), static_cast<QAction*>(0) );
+
     setToolButtonStyle( Qt::ToolButtonFollowStyle );
 
     auto widget = new QWidget;
@@ -96,6 +102,30 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
 
     tree_->setDocument( doc_ );
     text_->setDocument( doc_ );
+
+    connect(text_.get(), &docText::currentCharFormatChanged, this, &docEditor::currentCharFormatChanged );
+    connect(text_.get(), &docText::cursorPositionChanged, this, &docEditor::cursorPositionChanged );
+}
+
+void
+docEditor::setAction( idAction id, QAction * action )
+{
+    actions_[ id ] = action;
+}
+
+void
+docEditor::onInitialUpdate()
+{
+    setCurrentFileName( QString() );
+
+    fontChanged( text_->font() );
+    colorChanged( text_->textColor() );
+    alignmentChanged( text_->alignment() );
+
+    connect(text_->document(), &QTextDocument::modificationChanged,  actions_[ idActionSave ], &QAction::setEnabled );
+    connect(text_->document(), &QTextDocument::modificationChanged,  this, &docEditor::setWindowModified );
+    connect(text_->document(), &QTextDocument::undoAvailable,  actions_[ idActionUndo ], &QAction::setEnabled );
+    connect(text_->document(), &QTextDocument::redoAvailable,  actions_[ idActionRedo ], &QAction::setEnabled );
 }
 
 void
@@ -118,39 +148,35 @@ docEditor::setupEditActions( QMenu * menu )
     addToolBar(tb);
 
     QAction *a;
-    a = actionUndo = new QAction(QIcon::fromTheme("edit-undo", QIcon(qrcpath + "/editundo.png")),
-                                              tr("&Undo"), this);
+    a = new QAction(QIcon::fromTheme("edit-undo", QIcon(qrcpath + "/editundo.png")), tr("&Undo"), this);
+    actions_[ idActionUndo ] = a;
     a->setShortcut(QKeySequence::Undo);
     tb->addAction(a);
     menu->addAction(a);
-    a = actionRedo = new QAction(QIcon::fromTheme("edit-redo", QIcon(qrcpath + "/editredo.png")),
-                                              tr("&Redo"), this);
+    a = actions_[ idActionRedo ] = new QAction(QIcon::fromTheme("edit-redo", QIcon(qrcpath + "/editredo.png")), tr("&Redo"), this);
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::Redo);
     tb->addAction(a);
     menu->addAction(a);
     menu->addSeparator();
-    a = actionCut = new QAction(QIcon::fromTheme("edit-cut", QIcon(qrcpath + "/editcut.png")),
-                                             tr("Cu&t"), this);
+    a = actions_[ idActionCut ] = new QAction( QIcon::fromTheme( "edit-cut", QIcon( qrcpath + "/editcut.png" ) ), tr( "Cu&t" ), this );
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::Cut);
     tb->addAction(a);
     menu->addAction(a);
-    a = actionCopy = new QAction(QIcon::fromTheme("edit-copy", QIcon(qrcpath + "/editcopy.png")),
-                                 tr("&Copy"), this);
+    a = actions_[ idActionCopy ] = new QAction( QIcon::fromTheme( "edit-copy", QIcon( qrcpath + "/editcopy.png" ) ), tr( "&Copy" ), this );
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::Copy);
     tb->addAction(a);
     menu->addAction(a);
-    a = actionPaste = new QAction(QIcon::fromTheme("edit-paste", QIcon(qrcpath + "/editpaste.png")),
-                                  tr("&Paste"), this);
+    a = actions_[ idActionPaste ] = new QAction( QIcon::fromTheme( "edit-paste", QIcon( qrcpath + "/editpaste.png" ) ), tr( "&Paste" ), this );
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::Paste);
     tb->addAction(a);
     menu->addAction(a);
 #ifndef QT_NO_CLIPBOARD
     if (const QMimeData *md = QApplication::clipboard()->mimeData())
-        actionPaste->setEnabled(md->hasText());
+        actions_[ idActionPaste ]->setEnabled( md->hasText() );
 #endif
 }
 
@@ -161,68 +187,68 @@ docEditor::setupTextActions( QMenu * menu )
     tb->setWindowTitle(tr("Format Actions"));
     addToolBar(tb);
 
-    actionTextBold = new QAction(QIcon::fromTheme("format-text-bold", QIcon(qrcpath + "/textbold.png")), tr("&Bold"), this);
-    actionTextBold->setShortcut(Qt::CTRL + Qt::Key_B);
-    actionTextBold->setPriority(QAction::LowPriority);
+    actions_[ idActionTextBold ] = new QAction( QIcon::fromTheme( "format-text-bold", QIcon( qrcpath + "/textbold.png" ) ), tr( "&Bold" ), this );
+    actions_[ idActionTextBold ]->setShortcut( Qt::CTRL + Qt::Key_B );
+    actions_[ idActionTextBold ]->setPriority( QAction::LowPriority );
     QFont bold;
     bold.setBold(true);
-    actionTextBold->setFont(bold);
-    connect(actionTextBold, SIGNAL(triggered()), this, SLOT(textBold()));
-    tb->addAction(actionTextBold);
-    menu->addAction(actionTextBold);
-    actionTextBold->setCheckable(true);
-
-    actionTextItalic = new QAction(QIcon::fromTheme("format-text-italic", QIcon(qrcpath + "/textitalic.png")), tr("&Italic"), this);
-    actionTextItalic->setPriority(QAction::LowPriority);
-    actionTextItalic->setShortcut(Qt::CTRL + Qt::Key_I);
+    actions_[ idActionTextBold ]->setFont( bold );
+    connect( actions_[ idActionTextBold ], SIGNAL( triggered() ), this, SLOT( textBold() ) );
+    tb->addAction( actions_[ idActionTextBold ]);
+    menu->addAction( actions_[ idActionTextBold ] );
+    actions_[ idActionTextBold ]->setCheckable( true );
+    
+    actions_[ idActionTextItalic ] = new QAction( QIcon::fromTheme( "format-text-italic", QIcon( qrcpath + "/textitalic.png" ) ), tr( "&Italic" ), this );
+    actions_[ idActionTextItalic ]->setPriority( QAction::LowPriority );
+    actions_[ idActionTextItalic ]->setShortcut( Qt::CTRL + Qt::Key_I );
     QFont italic;
     italic.setItalic(true);
-    actionTextItalic->setFont(italic);
-    connect(actionTextItalic, SIGNAL(triggered()), this, SLOT(textItalic()));
-    tb->addAction(actionTextItalic);
-    menu->addAction(actionTextItalic);
-    actionTextItalic->setCheckable(true);
+    actions_[ idActionTextItalic ]->setFont( italic );
+    connect( actions_[ idActionTextItalic ], SIGNAL( triggered() ), this, SLOT( textItalic() ) );
+    tb->addAction( actions_[ idActionTextItalic ] );
+    menu->addAction( actions_[ idActionTextItalic ] );
+    actions_[ idActionTextItalic ]->setCheckable( true );
 
-    actionTextUnderline = new QAction(QIcon::fromTheme("format-text-underline", QIcon(qrcpath + "/textunder.png")), tr("&Underline"), this);
-    actionTextUnderline->setShortcut(Qt::CTRL + Qt::Key_U);
-    actionTextUnderline->setPriority(QAction::LowPriority);
+    actions_[ idActionTextUnderline ] = new QAction( QIcon::fromTheme( "format-text-underline", QIcon( qrcpath + "/textunder.png" ) ), tr( "&Underline" ), this );
+    actions_[ idActionTextUnderline ]->setShortcut( Qt::CTRL + Qt::Key_U );
+    actions_[ idActionTextUnderline ]->setPriority( QAction::LowPriority );
     QFont underline;
     underline.setUnderline(true);
-    actionTextUnderline->setFont(underline);
-    connect(actionTextUnderline, SIGNAL(triggered()), this, SLOT(textUnderline()));
-    tb->addAction(actionTextUnderline);
-    menu->addAction(actionTextUnderline);
-    actionTextUnderline->setCheckable(true);
+    actions_[ idActionTextUnderline ]->setFont( underline );
+    connect( actions_[ idActionTextUnderline ], SIGNAL( triggered() ), this, SLOT( textUnderline() ) );
+    tb->addAction(actions_[ idActionTextUnderline ] );
+    menu->addAction(actions_[ idActionTextUnderline ] );
+    actions_[ idActionTextUnderline ]->setCheckable( true );
 
     menu->addSeparator();
 
-    QActionGroup *grp = new QActionGroup(this);
-    connect(grp, SIGNAL(triggered(QAction*)), this, SLOT(textAlign(QAction*)));
+    QActionGroup *grp = new QActionGroup( this );
+    connect( grp, SIGNAL( triggered( QAction* ) ), this, SLOT( textAlign( QAction* ) ) );
 
     // Make sure the alignLeft  is always left of the alignRight
     if (QApplication::isLeftToRight()) {
-        actionAlignLeft = new QAction(QIcon::fromTheme("format-justify-left", QIcon(qrcpath + "/textleft.png")), tr("&Left"), grp);
-        actionAlignCenter = new QAction(QIcon::fromTheme("format-justify-center", QIcon(qrcpath + "/textcenter.png")), tr("C&enter"), grp);
-        actionAlignRight = new QAction(QIcon::fromTheme("format-justify-right", QIcon(qrcpath + "/textright.png")), tr("&Right"), grp);
+        actions_[ idActionAlignLeft ] = new QAction( QIcon::fromTheme( "format-justify-left", QIcon( qrcpath + "/textleft.png" ) ), tr( "&Left" ), grp );
+        actions_[ idActionAlignCenter ] = new QAction( QIcon::fromTheme( "format-justify-center", QIcon( qrcpath + "/textcenter.png" ) ), tr( "C&enter" ), grp );
+        actions_[ idActionAlignRight ] = new QAction( QIcon::fromTheme( "format-justify-right", QIcon( qrcpath + "/textright.png" ) ), tr( "&Right" ), grp );
     } else {
-        actionAlignRight = new QAction(QIcon::fromTheme("format-justify-right", QIcon(qrcpath + "/textright.png")), tr("&Right"), grp);
-        actionAlignCenter = new QAction(QIcon::fromTheme("format-justify-center", QIcon(qrcpath + "/textcenter.png")), tr("C&enter"), grp);
-        actionAlignLeft = new QAction(QIcon::fromTheme("format-justify-left", QIcon(qrcpath + "/textleft.png")), tr("&Left"), grp);
+        actions_[ idActionAlignRight ] = new QAction( QIcon::fromTheme( "format-justify-right", QIcon( qrcpath + "/textright.png" ) ), tr( "&Right" ), grp );
+        actions_[ idActionAlignCenter ] = new QAction( QIcon::fromTheme( "format-justify-center", QIcon( qrcpath + "/textcenter.png" ) ), tr( "C&enter" ), grp );
+        actions_[ idActionAlignLeft ] = new QAction( QIcon::fromTheme( "format-justify-left", QIcon( qrcpath + "/textleft.png" ) ), tr( "&Left" ), grp );
     }
-    actionAlignJustify = new QAction(QIcon::fromTheme("format-justify-fill", QIcon(qrcpath + "/textjustify.png")), tr("&Justify"), grp);
-
-    actionAlignLeft->setShortcut(Qt::CTRL + Qt::Key_L);
-    actionAlignLeft->setCheckable(true);
-    actionAlignLeft->setPriority(QAction::LowPriority);
-    actionAlignCenter->setShortcut(Qt::CTRL + Qt::Key_E);
-    actionAlignCenter->setCheckable(true);
-    actionAlignCenter->setPriority(QAction::LowPriority);
-    actionAlignRight->setShortcut(Qt::CTRL + Qt::Key_R);
-    actionAlignRight->setCheckable(true);
-    actionAlignRight->setPriority(QAction::LowPriority);
-    actionAlignJustify->setShortcut(Qt::CTRL + Qt::Key_J);
-    actionAlignJustify->setCheckable(true);
-    actionAlignJustify->setPriority(QAction::LowPriority);
+    actions_[ idActionAlignJustify ] = new QAction( QIcon::fromTheme( "format-justify-fill", QIcon( qrcpath + "/textjustify.png" ) ), tr( "&Justify" ), grp );
+    
+    actions_[ idActionAlignLeft ]->setShortcut( Qt::CTRL + Qt::Key_L );
+    actions_[ idActionAlignLeft ]->setCheckable( true );
+    actions_[ idActionAlignLeft ]->setPriority( QAction::LowPriority );
+    actions_[ idActionAlignCenter ]->setShortcut( Qt::CTRL + Qt::Key_E );
+    actions_[ idActionAlignCenter ]->setCheckable( true );
+    actions_[ idActionAlignCenter ]->setPriority( QAction::LowPriority );
+    actions_[ idActionAlignRight ]->setShortcut( Qt::CTRL + Qt::Key_R );
+    actions_[ idActionAlignRight ]->setCheckable( true );
+    actions_[ idActionAlignRight ]->setPriority( QAction::LowPriority );
+    actions_[ idActionAlignJustify ]->setShortcut( Qt::CTRL + Qt::Key_J );
+    actions_[ idActionAlignJustify ]->setCheckable( true );
+    actions_[ idActionAlignJustify ]->setPriority( QAction::LowPriority );
 
     tb->addActions(grp->actions());
     menu->addActions(grp->actions());
@@ -231,16 +257,16 @@ docEditor::setupTextActions( QMenu * menu )
 
     QPixmap pix(16, 16);
     pix.fill(Qt::black);
-    actionTextColor = new QAction(pix, tr("&Color..."), this);
-    connect(actionTextColor, SIGNAL(triggered()), this, SLOT(textColor()));
-    tb->addAction(actionTextColor);
-    menu->addAction(actionTextColor);
+    actions_[ idActionTextColor ] = new QAction(pix, tr("&Color..."), this);
+    connect( actions_[ idActionTextColor ], SIGNAL( triggered() ), this, SLOT( textColor() ) );
+    tb->addAction( actions_[ idActionTextColor ] );
+    menu->addAction( actions_[ idActionTextColor ] );
 
     tb = new QToolBar(this);
-    tb->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
-    tb->setWindowTitle(tr("Format Actions"));
-    addToolBarBreak(Qt::TopToolBarArea);
-    addToolBar(tb);
+    tb->setAllowedAreas( Qt::TopToolBarArea | Qt::BottomToolBarArea );
+    tb->setWindowTitle( tr( "Format Actions" ) );
+    addToolBarBreak( Qt::TopToolBarArea );
+    addToolBar( tb );
 
     comboStyle = new QComboBox(tb);
     tb->addWidget(comboStyle);
@@ -437,29 +463,29 @@ void docEditor::filePrintPdf()
 void docEditor::textBold()
 {
     QTextCharFormat fmt;
-    fmt.setFontWeight(actionTextBold->isChecked() ? QFont::Bold : QFont::Normal);
+    fmt.setFontWeight( actions_[ idActionTextBold ]->isChecked() ? QFont::Bold : QFont::Normal );
     mergeFormatOnWordOrSelection(fmt);
 }
 
 void docEditor::textUnderline()
 {
     QTextCharFormat fmt;
-    fmt.setFontUnderline(actionTextUnderline->isChecked());
+    fmt.setFontUnderline( actions_[ idActionTextUnderline ]->isChecked() );
     mergeFormatOnWordOrSelection(fmt);
 }
 
 void docEditor::textItalic()
 {
     QTextCharFormat fmt;
-    fmt.setFontItalic(actionTextItalic->isChecked());
+    fmt.setFontItalic( actions_[ idActionTextItalic ]->isChecked() );
     mergeFormatOnWordOrSelection(fmt);
 }
 
 void docEditor::textFamily(const QString &f)
 {
     QTextCharFormat fmt;
-    fmt.setFontFamily(f);
-    mergeFormatOnWordOrSelection(fmt);
+    fmt.setFontFamily( f );
+    mergeFormatOnWordOrSelection( fmt );
 }
 
 void docEditor::textSize(const QString &p)
@@ -467,8 +493,8 @@ void docEditor::textSize(const QString &p)
     qreal pointSize = p.toFloat();
     if (p.toFloat() > 0) {
         QTextCharFormat fmt;
-        fmt.setFontPointSize(pointSize);
-        mergeFormatOnWordOrSelection(fmt);
+        fmt.setFontPointSize( pointSize );
+        mergeFormatOnWordOrSelection( fmt );
     }
 }
 
@@ -547,13 +573,13 @@ void docEditor::textColor()
 
 void docEditor::textAlign(QAction *a)
 {
-    if (a == actionAlignLeft)
+    if ( a == actions_[ idActionAlignLeft ] )
         text_->setAlignment(Qt::AlignLeft | Qt::AlignAbsolute);
-    else if (a == actionAlignCenter)
+    else if ( a == actions_[ idActionAlignCenter ] )
         text_->setAlignment(Qt::AlignHCenter);
-    else if (a == actionAlignRight)
+    else if ( a == actions_[ idActionAlignRight ] )
         text_->setAlignment(Qt::AlignRight | Qt::AlignAbsolute);
-    else if (a == actionAlignJustify)
+    else if ( a == actions_[ idActionAlignJustify ] )
         text_->setAlignment(Qt::AlignJustify);
 }
 
@@ -572,7 +598,7 @@ void docEditor::clipboardDataChanged()
 {
 #ifndef QT_NO_CLIPBOARD
     if (const QMimeData *md = QApplication::clipboard()->mimeData())
-        actionPaste->setEnabled(md->hasText());
+        actions_[ idActionPaste ]->setEnabled( md->hasText() );
 #endif
 }
 
@@ -596,27 +622,27 @@ void docEditor::fontChanged(const QFont &f)
 {
     comboFont->setCurrentIndex(comboFont->findText(QFontInfo(f).family()));
     comboSize->setCurrentIndex(comboSize->findText(QString::number(f.pointSize())));
-    actionTextBold->setChecked(f.bold());
-    actionTextItalic->setChecked(f.italic());
-    actionTextUnderline->setChecked(f.underline());
+    actions_[ idActionTextBold ]->setChecked( f.bold() );
+    actions_[ idActionTextItalic ]->setChecked( f.italic() );
+    actions_[ idActionTextUnderline ]->setChecked( f.underline() );
 }
 
 void docEditor::colorChanged(const QColor &c)
 {
     QPixmap pix(16, 16);
     pix.fill(c);
-    actionTextColor->setIcon(pix);
+    actions_[ idActionTextColor ]->setIcon( pix );
 }
 
 void docEditor::alignmentChanged(Qt::Alignment a)
 {
     if (a & Qt::AlignLeft)
-        actionAlignLeft->setChecked(true);
+        actions_[ idActionAlignLeft ]->setChecked( true );
     else if (a & Qt::AlignHCenter)
-        actionAlignCenter->setChecked(true);
+        actions_[ idActionAlignCenter ]->setChecked( true );
     else if (a & Qt::AlignRight)
-        actionAlignRight->setChecked(true);
+        actions_[ idActionAlignRight ]->setChecked( true );
     else if (a & Qt::AlignJustify)
-        actionAlignJustify->setChecked(true);
+        actions_[ idActionAlignJustify ]->setChecked( true );
 }
 
