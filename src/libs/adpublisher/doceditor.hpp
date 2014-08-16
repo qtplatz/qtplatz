@@ -35,6 +35,8 @@ class QAction;
 class QComboBox;
 class QToolBar;
 class QFontComboBox;
+class QTextCharFormat;
+class QPrinter;
 
 namespace adpublisher {
 
@@ -51,6 +53,10 @@ namespace adpublisher {
 
         std::shared_ptr< adpublisher::document > document();
         void setDocument( std::shared_ptr< adpublisher::document >& );
+
+        // void setupFileActions( QMenu* );
+        void setupEditActions( QMenu* );
+        void setupTextActions( QMenu* );
 
     private:
         std::shared_ptr< adpublisher::document > doc_;
@@ -79,14 +85,42 @@ namespace adpublisher {
         QToolBar *tb;
         QString fileName;
 
-        void setupFileActions();
-        void setupEditActions();
-        void setupTextActions();
+        bool load(const QString &f);
+        bool maybeSave();
+        void setCurrentFileName(const QString &fileName);
+        void mergeFormatOnWordOrSelection(const QTextCharFormat &format);
+        void fontChanged(const QFont &f);
+        void colorChanged(const QColor &c);
+        void alignmentChanged(Qt::Alignment a);
 
     signals:
 
     public slots:
 
+    private slots:
+        void fileNew();
+        void fileOpen();
+        bool fileSave();
+        bool fileSaveAs();
+        void filePrint();
+        void filePrintPreview();
+        void filePrintPdf();
+
+        void textBold();
+        void textUnderline();
+        void textItalic();
+        void textFamily(const QString &f);
+        void textSize(const QString &p);
+        void textStyle(int styleIndex);
+        void textColor();
+        void textAlign(QAction *a);
+
+        void currentCharFormatChanged(const QTextCharFormat &format);
+        void cursorPositionChanged();
+
+        void clipboardDataChanged();
+        void about();
+        void printPreview(QPrinter *);
     };
 
 }

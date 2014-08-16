@@ -30,6 +30,7 @@
 
 class QGridLayout;
 class QVBoxLayout;
+class QMenu;
 
 namespace adpublisher { class docEditor; }
 
@@ -45,12 +46,12 @@ namespace quan {
         explicit QuanReportWidget(QWidget *parent = 0);
 
     private:
-        //QGridLayout * layout_;
         QVBoxLayout * layout_;
         std::unique_ptr< adpublisher::docEditor > docEditor_;
  
         void importDocTemplate();
         void exportDocTemplate();
+        void setupFileActions( QMenu * );
 
     signals:
 
