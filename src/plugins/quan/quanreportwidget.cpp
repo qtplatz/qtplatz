@@ -109,7 +109,8 @@ QuanReportWidget::importDocTemplate()
     if ( !name.isEmpty() ) {
         QuanMethodComplex m;
         QuanDocument::instance()->load( name.toStdWString(), m );
-        QuanDocument::instance()->method( m.docTemplate() );
+        auto ptr = m.docTemplate();
+        QuanDocument::instance()->method( ptr );
     }
 }
 

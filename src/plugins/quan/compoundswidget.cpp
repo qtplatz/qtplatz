@@ -116,6 +116,7 @@ CompoundsWidget::importCompounds()
     if ( !name.isEmpty() ) {
         QuanMethodComplex m;
         QuanDocument::instance()->load( name.toStdWString(), m );
-        QuanDocument::instance()->method( m.quanCompounds() );
+        std::shared_ptr< adcontrols::QuanCompounds > ptr = m.quanCompounds();
+        QuanDocument::instance()->method( ptr );
     }
 }

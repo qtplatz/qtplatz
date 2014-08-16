@@ -122,6 +122,7 @@ QuanConfigWidget::importQuanMethod()
     if ( !name.isEmpty() ) {
         QuanMethodComplex m;
         QuanDocument::instance()->load( name.toStdWString(), m );
-        QuanDocument::instance()->method( m.quanMethod() );
+        auto ptr = m.quanMethod();
+        QuanDocument::instance()->method( ptr );
     }
 }
