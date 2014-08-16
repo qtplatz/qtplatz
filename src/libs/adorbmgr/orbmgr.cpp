@@ -31,7 +31,7 @@
 
 using namespace adorbmgr;
 
-std::atomic<orbmgr * >orbmgr::instance_ = 0;
+std::atomic<orbmgr * >orbmgr::instance_(0);
 std::mutex orbmgr::mutex_;
 
 orbmgr *
