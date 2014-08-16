@@ -26,6 +26,7 @@
 #define QUANMETHODCOMPLEX_HPP
 
 #include <adcontrols/idaudit.hpp>
+#include <adpublisher/document.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
