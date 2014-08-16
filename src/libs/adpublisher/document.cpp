@@ -36,8 +36,30 @@ document::document() : doc_( std::make_shared< pugi::xml_document >() )
     if ( auto comment = doc_->append_child( pugi::node_comment ) ) {
         comment.set_value( "Copyright(C) 2010-2014, MS-Cheminformatics LLC, All rights reserved." );
     }
-    if ( auto article = doc_->append_child() ) {
-        article.set_name( "article" );
+    if ( auto article = doc_->append_child( "article" ) ) {
+
+        if ( auto title = article.append_child( "title" ) ) {
+            title.text().set( "Qualitative and quantitative accuracy on LC/TOF-MS with newly developped targeting algorihm" );
+        }
+
+
+        if ( auto author = article.append_child( "author" ) ) {
+            author.text().set( "Kristie C. Cloos, Katherine M. Schroeder and Toshinobu Hondo" );
+        }
+
+        if ( auto sec = article.append_child( "section" ) ) {
+            sec.append_attribute( "id" ) = "section_1";
+
+            if ( auto title = sec.append_child( "title" ) )
+                title.text().set( "Introduction" );
+
+            if ( auto para = sec.append_child( "paragraph" ) ) {
+                para.text().set( "\
+A single LC/TOFMS offers the advantage of a full scan which, by allowing all analytes to reach the detector, gives way for multiple applications. However, analyzing the data acquired from a full scan can quickly become a limiting factor in high-throughput (HT) analysis. Accurate results in qualitative and quantitative high-performance liquid chromatographic (HPLC) analysis are fundamentally dependant on the degree of separation obtained for the component peak. In a full scan, analytes can experience suppression as they might still contain contaminates which can lead to inaccurate intensities and co-eluted compounds. Another disadvantage is the inability to avoid drift which makes it difficult to target the analytes of choice using current targeting software where a time range must be entered for each compound. \
+The work presented here shows how using a newly developed targeting algorithm allows an isolated mass spectrum to be targeted from a complex sample matrix. This technique allows a single LC/TOFMS to become an instrument that can be used for quantitative HT analysis." );
+            }
+
+        }
     }
 }
 
@@ -73,4 +95,10 @@ bool
 document::load( const char * xml )
 {
     return doc_->load( xml );
+}
+
+std::shared_ptr< pugi::xml_document >
+document::xml_document()
+{
+    return doc_;
 }

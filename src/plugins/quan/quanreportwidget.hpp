@@ -29,6 +29,9 @@
 #include <memory>
 
 class QGridLayout;
+class QVBoxLayout;
+
+namespace adpublisher { class docEditor; }
 
 namespace quan {
 
@@ -42,20 +45,18 @@ namespace quan {
         explicit QuanReportWidget(QWidget *parent = 0);
 
     private:
-        QGridLayout * layout_;
-        std::unique_ptr< QuanQueryForm > form_;
-        std::unique_ptr< QuanResultTable > table_;
-
-        void executeQuery();
+        //QGridLayout * layout_;
+        QVBoxLayout * layout_;
+        std::unique_ptr< adpublisher::docEditor > docEditor_;
+ 
         void importDocTemplate();
+        void exportDocTemplate();
 
     signals:
 
     public slots :
-        void handleConnectionChanged();
 
     private slots:
-        void handleQuery( const QString& );
     };
 
 }

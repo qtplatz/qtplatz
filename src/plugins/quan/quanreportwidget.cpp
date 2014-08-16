@@ -31,6 +31,8 @@
 #include "quanqueryform.hpp"
 #include "quanresulttable.hpp"
 #include <adportable/profile.hpp>
+#include <adpublisher/doceditor.hpp>
+#include <adpublisher/document.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <utils/styledbar.h>
@@ -39,6 +41,7 @@
 #include <QLineEdit>
 #include <QGridLayout>
 #include <QToolButton>
+#include <QTreeView>
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QStandardItemModel>
@@ -54,18 +57,9 @@ QuanReportWidget::~QuanReportWidget()
 }
 
 QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
-                                                    , layout_( new QGridLayout )
-                                                    , form_( new QuanQueryForm )
-                                                    , table_( new QuanResultTable )
+                                                    , layout_( new QVBoxLayout( this ) )
+                                                    , docEditor_( new adpublisher::docEditor )
 {
-    auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
-    topLayout->setSpacing( 0 );
-    topLayout->addLayout( layout_ );
-
-    // connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanReportWidget::handleConnectionChanged );
-    // connect( form_.get(), &QuanQueryForm::triggerQuery, this, &QuanReportWidget::handleQuery );
-    
     if ( auto toolBar = new Utils::StyledBar ) {
 
         layout_->addWidget( toolBar );
@@ -78,7 +72,7 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
             btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
             btnOpen->setToolTip( tr("Import Report Format...") );
             toolBarLayout->addWidget( btnOpen );
-            connect( btnOpen, &QToolButton::clicked, this, [this]( bool ){ importDocTemplate(); } );
+            connect( btnOpen, &QToolButton::clicked, this, [this] ( bool ){ importDocTemplate(); } );
         }
         if ( auto btnSave = new QToolButton ) {
             btnSave->setDefaultAction( Core::ActionManager::instance()->command( Constants::QUAN_METHOD_SAVE )->action() );
@@ -89,61 +83,23 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
         auto edit = new QLineEdit;
         edit->setObjectName( Constants::editQuanMethodName );
         toolBarLayout->addWidget( edit );
+
+        if ( auto btnExport = new QToolButton ) {
+            btnExport->setIcon( QIcon( ":/quan/images/filesave.png" ) );
+            btnExport->setToolTip( tr("Export XML...") );
+            toolBarLayout->addWidget( btnExport );
+            connect( btnExport, &QToolButton::clicked, this, [this]( bool ){ exportDocTemplate(); } );
+        }
+
     } // end toolbar
-    
-    layout_->addWidget( form_.get() );
-    layout_->addWidget( table_.get() );
-    //layout_->setRowStretch( 1, 0 );
-    //layout_->setRowStretch( 2, 1 );
-}
-
-void
-QuanReportWidget::handleConnectionChanged()
-{
-    if ( auto edit = findChild< QLineEdit * >( Constants::editQuanFilename ) )
-        edit->setText( QString::fromStdWString( QuanDocument::instance()->connection()->filepath() ) );
-    executeQuery();
-}
-
-void
-QuanReportWidget::executeQuery()
-{
-    if ( auto connection = QuanDocument::instance()->connection() ) {
-        form_->setSQL(
-            "SELECT dataSource, row, level, formula, mass, intensity, sampleType FROM QuanSample,QuanResponse \
-WHERE QuanSample.id = idSample AND formula like '%' ORDER BY formula" );
-        std::wstring sql = form_->sql().toStdWString();
-        if ( auto query = connection->query() ) {
-            if ( query->prepare( sql ) ) {
-                table_->prepare( *query );
-                while ( query->step() == adfs::sqlite_row ) {
-                    table_->addRecord( *query );
-                }
-            }
-        }
-    }
-}
-
-void
-QuanReportWidget::handleQuery( const QString& sql )
-{
-    if ( auto connection = QuanDocument::instance()->connection() ) {
-        if ( auto query = connection->query() ) {
-            
-            qtwrapper::waitCursor wait;
-
-            std::wstring wsql = sql.toStdWString();
-
-            wsql.erase( std::remove( wsql.begin(), wsql.end(), '\\' ) );
-            
-            if ( query->prepare( wsql ) ) {
-                table_->prepare( *query );
-                while ( query->step() == adfs::sqlite_row ) {
-                    table_->addRecord( *query );
-                }
-            }
-        }
-    }
+    //QSizePolicy policy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    //docEditor_->setSizePolicy( policy );
+    //auto w = new QWidget;
+    //docEditor_.reset( new adpublisher::docEditor( w ) );
+    layout_->addWidget( docEditor_.get() );
+    layout_->setStretch( 1, 10 );
+    QSizePolicy policy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    docEditor_->setSizePolicy( policy );
 }
 
 void
@@ -157,6 +113,23 @@ QuanReportWidget::importDocTemplate()
         QuanMethodComplex m;
         QuanDocument::instance()->load( name.toStdWString(), m );
         QuanDocument::instance()->method( m.docTemplate() );
+    }
+}
+
+void
+QuanReportWidget::exportDocTemplate()
+{
+    boost::filesystem::path path( QuanDocument::instance()->lastMethodDir().toStdWString() );
+    path.remove_filename();
+    path /= "reportTemplate.xml";
+
+    QString name = QFileDialog::getSaveFileName( this
+                                                 , tr( "Export doc template..." )
+                                                 , QString::fromStdWString( path.wstring() )
+                                                 , tr( "XML Files(*.xml)" ) );
+    if ( !name.isEmpty() ) {
+        auto doc = docEditor_->document();
+        doc->save_file( name.toUtf8() );
     }
 }
 

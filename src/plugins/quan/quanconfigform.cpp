@@ -113,17 +113,17 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
     if ( QComboBox * order = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
         order->clear();
         order->insertItems( 0, QStringList()
-                            << "1-Point"
-                            << "Linear (through 0,0)"
-                            << "Linear (regression)"
-                            << "Y=a+bX+cX^2"
-                            << "Y=a+bX+cX^2+dX^3"
-                            << "Y=a+bX+cX^2+dX^3+eX4"
-                            << "Y=a+bX+cX^2+dX^3+eX^4+fX^5" );
+                            << tr("1-Point")
+                            << tr("Linear (through 0,0)")
+                            << tr("Linear (regression)")
+                            << tr("Y=a+bX+cX^2")
+                            << tr("Y=a+bX+cX^2+dX^3")
+                            << tr("Y=a+bX+cX^2+dX^3+eX4")
+                            << tr("Y=a+bX+cX^2+dX^3+eX^4+fX^5") );
     }
     if ( QComboBox * combo = dynamic_cast<QComboBox *>(accessor( idComboBracketing )) ) {
         combo->clear();
-        combo->insertItems( 0, QStringList() << "None" << "Standard" << "Moving(Overlapped)" << "Average" );
+        combo->insertItems( 0, QStringList() << tr("None") << tr("Standard") << tr("Moving(Overlapped)") << tr("Average") );
     }
 }
 

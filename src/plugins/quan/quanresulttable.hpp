@@ -44,7 +44,7 @@ namespace quan {
         void prepare( const QuanQuery& );
         void addRecord( const QuanQuery& );
 
-        QSize sizeHint() const override { return QSize( 900, 900 ); }
+        // QSize sizeHint() const override { return QSize( 900, 900 ); }
 
         void setColumnHide( const std::string& );
         void clear();

@@ -41,7 +41,7 @@ namespace quan {
         ~DataSequenceWidget();
         explicit DataSequenceWidget( QWidget *parent = 0 );
 
-        QSize sizeHint() const { return QSize( 600, 600 ); }
+        //QSize sizeHint() const { return QSize( 600, 600 ); }
 
         void commit();
 

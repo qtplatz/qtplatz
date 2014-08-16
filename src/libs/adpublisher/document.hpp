@@ -43,6 +43,8 @@ namespace adpublisher {
         bool save( std::string& ) const;
         bool load( const char * );
 
+        std::shared_ptr< pugi::xml_document > xml_document();
+
     private:
         std::shared_ptr< pugi::xml_document > doc_;
     };
