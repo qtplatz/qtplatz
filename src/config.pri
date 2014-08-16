@@ -13,7 +13,7 @@ macx {
      LIBS += -stdlib=libc++
      QMAKE_CXXFLAGS *= -std=c++11
      QMAKE_CXXFLAGS *= -stdlib=libc++
-     QMAKE_CXXFLAGS *= -ftemplate-depth=256
+     QMAKE_CXXFLAGS *= -ftemplate-depth=300
      QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 }
 CONFIG(release, debug|release) {
