@@ -35,7 +35,7 @@ using namespace quan;
 QuanMode::QuanMode(QObject *parent) : Core::IMode(parent)
 {
     setId( Constants::C_QUAN_MODE );
-    setContext( Core::Context( Core::Constants::C_GLOBAL, Constants::C_QUAN_MODE ) );
+    setContext( Core::Context( Constants::C_QUAN_MODE ) );
     setDisplayName( tr( "Quan" ) );
     setIcon(QIcon(":/quan/images/balance.png"));
     setPriority( 60 );

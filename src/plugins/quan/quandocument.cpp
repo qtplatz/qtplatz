@@ -602,6 +602,12 @@ QuanDocument::lastSequenceDir() const
     return recentFile( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES );
 }
 
+QString
+QuanDocument::lastDataDir() const
+{
+    return recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
+}
+
 void
 QuanDocument::addRecentFiles( const QString& group, const QString& key, const QString& value )
 {

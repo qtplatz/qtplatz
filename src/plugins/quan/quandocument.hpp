@@ -122,6 +122,7 @@ namespace quan {
         QSettings * settings() { return settings_.get(); }
         QString lastMethodDir() const;
         QString lastSequenceDir() const;
+        QString lastDataDir() const;
 
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;

@@ -254,14 +254,6 @@ MainWindow::toolButton( const char * id )
     return toolButton( Core::ActionManager::instance()->command(id)->action() );
 }
 
-QAction *
-MainWindow::createAction( const QString& iconname, const QString& msg, QObject * parent )
-{
-    QIcon icon;
-    icon.addFile( iconname );
-    return new QAction( icon, msg, parent );
-}
-
 void
 MainWindow::createActions()
 {
@@ -276,6 +268,10 @@ MainWindow::createActions()
             am->registerAction( actions_[ idActFileOpen ], Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );
             connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanResult );
             menu->addAction( am->command( Constants::FILE_OPEN ) );
+            
+            if ( auto cmd = am->registerAction( actions_[ idActFileOpen ], Core::Constants::OPEN, Core::Context( Constants::C_QUAN_MODE ) ) )
+                cmd->action()->setText( tr( "Open..." ) );
+            
         }
         //------------ method --------------
         if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan Method..." ), this ) ) {
@@ -405,26 +401,21 @@ MainWindow::handleSequenceCompleted()
 void
 MainWindow::handleOpenQuanResult()
 {
-    if ( auto widget = findChild<QuanQueryWidget *>() ) {
-        QString name;
-        if ( auto edit = widget->findChild< QLineEdit * >( Constants::editQuanFilename ) ) {
-            name = edit->text();
-            if ( name.isEmpty() )
-                name = QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
-        }
-        name = QFileDialog::getOpenFileName( this, tr( "Open Quantitative Analysis Result file" ), name, tr( "File(*.adfs)" ) );
-        if ( ! name.isEmpty() ) {
-            if ( auto connection = std::make_shared< QuanConnection >() ) {
-                if ( connection->connect( name.toStdWString() ) ) {
-                    // kick QuanReportWidget (calibartion & result view) updae
-                    QuanDocument::instance()->setConnection( connection.get() );
-                }
+    QString name = QFileDialog::getOpenFileName( this
+                                                 , tr( "Open Quantitative Analysis Result file" )
+                                                 , QuanDocument::instance()->lastDataDir()
+                                                 , tr( "File(*.adfs)" ) );
+    if ( !name.isEmpty() ) {
+        if ( auto connection = std::make_shared< QuanConnection >() ) {
+            if ( connection->connect( name.toStdWString() ) ) {
+                // kick QuanReportWidget (calibartion & result view) updae
+                QuanDocument::instance()->setConnection( connection.get() );
             }
-
-            if ( auto tab = findChild< DoubleTabWidget * >() )
-                tab->setCurrentIndex( -1, 3 );
-            Core::ModeManager::activateMode( Core::Id( Constants::C_QUAN_MODE ) );
         }
+
+        if ( auto tab = findChild< DoubleTabWidget * >() )
+            tab->setCurrentIndex( -1, 3 );
+        Core::ModeManager::activateMode( Core::Id( Constants::C_QUAN_MODE ) );
     }
 }
 
