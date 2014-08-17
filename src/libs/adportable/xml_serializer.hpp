@@ -25,8 +25,8 @@
 
 #pragma once
 
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -36,22 +36,23 @@ namespace adportable {
 
     template<class T> class xml_serializer {
     public:
-        static bool serialize( const T& data, std::string& ar ) {
-            boost::iostreams::back_insert_device< std::string > inserter( ar );
-            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
-            boost::archive::xml_oarchive oa( device );
+        static bool serialize( const T& data, std::wstring& ar ) {
+            boost::iostreams::back_insert_device< std::wstring > inserter( ar );
+            boost::iostreams::stream< boost::iostreams::back_insert_device< std::wstring > > device( inserter );
+            boost::archive::xml_woarchive oa( device );
             oa << boost::serialization::make_nvp("xml_serializer", data);
             device.flush();
             return true;
         }
 
-        static bool deserialize( T& data, const char * s, std::size_t size ) {
-            boost::iostreams::basic_array_source< char > device( s, size );
-            boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
-            boost::archive::xml_iarchive ia( st );
-            ia >> boost::serialization::make_nvp("xml_serializer", data);
+        static bool deserialize( T& data, const wchar_t * s, std::size_t size ) {
+            boost::iostreams::basic_array_source< wchar_t > device( s, size );
+            boost::iostreams::stream< boost::iostreams::basic_array_source< wchar_t > > st( device );
+            boost::archive::xml_wiarchive ia( st );
+            ia >> boost::serialization::make_nvp( "xml_serializer", data );
             return true;
         }
+
     };
 
 }
