@@ -1223,7 +1223,7 @@ Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
     if ( it != atts.end() ) {
         const adcontrols::MSCalibrateResultPtr ptr = boost::any_cast< adcontrols::MSCalibrateResultPtr >( it->data() );
         adutils::fsio::save_mscalibfile( dbf, *ptr );
-
+#if 0
         // for debugging convension
         std::string xml;
         if ( adportable::xml_serializer< adcontrols::MSCalibrateResult >::serialize( *ptr, xml ) ) {
@@ -1231,6 +1231,7 @@ Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
             std::ofstream of( fname.string() );
             of << xml;
         }
+#endif
     }
 
     it = portfolio::Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
@@ -1270,10 +1271,10 @@ Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResu
     }
 
     // for debugging convension
-    std::string xml;
+    std::wstring xml;
     if ( adportable::xml_serializer< adcontrols::MSCalibrateResult >::serialize( calibResult, xml ) ) {
         fname.replace_extension( ".msclb.xml" );
-        std::ofstream of( fname.string() );
+        std::wofstream of( fname.string() );
         of << xml;
     }
 

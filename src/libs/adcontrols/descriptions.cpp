@@ -197,7 +197,7 @@ Descriptions::make_folder_name( const std::wstring& regex ) const
 }
 
 namespace adcontrols {
-
+#if 0
     template<> void
     Descriptions::serialize( boost::archive::xml_oarchive& ar, const unsigned int version )
     {
@@ -211,7 +211,7 @@ namespace adcontrols {
         (void)version;
         ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
     }
-
+#endif
     template<> void
     Descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {

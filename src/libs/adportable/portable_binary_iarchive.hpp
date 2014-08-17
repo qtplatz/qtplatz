@@ -28,7 +28,7 @@
 #include <boost/archive/archive_exception.hpp>
 #include <boost/archive/basic_binary_iprimitive.hpp>
 #include <boost/archive/detail/common_iarchive.hpp>
-#include <boost/archive/shared_ptr_helper.hpp>
+// #include <boost/archive/shared_ptr_helper.hpp>
 #include <boost/archive/detail/register_archive.hpp>
 #include <boost/uuid/uuid.hpp>
 #include "portable_binary_archive.hpp"
@@ -65,26 +65,17 @@ public:
 // "Portable" input binary archive.  It addresses integer size and endienness so 
 // that binary archives can be passed across systems. Note:floating point types
 // not addressed here
-class portable_binary_iarchive :
-    public boost::archive::basic_binary_iprimitive<
-        portable_binary_iarchive,
-        std::istream::char_type, 
-        std::istream::traits_type
-    >,
-    public boost::archive::detail::common_iarchive<
-        portable_binary_iarchive
-    >
-    ,
-    public boost::archive::detail::shared_ptr_helper
-    {
-    typedef boost::archive::basic_binary_iprimitive<
-        portable_binary_iarchive,
-        std::istream::char_type, 
-        std::istream::traits_type
-    > primitive_base_t;
-    typedef boost::archive::detail::common_iarchive<
-        portable_binary_iarchive
-    > archive_base_t;
+
+// shared_ptr_helper has been removed, since it make undefined symbol error for ctor/dtor of shared_ptr_helper on boost-1.56
+// and pretty sure that QtPlatz never use boost::shared_ptr<> for the data that need to be serialized into 'portable' format
+// 17, Aug, 2014 --toshi
+class portable_binary_iarchive :  public boost::archive::basic_binary_iprimitive< portable_binary_iarchive, std::istream::char_type, std::istream::traits_type >
+                               ,  public boost::archive::detail::common_iarchive< portable_binary_iarchive > {
+                                  // ,  public boost::archive::detail::shared_ptr_helper  {
+
+    typedef boost::archive::basic_binary_iprimitive< portable_binary_iarchive, std::istream::char_type, std::istream::traits_type > primitive_base_t;
+    typedef boost::archive::detail::common_iarchive< portable_binary_iarchive > archive_base_t;
+
 #ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
 public:
 #else

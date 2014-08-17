@@ -34,8 +34,8 @@ namespace boost {
         class access;
 	}
 	namespace archive {
-        class xml_oarchive;
-        class xml_iarchive;
+        class xml_woarchive;
+        class xml_wiarchive;
     }
 }
 
@@ -75,11 +75,11 @@ namespace adcontrols {
    };
 
     template<> void ADCONTROLSSHARED_EXPORT
-    Descriptions::serialize( boost::archive::xml_oarchive& ar, const unsigned int version );
+    Descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version );
     
     
     template<> void ADCONTROLSSHARED_EXPORT
-    Descriptions::serialize( boost::archive::xml_iarchive& ar, const unsigned int version );
+    Descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version );
 }
 
 
