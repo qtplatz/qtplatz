@@ -34,6 +34,7 @@
 #include <adpublisher/doceditor.hpp>
 #include <adpublisher/document.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <xmlparser/pugixml.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
@@ -140,6 +141,12 @@ QuanReportWidget::setupFileActions( QMenu * menu )
 
     QAction *a;
 
+    a = new QAction( QIcon( ":/quan/images/run.png" ), tr( "Publish" ), this );
+    a->setPriority(QAction::LowPriority);
+    connect(a, &QAction::triggered, this, &QuanReportWidget::filePublish );
+    tb->addAction(a);
+    menu->addAction( a );
+
     QIcon newIcon = QIcon::fromTheme("document-new", QIcon(qrcpath + "/filenew.png"));
     a = new QAction( newIcon, tr("&New"), docEditor_.get());
     a->setPriority(QAction::LowPriority);
@@ -190,4 +197,11 @@ QuanReportWidget::setupFileActions( QMenu * menu )
     menu->addAction( a );
 #endif
 
+}
+
+void
+QuanReportWidget::filePublish()
+{
+    auto doc = docEditor_->document()->xml_document();
+    auto node = doc->select_nodes( "/article|/book" );
 }

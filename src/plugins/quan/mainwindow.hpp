@@ -74,7 +74,6 @@ namespace quan {
 
         QToolButton * toolButton( QAction * );
         QToolButton * toolButton( const char * );
-        QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
 
         void commit();
         void handleIndexChanged( int index, int subIndex );

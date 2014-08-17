@@ -46,7 +46,8 @@ namespace dataproc {
         explicit ActionManager(QObject *parent = 0);
 
         enum idActions {
-            idActSave
+            idActOpen
+            , idActSave
             , idActSaveAs
             , idActCloseCurrentEditor
             , idActCloseAllEditor
@@ -82,7 +83,8 @@ namespace dataproc {
 
     signals:
 
-    private slots:
+    private slots :
+        void handleOpen();
         void handleSave();
         void handleSaveAs();
 

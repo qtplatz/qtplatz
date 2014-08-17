@@ -53,6 +53,7 @@
 #include <QTextCursor>
 #include <QTextDocumentWriter>
 #include <QTextList>
+#include <boost/filesystem/path.hpp>
 
 #ifdef Q_OS_MAC
 const QString qrcpath = ":/adpublisher/images/mac";
@@ -384,33 +385,42 @@ docEditor::fileSave()
     if (fileName.startsWith(QStringLiteral(":/")))
         return fileSaveAs();
 
-    QTextDocumentWriter writer(fileName);
-    bool success = writer.write(text_->document());
-    if (success)
-        text_->document()->setModified(false);
-    return success;
+    boost::filesystem::path path( fileName.toStdWString() );
+    if ( path.extension() == ".xml" ) {
+        return doc_->save_file( path.string().c_str() );
+    }
+    else {
+
+        QTextDocumentWriter writer( fileName );
+        bool success = writer.write( text_->document() );
+        if ( success )
+            text_->document()->setModified( false );
+        return success;
+    }
 }
 
 bool
 docEditor::fileSaveAs()
 {
-    QString fn = QFileDialog::getSaveFileName(this, tr("Save as..."), QString(),
-                                              tr("ODF files (*.odt);;HTML-Files "
-                                                 "(*.htm *.html);;All Files (*)"));
+    QString fn = QFileDialog::getSaveFileName( this
+                                               , tr( "Save as..." )
+                                               , QString()
+                                               , tr( "Template files (*.xml);;ODF files (*.odt);;HTML-Files (*.htm *.html);;All Files (*)" ) );
     if (fn.isEmpty())
         return false;
+    /*
     if (!(fn.endsWith(".odt", Qt::CaseInsensitive)
           || fn.endsWith(".htm", Qt::CaseInsensitive)
           || fn.endsWith(".html", Qt::CaseInsensitive))) {
         fn += ".odt"; // default
     }
+*/
     setCurrentFileName(fn);
     return fileSave();
 }
 
 void docEditor::filePrint()
 {
-#if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
     QPrinter printer(QPrinter::HighResolution);
     QPrintDialog *dlg = new QPrintDialog(&printer, this);
     if (text_->textCursor().hasSelection())
@@ -419,34 +429,27 @@ void docEditor::filePrint()
     if (dlg->exec() == QDialog::Accepted)
         text_->print(&printer);
     delete dlg;
-#endif
 }
 
 void docEditor::filePrintPreview()
 {
-#if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
     QPrinter printer(QPrinter::HighResolution);
     QPrintPreviewDialog preview(&printer, this);
     connect(&preview, SIGNAL(paintRequested(QPrinter*)), SLOT(printPreview(QPrinter*)));
     preview.exec();
-#endif
 }
 
-void docEditor::printPreview(QPrinter *printer)
+void
+docEditor::printPreview(QPrinter *printer)
 {
-#ifdef QT_NO_PRINTER
-    Q_UNUSED(printer);
-#else
     text_->print(printer);
-#endif
 }
 
 
 void docEditor::filePrintPdf()
 {
-#ifndef QT_NO_PRINTER
-//! [0]
-    QString fileName = QFileDialog::getSaveFileName(this, "Export PDF",
+    QString fileName = QFileDialog::getSaveFileName(this
+                                                    , "Export PDF",
                                                     QString(), "*.pdf");
     if (!fileName.isEmpty()) {
         if (QFileInfo(fileName).suffix().isEmpty())
@@ -456,8 +459,6 @@ void docEditor::filePrintPdf()
         printer.setOutputFileName(fileName);
         text_->document()->print(&printer);
     }
-//! [0]
-#endif
 }
 
 void docEditor::textBold()
@@ -596,10 +597,8 @@ void docEditor::cursorPositionChanged()
 
 void docEditor::clipboardDataChanged()
 {
-#ifndef QT_NO_CLIPBOARD
     if (const QMimeData *md = QApplication::clipboard()->mimeData())
         actions_[ idActionPaste ]->setEnabled( md->hasText() );
-#endif
 }
 
 void docEditor::about()

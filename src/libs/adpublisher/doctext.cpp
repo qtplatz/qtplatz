@@ -28,6 +28,9 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QMessageBox>
+#include <QTextCharFormat>
+#include <QColor>
+#include <qmargins.h>
 
 namespace adpublisher {
     namespace detail {
@@ -49,14 +52,41 @@ namespace adpublisher {
 
             void operator()( const pugi::xpath_node& node ) const {
 
-                edit.append( node.node().name() );
+                QString tag = QString( "<%1" ).arg( node.node().name() );
+                for ( auto a : node.node().attributes() )
+                    tag.append( QString( " %1=\"%2\"" ).arg( a.name(), a.value() ) );
+                tag.append( ">" );
+
+                auto color = edit.textColor();
+                QTextCharFormat fmt;
+                fmt.setForeground( QColor( "red" ) );
+                edit.mergeCurrentCharFormat( fmt );
+                edit.insertPlainText( tag );
+                fmt.setForeground( color );
+                edit.mergeCurrentCharFormat( fmt );
+                //--------------------------------------
+                
+                auto font = fmt.font();
+                if ( std::strcmp( node.node().name(), "title" ) == 0 )
+                    fmt.setFontPointSize( 12 );
+                else
+                    fmt.setFontPointSize( 10 );
+                edit.mergeCurrentCharFormat( fmt );
+
                 edit.append( node.node().text().get() );
-                edit.append( "\n" );
+
+                fmt.setFont( font );
+                edit.mergeCurrentCharFormat( fmt );
 
                 for ( auto child : node.node().select_nodes( "./*" ) ) {
                     (*this)(child);
                 }
 
+                fmt.setForeground( QColor( "red" ) );
+                edit.mergeCurrentCharFormat( fmt );
+                edit.append( QString( "</%1>" ).arg( node.node().name() ) );
+                fmt.setForeground( color );
+                edit.mergeCurrentCharFormat( fmt );
             }
         };
 

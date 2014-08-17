@@ -41,7 +41,8 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
 
     setId( Constants::C_DATAPROCESSOR );
     setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
-    setContext( Core::Context( Core::Constants::C_GLOBAL, Constants::C_DATAPROCESSOR, Core::Constants::C_EDIT_MODE ) );
+    // setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::C_EDIT_MODE ) );
+    setContext( Core::Context( Constants::C_DATAPROCESSOR ) );
 
     //connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
 

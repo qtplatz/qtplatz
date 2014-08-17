@@ -58,6 +58,7 @@ namespace quan {
     public slots :
 
     private slots:
+        void filePublish();
     };
 
 }

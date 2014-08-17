@@ -84,7 +84,8 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adwidgets) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adpublisher) \
-        -l$$qtLibraryTarget(qtwrapper)
+        -l$$qtLibraryTarget(qtwrapper) \
+        -l$$qtLibraryTarget(xmlparser)
 
 !win32 {
   LIBS += -lboost_system \

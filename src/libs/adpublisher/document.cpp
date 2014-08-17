@@ -58,8 +58,84 @@ document::document() : doc_( std::make_shared< pugi::xml_document >() )
 A single LC/TOFMS offers the advantage of a full scan which, by allowing all analytes to reach the detector, gives way for multiple applications. However, analyzing the data acquired from a full scan can quickly become a limiting factor in high-throughput (HT) analysis. Accurate results in qualitative and quantitative high-performance liquid chromatographic (HPLC) analysis are fundamentally dependant on the degree of separation obtained for the component peak. In a full scan, analytes can experience suppression as they might still contain contaminates which can lead to inaccurate intensities and co-eluted compounds. Another disadvantage is the inability to avoid drift which makes it difficult to target the analytes of choice using current targeting software where a time range must be entered for each compound. \
 The work presented here shows how using a newly developed targeting algorithm allows an isolated mass spectrum to be targeted from a complex sample matrix. This technique allows a single LC/TOFMS to become an instrument that can be used for quantitative HT analysis." );
             }
-
         }
+
+        if ( auto sec = article.append_child( "section" ) ) {
+            sec.append_attribute( "id" ) = "section_2";
+
+            if ( auto title = sec.append_child( "title" ) )
+                title.text().set( "Methods" );
+
+            if ( auto para = sec.append_child( "paragraph" ) ) {
+                para.text().set( "MS Conditions:" );
+            }
+
+            if ( auto table = sec.append_child( "table" ) ) {
+                table.append_attribute( "id" ) = "table_1";
+                if ( auto tabular = table.append_child( "tabular" ) ) {
+                    tabular.append_attribute( "dataClass" ) = "ControlMethod";
+                }
+            }
+
+            if ( auto para = sec.append_child( "paragraph" ) ) {
+                para.text().set( "Quantitative analysis method:" );
+            }
+
+            if ( auto table = sec.append_child( "table" ) ) {
+                table.append_attribute( "id" ) = "table_2";
+                if ( auto tabular = table.append_child( "tabular" ) ) {
+                    tabular.append_attribute( "dataClass" ) = "QuanMethod";
+                }
+            }
+        }
+        
+        if ( auto sec = article.append_child( "section" ) ) {
+            sec.append_attribute( "id" ) = "section_3";
+            if ( auto title = sec.append_child( "title" ) )
+                title.text().set( "Results" );
+            
+            if ( auto ssec = sec.append_child( "subsection" ) ) {
+                if ( auto title = ssec.append_child( "title" ) )
+                    title.text().set( "Summary Report" ); 
+
+                if ( auto table = ssec.append_child( "table" ) ) {
+                    if ( auto tabular = table.append_child( "tabular" ) )
+                        tabular.append_attribute( "dataClass" ) = "SummaryReport";
+                }
+            }
+
+            if ( auto ssec = sec.append_child( "subsection" ) ) {
+                if ( auto title = ssec.append_child( "title" ) )
+                    title.text().set( "Quantitative Analysis Report" );
+
+                if ( auto table = ssec.append_child( "table" ) ) {
+
+                    if ( auto foreach = table.append_child( "foreach" ) ) {
+
+                        foreach.append_attribute( "Sample" ) = "*";
+                        foreach.append_attribute( "SampleType" ) = 0; // UNK
+
+                        if ( auto compound = foreach.append_child( "foreach" ) ) {
+
+                            compound.append_attribute( "Compound" ) = "*";
+
+                            auto grid = compound.append_child( "tabular" );
+                            grid.append_attribute("dataClass") = "PeakInfoItem";
+
+                            auto svg1 = compound.append_child( "figure" );
+                            svg1.append_attribute( "dataClass" ) = "MassSpectrum";
+                            svg1.append_attribute( "format" ) = "svg";
+
+                            auto svg2 = compound.append_child( "figure" );
+                            svg2.append_attribute( "dataClass" ) = "CalibrationCurve";
+                            svg2.append_attribute( "format" ) = "svg";
+
+                        }
+                    }                        
+                }
+            }
+        }
+
     }
 }
 
