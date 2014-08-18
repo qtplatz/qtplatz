@@ -277,7 +277,7 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
 {
     pProfileSpectrum_ = std::make_pair( guid, ptr );
     pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
-    QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
+    QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: ptr->getDescriptions() )
 		title += QString::fromStdWString( text.text() + L", " );
 	pImpl_->profileSpectrum_->setTitle( title );
