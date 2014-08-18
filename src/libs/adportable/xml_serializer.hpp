@@ -55,5 +55,13 @@ namespace adportable {
 
     };
 
+    struct make_xmlstring {
+    public:
+        template<class T> bool operator()( const T& data, std::wstring& ar ) const {
+            ar.clear();
+            return xml_serializer<T>::serialize( data, ar );
+        }
+    };
+
 }
 

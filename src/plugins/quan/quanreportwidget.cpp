@@ -30,11 +30,18 @@
 #include "quanquery.hpp"
 #include "quanqueryform.hpp"
 #include "quanresulttable.hpp"
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/quanmethod.hpp>
+#include <adcontrols/quansequence.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/xml_serializer.hpp>
 #include <adpublisher/doceditor.hpp>
 #include <adpublisher/document.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <xmlparser/pugixml.hpp>
+#include <xmlparser/xmlhelper.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
@@ -49,9 +56,9 @@
 #include <QToolButton>
 #include <QTreeView>
 #include <QVBoxLayout>
-//#include <QStandardItemModel>
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/archive/xml_woarchive.hpp>
 #include <fstream>
 #include <algorithm>
 
@@ -60,6 +67,25 @@ const QString qrcpath = ":/adpublisher/images/mac";
 #else
 const QString qrcpath = ":/adpublisher/images/win";
 #endif
+
+namespace quan {
+    namespace detail {
+
+        struct append_process_method : public boost::static_visitor<bool> {
+            pugi::xml_node& node;
+            append_process_method( pugi::xml_node& n ) : node( n ){}
+            template<class T> bool operator()( const T& data ) const {
+                if ( auto child = node.append_child( "dataClass" ) ) {
+                    child.append_attribute( "declType" ) = typeid(data).name();
+                    pugi::xmlhelper helper( data );
+                    child.append_copy( helper.doc().select_single_node( "/boost_serialization/class" ).node() );
+                    return true;
+                }
+                return false;
+            }
+        };
+    }
+}
 
 using namespace quan;
 
@@ -202,6 +228,58 @@ QuanReportWidget::setupFileActions( QMenu * menu )
 void
 QuanReportWidget::filePublish()
 {
-    auto doc = docEditor_->document()->xml_document();
-    auto node = doc->select_nodes( "/article|/book" );
+    auto conn = QuanDocument::instance()->connection()->shared_from_this();
+    if ( !conn )
+        return;
+
+    auto xmldoc = std::make_shared< pugi::xml_document >();
+    if ( auto comment = xmldoc->append_child( pugi::node_comment ) )
+        comment.set_value( "Copyright(C) 2010-2014, MS-Cheminformatics LLC, All rights reserved." );
+
+
+    if ( auto doc = xmldoc->append_child( "qtplatz_document" ) ) {
+        doc.append_attribute( "creator" ) = "Quan.qtplatzplugin.ms-cheminfo.com";
+        if ( auto node = doc.append_child( "publish" ) ) {
+
+            adcontrols::idAudit idAudit;
+
+            pugi::xmlhelper helper( idAudit );
+            node.append_copy( helper.doc().select_single_node( "/boost_serialization/class" ).node() );
+            node.append_attribute( "datasource" ) = pugi::as_utf8( conn->filepath().c_str() ).c_str();
+        }
+
+        if ( auto node = doc.append_child("SampleSequence") ) {
+
+            if ( auto p = conn->quanSequence() ) {
+                pugi::xmlhelper helper(*p);
+                if ( auto xnode = node.append_child( "dataClass" ) ) {
+                    xnode.append_attribute( "declType" ) = typeid(*p).name();
+                    xnode.append_copy( helper.doc().select_single_node( "/boost_serialization/class" ).node() );
+                }
+            }
+
+        }
+        if ( auto node = doc.append_child("ProcessMethod") ) {
+            if ( auto pm = conn->processMethod() ) {
+                
+                if ( auto xnode = node.append_child( "dataClass" ) ) {
+                    xnode.append_attribute( "declType" ) = typeid(*pm).name();
+                    pugi::xmlhelper helper( pm->ident() ); // idAudit
+                    xnode.append_copy( helper.doc().select_single_node( "/boost_serialization/class" ).node() );
+
+                    for ( auto& m: *pm )
+                        boost::apply_visitor( detail::append_process_method( xnode ), m );
+                }
+            }
+        }
+
+        boost::filesystem::path path( QuanDocument::instance()->lastDataDir().toStdWString() );
+        path.remove_filename();
+        path /= "published.xml";
+
+        xmldoc->save_file( path.wstring().c_str() );
+    }
+    
+    //auto doc = docEditor_->document()->xml_document();
+    //auto nodes = doc->select_nodes( "//table|//figure[@dataClass]" );
 }

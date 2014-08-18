@@ -33,12 +33,13 @@
 #include <adfs/file.hpp>
 
 namespace adfs { class filesystem; class stmt; class sqlite; }
-namespace adcontrols { class QuanMethod; class QuanSequence; class MassSpectrum; class MSPeakInfo; }
+namespace adcontrols { class QuanMethod; class QuanSequence; class MassSpectrum; class MSPeakInfo; class ProcessMethod; }
 
 namespace quan {
 
     class QuanQuery;
     class QuanPlotData;
+    class QuanMethodComplex;
 
     class QuanConnection : public std::enable_shared_from_this < QuanConnection > {
         QuanConnection( const QuanConnection& ) = delete;
@@ -55,11 +56,18 @@ namespace quan {
         QuanPlotData * fetch( const std::wstring& dataGuid );
 
         const std::wstring& filepath() const { return filename_; }
+        
+        const adcontrols::ProcessMethod * processMethod();
+        const adcontrols::QuanSequence * quanSequence();
 
     private:
         std::wstring filename_;
         std::shared_ptr< adfs::filesystem > fs_;
         std::map< std::wstring, std::shared_ptr< QuanPlotData > > cache_;
+        std::shared_ptr< adcontrols::QuanSequence > sequence_;
+        std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
+
+        bool readMethods();
     };
 
 }
