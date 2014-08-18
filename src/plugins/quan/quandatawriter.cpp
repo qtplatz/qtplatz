@@ -112,6 +112,7 @@ QuanDataWriter::write( const adcontrols::QuanSequence& t)
     return adfs::file();
 }
 
+#if 0
 adfs::file
 QuanDataWriter::write( const adcontrols::QuanSample& t )
 {
@@ -125,6 +126,7 @@ QuanDataWriter::write( const adcontrols::QuanSample& t )
     }
     return adfs::file();
 }
+#endif
 
 bool
 QuanDataWriter::create_table()

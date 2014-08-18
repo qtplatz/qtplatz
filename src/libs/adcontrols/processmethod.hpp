@@ -87,6 +87,7 @@ namespace adcontrols {
     public:
         static bool archive( std::ostream&, const ProcessMethod& );
         static bool restore( std::istream&, ProcessMethod& );
+        const idAudit& ident() const { return ident_; }
 
     private:
         vector_type vec_;

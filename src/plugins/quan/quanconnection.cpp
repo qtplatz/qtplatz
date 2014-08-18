@@ -25,12 +25,17 @@
 #include "quanconnection.hpp"
 #include "quanplotdata.hpp"
 #include "quanquery.hpp"
+#include "quanmethodcomplex.hpp"
 #include <adfs/cpio.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
+#include <adfs/file.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/quanmethod.hpp>
+#include <adcontrols/quansequence.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <dataproc/dataprocconstants.hpp>
@@ -140,3 +145,45 @@ QuanConnection::fetch( const std::wstring& dataGuid )
     return 0;
 }
 
+const adcontrols::ProcessMethod *
+QuanConnection::processMethod()
+{
+    if ( !procmethod_ )
+        readMethods();
+    return procmethod_.get();
+}
+
+const adcontrols::QuanSequence *
+QuanConnection::quanSequence()
+{
+    if ( !sequence_ )
+        readMethods();
+    return sequence_.get();
+}
+
+bool
+QuanConnection::readMethods()
+{
+    sequence_ = std::make_shared< adcontrols::QuanSequence >();
+    procmethod_ = std::make_shared< adcontrols::ProcessMethod >();
+
+    if ( auto folder = fs_->findFolder( L"/Processed/Quan" ) ) {
+ 
+        auto files = folder.files();
+        // larger rowid first (decend order)
+        std::sort( files.begin(), files.end(), [] ( const adfs::file& a, const adfs::file& b ){ return a.rowid() > b.rowid(); } );
+
+        do {
+            auto it = std::find_if( files.begin(), files.end(), [] ( const adfs::file& t ){ return t.dataClass() == adcontrols::ProcessMethod::dataClass(); } );
+            if ( it != files.end() )
+                it->fetch( *procmethod_ );
+        } while ( false );
+
+        do {
+            auto it = std::find_if( files.begin(), files.end(), [] ( const adfs::file& t ){ return t.dataClass() == adcontrols::QuanSequence::dataClass(); } );
+            if ( it != files.end() )
+                it->fetch( *sequence_ );
+        } while ( false );
+    }
+    return true;
+}
