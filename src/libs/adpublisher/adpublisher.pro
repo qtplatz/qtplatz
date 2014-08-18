@@ -42,3 +42,14 @@ unix {
 
 RESOURCES += \
     adpublisher.qrc
+
+XSLT_FILES += xslt/debug.xslt
+XSLT_DIR = xslt
+
+xcopy2file.output = $$DESTDIR/plugins/MS-Cheminformatics/xslt/$${QMAKE_FUNC_FILE_IN_stripSrcDir}
+xcopy2file.input += XSLT_DIR
+isEmpty(vcproj):xcopy2file.variable_out = PRE_TARGETDEPS
+xcopy2file.commands = $(COPY_DIR) ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+xcopy2file.name = XCOPY2FILE ${QMAKE_FILE_IN}
+xcopy2file.CONFIG += no_link
+QMAKE_EXTRA_COMPILERS += xcopy2file
