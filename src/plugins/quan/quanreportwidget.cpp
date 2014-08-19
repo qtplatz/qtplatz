@@ -316,7 +316,7 @@ QuanReportWidget::filePublish()
             }
         }
 
-        if ( auto node = doc.append_child( "QuanResonse" ) ) {
+        if ( auto node = doc.append_child( "QuanResponse" ) ) {
 
             node.append_attribute( "sampleType" ) = "UNK";
 
@@ -325,9 +325,9 @@ QuanReportWidget::filePublish()
 
                     adfs::stmt sql( conn->db() );
                     if ( sql.prepare( "\
-                                          SELECT QuanCompound.uuid as cmpid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
-                                          FROM QuanSample, QuanResponse, QuanCompound \
-                                          WHERE QuanCompound.uuid = ? AND sampleType = 0 AND QuanResponse.idCmpd = QuanCompound.uuid AND QuanSample.id = QuanResponse.idSample" ) ) {
+SELECT QuanCompound.uuid as cmpid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
+FROM QuanSample, QuanResponse, QuanCompound \
+WHERE QuanCompound.uuid = ? AND sampleType = 0 AND QuanResponse.idCmpd = QuanCompound.uuid AND QuanSample.id = QuanResponse.idSample" ) ) {
                         sql.bind( 1 ) = cmpd.uuid();
                         int nSelected = 0;
                         while ( sql.step() == adfs::sqlite_row ) {

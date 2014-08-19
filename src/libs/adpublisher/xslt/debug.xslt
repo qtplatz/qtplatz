@@ -104,7 +104,15 @@
   </xsl:template>
   
   <xsl:template match="QuanResponse[@sampleType='UNK']">
-    <h2>Summary Report</h2>
+    <h2>Summary Report (UNK)</h2>
+  </xsl:template>
+
+  <xsl:template match="QuanResponse[@sampleType='STD']">
+    <h2>Summary Report (STD)</h2>
+  </xsl:template>
+
+  <xsl:template match="QuanCalib">
+    <h2>Caliubration Curve</h2>
   </xsl:template>
 
 
