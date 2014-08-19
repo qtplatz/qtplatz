@@ -286,19 +286,16 @@ QuanReportWidget::filePublish()
     if ( auto comment = xmldoc->append_child( pugi::node_comment ) )
         comment.set_value( "Copyright(C) 2010-2014, MS-Cheminformatics LLC, All rights reserved." );
 
-
     if ( auto doc = xmldoc->append_child( "qtplatz_document" ) ) {
         doc.append_attribute( "creator" ) = "Quan.qtplatzplugin.ms-cheminfo.com";
-        if ( auto node = doc.append_child( "publish" ) ) {
-            adcontrols::idAudit id;
-            detail::append_class()(node, id);
-        }
+        adcontrols::idAudit id;
+        detail::append_class()(doc, id);
 
-        if ( auto node = doc.append_child("SampleSequence") ) {
+        if ( auto node = doc.append_child( "SampleSequence" ) ) {
 
             if ( auto p = conn->quanSequence() ) {
-                pugi::xmlhelper helper(*p);
-                if ( auto xnode = node.append_child( "dataClass" ) ) {
+                pugi::xmlhelper helper( *p );
+                if ( auto xnode = node.append_child( "classdata" ) ) {
                     xnode.append_attribute( "declType" ) = typeid(*p).name();
                     xnode.append_copy( helper.doc().select_single_node( "/boost_serialization/class" ).node() );
                 }
@@ -306,19 +303,19 @@ QuanReportWidget::filePublish()
 
         }
 
-        if ( auto node = doc.append_child("ProcessMethod") ) {
+        if ( auto node = doc.append_child( "ProcessMethod" ) ) {
             if ( auto pm = conn->processMethod() ) {
-                
-                if ( auto xnode = node.append_child( "dataClass" ) ) {
+
+                if ( auto xnode = node.append_child( "classdata" ) ) {
                     xnode.append_attribute( "declType" ) = typeid(*pm).name();
                     detail::append_class()(xnode, pm->ident()); // idAudit
 
-                    for ( auto& m: *pm )
+                    for ( auto& m : *pm )
                         boost::apply_visitor( detail::append_process_method( xnode ), m );
                 }
             }
         }
-        
+
         if ( auto node = doc.append_child( "QuanResonse" ) ) {
 
             node.append_attribute( "sampleType" ) = "UNK";
@@ -328,9 +325,9 @@ QuanReportWidget::filePublish()
 
                     adfs::stmt sql( conn->db() );
                     if ( sql.prepare( "\
-SELECT QuanCompound.uuid as cmpid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
-FROM QuanSample, QuanResponse, QuanCompound \
-WHERE QuanCompound.uuid = ? AND sampleType = 0 AND QuanResponse.idCmpd = QuanCompound.uuid AND QuanSample.id = QuanResponse.idSample" ) ) {
+                                          SELECT QuanCompound.uuid as cmpid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
+                                          FROM QuanSample, QuanResponse, QuanCompound \
+                                          WHERE QuanCompound.uuid = ? AND sampleType = 0 AND QuanResponse.idCmpd = QuanCompound.uuid AND QuanSample.id = QuanResponse.idSample" ) ) {
                         sql.bind( 1 ) = cmpd.uuid();
                         int nSelected = 0;
                         while ( sql.step() == adfs::sqlite_row ) {
@@ -355,9 +352,9 @@ WHERE QuanCompound.uuid = ? AND sampleType = 0 AND QuanResponse.idCmpd = QuanCom
 
                     adfs::stmt sql( conn->db() );
                     if ( sql.prepare( "\
-SELECT QuanCompound.uuid as cmpid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanResponse.amount, QuanCompound.description, dataSource \
-FROM QuanSample, QuanResponse, QuanCompound \
-WHERE QuanCompound.uuid = ? AND sampleType = 1 AND QuanResponse.idCmpd = QuanCompound.uuid AND QuanSample.id = QuanResponse.idSample ORDER BY QuanSample.level" ) ) {
+                                          SELECT QuanCompound.uuid as cmpid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanResponse.amount, QuanCompound.description, dataSource \
+                                          FROM QuanSample, QuanResponse, QuanCompound \
+                                          WHERE QuanCompound.uuid = ? AND sampleType = 1 AND QuanResponse.idCmpd = QuanCompound.uuid AND QuanSample.id = QuanResponse.idSample ORDER BY QuanSample.level" ) ) {
                         sql.bind( 1 ) = cmpd.uuid();
                         int nSelected = 0;
                         while ( sql.step() == adfs::sqlite_row ) {
@@ -381,7 +378,7 @@ WHERE QuanCompound.uuid = ? AND sampleType = 1 AND QuanResponse.idCmpd = QuanCom
 
                     adfs::stmt sql( conn->db() );
                     if ( sql.prepare( "SELECT QuanCompound.uuid as cmpid, formula, description, n, a, b, c, d, e, f, min_x, max_x, date \
-FROM QuanCalib, QuanCompound WHERE QuanCompound.uuid = ? AND idCompound = QuanCompound.id" ) ) {
+                                          FROM QuanCalib, QuanCompound WHERE QuanCompound.uuid = ? AND idCompound = QuanCompound.id" ) ) {
                         sql.bind( 1 ) = cmpd.uuid();
                         int nSelected = 0;
                         while ( sql.step() == adfs::sqlite_row ) {
@@ -393,10 +390,10 @@ FROM QuanCalib, QuanCompound WHERE QuanCompound.uuid = ? AND idCompound = QuanCo
 
                             adfs::stmt sql2( conn->db() );
                             if ( sql2.prepare( "SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity, QuanResponse.formula, QuanSample.dataGuid \
-FROM QuanCompound, QuanSample, QuanAmount, QuanResponse \
-WHERE QuanCompound.uuid = :uuid AND QuanCompound.uuid = QuanAmount.idCmpd AND QuanCompound.uuid = QuanResponse.idCmpd \
-AND sampleType = 1 AND QuanResponse.idSample = QuanSample.id AND QuanAmount.level = QuanSample.level \
-ORDER BY QuanAmount.level" ) ) {
+                                                   FROM QuanCompound, QuanSample, QuanAmount, QuanResponse \
+                                                   WHERE QuanCompound.uuid = :uuid AND QuanCompound.uuid = QuanAmount.idCmpd AND QuanCompound.uuid = QuanResponse.idCmpd \
+                                                   AND sampleType = 1 AND QuanResponse.idSample = QuanSample.id AND QuanAmount.level = QuanSample.level \
+                                                   ORDER BY QuanAmount.level" ) ) {
 
                                 auto response_node = rnode.append_child( "response" );
 
@@ -414,13 +411,10 @@ ORDER BY QuanAmount.level" ) ) {
                 } // for
             } //if
         } //if
-
-
-        boost::filesystem::path path( QuanDocument::instance()->lastDataDir().toStdWString() );
-        path.replace_extension( ".published.xml" );
-        xmldoc->save_file( path.wstring().c_str() );
     }
-    
-    //auto doc = docEditor_->document()->xml_document();
-    //auto nodes = doc->select_nodes( "//table|//figure[@dataClass]" );
+
+    boost::filesystem::path path( QuanDocument::instance()->lastDataDir().toStdWString() );
+    path.replace_extension( ".published.xml" );
+    xmldoc->save_file( path.wstring().c_str() );
+
 }
