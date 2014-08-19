@@ -22,35 +22,10 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "transformer.hpp"
 
-#include <memory>
-#include <ostream>
-#include "adpublisher_global.hpp"
+using namespace adpublisher;
 
-namespace pugi { class xml_document; }
-
-namespace adpublisher {
-
-    class ADPUBLISHERSHARED_EXPORT document {
-    public:
-        document();
-        document( const document& ) = delete;
-
-        bool save_file( const char * filepath ) const;
-        bool load_file( const char * filepath );
-        bool save( std::ostream& ) const;
-        bool save( std::string& ) const;
-        bool load( const char * );
-
-        std::shared_ptr< pugi::xml_document > xml_document();
-
-        static bool apply_template( const char * xmlfile, const char * xsltfile, QString& output );
-
-    private:
-        std::shared_ptr< pugi::xml_document > doc_;
-    };
-
+transformer::transformer()
+{
 }
-
-

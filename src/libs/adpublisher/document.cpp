@@ -23,11 +23,17 @@
 **************************************************************************/
 
 #include "document.hpp"
+#if defined Q_OS_WIN32
+# include "msxml_transformer.hpp"
+#endif
 #include <xmlparser/pugixml.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/filesystem.hpp>
+#include <QApplication>
+#include <QXmlQuery>
 
 using namespace adpublisher;
 
@@ -178,3 +184,31 @@ document::xml_document()
 {
     return doc_;
 }
+
+//static
+bool
+document::apply_template( const char * xmlfile, const char * xsltfile, QString& output )
+{
+    QXmlQuery query( QXmlQuery::XSLT20 );
+
+    boost::filesystem::path src( xmlfile );
+    boost::filesystem::path xslt( xsltfile );
+
+    if ( !boost::filesystem::exists( src ) )
+        return false;
+
+    if ( !boost::filesystem::exists( xslt ) )
+        return false;
+
+#if defined Q_OS_WIN32
+    boost::filesystem::path opath( src );
+    opath.replace_extension( ".html");
+    // return msxml::transformer::instance()->apply_template( xmlfile, xsltfile, opath.string().c_str() );
+    return msxml::transformer::instance()->apply_template( xmlfile, xsltfile, output);
+#else
+    query.setFocus( QUrl( xmlfile ) );
+    query.setQuery( QUrl( xsltfile ) );
+    return query.evaluateTo( &output );
+#endif
+}
+

@@ -22,35 +22,29 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef MSXML_TRANSFORMER_HPP
+#define MSXML_TRANSFORMER_HPP
 
-#include <memory>
-#include <ostream>
-#include "adpublisher_global.hpp"
-
-namespace pugi { class xml_document; }
+class QString;
 
 namespace adpublisher {
 
-    class ADPUBLISHERSHARED_EXPORT document {
-    public:
-        document();
-        document( const document& ) = delete;
+    namespace msxml {
 
-        bool save_file( const char * filepath ) const;
-        bool load_file( const char * filepath );
-        bool save( std::ostream& ) const;
-        bool save( std::string& ) const;
-        bool load( const char * );
+        class transformer {
+            transformer();
+            static transformer * instance_;
+        public:
+            ~transformer();
 
-        std::shared_ptr< pugi::xml_document > xml_document();
+            static transformer * instance();
+            
+            bool apply_template( const char * xsltfile, const char * xmlfile, const char * outfile );
+            bool apply_template( const char * xsltfile, const char * xmlfile, QString& );
+        };
 
-        static bool apply_template( const char * xmlfile, const char * xsltfile, QString& output );
-
-    private:
-        std::shared_ptr< pugi::xml_document > doc_;
-    };
+    }
 
 }
 
-
+#endif // MSXML_TRANSFORMER_HPP
