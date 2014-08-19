@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += sql svg xml printsupport
+QT       += sql svg xml printsupport xmlpatterns
 
 #QT       -= gui
 
@@ -21,14 +21,18 @@ SOURCES += adpublisher.cpp \
            document.cpp \
            doceditor.cpp \
            doctree.cpp \
-           doctext.cpp
+           doctext.cpp \
+    transformer.cpp \
+    msxml_transformer.cpp
 
 HEADERS += adpublisher.hpp\
            adpublisher_global.hpp \
            document.hpp \
            doceditor.hpp \
            doctree.hpp \
-           doctext.hpp
+           doctext.hpp \
+    transformer.hpp \
+    msxml_transformer.hpp
 
 LIBS *= -L$$IDE_LIBRARY_PATH 
 LIBS += -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adportable)
