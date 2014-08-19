@@ -52,4 +52,4 @@ isEmpty(vcproj):xcopy2file.variable_out = PRE_TARGETDEPS
 xcopy2file.commands = $(COPY_DIR) ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
 xcopy2file.name = XCOPY2FILE ${QMAKE_FILE_IN}
 xcopy2file.CONFIG += no_link
-QMAKE_EXTRA_COMPILERS += xcopy2file
+#QMAKE_EXTRA_COMPILERS += xcopy2file
