@@ -5,7 +5,9 @@ SUBDIRS = \
     libs \
     adplugins \
     app \
-    plugins
+    plugins \
+    tools
 
 app.depends = libs
 plugins.depends = libs
+tools.depends = libs

@@ -201,11 +201,16 @@ document::apply_template( const char * xmlfile, const char * xsltfile, QString& 
         return false;
 
 #if defined Q_OS_WIN32
+    using namespace msxml;
+#else
+    //using namespace xalan
+#endif
+
     boost::filesystem::path opath( src );
     opath.replace_extension( ".html");
-    // return msxml::transformer::instance()->apply_template( xmlfile, xsltfile, opath.string().c_str() );
-    return msxml::transformer::instance()->apply_template( xmlfile, xsltfile, output);
-#else
+    return transformer::instance()->apply_template( xmlfile, xsltfile, output);
+
+#if 0
     query.setFocus( QUrl( xmlfile ) );
     query.setQuery( QUrl( xsltfile ) );
     return query.evaluateTo( &output );

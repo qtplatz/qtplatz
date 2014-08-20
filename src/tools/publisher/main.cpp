@@ -22,16 +22,27 @@
 **
 **************************************************************************/
 
-#ifndef TRANSFORMER_HPP
-#define TRANSFORMER_HPP
+#include "mainwindow.hpp"
+#include <app/app_version.h>
+#include <QApplication>
+#include <QSettings>
+#include <QDir>
 
-namespace adpublisher {
+int
+main( int argc, char *argv[] )
+{
+    QApplication a(argc, argv);
 
-    class transformer {
-    public:
-        transformer();
-    };
+    std::shared_ptr< QSettings > settings
+        = std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
+                                        , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                        , QLatin1String( "publisher" ) );
 
+    QDir appdir = QApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // next to translations
+    MainWindow::addRecentFiles( *settings, "Stylesheets", "DIRS", appdir.canonicalPath(), "DIR" );
+
+    MainWindow w;
+    w.show();
+    w.onInitialUpdate( settings );
+    return a.exec();
 }
-
-#endif // TRANSFORMER_HPP
