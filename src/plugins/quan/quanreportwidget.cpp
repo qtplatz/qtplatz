@@ -27,20 +27,15 @@
 #include "quanconstants.hpp"
 #include "quandocument.hpp"
 #include "quanmethodcomplex.hpp"
+#include "quanpublisher.hpp"
 #include "quanquery.hpp"
 #include "quanqueryform.hpp"
 #include "quanresulttable.hpp"
 #include <adcontrols/chemicalformula.hpp>
-#include <adcontrols/msreferences.hpp>
-#include <adcontrols/msreference.hpp>
-#include <adcontrols/quanmethod.hpp>
-#include <adcontrols/quansequence.hpp>
-#include <adcontrols/processmethod.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adpublisher/doceditor.hpp>
 #include <adpublisher/document.hpp>
-#include <adfs/sqlite3.h>
 #include <qtwrapper/waitcursor.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/xmlhelper.hpp>
@@ -78,82 +73,6 @@ const QString qrcpath = ":/adpublisher/images/mac";
 #else
 const QString qrcpath = ":/adpublisher/images/win";
 #endif
-
-namespace quan {
-    namespace detail {
-
-        struct append_class {
-
-            template< class T > pugi::xml_node operator()( pugi::xml_node& node, const T& data ) const {
-                auto child = node.append_child( "classdata" );
-                child.append_attribute( "decltype" ) = typeid(data).name();
-                pugi::xmlhelper helper( data );
-                child.append_copy( helper.doc().select_single_node( "/boost_serialization/class" ).node() );
-                return child;
-            }
-        };
-
-        struct append_process_method : public boost::static_visitor<bool> {
-            pugi::xml_node& node;
-            append_process_method( pugi::xml_node& n ) : node( n ){}
-            template<class T> bool operator()( const T& data ) const {
-                append_class()( node, data );
-                return true;
-            }
-        };
-        
-        struct append_column {
-            pugi::xml_node& row;
-            append_column( pugi::xml_node& n ) : row( n ) {}
-
-            template<typename T> pugi::xml_node operator()( const char * typnam, const char * name, const T& value ) const {
-                auto node = row.append_child( "column" );
-                node.append_attribute( "name" ) = name;
-                node.append_attribute( "decltype" ) = typnam;
-                node.text() = value;
-                return node;
-            }
-
-            template<> pugi::xml_node operator()( const char * typnam, const char * name, const std::string& value ) const {
-                auto node = row.append_child( "column" );
-                node.append_attribute( "name" ) = name;
-                node.append_attribute( "decltype" ) = typnam;
-                // std::string encoded = xmlparser::encode( value );
-                node.text() = value.c_str(); // it seems that pugi automatically escape <>&
-                return node;
-            }
-
-            pugi::xml_node operator()( const adfs::stmt& sql, int nCol, bool dropNull = false ) const {
-
-                if ( sql.is_null_column( nCol ) && dropNull )
-                    return pugi::xml_node();
-
-                switch ( sql.column_type( nCol ) ) {
-                case SQLITE_INTEGER:
-                    return (*this)("int64_t", sql.column_name( nCol ).c_str(), sql.get_column_value< int64_t >( nCol ) );
-                    break;
-                case SQLITE_FLOAT:
-                    return (*this)("double", sql.column_name( nCol ).c_str(), sql.get_column_value< double >( nCol ) );
-                    break;
-                case SQLITE_TEXT:
-                    return (*this)("text", sql.column_name( nCol ).c_str(), sql.get_column_value< std::string >( nCol ).c_str() );
-                    break;
-                case SQLITE_BLOB: {
-                    try {
-                        auto uuid = sql.get_column_value< boost::uuids::uuid >( nCol );
-                        return (*this)("uuid", sql.column_name( nCol ).c_str(), boost::lexical_cast<std::string>(uuid).c_str() );
-                    } catch ( boost::bad_lexical_cast& ) {
-                    }
-                    break;
-                }
-                case SQLITE_NULL:
-                    return (*this)("null", sql.column_name( nCol ).c_str(), 0);
-                }
-                return pugi::xml_node();
-            }
-        };
-    }
-}
 
 using namespace quan;
 
@@ -296,180 +215,25 @@ QuanReportWidget::setupFileActions( QMenu * menu )
 void
 QuanReportWidget::filePublish()
 {
-    auto conn = QuanDocument::instance()->connection()->shared_from_this();
+    auto conn = QuanDocument::instance()->connection();
     if ( !conn )
         return;
 
-    const QString apppath = QCoreApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // next to translations
-    boost::filesystem::path xsltpath = boost::filesystem::path( apppath.toStdWString() ).normalize();
+    QuanPublisher publisher;
+    if ( publisher( conn ) ) {
 
-    auto xmldoc = std::make_shared< pugi::xml_document >();
-    if ( auto comment = xmldoc->append_child( pugi::node_comment ) )
-        comment.set_value( "Copyright(C) 2010-2014, MS-Cheminformatics LLC, All rights reserved." );
-    auto decl = xmldoc->prepend_child( pugi::node_declaration );
-    decl.append_attribute("version") = "1.0";
-    decl.append_attribute("encoding") = "UTF-8";
-    decl.append_attribute( "standalone" ) = "no";
+        const QString apppath = QCoreApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // sibling of /translations
+        boost::filesystem::path xsltpath = boost::filesystem::path( apppath.toStdWString() ).normalize();
 
-#if 0 // for debug
-    if ( auto pi = xmldoc->append_child( pugi::node_pi ) ) {
-        pi.set_name( "xml-stylesheet" );
-        pi.set_value( (boost::format("type=\"text/xsl\" href=\"%1%\"") % (xsltpath / "quan-html.xsl").generic_string()).str().c_str() );
+        boost::filesystem::path path = publisher.filepath(); 
+
+        QString output;
+        adpublisher::document::apply_template( path.string().c_str()
+                                               , (xsltpath / "quan-html.xsl").string().c_str()
+                                               , output );
+        
+        path.replace_extension( ".html" );
+        boost::filesystem::ofstream o( path );
+        o << output.toStdString();
     }
-#endif
-
-    if ( auto doc = xmldoc->append_child( "qtplatz_document" ) ) {
-        doc.append_attribute( "creator" ) = "Quan.qtplatzplugin.ms-cheminfo.com";
-        adcontrols::idAudit id;
-        detail::append_class()(doc, id);
-
-        if ( auto node = doc.append_child( "SampleSequence" ) ) {
-
-            if ( auto p = conn->quanSequence() ) {
-                pugi::xmlhelper helper( *p );
-                if ( auto xnode = node.append_child( "classdata" ) ) {
-                    xnode.append_attribute( "decltype" ) = typeid(*p).name();
-                    xnode.append_copy( helper.doc().select_single_node( "/boost_serialization/class" ).node() );
-                }
-            }
-
-        }
-
-        if ( auto node = doc.append_child( "ProcessMethod" ) ) {
-            if ( auto pm = conn->processMethod() ) {
-
-                if ( auto xnode = node.append_child( "classdata" ) ) {
-                    xnode.append_attribute( "decltype" ) = typeid(*pm).name();
-                    detail::append_class()(xnode, pm->ident()); // idAudit
-
-                    for ( auto& m : *pm )
-                        boost::apply_visitor( detail::append_process_method( xnode ), m );
-                }
-            }
-        }
-
-        if ( auto node = doc.append_child( "QuanResponse" ) ) {
-
-            node.append_attribute( "sampleType" ) = "UNK";
-
-            if ( auto cmpds = conn->processMethod()->find< adcontrols::QuanCompounds >() ) {
-                for ( auto& cmpd : *cmpds ) {
-
-                    adfs::stmt sql( conn->db() );
-                    if ( sql.prepare( "\
-SELECT QuanCompound.uuid as cmpid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
-FROM QuanSample, QuanResponse, QuanCompound \
-WHERE QuanCompound.uuid = ? AND sampleType = 0 AND QuanResponse.idCmpd = QuanCompound.uuid AND QuanSample.id = QuanResponse.idSample" ) ) {
-                        sql.bind( 1 ) = cmpd.uuid();
-                        int nSelected = 0;
-                        while ( sql.step() == adfs::sqlite_row ) {
-                            auto rnode = node.append_child( "row" );
-                            ++nSelected;
-                            detail::append_column append( rnode );
-                            for ( int col = 0; col < sql.column_count(); ++col ) {
-                                append( sql, col );
-                                if ( sql.column_name( col ) == "formula" ) {
-                                    auto text = adcontrols::ChemicalFormula::formatFormula( sql.get_column_value < std::string>( col ) );
-                                    append( "richtext", "formula", text );
-                                }
-                            }
-                            
-                        }
-                    }
-                } // for
-            } //if
-        } //if
-
-        if ( auto node = doc.append_child( "QuanResponse" ) ) {
-
-            node.append_attribute( "sampleType" ) = "STD";
-
-            if ( auto cmpds = conn->processMethod()->find< adcontrols::QuanCompounds >() ) {
-                for ( auto& cmpd : *cmpds ) {
-
-                    adfs::stmt sql( conn->db() );
-                    if ( sql.prepare( "\
-SELECT QuanCompound.uuid as cmpid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass , QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanResponse.amount, QuanCompound.description, dataSource \
-FROM QuanSample, QuanResponse, QuanCompound \
-WHERE QuanCompound.uuid = ? AND sampleType = 1 AND QuanResponse.idCmpd = QuanCompound.uuid AND QuanSample.id = QuanResponse.idSample ORDER BY QuanSample.level" ) ) {
-                        sql.bind( 1 ) = cmpd.uuid();
-                        int nSelected = 0;
-                        while ( sql.step() == adfs::sqlite_row ) {
-                            auto rnode = node.append_child( "row" );
-                            ++nSelected;
-                            detail::append_column append( rnode );
-                            for ( int col = 0; col < sql.column_count(); ++col ) {
-                                append( sql, col );
-                                if ( sql.column_name( col ) == "formula" ) {
-                                    auto text = adcontrols::ChemicalFormula::formatFormula( sql.get_column_value < std::string>( col ) );
-                                    append( "richtext", "formula", text );
-                                }
-                            }
-                        }
-                    }
-                } // for
-            } //if
-        } //if
-
-        ///////////////////////////////////
-
-        if ( auto node = doc.append_child( "QuanCalib" ) ) {
-
-            if ( auto cmpds = conn->processMethod()->find< adcontrols::QuanCompounds >() ) {
-                for ( auto& cmpd : *cmpds ) {
-
-                    adfs::stmt sql( conn->db() );
-                    if ( sql.prepare( "SELECT QuanCompound.uuid as cmpid, formula, description, n, a, b, c, d, e, f, min_x, max_x, date \
-                                          FROM QuanCalib, QuanCompound WHERE QuanCompound.uuid = ? AND idCompound = QuanCompound.id" ) ) {
-                        sql.bind( 1 ) = cmpd.uuid();
-                        int nSelected = 0;
-                        while ( sql.step() == adfs::sqlite_row ) {
-                            auto rnode = node.append_child( "row" );
-                            ++nSelected;
-                            detail::append_column append( rnode );
-                            for ( int col = 0; col < sql.column_count(); ++col ) {
-                                append( sql, col, true );  // drop null column
-                                if ( sql.column_name( col ) == "formula" ) {
-                                    auto text = adcontrols::ChemicalFormula::formatFormula( sql.get_column_value < std::string>( col ) );
-                                    append( "richtext", "formula", text );
-                                }
-                            }
-
-                            adfs::stmt sql2( conn->db() );
-                            if ( sql2.prepare("\
-SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity, QuanResponse.formula, QuanSample.dataGuid \
-FROM QuanCompound, QuanSample, QuanAmount, QuanResponse \
-WHERE QuanCompound.uuid = :uuid AND QuanCompound.uuid = QuanAmount.idCmpd AND QuanCompound.uuid = QuanResponse.idCmpd \
-AND sampleType = 1 AND QuanResponse.idSample = QuanSample.id AND QuanAmount.level = QuanSample.level \
-ORDER BY QuanAmount.level" ) ) {
-
-                                auto response_node = rnode.append_child( "response" );
-
-                                sql2.bind( 1 ) = cmpd.uuid();
-
-                                while ( sql2.step() == adfs::sqlite_row ) {
-                                    auto row_node = response_node.append_child( "row" );
-                                    detail::append_column append2( row_node );
-                                    for ( int col = 0; col < sql2.column_count(); ++col )
-                                        append2( sql2, col ); // don't drop null column
-                                }
-                            }
-                        }
-                    }
-                } // for
-            } //if
-        } //if
-    }
-
-    boost::filesystem::path path( QuanDocument::instance()->lastDataDir().toStdWString() );
-    path.replace_extension( ".published.xml" );
-    xmldoc->save_file( path.wstring().c_str() );
-
-    QString output;
-    adpublisher::document::apply_template( path.string().c_str()
-                                           , (xsltpath / "quan-html.xsl").string().c_str()
-                                           , output );
-    path.replace_extension( ".html" );
-    boost::filesystem::ofstream o( path );
-    o << output.toStdString();
 }

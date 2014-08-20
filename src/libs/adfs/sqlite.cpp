@@ -408,7 +408,8 @@ namespace adfs {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
             return std::string( reinterpret_cast< const char * >(text) );
-        }
+        } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
+            return "";
         BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
@@ -417,7 +418,8 @@ namespace adfs {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
             return adportable::utf::to_wstring( text );
-        }
+        } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
+            return L"";
         BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
@@ -425,6 +427,8 @@ namespace adfs {
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_FLOAT )
             return sqlite3_column_double( stmt_, nCol );
+        else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
+            return 0;
         BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
@@ -432,6 +436,8 @@ namespace adfs {
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
             return sqlite3_column_int64( stmt_, nCol );
+        else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
+            return 0;
         BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
@@ -439,6 +445,8 @@ namespace adfs {
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
             return sqlite3_column_int64( stmt_, nCol );
+        else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
+            return 0;
         BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
@@ -448,8 +456,9 @@ namespace adfs {
             const void * pvoid = sqlite3_column_blob( stmt_, nCol );
             int octets = sqlite3_column_bytes( stmt_, nCol );
             return blob( octets, reinterpret_cast<const int8_t *>(pvoid) );
-            // return blob();
-        }
+        } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
+            return blob();
+
         BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 
@@ -468,7 +477,9 @@ namespace adfs {
             std::copy( static_cast<const char *>(pBlob), static_cast<const char *>(pBlob)+octets, reinterpret_cast<char *>(uuid.begin()) );
 
             return uuid;
-        }
+        } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
+            return boost::uuids::uuid();
+
         BOOST_THROW_EXCEPTION( std::bad_cast() );
     }
 

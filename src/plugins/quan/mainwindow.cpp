@@ -38,6 +38,7 @@
 #include "quanreportwidget.hpp"
 #include "quanquerywidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/quansequence.hpp>
@@ -407,6 +408,9 @@ MainWindow::handleOpenQuanResult()
                                                  , tr( "File(*.adfs)" ) );
     if ( !name.isEmpty() ) {
         if ( auto connection = std::make_shared< QuanConnection >() ) {
+
+            qtwrapper::waitCursor wait;
+            
             if ( connection->connect( name.toStdWString() ) ) {
                 // kick QuanReportWidget (calibartion & result view) updae
                 QuanDocument::instance()->setConnection( connection.get() );
