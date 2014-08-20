@@ -118,7 +118,8 @@ namespace quan {
                 auto node = row.append_child( "column" );
                 node.append_attribute( "name" ) = name;
                 node.append_attribute( "decltype" ) = typnam;
-                node.text() = xmlparser::encode( value ).c_str();
+                // std::string encoded = xmlparser::encode( value );
+                node.text() = value.c_str(); // it seems that pugi automatically escape <>&
                 return node;
             }
 
