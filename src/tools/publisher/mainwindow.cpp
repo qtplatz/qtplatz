@@ -41,16 +41,29 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
                                         , doc_( std::make_shared< adpublisher::document >() )
 {
     ui->setupUi(this);
+
+    setToolButtonStyle( Qt::ToolButtonFollowStyle );
+    ui->actionOpen->setIcon( QIcon( ":/adpublisher/images/win/fileopen.png" ) );
+    ui->actionSave_As->setIcon( QIcon( ":/adpublisher/images/win/filesave.png" ) );
+    ui->actionApply->setIcon( QIcon( ":/publisher/run.png" ) );
+
+    if ( auto btn = new QToolButton ) {
+        btn->setDefaultAction( ui->actionOpen );
+        ui->mainToolBar->addWidget( btn );
+    }
+    if ( auto btn = new QToolButton ) {
+        btn->setDefaultAction( ui->actionSave_As );
+        ui->mainToolBar->addWidget( btn );
+    }
+
     auto combo = new QComboBox;
     combo->setObjectName( "Stylesheets" );
     ui->mainToolBar->addWidget( combo );
 
-    setToolButtonStyle( Qt::ToolButtonFollowStyle );
-    ui->actionOpen->setIcon( QIcon( ":/adpublisher/images/win/fileopen.png" ) );
-    ui->actionApply->setIcon( QIcon( ":/publisher/run.png" ) );
-    auto btn = new QToolButton;
-    btn->setDefaultAction( ui->actionApply );
-    ui->mainToolBar->addWidget( btn );
+    if ( auto btn = new QToolButton ) {
+        btn->setDefaultAction( ui->actionApply );
+        ui->mainToolBar->addWidget( btn );
+    }
     
     ui->actionApply->setEnabled( false );
 }
@@ -78,6 +91,7 @@ MainWindow::onInitialUpdate( std::shared_ptr< QSettings >& settings )
     }
 
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::handleOpenFile );
+    connect(ui->actionSave_As, &QAction::triggered, this, &MainWindow::handleSaveProcessedAs );
     connect(ui->actionApply, &QAction::triggered, this, &MainWindow::handleApplyStylesheet );
 }
 
@@ -191,6 +205,8 @@ MainWindow::handleOpenFile()
             std::ostringstream o;            
             doc_->save( o );
             QString xml = QString::fromUtf8( o.str().c_str() );
+
+            ui->textBrowser->clear();
             ui->textBrowser->append( xml );
             ui->textBrowser->setTabStopWidth( 16 );
         }
@@ -204,7 +220,7 @@ MainWindow::handleApplyStylesheet()
 
     if ( adpublisher::document::apply_template( xmlpath_.c_str(), xslpath_.c_str(), processed_ ) ) {
 
-        ui->actionApply->setEnabled( false );
+        // ui->actionApply->setEnabled( false );
         ui->textBrowser->clear();
         ui->textBrowser->append( processed_ );
 
@@ -220,7 +236,7 @@ MainWindow::handleSaveProcessedAs()
     boost::filesystem::path outfile( xmlpath_ );
     outfile.replace_extension( ".html" );
     
-    auto name = QFileDialog::getOpenFileName( this
+    auto name = QFileDialog::getSaveFileName( this
                                               , tr( "Save Result" )
                                               , QString::fromStdString( outfile.string() )
                                               , tr( "HTML Files(*.html);;XML Files(*.xml)" ) );

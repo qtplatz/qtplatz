@@ -29,6 +29,7 @@
 #include <comdef.h>
 #import <msxml6.dll> named_guids
 #include <fstream>
+#include <QMessageBox>
 #include <QString>
 #include <boost/filesystem/path.hpp>
 
@@ -105,8 +106,13 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
     if ( xml->load( _bstr_t( xmlfile ) ) == VARIANT_TRUE ) {
         if ( xsl->load( _bstr_t( xslfile ) ) == VARIANT_TRUE ) {
 
-            _bstr_t out = xml->transformNode( xsl );
-            output = QString::fromUtf16( reinterpret_cast<const ushort *>(static_cast<const wchar_t *>(out)) );
+            try {
+                _bstr_t out = xml->transformNode( xsl );
+                output = QString::fromUtf16( reinterpret_cast<const ushort *>(static_cast<const wchar_t *>(out)) );
+            }
+            catch ( _com_error& ex ) {
+                QMessageBox::warning( 0, "apply_template", QString::fromWCharArray( ex.ErrorMessage() ) );
+            }
 
             return true;
 
