@@ -79,14 +79,14 @@
 
   <xsl:template match="SampleSequence/classdata[@decltype='class adcontrols::QuanSequence']">
     <h3>Sample Sequence</h3>
-    <table border="1">
-      <tr>
-	<td> "id" </td>
-	<td> "name" </td>
-	<td> "sample type" </td>
-	<td> "level" </td>
-	<td> "process" </td>
-	<td> "dataSource" </td>
+    <table border="1" style='table-layout:fixed'>
+      <tr bgcolor='#FDFD96'>
+	<td> id </td>
+	<td> name </td>
+	<td> sample type </td>
+	<td> level </td>
+	<td> process </td>
+	<td> dataSource </td>
       </tr>
       <xsl:for-each select="class/samples_/item">
 	<tr>
@@ -120,7 +120,7 @@
     <h2>Quantitative Analysis Summary</h2>
 
     <table border="1">
-      <tr>
+      <tr bgcolor='#FDFD96'>
 	<td> description </td>
 	<td> name </td>
 	<td> formula </td>
@@ -164,7 +164,7 @@
     <h2>Summary of Standard Samples</h2>
 
     <table border="1">
-      <tr>
+      <tr bgcolor='#FDFD96'>
 	<td> description </td>
 	<td> name </td>
 	<td> formula </td>
@@ -205,7 +205,7 @@
     <h2>Caliubration Curve</h2>
 
     <table border="1">
-      <tr>
+      <tr bgcolor='#FDFD96'>
 	<td> description </td>
 	<td> formula </td>
 	<td> N </td>
