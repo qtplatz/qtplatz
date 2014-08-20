@@ -72,10 +72,15 @@ transformer::apply_template( const char * xslfile, const char * xmlfile, const c
 
     if ( xml->load( _bstr_t( xmlfile ) ) == VARIANT_TRUE ) {
         if ( xsl->load( _bstr_t( xslfile ) ) == VARIANT_TRUE ) {
+
             _bstr_t out = xml->transformNode( xsl );
 
-            std::ofstream of( outfile );
-            of << out;
+            MSXML2::IXMLDOMDocument3Ptr oxml;
+            if ( CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&oxml ) != S_OK )
+                return false;
+
+            oxml->loadXML( out );
+            oxml->save( _bstr_t( outfile ) );
             
             return true;
 
@@ -100,10 +105,7 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
     if ( xml->load( _bstr_t( xmlfile ) ) == VARIANT_TRUE ) {
         if ( xsl->load( _bstr_t( xslfile ) ) == VARIANT_TRUE ) {
 
-            xml->save( L"C:/Users/Toshi/Documents/data/QUAN/xmlfile.xml" );
-
             _bstr_t out = xml->transformNode( xsl );
-
             output = QString::fromUtf16( reinterpret_cast<const ushort *>(static_cast<const wchar_t *>(out)) );
 
             return true;

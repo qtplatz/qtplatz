@@ -464,7 +464,6 @@ ORDER BY QuanAmount.level" ) ) {
     path.replace_extension( ".published.xml" );
     xmldoc->save_file( path.wstring().c_str() );
 
-
     QString output;
     adpublisher::document::apply_template( path.string().c_str()
                                            , (xsltpath / "quan-html.xsl").string().c_str()
