@@ -227,6 +227,8 @@ QuanReportWidget::filePublish()
 
         boost::filesystem::path path = publisher.filepath(); 
 
+        publisher.save_file( path.string().c_str() ); // save publisher document xml
+
         QString output;
         adpublisher::document::apply_template( path.string().c_str()
                                                , (xsltpath / "quan-html.xsl").string().c_str()

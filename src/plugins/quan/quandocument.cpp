@@ -296,6 +296,18 @@ QuanDocument::setProcMethod( adcontrols::ProcessMethod& m )
     dirty_flags_[ idProcMethod ] = true;
 }
 
+std::shared_ptr< QuanPublisher >
+QuanDocument::publisher() const
+{
+    return publisher_;
+}
+
+void
+QuanDocument::publisher( std::shared_ptr< QuanPublisher >& ptr )
+{
+    publisher_ = ptr;
+}
+
 bool
 QuanDocument::save( const boost::filesystem::path& filepath, const QuanMethodComplex& m )
 {
@@ -571,6 +583,7 @@ void
 QuanDocument::setConnection( QuanConnection * conn )
 {
     quanConnection_ = conn->shared_from_this();
+    publisher_.reset(); // clear data
     emit onConnectionChanged();
     addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, QString::fromStdWString( conn->filepath() ) );
 }

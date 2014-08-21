@@ -120,7 +120,7 @@ namespace quan {
 
 using namespace quan;
 
-QuanPublisher::QuanPublisher()
+QuanPublisher::QuanPublisher() : bProcessed_( false )
 {
 }
 
@@ -147,16 +147,24 @@ QuanPublisher::operator()( QuanConnection * conn )
              appendQuanResponseUnk( doc ) &&
              appendQuanResponseStd( doc ) &&
              appendQuanCalib( doc ) ) {
-
+            
             boost::filesystem::path path( conn->filepath() );
             path.replace_extension( ".published.xml" );
             filepath_ = path.string();
 
-            xmldoc_->save_file( filepath_.c_str() );
+            bProcessed_ = true;
 
             return true;
         }
     }
+    return false;
+}
+
+bool
+QuanPublisher::save_file( const char * filepath ) const
+{
+    if ( bProcessed_ )
+        return xmldoc_->save_file( filepath );
     return false;
 }
 
@@ -166,6 +174,14 @@ QuanPublisher::filepath() const
     return filepath_;
 }
 
+const QuanPublisher::calib_curve *
+QuanPublisher::find_calib_curve( const boost::uuids::uuid& cmpid )
+{
+    auto it = calib_curves_.find( cmpid );
+    if ( it != calib_curves_.end() )
+        return it->second.get();
+    return 0;
+}
 
 bool
 QuanPublisher::appendSampleSequence( pugi::xml_node& doc )
@@ -381,8 +397,11 @@ ORDER BY QuanAmount.level" ) ) {
                                     append2( sql2, col ); // don't drop null column
 
                                 int level = int( sql2.get_column_value<int64_t>( 0 ) );
-                                calib->std_amounts[ level ] = sql2.get_column_value<double>( 1 );
+                                double x = sql2.get_column_value<double>( 1 );
+                                double y = sql2.get_column_value<double>( 2 );
+                                calib->std_amounts[ level ] = x;
                                 calib->respIds.push_back( std::make_pair( level, sql2.get_column_value<int64_t>( 5 ) ) );
+                                calib->xy.push_back( std::make_pair( x, y ) );
                             }
                         }
                     } // for

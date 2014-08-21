@@ -45,8 +45,13 @@ namespace quan {
         QuanPublisher( const QuanPublisher& ) = delete;
     public:
         QuanPublisher();
+
+        operator bool () const { return bProcessed_; }
+
         bool operator()( QuanConnection * );
+
         const boost::filesystem::path& filepath() const;
+        bool save_file( const char * filepath ) const;
 
         struct resp_data {
             boost::uuids::uuid cmpId;
@@ -78,24 +83,20 @@ namespace quan {
             std::vector< double > coeffs;
             std::map< int, double > std_amounts;
             std::vector< std::pair< int, int64_t > > respIds;
+            std::vector< std::pair< double, double > > xy;
             calib_curve() {}
             calib_curve( const calib_curve& t ) = delete;
         };
 
-        struct calib_data {
-            std::string formula;
-            QVector< QPointF > xy;
-            calib_data() {}
-            calib_data( const calib_data& t ) = delete;
-        };
+        const calib_curve * find_calib_curve( const boost::uuids::uuid& );
 
     private:
+        bool bProcessed_;
         std::shared_ptr< QuanConnection > conn_;
         std::shared_ptr< pugi::xml_document > xmldoc_;
         boost::filesystem::path filepath_;
 
         std::map< boost::uuids::uuid, std::shared_ptr< calib_curve > > calib_curves_; // cmpdId, curve
-        std::map< boost::uuids::uuid, std::shared_ptr< calib_data > > calib_data_;    /// cmpdId, data
         std::map< int64_t, std::shared_ptr< resp_data > > resp_data_;
         
         bool appendSampleSequence( pugi::xml_node& );
