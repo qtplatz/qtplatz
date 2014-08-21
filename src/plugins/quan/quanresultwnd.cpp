@@ -23,13 +23,15 @@
 **************************************************************************/
 
 #include "quanresultwnd.hpp"
+#include "quancmpdwidget.hpp"
+#include "quanconnection.hpp"
 #include "quandocument.hpp"
 #include "quanplotwidget.hpp"
+#include "quanpublisher.hpp"
+#include "quanquery.hpp"
 #include "quanresultwidget.hpp"
 #include "quanresulttable.hpp"
-#include "quanconnection.hpp"
-#include "quanquery.hpp"
-#include "quancmpdwidget.hpp"
+
 #include <adcontrols/massspectrum.hpp>
 #include <adfs/sqlite.hpp>
 #include <adfs/folder.hpp>
@@ -60,6 +62,11 @@
 #include <sstream>
 
 namespace quan {
+
+    struct plot : QObject {
+        static void calib_curve_yx( adwplot::Dataplot *, const QuanPublisher::calib_curve&, std::vector< std::shared_ptr< QwtPlotCurve > >& );
+    };
+
     namespace detail {
 
         struct calib_curve {
@@ -142,7 +149,8 @@ QuanResultWnd::handleConnectionChanged()
 {
     if ( auto connection = QuanDocument::instance()->connection() ) {
         respTable_->setConnection ( connection );
-        
+
+        // make compounds table (right bar)
         if ( auto query = connection->query() ) {
             if ( query->prepare( std::wstring ( L"SELECT uuid, formula, description FROM QuanCompound" ) ) ) {
                 cmpdWidget_->table().setColumnHide( "uuid" );
@@ -233,12 +241,28 @@ void
 QuanResultWnd::handleCompoundSelected( const QModelIndex& index )
 {
     boost::uuids::uuid uuid = cmpdWidget_->uuid( index.row() );
+
+    auto publisher = QuanDocument::instance()->publisher();
+    if ( !publisher ) {
+        if ( publisher = std::make_shared< QuanPublisher >() ) {
+            if ( (*publisher)(QuanDocument::instance()->connection()) )
+                QuanDocument::instance()->publisher( publisher );
+            else
+                return;
+        }
+    }
+    
+    if ( auto curve = publisher->find_calib_curve( uuid ) ) {
+        plot::calib_curve_yx( calibplot_.get(), *curve, curves_ ); //, *calib_curves_[ uuid ], *calib_data_[ uuid ] );
+    }
+#if 0
     if ( loadCalibration( uuid ) ) {
         if ( calib_curves_.find( uuid ) != calib_curves_.end() && calib_data_.find( uuid ) != calib_data_.end() ) {
             plot_calib_curve_yx( calibplot_.get(), *calib_curves_[ uuid ], *calib_data_[ uuid ] );
             uuid_plot_ = uuid;
         }
     }
+#endif
 }
 
 void
@@ -258,10 +282,10 @@ QuanResultWnd::handleResponseSelected( int respId )
                     if ( !sql.is_null_column( row ) )
                         amount = sql.get_column_value< double >( row );
                     ++row;
-
+                    
                     if ( calib_curves_.find( uuid ) == calib_curves_.end() )
                         loadCalibration( uuid );
-
+                    
                     if ( calib_curves_.find( uuid ) != calib_curves_.end() && calib_data_.find( uuid ) != calib_data_.end() ) {
                         if ( uuid_plot_ != uuid )
                             plot_calib_curve_yx( calibplot_.get(), *calib_curves_[ uuid ], *calib_data_[ uuid ] );
@@ -427,5 +451,74 @@ QuanResultWnd::plot_response_marker_yx( adwplot::Dataplot* plot, double intensit
     else
         marker->setLineStyle( QwtPlotMarker::Cross );
 
+    plot->replot();
+}
+
+void
+plot::calib_curve_yx( adwplot::Dataplot* plot
+                      , const QuanPublisher::calib_curve& calib
+                      , std::vector< std::shared_ptr< QwtPlotCurve > >& curves )
+{
+    plot->setAxisTitle( QwtPlot::xBottom, tr( "amounts" ) );
+    plot->setAxisTitle( QwtPlot::yLeft, tr( "response" ) );
+    plot->setTitle( QString( tr( "Calibration curve for %1" ) ).arg( QString::fromStdWString( calib.description ) ) );
+
+    std::ostringstream o;
+    o << tr( "Amounts = " ).toStdString();
+    if ( calib.coeffs.size() == 1 )
+        o << std::setprecision( 6 ) << calib.coeffs[ 0 ] << "&times;I";
+    else if ( calib.coeffs.size() >= 2 ) { 
+        o << std::setprecision( 6 ) << calib.coeffs[ 0 ] << "+" << calib.coeffs[ 1 ] << "&times;<i>I</i>";
+        for ( int i = 2; i < calib.coeffs.size(); ++i )
+            o << std::setprecision( 6 ) << "+" << calib.coeffs[ i ] << "&times;I<sup>" << i << "</sup>";
+    }
+    o << tr( "&nbsp;&nbsp;where I is the response" ).toStdString();
+    
+    plot->setFooter( o.str() );
+
+    curves.clear();
+    curves.push_back( std::make_shared< QwtPlotCurve >() );
+    auto curve = curves.back();
+
+    curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+	QPen pen( Qt::red );
+	curve->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Ellipse ), Qt::NoBrush, pen, QSize(5, 5) ) );
+	curve->setPen( pen );
+    curve->setStyle( QwtPlotCurve::NoCurve );
+    do {
+        QVector< QPointF > yx;
+        for ( auto& xy: calib.xy )
+            yx.push_back( QPointF( xy.second, xy.first ) );
+        curve->setSamples( yx ); 
+    } while(0);
+
+    curve->attach( plot );
+
+    ///////////////// plot regression ///////////////
+    curves.push_back( std::make_shared< QwtPlotCurve >() );
+    auto regression = curves.back();
+
+    QVector< QPointF > yx;
+
+    if ( calib.coeffs.size() == 1 ) {
+        yx.push_back( QPointF( 0, 0 ) );
+        yx.push_back( QPointF( calib.max_x * calib.coeffs[ 0 ], calib.max_x ) );
+    }
+    else if (calib.coeffs.size() == 2) {
+        double y0 = adportable::polfit::estimate_y( calib.coeffs, 0 );
+        double y1 = adportable::polfit::estimate_y( calib.coeffs, calib.max_x );
+        yx.push_back( QPointF( y0, 0 ) );
+        yx.push_back( QPointF( y1, calib.max_x ) );
+    }
+    else if ( calib.coeffs.size() >= 3 ) {
+        for ( int i = 0; i < 100; ++i ) {
+            double x = (calib.max_x * i / 100);
+            double y = adportable::polfit::estimate_y( calib.coeffs, x );
+            yx.push_back( QPointF( y, x ));
+        }
+    }
+    regression->setSamples( yx );
+    regression->attach( plot );
+    
     plot->replot();
 }

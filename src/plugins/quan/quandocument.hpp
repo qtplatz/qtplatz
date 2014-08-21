@@ -57,6 +57,7 @@ namespace quan {
     class QuanProcessor;
     class QuanConnection;
     class QuanMethodComplex;
+    class QuanPublisher;
 
     enum idMethod { idMethodComplex, idQuanMethod, idQuanCompounds, idProcMethod, idQuanSequence, idSize };
 
@@ -83,6 +84,9 @@ namespace quan {
 
         void quanSequence( std::shared_ptr< adcontrols::QuanSequence >& );
         std::shared_ptr< adcontrols::QuanSequence > quanSequence();
+
+        void publisher( std::shared_ptr< QuanPublisher >& );
+        std::shared_ptr< QuanPublisher > publisher() const;
 
         const adcontrols::ProcessMethod& procMethod() const;
         void setProcMethod( adcontrols::ProcessMethod& );
@@ -137,6 +141,7 @@ namespace quan {
         std::array< bool, idSize > dirty_flags_;
         std::vector< std::thread > threads_;
         std::atomic< size_t > postCount_;
+        std::shared_ptr< QuanPublisher > publisher_;
 
         std::vector< std::shared_ptr< QuanProcessor > > exec_;
 
