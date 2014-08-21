@@ -44,6 +44,10 @@ namespace Constants {
     const char * const QUAN_SEQUENCE_RUN   = "Quan.Run";
     const char * const QUAN_SEQUENCE_STOP  = "Quan.Stop";
 
+    // task
+    const char * const QUAN_TASK_OPEN      = "Quan.Task.OpenConn";
+    const char * const QUAN_TASK_PROC      = "Quan.Task.SampleProc";
+
     const int ICON_SIZE(64);
     
     const int ABOVE_HEADING_MARGIN(10);

@@ -42,8 +42,6 @@ namespace adcontrols {
 }
 
 namespace adpublisher { class document; }
-
-namespace adwidgets { class ProgressWnd; }
 namespace boost { namespace filesystem { class path; } }
 
 class QSettings;

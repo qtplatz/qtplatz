@@ -49,29 +49,30 @@ HEADERS += quanplugin.hpp \
         panelswidget.hpp \
         paneldata.hpp \
         doubletabwidget.hpp \
-    datasequencewidget.hpp \
-    datasequencetree.hpp \
-    compoundswidget.hpp \
-    compoundstable.hpp \
-    quanconfigform.hpp \
-    quanconfigwidget.hpp \
-    quandatawriter.hpp \
-    quansampleprocessor.hpp \
-    processmethodwidget.hpp \
-    quanreportwidget.hpp \
-    quanquerywidget.hpp \
-    quanprocessor.hpp \
-    quanresulttable.hpp \
-    quanqueryform.hpp \
-    quanconnection.hpp \
-    quanquery.hpp \
-    quanplotwidget.hpp \
-    quanresultwidget.hpp \
-    quanresultwnd.hpp \
-    quancmpdwidget.hpp \
-    quanplotdata.hpp \
-    quanmethodcomplex.hpp \
-    quanpublisher.hpp
+        datasequencewidget.hpp \
+        datasequencetree.hpp \
+        compoundswidget.hpp \
+        compoundstable.hpp \
+        quanconfigform.hpp \
+        quanconfigwidget.hpp \
+        quandatawriter.hpp \
+        quansampleprocessor.hpp \
+        processmethodwidget.hpp \
+        quanreportwidget.hpp \
+        quanquerywidget.hpp \
+        quanprocessor.hpp \
+        quanresulttable.hpp \
+        quanqueryform.hpp \
+        quanconnection.hpp \
+        quanquery.hpp \
+        quanplotwidget.hpp \
+        quanresultwidget.hpp \
+        quanresultwnd.hpp \
+        quancmpdwidget.hpp \
+        quanplotdata.hpp \
+        quanmethodcomplex.hpp \
+        quanpublisher.hpp \
+        quanprogress.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \
