@@ -397,11 +397,11 @@ ORDER BY QuanAmount.level" ) ) {
                                     append2( sql2, col ); // don't drop null column
 
                                 int level = int( sql2.get_column_value<int64_t>( 0 ) );
-                                double x = sql2.get_column_value<double>( 1 );
-                                double y = sql2.get_column_value<double>( 2 );
-                                calib->std_amounts[ level ] = x;
+                                double amount = sql2.get_column_value<double>( 1 );
+                                double intens = sql2.get_column_value<double>( 2 );
+                                calib->std_amounts[ level ] = amount;
                                 calib->respIds.push_back( std::make_pair( level, sql2.get_column_value<int64_t>( 5 ) ) );
-                                calib->xy.push_back( std::make_pair( x, y ) );
+                                calib->xy.push_back( std::make_pair( intens, amount ) );
                             }
                         }
                     } // for
