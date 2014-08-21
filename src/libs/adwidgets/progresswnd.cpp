@@ -58,6 +58,7 @@ ProgressWnd::ProgressWnd(QWidget *parent) : QDialog( parent, Qt::Tool )
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);
     setSizePolicy( sizePolicy );
+    setWindowTitle( "QtPlatz" );
     
     auto topLayout = new QVBoxLayout(this);
     //topLayout->setMargin( 0 );
