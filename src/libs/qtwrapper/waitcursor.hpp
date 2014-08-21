@@ -33,9 +33,11 @@ namespace qtwrapper {
 	public:
         waitCursor() {
             QApplication::setOverrideCursor( Qt::WaitCursor );
+            QApplication::processEvents();
         }
         ~waitCursor() {
             QApplication::restoreOverrideCursor();
+            QApplication::processEvents();
         }
     };
 }

@@ -215,19 +215,14 @@ QuanReportWidget::setupFileActions( QMenu * menu )
 void
 QuanReportWidget::filePublish()
 {
-    auto conn = QuanDocument::instance()->connection();
-    if ( !conn )
-        return;
-
-    QuanPublisher publisher;
-    if ( publisher( conn ) ) {
+    if ( auto publisher = QuanDocument::instance()->publisher() ) {
 
         const QString apppath = QCoreApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // sibling of /translations
         boost::filesystem::path xsltpath = boost::filesystem::path( apppath.toStdWString() ).normalize();
 
-        boost::filesystem::path path = publisher.filepath(); 
+        boost::filesystem::path path = publisher->filepath(); 
 
-        publisher.save_file( path.string().c_str() ); // save publisher document xml
+        publisher->save_file( path.string().c_str() ); // save publisher document xml
 
         QString output;
         adpublisher::document::apply_template( path.string().c_str()

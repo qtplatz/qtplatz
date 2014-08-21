@@ -407,10 +407,11 @@ MainWindow::handleOpenQuanResult()
                                                  , QuanDocument::instance()->lastDataDir()
                                                  , tr( "File(*.adfs)" ) );
     if ( !name.isEmpty() ) {
+
+        qtwrapper::waitCursor wait;
+
         if ( auto connection = std::make_shared< QuanConnection >() ) {
 
-            qtwrapper::waitCursor wait;
-            
             if ( connection->connect( name.toStdWString() ) ) {
                 // kick QuanReportWidget (calibartion & result view) updae
                 QuanDocument::instance()->setConnection( connection.get() );

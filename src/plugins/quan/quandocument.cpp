@@ -30,6 +30,8 @@
 #include "quanmethodcomplex.hpp"
 #include "quansampleprocessor.hpp"
 #include "quanprocessor.hpp"
+#include "quanprogress.hpp"
+#include "quanpublisher.hpp"
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancalibration.hpp>
 #include <adcontrols/quancompounds.hpp>
@@ -43,8 +45,9 @@
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/profile.hpp>
 #include <adpublisher/document.hpp>
-#include <adwidgets/progresswnd.hpp>
+//#include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <coreplugin/progressmanager/progressmanager.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -59,6 +62,8 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QSettings>
+#include <QFuture>
+
 #include <algorithm>
 
 namespace quan {
@@ -409,8 +414,8 @@ QuanDocument::run()
 
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
 
-        adwidgets::ProgressWnd::instance()->show();
-        adwidgets::ProgressWnd::instance()->raise();
+        // adwidgets::ProgressWnd::instance()->show();
+        // adwidgets::ProgressWnd::instance()->raise();
         
         if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
 
@@ -438,7 +443,7 @@ QuanDocument::run()
                 
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
-                    threads_.push_back( std::thread( [que, it, writer] () { QuanSampleProcessor( que.get(), it->second )(writer); } ) );
+                    threads_.push_back( std::thread( [que,it,writer] () { QuanSampleProcessor( que.get(), it->second )(writer); } ) );
                 }
 
                 // update result outfile name on sequence for next run
@@ -452,7 +457,11 @@ QuanDocument::run()
 void
 QuanDocument::stop()
 {
-    adwidgets::ProgressWnd::instance()->stop();
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
+//    if ( progress_ )
+//        progress_->progress.cancel();
+    //adwidgets::ProgressWnd::instance()->stop();
 }
 
 void
@@ -490,7 +499,7 @@ QuanDocument::handle_processed( QuanProcessor * processor )
             }
         }
 
-        adwidgets::ProgressWnd::instance()->hide();
+        //adwidgets::ProgressWnd::instance()->hide();
 
         auto shp = processor->shared_from_this();
         exec_.erase( std::remove( exec_.begin(), exec_.end(), shp ) );
@@ -579,12 +588,26 @@ QuanDocument::method( std::shared_ptr< adpublisher::document >& ptr )
     *method_ = ptr;
 }
 
+
 void
 QuanDocument::setConnection( QuanConnection * conn )
 {
     quanConnection_ = conn->shared_from_this();
-    publisher_.reset(); // clear data
-    emit onConnectionChanged();
+
+    ProgressHandler handler( 0, 5 );
+    qtwrapper::waitCursor w;
+
+    if ( publisher_ = std::make_shared< QuanPublisher >() ) {
+        
+        Core::ProgressManager::addTask( handler.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
+        
+        std::thread work( [&] () { (*publisher_)(conn, handler); } );
+        
+        work.join();
+
+        emit onConnectionChanged();
+    }
+
     addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, QString::fromStdWString( conn->filepath() ) );
 }
 
@@ -678,3 +701,4 @@ QuanDocument::recentFile( const QString& group, const QString& key ) const
 
     return value;
 }
+

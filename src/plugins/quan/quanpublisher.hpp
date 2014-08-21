@@ -29,8 +29,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <map>
 #include <memory>
-#include <QVector>
-#include <QPointF>
+#include <functional>
 
 namespace pugi { class xml_document; class xml_node; }
 namespace adcontrols { class MassSpectrum; }
@@ -42,13 +41,14 @@ namespace quan {
     class QuanConnection;
 
     class QuanPublisher {
-        QuanPublisher( const QuanPublisher& ) = delete;
     public:
+        QuanPublisher( const QuanPublisher& ); //= delete;
         QuanPublisher();
 
         operator bool () const { return bProcessed_; }
 
         bool operator()( QuanConnection * );
+        bool operator()( QuanConnection *, std::function<void(int)> progress );
 
         const boost::filesystem::path& filepath() const;
         bool save_file( const char * filepath ) const;
@@ -104,6 +104,7 @@ namespace quan {
         bool appendQuanResponseUnk( pugi::xml_node& );
         bool appendQuanResponseStd( pugi::xml_node& );
         bool appendQuanCalib( pugi::xml_node& );
+        bool prepare_document();
     };
 
 }
