@@ -164,6 +164,7 @@ QuanResultWnd::handleConnectionChanged()
     }
 }
 
+#if 0
 bool
 QuanResultWnd::loadCalibration( const boost::uuids::uuid& uuid )
 {
@@ -225,6 +226,7 @@ AND QuanAmount.level = QuanSample.level AND QuanAmount.idCmpd = QuanResponse.idC
     }
     return true;
 }
+#endif
 
 void
 QuanResultWnd::handleCompoundSelectionChanged( const QItemSelection&, const QItemSelection& )
@@ -269,6 +271,17 @@ void
 QuanResultWnd::handleResponseSelected( int respId )
 {
     if ( auto conn = QuanDocument::instance()->connection() ) {
+
+        auto publisher = QuanDocument::instance()->publisher();
+        if ( !publisher ) {
+            if ( publisher = std::make_shared< QuanPublisher >() ) {
+                if ( (*publisher)( conn ) )
+                    QuanDocument::instance()->publisher( publisher );
+                else
+                    return;
+            }
+        }
+
         adfs::stmt sql( conn->db() );
         if ( sql.prepare( "SELECT idCmpd, intensity, amount from QuanResponse WHERE id = ?" ) ) {
 
@@ -283,14 +296,16 @@ QuanResultWnd::handleResponseSelected( int respId )
                         amount = sql.get_column_value< double >( row );
                     ++row;
                     
-                    if ( calib_curves_.find( uuid ) == calib_curves_.end() )
-                        loadCalibration( uuid );
-                    
-                    if ( calib_curves_.find( uuid ) != calib_curves_.end() && calib_data_.find( uuid ) != calib_data_.end() ) {
+                    if ( auto calib = publisher->find_calib_curve( uuid ) ) {
                         if ( uuid_plot_ != uuid )
-                            plot_calib_curve_yx( calibplot_.get(), *calib_curves_[ uuid ], *calib_data_[ uuid ] );
+                            plot::calib_curve_yx( calibplot_.get(), *calib, curves_ );
                         plot_response_marker_yx( calibplot_.get(), intensity, amount );
                     }
+                    // if ( calib_curves_.find( uuid ) != calib_curves_.end() && calib_data_.find( uuid ) != calib_data_.end() ) {
+                    //     if ( uuid_plot_ != uuid )
+                    //         plot_calib_curve_yx( calibplot_.get(), *calib_curves_[ uuid ], *calib_data_[ uuid ] );
+                    //     plot_response_marker_yx( calibplot_.get(), intensity, amount );
+                    // }
                 }
                 catch ( std::bad_cast& ) {
                     // amount can be null
