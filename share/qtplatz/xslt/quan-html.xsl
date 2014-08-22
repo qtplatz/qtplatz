@@ -79,6 +79,7 @@
 
   <xsl:template match="SampleSequence/classdata[@decltype='class adcontrols::QuanSequence']">
     <h3>Sample Sequence</h3>
+    <!--
     <table border="1" style='table-layout:fixed'>
       <tr bgcolor='#FDFD96'>
 	<td> id </td>
@@ -110,15 +111,15 @@
 	      <xsl:with-param name="path"><xsl:value-of select="dataSource_"/></xsl:with-param>
 	    </xsl:call-template>
 	  </td>
-	  <!-- <td> <xsl:value-of select="uuid_"/> </td> -->
 	</tr>
       </xsl:for-each>
     </table>
+    -->
   </xsl:template>
 
   <xsl:template match="QuanResponse[@sampleType='UNK']">
     <h2>Quantitative Analysis Summary</h2>
-
+    <!--
     <table border="1">
       <tr bgcolor='#FDFD96'>
 	<td> description </td>
@@ -157,12 +158,13 @@
 	</tr>
       </xsl:for-each>
     </table>
+    -->
   </xsl:template>
 
 
   <xsl:template match="QuanResponse[@sampleType='STD']">
     <h2>Summary of Standard Samples</h2>
-
+    <!--
     <table border="1">
       <tr bgcolor='#FDFD96'>
 	<td> description </td>
@@ -199,11 +201,12 @@
 	</tr>
       </xsl:for-each>
     </table>
+    -->
   </xsl:template>
 
   <xsl:template match="QuanCalib">
     <h2>Caliubration Curve</h2>
-
+    <!--
     <table border="1">
       <tr bgcolor='#FDFD96'>
 	<td> description </td>
@@ -260,10 +263,35 @@
 	</tr>
       </xsl:for-each>
     </table>
-
+    -->
   </xsl:template>
   
   <xsl:template match="ProcessMethod">
+  </xsl:template>
+  <xsl:template match="PlotData">
+    <xsl:for-each select="PeakResponse">
+      <p>
+	<xsl:copy-of select="trace[@contents='resp_calib']"/>    
+	<xsl:copy-of select="trace[@contents='resp_spectrum']"/>
+      </p>
+    </xsl:for-each>
+<!--
+    <table>
+      <xsl:for-each select="PeakResponse">
+	<tr>
+	  <td>
+	    <xsl:value-of select="column[@name='description']"/>
+	  </td>
+	  <td>
+	    <xsl:copy-of select="trace[@contents='resp_calib']"/>
+	  </td>
+	  <td>
+	    <xsl:copy-of select="trace[@contents='resp_spectrum']"/>
+	  </td>
+	</tr>
+      </xsl:for-each>
+    </table>
+-->
   </xsl:template>
 
 </xsl:stylesheet>
