@@ -25,7 +25,7 @@
 #ifndef QUANSVGPLOT_HPP
 #define QUANSVGPLOT_HPP
 
-#include <string>
+#include <QByteArray>
 #include <quanpublisher.hpp>
 
 namespace quan {
@@ -37,8 +37,10 @@ namespace quan {
         QuanSvgPlot();
         bool plot( const QuanPlotData&, size_t idx, int fcn, const std::string& );
         bool plot( const QuanPublisher::resp_data&, const QuanPublisher::calib_curve& );
+        const char * data() const { return svg_.data(); }
+        size_t size() const { return svg_.size(); }
     private:
-        size_t count_;
+        QByteArray svg_;
     };
 
 }

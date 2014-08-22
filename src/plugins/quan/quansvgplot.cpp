@@ -36,13 +36,14 @@
 #include <qwt_plot_renderer.h>
 #include <QSvgGenerator>
 #include <QIODevice>
+#include <QBuffer>
 #include <boost/format.hpp>
 
 using namespace quan;
 
 static int count;
 
-QuanSvgPlot::QuanSvgPlot() : count_(0)
+QuanSvgPlot::QuanSvgPlot()
 {
 }
 
@@ -75,7 +76,10 @@ QuanSvgPlot::plot( const QuanPlotData& data, size_t idx, int fcn, const std::str
 
     QSvgGenerator generator;
 
-    generator.setFileName( ( boost::format( "C:/Users/Toshi/Documents/data/QUAN/quan-svg_%1%.svg" ) % count++ ).str().c_str() );
+    // generator.setFileName( ( boost::format( "C:/Users/Toshi/Documents/data/QUAN/quan-svg_%1%.svg" ) % count++ ).str().c_str() );
+    svg_.clear();
+    QBuffer buffer( &svg_ );
+    generator.setOutputDevice( &buffer );
 
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
@@ -114,7 +118,10 @@ QuanSvgPlot::plot( const QuanPublisher::resp_data& resp, const QuanPublisher::ca
 {
     QSvgGenerator generator;
 
-    generator.setFileName( ( boost::format( "C:/Users/Toshi/Documents/data/QUAN/quan-calib_svg_%1%.svg" ) % count++ ).str().c_str() );
+    // generator.setFileName( ( boost::format( "C:/Users/Toshi/Documents/data/QUAN/quan-calib_svg_%1%.svg" ) % count++ ).str().c_str() );
+    svg_.clear();
+    QBuffer buffer( &svg_ );
+    generator.setOutputDevice( &buffer );
 
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );

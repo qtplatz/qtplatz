@@ -270,18 +270,34 @@ QuanPublisher::appendTraceData( pugi::xml_node& dst, const pugi::xml_node& respo
 
     if ( auto data = conn_->fetch( dataGuid ) ) {
 
-        detail::append_class()(dst, data->profile->getMSProperty() );
-        detail::append_class()(dst, data->centroid->getDescriptions());
-        appendMSPeakInfo( dst, *data->pkinfo, idx, fcn );
+        //detail::append_class()(dst, data->profile->getMSProperty());
+        //detail::append_class()(dst, data->centroid->getDescriptions());
+        //appendMSPeakInfo( dst, *data->pkinfo, idx, fcn );
 
         QuanSvgPlot svg;
+        //auto gnode = dst.append_child( "traces" );
 
-        svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string() );
+        if ( svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string() ) ) {
+            pugi::xml_document dom;
+            if ( dom.load( svg.data(), unsigned int( svg.size() ) ) ) {
+                auto trace = dst.append_child( "trace" );
+                trace.append_attribute( "contents" ) = "resp_spectrum";
+                trace.append_copy( dom.select_single_node( "/svg" ).node() );
+            }
+        }
         
         auto it = resp_data_.find( respid );
         if ( it != resp_data_.end() ) {
-            if ( auto calib = find_calib_curve( it->second->cmpId ) )
-                svg.plot( *it->second, *calib );
+            if ( auto calib = find_calib_curve( it->second->cmpId ) ) {
+                if ( svg.plot( *it->second, *calib ) ) {
+                    pugi::xml_document dom;
+                    if ( dom.load( svg.data(), unsigned int( svg.size() ) ) ) {
+                        auto trace = dst.append_child( "trace" );
+                        trace.append_attribute( "contents" ) = "resp_calib";
+                        trace.append_copy( dom.select_single_node( "/svg" ).node() );
+                    }
+                }
+            }
         }
     }
     
@@ -302,7 +318,7 @@ QuanPublisher::appendTraceData( ProgressHandler& progress )
 
             auto unks = doc.select_nodes( "QuanResponse[@sampleType='UNK']/row" );
             for ( auto& unk : unks ) {
-                appendTraceData( spectra.append_child( "Response" ), unk.node() );
+                appendTraceData( spectra.append_child( "PeakResponse" ), unk.node() );
                 progress();
             }
         }

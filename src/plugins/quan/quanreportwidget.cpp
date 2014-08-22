@@ -223,6 +223,9 @@ QuanReportWidget::filePublish()
     Core::ProgressManager::addTask( progress.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
     
     if ( auto publisher = QuanDocument::instance()->publisher() ) {
+        
+        auto conn = QuanDocument::instance()->connection();
+        (*publisher)( conn, progress );
 
         publisher->appendTraceData( progress );
 
