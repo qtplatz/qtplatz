@@ -13,7 +13,8 @@ CONFIG += staticlib
 include(../../qtplatzstaticlib.pri)
 include(../../boost.pri)
 
-SOURCES += configloader.cpp \
+SOURCES += base64.cpp \
+           configloader.cpp \
            configuration.cpp \
            constants.cpp \
            ConvertUTF.c \
@@ -36,13 +37,14 @@ SOURCES += configloader.cpp \
            bzip2.cpp \
            debug_core.cpp \
            sgfilter.cpp \
-    uuid.cpp
+           uuid.cpp
 
 win32 {
    SOURCES += protocollifecycle.cpp
 }
 
 HEADERS += array_wrapper.hpp \
+           base64.hpp \
            binary_search.hpp \
            configloader.hpp \
            configuration.hpp \

@@ -217,6 +217,8 @@ QuanReportWidget::filePublish()
 {
     if ( auto publisher = QuanDocument::instance()->publisher() ) {
 
+        publisher->appendTraceData();
+
         const QString apppath = QCoreApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // sibling of /translations
         boost::filesystem::path xsltpath = boost::filesystem::path( apppath.toStdWString() ).normalize();
 

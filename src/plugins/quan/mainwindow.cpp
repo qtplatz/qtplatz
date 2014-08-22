@@ -76,6 +76,7 @@
 #include <QMessageBox>
 
 #include <boost/filesystem.hpp>
+#include <boost/exception/all.hpp>
 #include <numeric>
 
 using namespace quan;
@@ -402,25 +403,30 @@ MainWindow::handleSequenceCompleted()
 void
 MainWindow::handleOpenQuanResult()
 {
-    QString name = QFileDialog::getOpenFileName( this
-                                                 , tr( "Open Quantitative Analysis Result file" )
-                                                 , QuanDocument::instance()->lastDataDir()
-                                                 , tr( "File(*.adfs)" ) );
-    if ( !name.isEmpty() ) {
+    try {
+        QString name = QFileDialog::getOpenFileName( this
+                                                     , tr( "Open Quantitative Analysis Result file" )
+                                                     , QuanDocument::instance()->lastDataDir()
+                                                     , tr( "File(*.adfs)" ) );
+        if ( !name.isEmpty() ) {
 
-        qtwrapper::waitCursor wait;
+            qtwrapper::waitCursor wait;
 
-        if ( auto connection = std::make_shared< QuanConnection >() ) {
+            if ( auto connection = std::make_shared< QuanConnection >() ) {
 
-            if ( connection->connect( name.toStdWString() ) ) {
-                // kick QuanReportWidget (calibartion & result view) updae
-                QuanDocument::instance()->setConnection( connection.get() );
+                if ( connection->connect( name.toStdWString() ) ) {
+                    // kick QuanReportWidget (calibartion & result view) updae
+                    QuanDocument::instance()->setConnection( connection.get() );
+                }
             }
-        }
 
-        if ( auto tab = findChild< DoubleTabWidget * >() )
-            tab->setCurrentIndex( -1, 3 );
-        Core::ModeManager::activateMode( Core::Id( Constants::C_QUAN_MODE ) );
+            if ( auto tab = findChild< DoubleTabWidget * >() )
+                tab->setCurrentIndex( -1, 3 );
+            Core::ModeManager::activateMode( Core::Id( Constants::C_QUAN_MODE ) );
+        }
+    }
+    catch ( ... ) {
+        QMessageBox::warning( this, "Quan MainWindow", boost::current_exception_diagnostic_information().c_str() );
     }
 }
 

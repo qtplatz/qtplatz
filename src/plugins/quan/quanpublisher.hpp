@@ -90,6 +90,8 @@ namespace quan {
 
         const calib_curve * find_calib_curve( const boost::uuids::uuid& );
 
+        bool appendTraceData();
+
     private:
         bool bProcessed_;
         std::shared_ptr< QuanConnection > conn_;
