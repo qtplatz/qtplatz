@@ -26,7 +26,9 @@
 #include "metric/prefix.hpp"
 #include "massspectrometer.hpp"
 #include "metric/prefix.hpp"
+#include <adportable/base64.hpp>
 #include <boost/exception/all.hpp>
+
 
 using namespace adcontrols;
 
@@ -69,7 +71,7 @@ MSProperty::setDeviceData( const char * device, size_t size )
 const char *
 MSProperty::deviceData() const
 {
-    return deviceData_.data();
+    return reinterpret_cast<const char *>(deviceData_.data());
 }
 
 size_t
@@ -153,57 +155,6 @@ MSProperty::setfSamplingInterval( double v ) // seconds
 {
 	samplingData_.fSampInterval( v );
 }
-
-#if 0
-uint32_t
-MSProperty::instSamplingInterval() const
-{
-    return instSamplingInterval_;
-}
-
-void
-MSProperty::setInstSamplingInterval( uint32_t value )
-{
-    instSamplingInterval_ = value;
-    fSamplingInterval_ = 0;
-    samplingData_.fSampInterval( 0 );
-}
-
-double
-MSProperty::fSamplingInterval() const
-{
-    if ( instSamplingInterval_ )
-        return double( instSamplingInterval_ ) * 1.0e-12; // ps -> seconds
-    return fSamplingInterval_;
-}
-
-void
-MSProperty::setfSamplingInterval( double value )
-{
-    fSamplingInterval_ = value;
-    instSamplingInterval_ = 0;
-    samplingData_.fSampInterval( value );
-}
-
-void
-MSProperty::nSamples( uint32_t v )
-{
-    samplingData_.nSamples = v;
-}
-
-uint32_t
-MSProperty::instSamplingStartDelay() const
-{
-    return instSamplingStartDelay_;
-}
-
-void
-MSProperty::setInstSamplingStartDelay( uint32_t value )
-{
-    instSamplingStartDelay_ = value;
-    samplingData_.nSamplingDelay = value;
-}
-#endif
 
 double
 MSProperty::timeSinceInjection() const
@@ -334,3 +285,14 @@ MSProperty::scanLaw() const
 	}
 }
 
+std::string
+MSProperty::encode( const std::string& binary )
+{
+    return base64_encode( reinterpret_cast< const unsigned char * >(binary.data()), binary.size() );
+}
+
+std::string
+MSProperty::decode( const std::string& encoded )
+{
+    return base64_decode( encoded );
+}

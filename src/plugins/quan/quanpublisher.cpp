@@ -25,9 +25,13 @@
 #include "quanpublisher.hpp"
 #include "quanconnection.hpp"
 #include "quandocument.hpp"
-
+#include "quanplotdata.hpp"
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/idaudit.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -216,6 +220,48 @@ QuanPublisher::operator()( QuanConnection * conn )
 
             return true;
         }
+    }
+    return false;
+}
+
+bool
+QuanPublisher::appendTraceData()
+{
+    if ( bProcessed_ && conn_ ) {
+        if ( auto doc = xmldoc_->select_single_node( "/qtplatz_document" ).node() ) {
+
+            auto spectra = doc.append_child( "Spectra" );
+
+            auto unks = doc.select_nodes( "QuanResponse[@sampleType='UNK']/row" );
+            for ( auto& unk : unks ) {
+                auto respid = unk.node().select_single_node( "column[@name='id']" ).node().text().as_int();
+
+                auto ms = spectra.append_child( "MassSpectrum" );
+
+                if ( auto node = ms.append_child( "dataSource" ) )
+                    node.text() = unk.node().select_single_node( "column[@name='dataSource']" ).node().text().as_string();
+
+                if ( auto node = ms.append_child( "description" ) )
+                    node.text() = unk.node().select_single_node( "column[@name='description']" ).node().text().as_string();
+
+                if ( auto node = ms.append_child( "formula" ) )
+                    node.text() = unk.node().select_single_node( "column[@name='formula' and @decltype='richtext']" ).node().text().as_string();
+
+                ms.append_attribute( "idx" ) = unk.node().select_single_node( "column[@name='idx']" ).node().text().as_int();
+                ms.append_attribute( "fcn" ) = unk.node().select_single_node( "column[@name='fcn']" ).node().text().as_int();
+                ms.append_attribute( "formula" ) = unk.node().select_single_node( "column[@name='formula' and @decltype='text']" ).node().text().as_string();
+                ms.append_attribute( "dataGuid" ) = unk.node().select_single_node( "column[@name='dataGuid']" ).node().text().as_string();
+                ms.append_attribute( "respId" ) = respid;
+                
+                std::wstring dataGuid = pugi::as_wide( unk.node().select_single_node( "column[@name='dataGuid']" ).node().text().as_string() );
+
+                if ( auto data = conn_->fetch( dataGuid ) ) {
+                    auto& prop = data->profile->getMSProperty();
+                    detail::append_class()(ms, prop);
+                }
+            }
+        }
+        return true;        
     }
     return false;
 }

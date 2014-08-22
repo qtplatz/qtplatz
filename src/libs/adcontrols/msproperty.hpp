@@ -133,6 +133,8 @@ namespace adcontrols {
         std::string deviceData_;
         std::vector< double > deprecated_coeffs_; // deprecated
 
+        std::string encode( const std::string& );
+        std::string decode( const std::string& );
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
@@ -150,7 +152,13 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( instMassRange_.second );
                 ar & BOOST_SERIALIZATION_NVP( samplingData_ );
                 ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
-                ar & BOOST_SERIALIZATION_NVP( deviceData_ );
+                if ( Archive::is_saving::value )
+                    ar & boost::serialization::make_nvp( "deviceData_", encode( deviceData_ ) );  // for xml (u8 codecvt) safety
+                else {
+                    ar & BOOST_SERIALIZATION_NVP( deviceData_ );
+                    if ( version >= 7 ) // v6 data has no encoded
+                        deviceData_ = decode( deviceData_ );
+                }
             } else {
                 ar & BOOST_SERIALIZATION_NVP(time_since_injection_);
                 ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
@@ -179,6 +187,6 @@ namespace adcontrols {
     };
 }
 
-BOOST_CLASS_VERSION(adcontrols::MSProperty, 6)
+BOOST_CLASS_VERSION(adcontrols::MSProperty, 7)
 BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 4)
 

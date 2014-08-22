@@ -206,11 +206,6 @@ QuanResultWnd::handleResponseSelected( int respId )
                             plot::calib_curve_yx( calibplot_.get(), *calib, curves_ );
                         plot_response_marker_yx( calibplot_.get(), intensity, amount );
                     }
-                    // if ( calib_curves_.find( uuid ) != calib_curves_.end() && calib_data_.find( uuid ) != calib_data_.end() ) {
-                    //     if ( uuid_plot_ != uuid )
-                    //         plot_calib_curve_yx( calibplot_.get(), *calib_curves_[ uuid ], *calib_data_[ uuid ] );
-                    //     plot_response_marker_yx( calibplot_.get(), intensity, amount );
-                    // }
                 }
                 catch ( std::bad_cast& ) {
                     // amount can be null
