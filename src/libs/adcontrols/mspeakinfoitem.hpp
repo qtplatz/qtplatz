@@ -106,30 +106,30 @@ namespace adcontrols {
         friend class internal::CentroidProcessImpl;
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
-            ar  & peak_index_
-                & peak_start_index_
-                & peak_end_index_
-                & base_height_
-                & mass_
-                & area_
-                & height_
-                & time_from_mass_
-                & time_from_time_
-                & HH_left_mass_
-                & HH_right_mass_
-                & HH_left_time_
-                & HH_right_time_
-                & centroid_left_mass_
-                & centroid_right_mass_
-                & centroid_left_time_
-                & centroid_right_time_
-                & centroid_threshold_
+            ar  & BOOST_SERIALIZATION_NVP( peak_index_ )
+                & BOOST_SERIALIZATION_NVP( peak_start_index_ )
+                & BOOST_SERIALIZATION_NVP( peak_end_index_ )
+                & BOOST_SERIALIZATION_NVP( base_height_ )
+                & BOOST_SERIALIZATION_NVP( mass_ )
+                & BOOST_SERIALIZATION_NVP( area_ )
+                & BOOST_SERIALIZATION_NVP( height_ )
+                & BOOST_SERIALIZATION_NVP( time_from_mass_ )
+                & BOOST_SERIALIZATION_NVP( time_from_time_ )
+                & BOOST_SERIALIZATION_NVP( HH_left_mass_ )
+                & BOOST_SERIALIZATION_NVP( HH_right_mass_ )
+                & BOOST_SERIALIZATION_NVP( HH_left_time_ )
+                & BOOST_SERIALIZATION_NVP( HH_right_time_ )
+                & BOOST_SERIALIZATION_NVP( centroid_left_mass_ )
+                & BOOST_SERIALIZATION_NVP( centroid_right_mass_ )
+                & BOOST_SERIALIZATION_NVP( centroid_left_time_ )
+                & BOOST_SERIALIZATION_NVP( centroid_right_time_ )
+                & BOOST_SERIALIZATION_NVP( centroid_threshold_ )
                 ;
             if ( version >= 2 ) {
-                ar & is_visible_
-                    & is_reference_
-                    & formula_
-                    & annotation_
+                ar & BOOST_SERIALIZATION_NVP( is_visible_ )
+                    & BOOST_SERIALIZATION_NVP( is_reference_ )
+                    & BOOST_SERIALIZATION_NVP( formula_ )
+                    & BOOST_SERIALIZATION_NVP( annotation_ )
                     ;
             }
         }

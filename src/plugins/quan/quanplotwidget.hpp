@@ -47,6 +47,8 @@ namespace quan {
         void setData( const QuanPlotData *, size_t idx, int fcn, const std::wstring& dataSource );
         adwplot::Dataplot * dataplot() { return dplot_.get(); }
         void dataplot( adwplot::Dataplot * p ) { dplot_.reset( p ); }
+
+        static std::string toSVG( const QuanPlotData&, size_t idx, int fcn );
     private:
         std::unique_ptr< adwplot::Dataplot > dplot_;
         std::unique_ptr< adwplot::PeakMarker > marker_;

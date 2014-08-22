@@ -73,9 +73,9 @@ namespace quan {
         void handleCompoundSelected( const QModelIndex& );
         void handleResponseSelected( int );
         bool loadCalibration( const boost::uuids::uuid& );
-        void plot_calib_curve_xy( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
-        void plot_calib_curve_yx( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
-        void plot_response_marker_yx( adwplot::Dataplot *, double i, double a );
+        // void plot_calib_curve_xy( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
+        // void plot_calib_curve_yx( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
+        // void plot_response_marker_yx( adwplot::Dataplot *, double i, double a );
 
     signals:
 

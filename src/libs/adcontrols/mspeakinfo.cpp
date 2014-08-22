@@ -174,3 +174,26 @@ MSPeakInfo::restore( std::istream& is, MSPeakInfo& t )
     ar >> t;
     return true;
 }
+
+bool
+MSPeakInfo::trim( MSPeakInfo& clone, const std::pair<double, double>& range ) const
+{
+    // make very-clean
+    clone.clear();
+    clone.clearSegments();
+    
+    auto itFirst = std::lower_bound( vec_.begin(), vec_.end(), range.first, [](const MSPeakInfoItem& a, double mass){ return a.mass() < mass; } );
+    if ( itFirst == vec_.end() )
+        return false;
+
+    if ( itFirst != vec_.begin() )
+        --itFirst;
+
+    size_t idx = std::distance( vec_.begin(), itFirst );
+
+    auto itSecond = std::lower_bound( vec_.begin(), vec_.end(), range.second, [](const MSPeakInfoItem& a, double mass){ return a.mass() < mass; } );
+    std::for_each( itFirst, itSecond, [&clone, idx] ( const MSPeakInfoItem& item ){ clone << item; } );
+
+    return true;
+}
+

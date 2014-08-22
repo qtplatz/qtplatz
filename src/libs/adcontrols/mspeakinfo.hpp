@@ -73,6 +73,8 @@ namespace adcontrols {
         const MSPeakInfo * findProtocol( int32_t ) const;
         void clearSegments();
 
+        bool trim( MSPeakInfo&, const std::pair<double, double>& range ) const;
+
         static bool archive( std::ostream&, const MSPeakInfo& );
         static bool restore( std::istream&, MSPeakInfo& );
 
@@ -86,11 +88,11 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
             if ( version >= 2 )
-                ar & mode_;
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
             if ( version >= 3 )
-                ar & protocolId_ & nProtocols_;
-            ar  & vec_
-                & siblings_
+                ar & BOOST_SERIALIZATION_NVP( protocolId_ ) & BOOST_SERIALIZATION_NVP( nProtocols_ );
+            ar  & BOOST_SERIALIZATION_NVP( vec_ )
+                & BOOST_SERIALIZATION_NVP( siblings_ )
                 ;
         }
 

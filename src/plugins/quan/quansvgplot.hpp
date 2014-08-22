@@ -25,10 +25,22 @@
 #ifndef QUANSVGPLOT_HPP
 #define QUANSVGPLOT_HPP
 
-class QuanSvgPlot
-{
-public:
-    QuanSvgPlot();
-};
+#include <string>
+#include <quanpublisher.hpp>
+
+namespace quan {
+
+    class QuanPlotData;
+
+    class QuanSvgPlot {
+    public:
+        QuanSvgPlot();
+        bool plot( const QuanPlotData&, size_t idx, int fcn, const std::string& );
+        bool plot( const QuanPublisher::resp_data&, const QuanPublisher::calib_curve& );
+    private:
+        size_t count_;
+    };
+
+}
 
 #endif // QUANSVGPLOT_HPP

@@ -101,7 +101,7 @@ QuanConnection::fetch( const std::wstring& dataGuid )
         
         auto d = std::make_shared< QuanPlotData >();
 
-        ADDEBUG() << "file::dataClass=" << file.dataClass() << "\tname:" << file.name();
+        // ADDEBUG() << "file::dataClass=" << file.dataClass() << "\tname:" << file.name();
 
         if ( file.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
 
@@ -111,7 +111,7 @@ QuanConnection::fetch( const std::wstring& dataGuid )
                     auto atts = file.attachments();
                     for ( auto& att : atts ) {
 
-                        ADDEBUG() << "att::dataClass=" << att.dataClass() << "\tname:" << att.name();
+                        // ADDEBUG() << "att::dataClass=" << att.dataClass() << "\tname:" << att.name();
 
                         if ( att.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
 
