@@ -31,6 +31,7 @@
 #include "quanquery.hpp"
 #include "quanqueryform.hpp"
 #include "quanresulttable.hpp"
+#include "quanprogress.hpp"
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/xml_serializer.hpp>
@@ -43,6 +44,7 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#include <coreplugin/progressmanager/progressmanager.h>
 #include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
 #include <QCoreApplication>
@@ -215,22 +217,27 @@ QuanReportWidget::setupFileActions( QMenu * menu )
 void
 QuanReportWidget::filePublish()
 {
+    ProgressHandler progress;
+    qtwrapper::waitCursor w;
+    
+    Core::ProgressManager::addTask( progress.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
+    
     if ( auto publisher = QuanDocument::instance()->publisher() ) {
 
-        publisher->appendTraceData();
+        publisher->appendTraceData( progress );
 
         const QString apppath = QCoreApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // sibling of /translations
         boost::filesystem::path xsltpath = boost::filesystem::path( apppath.toStdWString() ).normalize();
-
+                
         boost::filesystem::path path = publisher->filepath(); 
-
+                
         publisher->save_file( path.string().c_str() ); // save publisher document xml
-
+                
         QString output;
         adpublisher::document::apply_template( path.string().c_str()
                                                , (xsltpath / "quan-html.xsl").string().c_str()
                                                , output );
-        
+                
         path.replace_extension( ".html" );
         boost::filesystem::ofstream o( path );
         o << output.toStdString();

@@ -26,9 +26,14 @@
 #include "quanconnection.hpp"
 #include "quandocument.hpp"
 #include "quanplotdata.hpp"
+#include "quanprogress.hPP"
+#include "quansvgplot.hpp"
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/idaudit.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
@@ -224,41 +229,81 @@ QuanPublisher::operator()( QuanConnection * conn )
     return false;
 }
 
+
 bool
-QuanPublisher::appendTraceData()
+QuanPublisher::appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakInfo& pkInfo, int idx, int fcn )
+{
+    if ( auto info = pkInfo.findProtocol( fcn ) ) {
+        if ( info->size() > idx ) {
+            const adcontrols::MSPeakInfoItem& item = *(info->begin() + idx);
+            detail::append_class()( dst, item );
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+QuanPublisher::appendTraceData( pugi::xml_node& dst, const pugi::xml_node& response )
+{
+    auto respid = response.select_single_node( "column[@name='id']" ).node().text().as_int();
+
+    if ( auto node = dst.append_child( "dataSource" ) )
+        node.text() = response.select_single_node( "column[@name='dataSource']" ).node().text().as_string();
+
+    if ( auto node = dst.append_child( "description" ) )
+        node.text() = response.select_single_node( "column[@name='description']" ).node().text().as_string();
+
+    if ( auto node = dst.append_child( "formula" ) )
+        node.text() = response.select_single_node( "column[@name='formula' and @decltype='richtext']" ).node().text().as_string();
+
+    int idx = response.select_single_node( "column[@name='idx']" ).node().text().as_int();
+    int fcn = response.select_single_node( "column[@name='fcn']" ).node().text().as_int();
+
+    dst.append_attribute( "idx" ) = idx;
+    dst.append_attribute( "fcn" ) = fcn;
+    dst.append_attribute( "formula" ) = response.select_single_node( "column[@name='formula' and @decltype='text']" ).node().text().as_string();
+    dst.append_attribute( "dataGuid" ) = response.select_single_node( "column[@name='dataGuid']" ).node().text().as_string();
+    dst.append_attribute( "respId" ) = respid;
+                
+    std::wstring dataGuid = pugi::as_wide( response.select_single_node( "column[@name='dataGuid']" ).node().text().as_string() );
+
+    if ( auto data = conn_->fetch( dataGuid ) ) {
+
+        detail::append_class()(dst, data->profile->getMSProperty() );
+        detail::append_class()(dst, data->centroid->getDescriptions());
+        appendMSPeakInfo( dst, *data->pkinfo, idx, fcn );
+
+        QuanSvgPlot svg;
+
+        svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string() );
+        
+        auto it = resp_data_.find( respid );
+        if ( it != resp_data_.end() ) {
+            if ( auto calib = find_calib_curve( it->second->cmpId ) )
+                svg.plot( *it->second, *calib );
+        }
+    }
+    
+    return true;
+}
+
+bool
+QuanPublisher::appendTraceData( ProgressHandler& progress )
 {
     if ( bProcessed_ && conn_ ) {
+        
+        size_t nTask = std::count_if( resp_data_.begin(), resp_data_.end(), [] ( const decltype(*resp_data_.begin())& d ){ return d.second->sampType == 0; } );
+        progress.setProgressRange( 0, int(nTask) );
+
         if ( auto doc = xmldoc_->select_single_node( "/qtplatz_document" ).node() ) {
 
-            auto spectra = doc.append_child( "Spectra" );
+            auto spectra = doc.append_child( "PlotData" );
 
             auto unks = doc.select_nodes( "QuanResponse[@sampleType='UNK']/row" );
             for ( auto& unk : unks ) {
-                auto respid = unk.node().select_single_node( "column[@name='id']" ).node().text().as_int();
-
-                auto ms = spectra.append_child( "MassSpectrum" );
-
-                if ( auto node = ms.append_child( "dataSource" ) )
-                    node.text() = unk.node().select_single_node( "column[@name='dataSource']" ).node().text().as_string();
-
-                if ( auto node = ms.append_child( "description" ) )
-                    node.text() = unk.node().select_single_node( "column[@name='description']" ).node().text().as_string();
-
-                if ( auto node = ms.append_child( "formula" ) )
-                    node.text() = unk.node().select_single_node( "column[@name='formula' and @decltype='richtext']" ).node().text().as_string();
-
-                ms.append_attribute( "idx" ) = unk.node().select_single_node( "column[@name='idx']" ).node().text().as_int();
-                ms.append_attribute( "fcn" ) = unk.node().select_single_node( "column[@name='fcn']" ).node().text().as_int();
-                ms.append_attribute( "formula" ) = unk.node().select_single_node( "column[@name='formula' and @decltype='text']" ).node().text().as_string();
-                ms.append_attribute( "dataGuid" ) = unk.node().select_single_node( "column[@name='dataGuid']" ).node().text().as_string();
-                ms.append_attribute( "respId" ) = respid;
-                
-                std::wstring dataGuid = pugi::as_wide( unk.node().select_single_node( "column[@name='dataGuid']" ).node().text().as_string() );
-
-                if ( auto data = conn_->fetch( dataGuid ) ) {
-                    auto& prop = data->profile->getMSProperty();
-                    detail::append_class()(ms, prop);
-                }
+                appendTraceData( spectra.append_child( "Response" ), unk.node() );
+                progress();
             }
         }
         return true;        

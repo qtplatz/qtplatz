@@ -32,13 +32,15 @@
 #include <functional>
 
 namespace pugi { class xml_document; class xml_node; }
-namespace adcontrols { class MassSpectrum; }
+namespace adcontrols { class MassSpectrum; class MSPeakInfo; }
 namespace adfs { class stmt; }
 
 namespace quan {
 
     class QuanDocument;
     class QuanConnection;
+    class QuanPlotData;
+    class ProgressHandler;
 
     class QuanPublisher {
     public:
@@ -90,7 +92,7 @@ namespace quan {
 
         const calib_curve * find_calib_curve( const boost::uuids::uuid& );
 
-        bool appendTraceData();
+        bool appendTraceData( ProgressHandler& progress );
 
     private:
         bool bProcessed_;
@@ -107,6 +109,9 @@ namespace quan {
         bool appendQuanResponseStd( pugi::xml_node& );
         bool appendQuanCalib( pugi::xml_node& );
         bool prepare_document();
+        bool appendTraceData( pugi::xml_node& dst, const pugi::xml_node& response );
+        bool appendPlot( pugi::xml_node& dst, const QuanPlotData&, int idx, int fcn, const std::string& );
+        bool appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakInfo&, int idx, int fcn );
     };
 
 }

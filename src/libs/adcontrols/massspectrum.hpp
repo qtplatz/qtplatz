@@ -169,6 +169,7 @@ namespace adcontrols {
         size_t numSegments() const;
         void uuid( const char * uuid );
         const char * uuid() const;
+        bool trim( adcontrols::MassSpectrum&, const std::pair<double, double>& massrange ) const;
         
     private:
         friend class boost::serialization::access;

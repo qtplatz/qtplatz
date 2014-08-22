@@ -58,6 +58,26 @@
 namespace adcontrols {
     namespace internal {
 
+        struct datum {
+            size_t idx;
+            double mass;
+            double time;
+            double intensity;
+            unsigned char color;
+            datum( size_t _idx, double _mass, double _tof, double _intensity, unsigned char _color ) :
+                idx( _idx ), mass( _mass ), time( _tof ), intensity( _intensity ), color( _color ) {
+            }
+
+            friend class boost::serialization::access;
+            template<class Archive> void serialize(Archive& ar, const unsigned int ) {
+                ar & BOOST_SERIALIZATION_NVP( idx );
+                ar & BOOST_SERIALIZATION_NVP( time );
+                ar & BOOST_SERIALIZATION_NVP( mass );
+                ar & BOOST_SERIALIZATION_NVP( intensity );
+                ar & BOOST_SERIALIZATION_NVP( color );
+            }
+        };
+
        class MassSpectrumImpl {
        public:
            ~MassSpectrumImpl();
@@ -148,6 +168,30 @@ namespace adcontrols {
                        & BOOST_SERIALIZATION_NVP( nProtocols_ )
                        ;
                }
+           }
+
+           template<> void serialize( boost::archive::xml_woarchive& ar, const unsigned int ) {
+               
+               ar & BOOST_SERIALIZATION_NVP( algo_ );
+               ar & BOOST_SERIALIZATION_NVP( polarity_ );
+               ar & BOOST_SERIALIZATION_NVP( acqRange_.first );
+               ar & BOOST_SERIALIZATION_NVP( acqRange_.second );
+               ar & BOOST_SERIALIZATION_NVP( descriptions_ );
+               ar & BOOST_SERIALIZATION_NVP( calibration_ );
+               ar & BOOST_SERIALIZATION_NVP( property_ );
+               ar & BOOST_SERIALIZATION_NVP( annotations_ );
+               ar & BOOST_SERIALIZATION_NVP( protocolId_ );
+               ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
+
+               std::vector< datum > data;
+               for ( size_t i = 0; i < massArray_.size(); ++i )
+                   data.push_back( datum( i, massArray_[ i ], (tofArray_.empty() ? 0 : tofArray_[ i ]), intsArray_[i], (colArray_.empty() ? 0 : colArray_[ i ]) ) );
+
+               ar & BOOST_SERIALIZATION_NVP( data );
+               // ar & BOOST_SERIALIZATION_NVP( vec_ );                              
+           }
+           template<> void serialize( boost::archive::xml_wiarchive&, const unsigned int ) {
+               // not supported
            }
        };
     }
@@ -638,14 +682,14 @@ namespace adcontrols {
         ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
     }
 
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     MassSpectrum::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         (void)version;
         ar << boost::serialization::make_nvp("MassSpectrum", pImpl_);
     }
 
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     MassSpectrum::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         (void)version;
@@ -1003,5 +1047,53 @@ segments_helper::normalize( MassSpectrum& vms, uint32_t imaginalNumAverage )
     for ( auto& ms: segment_wrapper< MassSpectrum >( vms ) ) {
         ms.normalizeIntensities( imaginalNumAverage );
     }
+    return true;
+}
+
+bool
+MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double>& range ) const
+{
+    ms.clone( *this );
+    if ( uuid() )
+        ms.uuid( uuid() );
+    // tofarray, massarray, colarray, annotations
+    // no segements array supported
+
+    auto itFirst = std::lower_bound( pImpl_->massArray_.begin(), pImpl_->massArray_.end(), range.first );
+    if ( itFirst == pImpl_->massArray_.end() )
+        return false;
+
+    if ( itFirst != pImpl_->massArray_.begin() )
+        --itFirst;
+
+    auto itEnd = std::lower_bound( pImpl_->massArray_.begin(), pImpl_->massArray_.end(), range.second );
+    size_t size = std::distance( itFirst, itEnd );
+    size_t idx = std::distance( pImpl_->massArray_.begin(), itFirst );
+
+    ms.resize( size );
+
+    if ( const double * p = getMassArray() )
+        ms.setMassArray( p + idx, true ); // update range
+
+    if ( const double * p = getIntensityArray() )
+        ms.setIntensityArray( p + idx );
+
+    if ( const double * p = getTimeArray() )
+        ms.setTimeArray( p + idx );
+
+    if ( auto * p = getColorArray() )
+        ms.setColorArray( p + idx );
+
+    adcontrols::annotations annots;
+
+    for ( auto a: get_annotations() ) {
+        if ( ( a.index() >= idx && a.index() <= idx + size ) ||
+             ( a.x() >= range.first && a.x() <= range.second ) ) {
+            if ( a.index() >= 0 )
+                a.index( a.index() - int( idx ) );
+            annots << a;
+        }
+    }
+    ms.set_annotations( annots );
     return true;
 }
