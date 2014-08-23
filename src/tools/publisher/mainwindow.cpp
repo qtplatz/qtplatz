@@ -120,7 +120,7 @@ MainWindow::addRecentFiles( QSettings& settings
     settings.setArrayIndex( 0 );
     settings.setValue( key, QString::fromStdWString( path.generic_wstring() ) );
     for ( size_t i = 0; i < list.size() && i < 7; ++i ) {
-        settings.setArrayIndex( i + 1 );
+        settings.setArrayIndex( int(i + 1) );
         settings.setValue( key, list[ i ] );
     }
     settings.endArray();
