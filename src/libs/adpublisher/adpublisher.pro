@@ -22,8 +22,7 @@ SOURCES += adpublisher.cpp \
            doceditor.cpp \
            doctree.cpp \
            doctext.cpp \
-    transformer.cpp \
-    msxml_transformer.cpp
+           transformer.cpp
 
 HEADERS += adpublisher.hpp\
            adpublisher_global.hpp \
@@ -31,13 +30,26 @@ HEADERS += adpublisher.hpp\
            doceditor.hpp \
            doctree.hpp \
            doctext.hpp \
-    transformer.hpp \
-    msxml_transformer.hpp
+           transformer.hpp \
+           msxml_transformer.hpp
+
+win32 {
+  SOURCES += msxml_transformer.cpp
+  HEADERS += msxml_transformer.hpp
+}
+macx {
+  SOURCES += libxslt_transformer.cpp
+  HEADERS += libxslt_transformer.hpp
+#  check with command: xml2-config --cflags --libs
+  LIBS += -L/opt/local/lib -lxml2 -lz -lpthread -liconv -lm
+  INCLUDEPATH += /opt/local/include/libxml2
+}
+
 
 LIBS *= -L$$IDE_LIBRARY_PATH 
 LIBS += -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adportable)
 
-!win32: LIBS += -lboost_date_time -lboost_system
+!win32: LIBS += -lboost_date_time -lboost_system -lboost_filesystem -lxslt
 
 unix {
     target.path = /usr/lib

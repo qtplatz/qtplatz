@@ -35,6 +35,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include <sstream>
+#include <fstream>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
                                         , ui( new Ui::MainWindow )
@@ -118,7 +119,7 @@ MainWindow::addRecentFiles( QSettings& settings
     settings.beginWriteArray( pfx );
     settings.setArrayIndex( 0 );
     settings.setValue( key, QString::fromStdWString( path.generic_wstring() ) );
-    for ( int i = 0; i < list.size() && i < 7; ++i ) {
+    for ( size_t i = 0; i < list.size() && i < 7; ++i ) {
         settings.setArrayIndex( i + 1 );
         settings.setValue( key, list[ i ] );
     }
@@ -156,6 +157,7 @@ MainWindow::recentFile( const QString& group, const QString& pfx, const QString&
     settings_->beginGroup( group );
     
     if ( int size = settings_->beginReadArray( pfx ) ) {
+        (void)size;
         settings_->setArrayIndex( 0 );
         value = settings_->value( key ).toString();
     }

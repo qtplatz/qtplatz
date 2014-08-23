@@ -152,9 +152,10 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( instMassRange_.second );
                 ar & BOOST_SERIALIZATION_NVP( samplingData_ );
                 ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
-                if ( Archive::is_saving::value )
-                    ar & boost::serialization::make_nvp( "deviceData_", encode( deviceData_ ) );  // for xml (u8 codecvt) safety
-                else {
+                if ( Archive::is_saving::value ) {
+                    std::string data = encode( deviceData_ );
+                    ar & boost::serialization::make_nvp( "deviceData_", data );  // for xml (u8 codecvt) safety
+                }  else {
                     ar & BOOST_SERIALIZATION_NVP( deviceData_ );
                     if ( version >= 7 ) // v6 data has no encoded
                         deviceData_ = decode( deviceData_ );

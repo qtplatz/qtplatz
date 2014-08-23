@@ -158,7 +158,7 @@ QuanCalibration::coefficients() const
     return coefficients_.data();
 }
 
-const size_t
+size_t
 QuanCalibration::nTerms() const
 {
     return coefficients_.size();

@@ -597,7 +597,7 @@ QuanDocument::setConnection( QuanConnection * conn )
     ProgressHandler handler( 0, 5 );
     qtwrapper::waitCursor w;
 
-    if ( publisher_ = std::make_shared< QuanPublisher >() ) {
+    if ( ( publisher_ = std::make_shared< QuanPublisher >() ) ) {
         
         Core::ProgressManager::addTask( handler.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
         
@@ -660,7 +660,7 @@ QuanDocument::addRecentFiles( const QString& group, const QString& key, const QS
     settings_->beginWriteArray( key );
     settings_->setArrayIndex( 0 );
     settings_->setValue( "File", QString::fromStdWString( path.generic_wstring() ) );
-    for ( int i = 0; i < list.size() && i < 7; ++i ) {
+    for ( size_t i = 0; i < list.size() && i < 7; ++i ) {
         settings_->setArrayIndex( i + 1 );
         settings_->setValue( "File", list[ i ] );
     }
@@ -692,6 +692,7 @@ QuanDocument::recentFile( const QString& group, const QString& key ) const
     settings_->beginGroup( group );
     
     if ( int size = settings_->beginReadArray( key ) ) {
+        (void)size;
         settings_->setArrayIndex( 0 );
         value = settings_->value( "File" ).toString();
     }
