@@ -271,7 +271,7 @@ QuanPublisher::appendTraceData( pugi::xml_node& dst, const pugi::xml_node& respo
     if ( auto data = conn_->fetch( dataGuid ) ) {
 
         //detail::append_class()(dst, data->profile->getMSProperty());
-        //detail::append_class()(dst, data->centroid->getDescriptions());
+        detail::append_class()(dst, data->profile->getDescriptions());
         //appendMSPeakInfo( dst, *data->pkinfo, idx, fcn );
 
         QuanSvgPlot svg;
@@ -435,6 +435,7 @@ WHERE QuanCompound.uuid = ? AND sampleType = 0 AND QuanResponse.idCmpd = QuanCom
                         d->idx        = int( sql.get_column_value< int64_t >( row++ ) );
                         d->level = 0;
                         resp_data_[ d->respId ] = d;
+                        rnode.append_attribute( "id" ) = d->respId;
                     }
                 }
             } // for
@@ -492,6 +493,7 @@ WHERE QuanCompound.uuid = ? AND sampleType = 1 AND QuanResponse.idCmpd = QuanCom
                         d->fcn        = int( sql.get_column_value< int64_t >( row++ ) );
                         d->idx        = int( sql.get_column_value< int64_t >( row++ ) );
                         resp_data_[ d->respId ] = d;
+                        rnode.append_attribute( "id" ) = d->respId;
                     }
                 }
             } // for

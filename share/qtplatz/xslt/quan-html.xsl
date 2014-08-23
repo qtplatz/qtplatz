@@ -5,7 +5,7 @@
     <html>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <head>
-	<title>Quan Browseer Reporting Test</title>
+	<title>Quan Browser Reporting Test</title>
       </head>
 
       <body>
@@ -79,7 +79,6 @@
 
   <xsl:template match="SampleSequence/classdata[@decltype='class adcontrols::QuanSequence']">
     <h3>Sample Sequence</h3>
-    <!--
     <table border="1" style='table-layout:fixed'>
       <tr bgcolor='#FDFD96'>
 	<td> id </td>
@@ -114,15 +113,20 @@
 	</tr>
       </xsl:for-each>
     </table>
-    -->
+  </xsl:template>
+  
+  <xsl:template name="QR-UNK">
+    <xsl:param name="respid">1</xsl:param>
+    <xsl:param name="column">id</xsl:param>
+    <xsl:value-of select="/qtplatz_document/QuanResponse[@sampleType='UNK']/row[@id=$respid]/column[@name=$column]"/>
   </xsl:template>
 
   <xsl:template match="QuanResponse[@sampleType='UNK']">
-    <h2>Quantitative Analysis Summary</h2>
-    <!--
+    <h3>Quantitative Analysis Summary</h3>
     <table border="1">
       <tr bgcolor='#FDFD96'>
 	<td> description </td>
+	<td> data source </td>	
 	<td> name </td>
 	<td> formula </td>
 	<td> mass </td>
@@ -133,6 +137,11 @@
       <xsl:for-each select="row">
 	<tr>
 	  <td> <xsl:value-of select="column[@name='description']"/> </td>
+	  <td align="center">
+	    <xsl:call-template name="extract-filename">
+	      <xsl:with-param name="path"><xsl:value-of select="column[@name='dataSource']"/></xsl:with-param>
+	    </xsl:call-template>
+	  </td>
 	  <td align="center">
 	    <xsl:value-of select="column[@name='name']"/>
 	  </td>
@@ -152,19 +161,22 @@
 	    <xsl:value-of select='format-number($intensity, "#.00")'/>
 	  </td>
 	  <td align="right">
-	    <xsl:variable name="amount" select="column[@name='amount']"/>
-	    <xsl:value-of select='format-number($amount, "#")'/>
+	    <xsl:variable name="value">
+	      <xsl:call-template name="QR-UNK">
+		<xsl:with-param name="respid" select="column[@name='id']"/>
+		<xsl:with-param name="column">amount</xsl:with-param>
+	      </xsl:call-template>
+	    </xsl:variable>
+	    <xsl:value-of select='format-number($value, "#")'/>
 	  </td>
 	</tr>
       </xsl:for-each>
     </table>
-    -->
   </xsl:template>
 
 
   <xsl:template match="QuanResponse[@sampleType='STD']">
-    <h2>Summary of Standard Samples</h2>
-    <!--
+    <h3>Summary of Standard Samples</h3>
     <table border="1">
       <tr bgcolor='#FDFD96'>
 	<td> description </td>
@@ -201,12 +213,11 @@
 	</tr>
       </xsl:for-each>
     </table>
-    -->
   </xsl:template>
 
   <xsl:template match="QuanCalib">
-    <h2>Caliubration Curve</h2>
     <!--
+    <h3>Caliubration Curve</h3>
     <table border="1">
       <tr bgcolor='#FDFD96'>
 	<td> description </td>
@@ -268,30 +279,71 @@
   
   <xsl:template match="ProcessMethod">
   </xsl:template>
+
   <xsl:template match="PlotData">
-    <xsl:for-each select="PeakResponse">
-      <p>
-	<xsl:copy-of select="trace[@contents='resp_calib']"/>    
-	<xsl:copy-of select="trace[@contents='resp_spectrum']"/>
-      </p>
-    </xsl:for-each>
-<!--
-    <table>
+    <h3>Peak Validation</h3>
+    <table border="1">
       <xsl:for-each select="PeakResponse">
 	<tr>
-	  <td>
-	    <xsl:value-of select="column[@name='description']"/>
+	  <td> 
+	    <table>
+	      <tr> <td> <xsl:value-of select='description'/> </td> </tr>
+	      <tr>
+		<td> Chemical Formula: </td>
+		<td align="right"> <xsl:value-of select='formula' disable-output-escaping="yes"/> </td>
+	      </tr>
+	      <tr>
+		<td> Amounts: </td>
+		<td align="right">
+		  <xsl:variable name="amount">
+		    <xsl:call-template name="QR-UNK">
+		      <xsl:with-param name="respid" select="@respId"/>
+		      <xsl:with-param name="column">amount</xsl:with-param>
+		    </xsl:call-template>
+		  </xsl:variable>
+		  <xsl:value-of select='format-number($amount, "#")'/>
+		</td>
+		<td>pg/L</td>
+	      </tr>
+	      <tr>
+		<td> Intensity: </td>
+		<td align="right">
+		  <xsl:variable name="intensity">
+		    <xsl:call-template name="QR-UNK">
+		      <xsl:with-param name="respid" select="@respId"/>
+		      <xsl:with-param name="column">intensity</xsl:with-param>
+		    </xsl:call-template>
+		  </xsl:variable>
+		  <xsl:value-of select='format-number($intensity, "#")'/>
+		</td>
+		<td/>
+	      </tr>
+	      <tr>
+		<td colspan="3">
+		  Data Source:
+		  <i>
+		  <xsl:call-template name="extract-filename">
+		    <xsl:with-param name="path"><xsl:value-of select="dataSource"/></xsl:with-param>
+		  </xsl:call-template>
+		  , #FCN: <xsl:value-of select='./@fcn'/>
+		  </i>
+		</td>
+	      </tr>
+	      <xsl:for-each select="classdata[@decltype='class adcontrols::Descriptions']/class/Descriptions/vec_/item">
+		<tr>
+		  <td colspan="3">
+		    <i><xsl:value-of select='text_'/></i>
+		  </td>
+		</tr>
+	      </xsl:for-each>
+	    </table>
 	  </td>
-	  <td>
-	    <xsl:copy-of select="trace[@contents='resp_calib']"/>
-	  </td>
-	  <td>
-	    <xsl:copy-of select="trace[@contents='resp_spectrum']"/>
-	  </td>
+	  <td> <div style="width:350px;height:300px"> <xsl:copy-of select="trace[@contents='resp_spectrum']"/> </div> </td>
+	  <td> <div style="width:350px;height:300px"> <xsl:copy-of select="trace[@contents='resp_calib']"/> </div> </td>
 	</tr>
       </xsl:for-each>
     </table>
--->
+
   </xsl:template>
 
 </xsl:stylesheet>

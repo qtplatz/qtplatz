@@ -76,17 +76,19 @@ QuanSvgPlot::plot( const QuanPlotData& data, size_t idx, int fcn, const std::str
 
     QSvgGenerator generator;
 
-    // generator.setFileName( ( boost::format( "C:/Users/Toshi/Documents/data/QUAN/quan-svg_%1%.svg" ) % count++ ).str().c_str() );
     svg_.clear();
     QBuffer buffer( &svg_ );
     generator.setOutputDevice( &buffer );
+    generator.setTitle( "QtPlatz Generated SVG" );
+    generator.setDescription( "Copyright (C) 2014 MS-Cheminformataics, All rights reserved" );
+
+    QRectF rect( 0, 0, 350, 300 );
+    generator.setViewBox( rect );
 
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
-
-    QRectF rect( 0, 0, 350, 300 );
 
     adwplot::SpectrumWidget plot;
     plot.setData( tProfile, 0 );
@@ -118,17 +120,18 @@ QuanSvgPlot::plot( const QuanPublisher::resp_data& resp, const QuanPublisher::ca
 {
     QSvgGenerator generator;
 
-    // generator.setFileName( ( boost::format( "C:/Users/Toshi/Documents/data/QUAN/quan-calib_svg_%1%.svg" ) % count++ ).str().c_str() );
     svg_.clear();
     QBuffer buffer( &svg_ );
     generator.setOutputDevice( &buffer );
+    generator.setTitle( "QtPlatz Generated SVG" );
+    generator.setDescription( "Copyright (C) 2014 MS-Cheminformataics, All rights reserved" );
+    QRectF rect( 0, 0, 350, 300 );
+    generator.setViewBox( rect );
 
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
-
-    QRectF rect( 0, 0, 350, 300 );
 
     adwplot::Dataplot dplot;
     QuanPlot qplot; // QuanPlot must be declear after adwplot::Dataplot (due to detach order)
