@@ -23,9 +23,15 @@
 **************************************************************************/
 
 #include "document.hpp"
+
 #if defined Q_OS_WIN32
-# include "msxml_transformer.hpp"
+#  include "msxml_transformer.hpp"
+#else 
+# if defined Q_OS_MAC
+#  include "libxslt_transformer.hpp"
+# endif
 #endif
+
 #include <xmlparser/pugixml.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -203,17 +209,12 @@ document::apply_template( const char * xmlfile, const char * xsltfile, QString& 
 #if defined Q_OS_WIN32
     using namespace msxml;
 #else
-    //using namespace xalan
+    using namespace libxslt;
 #endif
 
     boost::filesystem::path opath( src );
     opath.replace_extension( ".html");
-    return transformer::instance()->apply_template( xmlfile, xsltfile, output);
 
-#if 0
-    query.setFocus( QUrl( xmlfile ) );
-    query.setQuery( QUrl( xsltfile ) );
-    return query.evaluateTo( &output );
-#endif
+    return transformer::apply_template( xmlfile, xsltfile, output);
 }
 

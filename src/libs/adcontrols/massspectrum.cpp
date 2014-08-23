@@ -169,31 +169,32 @@ namespace adcontrols {
                        ;
                }
            }
-
-           template<> void serialize( boost::archive::xml_woarchive& ar, const unsigned int ) {
-               
-               ar & BOOST_SERIALIZATION_NVP( algo_ );
-               ar & BOOST_SERIALIZATION_NVP( polarity_ );
-               ar & BOOST_SERIALIZATION_NVP( acqRange_.first );
-               ar & BOOST_SERIALIZATION_NVP( acqRange_.second );
-               ar & BOOST_SERIALIZATION_NVP( descriptions_ );
-               ar & BOOST_SERIALIZATION_NVP( calibration_ );
-               ar & BOOST_SERIALIZATION_NVP( property_ );
-               ar & BOOST_SERIALIZATION_NVP( annotations_ );
-               ar & BOOST_SERIALIZATION_NVP( protocolId_ );
-               ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
-
-               std::vector< datum > data;
-               for ( size_t i = 0; i < massArray_.size(); ++i )
-                   data.push_back( datum( i, massArray_[ i ], (tofArray_.empty() ? 0 : tofArray_[ i ]), intsArray_[i], (colArray_.empty() ? 0 : colArray_[ i ]) ) );
-
-               ar & BOOST_SERIALIZATION_NVP( data );
-               // ar & BOOST_SERIALIZATION_NVP( vec_ );                              
-           }
-           template<> void serialize( boost::archive::xml_wiarchive&, const unsigned int ) {
-               // not supported
-           }
        };
+
+        template<> void MassSpectrumImpl::serialize( boost::archive::xml_woarchive& ar, const unsigned int ) {
+
+            ar & BOOST_SERIALIZATION_NVP( algo_ );
+            ar & BOOST_SERIALIZATION_NVP( polarity_ );
+            ar & BOOST_SERIALIZATION_NVP( acqRange_.first );
+            ar & BOOST_SERIALIZATION_NVP( acqRange_.second );
+            ar & BOOST_SERIALIZATION_NVP( descriptions_ );
+            ar & BOOST_SERIALIZATION_NVP( calibration_ );
+            ar & BOOST_SERIALIZATION_NVP( property_ );
+            ar & BOOST_SERIALIZATION_NVP( annotations_ );
+            ar & BOOST_SERIALIZATION_NVP( protocolId_ );
+            ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
+
+            std::vector< datum > data;
+            for ( size_t i = 0; i < massArray_.size(); ++i )
+                data.push_back( datum( i, massArray_[ i ], (tofArray_.empty() ? 0 : tofArray_[ i ]), intsArray_[i], (colArray_.empty() ? 0 : colArray_[ i ]) ) );
+
+            ar & BOOST_SERIALIZATION_NVP( data );
+            // ar & BOOST_SERIALIZATION_NVP( vec_ );                              
+        }
+        template<> void MassSpectrumImpl::serialize( boost::archive::xml_wiarchive&, const unsigned int ) {
+               // not supported
+        }
+
     }
 }
 
@@ -1087,7 +1088,7 @@ MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double
     adcontrols::annotations annots;
 
     for ( auto a: get_annotations() ) {
-        if ( ( a.index() >= idx && a.index() <= idx + size ) ||
+        if ( ( size_t( a.index() ) >= idx && size_t( a.index() ) <= idx + size ) ||
              ( a.x() >= range.first && a.x() <= range.second ) ) {
             if ( a.index() >= 0 )
                 a.index( a.index() - int( idx ) );

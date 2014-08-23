@@ -86,20 +86,11 @@ namespace quan {
                 return node;
             }
 
-            template<> pugi::xml_node operator()( const char * typnam, const char * name, const std::string& value ) const {
-                auto node = row.append_child( "column" );
-                node.append_attribute( "name" ) = name;
-                node.append_attribute( "decltype" ) = typnam;
-                // std::string encoded = xmlparser::encode( value );
-                node.text() = value.c_str(); // it seems that pugi automatically escape <>&
-                return node;
-            }
-
             pugi::xml_node operator()( const adfs::stmt& sql, int nCol, bool dropNull = false ) const {
-
+            
                 if ( sql.is_null_column( nCol ) && dropNull )
                     return pugi::xml_node();
-
+            
                 switch ( sql.column_type( nCol ) ) {
                 case SQLITE_INTEGER:
                     return (*this)("int64_t", sql.column_name( nCol ).c_str(), sql.get_column_value< int64_t >( nCol ) );
@@ -124,6 +115,16 @@ namespace quan {
                 return pugi::xml_node();
             }
         };
+
+        template<> pugi::xml_node append_column::operator()( const char * typnam, const char * name, const std::string& value ) const {
+            auto node = row.append_child( "column" );
+            node.append_attribute( "name" ) = name;
+            node.append_attribute( "decltype" ) = typnam;
+            node.text() = value.c_str(); // it seems that pugi automatically escape <>&
+            return node;
+        }
+
+        //-----
     }
 }
 
@@ -231,7 +232,7 @@ QuanPublisher::operator()( QuanConnection * conn )
 
 
 bool
-QuanPublisher::appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakInfo& pkInfo, int idx, int fcn )
+QuanPublisher::appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakInfo& pkInfo, size_t idx, int fcn )
 {
     if ( auto info = pkInfo.findProtocol( fcn ) ) {
         if ( info->size() > idx ) {
@@ -244,7 +245,7 @@ QuanPublisher::appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakIn
 }
 
 bool
-QuanPublisher::appendTraceData( pugi::xml_node& dst, const pugi::xml_node& response )
+QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& response )
 {
     auto respid = response.select_single_node( "column[@name='id']" ).node().text().as_int();
 
@@ -279,7 +280,7 @@ QuanPublisher::appendTraceData( pugi::xml_node& dst, const pugi::xml_node& respo
 
         if ( svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string() ) ) {
             pugi::xml_document dom;
-            if ( dom.load( svg.data(), unsigned int( svg.size() ) ) ) {
+            if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
                 auto trace = dst.append_child( "trace" );
                 trace.append_attribute( "contents" ) = "resp_spectrum";
                 trace.append_copy( dom.select_single_node( "/svg" ).node() );
@@ -291,7 +292,7 @@ QuanPublisher::appendTraceData( pugi::xml_node& dst, const pugi::xml_node& respo
             if ( auto calib = find_calib_curve( it->second->cmpId ) ) {
                 if ( svg.plot( *it->second, *calib ) ) {
                     pugi::xml_document dom;
-                    if ( dom.load( svg.data(), unsigned int( svg.size() ) ) ) {
+                    if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
                         auto trace = dst.append_child( "trace" );
                         trace.append_attribute( "contents" ) = "resp_calib";
                         trace.append_copy( dom.select_single_node( "/svg" ).node() );

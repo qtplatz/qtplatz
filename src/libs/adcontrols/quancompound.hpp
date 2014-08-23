@@ -31,6 +31,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
+#include <compiler/deprecated_register.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <array>
 #include <string>

@@ -70,7 +70,7 @@ namespace adcontrols {
         double chisqr() const;
         double estimate_y( double x ) const;
         const double * coefficients() const;
-        const size_t nTerms() const;
+        size_t nTerms() const;
         
     private:
         boost::uuids::uuid idCompound_;

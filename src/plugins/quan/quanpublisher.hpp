@@ -26,6 +26,7 @@
 #define QUANPUBLISHER_HPP
 
 #include <boost/filesystem/path.hpp>
+#include <compiler/deprecated_register.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <map>
 #include <memory>
@@ -68,7 +69,7 @@ namespace quan {
             std::string dataSource;
             std::string dataGuid;
             int fcn;
-            int idx;
+            size_t idx;
             int level;
             resp_data() : respId(0), sampType(0), mass(0), mass_error(0), intensity(0), amount(0), fcn(0), idx(0), level(0) {}
             resp_data( const resp_data& t ) = delete;
@@ -109,9 +110,9 @@ namespace quan {
         bool appendQuanResponseStd( pugi::xml_node& );
         bool appendQuanCalib( pugi::xml_node& );
         bool prepare_document();
-        bool appendTraceData( pugi::xml_node& dst, const pugi::xml_node& response );
-        bool appendPlot( pugi::xml_node& dst, const QuanPlotData&, int idx, int fcn, const std::string& );
-        bool appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakInfo&, int idx, int fcn );
+        bool appendTraceData( pugi::xml_node dst, const pugi::xml_node& response );
+        bool appendPlot( pugi::xml_node& dst, const QuanPlotData&, size_t idx, int fcn, const std::string& );
+        bool appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakInfo&, size_t idx, int fcn );
     };
 
 }
