@@ -39,7 +39,7 @@
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/filesystem.hpp>
 #include <QApplication>
-#include <QXmlQuery>
+//#include <QXmlQuery>
 
 using namespace adpublisher;
 
@@ -195,7 +195,7 @@ document::xml_document()
 bool
 document::apply_template( const char * xmlfile, const char * xsltfile, QString& output )
 {
-    QXmlQuery query( QXmlQuery::XSLT20 );
+    //QXmlQuery query( QXmlQuery::XSLT20 );
 
     boost::filesystem::path src( xmlfile );
     boost::filesystem::path xslt( xsltfile );

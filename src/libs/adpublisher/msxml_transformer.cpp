@@ -35,34 +35,42 @@
 
 namespace adpublisher {
     namespace msxml {
-        transformer * transformer::instance_( 0 );
+
+        class singleton {
+            static singleton * instance_;
+        public:
+            static singleton * instance() {
+                if ( instance_ == 0 )
+                    instance_ = new singleton;
+                return instance_;
+            }
+            static void dispose() {
+                delete instance_;
+            }
+        private:
+            singleton() {
+                ::CoInitialize( 0 );
+                atexit( dispose );
+            }
+            ~singleton() {
+                ::CoUninitialize();
+            }
+        };
+
+        singleton * singleton::instance_( 0 );
+
     }
 }
 
 using namespace adpublisher;
 using namespace adpublisher::msxml;
 
-transformer::~transformer()
-{
-    ::CoUninitialize();
-}
-
-transformer::transformer()
-{
-    ::CoInitialize( 0 );
-}
-
-transformer *
-transformer::instance()
-{
-    if ( instance_ == 0 )
-        instance_ = new transformer;
-    return instance_;
-}
-
 bool
 transformer::apply_template( const char * xslfile, const char * xmlfile, const char * outfile )
 {
+    auto p = singleton::instance();
+    (void)p;
+
     MSXML2::IXMLDOMDocument3Ptr xml, xsl;
     
     if ( CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xml ) != S_OK )
@@ -93,6 +101,9 @@ transformer::apply_template( const char * xslfile, const char * xmlfile, const c
 bool
 transformer::apply_template( const char * xmlfile, const char * xslfile, QString& output )
 {
+    auto p = singleton::instance();
+    (void)p;
+
     MSXML2::IXMLDOMDocument3Ptr xml, xsl;
     
     auto hr = CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xml );

@@ -32,15 +32,14 @@ namespace adpublisher {
     namespace msxml {
 
         class transformer {
-            transformer();
-            static transformer * instance_;
         public:
+            transformer();
             ~transformer();
 
-            static transformer * instance();
-            
-            bool apply_template( const char * xsltfile, const char * xmlfile, const char * outfile );
-            bool apply_template( const char * xsltfile, const char * xmlfile, QString& );
+            static bool apply_template( const char * xsltfile, const char * xmlfile, const char * outfile );
+            static bool apply_template( const char * xsltfile, const char * xmlfile, QString& );
+        private:
+
         };
 
     }
