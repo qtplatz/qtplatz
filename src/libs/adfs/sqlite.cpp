@@ -35,6 +35,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
@@ -42,6 +43,9 @@
 #include <codecvt>
 
 namespace adfs {
+
+    struct bad_cast : virtual boost::exception, virtual std::bad_cast { };
+    typedef boost::error_info< struct tage_errmsg, std::string > error_info;
 
     struct Msg {
         char * p;
@@ -410,7 +414,10 @@ namespace adfs {
             return std::string( reinterpret_cast< const char * >(text) );
         } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
             return "";
-        BOOST_THROW_EXCEPTION( std::bad_cast() );
+
+        BOOST_THROW_EXCEPTION( adfs::bad_cast() <<
+                               error_info( ( boost::format("attempt to get string from %1% but was %2%")
+                                             % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
     template<> std::wstring stmt::get_column_value( int nCol ) const
@@ -420,7 +427,10 @@ namespace adfs {
             return adportable::utf::to_wstring( text );
         } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
             return L"";
-        BOOST_THROW_EXCEPTION( std::bad_cast() );
+
+        BOOST_THROW_EXCEPTION( adfs::bad_cast() <<
+                               error_info( ( boost::format("attempt to get string from %1% but was %2%")
+                                             % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
     template<> double stmt::get_column_value( int nCol ) const
@@ -429,7 +439,10 @@ namespace adfs {
             return sqlite3_column_double( stmt_, nCol );
         else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
             return 0;
-        BOOST_THROW_EXCEPTION( std::bad_cast() );
+
+        BOOST_THROW_EXCEPTION( adfs::bad_cast() <<
+                               error_info( ( boost::format("attempt to get string from %1% but was %2%")
+                                             % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
     template<> int64_t stmt::get_column_value( int nCol ) const
@@ -438,7 +451,10 @@ namespace adfs {
             return sqlite3_column_int64( stmt_, nCol );
         else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
             return 0;
-        BOOST_THROW_EXCEPTION( std::bad_cast() );
+
+        BOOST_THROW_EXCEPTION( adfs::bad_cast() <<
+                               error_info( ( boost::format("attempt to get string from %1% but was %2%")
+                                             % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
     template<> uint64_t stmt::get_column_value( int nCol ) const
@@ -447,7 +463,10 @@ namespace adfs {
             return sqlite3_column_int64( stmt_, nCol );
         else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
             return 0;
-        BOOST_THROW_EXCEPTION( std::bad_cast() );
+
+        BOOST_THROW_EXCEPTION( adfs::bad_cast() <<
+                               error_info( ( boost::format("attempt to get string from %1% but was %2%")
+                                             % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
     template<> blob stmt::get_column_value( int nCol ) const
@@ -459,7 +478,9 @@ namespace adfs {
         } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
             return blob();
 
-        BOOST_THROW_EXCEPTION( std::bad_cast() );
+        BOOST_THROW_EXCEPTION( adfs::bad_cast() <<
+                               error_info( ( boost::format("attempt to get string from %1% but was %2%")
+                                             % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
     template<> boost::uuids::uuid stmt::get_column_value( int nCol ) const
@@ -480,7 +501,9 @@ namespace adfs {
         } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
             return boost::uuids::uuid();
 
-        BOOST_THROW_EXCEPTION( std::bad_cast() );
+        BOOST_THROW_EXCEPTION( adfs::bad_cast() <<
+                               error_info( ( boost::format("attempt to get string from %1% but was %2%")
+                                             % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
 } /* namespace adfs */

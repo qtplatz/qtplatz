@@ -141,10 +141,8 @@ QuanProcessor::doCalibration( adfs::sqlite& db )
         return;
 
     int nLevels = qM->levels(); // must be 1 or larger
-    // int nReplicates = qM->replicates(); // must be 1 or larger
     adcontrols::QuanMethod::CalibEq eq = qM->equation();
     int order = qM->polynomialOrder(); // if CalibEq >= isCalibLinear, otherwise taking an average
-
 
     std::map< uint64_t, std::set< int > > levels;
 
