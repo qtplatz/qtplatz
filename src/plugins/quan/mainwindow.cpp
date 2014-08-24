@@ -459,6 +459,8 @@ MainWindow::handleSaveQuanMethod()
                                               , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
     if ( ! name.isEmpty() ) {
 
+        commit();
+
         boost::filesystem::path path( name.toStdWString() );
         QuanDocument::instance()->save( path, QuanDocument::instance()->method() );
 
@@ -511,6 +513,9 @@ MainWindow::handleSaveQuanSequence()
                                                  , QuanDocument::instance()->lastSequenceDir()
                                                  , tr( "Quan Sequence Files(*.qseq)" ) );
     if ( ! name.isEmpty() ) {
+
+        commit(); // commit all tabs
+
         boost::filesystem::path path( name.toStdWString() );
         QuanDocument::instance()->save( path, *QuanDocument::instance()->quanSequence(), true );
     }
