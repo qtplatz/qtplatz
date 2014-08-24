@@ -55,8 +55,10 @@
 #include <QStyledItemDelegate>
 #include <QDebug>
 
-#include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+
 #include <functional>
 #include <array>
 #include <thread>
@@ -89,11 +91,14 @@ namespace quan {
         public:
 
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+
                 QStyleOptionViewItem op( option );
                 painter->save();
+
                 std::string samp_type = index.model()->index( index.row(), c_sample_type, index.parent() ).data().toString().toStdString();
                 std::string data_type = index.model()->index( index.row(), c_data_type, index.parent() ).data().toString().toStdString();
                 size_t level = index.model()->index( index.row(), c_level, index.parent() ).data().toInt();
+
                 if ( data_type != "file" ) {  // "raw" | "spc"
                     if ( samp_type == "STD" ) {
                         if ( level <= 0 || level > levels_ )
@@ -106,8 +111,6 @@ namespace quan {
                 if ( index.column() == c_datafile ) {
                     op.textElideMode = Qt::ElideLeft;
                     QStyledItemDelegate::paint( painter, op, index );
-                    // auto align = Qt::AlignRight | Qt::AlignVCenter;
-                    // painter->drawText( op.rect, align, index.data().toString() );
                 } else
                     QStyledItemDelegate::paint( painter, op, index );
                 painter->restore();                
@@ -232,27 +235,15 @@ namespace quan {
 
         struct Infusion {
 
-            static void setRow( QStandardItemModel& model, int row, const QString& data_type, const QModelIndex& parent = QModelIndex(), int ch = 0 ) {
-                model.itemFromIndex( model.index( row, c_datafile, parent ) )->setEditable( false ); // not editable
-                model.setData( model.index( row, c_data_type, parent ), data_type );
-                model.itemFromIndex( model.index( row, c_data_type, parent ) )->setEditable( false );
-                model.setData( model.index( row, c_sample_type, parent ), "UNK" );
-                if ( data_type == "file" ) {
-                    model.itemFromIndex( model.index( row, c_process ) )->setEditable( false );
-                } else if ( data_type == "raw" ) {
-                    model.setData( model.index( row, c_process, parent ), Constants::cmbAvgAll );
-                    if ( parent != QModelIndex() )
-                        model.itemFromIndex( model.index( row, c_sample_type, parent ) )->setEditable( false );
-                    model.setData( model.index( row, c_channel, parent ), ch );
-                } else if ( data_type == "spc" ) {
-                    model.setData( model.index( row, c_process, parent ), "AS IS" );
-                }
-                if ( model.index( row, c_sample_type, parent ).data().toString() == "STD" )
-                    model.setData( model.index( row, c_level, parent ), 1 ); // level
-                else {
-                    model.setData( model.index( row, c_level, parent ), 0 ); // level = 0 for UNK/QC/BLANK; and not editable
-                    model.itemFromIndex( model.index( row, c_level, parent ) )->setEditable( false );
-                }
+            static void setFileRow( QStandardItemModel& model, int row, const QString& dataSource ) {
+
+                model.setData( model.index( row, c_datafile ), dataSource );
+                model.itemFromIndex( model.index( row, c_datafile ) )->setEditable( false ); // not editable
+
+                model.setData( model.index( row, c_data_type ), "file" );
+                model.itemFromIndex( model.index( row, c_data_type ) )->setEditable( false );
+
+                model.setData( model.index( row, c_sample_type ), "UNK" ); // UNK as default value
             }
 
             static void setRow( QStandardItemModel& model
@@ -268,6 +259,8 @@ namespace quan {
                 // data_type
                 model.setData( model.index( row, c_data_type, parent ), QString::fromStdWString( sample.dataType() ) );
                 model.itemFromIndex( model.index( row, c_data_type, parent ) )->setEditable( false );
+
+                model.setData( model.index( row, c_description, parent ), QString::fromStdWString( sample.description() ) );
 
                 QString sample_type_string = "?";
                 switch ( sample.sampleType() ) {
@@ -369,7 +362,6 @@ DataSequenceTree::handleData( int row )
     } while(0);
 
     if ( data ) {
-        Infusion::setRow( model, row, "file" ); 
         setRaw( data, model.itemFromIndex( model.index( row, 0 ) ) );
         setProcessed( data, model.itemFromIndex( model.index( row, 0 ) ) );
     }
@@ -442,6 +434,7 @@ DataSequenceTree::dropIt( const std::wstring& path )
     if ( it == dataSubscribers_.end() ) {
         model.insertRow( row );
         model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
+        model.setData( model.index( row, c_data_type ), "file" );
         ++dropCount_;
         threads_.push_back( std::thread( [reader] (){ reader->open(); } ) );
     }
@@ -497,33 +490,39 @@ DataSequenceTree::dropEvent( QDropEvent * event )
     }
 }
 
-size_t // row count
+void
 DataSequenceTree::setRaw( dataSubscriber * data, QStandardItem * parent )
 {
     QStandardItemModel& model = *model_;    
     if ( data ) {
+
         if ( auto raw = data->raw() ) {
+
             int n = int( raw->getFunctionCount() );
             parent->setRowCount( n );
             parent->setColumnCount( number_of_columns );
 
             for ( int fcn = 0; fcn < n; ++fcn ) {
                 model.setData( model.index( fcn, c_datafile, parent->index() ),  QString( "Fcn# %1" ).arg( fcn + 1 ), Qt::EditRole );
-                Infusion::setRow( model, fcn, "raw", parent->index(), fcn + 1 );
-            }
-            
-            if ( data->ms() ) {
-                adcontrols::segment_wrapper<> segs( *data->ms() );
-                int fcn = 0;
-                for ( auto& fms : segs ) {
-                    std::wstring desc = fms.getDescriptions().toString();
-                    model.setData( model.index( fcn++, c_description, parent->index() ), QString::fromStdWString( desc ), Qt::EditRole );
+
+                adcontrols::QuanSample sample;
+                sample.name( ( boost::wformat( L"Fcn# %1%" ) % (fcn + 1) ).str().c_str() ); // --> c_datafile as 'Fcn# 1'
+                sample.channel( fcn + 1 );  // signal channel 
+                sample.dataType( L"raw" );
+                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
+                sample.scan_range( 0, -1 );
+
+                if ( data->ms() ) {
+                    adcontrols::segment_wrapper<> segs( *data->ms() );
+                    std::wstring desc = segs[ fcn ].getDescriptions().toString();
+                    sample.description( desc.c_str() );
                 }
+                Infusion::setRow( model, fcn, sample, parent->index() );
+                // Infusion::setRow( model, fcn, "raw", parent->index(), fcn + 1 );
             }
-            return n;
         }
     }
-    return 0;
+
 }
 
 size_t
@@ -541,13 +540,21 @@ DataSequenceTree::setProcessed( dataSubscriber * data, QStandardItem * parent )
                 if ( folder.name() == L"Spectra" ) {
 
                     int row = parent->rowCount();
+
                     if ( ( rowCount = folder.folio().size() ) ) {
+
                         parent->setRowCount( int( rowCount + row ) );
                         parent->setColumnCount( number_of_columns );
 
                         for ( auto& folium : folder.folio() ) {
-                            model.setData( model.index( row, 0, parent->index() ), QString::fromStdWString( folium.name() ), Qt::EditRole );
-                            Infusion::setRow( model, row, "spc", parent->index() );
+
+                            adcontrols::QuanSample sample;
+
+                            sample.name( folium.name().c_str() );
+                            sample.dataType( L"spc" );
+
+                            Infusion::setRow( model, row, sample, parent->index() );
+
                             ++row;
                         }
                     }
@@ -641,8 +648,7 @@ DataSequenceTree::setContents( const adcontrols::QuanSequence& seq )
             files[ sample.dataSource() ] = row;
             
             model.insertRow( row );
-            model.setData( model.index( row, c_datafile ), QString::fromStdWString( sample.dataSource() ) );
-            Infusion::setRow( model, row, "file" );
+            Infusion::setFileRow( model, row, QString::fromStdWString( sample.dataSource() ) );
         }
         int row = files[ sample.dataSource() ];
         if ( auto parent = model.itemFromIndex( model.index( row, c_datafile ) ) ) {

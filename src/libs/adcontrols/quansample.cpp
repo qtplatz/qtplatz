@@ -71,6 +71,7 @@ QuanSample::QuanSample( const QuanSample& t )
     , dataGeneration_( t.dataGeneration_ )
     , scan_range_( t.scan_range_ )
     , channel_( t.channel_ )
+    , description_( t.description_ )
 {
 }
 
@@ -83,7 +84,7 @@ QuanSample::name() const
 void
 QuanSample::name( const wchar_t * v )
 {
-    name_ = v;
+    name_ = v ? v : L"";
 }
 
 const wchar_t *
@@ -95,7 +96,7 @@ QuanSample::dataSource() const
 void
 QuanSample::dataSource( const wchar_t * v )
 {
-    dataSource_ = v;
+    dataSource_ = v ? v : L"";
 }
 
 
@@ -108,9 +109,20 @@ QuanSample::dataGuid() const
 void
 QuanSample::dataGuid( const wchar_t * v )
 {
-    dataGuid_ = v;
+    dataGuid_ = v ? v : L"";
 }
 
+const wchar_t *
+QuanSample::description() const
+{
+    return description_.c_str();
+}
+
+void
+QuanSample::description( const wchar_t * v )
+{
+    description_ =  v ? v : L"";
+}
 
 QuanSample::QuanSampleType
 QuanSample::sampleType() const

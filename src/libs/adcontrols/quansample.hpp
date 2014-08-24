@@ -103,6 +103,9 @@ namespace adcontrols {
         const wchar_t * dataGuid() const;
         void dataGuid( const wchar_t * );
 
+        const wchar_t * description() const;
+        void description( const wchar_t * );
+
         const wchar_t * dataType() const { return dataType_.c_str(); }
         void dataType( const wchar_t * v ) { dataType_ = v; }
 
@@ -164,9 +167,10 @@ namespace adcontrols {
         QuanDataGeneration dataGeneration_;
         std::pair<int32_t,int32_t> scan_range_; // 0 := first spectrum, 1 := second spectrum, -1 := last spectrum
         int32_t channel_;                       // quan protocol id (channel
+        std::wstring description_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( uuid_ )
                 & BOOST_SERIALIZATION_NVP( sequence_uuid_ )
@@ -186,12 +190,14 @@ namespace adcontrols {
                 & BOOST_SERIALIZATION_NVP( channel_ )
                 & BOOST_SERIALIZATION_NVP( results_ )
                 ;
+            if ( version >= 2 )
+                ar & BOOST_SERIALIZATION_NVP( description_ );
         }
     };
     typedef std::shared_ptr<QuanSample> QuanSamplePtr;   
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanSample, 1 )
+BOOST_CLASS_VERSION( adcontrols::QuanSample, 2 )
 BOOST_CLASS_VERSION( adcontrols::quan::ISTD, 1 )
 
 #endif // QUANSAMPLE_HPP

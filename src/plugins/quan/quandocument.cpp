@@ -45,7 +45,6 @@
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/profile.hpp>
 #include <adpublisher/document.hpp>
-//#include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <boost/filesystem/path.hpp>
@@ -187,8 +186,12 @@ QuanDocument::save_default_methods()
             return false;
         }
     }
-    boost::filesystem::path filepath( dir / L"quanmethod.xml" );
-    return detail::method_writer<QuanMethodComplex>( "QuanMethodComplex" )( filepath, *method_ );
+
+    bool a = detail::method_writer<adcontrols::QuanSequence>( "QuanSequence" )( dir / L"QuanSequence.xml", *quanSequence_ );
+
+    bool b = detail::method_writer<QuanMethodComplex>( "QuanMethodComplex" )( dir / L"QuanMethod.xml", *method_ );
+
+    return a && b;
 }
 
 bool
@@ -205,7 +208,7 @@ QuanDocument::load_default_methods()
     // recovery from backup
     if ( dirty_flags_[ idMethodComplex ] ) {
         boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
-        boost::filesystem::path backup = dir / L"quanmethod.xml";
+        boost::filesystem::path backup = dir / L"QuanMethod.xml";
         if ( boost::filesystem::exists( backup ) && detail::method_reader<QuanMethodComplex>()(backup, *method_) )
             dirty_flags_[ idMethodComplex ] = false;
         // don't update filename
@@ -222,7 +225,7 @@ QuanDocument::load_default_methods()
     // recovery from backup
     if ( dirty_flags_[ idQuanSequence ] ) {
         boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
-        boost::filesystem::path backup = dir / L"quansequence.xml";
+        boost::filesystem::path backup = dir / L"QuanSequence.xml";
         if ( boost::filesystem::exists( backup ) && load( backup, *quanSequence_ ) ) {
             dirty_flags_[ idQuanSequence ] = false;
             // stay with original filename
@@ -661,7 +664,7 @@ QuanDocument::addRecentFiles( const QString& group, const QString& key, const QS
     settings_->setArrayIndex( 0 );
     settings_->setValue( "File", QString::fromStdWString( path.generic_wstring() ) );
     for ( size_t i = 0; i < list.size() && i < 7; ++i ) {
-        settings_->setArrayIndex( i + 1 );
+        settings_->setArrayIndex( int(i + 1) );
         settings_->setValue( "File", list[ i ] );
     }
     settings_->endArray();
