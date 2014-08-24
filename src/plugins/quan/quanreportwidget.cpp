@@ -223,11 +223,31 @@ QuanReportWidget::filePublish()
     Core::ProgressManager::addTask( progress.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
     
     if ( auto publisher = QuanDocument::instance()->publisher() ) {
-        
-        auto conn = QuanDocument::instance()->connection();
-        (*publisher)( conn, progress );
 
-        publisher->appendTraceData( progress );
+        try {
+
+            auto conn = QuanDocument::instance()->connection();
+            (*publisher)( conn, progress );
+
+        } catch ( boost::exception& ex ) {
+            QMessageBox::information( this, "QuanReportWidget", ( boost::diagnostic_information( ex ) + "(1)").c_str() );
+            return;
+        } catch ( ... ) {
+            QMessageBox::information( this, "QuanReportWidget", ( boost::current_exception_diagnostic_information() + "(2)").c_str() );
+            return;
+        }
+
+        try {
+
+            publisher->appendTraceData( progress );
+
+        } catch ( boost::exception& ex ) {
+            QMessageBox::information( this, "QuanReportWidget", ( boost::diagnostic_information( ex ) + "(3)").c_str() );
+            return;
+        } catch ( ... ) {
+            QMessageBox::information( this, "QuanReportWidget", ( boost::current_exception_diagnostic_information() + "(4)").c_str() );
+            return;
+        }
 
         const QString apppath = QCoreApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // sibling of /translations
         boost::filesystem::path xsltpath = boost::filesystem::path( apppath.toStdWString() ).normalize();
