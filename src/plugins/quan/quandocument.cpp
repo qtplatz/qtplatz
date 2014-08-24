@@ -330,26 +330,28 @@ QuanDocument::save( const boost::filesystem::path& filepath, const QuanMethodCom
     } else {
         adfs::filesystem fs;
         try {
+
             if ( !fs.create( filepath.wstring().c_str() ) )
                 return false;
-        } catch ( adfs::exception& ex ) {
-            QMessageBox::warning( 0, tr( "Save Quan Method" ), QString( ex.message.c_str() ) );
-            return false;
-        }
-        auto folder = fs.addFolder( L"/QuanMethod" );
-        auto file = folder.addFile( boost::lexical_cast<std::wstring>(m.ident().uuid()).c_str() );
-        file.dataClass( m.dataClass() );
-        try {
-            if ( file.save<QuanMethodComplex>( m, [] ( std::ostream& os, const QuanMethodComplex& t ){
-                        portable_binary_oarchive ar( os );
-                        ar << t;
-                        return true;
-                    } ) ) {
-                settings_->setValue( "MethodFiles/Files", QString::fromStdWString( filepath.wstring() ) );
-                return true;
+
+            if ( auto folder = fs.addFolder( L"/QuanMethod" ) ) {
+                auto file = folder.addFile( boost::lexical_cast<std::wstring>(m.ident().uuid()).c_str() );
+                file.dataClass( m.dataClass() );
+
+                if ( file.save<QuanMethodComplex>( m, [] ( std::ostream& os, const QuanMethodComplex& t ){
+                            portable_binary_oarchive ar( os );
+                            ar << t;
+                            return true;
+                        } ) ) {
+                
+                    settings_->setValue( "MethodFiles/Files", QString::fromStdWString( filepath.wstring() ) );
+                    return true;
+                }
             }
-        } catch ( std::exception& ex ) {
-            QMessageBox::warning( 0, tr( "Save Quan Method" ), boost::diagnostic_information( ex ).c_str() );
+
+        }
+        catch ( adfs::exception& ex ) {
+            QMessageBox::warning( 0, tr( "Save Quan Method" ), QString( ex.message.c_str() ) );
         }
     }
     return false;
@@ -371,17 +373,22 @@ QuanDocument::load( const boost::filesystem::path& filepath, QuanMethodComplex& 
         adfs::filesystem fs;
         if ( !fs.mount( filepath.wstring().c_str() ) )
             return false;
+
         auto folder = fs.findFolder( L"/QuanMethod" );
         auto files = folder.files();
         auto file = files.back();
+
         try {
+
             if ( !file.fetch( m ) ) 
                 return false;
+
         } catch ( std::exception& ex ) {
             QMessageBox::warning( 0, tr("Quan loading method file"), boost::diagnostic_information( ex ).c_str() );
             return false;
         }
     }
+
     boost::filesystem::path normalized( filepath );
     m.setFilename( normalized.wstring().c_str() );
     addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_REFERENCE, QString::fromStdWString( normalized.normalize().wstring() ) );
@@ -417,9 +424,6 @@ QuanDocument::run()
 
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
 
-        // adwidgets::ProgressWnd::instance()->show();
-        // adwidgets::ProgressWnd::instance()->raise();
-        
         if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
 
             if ( writer->open() ) {

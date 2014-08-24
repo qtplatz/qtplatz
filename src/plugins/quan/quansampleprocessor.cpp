@@ -396,6 +396,9 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
                         pPkInfo = p;
                     }
                 }
+
+                std::lock_guard<std::mutex> lock( mutex_ );
+
                 adfs::file file = writer->write( *pProfile, sample.name() );
                 if ( pFiltered )
                     writer->attach<adcontrols::MassSpectrum>( file, *pFiltered, dataproc::Constants::F_DFT_FILTERD );
