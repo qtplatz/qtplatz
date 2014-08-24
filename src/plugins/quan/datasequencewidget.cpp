@@ -112,7 +112,7 @@ DataSequenceWidget::dataSelectionBar()
         toolBarLayout->addWidget( new Utils::StyledSeparator );
 
         auto button = new QToolButton;
-        button->setIcon( QIcon( ":/quan/images/mode_project@2x.png" ) );
+        button->setIcon( QIcon( ":/quan/images/build_32.png" ) );
         button->setToolTip( tr("Open data files...") );
         toolBarLayout->addWidget( button );
 
