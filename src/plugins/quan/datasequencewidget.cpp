@@ -41,6 +41,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
 #include <boost/format.hpp>
+#include <QAction>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -94,38 +95,40 @@ DataSequenceWidget::dataSelectionBar()
 
         auto label = new QLabel;
         // label->setStyleSheet( "QLabel { color : blue; }" );
-        label->setText( "Open data files" );
+        label->setText( " Sequence" );
         toolBarLayout->addWidget( label );
 
+        if ( auto button = new QToolButton ) {
+            button->setDefaultAction( Core::ActionManager::instance()->command( Constants::QUAN_SEQUENCE_OPEN )->action() );
+            button->setToolTip( tr("Open Sequence...") );
+            toolBarLayout->addWidget( button );
+        }
+        if ( auto button = new QToolButton ) {
+            button->setDefaultAction( Core::ActionManager::instance()->command( Constants::QUAN_SEQUENCE_SAVE )->action() );
+            button->setToolTip( tr("Save Sequence...") );
+            toolBarLayout->addWidget( button );
+        }
+
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+
         auto button = new QToolButton;
-        button->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
-        button->setToolTip( tr("Open data file...") );
+        button->setIcon( QIcon( ":/quan/images/mode_project@2x.png" ) );
+        button->setToolTip( tr("Open data files...") );
         toolBarLayout->addWidget( button );
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
 
         auto label2 = new QLabel;
-        label2->setText( "Data save in:" );
+        label2->setText( "Data Save in:" );
         toolBarLayout->addWidget( label2 );
-
-        auto toolButton = new QToolButton;
-        toolButton->setIcon( QIcon( ":/quan/images/filesave.png" ) );
-        toolButton->setToolTip( tr("Set result file name...") );
-        toolBarLayout->addWidget( toolButton );
 
         auto edit = new QLineEdit;
         edit->setObjectName( Constants::editOutfile );
         toolBarLayout->addWidget( edit );
-        // do { // insert default result file
-        //     boost::filesystem::path path( adportable::profile::user_data_dir< wchar_t >() + L"/data" );
-        //     path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
-        //     boost::filesystem::path name = path += "_quan.adfs";
-        //     int i = 1;
-        //     while ( boost::filesystem::exists( name ) )
-        //         name = (boost::wformat( L"%s_%d_quan.adfs" ) % path.wstring() % i++).str();
-        //     edit->setText( QString::fromStdWString( path.wstring() ) );
-        //     // edit->setEnabled( false );
-        // } while(0);
+        
+        edit->setClearButtonEnabled( true );
+        auto icon = QIcon( ":/quan/images/filesave.png" );
+        QAction * tgtFileAction = edit->addAction( icon, QLineEdit::ActionPosition::TrailingPosition );
 
         if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
 
@@ -158,7 +161,7 @@ DataSequenceWidget::dataSelectionBar()
             } );
 
         // target file 'data save in'
-        connect( toolButton, &QToolButton::clicked, this, [this] ( bool ){
+        connect( tgtFileAction, &QAction::triggered, this, [this] (){
                 QString dstfile;
                 if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
                     dstfile = edit->text();
@@ -166,11 +169,15 @@ DataSequenceWidget::dataSelectionBar()
                         boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
                         dstfile = QString::fromStdWString( (dir / L"data").wstring() );
                     }
-                    
-                    QString name = QFileDialog::getSaveFileName( this, "Data save in", dstfile, tr( "Quan result (*.adfs)" ) );
-                    if ( !name.isEmpty() ) {
-                        if ( auto edit = findChild< QLineEdit *>( Constants::editOutfile ) ) 
-                            edit->setText( name );
+                    try {
+                        QString name = QFileDialog::getSaveFileName( this, "Data save in", dstfile, tr( "Quan result (*.adfs)" ) );
+                        if ( !name.isEmpty() ) {
+                            if ( auto edit = findChild< QLineEdit *>( Constants::editOutfile ) )
+                                edit->setText( name );
+                        }
+                    }
+                    catch ( ... ) {
+                        QMessageBox::information( this, "Quan/DataSequence Edit", "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again." );
                     }
                 }
             } );

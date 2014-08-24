@@ -35,7 +35,7 @@ class QStandardItemModel;
 class QStandardItem;
 class QModelIndex;
 
-namespace adcontrols { class datafile; class QuanSequence; }
+namespace adcontrols { class datafile; class QuanSequence; class QuanSample; }
 
 namespace quan {
 
@@ -72,8 +72,9 @@ namespace quan {
         std::atomic< size_t > dropCount_;
 
         void handleData( int row );
-        size_t setRaw( datasequencetree::dataSubscriber *, QStandardItem * );
+        void setRaw( datasequencetree::dataSubscriber *, QStandardItem * );
         size_t setProcessed( datasequencetree::dataSubscriber *, QStandardItem * );
+        
 
     signals:
         void onJoin( int row );
