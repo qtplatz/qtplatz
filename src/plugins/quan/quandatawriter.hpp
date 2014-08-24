@@ -71,7 +71,6 @@ namespace quan {
         }
 
     private:
-        std::mutex mutex_;
         std::wstring path_;
         adfs::filesystem fs_;
         std::string uuidQuanCompound_;

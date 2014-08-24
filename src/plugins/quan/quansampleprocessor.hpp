@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <mutex>
 
 namespace adcontrols {
     class datafile;
@@ -76,6 +77,7 @@ namespace quan {
         size_t nSpectra_;
         int progress_total_;
         int progress_current_;
+        std::mutex mutex_;
 
         void open();
         bool subscribe( const adcontrols::LCMSDataset& d ) override;

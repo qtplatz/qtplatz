@@ -29,6 +29,7 @@
 #include <memory>
 #include <cstdint>
 #include <vector>
+#include <mutex>
 
 namespace adfs {
 
@@ -39,6 +40,7 @@ namespace adfs {
     class filesystem {
         std::shared_ptr< adfs::sqlite > db_;
         int format_version_;
+        std::mutex mutex_;
     public:
         ~filesystem();
         filesystem();

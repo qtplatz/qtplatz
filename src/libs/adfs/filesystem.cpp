@@ -115,6 +115,7 @@ filesystem::mount( const wchar_t * filename )
 folder
 filesystem::addFolder( const std::wstring& name, bool recursive )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
     return internal::fs::add_folder( *db_, name, recursive );
 }
 
