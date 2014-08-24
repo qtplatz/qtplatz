@@ -83,7 +83,7 @@
 #include <QPushButton>
 #include <QSplitter>
 
-enum { debugEditorManager=1 };
+enum { debugEditorManager=0 };
 
 static const char kCurrentDocumentPrefix[] = "CurrentDocument";
 static const char kCurrentDocumentXPos[] = "CurrentDocument:XPos";
