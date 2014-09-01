@@ -26,7 +26,6 @@
 #include "compoundstable.hpp"
 #include "quandocument.hpp"
 #include "quanconstants.hpp"
-#include "quanmethodcomplex.hpp"
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adportable/profile.hpp>
