@@ -46,6 +46,7 @@
 #include <adcontrols/spectrogram.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adcontrols/quansample.hpp>
 #include <boost/exception/all.hpp>
 
 using namespace adutils;

@@ -49,6 +49,7 @@
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quanresponse.hpp>
+#include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform.hpp>

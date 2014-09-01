@@ -26,19 +26,14 @@
 #define QUANCOMPOUND_HPP
 
 #include "adcontrols_global.h"
-#include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp>
-#include <compiler/deprecated_register.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <array>
-#include <string>
-#include <vector>
 #include <cstdint>
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_dll_interface.h>
+#include <memory>
+
+namespace boost { 
+    namespace uuids { struct uuid; }
+    namespace serialization { class access; }
+}
 
 namespace adcontrols {
 
@@ -48,10 +43,11 @@ namespace adcontrols {
         ~QuanCompound();
         QuanCompound();
         QuanCompound( const QuanCompound& );
+        QuanCompound& operator = ( const QuanCompound& );
 
         static QuanCompound null(); // null compound reference for not identifid;
 
-        const boost::uuids::uuid& uuid() const { return uuid_; } // 'refCmpd'
+        const boost::uuids::uuid& uuid() const;
         uint32_t row() const;
         void row( uint32_t );
 
@@ -71,53 +67,29 @@ namespace adcontrols {
         size_t levels() const;
         const double * amounts() const;
         void amounts( const double *, size_t size );
-        double mass() const { return mass_; }
-        void mass( double v ) { mass_ = v; }
-        double tR() const { return tR_; }
-        void tR( double v ) { tR_ = v; };
+        double mass() const;
+        void mass( double v );
+        double tR() const;
+        void tR( double v );
         const wchar_t * description() const;
         void description( const wchar_t * );
         double criteria( bool second = false ) const;
         void criteria( double v, bool second = false );
 
     private:
-        boost::uuids::uuid uuid_;
-        int32_t row_;                    // row# in Compounds, useful for report order by 'row'
-        std::wstring display_name_;
-        std::string formula_;
-        std::vector< double > amounts_;  // added amounts[ level ]
-        std::wstring description_;
-        double tR_;
-        double mass_;
-        bool isISTD_;     // am I an internal standard?
-        bool isLKMSRef_;
-        bool isTimeRef_;
-        int32_t idISTD_;  // index for internal standad (referenced from non-istd
-        std::pair< double, double > criteria_;  // pass/fail criteria
+
+#   if  defined _MSC_VER
+#   pragma warning(disable:4251)
+#   endif
+        class impl;
+        std::unique_ptr< impl > impl_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( uuid_ );
-            ar & BOOST_SERIALIZATION_NVP( row_ );
-            ar & BOOST_SERIALIZATION_NVP( formula_ );
-            ar & BOOST_SERIALIZATION_NVP( display_name_ );
-            ar & BOOST_SERIALIZATION_NVP( amounts_ );
-            ar & BOOST_SERIALIZATION_NVP( description_ );
-            ar & BOOST_SERIALIZATION_NVP( isISTD_ );
-            ar & BOOST_SERIALIZATION_NVP( isLKMSRef_ );
-            ar & BOOST_SERIALIZATION_NVP( isTimeRef_ );
-            ar & BOOST_SERIALIZATION_NVP( idISTD_ );
-            ar & BOOST_SERIALIZATION_NVP( tR_ );
-            ar & BOOST_SERIALIZATION_NVP( mass_ );
-            ar & BOOST_SERIALIZATION_NVP( criteria_ );
-        }
+        template<class Archive> void serialize( Archive& ar, const unsigned int );
     };
 
 }
 
-#include <compiler/diagnostic_pop.h>
-
-BOOST_CLASS_VERSION( adcontrols::QuanCompound, 1 )
+BOOST_CLASS_VERSION( adcontrols::QuanCompound, 2 )
 
 #endif // QUANCOMPOUND_HPP

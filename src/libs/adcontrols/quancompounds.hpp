@@ -33,11 +33,11 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
-#include <string>
-#include <vector>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
+#include <string>
+#include <vector>
 
 namespace adcontrols {
 
@@ -50,37 +50,42 @@ namespace adcontrols {
         ~QuanCompounds();
         QuanCompounds();
         QuanCompounds( const QuanCompounds& );
+        QuanCompounds& operator = ( const QuanCompounds& );
         
         typedef QuanCompound value_type;
         typedef std::vector< value_type > vector_type;
-        typedef std::vector< QuanCompound >::iterator iterator_type;
+        typedef std::vector< QuanCompound >::iterator iterator;
+        typedef std::vector< QuanCompound >::const_iterator const_iterator;
         
-        std::vector< QuanCompound >::iterator begin() { return compounds_.begin(); }
-        std::vector< QuanCompound >::iterator end() { return compounds_.end(); }
-        std::vector< QuanCompound >::const_iterator begin() const { return compounds_.begin(); }
-        std::vector< QuanCompound >::const_iterator end() const { return compounds_.end(); }
-        void clear() { compounds_.clear(); }
-        size_t size() const { return compounds_.size(); }
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
+        void clear();
+        size_t size() const;
         QuanCompounds& operator << ( const QuanCompound& t );
 
-        const idAudit& ident() const { return ident_; }
+        const idAudit& ident() const;
         const boost::uuids::uuid& uuid() const;
 
+        static bool xml_archive( std::wostream& ostream, const QuanCompounds& );
+        static bool xml_restore( std::wistream& istream, QuanCompounds& );
+
     private:
-        idAudit ident_;
-        std::vector< QuanCompound > compounds_;
+
+#   if  defined _MSC_VER
+#   pragma warning(disable:4251)
+#   endif
+
+        class impl;
+        std::unique_ptr< impl > impl_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( ident_ );
-            ar & BOOST_SERIALIZATION_NVP( compounds_ );
-        }
+        template<class Archive> void serialize( Archive& ar, const unsigned int );
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanCompounds, 1 )
-
+BOOST_CLASS_VERSION( adcontrols::QuanCompounds, 2 )
 
 #endif // QUANCOMPOUNDS_HPP

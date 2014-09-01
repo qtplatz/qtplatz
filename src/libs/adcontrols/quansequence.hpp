@@ -26,21 +26,21 @@
 #define QUANSEQUENCE_HPP
 
 #include "adcontrols_global.h"
-#include "quansample.hpp"
-#include "idaudit.hpp"
-#include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/uuid/uuid_serialize.hpp>
 #include <cstdint>
 #include <memory>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <vector>
+
+namespace boost { 
+    namespace uuids { struct uuid; }
+    namespace serialization { class access; }
+}
+
 
 namespace adcontrols {
 
-#if defined _MSC_VER
-    template class ADCONTROLSSHARED_EXPORT std::vector < QuanSample > ;
-#endif
+    class QuanSample;
+    class idAudit;
 
     class ADCONTROLSSHARED_EXPORT QuanSequence  {
     public:
@@ -52,24 +52,25 @@ namespace adcontrols {
 
         typedef QuanSample value_type;
         typedef std::vector< value_type > vector_type;
-        typedef std::vector< QuanSample >::iterator iterator_type;
+        typedef std::vector< QuanSample >::iterator iterator;
+        typedef std::vector< QuanSample >::const_iterator const_iterator;
         
-        std::vector< QuanSample >::iterator begin() { return samples_.begin(); }
-        std::vector< QuanSample >::iterator end() { return samples_.end(); }
-        std::vector< QuanSample >::const_iterator begin() const { return samples_.begin(); }
-        std::vector< QuanSample >::const_iterator end() const { return samples_.end(); }
-        size_t size() const { return samples_.size(); }
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
+        size_t size() const;
         QuanSequence& operator << ( const QuanSample& t );
 
-        const boost::uuids::uuid& uuid() const { return ident_.uuid(); }
+        const boost::uuids::uuid& uuid() const;
 
-        const idAudit& ident() const { return ident_; }
+        const idAudit& ident() const;
 
-        const wchar_t * outfile() const { return outfile_.c_str(); }
-        void outfile( const wchar_t * file ) { outfile_ = file; }
+        const wchar_t * outfile() const;
+        void outfile( const wchar_t * file );
 
-        const wchar_t * filename() const { return filename_.c_str(); }
-        void filename( const wchar_t * file ) { filename_ = file; }
+        const wchar_t * filename() const;
+        void filename( const wchar_t * file );
 
         static bool archive( std::ostream&, const QuanSequence& );
         static bool restore( std::istream&, QuanSequence& );
@@ -77,27 +78,21 @@ namespace adcontrols {
         static bool xml_restore( std::wistream&, QuanSequence& );
 
     private:
-        idAudit ident_;
-        std::vector< QuanSample > samples_;
-        std::wstring outfile_;
-        std::wstring filename_;
+
+#   if  defined _MSC_VER
+#   pragma warning(disable:4251)
+#   endif
+        class impl;
+        std::unique_ptr< impl > impl_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( ident_ )
-                & BOOST_SERIALIZATION_NVP( samples_ )
-                & BOOST_SERIALIZATION_NVP( outfile_ )
-                ;
-            if ( version >= 1 )
-                ar & BOOST_SERIALIZATION_NVP( filename_ );
-        }
-
+        template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
+
     typedef std::shared_ptr<QuanSequence> QuanSequencePtr;   
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanSequence, 1 )
+BOOST_CLASS_VERSION( adcontrols::QuanSequence, 2 )
 
 #endif // QUANSEQUENCE_HPP
