@@ -1280,12 +1280,10 @@ Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResu
     }
 
     // for debugging convension
-    std::wstring xml;
-    if ( adportable::xml_serializer< adcontrols::MSCalibrateResult >::serialize( calibResult, xml ) ) {
-        fname.replace_extension( ".msclb.xml" );
-        std::wofstream of( fname.string() );
-        of << xml;
-    }
+    //if ( adportable::xml_serializer< adcontrols::MSCalibrateResult >::serialize( calibResult, xml ) ) {
+    fname.replace_extension( ".msclb.xml" );
+    std::wofstream of( fname.string() );
+    adportable::xml::serialize<>()(calibResult, of);
 
     return true;
 }

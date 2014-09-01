@@ -34,34 +34,106 @@
 
 namespace adportable {
 
-    template<class T> class xml_serializer {
-    public:
-        static bool serialize( const T& data, std::wstring& ar ) {
-            boost::iostreams::back_insert_device< std::wstring > inserter( ar );
-            boost::iostreams::stream< boost::iostreams::back_insert_device< std::wstring > > device( inserter );
-            boost::archive::xml_woarchive oa( device );
-            oa << boost::serialization::make_nvp("xml_serializer", data);
-            device.flush();
-            return true;
-        }
+    namespace xml {
 
-        static bool deserialize( T& data, const wchar_t * s, std::size_t size ) {
-            boost::iostreams::basic_array_source< wchar_t > device( s, size );
-            boost::iostreams::stream< boost::iostreams::basic_array_source< wchar_t > > st( device );
-            boost::archive::xml_wiarchive ia( st );
-            ia >> boost::serialization::make_nvp( "xml_serializer", data );
-            return true;
-        }
+        template<typename, typename>
+        struct has_archive;
 
-    };
+        template<typename T, typename Ret, typename... Args>
+        struct has_archive<T, Ret(Args...)> {
+            template<typename U, U> struct SFINAE;
+            template<typename U> static std::true_type test( SFINAE<Ret(*)(Args...), &U::xml_archive>* ); // check 'static' mem_fun
+            template<typename U> static std::false_type test(...);
+            static const bool value = decltype(test<T>(0))::value;
+        };
 
-    struct make_xmlstring {
-    public:
-        template<class T> bool operator()( const T& data, std::wstring& ar ) const {
-            ar.clear();
-            return xml_serializer<T>::serialize( data, ar );
-        }
-    };
+        template<typename, typename>
+        struct has_restore;
 
+        template<typename T, typename Ret, typename... Args>
+        struct has_restore<T, Ret(Args...)> {
+            template<typename U, U> struct SFINAE;
+            template<typename U> static std::true_type test( SFINAE<Ret(*)(Args...), &U::xml_restore>* ); // check 'static' mem_fun
+            template<typename U> static std::false_type test(...);
+            static const bool value = decltype(test<T>(0))::value;
+        };
+
+        template<class T> class archive_functor {
+            std::wostream& os_;
+        public:
+            archive_functor( std::wostream& os ) : os_( os ){}
+            void operator & ( const T& t ) { T::xml_archive( os_, t ); }        
+        };
+
+        template<class T> class restore_functor {
+            std::wistream& is_;
+        public:
+            restore_functor( std::wistream& is ) : is_( is ){}
+            void operator & ( T& t ) { T::xml_restore( is_, t ); }
+        };
+
+        template<bool b> struct nvp_functor {
+            template<class T> inline const boost::serialization::nvp< T > operator()( T& data ) const {
+                return boost::serialization::nvp<T>( "data", data );
+            }
+        };
+        template<> struct nvp_functor<true> {
+            template<typename T> const T& operator()( const T& data ) const {
+                return data;
+            }
+            template<typename T> T& operator()( T& data ) const {
+                return data;
+            }
+        };
+
+        //------------------------------------------
+        template<bool, class Archiver, class Functor> struct IF { typedef Archiver type; };
+        template<class Archiver, class Functor> struct IF<true, Archiver, Functor> { typedef Functor type; };
+
+        //-------------------- serialize ------------------------
+        template<class Archiver = boost::archive::xml_woarchive> class serialize {
+        public:
+            template<class T> bool operator()( const T& data, std::wostream& output ) const {
+
+                typename IF< has_archive<T, bool( std::wostream&, const T& )>::value, Archiver, archive_functor<T> >::type ar( output );
+
+                ar & nvp_functor< has_archive<T, bool( std::wostream&, const T& )>::value >()( data );
+
+                output.flush();
+                return true;
+            }
+
+            template<class T> bool operator()( const T& data, std::wstring& output ) const {
+
+                boost::iostreams::back_insert_device< std::wstring > inserter( output );
+                boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+
+                typename IF< has_archive<T, bool( std::wostream&, const T& )>::value, Archiver, restore_functor<T> >::type ar( output );
+
+                ar & nvp_functor< has_archive<T, bool( std::wostream&, const T& )>::value >()( data );
+
+                device.flush();
+                return true;
+            }
+        };
+
+        //-------------------- deserialize ------------------------
+        template<class Archiver = boost::archive::xml_wiarchive> class deserialize {
+        public:
+
+            template<class T> bool operator()( T& data, std::wistream& strm ) {
+
+                typename IF<has_restore<T,bool(std::wistream&,T&)>::value, Archiver, restore_functor<T> >::type ar( strm );
+
+                ar & nvp_functor< has_restore<T, bool( std::wistream&, T& )>::value >()( data ) ;
+
+                return true;
+            }
+
+        };
+
+    } // namespace xml
+    //----------------------------------------
+    
 }
 

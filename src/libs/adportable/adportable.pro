@@ -46,6 +46,7 @@ win32 {
 HEADERS += array_wrapper.hpp \
            base64.hpp \
            binary_search.hpp \
+           binary_serializer.hpp \
            configloader.hpp \
            configuration.hpp \
            constants.hpp \
@@ -78,5 +79,6 @@ HEADERS += array_wrapper.hpp \
            bzip2.hpp \
            debug_core.hpp \
            sgfilter.hpp \
-    uuid.hpp
+           uuid.hpp \
+           xml_serializer.hpp
 
