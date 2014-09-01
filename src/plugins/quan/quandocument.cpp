@@ -297,29 +297,6 @@ QuanDocument::publisher( std::shared_ptr< QuanPublisher >& ptr )
     publisher_ = ptr;
 }
 
-bool
-QuanDocument::load( const boost::filesystem::path& file, adcontrols::QuanSequence& t )
-{
-    boost::filesystem::wifstream fi( file );
-    if ( adcontrols::QuanSequence::xml_restore( fi, t ) ) {
-        addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_REFERENCE, QString::fromStdWString( file.wstring() ) );    
-        return true;
-    }
-    return false;
-}
-
-bool
-QuanDocument::save( const boost::filesystem::path& file, const adcontrols::QuanSequence& t, bool updateSettings )
-{
-    boost::filesystem::wofstream fo( file );
-    if ( adcontrols::QuanSequence::xml_archive( fo, t ) ) {
-        if ( updateSettings )
-            addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( file.wstring() ) );
-        return true;
-    }
-    return false;
-}
-
 void
 QuanDocument::run()
 {
@@ -610,16 +587,99 @@ QuanDocument::recentFile( const QString& group, const QString& key ) const
     return value;
 }
 
+bool
+QuanDocument::load( const boost::filesystem::path& path, adcontrols::QuanSequence& t )
+{
+    if ( path.extension() == ".xml" ) {
+
+        boost::filesystem::wifstream fi( path );
+        if ( adcontrols::QuanSequence::xml_restore( fi, t ) ) {
+            addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_REFERENCE, QString::fromStdWString( path.generic_wstring() ) );    
+            return true;
+        }
+        return false;
+
+    } else {
+
+        adfs::filesystem fs;
+        if ( !fs.mount( path.wstring().c_str() ) )
+            return false;
+
+        if ( auto folder = fs.findFolder( L"/QuanSequence" ) ) {
+            if ( auto file = folder.files().back() ) {
+                if ( file.fetch( t ) ) {
+                    addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool
+QuanDocument::save( const boost::filesystem::path& path, const adcontrols::QuanSequence& t, bool updateSettings )
+{
+    if ( path.extension() == ".xml" ) {
+
+        boost::filesystem::wofstream fo( path );
+        if ( adcontrols::QuanSequence::xml_archive( fo, t ) ) {
+            if ( updateSettings )
+                addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
+            return true;
+        }
+        return false;
+
+    } else {
+
+        adfs::filesystem fs;
+        if ( !fs.create( path.wstring().c_str() ) )
+            return false;
+
+        if ( auto folder = fs.addFolder( L"/QuanSequence" ) ) {
+            if ( auto file = folder.addFile( adfs::create_uuid(), L"QuanSequence" ) ) {
+                file.dataClass( t.dataClass() );
+                file.save( t );
+                if ( updateSettings )
+                    addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 //static
 bool
 QuanDocument::load( const boost::filesystem::path& path, adcontrols::ProcessMethod& pm )
 {
-    try {
-        boost::filesystem::wifstream is( path );
-        return adcontrols::ProcessMethod::xml_restore( is, pm );
-    }
-    catch ( std::exception& ex ) {
-        ADWARN() << boost::diagnostic_information( ex );
+    if ( path.extension() == ".xml" ) {
+
+        try {
+            boost::filesystem::wifstream is( path );
+            return adcontrols::ProcessMethod::xml_restore( is, pm );
+        } catch ( std::exception& ex ) {
+            ADWARN() << boost::diagnostic_information( ex );
+        }
+
+        return false;
+
+    } else  {
+
+        adfs::filesystem fs;
+        if ( !fs.mount( path.wstring().c_str() ) )
+            return false;
+
+        if ( auto folder = fs.findFolder( L"/QuanMethod" ) ) {
+            if ( auto file = folder.files().back() ) {
+                try {
+                    if ( file.fetch( pm ) )
+                        return true;
+                } catch ( std::exception& ex ) {
+                    ADWARN() << boost::diagnostic_information( ex );
+                }
+            }
+        }
     }
     return false;
 }
@@ -628,14 +688,31 @@ QuanDocument::load( const boost::filesystem::path& path, adcontrols::ProcessMeth
 bool
 QuanDocument::save( const boost::filesystem::path& path, const adcontrols::ProcessMethod& pm )
 {
-    try {
-        boost::filesystem::wofstream os( path );
-        return adcontrols::ProcessMethod::xml_archive( os, pm );
-    }
-    catch ( std::exception& ex ) {
-        ADWARN() << boost::diagnostic_information( ex );
+    if ( path.extension() == ".xml" ) {
+
+        try {
+            boost::filesystem::wofstream os( path );
+            return adcontrols::ProcessMethod::xml_archive( os, pm );
+        }
+        catch ( std::exception& ex ) {
+            ADWARN() << boost::diagnostic_information( ex );
+        }
+        return false;
+
+    } else {
+
+        adfs::filesystem fs;
+        if ( !fs.create( path.wstring().c_str() ) )
+            return false;
+
+        if ( auto folder = fs.addFolder( L"/Processed/Quan" ) ) {
+            if ( auto file = folder.addFile( adfs::create_uuid(), L"QuanMethod" ) ) {
+                file.dataClass( pm.dataClass() );
+                return file.save( pm );
+            }
+        }
+
     }
     return false;
 }
-
 
