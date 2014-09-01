@@ -26,15 +26,14 @@
 #include "quanconnection.hpp"
 #include "quanconstants.hpp"
 #include "quandocument.hpp"
-#include "quanmethodcomplex.hpp"
 #include "quanpublisher.hpp"
 #include "quanquery.hpp"
 #include "quanqueryform.hpp"
 #include "quanresulttable.hpp"
 #include "quanprogress.hpp"
 #include <adcontrols/chemicalformula.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
-#include <adportable/xml_serializer.hpp>
 #include <adpublisher/doceditor.hpp>
 #include <adpublisher/document.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -59,7 +58,6 @@
 #include <QToolButton>
 #include <QTreeView>
 #include <QVBoxLayout>
-#include <boost/archive/xml_woarchive.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -121,12 +119,11 @@ QuanReportWidget::importDocTemplate()
     QString name = QFileDialog::getOpenFileName( this
                                                  , tr( "Import ReportFormat..." )
                                                  , QuanDocument::instance()->lastMethodDir()
-                                                 , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
+                                                 , tr( "Quan Document Files(*.tdoc);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
-        QuanMethodComplex m;
-        QuanDocument::instance()->load( name.toStdWString(), m );
-        auto ptr = m.docTemplate();
-        QuanDocument::instance()->method( ptr );
+        //QuanDocument::instance()->load( name.toStdWString(), m );
+        //auto ptr = m.docTemplate();
+        //QuanDocument::instance()->docTemplate( ptr );
     }
 }
 
@@ -166,7 +163,8 @@ QuanReportWidget::setupFileActions( QMenu * menu )
     a = new QAction( newIcon, tr("&New"), docEditor_.get());
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::New);
-    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileNew()));
+    // connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileNew()));
+    connect( a, &QAction::triggered, this, &QuanReportWidget::fileDebug );
     tb->addAction(a);
     menu->addAction( a );
 
@@ -265,4 +263,9 @@ QuanReportWidget::filePublish()
         boost::filesystem::ofstream o( path );
         o << output.toStdString();
     }
+}
+
+void
+QuanReportWidget::fileDebug()
+{
 }

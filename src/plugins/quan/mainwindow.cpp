@@ -33,7 +33,6 @@
 #include "quanconnection.hpp"
 #include "quandocument.hpp"
 #include "quanconfigwidget.hpp"
-#include "quanmethodcomplex.hpp"
 #include "quanresultwnd.hpp"
 #include "quanreportwidget.hpp"
 #include "quanquerywidget.hpp"
@@ -43,6 +42,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quanmethod.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adportable/profile.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
@@ -221,15 +221,16 @@ MainWindow::onInitialUpdate()
 {
     QuanDocument::instance()->onInitialUpdate();
 
-    boost::filesystem::path path( QuanDocument::instance()->method().filename() );
-    if ( !path.empty() ) {
-        auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
-        for ( auto& edit : list ) {
-            edit->setText( QString::fromStdWString( path.wstring() ) );
-            edit->setEnabled( false );
+    if ( auto qm = QuanDocument::instance()->pm().find< adcontrols::QuanMethod >() ) {
+        boost::filesystem::path path = qm->quanMethodFilename();
+        if ( !path.empty() ) {
+            auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
+            for ( auto& edit : list ) {
+                edit->setText( QString::fromStdWString( path.wstring() ) );
+                edit->setEnabled( false );
+            }
         }
     }
-
 }
 
 void
@@ -438,10 +439,15 @@ MainWindow::handleOpenQuanMethod()
                                               , tr( "Quan Method Files(*.qmth);;Result Files(*.adfs);;XML Files(*.xml)" ) );
     if ( ! name.isEmpty() ) {
         boost::filesystem::path path( name.toStdWString() );
-        QuanMethodComplex complex;
-        if ( QuanDocument::instance()->load( path, complex ) ) {
-            complex.setFilename( path.generic_wstring().c_str() );
-            QuanDocument::instance()->method( complex );
+        adcontrols::ProcessMethod temp;
+        if ( QuanDocument::load( path, temp ) ) {
+            auto qm = temp.find< adcontrols::QuanMethod >();
+            if ( !qm ) {
+                temp << adcontrols::QuanMethod();
+                qm = temp.find< adcontrols::QuanMethod >();
+            }
+            qm->quanMethodFilename( path.generic_wstring().c_str() );
+            QuanDocument::instance()->replace_method( temp );
 
             auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
             for ( auto& edit : list )
@@ -457,30 +463,26 @@ MainWindow::handleSaveQuanMethod()
                                               , tr( "Save Quantitation Method File" )
                                               , QuanDocument::instance()->lastMethodDir()
                                               , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
-    if ( ! name.isEmpty() ) {
+    if ( !name.isEmpty() ) {
 
         commit();
 
         boost::filesystem::path path( name.toStdWString() );
-        QuanDocument::instance()->save( path, QuanDocument::instance()->method() );
+        QuanDocument::save( path, QuanDocument::instance()->pm() );
 
-        if ( path != QuanDocument::instance()->method().filename() ) {
+        if ( auto qm = QuanDocument::instance()->pm().find< adcontrols::QuanMethod >() ) {
+            if ( qm->quanMethodFilename() != path ) {
+                // update filename on method
+                qm->quanMethodFilename( path.generic_wstring().c_str() );
 
-            // reload from file & replace own filename
-
-            QuanMethodComplex complex;
-            if ( QuanDocument::instance()->load( path, complex ) ) {
-
-                complex.setFilename( path.generic_wstring().c_str() );
-                QuanDocument::instance()->method( complex );
-
+                // update filename on UI
                 auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
                 for ( auto& edit : list )
                     edit->setText( QString::fromStdWString( path.wstring() ) );
 
             }
-
         }
+
     }
 }
 

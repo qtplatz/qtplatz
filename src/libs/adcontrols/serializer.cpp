@@ -22,46 +22,12 @@
 **
 **************************************************************************/
 
-#ifndef QUANREPORTWIDGET_HPP
-#define QUANREPORTWIDGET_HPP
+#include "serializer.hpp"
 
-#include <QWidget>
-#include <memory>
+using namespace adcontrols;
+using namespace adcontrols::internal;
 
-class QGridLayout;
-class QVBoxLayout;
-class QMenu;
-
-namespace adpublisher { class docEditor; }
-
-namespace quan {
-
-    class QuanQueryForm;
-    class QuanResultTable;
-
-    class QuanReportWidget : public QWidget  {
-        Q_OBJECT
-    public:
-        ~QuanReportWidget();
-        explicit QuanReportWidget(QWidget *parent = 0);
-
-    private:
-        QVBoxLayout * layout_;
-        std::unique_ptr< adpublisher::docEditor > docEditor_;
- 
-        void importDocTemplate();
-        void exportDocTemplate();
-        void setupFileActions( QMenu * );
-
-    signals:
-
-    public slots :
-
-    private slots:
-        void filePublish();
-        void fileDebug();
-    };
-
+xmlSerializer::xmlSerializer( const char * name ) : name_( name )
+{
 }
 
-#endif // QUANREPORTWIDGET_HPP

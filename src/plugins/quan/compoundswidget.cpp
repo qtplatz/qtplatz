@@ -114,9 +114,10 @@ CompoundsWidget::importCompounds()
                                                  , QuanDocument::instance()->lastMethodDir()
                                                  , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
-        QuanMethodComplex m;
-        QuanDocument::instance()->load( name.toStdWString(), m );
-        std::shared_ptr< adcontrols::QuanCompounds > ptr = m.quanCompounds();
-        QuanDocument::instance()->method( ptr );
+        QMessageBox::information( 0, "CompoundWidet", "Not Implemented." );
+        //QuanMethodComplex m;
+        //QuanDocument::instance()->load( name.toStdWString(), m );
+        //std::shared_ptr< adcontrols::QuanCompounds > ptr = m.quanCompounds();
+        //QuanDocument::instance()->method( ptr );
     }
 }

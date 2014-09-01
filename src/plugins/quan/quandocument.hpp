@@ -54,7 +54,6 @@ namespace quan {
     class QuanSampleProcessor;
     class QuanProcessor;
     class QuanConnection;
-    class QuanMethodComplex;
     class QuanPublisher;
 
     enum idMethod { idMethodComplex, idQuanMethod, idQuanCompounds, idProcMethod, idQuanSequence, idSize };
@@ -86,11 +85,14 @@ namespace quan {
         void publisher( std::shared_ptr< QuanPublisher >& );
         std::shared_ptr< QuanPublisher > publisher() const;
 
+        const adcontrols::ProcessMethod& pm() const;
+        adcontrols::ProcessMethod& pm();
+
         const adcontrols::ProcessMethod& procMethod() const;
         void setProcMethod( adcontrols::ProcessMethod& );
 
-        const adpublisher::document& docTemplate() const;
-        void docTemplate( adpublisher::document& );
+        std::shared_ptr< adpublisher::document > docTemplate() const;
+        void docTemplate( std::shared_ptr< adpublisher::document >& );
 
         void register_dataChanged( std::function< void( int, bool ) > );
         void setResultFile( const std::wstring& );
@@ -99,21 +101,13 @@ namespace quan {
         void setConnection( QuanConnection * );
         QuanConnection * connection();
 
-        const QuanMethodComplex& method() const;
-        void method( const QuanMethodComplex& );
-        void method( std::shared_ptr< adpublisher::document >& );
-        void method( std::shared_ptr< adcontrols::QuanMethod >& );
-        void method( std::shared_ptr< adcontrols::QuanCompounds >& );
-        void method( std::shared_ptr< adcontrols::ProcessMethod >& );
+        void replace_method( const adcontrols::QuanMethod& );
+        void replace_method( const adcontrols::QuanCompounds& );
+        void replace_method( const adpublisher::document& );
+        void replace_method( const adcontrols::ProcessMethod& );
 
         void run();
         void stop();
-
-        bool load( const boost::filesystem::path&, adcontrols::QuanSequence& );
-        bool save( const boost::filesystem::path&, const adcontrols::QuanSequence&, bool updateSettings );
-
-        bool load( const boost::filesystem::path&, QuanMethodComplex& );
-        bool save( const boost::filesystem::path&, const QuanMethodComplex& );
 
         void onInitialUpdate();
         void onFinalClose();
@@ -126,20 +120,30 @@ namespace quan {
         QString lastSequenceDir() const;
         QString lastDataDir() const;
 
+        bool load( const boost::filesystem::path&, adcontrols::QuanSequence& );
+        bool save( const boost::filesystem::path&, const adcontrols::QuanSequence&, bool updateSettings );
+
+        static bool load( const boost::filesystem::path&, adcontrols::ProcessMethod& );
+        static bool save( const boost::filesystem::path&, const adcontrols::ProcessMethod& );
+
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
         typedef std::map< int, page_type > chapter_type;
         std::map< int, chapter_type > book_;
         std::unique_ptr< QSettings > settings_;
-        std::shared_ptr< QuanMethodComplex > method_;
-        std::shared_ptr< adcontrols::QuanSequence > quanSequence_;
+
         std::shared_ptr< QuanConnection > quanConnection_;
-        std::shared_ptr< adpublisher::document > docTemplate_;
+
         std::vector< std::function< void( int, bool ) > > clients_;
         std::array< bool, idSize > dirty_flags_;
         std::vector< std::thread > threads_;
         std::atomic< size_t > postCount_;
+
+        std::shared_ptr< adcontrols::ProcessMethod > pm_;
+        std::shared_ptr< adcontrols::QuanSequence > quanSequence_;
+
         std::shared_ptr< QuanPublisher > publisher_;
+        std::shared_ptr< adpublisher::document > docTemplate_;
 
         std::vector< std::shared_ptr< QuanProcessor > > exec_;
 
@@ -151,6 +155,7 @@ namespace quan {
         void addRecentFiles( const QString& group, const QString& key, const QString& value );
         void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const;
         QString recentFile( const QString& group, const QString& key ) const;
+
     signals:
         void onProcessed( QuanProcessor * );
         void onMSLockEnabled( bool );
