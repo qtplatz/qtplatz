@@ -349,7 +349,7 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
                 for ( size_t i = 0; i < ms.size(); ++i )
                     ms.setIntensity( i, intens[ i ] - base );
             }
-            filtered.addDescription( adcontrols::Description( L"process", dataproc::Constants::F_DFT_FILTERD ) );
+            filtered.addDescription( adcontrols::description( L"process", dataproc::Constants::F_DFT_FILTERD ) );
 
             result = doCentroid( pkInfo, centroid, filtered, *pCentroidMethod );
 

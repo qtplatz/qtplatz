@@ -28,23 +28,23 @@
 
 using namespace adcontrols;
 
-Description::~Description()
+description::~description()
 {
 }
 
-Description::Description()
-{
-	time(&tv_sec_);
-    tv_usec_ = 0;
-}
-
-Description::Description( const std::wstring& key, const std::wstring& text ) : key_(key), text_(text)
+description::description()
 {
 	time(&tv_sec_);
     tv_usec_ = 0;
 }
 
-Description::Description( const Description& t ) : tv_sec_(t.tv_sec_)
+description::description( const std::wstring& key, const std::wstring& text ) : key_(key), text_(text)
+{
+	time(&tv_sec_);
+    tv_usec_ = 0;
+}
+
+description::description( const description& t ) : tv_sec_(t.tv_sec_)
 						                         , tv_usec_(t.tv_usec_)
 												 , key_(t.key_)
 												 , text_(t.text_)

@@ -81,8 +81,8 @@ namespace adcontrols {
             void setDataArray( const double * );
             void setEventArray( const unsigned long * );
             void resize( size_t );
-            void addDescription( const Description& );
-            const Descriptions& getDescriptions() const;
+            void addDescription( const description& );
+            const descriptions& getDescriptions() const;
 
             const std::wstring& axisLabelHorizontal() const { return axisLabelHorizontal_; }
             const std::wstring& axisLabelVertical() const { return axisLabelVertical_; }
@@ -98,7 +98,7 @@ namespace adcontrols {
             static std::wstring empty_string_;  // for error return as reference
             bool isConstantSampling_;
 	   
-            Descriptions descriptions_;
+            descriptions descriptions_;
             Peaks peaks_;
             Baselines baselines_;
 
@@ -380,12 +380,12 @@ Chromatogram::maximumTime( const seconds_t& min )
 }
 
 void
-Chromatogram::addDescription( const adcontrols::Description& desc )
+Chromatogram::addDescription( const adcontrols::description& desc )
 {
     pImpl_->addDescription( desc );
 }
 
-const Descriptions&
+const descriptions&
 Chromatogram::getDescriptions() const
 {
     return pImpl_->getDescriptions();
@@ -600,12 +600,12 @@ ChromatogramImpl::resize( size_t size )
 }
 
 void
-ChromatogramImpl::addDescription( const adcontrols::Description& desc )
+ChromatogramImpl::addDescription( const adcontrols::description& desc )
 {
     descriptions_.append( desc );
 }
 
-const Descriptions&
+const descriptions&
 ChromatogramImpl::getDescriptions() const
 {
     return descriptions_;

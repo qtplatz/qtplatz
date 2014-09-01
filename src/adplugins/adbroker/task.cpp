@@ -232,7 +232,7 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
         } while ( state == adcontrols::translate_indeterminate );
 	}
     // get here even readData or dataInterpreter fails, anyway send data to client
-    ms.addDescription( adcontrols::Description( L"create", text ) );
+    ms.addDescription( adcontrols::description( L"create", text ) );
 	appendOnFile( token, ms, text );
 }
 

@@ -327,7 +327,7 @@ DataprocPlugin::onSelectSpectrum( double /*minutes*/, size_t pos, int fcn )
                         t = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
                     text << boost::wformat( L"Spectrum #%d fcn:%d/%d @ %.3lfmin" ) % pos % ms.protocolId() % ms.nProtocols() % t;
                     adcontrols::ProcessMethod m;
-                    ms.addDescription( adcontrols::Description( L"create", text.str() ) );
+                    ms.addDescription( adcontrols::description( L"create", text.str() ) );
                     portfolio::Folium folium = dp->addSpectrum( ms, m );
                 }
             }
@@ -396,7 +396,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                         text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t1 << "min";
                     }
                     adcontrols::ProcessMethod m;
-                    ms.addDescription( adcontrols::Description( L"create", text.str() ) );
+                    ms.addDescription( adcontrols::description( L"create", text.str() ) );
                     portfolio::Folium folium = dp->addSpectrum( ms, m );
                 
                     // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)

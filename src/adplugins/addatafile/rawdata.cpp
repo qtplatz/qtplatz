@@ -117,7 +117,7 @@ rawdata::loadAcquiredConf()
                         for ( int fcn = 0; unsigned(fcn) < accessor.nfcn(); ++fcn ) {
                         
                             std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
-                            cptr->addDescription( adcontrols::Description( L"create",  conf.trace_display_name ) );
+                            cptr->addDescription( adcontrols::description( L"create",  conf.trace_display_name ) );
                             accessor.copy_to( *cptr, fcn );
                             cptr->setFcn( fcn );
                             tic_.push_back( cptr );
@@ -130,7 +130,7 @@ rawdata::loadAcquiredConf()
                 }
                 else {
                     std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
-                    cptr->addDescription( adcontrols::Description( L"create", conf.trace_display_name ) );
+                    cptr->addDescription( adcontrols::description( L"create", conf.trace_display_name ) );
                     tic_.push_back( cptr ); // add empty chromatogram for dieplay titiles
                     undefined_spectrometers_.push_back( conf.dataInterpreterClsid );
                 }
@@ -477,7 +477,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
             } else {
                 o << boost::wformat( L"m/z (%.4lf - %.4lf) %d" ) % it->lMass % it->uMass % it->fcn;
             }
-            c.addDescription( adcontrols::Description( L"Create", o.str() ) );
+            c.addDescription( adcontrols::description( L"Create", o.str() ) );
             result.push_back( c );
         }
     }

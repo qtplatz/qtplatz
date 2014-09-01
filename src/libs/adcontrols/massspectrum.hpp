@@ -69,8 +69,8 @@ namespace adcontrols {
         class MassSpectrumImpl;
     }
     
-    class Description;
-    class Descriptions;
+    class description;
+    class descriptions;
     class MSCalibration;
     class MSProperty;
     class annotations;
@@ -140,8 +140,8 @@ namespace adcontrols {
 
 		int getColor( size_t idx ) const;
     
-        void addDescription( const Description& );
-        const Descriptions& getDescriptions() const;
+        void addDescription( const description& );
+        const descriptions& getDescriptions() const;
 
         void set_annotations( const annotations& );
         const annotations& get_annotations() const;

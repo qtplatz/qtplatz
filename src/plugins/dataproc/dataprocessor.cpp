@@ -531,7 +531,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
                 method.appendMethod( *pCalibMethod );
 
                 if ( profile->getDescriptions().size() == 0 ) 
-                    profile->addDescription( adcontrols::Description( L"create", folium.name() ) );
+                    profile->addDescription( adcontrols::description( L"create", folium.name() ) );
 
                 addCalibration( *profile, method );
             }
@@ -564,7 +564,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
 		if ( adutils::MassSpectrumPtr ptr = boost::get< adutils::MassSpectrumPtr >( data ) ) {
 			if ( ptr->getDescriptions().size() == 0 ) 
-				ptr->addDescription( adcontrols::Description( L"create", folium.name() ) );
+				ptr->addDescription( adcontrols::description( L"create", folium.name() ) );
 
 			addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
 		}
@@ -575,7 +575,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 void
 Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
 {
-    const adcontrols::Descriptions& descs = src.getDescriptions();
+    const adcontrols::descriptions& descs = src.getDescriptions();
     std::wstring name;
     for ( size_t i = 0; i < descs.size(); ++i )
         name += descs[i].text();
@@ -643,7 +643,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
 {
     portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
     std::wstring name;
-    const adcontrols::Descriptions& descs = centroid.getDescriptions();
+    const adcontrols::descriptions& descs = centroid.getDescriptions();
     for ( size_t i = 0; i < descs.size(); ++i )
         name += descs[ i ].text();
     name += L", manually assigned";
@@ -889,7 +889,7 @@ Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
             for ( size_t i = 0; i < xms.size(); ++i )
                 xms.setIntensity( i, xms.getIntensity( i ) - background->getIntensity( i ) );
 
-			xms.addDescription( adcontrols::Description( L"processed", ( boost::wformat( L"%1% - %2%" ) % target.name() % base.name() ).str() ) );
+			xms.addDescription( adcontrols::description( L"processed", ( boost::wformat( L"%1% - %2%" ) % target.name() % base.name() ).str() ) );
             addSpectrum( xms, adcontrols::ProcessMethod() );
             setModified( true );
         }
@@ -1151,7 +1151,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
                 ms.setIntensity( i, intens[i] - base );
         }
         portfolio::Folium filterd = folium.addAttachment( Constants::F_DFT_FILTERD );
-        profile2->addDescription( adcontrols::Description( L"process", Constants::F_DFT_FILTERD ) );
+        profile2->addDescription( adcontrols::description( L"process", Constants::F_DFT_FILTERD ) );
         filterd.assign( profile2, profile2->dataClass() );
 
         centroid = DataprocHandler::doCentroid( *pkInfo, *pCentroid, *profile2, m );
@@ -1161,7 +1161,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
     }
 
     if ( centroid ) {
-        pCentroid->addDescription( adcontrols::Description( L"process", L"Centroid" ) );
+        pCentroid->addDescription( adcontrols::description( L"process", L"Centroid" ) );
         att.assign( pCentroid, pCentroid->dataClass() );
 
         auto mptr = std::make_shared< adcontrols::ProcessMethod >( m ); // Ptr ptr( new adcontrols::ProcessMethod() );
@@ -1171,7 +1171,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
 
         return true;
     } else {
-        pCentroid->addDescription( adcontrols::Description( L"process", L"Centroid failed" ) );
+        pCentroid->addDescription( adcontrols::description( L"process", L"Centroid failed" ) );
         att.assign( pCentroid, pCentroid->dataClass() ); // attach it even no peak detected
     }
     return false;

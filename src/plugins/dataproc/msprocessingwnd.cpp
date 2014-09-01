@@ -357,7 +357,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                 if ( dset->getTIC( static_cast<int>(fcn), c ) ) {
                     if ( c.isConstantSampledData() )
                         c.getTimeArray();
-                    c.addDescription( adcontrols::Description( L"acquire.title", title ) );
+                    c.addDescription( adcontrols::description( L"acquire.title", title ) );
                     adcontrols::ProcessMethod m;
                     MainWindow::instance()->getProcessMethod( m );
                     folium = processor->addChromatogram( c, m, true );  // force checked
@@ -928,9 +928,9 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
         = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
     if ( it != attachments.end() ) {
         adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-        const adcontrols::Descriptions& desc = ms->getDescriptions();
+        const adcontrols::descriptions& desc = ms->getDescriptions();
         for ( size_t i = 0; i < desc.size(); ++i ) {
-            const adcontrols::Description& d = desc[i];
+            const adcontrols::description& d = desc[i];
             if ( ! d.xml().empty() ) {
                 formattedMethod.append( d.xml().c_str() ); // boost::serialization does not close xml correctly, so xmlFormatter raise an exception.
             }
@@ -1034,7 +1034,7 @@ MSProcessingWnd::correct_baseline()
             double h = *std::max_element( ms.getIntensityArray(), ms.getIntensityArray() + ms.size() );
             o << boost::wformat( L" H=%.2f/RMS=%.2f" ) % h % rms;
 		}
-		x->addDescription( adcontrols::Description( L"process", o.str() ) );
+		x->addDescription( adcontrols::description( L"process", o.str() ) );
 	}
 	return tic;
 }
@@ -1069,7 +1069,7 @@ MSProcessingWnd::compute_rms( double s, double e )
 
 				using namespace adcontrols::metric;
                 
-                ptr->addDescription( adcontrols::Description( L"process"
+                ptr->addDescription( adcontrols::description( L"process"
                                                               , (boost::wformat(L"RMS[%.3lf-%.3lf,N=%d]=%.3lf")
                                                                  % scale_to_micro(s) % scale_to_micro(e) % n % rms).str() ) );
 
@@ -1115,7 +1115,7 @@ MSProcessingWnd::compute_minmax( double s, double e )
                 size_t index = std::distance( data.begin(), pair.second );
 				double t = adcontrols::MSProperty::toSeconds( index, ms.getMSProperty().getSamplingInfo() );
 
-                ptr->addDescription( adcontrols::Description( L"process"
+                ptr->addDescription( adcontrols::description( L"process"
 					, (boost::wformat(L"MAX at %.4us=%.3f") % scale_to_micro(t) % result.second ).str() ) );
                 
 				QString text = QString::fromStdString( ( boost::format("max @\t%d\t%.14lf\t%.7f") % index % scale_to_micro(t) % result.second ).str() );

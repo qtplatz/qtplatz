@@ -42,26 +42,26 @@ namespace boost {
 namespace adcontrols {
 
    namespace internal {
-       class DescriptionsImpl;
+       class descriptionsImpl;
    }
 
-   class ADCONTROLSSHARED_EXPORT Descriptions {
+   class ADCONTROLSSHARED_EXPORT descriptions {
    public:
-	   ~Descriptions();
-	   Descriptions();
-	   Descriptions( const Descriptions& );
-	   Descriptions( const std::wstring& text, const std::wstring& key );
+	   ~descriptions();
+	   descriptions();
+	   descriptions( const descriptions& );
+	   descriptions( const std::wstring& text, const std::wstring& key );
 
-	   void operator = ( const Descriptions& );
+	   void operator = ( const descriptions& );
 
-	   void append( const Description&, bool uniq = false );
+	   void append( const description&, bool uniq = false );
 	   size_t size() const;
-	   const Description& operator [](size_t idx) const;
+	   const description& operator [](size_t idx) const;
 
-       std::vector< Description >::iterator begin();
-       std::vector< Description >::iterator end();
-       std::vector< Description >::const_iterator begin() const;
-       std::vector< Description >::const_iterator end() const;
+       std::vector< description >::iterator begin();
+       std::vector< description >::iterator end();
+       std::vector< description >::const_iterator begin() const;
+       std::vector< description >::const_iterator end() const;
        std::wstring make_folder_name( const std::wstring& regex = L".*" ) const;
 
 	   std::string saveXml() const;
@@ -71,15 +71,15 @@ namespace adcontrols {
    private:
 	   friend class boost::serialization::access;
 	   template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
-	   internal::DescriptionsImpl* pImpl_;
+	   internal::descriptionsImpl* pImpl_;
    };
 
     template<> void ADCONTROLSSHARED_EXPORT
-    Descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version );
+    descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version );
     
     
     template<> void ADCONTROLSSHARED_EXPORT
-    Descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version );
+    descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version );
 }
 
 
