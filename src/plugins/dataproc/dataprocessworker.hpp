@@ -30,7 +30,7 @@
 #include <vector>
 #include <tuple>
 #include <memory>
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 
 namespace adcontrols { class MassSpectrum; class ProcessMethod; }
 namespace adprot { class digestedPeptides; }

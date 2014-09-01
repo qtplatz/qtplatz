@@ -46,11 +46,12 @@ namespace adcontrols {
     public:
         virtual ~dataSubscriber();
         dataSubscriber();
+        enum idError { idUndefinedSpectrometers };
 
         virtual bool subscribe( const LCMSDataset& ) { return false; }
         virtual bool subscribe( const ProcessedDataset& ) { return false; }
-
 		virtual bool onFileAdded( const std::wstring& /* path */, adfs::file& ) { return false; } 
+        virtual void notify( idError, const wchar_t * ) { }
     };
 
 }

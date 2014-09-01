@@ -76,10 +76,14 @@ namespace addatafile {
         void loadCalibrations();
 
         bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
+
+        const std::vector< std::wstring > undefined_spectrometers() const { return undefined_spectrometers_; }
+
         adfs::sqlite* db();
 
     private:
-        bool fetchTraces( int64_t objid, const std::wstring& clsid, adcontrols::TraceAccessor& );
+        bool fetchTraces( int64_t objid, const adcontrols::DataInterpreter&, adcontrols::TraceAccessor& );
+
         adcontrols::translate_state fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos
                                                    , adcontrols::MassSpectrum&, const std::wstring& traceId ) const;
 
@@ -91,12 +95,13 @@ namespace addatafile {
         std::map< uint64_t, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
         uint64_t npos0_;
         bool configLoaded_;
-        //const adcontrols::MassSpectrometer& getSpectrometer( uint64_t objid, const std::wstring& ) const;
+
         std::shared_ptr< adcontrols::MassSpectrometer> getSpectrometer( uint64_t objid, const std::wstring& ) const;
         std::shared_ptr< adcontrols::MassSpectrometer> getSpectrometer( uint64_t objid, const std::wstring& );
         std::vector< std::tuple< size_t, int, int> > fcnVec_; // <pos,fcn,rep,seconds>
         std::vector< std::pair< size_t, int > > fcnIdx_;
         std::vector< std::pair< double, int > > times_;
+        std::vector< std::wstring > undefined_spectrometers_;
     };
 
 }

@@ -28,7 +28,7 @@
 #include "safearray.hpp"
 #include <adlog/logger.hpp>
 #include <boost/bind.hpp>
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
 #include <mutex>

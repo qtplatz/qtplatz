@@ -119,11 +119,20 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 {
     if ( mounted_ ) {
         do {
+            std::vector< std::wstring > undefined_spectrometers;
             // publish acquired dataset <LCMSDataset>
+
             if ( rawdata_->loadAcquiredConf() )
                 sub.subscribe( *rawdata_ );
+
             rawdata_->loadCalibrations();
 
+            if ( !rawdata_->undefined_spectrometers().empty() ) {
+                std::wostringstream o;
+                for ( auto& s: rawdata_->undefined_spectrometers() )
+                    o << L"\r" << s;
+                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() + 1 ); // remove first '\r';
+            }
         } while (0);
         
         do {

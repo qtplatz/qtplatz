@@ -26,7 +26,7 @@
 #include <compiler/disable_4267.h>
 
 #include "serialport.hpp"
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio/serial_port.hpp>
 #include <boost/system/error_code.hpp>

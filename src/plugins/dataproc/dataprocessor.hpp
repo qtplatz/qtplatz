@@ -132,6 +132,7 @@ namespace dataproc {
         // implement adcontrols::dataSubscriber
         bool subscribe( const adcontrols::LCMSDataset& ) override;
         bool subscribe( const adcontrols::ProcessedDataset& ) override;
+        void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
         //
 		bool onFileAdded( const std::wstring& path, adfs::file& ) override;
         // <------------------------
@@ -141,7 +142,10 @@ namespace dataproc {
                              , const adcontrols::MassSpectrum& centroid
                              , const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
 
-    public slots:
+    private slots:
+
+    signals :
+        void onNotify( const QString& );
 
     private:
         std::shared_ptr< adcontrols::datafile > file_;

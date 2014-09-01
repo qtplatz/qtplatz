@@ -617,6 +617,12 @@ MainWindow::zoomedOnSpectrum( const QRectF& rc )
 }
 
 void
+MainWindow::handleWarningMessage( const QString& msg )
+{
+    QMessageBox::warning( this, "Dataproc", msg );
+}
+
+void
 MainWindow::handleSessionAdded( dataproc::Dataprocessor * )
 {
 }
