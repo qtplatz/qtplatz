@@ -384,9 +384,12 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
                         p->clearSegments();
                         pProfile = p;
                     }
-                    if ( auto p = filtered.findProtocol( sample.channel() - 1 ) ) {
-                        p->clearSegments();
-                        pFiltered = p;
+                    if ( pFiltered ) {
+                        if ( auto p = filtered.findProtocol( sample.channel() - 1 ) ) {
+                            p->clearSegments();
+                            pFiltered = p;
+
+                        }
                     }
                     if ( auto p = centroid.findProtocol( sample.channel() - 1 ) ) {
                         p->clearSegments();
