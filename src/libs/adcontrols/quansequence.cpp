@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "quansequence.hpp"
+#include "serializer.hpp"
 #include <adportable/uuid.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
@@ -70,4 +71,18 @@ QuanSequence::restore( std::istream& is, QuanSequence& t )
     portable_binary_iarchive ar( is );
     ar >> t;
     return true;
+}
+
+//static
+bool
+QuanSequence::xml_archive( std::wostream& os, const QuanSequence& t )
+{
+    return internal::xmlSerializer("QuanSequence").archive( os, t );
+}
+
+//static
+bool
+QuanSequence::xml_restore( std::wistream& is, QuanSequence& t )
+{
+    return internal::xmlSerializer("QuanSequence").restore( is, t );
 }

@@ -161,7 +161,7 @@ Dataprocessor::isFileReadOnly() const
 }
 
 bool
-Dataprocessor::save( QString * errorString, const QString& filename, bool autoSave )
+Dataprocessor::save( QString * errorString, const QString& filename, bool /* autoSave */)
 {
 	boost::filesystem::path path( file_->filename() ); // original name
 	if ( path.extension() != L".adfs" )
@@ -288,7 +288,7 @@ Dataprocessor::filename() const
 }
 
 bool
-Dataprocessor::load( const std::wstring& path, const std::wstring& id )
+Dataprocessor::load( const std::wstring& /*path*/, const std::wstring& /*id*/)
 {
     return false; // ifileimpl_->file().loadContents( path, id, *this );
 }

@@ -15,7 +15,6 @@ QMAKE_CFLAGS += -DSQLITE_THREADSAFE
 
 SOURCES += adfs.cpp \
     attributes.cpp \
-    cpio.cpp \
     filesystem.cpp \
     fs.cpp \
     folder.cpp \

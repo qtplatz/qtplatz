@@ -31,8 +31,9 @@
 #include "mscalibratemethod.hpp"
 #include "msreferences.hpp"
 #include "msreference.hpp"
-#include "targetingmethod.hpp"
 #include "peakmethod.hpp"
+#include "serializer.hpp"
+#include "targetingmethod.hpp"
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -70,69 +71,20 @@ template<class T> struct method_finder {
     }
 };
 
-namespace adcontrols {
-
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::CentroidMethod*
-    ProcessMethod::find() const
-    {
-        return method_finder< CentroidMethod >::find( vec_ );
+ProcessMethod&
+ProcessMethod::operator *= ( const ProcessMethod& t )
+{
+    for ( auto& rhs: t ) {
+        auto it = std::remove_if( vec_.begin(), vec_.end(), [=] ( const value_type& lhs ){ return lhs.type() == rhs.type(); } );
+        if ( it != vec_.end() )
+            vec_.erase( it, vec_.end() );
     }
+
+    for ( auto& rhs: t )
+        vec_.push_back( rhs );
     
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::IsotopeMethod*
-    ProcessMethod::find() const
-    {
-        return method_finder< IsotopeMethod >::find( vec_ );
-    }
-    
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::ElementalCompositionMethod*
-    ProcessMethod::find() const
-    {
-        return method_finder< ElementalCompositionMethod >::find( vec_ );
-    }
-    
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::MSCalibrateMethod*
-    ProcessMethod::find() const
-    {
-        return method_finder< MSCalibrateMethod >::find( vec_ );
-    }
-    
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::TargetingMethod*
-    ProcessMethod::find() const
-    {
-        return method_finder< TargetingMethod >::find( vec_ );
-    }
-
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::PeakMethod*
-    ProcessMethod::find() const
-    {
-        return method_finder< PeakMethod >::find( vec_ );
-    }
-
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::MSChromatogramMethod*
-    ProcessMethod::find() const
-    {
-        return method_finder< MSChromatogramMethod >::find( vec_ );
-    }
-
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::QuanCompounds*
-    ProcessMethod::find() const
-    {
-        return method_finder< QuanCompounds >::find( vec_ );
-    }
-
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::QuanMethod*
-    ProcessMethod::find() const
-    {
-        return method_finder< QuanMethod >::find( vec_ );
-    }
-
-    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::MSLockMethod*
-    ProcessMethod::find() const
-    {
-        return method_finder< MSLockMethod >::find( vec_ );
-    }
-
-}; // namespace adcontrols
+    return *this;
+}
 
 ///////////
 
@@ -152,6 +104,12 @@ void
 ProcessMethod::clear()
 {
     vec_.clear();
+}
+
+void
+ProcessMethod::erase( iterator beg, iterator end )
+{
+    vec_.erase( beg, end );
 }
 
 size_t
@@ -200,4 +158,18 @@ ProcessMethod::restore( std::istream& is, ProcessMethod& t )
     portable_binary_iarchive ar( is );
     ar >> t;
     return true;
+}
+
+//static
+bool
+ProcessMethod::xml_archive( std::wostream& os, const ProcessMethod& t )
+{
+    return internal::xmlSerializer("ProcessMethod").archive( os, t );
+}
+
+//static
+bool
+ProcessMethod::xml_restore( std::wistream& is, ProcessMethod& t )
+{
+    return internal::xmlSerializer("ProcessMethod").restore( is, t );
 }

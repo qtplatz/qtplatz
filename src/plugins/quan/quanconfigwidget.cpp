@@ -26,10 +26,9 @@
 #include "quanconfigform.hpp"
 #include "quandocument.hpp"
 #include "quanconstants.hpp"
-#include "quanmethodcomplex.hpp"
 #include "paneldata.hpp"
 #include <utils/styledbar.h>
-#include <adcontrols/quanmethod.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adportable/profile.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <QFileDialog>
@@ -120,9 +119,9 @@ QuanConfigWidget::importQuanMethod()
                                                  , QuanDocument::instance()->lastMethodDir()
                                                  , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
-        QuanMethodComplex m;
-        QuanDocument::instance()->load( name.toStdWString(), m );
-        auto ptr = m.quanMethod();
-        QuanDocument::instance()->method( ptr );
+        adcontrols::ProcessMethod m;
+        QuanDocument::load( name.toStdWString(), m );
+        if ( auto ptr = m.find< adcontrols::QuanMethod >() )
+            QuanDocument::instance()->replace_method( *ptr );
     }
 }

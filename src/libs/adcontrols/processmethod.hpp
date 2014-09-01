@@ -70,23 +70,51 @@ namespace adcontrols {
                                 > value_type;
         
         typedef std::vector< value_type > vector_type;
+        typedef vector_type::iterator iterator;
+        typedef vector_type::const_iterator const_iterator;
+        
         
         template<class T> void appendMethod( const T& t ) { vec_.push_back( t ); }
-        template<class T> const T* find() const;
+        template<class T> ProcessMethod& operator << ( const T& t ) { vec_.push_back( t ); return *this; }
+        template<class T> ProcessMethod& operator *= ( const T& t ) { remove<T>(); (*this) << t; return *this; } // remove if duplicate, and add
+        ProcessMethod& operator *= ( const ProcessMethod& ); // remove duplicate and merge
+
+        template<class T> const T* find() const {
+            auto it = std::find_if( begin(), end(), [=] ( const value_type& t ){ return typeid(T) == t.type(); } );
+            if ( it != end() )
+                return &boost::get<T>(*it);
+            return 0;
+        }
+
+        template<class T> T* find() {
+            auto it = std::find_if( begin(), end(), [=] ( const value_type& t ){ return typeid(T) == t.type(); } );
+            if ( it != end() )
+                return &boost::get<T>(*it);
+            return 0;
+        }
+
+        template<class T> void remove() {
+            auto it = std::remove_if( begin(), end(), [=] ( const value_type& t ){ return typeid(T) == t.type(); } );
+            if ( it != end() )
+                erase( it, end() );
+        }
         
         const value_type& operator [] ( int ) const;
         value_type& operator [] ( int );
         void clear();
-
+        void erase( iterator, iterator );
         size_t size() const;
-        vector_type::iterator begin();
-        vector_type::iterator end();
-        vector_type::const_iterator begin() const;
-        vector_type::const_iterator end() const;
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
 
     public:
         static bool archive( std::ostream&, const ProcessMethod& );
         static bool restore( std::istream&, ProcessMethod& );
+        static bool xml_archive( std::wostream&, const ProcessMethod& );
+        static bool xml_restore( std::wistream&, ProcessMethod& );
+
         const idAudit& ident() const { return ident_; }
 
     private:

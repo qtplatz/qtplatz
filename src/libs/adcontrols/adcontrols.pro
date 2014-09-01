@@ -105,7 +105,8 @@ SOURCES += acceptor.cpp \
     msfinder.cpp \
     quanresponses.cpp \
     quancalibration.cpp \
-    quancalibrations.cpp
+    quancalibrations.cpp \
+    serializer.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -198,7 +199,8 @@ HEADERS += acceptor.hpp \
     msfinder.hpp \
     quanresponses.hpp \
     quancalibration.hpp \
-    quancalibrations.hpp
+    quancalibrations.hpp \
+    serializer.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 

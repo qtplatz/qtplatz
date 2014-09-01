@@ -73,6 +73,8 @@ namespace adcontrols {
 
         static bool archive( std::ostream&, const QuanSequence& );
         static bool restore( std::istream&, QuanSequence& );
+        static bool xml_archive( std::wostream&, const QuanSequence& );
+        static bool xml_restore( std::wistream&, QuanSequence& );
 
     private:
         idAudit ident_;

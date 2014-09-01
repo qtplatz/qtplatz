@@ -60,26 +60,20 @@ namespace adfs {
     /*template<class data_type> */ 
     class cpio {
     public:
-#if 0
-        template<class T> static bool serialize( const T& t, detail::cpio& obuf ) {
-            std::ostream os( &obuf );
-            return T::archive( os, t );
-        }
 
-        template<class T> static bool deserialize( T& t, detail::cpio& ibuf ) {
-            std::istream is( &ibuf );
-            return T::restore( is, t );
-        }
-#endif
         template<class T> static bool serialize( const T& t, std::string& ar ) {
+
             boost::iostreams::back_insert_device< std::string > inserter( ar );
             boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+
             return T::archive( device, t );
         }
 
         template<class T> static bool deserialize( T& t, const char * data, size_t length ) {
+
             boost::iostreams::basic_array_source< char > device( data, length );
             boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+
             return T::restore( st, t );
         }
 
