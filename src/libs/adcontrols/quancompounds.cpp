@@ -23,7 +23,72 @@
 **************************************************************************/
 
 #include "quancompounds.hpp"
+#include "serializer.hpp"
 #include <adportable/uuid.hpp>
+#include <boost/serialization/vector.hpp>
+
+
+namespace adcontrols {
+    
+    class QuanCompounds::impl {
+    public:
+        impl() {
+        }
+
+        impl( const impl& t ) : ident_( t.ident_ )
+                              , compounds_( t.compounds_ ) {
+        }
+
+    public:
+        idAudit ident_;
+        std::vector< QuanCompound > compounds_;
+
+        //private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( ident_ );
+            ar & BOOST_SERIALIZATION_NVP( compounds_ );
+        }
+    };
+}
+
+BOOST_CLASS_VERSION( adcontrols::QuanCompounds::impl, 2 )
+
+namespace adcontrols {
+
+    ////////// PORTABLE BINARY ARCHIVE //////////
+    template<> void
+    QuanCompounds::serialize( portable_binary_oarchive& ar, const unsigned int )
+    {
+        ar << *impl_;
+    }
+
+    template<> void
+    QuanCompounds::serialize( portable_binary_iarchive& ar, const unsigned int version)
+    {
+        if ( version >= 2 )
+            ar >> *impl_;
+        else
+            impl_->serialize( ar, version );
+    }
+
+    ///////// XML archive ////////
+    template<> ADCONTROLSSHARED_EXPORT void
+    QuanCompounds::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+    {
+        ar & boost::serialization::make_nvp("QuanCompounds", *impl_);
+    }
+
+    template<> ADCONTROLSSHARED_EXPORT void
+    QuanCompounds::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        if ( version >= 2 )
+            ar & boost::serialization::make_nvp( "QuanCompounds", *impl_ );
+        else
+            impl_->serialize( ar, version );
+    }
+}
 
 using namespace adcontrols;
 
@@ -31,26 +96,85 @@ QuanCompounds::~QuanCompounds()
 {
 }
 
-QuanCompounds::QuanCompounds()
+QuanCompounds::QuanCompounds() : impl_( new impl() )
 {
 }
 
-QuanCompounds::QuanCompounds( const QuanCompounds& t ) : ident_( t.ident_ )
-                                                       , compounds_( t.compounds_ )
+QuanCompounds::QuanCompounds( const QuanCompounds& t ) : impl_( new impl( *t.impl_ ) )
 {
+}
+
+QuanCompounds&
+QuanCompounds::operator = ( const QuanCompounds& t )
+{
+    impl_.reset( new impl( *t.impl_ )  );
+    return *this;
 }
 
 QuanCompounds&
 QuanCompounds::operator << ( const QuanCompound& t )
 {
-    compounds_.push_back( t );
-    compounds_.back().row( uint32_t( compounds_.size() - 1 ) );
+    impl_->compounds_.push_back( t );
+    impl_->compounds_.back().row( uint32_t( impl_->compounds_.size() - 1 ) );
     return *this;
 }
 
 const boost::uuids::uuid&
 QuanCompounds::uuid() const
 {
-    return ident_.uuid();
+    return impl_->ident_.uuid();
+}
+
+
+QuanCompounds::iterator QuanCompounds::begin()
+{
+    return impl_->compounds_.begin();
+}
+
+QuanCompounds::iterator QuanCompounds::end()
+{
+    return impl_->compounds_.end();
+}
+
+QuanCompounds::const_iterator QuanCompounds::begin() const
+{
+    return impl_->compounds_.begin();
+}
+
+QuanCompounds::const_iterator QuanCompounds::end() const
+{
+    return impl_->compounds_.end();
+}
+
+void
+QuanCompounds::clear()
+{
+    impl_->compounds_.clear();
+}
+
+size_t
+QuanCompounds::size() const
+{
+    return impl_->compounds_.size();
+}
+
+const idAudit&
+QuanCompounds::ident() const
+{
+    return impl_->ident_;
+}
+
+// static
+bool
+QuanCompounds::xml_archive( std::wostream& os, const QuanCompounds& t ) 
+{
+    return internal::xmlSerializer( "QuanCompounds" ).archive( os, t );
+}
+
+// static
+bool
+QuanCompounds::xml_restore( std::wistream& is, QuanCompounds& t ) 
+{
+    return internal::xmlSerializer( "QuanCompounds" ).restore( is, t );
 }
 

@@ -250,7 +250,8 @@ QuanDocument::quanSequence( std::shared_ptr< adcontrols::QuanSequence >& ptr )
 {
     quanSequence_ = ptr;
     dirty_flags_[ idQuanSequence ] = true;
-
+    for ( auto& client: clients_ )
+        client( idQuanSequence, false );
     addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( ptr->filename() ) );
 }
 
@@ -593,9 +594,14 @@ QuanDocument::load( const boost::filesystem::path& path, adcontrols::QuanSequenc
     if ( path.extension() == ".xml" ) {
 
         boost::filesystem::wifstream fi( path );
-        if ( adcontrols::QuanSequence::xml_restore( fi, t ) ) {
-            addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_REFERENCE, QString::fromStdWString( path.generic_wstring() ) );    
-            return true;
+        try {
+            if ( adcontrols::QuanSequence::xml_restore( fi, t ) ) {
+                addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_REFERENCE, QString::fromStdWString( path.generic_wstring() ) );
+                return true;
+            }
+        }
+        catch ( std::exception& ex ) {
+            ADWARN() << boost::diagnostic_information( ex );
         }
         return false;
 
@@ -607,9 +613,14 @@ QuanDocument::load( const boost::filesystem::path& path, adcontrols::QuanSequenc
 
         if ( auto folder = fs.findFolder( L"/QuanSequence" ) ) {
             if ( auto file = folder.files().back() ) {
-                if ( file.fetch( t ) ) {
-                    addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
-                    return true;
+                try {
+                    if ( file.fetch( t ) ) {
+                        addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
+                        return true;
+                    }
+                }
+                catch ( std::exception& ex ) {
+                    ADWARN() << boost::diagnostic_information( ex );
                 }
             }
         }

@@ -31,6 +31,7 @@
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adcontrols/quansample.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
