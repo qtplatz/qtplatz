@@ -827,7 +827,7 @@ MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
             margedSpectrum_->addSegment( clone );
         ++idSpectrum; // move on to next spectrum
     }
-    margedSpectrum_->addDescription( adcontrols::Description( L"Calibration", L"Coadded Summary" ) );
+    margedSpectrum_->addDescription( adcontrols::description( L"Calibration", L"Coadded Summary" ) );
 	margedCalibResult_->assignedMasses( masses );
     if ( masses.size() > 0 )
         DataprocHandler::doAnnotateAssignedPeaks( *margedSpectrum_, masses );

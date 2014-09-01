@@ -49,8 +49,8 @@ namespace adcontrols {
         class ChromatogramImpl;
     }
 
-    class Description;
-    class Descriptions;
+    class description;
+    class descriptions;
     class Peaks;
     class Baselines;
 
@@ -129,8 +129,8 @@ namespace adcontrols {
         void maximumTime( const seconds_t& );
         void tubingDelayTime( const seconds_t& ); // min
 
-        void addDescription( const Description& );
-        const Descriptions& getDescriptions() const;
+        void addDescription( const description& );
+        const descriptions& getDescriptions() const;
 
         const std::wstring& axisLabelHorizontal() const;
         const std::wstring& axisLabelVertical() const;

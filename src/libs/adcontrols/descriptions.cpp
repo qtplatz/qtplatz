@@ -54,21 +54,21 @@ using namespace adcontrols;
 namespace adcontrols {
 	namespace internal {
 
-		class DescriptionsImpl {
+		class descriptionsImpl {
 		public:
-			~DescriptionsImpl() {}
-			DescriptionsImpl() {}
-			DescriptionsImpl( const DescriptionsImpl& t ) : vec_(t.vec_) {}
+			~descriptionsImpl() {}
+			descriptionsImpl() {}
+			descriptionsImpl( const descriptionsImpl& t ) : vec_(t.vec_) {}
 
-			typedef std::vector< Description > vector_type;
+			typedef std::vector< description > vector_type;
 
-			void append( const Description& desc, bool uniq );
+			void append( const description& desc, bool uniq );
 			inline size_t size() const { return vec_.size(); }
-			inline const Description& operator []( size_t idx ) { return vec_[idx]; }
+			inline const description& operator []( size_t idx ) { return vec_[idx]; }
             inline operator const vector_type& () const { return vec_; }
 
 		private:
-            friend class adcontrols::Descriptions;
+            friend class adcontrols::descriptions;
 			friend class boost::serialization::access;
 			template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
 			    (void)version;
@@ -80,10 +80,10 @@ namespace adcontrols {
 
         template< typename char_t > struct make_folder_name {
             std::basic_regex< char_t > regex_;
-            const DescriptionsImpl::vector_type& vec_;
+            const descriptionsImpl::vector_type& vec_;
 
             make_folder_name( const std::basic_string< char_t >& pattern
-                              , const DescriptionsImpl::vector_type& vec ) : regex_( pattern ), vec_( vec ) {
+                              , const descriptionsImpl::vector_type& vec ) : regex_( pattern ), vec_( vec ) {
             }
 
             std::basic_string< char_t > operator()() const {
@@ -91,7 +91,7 @@ namespace adcontrols {
                 std::basic_string< char_t > name;
 
                 // make it reverse order
-                std::for_each( vec_.rbegin(), vec_.rend(), [&] ( const Description& d ){
+                std::for_each( vec_.rbegin(), vec_.rend(), [&] ( const description& d ){
                         
                         std::match_results< std::basic_string< wchar_t >::const_iterator > match;
 
@@ -110,55 +110,55 @@ namespace adcontrols {
 	}
 }
 
-BOOST_CLASS_VERSION(adcontrols::Descriptions, 1)
-BOOST_CLASS_VERSION(adcontrols::internal::DescriptionsImpl, 1)
+BOOST_CLASS_VERSION(adcontrols::descriptions, 1)
+BOOST_CLASS_VERSION(adcontrols::internal::descriptionsImpl, 1)
 
 using namespace adcontrols::internal;
 
-Descriptions::~Descriptions()
+descriptions::~descriptions()
 {
     delete pImpl_;
 }
 
-Descriptions::Descriptions() : pImpl_(0)
+descriptions::descriptions() : pImpl_(0)
 {
-    pImpl_ = new DescriptionsImpl();
+    pImpl_ = new descriptionsImpl();
 }
 
-Descriptions::Descriptions( const Descriptions& t )
+descriptions::descriptions( const descriptions& t )
 {
 	operator = ( t );
 }
 
 void
-Descriptions::operator = ( const Descriptions& t )
+descriptions::operator = ( const descriptions& t )
 {
    if ( pImpl_ != t.pImpl_ ) {
       delete pImpl_;
-      pImpl_ = new DescriptionsImpl( *t.pImpl_ );
+      pImpl_ = new descriptionsImpl( *t.pImpl_ );
    }
 }
 
 void
-Descriptions::append( const Description& desc, bool uniq )
+descriptions::append( const description& desc, bool uniq )
 {
    pImpl_->append( desc, uniq );
 }
 
 size_t
-Descriptions::size() const
+descriptions::size() const
 {
    return pImpl_->size();
 }
 
-const Description& 
-Descriptions::operator [] ( size_t idx ) const
+const description& 
+descriptions::operator [] ( size_t idx ) const
 {
    return (*pImpl_)[idx];
 }
 
 std::wstring
-Descriptions::toString() const
+descriptions::toString() const
 {
     std::wstring text;
     for ( auto& desc: *this )
@@ -166,32 +166,32 @@ Descriptions::toString() const
     return text;
 }
 
-std::vector< Description >::iterator
-Descriptions::begin()
+std::vector< description >::iterator
+descriptions::begin()
 {
     return pImpl_->vec_.begin();
 }
 
-std::vector< Description >::iterator
-Descriptions::end()
+std::vector< description >::iterator
+descriptions::end()
 {
     return pImpl_->vec_.end();
 }
 
-std::vector< Description >::const_iterator
-Descriptions::begin() const
+std::vector< description >::const_iterator
+descriptions::begin() const
 {
     return pImpl_->vec_.begin();
 }
 
-std::vector< Description >::const_iterator
-Descriptions::end() const
+std::vector< description >::const_iterator
+descriptions::end() const
 {
     return pImpl_->vec_.end();    
 }
 
 std::wstring
-Descriptions::make_folder_name( const std::wstring& regex ) const
+descriptions::make_folder_name( const std::wstring& regex ) const
 {
     return internal::make_folder_name< wchar_t >( regex, *pImpl_ )();
 }
@@ -199,42 +199,42 @@ Descriptions::make_folder_name( const std::wstring& regex ) const
 namespace adcontrols {
 #if 0
     template<> void
-    Descriptions::serialize( boost::archive::xml_oarchive& ar, const unsigned int version )
+    descriptions::serialize( boost::archive::xml_oarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar << boost::serialization::make_nvp("Descriptions", pImpl_);
+        ar << boost::serialization::make_nvp("descriptions", pImpl_);
     }
     
     template<> void
-    Descriptions::serialize( boost::archive::xml_iarchive& ar, const unsigned int version )
+    descriptions::serialize( boost::archive::xml_iarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
+        ar >> boost::serialization::make_nvp("descriptions", pImpl_);
     }
 #endif
     template<> void
-    Descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar << boost::serialization::make_nvp("Descriptions", pImpl_);
+        ar << boost::serialization::make_nvp("descriptions", pImpl_);
     }
     
     template<> void
-    Descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
+        ar >> boost::serialization::make_nvp("descriptions", pImpl_);
     }
     
     template<> void
-    Descriptions::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    descriptions::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         (void)version;
         ar & *pImpl_;
     }
     
     template<> void
-    Descriptions::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    descriptions::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         (void)version;
         ar & *pImpl_;
@@ -248,7 +248,7 @@ namespace adcontrols {
 ////////////////////////////////////////////////////
 
 void
-DescriptionsImpl::append( const Description& desc, bool uniq )
+descriptionsImpl::append( const description& desc, bool uniq )
 {
    if ( uniq ) {
       // to do

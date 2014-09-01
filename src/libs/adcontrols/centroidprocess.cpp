@@ -72,7 +72,7 @@ namespace adcontrols {
             MSPeakInfo info_;
             MassSpectrum clone_;
             CentroidMethod method_;
-            Description desc_;
+            description desc_;
         };
 
         struct timeFunctor {
@@ -164,7 +164,7 @@ void
 CentroidProcessImpl::setup( const CentroidMethod& method )
 {
     method_ = method;
-	desc_ = adcontrols::Description( L"CentroidProcess", L"Centroid" );
+	desc_ = adcontrols::description( L"CentroidProcess", L"Centroid" );
 
 	std::ostringstream o;
 	boost::archive::xml_oarchive ar( o );

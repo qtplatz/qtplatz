@@ -101,8 +101,8 @@ namespace adcontrols {
            void setColorArray( const unsigned char * );
            void resize( size_t );
 
-           void addDescription( const Description& );
-           const Descriptions& getDescriptions() const;
+           void addDescription( const description& );
+           const descriptions& getDescriptions() const;
 
            void setCalibration( const MSCalibration& );
            const MSCalibration& calibration() const;
@@ -122,7 +122,7 @@ namespace adcontrols {
 
            CentroidAlgorithm algo_;
            MS_POLARITY polarity_;	    
-           Descriptions descriptions_;
+           descriptions descriptions_;
            MSCalibration calibration_;
            MSProperty property_;
            annotations annotations_;
@@ -492,12 +492,12 @@ MassSpectrum::getColor( size_t idx ) const
 }
 
 void
-MassSpectrum::addDescription( const Description& t )
+MassSpectrum::addDescription( const description& t )
 {
   pImpl_->addDescription( t );
 }
 
-const Descriptions&
+const descriptions&
 MassSpectrum::getDescriptions() const
 {
   return pImpl_->getDescriptions();
@@ -878,12 +878,12 @@ MassSpectrumImpl::resize( size_t size )
 }
 
 void
-MassSpectrumImpl::addDescription( const Description& t )
+MassSpectrumImpl::addDescription( const description& t )
 {
 	descriptions_.append( t );
 }
 
-const Descriptions&
+const descriptions&
 MassSpectrumImpl::getDescriptions() const
 {
 	return descriptions_;

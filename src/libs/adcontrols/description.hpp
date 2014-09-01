@@ -37,13 +37,13 @@
 
 namespace adcontrols {
 
-   class ADCONTROLSSHARED_EXPORT Description{
+   class ADCONTROLSSHARED_EXPORT description {
    public:
-       ~Description();
-       Description();
-       Description( const Description& );
-       Description( const std::wstring& key, const std::wstring& text );
-       inline bool operator == ( const Description& t ) const;
+       ~description();
+       description();
+       description( const description& );
+       description( const std::wstring& key, const std::wstring& text );
+       inline bool operator == ( const description& t ) const;
        inline const std::wstring& text() const { return text_; }
        inline const std::wstring& key() const { return key_; }
 	   inline const std::string& xml() const { return xml_; }
@@ -77,8 +77,9 @@ namespace adcontrols {
        }
 
    };
+
 }
 
-BOOST_CLASS_VERSION(adcontrols::Description, 2);
+BOOST_CLASS_VERSION(adcontrols::description, 2);
 
 #endif // DESCRIPTION_H
