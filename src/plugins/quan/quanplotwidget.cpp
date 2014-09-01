@@ -105,8 +105,15 @@ QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn, const std:
 
             spw->setTitle( dataSource + L", " + d->centroid->getDescriptions().toString() );
 
-            spw->setData( d->profile, 0 );
-            spw->setData( d->centroid, 1, true );
+            if ( d->filterd ) {
+                spw->setData( d->filterd, 0, true );
+                spw->setData( d->profile, 2, true );
+                spw->setData( d->centroid, 1, false );
+            }
+            else {
+                spw->setData( d->profile, 0, true );
+                spw->setData( d->centroid, 1, false );
+            }
 
             double mass = d->centroid->getMass( idx );
             QRectF rc = spw->zoomer().zoomRect();
@@ -115,6 +122,7 @@ QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn, const std:
             spw->zoomer().zoom( rc );
 
             auto item = d->pkinfo->begin() + idx;
+            marker_->setYAxis( QwtPlot::yRight );
             marker_->setPeak( *item );
             marker_->visible( true );
 

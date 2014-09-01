@@ -110,8 +110,6 @@ QuanConnection::fetch( const std::wstring& dataGuid )
                     auto atts = file.attachments();
                     for ( auto& att : atts ) {
 
-                        // ADDEBUG() << "att::dataClass=" << att.dataClass() << "\tname:" << att.name();
-
                         if ( att.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
 
                             if ( att.attribute( L"name" ) == dataproc::Constants::F_CENTROID_SPECTRUM ) {
@@ -119,8 +117,10 @@ QuanConnection::fetch( const std::wstring& dataGuid )
                                     return 0;
 
                             } else if ( att.attribute( L"name" ) == dataproc::Constants::F_DFT_FILTERD ) {
-
-                                att.fetch( *d->profile );
+                                d->filterd = std::make_shared< adcontrols::MassSpectrum >();
+                                att.fetch( *d->filterd );
+                                if ( d->filterd->size() == 0 )
+                                    d->filterd.reset();
                             }
 
                         } else if ( att.dataClass() == adcontrols::MSPeakInfo::dataClass() ) {
