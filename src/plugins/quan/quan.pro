@@ -37,7 +37,6 @@ SOURCES += quanplugin.cpp \
     quanresultwidget.cpp \
     quancmpdwidget.cpp \
     quanplotdata.cpp \
-    quanmethodcomplex.cpp \
     quanpublisher.cpp \
     quansvgplot.cpp \
     quanplot.cpp
@@ -72,7 +71,6 @@ HEADERS += quanplugin.hpp \
         quanresultwnd.hpp \
         quancmpdwidget.hpp \
         quanplotdata.hpp \
-        quanmethodcomplex.hpp \
         quanpublisher.hpp \
         quanprogress.hpp \
     quansvgplot.hpp \

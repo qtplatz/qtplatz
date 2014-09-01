@@ -25,7 +25,6 @@
 #include "quanconnection.hpp"
 #include "quanplotdata.hpp"
 #include "quanquery.hpp"
-#include "quanmethodcomplex.hpp"
 #include <adfs/cpio.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
