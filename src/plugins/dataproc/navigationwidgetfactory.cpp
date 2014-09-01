@@ -34,9 +34,10 @@ using namespace dataproc;
 
 NavigationWidgetFactory::NavigationWidgetFactory()
 {
-    setId( Core::Id( Constants::C_DATAPROCESSOR ) );
+    setId( Constants::C_DATAPROC_NAVI );
     setDisplayName( tr( "Processing files" ) );
     setActivationSequence( QKeySequence( Qt::ALT + Qt::Key_X ) );
+    this->setPriority( 1000 );
 }
 
 NavigationWidgetFactory::~NavigationWidgetFactory()
@@ -58,7 +59,8 @@ NavigationWidgetFactory::createWidget()
     toggleSync->setToolTip( tr("Synchronize with Editor" ) );
     // filter->setPopupMode( QToolButton:: InstantPopup );
 
-    connect( toggleSync, SIGNAL(clicked(bool)), ptw, SLOT( toggleAutoSynchronization() ) );
+    //connect( toggleSync, SIGNAL( clicked( bool ) ), ptw, SLOT( toggleAutoSynchronization() ) );
+    connect( toggleSync, &QToolButton::clicked, ptw, &NavigationWidget::toggleAutoSynchronization );
 
     n.dockToolBarWidgets << toggleSync;
     return n;

@@ -90,6 +90,7 @@
 #include <coreplugin/rightpane.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/navigationwidget.h>
 #include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
@@ -252,6 +253,9 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
     addObject( mode_.get() );
     addAutoReleasedObject( new NavigationWidgetFactory );
+
+    connect( Core::ICore::instance(), &Core::ICore::coreAboutToOpen, this, [](){
+            Core::NavigationWidget::instance()->activateSubWidget( Constants::C_DATAPROC_NAVI ); });
 
     return true;
 }
@@ -425,7 +429,9 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 void
 DataprocPlugin::extensionsInitialized()
 {
+    
     // auto editMode = Core::ModeManager::mode( Core::Id( Core::EDIT_MODE ) );
+
     mainWindow_->OnInitialUpdate();
     pActionManager_->loadDefaults();
 }
