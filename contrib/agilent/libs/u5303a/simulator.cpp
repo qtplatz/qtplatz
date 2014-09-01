@@ -25,7 +25,7 @@
 #include "simulator.hpp"
 #include "digitizer.hpp"
 #include "waveform_generator.hpp"
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 #include <thread>
 
 using namespace u5303a;

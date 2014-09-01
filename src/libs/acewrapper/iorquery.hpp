@@ -26,7 +26,7 @@
 #define IORQUERY_HPP
 
 #include <boost/noncopyable.hpp>
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/function.hpp>
 #if defined _MSC_VER || defined __APPLE__ // assume -stdlib=libc++

@@ -46,7 +46,7 @@ DataprocessorFactory::~DataprocessorFactory()
 }
 
 DataprocessorFactory::DataprocessorFactory( QObject * owner, 
-										    const QStringList& types ) : Core::IEditorFactory( owner )
+										    const QStringList& ) : Core::IEditorFactory( owner )
 {
     setId( Constants::C_DATAPROCESSOR );
 

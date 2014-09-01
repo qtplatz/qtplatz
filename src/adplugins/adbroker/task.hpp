@@ -33,7 +33,7 @@
 #include <adinterface/brokereventC.h>
 #include <compiler/diagnostic_pop.h>
 
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 #include <thread>
 #include <vector>
 #include <map>

@@ -37,7 +37,7 @@
 #include <adplugin/orbservant.hpp>
 
 #if ! defined Q_MOC_RUN
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 #endif
 #include <thread>
 #include <mutex>

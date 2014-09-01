@@ -123,12 +123,14 @@ namespace dataproc {
 
 Dataprocessor::~Dataprocessor()
 {
+    disconnect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
 Dataprocessor::Dataprocessor() : portfolio_( new portfolio::Portfolio() )
                                , rawDataset_( 0 )
                                , modified_( false )
 {
+    connect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
 void
@@ -908,6 +910,13 @@ Dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
     std::string xml = processed.xml();
     portfolio_.reset( new portfolio::Portfolio( xml ) );
     return true;
+}
+
+void
+Dataprocessor::notify( adcontrols::dataSubscriber::idError, const wchar_t * text )
+{
+    QString msg( tr( "Instrument module(s) \"%1\" not installed." ).arg( QString::fromStdWString( text ) ) );
+    emit onNotify( msg );
 }
 
 bool

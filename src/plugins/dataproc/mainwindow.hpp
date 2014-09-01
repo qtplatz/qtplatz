@@ -117,6 +117,7 @@ namespace dataproc {
         void handle_add_mspeaks( const adcontrols::MSPeaks& );
         void actCreateSpectrogram();
 		void actClusterSpectrogram();
+        void handleWarningMessage( const QString& );
 
     private slots:
         void handleApplyMethod();

@@ -30,7 +30,7 @@
 #include <thread>
 #include <mutex>
 #include <vector>
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 #include <boost/any.hpp>
 
 namespace batchproc {

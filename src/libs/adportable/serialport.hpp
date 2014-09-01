@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 
 #include <thread>
 #include <mutex>

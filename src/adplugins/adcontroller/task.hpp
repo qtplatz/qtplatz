@@ -34,7 +34,7 @@
 #include <adinterface/signalobserverC.h>
 #include <compiler/diagnostic_pop.h>
 
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 #include <mutex>
 #include <vector>
 #include <deque>

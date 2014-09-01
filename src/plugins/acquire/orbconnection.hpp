@@ -34,7 +34,7 @@
 // #include <adinterface/receiverC.h>
 // #include <adplugin/orbservant.hpp>
 
-#include <boost/asio.hpp>
+#include <workaround/boost/asio.hpp>
 
 #include <thread>
 #include <mutex>

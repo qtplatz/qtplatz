@@ -110,21 +110,30 @@ rawdata::loadAcquiredConf()
                  && conf.trace_id == L"MS.TIC" ) {
                 
                 adcontrols::TraceAccessor accessor;
-                if ( fetchTraces( conf.objid, conf.dataInterpreterClsid, accessor ) ) {
-                    for ( int fcn = 0; unsigned(fcn) < accessor.nfcn(); ++fcn ) {
+
+                if ( auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid ) ) {
+
+                    if ( fetchTraces( conf.objid, spectrometer->getDataInterpreter(), accessor ) ) {
+                        for ( int fcn = 0; unsigned(fcn) < accessor.nfcn(); ++fcn ) {
                         
-                        std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
-                        cptr->addDescription( adcontrols::Description( L"create",  conf.trace_display_name ) );
-                        accessor.copy_to( *cptr, fcn );
-                        cptr->setFcn( fcn );
-                        tic_.push_back( cptr );
-                        if ( const double * times = cptr->getTimeArray() ) {
-                            for ( size_t i = 0; i < cptr->size(); ++i )
-                                times_.push_back( std::make_pair( times[i], fcn ) );
+                            std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
+                            cptr->addDescription( adcontrols::Description( L"create",  conf.trace_display_name ) );
+                            accessor.copy_to( *cptr, fcn );
+                            cptr->setFcn( fcn );
+                            tic_.push_back( cptr );
+                            if ( const double * times = cptr->getTimeArray() ) {
+                                for ( size_t i = 0; i < cptr->size(); ++i )
+                                    times_.push_back( std::make_pair( times[i], fcn ) );
+                            }
                         }
                     }
                 }
-
+                else {
+                    std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
+                    cptr->addDescription( adcontrols::Description( L"create", conf.trace_display_name ) );
+                    tic_.push_back( cptr ); // add empty chromatogram for dieplay titiles
+                    undefined_spectrometers_.push_back( conf.dataInterpreterClsid );
+                }
                 std::sort( times_.begin(), times_.end()
                            , []( const std::pair<double, int>& a, const std::pair<double,int>&b ){ return a.first < b.first; });
             }
@@ -541,47 +550,43 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 
 // private
 bool
-rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, adcontrols::TraceAccessor& accessor )
+rawdata::fetchTraces( int64_t objid, const adcontrols::DataInterpreter& interpreter, adcontrols::TraceAccessor& accessor )
 {
-    if ( auto spectrometer = getSpectrometer( objid, dataInterpreterClsid.c_str() ) ) {
 
-        const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
-
-        adfs::stmt sql( dbf_.db() );
+    adfs::stmt sql( dbf_.db() );
     
-        if ( sql.prepare( "SELECT rowid, npos, events, fcn FROM AcquiredData WHERE oid = :oid ORDER BY npos" ) ) {
+    if ( sql.prepare( "SELECT rowid, npos, events, fcn FROM AcquiredData WHERE oid = :oid ORDER BY npos" ) ) {
 
-            sql.bind( 1 ) = objid;
-            adfs::blob blob;
-            std::vector< char > xdata;
-            std::vector< char > xmeta;
-            size_t nrecord = 0;
+        sql.bind( 1 ) = objid;
+        adfs::blob blob;
+        std::vector< char > xdata;
+        std::vector< char > xmeta;
+        size_t nrecord = 0;
 
-            while( sql.step() == adfs::sqlite_row ) {
-                ++nrecord;
-                uint64_t rowid = sql.get_column_value< int64_t >( 0 );
-                uint64_t npos  = sql.get_column_value< int64_t >( 1 );
-                uint32_t events = static_cast< uint32_t >( sql.get_column_value< int64_t >( 2 ) );
-                if ( npos0_ == 0 )
-                    npos0_ = npos;
+        while ( sql.step() == adfs::sqlite_row ) {
+            ++nrecord;
+            uint64_t rowid = sql.get_column_value< int64_t >( 0 );
+            uint64_t npos = sql.get_column_value< int64_t >( 1 );
+            uint32_t events = static_cast<uint32_t>(sql.get_column_value< int64_t >( 2 ));
+            if ( npos0_ == 0 )
+                npos0_ = npos;
 
-                if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
-                    xdata.resize( blob.size() );
-                    if ( blob.size() )
-                        blob.read( reinterpret_cast< int8_t *>( xdata.data() ), blob.size() );
-                }
-
-                if ( blob.open( dbf_.db(), "main", "AcquiredData", "meta", rowid, adfs::readonly ) ) {
-                    xmeta.resize( blob.size() );
-                    if ( blob.size() )
-                        blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
-                }
-
-                interpreter.translate( accessor, xdata.data(), xdata.size(), xmeta.data(), xmeta.size()
-                                       , static_cast< uint32_t >( events ) );
+            if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
+                xdata.resize( blob.size() );
+                if ( blob.size() )
+                    blob.read( reinterpret_cast<int8_t *>(xdata.data()), blob.size() );
             }
-            return nrecord != 0;
+
+            if ( blob.open( dbf_.db(), "main", "AcquiredData", "meta", rowid, adfs::readonly ) ) {
+                xmeta.resize( blob.size() );
+                if ( blob.size() )
+                    blob.read( reinterpret_cast<int8_t *>(xmeta.data()), blob.size() );
+            }
+
+            interpreter.translate( accessor, xdata.data(), xdata.size(), xmeta.data(), xmeta.size()
+                                   , static_cast<uint32_t>(events) );
         }
+        return nrecord != 0;
     }
     return false;
 }
