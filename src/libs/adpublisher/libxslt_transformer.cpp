@@ -113,3 +113,15 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
     return false;
 }
 
+//static
+void
+transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
+{
+#if defined Q_OS_MAC
+    static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ) / ( "/../Resources/xslt" );
+#else
+    static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ) / ( "/../share/qtplatz/xslt" );
+#endif
+    path = ( dir / boost::filesystem::path( xsltfile ) ).generic_wstring();
+}
+
