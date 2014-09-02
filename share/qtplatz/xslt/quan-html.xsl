@@ -38,7 +38,7 @@
   </xsl:template>
   <!-- -->
 
-  <xsl:template match="classdata[@decltype='class adcontrols::idAudit']/class|ident_[@version|@tracking_level]">
+  <xsl:template match="/qtplatz_document/boost_serialization[@decltype='class adcontrols::idAudit']/idAudit">
     <div>
       <hr/>
       <table>
@@ -158,7 +158,6 @@
 	  </td>
 	  <td align="right">
 	    <xsl:variable name="intensity" select="column[@name='intensity']"/>
-	    <!-- <xsl:value-of select='format-number($intensity, "#.00")'/> -->
 	    <xsl:value-of select='$intensity'/>
 	  </td>
 	  <td align="right">
@@ -168,7 +167,7 @@
 		<xsl:with-param name="column">amount</xsl:with-param>
 	      </xsl:call-template>
 	    </xsl:variable>
-	    <xsl:value-of select='format-number($value, "#")'/>
+	    <xsl:value-of select='format-number($value, "#.00")'/>
 	  </td>
 	</tr>
       </xsl:for-each>
@@ -209,7 +208,6 @@
 	  </td>
 	  <td align="right">
 	    <xsl:variable name="intensity" select="column[@name='intensity']"/>
-	    <!-- <xsl:value-of select='format-number($intensity, "#.00")'/> -->
 	    <xsl:value-of select='$intensity'/>
 	  </td>
 	</tr>
@@ -316,7 +314,7 @@
 		      <xsl:with-param name="column">intensity</xsl:with-param>
 		    </xsl:call-template>
 		  </xsl:variable>
-		  <xsl:value-of select='format-number($intensity, "#")'/>
+		  <xsl:value-of select='$intensity'/>
 		</td>
 		<td/>
 	      </tr>
