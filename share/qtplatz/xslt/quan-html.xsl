@@ -62,11 +62,13 @@
 
   <xsl:template name="data_generation">
     <xsl:param name="value">raw</xsl:param>
+    <xsl:param name="first">0</xsl:param>
+    <xsl:param name="second">0</xsl:param>
     <xsl:choose>
-      <xsl:when test="$value = 0">average all</xsl:when>
-      <xsl:when test="$value = 1">take 1st spectrum</xsl:when>
-      <xsl:when test="$value = 2">take 2nd spectrum</xsl:when>
-      <xsl:when test="$value = 3">take last spectrum</xsl:when>
+      <xsl:when test="$value = 0">AS IS</xsl:when>
+      <xsl:when test="$value = 1">Average spectra from: <xsl:value-of select="$first"/> to: <xsl:value-of select='$second'/></xsl:when>
+      <xsl:when test="$value = 2">Chromatogram</xsl:when>
+      <xsl:when test="$value = 2">Process Raw Spectra</xsl:when>
     </xsl:choose>
   </xsl:template>
 
@@ -103,6 +105,8 @@
 	  <td> 
 	    <xsl:call-template name="data_generation">
 	      <xsl:with-param name="value"><xsl:value-of select="dataGeneration_"/></xsl:with-param>
+	      <xsl:with-param name="first"><xsl:value-of select="scan_range_/first"/></xsl:with-param>
+	      <xsl:with-param name="second"><xsl:value-of select="scan_range_/second"/></xsl:with-param>
 	    </xsl:call-template>
 	  </td>
 	  <td> 
