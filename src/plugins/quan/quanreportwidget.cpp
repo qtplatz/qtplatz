@@ -247,21 +247,21 @@ QuanReportWidget::filePublish()
             return;
         }
 
-        const QString apppath = QCoreApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // sibling of /translations
-        boost::filesystem::path xsltpath = boost::filesystem::path( apppath.toStdWString() ).normalize();
+        //const QString apppath = QCoreApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // sibling of /translations
+        //boost::filesystem::path xsltpath = boost::filesystem::path( apppath.toStdWString() ).normalize();
                 
         boost::filesystem::path path = publisher->filepath(); 
                 
         publisher->save_file( path.string().c_str() ); // save publisher document xml
                 
         QString output;
-        adpublisher::document::apply_template( path.string().c_str()
-                                               , (xsltpath / "quan-html.xsl").string().c_str()
-                                               , output );
-                
-        path.replace_extension( ".html" );
-        boost::filesystem::ofstream o( path );
-        o << output.toStdString();
+        adpublisher::document::apply_template( path.string().c_str(), "quan-html.xsl", output );
+        
+        if ( !output.isEmpty() ) {
+            path.replace_extension( ".html" );
+            boost::filesystem::ofstream o( path );
+            o << output.toStdString();
+        }
     }
 }
 
