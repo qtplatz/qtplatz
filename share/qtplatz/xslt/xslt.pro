@@ -1,5 +1,5 @@
 include(../../../qtplatz.pri)
-TEMPLATE = lib
+TEMPLATE = aux
 
 XSLFILES = quan-html.xsl
 
