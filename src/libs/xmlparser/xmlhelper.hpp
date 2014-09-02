@@ -26,7 +26,7 @@
 #pragma once
 
 #include "pugixml.hpp"
-#include <boost/archive/xml_woarchive.hpp>
+#include <adportable/xml_serializer.hpp>
 #include <string>
 #include <sstream>
 
@@ -44,11 +44,11 @@ namespace pugi {
 
         template<class T> bool operator()( const T& data ) {
             std::wstringstream o;
-            boost::archive::xml_woarchive ar( o );
-            ar << boost::serialization::make_nvp( "class", data );
-            auto status = dom.load( o );
-            if ( status.status == pugi::status_ok || status.status == pugi::status_end_element_mismatch ) // ignore it for boost::xml_serialization output
-                return true;
+            if ( adportable::xml::serialize<T>()(data, o) ) {
+                auto status = dom.load( o );
+                if ( status.status == pugi::status_ok || status.status == pugi::status_end_element_mismatch )
+                    return true;
+            }
             return false;
         }
         xml_document& doc() { return dom; }

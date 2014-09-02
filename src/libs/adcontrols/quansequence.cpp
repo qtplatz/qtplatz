@@ -104,7 +104,7 @@ namespace adcontrols {
     template<> ADCONTROLSSHARED_EXPORT void
     QuanSequence::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
     {
-        ar & boost::serialization::make_nvp("QuanSequence", *impl_);
+        ar & boost::serialization::make_nvp("impl", *impl_);
     }
 
     template<> ADCONTROLSSHARED_EXPORT void
@@ -113,7 +113,7 @@ namespace adcontrols {
         if ( version <= 1 )
             impl_->serialize( ar, version );
         else
-            ar & boost::serialization::make_nvp("QuanSequence", *impl_);
+            ar & boost::serialization::make_nvp("impl", *impl_);
     }
 }
 

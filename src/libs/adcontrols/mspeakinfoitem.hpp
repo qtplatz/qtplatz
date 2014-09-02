@@ -76,6 +76,9 @@ namespace adcontrols {
         // re-assign mass (usually call from calibration process)
         void assign_mass( double mass, double left, double right, double hhLeft, double hhRight );
 
+        static bool xml_archive( std::wostream&, const MSPeakInfoItem& );
+        static bool xml_restore( std::wistream&, MSPeakInfoItem& );
+
     private:
         uint32_t peak_index_;
         uint32_t peak_start_index_;

@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "mspeakinfoitem.hpp"
+#include "serializer.hpp"
 #include <cstring>
 
 using namespace adcontrols;
@@ -229,4 +230,18 @@ MSPeakInfoItem::mass( double mass )
     centroid_right_mass_ += d;
     HH_left_mass_ += d;
     HH_right_mass_ += d;
+}
+
+//static
+bool
+MSPeakInfoItem::xml_archive( std::wostream& os, const MSPeakInfoItem& t )
+{
+    return internal::xmlSerializer("MSPeakInfoItem").archive( os, t );
+}
+
+//static
+bool
+MSPeakInfoItem::xml_restore( std::wistream& is, MSPeakInfoItem& t )
+{
+    return internal::xmlSerializer("MSPeakInfoItem").restore( is, t );
 }

@@ -56,32 +56,30 @@ namespace quan {
 
         struct append_class {
 
-            template< class T > pugi::xml_node operator()( pugi::xml_node& node, const T& data ) const {
-                auto child = node.append_child( "classdata" );
-                child.append_attribute( "decltype" ) = typeid(data).name();
-                pugi::xmlhelper helper( data );
-                child.append_copy( helper.doc().select_single_node( "/boost_serialization/class" ).node() );
-                return child;
+            template< class T > pugi::xml_node operator()( pugi::xml_node& node, const T& data, const char * decl ) const {
+
+                pugi::xmlhelper helper;
+                if ( helper( data ) ) {
+                    auto leaf = helper.doc().select_single_node( "/boost_serialization" ).node();
+                    leaf.append_attribute( "decltype" ) = decl;
+                    node.append_copy( leaf );
+                    return leaf;
+                } else {
+                    auto leaf = node.append_child( "boost_serialization" );
+                    leaf.append_attribute( "decltype" ) = decl;
+                    return leaf; // empty node to be returned
+                }
             }
         };
 
-        struct append_process_method : public boost::static_visitor<bool> {
-            pugi::xml_node& node;
-            append_process_method( pugi::xml_node& n ) : node( n ){}
-            template<class T> bool operator()( const T& data ) const {
-                append_class()( node, data );
-                return true;
-            }
-        };
-        
         struct append_column {
             pugi::xml_node& row;
             append_column( pugi::xml_node& n ) : row( n ) {}
 
-            template<typename T> pugi::xml_node operator()( const char * typnam, const char * name, const T& value ) const {
+            template<typename T> pugi::xml_node operator()( const char * decl, const char * name, const T& value ) const {
                 auto node = row.append_child( "column" );
                 node.append_attribute( "name" ) = name;
-                node.append_attribute( "decltype" ) = typnam;
+                node.append_attribute( "decltype" ) = decl;
                 node.text() = value;
                 return node;
             }
@@ -167,7 +165,7 @@ QuanPublisher::operator()( QuanConnection * conn, std::function<void(int)> progr
     if ( auto doc = xmldoc_->append_child( "qtplatz_document" ) ) {
         doc.append_attribute( "creator" ) = "Quan.qtplatzplugin.ms-cheminfo.com";
         adcontrols::idAudit id;
-        detail::append_class()(doc, id);
+        detail::append_class()(doc, id, "class adcontrols::idAudit");
         
         int step = 1;
         if ( appendSampleSequence( doc ) ) {
@@ -210,7 +208,7 @@ QuanPublisher::operator()( QuanConnection * conn )
     if ( auto doc = xmldoc_->append_child( "qtplatz_document" ) ) {
         doc.append_attribute( "creator" ) = "Quan.qtplatzplugin.ms-cheminfo.com";
         adcontrols::idAudit id;
-        detail::append_class()(doc, id);
+        detail::append_class()(doc, id, "class adcontrols::idAudit");
 
         if ( appendSampleSequence( doc ) &&
              appendProcessMethod( doc ) &&
@@ -237,7 +235,7 @@ QuanPublisher::appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakIn
     if ( auto info = pkInfo.findProtocol( fcn ) ) {
         if ( info->size() > idx ) {
             const adcontrols::MSPeakInfoItem& item = *(info->begin() + idx);
-            detail::append_class()( dst, item );
+            detail::append_class()( dst, item, "class adcontrols::MSPeakInfoItem" );
             return true;
         }
     }
@@ -271,9 +269,7 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
 
     if ( auto data = conn_->fetch( dataGuid ) ) {
 
-        //detail::append_class()(dst, data->profile->getMSProperty());
-        detail::append_class()(dst, data->profile->getDescriptions());
-        //appendMSPeakInfo( dst, *data->pkinfo, idx, fcn );
+        detail::append_class()(dst, data->profile->getDescriptions(), "class adcontrols::descriptions");
 
         QuanSvgPlot svg;
         //auto gnode = dst.append_child( "traces" );
@@ -357,13 +353,8 @@ QuanPublisher::appendSampleSequence( pugi::xml_node& doc )
 {
     if ( auto node = doc.append_child( "SampleSequence" ) ) {
         
-        if ( auto p = conn_->quanSequence() ) {
-            pugi::xmlhelper helper( *p );
-            if ( auto xnode = node.append_child( "classdata" ) ) {
-                xnode.append_attribute( "decltype" ) = typeid(*p).name();
-                xnode.append_copy( helper.doc().select_single_node( "/boost_serialization/class" ).node() );
-            }
-        }
+        if ( auto p = conn_->quanSequence() ) 
+            detail::append_class()(node, *p, "class adcontrols::QuanSequence");
         return true;
     }
     return false;
@@ -374,16 +365,9 @@ QuanPublisher::appendProcessMethod( pugi::xml_node& doc )
 {
     if ( auto node = doc.append_child( "ProcessMethod" ) ) {
         if ( auto pm = conn_->processMethod() ) {
-
-            if ( auto xnode = node.append_child( "classdata" ) ) {
-                xnode.append_attribute( "decltype" ) = typeid(*pm).name();
-                detail::append_class()(xnode, pm->ident()); // idAudit
-
-                for ( auto& m : *pm )
-                    boost::apply_visitor( detail::append_process_method( xnode ), m );
-            }
+            detail::append_class()(node, *pm, "class adcontrols::ProcessMethod");
+            return true;
         }
-        return true;
     }
     return false;
 }

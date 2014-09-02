@@ -64,9 +64,12 @@ namespace adcontrols {
        std::vector< description >::const_iterator end() const;
        std::wstring make_folder_name( const std::wstring& regex = L".*" ) const;
 
-	   std::string saveXml() const;
-	   void loadXml( const std::string& xml );
+	   // std::string saveXml() const;
+	   // void loadXml( const std::string& xml );
        std::wstring toString() const;
+
+       static bool xml_archive( std::wostream&, const descriptions& );
+       static bool xml_restore( std::wistream&, descriptions& );
 
    private:
 	   friend class boost::serialization::access;

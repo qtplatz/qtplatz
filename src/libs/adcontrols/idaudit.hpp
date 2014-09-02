@@ -49,7 +49,9 @@ namespace adcontrols {
         const wchar_t * nameCreatedBy() const { return nameCreatedBy_.c_str(); }
 
         const boost::uuids::uuid& uuid() const { return uuid_; }
-        
+
+        static bool xml_archive( std::wostream&, const idAudit& );
+        static bool xml_restore( std::wistream&, idAudit& );
 
     private:
         boost::uuids::uuid uuid_;
