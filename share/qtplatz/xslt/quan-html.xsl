@@ -158,7 +158,8 @@
 	  </td>
 	  <td align="right">
 	    <xsl:variable name="intensity" select="column[@name='intensity']"/>
-	    <xsl:value-of select='format-number($intensity, "#.00")'/>
+	    <!-- <xsl:value-of select='format-number($intensity, "#.00")'/> -->
+	    <xsl:value-of select='$intensity'/>
 	  </td>
 	  <td align="right">
 	    <xsl:variable name="value">
@@ -208,7 +209,8 @@
 	  </td>
 	  <td align="right">
 	    <xsl:variable name="intensity" select="column[@name='intensity']"/>
-	    <xsl:value-of select='format-number($intensity, "#.00")'/>
+	    <!-- <xsl:value-of select='format-number($intensity, "#.00")'/> -->
+	    <xsl:value-of select='$intensity'/>
 	  </td>
 	</tr>
       </xsl:for-each>
