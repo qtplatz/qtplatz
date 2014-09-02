@@ -104,12 +104,14 @@ namespace adcontrols {
     template<> ADCONTROLSSHARED_EXPORT void
     QuanSequence::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
     {
+        // if chagge tag name, XSLT also may need to be changed
         ar & boost::serialization::make_nvp("impl", *impl_);
     }
 
     template<> ADCONTROLSSHARED_EXPORT void
     QuanSequence::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
+        // if chagge tag name, XSLT also may need to be changed
         if ( version <= 1 )
             impl_->serialize( ar, version );
         else
