@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "descriptions.hpp"
+#include "serializer.hpp"
 #include <sstream>
 #include <vector>
 #include <regex>
@@ -197,21 +198,22 @@ descriptions::make_folder_name( const std::wstring& regex ) const
 }
 
 namespace adcontrols {
-#if 0
+    /////////////////////// BINARY //////////////////////
     template<> void
-    descriptions::serialize( boost::archive::xml_oarchive& ar, const unsigned int version )
+    descriptions::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar << boost::serialization::make_nvp("descriptions", pImpl_);
+        ar & *pImpl_;
     }
     
     template<> void
-    descriptions::serialize( boost::archive::xml_iarchive& ar, const unsigned int version )
+    descriptions::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar >> boost::serialization::make_nvp("descriptions", pImpl_);
+        ar & *pImpl_;
     }
-#endif
+
+    /////////////////////// XML //////////////////////
     template<> void
     descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
@@ -226,19 +228,7 @@ namespace adcontrols {
         ar >> boost::serialization::make_nvp("descriptions", pImpl_);
     }
     
-    template<> void
-    descriptions::serialize( portable_binary_oarchive& ar, const unsigned int version )
-    {
-        (void)version;
-        ar & *pImpl_;
-    }
-    
-    template<> void
-    descriptions::serialize( portable_binary_iarchive& ar, const unsigned int version )
-    {
-        (void)version;
-        ar & *pImpl_;
-    }
+
 }; // namespace adcontrols
 //-------------------------------------------------------------------------------------------
 
@@ -255,4 +245,18 @@ descriptionsImpl::append( const description& desc, bool uniq )
       // find desc.key from vec_, and remove it
    }
    vec_.push_back( desc );
+}
+
+//static
+bool
+descriptions::xml_archive( std::wostream& os, const descriptions& t )
+{
+    return internal::xmlSerializer("descriptions").archive( os, t );
+}
+
+//static
+bool
+descriptions::xml_restore( std::wistream& is, descriptions& t )
+{
+    return internal::xmlSerializer("descriptions").restore( is, t );
 }

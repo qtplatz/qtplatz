@@ -140,14 +140,14 @@ namespace adcontrols {
     template<> void
     QuanCompound::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
     {
-        ar & boost::serialization::make_nvp("QuanCompound", *impl_);
+        ar & boost::serialization::make_nvp( "impl", *impl_);
     }
 
     template<> void
     QuanCompound::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         if ( version >= 2 )
-            ar & boost::serialization::make_nvp("QuanCompound", *impl_);
+            ar & boost::serialization::make_nvp( "impl", *impl_);
         else
             impl_->serialize( ar, version );
     }

@@ -148,14 +148,14 @@ namespace adcontrols {
     template<> void
     QuanSample::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
     {
-        ar & boost::serialization::make_nvp("QuanSample", *impl_);
+        ar & boost::serialization::make_nvp("impl", *impl_);
     }
 
     template<> void
     QuanSample::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         if ( version >= 3 )
-            ar & boost::serialization::make_nvp("QuanSample", *impl_);
+            ar & boost::serialization::make_nvp("impl", *impl_);
         else
             impl_->serialize( ar, version );
     }

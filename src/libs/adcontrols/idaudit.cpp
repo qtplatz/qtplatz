@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "idaudit.hpp"
+#include "serializer.hpp"
 #include <adportable/uuid.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
@@ -47,3 +48,17 @@ idAudit::idAudit( const idAudit& t ) : uuid_( t.uuid_ )
 {
 }
 
+
+//static
+bool
+idAudit::xml_archive( std::wostream& os, const idAudit& t )
+{
+    return internal::xmlSerializer("idAudit").archive( os, t );
+}
+
+//static
+bool
+idAudit::xml_restore( std::wistream& is, idAudit& t )
+{
+    return internal::xmlSerializer("idAudit").restore( is, t );
+}
