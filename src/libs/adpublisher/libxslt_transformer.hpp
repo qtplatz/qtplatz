@@ -38,6 +38,7 @@ namespace adpublisher {
         public:
             ~transformer();
 
+            static void xsltpath( boost::filesystem::path& path, const char * xsltfile );
             static bool apply_template( const char * xsltfile, const char * xmlfile, const char * outfile );
             static bool apply_template( const char * xsltfile, const char * xmlfile, QString& );
         };

@@ -195,22 +195,24 @@ document::xml_document()
 bool
 document::apply_template( const char * xmlfile, const char * xsltfile, QString& output )
 {
-    //QXmlQuery query( QXmlQuery::XSLT20 );
-
-    boost::filesystem::path src( xmlfile );
-    boost::filesystem::path xslt( xsltfile );
-
-    if ( !boost::filesystem::exists( src ) )
-        return false;
-
-    if ( !boost::filesystem::exists( xslt ) )
-        return false;
-
 #if defined Q_OS_WIN32
     using namespace msxml;
 #else
     using namespace libxslt;
 #endif
+
+    //QXmlQuery query( QXmlQuery::XSLT20 );
+
+    boost::filesystem::path src( xmlfile );
+    if ( !boost::filesystem::exists( src ) )
+        return false;
+
+    boost::filesystem::path xslt( xsltfile );
+    if ( !xslt.is_absolute() )
+        transformer::xsltpath( xslt, xsltfile );
+
+    if ( !boost::filesystem::exists( xslt ) )
+        return false;
 
     boost::filesystem::path opath( src );
     opath.replace_extension( ".html");

@@ -29,9 +29,11 @@
 #include <comdef.h>
 #import <msxml6.dll> named_guids
 #include <fstream>
+#include <QCoreApplication>
 #include <QMessageBox>
 #include <QString>
 #include <boost/filesystem/path.hpp>
+
 
 namespace adpublisher {
     namespace msxml {
@@ -132,3 +134,13 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
     return false;
 }
 
+//static
+void
+transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
+{
+    boost::filesystem::path dir = 
+        boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() )
+        /= boost::filesystem::path( "/../share/qtplatz/xslt" );
+
+    path = (dir / xsltfile).generic_wstring();
+}
