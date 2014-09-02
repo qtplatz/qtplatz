@@ -24,16 +24,15 @@
 
 #include "libxslt_transformer.hpp"
 #include <xmlparser/pugixml.hpp>
-#include <fstream>
-#include <QMessageBox>
-#include <QString>
-
 #include <libxslt/xsltInternals.h>
 #include <libxslt/xslt.h>
 #include <libxslt/transform.h>
 #include <libxslt/xsltutils.h>
-
 #include <boost/filesystem/path.hpp>
+#include <QCoreApplication>
+#include <QMessageBox>
+#include <QString>
+#include <fstream>
 
 
 using namespace adpublisher;
@@ -117,10 +116,14 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
 void
 transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
 {
+    static auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() );
+    dir.remove_filename();
 #if defined Q_OS_MAC
-    static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ) / ( "/../Resources/xslt" );
+    //static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ) / ( "/../Resources/xslt" );
+    dir /= "Resources/xslt";
 #else
-    static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ) / ( "/../share/qtplatz/xslt" );
+    //static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ) / ( "/../share/qtplatz/xslt" );
+    dir /= "share/qtplatz/Resources/xslt";
 #endif
     path = ( dir / boost::filesystem::path( xsltfile ) ).generic_wstring();
 }

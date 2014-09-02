@@ -203,8 +203,7 @@ document::apply_template( const char * xmlfile, const char * xsltfile, QString& 
 
     //QXmlQuery query( QXmlQuery::XSLT20 );
 
-    boost::filesystem::path src( xmlfile );
-    if ( !boost::filesystem::exists( src ) )
+    if ( !boost::filesystem::exists( xmlfile ) )
         return false;
 
     boost::filesystem::path xslt( xsltfile );
@@ -214,9 +213,9 @@ document::apply_template( const char * xmlfile, const char * xsltfile, QString& 
     if ( !boost::filesystem::exists( xslt ) )
         return false;
 
-    boost::filesystem::path opath( src );
+    boost::filesystem::path opath( xmlfile );
     opath.replace_extension( ".html");
-
-    return transformer::apply_template( xmlfile, xsltfile, output);
+    
+    return transformer::apply_template( xmlfile, xslt.string().c_str(), output);
 }
 

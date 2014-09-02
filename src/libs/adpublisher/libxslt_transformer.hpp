@@ -29,6 +29,8 @@
 
 class QString;
 
+namespace boost { namespace filesystem { class path; } }
+
 namespace adpublisher {
 
     namespace libxslt {
