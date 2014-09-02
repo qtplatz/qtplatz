@@ -77,7 +77,7 @@
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="SampleSequence/classdata[@decltype='class adcontrols::QuanSequence']">
+  <xsl:template match="SampleSequence/boost_serialization[@decltype='class adcontrols::QuanSequence']/QuanSequence">
     <h3>Sample Sequence</h3>
     <table border="1" style='table-layout:fixed'>
       <tr bgcolor='#FDFD96'>
@@ -88,7 +88,7 @@
 	<td> process </td>
 	<td> dataSource </td>
       </tr>
-      <xsl:for-each select="class/samples_/item">
+      <xsl:for-each select="impl/samples_/item/impl">
 	<tr>
 	  <td> <xsl:value-of select="rowid_"/> </td>
 	  <td> <xsl:value-of select="name_"/> </td>
