@@ -45,6 +45,11 @@ namespace Constants {
     const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
     const wchar_t * const F_TARGETING          = L"Targeting";
 
+    // settings
+    const char * const GRP_DATA_FILES       = "DataFiles";
+    const char * const GRP_METHOD_FILES     = "MethodFiles";
+    const char * const KEY_FILES            = "Files";
+
     // shared with Quan
     const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
 

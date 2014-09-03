@@ -24,6 +24,7 @@
 
 #include "mainwindow.hpp"
 #include "chromatogramwnd.hpp"
+#include "dataproc_document.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocplugin.hpp"
 #include "dataprocessorfactory.hpp"
@@ -797,12 +798,19 @@ MainWindow::OnInitialUpdate()
         QWidget * obj = widget->widget();
 		adplugin::LifeCycleAccessor accessor( obj );
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
-		if ( pLifeCycle ) {
+		if ( pLifeCycle )
 			pLifeCycle->OnInitialUpdate();
-			// connect( obj, SIGNAL( apply( adcontrols::ProcessMethod& ) ), this
-            //          , SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
-		}
     }
+
+    if ( auto pm = dataproc_document::instance()->processMethod() ) {
+        setProcessMethod( *pm ); // write to UI
+        getProcessMethod( *pm ); // read back from UI, also adds some method if missed by config change
+    } else {
+        adcontrols::ProcessMethod m;
+        getProcessMethod( m );
+        dataproc_document::instance()->setProcessMethod( m );
+    }
+
     setSimpleDockWidgetArrangement();
 }
 
@@ -957,17 +965,16 @@ MainWindow::actionApply()
     ADTRACE() << "dataproc::MainWindow::actionApply(" << currentFeature_ << ")";
     qtwrapper::waitCursor wait;
 
-    adcontrols::ProcessMethod m;
-    getProcessMethod( m );
+    if ( auto pm = dataproc_document::instance()->processMethod() ) {
 
-    size_t n = m.size();
-    if ( n > 0 ) {
+        getProcessMethod( *pm );  // update by what values GUI holds
+
         Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
         if ( processor ) {
             if ( currentFeature_ == CalibrationProcess )
-                processor->applyCalibration( m );
+                processor->applyCalibration( *pm );
             else
-                processor->applyProcess( m, currentFeature_ );
+                processor->applyProcess( *pm, currentFeature_ );
         }
     }
 }
@@ -975,24 +982,27 @@ MainWindow::actionApply()
 void
 MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
 {
-    adcontrols::ProcessMethod m;
-    getProcessMethod( m );
-    if ( m.size() > 0 ) {
+    if ( auto pm = dataproc_document::instance()->processMethod() ) {
+
+        getProcessMethod( *pm );
+
         Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
         if ( processor )
-            processor->applyCalibration( m, assigned );
+            processor->applyCalibration( *pm, assigned );
+
     }
 }
 
 void
 MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned, portfolio::Folium& folium )
 {
-    adcontrols::ProcessMethod m;
-    getProcessMethod( m );
-    if ( m.size() > 0 ) {
+    if ( auto pm = dataproc_document::instance()->processMethod() ) {
+
+        getProcessMethod( *pm );
+
         Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
         if ( processor )
-            processor->applyCalibration( m, assigned, folium );
+            processor->applyCalibration( *pm, assigned, folium );
     }
 }
 

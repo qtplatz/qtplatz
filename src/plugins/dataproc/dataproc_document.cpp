@@ -24,33 +24,172 @@
 
 #include "dataproc_document.hpp"
 #include "dataprocessor.hpp"
+#include "mainwindow.hpp"
 #include <adcontrols/msqpeaks.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adfs/adfs.hpp>
+#include <adfs/filesystem.hpp>
+#include <adfs/file.hpp>
+#include <adportable/profile.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
+#include <qtwrapper/settings.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 #include <app/app_version.h>
+#include <coreplugin/documentmanager.h>
+#include <QFileInfo>
 #include <QSettings>
+#include <QMessageBox>
+#include <atomic>
+
+namespace dataproc {
+
+    struct user_preference {
+        static boost::filesystem::path path( QSettings * settings ) {
+            boost::filesystem::path dir( settings->fileName().toStdWString() );
+            return dir.remove_filename() / "dataproc";
+        }
+    };
+
+}
 
 using namespace dataproc;
 
-dataproc_document * dataproc_document::instance_ = 0;
+std::atomic<dataproc_document * > dataproc_document::instance_(0);
+std::mutex dataproc_document::mutex_;
 
 dataproc_document::dataproc_document(QObject *parent) : QObject(parent)
                                     , quant_( std::make_shared< adcontrols::MSQPeaks >() )
                                     , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                                                , QLatin1String( "QtPlatz" ) ) )
+                                                                                , QLatin1String( "dataproc" ) ) )
 {
 }
 
 dataproc_document * 
 dataproc_document::instance()
 {
-    if ( instance_ == 0 )
-        instance_ = new dataproc_document;
-    return instance_;
+    typedef dataproc_document T;
+
+    T * tmp = instance_.load( std::memory_order_relaxed );
+    std::atomic_thread_fence( std::memory_order_acquire );
+    if ( tmp == nullptr ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        tmp = instance_.load( std::memory_order_relaxed );
+        if ( tmp == nullptr ) {
+            tmp = new T();
+            std::atomic_thread_fence( std::memory_order_release );
+            instance_.store( tmp, std::memory_order_relaxed );
+        }
+    }
+    return tmp;
+}
+
+std::shared_ptr< adcontrols::ProcessMethod >
+dataproc_document::processMethod() const
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    return pm_;
+}
+
+void
+dataproc_document::setProcessMethod( const adcontrols::ProcessMethod& m )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    pm_ = std::make_shared< adcontrols::ProcessMethod >( m );
+    emit onProcessMethodChanged();
+}
+
+void
+dataproc_document::addToRecentFiles( const QString& filename )
+{
+    qtwrapper::settings(*settings_).addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, filename );
+}
+
+void
+dataproc_document::initialSetup()
+{
+    boost::filesystem::path dir = user_preference::path( settings_.get() );
+
+    if ( !boost::filesystem::exists( dir ) ) {
+        if ( !boost::filesystem::create_directories( dir ) ) {
+            QMessageBox::information( 0, "dataproc::dataproc_document"
+                                      , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
+        }
+    }
+
+    QString path = qtwrapper::settings(*settings_).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
+    if ( path.isEmpty() ) {
+        auto path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
+    } else {
+        path = QFileInfo( path ).path();
+    }
+    // fake project directory for help initial openfiledialog location
+    Core::DocumentManager::setProjectsDirectory( path );
+    Core::DocumentManager::setUseProjectsDirectory( true );
+    //Core::DocumentManager::setFileDialogLastVisitedDirectory( path );
+
+    boost::filesystem::path mfile( dir / "default.pmth" );
+    if ( boost::filesystem::exists( mfile ) ) {
+        
+        adfs::filesystem fs;
+        if ( fs.mount( mfile.wstring().c_str() ) ) {
+            adfs::folder folder = fs.findFolder( L"/ProcessMethod" );
+
+            auto files = folder.files();
+            if ( !files.empty() ) {
+                auto file = files.back();
+                pm_ = std::make_shared< adcontrols::ProcessMethod >();
+                try {
+                    file.fetch( *pm_ );
+                }
+                catch ( std::exception& ex ) {
+                    QMessageBox::information( 0, "dataproc -- Open default process method"
+                                              , (boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
+                                              % mfile.string() % ex.what() % __FILE__ % __LINE__).str().c_str() );
+                    return;
+                }
+                procmethod_filename_ = mfile.generic_wstring();
+            }
+        }
+    }
+}
+
+void
+dataproc_document::finalClose()
+{
+    boost::filesystem::path dir = user_preference::path( settings_.get() );
+    if ( !boost::filesystem::exists( dir ) ) {
+        if ( !boost::filesystem::create_directories( dir ) ) {
+            QMessageBox::information( 0, "dataproc::dataproc_document"
+                                      , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
+            return;
+        }
+    }
+    
+    boost::filesystem::path fname( dir / "default.pmth" );
+    adfs::filesystem file;
+    try {
+        if ( !file.create( fname.wstring().c_str() ) )
+            return;
+    } catch ( adfs::exception& ex ) {
+        QMessageBox::warning( 0, tr( "Process method" ), (boost::format( "%1% on %2%" ) % ex.message % ex.category).str().c_str() );
+        return;
+    }
+    
+    adfs::folder folder = file.addFolder( L"/ProcessMethod" );
+    adfs::file adfile = folder.addFile( fname.wstring() );
+    try {
+        adfile.save( *pm_ );
+    } catch ( std::exception& e ) {
+        QMessageBox::warning( 0, tr( "Save default process method" ),
+                              (boost::format("%1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );        
+    }
+    adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
+    adfile.commit();
 }
 
 adcontrols::MSQPeaks *

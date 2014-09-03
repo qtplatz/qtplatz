@@ -1,3 +1,4 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2014 MS-Cheminformatics LLC
@@ -22,24 +23,21 @@
 **
 **************************************************************************/
 
-#ifndef EDITORFACTORY_HPP
-#define EDITORFACTORY_HPP
+#pragma once
 
-#include <adextension/ieditorfactory.hpp>
-#include <adportable/configuration.hpp>
-#include <string>
+#include <QString>
+#include <QSettings>
 
-namespace dataproc {
+namespace qtwrapper {
 
-	class EditorFactory : public adextension::iEditorFactory {
-		std::wstring path_;
-		adportable::Configuration config_;
-    public:
-        EditorFactory( const adportable::Configuration& config, const std::wstring& path );
-        QWidget * createEditor( QWidget * parent = 0 ) override;
-        QString title() const override;
-	};
+    struct settings {
+        QSettings& settings_;
+        settings( QSettings& settings );
 
+        QString recentFile( const QString& group, const QString& key );
+        void addRecentFiles( const QString& group, const QString& key, const QString& value );
+        void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list );
+
+    };
 }
 
-#endif // EDITORFACTORY_HPP

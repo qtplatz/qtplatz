@@ -26,14 +26,17 @@
 #define DATAPROC_DOCUMENT_HPP
 
 #include <QObject>
+#include <atomic>
 #include <memory>
 #include <set>
+#include <mutex>
 
 class QSettings;
 
 namespace adcontrols {
     class MSQPeaks;
     class Chromatogram;
+    class ProcessMethod;
 }
 
 namespace dataproc {
@@ -44,12 +47,22 @@ namespace dataproc {
     {
         Q_OBJECT
         explicit dataproc_document(QObject *parent = 0);
-        static dataproc_document * instance_;
+        static std::atomic<dataproc_document * > instance_;
+        static std::mutex mutex_;
     public:
         static dataproc_document * instance();
+        
+        void initialSetup();
+        void finalClose();
+
         void setMSQuanTable( const adcontrols::MSQPeaks& );
         adcontrols::MSQPeaks * msQuanTable();
         const adcontrols::MSQPeaks * msQuanTable() const;
+
+        std::shared_ptr< adcontrols::ProcessMethod > processMethod() const;
+        void setProcessMethod( const adcontrols::ProcessMethod& );
+
+        void addToRecentFiles( const QString& );
 
         static size_t findCheckedTICs( Dataprocessor *, std::set< int >& vfcn );
         static const std::shared_ptr< adcontrols::Chromatogram > findTIC( Dataprocessor *, int );
@@ -57,8 +70,11 @@ namespace dataproc {
     private:    
         std::shared_ptr< adcontrols::MSQPeaks > quant_;
         std::shared_ptr< QSettings > settings_;  // user scope settings
+        std::shared_ptr< adcontrols::ProcessMethod > pm_;
+        std::wstring procmethod_filename_;
 
     signals:
+        void onProcessMethodChanged();
 
     public slots:
 
@@ -66,4 +82,4 @@ namespace dataproc {
 
 }
 
-#endif // DATAPROC_DOCUMENT_HPP
+#endif // DATAPROCDOCUMENT_HPP
