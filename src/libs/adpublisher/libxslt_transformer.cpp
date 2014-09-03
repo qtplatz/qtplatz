@@ -95,7 +95,7 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
                     return false;
 
                 if ( xsltSaveResultToString( &doc_txt_ptr, &doc_txt_len, res, cur ) >= 0 ) {
-                    output = *doc_txt_ptr;
+                    output = QString( reinterpret_cast< char *>( doc_txt_ptr ) );
                     free( doc_txt_ptr );
                 }
 
@@ -117,14 +117,14 @@ void
 transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
 {
     static auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() );
-    dir.remove_filename();
+    dir.remove_filename(); // updir
+
 #if defined Q_OS_MAC
-    //static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ) / ( "/../Resources/xslt" );
     dir /= "Resources/xslt";
 #else
-    //static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ) / ( "/../share/qtplatz/xslt" );
     dir /= "share/qtplatz/Resources/xslt";
 #endif
+
     path = ( dir / boost::filesystem::path( xsltfile ) ).generic_wstring();
 }
 
