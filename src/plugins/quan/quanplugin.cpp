@@ -23,8 +23,9 @@
 **************************************************************************/
 
 #include "quanplugin.hpp"
-#include "quanconstants.hpp"
 #include "mainwindow.hpp"
+#include "quanconstants.hpp"
+#include "quanfactory.hpp"
 #include "quanmode.hpp"
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -65,6 +66,9 @@ QuanPlugin::initialize(const QStringList &arguments, QString *errorString)
     mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
 
     addObject( mode_.get() );
+
+    // it's conflict with Dataproc document factory on MIME due to both support application/adfs
+    // addAutoReleasedObject( new QuanFactory( this ) );
     
     return true;
 }

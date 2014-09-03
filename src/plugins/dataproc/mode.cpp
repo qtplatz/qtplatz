@@ -27,6 +27,7 @@
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/actionmanager/actionmanager.h>
 // #include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 
@@ -43,8 +44,9 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
     // setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::C_EDIT_MODE ) );
     setContext( Core::Context( Constants::C_DATAPROCESSOR ) );
-
-    //connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
+    
+    connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance())
+             , &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
 
 }
 
@@ -53,6 +55,12 @@ Mode::grabEditorManager(Core::IMode *mode)
 {
     if (mode != this)
         return;
-    Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
+
+    if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
+        cmd->action()->setText( tr( "Open..." ) );
+
+    if ( Core::EditorManager::instance()->currentEditor() )
+        Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
+    
 }
 
