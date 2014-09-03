@@ -55,16 +55,8 @@ namespace quan {
         void onInitialUpdate();
         void onFinalClose();
 
-        enum idActions {
-            idActRun
-            , idActStop
-            , idActFileOpen
-            , nActions
-        };
-
     private:
         QStackedWidget * stack_;
-        std::array< QAction *, nActions > actions_;
 
         void createDockWidgets();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
@@ -79,11 +71,11 @@ namespace quan {
         void handleIndexChanged( int index, int subIndex );
         void handleSequenceCompleted();
         void handleOpenQuanResult();
-        void handleRecentFiles();
         void handleOpenQuanMethod();
         void handleSaveQuanMethod();
         void handleOpenQuanSequence();
         void handleSaveQuanSequence();
+        void handleRecentFiles();
 
     signals:
 

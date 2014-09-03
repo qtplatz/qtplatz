@@ -39,7 +39,9 @@ SOURCES += quanplugin.cpp \
     quanplotdata.cpp \
     quanpublisher.cpp \
     quansvgplot.cpp \
-    quanplot.cpp
+    quanplot.cpp \
+    quanfactory.cpp \
+    quaneditor.cpp
 
 HEADERS += quanplugin.hpp \
         quan_global.hpp \
@@ -73,8 +75,10 @@ HEADERS += quanplugin.hpp \
         quanplotdata.hpp \
         quanpublisher.hpp \
         quanprogress.hpp \
-    quansvgplot.hpp \
-    quanplot.hpp
+        quansvgplot.hpp \
+        quanplot.hpp \
+        quanfactory.hpp \
+        quaneditor.hpp
 
 # Qt Creator linking
 LIBS += -l$$qtLibraryTarget(adplugin) \

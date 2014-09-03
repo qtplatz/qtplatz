@@ -267,22 +267,16 @@ MainWindow::createActions()
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("Quan") );
 
-        if ( auto p = actions_[ idActFileOpen ] = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan result file..." ), this ) ) {
-            am->registerAction( actions_[ idActFileOpen ], Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );
+        if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan Result..." ), this ) ) {
+            am->registerAction( p, Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools->Quan->Open
             connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanResult );
             menu->addAction( am->command( Constants::FILE_OPEN ) );
-            
-            if ( auto cmd = am->registerAction( actions_[ idActFileOpen ], Core::Constants::OPEN, Core::Context( Constants::C_QUAN_MODE ) ) )
-                cmd->action()->setText( tr( "Open..." ) );
-            
-        }
 
-        if ( auto p = new QAction( QIcon(":/quan/images/ProjectDependencies.png"), tr( "Recent Files" ), this ) ) {
-            am->registerAction( p, Constants::M_FILE_RECENTFILES, Core::Context( Constants::C_QUAN_MODE ) );
-            connect( p, &QAction::triggered, this, &MainWindow::handleRecentFiles );
-            menu->addAction( am->command( Constants::M_FILE_RECENTFILES ) );
-        }
+            auto cmd = am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_QUAN_MODE ) );  // File->Open
+            //cmd->action()->setText( tr( "Open Quan Result..." ) );
+            //if ( auto cmd = am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_QUAN_MODE ) ) )
 
+       }
 
         //------------ method --------------
         if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan Method..." ), this ) ) {
@@ -309,13 +303,13 @@ MainWindow::createActions()
             menu->addAction( am->command( Constants::QUAN_SEQUENCE_SAVE ) );
         }
 
-        if ( auto p = actions_[ idActRun ] = new QAction( QIcon( ":/quan/images/run.png" ), tr("Run"), this ) ) {
+        if ( auto p = new QAction( QIcon( ":/quan/images/run.png" ), tr("Run"), this ) ) {
             am->registerAction( p, Constants::QUAN_SEQUENCE_RUN, Core::Context( Constants::C_QUAN_MODE ) );
             connect( p, &QAction::triggered, this, &MainWindow::run );
             menu->addAction( am->command( Constants::QUAN_SEQUENCE_RUN ) );
         }
 
-        if ( auto p = actions_[ idActStop ] = new QAction( QIcon(":/quan/images/stop.png"), tr("Stop"), this ) ) {
+        if ( auto p = new QAction( QIcon(":/quan/images/stop.png"), tr("Stop"), this ) ) {
             am->registerAction( p, Constants::QUAN_SEQUENCE_STOP, Core::Context( Constants::C_QUAN_MODE ) );
             connect( p, &QAction::triggered, this, &MainWindow::stop );
             menu->addAction( am->command( Constants::QUAN_SEQUENCE_STOP ) );
@@ -382,10 +376,10 @@ MainWindow::run()
         }
     }
 
-    if ( auto stop = actions_[ idActStop ] )
+    if ( auto stop = Core::ActionManager::command(Constants::QUAN_SEQUENCE_STOP)->action() )
         stop->setEnabled( true );
 
-    if ( auto stop = actions_[ idActRun ] )
+    if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_RUN )->action() )
         stop->setEnabled( false );
 
     QuanDocument::instance()->run();
@@ -400,18 +394,14 @@ MainWindow::stop()
 void
 MainWindow::handleSequenceCompleted()
 {
-    if ( auto stop = actions_[ idActStop ] )
+    if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_STOP )->action() )
         stop->setEnabled( false );
-    if ( auto stop = actions_[ idActRun ] )
+    
+    if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_RUN )->action() )
         stop->setEnabled( true );
 
     if ( auto tab = findChild< DoubleTabWidget * >() )
         tab->setCurrentIndex( -1, 3 );
-}
-
-void
-MainWindow::handleRecentFiles()
-{
 }
 
 void
@@ -534,4 +524,9 @@ MainWindow::handleSaveQuanSequence()
         boost::filesystem::path path( name.toStdWString() );
         QuanDocument::instance()->save( path, *QuanDocument::instance()->quanSequence(), true );
     }
+}
+
+void
+MainWindow::handleRecentFiles()
+{
 }

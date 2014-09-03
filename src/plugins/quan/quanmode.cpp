@@ -29,6 +29,7 @@
 #include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/actionmanager/actionmanager.h>
 
 using namespace quan;
 
@@ -39,6 +40,8 @@ QuanMode::QuanMode(QObject *parent) : Core::IMode(parent)
     setDisplayName( tr( "Quan" ) );
     setIcon(QIcon(":/quan/images/balance.png"));
     setPriority( 60 );
+    
+    connect( dynamic_cast<const Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &QuanMode::grabEditorManager );
 }
 
 QuanMode::~QuanMode()
@@ -51,6 +54,9 @@ QuanMode::grabEditorManager(Core::IMode *mode)
 {
     if (mode != this)
         return;
+
+    if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
+        cmd->action()->setText( tr( "Open Quan Result..." ) );
 
     if ( Core::EditorManager::instance()->currentEditor() )
         Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
