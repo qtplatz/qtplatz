@@ -57,16 +57,16 @@ namespace adcontrols {
         
         static const wchar_t * dataClass() { return L"adcontrols::ProcessMethod"; }
         
-        typedef boost::variant< CentroidMethod
-                                , ElementalCompositionMethod
-                                , IsotopeMethod
-                                , MSCalibrateMethod
-                                , MSChromatogramMethod
-                                , MSLockMethod
-                                , PeakMethod 
-                                , QuanCompounds
-                                , QuanMethod
-                                , TargetingMethod 
+        typedef boost::variant< CentroidMethod                  // 0
+                                , ElementalCompositionMethod    // 1
+                                , IsotopeMethod                 // 2
+                                , MSCalibrateMethod             // 3
+                                , MSChromatogramMethod          // 4
+                                , MSLockMethod                  // 5
+                                , PeakMethod                    // 6
+                                , QuanCompounds                 // 7
+                                , QuanMethod                    // 8
+                                , TargetingMethod               // 9
                                 > value_type;
         
         typedef std::vector< value_type > vector_type;

@@ -23,95 +23,196 @@
 **************************************************************************/
 
 #include "mschromatogrammethod.hpp"
+#include "serializer.hpp"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/access.hpp>
+#include <array>
+#include <adportable/float.hpp>
+
+namespace adcontrols {
+
+    class MSChromatogramMethod::impl {
+    public:
+        DataSource dataSource_;
+        WidthMethod widthMethod_;
+        std::array< double, 2 > width_;
+        std::pair< double, double > mass_limits_;
+        
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize( Archive& ar, const unsigned int version ) {
+            using namespace boost::serialization;
+
+            (void)version;
+
+            ar & BOOST_SERIALIZATION_NVP( dataSource_ );
+            ar & BOOST_SERIALIZATION_NVP( widthMethod_ );
+            ar & boost::serialization::make_nvp( "width0", width_[ 0 ] );
+            ar & boost::serialization::make_nvp( "width1", width_[ 1 ] );
+            ar & BOOST_SERIALIZATION_NVP( mass_limits_ );
+        }
+        
+        impl() : dataSource_( Profile )
+               , widthMethod_( widthInDa )
+               , mass_limits_( -1, -1 ) {
+            width_[ widthInDa ] = 0.001;
+            width_[ widthInRP ] = 100000;
+        }
+
+        impl( const impl& t ) : dataSource_( t.dataSource_ )
+                              , widthMethod_( t.widthMethod_ )
+                              , width_( t.width_)
+                              , mass_limits_( t.mass_limits_ ) {
+        }
+    };
+}
+
+BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod::impl, 3 )
+
+namespace adcontrols {
+
+    ////////// PORTABLE BINARY ARCHIVE //////////
+    template<> void
+    MSChromatogramMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        ar << *impl_; // write v3 format
+    }
+
+    template<> void
+    MSChromatogramMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        if ( version <= 2 )
+            impl_->serialize( ar, version );
+        else
+            ar >> *impl_; // read form v3 format stream
+    }
+
+    ///////// XML archive ////////
+    template<> void
+    MSChromatogramMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        ar & boost::serialization::make_nvp( "MSChromatogramMethod_impl", *impl_ );
+    }
+
+    template<> void
+    MSChromatogramMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        if ( version <= 2 )
+            impl_->serialize( ar, version );
+        else
+            ar & boost::serialization::make_nvp( "MSChromatogramMethod_impl", *impl_ );
+    }
+}
+
 
 using namespace adcontrols;
 
-MSChromatogramMethod::MSChromatogramMethod() : dataSource_( Profile )
-                                             , widthMethod_( widthInDa )
-                                             , mass_limits_( -1, -1 )
+MSChromatogramMethod::~MSChromatogramMethod()
 {
-	width_[ widthInDa ] = 0.001;
-	width_[ widthInRP ] = 100000;
 }
 
-MSChromatogramMethod::MSChromatogramMethod( const MSChromatogramMethod& t ) : dataSource_( t.dataSource_ )
-                                                                            , widthMethod_( t.widthMethod_ )
-                                                                            , width_( t.width_ )
-                                                                            , mass_limits_( t.mass_limits_ )
+MSChromatogramMethod::MSChromatogramMethod() : impl_( new impl() )
 {
+}
+
+MSChromatogramMethod::MSChromatogramMethod( const MSChromatogramMethod& t ) : impl_( new impl( *t.impl_ ) )
+{
+}
+
+MSChromatogramMethod&
+MSChromatogramMethod::operator = ( const MSChromatogramMethod& t )
+{
+    impl_.reset( new impl( *t.impl_ ) );
+    return *this;
+}
+
+bool
+MSChromatogramMethod::operator == ( const MSChromatogramMethod& t ) const
+{
+    if ( impl_->dataSource_ == t.impl_->dataSource_ &&
+         impl_->widthMethod_ == t.impl_->widthMethod_ ) {
+        for ( int i = 0; i < impl_->width_.size(); ++i )
+            if ( !adportable::compare<double>::essentiallyEqual( impl_->width_[ i ], t.impl_->width_[ i ] ) )
+                return false;
+        if ( adportable::compare<double>::essentiallyEqual( impl_->mass_limits_.first, t.impl_->mass_limits_.first ) &&
+             adportable::compare<double>::essentiallyEqual( impl_->mass_limits_.second, t.impl_->mass_limits_.second ) )
+            return true;
+    }
+    return false;
 }
 
 MSChromatogramMethod::DataSource
 MSChromatogramMethod::dataSource() const
 {
-	return dataSource_;
+	return impl_->dataSource_;
 }
 
 void
 MSChromatogramMethod::dataSource( MSChromatogramMethod::DataSource v )
 {
-	dataSource_ = v;
+	impl_->dataSource_ = v;
 }
 
 
 MSChromatogramMethod::WidthMethod
 MSChromatogramMethod::widthMethod() const
 {
-    return widthMethod_;
+    return impl_->widthMethod_;
 }
 
 void
 MSChromatogramMethod::widthMethod( MSChromatogramMethod::WidthMethod method )
 {
-    widthMethod_ = method;
+    impl_->widthMethod_ = method;
 }
 
 double
 MSChromatogramMethod::width( WidthMethod method ) const
 {
     //assert( size_t(method) < width_.size() );
-    return width_[ method ];
+    return impl_->width_[ method ];
 }
 
 void
 MSChromatogramMethod::width( double value, WidthMethod method )
 {
     //assert( size_t(method) < width_.size() );
-    width_[ method ] = value;
+    impl_->width_[ method ] = value;
 }
 
 double
 MSChromatogramMethod::lower_limit() const
 {
-    return mass_limits_.first;
+    return impl_->mass_limits_.first;
 }
 
 double
 MSChromatogramMethod::upper_limit() const
 {
-    return mass_limits_.second;
-
+    return impl_->mass_limits_.second;
 }
 
 void
 MSChromatogramMethod::lower_limit( double v )
 {
-    mass_limits_.first = v;
+    impl_->mass_limits_.first = v;
 }
 
 void
 MSChromatogramMethod::upper_limit( double v )
 {
-    mass_limits_.second = v;
+    impl_->mass_limits_.second = v;
 }
 
 //static
 double
 MSChromatogramMethod::width_at_mass( double mass ) const
 {
-    if ( widthMethod_ == widthInRP )
-        return mass / width_[ widthMethod_ ];
+    if ( impl_->widthMethod_ == widthInRP )
+        return mass / impl_->width_[ impl_->widthMethod_ ];
     else 
-        return width_[ widthMethod_ ];
+        return impl_->width_[ impl_->widthMethod_ ];
 }
 

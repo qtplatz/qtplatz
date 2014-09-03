@@ -276,6 +276,14 @@ MainWindow::createActions()
                 cmd->action()->setText( tr( "Open..." ) );
             
         }
+
+        if ( auto p = new QAction( QIcon(":/quan/images/ProjectDependencies.png"), tr( "Recent Files" ), this ) ) {
+            am->registerAction( p, Constants::M_FILE_RECENTFILES, Core::Context( Constants::C_QUAN_MODE ) );
+            connect( p, &QAction::triggered, this, &MainWindow::handleRecentFiles );
+            menu->addAction( am->command( Constants::M_FILE_RECENTFILES ) );
+        }
+
+
         //------------ method --------------
         if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan Method..." ), this ) ) {
             am->registerAction( p, Constants::QUAN_METHOD_OPEN, Core::Context( Constants::C_QUAN_MODE ) );
@@ -399,6 +407,11 @@ MainWindow::handleSequenceCompleted()
 
     if ( auto tab = findChild< DoubleTabWidget * >() )
         tab->setCurrentIndex( -1, 3 );
+}
+
+void
+MainWindow::handleRecentFiles()
+{
 }
 
 void
