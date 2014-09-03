@@ -22,12 +22,14 @@
 **
 **************************************************************************/
 
-#ifndef DOCUMENT_HPP
-#define DOCUMENT_HPP
+#ifndef DATAPROC_DOCUMENT_HPP
+#define DATAPROC_DOCUMENT_HPP
 
 #include <QObject>
 #include <memory>
 #include <set>
+
+class QSettings;
 
 namespace adcontrols {
     class MSQPeaks;
@@ -38,13 +40,13 @@ namespace dataproc {
 
     class Dataprocessor;
 
-    class document : public QObject
+    class dataproc_document : public QObject
     {
         Q_OBJECT
-        explicit document(QObject *parent = 0);
-        static document * instance_;
+        explicit dataproc_document(QObject *parent = 0);
+        static dataproc_document * instance_;
     public:
-        static document * instance();
+        static dataproc_document * instance();
         void setMSQuanTable( const adcontrols::MSQPeaks& );
         adcontrols::MSQPeaks * msQuanTable();
         const adcontrols::MSQPeaks * msQuanTable() const;
@@ -54,6 +56,7 @@ namespace dataproc {
 
     private:    
         std::shared_ptr< adcontrols::MSQPeaks > quant_;
+        std::shared_ptr< QSettings > settings_;  // user scope settings
 
     signals:
 
@@ -63,4 +66,4 @@ namespace dataproc {
 
 }
 
-#endif // DOCUMENT_HPP
+#endif // DATAPROC_DOCUMENT_HPP

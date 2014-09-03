@@ -270,7 +270,7 @@ static inline QSettings *userSettings()
                 || lowerFile.startsWith(QLatin1String("debuggers.xml"))
                 || lowerFile.startsWith(QLatin1String("qtplatz.")))
             QFile::copy(srcDir.absoluteFilePath(file), destDir.absoluteFilePath(file));
-        if (file == QLatin1String("qtplatz"))
+        if (file == QLatin1String("QtPlatz"))
             copyRecursively(srcDir.absoluteFilePath(file), destDir.absoluteFilePath(file));
     }
 

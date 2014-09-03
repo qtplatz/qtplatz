@@ -27,7 +27,7 @@
 #include "dataprocessor.hpp"
 #include "selchanged.hpp"
 #include "sessionmanager.hpp"
-#include "document.hpp"
+#include "dataproc_document.hpp"
 #include "qtwidgets_name.hpp"
 
 #include <adcontrols/description.hpp>
@@ -164,7 +164,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 
     if ( folium.attribute( L"isChecked" ) == L"false" ) {
 
-        if ( auto qpks = document::instance()->msQuanTable() )
+        if ( auto qpks = dataproc_document::instance()->msQuanTable() )
             modified = qpks->erase( folium.id() );
 
         auto it = dataIds_.find( folium.id() );
@@ -208,7 +208,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 void
 MSSpectraWnd::update_quantable()
 {
-    if ( auto qpks = document::instance()->msQuanTable() ) {
+    if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
 
         qpks->clear(); // all clear
 
@@ -226,7 +226,7 @@ MSSpectraWnd::update_quantable()
 void
 MSSpectraWnd::draw()
 {
-    if ( auto qpks = document::instance()->msQuanTable() ) {
+    if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
         table_->setData( qpks );
 
         if ( auto profile = profile_.second.lock() ) {
@@ -265,7 +265,7 @@ MSSpectraWnd::handleCurrentChanged( const QString& guid, int idx, int fcn )
 {
     // current selection on table has changed.
 
-    if ( auto qpks = document::instance()->msQuanTable() ) {
+    if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
         std::wstring dataGuid = guid.toStdWString();
         std::wstring profGuid = qpks->parentGuid( dataGuid );
         if ( profGuid.empty() )
@@ -319,7 +319,7 @@ MSSpectraWnd::onDataChanged( const QString& foliumGuid, const QString& attGuid, 
         // without pull data out again from portfolio
 
         if ( auto centroid = std::get<2>(it->second).lock() ) {
-            if ( auto qpks = document::instance()->msQuanTable() ) {
+            if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
 
                 qpks->erase( foliumGuid.toStdWString() );
 
@@ -344,7 +344,7 @@ void
 MSSpectraWnd::handleDataChanged( const QString& dataGuid, int idx, int fcn, int column, const QVariant& data )
 {
     // data changed on MSQuanTable
-    if ( auto qpks = document::instance()->msQuanTable() ) {
+    if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
         const std::wstring& guid = qpks->parentGuid( dataGuid.toStdWString() );
         if ( guid.empty() )
             return;

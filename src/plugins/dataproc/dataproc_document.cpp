@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "document.hpp"
+#include "dataproc_document.hpp"
 #include "dataprocessor.hpp"
 #include <adcontrols/msqpeaks.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -30,45 +30,50 @@
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <boost/format.hpp>
+#include <app/app_version.h>
+#include <QSettings>
 
 using namespace dataproc;
 
-document * document::instance_ = 0;
+dataproc_document * dataproc_document::instance_ = 0;
 
-document::document(QObject *parent) : QObject(parent)
+dataproc_document::dataproc_document(QObject *parent) : QObject(parent)
                                     , quant_( std::make_shared< adcontrols::MSQPeaks >() )
+                                    , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
+                                                                                , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                                                                , QLatin1String( "QtPlatz" ) ) )
 {
 }
 
-document * 
-document::instance()
+dataproc_document * 
+dataproc_document::instance()
 {
     if ( instance_ == 0 )
-        instance_ = new document;
+        instance_ = new dataproc_document;
     return instance_;
 }
 
 adcontrols::MSQPeaks *
-document::msQuanTable()
+dataproc_document::msQuanTable()
 {
     return quant_.get();
 }
 
 const adcontrols::MSQPeaks *
-document::msQuanTable() const
+dataproc_document::msQuanTable() const
 {
     return quant_.get();
 }
 
 void
-document::setMSQuanTable( const adcontrols::MSQPeaks& v )
+dataproc_document::setMSQuanTable( const adcontrols::MSQPeaks& v )
 {
     quant_ = std::make_shared< adcontrols::MSQPeaks >( v );
 }
 
 // static
 size_t
-document::findCheckedTICs( Dataprocessor * dp, std::set< int >& vfcn )
+dataproc_document::findCheckedTICs( Dataprocessor * dp, std::set< int >& vfcn )
 {
     vfcn.clear();
     if ( dp ) {
@@ -92,7 +97,7 @@ document::findCheckedTICs( Dataprocessor * dp, std::set< int >& vfcn )
 
 //static
 const std::shared_ptr< adcontrols::Chromatogram >
-document::findTIC( Dataprocessor * dp, int fcn )
+dataproc_document::findTIC( Dataprocessor * dp, int fcn )
 {
     if ( dp ) {
         auto cfolder = dp->portfolio().findFolder( L"Chromatograms" );
