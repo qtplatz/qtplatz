@@ -32,11 +32,13 @@
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/settings.hpp>
+#include <xmlparser/pugixml.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
 #include <QFileInfo>
@@ -192,12 +194,18 @@ dataproc_document::finalClose()
     boost::filesystem::path xmlfile( dir / "default.pmth.xml" );
     if ( boost::filesystem::exists( xmlfile ) ) 
         boost::filesystem::remove( xmlfile );
-    boost::filesystem::wofstream of( xmlfile );
+
+    std::wstringstream o;
     try {
-        adcontrols::ProcessMethod::xml_archive( of, *pm_ );
+        adcontrols::ProcessMethod::xml_archive( o, *pm_ );
     } catch ( std::exception& ex ) {
+        ADDEBUG() << boost::diagnostic_information( ex );
         ADTRACE() << "Exception in dataproc_document::finalClose: " << boost::diagnostic_information( ex );
     }
+    pugi::xml_document doc;
+    doc.load( o );
+    // todo: add style sheet
+    doc.save_file( xmlfile.string().c_str() );
 }
 
 adcontrols::MSQPeaks *

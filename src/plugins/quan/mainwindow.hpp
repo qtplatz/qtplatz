@@ -79,6 +79,7 @@ namespace quan {
         void handleIndexChanged( int index, int subIndex );
         void handleSequenceCompleted();
         void handleOpenQuanResult();
+        void handleRecentFiles();
         void handleOpenQuanMethod();
         void handleSaveQuanMethod();
         void handleOpenQuanSequence();

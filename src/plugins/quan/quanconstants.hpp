@@ -29,6 +29,7 @@ namespace Constants {
 
     const char ACTION_ID[]                 = "Quan.Action";
     const char MENU_ID[]                   = "Quan.Menu";
+    const char M_FILE_RECENTFILES []       = "Quan.Menu.RecentFiles";
     const char * const C_QUAN_MODE         = "Quan.Mode";
     const char * const FILE_OPEN           = "Quan.FileOpen";
     const char * const QUAN_METHOD_OPEN    = "Quan.MethodOpen";

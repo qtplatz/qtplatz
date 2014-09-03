@@ -28,18 +28,19 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/serialization/utility.hpp>
-#include <array>
-#include <compiler/disable_dll_interface.h>
+#include <memory>
+
+namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MSChromatogramMethod {
     public:
+        ~MSChromatogramMethod();
         MSChromatogramMethod();
         MSChromatogramMethod( const MSChromatogramMethod& );
+        MSChromatogramMethod& operator = ( const MSChromatogramMethod& );
 
         static const wchar_t * dataClass() { return L"adcontrols::MSChromatogramMethod"; }
 
@@ -60,33 +61,23 @@ namespace adcontrols {
         void lower_limit( double );
         void upper_limit( double );
         double width_at_mass( double mass ) const;
+        bool operator == ( const MSChromatogramMethod& ) const;
         
     private:
 
-        DataSource dataSource_;
-        WidthMethod widthMethod_;
-        std::array<double, 2> width_;
-        std::pair< double, double > mass_limits_;
+#   if  defined _MSC_VER
+#   pragma warning(disable:4251)
+#   endif
+
+        class impl;
+        std::unique_ptr< impl > impl_;
 
         friend class boost::serialization::access;
-        template<class Archive>
-        void serialize( Archive& ar, const unsigned int version ) {
-            using namespace boost::serialization;
-
-            (void)version;
-
-            ar & BOOST_SERIALIZATION_NVP( dataSource_ )
-                & BOOST_SERIALIZATION_NVP( widthMethod_ )
-                & BOOST_SERIALIZATION_NVP( width_[0] )
-                & BOOST_SERIALIZATION_NVP( width_[1] )
-                & BOOST_SERIALIZATION_NVP( mass_limits_ )
-                ;
-        }
-
+        template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
     
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod, 2 )
+BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod, 3 )
 
 #endif // MSCHROMATOGRAMMETHOD_HPP
