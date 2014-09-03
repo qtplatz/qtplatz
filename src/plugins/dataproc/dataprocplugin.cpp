@@ -26,10 +26,10 @@
 #include "dataprocplugin.hpp"
 #include "actionmanager.hpp"
 #include "constants.hpp"
+#include "dataproc_document.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
-#include "document.hpp"
 #include "editorfactory.hpp"
 #include "isequenceimpl.hpp"
 #include "isnapshothandlerimpl.hpp"
@@ -350,7 +350,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 
 		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
             
-            auto cptr = document::findTIC( dp, 0 );
+            auto cptr = dataproc_document::findTIC( dp, 0 );
             if ( !cptr )
                 return;
 
@@ -431,10 +431,10 @@ DataprocPlugin::extensionsInitialized()
 {
     
     // auto editMode = Core::ModeManager::mode( Core::Id( Core::EDIT_MODE ) );
-
     mainWindow_->OnInitialUpdate();
     pActionManager_->loadDefaults();
 }
+
 
 ExtensionSystem::IPlugin::ShutdownFlag
 DataprocPlugin::aboutToShutdown()

@@ -12,7 +12,7 @@ INCLUDEPATH *= $(QWT)/include
 SOURCES += dataprocplugin.cpp \
            mode.cpp \
            mainwindow.cpp \
-           document.cpp \
+           dataproc_document.cpp \
            navigationdelegate.cpp \
            navigationwidgetfactory.cpp \
            navigationwidget.cpp \
@@ -51,7 +51,7 @@ HEADERS += dataproc_global.hpp \
            dataprocconstants.hpp \
            mode.hpp \
            mainwindow.hpp \
-           document.hpp \
+           dataproc_document.hpp \
            navigationwidgetfactory.hpp \
            navigationwidget.hpp \
            dataprocessor.hpp \
