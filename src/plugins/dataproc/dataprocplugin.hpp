@@ -44,7 +44,6 @@ namespace adcontrols {
 namespace dataproc {
 
     class SessionManager;
-    class EditorFactory;
     class MainWindow;
     class Mode;
 
@@ -109,7 +108,7 @@ namespace dataproc {
         
         // static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );
         static bool install_isequence( const adportable::Configuration&, const std::wstring&, iSequenceImpl& );
-        static void delete_editorfactories( std::vector< EditorFactory * >& );
+        //static void delete_editorfactories( std::vector< EditorFactory * >& );
         
         bool connect_isnapshothandler_signals();
         void disconnect_isnapshothandler_signals();

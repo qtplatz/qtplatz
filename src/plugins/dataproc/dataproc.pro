@@ -34,7 +34,6 @@ SOURCES += dataprocplugin.cpp \
            msprocessingwnd.cpp \
            msspectrawnd.cpp \
            sessionmanager.cpp \
-           editorfactory.cpp \
            mspropertyform.cpp \
            dataprocessworker.cpp \
            dialogspectrometerchoice.cpp \
@@ -75,7 +74,6 @@ HEADERS += dataproc_global.hpp \
            sessionmanager.hpp \
            mainwindow.hpp \
            mode.hpp \
-           editorfactory.hpp \
            assign_masses.hpp \
            mass_calibrator.hpp \
            assign_peaks.hpp \

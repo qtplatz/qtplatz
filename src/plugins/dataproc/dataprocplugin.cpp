@@ -30,7 +30,6 @@
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
-#include "editorfactory.hpp"
 #include "isequenceimpl.hpp"
 #include "isnapshothandlerimpl.hpp"
 #include "ipeptidehandlerimpl.hpp"
@@ -433,6 +432,7 @@ DataprocPlugin::extensionsInitialized()
     // auto editMode = Core::ModeManager::mode( Core::Id( Core::EDIT_MODE ) );
     mainWindow_->OnInitialUpdate();
     pActionManager_->loadDefaults();
+    dataproc_document::instance()->initialSetup();
 }
 
 
@@ -442,6 +442,7 @@ DataprocPlugin::aboutToShutdown()
     ADTRACE() << "====== DataprocPlugin shutting down...  ===============";
 
     pActionManager_->saveDefaults();
+    dataproc_document::instance()->finalClose();
 
     mainWindow_->OnFinalClose();
 
@@ -449,13 +450,13 @@ DataprocPlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
-void
-DataprocPlugin::delete_editorfactories( std::vector< EditorFactory * >& factories )
-{
-    for ( size_t i = 0; i < factories.size(); ++i )
-        delete factories[ i ];
-    factories.clear();
-}
+//void
+//DataprocPlugin::delete_editorfactories( std::vector< EditorFactory * >& factories )
+//{
+//    for ( size_t i = 0; i < factories.size(); ++i )
+//        delete factories[ i ];
+//    factories.clear();
+//}
 
 bool
 DataprocPlugin::connect_isnapshothandler_signals()
