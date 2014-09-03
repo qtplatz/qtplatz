@@ -31,18 +31,21 @@
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/settings.hpp>
-#include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
 #include <QFileInfo>
 #include <QSettings>
 #include <QMessageBox>
+#include <boost/format.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/exception/all.hpp>
 #include <atomic>
 
 namespace dataproc {
@@ -130,7 +133,6 @@ dataproc_document::initialSetup()
     // fake project directory for help initial openfiledialog location
     Core::DocumentManager::setProjectsDirectory( path );
     Core::DocumentManager::setUseProjectsDirectory( true );
-    //Core::DocumentManager::setFileDialogLastVisitedDirectory( path );
 
     boost::filesystem::path mfile( dir / "default.pmth" );
     if ( boost::filesystem::exists( mfile ) ) {
@@ -172,11 +174,8 @@ dataproc_document::finalClose()
     
     boost::filesystem::path fname( dir / "default.pmth" );
     adfs::filesystem file;
-    try {
-        if ( !file.create( fname.wstring().c_str() ) )
-            return;
-    } catch ( adfs::exception& ex ) {
-        QMessageBox::warning( 0, tr( "Process method" ), (boost::format( "%1% on %2%" ) % ex.message % ex.category).str().c_str() );
+    if ( !file.create( fname.wstring().c_str() ) ) {
+        ADTRACE() << "Error in dataproc_document::finalClose: \"" << fname.string() << "\" can't be created";
         return;
     }
     
@@ -184,12 +183,21 @@ dataproc_document::finalClose()
     adfs::file adfile = folder.addFile( fname.wstring() );
     try {
         adfile.save( *pm_ );
-    } catch ( std::exception& e ) {
-        QMessageBox::warning( 0, tr( "Save default process method" ),
-                              (boost::format("%1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );        
+    } catch ( std::exception& ex ) {
+        ADTRACE() << "Exception in dataproc_document::finalClose: " << boost::diagnostic_information( ex );
     }
     adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
     adfile.commit();
+
+    boost::filesystem::path xmlfile( dir / "default.pmth.xml" );
+    if ( boost::filesystem::exists( xmlfile ) ) 
+        boost::filesystem::remove( xmlfile );
+    boost::filesystem::wofstream of( xmlfile );
+    try {
+        adcontrols::ProcessMethod::xml_archive( of, *pm_ );
+    } catch ( std::exception& ex ) {
+        ADTRACE() << "Exception in dataproc_document::finalClose: " << boost::diagnostic_information( ex );
+    }
 }
 
 adcontrols::MSQPeaks *
