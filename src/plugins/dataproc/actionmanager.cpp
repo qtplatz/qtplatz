@@ -100,13 +100,10 @@ bool
 ActionManager::initialize_actions( const Core::Context& context )
 {
 	if ( auto * am = Core::ActionManager::instance() ) {
-#if 0
-        if ( auto p = actions_[ idActOpen ] = create( Constants::ICON_OPEN, tr( "Open" ), this ) ) {
-            if ( auto cmd = am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_DATAPROCESSOR ) ) )
-                cmd->action()->setText( tr( "Open data..." ) );
-            connect( p, SLOT( triggered ), Core::ICore::instance()->mainWindow(), SLOT( openFile ) );
-        }
-#endif
+
+        if ( auto cmd = am->command( Core::Constants::OPEN ) )
+            cmd->action()->setText( tr( "Open data files..." ) );  // override text
+
         if ( auto p = actions_[ idActSave ] = create( Constants::ICON_SAVE, tr("Save"), this ) ) {
             am->registerAction( p, Core::Constants::SAVE, context );
             connect( p, &QAction::triggered, this, &ActionManager::handleSave );

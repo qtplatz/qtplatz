@@ -51,6 +51,7 @@
 #include <adportable/xml_serializer.hpp>
 #include <adportable/fft.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
+#include <adportable/float.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwplot/picker.hpp>
 #include <adwplot/peakmarker.hpp>
@@ -198,6 +199,9 @@ namespace dataproc {
 }
 
 MSProcessingWnd::MSProcessingWnd(QWidget *parent) : QWidget(parent)
+                                                  , drawIdx1_( 0 )
+                                                  , drawIdx2_( 0 )
+                                                  , axis_(AxisMZ)
 {
     init();
 }
@@ -276,6 +280,17 @@ void
 MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPtr& ptr )
 {
     pProfileSpectrum_ = std::make_pair( guid, ptr );
+
+    if ( axis_ == AxisMZ ) {
+        if ( size_t size = ptr->size() ) {
+            std::pair < double, double > range = std::make_pair( ptr->getMass( 0 ), ptr->getMass( ptr->size() - 1 ) );
+            if ( adportable::compare<double>::approximatelyEqual( range.first, range.second ) ) {
+                // Spectrum has no mass assigned
+                handleAxisChanged( AxisTime );
+            }
+        }
+    }
+
     pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
     QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: ptr->getDescriptions() )

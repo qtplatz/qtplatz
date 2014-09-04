@@ -56,7 +56,7 @@ QuanMode::grabEditorManager(Core::IMode *mode)
         return;
 
     if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
-        cmd->action()->setText( tr( "Open Quan Result..." ) );
+        cmd->action()->setText( tr( "Open Quan result..." ) );
 
     if ( Core::EditorManager::instance()->currentEditor() )
         Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
