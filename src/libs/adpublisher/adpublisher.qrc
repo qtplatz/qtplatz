@@ -38,5 +38,6 @@
         <file>images/win/textunder.png</file>
         <file>images/win/zoomin.png</file>
         <file>images/win/zoomout.png</file>
+        <file>wordlist.txt</file>
     </qresource>
 </RCC>

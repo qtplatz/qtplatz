@@ -115,13 +115,14 @@ void
 QuanConfigWidget::importQuanMethod()
 {
     QString name = QFileDialog::getOpenFileName( this
-                                                 , tr( "Import Quan Configuration..." )
+                                                 , tr( "Open Quan Method..." )
                                                  , QuanDocument::instance()->lastMethodDir()
                                                  , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
         adcontrols::ProcessMethod m;
         QuanDocument::load( name.toStdWString(), m );
-        if ( auto ptr = m.find< adcontrols::QuanMethod >() )
-            QuanDocument::instance()->replace_method( *ptr );
+        QuanDocument::instance()->replace_method( m );
+        //if ( auto ptr = m.find< adcontrols::QuanMethod >() )
+        //QuanDocument::instance()->replace_method( *ptr );
     }
 }

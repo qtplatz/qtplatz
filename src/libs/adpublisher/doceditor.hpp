@@ -34,10 +34,12 @@ namespace pugi { class xml_document; }
 
 class QAction;
 class QComboBox;
+class QCompleter;
 class QToolBar;
 class QFontComboBox;
 class QTextCharFormat;
 class QPrinter;
+class QAbstractItemModel;
 
 namespace adpublisher {
 
@@ -91,6 +93,7 @@ namespace adpublisher {
 
         QToolBar *tb;
         QString fileName;
+        QCompleter *completer;
 
         bool load(const QString &f);
         bool maybeSave();
@@ -99,6 +102,7 @@ namespace adpublisher {
         void fontChanged(const QFont &f);
         void colorChanged(const QColor &c);
         void alignmentChanged(Qt::Alignment a);
+        QAbstractItemModel * modelFromFile(const QString& fileName);
 
     signals:
 
