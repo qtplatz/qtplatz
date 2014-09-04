@@ -260,8 +260,6 @@ MainWindow::toolButton( const char * id )
 void
 MainWindow::createActions()
 {
-    // Core::Context context( Core::Constants::C_GLOBAL, Constants::C_QUAN_MODE );
-
     if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
         
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
@@ -272,10 +270,7 @@ MainWindow::createActions()
             connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanResult );
             menu->addAction( am->command( Constants::FILE_OPEN ) );
 
-            auto cmd = am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_QUAN_MODE ) );  // File->Open
-            //cmd->action()->setText( tr( "Open Quan Result..." ) );
-            //if ( auto cmd = am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_QUAN_MODE ) ) )
-
+            am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_QUAN_MODE ) );  // File->Open
        }
 
         //------------ method --------------
