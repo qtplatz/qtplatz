@@ -653,8 +653,10 @@ QuanDocument::save( const boost::filesystem::path& path, const adcontrols::QuanS
                 file.save( t );
                 if ( updateSettings )
                     addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
-                return true;
             }
+            boost::filesystem::path xmlfile( path );
+            xmlfile.replace_extension( path.extension().string() + ".xml" );
+            return save( xmlfile, t, false );
         }
     }
     return false;
@@ -716,11 +718,14 @@ QuanDocument::save( const boost::filesystem::path& path, const adcontrols::Proce
         if ( !fs.create( path.wstring().c_str() ) )
             return false;
 
-        if ( auto folder = fs.addFolder( L"/Processed/Quan" ) ) {
+        if ( auto folder = fs.addFolder( L"/QuanMethod" ) ) {
             if ( auto file = folder.addFile( adfs::create_uuid(), L"QuanMethod" ) ) {
                 file.dataClass( pm.dataClass() );
-                return file.save( pm );
+                file.save( pm );
             }
+            boost::filesystem::path xmlfile( path );
+            xmlfile.replace_extension( path.extension().string() + ".xml" );
+            return save( xmlfile, pm );
         }
 
     }

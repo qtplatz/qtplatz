@@ -77,7 +77,7 @@ QuanDataWriter::write( const adcontrols::MassSpectrum& ms, const std::wstring& t
     if ( adfs::folder folder = fs_.addFolder( L"/Processed/Spectra" ) ) {
         if ( adfs::file file = folder.addFile( adfs::create_uuid(), tittle ) ) {
             file.dataClass( ms.dataClass() );
-            if ( file.save( ms ) ) //adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
+            if ( file.save( ms ) )
                 file.commit();
             return file;
         }
@@ -91,7 +91,7 @@ QuanDataWriter::write( const adcontrols::ProcessMethod& pm )
     if ( adfs::folder folder = fs_.addFolder( L"/Processed/Quan" ) ) {
         if ( adfs::file file = folder.addFile( adfs::create_uuid(), L"QuanMethod" ) ) {
             file.dataClass( pm.dataClass() );
-            if ( file.save( pm ) ) // adfs::cpio< adcontrols::ProcessMethod >::save( pm, file ) )
+            if ( file.save( pm ) )
                 file.commit();
             return file;
         }
@@ -105,29 +105,13 @@ QuanDataWriter::write( const adcontrols::QuanSequence& t)
     if ( adfs::folder folder = fs_.addFolder( L"/Processed/Quan" ) ) {
         if ( adfs::file file = folder.addFile( adfs::create_uuid(), L"QuanSequence" ) ) {
             file.dataClass( t.dataClass() );
-            if ( file.save( t ) ) //adfs::cpio< adcontrols::QuanSequence >::save( t, file ) )
+            if ( file.save( t ) )
                 file.commit();
             return file;
         }
     }
     return adfs::file();
 }
-
-#if 0
-adfs::file
-QuanDataWriter::write( const adcontrols::QuanSample& t )
-{
-    if ( adfs::folder folder = fs_.addFolder( L"/Processed/Quan" ) ) {
-        if ( adfs::file file = folder.addFile( adfs::create_uuid(), L"QuanSample" ) ) {
-            file.dataClass( t.dataClass() );
-            if ( file.save( t ) ) //adfs::cpio< adcontrols::QuanSample >::save( t, file ) )
-                file.commit();
-            return file;
-        }
-    }
-    return adfs::file();
-}
-#endif
 
 bool
 QuanDataWriter::create_table()

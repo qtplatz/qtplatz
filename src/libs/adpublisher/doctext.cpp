@@ -25,6 +25,10 @@
 #include "doctext.hpp"
 #include "document.hpp"
 #include <xmlparser/pugixml.hpp>
+#include <QAbstractItemView>
+#include <QCompleter>
+#include <QKeyEvent>
+#include <QScrollBar>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QMessageBox>
@@ -100,6 +104,7 @@ docText::~docText()
 }
 
 docText::docText(QWidget *parent) : QTextEdit(parent)
+                                  , completer_(0)
 {
 }
 
@@ -123,5 +128,106 @@ docText::repaint( const pugi::xml_document& doc )
         QMessageBox::warning( this, "adpublisher::docText", ex.what() );
     }
 
+}
+
+void
+docText::setCompleter(QCompleter *completer)
+{
+    if (completer_)
+        QObject::disconnect(completer_, 0, this, 0);
+
+    completer_ = completer;
+
+    if (!completer_)
+        return;
+
+    completer_->setWidget(this);
+    completer_->setCompletionMode(QCompleter::PopupCompletion);
+    completer_->setCaseSensitivity(Qt::CaseInsensitive);
+    QObject::connect(completer_, SIGNAL(activated(QString)), this, SLOT(insertCompletion(QString)));
+    //connect( completer_, static_cast<void(QCompleter::*)(QString)>(&QCompleter::activated), this, &docText::insertCompletion );
+}
+
+QCompleter *
+docText::completer() const
+{
+    return completer_;
+}
+
+void
+docText::insertCompletion(const QString& completion)
+{
+    if (completer_->widget() != this)
+        return;
+    QTextCursor tc = textCursor();
+    int extra = completion.length() - completer_->completionPrefix().length();
+    tc.movePosition(QTextCursor::Left);
+    tc.movePosition(QTextCursor::EndOfWord);
+    tc.insertText(completion.right(extra));
+    setTextCursor(tc);
+}
+
+QString
+docText::textUnderCursor() const
+{
+    QTextCursor tc = textCursor();
+    tc.select(QTextCursor::WordUnderCursor);
+    return tc.selectedText();
+}
+
+void
+docText::focusInEvent(QFocusEvent *e)
+{
+    if (completer_)
+        completer_->setWidget( this );
+    QTextEdit::focusInEvent(e);
+}
+
+void
+docText::keyPressEvent(QKeyEvent *e)
+{
+    if ( completer_ && completer_->popup()->isVisible() ) {
+        // The following keys are forwarded by the completer to the widget
+       switch (e->key()) {
+       case Qt::Key_Enter:
+       case Qt::Key_Return:
+       case Qt::Key_Escape:
+       case Qt::Key_Tab:
+       case Qt::Key_Backtab:
+            e->ignore();
+            return; // let the completer do default behavior
+       default:
+           break;
+       }
+    }
+
+    bool isShortcut = ((e->modifiers() & Qt::ControlModifier) && e->key() == Qt::Key_E); // CTRL+E
+    if ( !completer_ || !isShortcut ) // do not process the shortcut when we have a completer
+        QTextEdit::keyPressEvent( e );
+//! [7]
+
+//! [8]
+    const bool ctrlOrShift = e->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier);
+    if (!completer_ || (ctrlOrShift && e->text().isEmpty()))
+        return;
+
+    static QString eow("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="); // end of word
+    bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;
+    QString completionPrefix = textUnderCursor();
+
+    if (!isShortcut && (hasModifier || e->text().isEmpty()|| completionPrefix.length() < 3
+                      || eow.contains(e->text().right(1)))) {
+        completer_->popup()->hide();
+        return;
+    }
+
+    if (completionPrefix != completer_->completionPrefix()) {
+        completer_->setCompletionPrefix( completionPrefix );
+        completer_->popup()->setCurrentIndex( completer_->completionModel()->index( 0, 0 ) );
+    }
+    QRect cr = cursorRect();
+    cr.setWidth( completer_->popup()->sizeHintForColumn( 0 )
+                 + completer_->popup()->verticalScrollBar()->sizeHint().width() );
+    completer_->complete( cr ); // popup it up!
 }
 

@@ -28,6 +28,8 @@
 #include <memory>
 #include "adpublisher_global.hpp"
 
+class QCompleter;
+
 namespace pugi { class xml_document; }
 
 namespace adpublisher {
@@ -44,14 +46,24 @@ namespace adpublisher {
         // std::shared_ptr< adpublisher::document > document();
         void setDocument( std::shared_ptr< adpublisher::document >& );
 
+        void setCompleter( QCompleter * );
+        QCompleter * completer() const;
+
+    protected:
+        void keyPressEvent( QKeyEvent * );
+        void focusInEvent( QFocusEvent * );
+
     private:
         std::weak_ptr< adpublisher::document > doc_;
+        QCompleter * completer_;
 
         void repaint( const pugi::xml_document& );
+        QString textUnderCursor() const;
 
     signals:
 
     public slots:
+        void insertCompletion(const QString &completion);
 
     };
 

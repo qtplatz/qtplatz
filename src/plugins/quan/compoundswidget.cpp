@@ -26,6 +26,7 @@
 #include "compoundstable.hpp"
 #include "quandocument.hpp"
 #include "quanconstants.hpp"
+#include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adportable/profile.hpp>
@@ -109,14 +110,15 @@ void
 CompoundsWidget::importCompounds()
 {
     QString name = QFileDialog::getOpenFileName( this
-                                                 , tr( "Import Compounds..." )
+                                                 , tr( "Open Quan Method..." )
                                                  , QuanDocument::instance()->lastMethodDir()
                                                  , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
-        QMessageBox::information( 0, "CompoundWidet", "Not Implemented." );
-        //QuanMethodComplex m;
-        //QuanDocument::instance()->load( name.toStdWString(), m );
-        //std::shared_ptr< adcontrols::QuanCompounds > ptr = m.quanCompounds();
-        //QuanDocument::instance()->method( ptr );
+        adcontrols::ProcessMethod m;
+        if ( QuanDocument::load( name.toStdWString(), m ) ) {
+            if ( auto ptr = m.find< adcontrols::QuanCompounds >() ) {
+                QuanDocument::instance()->replace_method( *ptr );
+            }
+        }
     }
 }

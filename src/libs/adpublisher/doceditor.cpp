@@ -34,6 +34,7 @@
 #include <QCloseEvent>
 #include <QColorDialog>
 #include <QComboBox>
+#include <QCompleter>
 #include <QFontComboBox>
 #include <QFile>
 #include <QFileDialog>
@@ -47,6 +48,7 @@
 #include <QPrinter>
 #include <QPrintPreviewDialog>
 #include <QSplitter>
+#include <QStringListModel>
 #include <QTextCodec>
 #include <QTextEdit>
 #include <QToolBar>
@@ -103,6 +105,13 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
 
     tree_->setDocument( doc_ );
     text_->setDocument( doc_ );
+
+    completer = new QCompleter( this );
+    completer->setModel( modelFromFile( ":/adpublisher/wordlist.txt" ) );
+    completer->setModelSorting( QCompleter::CaseInsensitivelySortedModel );
+    completer->setCaseSensitivity( Qt::CaseInsensitive );
+    completer->setWrapAround( false );
+    text_->setCompleter( completer );
 
     connect(text_.get(), &docText::currentCharFormatChanged, this, &docEditor::currentCharFormatChanged );
     connect(text_.get(), &docText::cursorPositionChanged, this, &docEditor::cursorPositionChanged );
@@ -633,7 +642,8 @@ void docEditor::colorChanged(const QColor &c)
     actions_[ idActionTextColor ]->setIcon( pix );
 }
 
-void docEditor::alignmentChanged(Qt::Alignment a)
+void
+docEditor::alignmentChanged(Qt::Alignment a)
 {
     if (a & Qt::AlignLeft)
         actions_[ idActionAlignLeft ]->setChecked( true );
@@ -645,3 +655,26 @@ void docEditor::alignmentChanged(Qt::Alignment a)
         actions_[ idActionAlignJustify ]->setChecked( true );
 }
 
+QAbstractItemModel *
+docEditor::modelFromFile(const QString& fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly))
+        return new QStringListModel(completer);
+
+
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+
+    QStringList words;
+
+    while (!file.atEnd()) {
+        QByteArray line = file.readLine();
+        if (!line.isEmpty())
+            words << line.trimmed();
+    }
+
+
+    QApplication::restoreOverrideCursor();
+
+    return new QStringListModel(words, completer);
+}
