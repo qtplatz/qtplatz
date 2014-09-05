@@ -26,6 +26,7 @@
 #include "ui_mainwindow.h"
 
 #include <QCoreApplication>
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QSettings>
 #include <QToolButton>
@@ -34,6 +35,7 @@
 #include <adpublisher/doceditor.hpp>
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 #include <fstream>
@@ -165,23 +167,30 @@ void
 MainWindow::handleOpenFile()
 {
     auto name = QFileDialog::getOpenFileName( this
-                                              , tr( "Open QtPlatz publisher xml")
+                                              , tr( "Open QtPlatz publisher xml" )
                                               , recentFile( "RecentFiles", "Files" )
-                                              , tr( "QtPlatz publisher xml(*.xml)" ) );
+                                              , tr( "QtPlatz publisher xml(*.xml);;HTML(*.html)" ) );
     if ( !name.isEmpty() ) {
-        addRecentFiles( "RecentFiles", "Files", name );
+        boost::filesystem::path path( name.toStdWString() );
+        if ( path.extension() == ".xml" ) {
 
-        auto doc = std::make_shared< adpublisher::document>();
+            addRecentFiles( "RecentFiles", "Files", name );
 
-        if ( doc->load_file( name.toStdString().c_str() ) ) {
+            auto doc = std::make_shared< adpublisher::document>();
 
-            setWindowTitle( name );
-            xmlpath_ = name.toStdString();
+            if ( doc->load_file( name.toStdString().c_str() ) ) {
 
-            ui->actionApply->setEnabled( true );
-            processed_.clear();
+                setWindowTitle( name );
+                xmlpath_ = name.toStdString();
 
-            docEditor_->setDocument( doc );
+                ui->actionApply->setEnabled( true );
+                processed_.clear();
+
+                docEditor_->setDocument( doc );
+            }
+        }
+        else if ( path.extension() == ".html" ) {
+            docEditor_->setOutput( QUrl( QString( "file:///%1" ).arg( path.string().c_str() ) ) );
         }
     }
 }
@@ -195,7 +204,19 @@ MainWindow::handleApplyStylesheet()
     QString xslpath = docEditor_->currentStylesheet();
 
     if ( adpublisher::document::apply_template( xmlpath_.c_str(), xslpath.toStdString().c_str(), processed_, method ) ) {
-        docEditor_->setOutput( processed_ );
+
+        docEditor_->setOutput( processed_, method );
+
+        boost::filesystem::path path( xmlpath_ );
+        std::string extension = method.isEmpty() ? ".html" : (QString( ".%1" ).arg( method )).toStdString();
+
+        path.replace_extension( extension );
+
+        boost::filesystem::ofstream o( path );
+        o << processed_.toStdString();
+
+        QDesktopServices::openUrl( QUrl( QString( "file:///%1" ).arg( QString::fromStdWString( path.wstring() ) ) ) );
+
     }
 }
 

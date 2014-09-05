@@ -47,6 +47,7 @@
 #include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
 #include <QCoreApplication>
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
@@ -256,9 +257,16 @@ QuanReportWidget::filePublish()
         adpublisher::document::apply_template( path.string().c_str(), xslfile.toStdString().c_str(), output, method );
         
         if ( !output.isEmpty() ) {
-            path.replace_extension( ".html" );
+
+            docEditor_->setOutput( output, method );
+            std::string extension = method.isEmpty() ? ".html" : (QString( ".%1" ).arg( method )).toStdString();
+
+            path.replace_extension( extension );
+
             boost::filesystem::ofstream o( path );
             o << output.toStdString();
+
+            QDesktopServices::openUrl( QUrl( QString::fromStdWString( path.wstring() ) ) ) ;
         }
     }
 }

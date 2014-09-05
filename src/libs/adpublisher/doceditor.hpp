@@ -58,8 +58,8 @@ namespace adpublisher {
 
         std::shared_ptr< adpublisher::document > document();
         void setDocument( std::shared_ptr< adpublisher::document >& );
-        void setOutput( const QString& );
-
+        void setOutput( const QString&, const QString& method = QString() );
+        void setOutput( const QUrl& );
         void setupEditActions( QMenu* );
         void setupTextActions( QMenu* );
 

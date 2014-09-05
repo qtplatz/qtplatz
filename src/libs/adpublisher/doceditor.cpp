@@ -129,6 +129,7 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
 
     connect(text_.get(), &docEdit::currentCharFormatChanged, this, &docEditor::currentCharFormatChanged );
     connect(text_.get(), &docEdit::cursorPositionChanged, this, &docEditor::cursorPositionChanged );
+    stacked_->setCurrentIndex( 1 ); // Browser as default
 }
 
 void
@@ -157,23 +158,31 @@ docEditor::setDocument( std::shared_ptr< adpublisher::document >& t )
 {
     doc_ = t;
     tree_->setDocument( doc_ );
+    text_->setDocument( doc_ );
+    stacked_->setCurrentIndex(0);
+#if 0
     if ( auto node = doc_->xml_document()->select_single_node( "/article|/book" ) ) {
         text_->setDocument( doc_ );
     }
-    // it's too slow for display
-    // else {
-    //     std::string o;
-    //     if ( doc_->save( o ) ) {
-    //         setOutput( o.c_str() );
-    //     }
-    // }
+    else if ( auto node = doc_->xml_document()->select_single_node( "/qtpaltz_document" ) ) { 
+    }
+#endif
 }
 
 void
-docEditor::setOutput( const QString& output )
+docEditor::setOutput( const QString& output, const QString& method )
 {
+    (void)method;
     qtwrapper::waitCursor wait;
     browser_->setOutput( output );
+    stacked_->setCurrentIndex( 1 );
+}
+
+void
+docEditor::setOutput( const QUrl& url )
+{
+    qtwrapper::waitCursor wait;
+    browser_->setOutput( url );
     stacked_->setCurrentIndex( 1 );
 }
 
