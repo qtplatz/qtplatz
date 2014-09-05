@@ -28,7 +28,8 @@ CP	= $(SH) /c copy
 MD      = $(SH) /c mkdir
 STAGEDIR = .\stage
 
-OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj bruker.wixobj qtplatz_translations.wixobj
+OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj bruker.wixobj qtplatz_translations.wixobj \
+	qtplatz_plugins.wixobj
 
 all: qtplatz.msi
 
@@ -86,6 +87,9 @@ sign:
 qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
 	$(CANDLE) qtplatz.wxs
 
+qtplatz_plugins.wixobj: qtplatz_plugins.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\lib\qtplatz\plugins qtplatz_plugins.wxi
+
 translations.wixobj: translations.wxi
 	$(CANDLE) -dQtTranslationsDir=$(QTDIR)\translations translations.wxi
 
@@ -106,6 +110,11 @@ bruker.wixobj: bruker.wxi
 
 
 harvest: copy_stage_files qt plugins translations qtplatz_translations bruker
+
+qtplatz_plugins.wxi: makefile
+	$(HEAT) dir $(QTPLATZ_PATH)\lib\qtplatz\plugins \
+	-dr LIB_PLUGINS -cg QtPlatzPluginsComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
+	-t qzplugin.xslt -o $@
 
 qtplatz_translations:
 	$(HEAT) dir $(QTPLATZ_PATH)\share\qtplatz\translations \
