@@ -23,9 +23,28 @@
 **************************************************************************/
 
 #include "transformer.hpp"
+#include <QDir>
+#include <QCoreApplication>
 
 using namespace adpublisher;
 
 transformer::transformer()
 {
+}
+
+// static
+void
+transformer::populateStylesheets( QStringList& list )
+{
+    QDir dir( QCoreApplication::applicationDirPath() );
+#if Q_OS_MAC
+    dir.cd( "../Resources/xslt" );
+#else
+    dir.cd( "../share/qtplatz/xslt" );
+#endif
+    QString path = dir.canonicalPath();
+
+    auto info = dir.entryInfoList( QStringList() << "*.xsl", QDir::Files | QDir::Readable );
+    for ( auto i : info )
+        list << i.canonicalFilePath();
 }

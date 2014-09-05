@@ -26,7 +26,6 @@
 #include "ui_mainwindow.h"
 
 #include <QCoreApplication>
-#include <QComboBox>
 #include <QFileDialog>
 #include <QSettings>
 #include <QToolButton>
@@ -64,10 +63,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         ui->mainToolBar->addWidget( btn );
     }
 
-    auto combo = new QComboBox;
-    combo->setObjectName( "Stylesheets" );
-    ui->mainToolBar->addWidget( combo );
-
     if ( auto btn = new QToolButton ) {
         btn->setDefaultAction( ui->actionApply );
         ui->mainToolBar->addWidget( btn );
@@ -88,15 +83,6 @@ MainWindow::onInitialUpdate( std::shared_ptr< QSettings >& settings )
     std::string filename = settings->fileName().toStdString();
     std::vector< QString > list;
     getRecentFiles( "Stylesheets", "DIRS", list, "DIR" );
-
-    for ( auto& xsl : list )
-        populateStylesheets( xsl );
-
-    if ( auto combo = findChild< QComboBox * >() ) {
-        combo->setCurrentIndex( 0 );
-        xslpath_ = combo->currentText().toStdString();
-        connect( combo, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this, &MainWindow::handleStylesheetChanged );
-    }
 
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::handleOpenFile );
     connect(ui->actionSave_As, &QAction::triggered, this, &MainWindow::handleSaveTemplateAs );
@@ -176,25 +162,6 @@ MainWindow::recentFile( const QString& group, const QString& pfx, const QString&
 }
 
 void
-MainWindow::populateStylesheets( const QString& name )
-{
-    if ( auto combo = findChild< QComboBox * >() ) {
-
-        boost::filesystem::path dir( name.toStdWString() );
-
-        if ( boost::filesystem::exists( dir ) && boost::filesystem::is_directory( dir ) ) {
-            for ( boost::filesystem::directory_iterator it( dir ); it != boost::filesystem::directory_iterator(); ++it ) {
-                if ( boost::iequals( it->path().extension().string(), ".xsl" ) ||
-                     boost::iequals( it->path().extension().string(), ".xslt" ) ) {
-                    combo->addItem( QString::fromStdWString( it->path().generic_wstring() ) );
-                }
-            }
-
-        }
-    }
-}
-
-void
 MainWindow::handleOpenFile()
 {
     auto name = QFileDialog::getOpenFileName( this
@@ -204,20 +171,17 @@ MainWindow::handleOpenFile()
     if ( !name.isEmpty() ) {
         addRecentFiles( "RecentFiles", "Files", name );
 
-        if ( doc_->load_file( name.toStdString().c_str() ) ) {
+        auto doc = std::make_shared< adpublisher::document>();
+
+        if ( doc->load_file( name.toStdString().c_str() ) ) {
+
+            setWindowTitle( name );
+            xmlpath_ = name.toStdString();
 
             ui->actionApply->setEnabled( true );
             processed_.clear();
 
-            xmlpath_ = name.toStdString();
-
-            std::ostringstream o;            
-            doc_->save( o );
-            QString xml = QString::fromUtf8( o.str().c_str() );
-
-            ui->textBrowser->clear();
-            ui->textBrowser->append( xml );
-            ui->textBrowser->setTabStopWidth( 16 );
+            docEditor_->setDocument( doc );
         }
     }
 }
@@ -227,12 +191,11 @@ MainWindow::handleApplyStylesheet()
 {
     processed_.clear();
 
-    if ( adpublisher::document::apply_template( xmlpath_.c_str(), xslpath_.c_str(), processed_ ) ) {
+    QString method;
+    QString xslpath = docEditor_->currentStylesheet();
 
-        // ui->actionApply->setEnabled( false );
-        ui->textBrowser->clear();
-        ui->textBrowser->append( processed_ );
-
+    if ( adpublisher::document::apply_template( xmlpath_.c_str(), xslpath.toStdString().c_str(), processed_, method ) ) {
+        docEditor_->setOutput( processed_ );
     }
 }
 
@@ -259,20 +222,6 @@ MainWindow::handleSaveProcessedAs()
 void
 MainWindow::handleSaveTemplateAs()
 {
-    auto name = QFileDialog::getSaveFileName( this
-                                              , tr( "Save Template" )
-                                              , recentFile( "RecentFiles", "Files" )
-                                              , tr( "XML Files(*.xml)" ) );
-    if ( !name.isEmpty() ) {
-
-        auto doc = docEditor_->document();
-        doc->save_file( name.toStdString().c_str() );
-
-    }
+    docEditor_->fileSave();
 }
 
-void
-MainWindow::handleStylesheetChanged( const QString& xslname )
-{
-    xslpath_ = xslname.toStdString();
-}

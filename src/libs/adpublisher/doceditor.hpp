@@ -40,12 +40,14 @@ class QFontComboBox;
 class QTextCharFormat;
 class QPrinter;
 class QAbstractItemModel;
+class QStackedWidget;
 
 namespace adpublisher {
 
     class document;
     class docTree;
     class docEdit;
+    class docBrowser;
 
     class ADPUBLISHERSHARED_EXPORT docEditor : public QMainWindow {
         Q_OBJECT
@@ -56,6 +58,7 @@ namespace adpublisher {
 
         std::shared_ptr< adpublisher::document > document();
         void setDocument( std::shared_ptr< adpublisher::document >& );
+        void setOutput( const QString& );
 
         void setupEditActions( QMenu* );
         void setupTextActions( QMenu* );
@@ -80,16 +83,19 @@ namespace adpublisher {
             , nIdActions
         };
         void setAction( idAction, QAction * );
+        QString currentStylesheet() const;
 
     private:
         std::shared_ptr< adpublisher::document > doc_;
         std::unique_ptr< docTree > tree_;
         std::unique_ptr< docEdit > text_;
+        std::unique_ptr< docBrowser > browser_;
         std::array< QAction *, nIdActions > actions_;
 
         QComboBox *comboStyle;
         QFontComboBox *comboFont;
         QComboBox *comboSize;
+        QStackedWidget * stacked_;
 
         QToolBar *tb;
         QString fileName;
@@ -108,7 +114,6 @@ namespace adpublisher {
 
     public slots:
 
-    private slots:
         void fileNew();
         void fileOpen();
         bool fileSave();
@@ -116,6 +121,7 @@ namespace adpublisher {
         void filePrint();
         void filePrintPreview();
         void filePrintPdf();
+    private slots:
 
         void textBold();
         void textUnderline();
@@ -125,9 +131,9 @@ namespace adpublisher {
         void textStyle(int styleIndex);
         void textColor();
         void textAlign(QAction *a);
-
         void currentCharFormatChanged(const QTextCharFormat &format);
         void cursorPositionChanged();
+        void currentPageChanged(int);
 
         void clipboardDataChanged();
         void about();

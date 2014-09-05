@@ -53,10 +53,7 @@ private:
     std::shared_ptr< adpublisher::document > doc_;
     std::shared_ptr< QSettings > settings_;
     std::string xmlpath_;
-    std::string xslpath_;
     QString processed_;
-
-    void populateStylesheets( const QString& );
 
     void addRecentFiles( const QString& group, const QString& pfx, const QString& value, const QString& key = "File"  );
     void getRecentFiles( const QString& group, const QString& pfx, std::vector<QString>& list, const QString& key = "File" ) const;
@@ -69,7 +66,6 @@ private slots:
     void handleSaveTemplateAs();
     void handleApplyStylesheet();
     void handleSaveProcessedAs();
-    void handleStylesheetChanged( const QString& );
 };
 
 #endif // MAINWINDOW_HPP

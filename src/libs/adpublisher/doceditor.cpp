@@ -23,9 +23,12 @@
 **************************************************************************/
 
 #include "doceditor.hpp"
+#include "docbrowser.hpp"
 #include "doctree.hpp"
 #include "docedit.hpp"
 #include "document.hpp"
+#include "transformer.hpp"
+#include <qtwrapper/waitcursor.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <QAction>
 #include <QApplication>
@@ -49,18 +52,21 @@
 #include <QPrintPreviewDialog>
 #include <QSplitter>
 #include <QStringListModel>
+#include <QStackedWidget>
+#include <QtConcurrent>
 #include <QTextCodec>
 #include <QTextEdit>
+#include <QTextBrowser>
 #include <QToolBar>
 #include <QTextCursor>
 #include <QTextDocumentWriter>
 #include <QTextList>
 #include <boost/filesystem/path.hpp>
 
-#ifdef Q_OS_MAC
-const QString qrcpath = ":/adpublisher/images/mac";
-#else
+#ifdef Q_OS_WIN
 const QString qrcpath = ":/adpublisher/images/win";
+#else
+const QString qrcpath = ":/adpublisher/images/mac";
 #endif
 
 namespace adpublisher {
@@ -78,6 +84,8 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
                                         , doc_( std::make_shared< adpublisher::document >() )
                                         , tree_( new docTree )
                                         , text_( new docEdit )
+                                        , browser_( new docBrowser )
+                                        , stacked_( new QStackedWidget )
                                         , comboStyle(0)
                                         , comboFont(0)
                                         , comboSize(0)
@@ -86,6 +94,9 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
     std::fill( actions_.begin(), actions_.end(), static_cast<QAction*>(0) );
 
     setToolButtonStyle( Qt::ToolButtonFollowStyle );
+
+    stacked_->addWidget( text_.get() );
+    stacked_->addWidget( browser_.get() );
 
     auto widget = new QWidget;
     setCentralWidget( widget );
@@ -98,7 +109,10 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
     splitter->setHandleWidth( 1 );
     splitter->setOrientation( Qt::Horizontal );
     splitter->addWidget( tree_.get() );
-    splitter->addWidget( text_.get() );
+    // splitter->addWidget( text_.get() );
+    splitter->addWidget( stacked_ );
+    connect( stacked_, &QStackedWidget::currentChanged, this, &docEditor::currentPageChanged );
+
     splitter->setStretchFactor( 1, 3 );
 
     layout->addWidget( splitter );
@@ -142,12 +156,39 @@ void
 docEditor::setDocument( std::shared_ptr< adpublisher::document >& t )
 {
     doc_ = t;
+    tree_->setDocument( doc_ );
+    if ( auto node = doc_->xml_document()->select_single_node( "/article|/book" ) ) {
+        text_->setDocument( doc_ );
+    }
+    // it's too slow for display
+    // else {
+    //     std::string o;
+    //     if ( doc_->save( o ) ) {
+    //         setOutput( o.c_str() );
+    //     }
+    // }
+}
+
+void
+docEditor::setOutput( const QString& output )
+{
+    qtwrapper::waitCursor wait;
+    browser_->setOutput( output );
+    stacked_->setCurrentIndex( 1 );
 }
 
 std::shared_ptr< adpublisher::document > 
 docEditor::document()
 {
     return doc_;
+}
+
+QString
+docEditor::currentStylesheet() const
+{
+    if ( auto w = findChild< QComboBox * >( "stylesCombo" ) )
+        return w->currentText();
+    return QString();
 }
 
 void
@@ -277,6 +318,21 @@ docEditor::setupTextActions( QMenu * menu )
     tb->setWindowTitle( tr( "Format Actions" ) );
     addToolBarBreak( Qt::TopToolBarArea );
     addToolBar( tb );
+
+    if ( auto xslt = new QComboBox( tb ) ) {
+        xslt->setObjectName( "stylesCombo" );
+        QStringList list;
+        transformer::populateStylesheets( list );
+        xslt->addItems( list );
+        tb->addWidget( xslt );
+    }
+    
+    if ( auto cbox = new QComboBox( tb ) ) {
+        cbox->setObjectName( "browserCombo" );
+        cbox->addItems( QStringList() << tr("Template") << tr("Browser") );
+        tb->addWidget( cbox );
+        connect( cbox, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated), this, [&](int idx){ stacked_->setCurrentIndex( idx ); });
+    }
 
     comboStyle = new QComboBox(tb);
     tb->addWidget(comboStyle);
@@ -677,4 +733,9 @@ docEditor::modelFromFile(const QString& fileName)
     QApplication::restoreOverrideCursor();
 
     return new QStringListModel(words, completer);
+}
+
+void
+docEditor::currentPageChanged( int )
+{
 }
