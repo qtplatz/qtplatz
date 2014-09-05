@@ -21,18 +21,19 @@
             <ComponentGroupRef Id="RDKitComponents" />
             <ComponentGroupRef Id="QtComponents" />
             <ComponentGroupRef Id="QtTranslations" />
-            <ComponentGroupRef Id="QtPluginsComponents" />
-            <ComponentGroupRef Id="QtCreatorComponents" />
-            <ComponentGroupRef Id="QtPlatzComponents" />
+            <ComponentGroupRef Id="QtPluginsComponents" />       <!-- Qt plugins, -->
+            <!-- <ComponentGroupRef Id="QtCreatorComponents" /> -->
+            <!-- <ComponentGroupRef Id="PluginComponents" /> -->
+            <ComponentGroupRef Id="QtPlatzComponents" />         <!-- qtplatz/bin -->
+            <ComponentGroupRef Id="QtPlatzPluginsComponents" />
             <ComponentGroupRef Id="QtPlatzTranslations" />
-            <ComponentGroupRef Id="SPCFileComponents" />
-            <ComponentGroupRef Id="SPCFilePluginComponents" />
+            <!-- <ComponentGroupRef Id="SPCFileComponents" /> -->
+            <!-- <ComponentGroupRef Id="SPCFilePluginComponents" /> -->
             <ComponentGroupRef Id="XSDComponents" />
             <ComponentGroupRef Id="TAOComponents" />
             <ComponentGroupRef Id="MicrosoftComponents" />
-            <ComponentGroupRef Id="PluginComponents" />
-            <ComponentGroupRef Id="InfiTOFComponents" />
-            <ComponentGroupRef Id="InfiTOFdComponents" />
+            <!-- <ComponentGroupRef Id="InfiTOFComponents" />
+            <ComponentGroupRef Id="InfiTOFdComponents" /> -->
             <ComponentGroupRef Id="EZUSBComponentGroup" />
             <ComponentGroupRef Id="BrukerComponents" />
             <ComponentGroupRef Id="ApplicationProgramsFolder" />
@@ -90,16 +91,16 @@
             </Component>
         </ComponentGroup>
         <?include rdkit_components.wxi ?>
-        <?include qt_creator_components.wxi ?>
+        <!-- <?include qt_creator_components.wxi ?> -->
         <?include qtplatz_components.wxi ?>
         <ComponentGroup Id="XSDComponents" Directory="PLUGINS_XSD">
             <Component Id="config.xsd" Guid="830AB06B-0540-4A65-8B38-D1A7365F0918" Win64="yes">
                 <File Id="config.xsd" Source="$(var.TOP)/src/plugins/xsd/config.xsd" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
-        <?include qtplatz_plugin_components.wxi ?>
+        <!-- <?include qtplatz_plugin_components.wxi ?>
         <?include spcfile_components.wxi ?>
-        <?include infitof_components.wxi ?>
+        <?include infitof_components.wxi ?> -->
         <?include tao_components.wxi ?>
     </Fragment>
 
