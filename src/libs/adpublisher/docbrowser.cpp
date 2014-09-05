@@ -25,16 +25,22 @@
 #include "docbrowser.hpp"
 #include <memory>
 #include "adpublisher_global.hpp"
+#include <QByteArray>
 #include <QTextBrowser>
 #include <QLayout>
+#include <QWebView>
+#include <QUrl>
 
 namespace adpublisher {
     
     class docBrowser::impl {
     public:
-        impl( QWidget * p ) : browser( new QTextBrowser ) {
+        //impl( QWidget * p ) : browser( new QTextBrowser ) {
+        impl() : browser( new QWebView ) {
+            //browser->load( QUrl( "http://www.ms-cheminfo.com" ) );
         }
-        QTextBrowser * browser;
+        // QTextBrowser * browser;
+        QWebView * browser;
     };
 
 }
@@ -42,7 +48,7 @@ namespace adpublisher {
 using namespace adpublisher;
     
 docBrowser::docBrowser(QWidget * parent) : QWidget( parent )
-                                         , impl_( new impl( this ) )
+                                         , impl_( new impl )
 {
     auto layout = new QHBoxLayout( this );
     layout->addWidget( impl_->browser );
@@ -55,7 +61,17 @@ docBrowser::~docBrowser()
 void
 docBrowser::setOutput( const QString& output )
 {
+#if 0
     impl_->browser->clear();
     impl_->browser->setText( output );
+#else
+    QByteArray a( reinterpret_cast<const char *>(output.data()), output.size() );
+    impl_->browser->setHtml( output );
+#endif
 }
 
+void
+docBrowser::setOutput( const QUrl& url )
+{
+    impl_->browser->setUrl( url );
+}

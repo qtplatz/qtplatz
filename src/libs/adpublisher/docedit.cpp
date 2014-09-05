@@ -38,7 +38,6 @@
 #include <QTextCharFormat>
 #include <QTextBlock>
 #include <QColor>
-#include <qDebug>
 #include <qmargins.h>
 #include <array>
 #include <functional>
@@ -101,7 +100,7 @@ namespace adpublisher {
                 frameFormat.setPadding( 4 );
             }
 
-            QString tagString( const pugi::xpath_node& node ) const {
+            static QString tagString( const pugi::xpath_node& node ) {
                 QString tag = QString( "<%1" ).arg( node.node().name() );
                 for ( auto a : node.node().attributes() )
                     tag.append( QString( " %1=\"%2\"" ).arg( a.name(), a.value() ) );
@@ -119,25 +118,89 @@ namespace adpublisher {
                 QObject::connect( frame, &QTextFrame::destroyed, &edit, &docEdit::handleBlockDeleted );
 
                 cursor.insertText( tagString( node ), tagFormat ); // <----------- <tag>
-                qDebug() << level << tagString( node );
                 
                 // body
                 if ( std::strcmp( node.node().name(), "title" ) == 0 ) {
+
                     cursor.insertText( QString::fromStdString( node.node().text().get() ), headingFormat );
                 }
                 else if ( std::strcmp( node.node().name(), "paragraph" ) == 0 ) {
+
                     cursor.insertText( QString::fromStdString( node.node().text().get() ), paragraphFormat );
                 }
                 else {
+
                     cursor.insertText( QString::fromStdString( node.node().text().get() ), plainFormat );
                 }
 
                 // process childlen 
                 for ( auto& child : node.node().select_nodes( "./*" ) ) {
                     (*this)(child, frame, level + 1);
-                    qDebug() << "cursor at end:" << cursor.position() << " --> " << mainFrame->lastCursorPosition().position();
                 }
                 cursor.insertText( QString( "</%1>" ).arg( node.node().name() ), tagFormat ); // </tag>
+            }
+        };
+
+
+
+        class xhtml_writer {
+            docEdit& edit;
+
+            QTextCharFormat plainFormat;
+            QTextCharFormat paragraphFormat;
+            QTextCharFormat headingFormat;
+            QTextCharFormat empasisFormat;
+            QTextCharFormat tagFormat;
+            QTextCharFormat underlineFormat;
+            QTextFrameFormat frameFormat;
+            QTextFrame * mainFrame;
+
+        public:
+            xhtml_writer( docEdit& e ) : edit( e ) {
+                QTextCursor cursor = edit.textCursor();
+                cursor.movePosition( QTextCursor::Start );
+                mainFrame = cursor.currentFrame();
+
+                plainFormat = cursor.charFormat();
+                plainFormat.setFontPointSize( 10 );
+
+                paragraphFormat = plainFormat;
+                paragraphFormat.setFontPointSize( 12 );
+
+                headingFormat = plainFormat;
+                headingFormat.setFontWeight( QFont::Bold );
+                headingFormat.setFontPointSize( 16 );
+
+                empasisFormat = plainFormat;
+                empasisFormat.setFontItalic( true );
+
+                tagFormat = plainFormat;
+                tagFormat.setForeground( QColor( "#990000" ) );
+                tagFormat.setFontUnderline( true );
+                
+                underlineFormat = plainFormat;
+                underlineFormat.setFontUnderline( true );
+
+                frameFormat.setBorderStyle( QTextFrameFormat::BorderStyle_Inset );
+                frameFormat.setBorder( 1 );
+                frameFormat.setMargin( 10 );
+                frameFormat.setPadding( 4 );
+            }
+
+            void operator()( const pugi::xpath_node& node, int level = 0 ) const {
+                QTextCursor cursor = edit.textCursor();
+                QString name( node.node().name() );
+                if ( name != "svg" ) {
+                    QString text( node.node().text().get() );
+                    if ( !text.isEmpty() ) {
+                        // cursor.insertText( name, paragraphFormat );
+                        cursor.insertText( text, paragraphFormat );
+                    }
+                    // process childlen
+                    for ( auto& child : node.node().select_nodes( "./*" ) ) {
+                        (*this)(child, level + 1);
+                    }
+                }
             }
         };
 
@@ -159,34 +222,39 @@ void
 docEdit::setDocument( std::shared_ptr< adpublisher::document >& t )
 {
     doc_ = t;
+    clear();
     repaint( *(t->xml_document()) );
 }
 
 void
 docEdit::repaint( const pugi::xml_document& doc )
 {
-    try {
-        const pugi::xpath_node node = doc.select_single_node( "/article|/book" );
-        
-        detail::text_writer writer( *this );
-        writer( node );
-
-        //std::ofstream outf( "C:/Users/Toshi/src/qtplatz/src/tools/publisher/output.xml" );
-        //QString text = toPlainText();
-        //outf << text.toStdString();
-
-        int blockCount();
-        
-        auto it = document()->begin();
-
-        auto cursor = textCursor();
-        cursor.movePosition( QTextCursor::Start );
-        ensureCursorVisible();
-        
-    } catch ( pugi::xpath_exception& ex ) {
-        QMessageBox::warning( this, "adpublisher::docEdit", ex.what() );
+    if ( const pugi::xpath_node node = doc.select_single_node( "/article|/book" ) ) {
+        try {
+            detail::text_writer writer( *this );
+            writer( node );
+            auto cursor = textCursor();
+            cursor.movePosition( QTextCursor::Start );
+            ensureCursorVisible();
+        } catch ( pugi::xpath_exception& ex ) {
+            QMessageBox::warning( this, "adpublisher::docEdit", ex.what() );
+        }
     }
-
+    else if ( const pugi::xpath_node node = doc.select_single_node( "/qtplatz_document" ) ) {
+        // do nothing
+    }
+    else {
+        try {
+            detail::xhtml_writer writer( *this );
+            writer( doc.select_single_node( "/" ) );
+            auto cursor = textCursor();
+            cursor.movePosition( QTextCursor::Start );
+            ensureCursorVisible();
+        }
+        catch ( pugi::xpath_exception& ex ) {
+            QMessageBox::warning( this, "adpublisher::docEdit", ex.what() );
+        }
+    }
 }
 
 void
@@ -270,8 +338,6 @@ docEdit::keyPressEvent(QKeyEvent *e)
     static QString eow("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="); // end of word
     bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;
     QString completionPrefix = textUnderCursor();
-
-    qDebug() << textCursor().position() << completionPrefix;
 
     if (!isShortcut && (hasModifier || e->text().isEmpty()|| completionPrefix.length() < 3
                       || eow.contains(e->text().right(1)))) {

@@ -213,10 +213,15 @@ document::apply_template( const char * xmlfile, const char * xsltfile, QString& 
 
     pugi::xml_document doc;
     if ( doc.load_file( xsltfile ) ) {
-        if ( auto node = doc.select_single_node( "//xsl:output[@method]" ) )
+        if ( auto node = doc.select_single_node( "//xsl:output[@method]" ) ) {
             method = node.node().attribute( "method" ).value();
+            if ( method == "xml" ) {
+                std::string media = node.node().attribute( "media-type" ).value();
+                if ( media == "text/xhtml" )
+                    method = "xhtml";
+            }
+        }
     }
-
     return transformer::apply_template( xmlfile, xslt.string().c_str(), output );
 }
 

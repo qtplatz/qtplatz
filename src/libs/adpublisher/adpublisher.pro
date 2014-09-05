@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += sql svg xml printsupport xmlpatterns
+QT += sql svg xml printsupport xmlpatterns
+QT += webkitwidgets
 
 #QT       -= gui
 

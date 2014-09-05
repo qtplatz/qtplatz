@@ -24,17 +24,11 @@
 
 #pragma once
 
-#include <QTextEdit>
-#include <memory>
 #include "adpublisher_global.hpp"
+#include <QWidget>
+#include <memory>
 
-#define USE_WEBKIT 0
-
-#if defined USE_WEBKIT && USE_WEBKIT > 0
-# include <QWebView>
-#else
-# include <QTextBrowser>
-#endif
+class QUrl;
 
 namespace adpublisher {
 
@@ -46,6 +40,7 @@ namespace adpublisher {
         explicit docBrowser(QWidget *parent = 0);
 
         void setOutput( const QString& );
+        void setOutput( const QUrl& );
 
     protected:
 
