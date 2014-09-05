@@ -19,6 +19,7 @@ DEFINES += ADPUBLISHER_LIBRARY
 
 SOURCES += adpublisher.cpp \
            document.cpp \
+           docbrowser.cpp \
            doceditor.cpp \
            doctree.cpp \
            docedit.cpp \
@@ -27,6 +28,7 @@ SOURCES += adpublisher.cpp \
 HEADERS += adpublisher.hpp\
            adpublisher_global.hpp \
            document.hpp \
+           docbrowser.hpp \
            doceditor.hpp \
            doctree.hpp \
            docedit.hpp \

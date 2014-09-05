@@ -39,6 +39,7 @@
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/filesystem.hpp>
 #include <QApplication>
+#include <QFileInfo>
 //#include <QXmlQuery>
 
 using namespace adpublisher;
@@ -192,15 +193,13 @@ document::xml_document()
 
 //static
 bool
-document::apply_template( const char * xmlfile, const char * xsltfile, QString& output )
+document::apply_template( const char * xmlfile, const char * xsltfile, QString& output, QString& method )
 {
 #if defined Q_OS_WIN32
     using namespace msxml;
 #else
     using namespace libxslt;
 #endif
-
-    //QXmlQuery query( QXmlQuery::XSLT20 );
 
     if ( !boost::filesystem::exists( xmlfile ) )
         return false;
@@ -212,9 +211,12 @@ document::apply_template( const char * xmlfile, const char * xsltfile, QString& 
     if ( !boost::filesystem::exists( xslt ) )
         return false;
 
-    boost::filesystem::path opath( xmlfile );
-    opath.replace_extension( ".html");
-    
-    return transformer::apply_template( xmlfile, xslt.string().c_str(), output);
+    pugi::xml_document doc;
+    if ( doc.load_file( xsltfile ) ) {
+        if ( auto node = doc.select_single_node( "//xsl:output[@method]" ) )
+            method = node.node().attribute( "method" ).value();
+    }
+
+    return transformer::apply_template( xmlfile, xslt.string().c_str(), output );
 }
 

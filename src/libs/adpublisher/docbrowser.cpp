@@ -22,19 +22,40 @@
 **
 **************************************************************************/
 
-#ifndef TRANSFORMER_HPP
-#define TRANSFORMER_HPP
-
-class QStringList;
+#include "docbrowser.hpp"
+#include <memory>
+#include "adpublisher_global.hpp"
+#include <QTextBrowser>
+#include <QLayout>
 
 namespace adpublisher {
-
-    class transformer {
+    
+    class docBrowser::impl {
     public:
-        transformer();
-        static void populateStylesheets( QStringList& );
+        impl( QWidget * p ) : browser( new QTextBrowser ) {
+        }
+        QTextBrowser * browser;
     };
 
 }
 
-#endif // TRANSFORMER_HPP
+using namespace adpublisher;
+    
+docBrowser::docBrowser(QWidget * parent) : QWidget( parent )
+                                         , impl_( new impl( this ) )
+{
+    auto layout = new QHBoxLayout( this );
+    layout->addWidget( impl_->browser );
+}
+
+docBrowser::~docBrowser()
+{
+}
+
+void
+docBrowser::setOutput( const QString& output )
+{
+    impl_->browser->clear();
+    impl_->browser->setText( output );
+}
+

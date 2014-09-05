@@ -40,6 +40,9 @@ namespace adpublisher {
         // static const char* node_types[] = {
         //     "null", "document", "element", "pcdata", "cdata", "comment", "pi", "declaration"
         // };
+        static const char * ignore_nodes [] = {
+            "row", "column", "item", "svg"
+        };
 
         class model_writer {
             QStandardItemModel& model;
@@ -53,10 +56,10 @@ namespace adpublisher {
 
                 model.insertRow( row, parent );
                 model.setData( model.index( row, 0, parent ), node.node().name() );
-                model.setData( model.index( row, 1, parent ), node.node().value() );
+                model.setData( model.index( row, 1, parent ), node.node().text().get() );
 
                 for ( auto child : node.node().select_nodes( "./*" ) ) {
-                    model.itemFromIndex( model.index( row, 0, parent ) )->setColumnCount( 1 );
+                    model.itemFromIndex( model.index( row, 0, parent ) )->setColumnCount( 2 );
                     (*this)(child, model.index( row, 0, parent ));
                 }
 
@@ -102,18 +105,27 @@ docTree::repaint( const pugi::xml_document& doc )
     doc_->save( xml );
 
     model.clear();
-    model.setColumnCount( 1 );
+    model.setColumnCount( 2 );
 
-    try {
-        const pugi::xpath_node node = doc.select_single_node( "/article|/book" );
-        
-        detail::model_writer writer( *model_ );
-        writer(node, QModelIndex());
-        
-        expandAll();
-
-    } catch ( pugi::xpath_exception& ex ) {
-        QMessageBox::warning( this, "adpublisher::docTree", ex.what() );
+    if ( const pugi::xpath_node node = doc.select_single_node( "/article|/book" ) ) {
+        try {
+            detail::model_writer writer( *model_ );
+            writer( node, QModelIndex() );
+            expandAll();
+        }
+        catch ( pugi::xpath_exception& ex ) {
+            QMessageBox::warning( this, "adpublisher::docTree", ex.what() );
+        }
+    }
+    else if ( const pugi::xpath_node node = doc.select_single_node( "/qtplatz_document" ) ) {
+        try {
+            detail::model_writer writer( *model_ );
+            writer( node, QModelIndex() );
+            expandAll();
+        }
+        catch ( pugi::xpath_exception& ex ) {
+            QMessageBox::warning( this, "adpublisher::docTree", ex.what() );
+        }
     }
 
 }

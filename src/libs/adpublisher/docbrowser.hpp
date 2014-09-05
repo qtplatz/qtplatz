@@ -22,19 +22,36 @@
 **
 **************************************************************************/
 
-#ifndef TRANSFORMER_HPP
-#define TRANSFORMER_HPP
+#pragma once
 
-class QStringList;
+#include <QTextEdit>
+#include <memory>
+#include "adpublisher_global.hpp"
+
+#define USE_WEBKIT 0
+
+#if defined USE_WEBKIT && USE_WEBKIT > 0
+# include <QWebView>
+#else
+# include <QTextBrowser>
+#endif
 
 namespace adpublisher {
 
-    class transformer {
+    class ADPUBLISHERSHARED_EXPORT docBrowser : public QWidget {
+        Q_OBJECT
+        docBrowser( const docBrowser& ) = delete;
     public:
-        transformer();
-        static void populateStylesheets( QStringList& );
+        ~docBrowser();
+        explicit docBrowser(QWidget *parent = 0);
+
+        void setOutput( const QString& );
+
+    protected:
+
+    private:
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 }
-
-#endif // TRANSFORMER_HPP

@@ -45,7 +45,7 @@ namespace adpublisher {
 
         std::shared_ptr< pugi::xml_document > xml_document();
 
-        static bool apply_template( const char * xmlfile, const char * xsltfile, QString& output );
+        static bool apply_template( const char * xmlfile, const char * xsltfile, QString& output, QString& method );
 
     private:
         std::shared_ptr< pugi::xml_document > doc_;
