@@ -24,7 +24,7 @@
 
 #include "doceditor.hpp"
 #include "doctree.hpp"
-#include "doctext.hpp"
+#include "docedit.hpp"
 #include "document.hpp"
 #include <xmlparser/pugixml.hpp>
 #include <QAction>
@@ -77,7 +77,7 @@ docEditor::~docEditor()
 docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
                                         , doc_( std::make_shared< adpublisher::document >() )
                                         , tree_( new docTree )
-                                        , text_( new docText )
+                                        , text_( new docEdit )
                                         , comboStyle(0)
                                         , comboFont(0)
                                         , comboSize(0)
@@ -113,8 +113,8 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
     completer->setWrapAround( false );
     text_->setCompleter( completer );
 
-    connect(text_.get(), &docText::currentCharFormatChanged, this, &docEditor::currentCharFormatChanged );
-    connect(text_.get(), &docText::cursorPositionChanged, this, &docEditor::cursorPositionChanged );
+    connect(text_.get(), &docEdit::currentCharFormatChanged, this, &docEditor::currentCharFormatChanged );
+    connect(text_.get(), &docEdit::cursorPositionChanged, this, &docEditor::cursorPositionChanged );
 }
 
 void

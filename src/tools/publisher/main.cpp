@@ -42,6 +42,7 @@ main( int argc, char *argv[] )
     MainWindow::addRecentFiles( *settings, "Stylesheets", "DIRS", appdir.canonicalPath(), "DIR" );
 
     MainWindow w;
+    w.resize( 800, 600 );
     w.show();
     w.onInitialUpdate( settings );
     return a.exec();

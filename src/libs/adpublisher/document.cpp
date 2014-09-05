@@ -54,7 +54,6 @@ document::document() : doc_( std::make_shared< pugi::xml_document >() )
             title.text().set( "Qualitative and quantitative accuracy on LC/TOF-MS with newly developped targeting algorihm" );
         }
 
-
         if ( auto author = article.append_child( "author" ) ) {
             author.text().set( "Kristie C. Cloos, Katherine M. Schroeder and Toshinobu Hondo" );
         }

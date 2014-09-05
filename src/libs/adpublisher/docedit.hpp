@@ -29,6 +29,7 @@
 #include "adpublisher_global.hpp"
 
 class QCompleter;
+class QContextMenuEvent;
 
 namespace pugi { class xml_document; }
 
@@ -36,12 +37,15 @@ namespace adpublisher {
 
     class document;
 
-    class ADPUBLISHERSHARED_EXPORT docText : public QTextEdit {
+    namespace detail { class text_writer; }
+
+    class ADPUBLISHERSHARED_EXPORT docEdit : public QTextEdit {
         Q_OBJECT
-        docText( const docText& ) = delete;
+        docEdit( const docEdit& ) = delete;
+        friend class detail::text_writer;
     public:
-        ~docText();
-        explicit docText(QWidget *parent = 0);
+        ~docEdit();
+        explicit docEdit(QWidget *parent = 0);
 
         // std::shared_ptr< adpublisher::document > document();
         void setDocument( std::shared_ptr< adpublisher::document >& );
@@ -59,14 +63,17 @@ namespace adpublisher {
 
         void repaint( const pugi::xml_document& );
         QString textUnderCursor() const;
+        void contextMenuEvent( QContextMenuEvent * );
 
     signals:
 
     public slots:
+
+    private slots:
         void insertCompletion(const QString &completion);
+        void addSummaryTable();
+        void handleBlockDeleted();
 
     };
 
 }
-
-

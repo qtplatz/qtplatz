@@ -21,7 +21,7 @@ SOURCES += adpublisher.cpp \
            document.cpp \
            doceditor.cpp \
            doctree.cpp \
-           doctext.cpp \
+           docedit.cpp \
            transformer.cpp
 
 HEADERS += adpublisher.hpp\
@@ -29,7 +29,7 @@ HEADERS += adpublisher.hpp\
            document.hpp \
            doceditor.hpp \
            doctree.hpp \
-           doctext.hpp \
+           docedit.hpp \
            transformer.hpp \
            msxml_transformer.hpp
 
