@@ -45,7 +45,7 @@ namespace adpublisher {
 
     class document;
     class docTree;
-    class docText;
+    class docEdit;
 
     class ADPUBLISHERSHARED_EXPORT docEditor : public QMainWindow {
         Q_OBJECT
@@ -84,7 +84,7 @@ namespace adpublisher {
     private:
         std::shared_ptr< adpublisher::document > doc_;
         std::unique_ptr< docTree > tree_;
-        std::unique_ptr< docText > text_;
+        std::unique_ptr< docEdit > text_;
         std::array< QAction *, nIdActions > actions_;
 
         QComboBox *comboStyle;

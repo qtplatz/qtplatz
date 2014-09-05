@@ -32,6 +32,8 @@
 #include <QToolButton>
 
 #include <adpublisher/document.hpp>
+#include <adpublisher/doceditor.hpp>
+
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include <sstream>
@@ -39,14 +41,19 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
                                         , ui( new Ui::MainWindow )
+                                        , docEditor_( new adpublisher::docEditor )
                                         , doc_( std::make_shared< adpublisher::document >() )
 {
-    ui->setupUi(this);
+    ui->setupUi( this );
+    setCentralWidget( docEditor_.get() );
 
     setToolButtonStyle( Qt::ToolButtonFollowStyle );
     ui->actionOpen->setIcon( QIcon( ":/adpublisher/images/win/fileopen.png" ) );
     ui->actionSave_As->setIcon( QIcon( ":/adpublisher/images/win/filesave.png" ) );
     ui->actionApply->setIcon( QIcon( ":/publisher/run.png" ) );
+
+    docEditor_->setupTextActions( ui->menuBar->addMenu( tr( "Format" ) ) );
+    docEditor_->setupEditActions( ui->menuBar->addMenu( tr( "Edit" ) ) );
 
     if ( auto btn = new QToolButton ) {
         btn->setDefaultAction( ui->actionOpen );
@@ -92,7 +99,7 @@ MainWindow::onInitialUpdate( std::shared_ptr< QSettings >& settings )
     }
 
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::handleOpenFile );
-    connect(ui->actionSave_As, &QAction::triggered, this, &MainWindow::handleSaveProcessedAs );
+    connect(ui->actionSave_As, &QAction::triggered, this, &MainWindow::handleSaveTemplateAs );
     connect(ui->actionApply, &QAction::triggered, this, &MainWindow::handleApplyStylesheet );
 }
 
@@ -246,6 +253,21 @@ MainWindow::handleSaveProcessedAs()
     if ( !name.isEmpty() ) {
         std::ofstream of( name.toStdString() );
         of << processed_.toStdString();
+    }
+}
+
+void
+MainWindow::handleSaveTemplateAs()
+{
+    auto name = QFileDialog::getSaveFileName( this
+                                              , tr( "Save Template" )
+                                              , recentFile( "RecentFiles", "Files" )
+                                              , tr( "XML Files(*.xml)" ) );
+    if ( !name.isEmpty() ) {
+
+        auto doc = docEditor_->document();
+        doc->save_file( name.toStdString().c_str() );
+
     }
 }
 

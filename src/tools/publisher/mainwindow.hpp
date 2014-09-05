@@ -32,7 +32,7 @@ namespace Ui {
 class MainWindow;
 }
 
-namespace adpublisher { class document; }
+namespace adpublisher { class document; class docEditor; }
 class QSettings;
 class QString;
 
@@ -49,6 +49,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    std::unique_ptr< adpublisher::docEditor > docEditor_;
     std::shared_ptr< adpublisher::document > doc_;
     std::shared_ptr< QSettings > settings_;
     std::string xmlpath_;
@@ -65,6 +66,7 @@ private:
 
 private slots:
     void handleOpenFile();
+    void handleSaveTemplateAs();
     void handleApplyStylesheet();
     void handleSaveProcessedAs();
     void handleStylesheetChanged( const QString& );
