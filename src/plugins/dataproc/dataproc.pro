@@ -9,7 +9,8 @@ include(../../boost.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 INCLUDEPATH *= $(QWT)/include
 
-SOURCES += dataprocplugin.cpp \
+SOURCES += aboutdlg.cpp \
+           dataprocplugin.cpp \
            mode.cpp \
            mainwindow.cpp \
            dataproc_document.cpp \
@@ -42,7 +43,8 @@ SOURCES += dataprocplugin.cpp \
            spectrogramwnd.cpp \
            ipeptidehandlerimpl.cpp
 
-HEADERS += dataproc_global.hpp \
+HEADERS += aboutdlg.hpp \
+           dataproc_global.hpp \
            mimetypehelper.hpp \
            selchanged.hpp \
            qtwidgets_name.hpp \

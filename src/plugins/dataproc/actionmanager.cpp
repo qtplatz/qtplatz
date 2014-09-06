@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "actionmanager.hpp"
+#include "aboutdlg.hpp"
 #include "constants.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
@@ -48,6 +49,7 @@
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/mainwindow.h>
+#include <utils/hostosinfo.h>
 #include <extensionsystem/pluginmanager.h>
 #include <QIcon>
 #include <QFileDialog>
@@ -99,6 +101,22 @@ ActionManager::install_toolbar_actions()
 bool
 ActionManager::initialize_actions( const Core::Context& context )
 {
+    // About QtPlatz
+    do {
+        auto icon = QIcon::fromTheme( QLatin1String( "help-about") );
+        auto action = new QAction( icon, Utils::HostOsInfo::isMacHost() ? tr( "About &QtPlatz" ) : tr("About &QtPlatz..."), this );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ABOUT_QTPLATZ, Core::Context( Core::Constants::C_GLOBAL ) );
+
+        if ( Utils::HostOsInfo::isMacHost())
+            cmd->action()->setMenuRole( QAction::ApplicationSpecificRole );
+        auto mhelp = Core::ActionManager::actionContainer( Core::Constants::M_HELP );
+        auto about = Core::ActionManager::command( Core::Constants::ABOUT_QTCREATOR );
+        mhelp->menu()->insertAction( about->action(), cmd->action() );
+        action->setEnabled( true );
+        connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::aboutQtPlatz );
+    } while(0);
+        
+
 	if ( auto * am = Core::ActionManager::instance() ) {
 
         if ( auto cmd = am->command( Core::Constants::OPEN ) )

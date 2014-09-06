@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "aboutdlg.hpp"
 #include "chromatogramwnd.hpp"
 #include "dataproc_document.hpp"
 #include "dataprocessor.hpp"
@@ -209,6 +210,7 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , actionSearch_( 0 )
                                           , actionApply_( 0 )
                                           , stack_( 0 )
+                                          , aboutDlg_(0)
                                           , processMethodNameEdit_( new QLineEdit ) 
                                           , currentFeature_( CentroidProcess )
 {
@@ -1205,3 +1207,12 @@ MainWindow::currentDir()
     return dir;
 }
 
+void
+MainWindow::aboutQtPlatz()
+{
+    if ( !aboutDlg_ ) {
+        aboutDlg_ = new AboutDlg(this);
+        connect( aboutDlg_, static_cast<void(AboutDlg::*)(int)>(&AboutDlg::finished), this, [&](){ aboutDlg_->deleteLater(); aboutDlg_ = 0; });
+    }
+    aboutDlg_->show();
+}

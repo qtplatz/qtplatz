@@ -48,6 +48,7 @@ namespace dataproc {
 
     class Dataprocessor;
     class iSequenceImpl;
+    class AboutDlg;
 
     class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT
@@ -118,6 +119,7 @@ namespace dataproc {
         void actCreateSpectrogram();
 		void actClusterSpectrogram();
         void handleWarningMessage( const QString& );
+        void aboutQtPlatz();
 
     private slots:
         void handleApplyMethod();
@@ -137,6 +139,7 @@ namespace dataproc {
 
         std::array< QAction *, idNum > selPages_;
         QStackedWidget * stack_;
+        AboutDlg * aboutDlg_;
 
         std::unique_ptr< QLineEdit > processMethodNameEdit_;
         enum ProcessType currentFeature_;

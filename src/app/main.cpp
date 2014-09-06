@@ -221,7 +221,7 @@ static inline QStringList getPluginPaths()
 #if !defined(Q_OS_MAC)
     pluginPath += QLatin1String("qtplatz");
 #else
-    pluginPath += QLatin1String("Qt Platz");
+    pluginPath += QLatin1String("QtPlatz");
 #endif
     pluginPath += QLatin1String("/plugins/");
     pluginPath += QLatin1String(Core::Constants::IDE_VERSION_LONG);
