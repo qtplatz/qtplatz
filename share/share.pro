@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = qtplatz/static.pro qtplatz/translations
+SUBDIRS = qtplatz/static.pro qtplatz/translations qtplatz/xslt

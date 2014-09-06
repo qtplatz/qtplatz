@@ -1,7 +1,7 @@
 include(../../../qtplatz.pri)
 TEMPLATE = aux
 
-XSLFILES = quan-html.xsl
+XSLFILES = quan-html.xsl quan-xhtml.xsl
 
 updatexslt.input = XSLFILES
 updatexslt.output = $$IDE_DATA_PATH/xslt/${QMAKE_FILE_BASE}.xsl
