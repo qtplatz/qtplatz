@@ -42221,57 +42221,57 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/quan/quanconfigform.cpp" line="+116"/>
         <source>1-Point</source>
-        <translation type="unfinished"></translation>
+        <translation>1点検量線</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Linear (through 0,0)</source>
-        <translation type="unfinished"></translation>
+        <translation>直線（原点を通る）</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Linear (regression)</source>
-        <translation type="unfinished"></translation>
+        <translation>直線（回帰）</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Y=a+bX+cX^2</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Y=a+bX+cX^2+dX^3</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Y=a+bX+cX^2+dX^3+eX4</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Y=a+bX+cX^2+dX^3+eX^4+fX^5</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>None</source>
-        <translation type="unfinished"></translation>
+        <translation>ブラケティングしない</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Standard</source>
-        <translation type="unfinished">標準</translation>
+        <translation>標準</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Moving(Overlapped)</source>
-        <translation type="unfinished"></translation>
+        <translation>ブラケティング（オーバーラップ）</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Average</source>
-        <translation type="unfinished"></translation>
+        <translation>平均</translation>
     </message>
 </context>
 <context>
@@ -42291,37 +42291,37 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/quan/quanqueryform.cpp" line="+38"/>
         <source>View all (simple)</source>
-        <translation type="unfinished"></translation>
+        <translation>すべての結果を表示(シンプル)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>View STD (simple)</source>
-        <translation type="unfinished"></translation>
+        <translation>スタンダードを表示（シンプル）</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>View UNK (simple)</source>
-        <translation type="unfinished"></translation>
+        <translation>定量結果を表示（シンプル）</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>View amounts</source>
-        <translation type="unfinished"></translation>
+        <translation>定量結果を表示</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Viwe all</source>
-        <translation type="unfinished"></translation>
+        <translation>すべての結果を表示</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>View STD</source>
-        <translation type="unfinished"></translation>
+        <translation>スタンダードを表示</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>View UNK</source>
-        <translation type="unfinished"></translation>
+        <translation>定量結果を表示</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -42334,22 +42334,22 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/sequence/sequencewidget.ui"/>
         <source>Form</source>
-        <translation type="unfinished">フォーム</translation>
+        <translation>フォーム</translation>
     </message>
     <message>
         <location/>
         <source>Data save in:</source>
-        <translation type="unfinished"></translation>
+        <translation>データ保存先:</translation>
     </message>
     <message>
         <location/>
         <source>Name:</source>
-        <translation type="unfinished">名前:</translation>
+        <translation>名前:</translation>
     </message>
     <message>
         <location/>
         <source>...</source>
-        <translation type="unfinished">...</translation>
+        <translation>...</translation>
     </message>
 </context>
 <context>
@@ -42741,7 +42741,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../../../src/plugins/dataproc/backup/navigationwidget.cpp" line="+540"/>
-        <location filename="../../../src/plugins/dataproc/navigationwidget.cpp" line="+546"/>
+        <location filename="../../../src/plugins/dataproc/navigationwidget.cpp" line="+551"/>
         <source>Save spectrum</source>
         <translation>スペクトルの保存</translation>
     </message>
@@ -43460,17 +43460,16 @@ p, li { white-space: pre-wrap; }
         <translation>データ解析</translation>
     </message>
     <message>
-        <location line="+30"/>
         <source>Open</source>
-        <translation type="unfinished">開く</translation>
+        <translation type="obsolete">開く</translation>
+    </message>
+    <message>
+        <location line="+31"/>
+        <source>Open data files...</source>
+        <translation>データファイルを開く...</translation>
     </message>
     <message>
         <location line="+2"/>
-        <source>Open data...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
         <location filename="../../../src/plugins/dataproc/backup/actionmanager.cpp" line="+102"/>
         <source>Save</source>
         <translation>保存</translation>
@@ -43570,12 +43569,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+47"/>
         <source>Process method</source>
-        <translation type="unfinished"></translation>
+        <translation>解析メソッド</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Save default process method</source>
-        <translation type="unfinished"></translation>
+        <translation>デフォルトの解析メソッドの保存</translation>
     </message>
     <message>
         <location line="+70"/>
@@ -43611,7 +43610,7 @@ p, li { white-space: pre-wrap; }
     <name>dataproc::MainWindow</name>
     <message>
         <location filename="../../../src/plugins/dataproc/backup/mainwindow.cpp" line="+290"/>
-        <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+290"/>
+        <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+291"/>
         <source>Axis:</source>
         <translation>水平軸:</translation>
     </message>
@@ -43635,7 +43634,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location line="+490"/>
-        <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+490"/>
+        <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="+503"/>
         <source>Save peak list for all checked spectra</source>
         <translation>チェックされたピークをすべて保存</translation>
     </message>
@@ -43658,7 +43657,7 @@ p, li { white-space: pre-wrap; }
         <translation>QtPlatzデータ(*.adfs)</translation>
     </message>
     <message>
-        <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="-680"/>
+        <location filename="../../../src/plugins/dataproc/mainwindow.cpp" line="-693"/>
         <location line="+161"/>
         <source>MS Process</source>
         <translation>スペクトル処理</translation>
@@ -43666,7 +43665,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="-156"/>
         <source>Elemental Comp</source>
-        <translation type="unfinished"></translation>
+        <translation>組成推定</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -43745,7 +43744,7 @@ p, li { white-space: pre-wrap; }
         <location line="+6"/>
         <location line="+120"/>
         <source>TOF Peaks</source>
-        <translation type="unfinished"></translation>
+        <translation>TOF ピーク</translation>
     </message>
     <message>
         <location line="-7"/>
@@ -43773,7 +43772,7 @@ p, li { white-space: pre-wrap; }
         <translation>データ属性</translation>
     </message>
     <message>
-        <location line="+211"/>
+        <location line="+217"/>
         <source>No data exist for peptide targeting</source>
         <translation>ペプチドターゲッティングのためのデータがありません</translation>
     </message>
@@ -43782,9 +43781,14 @@ p, li { white-space: pre-wrap; }
     <name>dataproc::Mode</name>
     <message>
         <location filename="../../../src/plugins/dataproc/backup/mode.cpp" line="+37"/>
-        <location filename="../../../src/plugins/dataproc/mode.cpp" line="+37"/>
+        <location filename="../../../src/plugins/dataproc/mode.cpp" line="+38"/>
         <source>Processing</source>
         <translation>データ解析</translation>
+    </message>
+    <message>
+        <location filename="../../../src/plugins/dataproc/mode.cpp" line="+22"/>
+        <source>Open data files...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -43794,7 +43798,7 @@ p, li { white-space: pre-wrap; }
         <location line="+113"/>
         <location line="+33"/>
         <location line="+64"/>
-        <location filename="../../../src/plugins/dataproc/msprocessingwnd.cpp" line="+651"/>
+        <location filename="../../../src/plugins/dataproc/msprocessingwnd.cpp" line="+666"/>
         <location line="+113"/>
         <location line="+33"/>
         <location line="+64"/>
@@ -43819,7 +43823,7 @@ p, li { white-space: pre-wrap; }
         <translation>解析データ</translation>
     </message>
     <message>
-        <location line="+20"/>
+        <location line="+21"/>
         <source>Synchronize with Editor</source>
         <translation>エディタと同期</translation>
     </message>
@@ -43897,25 +43901,29 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../../../src/plugins/quan/compoundswidget.cpp" line="+68"/>
-        <location line="+45"/>
         <source>Import Compounds...</source>
-        <translation type="unfinished"></translation>
+        <translation>定量物質テーブルをインポート...</translation>
     </message>
     <message>
-        <location line="-39"/>
+        <location line="+6"/>
         <source>Save Quan Method...</source>
-        <translation type="unfinished"></translation>
+        <translation>定量メソッドの保存</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+39"/>
+        <source>Open Quan Method...</source>
+        <translation>定量メソッドを開く...</translation>
+    </message>
+    <message>
+        <location line="+2"/>
         <source>Quan Method Files(*.qmth);;XML Files(*.xml)</source>
-        <translation type="unfinished"></translation>
+        <translation>定量メソッドファイル(*.qmth);;XML ファイル(*.xml)</translation>
     </message>
 </context>
 <context>
     <name>quan::DataSequenceTree</name>
     <message>
-        <location filename="../../../src/plugins/quan/datasequencetree.cpp" line="+324"/>
+        <location filename="../../../src/plugins/quan/datasequencetree.cpp" line="+317"/>
         <source>Data name</source>
         <translation>データ</translation>
     </message>
@@ -43953,14 +43961,27 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>quan::DataSequenceWidget</name>
     <message>
-        <location filename="../../../src/plugins/quan/datasequencewidget.cpp" line="+102"/>
         <source>Open data file...</source>
-        <translation>データファイルを開く...</translation>
+        <translation type="vanished">データファイルを開く...</translation>
     </message>
     <message>
-        <location line="+11"/>
         <source>Set result file name...</source>
-        <translation>結果保存先...</translation>
+        <translation type="vanished">結果保存先...</translation>
+    </message>
+    <message>
+        <location filename="../../../src/plugins/quan/datasequencewidget.cpp" line="+103"/>
+        <source>Open Sequence...</source>
+        <translation>サンプルシーケンスを開く...</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Save Sequence...</source>
+        <translation>サンプルシーケンスの保存...</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Open data files...</source>
+        <translation>データファイルを開く...</translation>
     </message>
     <message>
         <location line="+21"/>
@@ -43991,13 +44012,13 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>quan::MainWindow</name>
     <message>
-        <location filename="../../../src/plugins/quan/mainwindow.cpp" line="+102"/>
-        <location line="+163"/>
+        <location filename="../../../src/plugins/quan/mainwindow.cpp" line="+104"/>
+        <location line="+162"/>
         <source>Quan</source>
         <translation>定量</translation>
     </message>
     <message>
-        <location line="-163"/>
+        <location line="-162"/>
         <location line="+21"/>
         <source>Select Data</source>
         <translation>データ選択</translation>
@@ -44033,17 +44054,20 @@ p, li { white-space: pre-wrap; }
         <translation>ピーク検出・ピーク同定</translation>
     </message>
     <message>
-        <location line="+122"/>
         <source>Open Quan result file...</source>
-        <translation>定量結果を開く...</translation>
+        <translation type="vanished">定量結果を開く...</translation>
     </message>
     <message>
-        <location line="+6"/>
         <source>Open...</source>
-        <translation type="unfinished">開く...</translation>
+        <translation type="obsolete">開く...</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+121"/>
+        <source>Open Quan Result...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
         <source>Open Quan Method...</source>
         <translation>定量メソッドを開く...</translation>
     </message>
@@ -44073,18 +44097,18 @@ p, li { white-space: pre-wrap; }
         <translation>停止</translation>
     </message>
     <message>
-        <location line="+118"/>
-        <location line="+53"/>
+        <location line="+128"/>
+        <location line="+56"/>
         <source>Open Quantitation Method File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-51"/>
+        <location line="-54"/>
         <source>Quan Method Files(*.qmth);;Result Files(*.adfs);;XML Files(*.xml)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+24"/>
         <source>Save Quantitation Method File</source>
         <translation type="unfinished"></translation>
     </message>
@@ -44094,7 +44118,7 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+30"/>
         <location line="+21"/>
         <source>Quan Sequence Files(*.qseq)</source>
         <translation type="unfinished"></translation>
@@ -44109,7 +44133,7 @@ p, li { white-space: pre-wrap; }
         <translation type="vanished">定量結果を開く...</translation>
     </message>
     <message>
-        <location line="-94"/>
+        <location line="-105"/>
         <source>Open Quantitative Analysis Result file</source>
         <translation>定量結果を開く</translation>
     </message>
@@ -44150,19 +44174,19 @@ p, li { white-space: pre-wrap; }
         <translation type="vanished">定量分析コンフィグレーションの保存</translation>
     </message>
     <message>
-        <location filename="../../../src/plugins/quan/quanconfigwidget.cpp" line="+76"/>
+        <location filename="../../../src/plugins/quan/quanconfigwidget.cpp" line="+75"/>
         <source>Import configuration...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Save Quan Method...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">定量メソッドの保存</translation>
     </message>
     <message>
         <location line="+36"/>
-        <source>Import Quan Configuration...</source>
-        <translation type="unfinished"></translation>
+        <source>Open Quan Method...</source>
+        <translation type="unfinished">定量メソッドを開く...</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -44173,9 +44197,14 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>quan::QuanMode</name>
     <message>
-        <location filename="../../../src/plugins/quan/quanmode.cpp" line="+39"/>
+        <location filename="../../../src/plugins/quan/quanmode.cpp" line="+40"/>
         <source>Quan</source>
         <translation>定量</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>Open Quan result...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -44193,80 +44222,80 @@ p, li { white-space: pre-wrap; }
         <translation type="vanished">ファイル(*.adfs)</translation>
     </message>
     <message>
-        <location filename="../../../src/plugins/quan/quanreportwidget.cpp" line="+84"/>
+        <location filename="../../../src/plugins/quan/quanreportwidget.cpp" line="+91"/>
         <location line="+7"/>
         <source>Publisher</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Format</source>
-        <translation type="unfinished">フォーマット</translation>
+        <translation>フォーマット</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Import ReportFormat...</source>
-        <translation type="unfinished"></translation>
+        <translation>レポートフォーマットのインポート...</translation>
     </message>
     <message>
         <location line="+2"/>
-        <source>Quan Method Files(*.qmth);;XML Files(*.xml)</source>
-        <translation type="unfinished"></translation>
+        <source>Quan Document Files(*.tdoc);;XML Files(*.xml)</source>
+        <translation>定量ドキュメントファイル(*.tdoc);;XMLファイル(*.xml)</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+16"/>
         <source>Export doc template...</source>
-        <translation type="unfinished"></translation>
+        <translation>文書テンプレートのエクスポート</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>XML Files(*.xml)</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>File Actions</source>
-        <translation type="unfinished"></translation>
+        <translation>ファイル操作</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Publish</source>
-        <translation type="unfinished"></translation>
+        <translation>レポート生成</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;New</source>
-        <translation type="unfinished">新規作成(&amp;N)</translation>
+        <translation>新規作成(&amp;N)</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
         <source>&amp;Open...</source>
-        <translation type="unfinished"></translation>
+        <translation>(&amp;O)開く...</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>&amp;Save</source>
-        <translation type="unfinished">保存(&amp;S)</translation>
+        <translation>保存(&amp;S)</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Save &amp;As...</source>
-        <translation type="unfinished">名前を付けて保存(&amp;A)...</translation>
+        <translation>名前を付けて保存(&amp;A)...</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Print...</source>
-        <translation type="unfinished">印刷(&amp;P)...</translation>
+        <translation>印刷(&amp;P)...</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Print Preview...</source>
-        <translation type="unfinished"></translation>
+        <translation>印刷プレビュー</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>&amp;Export PDF...</source>
-        <translation type="unfinished"></translation>
+        <translation>(&amp;E)PDFにエクスポート...</translation>
     </message>
 </context>
 <context>
@@ -44563,7 +44592,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+2"/>
         <source>Save DFT filtered spectrum as...</source>
-        <translation type="unfinished">DFTノイズ除去スペクトルに名前をつけて保存...</translation>
+        <translation>DFTノイズ除去スペクトルに名前をつけて保存...</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -44644,7 +44673,233 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>quan::QuanResultWnd</name>
     <message>
-        <location filename="../../../src/plugins/quan/quanresultwnd.cpp" line="+348"/>
+        <source>amounts</source>
+        <translation type="vanished">アマウント</translation>
+    </message>
+    <message>
+        <source>response</source>
+        <translation type="vanished">ピーク強度</translation>
+    </message>
+    <message>
+        <source>Calibration curve for %1</source>
+        <translation type="vanished">&quot;%1&quot; 検量線</translation>
+    </message>
+    <message>
+        <source>Amounts = </source>
+        <translation type="vanished">定量値 =</translation>
+    </message>
+    <message>
+        <source>&amp;nbsp;&amp;nbsp;where I is the response</source>
+        <translation type="vanished">&amp;nbsp;&amp;nbsp;ここに I はピーク強度</translation>
+    </message>
+    <message>
+        <source>&amp;bsp;&amp;bsp;where I is the response</source>
+        <translation type="vanished">ここに、I はピーク強度</translation>
+    </message>
+</context>
+<context>
+    <name>adpublisher::docEditor</name>
+    <message>
+        <location filename="../../../src/libs/adpublisher/doceditor.cpp" line="+207"/>
+        <source>Edit Actions</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>&amp;Undo</source>
+        <translation>元に戻す(&amp;U)</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>&amp;Redo</source>
+        <translation>やり直す(&amp;R)</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Cu&amp;t</source>
+        <translation>切り取り(&amp;T)</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>&amp;Copy</source>
+        <translation>コピー(&amp;C)</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>&amp;Paste</source>
+        <translation>貼り付け(&amp;P)</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+80"/>
+        <source>Format Actions</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="-77"/>
+        <source>&amp;Bold</source>
+        <translation>(&amp;B)太字</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>&amp;Italic</source>
+        <translation>(&amp;I)斜体</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>&amp;Underline</source>
+        <translation>(&amp;U)アンダーライン</translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <location line="+6"/>
+        <source>&amp;Left</source>
+        <translation>(&amp;L)左揃え</translation>
+    </message>
+    <message>
+        <location line="-5"/>
+        <location line="+4"/>
+        <source>C&amp;enter</source>
+        <translation>(&amp;e)中央揃え</translation>
+    </message>
+    <message>
+        <location line="-3"/>
+        <location line="+2"/>
+        <source>&amp;Right</source>
+        <translation>(&amp;R)右揃え</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>&amp;Justify</source>
+        <translation>(&amp;J)ジャスティファイ</translation>
+    </message>
+    <message>
+        <location line="+22"/>
+        <source>&amp;Color...</source>
+        <translation>(&amp;C)色</translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>Template</source>
+        <translation>テンプレート</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Browser</source>
+        <translation>ブラウザ</translation>
+    </message>
+    <message>
+        <location line="+68"/>
+        <source>Application</source>
+        <translation>アプリケーション</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The document has been modified.
+Do you want to save your changes?</source>
+        <translation>この文書は変更されています。保存しますか？</translation>
+    </message>
+    <message>
+        <location line="+22"/>
+        <source>%1[*] - %2</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Rich Text</source>
+        <translation>リッチテキスト</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Open File...</source>
+        <translation>ファイルを開く...</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>HTML-Files (*.htm *.html);;All Files (*)</source>
+        <translation>HTML ファイル(*.htm *.html);;すべてのファイル(*)</translation>
+    </message>
+    <message>
+        <location line="+31"/>
+        <source>Save as...</source>
+        <translation>名前を付けて保存...</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Template files (*.xml);;ODF files (*.odt);;HTML-Files (*.htm *.html);;All Files (*)</source>
+        <translation>テンプレートファイル(*.xml);;ODF ファイル(*.odt);;HTML ファイル(*.htm *.html);;すべてのファイル(*)</translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Print Document</source>
+        <translation>ドキュメントを印刷</translation>
+    </message>
+    <message>
+        <location line="+178"/>
+        <source>About</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>This example demonstrates Qt&apos;s rich text editing facilities in action, providing an example document for you to experiment with.</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>adwplot::SpectrogramWidget</name>
+    <message>
+        <location filename="../../../src/libs/adwplot/spectrogramwidget.cpp" line="+141"/>
+        <source>Intensity</source>
+        <translation>強度</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Time[min]</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>&lt;i&gt;m/z&lt;/i&gt;</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>quan::QuanQueryWidget</name>
+    <message>
+        <location filename="../../../src/plugins/quan/quanquerywidget.cpp" line="+78"/>
+        <source>Open result file...</source>
+        <translation>定量結果を開く...</translation>
+    </message>
+</context>
+<context>
+    <name>adpublisher::docEdit</name>
+    <message>
+        <location filename="../../../src/libs/adpublisher/docedit.cpp" line="+365"/>
+        <source>Add Summary Table</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>dataproc::Dataprocessor</name>
+    <message>
+        <location filename="../../../src/plugins/dataproc/dataprocessor.cpp" line="+918"/>
+        <source>Instrument module(s) &quot;%1&quot; not installed.</source>
+        <translation>このデータの処理に必要な装置依存モジュール &quot;%1&quot; がインストールされていません</translation>
+    </message>
+</context>
+<context>
+    <name>quan::QuanFactory</name>
+    <message>
+        <location filename="../../../src/plugins/quan/quanfactory.cpp" line="+46"/>
+        <source>OpenWidth::Quan</source>
+        <comment>Quan processor</comment>
+        <translation>定量で開く</translation>
+    </message>
+</context>
+<context>
+    <name>quan::QuanPlot</name>
+    <message>
+        <location filename="../../../src/plugins/quan/quanplot.cpp" line="+80"/>
         <source>amounts</source>
         <translation>アマウント</translation>
     </message>
@@ -44667,188 +44922,6 @@ p, li { white-space: pre-wrap; }
         <location line="+8"/>
         <source>&amp;nbsp;&amp;nbsp;where I is the response</source>
         <translation>&amp;nbsp;&amp;nbsp;ここに I はピーク強度</translation>
-    </message>
-    <message>
-        <source>&amp;bsp;&amp;bsp;where I is the response</source>
-        <translation type="vanished">ここに、I はピーク強度</translation>
-    </message>
-</context>
-<context>
-    <name>adpublisher::docEditor</name>
-    <message>
-        <location filename="../../../src/libs/adpublisher/doceditor.cpp" line="+148"/>
-        <source>Edit Actions</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>&amp;Undo</source>
-        <translation type="unfinished">元に戻す(&amp;U)</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>&amp;Redo</source>
-        <translation type="unfinished">やり直す(&amp;R)</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Cu&amp;t</source>
-        <translation type="unfinished">切り取り(&amp;T)</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>&amp;Copy</source>
-        <translation type="unfinished">コピー(&amp;C)</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>&amp;Paste</source>
-        <translation type="unfinished">貼り付け(&amp;P)</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <location line="+80"/>
-        <source>Format Actions</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-77"/>
-        <source>&amp;Bold</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>&amp;Italic</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>&amp;Underline</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <location line="+6"/>
-        <source>&amp;Left</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-5"/>
-        <location line="+4"/>
-        <source>C&amp;enter</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-3"/>
-        <location line="+2"/>
-        <source>&amp;Right</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>&amp;Justify</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+22"/>
-        <source>&amp;Color...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+74"/>
-        <source>Application</source>
-        <translation type="unfinished">アプリケーション</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The document has been modified.
-Do you want to save your changes?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+22"/>
-        <source>%1[*] - %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Rich Text</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>Open File...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>HTML-Files (*.htm *.html);;All Files (*)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+31"/>
-        <source>Save as...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Template files (*.xml);;ODF files (*.odt);;HTML-Files (*.htm *.html);;All Files (*)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+20"/>
-        <source>Print Document</source>
-        <translation type="unfinished">ドキュメントを印刷</translation>
-    </message>
-    <message>
-        <location line="+178"/>
-        <source>About</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>This example demonstrates Qt&apos;s rich text editing facilities in action, providing an example document for you to experiment with.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>adwplot::SpectrogramWidget</name>
-    <message>
-        <location filename="../../../src/libs/adwplot/spectrogramwidget.cpp" line="+141"/>
-        <source>Intensity</source>
-        <translation type="unfinished">強度</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Time[min]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>&lt;i&gt;m/z&lt;/i&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>quan::QuanDocument</name>
-    <message>
-        <location filename="../../../src/plugins/quan/quandocument.cpp" line="+316"/>
-        <location line="+16"/>
-        <source>Save Quan Method</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+29"/>
-        <source>Quan loading method file</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>quan::QuanQueryWidget</name>
-    <message>
-        <location filename="../../../src/plugins/quan/quanquerywidget.cpp" line="+78"/>
-        <source>Open result file...</source>
-        <translation type="unfinished">定量結果ファイル...</translation>
     </message>
 </context>
 </TS>
