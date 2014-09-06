@@ -96,10 +96,10 @@ world: qtplatz infitof
 
 # all: qtplatz.app
 qtplatz:
-	(cd ../../../; qmake; make -j4)
+	(cd ../../../; qmake -config release; make -j4)
 
 infitof:
-	(cd ../../../../infitof; qmake; make -j4)
+	(cd ../../../../infitof; qmake -config release; make -j4)
 
 clean:
 	rm -rf qtplatz.app qtplatz-`git describe`.dmg
