@@ -29,7 +29,7 @@ MD      = $(SH) /c mkdir
 STAGEDIR = .\stage
 
 OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj bruker.wixobj qtplatz_translations.wixobj \
-	qtplatz_plugins.wixobj
+	qtplatz_xslt.wixobj qtplatz_plugins.wixobj qtplatz_bin.wixobj
 
 all: qtplatz.msi
 
@@ -90,11 +90,17 @@ qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
 qtplatz_plugins.wixobj: qtplatz_plugins.wxi
 	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\lib\qtplatz\plugins qtplatz_plugins.wxi
 
+qtplatz_bin.wixobj: qtplatz_bin.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\bin qtplatz_bin.wxi
+
 translations.wixobj: translations.wxi
 	$(CANDLE) -dQtTranslationsDir=$(QTDIR)\translations translations.wxi
 
 qtplatz_translations.wixobj: qtplatz_translations.wxi
 	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\share\qtplatz\translations qtplatz_translations.wxi
+
+qtplatz_xslt.wixobj: qtplatz_xslt.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\share\qtplatz\xslt qtplatz_xslt.wxi
 
 plugins.wixobj: plugins.wxi
 	$(CANDLE) -dQtPluginsDir=$(QTDIR)\plugins plugins.wxi
@@ -116,6 +122,16 @@ qtplatz_plugins.wxi: makefile
 	-dr LIB_PLUGINS -cg QtPlatzPluginsComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t qzplugin.xslt -o $@
 
+qtplatz_bin.wxi: makefile
+	$(HEAT) dir $(QTPLATZ_PATH)\bin \
+	-dr BIN -cg QtPlatzComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
+	-t x64transform.xslt -o $@
+
+qtplatz_xslt.wxi: makefile
+	$(HEAT) dir $(QTPLATZ_PATH)\share\qtplatz\xslt \
+	-dr XSLT -cg QtPlatzXSLT -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
+	-t xslt.xslt -o $@
+
 qtplatz_translations:
 	$(HEAT) dir $(QTPLATZ_PATH)\share\qtplatz\translations \
 	-dr TRANSLATIONS -cg QtPlatzTranslations -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
@@ -131,12 +147,12 @@ plugins:
 	-dr PLUGINS -cg QtPluginsComponents -sfrag -gg -g1 -sf -srd -var "var.QtPluginsDir" \
 	-t x64transform.xslt -o plugins.wxi
 
-qt:
-	$(HEAT) dir $(STAGEDIR)\bin \
-	-dr BIN -cg QtComponents -sfrag -gg -g1 -sf -srd -var "var.QtBinDir" \
-	-t x64transform.xslt -o qt.wxi
+#qt:
+#	$(HEAT) dir $(STAGEDIR)\bin \
+#	-dr BIN -cg QtComponents -sfrag -gg -g1 -sf -srd -var "var.QtBinDir" \
+#	-t x64transform.xslt -o qt.wxi
 
-qt_full:
+qt:
 	$(HEAT) dir $(QTDIR)\bin \
 	-dr BIN -cg QtComponents -sfrag -gg -g1 -sf -srd -var "var.QtBinDir" -t qt.xslt -o qt.wxi
 
@@ -158,20 +174,6 @@ copy_stage_files:
 	-@$(MD) $(STAGEDIR)\plugins\imageformats
 	-@$(MD)	$(STAGEDIR)\plugins\platforms
 	-@$(MD)	$(STAGEDIR)\plugins\sqldrivers
-	$(CP) $(QTDIR)\bin\icudt52.dll		$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\icudt52.dll		$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\icuin52.dll		$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\icuuc52.dll		$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5CLucene.dll	$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5Core.dll		$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5Gui.dll		$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5Help.dll		$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5Network.dll	$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5PrintSupport.dll	$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5Script.dll	$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5Sql.dll		$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5Svg.dll		$(STAGEDIR)\bin
-	$(CP) $(QTDIR)\bin\Qt5Widgets.dll	$(STAGEDIR)\bin
 	$(CP) $(QTDIR)\plugins\accessible\qtaccessiblewidgets.dll $(STAGEDIR)\plugins\accessible
 	$(CP) $(QTDIR)\plugins\imageformats\qdds.dll	$(STAGEDIR)\plugins\imageformats
 	$(CP) $(QTDIR)\plugins\imageformats\qgif.dll	$(STAGEDIR)\plugins\imageformats
