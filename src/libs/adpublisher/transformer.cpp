@@ -37,7 +37,7 @@ void
 transformer::populateStylesheets( QStringList& list )
 {
     QDir dir( QCoreApplication::applicationDirPath() );
-#if Q_OS_MAC
+#if defined Q_OS_MAC
     dir.cd( "../Resources/xslt" );
 #else
     dir.cd( "../share/qtplatz/xslt" );
