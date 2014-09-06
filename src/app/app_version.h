@@ -44,7 +44,7 @@ namespace Constants {
 #define IDE_VERSION_RELEASE 81
 
 const char * const IDE_VERSION_LONG      = IDE_VERSION_STR;
-const char * const IDE_AUTHOR            = "MS-Cheminformatics";
+const char * const IDE_AUTHOR            = "Digia Plc";
 const char * const IDE_YEAR              = "2014";
 
 #ifdef IDE_VERSION_DESCRIPTION
@@ -63,13 +63,13 @@ const char * const IDE_REVISION_STR      = "";
 #ifdef IDE_SETTINGSVARIANT
 const char * const IDE_SETTINGSVARIANT_STR      = STRINGIFY(IDE_SETTINGSVARIANT);
 #else
-const char * const IDE_SETTINGSVARIANT_STR      = "qtplatz";
+const char * const IDE_SETTINGSVARIANT_STR      = "QtPlatz";
 #endif
 
 #ifdef IDE_COPY_SETTINGS_FROM_VARIANT
 const char * const IDE_COPY_SETTINGS_FROM_VARIANT_STR = STRINGIFY(IDE_COPY_SETTINGS_FROM_VARIANT);
 #else
-const char * const IDE_COPY_SETTINGS_FROM_VARIANT_STR = "MS-Cheminfomatics";
+const char * const IDE_COPY_SETTINGS_FROM_VARIANT_STR = "Nokia";
 #endif
 
 
