@@ -39,6 +39,15 @@
   <xsl:key name="exe-search" match="wix:Component[contains(wix:File/@Source, '.exe')]" use="@Id" />
   <xsl:key name="pdb-search" match="wix:Component[contains(wix:File/@Source, '.pdb')]" use="@Id" />
   <xsl:key name="ddll-search" match="wix:Component[contains(wix:File/@Source, 'd.dll')]" use="@Id" />
+  <!-- <xsl:key name="Qt5Qml-search" match="wix:Component[contains(wix:File/@Source, 'Qt5Qml.dll')]" use="@Id" /> -->
+  <!-- <xsl:key name="Qt5Quick-search" match="wix:Component[contains(wix:File/@Source, 'Qt5Quick.dll')]" use="@Id" /> -->
+  <xsl:key name="Qt5QuickTest-search" match="wix:Component[contains(wix:File/@Source, 'Qt5QuickTest.dll')]" use="@Id" />
+  <xsl:key name="Qt5QuickWidgets-search" match="wix:Component[contains(wix:File/@Source, 'Qt5QuickWidgets.dll')]" use="@Id" />
+  <xsl:key name="qtenv2-search" match="wix:Component[contains(wix:File/@Source, 'qtenv2.bat')]" use="@Id" />
+  <xsl:key name="syncqt-search" match="wix:Component[contains(wix:File/@Source, 'syncqt.pl')]" use="@Id" />
+  <xsl:key name="Qt5Designer-search" match="wix:Component[contains(wix:File/@Source, 'Qt5Designer.dll')]" use="@Id" />
+  <xsl:key name="Qt5DesignerComponents-search" match="wix:Component[contains(wix:File/@Source, 'Qt5DesignerComponents.dll')]" use="@Id" />
+  <xsl:key name="Qt5Declarative-search" match="wix:Component[contains(wix:File/@Source, 'Qt5Declarative.dll')]" use="@Id" />
 
   <!-- exclude .exe -->
   <xsl:template match="wix:Component[key('exe-search', @Id)]" />
@@ -51,5 +60,27 @@
   <!-- exclude d.dll -->
   <xsl:template match="wix:Component[key('ddll-search', @Id)]" />
   <xsl:template match="wix:ComponentRef[key('ddll-search', @Id)]" />
+
+  <!-- exclude unused dlls/files -->
+  <xsl:template match="wix:Component[key('Qt5Declarative-search', @Id)]" />
+  <xsl:template match="wix:ComponentRef[key('Qt5Declarative-search', @Id)]" />
+
+  <xsl:template match="wix:Component[key('Qt5Designer-search', @Id)]" />
+  <xsl:template match="wix:ComponentRef[key('Qt5Designer-search', @Id)]" />
+
+  <xsl:template match="wix:Component[key('Qt5DesignerComponents-search', @Id)]" />
+  <xsl:template match="wix:ComponentRef[key('Qt5DesignerComponents-search', @Id)]" />
+
+  <xsl:template match="wix:Component[key('syncqt-search', @Id)]" />
+  <xsl:template match="wix:ComponentRef[key('syncqt-search', @Id)]" />
+
+  <xsl:template match="wix:Component[key('qtenv2-search', @Id)]" />
+  <xsl:template match="wix:ComponentRef[key('qtenv2-search', @Id)]" />
+
+  <xsl:template match="wix:Component[key('Qt5QuickTest-search', @Id)]" />
+  <xsl:template match="wix:ComponentRef[key('Qt5QuickTest-search', @Id)]" />
+
+  <xsl:template match="wix:Component[key('Qt5QuickWidgets-search', @Id)]" />
+  <xsl:template match="wix:ComponentRef[key('Qt5QuickWidgets-search', @Id)]" />
   
 </xsl:stylesheet>

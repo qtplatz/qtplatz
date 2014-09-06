@@ -151,3 +151,7 @@ src/plugins/Quan/Quan.pluginspec
 contrib/installer/wix/rename.bat
 src/tools/publisher/default.xml
 src/tools/publisher/output.xml
+contrib/installer/wix/qtplatz_bin.wxi
+contrib/installer/wix/qtplatz_lib.wxi
+contrib/installer/wix/qtplatz_plugins.wxi
+contrib/installer/wix/qtplatz_xslt.wxi

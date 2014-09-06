@@ -22,18 +22,13 @@
             <ComponentGroupRef Id="QtComponents" />
             <ComponentGroupRef Id="QtTranslations" />
             <ComponentGroupRef Id="QtPluginsComponents" />       <!-- Qt plugins, -->
-            <!-- <ComponentGroupRef Id="QtCreatorComponents" /> -->
-            <!-- <ComponentGroupRef Id="PluginComponents" /> -->
             <ComponentGroupRef Id="QtPlatzComponents" />         <!-- qtplatz/bin -->
             <ComponentGroupRef Id="QtPlatzPluginsComponents" />
             <ComponentGroupRef Id="QtPlatzTranslations" />
-            <!-- <ComponentGroupRef Id="SPCFileComponents" /> -->
-            <!-- <ComponentGroupRef Id="SPCFilePluginComponents" /> -->
+            <ComponentGroupRef Id="QtPlatzXSLT" />
             <ComponentGroupRef Id="XSDComponents" />
             <ComponentGroupRef Id="TAOComponents" />
             <ComponentGroupRef Id="MicrosoftComponents" />
-            <!-- <ComponentGroupRef Id="InfiTOFComponents" />
-            <ComponentGroupRef Id="InfiTOFdComponents" /> -->
             <ComponentGroupRef Id="EZUSBComponentGroup" />
             <ComponentGroupRef Id="BrukerComponents" />
             <ComponentGroupRef Id="ApplicationProgramsFolder" />
@@ -48,6 +43,7 @@
                     <Directory Id="SHARE" Name="share">
 		      <Directory Id="SHARE_QTPLATZ" Name="qtplatz">
 			<Directory Id="TRANSLATIONS" Name="translations" />			
+			<Directory Id="XSLT" Name="xslt" />			
 		      </Directory>
 		    </Directory>
                     <Directory Id="BIN" Name="bin" />
@@ -91,32 +87,31 @@
             </Component>
         </ComponentGroup>
         <?include rdkit_components.wxi ?>
-        <!-- <?include qt_creator_components.wxi ?> -->
-        <?include qtplatz_components.wxi ?>
+        <!-- <?include qtplatz_components.wxi ?> -->
         <ComponentGroup Id="XSDComponents" Directory="PLUGINS_XSD">
             <Component Id="config.xsd" Guid="830AB06B-0540-4A65-8B38-D1A7365F0918" Win64="yes">
                 <File Id="config.xsd" Source="$(var.TOP)/src/plugins/xsd/config.xsd" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
-        <!-- <?include qtplatz_plugin_components.wxi ?>
-        <?include spcfile_components.wxi ?>
-        <?include infitof_components.wxi ?> -->
         <?include tao_components.wxi ?>
     </Fragment>
 
     <?include $(var.InfiTOFDir)/libusb-win32/ezusb_components.wxi ?>
 
+    <!-- If you got an error during Light process at around lines below, check fileid for qtplatz.exe in qtpaltz_bin.wxi hervest generated file -->
     <Fragment>
         <ComponentGroup Id="ApplicationProgramsFolder" Directory="ApplicationProgramsFolder">
             <Component Id="ApplicationShortcut" Guid="94DB95AE-A0EB-4BFC-8894-C7F16D7E107D">
-                <Shortcut Id="ApplicationStartMenuShortcut" Name="QtPlatz Mass Spectrometry" Target="[#qtplatz.exe]" WorkingDirectory="PersonalFolder" />
+                <Shortcut Id="ApplicationStartMenuShortcut" Name="QtPlatz Mass Spectrometry"
+			  Target="[#fil8B77AF9B8AD01596D0D5FB5582D9CDB9]" WorkingDirectory="PersonalFolder" />
                 <RemoveFolder Id="INSTALLFOLDER" On="uninstall" />
                 <RegistryValue Root="HKCU" Key="Software\MS-Cheminformatics\QtPlatz" Name="installed" Value="1" Type="integer" KeyPath="yes" />
             </Component>
         </ComponentGroup>
         <ComponentGroup Id="DesktopShortcutFolder" Directory="DesktopFolder">
             <Component Id="DesktopShortcut" Guid="32A8B295-90ED-46AA-9D7B-4B35B694C830">
-                <Shortcut Id="ApplicationDesktopShortcut" Name="QtPlatz" Target="[#qtplatz.exe]" WorkingDirectory="PersonalFolder" />
+                <Shortcut Id="ApplicationDesktopShortcut" Name="QtPlatz"
+			  Target="[#fil8B77AF9B8AD01596D0D5FB5582D9CDB9]" WorkingDirectory="PersonalFolder" />
                 <RegistryValue Root="HKCU" Key="Software\MS-Cheminformatics\QtPlatz" Name="installed" Value="1" Type="integer" KeyPath="yes" />
                 <RemoveFolder Id="DesktopFolder" On="uninstall" />
             </Component>
