@@ -375,7 +375,7 @@ MSCalibSpectraWnd::flight_length_regression()
             time_corrected_calibrants[ pk.mode() ].push_back( std::make_tuple( pk
                                                                                , std::sqrt( pk.exactMass() )
                                                                                , adcontrols::metric::scale_to_micro( pk.time() )
-																			   , ms.scanLaw().fLength( pk.mode() )
+																			   , ms.scanLaw()->fLength( pk.mode() )
 																			   , adcontrols::metric::scale_to_micro( pk.time() ) ) );
 	}
     
@@ -666,7 +666,7 @@ MSCalibSpectraWnd::handle_reassign_mass_requested()
         const adcontrols::MSCalibration& calib = margedCalibResult_->calibration();
         adcontrols::segment_wrapper<> segments( *margedSpectrum_ );
 
-		adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( margedSpectrum_->scanLaw(), calib );
+		adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *margedSpectrum_->scanLaw(), calib );
         for ( auto& a: assigned ) {
 			double mass = mass_calculator( a.time(), a.mode() );
 			a.mass( mass );

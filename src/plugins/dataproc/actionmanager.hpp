@@ -71,8 +71,6 @@ namespace dataproc {
 
         bool initialize_actions( const Core::Context& context );
         void connect_navigation_pointer( dataproc::NavigationWidget * navi );
-        bool saveDefaults();
-        bool loadDefaults();
 
     private:
         std::array< QAction *, numOfActions > actions_;

@@ -277,12 +277,10 @@ MSProperty::spectrometer() const
 std::shared_ptr< ScanLaw >
 MSProperty::scanLaw() const
 {
-	try {
-		return adcontrols::MassSpectrometer::get( dataInterpreterClsid() ).scanLaw( *this );
-	} catch ( boost::exception& e ) {
-		e << boost::error_info< struct tag_errmsg, std::string >( "MSProperty::scanLaw" );
-		throw;
-	}
+    if ( auto spectrometer = adcontrols::MassSpectrometer::find( dataInterpreterClsid_.c_str() ) )
+        return spectrometer->scanLaw( *this );
+    else
+        return 0;
 }
 
 std::string

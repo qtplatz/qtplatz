@@ -54,6 +54,9 @@ namespace Constants {
     // shared with Quan
     const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
 
+    // QObject names
+    const char * const EDIT_PROCMETHOD    = "dataproc.MainWindow.procmethodname";
+
 } // Constants
 
     enum ProcessType {

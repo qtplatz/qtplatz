@@ -125,7 +125,7 @@ namespace adcontrols {
         MSProperty& getMSProperty();
         void normalizeIntensities( uint32_t nImaginalAverage );
 
-        const ScanLaw& scanLaw() const;
+        const ScanLaw* scanLaw() const;
         
         template<class T> void set( const T& t );
         template<class T> const T& get();

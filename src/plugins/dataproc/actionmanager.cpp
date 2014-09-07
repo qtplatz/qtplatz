@@ -26,6 +26,7 @@
 #include "actionmanager.hpp"
 #include "aboutdlg.hpp"
 #include "constants.hpp"
+#include "dataproc_document.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
@@ -234,35 +235,14 @@ void
 ActionManager::actMethodSave()
 {
     QString name = QFileDialog::getSaveFileName( MainWindow::instance()
-                                                 , tr("Save process method"), "."
+                                                 , tr("Save process method")
+                                                 , dataproc_document::instance()->recentFile( Constants::GRP_METHOD_FILES, true )
                                                  , tr("Process method files(*.pmth)" ) );
-    if ( ! name.isEmpty() ) {
-        boost::filesystem::path path( name.toStdString() );
-        path.replace_extension( ".pmth" );
-        adfs::filesystem file;
-        try {
-            if ( !file.create( path.wstring().c_str() ) )
-                return;
-        } catch ( adfs::exception& ex ) {
-            QMessageBox::warning( 0, "Process method", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
-            return;
-        }
 
-        adfs::folder folder = file.addFolder( L"/ProcessMethod" );
-        adfs::file adfile = folder.addFile( path.wstring() ); // internal filename := os filename
-        adcontrols::ProcessMethod m;
-        MainWindow::instance()->getProcessMethod( m );
-        try {
-            adfile.save( m ); // adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
-        } catch ( std::exception& e ) {
-            QMessageBox::warning( 0, "Save process method", 
-                                  (boost::format("%1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );
-            return;
-        }
-        adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
-        adfile.commit();
-        
-        MainWindow::instance()->processMethodSaved( name );
+    adcontrols::ProcessMethod pm;
+    MainWindow::instance()->getProcessMethod( pm );
+    if ( dataproc_document::save( name, pm ) ) {
+        dataproc_document::instance()->setProcessMethod( pm, name );
     }
 }
 
@@ -271,109 +251,15 @@ ActionManager::actMethodOpen()
 {
     QString name = QFileDialog::getOpenFileName( MainWindow::instance()
                                                  , tr("Open process method")
-                                                 , MainWindow::currentDir()
-                                                 , tr("Process method files(*.pmth)" ) );
-    if ( ! name.isEmpty() ) {
-		boost::filesystem::path path( name.toStdString() );
-        adfs::filesystem file;
-        try {
-            if ( ! file.mount( path.wstring().c_str() ) )
-                return;
-        } catch ( adfs::exception& ex ) {
-            QMessageBox::warning( 0, "SequenceFile", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
-            return;
-        }
+                                                 , dataproc_document::instance()->recentFile( Constants::GRP_METHOD_FILES, true )
+                                                 , tr("Process method files(*.pmth);;XML Files(*.pmth.xml)" ) );
 
-        adfs::folder folder = file.findFolder( L"/ProcessMethod" );
-        std::vector< adfs::file > files = folder.files();
-        if ( files.empty() )
-            return;
-        auto it = files.begin();
-        adcontrols::ProcessMethod m;
-        try {
-            //adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
-            it->fetch( m );
-        } catch ( std::exception& ex ) {
-            QMessageBox::warning( 0, "Open process method"
-                                  , (boost::format("%1% @ %2% #%3%") % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
-            return;
-        } 
-        MainWindow::instance()->processMethodLoaded( name, m );
+    adcontrols::ProcessMethod pm;
+    if ( dataproc_document::load( name, pm ) ) {
+        dataproc_document::instance()->setProcessMethod( pm, name );
     }
 }
 
-bool
-ActionManager::saveDefaults()
-{
-    boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
-    dir /= "data";
-    if ( ! boost::filesystem::exists( dir ) ) 
-        if ( ! boost::filesystem::create_directories( dir ) )
-            return false;
-    boost::filesystem::path fname = dir / "default.pmth";
-
-    adfs::filesystem file;
-    try {
-        if ( !file.create( fname.wstring().c_str() ) )
-            return false;
-    } catch ( adfs::exception& ex ) {
-        QMessageBox::warning( 0, tr( "Process method" ), (boost::format( "%1% on %2%" ) % ex.message % ex.category).str().c_str() );
-        return false;
-    }
-    adfs::folder folder = file.addFolder( L"/ProcessMethod" );
-    adfs::file adfile = folder.addFile( fname.wstring() ); // internal filename := os filename
-    adcontrols::ProcessMethod m;
-    MainWindow::instance()->getProcessMethod( m );
-    try {
-        //adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
-        adfile.save( m );
-    } catch ( std::exception& e ) {
-        QMessageBox::warning( 0, tr( "Save default process method" ),
-                              (boost::format("%1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );        
-    }
-    adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
-    adfile.commit();
-
-    return true;
-}
-
-bool
-ActionManager::loadDefaults()
-{
-    boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
-    dir /= "data";
-
-    boost::filesystem::path path = dir / "default.pmth";
-    adfs::filesystem file;
-    try {
-        if ( ! file.mount( path.wstring().c_str() ) )
-            return false;
-    } catch ( adfs::exception& ex ) {
-        QMessageBox::warning( 0, "SequenceFile", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
-        return false;
-    }
-
-    adfs::folder folder = file.findFolder( L"/ProcessMethod" );
-    std::vector< adfs::file > files = folder.files();
-    if ( files.empty() )
-        return false;
-    auto it = files.begin();
-    adcontrols::ProcessMethod m;
-    try {
-        //adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
-        it->fetch( m );
-    } catch ( std::exception& ex ) {
-        QMessageBox::information( 0, "dataproc -- Open default process method"
-                                  , (boost::format("Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%")
-                                 % path.string()  % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
-        return false;
-    }
-    if ( m.size() > 0 ) {
-        MainWindow::instance()->processMethodLoaded( path.string().c_str(), m );
-        return true;
-    }
-    return false;
-}
 
 void
 ActionManager::actPrintCurrentView()
@@ -429,7 +315,7 @@ ActionManager::actCalibFileApply()
 				processor->applyCalibration( dataInterpreterClsid, calibResult );
 
         } else {
-			QMessageBox::warning( 0, "apply calibration", "Calibration file load failed" );
+            QMessageBox::warning( 0, tr( "apply calibration" ), tr( "Calibration file load failed" ) );
 		}
 	}
 }

@@ -36,6 +36,7 @@ namespace adprot { class digestedPeptides; }
 namespace portfolio { class Folium; }
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
+class QString;
 class QHBoxLayout;
 class QWidget;
 class QToolButton;
@@ -49,6 +50,7 @@ namespace dataproc {
     class Dataprocessor;
     class iSequenceImpl;
     class AboutDlg;
+    class dataproc_document;
 
     class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT
@@ -71,14 +73,15 @@ namespace dataproc {
         
         void getProcessMethod( adcontrols::ProcessMethod& );
 		void setProcessMethod( const adcontrols::ProcessMethod& );
+
         void OnInitialUpdate();
         void OnFinalClose();
 
         void applyCalibration( const adcontrols::MSAssignedMasses& );
         void applyCalibration( const adcontrols::MSAssignedMasses&, portfolio::Folium& );
         
-        void processMethodSaved( const QString& );
-        void processMethodLoaded( const QString&, const adcontrols::ProcessMethod& );
+        //void processMethodSaved( const QString& );
+        //void processMethodLoaded( const QString&, const adcontrols::ProcessMethod& );
         int currentProcessView( std::string& ) const;
         void printCurrentView( const QString& ) const;
 
@@ -126,6 +129,7 @@ namespace dataproc {
         void handleFeatureSelected( int );
         void handleFeatureActivated( int );
         void handlePeptideTarget( const QVector<QPair<QString, QString> >& );
+        void handleProcessMethodChanged( const QString& );
 
         friend class MSPeaksWnd;
 
@@ -141,7 +145,7 @@ namespace dataproc {
         QStackedWidget * stack_;
         AboutDlg * aboutDlg_;
 
-        std::unique_ptr< QLineEdit > processMethodNameEdit_;
+        // std::unique_ptr< QLineEdit > processMethodNameEdit_;
         enum ProcessType currentFeature_;
 
         void setToolBarDockWidget( QDockWidget * dock );
@@ -151,6 +155,7 @@ namespace dataproc {
         Utils::StyledBar * createStyledBarTop();
         Utils::StyledBar * createStyledBarMiddle();
         void currentPageChanged( int );
+        
 
     signals:
         void onPrintCurrentView( const QString& ) const;
