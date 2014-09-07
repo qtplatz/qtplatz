@@ -38,11 +38,12 @@
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/datainterpreter.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/array_wrapper.hpp>
-#include <adportable/serializer.hpp>
+//#include <adportable/serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adlog/logger.hpp>
 #include <adutils/mscalibio.hpp>
@@ -169,19 +170,27 @@ rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcon
 
 	const std::wstring calibId = calibResult.calibration().calibId();
     std::string device;
+    if ( adportable::binary::serialize<>()(calibResult, device) ) {
+        adutils::mscalibio::writeCalibration( dbf_.db(), uint32_t( objid ), calibId.c_str(), calibResult.dataClass(), device.data(), device.size() );
+        loadAcquiredConf();
+        loadCalibrations();
+        return true;
+    }
+#if 0 // deprecated
     if ( adportable::serializer< adcontrols::MSCalibrateResult >::serialize( calibResult, device ) ) {
         adutils::mscalibio::writeCalibration( dbf_.db(), uint32_t( objid ), calibId.c_str(), calibResult.dataClass(), device.data(), device.size() );
         loadAcquiredConf();
         loadCalibrations();
         return true;
     }
+#endif
     return false;
 }
 
 void
 rawdata::loadCalibrations()
 {
-    using adportable::serializer;
+    // using adportable::serializer;
     using adcontrols::MSCalibrateResult;
 
     std::for_each( conf_.begin(), conf_.end(), [&]( const adutils::AcquiredConf::data& conf ){
@@ -189,7 +198,8 @@ rawdata::loadCalibrations()
             int64_t rev;
             if ( adutils::mscalibio::readCalibration( dbf_.db(), uint32_t(conf.objid), MSCalibrateResult::dataClass(), device, rev ) ) {
                 auto calibResult = std::make_shared< MSCalibrateResult >();
-                if ( serializer< MSCalibrateResult >::deserialize( *calibResult, device.data(), device.size() ) ) {
+                //if ( serializer< MSCalibrateResult >::deserialize( *calibResult, device.data(), device.size() ) ) {
+                if ( adportable::binary::deserialize<>()(*calibResult, device.data(), device.size()) ) {
                     calibResults_[ conf.objid ] = calibResult;
                     if ( auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid.c_str() ) )
                         spectrometer->setCalibration( calibResult->mode(), *calibResult );

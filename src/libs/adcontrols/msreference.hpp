@@ -26,70 +26,59 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <string>
-
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/vector.hpp>
+#include <memory>
+#include <cstdint>
 #include <boost/serialization/version.hpp>
-#include <compiler/disable_dll_interface.h>
+
+namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MSReference {
     public:
+        ~MSReference();
         MSReference();
         MSReference( const MSReference& t );
-        MSReference( const std::wstring& formula
+        MSReference( const wchar_t * formula
                    , bool polarityPositive
-                   , const std::wstring& adduct_or_loss
+                   , const wchar_t * adduct_or_loss
                    , bool enable = true
                    , double exactMass = 0
 				   , uint32_t charge = 1
-                   , const std::wstring& description = L"" );
+                   , const wchar_t * description = L"" );
 
+        MSReference& operator = ( const MSReference& );
         bool operator < ( const MSReference& ) const;
 
         bool enable() const;
         double exact_mass() const;
         bool polarityPositive() const;
 		uint32_t charge_count() const;
-        const std::wstring& formula() const;
-        const std::wstring& adduct_or_loss() const;
-        const std::wstring& description() const;
-        std::wstring display_formula() const;
+        const wchar_t * formula() const;
+        const wchar_t * adduct_or_loss() const;
+        const wchar_t * display_formula() const;
+        const wchar_t * description() const;
 
         void enable( bool );
         void exact_mass( double );
         void polarityPositive( bool );
 		void charge_count( uint32_t );
-        void formula( const std::wstring& );
-        void adduct_or_loss( const std::wstring& );
-        void description( const std::wstring& );
+        void formula( const wchar_t * );
+        void formula( const char * );
+        void adduct_or_loss( const wchar_t * );
+        void adduct_or_loss( const char * );
+        void description( const wchar_t * );
 
     private:
-        bool enable_;
-        double exactMass_;
-        bool polarityPositive_;
-        uint32_t chargeCount_;
-        std::wstring formula_;
-        std::wstring adduct_or_loss_;
-        std::wstring description_;
-		
-		void compute_mass();
-        friend class boost::serialization::access;
-        template<class Archive>
-        void serialize( Archive& ar, const unsigned int version ) {
-            (void)version;
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(enable_);
-            ar & BOOST_SERIALIZATION_NVP(exactMass_);
-            ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
-            ar & BOOST_SERIALIZATION_NVP(chargeCount_);
-            ar & BOOST_SERIALIZATION_NVP(formula_);
-            ar & BOOST_SERIALIZATION_NVP(adduct_or_loss_);
-            ar & BOOST_SERIALIZATION_NVP(description_);
-        }
 
+#   if  defined _MSC_VER
+#   pragma warning(disable:4251)
+#   endif
+        class impl;
+        std::unique_ptr< impl > impl_;
+
+        friend class boost::serialization::access;
+        template<class Archive>  void serialize( Archive& ar, const unsigned int version );
     };
 
 }

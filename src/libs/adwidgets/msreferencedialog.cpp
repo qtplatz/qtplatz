@@ -234,7 +234,7 @@ MSReferenceDialog::handleAddReference()
             adcontrols::MSReference ref;
             do {
                 std::wstring formula = ( boost::wformat( L"%1%(%2%)%3%" ) % endGroup % repeat % nRepeat++  ).str();
-                ref = adcontrols::MSReference( formula, true /* is positive */, adduct, true );
+                ref = adcontrols::MSReference( formula.c_str(), true /* is positive */, adduct.c_str(), true );
                 if ( lMass <= ref.exact_mass() && ref.exact_mass() < hMass )
                     reference_receiver_( ref );
             } while ( ref.exact_mass() < hMass );
@@ -286,11 +286,11 @@ MSReferenceDialog::handleAddReference()
                         std::wstring formula = ( boost::wformat(L"%1%%2%") % int( i.mass + 0.3 ) % adportable::utf::to_wstring( element.symbol() ) ).str();
                         std::wstring description = ( boost::wformat(L"%.4f") % i.abundance ).str();
                         bool enable = i.abundance > 0.01;
-                        reference_receiver_( adcontrols::MSReference( formula, true, L"", enable, i.mass, 1, description ) );
+                        reference_receiver_( adcontrols::MSReference( formula.c_str(), true, L"", enable, i.mass, 1, description.c_str() ) );
                     }
                 } else {
                     // chemical formula
-                    reference_receiver_( adcontrols::MSReference( endGroup, true, adduct ) );
+                    reference_receiver_( adcontrols::MSReference( endGroup.c_str(), true, adduct.c_str() ) );
                 }
             }
         }

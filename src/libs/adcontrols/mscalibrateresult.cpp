@@ -29,18 +29,108 @@
 #include "mscalibration.hpp"
 #include "msassignedmass.hpp"
 #include "msreference.hpp"
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
+#include "serializer.hpp"
 
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/scoped_ptr.hpp>
+#include <boost/serialization/vector.hpp>
 
-#include <compiler/diagnostic_pop.h>
+namespace adcontrols {
 
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+    class MSCalibrateResult::impl {
+    public:
+        impl() : tolerance_(0)
+               , threshold_(0)
+               , references_( new MSReferences )
+               , calibration_( new MSCalibration ) 
+               , assignedMasses_( new MSAssignedMasses ) 
+               , mode_(0) {
+        }
+
+        impl::impl( const impl& t ) : tolerance_( t.tolerance_ )
+                                    , threshold_( t.threshold_ )
+                                    , references_( new MSReferences( *t.references_ ) )
+                                    , calibration_( new MSCalibration( *t.calibration_ ) )
+                                    , assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
+                                    , mode_( t.mode_ )
+                                    , description_( t.description_ ) {
+        }
+
+        double tolerance_;
+        double threshold_;
+        boost::scoped_ptr< MSReferences > references_;
+        boost::scoped_ptr< MSCalibration > calibration_;
+        boost::scoped_ptr< MSAssignedMasses > assignedMasses_;
+
+        int mode_;
+        std::wstring description_;
+
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive& ar, const unsigned int version ) {
+            using namespace boost::serialization;
+            if ( version < 2 ) {
+                ar & BOOST_SERIALIZATION_NVP(tolerance_);
+                ar & BOOST_SERIALIZATION_NVP(threshold_);
+                ar & BOOST_SERIALIZATION_NVP(references_);
+                ar & BOOST_SERIALIZATION_NVP(calibration_);
+                ar & BOOST_SERIALIZATION_NVP(assignedMasses_);
+            } else if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP(tolerance_);
+                ar & BOOST_SERIALIZATION_NVP(threshold_);
+                ar & boost::serialization::make_nvp("references", *references_);
+                ar & boost::serialization::make_nvp("calibration", *calibration_);
+                ar & boost::serialization::make_nvp("assignedMasses", *assignedMasses_);
+                // trial for multi-turn calibration
+                if ( version == 2 ) {
+                    double tDelay;
+                    ar & BOOST_SERIALIZATION_NVP(tDelay); // deprecated (only on version = 2 )
+                    // tDelay has been implemented into MSCalibration class as t0_coeffs
+                }
+                if ( version >= 3 ) {
+                    ar & BOOST_SERIALIZATION_NVP(mode_)
+                        & BOOST_SERIALIZATION_NVP(description_)
+                        ;
+                }
+            }
+        }
+    };
+}
+
+BOOST_CLASS_VERSION( adcontrols::MSCalibrateResult::impl, 3 )
+
+namespace adcontrols {
+
+    ////////// PORTABLE BINARY ARCHIVE //////////
+    template<> ADCONTROLSSHARED_EXPORT void
+    MSCalibrateResult::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void
+    MSCalibrateResult::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
+
+    ///////// XML archive ////////
+    template<> ADCONTROLSSHARED_EXPORT void
+    MSCalibrateResult::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
+
+    template<> ADCONTROLSSHARED_EXPORT void
+    MSCalibrateResult::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
+}
+
 
 using namespace adcontrols;
 
@@ -48,141 +138,122 @@ MSCalibrateResult::~MSCalibrateResult()
 {
 }
 
-MSCalibrateResult::MSCalibrateResult() : tolerance_(0)
-                                       , threshold_(0)
-                                       , references_( new MSReferences )
-                                       , calibration_( new MSCalibration ) 
-                                       , assignedMasses_( new MSAssignedMasses ) 
-                                       , mode_(0)
+MSCalibrateResult::MSCalibrateResult() : impl_( new impl )
 {
 }
 
-MSCalibrateResult::MSCalibrateResult( const MSCalibrateResult& t )
-    : tolerance_( t.tolerance_ )
-    , threshold_( t.threshold_ )
-    , references_( new MSReferences( *t.references_ ) )
-    , calibration_( new MSCalibration( *t.calibration_ ) )
-    , assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
-    , mode_( t.mode_ )
-    , description_( t.description_ )
+MSCalibrateResult::MSCalibrateResult( const MSCalibrateResult& t ) : impl_( new impl(*t.impl_ ) )
 {
 }
 
 const MSCalibrateResult&
 MSCalibrateResult::operator = ( const MSCalibrateResult& t )
 {
-    tolerance_ = t.tolerance_;
-    threshold_ = t.threshold_;
-    references_.reset( new MSReferences( *t.references_ ) );
-    calibration_.reset( new MSCalibration( *t.calibration_ ) );
-    assignedMasses_.reset( new MSAssignedMasses( *t.assignedMasses_ ) );
-    mode_ = t.mode_;
-    description_ = t.description_;
-
+    impl_.reset( new impl( *t.impl_ ) );
 	return *this;
 }
 
 double
 MSCalibrateResult::tolerance() const
 {
-    return tolerance_;
+    return impl_->tolerance_;
 }
 
 void
 MSCalibrateResult::tolerance( double v )
 {
-    tolerance_ = v;
+    impl_->tolerance_ = v;
 }
 
 double
 MSCalibrateResult::threshold() const
 {
-    return threshold_;
+    return impl_->threshold_;
 }
 
 void
 MSCalibrateResult::threshold( double v )
 {
-    threshold_ = v;
+    impl_->threshold_ = v;
 }
 
 const MSReferences&
 MSCalibrateResult::references() const
 {
-    return *references_;
+    return *impl_->references_;
 }
 
 MSReferences&
 MSCalibrateResult::references()
 {
-    return *references_;
+    return *impl_->references_;
 }
 
 void
 MSCalibrateResult::references( const MSReferences& t )
 {
-    *references_ = t;
+    *impl_->references_ = t;
 }
 
 const MSCalibration&
 MSCalibrateResult::calibration() const
 {
-    return *calibration_;
+    return *impl_->calibration_;
 }
 
 MSCalibration&
 MSCalibrateResult::calibration()
 {
-    return *calibration_;
+    return *impl_->calibration_;
 }
 
 void
 MSCalibrateResult::calibration( const MSCalibration& t )
 {
-    *calibration_ = t;
+    *impl_->calibration_ = t;
 }
 
 
 MSAssignedMasses&
 MSCalibrateResult::assignedMasses()
 {
-    return *assignedMasses_;
+    return *impl_->assignedMasses_;
 }
 
 const MSAssignedMasses&
 MSCalibrateResult::assignedMasses() const
 {
-    return *assignedMasses_;
+    return *impl_->assignedMasses_;
 }
 
 void
 MSCalibrateResult::assignedMasses( const MSAssignedMasses& t )
 {
-    *assignedMasses_ = t;
+    *impl_->assignedMasses_ = t;
 }
 
 int
 MSCalibrateResult::mode() const
 {
-    return mode_;
+    return impl_->mode_;
 }
 
 void
 MSCalibrateResult::mode( int mode )
 {
-    mode_ = mode;
+    impl_->mode_ = mode;
 }
 
-const std::wstring&
+const wchar_t *
 MSCalibrateResult::description() const
 {
-    return description_;
+    return impl_->description_.c_str();
 }
 
 void
-MSCalibrateResult::description( const std::wstring& text )
+MSCalibrateResult::description( const wchar_t * text )
 {
-    description_ = text;
+    impl_->description_ = text ? text : L"";
 }
 
 ////////////////  static //////////////////
@@ -200,4 +271,18 @@ MSCalibrateResult::restore( std::istream& is, MSCalibrateResult& t )
     portable_binary_iarchive ar( is );
     ar >> t;
     return true;
+}
+
+//static
+bool
+MSCalibrateResult::xml_archive( std::wostream& os, const MSCalibrateResult& t )
+{
+    return internal::xmlSerializer("MSCalibrateResult").archive( os, *t.impl_ );
+}
+
+//static
+bool
+MSCalibrateResult::xml_restore( std::wistream& is, MSCalibrateResult& t )
+{
+    return internal::xmlSerializer("MSCalibrateResult").restore( is, *t.impl_ );
 }

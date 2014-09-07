@@ -66,7 +66,7 @@
 #include <adfs/attributes.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
-#include <adportable/serializer.hpp>
+//#include <adportable/serializer.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adutils/fsio.hpp>

@@ -223,12 +223,12 @@ QuanSequence::restore( std::istream& is, QuanSequence& t )
 bool
 QuanSequence::xml_archive( std::wostream& os, const QuanSequence& t )
 {
-    return internal::xmlSerializer("QuanSequence").archive( os, t );
+    return internal::xmlSerializer("QuanSequence").archive( os, *t.impl_ );
 }
 
 //static
 bool
 QuanSequence::xml_restore( std::wistream& is, QuanSequence& t )
 {
-    return internal::xmlSerializer("QuanSequence").restore( is, t );
+    return internal::xmlSerializer("QuanSequence").restore( is, *t.impl_ );
 }

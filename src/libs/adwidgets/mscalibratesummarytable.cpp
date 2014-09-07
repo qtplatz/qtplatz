@@ -37,7 +37,7 @@
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/computemass.hpp>
 #include <adlog/logger.hpp>
-#include <adportable/serializer.hpp>
+//#include <adportable/serializer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <qtwrapper/qstring.hpp>

@@ -188,7 +188,7 @@ MSCalibrationForm::getCalibrateMethod( adcontrols::MSCalibrateMethod& method ) c
         if ( ! parse_formula( text, reference ) )
             continue;
 		reference.exact_mass( model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble() );
-		reference.description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString() );
+		reference.description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString().c_str() );
 
         QVariant enable  = model.index( row, c_enable ).data( Qt::EditRole );
         reference.enable( enable.toBool() );
@@ -309,11 +309,11 @@ MSCalibrationForm::on_addReference_pressed()
                     std::wstring formula = ( boost::wformat(L"%1%%2%") % int( i.mass + 0.3 ) % adportable::utf::to_wstring( element.symbol() ) ).str();
                     std::wstring description = ( boost::wformat(L"%.4f") % i.abundance ).str();
                     bool enable = i.abundance > 0.01;
-                    ref << adcontrols::MSReference( formula, true, L"", enable, i.mass, 1, description );
+                    ref << adcontrols::MSReference( formula.c_str(), true, L"", enable, i.mass, 1, description.c_str() );
                 }
             } else {
                 // chemical formula
-				ref << adcontrols::MSReference( endGroup.toStdWString(), isAdduct, adduct_lose.toStdWString() );
+                ref << adcontrols::MSReference( endGroup.toStdWString().c_str(), isAdduct, adduct_lose.toStdWString().c_str() );
 			}
         }
 	}
@@ -335,7 +335,7 @@ MSCalibrationForm::makeSeries( const std::wstring& endGroup
     adcontrols::MSReference ref;
     do {
 		std::wstring formula = ( boost::wformat( L"%1%(%2%)%3%" ) % endGroup % repeat % nRepeat++  ).str();
-		ref = adcontrols::MSReference( formula, isAdduct, adduct_lose, true );
+		ref = adcontrols::MSReference( formula.c_str(), isAdduct, adduct_lose.c_str(), true );
 		if ( ref.exact_mass() > lmass )
 			refs << ref;
     } while( ref.exact_mass() < hmass );
@@ -347,7 +347,7 @@ MSCalibrationForm::parse_formula( const std::wstring& text, adcontrols::MSRefere
     std::wstring formula, adduct_lose;
     bool isPositive( false );
     if ( parse_formula( text, formula, adduct_lose, isPositive ) ) {
-        ref = adcontrols::MSReference( formula, isPositive, adduct_lose, true );
+        ref = adcontrols::MSReference( formula.c_str(), isPositive, adduct_lose.c_str(), true );
         return true;
     }
     return false;
