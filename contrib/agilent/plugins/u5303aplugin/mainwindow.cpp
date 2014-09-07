@@ -33,7 +33,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adextension/isnapshothandler.hpp>
 #include <adinterface/controlserver.hpp>
-#include <adportable/serializer.hpp>
+//#include <adportable/serializer.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>

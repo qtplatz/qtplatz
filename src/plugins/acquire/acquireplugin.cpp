@@ -66,7 +66,8 @@
 #include <adportable/configloader.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
-#include <adportable/serializer.hpp>
+//#include <adportable/serializer.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/plugin.hpp>
@@ -673,8 +674,8 @@ AcquirePlugin::readCalibrations( observer_type& obs )
     while ( tgt->readCalibration( idx++, data, dataClass ) ) {
         if ( std::wcscmp( dataClass, adcontrols::MSCalibrateResult::dataClass() ) == 0 ) {
             adcontrols::MSCalibrateResult result;
-            if ( adportable::serializer< adcontrols::MSCalibrateResult >::deserialize(
-                     result, reinterpret_cast< const char *>(data->get_buffer()), data->length() ) )
+            //if ( adportable::serializer< adcontrols::MSCalibrateResult >::deserialize( result, reinterpret_cast<const char *>(data->get_buffer()), data->length() ) )
+            if ( adportable::binary::deserialize<>()(result, reinterpret_cast<const char *>(data->get_buffer()), data->length()) )
                 success = true;
             if ( spectrometer )
                 spectrometer->setCalibration( idx - 1, result );

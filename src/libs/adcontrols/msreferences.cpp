@@ -25,81 +25,151 @@
 
 #include "msreferences.hpp"
 #include "msreference.hpp"
+#include "serializer.hpp"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
+#include <compiler/disable_dll_interface.h>
+
+namespace adcontrols {
+
+    class MSReferences::impl {
+    public:
+        impl() { }
+        impl( const impl& t ) : vec_(t.vec_)
+                              , name_(t.name_) {
+        }
+
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive& ar, const unsigned int version) {
+            using namespace boost::serialization;
+            (void)version;
+            ar & BOOST_SERIALIZATION_NVP(name_);
+            ar & BOOST_SERIALIZATION_NVP(vec_);
+        }
+        
+        vector_type vec_;
+        std::wstring name_;
+    };
+}
+
+
+namespace adcontrols {
+
+    ////////// PORTABLE BINARY ARCHIVE //////////
+    template<> void
+    MSReferences::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
+
+    template<> void
+    MSReferences::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
+
+    ///////// XML archive ////////
+    template<> void
+    MSReferences::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
+
+    template<> void
+    MSReferences::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
+}
+
 
 using namespace adcontrols;
 
-MSReferences::MSReferences()
+
+MSReferences::~MSReferences()
 {
 }
 
-MSReferences::MSReferences( const MSReferences& t ) : vec_(t.vec_)
-                                                    , name_(t.name_)
+MSReferences::MSReferences() : impl_( new impl )
 {
+}
+
+MSReferences::MSReferences( const MSReferences& t ) : impl_( new impl( *t.impl_ ) )
+{
+}
+
+MSReferences&
+MSReferences::operator = ( const MSReferences& t )
+{
+    impl_.reset( new impl( *t.impl_ ) );
+    return *this;
 }
 
 MSReferences::vector_type::iterator
 MSReferences::begin()
 {
-    return vec_.begin();
+    return impl_->vec_.begin();
 }
 
 MSReferences::vector_type::iterator
 MSReferences::end()
 {
-    return vec_.end();
+    return impl_->vec_.end();
 }
 
 MSReferences::vector_type::const_iterator
 MSReferences::begin() const
 {
-    return vec_.begin();
+    return impl_->vec_.begin();
 }
 
 MSReferences::vector_type::const_iterator
 MSReferences::end() const
 {
-    return vec_.end();
+    return impl_->vec_.end();
 }
 
-const std::wstring&
+const wchar_t *
 MSReferences::name() const
 {
-    return name_;
+    return impl_->name_.c_str();
 }
 
 void
-MSReferences::name( const std::wstring& name )
+MSReferences::name( const wchar_t * name )
 {
-    name_ = name;
+    impl_->name_ = name ? name : L"";
 }
 
 void
 MSReferences::clear()
 {
-    vec_.clear();
+    impl_->vec_.clear();
 }
 
 size_t
 MSReferences::size() const
 {
-    return vec_.size();
+    return impl_->vec_.size();
 }
 
 const MSReference&
 MSReferences::operator [] ( int idx ) const
 {
-    return vec_[ idx ];
+    return impl_->vec_[ idx ];
 }
 
 MSReference&
 MSReferences::operator [] ( int idx )
 {
-    return vec_[ idx ];
+    return impl_->vec_[ idx ];
 }
 
 MSReferences&
 MSReferences::operator << ( const MSReference& t )
 {
-    vec_.push_back( t );
+    impl_->vec_.push_back( t );
     return *this;
 }

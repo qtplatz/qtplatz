@@ -26,12 +26,11 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <string>
+#include <vector>
 #include <memory>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
-#include <compiler/disable_dll_interface.h>
+
+namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
@@ -39,36 +38,39 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MSReferences {
     public:
+        ~MSReferences();
         MSReferences();
         MSReferences( const MSReferences& );
+        MSReferences& operator = ( const MSReferences& );
+
         typedef MSReference value_type;
         typedef std::vector< value_type > vector_type;
+        typedef vector_type::iterator iterator;
+        typedef vector_type::const_iterator const_iterator;
 
-        vector_type::iterator begin();
-        vector_type::iterator end();
-        vector_type::const_iterator begin() const;
-        vector_type::const_iterator end() const;
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
         void clear();
 
-        const std::wstring& name() const;
-        void name( const std::wstring& );
+        const wchar_t * name() const;
+        void name( const wchar_t * );
         size_t size() const;
         const MSReference& operator [] ( int idx ) const;
         MSReference& operator [] ( int idx );
         MSReferences& operator << ( const MSReference& );
 
     private:
+#   if  defined _MSC_VER
+#   pragma warning(disable:4251)
+#   endif
+        class impl;
+        std::unique_ptr< impl > impl_;
+
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
-            using namespace boost::serialization;
-	    (void)version;
-                ar & BOOST_SERIALIZATION_NVP(name_);
-                ar & BOOST_SERIALIZATION_NVP(vec_);
-
-        }
-        vector_type vec_;
-        std::wstring name_;
+        void serialize( Archive& ar, const unsigned int version );
     };
     
 }

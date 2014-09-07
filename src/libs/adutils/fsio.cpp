@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "fsio.hpp"
-#include "adfsio.hpp"
 #include "cpio.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -34,6 +33,7 @@
 #include <adcontrols/mscalibration.hpp>
 #include <adinterface/method.hpp>
 #include <adfs/cpio.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 
 using namespace adutils;
@@ -67,6 +67,7 @@ fsio::save(  adfs::filesystem& fs, const adcontrols::MassSpectrum& t, const std:
 {
     adfs::folder folder = fs.addFolder( folder_name );
     adfs::file file = folder.addFile( id );
+    file.dataClass( t.dataClass() );
     return file.save( t );
 }
 
@@ -74,7 +75,10 @@ bool
 fsio::save( adfs::filesystem& fs, const adcontrols::MSCalibrateResult& t, const std::wstring& id, const std::wstring& folder_name )
 {
     adfs::folder folder = fs.addFolder( folder_name );
-    return adfsio< adcontrols::MSCalibrateResult >::write( folder, t, id );
+    adfs::file file = folder.addFile( id );
+    file.dataClass( t.dataClass() );
+    return file.save( t );
+    // return adfsio< adcontrols::MSCalibrateResult >::write( folder, t, id );
 }
 
 bool
@@ -97,7 +101,12 @@ fsio::load( adfs::filesystem& fs, adcontrols::MSCalibrateResult& t, const std::w
     adfs::folder folder = fs.findFolder( folder_name );
     if ( folder.files().empty() )
         return false;
-    return adfsio< adcontrols::MSCalibrateResult >::read( folder, t, id );
+    auto files = folder.files();
+    auto it = std::find_if( files.begin(), files.end(), [=] ( const adfs::file& f ){ return f.name() == id; } );
+    if ( it != files.end() )
+        return it->fetch( t );
+    return false;
+    //return adfsio< adcontrols::MSCalibrateResult >::read( folder, t, id );
 }
 
 bool
@@ -128,7 +137,12 @@ bool
 fsio::save( adfs::filesystem& fs, const adinterface::Method& t, const std::wstring& id, const std::wstring& folder_name)
 {
     adfs::folder folder = fs.addFolder( folder_name );
-    return adfsio< adinterface::Method >::write( folder, t, id );
+    if ( auto file = folder.addFile( id ) ) {
+        file.dataClass( t.dataClass() );
+        return file.save<adinterface::Method>( t, [&] ( std::ostream& o, const adinterface::Method& t )->bool { return adportable::binary::serialize<>()(t, o); } );
+    }
+    return false;
+    // return adfsio< adinterface::Method >::write( folder, t, id );
 }
 
 bool
@@ -137,6 +151,13 @@ fsio::load( adfs::filesystem& fs, adinterface::Method& t, const std::wstring& id
     adfs::folder folder = fs.findFolder( folder_name );
     if ( folder.files().empty() )
         return false;
-    return adfsio< adinterface::Method >::read( folder, t, id );
+
+    auto files = folder.files();
+    auto it = std::find_if( files.begin(), files.end(), [=] ( const adfs::file& f ){ return f.name() == id; } );
+    if ( it != files.end() ) {
+        return it->fetch<adinterface::Method>( t, [&] ( std::istream& i, adinterface::Method& t )->bool { return adportable::binary::deserialize<>()(t, i); } );
+    }
+    return false;
+    // return adfsio< adinterface::Method >::read( folder, t, id );
 }
 

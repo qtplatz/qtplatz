@@ -26,11 +26,13 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/scoped_ptr.hpp>
-#include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
 #include <memory>
+
+namespace boost { 
+    namespace uuids { struct uuid; }
+    namespace serialization { class access; }
+}
 
 namespace adcontrols {
 
@@ -66,55 +68,26 @@ namespace adcontrols {
 
         int mode() const;
         void mode( int );
-        const std::wstring& description() const;
-        void description( const std::wstring& );
+        const wchar_t * description() const;
+        void description( const wchar_t * );
 
     private:
 
 # if defined _MSC_VER
 #  pragma warning( disable:4251 )
 # endif
-        double tolerance_;
-        double threshold_;
-        boost::scoped_ptr< MSReferences > references_;
-        boost::scoped_ptr< MSCalibration > calibration_;
-        boost::scoped_ptr< MSAssignedMasses > assignedMasses_;
 
-        int mode_;
-        std::wstring description_;
+        class impl;
+        std::unique_ptr< impl > impl_;
 
         friend class boost::serialization::access;
-        template<class Archive>
-        void serialize(Archive& ar, const unsigned int version ) {
-            using namespace boost::serialization;
-            if ( version < 2 ) {
-                ar & BOOST_SERIALIZATION_NVP(tolerance_);
-                ar & BOOST_SERIALIZATION_NVP(threshold_);
-                ar & BOOST_SERIALIZATION_NVP(references_);
-                ar & BOOST_SERIALIZATION_NVP(calibration_);
-                ar & BOOST_SERIALIZATION_NVP(assignedMasses_);
-            } else if ( version >= 2 ) {
-                ar & BOOST_SERIALIZATION_NVP(tolerance_);
-                ar & BOOST_SERIALIZATION_NVP(threshold_);
-                ar & boost::serialization::make_nvp("references", *references_);
-                ar & boost::serialization::make_nvp("calibration", *calibration_);
-                ar & boost::serialization::make_nvp("assignedMasses", *assignedMasses_);
-                // trial for multi-turn calibration
-                if ( version == 2 ) {
-                    double tDelay;
-                    ar & BOOST_SERIALIZATION_NVP(tDelay); // deprecated (only on version = 2 )
-                    // tDelay has been implemented into MSCalibration class as t0_coeffs
-                }
-                if ( version >= 3 ) {
-                    ar & BOOST_SERIALIZATION_NVP(mode_)
-                        & BOOST_SERIALIZATION_NVP(description_)
-                        ;
-                }
-            }
-        }
+        template<class Archive>  void serialize( Archive& ar, const unsigned int version );
+
     public:
         static bool archive( std::ostream&, const MSCalibrateResult& );
         static bool restore( std::istream&, MSCalibrateResult& );
+        static bool xml_archive( std::wostream&, const MSCalibrateResult& );
+        static bool xml_restore( std::wistream&, MSCalibrateResult& );
     };
 
    typedef std::shared_ptr<MSCalibrateResult> MSCalibrateResultPtr;

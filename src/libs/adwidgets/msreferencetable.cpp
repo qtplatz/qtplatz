@@ -148,11 +148,11 @@ MSReferenceTable::getContents( adcontrols::MSCalibrateMethod& m )
         std::wstring adduct_string = adcontrols::ChemicalFormula::make_adduct_string( adducts );
 
         double exactMass = model.data( model.index( row, c_exact_mass ), Qt::EditRole ).toDouble();
-        bool enable = model.data( model.index( row, c_formula ), Qt::CheckStateRole ).toBool();
+        bool enable = model.data( model.index( row, c_enable ), Qt::CheckStateRole ).toBool();
         int charge = model.data( model.index( row, c_charge ) ).toInt();
         std::wstring description = model.data( model.index( row, c_description ) ).toString().toStdWString();
 
-        m.references() << adcontrols::MSReference( formula, true, adduct_string, enable, exactMass, charge, description );
+        m.references() << adcontrols::MSReference( formula.c_str(), true, adduct_string.c_str(), enable, exactMass, charge, description.c_str() );
     }    
 }
 

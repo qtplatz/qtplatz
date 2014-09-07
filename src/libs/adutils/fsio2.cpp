@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "fsio2.hpp"
-#include "adfsio.hpp"
 #include "cpio.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
