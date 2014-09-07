@@ -24,6 +24,7 @@
 
 #include "mscalibrationwnd.hpp"
 #include "mainwindow.hpp"
+#include "dataproc_document.hpp"
 #include "dataprocessor.hpp"
 #include "dataprochandler.hpp"
 #include "qtwidgets_name.hpp"
@@ -255,11 +256,19 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 
         if ( result && centroid ) {
             QVector< QPointF > errors;
-            adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( centroid->scanLaw(), result->calibration() );
+            if ( auto scanLaw = centroid->scanLaw() ) {
+                adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *centroid->scanLaw(), result->calibration() );
 
-            for ( auto a: result->assignedMasses() ) {
-                double mass = mass_calculator( a.time(), a.mode() );
-                errors.push_back( QPointF( a.exactMass(), ( mass - a.exactMass() ) * 1000 ) );
+                for ( auto a : result->assignedMasses() ) {
+                    double mass = mass_calculator( a.time(), a.mode() );
+                    errors.push_back( QPointF( a.exactMass(), (mass - a.exactMass()) * 1000 ) );
+                }
+            }
+            else {
+                for ( auto a : result->assignedMasses() ) {
+                    double mass = adcontrols::detail::compute_mass< adcontrols::MSCalibration::TIMESQUARED >::compute( a.time(), result->calibration() );
+                    errors.push_back( QPointF( a.exactMass(), (mass - a.exactMass()) * 1000 ) );
+                }
             }
             pImpl_->plot_stderror_( errors, *pImpl_->processedSpectrum_ );
             pImpl_->processedSpectrum_->replot();

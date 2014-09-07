@@ -123,10 +123,10 @@ ChromatogramWnd::init()
                 splitter->setOrientation( Qt::Vertical );
             }
             else
-                QMessageBox::warning( this, "ChromatogramWnd", "PeakResultWidget in qtwidgets.dll can not be loaded." );
+                QMessageBox::warning( this, tr("ChromatogramWnd"), tr( "PeakResultWidget in qtwidgets.dll can not be loaded." ) );
         }
         else
-            QMessageBox::warning( this, "ChromatogramWnd", "ChromatogramWidget in qtwidgets.dll can not be loaded." );
+            QMessageBox::warning( this, tr("ChromatogramWnd"), tr( "ChromatogramWidget in qtwidgets.dll can not be loaded." ) );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );

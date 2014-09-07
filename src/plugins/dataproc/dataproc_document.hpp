@@ -60,9 +60,13 @@ namespace dataproc {
         const adcontrols::MSQPeaks * msQuanTable() const;
 
         std::shared_ptr< adcontrols::ProcessMethod > processMethod() const;
-        void setProcessMethod( const adcontrols::ProcessMethod& );
+        void setProcessMethod( const adcontrols::ProcessMethod&, const QString& filename = QString() );
 
         void addToRecentFiles( const QString& );
+        QString recentFile( const char * group = 0, bool dir_on_fail = false );
+
+        static bool load( const QString& filename, adcontrols::ProcessMethod& );
+        static bool save( const QString& filename, const adcontrols::ProcessMethod& );
 
         static size_t findCheckedTICs( Dataprocessor *, std::set< int >& vfcn );
         static const std::shared_ptr< adcontrols::Chromatogram > findTIC( Dataprocessor *, int );
@@ -71,10 +75,10 @@ namespace dataproc {
         std::shared_ptr< adcontrols::MSQPeaks > quant_;
         std::shared_ptr< QSettings > settings_;  // user scope settings
         std::shared_ptr< adcontrols::ProcessMethod > pm_;
-        std::wstring procmethod_filename_;
+        QString procmethod_filename_;
 
     signals:
-        void onProcessMethodChanged();
+        void onProcessMethodChanged( const QString& );
 
     public slots:
 

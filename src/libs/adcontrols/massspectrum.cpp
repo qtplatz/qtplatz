@@ -306,12 +306,12 @@ MassSpectrum::mode() const
     return pImpl_->getMSProperty().mode();
 }
 
-const ScanLaw&
+const ScanLaw*
 MassSpectrum::scanLaw() const
 {
     if ( ! pImpl_->scanLaw_ )
-        pImpl_->scanLaw_ = pImpl_->getMSProperty().scanLaw();
-    return *(pImpl_->scanLaw_);
+        pImpl_->scanLaw_ = pImpl_->getMSProperty().scanLaw(); // cache
+    return pImpl_->scanLaw_.get();
 }
 
 const double *
@@ -398,7 +398,10 @@ double
 MassSpectrum::getNormalizedTime( size_t idx ) const
 {
     double time = getTime( idx );
-    return time / scanLaw().fLength( mode() );
+    if ( auto law = scanLaw() )
+        return time / law->fLength( mode() );
+    else
+        return time;
 }
 
 void

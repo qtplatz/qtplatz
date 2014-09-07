@@ -215,7 +215,8 @@ MainWindow::handleApplyStylesheet()
         boost::filesystem::ofstream o( path );
         o << processed_.toStdString();
 
-        QDesktopServices::openUrl( QUrl( QString( "file:///%1" ).arg( QString::fromStdWString( path.wstring() ) ) ) );
+        QUrl url( QUrl::fromLocalFile( QString::fromStdWString( path.wstring() ) ) );
+        QDesktopServices::openUrl( url );
 
     }
 }

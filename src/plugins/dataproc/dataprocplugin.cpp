@@ -431,7 +431,6 @@ DataprocPlugin::extensionsInitialized()
     
     // auto editMode = Core::ModeManager::mode( Core::Id( Core::EDIT_MODE ) );
     mainWindow_->OnInitialUpdate();
-    pActionManager_->loadDefaults();
     dataproc_document::instance()->initialSetup();
 }
 
@@ -441,7 +440,6 @@ DataprocPlugin::aboutToShutdown()
 {
     ADTRACE() << "====== DataprocPlugin shutting down...  ===============";
 
-    pActionManager_->saveDefaults();
     dataproc_document::instance()->finalClose();
 
     mainWindow_->OnFinalClose();

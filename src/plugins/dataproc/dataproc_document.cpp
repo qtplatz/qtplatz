@@ -101,11 +101,19 @@ dataproc_document::processMethod() const
 }
 
 void
-dataproc_document::setProcessMethod( const adcontrols::ProcessMethod& m )
+dataproc_document::setProcessMethod( const adcontrols::ProcessMethod& m, const QString& filename )
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-    pm_ = std::make_shared< adcontrols::ProcessMethod >( m );
-    emit onProcessMethodChanged();
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        pm_ = std::make_shared< adcontrols::ProcessMethod >( m );
+    } while(0);
+
+    if ( ! filename.isEmpty() ) {
+        procmethod_filename_ = filename;
+        qtwrapper::settings(*settings_).addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, filename );
+    }
+
+    emit onProcessMethodChanged( filename );
 }
 
 void
@@ -126,9 +134,9 @@ dataproc_document::initialSetup()
         }
     }
 
-    QString path = qtwrapper::settings(*settings_).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
+    QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
-        auto path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
+        path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
     } else {
         path = QFileInfo( path ).path();
     }
@@ -137,29 +145,9 @@ dataproc_document::initialSetup()
     Core::DocumentManager::setUseProjectsDirectory( true );
 
     boost::filesystem::path mfile( dir / "default.pmth" );
-    if ( boost::filesystem::exists( mfile ) ) {
-        
-        adfs::filesystem fs;
-        if ( fs.mount( mfile.wstring().c_str() ) ) {
-            adfs::folder folder = fs.findFolder( L"/ProcessMethod" );
-
-            auto files = folder.files();
-            if ( !files.empty() ) {
-                auto file = files.back();
-                pm_ = std::make_shared< adcontrols::ProcessMethod >();
-                try {
-                    file.fetch( *pm_ );
-                }
-                catch ( std::exception& ex ) {
-                    QMessageBox::information( 0, "dataproc -- Open default process method"
-                                              , (boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
-                                              % mfile.string() % ex.what() % __FILE__ % __LINE__).str().c_str() );
-                    return;
-                }
-                procmethod_filename_ = mfile.generic_wstring();
-            }
-        }
-    }
+    adcontrols::ProcessMethod pm;
+    if ( load( QString::fromStdWString( mfile.wstring() ), pm ) )
+        setProcessMethod( pm, QString() ); // don't save default name
 }
 
 void
@@ -173,39 +161,13 @@ dataproc_document::finalClose()
             return;
         }
     }
+
+    // update data from UI
+    adcontrols::ProcessMethod pm;
+    MainWindow::instance()->getProcessMethod( pm );
     
     boost::filesystem::path fname( dir / "default.pmth" );
-    adfs::filesystem file;
-    if ( !file.create( fname.wstring().c_str() ) ) {
-        ADTRACE() << "Error in dataproc_document::finalClose: \"" << fname.string() << "\" can't be created";
-        return;
-    }
-    
-    adfs::folder folder = file.addFolder( L"/ProcessMethod" );
-    adfs::file adfile = folder.addFile( fname.wstring() );
-    try {
-        adfile.save( *pm_ );
-    } catch ( std::exception& ex ) {
-        ADTRACE() << "Exception in dataproc_document::finalClose: " << boost::diagnostic_information( ex );
-    }
-    adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
-    adfile.commit();
-
-    boost::filesystem::path xmlfile( dir / "default.pmth.xml" );
-    if ( boost::filesystem::exists( xmlfile ) ) 
-        boost::filesystem::remove( xmlfile );
-
-    std::wstringstream o;
-    try {
-        adcontrols::ProcessMethod::xml_archive( o, *pm_ );
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << boost::diagnostic_information( ex );
-        ADTRACE() << "Exception in dataproc_document::finalClose: " << boost::diagnostic_information( ex );
-    }
-    pugi::xml_document doc;
-    doc.load( o );
-    // todo: add style sheet
-    doc.save_file( xmlfile.string().c_str() );
+    save( QString::fromStdWString( fname.wstring() ), pm );
 }
 
 adcontrols::MSQPeaks *
@@ -224,6 +186,30 @@ void
 dataproc_document::setMSQuanTable( const adcontrols::MSQPeaks& v )
 {
     quant_ = std::make_shared< adcontrols::MSQPeaks >( v );
+}
+
+QString
+dataproc_document::recentFile( const char * group, bool dir_on_fail )
+{
+    if ( group == 0 )
+        group = Constants::GRP_DATA_FILES;
+
+    QString file = qtwrapper::settings( *settings_ ).recentFile( group, Constants::KEY_FILES );
+    if ( !file.isEmpty() )
+        return file;
+
+    if ( dir_on_fail ) {
+        file = Core::DocumentManager::currentFile();
+        if ( file.isEmpty() )
+            file = qtwrapper::settings( *settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
+
+        if ( !file.isEmpty() ) {
+            QFileInfo fi( file );
+            return fi.path();
+        }
+        return QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() );
+    }
+    return QString();
 }
 
 // static
@@ -265,3 +251,69 @@ dataproc_document::findTIC( Dataprocessor * dp, int fcn )
     return 0;
 }
 
+bool
+dataproc_document::load( const QString& filename, adcontrols::ProcessMethod& pm )
+{
+    QFileInfo fi( filename );
+
+    if ( fi.exists() ) {
+        adfs::filesystem fs;
+        if ( fs.mount( filename.toStdWString().c_str() ) ) {
+            adfs::folder folder = fs.findFolder( L"/ProcessMethod" );
+        
+            auto files = folder.files();
+            if ( !files.empty() ) {
+                auto file = files.back();
+                try {
+                    file.fetch( pm );
+                }
+                catch ( std::exception& ex ) {
+                    QMessageBox::information( 0, "dataproc -- Open default process method"
+                                              , (boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
+                                                 % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
+                    return false;
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool
+dataproc_document::save( const QString& filename, const adcontrols::ProcessMethod& pm )
+{
+    adfs::filesystem file; // (filename.toStdWString().c_str());
+
+    if ( !file.create( filename.toStdWString().c_str() ) ) {
+        ADTRACE() << "Error: \"" << filename.toStdString() << "\" can't be created";
+        return false;
+    }
+    
+    adfs::folder folder = file.addFolder( L"/ProcessMethod" );
+    adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
+    try {
+        adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
+        adfile.save( pm );
+    } catch ( std::exception& ex ) {
+        ADTRACE() << "Exception: " << boost::diagnostic_information( ex );
+        return false;
+    }
+    adfile.commit();
+
+    QFileInfo xmlfile( filename + ".xml" );
+    if ( xmlfile.exists() )
+        QFile::remove( xmlfile.absoluteFilePath() );
+
+    std::wstringstream o;
+    try {
+        adcontrols::ProcessMethod::xml_archive( o, pm );
+    } catch ( std::exception& ex ) {
+        ADDEBUG() << boost::diagnostic_information( ex );
+    }
+    pugi::xml_document doc;
+    doc.load( o );
+    // todo: add style sheet
+    doc.save_file( xmlfile.absoluteFilePath().toStdString().c_str() );
+    return true;
+}

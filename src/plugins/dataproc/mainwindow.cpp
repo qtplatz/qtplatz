@@ -211,7 +211,7 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , actionApply_( 0 )
                                           , stack_( 0 )
                                           , aboutDlg_(0)
-                                          , processMethodNameEdit_( new QLineEdit ) 
+    // , processMethodNameEdit_( new QLineEdit ) 
                                           , currentFeature_( CentroidProcess )
 {
     std::fill( selPages_.begin(), selPages_.end(), static_cast<QAction *>(0) );
@@ -369,7 +369,10 @@ MainWindow::createStyledBarMiddle()
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             toolBarLayout->addWidget( new QLabel( tr("Process Method:" ) ) );
-            toolBarLayout->addWidget( processMethodNameEdit_.get() );
+            auto edit = new QLineEdit;
+            edit->setObjectName( Constants::EDIT_PROCMETHOD );
+            edit->setEnabled( false );
+            toolBarLayout->addWidget( edit );
 
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
         }
@@ -806,12 +809,13 @@ MainWindow::OnInitialUpdate()
 
     if ( auto pm = dataproc_document::instance()->processMethod() ) {
         setProcessMethod( *pm ); // write to UI
-        getProcessMethod( *pm ); // read back from UI, also adds some method if missed by config change
+        getProcessMethod( *pm ); // read back from UI
     } else {
         adcontrols::ProcessMethod m;
         getProcessMethod( m );
         dataproc_document::instance()->setProcessMethod( m );
     }
+    connect( dataproc_document::instance(), &dataproc_document::onProcessMethodChanged, this, &MainWindow::handleProcessMethodChanged );
 
     setSimpleDockWidgetArrangement();
 }
@@ -1050,29 +1054,22 @@ MainWindow::handleFeatureActivated( int value )
     currentFeature_ = static_cast< ProcessType >( value );
 }
 
-void
-MainWindow::processMethodSaved( const QString& name )
-{
-    processMethodNameEdit_->setText( name );
-}
 
-void
-MainWindow::processMethodLoaded( const QString& name, const adcontrols::ProcessMethod& m )
-{
-    processMethodNameEdit_->setText( name );
+// void
+// MainWindow::processMethodLoaded( const QString& name, const adcontrols::ProcessMethod& m )
+// {
+// 	QList< QDockWidget * > docs = this->dockWidgets();
 
-	QList< QDockWidget * > docs = this->dockWidgets();
-
-	std::for_each( docs.begin(), docs.end(), [&]( QDockWidget * dock ){
-		QWidget * obj = dock->widget();
-		adplugin::LifeCycleAccessor accessor( obj );
-		adplugin::LifeCycle * pLifeCycle = accessor.get();
-		if ( pLifeCycle ) {
-            boost::any any( m );
-			pLifeCycle->setContents( any );
-        }
-    });
-}
+// 	std::for_each( docs.begin(), docs.end(), [&]( QDockWidget * dock ){
+// 		QWidget * obj = dock->widget();
+// 		adplugin::LifeCycleAccessor accessor( obj );
+// 		adplugin::LifeCycle * pLifeCycle = accessor.get();
+// 		if ( pLifeCycle ) {
+//             boost::any any( m );
+// 			pLifeCycle->setContents( any );
+//         }
+//     });
+// }
 
 void
 MainWindow::printCurrentView( const QString& pdfname ) const
@@ -1215,4 +1212,16 @@ MainWindow::aboutQtPlatz()
         connect( aboutDlg_, static_cast<void(AboutDlg::*)(int)>(&AboutDlg::finished), this, [&](){ aboutDlg_->deleteLater(); aboutDlg_ = 0; });
     }
     aboutDlg_->show();
+}
+
+void
+MainWindow::handleProcessMethodChanged( const QString& filename )
+{
+    for ( auto& edit : findChildren< QLineEdit * >( Constants::EDIT_PROCMETHOD ) )
+        edit->setText( filename );
+
+    if ( auto pm = dataproc_document::instance()->processMethod() ) {
+        setProcessMethod( *pm ); // update UI
+    }
+
 }

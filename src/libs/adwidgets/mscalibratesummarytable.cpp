@@ -250,16 +250,24 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
 	double normalized_time = 0; // ( it->time() - t0 ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
 
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
-
-    adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( pCalibrantSpectrum_->scanLaw(), calib );
-	double mass = mass_calculator( it->time(), it->mode() );
+    double mass( 0 );
+    if ( auto scanLaw = pCalibrantSpectrum_->scanLaw() ) {
+        adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *pCalibrantSpectrum_->scanLaw(), calib );
+        mass = mass_calculator( it->time(), it->mode() );
+    }
+    else {
+        mass = adcontrols::detail::compute_mass< adcontrols::MSCalibration::TIMESQUARED >::compute( it->time(), calib );
+    }
 
 	if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
 		double t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt( mass ) ), calib.time_prefix() );
-		double L = pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
+		double L = pCalibrantSpectrum_->scanLaw()->fLength( it->mode() );
 		normalized_time = ( it->time() - t0 ) / L;
 	} else {
-		normalized_time = ( it->time() ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
+        if ( auto scanLaw = pCalibrantSpectrum_->scanLaw() )
+            normalized_time = (it->time()) / pCalibrantSpectrum_->scanLaw()->fLength( it->mode() );
+        else
+            normalized_time = it->time();
 	}
 
     model.setData( model.index( row, c_time_normalized ), normalized_time );
@@ -297,7 +305,7 @@ MSCalibrateSummaryTable::createModelData( const std::vector< std::pair< int, int
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
 
     model.removeRows( 0, model.rowCount() );
-    model.insertRows( 0, static_cast<int>(indecies.size()) ); 
+    model.insertRows( 0, static_cast<int>(indecies.size()) );
 
     adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *pCalibrantSpectrum_ );
 
@@ -312,11 +320,10 @@ MSCalibrateSummaryTable::createModelData( const std::vector< std::pair< int, int
         model.setData( model.index( row, c_mode ),  ms.getMSProperty().getSamplingInfo().mode ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( idx.second ) );
         model.setData( model.index( row, c_time ),  ms.getTime( idx.second ) );
-		try {
-			model.setData( model.index( row, c_time_normalized ), ms.getNormalizedTime( idx.second ) );
-		} catch ( boost::exception& e ) {
-			ADERROR() << boost::diagnostic_information(e);
-		}
+
+        // this will be deprecated.
+        model.setData( model.index( row, c_time_normalized ), ms.getNormalizedTime( idx.second ) );
+
         model.setData( model.index( row, c_intensity ), ms.getIntensity( idx.second ) );
 
         model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( idx.second ) ) ); // ms.getNormalizedTime( idx.second ) ) );
@@ -609,8 +616,8 @@ MSCalibrateSummaryTable::addSelectionToPeakTable()
             mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
         int mode = model.index( row, c_mode ).data().toInt();
 
-        const adcontrols::ScanLaw& law = pCalibrantSpectrum_->scanLaw();
-        adcontrols::MSPeak peak( time, mass, mode, law.fLength( mode ) );
+        const adcontrols::ScanLaw* law = pCalibrantSpectrum_->scanLaw();
+        adcontrols::MSPeak peak( time, mass, mode, law->fLength( mode ) );
         peak.formula( formula );
 
         //peak.spectrumId( pCalibrantSpectrum_->uuid() );

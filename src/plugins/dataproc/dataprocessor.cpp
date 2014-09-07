@@ -178,7 +178,6 @@ Dataprocessor::save( QString * errorString, const QString& filename, bool /* aut
 
 		if ( boost::filesystem::exists( path ) ) {
             *errorString = "File already exists";
-            // QMessageBox::warning( 0, "Datafile save", "file already exists" );
             return false;
         }
         std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
@@ -1011,36 +1010,47 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Iso
 bool
 DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
 {
+    auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
+    std::string diClsid = profile->getMSProperty().dataInterpreterClsid();
+
     std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
     if ( models.empty() ) {
-        QMessageBox::warning(0, "Calibration", "It has no mass spectrometer installed so that is not possible to re-assin masses");
+        if ( !diClsid.empty() )
+            QMessageBox::warning( 0, QObject::tr( "Calibration" ), QObject::tr( "It has no mass spectrometer for %1 installed so that mass can't be assinged." ).arg( diClsid.c_str() ) );
+        else
+            QMessageBox::warning( 0, QObject::tr( "Calibration" ), QObject::tr( "It has no mass spectrometer installed so that mass can't be assigned." ) );
         return false;
     }
-    std::string dataInterpreter = adportable::utf::to_utf8( models[0] );
-    QMessageBox::warning(0, "Calibration"
-                         , (boost::format("Data has no mass spectrometer scan law, assuming %1%") % dataInterpreter).str().c_str());
-    
-    auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
-	adcontrols::segment_wrapper<> segments( *profile );
-    for ( auto& fms: segments ) {
-        adcontrols::MSProperty prop( fms.getMSProperty() );
-        prop.setDataInterpreterClsid( dataInterpreter.c_str() );
-        fms.setMSProperty( prop );
+
+    std::string dataInterpreter = adportable::utf::to_utf8( models[ 0 ] );
+    if ( !diClsid.empty() ) {
+        QMessageBox::warning( 0, QObject::tr( "Calibration" ), QObject::tr( "No mass spectrometer class '%1' installed." ).arg( diClsid.c_str() ) );
+        return false;
     }
-    
-    portfolio::Folium::vector_type atts = folium.attachments();
-    std::for_each( atts.begin(), atts.end(), [&]( portfolio::Folium& att ){
-            if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( static_cast< boost::any& >( att ) ) ) {
+    else {
+        QMessageBox::warning( 0, QObject::tr( "Calibration" ), QObject::tr( "Data has no mass spectrometer information, assume %1" ).arg( dataInterpreter.c_str() ) );
+
+        adcontrols::segment_wrapper<> segments( *profile );
+        for ( auto& fms : segments ) {
+            adcontrols::MSProperty prop( fms.getMSProperty() );
+            prop.setDataInterpreterClsid( dataInterpreter.c_str() );
+            fms.setMSProperty( prop );
+        }
+
+        portfolio::Folium::vector_type atts = folium.attachments();
+        std::for_each( atts.begin(), atts.end(), [&] ( portfolio::Folium& att ){
+            if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>(att) ) ) {
                 auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( att );
                 adcontrols::segment_wrapper<> segments( *centroid );
-                for ( auto& fms: segments ) {
-                    adcontrols::MSProperty prop( fms.getMSProperty() );                    
+                for ( auto& fms : segments ) {
+                    adcontrols::MSProperty prop( fms.getMSProperty() );
                     prop.setDataInterpreterClsid( dataInterpreter.c_str() );
-                    fms.setMSProperty( prop );                
+                    fms.setMSProperty( prop );
                 }
             }
-        });
-    return true;
+        } );
+        return true;
+    }
 }
 
 bool
@@ -1050,7 +1060,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
 
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
 	if ( ! adcontrols::MassSpectrometer::find( pProfile->getMSProperty().dataInterpreterClsid() ) ) {
-		fixupDataInterpreterClsid( folium );
+        fixupDataInterpreterClsid( folium );
 	}
 
     Folium::vector_type atts = folium.attachments();
