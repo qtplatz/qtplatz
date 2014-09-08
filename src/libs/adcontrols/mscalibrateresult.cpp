@@ -50,7 +50,7 @@ namespace adcontrols {
                , mode_(0) {
         }
 
-        impl::impl( const impl& t ) : tolerance_( t.tolerance_ )
+        impl( const impl& t ) : tolerance_( t.tolerance_ )
                                     , threshold_( t.threshold_ )
                                     , references_( new MSReferences( *t.references_ ) )
                                     , calibration_( new MSCalibration( *t.calibration_ ) )
