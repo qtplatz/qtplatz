@@ -131,10 +131,12 @@ QuanReportWidget::importDocTemplate()
 void
 QuanReportWidget::onInitialUpdate( QuanDocument * d )
 {
-    if ( auto doc = d->docTemplate() )
+    if ( auto doc = d->docTemplate() ) {
         docEditor_->setDocument( doc );
-    else
-        d->docTemplate( docEditor_->document() ); // setup hard-coded default
+    } else {
+        auto ptr = docEditor_->document(); // setup hard-coded default
+        d->docTemplate( ptr ); // setup hard-coded default
+    }
 }
 
 void
