@@ -26,7 +26,7 @@
 #define QUANPLOTWND_HPP
 
 #include <QWidget>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #if !defined Q_MOC_RUN
 #include <boost/variant.hpp>
 #endif

@@ -58,7 +58,7 @@
 #include <QTextEdit>
 #include <QLabel>
 #include <QColor>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include <iomanip>
 #include <sstream>
 

@@ -32,7 +32,7 @@
 #include <boost/archive/detail/register_archive.hpp>
 #include "portable_binary_archive.hpp"
 #include <compiler/deprecated_register.hpp>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // exception to be thrown if integer read from archive doesn't fit

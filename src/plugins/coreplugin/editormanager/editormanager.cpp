@@ -1346,7 +1346,8 @@ void EditorManagerPrivate::updateActions()
 
 void EditorManagerPrivate::updateWindowTitle()
 {
-    QString windowTitle = tr("Qt Creator");
+    //QString windowTitle = tr( "Qt Creator" );
+    QString windowTitle = tr( "QtPlatz" );  // TH: Change 8 Sep., 2014
     const QString dashSep = QLatin1String(" - ");
     QString vcsTopic;
     IDocument *document = EditorManager::currentDocument();

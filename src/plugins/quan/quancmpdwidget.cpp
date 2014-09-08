@@ -29,7 +29,7 @@
 #include <QLabel>
 #include <QStandardItemModel>
 #include <QMessageBox>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 
