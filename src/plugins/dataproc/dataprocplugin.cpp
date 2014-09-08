@@ -331,6 +331,7 @@ DataprocPlugin::onSelectSpectrum( double /*minutes*/, size_t pos, int fcn )
                 }
             }
             catch ( ... ) {
+                ADTRACE() << boost::current_exception_diagnostic_information();
                 QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
             }
         }

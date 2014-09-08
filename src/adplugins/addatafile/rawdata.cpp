@@ -43,7 +43,6 @@
 #include <adfs/adfs.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/array_wrapper.hpp>
-//#include <adportable/serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adlog/logger.hpp>
 #include <adutils/mscalibio.hpp>
@@ -200,10 +199,12 @@ rawdata::loadCalibrations()
 
                 auto calibResult = std::make_shared< MSCalibrateResult >();
                 
-                
+                boost::iostreams::basic_array_source< char > source( device.data(), device.size() );
+                boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( source );
 
                 //if ( serializer< MSCalibrateResult >::deserialize( *calibResult, device.data(), device.size() ) ) {
-                if ( adportable::binary::deserialize<>()(*calibResult, device.data(), device.size()) ) {
+                //if ( adportable::binary::deserialize<>()(*calibResult, device.data(), device.size()) ) {
+                if ( MSCalibrateResult::restore( strm, *calibResult ) ) {
                     calibResults_[ conf.objid ] = calibResult;
                     if ( auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid.c_str() ) )
                         spectrometer->setCalibration( calibResult->mode(), *calibResult );

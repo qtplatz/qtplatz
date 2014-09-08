@@ -35,6 +35,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quanmethod.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
 
@@ -177,6 +178,7 @@ DataSequenceWidget::dataSelectionBar()
                         }
                     }
                     catch ( ... ) {
+                        ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
                         QMessageBox::information( this, "Quan/DataSequence Edit", "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again." );
                     }
                 }

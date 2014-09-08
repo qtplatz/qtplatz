@@ -24,6 +24,7 @@
 
 #include "quancmpdwidget.hpp"
 #include "quanresulttable.hpp"
+#include <adlog/logger.hpp>
 #include <utils/styledbar.h>
 #include <QBoxLayout>
 #include <QLabel>
@@ -32,7 +33,7 @@
 #include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
-
+#include <boost/exception/all.hpp>
 
 using namespace quan;
 
@@ -71,7 +72,8 @@ QuanCmpdWidget::uuid( int row )
         try {
             return boost::lexical_cast<boost::uuids::uuid>(data);
         }
-        catch ( boost::bad_lexical_cast& ) {
+        catch ( boost::bad_lexical_cast& ex ) {
+            ADTRACE() << boost::diagnostic_information( ex );
             QMessageBox::warning( this, "QuanCmpdWidget", QString( "Can't convert to uuid from '%1'" ).arg( data.c_str() ) );
         }
     }

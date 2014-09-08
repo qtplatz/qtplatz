@@ -43,7 +43,7 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     setId( Constants::C_DATAPROCESSOR );
     setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
     // setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::C_EDIT_MODE ) );
-    setContext( Core::Context( Constants::C_DATAPROCESSOR ) );
+    setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::C_EDIT_MODE ) );
     
     connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance())
              , &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
@@ -58,9 +58,9 @@ Mode::grabEditorManager(Core::IMode *mode)
 
     if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
         cmd->action()->setText( tr( "Open data files..." ) );
-    
+    /*
     if ( Core::EditorManager::instance()->currentEditor() )
         Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
-    
+    */
 }
 

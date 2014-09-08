@@ -337,6 +337,7 @@ Dataprocessor::fetch( portfolio::Folium& folium )
 					fetch( att ); // recursive call make sure for all blongings load up in memory.
 			}
 		} catch ( boost::exception& ex ) {
+            ADTRACE() << boost::diagnostic_information( ex );
 #if defined _DEBUG || DEBUG
             QMessageBox::information( 0, "Dataprocessor", QString::fromStdString( boost::diagnostic_information( ex ) ) );
 #endif

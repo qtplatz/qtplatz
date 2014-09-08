@@ -584,6 +584,7 @@ MainWindow::createDockWidgets()
         if ( pWidget ) {
             createDockWidget( pWidget, widget.title, widget.pageName );
         } else {
+            ADTRACE() << "dataprocmanager failed to create " << widget.wiid;
             QMessageBox::critical(0, QLatin1String("dataprocmanager"), widget.wiid );
         }
     }
