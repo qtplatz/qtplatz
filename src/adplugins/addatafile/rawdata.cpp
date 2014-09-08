@@ -197,7 +197,11 @@ rawdata::loadCalibrations()
             std::vector< char > device;
             int64_t rev;
             if ( adutils::mscalibio::readCalibration( dbf_.db(), uint32_t(conf.objid), MSCalibrateResult::dataClass(), device, rev ) ) {
+
                 auto calibResult = std::make_shared< MSCalibrateResult >();
+                
+                
+
                 //if ( serializer< MSCalibrateResult >::deserialize( *calibResult, device.data(), device.size() ) ) {
                 if ( adportable::binary::deserialize<>()(*calibResult, device.data(), device.size()) ) {
                     calibResults_[ conf.objid ] = calibResult;

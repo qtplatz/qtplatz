@@ -73,7 +73,7 @@ DataprocEditor::portfolio_create( const QString& filename )
 }
 
 bool
-DataprocEditor::open( QString*, const QString &filename, const QString& )
+DataprocEditor::open( QString* errorMessage, const QString &filename, const QString& )
 {
 	qtwrapper::waitCursor wait;
 
@@ -86,6 +86,8 @@ DataprocEditor::open( QString*, const QString &filename, const QString& )
 
         return true;
     }
+    *errorMessage = QString("DataprocEditor: file %1 could not be opend.").arg(filename);
+
     return false;
 }
 
