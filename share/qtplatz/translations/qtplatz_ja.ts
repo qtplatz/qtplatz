@@ -44064,7 +44064,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+121"/>
         <source>Open Quan Result...</source>
-        <translation type="unfinished"></translation>
+        <translation>定量結果ファイル...</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -44100,33 +44100,33 @@ p, li { white-space: pre-wrap; }
         <location line="+128"/>
         <location line="+56"/>
         <source>Open Quantitation Method File</source>
-        <translation type="unfinished"></translation>
+        <translation>定量メソッドを開く</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Quan Method Files(*.qmth);;Result Files(*.adfs);;XML Files(*.xml)</source>
-        <translation type="unfinished"></translation>
+        <translation>定量メソッドファイル(*.qmth);;結果データファイル(*.adfs);;XML ファイル(*.xml)</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Save Quantitation Method File</source>
-        <translation type="unfinished"></translation>
+        <translation>定量メソッドの保存</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Quan Method Files(*.qmth);;XML Files(*.xml)</source>
-        <translation type="unfinished"></translation>
+        <translation>定量メソッドファイル(*.qmth);;XML ファイル(*.xml)</translation>
     </message>
     <message>
         <location line="+30"/>
         <location line="+21"/>
         <source>Quan Sequence Files(*.qseq)</source>
-        <translation type="unfinished"></translation>
+        <translation>定量シーケンスファイル(*.qseq)</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Save Quan Sequence File</source>
-        <translation type="unfinished"></translation>
+        <translation>サンプルシーケンスの保存</translation>
     </message>
     <message>
         <source>Quan result file open...</source>
@@ -44176,22 +44176,22 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../../src/plugins/quan/quanconfigwidget.cpp" line="+75"/>
         <source>Import configuration...</source>
-        <translation type="unfinished"></translation>
+        <translation>定量計算条件のインポート...</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Save Quan Method...</source>
-        <translation type="unfinished">定量メソッドの保存</translation>
+        <translation>定量メソッドの保存</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>Open Quan Method...</source>
-        <translation type="unfinished">定量メソッドを開く...</translation>
+        <translation>定量メソッドを開く...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Quan Method Files(*.qmth);;XML Files(*.xml)</source>
-        <translation type="unfinished"></translation>
+        <translation>定量メソッドファイル(*.qmth);;XML ファイル(*.xml)</translation>
     </message>
 </context>
 <context>

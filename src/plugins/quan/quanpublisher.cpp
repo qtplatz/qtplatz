@@ -43,6 +43,7 @@
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adpublisher/document.hpp>
 #include <adfs/sqlite3.h>
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/xmlhelper.hpp>
@@ -166,6 +167,10 @@ QuanPublisher::operator()( QuanConnection * conn, std::function<void(int)> progr
         doc.append_attribute( "creator" ) = "Quan.qtplatzplugin.ms-cheminfo.com";
         adcontrols::idAudit id;
         detail::append_class()(doc, id, "class adcontrols::idAudit");
+
+        if ( auto docTemplate = QuanDocument::instance()->docTemplate() ) {
+            doc.append_copy( docTemplate->xml_document()->select_single_node( "/article" ).node() );
+        }
         
         int step = 1;
         if ( appendSampleSequence( doc ) ) {

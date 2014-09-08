@@ -126,6 +126,9 @@ namespace quan {
         static bool load( const boost::filesystem::path&, adcontrols::ProcessMethod& );
         static bool save( const boost::filesystem::path&, const adcontrols::ProcessMethod& );
 
+        static bool load( const boost::filesystem::path&, adpublisher::document& );
+        static bool save( const boost::filesystem::path&, const adpublisher::document& );
+
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
         typedef std::map< int, page_type > chapter_type;
@@ -151,6 +154,8 @@ namespace quan {
 
         bool save_default_methods();
         bool load_default_methods();
+        bool save_default_doctemplate();
+        bool load_default_doctemplate();
 
         void addRecentFiles( const QString& group, const QString& key, const QString& value );
         void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const;

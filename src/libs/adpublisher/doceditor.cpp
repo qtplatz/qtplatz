@@ -129,7 +129,8 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
 
     connect(text_.get(), &docEdit::currentCharFormatChanged, this, &docEditor::currentCharFormatChanged );
     connect(text_.get(), &docEdit::cursorPositionChanged, this, &docEditor::cursorPositionChanged );
-    stacked_->setCurrentIndex( 1 ); // Browser as default
+    stacked_->setCurrentIndex( 0 ); // Template as default
+
 }
 
 void
@@ -160,6 +161,8 @@ docEditor::setDocument( std::shared_ptr< adpublisher::document >& t )
     tree_->setDocument( doc_ );
     text_->setDocument( doc_ );
     stacked_->setCurrentIndex(0);
+    if ( auto w = findChild< QComboBox * >( "comboBrowser ") )
+        w->setCurrentIndex(0);
 #if 0
     if ( auto node = doc_->xml_document()->select_single_node( "/article|/book" ) ) {
         text_->setDocument( doc_ );

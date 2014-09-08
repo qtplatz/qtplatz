@@ -38,12 +38,14 @@ namespace quan {
 
     class QuanQueryForm;
     class QuanResultTable;
+    class QuanDocument;
 
     class QuanReportWidget : public QWidget  {
         Q_OBJECT
     public:
         ~QuanReportWidget();
         explicit QuanReportWidget(QWidget *parent = 0);
+        void onInitialUpdate( QuanDocument * );
 
     private:
         QVBoxLayout * layout_;

@@ -147,7 +147,12 @@ QuanDocument::save_default_methods()
         }
     }
 
-    return save( dir / "QuanSequence.xml", *quanSequence_, false ) && save( dir / "QuanMethod.xml", *pm_ );
+    if ( docTemplate_ )
+        save( dir / "QuanDocTemplate.xml", *docTemplate_ );
+
+    return
+        save( dir / "QuanSequence.xml", *quanSequence_, false ) && 
+        save( dir / "QuanMethod.xml", *pm_ );
 }
 
 bool
@@ -192,6 +197,21 @@ QuanDocument::load_default_methods()
         }
     }
     return !(dirty_flags_[ idQuanSequence ] | dirty_flags_[ idMethodComplex ]);
+}
+
+bool
+QuanDocument::load_default_doctemplate()
+{
+    // recovery from backup
+    boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
+    boost::filesystem::path backup = dir / L"QuanDocTemplate.xml";
+
+    auto doc = std::make_shared< adpublisher::document >();
+    if ( boost::filesystem::exists( backup ) && load( backup, *doc ) ) {
+        docTemplate_ = doc;
+        return true;
+    }
+    return false;
 }
 
 void
@@ -401,6 +421,9 @@ QuanDocument::onInitialUpdate()
 {
     if ( !load_default_methods() )
         ADERROR() << "default method load failed";
+
+    if ( !load_default_doctemplate() )
+        ADERROR() << "default document template load failed";
 
     for ( auto& client: clients_ ) {
         client( idQuanMethod, true );
@@ -730,5 +753,17 @@ QuanDocument::save( const boost::filesystem::path& path, const adcontrols::Proce
 
     }
     return false;
+}
+
+bool
+QuanDocument::load( const boost::filesystem::path& path, adpublisher::document& doc )
+{
+    return doc.load_file( path.string().c_str() );
+}
+
+bool
+QuanDocument::save( const boost::filesystem::path& path, const adpublisher::document& doc )
+{
+    return doc.save_file( path.string().c_str() );
 }
 

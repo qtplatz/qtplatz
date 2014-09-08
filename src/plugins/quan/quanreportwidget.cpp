@@ -129,6 +129,15 @@ QuanReportWidget::importDocTemplate()
 }
 
 void
+QuanReportWidget::onInitialUpdate( QuanDocument * d )
+{
+    if ( auto doc = d->docTemplate() )
+        docEditor_->setDocument( doc );
+    else
+        d->docTemplate( docEditor_->document() ); // setup hard-coded default
+}
+
+void
 QuanReportWidget::exportDocTemplate()
 {
     boost::filesystem::path path( QuanDocument::instance()->lastMethodDir().toStdWString() );
