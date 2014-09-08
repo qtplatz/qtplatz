@@ -31,7 +31,7 @@
 //#include "quancompounds.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
 #include <cstdint>
 #include <memory>

@@ -33,7 +33,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adportable/polfit.hpp>
 
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/lexical_cast.hpp>

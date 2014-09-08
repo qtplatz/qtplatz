@@ -25,7 +25,7 @@
 #include "quanquery.hpp"
 #include <adfs/sqlite.hpp>
 #include <adfs/sqlite3.h>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <QObject>

@@ -30,7 +30,7 @@
 #include <boost/archive/detail/common_iarchive.hpp>
 #include <boost/archive/detail/register_archive.hpp>
 #include <compiler/deprecated_register.hpp>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include "portable_binary_archive.hpp"
 
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8

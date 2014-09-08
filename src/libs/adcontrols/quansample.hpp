@@ -32,7 +32,7 @@
 #include <memory>
 #include <vector>
 #include <compiler/disable_dll_interface.h>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 
 namespace adcontrols {
 

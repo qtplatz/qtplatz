@@ -30,7 +30,7 @@
 #include "folium.hpp"
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
