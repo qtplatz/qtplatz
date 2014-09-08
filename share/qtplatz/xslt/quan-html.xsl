@@ -5,11 +5,10 @@
     <html>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <head>
-	<title>Quan Browser Reporting Test</title>
+	<title>Quan Report</title>
       </head>
 
       <body>
-	<h2>Reporting Test</h2>
 
 	<xsl:apply-templates/>
 
@@ -48,6 +47,23 @@
       </table>
       <hr/>
     </div>
+  </xsl:template>
+
+  <xsl:template match="qtplatz_document/article">
+    <div>
+      <h2><xsl:value-of select="title"/></h2>
+      <p>
+	<h4><xsl:value-of select="author"/></h4>
+      </p>
+      <br/>
+      <xsl:for-each select="section">
+	<h3><xsl:value-of select="title"/></h3>
+	<p>
+	  <xsl:value-of select="paragraph"/>
+	</p>
+      </xsl:for-each>
+    </div>
+    
   </xsl:template>
 
   <xsl:template name="sample_attribute">

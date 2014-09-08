@@ -221,6 +221,9 @@ MainWindow::onInitialUpdate()
 {
     QuanDocument::instance()->onInitialUpdate();
 
+    if ( auto rw = findChild< QuanReportWidget * >() )
+        rw->onInitialUpdate( QuanDocument::instance() );
+
     if ( auto qm = QuanDocument::instance()->pm().find< adcontrols::QuanMethod >() ) {
         boost::filesystem::path path = qm->quanMethodFilename();
         if ( !path.empty() ) {

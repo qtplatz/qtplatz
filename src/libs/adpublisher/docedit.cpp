@@ -114,10 +114,10 @@ namespace adpublisher {
                 if ( pframe )
                     cursor = pframe->lastCursorPosition();
 
+                cursor.insertText( tagString( node ), tagFormat ); // <----------- <tag>
+
                 auto frame = cursor.insertFrame( frameFormat );    // <-------------- insert frame
                 QObject::connect( frame, &QTextFrame::destroyed, &edit, &docEdit::handleBlockDeleted );
-
-                cursor.insertText( tagString( node ), tagFormat ); // <----------- <tag>
                 
                 // body
                 if ( std::strcmp( node.node().name(), "title" ) == 0 ) {
@@ -137,6 +137,7 @@ namespace adpublisher {
                 for ( auto& child : node.node().select_nodes( "./*" ) ) {
                     (*this)(child, frame, level + 1);
                 }
+                cursor = pframe ? pframe->lastCursorPosition() : mainFrame->lastCursorPosition();
                 cursor.insertText( QString( "</%1>" ).arg( node.node().name() ), tagFormat ); // </tag>
             }
         };
