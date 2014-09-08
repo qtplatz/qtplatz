@@ -77,7 +77,7 @@ namespace adcontrols {
     template<> void
     MSChromatogramMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-        ar << *impl_; // write v3 format
+        ar & *impl_; // write v3 format
     }
 
     template<> void
@@ -86,14 +86,14 @@ namespace adcontrols {
         if ( version <= 2 )
             impl_->serialize( ar, version );
         else
-            ar >> *impl_; // read form v3 format stream
+            ar & *impl_; // read form v3 format stream
     }
 
     ///////// XML archive ////////
     template<> void
     MSChromatogramMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
-        ar & boost::serialization::make_nvp( "MSChromatogramMethod_impl", *impl_ );
+        ar & boost::serialization::make_nvp( "impl", *impl_ );
     }
 
     template<> void
@@ -102,7 +102,7 @@ namespace adcontrols {
         if ( version <= 2 )
             impl_->serialize( ar, version );
         else
-            ar & boost::serialization::make_nvp( "MSChromatogramMethod_impl", *impl_ );
+            ar & boost::serialization::make_nvp( "impl", *impl_ );
     }
 }
 
@@ -133,7 +133,7 @@ MSChromatogramMethod::operator == ( const MSChromatogramMethod& t ) const
 {
     if ( impl_->dataSource_ == t.impl_->dataSource_ &&
          impl_->widthMethod_ == t.impl_->widthMethod_ ) {
-        for ( int i = 0; i < impl_->width_.size(); ++i )
+        for ( int i = 0; i < int(impl_->width_.size()); ++i )
             if ( !adportable::compare<double>::essentiallyEqual( impl_->width_[ i ], t.impl_->width_[ i ] ) )
                 return false;
         if ( adportable::compare<double>::essentiallyEqual( impl_->mass_limits_.first, t.impl_->mass_limits_.first ) &&
