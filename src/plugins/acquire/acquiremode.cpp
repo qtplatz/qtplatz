@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "acquiremode.hpp"
+#include "constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 
 using namespace acquire;
@@ -38,6 +39,10 @@ AcquireMode::AcquireMode(QObject *parent) : Core::IMode(parent)
 {
     setDisplayName( tr( "Acquire" ) );
     // setUniqueModeName( "Acquire.Mode" );
+
+    setId( constants::C_MODE_ACQUIRE );
+    setContext( Core::Context( constants::C_MODE_ACQUIRE ) );
+
     setIcon(QIcon(":/acquire/images/RunControl.png"));
     setPriority( 90 );
 }

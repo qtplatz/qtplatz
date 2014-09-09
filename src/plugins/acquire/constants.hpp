@@ -29,7 +29,7 @@
 namespace acquire {
 
   namespace constants {
-    const char * const MODE_ACQUIRE = "Acquire.Mode";
+      const char * const C_MODE_ACQUIRE = "Acquire.Mode";
     const int P_MODE_ACQUIRE        = 99;
     
     // common actions
