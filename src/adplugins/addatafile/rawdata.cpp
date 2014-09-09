@@ -202,8 +202,6 @@ rawdata::loadCalibrations()
                 boost::iostreams::basic_array_source< char > source( device.data(), device.size() );
                 boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( source );
 
-                //if ( serializer< MSCalibrateResult >::deserialize( *calibResult, device.data(), device.size() ) ) {
-                //if ( adportable::binary::deserialize<>()(*calibResult, device.data(), device.size()) ) {
                 if ( MSCalibrateResult::restore( strm, *calibResult ) ) {
                     calibResults_[ conf.objid ] = calibResult;
                     if ( auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid.c_str() ) )
