@@ -46,7 +46,9 @@ SOURCES += adwidgets.cpp \
     mscalibratesummarytable.cpp \
     mstoleranceform.cpp \
     mslockform.cpp \
-    progresswnd.cpp
+    progresswnd.cpp \
+    spinslider.cpp \
+    dualspinslider.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -71,7 +73,9 @@ HEADERS += adwidgets.hpp\
     mscalibratesummarytable.hpp \
     mstoleranceform.hpp \
     mslockform.hpp \
-    progresswnd.hpp
+    progresswnd.hpp \
+    spinslider.hpp \
+    dualspinslider.hpp
 
 unix {
     target.path = /usr/lib
