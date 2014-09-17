@@ -15,10 +15,13 @@
 
 // No header guard
 
-#include <compiler/diagnostic_push.h>
+#if !defined (_MSC_VER)
+# include <compiler/diagnostic_push.h>
+#endif
 
 #if defined (_MSC_VER)
 # pragma warning (disable:4103)
+# pragma warning (disable:4251)
 # pragma pack (push, 8)
 #elif defined (__BORLANDC__)
 # pragma option push -a8 -b -Ve- -Vx- -w-rvl -w-rch -w-ccc -w-obs -w-aus -w-pia -w-inl -w-sig

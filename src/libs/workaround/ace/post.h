@@ -21,4 +21,6 @@
 # pragma nopackwarning
 #endif
 
-#include <compiler/diagnostic_pop.h>
+#if ! defined(_MSC_VER)
+# include <compiler/diagnostic_pop.h>
+#endif
