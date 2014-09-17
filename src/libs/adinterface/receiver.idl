@@ -7,11 +7,13 @@
 
 interface Receiver {
 
-  enum eMSGPRIORITY { pri_DEBUG
-		      , pri_INFO     // informational
-		      , pri_ERROR    // user correctable error
-		      , pri_EXCEPT   // exception, can be recoverd. Mostly a bug
-		      , pri_PANIC }; // non-recoverable exception
+  enum eMSGPRIORITY {
+      pri_DEBUG
+      , pri_INFO     // informational
+      , pri_ERROR    // user correctable error
+      , pri_EXCEPT   // exception, can be recoverd. Mostly a bug
+      , pri_PANIC // non-recoverable exception
+  };
   
   enum eINSTEVENT {
       NOTHING
@@ -28,6 +30,7 @@ interface Receiver {
       , EVENT_OUT
       , SETPTS_UPDATED
       , ACTUAL_UPDATED
+      , PROTOCOL_OVERRIDE_ENABLED // it is in tuning mode
   };
 
   struct TimeValue {
