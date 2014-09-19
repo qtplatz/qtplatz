@@ -26,7 +26,7 @@
 #include "spectrumwidget.hpp"
 #include "zoomer.hpp"
 #include "picker.hpp"
-#include "plotcurve.hpp"
+#include "adwplotcurve.hpp"
 #include "annotation.hpp"
 #include "annotations.hpp"
 #include <adcontrols/annotation.hpp>
@@ -154,7 +154,7 @@ namespace adwplot {
             int focusedFcn_;
             QRectF rect_;
             bool yRight_;
-            std::vector< PlotCurve > curves_;
+            std::vector< std::shared_ptr< AdwPlotCurve > > curves_;
             // pSpectrum_ should be kept while real time drawing is in progress
             // so that weak_ptr is not approriate
             std::shared_ptr< adcontrols::MassSpectrum > pSpectrum_;
@@ -463,14 +463,16 @@ TraceData::setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, c
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
     int fcn = 0;
     for ( auto& seg: segments ) {
-        curves_.push_back( PlotCurve( plot ) );
+        auto ptr = std::make_shared< AdwPlotCurve >();
+        ptr->attach( &plot );
+        curves_.push_back( ptr );
 
-        PlotCurve &curve = curves_.back();
+        // PlotCurve &curve = curves_.back();
         QColor color( color_table[ idx_ ] );
-        curve.p()->setPen( color );
-        curve.p()->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
+        ptr->setPen( color );
+        ptr->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
         if ( yRight )
-            curve.p()->setYAxis( QwtPlot::yRight );
+            ptr->setYAxis( QwtPlot::yRight );
         ++fcn;
     }
 }
@@ -485,7 +487,7 @@ TraceData::changeFocus( int focusedFcn )
             if ( focusedFcn != fcn )
                 color.setAlpha( 0x20 );
         }
-        curve.p()->setPen( color );
+        curve->setPen( color );
         ++fcn;
     }
 }
@@ -506,26 +508,31 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
             for ( const auto& c: color ) {
                 xSeriesData * xp = new xSeriesData( seg, rect, isTimeAxis_ );
                 if ( xp->make_color_index( c ) ) {
-                    curves_.push_back( PlotCurve( plot ) );
-                    PlotCurve &curve = curves_.back();
-                    curve.p()->setData( xp );
-                    curve.p()->setPen( QPen( color_table[ c ] ) );
-                    curve.p()->setStyle( QwtPlotCurve::Sticks );
+                    auto curve = std::make_shared< AdwPlotCurve >();
+                    curve->attach( &plot );
+                    curves_.push_back( curve );
+                    // curves_.push_back( PlotCurve( plot ) );
+                    // PlotCurve &curve = curves_.back();
+                    curve->setData( xp );
+                    curve->setPen( QPen( color_table[ c ] ) );
+                    curve->setStyle( QwtPlotCurve::Sticks );
                     if ( yRight )
-                        curve.p()->setYAxis( QwtPlot::yRight );
+                        curve->setYAxis( QwtPlot::yRight );
                 }
             }
 
         } else {
-            curves_.push_back( PlotCurve( plot ) );
-            PlotCurve &curve = curves_.back();
+            auto curve = std::make_shared< AdwPlotCurve >();
+            curve->attach( &plot );
+            curves_.push_back( curve );
+            // PlotCurve &curve = curves_.back();
             QColor color( color_table[ 0 ] );
             color.setAlpha( 255 - (idx_ * 16) );
-            curve.p()->setPen( QPen( color ) );
-            curve.p()->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
-            curve.p()->setStyle( QwtPlotCurve::Sticks );
+            curve->setPen( QPen( color ) );
+            curve->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
+            curve->setStyle( QwtPlotCurve::Sticks );
             if ( yRight )
-                curve.p()->setYAxis( QwtPlot::yRight );
+                curve->setYAxis( QwtPlot::yRight );
         }
     }
 }
@@ -581,6 +588,16 @@ TraceData::setData( Dataplot& plot
             time_range.second = std::max( time_range.second, range.second );
         }
 
+        // check if zero width
+        if ( adportable::compare<double>::approximatelyEqual( time_range.first, time_range.second ) ) {
+            time_range.first = ms->getTime( 0 );
+            time_range.second = ms->getTime( ms->size() - 1 );
+            if ( ms->isCentroid() || ms->size() == 0 ) {
+                time_range.first = double( int( time_range.first * 10000 ) ) / 10000.0;  // round to 0.1us
+                time_range.second = double( int( time_range.second * 10000 + 1 ) ) / 10000.0;
+            }
+        }
+
         using namespace adcontrols::metric;
         // setCoods( tof-left corner := (x1, y1) -- bottom-right corner := (x2, y2)
         // Origin of Qt's coordinate system is top,left (0,0) (opposit y-scale to GKS)
@@ -588,7 +605,12 @@ TraceData::setData( Dataplot& plot
 
     } else {
 
-        const std::pair< double, double >& mass_range = ms->getAcquisitionMassRange();
+        std::pair< double, double >& mass_range = ms->getAcquisitionMassRange();
+        // check if zero width
+        if ( adportable::compare<double>::approximatelyEqual( mass_range.first, mass_range.second ) ) {
+            mass_range.first = double( int( ms->getMass(0) * 10 ) ) / 10.0;  // round to 0.1Da
+            mass_range.second = double( int( ms->getMass( ms->size() - 1 ) * 10 + 1 ) ) / 10.0;
+        }
         rect.setCoords( mass_range.first, top, mass_range.second, bottom );
 
     }
@@ -624,6 +646,9 @@ TraceData::y_range( double left, double right ) const
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
         bool isCentroid = ms->isCentroid();
         for ( auto& seg: segments ) {
+
+            if ( seg.size() == 0 )
+                continue;
 
             size_t idleft(0), idright(0);
 
@@ -665,6 +690,12 @@ TraceData::y_range( double left, double right ) const
 
             if ( idleft )
                 --idleft;
+
+            if ( idleft >= ms->size() )
+                idleft = 0;
+
+            if ( idright >= ms->size() && ms->size() )
+                idright = ms->size() - 1;
             
             if ( idleft < idright ) {
                 const double * y = seg.getIntensityArray();

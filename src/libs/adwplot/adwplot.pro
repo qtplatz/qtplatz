@@ -19,48 +19,50 @@ INCLUDEPATH += ..
 #message("INCLUDE=" $$INCLUDEPATH)
 
 SOURCES += adwplot.cpp \
-    annotation.cpp \
-    annotations.cpp \
-    axis.cpp \
-    baseline.cpp \
-    chromatogramwidget.cpp \
-    dataplot.cpp \
-    peak.cpp \
-    plotcurve.cpp \
-    seriesdata.cpp \
-    spectrumwidget.cpp \
-    tracewidget.cpp \
-    trace.cpp \
-    traces.cpp \
-    zoomer.cpp \
-    picker.cpp \
-    panner.cpp \
-    spectrogramwidget.cpp \
-    spectrogramdata.cpp \
-    peakmarker.cpp \
-    plot_stderror.cpp
+           annotation.cpp \
+           annotations.cpp \
+           axis.cpp \
+           baseline.cpp \
+           chromatogramwidget.cpp \
+           dataplot.cpp \
+           peak.cpp \
+           plotcurve.cpp \
+           seriesdata.cpp \
+           spectrumwidget.cpp \
+           tracewidget.cpp \
+           trace.cpp \
+           traces.cpp \
+           zoomer.cpp \
+           picker.cpp \
+           panner.cpp \
+           spectrogramwidget.cpp \
+           spectrogramdata.cpp \
+           peakmarker.cpp \
+           plot_stderror.cpp \
+           adwplotcurve.cpp
 
 HEADERS += adwplot.hpp \
-    annotation.hpp \
-    annotations.hpp \
-    axis.hpp \
-    baseline.hpp \
-    chromatogramwidget.hpp \
-    dataplot.hpp \
-    peak.hpp \
-    plotcurve.hpp \
-    seriesdata.hpp \
-    spectrumwidget.hpp \
-    tracewidget.hpp \
-    trace.hpp \
-    traces.hpp \
-    zoomer.hpp \
-    picker.hpp \
-    panner.hpp \
-    spectrogramwidget.hpp \
-    spectrogramdata.hpp \
-    peakmarker.hpp \
-    plot_stderror.hpp
+           annotation.hpp \
+           annotations.hpp \
+           axis.hpp \
+           baseline.hpp \
+           chromatogramwidget.hpp \
+           dataplot.hpp \
+           peak.hpp \
+           plotcurve.hpp \
+           seriesdata.hpp \
+           spectrumwidget.hpp \
+           tracewidget.hpp \
+           trace.hpp \
+           traces.hpp \
+           zoomer.hpp \
+           picker.hpp \
+           panner.hpp \
+           spectrogramwidget.hpp \
+           spectrogramdata.hpp \
+           peakmarker.hpp \
+           plot_stderror.hpp \
+           adwplotcurve.hpp
 
 unix:!symbian {
     maemo5 {
