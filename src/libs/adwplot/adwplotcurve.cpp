@@ -43,132 +43,76 @@
 #include <qpolygon.h>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
+#include <qdebug.h>
+#include <QApplication>
 
 namespace adwplot {
 
-    struct QwtRoundF {
-        inline double operator()( double value ) {
-            return static_cast<double>( qRound( value ) ); // int(value + 0.5) for positive
-        }
-    };
-
-    template<class Polygon, class Point, class Round>
+    template<class Polygon, class Point>
     class profile_compressor {
+        const size_t N = 2;
+        
     public:
         Polygon compress( const QwtScaleMap& xMap, const QwtScaleMap& yMap
-                          , const QwtSeriesData< QPointF > * series
-                          , int from, int to, Round round ) {
+                          , const QwtSeriesData< QPointF > * series, int from, int to ) const {
 
-            const QPointF sample0 = series->sample( from );
-            const QPointF sample1 = series->sample( to );
-            int x0 = round( xMap.transform( sample0.x() ) );
-            int x1 = round( xMap.transform( sample1.x() ) );
+            double dx0 = xMap.transform( series->sample( from ).x() );
+            double dx1 = xMap.transform( series->sample( to ).x() );
 
-            if ( (x1 - x0 + 1) > (to - from + 1) ) {
+            std::vector< std::pair<int, double> > x;
+            std::vector< std::pair<double, double> > y;
+            x.reserve( int( dx1 - dx0 + 1 ) * N );
+            y.reserve( int( dx1 - dx0 + 1 ) * N );
 
-                Polygon polyline( to - from + 1 );
-                Point *points = polyline.data();
+            int px = std::round( dx0 * N ) - 1;
 
-                //const QPointF sample0 = series->sample( from );
+            for ( int i = from; i <= to; ++i ) {
 
-                points[ 0 ].rx() = round( xMap.transform( sample0.x() ) );
-                points[ 0 ].ry() = round( yMap.transform( sample0.y() ) );
+                const Point& p = series->sample( i );
+                double dx = xMap.transform( p.x() );
+                double dy = yMap.transform( p.y() );
 
-                int pos = 0;
-                for ( int i = from + 1; i <= to; i++ )  {
-                    const QPointF sample = series->sample( i );
+                int ix = (std::round( dx * N ));
 
-                    const Point p( round( xMap.transform( sample.x() ) ),
-                                   round( yMap.transform( sample.y() ) ) );
+                if ( px != ix ) {
 
-                    if ( points[ pos ] != p )
-                        points[ ++pos ] = p;
+                    x.push_back( std::make_pair( 1, dx ) );
+                    y.push_back( std::make_pair( dy, dy ) );
+                    
+                    px = ix;
+
+                } else {
+
+                    auto& xx = x.back();
+                    xx.first++;
+                    xx.second += dx;
+
+                    auto& yy = y.back();
+                    yy.first = std::min( yy.first, dy );
+                    yy.second = std::max( yy.second, dy );
+
                 }
-
-                polyline.resize( pos + 1 );
-                return polyline;
             }
-            else {
-                std::vector< std::pair<int, int> > a( x1 - x0 + 1 );
-                int lastX = (-1);
-                for ( int i = from; i <= to; ++i ) {
 
-                    const QPointF sample = series->sample( i );
+            Polygon polyline( int( x.size() * 2 ) );
+            int pos = 0;
 
-                    int x = round( xMap.transform( sample.x() ) );
-                    int y = round( yMap.transform( sample.y() ) );
-                    if ( lastX != x ) {
-                        a[ x - x0 ].first = a[ x - x0 ].second = y;
-                        lastX = x;
-                    }
-                    else {
-                        a[ x - x0 ].first = std::min( a[ x - x0 ].first, y );
-                        a[ x - x0 ].second = std::max( a[ x - x0 ].second, y );
-                    }
-                }
+            for ( size_t i = 0; i < x.size(); ++i ) {
+
+                double dx = x[ i ].second / x[ i ].first;
+
+                polyline[ pos++ ] = Point( dx, y[ i ].second ); // max (near bottom)
+                polyline[ pos++ ] = Point( dx, y[ i ].first );  // min (near top)
                 
-                Polygon polyline( int( a.size() * 2 ) );
-                int x = x0;
-                int pos = 0;
-                for ( auto& y: a ) {
-                    polyline[ pos++ ] = Point( x, y.second );
-                    if ( y.first != y.second ) {
-                        polyline[ pos++ ] = Point( x, y.first );
-                    }
-                    ++x;
-                }
-                if ( pos < polyline.size() )
-                    polyline.resize( pos );
-
-                return polyline;
             }
+
+            qDebug() << "drawLine data compress: " << pos << "/" << (to - from) + 1;
+
+            polyline.resize( pos );
+            return polyline;
         }
     };
 
-
-    template<class Polygon, class Point, class Round>
-    static inline Polygon qwtToPolylineFiltered( const QwtScaleMap &xMap, const QwtScaleMap &yMap,
-                                                 const QwtSeriesData<QPointF> *series, 
-                                                 int from, int to, Round round )
-    {
-        // in curves with many points consecutive points
-        // are often mapped to the same position. As this might
-        // result in empty lines ( or symbols hidden by others )
-        // we try to filter them out
-
-        Polygon polyline( to - from + 1 );
-        Point *points = polyline.data();
-
-        const QPointF sample0 = series->sample( from );
-
-        points[0].rx() = round( xMap.transform( sample0.x() ) );
-        points[0].ry() = round( yMap.transform( sample0.y() ) );
-
-        int pos = 0;
-        for ( int i = from + 1; i <= to; i++ )
-        {
-            const QPointF sample = series->sample( i );
-
-            const Point p( round( xMap.transform( sample.x() ) ),
-                           round( yMap.transform( sample.y() ) ) );
-
-            if ( points[pos] != p )
-                points[++pos] = p;
-        }
-
-        polyline.resize( pos + 1 );
-        return polyline;
-    };
-
-    class PointMapper {
-    public:
-        QPolygonF toPolygonF( const QwtScaleMap &xMap, const QwtScaleMap &yMap,
-                              const QwtSeriesData<QPointF> *series, int from, int to ) const {
-            return qwtToPolylineFiltered<QPolygonF, QPointF>( xMap, yMap, series, from, to, QwtRoundF() );
-        }
-    };
-
-    
 }
 
 using namespace adwplot;
@@ -179,7 +123,6 @@ AdwPlotCurve::AdwPlotCurve( const QString& title ) : QwtPlotCurve( title )
     setPen( QPen( Qt::blue) );
     setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)
     setLegendAttribute( QwtPlotCurve::LegendShowLine );
-    //attach( &plot );
 }
 
 AdwPlotCurve::~AdwPlotCurve()
@@ -193,48 +136,38 @@ AdwPlotCurve::drawLines( QPainter *painter,
 {
     if ( from > to )
         return;
-    
-    // const bool doAlign = QwtPainter::roundingAlignment( painter );
-    // const bool doFit = false;  //( d_data->attributes & Fitted ) && d_data->curveFitter;
-    // const bool doFill = false; //( d_data->brush.style() != Qt::NoBrush )
-                               // && ( d_data->brush.color().alpha() > 0 );
 
-    QRectF clipRect;
-    if ( testPaintAttribute( ClipPolygons ) )
-    {
-        qreal pw = qMax( qreal( 1.0 ), painter->pen().widthF() );
-        clipRect = canvasRect.adjusted( -pw, -pw, pw, pw );
+    double x0 = std::round( xMap.transform( data()->sample( from ).x() ) );
+    double x1 = std::round( xMap.transform( data()->sample( to ).x() ) );
+
+    if ( ( QApplication::keyboardModifiers() & Qt::ControlModifier ) ||
+         (int( x1 - x0 ) > (to - from + 1)) ) {
+        
+        qDebug() << "drawLines w/o compress.";
+
+        QwtPlotCurve::drawLines( painter, xMap, yMap, canvasRect, from, to );
+
+    } else {
+
+        QRectF clipRect;
+        
+        if ( testPaintAttribute( ClipPolygons ) )  {
+            qreal pw = qMax( qreal( 1.0 ), painter->pen().widthF() );
+            clipRect = canvasRect.adjusted( -pw, -pw, pw, pw );
+        }
+
+        QPolygonF polyline = profile_compressor<QPolygonF, QPointF>().compress( xMap, yMap, data(), from, to );
+
+        if ( testPaintAttribute( ClipPolygons ) )  {
+            
+            const QPolygonF clipped = QwtClipper::clipPolygonF( clipRect, polyline, false );
+            QwtPainter::drawPolyline( painter, clipped );
+            
+        } else {
+            
+            QwtPainter::drawPolyline( painter, polyline );
+            
+        }
     }
-
-    //const bool noDuplicates = testPaintAttribute( FilterPoints );
-
-    //QwtPointMapper mapper;
-    //PointMapper mapper;
-    //mapper.setFlag( QwtPointMapper::RoundPoints, doAlign );
-    //mapper.setFlag( QwtPointMapper::WeedOutPoints, noDuplicates );
-    //mapper.setBoundingRect( canvasRect );
-
-    //QPolygonF polyline = mapper.toPolygonF( xMap, yMap, data(), from, to );
-    QPolygonF polyline = profile_compressor<QPolygonF, QPointF, QwtRoundF>().compress( xMap, yMap, data(), from, to, QwtRoundF() );
-
-    // if ( doFit )
-    //     polyline = d_data->curveFitter->fitCurve( polyline );
-
-    if ( testPaintAttribute( ClipPolygons ) )
-    {
-        const QPolygonF clipped = QwtClipper::clipPolygonF( clipRect, polyline, false );
-
-        QwtPainter::drawPolyline( painter, clipped );
-    }
-    else
-    {
-        QwtPainter::drawPolyline( painter, polyline );
-    }
-#if 0
-    if ( doFill )
-    {
-        fillCurve( painter, xMap, yMap, canvasRect, polyline );
-    }
-#endif
 }
 

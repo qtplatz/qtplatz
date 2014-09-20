@@ -467,7 +467,6 @@ TraceData::setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, c
         ptr->attach( &plot );
         curves_.push_back( ptr );
 
-        // PlotCurve &curve = curves_.back();
         QColor color( color_table[ idx_ ] );
         ptr->setPen( color );
         ptr->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
@@ -511,8 +510,7 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
                     auto curve = std::make_shared< AdwPlotCurve >();
                     curve->attach( &plot );
                     curves_.push_back( curve );
-                    // curves_.push_back( PlotCurve( plot ) );
-                    // PlotCurve &curve = curves_.back();
+
                     curve->setData( xp );
                     curve->setPen( QPen( color_table[ c ] ) );
                     curve->setStyle( QwtPlotCurve::Sticks );
@@ -525,7 +523,7 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
             auto curve = std::make_shared< AdwPlotCurve >();
             curve->attach( &plot );
             curves_.push_back( curve );
-            // PlotCurve &curve = curves_.back();
+
             QColor color( color_table[ 0 ] );
             color.setAlpha( 255 - (idx_ * 16) );
             curve->setPen( QPen( color ) );
