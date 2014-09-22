@@ -39,7 +39,10 @@ namespace adwplot {
                         const QwtScaleMap &xMap, const QwtScaleMap &yMap,
                         const QRectF &canvasRect, int from, int to ) const override;
 
+        void setVectorCompression( size_t );
+
     private:
+        size_t vectorCompression_;
 
     };
 

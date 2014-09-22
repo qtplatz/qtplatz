@@ -155,8 +155,6 @@ namespace adwplot {
             QRectF rect_;
             bool yRight_;
             std::vector< std::shared_ptr< AdwPlotCurve > > curves_;
-            // pSpectrum_ should be kept while real time drawing is in progress
-            // so that weak_ptr is not approriate
             std::shared_ptr< adcontrols::MassSpectrum > pSpectrum_;
 			bool isTimeAxis_;
         };

@@ -776,9 +776,18 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 }
                 return;
             } else if ( fixedActions[ 3 ] == selectedItem ) {
-                QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File", MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_" ), tr("SVG (*.svg)") );
-                if ( ! name.isEmpty() )
-					adwplot::Dataplot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );
+                QFileDialog dlg( MainWindow::instance(), tr( "Save Image File" ), MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_" ) );
+                dlg.setFileMode( QFileDialog::AnyFile );
+                dlg.setNameFilter( tr( "SVG(*.svg);;PDF(*.pdf)" ) );
+                dlg.setAcceptMode( QFileDialog::AcceptSave );
+                if ( dlg.exec() == QDialog::Accepted ) {
+                    auto result = dlg.selectedFiles();
+                    auto filter = dlg.selectedNameFilter();
+                    const char * format = "svg";
+                    if ( filter == "PDF(*.pdf)" )
+                        format = "pdf";
+                    adwplot::Dataplot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format );
+                }
             }
 
             auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
