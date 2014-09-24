@@ -39,7 +39,7 @@ SOURCES += adwplot.cpp \
            spectrogramdata.cpp \
            peakmarker.cpp \
            plot_stderror.cpp \
-           adwplotcurve.cpp
+           adplotcurve.cpp
 
 HEADERS += adwplot.hpp \
            annotation.hpp \
@@ -62,7 +62,7 @@ HEADERS += adwplot.hpp \
            spectrogramdata.hpp \
            peakmarker.hpp \
            plot_stderror.hpp \
-           adwplotcurve.hpp
+           adplotcurve.hpp
 
 unix:!symbian {
     maemo5 {

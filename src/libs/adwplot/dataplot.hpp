@@ -60,8 +60,11 @@ namespace adwplot {
         QRectF zoomRect() const;
         inline Zoomer& zoomer() { return *zoomer1_; } // left bottom
 
+        virtual void setVectorCompression( int );
+        int vectorCompression() const;
+
         static void copyToClipboard( Dataplot * );
-        static void copyImageToFile( Dataplot *, const QString& file, const char * format = "svg" );
+        static void copyImageToFile( Dataplot *, const QString& file, const QString& format = "svg", bool compress = false, int dpi = 300 );
     
     private:
         typedef std::vector<Dataplot *> plotlink;
@@ -83,6 +86,7 @@ namespace adwplot {
         std::unique_ptr< Zoomer > zoomer1_;  // left bottom axix
         std::unique_ptr< Picker > picker_;   // (right mouse button)
         std::unique_ptr< Panner > panner_;
+        int vectorCompression_;
     };
   
 }

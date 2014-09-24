@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "adwplotcurve.hpp"
+#include "adplotcurve.hpp"
 #include "qwt_clipper.h"
 #include "qwt_curve_fitter.h"
 #include "qwt_math.h"
@@ -47,6 +47,7 @@
 #include <boost/format.hpp>
 #include <qdebug.h>
 #include <QApplication>
+#include <QSvgGenerator>
 
 namespace adwplot {
 
@@ -54,62 +55,17 @@ namespace adwplot {
 
     template<class Polygon, class Point>
     class profile_compressor {
+        std::vector< std::pair<int, double> > x;
+        std::vector< std::pair<double, double> > y;
+
     public:
-        Polygon compress1( const QwtScaleMap& xMap, const QwtScaleMap& yMap
-                           , const QwtSeriesData< QPointF > * series, int from, int to, const size_t N ) const {
+        Polygon compress( const QwtScaleMap& xMap, const QwtScaleMap& yMap
+                          , const QwtSeriesData< QPointF > * series, int from, int to, const size_t width ) {
             
-            std::vector< std::pair<int, double> > x;
-            std::vector< std::pair<double, double> > y;
 
-            std::vector<double> x_vec( to - from + 1 );
-            std::vector<double> y_vec( to - from + 1 );
-            for ( int i = from, k = 0; i < to; ++i, ++k ) {
-                x_vec[ k ] = xMap.transform( series->sample( i ).x() );
-                y_vec[ k ] = yMap.transform( series->sample( i ).y() );
-            }
+            const double pw = (xMap.transform( series->sample( to ).x() ) - xMap.transform( series->sample( from ).x() )) / width;
 
-            Polygon polyline( (to - from + 1) * 2 );
-            int pos = 0;
-
-            auto it0 = x_vec.begin();
-            while ( it0 != x_vec.end() ) {
-
-                auto it1 = std::lower_bound( it0, x_vec.end(), *it0 + ( 1.0 / N ) );
-                size_t idx0 = std::distance( x_vec.begin(), it0 );
-                size_t idx1 = std::distance( x_vec.begin(), it1 );
-                if ( it1 == x_vec.end() )
-                    --idx1;
-                size_t size = std::distance( it0, it1 );
-
-                adportable::SGFilter filter( int( size ), adportable::SGFilter::Derivative1 );
-
-                double d1 = filter( &y_vec[ idx0 + size / 2 ] );
-
-                if ( d1 < 1.0 && d1 > -1.0) {
-                    auto res = std::minmax_element( y_vec.begin() + idx0, y_vec.begin() + idx1 + 1 );
-                    double dx = *it0 + ( *it1 - *it0 ) / 2.0;  // center value (average is not suitable for m/z)
-                    polyline[ pos++ ] = Point( dx, *res.second ); // max (near bottom)
-                    polyline[ pos++ ] = Point( dx, *res.first );
-                } else {
-                    for ( size_t i = idx0; i <= idx1; ++i )
-                        polyline[ pos++ ] = Point( x_vec[ i ], y_vec[ i ] );
-                }
-                it0 = it1;
-            }
-            
-            qDebug() << "drawLine data compress: " << pos << "/" << (to - from) + 1;
-
-            polyline.resize( pos );
-            return polyline;
-        }
-
-        Polygon compress0( const QwtScaleMap& xMap, const QwtScaleMap& yMap
-                           , const QwtSeriesData< QPointF > * series, int from, int to, const size_t N ) const {
-            
-            std::vector< std::pair<int, double> > x;
-            std::vector< std::pair<double, double> > y;
-
-            int px = std::round( xMap.transform( series->sample( from ).x() * N ) ) - 1;
+            int px = std::round( xMap.transform( series->sample( from ).x() ) / pw ) - 1;
             
             for ( int i = from; i <= to; ++i ) {
                 
@@ -118,7 +74,7 @@ namespace adwplot {
                 double dx = xMap.transform( p.x() );
                 double dy = yMap.transform( p.y() );
                 
-                int ix = (std::round( dx * N ));
+                int ix = (std::round( dx / pw ));
                 
                 if ( px != ix ) {
                     
@@ -144,9 +100,16 @@ namespace adwplot {
             for ( size_t i = 0; i < x.size(); ++i ) {
                 
                 double dx = x[ i ].second / x[ i ].first;
-                
-                polyline[ pos++ ] = Point( dx, y[ i ].second ); // max (near bottom)
-                polyline[ pos++ ] = Point( dx, y[ i ].first );  // min (near top)
+                if ( i & 1 ) {
+                    polyline[ pos++ ] = Point( dx, y[ i ].second ); // max (near bottom)
+                    if ( !adportable::compare<double>::approximatelyEqual( y[ i ].second, y[ i ].first ) )
+                        polyline[ pos++ ] = Point( dx, y[ i ].first );  // min (near top)
+                }
+                else {
+                    polyline[ pos++ ] = Point( dx, y[ i ].first ); // max (near bottom)
+                    if ( !adportable::compare<double>::approximatelyEqual( y[ i ].second, y[ i ].first ) )
+                        polyline[ pos++ ] = Point( dx, y[ i ].second );  // min (near top)
+                }
                 
             }
 
@@ -155,6 +118,12 @@ namespace adwplot {
             polyline.resize( pos );
             return polyline;
         }
+
+        void drawSVG( QPainter * painter ) {
+            auto device = dynamic_cast<QSvgGenerator *>(painter->device());
+            auto strm = device->stream();
+        }
+
     };
 
 
@@ -162,8 +131,8 @@ namespace adwplot {
 
 using namespace adwplot;
 
-AdwPlotCurve::AdwPlotCurve( const QString& title ) : QwtPlotCurve( title )
-                                                   , vectorCompression_( 0 )
+adPlotCurve::adPlotCurve( const QString& title ) : QwtPlotCurve( title )
+                                                 , compress_( false )
 {
     // curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     setPen( QPen( Qt::blue) );
@@ -171,33 +140,32 @@ AdwPlotCurve::AdwPlotCurve( const QString& title ) : QwtPlotCurve( title )
     setLegendAttribute( QwtPlotCurve::LegendShowLine );
 }
 
-AdwPlotCurve::~AdwPlotCurve()
+adPlotCurve::~adPlotCurve()
 {
 }
 
 void
-AdwPlotCurve::setVectorCompression( size_t n )
+adPlotCurve::setVectorCompression( bool enable )
 {
-    vectorCompression_ = n;
+    compress_ = enable;
 }
 
 void
-AdwPlotCurve::drawLines( QPainter *painter,
+adPlotCurve::drawLines( QPainter *painter,
                          const QwtScaleMap &xMap, const QwtScaleMap &yMap,
                          const QRectF &canvasRect, int from, int to ) const
 {
     if ( from > to )
         return;
 
-    size_t vectorCompression = vectorCompression_;
-    if ( QApplication::keyboardModifiers() & Qt::ControlModifier ) {
-        if ( vectorCompression == 0 )
-            vectorCompression = 3;
+    int width = painter->device()->width();
+    if ( auto device = painter->device() ) {
+        if ( auto svgGenerator = dynamic_cast<QSvgGenerator *>(device) )
+            width = svgGenerator->viewBox().width();
+        else
+            width = (device->widthMM() / 25.4) * device->physicalDpiX();
     }
 
-    if ( auto device = painter->device() ) {
-        qDebug() << "DpiX" << device->logicalDpiX() << ", " << device->physicalDpiX() << " width: " << device->width() << ", MM=" << device->widthMM();
-    }
     int ix0 = from;
     int ix1 = to;
     while ( data()->sample( ix0 + 1 ).x() < xMap.s1() && ( ix0 + 1 ) < ix1 )
@@ -205,8 +173,7 @@ AdwPlotCurve::drawLines( QPainter *painter,
     while ( data()->sample( ix1 - 1 ).x() > xMap.s2() && ( ix1 - 1 ) > ix0 )
         --ix1;
 
-    if ( vectorCompression == 0 || 
-         ( (ix1 - ix0 + 1) < int( xMap.p2() - xMap.p1() * vectorCompression_ ) ) ) {
+    if ( !compress_ || ( (ix1 - ix0 + 1) < width ) ) {
         
         QwtPlotCurve::drawLines( painter, xMap, yMap, canvasRect, from, to );
 
@@ -221,18 +188,20 @@ AdwPlotCurve::drawLines( QPainter *painter,
 
         }
 
-        QPolygonF polyline = profile_compressor<QPolygonF, QPointF>().compress0( xMap, yMap, data(), ix0, ix1, vectorCompression );
+        QPolygonF polyline = profile_compressor<QPolygonF, QPointF>().compress( xMap, yMap, data(), ix0, ix1, width );
 
         if ( testPaintAttribute( ClipPolygons ) )  {
             
             const QPolygonF clipped = QwtClipper::clipPolygonF( clipRect, polyline, false );
             QwtPainter::drawPolyline( painter, clipped );
             
-        } else {
+        }
+        else {
             
             QwtPainter::drawPolyline( painter, polyline );
             
         }
+
     }
 }
 

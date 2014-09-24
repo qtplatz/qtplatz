@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "msprocessingwnd.hpp"
+#include "dataproc_document.hpp"
 #include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
@@ -53,6 +54,7 @@
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/float.hpp>
 #include <adutils/processeddata.hpp>
+#include <adwidgets/filedialog.hpp>
 #include <adwplot/picker.hpp>
 #include <adwplot/peakmarker.hpp>
 #include <adwplot/chromatogramwidget.hpp>
@@ -69,13 +71,15 @@
 #include <qwt_plot_renderer.h>
 #include <qwt_plot_marker.h>
 #include <qwt_symbol.h>
-#include <qapplication.h>
-#include <qsvggenerator.h>
-#include <qprinter.h>
+#include <QApplication>
+#include <QSvgGenerator>
+#include <QPrinter>
 #include <QBoxLayout>
+#include <QCheckBox>
+#include <QClipboard>
 #include <QMenu>
-#include <qclipboard.h>
-#include <QFileDialog>
+#include <QSettings>
+#include <QSlider>
 #include <boost/variant.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -743,7 +747,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
             fixedActions[ 0 ] = menu.addAction( "Correct baseline" );
             fixedActions[ 1 ] = menu.addAction( "Copy to Clipboard" );
             fixedActions[ 2 ] = menu.addAction( "Frequency analysis" );
-            fixedActions[ 3 ] = menu.addAction( "Save SVG File..." );
+            fixedActions[ 3 ] = menu.addAction( "Save Image File..." );
 
             std::vector< QAction * > actions;
             for ( auto model: models ) {
@@ -768,7 +772,8 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
                         std::ostringstream o;
                         o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist;
-                        QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
+                        QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ )
+                                                                                       , QString::fromStdString( o.str() ) );
 
                         pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
                         pImpl_->pwplot_->setTitle( title );
@@ -776,17 +781,37 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 }
                 return;
             } else if ( fixedActions[ 3 ] == selectedItem ) {
-                QFileDialog dlg( MainWindow::instance(), tr( "Save Image File" ), MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_" ) );
-                dlg.setFileMode( QFileDialog::AnyFile );
-                dlg.setNameFilter( tr( "SVG(*.svg);;PDF(*.pdf)" ) );
-                dlg.setAcceptMode( QFileDialog::AcceptSave );
+
+                auto settings = dataproc_document::instance()->settings();
+                using namespace dataproc::Constants;
+                settings->beginGroup( GRP_SPECTRUM_IMAGE );
+                QString fmt = settings->value( KEY_IMAGEE_FORMAT, "svg" ).toString();
+                bool compress = settings->value( KEY_COMPRESS, true ).toBool();
+                int dpi = settings->value( KEY_DPI, 300 ).toInt();
+                settings->endGroup();
+
+                std::string dfmt = "." + fmt.toStdString();
+
+                adwidgets::FileDialog dlg( MainWindow::instance()
+                                           , tr( "Save Image File" )
+                                           , MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_", dfmt.c_str() ) );
+
+                dlg.setVectorCompression( tr( "Compress vector graphics" ), compress, fmt, dpi );
+
                 if ( dlg.exec() == QDialog::Accepted ) {
                     auto result = dlg.selectedFiles();
-                    auto filter = dlg.selectedNameFilter();
+                    boost::filesystem::path path( result.at( 0 ).toStdWString() );
                     const char * format = "svg";
-                    if ( filter == "PDF(*.pdf)" )
+                    if ( path.extension() == ".pdf" )
                         format = "pdf";
-                    adwplot::Dataplot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format );
+
+                    settings->beginGroup( GRP_SPECTRUM_IMAGE );
+                    settings->setValue( KEY_IMAGEE_FORMAT, format );
+                    settings->setValue( KEY_COMPRESS, dlg.vectorCompression() );
+                    settings->setValue( KEY_DPI, dlg.dpi() );
+                    settings->endGroup();
+
+                    adwplot::Dataplot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format, dlg.vectorCompression(), dlg.dpi() );
                 }
             }
 

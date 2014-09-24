@@ -26,7 +26,7 @@
 #include "spectrumwidget.hpp"
 #include "zoomer.hpp"
 #include "picker.hpp"
-#include "adwplotcurve.hpp"
+#include "adplotcurve.hpp"
 #include "annotation.hpp"
 #include "annotations.hpp"
 #include <adcontrols/annotation.hpp>
@@ -154,7 +154,9 @@ namespace adwplot {
             int focusedFcn_;
             QRectF rect_;
             bool yRight_;
-            std::vector< std::shared_ptr< AdwPlotCurve > > curves_;
+        public:
+            std::vector< std::shared_ptr< adPlotCurve > > curves_;
+        private:
             std::shared_ptr< adcontrols::MassSpectrum > pSpectrum_;
 			bool isTimeAxis_;
         };
@@ -242,6 +244,15 @@ SpectrumWidget::setZoomBase( const std::pair< double, double >& range, bool hori
         bz.setTop( range.second );
     }
     zoomer1_->setZoomBase();
+}
+
+void
+SpectrumWidget::setVectorCompression( int compression )
+{
+    Dataplot::setVectorCompression( compression );
+    for ( auto& trace : impl_->traces_ )
+        for ( auto& curve: trace.curves_ )
+            curve->setVectorCompression( compression );
 }
 
 bool
@@ -461,7 +472,7 @@ TraceData::setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, c
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
     int fcn = 0;
     for ( auto& seg: segments ) {
-        auto ptr = std::make_shared< AdwPlotCurve >();
+        auto ptr = std::make_shared< adPlotCurve >();
         ptr->attach( &plot );
         curves_.push_back( ptr );
 
@@ -505,7 +516,7 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
             for ( const auto& c: color ) {
                 xSeriesData * xp = new xSeriesData( seg, rect, isTimeAxis_ );
                 if ( xp->make_color_index( c ) ) {
-                    auto curve = std::make_shared< AdwPlotCurve >();
+                    auto curve = std::make_shared< adPlotCurve >();
                     curve->attach( &plot );
                     curves_.push_back( curve );
 
@@ -518,7 +529,7 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
             }
 
         } else {
-            auto curve = std::make_shared< AdwPlotCurve >();
+            auto curve = std::make_shared< adPlotCurve >();
             curve->attach( &plot );
             curves_.push_back( curve );
 

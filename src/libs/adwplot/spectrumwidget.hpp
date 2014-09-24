@@ -54,7 +54,8 @@ namespace adwplot {
         void update_annotation( bool replot = true );
         void setKeepZoomed( bool );
         void setZoomBase( const std::pair< double, double >& range, bool horizontal = true );
-        
+        void setVectorCompression( int ) override;
+
     private:
         struct SpectrumWidgetImpl * impl_;
         std::atomic<bool> autoYZoom_;

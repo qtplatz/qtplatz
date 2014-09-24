@@ -48,7 +48,8 @@ SOURCES += adwidgets.cpp \
     mslockform.cpp \
     progresswnd.cpp \
     spinslider.cpp \
-    dualspinslider.cpp
+    dualspinslider.cpp \
+    filedialog.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -75,7 +76,8 @@ HEADERS += adwidgets.hpp\
     mslockform.hpp \
     progresswnd.hpp \
     spinslider.hpp \
-    dualspinslider.hpp
+    dualspinslider.hpp \
+    filedialog.hpp
 
 unix {
     target.path = /usr/lib

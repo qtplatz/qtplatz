@@ -62,6 +62,8 @@ namespace dataproc {
         std::shared_ptr< adcontrols::ProcessMethod > processMethod() const;
         void setProcessMethod( const adcontrols::ProcessMethod&, const QString& filename = QString() );
 
+        QSettings * settings() { return settings_.get(); }
+
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
 

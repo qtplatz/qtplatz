@@ -30,20 +30,19 @@ template<class T> class QwtSeriesData;
 
 namespace adwplot {
 
-    class AdwPlotCurve : public QwtPlotCurve {
+    class adPlotCurve : public QwtPlotCurve {
     public:
-        ~AdwPlotCurve();
-        AdwPlotCurve( const QString& title = QString() );
+        ~adPlotCurve();
+        adPlotCurve( const QString& title = QString() );
 
         void drawLines( QPainter *p,
                         const QwtScaleMap &xMap, const QwtScaleMap &yMap,
                         const QRectF &canvasRect, int from, int to ) const override;
 
-        void setVectorCompression( size_t );
+        void setVectorCompression( bool );
 
     private:
-        size_t vectorCompression_;
-
+        bool compress_;
     };
 
 

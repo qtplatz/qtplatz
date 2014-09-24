@@ -50,6 +50,7 @@ Dataplot::~Dataplot()
 
 Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
                                     , linkedzoom_inprocess_( false )
+                                    , vectorCompression_( 0 )
 {
     setCanvasBackground( QColor( "#d0d0d0" ) );
 
@@ -111,6 +112,17 @@ Dataplot::setFooter( const std::wstring& text )
     setFooter( QString::fromStdWString( text ) );
 }
 
+void
+Dataplot::setVectorCompression( int compression )
+{
+    vectorCompression_ = compression;
+}
+
+int
+Dataplot::vectorCompression() const
+{
+    return vectorCompression_;
+}
 
 QRectF
 Dataplot::zoomRect() const
@@ -227,7 +239,7 @@ Dataplot::copyToClipboard( Dataplot * plot )
 
 //static
 void
-Dataplot::copyImageToFile( Dataplot * plot, const QString& file, const char * format )
+Dataplot::copyImageToFile( Dataplot * plot, const QString& file, const QString& format, bool compress, int dpi )
 {
     QwtPlotRenderer renderer;
 
@@ -235,6 +247,10 @@ Dataplot::copyImageToFile( Dataplot * plot, const QString& file, const char * fo
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
 
-    renderer.renderDocument( plot, file, format, QSizeF( 210.0 * 0.9, 80 ), 300 );
+    plot->setVectorCompression( compress );
+
+    renderer.renderDocument( plot, file, format, QSizeF( 210.0 * 0.9, 80 ), dpi );
+
+    plot->setVectorCompression( 0 );
 }
 
