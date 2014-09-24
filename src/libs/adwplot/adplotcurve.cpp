@@ -119,11 +119,6 @@ namespace adwplot {
             return polyline;
         }
 
-        void drawSVG( QPainter * painter ) {
-            auto device = dynamic_cast<QSvgGenerator *>(painter->device());
-            auto strm = device->stream();
-        }
-
     };
 
 

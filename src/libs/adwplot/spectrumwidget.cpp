@@ -612,7 +612,7 @@ TraceData::setData( Dataplot& plot
 
     } else {
 
-        std::pair< double, double >& mass_range = ms->getAcquisitionMassRange();
+        std::pair< double, double > mass_range = ms->getAcquisitionMassRange();
         // check if zero width
         if ( adportable::compare<double>::approximatelyEqual( mass_range.first, mass_range.second ) ) {
             mass_range.first = double( int( ms->getMass(0) * 10 ) ) / 10.0;  // round to 0.1Da
