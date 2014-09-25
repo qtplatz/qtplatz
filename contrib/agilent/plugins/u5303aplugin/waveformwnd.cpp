@@ -25,8 +25,8 @@
 #include "waveformwnd.hpp"
 #include "document.hpp"
 #include <u5303a/digitizer.hpp>
-#include <adwplot/spectrumwidget.hpp>
-#include <adwplot/chromatogramwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
+#include <adplot/chromatogramwidget.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -41,8 +41,8 @@
 using namespace u5303a;
 
 WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
-                                             , spw_( new adwplot::SpectrumWidget )
-                                             , tpw_( new adwplot::ChromatogramWidget )
+                                             , spw_( new adplot::SpectrumWidget )
+                                             , tpw_( new adplot::ChromatogramWidget )
                                              , tp_( std::make_shared< adcontrols::Trace >() )
 {
     init();
@@ -67,7 +67,7 @@ WaveformWnd::init()
         splitter->setOrientation( Qt::Vertical );
     } while(0);
 
-    spw_->setAxis( adwplot::SpectrumWidget::HorizontalAxisTime );
+    spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
 
     QBoxLayout * layout = new QVBoxLayout( this );

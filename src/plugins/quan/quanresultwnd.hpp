@@ -34,7 +34,7 @@
 #include <set>
 #include <memory>
 
-namespace adwplot { class Dataplot; }
+namespace adplot { class plot; }
 class QwtPlotMarker;
 class QwtPlotCurve;
 class QItemSelection;
@@ -58,7 +58,7 @@ namespace quan {
     private:
         QuanCmpdWidget * cmpdWidget_;
         QuanResultWidget * respTable_;
-        std::unique_ptr< adwplot::Dataplot > calibplot_;
+        std::unique_ptr< adplot::plot > calibplot_;
         std::unique_ptr< QuanPlotWidget > dplot_;
 
         std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
@@ -73,9 +73,9 @@ namespace quan {
         void handleCompoundSelected( const QModelIndex& );
         void handleResponseSelected( int );
         bool loadCalibration( const boost::uuids::uuid& );
-        // void plot_calib_curve_xy( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
-        // void plot_calib_curve_yx( adwplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
-        // void plot_response_marker_yx( adwplot::Dataplot *, double i, double a );
+        // void plot_calib_curve_xy( adplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
+        // void plot_calib_curve_yx( adplot::Dataplot *, const detail::calib_curve&, const detail::calib_data& );
+        // void plot_response_marker_yx( adplot::Dataplot *, double i, double a );
 
     signals:
 

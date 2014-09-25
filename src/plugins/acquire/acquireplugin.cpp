@@ -81,8 +81,8 @@
 #include <adportable/date_string.hpp>
 #include <adportable/fft.hpp>
 
-#include <adwplot/chromatogramwidget.hpp>
-#include <adwplot/spectrumwidget.hpp>
+#include <adplot/chromatogramwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
 
 #include <qtwrapper/application.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -156,8 +156,8 @@ namespace acquire {
 
             std::unique_ptr< brokerevent_i > brokerEvent_;
             std::map< int, adcontrols::Trace > traces_;
-            adwplot::ChromatogramWidget * timePlot_;
-            adwplot::SpectrumWidget * spectrumPlot_;
+            adplot::ChromatogramWidget * timePlot_;
+            adplot::SpectrumWidget * spectrumPlot_;
             QIcon icon_;
             void loadIcon() {
                 icon_.addFile( constants::ICON_CONNECT );
@@ -1114,8 +1114,8 @@ AcquirePlugin::createContents( Core::IMode * mode )
 
         Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
         if ( splitter3 ) {
-            pImpl_->timePlot_ = new adwplot::ChromatogramWidget;
-            pImpl_->spectrumPlot_ = new adwplot::SpectrumWidget;
+            pImpl_->timePlot_ = new adplot::ChromatogramWidget;
+            pImpl_->spectrumPlot_ = new adplot::SpectrumWidget;
 
             splitter3->addWidget( pImpl_->timePlot_ );
             splitter3->addWidget( pImpl_->spectrumPlot_ );

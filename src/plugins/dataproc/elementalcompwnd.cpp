@@ -34,8 +34,8 @@
 #include <portfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
-#include <adwplot/chromatogramwidget.hpp>
-#include <adwplot/spectrumwidget.hpp>
+#include <adplot/chromatogramwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
 
@@ -52,9 +52,9 @@ namespace dataproc {
                                , drawIdx_(0) {
         }
       
-        adwplot::ChromatogramWidget * ticPlot_;
-        adwplot::SpectrumWidget * referenceSpectrum_;
-        adwplot::SpectrumWidget * processedSpectrum_;
+        adplot::ChromatogramWidget * ticPlot_;
+        adplot::SpectrumWidget * referenceSpectrum_;
+        adplot::SpectrumWidget * processedSpectrum_;
         int drawIdx_;
     };
 
@@ -89,9 +89,9 @@ ElementalCompWnd::init()
     pImpl_ = new ElementalCompWndImpl;
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) )
+        if ( ( pImpl_->processedSpectrum_ = new adplot::SpectrumWidget(this) ) )
             splitter->addWidget( pImpl_->processedSpectrum_ );
-        if ( ( pImpl_->referenceSpectrum_ = new adwplot::SpectrumWidget(this) ) )
+        if ( ( pImpl_->referenceSpectrum_ = new adplot::SpectrumWidget(this) ) )
             splitter->addWidget( pImpl_->referenceSpectrum_ );
 
         pImpl_->processedSpectrum_->link( pImpl_->referenceSpectrum_ );

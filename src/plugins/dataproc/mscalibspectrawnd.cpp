@@ -42,7 +42,7 @@
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adwidgets/mscalibratesummarytable.hpp>
-#include <adwplot/spectrumwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
 #include <adportable/configuration.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
@@ -137,12 +137,12 @@ namespace dataproc {
 MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
                                                          , wndCalibSummary_( 0 )
                                                          , wndSplitter_( 0 )
-                                                         , axis_( adwplot::SpectrumWidget::HorizontalAxisMass )
+                                                         , axis_( adplot::SpectrumWidget::HorizontalAxisMass )
 {
-    plots_.push_back( std::make_shared< adwplot::Dataplot >() ); // idPlotSqrtMassTime
-    plots_.push_back( std::make_shared< adwplot::Dataplot >() ); // idPlotLengthTime
-    plots_.push_back( std::make_shared< adwplot::Dataplot >() ); // idPlotOrbit
-    plots_.push_back( std::make_shared< adwplot::Dataplot >() ); // idPlotInject
+    plots_.push_back( std::make_shared< adplot::plot >() ); // idPlotSqrtMassTime
+    plots_.push_back( std::make_shared< adplot::plot >() ); // idPlotLengthTime
+    plots_.push_back( std::make_shared< adplot::plot >() ); // idPlotOrbit
+    plots_.push_back( std::make_shared< adplot::plot >() ); // idPlotInject
 
     for ( auto& plot: plots_ ) {
         plot->setMinimumHeight( 40 );
@@ -202,7 +202,7 @@ MSCalibSpectraWnd::init()
 
         for ( int i = 0; i < 2; ++i ) {
             
-            std::shared_ptr< adwplot::SpectrumWidget > wnd = std::make_shared< adwplot::SpectrumWidget >(this);
+            std::shared_ptr< adplot::SpectrumWidget > wnd = std::make_shared< adplot::SpectrumWidget >(this);
             wnd->setAutoAnnotation( false );
             wnd->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 50 );
             wnd->setMinimumHeight( 40 );
@@ -318,7 +318,7 @@ MSCalibSpectraWnd::handleAxisChanged( int axis )
 {
     axis_ = axis;
     for ( auto wnd: wndSpectra_ )
-		wnd->setAxis( static_cast< adwplot::SpectrumWidget::HorizontalAxis >( axis ) );
+		wnd->setAxis( static_cast< adplot::SpectrumWidget::HorizontalAxis >( axis ) );
     
     replotSpectra();
 }
@@ -543,7 +543,7 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
     do {
         auto sp = segments[ fcn ];
         QwtPlotMarker& marker = *markers_[0];
-        double x = ( axis_ == adwplot::SpectrumWidget::HorizontalAxisMass )
+        double x = ( axis_ == adplot::SpectrumWidget::HorizontalAxisMass )
             ? sp.getMass( idx )
             : scale_to_micro( sp.getTime( idx ) );
         marker.setValue( x, sp.getIntensity( idx ) );
@@ -570,7 +570,7 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
             int idx = assign_peaks::find_by_time( *sp, time, 3.0e-9 );
             if ( idx >= 0 ) {
                 QwtPlotMarker& marker = *markers_[nwnd];
-                double x = ( axis_ == adwplot::SpectrumWidget::HorizontalAxisMass )
+                double x = ( axis_ == adplot::SpectrumWidget::HorizontalAxisMass )
                     ? sp->getMass( idx )
                     : scale_to_micro( sp->getTime( idx ) );
                 marker.setValue( x, sp->getIntensity( idx ) );
@@ -840,7 +840,7 @@ static Qt::GlobalColor colors [] = {
 };
 
 void
-MSCalibSpectraWnd::plot_time_corrected_calibrant( int id, int mode, const Fitter<CurveLinear>& fitter, adwplot::Dataplot& plot )
+MSCalibSpectraWnd::plot_time_corrected_calibrant( int id, int mode, const Fitter<CurveLinear>& fitter, adplot::plot& plot )
 {
     QwtText title( (boost::format("laps: %d") % mode ).str().c_str() ); 
     plot_fitter( id, title, fitter, plot );
@@ -851,7 +851,7 @@ MSCalibSpectraWnd::plot_time_corrected_calibrant( int id, int mode, const Fitter
 }
 
 void
-MSCalibSpectraWnd::plot_length_time( int id, const std::wstring& formula, const Fitter<CurveLinear>& fitter, adwplot::Dataplot& plot )
+MSCalibSpectraWnd::plot_length_time( int id, const std::wstring& formula, const Fitter<CurveLinear>& fitter, adplot::plot& plot )
 {
     QwtText text( QString::fromStdWString( adcontrols::ChemicalFormula::formatFormula( formula ) ), QwtText::RichText );
     plot_fitter( id, text, fitter, plot );
@@ -862,7 +862,7 @@ MSCalibSpectraWnd::plot_length_time( int id, const std::wstring& formula, const 
 }
 
 void
-MSCalibSpectraWnd::plot_orbital_sector_calibration( int id, const Fitter<CurveLinear>& fitter, adwplot::Dataplot& plot )
+MSCalibSpectraWnd::plot_orbital_sector_calibration( int id, const Fitter<CurveLinear>& fitter, adplot::plot& plot )
 {
     plot_fitter( id, QwtText("orbital sector"), fitter, plot );
     std::ostringstream o;
@@ -880,7 +880,7 @@ MSCalibSpectraWnd::plot_orbital_sector_calibration( int id, const Fitter<CurveLi
 }
 
 void
-MSCalibSpectraWnd::plot_injection_sector_calibration( int id, const Fitter<CurveLinear>& fitter, adwplot::Dataplot& plot )
+MSCalibSpectraWnd::plot_injection_sector_calibration( int id, const Fitter<CurveLinear>& fitter, adplot::plot& plot )
 {
     plot_fitter( id, QwtText("injection sector"), fitter, plot );
     std::ostringstream o;
@@ -898,7 +898,7 @@ MSCalibSpectraWnd::plot_injection_sector_calibration( int id, const Fitter<Curve
 }
 
 void
-MSCalibSpectraWnd::plot_fitter( int id, const QwtText& title, const Fitter<2>& fitter, adwplot::Dataplot& plot, int xAxis, int yAxis )
+MSCalibSpectraWnd::plot_fitter( int id, const QwtText& title, const Fitter<2>& fitter, adplot::plot& plot, int xAxis, int yAxis )
 {
     curves_.push_back( std::make_shared< QwtPlotCurve >() );
     auto curve = curves_.back();

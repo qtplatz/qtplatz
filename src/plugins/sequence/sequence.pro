@@ -20,7 +20,7 @@ LIBS += -l$$qtLibraryTarget( Core )
 
 LIBS += -l$$qtLibraryTarget(adcontrols) \
 	-l$$qtLibraryTarget(adutils) \
-	-l$$qtLibraryTarget(adwplot) \
+	-l$$qtLibraryTarget(adplot) \
 	-l$$qtLibraryTarget(acewrapper) \
         -l$$qtLibraryTarget(qtwrapper) \
 	-l$$qtLibraryTarget(xmlparser) \

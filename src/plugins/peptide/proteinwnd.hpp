@@ -28,9 +28,10 @@
 #include <QWidget>
 #include <memory>
 
-namespace adprot { class protfile; class digestedPeptides; class peptides; }
+
 namespace adcontrols { class MassSpectrum; }
-namespace adwplot { class SpectrumWidget; }
+namespace adplot { class SpectrumWidget; }
+namespace adprot { class protfile; class digestedPeptides; class peptides; }
 
 namespace peptide {
 
@@ -51,7 +52,7 @@ namespace peptide {
     private:
 
         std::shared_ptr< adcontrols::MassSpectrum > spectrum_;
-        adwplot::SpectrumWidget * spectrumWidget_;
+        adplot::SpectrumWidget * spectrumWidget_;
         DigestedPeptideTable * peptideTable_;
         ProteinTable * proteinTable_;
 

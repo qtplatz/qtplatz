@@ -89,7 +89,7 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(adprot) \
         -l$$qtLibraryTarget(adextension) \
-        -l$$qtLibraryTarget(adwplot) \
+        -l$$qtLibraryTarget(adplot) \
         -l$$qtLibraryTarget(adwidgets) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adpublisher) \

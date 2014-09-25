@@ -28,9 +28,9 @@
 #include <QWidget>
 #include <memory>
 
-#include <adwplot/dataplot.hpp>
+#include <adplot/plot.hpp>
 
-namespace adwplot { class PeakMarker; }
+namespace adplot { class PeakMarker; }
 
 namespace quan {
 
@@ -45,13 +45,13 @@ namespace quan {
         QuanPlotWidget( QWidget * parent = 0 );
 
         void setData( const QuanPlotData *, size_t idx, int fcn, const std::wstring& dataSource );
-        adwplot::Dataplot * dataplot() { return dplot_.get(); }
-        void dataplot( adwplot::Dataplot * p ) { dplot_.reset( p ); }
+        adplot::plot * dataplot() { return dplot_.get(); }
+        void dataplot( adplot::plot * p ) { dplot_.reset( p ); }
 
         static std::string toSVG( const QuanPlotData&, size_t idx, int fcn );
     private:
-        std::unique_ptr< adwplot::Dataplot > dplot_;
-        std::unique_ptr< adwplot::PeakMarker > marker_;
+        std::unique_ptr< adplot::plot > dplot_;
+        std::unique_ptr< adplot::PeakMarker > marker_;
         void handleDataChanged( int id, bool f );
     };
 

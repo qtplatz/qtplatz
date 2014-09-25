@@ -17,7 +17,7 @@ include(../../../src/boost.pri)
 
 LIBS += -L../../../lib/qtplatz \
         -L../../../lib/qtplatz/plugins/MS-Cheminformatics \
-        -l$$qtLibraryTarget(adwplot) \
+        -l$$qtLibraryTarget(adplot) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(adcontrols) \

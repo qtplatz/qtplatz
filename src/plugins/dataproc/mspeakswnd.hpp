@@ -28,7 +28,7 @@
 #include <QWidget>
 #include <memory>
 
-namespace adwplot { class Dataplot; }
+namespace adplot { class plot; }
 namespace portfolio { class Folium; }
 namespace adcontrols { class ProcessMethod; class MSPeaks; }
 
@@ -58,7 +58,7 @@ namespace dataproc {
         void handleSetData( const QString&, const adcontrols::MSPeaks& );
 
     private:
-        std::vector< std::shared_ptr< adwplot::Dataplot > > plots_;
+        std::vector< std::shared_ptr< adplot::plot > > plots_;
         std::vector< std::vector< std::shared_ptr< QwtPlotMarker > > > plotMarkers_;
         std::vector< std::vector< std::shared_ptr< QwtPlotCurve > > > plotCurves_;
 

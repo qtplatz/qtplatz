@@ -32,10 +32,10 @@
 #include <adportable/array_wrapper.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
-#include <adwplot/spectrogramwidget.hpp>
-#include <adwplot/spectrogramdata.hpp>
-#include <adwplot/spectrumwidget.hpp>
-#include <adwplot/chromatogramwidget.hpp>
+#include <adplot/spectrogramwidget.hpp>
+#include <adplot/spectrogramdata.hpp>
+#include <adplot/spectrumwidget.hpp>
+#include <adplot/chromatogramwidget.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <qwt_plot_renderer.h>
 #include <QSplitter>
@@ -49,7 +49,7 @@
 namespace dataproc {
     namespace detail {
 
-        class SpectrogramData : public adwplot::SpectrogramData {
+        class SpectrogramData : public adplot::SpectrogramData {
         public:
             SpectrogramData( std::shared_ptr< adcontrols::MassSpectra >& spectra );
             SpectrogramData( const SpectrogramData& );
@@ -74,9 +74,9 @@ namespace dataproc {
 using namespace dataproc;
 
 SpectrogramWnd::SpectrogramWnd(QWidget *parent) : QWidget(parent)
-                                                , plot_( std::make_shared< adwplot::SpectrogramWidget >() )
-                                                , sp_( std::make_shared< adwplot::SpectrumWidget >() )
-                                                , chromatogr_( std::make_shared< adwplot::ChromatogramWidget >() )
+                                                , plot_( std::make_shared< adplot::SpectrogramWidget >() )
+                                                , sp_( std::make_shared< adplot::SpectrumWidget >() )
+                                                , chromatogr_( std::make_shared< adplot::ChromatogramWidget >() )
 {
     init();
     connect( plot_.get(), SIGNAL( onSelected( const QPointF& ) ), this, SLOT( handleSelected( const QPointF& ) ) );

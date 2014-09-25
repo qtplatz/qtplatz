@@ -48,8 +48,8 @@
 #include <adplugin/widget_factory.hpp>
 
 #include <qtwidgets/peakresultwidget.hpp>
-#include <adwplot/chromatogramwidget.hpp>
-#include <adwplot/spectrumwidget.hpp>
+#include <adplot/chromatogramwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
 #include "qtwidgets_name.hpp"
 #include <QBoxLayout>
 #include <QMessageBox>
@@ -68,7 +68,7 @@ namespace dataproc {
                               , peakWidget_(0) {
         }
         void setData( const adcontrols::ChromatogramPtr&, const QString& );
-        adwplot::ChromatogramWidget * chroWidget_;
+        adplot::ChromatogramWidget * chroWidget_;
         QWidget * peakWidget_; // adplutin::manager::widget_factory will make a widget
     };
 
@@ -107,7 +107,7 @@ ChromatogramWnd::init()
 
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( ( pImpl_->chroWidget_ = new adwplot::ChromatogramWidget( this ) ) ) {
+        if ( ( pImpl_->chroWidget_ = new adplot::ChromatogramWidget( this ) ) ) {
 
             pImpl_->peakWidget_ = adplugin::widget_factory::create( "qtwidgets::PeakResultWidget" );
 

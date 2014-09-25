@@ -88,7 +88,7 @@ HEADERS += aboutdlg.hpp \
            ipeptidehandlerimpl.hpp
 
 LIBS += -l$$qtLibraryTarget(Core)
-LIBS += -l$$qtLibraryTarget(adwplot) \
+LIBS += -l$$qtLibraryTarget(adplot) \
         -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adlog) \

@@ -51,7 +51,7 @@ namespace adcontrols {
 }
 
 namespace adportable {  class Configuration; }
-namespace adwplot { class SpectrumWidget; class Dataplot; }
+namespace adplot { class SpectrumWidget; class plot; }
 class QPrinter;
 
 namespace dataproc {
@@ -118,23 +118,23 @@ namespace dataproc {
         QSplitter * wndSplitter_;
         int axis_;
 
-        std::vector< std::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
+        std::vector< std::shared_ptr< adplot::SpectrumWidget > > wndSpectra_;
         std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
         
         enum { idPlotSqrtMassTime, idPlotLengthTime, idPlotOrbit, idPlotInjection };  // plot (left & right)
 
-        std::vector< std::shared_ptr< adwplot::Dataplot > > plots_;
+        std::vector< std::shared_ptr< adplot::plot > > plots_;
         std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
 
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
         void replotSpectra();
         void flight_length_regression();
 
-        void plot_time_corrected_calibrant( int id, int mode, const Fitter<2>&, adwplot::Dataplot& );
-        void plot_length_time( int id, const std::wstring& formula, const Fitter<2>&, adwplot::Dataplot& );
-        void plot_orbital_sector_calibration( int id, const Fitter<2>&, adwplot::Dataplot& plot );
-        void plot_injection_sector_calibration( int id, const Fitter<2>&, adwplot::Dataplot& plot );
-        void plot_fitter( int id, const QwtText&, const Fitter<2>&, adwplot::Dataplot&, int xAxis = 0, int yAxis = 0);
+        void plot_time_corrected_calibrant( int id, int mode, const Fitter<2>&, adplot::plot& );
+        void plot_length_time( int id, const std::wstring& formula, const Fitter<2>&, adplot::plot& );
+        void plot_orbital_sector_calibration( int id, const Fitter<2>&, adplot::plot& plot );
+        void plot_injection_sector_calibration( int id, const Fitter<2>&, adplot::plot& plot );
+        void plot_fitter( int id, const QwtText&, const Fitter<2>&, adplot::plot&, int xAxis = 0, int yAxis = 0);
 
         void generate_marged_result( Dataprocessor * );
     };

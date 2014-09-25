@@ -26,7 +26,7 @@
 #include "proteintable.hpp"
 #include "digestedpeptidetable.hpp"
 #include "mainwindow.hpp"
-#include <adwplot/spectrumwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/annotation.hpp>
@@ -77,7 +77,7 @@ ProteinWnd::init()
                     peptideTable_->setData( MainWindow::instance()->getChemicalFormula() );
                     splitter2->addWidget( peptideTable_ );
                 }
-                if ( ( spectrumWidget_ = new adwplot::SpectrumWidget ) ) {
+                if ( ( spectrumWidget_ = new adplot::SpectrumWidget ) ) {
                     splitter2->addWidget( spectrumWidget_ );
                 }
                 splitter2->setOrientation( Qt::Vertical );

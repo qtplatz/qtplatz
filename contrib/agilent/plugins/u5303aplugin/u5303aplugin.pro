@@ -38,7 +38,7 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adlog) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(adextension) \
-        -l$$qtLibraryTarget(adwplot) \
+        -l$$qtLibraryTarget(adplot) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(u5303a)

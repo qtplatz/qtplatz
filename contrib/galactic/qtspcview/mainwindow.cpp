@@ -28,7 +28,7 @@
 #include "../spcfile/subhdr.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
-#include <adwplot/spectrumwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
 #include <adportable/profile.hpp>
 #include <QAction>
 #include <QBoxLayout>
@@ -77,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     QVBoxLayout * toolBarLayout = new QVBoxLayout( centralWidget );
     toolBarLayout->setMargin( 0 );
     toolBarLayout->setSpacing(0);
-    toolBarLayout->addWidget( new adwplot::SpectrumWidget );
+    toolBarLayout->addWidget( new adplot::SpectrumWidget );
     toolBarLayout->addWidget( toolBar );
 
     this->addDockWidget( Qt::BottomDockWidgetArea, addDockForWidget( new QTextEdit ) );
@@ -150,7 +150,7 @@ MainWindow::actFileOpen()
                                       , datapath.string().c_str()
                                       , tr("Galactic SPC Files(*.spc)") );
     if ( !name.isEmpty() ) {
-        if ( adwplot::SpectrumWidget * w = findChild< adwplot::SpectrumWidget * >() ) {
+        if ( adplot::SpectrumWidget * w = findChild< adplot::SpectrumWidget * >() ) {
             fpath_ = name.toStdString();
             w->setTitle( fpath_ );
 
@@ -195,7 +195,7 @@ MainWindow::draw( size_t index )
             ms->setMass( i, i * double( range.second - range.first ) / ( npts - 1 ) + range.first );
             ms->setIntensity( i, (*sub)[i] );
         }
-        if ( auto spw = findChild< adwplot::SpectrumWidget * >() ) {
+        if ( auto spw = findChild< adplot::SpectrumWidget * >() ) {
             spw->setTitle( ( boost::format( "%1%[%2%/%3%]" ) % fpath_ % (index_ + 1) % spcfile_->spchdr()->number_of_subfiles() ).str() );
             spw->setKeepZoomed( false );
             spw->setData( ms, 0 );
