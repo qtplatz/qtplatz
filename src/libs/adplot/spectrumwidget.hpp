@@ -27,11 +27,12 @@
 
 #include "plot.hpp"
 #include "adplot_global.hpp"
+#include <memory>
 
 class QwtPlotZoomer;
 
 namespace adcontrols { class MassSpectrum; }
-namespace std { template<class T> class shared_ptr; }
+
 
 namespace adplot {
 

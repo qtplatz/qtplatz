@@ -169,19 +169,19 @@ namespace adplot {
 
     class SpectrumWidget::impl {
     public:
-        SpectrumWidget::impl() : autoAnnotation_( true )
-                               , isTimeAxis_( false )
-                               , autoYZoom_( true ) 
-                               , keepZoomed_( true )
-                               , axisHadScaled_( false )
-                               , haxis_( HorizontalAxisMass )
-                               , focusedFcn_( -1 ) // no focus
+        impl() : autoAnnotation_( true )
+               , isTimeAxis_( false )
+               , autoYZoom_( true ) 
+               , keepZoomed_( true )
+               , axisHadScaled_( false )
+               , haxis_( HorizontalAxisMass )
+               , focusedFcn_( -1 ) // no focus
             {}
+        bool autoAnnotation_;
+        bool isTimeAxis_;
         std::weak_ptr< adcontrols::MassSpectrum > centroid_;  // for annotation
         std::vector< Annotation > annotations_;
         std::vector< spectrumwidget::TraceData > traces_;
-        bool autoAnnotation_;
-        bool isTimeAxis_;
 
         std::atomic<bool> autoYZoom_;
         std::atomic<bool> keepZoomed_;

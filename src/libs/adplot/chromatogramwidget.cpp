@@ -309,7 +309,7 @@ ChromatogramWidget::clear()
 void
 ChromatogramWidget::removeData( int idx, bool bReplot )
 {
-    if ( impl_->traces_.size() > idx )
+    if ( impl_->traces_.size() > size_t(idx) )
         impl_->traces_[ idx ] = chromatogram_widget::ChromatogramData( *this );
     if ( bReplot )
         replot();
@@ -507,7 +507,7 @@ ChromatogramWidgetImpl::clear()
 void
 ChromatogramWidgetImpl::removeData( int idx )
 {
-    if ( traces_.size() > idx ) {
+    if ( traces_.size() > size_t(idx) ) {
         peaks_.clear();
         baselines_.clear();
         annotation_markers_.clear();

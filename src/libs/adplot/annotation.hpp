@@ -26,11 +26,10 @@
 #pragma once
 
 #include <string>
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#include <compiler/diagnostic_pop.h>
-#include <memory>
+// #include <compiler/diagnostic_push.h>
+// #include <compiler/disable_unused_parameter.h>
+// #include <compiler/diagnostic_pop.h>
+// #include <memory>
 #include <QtCore>
 
 class QwtPlotMarker;
@@ -52,17 +51,19 @@ namespace adplot {
                              , const QPointF&
                              , Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
 
+        ~Annotation();
         Annotation( const Annotation& );
 
         void setLabelAlighment( Qt::Alignment );
-        // QwtPlotMarker * getPlotMarker();
         QwtPlotMarker * getPlotMarker() const;
 
         static QFont font();
 
     private:
-        plot * plot_;
-        std::shared_ptr< QwtPlotMarker > marker_;
+        class impl;
+        impl * impl_;
+        // plot * plot_;
+        // std::unique_ptr< QwtPlotMarker > marker_;
     };
 
 }

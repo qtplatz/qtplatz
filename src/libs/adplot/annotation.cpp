@@ -28,54 +28,72 @@
 #include <qtwrapper/qstring.hpp>
 #include <qwt_plot_marker.h>
 #include <qwt_text.h>
+#include <memory>
+
+namespace adplot {
+
+    class Annotation::impl {
+    public:
+        impl( adplot::plot * p ) : plot_( p )
+                                 , marker_( std::make_shared< QwtPlotMarker >()  ) {
+        }
+        impl( const impl& t ) : plot_( t.plot_ )
+                              , marker_( t.marker_ ) {
+        }
+        adplot::plot * plot_;
+        std::shared_ptr< QwtPlotMarker > marker_;
+    };
+
+}
 
 using namespace adplot;
 
-Annotation::Annotation( plot& plot
-                       , const std::wstring& label
-                       , double x, double y
-                       , Qt::GlobalColor color )
-                       : plot_( &plot )
-                       , marker_( new QwtPlotMarker )
+Annotation::~Annotation()
 {
-    marker_->setValue( x, y );
-    marker_->setLineStyle( QwtPlotMarker::NoLine );
-    marker_->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
+    delete impl_;
+}
+
+Annotation::Annotation( plot& plot
+                        , const std::wstring& label
+                        , double x, double y
+                        , Qt::GlobalColor color ) : impl_( new impl( &plot ) )
+{
+    impl_->marker_->setValue( x, y );
+    impl_->marker_->setLineStyle( QwtPlotMarker::NoLine );
+    impl_->marker_->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
     QwtText text( qtwrapper::qstring::copy( label ) );
     text.setFont( font() );
     text.setColor( color );
-    marker_->setLabel( text );
-    marker_->attach( plot_ );
+    impl_->marker_->setLabel( text );
+    impl_->marker_->attach( &plot );
 }
 
 Annotation::Annotation( plot& plot
                         , const QwtText& label
                         , const QPointF& xy
-                        , Qt::Alignment align ) : plot_(&plot)
-                                                  , marker_( new QwtPlotMarker )
+                        , Qt::Alignment align ) : impl_( new impl( &plot ) )
 {
-    marker_->setValue( xy );
-    marker_->setLineStyle( QwtPlotMarker::NoLine );
-    marker_->setLabelAlignment( align );
-    marker_->setLabel( label );
-    marker_->attach( plot_ );
+    impl_->marker_->setValue( xy );
+    impl_->marker_->setLineStyle( QwtPlotMarker::NoLine );
+    impl_->marker_->setLabelAlignment( align );
+    impl_->marker_->setLabel( label );
+    impl_->marker_->attach( &plot );
 }
 
-Annotation::Annotation( const Annotation& t ) : plot_( t.plot_ )
-                                              , marker_( t.marker_ )
+Annotation::Annotation( const Annotation& t ) : impl_( new impl( *t.impl_ ) )
 {
 } 
 
 void
 Annotation::setLabelAlighment( Qt::Alignment align )
 {
-    marker_->setLabelAlignment( align );
+    impl_->marker_->setLabelAlignment( align );
 }
 
 QwtPlotMarker *
 Annotation::getPlotMarker() const
 {
-    return marker_.get();
+    return impl_->marker_.get();
 }
 
 QFont
