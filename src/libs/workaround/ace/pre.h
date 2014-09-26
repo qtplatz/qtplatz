@@ -29,5 +29,10 @@
 # pragma nopackwarning
 #endif
 
-#include <compiler/deprecated_register.h>
 #include <compiler/disable_unused_parameter.h>
+#include <compiler/disable_deprecated.h>
+
+#if defined __GNUC__
+# pragma GCC diagnostic ignored "-Wextern-c-compat"
+#endif
+
