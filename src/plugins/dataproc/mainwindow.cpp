@@ -972,30 +972,33 @@ MainWindow::actionApply()
     ADTRACE() << "dataproc::MainWindow::actionApply(" << currentFeature_ << ")";
     qtwrapper::waitCursor wait;
 
-    if ( auto pm = dataproc_document::instance()->processMethod() ) {
+    adcontrols::ProcessMethod pm;
 
-        getProcessMethod( *pm );  // update by what values GUI holds
+    getProcessMethod( pm );  // update by what values GUI holds
 
-        Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
-        if ( processor ) {
-            if ( currentFeature_ == CalibrationProcess )
-                processor->applyCalibration( *pm );
-            else
-                processor->applyProcess( *pm, currentFeature_ );
-        }
+    dataproc_document::instance()->setProcessMethod( pm );
+
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+        
+        if ( currentFeature_ == CalibrationProcess )
+            processor->applyCalibration( pm );
+        else
+            processor->applyProcess( pm, currentFeature_ );
     }
 }
 
 void
 MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
 {
-    if ( auto pm = dataproc_document::instance()->processMethod() ) {
+    adcontrols::ProcessMethod pm;
+        
+    getProcessMethod( pm );
 
-        getProcessMethod( *pm );
+    dataproc_document::instance()->setProcessMethod( pm );
 
-        Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
-        if ( processor )
-            processor->applyCalibration( *pm, assigned );
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+
+        processor->applyCalibration( pm, assigned );
 
     }
 }
@@ -1003,13 +1006,16 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
 void
 MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned, portfolio::Folium& folium )
 {
-    if ( auto pm = dataproc_document::instance()->processMethod() ) {
+    adcontrols::ProcessMethod pm;
 
-        getProcessMethod( *pm );
+    getProcessMethod( pm );
+    
+    dataproc_document::instance()->setProcessMethod( pm );
 
-        Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
-        if ( processor )
-            processor->applyCalibration( *pm, assigned, folium );
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+
+        processor->applyCalibration( pm, assigned, folium );
+
     }
 }
 
@@ -1019,11 +1025,12 @@ MainWindow::proteinSelected( const adprot::digestedPeptides& digested )
     auto docks = dockWidgets();
     auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){ return d->objectName() == "PeptideMethod"; });
     if ( it != docks.end() ) {
+
         (*it)->raise();
+
         boost::any a( digested );
-        if ( auto t = dynamic_cast< adwidgets::PeptideWidget *>( (*it)->widget() ) ) {
+        if ( auto t = dynamic_cast< adwidgets::PeptideWidget *>( (*it)->widget() ) )
             t->setContents( a );
-        }
     }
 }
 

@@ -15,7 +15,8 @@ else: TAO_IDL = $${ACE_ROOT}/bin/tao_idl
 
 message( "TAO_IDL" $${TAO_IDL} )
 
-IDL_FLAGS = -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h $${IDL_INCLUDES}
+#IDL_FLAGS = -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h $${IDL_INCLUDES}
+IDL_FLAGS = -Wb,pre_include=workaround/ace/pre.h -Wb,post_include=workaround/ace/post.h $${IDL_INCLUDES}
 
 tao_idlC.CONFIG += no_link
 tao_idlC.dependency_type = TYPE_C

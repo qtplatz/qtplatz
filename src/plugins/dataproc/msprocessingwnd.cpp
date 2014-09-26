@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "msprocessingwnd.hpp"
+#include "dataproc_document.hpp"
 #include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
@@ -45,6 +46,12 @@
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adlog/logger.hpp>
+#include <adplot/picker.hpp>
+#include <adplot/peakmarker.hpp>
+#include <adplot/chromatogramwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
+#include <adplot/tracewidget.hpp>
+#include <adplot/zoomer.hpp>
 #include <adportable/scoped_debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
@@ -53,11 +60,7 @@
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/float.hpp>
 #include <adutils/processeddata.hpp>
-#include <adwplot/picker.hpp>
-#include <adwplot/peakmarker.hpp>
-#include <adwplot/chromatogramwidget.hpp>
-#include <adwplot/spectrumwidget.hpp>
-#include <adwplot/tracewidget.hpp>
+#include <adwidgets/filedialog.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
@@ -69,13 +72,15 @@
 #include <qwt_plot_renderer.h>
 #include <qwt_plot_marker.h>
 #include <qwt_symbol.h>
-#include <qapplication.h>
-#include <qsvggenerator.h>
-#include <qprinter.h>
+#include <QApplication>
+#include <QSvgGenerator>
+#include <QPrinter>
 #include <QBoxLayout>
+#include <QCheckBox>
+#include <QClipboard>
 #include <QMenu>
-#include <qclipboard.h>
-#include <QFileDialog>
+#include <QSettings>
+#include <QSlider>
 #include <boost/variant.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -96,7 +101,7 @@ namespace dataproc {
         MSProcessingWndImpl() : ticPlot_(0)
                               , profileSpectrum_(0)
                               , processedSpectrum_(0)
-                              , pwplot_( new adwplot::TraceWidget )
+                              , pwplot_( new adplot::TraceWidget )
                               , is_time_axis_( false ){
         }
 
@@ -186,12 +191,12 @@ namespace dataproc {
         void setCheckedChromatogram( std::shared_ptr< adcontrols::Chromatogram >& ptr, int idx ) {
             checkedChromatograms_[ idx ] = ptr;
         }
-        adwplot::ChromatogramWidget * ticPlot_;
-        adwplot::SpectrumWidget * profileSpectrum_;
-        adwplot::SpectrumWidget * processedSpectrum_;
-        adwplot::TraceWidget * pwplot_;
-        std::shared_ptr< adwplot::PeakMarker > profile_marker_;
-        std::shared_ptr< adwplot::PeakMarker > processed_marker_;
+        adplot::ChromatogramWidget * ticPlot_;
+        adplot::SpectrumWidget * profileSpectrum_;
+        adplot::SpectrumWidget * processedSpectrum_;
+        adplot::TraceWidget * pwplot_;
+        std::shared_ptr< adplot::PeakMarker > profile_marker_;
+        std::shared_ptr< adplot::PeakMarker > processed_marker_;
         std::map< int, std::weak_ptr< adcontrols::Chromatogram > > checkedChromatograms_;
         bool is_time_axis_;
     };
@@ -214,30 +219,30 @@ MSProcessingWnd::init()
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
 
-        if ( ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) ) {
+        if ( ( pImpl_->ticPlot_ = new adplot::ChromatogramWidget(this) ) ) {
             pImpl_->ticPlot_->setMinimumHeight( 80 );
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnChromatogram( const QRectF& ) ) );
             pImpl_->ticPlot_->register_tracker( [=]( const QPointF& pos, QwtText& text ){ return pImpl_->ticTracker( pos, text ); } );
         }
 	
-        if ( ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
+        if ( ( pImpl_->profileSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
-            using adwplot::SpectrumWidget;
+            using adplot::SpectrumWidget;
             connect( pImpl_->profileSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected), this, &MSProcessingWnd::selectedOnProfile );
-            pImpl_->profile_marker_ = std::make_shared< adwplot::PeakMarker >();
+            pImpl_->profile_marker_ = std::make_shared< adplot::PeakMarker >();
             pImpl_->profile_marker_->attach( pImpl_->profileSpectrum_ );
             pImpl_->profile_marker_->visible( true );
             pImpl_->profile_marker_->setYAxis( QwtPlot::yLeft );
         }
 
-        if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
+        if ( ( pImpl_->processedSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
             pImpl_->processedSpectrum_->setMinimumHeight( 80 );
-            using adwplot::SpectrumWidget;
+            using adplot::SpectrumWidget;
             connect( pImpl_->processedSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected), this, &MSProcessingWnd::selectedOnProcessed );
-            adwplot::Zoomer * zoomer = &pImpl_->processedSpectrum_->zoomer();
-            connect( zoomer, &adwplot::Zoomer::zoomed, this, &MSProcessingWnd::handleZoomedOnSpectrum );
+            adplot::Zoomer * zoomer = pImpl_->processedSpectrum_->zoomer();
+            connect( zoomer, &adplot::Zoomer::zoomed, this, &MSProcessingWnd::handleZoomedOnSpectrum );
 
-            pImpl_->processed_marker_ = std::make_shared< adwplot::PeakMarker >();
+            pImpl_->processed_marker_ = std::make_shared< adplot::PeakMarker >();
             pImpl_->processed_marker_->attach( pImpl_->processedSpectrum_ );
             pImpl_->processed_marker_->visible( true );
             pImpl_->processed_marker_->setYAxis( QwtPlot::yLeft );
@@ -513,7 +518,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 void
 MSProcessingWnd::handleAxisChanged( int axis )
 {
-    using adwplot::SpectrumWidget;
+    using adplot::SpectrumWidget;
 
     axis_ = axis;
 
@@ -653,7 +658,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 
         actions.push_back( std::make_pair( menu.addAction( QString("Copy image to clipboard" ) )
                                            , [=] () {
-                                               adwplot::Dataplot::copyToClipboard( pImpl_->ticPlot_ );
+                                               adplot::plot::copyToClipboard( pImpl_->ticPlot_ );
                                            } ) );
         
         actions.push_back( std::make_pair(
@@ -665,7 +670,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                                                                        , MainWindow::makePrintFilename( idChromatogramFolium_, L"_" )
                                                                        , tr("SVG (*.svg)") );
                                    if ( ! name.isEmpty() )
-                                       adwplot::Dataplot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
+                                       adplot::plot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
                                }) );
         
         QAction * selected = menu.exec( QCursor::pos() );
@@ -743,7 +748,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
             fixedActions[ 0 ] = menu.addAction( "Correct baseline" );
             fixedActions[ 1 ] = menu.addAction( "Copy to Clipboard" );
             fixedActions[ 2 ] = menu.addAction( "Frequency analysis" );
-            fixedActions[ 3 ] = menu.addAction( "Save SVG File..." );
+            fixedActions[ 3 ] = menu.addAction( "Save Image File..." );
 
             std::vector< QAction * > actions;
             for ( auto model: models ) {
@@ -757,7 +762,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 draw1();
                 return;
             } else if ( fixedActions[ 1 ] == selectedItem ) {
-                adwplot::Dataplot::copyToClipboard( pImpl_->profileSpectrum_ );
+                adplot::plot::copyToClipboard( pImpl_->profileSpectrum_ );
                 return;
             } else if ( fixedActions[ 2 ] == selectedItem ) {
                 if ( auto ms = pProfileSpectrum_.second.lock() ) {
@@ -768,7 +773,8 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
                         std::ostringstream o;
                         o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist;
-                        QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
+                        QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ )
+                                                                                       , QString::fromStdString( o.str() ) );
 
                         pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
                         pImpl_->pwplot_->setTitle( title );
@@ -776,9 +782,38 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 }
                 return;
             } else if ( fixedActions[ 3 ] == selectedItem ) {
-                QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File", MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_" ), tr("SVG (*.svg)") );
-                if ( ! name.isEmpty() )
-					adwplot::Dataplot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );
+
+                auto settings = dataproc_document::instance()->settings();
+                using namespace dataproc::Constants;
+                settings->beginGroup( GRP_SPECTRUM_IMAGE );
+                QString fmt = settings->value( KEY_IMAGEE_FORMAT, "svg" ).toString();
+                bool compress = settings->value( KEY_COMPRESS, true ).toBool();
+                int dpi = settings->value( KEY_DPI, 300 ).toInt();
+                settings->endGroup();
+
+                std::string dfmt = "." + fmt.toStdString();
+
+                adwidgets::FileDialog dlg( MainWindow::instance()
+                                           , tr( "Save Image File" )
+                                           , MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_", dfmt.c_str() ) );
+
+                dlg.setVectorCompression( tr( "Compress vector graphics" ), compress, fmt, dpi );
+
+                if ( dlg.exec() == QDialog::Accepted ) {
+                    auto result = dlg.selectedFiles();
+                    boost::filesystem::path path( result.at( 0 ).toStdWString() );
+                    const char * format = "svg";
+                    if ( path.extension() == ".pdf" )
+                        format = "pdf";
+
+                    settings->beginGroup( GRP_SPECTRUM_IMAGE );
+                    settings->setValue( KEY_IMAGEE_FORMAT, format );
+                    settings->setValue( KEY_COMPRESS, dlg.vectorCompression() );
+                    settings->setValue( KEY_DPI, dlg.dpi() );
+                    settings->endGroup();
+
+                    adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format, dlg.vectorCompression(), dlg.dpi() );
+                }
             }
 
             auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
@@ -806,12 +841,12 @@ MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
     
     QAction * selectedItem = menu.exec( QCursor::pos() );
     if ( fixedActions[ 0 ] == selectedItem )
-        adwplot::Dataplot::copyToClipboard( pImpl_->pwplot_ );
+        adplot::plot::copyToClipboard( pImpl_->pwplot_ );
     else if ( fixedActions[ 1 ] == selectedItem ) {
         QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
                                                      , MainWindow::makePrintFilename( idSpectrumFolium_, L"_power_" ), tr( "SVG (*.svg)" ) );
         if ( !name.isEmpty() )
-            adwplot::Dataplot::copyImageToFile( pImpl_->pwplot_, name, "svg" );
+            adplot::plot::copyImageToFile( pImpl_->pwplot_, name, "svg" );
     }
     else if ( fixedActions[ 2 ] == selectedItem )
         pImpl_->pwplot_->hide();
@@ -868,14 +903,14 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 
             if ( *it == actions[ 0 ] ) {
 
-                adwplot::Dataplot::copyToClipboard( pImpl_->processedSpectrum_ );
+                adplot::plot::copyToClipboard( pImpl_->processedSpectrum_ );
 
             } else if ( *it == actions[ 1 ] ) {
 
                 QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
                                                              , MainWindow::makePrintFilename( idSpectrumFolium_, L"_processed_" ), tr("SVG (*.svg)") );
                 if ( ! name.isEmpty() )
-                    adwplot::Dataplot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );
+                    adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );
 
             } else if ( *it == actions[ 2 ] ) {
 

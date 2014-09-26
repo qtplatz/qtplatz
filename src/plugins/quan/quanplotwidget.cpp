@@ -31,9 +31,12 @@
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/metric/prefix.hpp>
-#include <adwplot/chromatogramwidget.hpp>
-#include <adwplot/peakmarker.hpp>
-#include <adwplot/spectrumwidget.hpp>
+
+#include <adplot/chromatogramwidget.hpp>
+#include <adplot/peakmarker.hpp>
+#include <adplot/spectrumwidget.hpp>
+#include <adplot/zoomer.hpp>
+
 #include <qwt_plot_marker.h>
 #include <QBoxLayout>
 #include <boost/format.hpp>
@@ -66,8 +69,13 @@ QuanPlotWidget::~QuanPlotWidget()
 }
 
 QuanPlotWidget::QuanPlotWidget( QWidget * parent ) : QWidget( parent )
+<<<<<<< HEAD
                                                    , dplot_( new adwplot::SpectrumWidget )
                                                    , marker_( new adwplot::PeakMarker )
+=======
+                                                   , dplot_( new adplot::SpectrumWidget )
+                                                   , marker_( new adplot::PeakMarker )
+>>>>>>> origin/v3.1.3
 {
     auto layout = new QHBoxLayout(this);
     layout->setMargin(0);
@@ -77,8 +85,13 @@ QuanPlotWidget::QuanPlotWidget( QWidget * parent ) : QWidget( parent )
     layout->addWidget( dplot_.get() );
     marker_->attach( dplot_.get() );
 
+<<<<<<< HEAD
     for ( int id = 0; id < adwplot::PeakMarker::numMarkers; ++id )
         marker_->marker( adwplot::PeakMarker::idAxis(id) )->setLinePen( QColor(0xff, 0, 0, 0x80), 0, Qt::DashLine );
+=======
+    for ( int id = 0; id < adplot::PeakMarker::numMarkers; ++id )
+        marker_->marker( adplot::PeakMarker::idAxis(id) )->setLinePen( QColor(0xff, 0, 0, 0x80), 0, Qt::DashLine );
+>>>>>>> origin/v3.1.3
 
     marker_->visible( true );
 }
@@ -97,7 +110,11 @@ QuanPlotWidget::handleDataChanged( int id, bool )
 void
 QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn, const std::wstring& dataSource )
 {
+<<<<<<< HEAD
     if ( auto spw = detail::widget_get< adwplot::SpectrumWidget >( *this )() ) {
+=======
+    if ( auto spw = detail::widget_get< adplot::SpectrumWidget >( *this )() ) {
+>>>>>>> origin/v3.1.3
 
         spw->enableAxis( QwtPlot::yRight );
 
@@ -116,10 +133,17 @@ QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn, const std:
             }
 
             double mass = d->centroid->getMass( idx );
+<<<<<<< HEAD
             QRectF rc = spw->zoomer().zoomRect();
             rc.setLeft( mass - 2 );
             rc.setRight( mass + 2 );
             spw->zoomer().zoom( rc );
+=======
+            QRectF rc = spw->zoomer()->zoomRect();
+            rc.setLeft( mass - 2 );
+            rc.setRight( mass + 2 );
+            spw->zoomer()->zoom( rc );
+>>>>>>> origin/v3.1.3
 
             auto item = d->pkinfo->begin() + idx;
             marker_->setYAxis( QwtPlot::yRight );

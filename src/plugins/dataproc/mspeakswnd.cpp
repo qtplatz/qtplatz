@@ -24,10 +24,11 @@
 
 #include "mspeakswnd.hpp"
 #include "mainwindow.hpp"
-#include <adwplot/dataplot.hpp>
 #include <adcontrols/mspeaks.hpp>
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adplot/plot.hpp>
+#include <adplot/zoomer.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
 #include <qtwrapper/font.hpp>
@@ -148,8 +149,8 @@ using namespace dataproc;
 
 MSPeaksWnd::MSPeaksWnd(QWidget *parent) : QWidget(parent)
 {
-    plots_.push_back( std::make_shared< adwplot::Dataplot >() );
-    plots_.push_back( std::make_shared< adwplot::Dataplot >() );
+    plots_.push_back( std::make_shared< adplot::plot >() );
+    plots_.push_back( std::make_shared< adplot::plot >() );
     
     plotMarkers_.resize( plots_.size() );
     plotCurves_.resize( plots_.size() );
@@ -223,7 +224,7 @@ MSPeaksWnd::init()
 void
 MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
 {
-    adwplot::Dataplot& plot = *plots_[ 0 ];
+    adplot::plot& plot = *plots_[ 0 ];
     std::vector< std::shared_ptr< QwtPlotMarker > >& markers = plotMarkers_[ 0 ];
     std::vector< std::shared_ptr< QwtPlotCurve > >& curves = plotCurves_[ 0 ];
 
@@ -288,7 +289,7 @@ MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
     regplot( data, (boost::format( "lap# %d" ) % mode).str(), plot );
 
     plot.replot();
-	plot.zoomer().setZoomBase( false );
+    plot.zoomer()->setZoomBase( false );
 
     MainWindow::instance()->selPage( MainWindow::idSelMSPeaks );
 }
@@ -296,7 +297,7 @@ MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
 void
 MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& peaks )
 {
-    adwplot::Dataplot& plot = *plots_[ 1 ];
+    adplot::plot& plot = *plots_[ 1 ];
     std::vector< std::shared_ptr< QwtPlotMarker > >& markers = plotMarkers_[ 1 ];
     std::vector< std::shared_ptr< QwtPlotCurve > >& curves = plotCurves_[ 1 ];
 
@@ -355,7 +356,7 @@ MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& pe
     mspeakswnd::draw_regression regplot( curves );
     regplot( data, adcontrols::ChemicalFormula::formatFormula( formula.toStdString() ), plot );
 	plot.replot();
-	plot.zoomer().setZoomBase( false );
+	plot.zoomer()->setZoomBase( false );
 
     MainWindow::instance()->selPage( MainWindow::idSelMSPeaks );
 }

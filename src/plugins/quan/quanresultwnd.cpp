@@ -40,7 +40,7 @@
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
-#include <adwplot/dataplot.hpp>
+#include <adplot/plot.hpp>
 #include <utils/styledbar.h>
 #include <coreplugin/minisplitter.h>
 #include <qwt_legend.h>
@@ -71,7 +71,11 @@ QuanResultWnd::~QuanResultWnd()
 QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
                                               , cmpdWidget_( new QuanCmpdWidget )
                                               , respTable_( new QuanResultWidget )
+<<<<<<< HEAD
                                               , calibplot_( new adwplot::Dataplot )
+=======
+                                              , calibplot_( new adplot::plot )
+>>>>>>> origin/v3.1.3
                                               , dplot_( new QuanPlotWidget )
 {
     QwtPlotGrid * grid = new QwtPlotGrid;

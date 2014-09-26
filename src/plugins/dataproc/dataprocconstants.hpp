@@ -51,6 +51,11 @@ namespace Constants {
     const char * const GRP_METHOD_FILES     = "MethodFiles";
     const char * const KEY_FILES            = "Files";
 
+    const char * const GRP_SPECTRUM_IMAGE   = "SpectrumImage";
+    const char * const KEY_IMAGEE_FORMAT    = "ImageFormat"; // pdf|svg|ps
+    const char * const KEY_COMPRESS         = "VectorCompression"; // true|false
+    const char * const KEY_DPI              = "DPI";
+
     // shared with Quan
     const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
 

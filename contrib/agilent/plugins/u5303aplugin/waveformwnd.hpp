@@ -28,7 +28,7 @@
 #include <QWidget>
 #include <memory>
 
-namespace adwplot { class ChromatogramWidget; class TraceWidget; class SpectrumWidget; }
+namespace adplot { class ChromatogramWidget; class TraceWidget; class SpectrumWidget; }
 namespace adcontrols { class MassSpectrum; class Trace; }
 
 namespace u5303a {
@@ -50,8 +50,8 @@ namespace u5303a {
     private:
         void init();
         void fini();
-        adwplot::ChromatogramWidget * tpw_;
-        adwplot::SpectrumWidget * spw_;
+        adplot::ChromatogramWidget * tpw_;
+        adplot::SpectrumWidget * spw_;
         std::shared_ptr< adcontrols::MassSpectrum > sp_;
         std::shared_ptr< adcontrols::Trace> tp_;
     };

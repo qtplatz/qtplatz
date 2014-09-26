@@ -28,7 +28,7 @@
 #include <qwidget.h>
 #include <memory>
 
-namespace adwplot { class SpectrogramWidget; class SpectrumWidget; class ChromatogramWidget; }
+namespace adplot { class SpectrogramWidget; class SpectrumWidget; class ChromatogramWidget; }
 namespace portfolio { class Folium; }
 namespace adcontrols { class ProcessMethod; class MassSpectra; }
 
@@ -56,9 +56,9 @@ namespace dataproc {
 		void handleSelected( const QRectF& );
 
     private:
-        std::shared_ptr< adwplot::SpectrogramWidget > plot_;
-        std::shared_ptr< adwplot::SpectrumWidget > sp_;
-        std::shared_ptr< adwplot::ChromatogramWidget > chromatogr_;
+        std::shared_ptr< adplot::SpectrogramWidget > plot_;
+        std::shared_ptr< adplot::SpectrumWidget > sp_;
+        std::shared_ptr< adplot::ChromatogramWidget > chromatogr_;
         std::wstring foliumId_;
         std::string fullpath_;
         std::weak_ptr< adcontrols::MassSpectra > data_;

@@ -32,7 +32,7 @@
 #include "quanpublisher.hpp"
 #endif
 
-namespace adwplot { class Dataplot; }
+namespace adplot { class plot; }
 
 class QwtPlotCurve;
 class QwtPlotMarker;
@@ -47,8 +47,8 @@ namespace quan {
         QuanPlot( std::vector< std::shared_ptr< QwtPlotCurve > >&
                   , std::vector< std::shared_ptr< QwtPlotMarker > >& );
 
-        void plot_response_marker_yx( adwplot::Dataplot* plot, double intensity, double amount, const std::pair<double,double>& );
-        void plot_calib_curve_yx( adwplot::Dataplot* plot, const QuanPublisher::calib_curve& calib );
+        void plot_response_marker_yx( adplot::plot* plot, double intensity, double amount, const std::pair<double,double>& );
+        void plot_calib_curve_yx( adplot::plot* plot, const QuanPublisher::calib_curve& calib );
         
     private:
         std::vector< std::shared_ptr< QwtPlotCurve > > curves_holder_;

@@ -17,7 +17,7 @@ SUBDIRS   = \
     adcontrols \
     chromatogr \
     qtwrapper \
-    adwplot \
+    adplot \
     adplugin \
     adsequence \
     adorbmgr \

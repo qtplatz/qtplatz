@@ -47,9 +47,10 @@
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/computemass.hpp>
 #include <adwidgets/mscalibratesummarytable.hpp>
-#include <adwplot/spectrumwidget.hpp>
-#include <adwplot/peakmarker.hpp>
-#include <adwplot/plot_stderror.hpp>
+#include <adplot/spectrumwidget.hpp>
+#include <adplot/peakmarker.hpp>
+#include <adplot/plot_stderror.hpp>
+#include <adplot/zoomer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/utf.hpp>
 #include <qtwrapper/font.hpp>
@@ -83,9 +84,9 @@ namespace dataproc {
     class MSCalibrationWndImpl {
     public:
         ~MSCalibrationWndImpl() {}
-        MSCalibrationWndImpl( QWidget * parent ) : processedSpectrum_( new adwplot::SpectrumWidget( parent ) )
+        MSCalibrationWndImpl( QWidget * parent ) : processedSpectrum_( new adplot::SpectrumWidget( parent ) )
                                                  , summaryTable_( 0 )
-                                                 , centroid_marker_( std::make_shared< adwplot::PeakMarker >() )
+                                                 , centroid_marker_( std::make_shared< adplot::PeakMarker >() )
                                                  , timeAxis_( false ) {
 
             processedSpectrum_->enableAxis( QwtPlot::yRight ); // enable y-axis for profile overlay
@@ -93,13 +94,13 @@ namespace dataproc {
             centroid_marker_->setYAxis( QwtPlot::yRight );
         }
 
-        adwplot::SpectrumWidget * processedSpectrum_;
+        adplot::SpectrumWidget * processedSpectrum_;
         adwidgets::MSCalibrateSummaryTable * summaryTable_;
-        std::shared_ptr< adwplot::PeakMarker > centroid_marker_;
+        std::shared_ptr< adplot::PeakMarker > centroid_marker_;
         std::weak_ptr< adcontrols::MassSpectrum > calibCentroid_;
         std::weak_ptr< adcontrols::MSCalibrateResult > calibResult_;
         std::weak_ptr< adcontrols::MSPeakInfo > peakInfo_;
-        adwplot::plot_stderror plot_stderror_;
+        adplot::plot_stderror plot_stderror_;
 
         portfolio::Folium folium_;
         bool timeAxis_;
@@ -120,7 +121,7 @@ namespace dataproc {
             } else {
                 adcontrols::segment_wrapper<> segments( centroid );
                 double mass = segments[ fcn ].getMass( idx );
-                centroid_marker_->setValue( adwplot::PeakMarker::idPeakCenter, mass, 0 );
+                centroid_marker_->setValue( adplot::PeakMarker::idPeakCenter, mass, 0 );
             }
         }
     };
@@ -160,11 +161,9 @@ MSCalibrationWnd::init()
             connect( pSummary, &ST::on_add_selection_to_peak_table, this, &MSCalibrationWnd::handle_add_selection_to_peak_table );
 
             // Make a connection to zoomer in order to sync table in visible range
-            connect( &pImpl_->processedSpectrum_->zoomer(), &adwplot::Zoomer::zoomed, pSummary, &ST::handle_zoomed );
-
-            typedef adwplot::SpectrumWidget SW;
+            connect( pImpl_->processedSpectrum_->zoomer(), &adplot::Zoomer::zoomed, pSummary, &ST::handle_zoomed );
+            typedef adplot::SpectrumWidget SW;
             connect( pImpl_->processedSpectrum_, static_cast<void(SW::*)(const QRectF&)>(&SW::onSelected), pSummary, &ST::handle_selected );
-
 
             adplugin::LifeCycleAccessor accessor( pSummary );
             adplugin::LifeCycle * p = accessor.get();
@@ -279,8 +278,8 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 void
 MSCalibrationWnd::handleAxisChanged( int axis )
 {
-    pImpl_->timeAxis_ = ( axis == adwplot::SpectrumWidget::HorizontalAxisTime );
-	pImpl_->processedSpectrum_->setAxis( static_cast< adwplot::SpectrumWidget::HorizontalAxis >( axis ) );
+    pImpl_->timeAxis_ = ( axis == adplot::SpectrumWidget::HorizontalAxisTime );
+	pImpl_->processedSpectrum_->setAxis( static_cast< adplot::SpectrumWidget::HorizontalAxis >( axis ) );
 
     // replot profile
     boost::any& data = pImpl_->folium_;

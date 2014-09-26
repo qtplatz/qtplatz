@@ -25,7 +25,7 @@
 #include "quanplot.hpp"
 #include <adportable/float.hpp>
 #include <adportable/polfit.hpp>
-#include <adwplot/dataplot.hpp>
+#include <adplot/plot.hpp>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_marker.h>
 #include <qwt_symbol.h>
@@ -46,7 +46,7 @@ QuanPlot::QuanPlot( std::vector< std::shared_ptr< QwtPlotCurve > > & curves
 }
 
 void
-QuanPlot::plot_response_marker_yx( adwplot::Dataplot* plot, double intensity, double amount, const std::pair<double,double>& xrange )
+QuanPlot::plot_response_marker_yx( adplot::plot* plot, double intensity, double amount, const std::pair<double,double>& xrange )
 {
     markers_.clear();
 
@@ -74,7 +74,11 @@ QuanPlot::plot_response_marker_yx( adwplot::Dataplot* plot, double intensity, do
 
 
 void
+<<<<<<< HEAD
 QuanPlot::plot_calib_curve_yx( adwplot::Dataplot* plot
+=======
+QuanPlot::plot_calib_curve_yx( adplot::plot* plot
+>>>>>>> origin/v3.1.3
                              , const QuanPublisher::calib_curve& calib )
 {
     plot->setAxisTitle( QwtPlot::xBottom, tr( "amounts" ) );

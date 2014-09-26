@@ -25,7 +25,7 @@
 
 #include "mainwindow.hpp"
 #include <adplugin/widget_factory.hpp>
-#include <adwplot/dataplot.hpp>
+//#include <adplot/plot.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>

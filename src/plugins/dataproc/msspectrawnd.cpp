@@ -41,11 +41,11 @@
 #include <adplugin/plugin_ptr.hpp>
 #include <adplugin/widget_factory.hpp>
 #include <adportable/configuration.hpp>
-#include <adwplot/chromatogramwidget.hpp>
-#include <adwplot/spectrumwidget.hpp>
+#include <adplot/chromatogramwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
+#include <adplot/spectrogramwidget.hpp>
+#include <adplot/peakmarker.hpp>
 #include <adwidgets/msquantable.hpp>
-#include <adwplot/spectrogramwidget.hpp>
-#include <adwplot/peakmarker.hpp>
 #include <qtwidgets/peakresultwidget.hpp>
 
 #include <portfolio/folium.hpp>
@@ -65,9 +65,9 @@ MSSpectraWnd::~MSSpectraWnd()
 }
 
 MSSpectraWnd::MSSpectraWnd( QWidget *parent ) :  QWidget(parent)
-                                              , plot_( new adwplot::SpectrumWidget )
+                                              , plot_( new adplot::SpectrumWidget )
                                               , table_( new adwidgets::MSQuanTable )
-                                              , marker_( new adwplot::PeakMarker )
+                                              , marker_( new adplot::PeakMarker )
                                               , isTimeAxis_( false )
                                               , dirty_( false )
 {
@@ -84,7 +84,7 @@ MSSpectraWnd::init()
         }
 
         connect( plot_.get()
-                 , static_cast< void(adwplot::SpectrumWidget::*)(const QRectF&)>(&adwplot::SpectrumWidget::onSelected)
+                 , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
                  , [=]( const QRectF& rc){ table_->handleSelected( rc, isTimeAxis_); });
 
         plot_->enableAxis( QwtPlot::yRight );
@@ -249,8 +249,8 @@ MSSpectraWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 MSSpectraWnd::handleAxisChanged( int axis )
 {
-    isTimeAxis_ = ( axis == adwplot::SpectrumWidget::HorizontalAxisTime );
-    plot_->setAxis( adwplot::SpectrumWidget::HorizontalAxis( axis ), true );
+    isTimeAxis_ = ( axis == adplot::SpectrumWidget::HorizontalAxisTime );
+    plot_->setAxis( adplot::SpectrumWidget::HorizontalAxis( axis ), true );
 }
 
 void

@@ -41,7 +41,7 @@ namespace adcontrols {
 }
 
 namespace adwidgets { class MSQuanTable; }
-namespace adwplot { class SpectrumWidget; class PeakMarker; }
+namespace adplot { class SpectrumWidget; class PeakMarker; }
 
 namespace dataproc {
 
@@ -82,8 +82,8 @@ namespace dataproc {
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > profile_;
 
         std::unique_ptr< adwidgets::MSQuanTable > table_;
-        std::unique_ptr< adwplot::SpectrumWidget > plot_;
-        std::unique_ptr< adwplot::PeakMarker > marker_;
+        std::unique_ptr< adplot::SpectrumWidget > plot_;
+        std::unique_ptr< adplot::PeakMarker > marker_;
         bool isTimeAxis_;
         bool dirty_;
     };
