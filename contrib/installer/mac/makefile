@@ -12,7 +12,7 @@ PLUGINS   = ./qtplatz.app/Contents/PlugIns
 #BOOST_VERSION = 1_55
 #OPENBABEL_VERSION = 4.0.0
 
-RDKit_VERSION = 2014.03.1pre
+RDKit_VERSION = 2014.09.1pre
 RDKITDEST = $(FRAMEWORK)
 
 $(worning $(RDBASE) $(origin RDBASE)
