@@ -144,24 +144,6 @@ plot::zoom( const QRectF& rect )
 	impl_->zoomer1_->zoom( rect );
 }
 
-// // private
-// void
-// plot::zoom( const QRectF& rect, const plot& origin )
-// {
-// 	if ( this == &origin )
-// 		return;
-// 	linkedzoom_inprocess_ = true;
-// 	zoomer1_->zoom( rect ); // will emit onZoomed
-// 	linkedzoom_inprocess_ = false;
-// }
-
-// void
-// plot::panne( int dx, int dy, const plot& origin )
-// {
-// 	if ( this != &origin )
-// 		panner_->panne( dx, dy );
-// }
-
 //virtual slot
 void
 plot::onZoomed( const QRectF& rect )
@@ -216,7 +198,7 @@ plot::link( plot * p )
 
     }
     else if ( !impl_->plotlink_ && !p->impl_->plotlink_ ) {
-        impl_->plotlink_.reset( new impl::plotlink );
+        impl_->plotlink_ = std::make_shared< impl::plotlink >();
         impl_->plotlink_->push_back( this );
         impl_->plotlink_->push_back( p );
 	}
