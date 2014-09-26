@@ -90,17 +90,6 @@ QuanSvgPlot::plot( const QuanPlotData& data, size_t idx, int fcn, const std::str
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
 
-<<<<<<< HEAD
-    adwplot::SpectrumWidget plot;
-    plot.setData( tProfile, 0 );
-    plot.setData( tCentroid, 1, true );
-    adwplot::PeakMarker marker;
-
-    marker.attach( &plot );
-    // set color etc.
-    for ( int id = 0; id < adwplot::PeakMarker::numMarkers; ++id )
-        marker.marker( adwplot::PeakMarker::idAxis(id) )->setLinePen( QColor(0xff, 0, 0, 0x80), 0, Qt::DashLine );
-=======
     adplot::SpectrumWidget plot;
     plot.setData( tProfile, 0 );
     plot.setData( tCentroid, 1, true );
@@ -110,7 +99,7 @@ QuanSvgPlot::plot( const QuanPlotData& data, size_t idx, int fcn, const std::str
     // set color etc.
     for ( int id = 0; id < adplot::PeakMarker::numMarkers; ++id )
         marker.marker( adplot::PeakMarker::idAxis(id) )->setLinePen( QColor(0xff, 0, 0, 0x80), 0, Qt::DashLine );
->>>>>>> origin/v3.1.3
+
     marker.setPeak( pk );
     marker.visible(true);
 
@@ -145,13 +134,8 @@ QuanSvgPlot::plot( const QuanPublisher::resp_data& resp, const QuanPublisher::ca
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
 
-<<<<<<< HEAD
-    adwplot::Dataplot dplot;
-    QuanPlot qplot; // QuanPlot must be declear after adwplot::Dataplot (due to detach order)
-=======
     adplot::plot dplot;
     QuanPlot qplot; // QuanPlot must be declear after adplot::Dataplot (due to detach order)
->>>>>>> origin/v3.1.3
 
     qplot.plot_calib_curve_yx( &dplot, calib );
     qplot.plot_response_marker_yx( &dplot, resp.intensity, resp.amount, std::make_pair(calib.min_x, calib.max_x) );

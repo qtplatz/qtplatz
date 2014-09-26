@@ -74,11 +74,7 @@ QuanPlot::plot_response_marker_yx( adplot::plot* plot, double intensity, double 
 
 
 void
-<<<<<<< HEAD
-QuanPlot::plot_calib_curve_yx( adwplot::Dataplot* plot
-=======
 QuanPlot::plot_calib_curve_yx( adplot::plot* plot
->>>>>>> origin/v3.1.3
                              , const QuanPublisher::calib_curve& calib )
 {
     plot->setAxisTitle( QwtPlot::xBottom, tr( "amounts" ) );

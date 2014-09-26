@@ -71,11 +71,7 @@ QuanResultWnd::~QuanResultWnd()
 QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
                                               , cmpdWidget_( new QuanCmpdWidget )
                                               , respTable_( new QuanResultWidget )
-<<<<<<< HEAD
-                                              , calibplot_( new adwplot::Dataplot )
-=======
                                               , calibplot_( new adplot::plot )
->>>>>>> origin/v3.1.3
                                               , dplot_( new QuanPlotWidget )
 {
     QwtPlotGrid * grid = new QwtPlotGrid;
