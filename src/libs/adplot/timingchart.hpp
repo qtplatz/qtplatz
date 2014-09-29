@@ -25,25 +25,20 @@
 #ifndef TIMINGCHART_HPP
 #define TIMINGCHART_HPP
 
-#pragma once
-
+#include <QWidget>
 #include "plot.hpp"
 #include "adplot_global.hpp"
 
-class QPoint;
-
 namespace adplot {
 
-    class ADPLOTSHARED_EXPORT TimingChart : public adplot::plot {
+    class ADPLOTSHARED_EXPORT TimingChart : public plot {
         Q_OBJECT
+
         TimingChart( const TimingChart& ) = delete;
         const TimingChart& operator = ( const TimingChart& ) = delete;
     public:
         ~TimingChart();
         explicit TimingChart( QWidget *parent = 0 );
-
-        bool eventFilter( QObject *, QEvent * ) override;
-        bool event( QEvent * ) override;
 
         struct ADPLOTSHARED_EXPORT Pulse {
             Pulse( double delay = 0 , double duration = 0, const QString& name = QString() );
@@ -72,6 +67,7 @@ namespace adplot {
     private:
         class impl;
         impl * impl_;
+        friend class TimingChartPicker;
 
         void move( const QPoint& );
         void select( const QPoint& );

@@ -44,6 +44,7 @@ SOURCES += annotation.cpp \
            adplotcurve.cpp \
     timingchart.cpp
 
+
 HEADERS += annotation.hpp \
            annotations.hpp \
            axis.hpp \
@@ -66,7 +67,6 @@ HEADERS += annotation.hpp \
            plot_stderror.hpp \
            adplotcurve.hpp \
     timingchart.hpp
-
 
 unix:!symbian {
     maemo5 {

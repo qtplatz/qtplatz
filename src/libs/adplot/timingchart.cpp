@@ -45,6 +45,17 @@
 
 namespace adplot {
 
+    class TimingChartPicker : public QObject {
+        Q_OBJECT
+    public:
+        TimingChartPicker( TimingChart * plot );
+
+        bool eventFilter( QObject *, QEvent * ) override;
+        bool event( QEvent * ) override;
+        TimingChart * plot() { return qobject_cast< TimingChart * >( parent() ); }
+        const TimingChart * plot() const { return qobject_cast< TimingChart * >( parent() ); }
+    };
+
     class pulseMarker {
     public:
         ~pulseMarker() {
@@ -114,10 +125,14 @@ TimingChart::~TimingChart()
     delete impl_;
 }
 
-TimingChart::TimingChart( QWidget *parent ) : adplot::plot( parent )
-                                            , impl_( new impl( this ) )
+TimingChart::TimingChart(QWidget *parent) : plot(parent)
+                                          , impl_( new impl( this ) )
 {
     setTitle( QString( "Timing Chart" ) );
+
+    new TimingChartPicker( this );
+    // canvas()->installEventFilter( this );
+
     QwtPlotGrid *grid = new QwtPlotGrid;
     grid->setMajorPen( Qt::white, 0, Qt::DotLine );
     grid->attach( this );
@@ -143,15 +158,11 @@ TimingChart::TimingChart( QWidget *parent ) : adplot::plot( parent )
         impl_->markers_.push_back( marker );
         marker->setLineStyle( QwtPlotMarker::VLine );
         marker->setLinePen( QColor( 0xff, 0, 0, 0x40 ), 0, Qt::DashLine );
-        //marker->setLinePen( QColor( 0xff, 0, 0 ), 0, Qt::SolidLine );
         marker->setValue( 0, 0 );
         marker->attach( this );
     }
-    // we need the resize events, to lay out the wheel
-    canvas()->installEventFilter( this );
-
-    (*this) << Pulse( 0.0, 1.0e-6, "PULSE" );
 }
+
 
 TimingChart&
 TimingChart::operator << ( const Pulse& pulse )
@@ -159,70 +170,6 @@ TimingChart::operator << ( const Pulse& pulse )
     impl_->addPulse( pulse );
     replot();
     return *this;
-}
-
-bool
-TimingChart::event( QEvent *ev )
-{
-    if ( ev->type() == QEvent::User )   {
-        showCursor( true );
-        return true;
-    }
-    return QObject::event( ev );
-}
-
-bool
-TimingChart::eventFilter( QObject * object, QEvent * event )
-{
-    if ( object != canvas() )
-        return false;
-
-    switch( event->type() )  {
-    case QEvent::FocusIn:
-        showCursor( true );
-        break;
-    case QEvent::FocusOut: 
-        showCursor( false );
-        break;
-    case QEvent::Paint:
-        QApplication::postEvent( this, new QEvent( QEvent::User ) );
-        break;
-    case QEvent::MouseButtonPress:
-        if ( const QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event) ) {
-            select( mouseEvent->pos() );
-            //return true;
-        }
-        break;
-    case QEvent::MouseMove:
-        if ( const QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event) ) {
-            move( mouseEvent->pos() );
-            //return true;
-        }
-        break;
-    default:
-        break;
-    }
-    return QObject::eventFilter( object, event );
-}
-
-// Hightlight the selected point
-void
-TimingChart::showCursor( bool showIt )
-{
-    if ( !impl_->selectedCurve_ )
-        return;
-
-    QwtSymbol *symbol = const_cast<QwtSymbol *>( impl_->selectedCurve_->symbol() );
-
-    const QBrush brush = symbol->brush();
-    if ( showIt )
-        symbol->setBrush( symbol->brush().color().dark( 180 ) );
-
-    QwtPlotDirectPainter directPainter;
-    directPainter.drawSeries( impl_->selectedCurve_, impl_->selectedPoint_, impl_->selectedPoint_ );
-
-    if ( showIt )
-        symbol->setBrush( brush ); // reset brush
 }
 
 // Move the selected point
@@ -318,7 +265,28 @@ TimingChart::select( const QPoint &pos )
     }
 }
 
-/////////////////////////////
+// Hightlight the selected point
+void
+TimingChart::showCursor( bool showIt )
+{
+    if ( !impl_->selectedCurve_ )
+        return;
+
+    QwtSymbol *symbol = const_cast<QwtSymbol *>( impl_->selectedCurve_->symbol() );
+
+    const QBrush brush = symbol->brush();
+    if ( showIt )
+        symbol->setBrush( symbol->brush().color().dark( 180 ) );
+
+    QwtPlotDirectPainter directPainter;
+    directPainter.drawSeries( impl_->selectedCurve_, impl_->selectedPoint_, impl_->selectedPoint_ );
+
+    if ( showIt )
+        symbol->setBrush( brush ); // reset brush
+}
+
+
+////////////////////////
 
 TimingChart::Pulse::Pulse( double delay
                            , double duration
@@ -417,3 +385,61 @@ TimingChart::impl::addPulse( const Pulse& t )
     }
 
 }
+
+////////////////////////////
+TimingChartPicker::TimingChartPicker( TimingChart * plot ) : QObject( plot )
+{
+    QwtPlotCanvas *canvas = qobject_cast<QwtPlotCanvas *>( plot->canvas() );
+
+    canvas->installEventFilter( this );
+    canvas->setFocusPolicy( Qt::StrongFocus );
+    canvas->setCursor( Qt::PointingHandCursor );
+    canvas->setFocusIndicator( QwtPlotCanvas::ItemFocusIndicator );
+    canvas->setFocus();
+}
+
+bool
+TimingChartPicker::event( QEvent *ev )
+{
+    if ( ev->type() == QEvent::User )
+        plot()->showCursor( true );
+    return QObject::event( ev );
+}
+
+bool
+TimingChartPicker::eventFilter( QObject * object, QEvent * event )
+{
+    if ( plot() == nullptr || object != plot()->canvas() ) {
+        return false;
+    }
+
+    switch( event->type() )  {
+    case QEvent::FocusIn:
+        plot()->showCursor( true );
+        break;
+    case QEvent::FocusOut: 
+        plot()->showCursor( false );
+        break;
+    case QEvent::Paint:
+        QApplication::postEvent( this, new QEvent( QEvent::User ) );
+        break;
+    case QEvent::MouseButtonPress:
+        if ( const QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event) ) {
+            plot()->select( mouseEvent->pos() );
+            //return true;
+        }
+        break;
+    case QEvent::MouseMove:
+        if ( const QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event) ) {
+            plot()->move( mouseEvent->pos() );
+            //return true;
+        }
+        break;
+    default:
+        break;
+    }
+    return QObject::eventFilter( object, event );
+}
+
+
+#include "timingchart.moc"

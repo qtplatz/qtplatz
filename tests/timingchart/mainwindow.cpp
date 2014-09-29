@@ -25,17 +25,21 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include <adplot/timingchart.hpp>
+#include <adplot/spectrumwidget.hpp>
 #include <QBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    auto layout = new QHBoxLayout( ui->centralWidget );
+    resize( 800, 350 );
+    auto layout = new QHBoxLayout( centralWidget() );
     auto chart = new adplot::TimingChart;
-    layout->addWidget( new adplot::TimingChart );
+    layout->addWidget( chart );
+
     (*chart) << adplot::TimingChart::Pulse( 0, 1.0e-6, "PULSE" )
         << adplot::TimingChart::Pulse( 0, 2.0e-6, "INJECT" )
         << adplot::TimingChart::Pulse( 0, 20.0e-6, "EJECT" );
+
 }
 
 MainWindow::~MainWindow()

@@ -155,3 +155,5 @@ contrib/installer/wix/qtplatz_bin.wxi
 contrib/installer/wix/qtplatz_lib.wxi
 contrib/installer/wix/qtplatz_plugins.wxi
 contrib/installer/wix/qtplatz_xslt.wxi
+tests/tests.opensdf
+tests/tests.pro.user.3.2-pre1
