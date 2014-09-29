@@ -14,7 +14,8 @@ SUBDIRS = device_emulators \
         bcastaddr \
         formula_parser \
         sdfile_parser \
-    isotope
+    isotope \
+    timingchart
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin
 

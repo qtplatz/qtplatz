@@ -26,11 +26,13 @@
 
 #include <iostream>
 #include <sys/types.h>
+#if !defined WIN32
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#endif
 #include <cerrno>
 #include <cstdlib>
 #include <cstdio>

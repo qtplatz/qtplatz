@@ -17,6 +17,7 @@ CONFIG   -= app_bundle
 }
 
 include(../../../src/boost.pri)
+
 INCLUDEPATH += ../../../src/libs
 
 TEMPLATE = app

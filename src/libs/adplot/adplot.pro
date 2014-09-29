@@ -42,7 +42,7 @@ SOURCES += annotation.cpp \
            peakmarker.cpp \
            plot_stderror.cpp \
            adplotcurve.cpp \
-           timingchart.cpp
+    timingchart.cpp
 
 HEADERS += annotation.hpp \
            annotations.hpp \
@@ -65,7 +65,8 @@ HEADERS += annotation.hpp \
            peakmarker.hpp \
            plot_stderror.hpp \
            adplotcurve.hpp \
-           timingchart.hpp
+    timingchart.hpp
+
 
 unix:!symbian {
     maemo5 {
