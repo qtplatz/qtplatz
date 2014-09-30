@@ -36,9 +36,9 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     auto chart = new adplot::TimingChart;
     layout->addWidget( chart );
 
-    (*chart) << adplot::TimingChart::Pulse( 0, 1.0e-6, "PULSE" )
-        << adplot::TimingChart::Pulse( 0, 2.0e-6, "INJECT" )
-        << adplot::TimingChart::Pulse( 0, 20.0e-6, "EJECT" );
+    (*chart) << adplot::timingchart::pulse( 0, 1.0e-6, "PULSE" )
+        << adplot::timingchart::pulse( 0, 2.0e-6, "INJECT" )
+        << adplot::timingchart::pulse( 0, 20.0e-6, "EJECT" );
 
 }
 

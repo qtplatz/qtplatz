@@ -26,6 +26,7 @@
 #include "zoomer.hpp"
 #include <adcontrols/metric/prefix.hpp>
 #include <qwt_legend.h>
+#include <qwt_legend_label.h>
 #include <qwt_plot_canvas.h>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_directpainter.h>
@@ -49,11 +50,10 @@ namespace adplot {
         Q_OBJECT
     public:
         TimingChartPicker( TimingChart * plot );
-
         bool eventFilter( QObject *, QEvent * ) override;
         bool event( QEvent * ) override;
-        TimingChart * plot() { return qobject_cast< TimingChart * >( parent() ); }
-        const TimingChart * plot() const { return qobject_cast< TimingChart * >( parent() ); }
+        TimingChart * plot() { return qobject_cast<TimingChart *>(parent()); }
+        const TimingChart * plot() const { return qobject_cast<TimingChart *>(parent()); }
     };
 
     class pulseMarker {
@@ -107,16 +107,19 @@ namespace adplot {
         impl( TimingChart * p ) : this_( p ) 
                                 , selectedCurve_( 0 )
                                 , selectedPoint_( -1 )
+                                , wheelCurve_( 0 )
                                 , pulseMarker_( std::make_shared< pulseMarker >() )
             {}
 
         void addPulse( const timingchart::pulse& );
+        void wheelEvent( QWheelEvent * );
 
         std::shared_ptr< pulseMarker > pulseMarker_;
         std::vector< std::pair< timingchart::pulse, std::shared_ptr< QwtPlotCurve > > > pulses_;
         std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
         QwtPlotCurve * selectedCurve_;
         int selectedPoint_;
+        QwtPlotCurve * wheelCurve_;
     private:
         TimingChart * this_;
     };
@@ -155,10 +158,29 @@ TimingChart::TimingChart(QWidget *parent) : plot(parent)
     auto legend = new QwtLegend();
     legend->setDefaultItemMode( QwtLegendData::Checkable );
     insertLegend( legend, QwtPlot::RightLegend );
-    connect( legend, &QwtLegend::checked, [=] ( const QVariant& item, bool on ){ 
-            if ( auto plotItem = infoToItem( item ) )
-                plotItem->setVisible( on );
-        });
+
+    // make exclsive check for legend label
+    connect( legend, &QwtLegend::checked, [&] ( const QVariant& v, bool on ){
+        if ( auto plotItem = infoToItem( v ) ) {
+            for ( auto& item : itemList() ) {
+                if ( item->testItemAttribute( QwtPlotItem::Legend ) ) {
+                    QwtLegend * lgd = qobject_cast<QwtLegend *>(this->legend());
+                    if ( auto label = qobject_cast<QwtLegendLabel *>(lgd->legendWidget( itemToInfo( item ) )) ) {
+                        lgd->blockSignals( true );
+                        label->setChecked( item == plotItem && on );
+                        lgd->blockSignals( false );
+                    }
+                }
+            }
+            if ( on )
+                impl_->wheelCurve_ = static_cast<QwtPlotCurve *>(plotItem);
+            else
+                impl_->wheelCurve_ = 0;
+            //impl_->selectedCurve_ = static_cast<QwtPlotCurve *>(plotItem);
+            //impl_->selectedPoint_ = 1;
+            //showCursor( true );
+        }
+    } );
 
     // time zero marker
     if ( auto marker = std::make_shared< QwtPlotMarker >() ) {
@@ -169,7 +191,6 @@ TimingChart::TimingChart(QWidget *parent) : plot(parent)
         marker->attach( this );
     }
 }
-
 
 TimingChart&
 TimingChart::operator << ( const timingchart::pulse& pulse )
@@ -245,6 +266,33 @@ TimingChart::move( const QPoint &pos )
         if ( pair.second.get() == impl_->selectedCurve_ ) {
             pair.first.delay( samples[ 0 ].x() );
             pair.first.duration( samples[ 1 ].x() - samples[ 0 ].x() );
+            emit valueChanged( pair.first );
+        }
+    }
+}
+
+void
+TimingChart::moveBy( QwtPlotCurve * curve, const QPointF &pos )
+{
+    if ( pos.x() == 0 && pos.y() == 0 )
+        return;
+
+    if ( curve == 0 )
+        return;
+
+    QVector< QPointF > samples;
+    for ( int i = 0; i < curve->dataSize(); ++i )
+        samples.push_back( QPointF( curve->sample( i ).x() + pos.x(), curve->sample( i ).y() ) );
+    curve->setSamples( samples );
+
+    replot();
+
+    impl_->pulseMarker_->setValue( samples[ 0 ], samples[ 1 ] );
+
+    for ( auto& pair : impl_->pulses_ ) {
+        if ( pair.second.get() == curve ) {
+            pair.first.delay( samples[ 0 ].x() );
+            // pair.first.duration( samples[ 1 ].x() - samples[ 0 ].x() );
             emit valueChanged( pair.first );
         }
     }
@@ -368,6 +416,26 @@ TimingChart::impl::addPulse( const timingchart::pulse& p )
 
 }
 
+void
+TimingChart::impl::wheelEvent( QWheelEvent * wheel )
+{
+    if ( !wheelCurve_ )
+        return;
+    auto delta = wheel->angleDelta();
+
+    double d = this_->axisScaleDiv( QwtPlot::xBottom ).upperBound() - this_->axisScaleDiv( QwtPlot::xBottom ).lowerBound();
+    double f = 1.0; // us
+    if ( d < 200.0 )
+        f = 0.1;
+    if ( d < 20.0 )
+        f = 0.01;
+    if ( d < 5.0 )
+        f = 0.001;
+
+    QPointF pos( delta.y() > 0 ? f : -f, 0 ); // 1ns step
+    this_->moveBy( wheelCurve_, pos );
+}
+
 ////////////////////////////
 TimingChartPicker::TimingChartPicker( TimingChart * plot ) : QObject( plot )
 {
@@ -391,9 +459,8 @@ TimingChartPicker::event( QEvent *ev )
 bool
 TimingChartPicker::eventFilter( QObject * object, QEvent * event )
 {
-    if ( plot() == nullptr || object != plot()->canvas() ) {
+    if ( plot() == nullptr || object != plot()->canvas() )
         return false;
-    }
 
     switch( event->type() )  {
     case QEvent::FocusIn:
@@ -415,6 +482,12 @@ TimingChartPicker::eventFilter( QObject * object, QEvent * event )
         if ( const QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event) ) {
             plot()->move( mouseEvent->pos() );
             //return true;
+        }
+        break;
+    case QEvent::Wheel:
+        if ( auto wheel = static_cast<QWheelEvent *>(event) ) {
+            plot()->impl_->wheelEvent( wheel );
+            // qDebug() << "pixelDelta = " << wheel->pixelDelta() << "\tangleDelta=" << wheel->angleDelta();
         }
         break;
     default:

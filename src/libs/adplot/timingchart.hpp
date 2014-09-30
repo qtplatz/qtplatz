@@ -29,6 +29,9 @@
 #include "plot.hpp"
 #include "adplot_global.hpp"
 
+class QWheelEvent;
+class QwtPlotCurve;
+
 namespace adplot {
 
     namespace timingchart {
@@ -79,6 +82,7 @@ namespace adplot {
         friend class TimingChartPicker;
 
         void move( const QPoint& );
+        void moveBy( QwtPlotCurve *, const QPointF& );
         void select( const QPoint& );
         void release();
         void showCursor( bool enable );
