@@ -49,6 +49,7 @@ namespace adplot {
         
         enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
         void setAxis( HorizontalAxis, bool replot = false );
+        HorizontalAxis axis() const;
         bool autoAnnotation() const;
         void setAutoAnnotation( bool enable = true );
         void update_annotation( bool replot = true );

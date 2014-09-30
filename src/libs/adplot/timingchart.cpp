@@ -327,9 +327,9 @@ TimingChart::showCursor( bool showIt )
 
 /////////////////////////////
 void
-TimingChart::impl::addPulse( const timingchart::pulse& t )
+TimingChart::impl::addPulse( const timingchart::pulse& p )
 {
-    timingchart::pulse pulse( t );
+    timingchart::pulse pulse( p );
 
     if ( pulse.uniqId() == -1 )
         pulse.uniqId( int( pulses_.size() ) );
@@ -341,7 +341,7 @@ TimingChart::impl::addPulse( const timingchart::pulse& t )
         marker->setLineStyle( QwtPlotMarker::HLine );
         marker->setLinePen( QColor( 0x6c, 0x7b, 0x8b, 0x80 ), 0, Qt::SolidLine ); // slate gray
         marker->setValue( 0, base );
-        marker->setLabel( t.name() );
+        marker->setLabel( pulse.name() );
         marker->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
         marker->attach( this_ );
     }
@@ -350,18 +350,17 @@ TimingChart::impl::addPulse( const timingchart::pulse& t )
 
         pulses_.push_back( std::make_pair( pulse, curve ) );
 
-        static QColor colors[] = { Qt::green, Qt::red, Qt::darkGreen, Qt::blue, Qt::magenta };
-        QColor c = colors[ pulse.uniqId() % 4 ];
-
-        curve->setPen( c, 2.0 );
-        curve->setSymbol( new QwtSymbol( QwtSymbol::Triangle,  Qt::gray, c, QSize( 8, 8 ) ) );
+        static QColor colors[] = { Qt::green, Qt::red, Qt::darkGreen, Qt::blue, Qt::magenta, Qt::darkCyan };
+        int idx = pulse.uniqId() % (sizeof( colors ) / sizeof( colors[ 0 ] ));
+        curve->setPen( colors[ idx ], 2.0 );
+        curve->setSymbol( new QwtSymbol( QwtSymbol::Triangle,  Qt::gray, colors[ idx ], QSize( 8, 8 ) ) );
 
         QVector< QPointF > line;
-        line.push_back( QPointF( t.delay(), base ) );
-        line.push_back( QPointF( t.delay() + t.duration(), base ) );
+        line.push_back( QPointF( pulse.delay(), base ) );
+        line.push_back( QPointF( pulse.delay() + pulse.duration(), base ) );
     
         curve->setSamples( line );
-        curve->setTitle( t.name() );
+        curve->setTitle( pulse.name() );
         curve->setVisible( true );
 
         curve->attach( this_ );
@@ -462,7 +461,7 @@ double
 pulse::duration( bool microseconds ) const
 {
     return microseconds ? 
-        adcontrols::metric::scale_to_micro( duration_ ) : delay_;
+        adcontrols::metric::scale_to_micro( duration_ ) : duration_;
 }
 
 void

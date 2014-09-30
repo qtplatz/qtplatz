@@ -377,6 +377,12 @@ SpectrumWidget::autoAnnotation() const
     return impl_->autoAnnotation_;
 }
 
+SpectrumWidget::HorizontalAxis
+SpectrumWidget::axis() const
+{
+    return impl_->haxis_;
+}
+
 void
 SpectrumWidget::setAxis( HorizontalAxis haxis, bool replot )
 {
