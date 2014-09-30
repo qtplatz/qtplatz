@@ -31,6 +31,29 @@
 
 namespace adplot {
 
+    namespace timingchart {
+
+        class ADPLOTSHARED_EXPORT pulse {
+        public:
+            pulse( double delay = 0 , double duration = 0, const QString& name = QString(), int uniqId = -1 );
+            pulse( const pulse& );
+
+            double delay( bool microseconds = true ) const;
+            void delay( double, bool microseconds = true );
+            double duration( bool microseconds = true ) const;
+            void duration( double, bool microseconds = true );
+            const QString& name() const;
+            void name( const QString& );
+            int uniqId() const;
+            void uniqId( int );
+        private:
+            int uniqId_;
+            double delay_;
+            double duration_;
+            QString name_;
+        };
+    }
+
     class ADPLOTSHARED_EXPORT TimingChart : public plot {
         Q_OBJECT
 
@@ -40,27 +63,13 @@ namespace adplot {
         ~TimingChart();
         explicit TimingChart( QWidget *parent = 0 );
 
-        struct ADPLOTSHARED_EXPORT Pulse {
-            Pulse( double delay = 0 , double duration = 0, const QString& name = QString() );
-            Pulse( const Pulse& );
-            double delay( bool microseconds = true ) const;
-            void delay( double, bool microseconds = true );
-            double duration( bool microseconds = true ) const;
-            void duration( double, bool microseconds = true );
-            const QString& name() const;
-            void name( const QString& );
-            int uniqId() const;
-        private:
-            friend class TimingChart;
-            int uniqId_;
-            double delay_;
-            double duration_;
-            QString name_;
-        };
-
-        TimingChart& operator << ( const Pulse& );
+        void clear();
+        size_t size() const;
+        TimingChart& operator << (const timingchart::pulse&);
+        const timingchart::pulse& operator [] ( int idx ) const;
 
     signals:
+        void valueChanged( const timingchart::pulse& );
 
     public slots :
 
@@ -76,5 +85,8 @@ namespace adplot {
     };
 
 }
+
+Q_DECLARE_METATYPE( adplot::timingchart::pulse )
+
 
 #endif // TIMINGCHART_HPP

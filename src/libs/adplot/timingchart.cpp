@@ -88,10 +88,14 @@ namespace adplot {
         void setValue( const QPointF& p1, const QPointF& p2 ) {
 
             marker1_->setValue( p1.x(), p1.y() );
-            marker1_->setLabel( QString( "%1us (%2us)" ).arg( QString::number( p1.x(), 'f', 3 )
-                                                              , QString::number( p2.x() - p1.x(), 'f', 3 ) ) );
             marker2_->setValue( p2.x(), p2.y() );
-            marker2_->setLabel( QString( "%1us" ).arg( QString::number( p2.x(), 'f', 3 ) ) );
+
+            QwtText label1( QString( "%1&mu;s" ).arg( QString::number( p1.x(), 'f', 3 ) ), QwtText::RichText );
+            QwtText label2( QString( "%1&mu;s\n(%2&mu;s)" ).arg( QString::number( p2.x(), 'f', 3 )
+                                                                , QString::number( p2.x() - p1.x(), 'f', 3 ) ), QwtText::RichText );
+            
+            marker1_->setLabel( label1 );
+            marker2_->setLabel( label2 );
         }
 
         QwtPlotMarker *marker1_;
@@ -106,9 +110,10 @@ namespace adplot {
                                 , pulseMarker_( std::make_shared< pulseMarker >() )
             {}
 
-        std::vector< TimingChart::Pulse > pulses_;
-        void addPulse( const TimingChart::Pulse& );
+        void addPulse( const timingchart::pulse& );
+
         std::shared_ptr< pulseMarker > pulseMarker_;
+        std::vector< std::pair< timingchart::pulse, std::shared_ptr< QwtPlotCurve > > > pulses_;
         std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
         QwtPlotCurve * selectedCurve_;
         int selectedPoint_;
@@ -139,6 +144,8 @@ TimingChart::TimingChart(QWidget *parent) : plot(parent)
 
     setAxisScale( QwtPlot::xBottom, -100.0, 1000.0 );
     setAxisScale( QwtPlot::yLeft, -5.0, 80.0 );
+    setAxisTitle( QwtPlot::xBottom, QwtText( "&mu;s", QwtText::RichText ) );
+    
     plot::zoomer()->setZoomBase();
 
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
@@ -165,11 +172,31 @@ TimingChart::TimingChart(QWidget *parent) : plot(parent)
 
 
 TimingChart&
-TimingChart::operator << ( const Pulse& pulse )
+TimingChart::operator << ( const timingchart::pulse& pulse )
 {
     impl_->addPulse( pulse );
     replot();
     return *this;
+}
+
+const timingchart::pulse&
+TimingChart::operator [] ( int idx ) const
+{
+    return impl_->pulses_[ idx ].first;
+}
+
+size_t
+TimingChart::size() const
+{
+    return impl_->pulses_.size();
+}
+
+void
+TimingChart::clear()
+{
+    impl_->pulses_.clear();
+    impl_->markers_.clear();
+    impl_->pulseMarker_->detach();
 }
 
 // Move the selected point
@@ -213,6 +240,14 @@ TimingChart::move( const QPoint &pos )
     }
 
     showCursor( true );
+    
+    for ( auto& pair : impl_->pulses_ ) {
+        if ( pair.second.get() == impl_->selectedCurve_ ) {
+            pair.first.delay( samples[ 0 ].x() );
+            pair.first.duration( samples[ 1 ].x() - samples[ 0 ].x() );
+            emit valueChanged( pair.first );
+        }
+    }
 }
 
 // Select the point at a position. If there is no point
@@ -221,14 +256,11 @@ TimingChart::move( const QPoint &pos )
 void
 TimingChart::select( const QPoint &pos )
 {
-    QwtPlotCurve *curve = NULL;
+    QwtPlotCurve *curve = nullptr;
     double dist = 10e10;
     int index = -1;
 
-    // const QwtPlotItemList& itmList = itemList();
     for ( auto& item : itemList() ) {
-
-        // for ( QwtPlotItemIterator it = itmList.begin(); it != itmList.end(); ++it )  {
 
         if ( (item)->rtti() == QwtPlotItem::Rtti_PlotCurve )   {
 
@@ -245,12 +277,17 @@ TimingChart::select( const QPoint &pos )
     }
 
     showCursor( false );
+
+    bool selected = impl_->selectedCurve_ != nullptr;
+
     impl_->selectedCurve_ = nullptr;
     impl_->selectedPoint_ = -1;
 
-    if ( curve && dist < 10 ) { // 10 pixels tolerance
+    if ( !selected && ( curve && dist < 10 ) ) { // 10 pixels tolerance
+
         impl_->selectedCurve_ = curve;
         impl_->selectedPoint_ = index;
+
         showCursor( true );
 
         auto s1 = impl_->selectedCurve_->sample( 0 );
@@ -288,72 +325,15 @@ TimingChart::showCursor( bool showIt )
 
 ////////////////////////
 
-TimingChart::Pulse::Pulse( double delay
-                           , double duration
-                           , const QString& name ) : delay_( delay )
-                                                   , duration_( duration )
-                                                   , name_( name )
-                                                   , uniqId_( -1 )
-{
-}
-
-TimingChart::Pulse::Pulse( const Pulse& t ) : delay_( t.delay_ )
-                                            , duration_( t.duration_ )
-                                            , name_( t.name_ )
-                                            , uniqId_( t.uniqId_ )
-{
-}
-
-double
-TimingChart::Pulse::delay( bool microseconds ) const
-{
-    return microseconds ? 
-        adcontrols::metric::scale_to_micro( delay_ ) : delay_;
-}
-
-void
-TimingChart::Pulse::delay( double value, bool microseconds )
-{
-    delay_ = microseconds ? adcontrols::metric::scale_to_base( value, adcontrols::metric::prefix::micro ) : value;
-}
-
-double
-TimingChart::Pulse::duration( bool microseconds ) const
-{
-    return microseconds ? 
-        adcontrols::metric::scale_to_micro( duration_ ) : delay_;
-}
-
-void
-TimingChart::Pulse::duration( double value, bool microseconds )
-{
-    duration_ = microseconds ? adcontrols::metric::scale_to_base( value, adcontrols::metric::prefix::micro ) : value;
-}
-
-const QString&
-TimingChart::Pulse::name() const
-{
-    return name_;
-}
-
-void
-TimingChart::Pulse::name( const QString& value )
-{
-    name_ = value;
-}
-
-int
-TimingChart::Pulse::uniqId() const
-{
-    return uniqId_;
-}
-
 /////////////////////////////
 void
-TimingChart::impl::addPulse( const Pulse& t )
+TimingChart::impl::addPulse( const timingchart::pulse& t )
 {
-    pulses_.push_back( t );
-    pulses_.back().uniqId_ = int( pulses_.size() ) - 1;
+    timingchart::pulse pulse( t );
+
+    if ( pulse.uniqId() == -1 )
+        pulse.uniqId( int( pulses_.size() ) );
+
     double base = pulses_.size() * 10;
     
     if ( auto marker = std::make_shared< QwtPlotMarker >() ) {
@@ -366,9 +346,12 @@ TimingChart::impl::addPulse( const Pulse& t )
         marker->attach( this_ );
     }
 
-    if ( QwtPlotCurve *curve = new QwtPlotCurve() ) {
-        static QColor colors[] = { Qt::red, Qt::darkGreen, Qt::blue, Qt::magenta };
-        QColor c = colors[ (pulses_.size() - 1) % 4 ];
+    if ( auto curve = std::make_shared< QwtPlotCurve >() ) {
+
+        pulses_.push_back( std::make_pair( pulse, curve ) );
+
+        static QColor colors[] = { Qt::green, Qt::red, Qt::darkGreen, Qt::blue, Qt::magenta };
+        QColor c = colors[ pulse.uniqId() % 4 ];
 
         curve->setPen( c, 2.0 );
         curve->setSymbol( new QwtSymbol( QwtSymbol::Triangle,  Qt::gray, c, QSize( 8, 8 ) ) );
@@ -441,5 +424,78 @@ TimingChartPicker::eventFilter( QObject * object, QEvent * event )
     return QObject::eventFilter( object, event );
 }
 
+////////////////////////////
+
+namespace adplot { namespace timingchart {
+
+pulse::pulse( double delay
+              , double duration
+              , const QString& name
+              , int uniqId ) : delay_( delay )
+                             , duration_( duration )
+                             , name_( name )
+                             , uniqId_( uniqId )
+{
+}
+
+pulse::pulse( const pulse& t ) : delay_( t.delay_ )
+                               , duration_( t.duration_ )
+                               , name_( t.name_ )
+                               , uniqId_( t.uniqId_ )
+{
+}
+
+double
+pulse::delay( bool microseconds ) const
+{
+    return microseconds ? 
+        adcontrols::metric::scale_to_micro( delay_ ) : delay_;
+}
+
+void
+pulse::delay( double value, bool microseconds )
+{
+    delay_ = microseconds ? adcontrols::metric::scale_to_base( value, adcontrols::metric::prefix::micro ) : value;
+}
+
+double
+pulse::duration( bool microseconds ) const
+{
+    return microseconds ? 
+        adcontrols::metric::scale_to_micro( duration_ ) : delay_;
+}
+
+void
+pulse::duration( double value, bool microseconds )
+{
+    duration_ = microseconds ? adcontrols::metric::scale_to_base( value, adcontrols::metric::prefix::micro ) : value;
+}
+
+const QString&
+pulse::name() const
+{
+    return name_;
+}
+
+void
+pulse::name( const QString& value )
+{
+    name_ = value;
+}
+
+int
+pulse::uniqId() const
+{
+    return uniqId_;
+}
+
+void
+pulse::uniqId( int id )
+{
+    uniqId_ = id;
+}
+
+} // namespace timingchart
+} // namespace adplot
 
 #include "timingchart.moc"
