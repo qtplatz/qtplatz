@@ -10,8 +10,8 @@ win32 {
       INCLUDEPATH *= $${TAO_ROOT}
       LIBS += -L$${ACE_ROOT}\\lib
 } else {
-      INCLUDEPATH *= $${ACE_ROOT}/include
+      INCLUDEPATH *= $${ACE_ROOT}/include $${ACE_ROOT} $${TAO_ROOT}
       LIBS *= -L$${ACE_ROOT}/lib
 }
 
-# message( "using ace+tao " $${ACE_ROOT} $${TAO_ROOT} )
+message( "using ace+tao " $${ACE_ROOT} $${TAO_ROOT} )
