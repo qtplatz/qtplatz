@@ -26,7 +26,7 @@
 #include "quanconnection.hpp"
 #include "quandocument.hpp"
 #include "quanplotdata.hpp"
-#include "quanprogress.hPP"
+#include "quanprogress.hpp"
 #include "quansvgplot.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -84,6 +84,7 @@ namespace quan {
                 node.text() = value;
                 return node;
             }
+            // template<> pugi::xml_node operator()( const char * decl, const char * name, const int64_t& value ) const;
 
             pugi::xml_node operator()( const adfs::stmt& sql, int nCol, bool dropNull = false ) const {
             
@@ -311,7 +312,7 @@ QuanPublisher::appendTraceData( ProgressHandler& progress )
 {
     if ( bProcessed_ && conn_ ) {
         
-        size_t nTask = std::count_if( resp_data_.begin(), resp_data_.end(), [] ( const decltype(*resp_data_.begin())& d ){ return d.second->sampType == 0; } );
+        size_t nTask = std::count_if( resp_data_.begin(), resp_data_.end(), [] ( decltype(*resp_data_.begin())& d ){ return d.second->sampType == 0; } );
         progress.setProgressRange( 0, int(nTask) );
 
         if ( auto doc = xmldoc_->select_single_node( "/qtplatz_document" ).node() ) {
@@ -425,7 +426,7 @@ WHERE QuanCompound.uuid = ? AND sampleType = 0 AND QuanResponse.idCmpd = QuanCom
                         d->idx        = int( sql.get_column_value< int64_t >( row++ ) );
                         d->level = 0;
                         resp_data_[ d->respId ] = d;
-                        rnode.append_attribute( "id" ) = d->respId;
+                        rnode.append_attribute( "id" ) = int( d->respId );
                     }
                 }
             } // for
@@ -483,7 +484,7 @@ WHERE QuanCompound.uuid = ? AND sampleType = 1 AND QuanResponse.idCmpd = QuanCom
                         d->fcn        = int( sql.get_column_value< int64_t >( row++ ) );
                         d->idx        = int( sql.get_column_value< int64_t >( row++ ) );
                         resp_data_[ d->respId ] = d;
-                        rnode.append_attribute( "id" ) = d->respId;
+                        rnode.append_attribute( "id" ) = int( d->respId );
                     }
                 }
             } // for

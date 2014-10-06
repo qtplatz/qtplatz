@@ -27,7 +27,7 @@
 #if defined Q_OS_WIN32
 #  include "msxml_transformer.hpp"
 #else 
-# if defined Q_OS_MAC
+# if defined Q_OS_MAC || defined Q_OS_LINUX
 #  include "libxslt_transformer.hpp"
 # endif
 #endif

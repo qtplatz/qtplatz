@@ -36,7 +36,8 @@ QuanQuery::QuanQuery( adfs::sqlite& db ) : sql_( db )
 {
 }
 
-QuanQuery::QuanQuery( const QuanQuery& t ) : sql_( t.sql_ )
+QuanQuery::QuanQuery( const QuanQuery& t ) : std::enable_shared_from_this< QuanQuery >( t )
+                                           , sql_( t.sql_ )
 {
 }
 
@@ -109,7 +110,7 @@ QVariant
 QuanQuery::column_value( size_t idx ) const
 {
     switch ( sql_.column_type( int( idx ) ) ) {
-    case SQLITE_INTEGER: return QVariant( sql_.get_column_value< int64_t >( int( idx ) ) );
+    case SQLITE_INTEGER: return QVariant( static_cast< qlonglong >( sql_.get_column_value< int64_t >( int( idx ) ) ) );
     case SQLITE_FLOAT:   return QVariant( sql_.get_column_value< double >( int( idx ) ) );
     case SQLITE_TEXT:    return QVariant( QString( sql_.get_column_value< std::string >( int( idx ) ).c_str() ) );
     case SQLITE_BLOB: {

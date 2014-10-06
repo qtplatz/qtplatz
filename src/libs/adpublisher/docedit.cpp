@@ -40,6 +40,7 @@
 #include <QColor>
 #include <qmargins.h>
 #include <array>
+#include <cstring>
 #include <functional>
 #include <fstream>
 

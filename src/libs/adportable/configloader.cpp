@@ -27,12 +27,11 @@
 #include <adportable/string.hpp>
 #include "configloader.hpp"
 #include <adportable/configuration.hpp>
+// #include <xmlparser/pugiwrapper.hpp>
 #include <xmlparser/pugixml.hpp>
-#include <xmlparser/pugiwrapper.hpp>
 #include <fstream>
 #include <iostream>
 #include <boost/filesystem.hpp>
-
 
 using namespace adportable;
 
@@ -131,8 +130,13 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
     if ( std::string( node.name() ) == "Configuration" ) {
         // copy name="my_name"
         config.name( node.attribute( "name" ).value() );
-        
-        config.xml( pugi::helper::to_string( node ) );
+
+        // config.xml( pugi::helper::to_string( node ) ); 
+        pugi::xml_document dom;
+        dom.append_copy( node );
+        std::ostringstream o;
+        dom.save( o );
+        config.xml( o.str() );
         
         // populate all attributes
         // pugi::xpath_node_set attrs = node.select_nodes( "attribute::*" );
@@ -159,4 +163,5 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
     }
     return false;
 }
+
 

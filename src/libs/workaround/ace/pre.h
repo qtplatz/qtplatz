@@ -32,7 +32,9 @@
 #include <compiler/disable_unused_parameter.h>
 #include <compiler/disable_deprecated.h>
 
-#if defined __GNUC__
-# pragma GCC diagnostic ignored "-Wextern-c-compat"
+#if defined __GNUC__ 
+# if defined __APPLE__
+#  pragma GCC diagnostic ignored "-Wextern-c-compat"
+# endif
 #endif
 
