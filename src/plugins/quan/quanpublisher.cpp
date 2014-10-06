@@ -93,7 +93,11 @@ namespace quan {
             
                 switch ( sql.column_type( nCol ) ) {
                 case SQLITE_INTEGER:
+#if defined __GNUC__ && defined __linux
+                    return (*this)("int64_t", sql.column_name( nCol ).c_str(), static_cast< long long >( sql.get_column_value< int64_t >( nCol ) ) );
+#else
                     return (*this)("int64_t", sql.column_name( nCol ).c_str(), sql.get_column_value< int64_t >( nCol ) );
+#endif
                     break;
                 case SQLITE_FLOAT:
                     return (*this)("double", sql.column_name( nCol ).c_str(), sql.get_column_value< double >( nCol ) );
