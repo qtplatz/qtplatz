@@ -35,8 +35,9 @@ namespace quan {
         QFutureInterface<void> progress;
         int currentValue;
 
-        ProgressHandler( const ProgressHandler& t ) : progress( t.progress )
-                                                    , currentValue( t.currentValue ) {
+        ProgressHandler( ProgressHandler& t ) : QObject( &t )
+                                              , progress( t.progress )
+                                              , currentValue( t.currentValue ) {
         }
 
         ~ProgressHandler() {

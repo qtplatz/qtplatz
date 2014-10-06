@@ -71,7 +71,7 @@ QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >& s
     // combine per dataSource
     for ( auto it = sequence_->begin(); it != sequence_->end(); ++it )
         que_[ it->dataSource() ].push_back( *it );
-    progress_total_ = std::accumulate( que_.begin(), que_.end(), 0, [] ( int n, const decltype(*que_.begin())& q ){ return n + int( q.second.size() ); } );
+    progress_total_ = std::accumulate( que_.begin(), que_.end(), 0, [] ( int n, decltype(*que_.begin())& q ){ return n + int( q.second.size() ); } );
     progress_->setRange( 0, progress_total_ );
 }
 
