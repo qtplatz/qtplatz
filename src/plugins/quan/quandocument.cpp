@@ -233,7 +233,7 @@ QuanDocument::quanMethod() const
         return *qm;
     else {
         *pm_ << adcontrols::QuanMethod();
-        if ( qm = pm_->find< adcontrols::QuanMethod >() )
+        if ( ( qm = pm_->find< adcontrols::QuanMethod >() ) )
             return *qm;
     }
     BOOST_THROW_EXCEPTION( std::runtime_error( "adcontrols::ProcessMethod has a bug with respect to adcontrols::QuanMethod" ) );
