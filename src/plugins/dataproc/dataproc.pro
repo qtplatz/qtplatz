@@ -101,13 +101,14 @@ LIBS += -l$$qtLibraryTarget(adplot) \
         -l$$qtLibraryTarget(adprot) \
         -l$$qtLibraryTarget(adextension)
 
+LIBS += -l$$qtLibraryTarget( xmlparser )
+LIBS += -l$$qtLibraryTarget( adportable )
+LIBS += -l$$qtLibraryTarget( xmlparser )
+
 !win32 {
   LIBS += -lboost_date_time -lboost_system -lboost_filesystem \
           -lboost_serialization
 }
-
-LIBS += -l$$qtLibraryTarget( adportable ) \
-        -l$$qtLibraryTarget( xmlparser )
 
 linux-*: LIBS += -lqwt -ldl
 

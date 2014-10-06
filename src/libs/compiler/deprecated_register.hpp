@@ -22,7 +22,4 @@
 **
 **************************************************************************/
 
-#if defined __GNUC__
-# pragma GCC diagnostic ignored "-Wdeprecated-register"
-#endif
-
+#include "deprecated_register.h"
