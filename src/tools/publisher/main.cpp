@@ -38,7 +38,7 @@ main( int argc, char *argv[] )
                                         , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                         , QLatin1String( "publisher" ) );
 
-    QDir appdir = QApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" );  // next to translations
+    QDir appdir( QApplication::applicationDirPath() + QLatin1String( "/../share/qtplatz/xslt" ) );
     MainWindow::addRecentFiles( *settings, "Stylesheets", "DIRS", appdir.canonicalPath(), "DIR" );
 
     MainWindow w;
