@@ -1,18 +1,3 @@
-./bootstrap.sh --with-toolset=clang --prefix=/usr/local/boost-1_53
-sudo ./b2 toolset=clang cxxflags="-std=c++11" --prefix=/usr/local/boost-1_53 link=static install
-
-5/June/2013
-In order to success build with c++11 enabled for whole project, make sure boost is also built with c++11;
-
-#install on mac osx
-./bootstrap.sh --with-toolset=clang --prefix=/usr/local/boost-1_53
-./b2 toolset=clang cxxflags="-std=c++11 -stdlib=libc++" linkflags="-stdlib=libc++" --prefix=/usr/local/boost-1_53
-sudo ./b2 toolset=clang cxxflags="-std=c++11 -stdlib=libc++" linkflags="-stdlib=libc++" --prefix=/usr/local/boost-1_53 install
-
-./bootstrap
-sudo ./b2 cxxflags=-std=c++11 install
-------
-VS2010 Support (on trial)
-
-In order to build qtplatz by VS2010 (a.k.a. vc10)
+Visit
+	http://www.qtplatz.com
 
