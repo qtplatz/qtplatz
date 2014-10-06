@@ -13,7 +13,6 @@ DEFINES += ADDATAFILE_LIBRARY
 
 include(../../boost.pri)
 include(../../adplugin.pri)
-include(../../ace_tao.pri)
 
 INCLUDEPATH += ../../libs
 

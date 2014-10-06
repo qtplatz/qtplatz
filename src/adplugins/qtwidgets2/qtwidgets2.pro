@@ -12,7 +12,6 @@ TEMPLATE = lib
 PROVIDER = MS-Cheminformatics
 include(../../adplugin.pri)
 include(../../boost.pri)
-include( ../../ace_tao.pri )
 
 LIBS += -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adcontrols) \

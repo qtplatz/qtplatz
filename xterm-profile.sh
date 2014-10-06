@@ -15,11 +15,12 @@ echo "arch=" $arch
 
 case $arch in
 pi)
-   export QTDIR=/opt/pi/qt5/bin
+   export QTDIR=/opt/qt5-rpi
    export BOOST_ROOT=/nfs/local/pi/boost-$boost_version
    export ACE_ROOT=/nfs/local/pi/ace+tao/$ace_version
    export QWT=/nfs/local/pi/$qwt_version
-   export PATH=$QTDIR:/usr/local/ace+tao/$ace_version/bin:$PATH
+   export PATH=$QTDIR/bin:/usr/local/ace+tao/$ace_version/bin:$PATH
+   export PATH=$PATH:/nfs/home/rpi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
    xterm -bg lightcyan &
    ;;
 

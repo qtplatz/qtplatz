@@ -3,11 +3,7 @@ QT += network \
     script \
     sql
 
-greaterThan(QT_MAJOR_VERSION, 4) {
-    QT += help printsupport
-} else {
-    CONFIG += help
-}
+QT += printsupport
 
 include(../../qtplatzplugin.pri)
 include(../../shared/scriptwrapper/scriptwrapper.pri)
@@ -79,7 +75,6 @@ SOURCES += mainwindow.cpp \
     editormanager/systemeditor.cpp \
     designmode.cpp \
     editortoolbar.cpp \
-    helpmanager.cpp \
     outputpanemanager.cpp \
     navigationsubwidget.cpp \
     sidebarwidget.cpp \
@@ -182,7 +177,6 @@ HEADERS += mainwindow.h \
     editormanager/systemeditor.h \
     designmode.h \
     editortoolbar.h \
-    helpmanager.h \
     outputpanemanager.h \
     navigationsubwidget.h \
     sidebarwidget.h \
