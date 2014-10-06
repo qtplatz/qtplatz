@@ -81,9 +81,9 @@ QuanDocument::~QuanDocument()
 QuanDocument::QuanDocument() : settings_( new QSettings(QSettings::IniFormat, QSettings::UserScope
                                                         , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                         , QLatin1String( "Quan" ) ) )
-                             , postCount_( 0 )
-                             , pm_(std::make_shared< adcontrols::ProcessMethod >())
                              , quanSequence_( std::make_shared< adcontrols::QuanSequence >() )
+                             , pm_(std::make_shared< adcontrols::ProcessMethod >())
+                             , postCount_( 0 )
 {
     (*pm_) << adcontrols::QuanMethod() << adcontrols::QuanCompounds();
     std::fill( dirty_flags_.begin(), dirty_flags_.end(), true );
@@ -233,7 +233,7 @@ QuanDocument::quanMethod() const
         return *qm;
     else {
         *pm_ << adcontrols::QuanMethod();
-        if ( ( qm = pm_->find< adcontrols::QuanMethod >() ) )
+        if ( qm = pm_->find< adcontrols::QuanMethod >() )
             return *qm;
     }
     BOOST_THROW_EXCEPTION( std::runtime_error( "adcontrols::ProcessMethod has a bug with respect to adcontrols::QuanMethod" ) );
