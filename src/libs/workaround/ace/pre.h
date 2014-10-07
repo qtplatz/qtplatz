@@ -36,5 +36,6 @@
 #  pragma GCC diagnostic ignored "-Wdeprecated-register"
 #  pragma GCC diagnostic ignored "-Wextern-c-compat"
 # endif
+#  pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 
