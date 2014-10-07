@@ -99,10 +99,7 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
 !win32 {
   LIBS += -lboost_system \
           -lboost_filesystem \
-          -lboost_iostreams \
-          -lboost_date_time \
-          -lboost_iostreams \
-          -lbz2
+          -lboost_date_time
 }
 
 linux-*: LIBS += -lqwt -ldl

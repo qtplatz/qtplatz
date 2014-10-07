@@ -131,7 +131,7 @@ void CorePlugin::extensionsInitialized()
 
 bool CorePlugin::delayedInitialize()
 {
-    HelpManager::setupHelpManager();
+//    HelpManager::setupHelpManager();
     //m_locator->delayedInitialize();
     return true;
 }

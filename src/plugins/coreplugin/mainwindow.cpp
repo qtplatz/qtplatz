@@ -35,7 +35,7 @@
 #include "fancytabwidget.h"
 #include "documentmanager.h"
 #include "generalsettings.h"
-#include "helpmanager.h"
+// #include "helpmanager.h"
 #include "idocumentfactory.h"
 #include "messagemanager.h"
 #include "modemanager.h"
@@ -123,7 +123,8 @@ MainWindow::MainWindow() :
     m_statusBarManager(0),
     m_modeManager(0),
     m_mimeDatabase(new MimeDatabase),
-    m_helpManager(new HelpManager),
+//    m_helpManager(new HelpManager),
+    m_helpManager(0),
     m_modeStack(new FancyTabWidget(this)),
     m_navigationWidget(0),
     m_rightPaneWidget(0),

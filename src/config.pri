@@ -20,20 +20,9 @@ CONFIG(release, debug|release) {
   *-g++*: QMAKE_CXXFLAGS *= -O2
 }
 
-ACE_VERSION=6.2.3
 QWT_VERSION=6.1.1-svn
 
 # does not override if environment variable already exist
-
-# ACE+TAO
-ACE_ROOT = $$(ACE_ROOT)
-TAO_ROOT = $$(TAO_ROOT)
-isEmpty( ACE_ROOT ) {
-  win32: ACE_ROOT=C:/ACE_wrapper
-  else: ACE_ROOT=/usr/local/ace+tao/$${ACE_VERSION}
-  message("empty ACE_ROOT, using default: " $$(ACE_ROOT))
-}
-isEmpty( TAO_ROOT ): TAO_ROOT=$${ACE_ROOT}
 
 # qwt
 QWT = $$(QWT)
@@ -49,7 +38,7 @@ QTPLATZ_CONFIG += Dataproc
 QTPLATZ_CONFIG += Chemistry
 QTPLATZ_CONFIG += Peptide
 QTPLATZ_CONFIG += Quan
-QTPLATZ_CONFIG += Batch
+#QTPLATZ_CONFIG += Batch
 
 # no chemistry for ARM platform
 linux-arm-*: QTPLATZ_CONFIG -= ChemSpider Chemistry Peptide

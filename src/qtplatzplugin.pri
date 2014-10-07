@@ -104,7 +104,10 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 #   Create a Json file containing the plugin information required by
 #   Qt 5's plugin system by running a XSLT sheet on the
 #   pluginspec file before moc runs.
-    XMLPATTERNS = $$targetPath($$[QT_INSTALL_BINS]/xmlpatterns)
+   
+   XMLPATTERNS = $$(XMLPATTERNS)
+#   message("XMLPATTERNS=" $${XMLPATTERNS})
+   isEmpty( XMLPATTERNS ): XMLPATTERNS = $$targetPath($$[QT_INSTALL_BINS]/xmlpatterns)
 
     pluginspec2json.name = Create Qt 5 plugin json file
     pluginspec2json.input = PLUGINSPEC

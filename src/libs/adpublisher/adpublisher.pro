@@ -39,13 +39,23 @@ HEADERS += adpublisher.hpp\
 win32 {
   SOURCES += msxml_transformer.cpp
   HEADERS += msxml_transformer.hpp
-}
-macx {
+} else {
   SOURCES += libxslt_transformer.cpp
   HEADERS += libxslt_transformer.hpp
-#  check with command: xml2-config --cflags --libs
+}
+
+macx {
+# check with command: xml2-config --cflags --libs
   LIBS += -L/opt/local/lib -lxml2 -lz -lpthread -liconv -lm
   INCLUDEPATH += /opt/local/include/libxml2
+}
+
+linux-* {
+#  message("QMAKESPEC=" $$QMAKESPEC)
+#  message("QMAKE_CC=" $$QMAKE_CC)
+# check with command: xml2-config --cflags --libs
+# for cross compile, --sysroot will be automatically added
+  INCLUDEPATH += /usr/include/libxml2
 }
 
 

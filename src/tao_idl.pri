@@ -11,7 +11,7 @@ for(idl, IDLFILES): PRE_TARGETDEPS += $$replace( idl, ".idl", "C.cpp" )
 
 
 win32: TAO_IDL = $${ACE_ROOT}\bin\tao_idl
-else: TAO_IDL = $${ACE_ROOT}/bin/tao_idl
+else: TAO_IDL = tao_idl
 
 message( "TAO_IDL" $${TAO_IDL} )
 
