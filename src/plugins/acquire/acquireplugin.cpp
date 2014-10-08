@@ -389,7 +389,7 @@ AcquirePlugin::aboutToShutdown()
     mainWindow_->OnFinalClose();
 
     io_service_.stop();
-    for ( std::thread& t: threads_ )
+    for ( auto& t: threads_ )
         t.join();
 
     ADTRACE() << "====== AcquirePlugin shutdown complete ===============";

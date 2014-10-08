@@ -38,6 +38,7 @@ win32 {
 } else {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS += -lboost_date_time -lboost_filesystem -lboost_system
+  arm-linux-*: LIBS += -lboost_thread -lrt
 }
 linux-*: LIBS += -lqwt # order matter on linux
 

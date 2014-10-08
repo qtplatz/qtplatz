@@ -121,7 +121,7 @@ void
 iTask::close()
 {
     io_service_.stop();
-    for ( std::thread& t: threads_ )
+    for ( auto& t: threads_ )
         t.join();
 }
 
