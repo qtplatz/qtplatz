@@ -93,7 +93,7 @@ Task::task_open()
 {
     timer_.cancel();
     initiate_timer();
-    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_) ) );
+    threads_.push_back( adportable::asio::thread( boost::bind(&boost::asio::io_service::run, &io_service_) ) );
 
     return true;
 }

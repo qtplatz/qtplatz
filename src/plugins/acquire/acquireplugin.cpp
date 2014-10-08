@@ -376,7 +376,7 @@ AcquirePlugin::handle_broker_initialized()
         return;
     
     pImpl_->initialize_broker_session();
-    threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+    threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag

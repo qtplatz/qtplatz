@@ -36,8 +36,9 @@
 
 #include <boost/thread.hpp>
 
-namespace adportable {
-    typedef boost::thread thread_t;
+namespace adportable { namespace asio {
+    typedef boost::thread thread;
+}
 }
 
 #else
@@ -45,7 +46,9 @@ namespace adportable {
 #include <thread>
 
 namespace adportable {
-    typedef std::thread thread_t;
+    namespace asio {
+        typedef std::thread thread;
+    }
 }
 
 #endif

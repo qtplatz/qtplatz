@@ -29,6 +29,7 @@
 #include <adlog/logger.hpp>
 #include <boost/bind.hpp>
 #include <workaround/boost/asio.hpp>
+#include <adportable/asio/thread.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
 #include <mutex>
@@ -96,7 +97,7 @@ namespace u5303a {
             static std::mutex mutex_;
 
             IAgMD2Ptr spAgDrvr_;
-            std::vector< std::thread > threads_;
+            std::vector< adportable::asio::thread > threads_;
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
             boost::asio::io_service::strand strand_;
@@ -206,7 +207,7 @@ task::task() : work_( io_service_ )
              , serialnumber_( 0 )
              , acquire_post_count_( 0 )
 {
-    threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+    threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
     io_service_.post( strand_.wrap( [&] { ::CoInitialize( 0 ); } ) );
     io_service_.post( strand_.wrap( [&] { spAgDrvr_.CreateInstance(__uuidof(AgMD2)); } ) );
 }
@@ -316,9 +317,9 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             simulated_ = true;
             simulator_ = new u5303a::simulator;
             // threads for waveform generation
-            threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
-            threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
-            threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+            threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+            threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+            threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
         } catch ( _com_error & e ) {
             ERR( e, "Initialize" );
         }

@@ -32,8 +32,8 @@
 #include <adinterface/brokerC.h>
 #include <adinterface/brokereventC.h>
 #include <compiler/diagnostic_pop.h>
-
 #include <workaround/boost/asio.hpp>
+#include <adportable/asio/thread.hpp>
 #include <thread>
 #include <vector>
 #include <map>
@@ -111,7 +111,7 @@ namespace adbroker {
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
         boost::asio::deadline_timer timer_;
-        std::vector< std::thread > threads_;
+        std::vector< adportable::asio::thread > threads_;
         std::size_t interval_;
     };
 

@@ -35,6 +35,7 @@
 #include <compiler/diagnostic_pop.h>
 
 #include <workaround/boost/asio.hpp>
+#include <adportable/asio/thread.hpp>
 #include <mutex>
 #include <vector>
 #include <deque>
@@ -143,7 +144,7 @@ namespace adcontroller {
         boost::asio::deadline_timer timer_;
         size_t interval_;
 
-        std::vector< std::thread > threads_;
+        std::vector< adportable::asio::thread > threads_;
     };
 
 } // namespace adcontroller
