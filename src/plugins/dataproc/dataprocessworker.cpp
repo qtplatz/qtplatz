@@ -110,12 +110,12 @@ DataprocessWorker::createChromatograms( Dataprocessor* processor
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( std::thread( [=] { io_service_.run(); } ) );
+        threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( std::thread( [=] { handleCreateChromatograms( processor, pm, ranges, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=] { handleCreateChromatograms( processor, pm, ranges, p ); } ) );
 }
 
 void
@@ -125,12 +125,12 @@ DataprocessWorker::createSpectrogram( Dataprocessor* processor )
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( std::thread( [=] { io_service_.run(); } ) );
+		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( std::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
 }
 
 void
@@ -140,12 +140,12 @@ DataprocessWorker::clusterSpectrogram( Dataprocessor * processor )
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( std::thread( [=] { io_service_.run(); } ) );
+		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( std::thread( [=] { handleClusterSpectrogram( processor, pm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=] { handleClusterSpectrogram( processor, pm, p ); } ) );
 }
 
 void
@@ -160,15 +160,15 @@ DataprocessWorker::findPeptide( Dataprocessor * processor, const adprot::digeste
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( std::thread( [=] { handleFindPeptide( processor, pm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=] { handleFindPeptide( processor, pm, p ); } ) );
 }
 
 void
-DataprocessWorker::join( const std::thread::id& id )
+DataprocessWorker::join( const adportable::asio::thread::id& id )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
-	auto it = std::find_if( threads_.begin(), threads_.end(), [=]( std::thread& t ){ return t.get_id() == id; });
+	auto it = std::find_if( threads_.begin(), threads_.end(), [=]( adportable::asio::thread& t ){ return t.get_id() == id; });
     if ( it != threads_.end() ) {
 		it->join();
         threads_.erase( it );

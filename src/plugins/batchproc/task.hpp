@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <thread>
+#include <adportable/asio/thread.hpp>
 #include <mutex>
 #include <vector>
 #include <workaround/boost/asio.hpp>
@@ -61,7 +61,7 @@ namespace batchproc {
         }
 
     private:
-        std::vector< std::thread > threads_;
+        std::vector< adportable::asio::thread > threads_;
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
         std::vector< boost::any > processes_;
