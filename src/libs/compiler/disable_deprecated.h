@@ -24,7 +24,9 @@
 
 #if defined __GNUC__
 # pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-# pragma GCC diagnostic ignored "-Wdeprecated-register"
+# if defined __APPLE__
+#  pragma GCC diagnostic ignored "-Wdeprecated-register"
+# endif
 #endif
 
 #if defined _MSC_VER

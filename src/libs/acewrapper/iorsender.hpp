@@ -27,6 +27,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <workaround/boost/asio.hpp>
+#include <adportable/asio/thread.hpp>
 #include <boost/array.hpp>
 
 #include <mutex>
@@ -67,7 +68,7 @@ namespace acewrapper {
         std::map< std::string, std::string > iorvec_;
         std::map< std::string, std::string >::iterator nextIor_;
         static std::mutex mutex_;
-        std::thread * thread_;
+        adportable::asio::thread * thread_;
     };
 
 }

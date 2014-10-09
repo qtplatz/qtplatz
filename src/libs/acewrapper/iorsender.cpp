@@ -183,7 +183,7 @@ iorSender::spawn()
     if ( thread_ == 0 ) {
         std::lock_guard< std::mutex > lock( mutex_ );
         if ( thread_ == 0 ) {
-            thread_ = new std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) );
+            thread_ = new adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) );
             return true;
         }
     }

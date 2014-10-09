@@ -68,7 +68,7 @@ bool
 ObjectDiscovery::open()
 {
     iorQuery_->open();
-    threads_.push_back( std::thread( [=]() { io_service_->run(); } ) );
+    threads_.push_back( adportable::asio::thread( [=]() { io_service_->run(); } ) );
 	return true;
 }
 

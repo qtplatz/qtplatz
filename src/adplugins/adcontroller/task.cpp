@@ -113,7 +113,7 @@ iTask::open()
     initiate_timer();
     
     for ( size_t i = 0; i < 8; ++i ) 
-        threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
+        threads_.push_back( adportable::asio::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
     return true;
 }
 
@@ -121,7 +121,7 @@ void
 iTask::close()
 {
     io_service_.stop();
-    for ( std::thread& t: threads_ )
+    for ( auto& t: threads_ )
         t.join();
 }
 

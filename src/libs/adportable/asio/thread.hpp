@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,41 +23,33 @@
 **
 **************************************************************************/
 
-#ifndef OBJECTDISCOVERY_H
-#define OBJECTDISCOVERY_H
+#pragma once
 
-#include <map>
-#include <string>
-#include <memory>
-#include <mutex>
-#include <adportable/asio/thread.hpp>
-#include <vector>
+// I've been using std::thread for host boost::asio::io_service::run() without problem 
+// on Windows VS2013, Mac clang++ 5.x, 6.0 and Linux gcc 4.7 for x86 and x64 for years.
+// However, I hit segmentatin fault error when compiled for ARM (R_PI) using 
+// arm-linux-gnueabihf- toolchain.
 
-namespace boost { namespace asio { class io_service; } }
+// here is the workaround
 
-namespace acewrapper { class iorQuery; }
+#if defined __ARM_EABI__
 
-namespace adbroker {
+#include <boost/thread.hpp>
 
-    class ObjectDiscovery {
-    public:
-        ~ObjectDiscovery();
-        ObjectDiscovery();
-        bool open();
-        void close();
-        void register_lookup( const std::string& name, const std::string& ident );
-        bool unregister_lookup( const std::string& ident, std::string& name );
-
-    private:
-        void reply_handler( const std::string&, const std::string& );
-        std::unique_ptr< boost::asio::io_service > io_service_;
-		std::unique_ptr< acewrapper::iorQuery > iorQuery_;
-        std::vector< adportable::asio::thread > threads_;
-        bool suspend_;
-		std::map< std::string, std::string > list_;
-        std::mutex mutex_;
-    };
-
+namespace adportable { namespace asio {
+    typedef boost::thread thread;
+}
 }
 
-#endif // OBJECTDISCOVERY_H
+#else
+
+#include <thread>
+
+namespace adportable {
+    namespace asio {
+        typedef std::thread thread;
+    }
+}
+
+#endif
+

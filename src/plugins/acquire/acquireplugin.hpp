@@ -39,6 +39,7 @@
 #if ! defined Q_MOC_RUN
 #include <workaround/boost/asio.hpp>
 #endif
+#include <adportable/asio/thread.hpp>
 #include <thread>
 #include <mutex>
 
@@ -177,7 +178,7 @@ namespace acquire {
 
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
-            std::vector< std::thread > threads_;
+            std::vector< adportable::asio::thread > threads_;
             std::mutex mutex_;
 
             void populate( SignalObserver::Observer_var& );

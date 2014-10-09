@@ -42,7 +42,7 @@ win32 {
           -lTAO \
           -lACE
   LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time -ldl
-  linux-*: LIBS += -lrt
+  linux-*: LIBS += -lboost_thread -lrt
 }
 
 

@@ -25,12 +25,13 @@
 #ifndef DATAPROCESSWORKER_HPP
 #define DATAPROCESSWORKER_HPP
 
-#include <thread>
+#include <workaround/boost/asio.hpp>
+#include <adportable/asio/thread.hpp>
 #include <mutex>
 #include <vector>
 #include <tuple>
 #include <memory>
-#include <workaround/boost/asio.hpp>
+
 
 namespace adcontrols { class MassSpectrum; class ProcessMethod; }
 namespace adprot { class digestedPeptides; }
@@ -44,7 +45,7 @@ namespace dataproc {
         DataprocessWorker();
         static DataprocessWorker * instance_;
         static std::mutex mutex_;
-        std::vector< std::thread > threads_;
+        std::vector< adportable::asio::thread > threads_;
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
     public:
