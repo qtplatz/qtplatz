@@ -12,7 +12,7 @@ SET(CMAKE_STRIP        arm-linux-gnueabihf-strip)
 SET(CMAKE_RANLIB       arm-linux-gnueabihf-tanlib)
 
 # where is the target environment 
-SET(CMAKE_FIND_ROOT_PATH  /mnt/rootfs /nfs/local/pi)
+SET(CMAKE_FIND_ROOT_PATH  /mnt/rootfs /nfs/pi-wheezy)
 
 # search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
@@ -21,8 +21,3 @@ SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
-######
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_INCLUDE_DIR "/nfs/local/pi/boost-1_56/include")
-set(Boost_LIBRARY_DIR "/nfs/local/pi/boost-1_56/lib")
-#
