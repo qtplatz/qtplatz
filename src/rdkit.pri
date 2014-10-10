@@ -8,7 +8,7 @@ isEmpty( RDBASE ) {
   RDBASE=$$cleanPath( $$PWD/../../rdkit )
 }
 
-INCLUDEPATH += $${RDBASE} $${RDBASE}/Code
+INCLUDEPATH += $${RDBASE} $${RDBASE}/Code $${RDBASE}/include/rdkit
 
 win32 {
 

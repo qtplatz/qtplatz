@@ -292,6 +292,7 @@ AcquirePlugin::initialize_actions()
         cmd = am->registerAction( actionStop_, constants::STOP, globalcontext );
         cmd = am->registerAction( actionInject_, constants::ACQUISITION, globalcontext );
         cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, globalcontext );
+        (void)cmd;
     }
 }
 

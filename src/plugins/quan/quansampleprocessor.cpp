@@ -111,7 +111,7 @@ QuanSampleProcessor::dryrun()
     for ( auto& sample : samples_ ) {
         switch ( sample.dataGeneration() ) {
         case adcontrols::QuanSample::GenerateSpectrum:
-            if ( nFcn_ && sample.scan_range_first() == 0 && sample.scan_range_second() == (-1) )
+            if ( nFcn_ && sample.scan_range_first() == 0 && sample.scan_range_second() == static_cast< unsigned int>(-1) )
                 progress_total_ += int( nSpectra_ / nFcn_ );
             progress_total_++;
             break;
@@ -120,6 +120,9 @@ QuanSampleProcessor::dryrun()
             break;
         case adcontrols::QuanSample::ASIS:
             progress_total_++;
+            break;
+        case adcontrols::QuanSample::GenerateChromatogram:
+            // not implemented
             break;
         }
     }

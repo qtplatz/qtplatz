@@ -75,8 +75,8 @@ namespace quan {
         std::shared_ptr< adwidgets::Progress > progress_;
         size_t nFcn_;
         size_t nSpectra_;
-        int progress_total_;
         int progress_current_;
+        int progress_total_;
         std::mutex mutex_;
 
         void open();

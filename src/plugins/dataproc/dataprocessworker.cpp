@@ -155,7 +155,7 @@ DataprocessWorker::findPeptide( Dataprocessor * processor, const adprot::digeste
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( std::thread( [=] { io_service_.run(); } ) );
+		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
@@ -201,7 +201,7 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
 
 	progress->dispose();
 
-    io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
 
 void
@@ -253,7 +253,7 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
     
 	progress->dispose();
 
-    io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
     
 }
 
@@ -287,7 +287,7 @@ DataprocessWorker::handleFindPeptide( Dataprocessor* processor
     }
 
 	progress->dispose();
-    io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
 
 void
@@ -332,5 +332,5 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
               << double( std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - start ).count() / 1000.0 );
 
 	progress->dispose();
-    io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }

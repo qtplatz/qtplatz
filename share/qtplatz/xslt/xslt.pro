@@ -30,4 +30,4 @@ xslfiles.files = $$XSLFILES
 xslfiles.path = $$QTC_PREFIX/share/qtplatz/xslt
 xslfiles.CONFIG += no_check_exist
 xslfiles.CONFIG += no_link
-INSTALLS += xslfiles
+#INSTALLS += xslfiles

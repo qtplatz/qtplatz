@@ -97,7 +97,7 @@ namespace quan {
 
                 std::string samp_type = index.model()->index( index.row(), c_sample_type, index.parent() ).data().toString().toStdString();
                 std::string data_type = index.model()->index( index.row(), c_data_type, index.parent() ).data().toString().toStdString();
-                size_t level = index.model()->index( index.row(), c_level, index.parent() ).data().toInt();
+                int level = index.model()->index( index.row(), c_level, index.parent() ).data().toInt();
 
                 if ( data_type != "file" ) {  // "raw" | "spc"
                     if ( samp_type == "STD" ) {

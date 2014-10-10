@@ -85,10 +85,10 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
                                         , tree_( new docTree )
                                         , text_( new docEdit )
                                         , browser_( new docBrowser )
-                                        , stacked_( new QStackedWidget )
                                         , comboStyle(0)
                                         , comboFont(0)
                                         , comboSize(0)
+                                        , stacked_( new QStackedWidget )
                                         , tb(0)
 {
     std::fill( actions_.begin(), actions_.end(), static_cast<QAction*>(0) );

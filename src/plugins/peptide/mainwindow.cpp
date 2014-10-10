@@ -187,6 +187,7 @@ MainWindow::createMidStyledBar()
         toolBarLayout->setSpacing(0);
         // Core::ActionManager * am = Core::ICore::instance()->actionManager();
         if( auto am = Core::ActionManager::instance() ) {
+            (void)am;
             // print, method file open & save buttons
             //toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
             //toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));

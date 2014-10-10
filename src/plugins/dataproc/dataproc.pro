@@ -110,7 +110,7 @@ LIBS += -l$$qtLibraryTarget( xmlparser )
           -lboost_serialization
 }
 
-linux-*: LIBS += -lqwt -ldl
+linux-*: LIBS += -lqwt -ldl -lboost_thread -lrt
 
 PROVIDER = MS-Cheminformatics
 include(../../qtplatzplugin.pri)

@@ -34,11 +34,15 @@
 
 #if defined __ARM_EABI__
 
-#include <boost/thread.hpp>
+#include <boost/thread/thread.hpp>
 
-namespace adportable { namespace asio {
-    typedef boost::thread thread;
-}
+namespace adportable {
+
+    namespace asio {
+        typedef boost::thread thread;
+    }
+
+    namespace this_thread = boost::this_thread;
 }
 
 #else
@@ -49,6 +53,7 @@ namespace adportable {
     namespace asio {
         typedef std::thread thread;
     }
+    namespace this_thread = std::this_thread;
 }
 
 #endif

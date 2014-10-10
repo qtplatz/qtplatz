@@ -30,6 +30,7 @@
 #include <compiler/disable_sign_compare.h>
 
 #include <GraphMol/MolDrawing/MolDrawing.h>
+#include <compiler/disable_unused_variable.h>
 #include <GraphMol/MolDrawing/DrawingToSVG.h>
 
 #include <compiler/diagnostic_pop.h>

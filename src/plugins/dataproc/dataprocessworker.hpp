@@ -28,10 +28,10 @@
 #include <workaround/boost/asio.hpp>
 #include <adportable/asio/thread.hpp>
 #include <mutex>
-#include <vector>
-#include <tuple>
 #include <memory>
-
+#include <thread>
+#include <tuple>
+#include <vector>
 
 namespace adcontrols { class MassSpectrum; class ProcessMethod; }
 namespace adprot { class digestedPeptides; }
@@ -79,7 +79,7 @@ namespace dataproc {
                                 , const std::shared_ptr< adcontrols::ProcessMethod >
                                 , qtwrapper::ProgressBar* );
 
-        void join( const std::thread::id& );
+        void join( const adportable::asio::thread::id& );
     };
 
 }

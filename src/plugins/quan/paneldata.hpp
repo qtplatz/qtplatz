@@ -47,8 +47,8 @@ namespace quan {
         void setWidget( QWidget * );
     private:
         QString displayName_;
-        QWidget * widget_;
         QIcon icon_;
+        QWidget * widget_;
     };
 
 }
