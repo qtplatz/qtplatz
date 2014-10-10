@@ -25,7 +25,7 @@
 #pragma once
 
 #include <adorbmgr/adorbmgr_global.h>
-
+#include <adportable/asio/thread.hpp>
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_dll_interface.h>
 #include <atomic>
@@ -79,7 +79,7 @@ namespace adorbmgr {
         static std::mutex mutex_;
         bool thread_running_;
         size_t init_count_;
-        std::thread * thread_;
+        adportable::asio::thread * thread_;
         TAO_ORB_Manager * taomgr_;
         std::condition_variable cond_;
     };

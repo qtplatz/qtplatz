@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "orbmgr.hpp"
-
+#include <adportable/debug.hpp>
 #include <tao/Utils/ORB_Manager.h>
 #include <adlog/logger.hpp>
 #include <boost/exception/all.hpp>
@@ -190,7 +190,7 @@ void
 orbmgr::shutdown()
 {
     CORBA::ORB_ptr orb;
-
+    
     if ( taomgr_ && ( orb = taomgr_->orb() ) ) {
 		if ( ! CORBA::is_nil( orb ) ) {
 			try {
@@ -226,7 +226,7 @@ orbmgr::spawn()
         std::unique_lock< std::mutex > lock( mutex_ );
         if ( thread_ == 0 ) {
 
-            thread_ = new std::thread( std::bind( &orbmgr::run, this ) );
+            thread_ = new adportable::asio::thread( std::bind( &orbmgr::run, this ) );
 
             while ( !thread_running_ )
                 cond_.wait( lock );
