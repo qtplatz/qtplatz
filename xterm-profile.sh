@@ -4,6 +4,7 @@ arch=host
 ace_version=6.2.8
 qwt_version=6.1.2-svn
 boost_version=1_56
+xlocal=/nfs/pi-wheezy
 
 echo $#
 
@@ -16,13 +17,13 @@ echo "arch=" $arch
 case $arch in
 pi)
    export QTDIR=/opt/qt5-rpi
-   export BOOST_ROOT=/nfs/local/pi/boost-$boost_version
-   export ACE_ROOT=/nfs/local/pi/ace+tao/$ace_version
-   export QWT=/nfs/local/pi/qwt-$qwt_version
+   export BOOST_ROOT=$xlocaL/boost-$boost_version
+   export ACE_ROOT=$xlocaL/ace+tao/$ace_version
+   export QWT=$xlocaL/qwt-$qwt_version
    export PATH=$QTDIR/bin:/usr/local/ace+tao/$ace_version/bin:$PATH
    export PATH=$PATH:/nfs/home/rpi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
    export XMLPATTERNS=/opt/Qt5.3.2/5.3/gcc_64/bin/xmlpatterns
-   xterm -bg lightcyan &
+   xterm -bg firebrick -fg floralwhite
    ;;
 
 host)
