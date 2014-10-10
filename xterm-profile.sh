@@ -6,16 +6,12 @@ qwt_version=6.1.2-svn
 boost_version=1_56
 xlocal=/nfs/pi-wheezy
 
-echo $#
-
-if [ $# -ge 1 ]; then
-  arch=$1
-fi
+arch=`uname -m`
 
 echo "arch=" $arch
 
 case $arch in
-pi)
+armv6l)
    export QTDIR=/opt/qt5-rpi
    export BOOST_ROOT=$xlocaL/boost-$boost_version
    export ACE_ROOT=$xlocaL/ace+tao/$ace_version
@@ -26,7 +22,7 @@ pi)
    xterm -bg firebrick -fg floralwhite
    ;;
 
-host)
+x86_64)
    export QTDIR=/opt/Qt5.3.2/5.3/gcc_64
    export BOOST_ROOT=/usr/local/boost-$boost_version
    export ACE_ROOT=/usr/local/ace+tao/$ace_version
@@ -34,6 +30,16 @@ host)
    export PATH=$QTDIR/bin:$ACE_ROOT/bin:$PATH
    xterm -bg ivory &
    ;;
+
+i686)
+   export QTDIR=/opt/Qt5.3.2/5.3/gcc
+   export BOOST_ROOT=/usr/local/boost-$boost_version
+   export ACE_ROOT=/usr/local/ace+tao/$ace_version
+   export QWT=/usr/local/qwt-$qwt_version
+   export PATH=$QTDIR/bin:$ACE_ROOT/bin:$PATH
+   xterm -bg lavender &
+   ;;
+
 esac
 
 
