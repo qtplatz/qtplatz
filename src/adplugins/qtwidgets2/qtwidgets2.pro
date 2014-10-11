@@ -25,8 +25,6 @@ LIBS += -l$$qtLibraryTarget(adportable) \
   LIBS *= -lboost_filesystem -lboost_system
 }
 
-INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
-
 #workaround for 5.1.0 cause a fatal error on qitemdelegate.h can not find qabstractitemdelegate.h
 greaterThan( QT_MAJOR_VERSION, 4 ): INCLUDEPATH += ${QTDIR}/include  
 

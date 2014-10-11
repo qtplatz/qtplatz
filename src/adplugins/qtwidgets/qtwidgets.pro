@@ -4,25 +4,28 @@
 #
 #-------------------------------------------------
 
-QT += core gui
-greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
+QT += core gui widgets
 
 TARGET = qtwidgets
 TEMPLATE = lib
-PROVIDER = MS-Cheminformatics
 
+PROVIDER = MS-Cheminformatics
 include(../../adplugin.pri)
 include(../../boost.pri)
 
-LIBS += -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(adplugin) -l$$qtLibraryTarget(qtwrapper) \
-    -l$$qtLibraryTarget(xmlparser)
+message( $$LIBS )
+
+LIBS += -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adextension) \
+        -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(adlog) \
+        -l$$qtLibraryTarget(qtwrapper) \
+        -l$$qtLibraryTarget(xmlparser)
 
 !win32 {
   LIBS *= -lboost_filesystem -lboost_system
 }
-
-INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
 
 #workaround for 5.1.0 cause a fatal error on qitemdelegate.h can not find qabstractitemdelegate.h
 greaterThan( QT_MAJOR_VERSION, 4 ): INCLUDEPATH += ${QTDIR}/include  
@@ -43,7 +46,6 @@ SOURCES += centroiddelegate.cpp \
         peakmethoddelegate.cpp \
         peakresultwidget.cpp \
         peakmethodform.cpp \
-        # processmethodview.cpp \
         qtwidgets.cpp \
         sequencesform.cpp \
         sequencesmodel.cpp \
@@ -55,7 +57,9 @@ SOURCES += centroiddelegate.cpp \
         tabledelegate.cpp \
         adductsdelegate.cpp \
         formulaedelegate.cpp \
-    timeeventsdelegate.cpp
+        timeeventsdelegate.cpp
+
+        # processmethodview.cpp
 
 HEADERS += centroiddelegate.hpp \
         elementalcompositiondelegate.hpp \
@@ -70,7 +74,6 @@ HEADERS += centroiddelegate.hpp \
         standarditemhelper.hpp \
         standardmodel.hpp \
         treeitem.hpp \
-        # processmethodview.hpp \
         centroidmethodmodel.hpp \
         isotopemethodmodel.hpp \
         chemicalformula.hpp \
@@ -83,7 +86,9 @@ HEADERS += centroiddelegate.hpp \
         tabledelegate.hpp \
         adductsdelegate.hpp \
         formulaedelegate.hpp \
-    timeeventsdelegate.hpp
+        timeeventsdelegate.hpp
+
+        # processmethodview.hpp
 
 FORMS += \
     elementalcompositionform.ui \
@@ -97,11 +102,3 @@ FORMS += \
 
 RESOURCES +=
 
-#DEPENDPATH += qml qml/content
-
-#folder_01.source = qml
-#folder_01.target = qml
-#DEPLOYMENTFOLDERS = folder_01
-#IDE_QML_PATH = $$IDE_DATA_PATH/qtwidgets
-#include(../../qtplatz_qml.pri)
-#qtcAddDeployment()
