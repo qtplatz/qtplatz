@@ -30,7 +30,7 @@
 #include "coreplugin.h"
 #include "designmode.h"
 #include "editmode.h"
-#include "helpmanager.h"
+//#include "helpmanager.h"
 #include "mainwindow.h"
 #include "mimedatabase.h"
 #include "modemanager.h"

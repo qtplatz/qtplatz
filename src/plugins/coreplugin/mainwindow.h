@@ -52,7 +52,7 @@ class StatusBarWidget;
 class EditorManager;
 class ExternalToolManager;
 class DocumentManager;
-class HelpManager;
+//class HelpManager;
 class IDocument;
 class IWizardFactory;
 class MessageManager;
@@ -176,7 +176,7 @@ private:
     StatusBarManager *m_statusBarManager;
     ModeManager *m_modeManager;
     MimeDatabase *m_mimeDatabase;
-    HelpManager *m_helpManager;
+    //HelpManager *m_helpManager;
     FancyTabWidget *m_modeStack;
     NavigationWidget *m_navigationWidget;
     RightPaneWidget *m_rightPaneWidget;
