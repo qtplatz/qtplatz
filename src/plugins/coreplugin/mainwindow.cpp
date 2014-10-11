@@ -35,9 +35,9 @@
 #include "fancytabwidget.h"
 #include "documentmanager.h"
 #include "generalsettings.h"
-#if ! defined __ARM_EABI__
-# include "helpmanager.h"
-#endif
+// #if ! defined __ARM_EABI__
+// # include "helpmanager.h"
+// #endif
 #include "idocumentfactory.h"
 #include "messagemanager.h"
 #include "modemanager.h"
@@ -125,11 +125,11 @@ MainWindow::MainWindow() :
     m_statusBarManager(0),
     m_modeManager(0),
     m_mimeDatabase(new MimeDatabase),
-#if defined __ARM_EABI__
+//#if defined __ARM_EABI__
     m_helpManager(0), 
-#else
-    m_helpManager(new HelpManager),
-#endif
+//#else
+//    m_helpManager(new HelpManager),
+//#endif
     m_modeStack(new FancyTabWidget(this)),
     m_navigationWidget(0),
     m_rightPaneWidget(0),
@@ -303,10 +303,10 @@ MainWindow::~MainWindow()
     m_modeManager = 0;
     delete m_mimeDatabase;
     m_mimeDatabase = 0;
-#if !defined __ARM_EABI__
-    delete m_helpManager;
-    m_helpManager = 0;
-#endif
+//#if !defined __ARM_EABI__
+//    delete m_helpManager;
+//    m_helpManager = 0;
+//#endif
     delete m_variableManager;
     m_variableManager = 0;
 }
