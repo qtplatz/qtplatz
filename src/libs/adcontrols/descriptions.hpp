@@ -56,7 +56,8 @@ namespace adcontrols {
 
 	   void append( const description&, bool uniq = false );
 	   size_t size() const;
-	   const description& operator [](size_t idx) const;
+	   const description& operator [] ( size_t idx ) const;
+       descriptions& operator << ( const description& );
 
        std::vector< description >::iterator begin();
        std::vector< description >::iterator end();
@@ -64,8 +65,6 @@ namespace adcontrols {
        std::vector< description >::const_iterator end() const;
        std::wstring make_folder_name( const std::wstring& regex = L".*" ) const;
 
-	   // std::string saveXml() const;
-	   // void loadXml( const std::string& xml );
        std::wstring toString() const;
 
        static bool xml_archive( std::wostream&, const descriptions& );

@@ -27,7 +27,7 @@
 #include <boost/serialization/item_version_type.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <boost/archive/basic_binary_iprimitive.hpp>
-#include <boost/archive/detail/common_iarchive.hpp>
+#include <workaround/boost/archive/detail/common_iarchive.hpp>
 #include <boost/archive/detail/register_archive.hpp>
 #include <compiler/deprecated_register.hpp>
 #include <workaround/boost/uuid/uuid.hpp>

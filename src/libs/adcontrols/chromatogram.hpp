@@ -150,8 +150,8 @@ namespace adcontrols {
         internal::ChromatogramImpl * pImpl_;
     };
 
-    template<> void Chromatogram::serialize( portable_binary_oarchive&, const unsigned int );
-    template<> void Chromatogram::serialize( portable_binary_iarchive&, const unsigned int );
+    template<> void ADCONTROLSSHARED_EXPORT Chromatogram::serialize( portable_binary_oarchive&, const unsigned int );
+    template<> void ADCONTROLSSHARED_EXPORT Chromatogram::serialize( portable_binary_iarchive&, const unsigned int );
 
     typedef std::shared_ptr<Chromatogram> ChromatogramPtr;   
 

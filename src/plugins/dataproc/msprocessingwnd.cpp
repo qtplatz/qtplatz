@@ -288,7 +288,7 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
 
     if ( axis_ == AxisMZ ) {
         if ( size_t size = ptr->size() ) {
-            std::pair < double, double > range = std::make_pair( ptr->getMass( 0 ), ptr->getMass( ptr->size() - 1 ) );
+            std::pair < double, double > range = std::make_pair( ptr->getMass( 0 ), ptr->getMass( size - 1 ) );
             if ( adportable::compare<double>::approximatelyEqual( range.first, range.second ) ) {
                 // Spectrum has no mass assigned
                 handleAxisChanged( AxisTime );
@@ -299,7 +299,7 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
     pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
     QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: ptr->getDescriptions() )
-		title += QString::fromStdWString( text.text() + L", " );
+		title += QString::fromStdWString( std::wstring( text.text() ) + L", " );
 	pImpl_->profileSpectrum_->setTitle( title );
     pImpl_->processedSpectrum_->clear();
 	drawIdx2_ = 0;
@@ -315,7 +315,7 @@ MSProcessingWnd::draw1()
 
         QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
         for ( auto text: ptr->getDescriptions() )
-            title += QString::fromStdWString( text.text() + L", " );
+            title += QString::fromStdWString( std::wstring( text.text() ) + L", " );
 
         pImpl_->profileSpectrum_->setTitle( title );
         pImpl_->processedSpectrum_->clear();
@@ -981,8 +981,8 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
         const adcontrols::descriptions& desc = ms->getDescriptions();
         for ( size_t i = 0; i < desc.size(); ++i ) {
             const adcontrols::description& d = desc[i];
-            if ( ! d.xml().empty() ) {
-                formattedMethod.append( d.xml().c_str() ); // boost::serialization does not close xml correctly, so xmlFormatter raise an exception.
+            if ( ! std::string( d.xml() ).empty() ) {
+                formattedMethod.append( d.xml() ); // boost::serialization does not close xml correctly, so xmlFormatter raise an exception.
             }
         }
     }

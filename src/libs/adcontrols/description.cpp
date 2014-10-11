@@ -38,6 +38,13 @@ description::description()
     tv_usec_ = 0;
 }
 
+description::description( const wchar_t * key, const wchar_t * text ) : key_(key)
+                                                                      , text_(text)
+{
+	time(&tv_sec_);
+    tv_usec_ = 0;
+}
+
 description::description( const std::wstring& key, const std::wstring& text ) : key_(key), text_(text)
 {
 	time(&tv_sec_);
@@ -51,3 +58,28 @@ description::description( const description& t ) : tv_sec_(t.tv_sec_)
 												 , xml_(t.xml_)
 {
 }
+
+const wchar_t *
+description::text() const
+{
+    return text_.c_str();
+}
+
+const wchar_t *
+description::key() const
+{
+    return key_.c_str();
+}
+
+const char *
+description::xml() const
+{
+    return xml_.c_str();
+}
+       
+void
+description::xml( const char * u )
+{
+    xml_ = u;
+}
+

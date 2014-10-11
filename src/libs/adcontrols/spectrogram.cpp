@@ -29,7 +29,13 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
+#include <compiler/disable_unused_function.h>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <compiler/diagnostic_pop.h>
+
 #include <algorithm>
 
 #include <adportable/portable_binary_iarchive.hpp>

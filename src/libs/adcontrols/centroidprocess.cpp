@@ -169,7 +169,7 @@ CentroidProcessImpl::setup( const CentroidMethod& method )
 	std::ostringstream o;
 	boost::archive::xml_oarchive ar( o );
 	ar << boost::serialization::make_nvp("CentroidMethod", method);
-	desc_.xml( o.str() );
+	desc_.xml( o.str().c_str() );
 }
 
 void

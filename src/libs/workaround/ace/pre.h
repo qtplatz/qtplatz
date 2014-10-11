@@ -35,6 +35,7 @@
 # if defined __APPLE__
 #  pragma GCC diagnostic ignored "-Wdeprecated-register"
 #  pragma GCC diagnostic ignored "-Wextern-c-compat"
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 # endif
 #  pragma GCC diagnostic ignored "-Wunused-variable"
 #endif

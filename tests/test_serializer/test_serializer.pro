@@ -28,6 +28,7 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
           -lboost_iostreams \
           -lboost_date_time \
           -lboost_iostreams \
+          -lboost_wserialization \
           -lbz2
 }
 

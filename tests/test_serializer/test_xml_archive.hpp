@@ -19,9 +19,10 @@ namespace test {
 
             template< class T > bool save( const T& t, const char * file ) {
                 try {
+
                     std::wofstream fo( file );
                     return adportable::xml::serialize<>()(t, fo);
-                    //return T::xml_archive( fo, t );
+
                 } catch ( ... ) {
                     std::cout << "\t" << boost::current_exception_diagnostic_information();
                     return false;

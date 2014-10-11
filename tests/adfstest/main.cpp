@@ -35,18 +35,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/variant.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+
+#include <compiler/disable_unused_parameter.h>
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics.hpp>
 #include <sstream>
-
-#if defined _DEBUG
-#     pragma comment(lib, "adportabled.lib")  // static
-#     pragma comment(lib, "adcontrolsd.lib")  // static
-#else
-#     pragma comment(lib, "adportable.lib")  // static
-#     pragma comment(lib, "adcontrols.lib")  // static
-#endif
-
 
 struct column_print : public boost::static_visitor<void> {
     template<typename T> void operator()( T& t ) const {

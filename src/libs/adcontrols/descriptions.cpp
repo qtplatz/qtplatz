@@ -96,7 +96,7 @@ namespace adcontrols {
                         
                         std::match_results< std::basic_string< wchar_t >::const_iterator > match;
 
-                        if ( std::regex_match(d.key(), match, regex_) ) {
+                        if ( std::regex_match( std::wstring( d.key() ), match, regex_) ) {
                             if ( !name.empty() )
                                 name += char_t( ' ' );
                             name += d.text();
@@ -134,22 +134,29 @@ descriptions::descriptions( const descriptions& t )
 void
 descriptions::operator = ( const descriptions& t )
 {
-   if ( pImpl_ != t.pImpl_ ) {
-      delete pImpl_;
-      pImpl_ = new descriptionsImpl( *t.pImpl_ );
-   }
+    if ( pImpl_ != t.pImpl_ ) {
+        delete pImpl_;
+        pImpl_ = new descriptionsImpl( *t.pImpl_ );
+    }
 }
 
 void
 descriptions::append( const description& desc, bool uniq )
 {
-   pImpl_->append( desc, uniq );
+    pImpl_->append( desc, uniq );
+}
+
+descriptions&
+descriptions::operator << ( const description& desc )
+{
+    pImpl_->append( desc, false );
+    return *this;
 }
 
 size_t
 descriptions::size() const
 {
-   return pImpl_->size();
+    return pImpl_->size();
 }
 
 const description& 
@@ -163,7 +170,7 @@ descriptions::toString() const
 {
     std::wstring text;
     for ( auto& desc: *this )
-        text += desc.text() + L";";
+        text += std::wstring( desc.text() ) + L";";
     return text;
 }
 

@@ -20,9 +20,6 @@
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 
-#include <boost/archive/text_woarchive.hpp>
-#include <boost/archive/text_wiarchive.hpp>
-
 #include <adportable/debug.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/xml_serializer.hpp>
@@ -196,7 +193,7 @@ test_process_method()
     // test::archive_member_detection( t );
 
     t.compare_ = []( const T& a, const T& b ){
-        if ( a.size() == b.size() && a.ident() == b.ident() ) {
+        if ( a.size() == b.size() && a.ident().uuid() == b.ident().uuid() ) {
             for ( size_t i = 0; i < a.size(); ++i ) {
                 if ( typeid(a[i]) != typeid(b[i]) )
                     return false;
@@ -237,8 +234,8 @@ test_process_method1()
             test::target<T> t( "ProcessMethod1", true, true, true, true ); // expose binary, xml
 
             t.compare_ = [] ( const T& a, const T& b ){
-                if ( a.size() == b.size() && a.ident() == b.ident() ) {
-                    for ( int i = 0; i < a.size(); ++i ) {
+                if ( a.size() == b.size() && a.ident().uuid() == b.ident().uuid() ) {
+                    for ( int i = 0; i < int( a.size() ); ++i ) {
                         if ( typeid(a[ i ]) != typeid(b[ i ]) )
                             return false;
                     }
@@ -268,8 +265,8 @@ test_pm_quancompounds()
     test::target<T> t( "process_method_quancompounds", true, true, true, true ); // expose binary, xml
 
     t.compare_ = [] ( const T& a, const T& b ){
-        if ( a.size() == b.size() && a.ident() == b.ident() ) {
-            for ( int i = 0; i < a.size(); ++i ) {
+        if ( a.size() == b.size() && a.ident().uuid() == b.ident().uuid() ) {
+            for ( int i = 0; i < int( a.size() ); ++i ) {
                 if ( typeid(a[ i ]) != typeid(b[ i ]) )
                     return false;
             }
@@ -299,7 +296,7 @@ test_idaudit()
     test::target<idAudit> t( "idAudit", false, false, true, true ); // expose xml
                  
     // test::archive_member_detection( t );
-    t.compare_ = [] ( const T& a, const T& b )->bool{ return a == b; };
+    t.compare_ = [] ( const T& a, const T& b )->bool{ return a.uuid() == b.uuid(); };
     test::read_after_write<T, test::xml::archive>( t );
 }
 
@@ -404,10 +401,8 @@ test_adinterface_method()
     typedef adinterface::Method T;
     test::target<T> t( "Method", false, false, false, false, true );
 
-    // test::archive_member_detection( t );
-
-    test::read_after_write<T, test::xml::archive>( t );
-    test::read_after_write<T, test::binary::archive>( t );
+    //test::read_after_write<T, test::xml::archive>( t );
+    //test::read_after_write<T, test::binary::archive>( t );
 }
 
 void

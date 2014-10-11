@@ -42,12 +42,21 @@ namespace adcontrols {
        ~description();
        description();
        description( const description& );
+       description( const wchar_t * key, const wchar_t * text );       
+
        description( const std::wstring& key, const std::wstring& text );
        inline bool operator == ( const description& t ) const;
-       inline const std::wstring& text() const { return text_; }
-       inline const std::wstring& key() const { return key_; }
-	   inline const std::string& xml() const { return xml_; }
-	   inline void xml( const std::string& t ) { xml_ = t; }
+
+       const wchar_t * text() const;
+       const wchar_t * key() const;
+
+       const char * xml() const;
+       void xml( const char * u );
+       
+       // inline const std::wstring& text() const { return text_; }
+       // inline const std::wstring& key() const { return key_; }
+	   // inline const std::string& xml() const { return xml_; }
+	   // inline void xml( const std::string& t ) { xml_ = t; }
 	 
    private:
        time_t tv_sec_;
