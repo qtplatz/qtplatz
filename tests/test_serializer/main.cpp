@@ -54,7 +54,8 @@ namespace test {
     };
 
     template<class T> void archive_member_detection( const target<T>& t ) {
-        std::cout << "class " << t.name_ << std::endl;
+
+        std::cout << "--------------------------\nclass " << t.name_ << std::endl;
 
         std::cout << "\thas bin archive:\t"
                   << ( adportable::binary::has_archive<T, bool( std::ostream&, const T&)>::value ? "yes" : "no" )
@@ -190,11 +191,11 @@ test_process_method()
     typedef adcontrols::ProcessMethod T;
     test::target<T> t( "ProcessMethod", true, true, true, true ); // expose binary, xml
 
-    // test::archive_member_detection( t );
+    test::archive_member_detection( t );
 
     t.compare_ = []( const T& a, const T& b ){
         if ( a.size() == b.size() && a.ident().uuid() == b.ident().uuid() ) {
-            for ( size_t i = 0; i < a.size(); ++i ) {
+            for ( int i = 0; i < int( a.size() ); ++i ) {
                 if ( typeid(a[i]) != typeid(b[i]) )
                     return false;
             }
@@ -212,10 +213,10 @@ test_process_method()
     // Binary test
     test::read_after_write<T, test::binary::archive>( t );
 
-    // read binary write xml -- for eyes verification
-    T r;
-    if ( test::read<T, test::binary::archive>( r, t.name_ ) )
-        test::write<T, test::xml::archive>( t, t.name_ );
+    // read binary write xml -- for visual verification
+    //T r;
+    //if ( test::read<T, test::binary::archive>( r, t.name_ ) )
+    //    test::write<T, test::xml::archive>( t, t.name_ );
 }
 
 void
@@ -295,7 +296,7 @@ test_idaudit()
     typedef idAudit T;
     test::target<idAudit> t( "idAudit", false, false, true, true ); // expose xml
                  
-    // test::archive_member_detection( t );
+    test::archive_member_detection( t );
     t.compare_ = [] ( const T& a, const T& b )->bool{ return a.uuid() == b.uuid(); };
     test::read_after_write<T, test::xml::archive>( t );
 }
@@ -308,7 +309,7 @@ test_descriptions()
     typedef descriptions T;
     test::target<T> t( "descriptions", false, false, true, true ); // expose xml
     
-    // test::archive_member_detection( t );
+    test::archive_member_detection( t );
     
     // prepare values for test
     t.t_ << adcontrols::description( L"key1", L"value1" );
@@ -349,16 +350,16 @@ test_mscalibrate_result()
     MSAssignedMass a( 5, 1, 128, L"H2O(C2H4)2+H", 999.99, 20, 999.98, true, 0, 1 );
     t.t_.assignedMasses() << a;
 
-    // test::archive_member_detection( t );
+    test::archive_member_detection( t );
     t.compare_ = []( const T& a, const T& b ){ return a.mode() == b.mode(); };
 
     T r;
     test::read_after_write<T, test::binary::archive>( t );
     test::read_after_write<T, test::xml::archive>( t );
     
-    // read binary write xml -- for eyes verification
-    if ( test::read<T, test::binary::archive>( r, t.name_ ) )
-        test::write<T, test::xml::archive>( t, t.name_ );
+    // read binary write xml -- for visual verification
+    // if ( test::read<T, test::binary::archive>( r, t.name_ ) )
+    //     test::write<T, test::xml::archive>( t, t.name_ );
 }
 
 void
@@ -368,7 +369,7 @@ test_quansequence()
     typedef adcontrols::QuanSequence T;
     test::target<T> t( "QuanSequence", true, true, true, true ); // expose binary, xml
 
-    // test::archive_member_detection( t );
+    test::archive_member_detection( t );
 
     for ( int i = 0; i < 10; ++i )
         t.t_ << QuanSample();
@@ -386,7 +387,7 @@ test_quancompounds()
     typedef adcontrols::QuanCompounds T;
     test::target<T> t( "QuanCompounds", false, false, true, true ); // expose xml
 
-    // test::archive_member_detection( t );
+    test::archive_member_detection( t );
 
     t.compare_ = []( const T& a, const T& b ){ return a.ident().uuid() == b.ident().uuid(); };
     
@@ -401,6 +402,7 @@ test_adinterface_method()
     typedef adinterface::Method T;
     test::target<T> t( "Method", false, false, false, false, true );
 
+    test::archive_member_detection( t );
     //test::read_after_write<T, test::xml::archive>( t );
     //test::read_after_write<T, test::binary::archive>( t );
 }
@@ -413,9 +415,9 @@ test_chromatogram()
     typedef adcontrols::Chromatogram T;
     test::target<T> t( "Chromatogram", true, true, false, false );
 
-    // test::archive_member_detection( t );
+    test::archive_member_detection( t );
 
-    test::read_after_write<T, test::xml::archive>( t );
+    //test::read_after_write<T, test::xml::archive>( t );
     test::read_after_write<T, test::binary::archive>( t );
 }
 
