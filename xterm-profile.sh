@@ -41,7 +41,7 @@ else
 	    export ACE_ROOT=/usr/local/ace+tao/$ace_version
 	    export QWT=/usr/local/qwt-$qwt_version
 	    export PATH=$QTDIR/bin:$ACE_ROOT/bin:$PATH
-	    xterm -bg ivory -T "`uname -n` for `uname -m` target" &
+	    xterm -bg ivory &
 	    ;;
 	
 	i686)
@@ -50,7 +50,7 @@ else
 	    export ACE_ROOT=/usr/local/ace+tao/$ace_version
 	    export QWT=/usr/local/qwt-$qwt_version
 	    export PATH=$QTDIR/bin:$ACE_ROOT/bin:$PATH
-	    xterm -bg lavender "`uname -n` for `uname -m` target" &
+	    xterm -bg lavender &
 	    ;;
 
     esac
