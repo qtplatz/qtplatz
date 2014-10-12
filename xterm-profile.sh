@@ -35,7 +35,7 @@ else
 	    export QWT=/usr/local/qwt-$qwt_version
 	    export RDBASE=/usr/local
 	    export PATH=$QTDIR/bin:/usr/local/ace+tao/$ace_version/bin:$PATH
-	    xterm -bg floralwhite &
+	    xterm -bg floralwhite -fg darkmagenta &
 	    ;;
 	
 	x86_64)
