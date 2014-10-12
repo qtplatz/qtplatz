@@ -29,8 +29,8 @@ win32 {
   DESTDIR = $$IDE_BIN_PATH
 }
 
+
+!win32: LIBS += -lboost_system -lboost_filesystem
+
 RESOURCES += \
     publisher.qrc
-
-
-

@@ -34,7 +34,7 @@
 #include <limits>
 #include <cstring>
 #include "float.hpp"
-#include <boost/numeric/ublas/matrix.hpp>
+#include <workaround/boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 
 namespace adportable {

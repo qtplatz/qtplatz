@@ -37,7 +37,7 @@ win32 {
           -l$$qtLibraryTarget( ACE )
 } else {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
-  LIBS += -lboost_date_time -lboost_filesystem -lboost_system
+  LIBS += -lboost_date_time -lboost_filesystem -lboost_system -lboost_serialization
 }
 
 linux-*: LIBS += -lqwt

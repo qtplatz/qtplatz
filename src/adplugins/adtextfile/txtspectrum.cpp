@@ -38,7 +38,7 @@
 #include <algorithm>
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/numeric/interval.hpp>
+#include <workaround/boost/numeric/interval.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <adcontrols/massspectrometer.hpp>
