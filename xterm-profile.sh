@@ -22,7 +22,7 @@ then
 	    export PATH=$QTDIR/bin:/usr/local/ace+tao/$ace_version/bin:$PATH
 	    export PATH=$PATH:$xtools/bin
 	    export XMLPATTERNS=/opt/Qt5.3.2/5.3/gcc_64/bin/xmlpatterns
-	    xterm -bg firebrick -fg floralwhite -T "`uname -n` for $xarch target" &
+	    xterm -bg darkmagenta -fg floralwhite &
 	    ;;
     esac
 else
