@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <adportable/debug.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
@@ -69,7 +70,11 @@ namespace adportable {
             std::istream& is_;
         public:
             restore_functor( std::istream& is ) : is_( is ){}
-            void operator & ( T& t ) { T::restore( is_, t ); }
+            void operator & ( T& t ) { 
+                ADDEBUG() << "\n>>>>>>>>>>> restore_functor (function) >>>>>>>>>>>>>> " << typeid(T).name();
+                T::restore( is_, t );
+                ADDEBUG() << "\n<<<<<<<<<<< restore_functor (function) <<<<<<<<<<<<<< " << typeid(T).name();
+            }
         };
 
         //----------------------------------------
@@ -113,9 +118,12 @@ namespace adportable {
         public:
             template<class T> bool operator()( T& data, std::istream& strm ) {
 
+                ADDEBUG() << "\n>>>>>>>>>>>> restore_functor (boost) >>>>>>>>>>>>>> " << typeid(T).name();
+                
                 typename IF<has_restore<T,bool(std::istream&,T&)>::value
                             , Archiver, restore_functor<T> >::type ar( strm );
                 ar & data;
+                ADDEBUG() << "\n<<<<<<<<<<<< restore_functor (boost) <<<<<<<<<<<<<< " << typeid(T).name();
                 return true;
             }
 

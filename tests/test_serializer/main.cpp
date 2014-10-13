@@ -84,7 +84,6 @@ namespace test {
         path.replace_extension( A::file_extension() );
         boost::filesystem::remove( path );
         
-        std::cout << std::endl;
         std::cout << A::title() << " \"" << t.name_ << "\" " << std::flush;
         A ar;
         if ( ar.save( t.t_, path.string().c_str() ) ) {
@@ -376,8 +375,11 @@ test_quansequence()
 
     t.compare_ = []( const T& a, const T& b ){ return a.size() == b.size(); };
 
-    test::read_after_write<T, test::binary::archive>( t );
-    test::read_after_write<T, test::xml::archive>( t );
+    // test::read_after_write<T, test::binary::archive>( t );
+    T r;
+    test::read<T, test::binary::archive>( r, t.name_ );
+    //test::read_after_write<T, test::binary::archive>( t );
+    //test::read_after_write<T, test::xml::archive>( t );
 }
 
 void
@@ -428,7 +430,8 @@ main()
     using namespace adcontrols;
 
     //test_pm_quancompounds();
-
+    test_quansequence();
+#if 0
     test_idaudit();
     test_descriptions();
     // test_process_method1();
@@ -438,5 +441,5 @@ main()
     test_quancompounds();
     test_adinterface_method();
     test_chromatogram();
-
+#endif
 }

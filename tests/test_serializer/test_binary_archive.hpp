@@ -26,13 +26,14 @@ namespace test {
             }
         
             template< class T > bool load( T& t, const char * file ) {
-                try {
+                //try {
                     std::ifstream fi( file );
-                    return adportable::binary::deserialize<>()(t, fi);
-                } catch ( std::exception& ex ) {
-                    std::cout << "\t" << boost::diagnostic_information( ex );
-                    BOOST_THROW_EXCEPTION(ex);
-                }
+                    if ( !fi.fail() )
+                        return adportable::binary::deserialize<>()(t, fi);
+                //} catch ( std::exception& ex ) {
+                //    std::cout << "\t" << boost::diagnostic_information( ex );
+                //    BOOST_THROW_EXCEPTION(ex);
+                //}
                 return false;
             }
         };
