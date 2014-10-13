@@ -26,6 +26,7 @@
 #include "serializer.hpp"
 #include "quansample.hpp"
 #include "idaudit.hpp"
+#include <adportable/debug.hpp>
 #include <adportable/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
@@ -216,7 +217,15 @@ QuanSequence::archive( std::ostream& os, const QuanSequence& t )
 bool
 QuanSequence::restore( std::istream& is, QuanSequence& t )
 {
-    return internal::binSerializer().restore( is, t );
+    ADDEBUG() << ">>>>>>>>>>>> restore >>>>>>>>>>>>>>>";
+
+    portable_binary_iarchive ar( is );
+    ar & t;
+
+    ADDEBUG() << "<<<<<<<<<<< returning restore <<<<<<<<<<<<<<<";
+
+    return true;
+    // return internal::binSerializer().restore( is, t );
 }
 
 //static

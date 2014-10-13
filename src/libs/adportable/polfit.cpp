@@ -27,15 +27,17 @@
 #include <compiler/disable_sign_compare.h>
 #include <compiler/disable_unused_parameter.h>
 #include <compiler/disable_unused_function.h>
+#include <compiler/disable_unused_local_typedefs.h>
 
 #include "polfit.hpp"
-#include <adportable/debug.hpp>
-#include <cmath>
-#include <limits>
-#include <cstring>
 #include "float.hpp"
-#include <workaround/boost/numeric/ublas/matrix.hpp>
+
+#include <adportable/debug.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
+#include <cmath>
+#include <cstring>
+#include <limits>
 
 namespace adportable {
 

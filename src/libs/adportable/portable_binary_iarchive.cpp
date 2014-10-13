@@ -31,14 +31,14 @@ portable_binary_iarchive::wstring( const std::string& u )
 }
 
 void 
-portable_binary_iarchive::load_impl(boost::intmax_t & l, char maxsize){
-    char size;
+portable_binary_iarchive::load_impl(boost::intmax_t & l, char maxsize)
+{
+    signed char size; // 'char' is unsigned on arm-linux-gnueabihf-g++, so implisit <unsigned> required
     l = 0;
     this->primitive_base_t::load(size);
 
-    if(0 == size){
+    if( 0 == size )
         return;
-    }
 
     bool negative = (size < 0);
     if(negative)
