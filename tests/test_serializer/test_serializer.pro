@@ -24,11 +24,8 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
 !win32 {
   LIBS += -lboost_system \
           -lboost_filesystem \
-          -lboost_iostreams \
           -lboost_date_time \
-          -lboost_iostreams \
-          -lboost_wserialization \
-          -lbz2
+          -lboost_wserialization
 }
 
 macx {
