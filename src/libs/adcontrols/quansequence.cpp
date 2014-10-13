@@ -217,15 +217,7 @@ QuanSequence::archive( std::ostream& os, const QuanSequence& t )
 bool
 QuanSequence::restore( std::istream& is, QuanSequence& t )
 {
-    ADDEBUG() << ">>>>>>>>>>>> restore >>>>>>>>>>>>>>>";
-
-    portable_binary_iarchive ar( is );
-    ar & t;
-
-    ADDEBUG() << "<<<<<<<<<<< returning restore <<<<<<<<<<<<<<<";
-
-    return true;
-    // return internal::binSerializer().restore( is, t );
+    return internal::binSerializer().restore( is, t );
 }
 
 //static

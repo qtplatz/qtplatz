@@ -54,9 +54,7 @@ namespace test {
     };
 
     template<class T> void archive_member_detection( const target<T>& t ) {
-
-        std::cout << "--------------------------\nclass " << t.name_ << std::endl;
-
+        std::cout << "\n\"" << t.name_ << "\"" << std::endl;
         std::cout << "\thas bin archive:\t"
                   << ( adportable::binary::has_archive<T, bool( std::ostream&, const T&)>::value ? "yes" : "no" )
                   << (t.has_binary_archiver_ == adportable::binary::has_archive<T, bool( std::ostream&, const T&)>::value ? "\tPASS" : "\tFAIL")
@@ -83,7 +81,8 @@ namespace test {
         boost::filesystem::path path( t.name_ );
         path.replace_extension( A::file_extension() );
         boost::filesystem::remove( path );
-        
+
+        std::cout << std::endl;
         std::cout << A::title() << " \"" << t.name_ << "\" " << std::flush;
         A ar;
         if ( ar.save( t.t_, path.string().c_str() ) ) {
@@ -116,10 +115,10 @@ namespace test {
         path.replace_extension( A::file_extension() );
 
         if ( boost::filesystem::exists( path ) ) {
-            std::cout << "\nreading " << A::title() << " \"" << name << "\" ..." << std::flush;            
+            std::cout << "\nreading " << " \"" << path.string() << "\" ..." << std::flush;            
             A ar;
             if ( ar.load( r, path.string().c_str() ) ) {
-                std::cout << "\tread (ok)." << std::flush;
+                std::cout << "\tread (ok)." << std::endl << std::flush;
                 return true;
             } else {
                 std::cout << "\tread failed.";
@@ -134,7 +133,7 @@ namespace test {
 
         if ( boost::filesystem::exists( path ) )
             boost::filesystem::remove( path );
-        std::cout << "\nwriting " << A::title() << " \"" << name << "\" ..." << std::flush;
+        std::cout << "\nwriting " << " \"" << path.string() << "\" ..." << std::flush;
         A ar;
         if ( ar.save( r, path.string().c_str() ) ) {
             std::cout << "\twrote (ok)." << std::flush;
@@ -430,8 +429,6 @@ main()
     using namespace adcontrols;
 
     //test_pm_quancompounds();
-    test_quansequence();
-#if 0
     test_idaudit();
     test_descriptions();
     // test_process_method1();
@@ -441,5 +438,4 @@ main()
     test_quancompounds();
     test_adinterface_method();
     test_chromatogram();
-#endif
 }

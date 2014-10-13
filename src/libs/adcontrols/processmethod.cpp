@@ -39,7 +39,13 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_local_typedefs.h>
+
 #include <boost/serialization/variant.hpp>
+#include <compiler/diagnostic_pop.h>
+
 #include <boost/serialization/base_object.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
 #include <adportable/portable_binary_oarchive.hpp>

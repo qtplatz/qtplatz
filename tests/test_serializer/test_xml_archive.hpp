@@ -10,13 +10,6 @@ namespace test {
             static const char * title() { return "XML\tSerializer"; }
             static const char * file_extension() { return ".xml"; }
 
-            // template< class T > bool has_archive() const {
-            //     return adportable::xml::has_archive<T, bool( std::wostream&, const T& )>::value;
-            // }
-            // template< class T > bool has_restore() const {
-            //     return adportable::xml::has_restore<T, bool( std::wistream&, T& )>::value;
-            // }
-
             template< class T > bool save( const T& t, const char * file ) {
                 try {
 
