@@ -85,7 +85,7 @@ namespace test {
         boost::filesystem::remove( path );
         
         std::cout << std::endl;
-        std::cout << "\n" << A::title() << " \"" << t.name_ << "\" " << std::flush;
+        std::cout << A::title() << " \"" << t.name_ << "\" " << std::flush;
         A ar;
         if ( ar.save( t.t_, path.string().c_str() ) ) {
             std::cout << "\twrite ok." << std::flush;
@@ -376,6 +376,7 @@ test_quansequence()
 
     t.compare_ = []( const T& a, const T& b ){ return a.size() == b.size(); };
 
+    test::read_after_write<T, test::binary::archive>( t );
     test::read_after_write<T, test::xml::archive>( t );
 }
 
