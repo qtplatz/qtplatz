@@ -97,13 +97,14 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(xmlparser)
 
 !win32 {
-  LIBS += -lboost_system \
+  LIBS += -lboost_date_time \
           -lboost_filesystem \
-          -lboost_date_time \
-          -lboost_serialization
+          -lboost_serialization \
+          -lboost_system \
+          -lboost_thread
 }
 
-linux-*: LIBS += -lqwt -ldl
+linux-*: LIBS += -lqwt -ldl -lrt
 macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
 
 RESOURCES += \
