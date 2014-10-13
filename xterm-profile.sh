@@ -22,7 +22,7 @@ then
 	    export PATH=$QTDIR/bin:/usr/local/ace+tao/$ace_version/bin:$PATH
 	    export PATH=$PATH:$xtools/bin
 	    export XMLPATTERNS=/opt/Qt5.3.2/5.3/gcc_64/bin/xmlpatterns
-	    xterm -bg darkmagenta -fg floralwhite &
+	    xterm -bg navy -fg linen &
 	    ;;
     esac
 else
@@ -35,7 +35,7 @@ else
 	    export QWT=/usr/local/qwt-$qwt_version
 	    export RDBASE=/usr/local
 	    export PATH=$QTDIR/bin:/usr/local/ace+tao/$ace_version/bin:$PATH
-	    xterm -bg floralwhite -fg darkmagenta &
+	    xterm -bg floralwhite -fg navy &
 	    ;;
 	
 	x86_64)
