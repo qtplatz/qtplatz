@@ -4,8 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core
-
+QT       -= core
 QT       -= gui
 
 TARGET = isotope
@@ -16,12 +15,9 @@ TEMPLATE = app
 
 include(../../src/boost.pri)
 
-SOURCES += main.cpp \
-    isotopecluster.cpp \
-    tableofelement.cpp
+LIBS += -L../../lib/qtplatz -l$$qtLibraryTarget(adcontrols)
+INCLUDEPATH += ../../src/libs
 
-HEADERS += \
-    element.hpp \
-    isotopes.hpp \
-    isotopecluster.hpp \
-    tableofelement.hpp
+SOURCES += main.cpp
+
+HEADERS += 

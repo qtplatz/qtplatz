@@ -22,51 +22,26 @@
 **
 **************************************************************************/
 
-#include "formula_parser.hpp"
-#include "element.hpp"
-#include "molecule.hpp"
-#include "tableofelement.hpp"
-#include "isotopecluster.hpp"
+#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/isotopecluster.hpp>
+#include <adcontrols/molecule.hpp>
+#include <boost/format.hpp>
 #include <iostream>
 #include <chrono>
-#include <boost/format.hpp>
+#include <cstring>
 
 bool
-scanner( std::string& line, molecule& mol )
+scanner( std::string& line, adcontrols::mol::molecule& mol )
 {
-    std::string::const_iterator it = line.begin();
-    std::string::const_iterator end = line.end();
-
-    chem::comp_type elemental_composition;
-    chem::chemical_formula_parser< std::string::const_iterator > parser;
-    if ( boost::spirit::qi::parse( it, end, parser, elemental_composition ) && it == end ) {
-
-        for ( auto& atom: elemental_composition ) {
-
-            const char * symbol = atom.first.second;
-            uint32_t count = atom.second;
-
-            if ( element e = tableofelement::findElement( symbol ) ) {
-
-                e.count( count );  // number of atoms
-
-                // make it alphabetical order comforming to organic chemistry standard
-                auto it = std::lower_bound( mol.elements.begin(), mol.elements.end(), symbol, [](const element& lhs, const char * symbol ){
-                        return std::strcmp( lhs.symbol(), symbol ) < 0;
-                    });
-                mol.elements.insert( it, e );
-
-            }
-        }
-        return true;
-    }
-    return false;
+    return adcontrols::ChemicalFormula::getComposition( mol.elements, line );
 }
 
 int
 main(int argc, char * argv[])
 {
-    double threshold_daltons = 1.0e-7;
+    adcontrols::isotopeCluster cluster;
+
+    double threshold_daltons = cluster.threshold_daltons();
 
     if ( --argc ) {
         ++argv;
@@ -75,10 +50,11 @@ main(int argc, char * argv[])
                 --argc;
                 ++argv;
                 threshold_daltons = atof( *argv ) / 1000;
+                cluster.threshold_daltons( threshold_daltons );
             }
         }
     }
-    std::cout << boost::format( "Set daltons threshold to: %gmDa\n" ) % (threshold_daltons * 1000);
+    std::cout << boost::format( "Set daltons threshold to: %gmDa\n" ) % ( cluster.threshold_daltons() * 1000);
 
     std::string line;
     std::cerr << "Enter formula: ";
@@ -87,27 +63,26 @@ main(int argc, char * argv[])
         if (line.empty() || line[0] == 'q' || line[0] == 'Q')
             break;
             
-        molecule mol;
+        adcontrols::mol::molecule mol;
         if ( scanner( line, mol ) ) {
             std::cout << "formula: ";
-            std::for_each( mol.elements.begin(), mol.elements.end(), [&]( const element& e ){
+            std::for_each( mol.elements.begin(), mol.elements.end(), [&]( const adcontrols::mol::element& e ){
                     std::cout << e.symbol() << e.count() << " ";
                 });
             std::cout << std::endl;
-                
+
             std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-            isotopecluster cluster( threshold_daltons );
             cluster( mol );
 
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
             
             auto it = std::max_element( mol.cluster.begin(), mol.cluster.end()
-                                        , [](const mol::isotope& a, const mol::isotope& b){
+                                        , [](const adcontrols::mol::isotope& a, const adcontrols::mol::isotope& b){
                                             return a.abundance < b.abundance;});
             const double pmax = it->abundance;
             const double sum = std::accumulate( mol.cluster.begin(), mol.cluster.end(), 0.0
-                                                , []( double x, const mol::isotope& a ){ return x + a.abundance; } );
+                                                , []( double x, const adcontrols::mol::isotope& a ){ return x + a.abundance; } );
 
             int idx = 0;
             for ( auto& i: mol.cluster ) {

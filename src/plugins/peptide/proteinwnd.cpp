@@ -111,7 +111,7 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
 
     adcontrols::isotopeCluster isocalc;
     spectrum_->resize(0);
-
+    
     for ( auto& formula: formulae ) {
         adcontrols::mol::molecule mol;
         if ( adcontrols::ChemicalFormula::getComposition( mol.elements, formula.toStdString() + "H" ) ) { // protenated

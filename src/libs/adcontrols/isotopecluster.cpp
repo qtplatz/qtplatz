@@ -41,6 +41,18 @@ isotopeCluster::isotopeCluster() : threshold_daltons_( 1.0e-7 )
 {
 }
 
+double
+isotopeCluster::threshold_daltons() const
+{
+    return threshold_daltons_;
+}
+
+void
+isotopeCluster::threshold_daltons( double d )
+{
+    threshold_daltons_ = d;
+}
+
 bool
 isotopeCluster::operator()( mol::molecule& mol ) const
 {

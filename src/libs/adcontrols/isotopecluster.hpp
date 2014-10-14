@@ -37,6 +37,8 @@ namespace adcontrols {
     public:
         isotopeCluster();
         bool operator()( mol::molecule& ) const;
+        double threshold_daltons() const;
+        void threshold_daltons( double d );
     private:
         bool marge( mol::isotope&, const mol::isotope& ) const;
         double threshold_daltons_;
