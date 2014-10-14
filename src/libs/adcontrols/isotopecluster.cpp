@@ -57,9 +57,9 @@ bool
 isotopeCluster::operator()( mol::molecule& mol ) const
 {
     mol.cluster.clear();
-    mol.cluster.push_back( mol::isotope( 0.0, 1.0 ) ); // trigger calculation
+    mol << mol::isotope( 0.0, 1.0 ); // trigger calculation
     
-    for ( auto& element: mol.elements ) {
+    for ( auto& element : mol.elements ) {
 
         for ( int k = 0; k < element.count(); ++k ) {
 

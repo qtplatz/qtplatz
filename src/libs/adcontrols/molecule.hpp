@@ -32,7 +32,10 @@
 // interface for isotope cluster pattern
 
 namespace adcontrols {  
-	
+
+    class isotopeCluster;
+    class ChemicalFormula;
+
 	namespace mol {
 
         struct ADCONTROLSSHARED_EXPORT isotope {
@@ -41,9 +44,26 @@ namespace adcontrols {
             isotope( double m = 0, double a = 1.0 ) : mass(m), abundance(a) {}
         };
 
+#if defined _MSC_VER
+        template class ADCONTROLSSHARED_EXPORT std::vector < isotope > ;
+#endif
+
         struct ADCONTROLSSHARED_EXPORT molecule {
-            std::vector< element > elements;
+            molecule();
+            molecule( const molecule& t );
+
+            molecule& operator << (const element&);
+            molecule& operator << (const isotope&);
+            std::vector< element >::const_iterator element_begin() const;
+            std::vector< element >::const_iterator element_end() const;
+
             std::vector< isotope > cluster;
+        //private:
+            // TODO:  std::vector< element > should be an independent class
+#if defined _MSC_VER
+# pragma warning(disable:4251)
+#endif
+            std::vector< element > elements;
         };
 
     }

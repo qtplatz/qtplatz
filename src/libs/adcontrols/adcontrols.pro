@@ -50,6 +50,7 @@ SOURCES += acceptor.cpp \
     massspectrometer_factory.cpp \
     massspectra.cpp \
     massspectrum.cpp \
+    molecule.cpp \
     msassignedmass.cpp \
     mscalibratemethod.cpp \
     mscalibrateresult.cpp \

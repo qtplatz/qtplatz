@@ -29,6 +29,7 @@
 #include <iostream>
 #include <chrono>
 #include <cstring>
+#include <numeric>
 
 bool
 scanner( std::string& line, adcontrols::mol::molecule& mol )
