@@ -28,6 +28,8 @@
 
 #include "adcontrols_global.h"
 
+// interface for an element in 'table-of-element' 
+
 namespace adcontrols {
 
     class TableOfElement;
@@ -36,12 +38,12 @@ namespace adcontrols {
 
     namespace mol {
 
+        // class implements in "tableofelement.cpp"
+
         class ADCONTROLSSHARED_EXPORT element {
 
-            friend class adcontrols::TableOfElement;
-            element( const detail::element * );
-
         public:
+            element( const detail::element * p = 0 );
             element( const element& );
             
             operator bool () const;

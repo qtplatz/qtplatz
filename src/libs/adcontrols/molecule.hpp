@@ -46,6 +46,7 @@ namespace adcontrols {
 
 #if defined _MSC_VER
         template class ADCONTROLSSHARED_EXPORT std::vector < isotope > ;
+        template class ADCONTROLSSHARED_EXPORT std::vector < element > ;
 #endif
 
         struct ADCONTROLSSHARED_EXPORT molecule {
@@ -54,15 +55,8 @@ namespace adcontrols {
 
             molecule& operator << (const element&);
             molecule& operator << (const isotope&);
-            std::vector< element >::const_iterator element_begin() const;
-            std::vector< element >::const_iterator element_end() const;
 
             std::vector< isotope > cluster;
-        //private:
-            // TODO:  std::vector< element > should be an independent class
-#if defined _MSC_VER
-# pragma warning(disable:4251)
-#endif
             std::vector< element > elements;
         };
 

@@ -50,15 +50,3 @@ molecule::operator << (const isotope& t)
     return *this;
 }
 
-std::vector< element >::const_iterator 
-molecule::element_begin() const
-{
-    return elements.begin();
-}
-
-std::vector< element >::const_iterator
-molecule::element_end() const
-{
-    return elements.end();
-}
-
