@@ -36,11 +36,9 @@ SOURCES += acceptor.cpp \
     datasubscriber.cpp \
     description.cpp \
     descriptions.cpp \
-    element.cpp \
     elementalcomposition.cpp \
     elementalcompositioncollection.cpp \
     elementalcompositionmethod.cpp \
-    elements.cpp \
     isotopecluster.cpp \
     isotopemethod.cpp \
     lcmsdataset.cpp \
@@ -132,7 +130,6 @@ HEADERS += acceptor.hpp \
     elementalcomposition.hpp \
     elementalcompositioncollection.hpp \
     elementalcompositionmethod.hpp \
-    elements.hpp \
     isotopecluster.hpp \
     isotopemethod.hpp \
     lcmsdataset.hpp \
