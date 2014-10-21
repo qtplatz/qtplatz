@@ -49,7 +49,8 @@ SOURCES += adwidgets.cpp \
     progresswnd.cpp \
     spinslider.cpp \
     dualspinslider.cpp \
-    filedialog.cpp
+    filedialog.cpp \
+    pressuregauge.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -77,7 +78,8 @@ HEADERS += adwidgets.hpp\
     progresswnd.hpp \
     spinslider.hpp \
     dualspinslider.hpp \
-    filedialog.hpp
+    filedialog.hpp \
+    pressuregauge.hpp
 
 unix {
     target.path = /usr/lib
