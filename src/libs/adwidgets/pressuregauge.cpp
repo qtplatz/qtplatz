@@ -95,8 +95,8 @@ namespace adwidgets {
             thermo_->setColorMap( colorMap );
 
             //thermo_->setFillBrush( Qt::darkCyan );
-            thermo_->setAlarmBrush( Qt::magenta );
-            thermo_->setAlarmLevel( 1.0 );
+            //thermo_->setAlarmBrush( Qt::magenta );
+            //thermo_->setAlarmLevel( 1.0 );
 
             gridLayout->addWidget( &title_, row, col++ );
             gridLayout->addWidget( &data_, row, col++ );
