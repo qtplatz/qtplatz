@@ -23,21 +23,42 @@
 **************************************************************************/
 
 #include "pressuregauge.hpp"
+#include <boost/numeric/interval.hpp>
+#include <qDebug>
+#include <qwt_thermo.h>
+#include <qwt_scale_engine.h>
+#include <qwt_transform.h>
+#include <qwt_color_map.h>
+#include <qwt_math.h>
 #include <QGridLayout>
 #include <QLabel>
+#include <QPalette>
 
 namespace adwidgets {
+
+    class LogColorMap : public QwtLinearColorMap {
+    public:
+        LogColorMap( const QColor& from, const QColor& to ) : QwtLinearColorMap( from, to )
+        {}
+        QRgb rgb( const QwtInterval& interval, double value ) const {
+            return QwtLinearColorMap::rgb( QwtInterval( std::log10( interval.minValue() ), std::log10( interval.maxValue() ) ), std::log10( value ) );
+        }
+    };
 
     class PressureGauge::impl {
     public:
         ~impl() {}
-        impl( Qt::Orientation orientation ) : orientation_( orientation ) {
+        impl( Qt::Orientation orientation ) : orientation_( orientation )
+                                            , limits_( std::make_pair( 0.0, 101300 ) )
+                                            , thermo_( new QwtThermo() ) {
         }
         
         Qt::Orientation orientation_;
         QLabel data_;
         QLabel title_;
         double value_;
+        std::pair< double, double > limits_;
+        QwtThermo * thermo_;
 
         void onCreate( PressureGauge * pThis ) {
             auto gridLayout = new QGridLayout( pThis );
@@ -52,8 +73,34 @@ namespace adwidgets {
         }
 
         void onCreate( QGridLayout * gridLayout, int row, int col, PressureGauge * ) {
+            thermo_->setOrientation( orientation_ );
+            thermo_->setScalePosition( orientation_ == Qt::Horizontal ? QwtThermo::LeadingScale : QwtThermo::TrailingScale );
+
+            thermo_->setScaleEngine( new QwtLogScaleEngine );
+            thermo_->setScaleMaxMinor( 10 );
+            const double lower = 1.0e-9;
+            const double upper = 1.0e4;   // 0.1atm
+            thermo_->setScale( lower, upper );
+
+            auto *colorMap = new LogColorMap( Qt::blue, Qt::red );
+            const double width = std::log10( upper ) - std::log10( lower );
+
+            // double a1 = (std::log10( 4.55678e-8 ) - std::log10( lower )) / width; // Under flow threshold
+            double a2 = (std::log10( 2.0e-5 ) - std::log10( lower )) / width;
+            double a3 = (std::log10( 1.0e-4 ) - std::log10( lower ) ) / width;
+            
+            // colorMap->addColorStop( a1, Qt::blue );
+            colorMap->addColorStop( a2, Qt::cyan );
+            colorMap->addColorStop( a3, Qt::yellow );
+            thermo_->setColorMap( colorMap );
+
+            //thermo_->setFillBrush( Qt::darkCyan );
+            thermo_->setAlarmBrush( Qt::magenta );
+            thermo_->setAlarmLevel( 1.0 );
+
             gridLayout->addWidget( &title_, row, col++ );
             gridLayout->addWidget( &data_, row, col++ );
+            gridLayout->addWidget( thermo_, row, col++ );
         }
 
     };
@@ -97,11 +144,18 @@ void
 PressureGauge::setActualValue( double value )
 {
     impl_->value_ = value;
-    impl_->data_.setText( QString::number( value, 'f', 3 ) );
+    impl_->data_.setText( QString::number( value, 'e', 3 ) );
+    impl_->thermo_->setValue( value );
 }
 
 double
 PressureGauge::value() const
 {
     return impl_->value_;
+}
+
+void
+PressureGauge::setRange( double low, double high )
+{
+    impl_->limits_ = std::make_pair( low, high );
 }

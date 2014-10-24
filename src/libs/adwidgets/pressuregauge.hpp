@@ -44,6 +44,7 @@ namespace adwidgets {
         void setTitle( const QString& );
         void setActualValue( double value );
         double value() const;
+        void setRange( double, double );
 
     private:
         class impl;
