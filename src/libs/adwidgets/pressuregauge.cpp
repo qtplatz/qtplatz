@@ -64,7 +64,7 @@ namespace adwidgets {
             auto gridLayout = new QGridLayout( pThis );
             if ( orientation_ == Qt::Horizontal ) {
                 gridLayout->setHorizontalSpacing( 6 );
-                gridLayout->setVerticalSpacing( 2 );
+                gridLayout->setVerticalSpacing( 1 );
             } else {
                 gridLayout->setHorizontalSpacing( 2 );
                 gridLayout->setVerticalSpacing( 2 );
@@ -74,17 +74,13 @@ namespace adwidgets {
 
         void onCreate( QGridLayout * gridLayout, int row, int col, PressureGauge * ) {
             thermo_->setOrientation( orientation_ );
-            thermo_->setScalePosition( orientation_ == Qt::Horizontal ? QwtThermo::LeadingScale : QwtThermo::TrailingScale );
+            thermo_->setScalePosition( QwtThermo::NoScale ); // orientation_ == Qt::Horizontal ? QwtThermo::LeadingScale : QwtThermo::TrailingScale );
 
-            thermo_->setScaleEngine( new QwtLogScaleEngine );
-            thermo_->setScaleMaxMinor( 10 );
             const double lower = 1.0e-9;
             const double upper = 1.0e4;   // 0.1atm
-            thermo_->setScale( lower, upper );
 
             auto *colorMap = new LogColorMap( Qt::blue, Qt::red );
             const double width = std::log10( upper ) - std::log10( lower );
-
             // double a1 = (std::log10( 4.55678e-8 ) - std::log10( lower )) / width; // Under flow threshold
             double a2 = (std::log10( 2.0e-5 ) - std::log10( lower )) / width;
             double a3 = (std::log10( 1.0e-4 ) - std::log10( lower ) ) / width;
@@ -93,6 +89,10 @@ namespace adwidgets {
             colorMap->addColorStop( a2, Qt::cyan );
             colorMap->addColorStop( a3, Qt::yellow );
             thermo_->setColorMap( colorMap );
+
+            thermo_->setScaleEngine( new QwtLogScaleEngine );
+            thermo_->setScaleMaxMinor( 10 );
+            thermo_->setScale( lower, upper );
 
             //thermo_->setFillBrush( Qt::darkCyan );
             //thermo_->setAlarmBrush( Qt::magenta );
