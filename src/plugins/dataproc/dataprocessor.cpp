@@ -287,9 +287,10 @@ Dataprocessor::filename() const
 }
 
 bool
-Dataprocessor::load( const std::wstring& /*path*/, const std::wstring& /*id*/)
+Dataprocessor::load( const std::wstring& path, const std::wstring& id )
 {
-    return false; // ifileimpl_->file().loadContents( path, id, *this );
+    // this is used for reload 'acquire' when shanpshot spectrum was added.
+    return file_->loadContents( path, id, *this );
 }
 
 const adcontrols::LCMSDataset *
