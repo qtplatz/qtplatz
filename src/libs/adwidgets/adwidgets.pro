@@ -11,6 +11,7 @@ TEMPLATE = lib
 
 include(../../qtplatzlibrary.pri)
 include(../../boost.pri)
+include(../../qwt.pri)
 
 LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adprot) \
@@ -39,18 +40,18 @@ SOURCES += adwidgets.cpp \
         centroidform.cpp \
         mspeaktable.cpp \
         msquantable.cpp \
-    mscalibrateform.cpp \
-    msreferencetable.cpp \
-    mscalibratewidget.cpp \
-    msreferencedialog.cpp \
-    mscalibratesummarytable.cpp \
-    mstoleranceform.cpp \
-    mslockform.cpp \
-    progresswnd.cpp \
-    spinslider.cpp \
-    dualspinslider.cpp \
-    filedialog.cpp \
-    pressuregauge.cpp
+        mscalibrateform.cpp \
+        msreferencetable.cpp \
+        mscalibratewidget.cpp \
+        msreferencedialog.cpp \
+        mscalibratesummarytable.cpp \
+        mstoleranceform.cpp \
+        mslockform.cpp \
+        progresswnd.cpp \
+        spinslider.cpp \
+        dualspinslider.cpp \
+        filedialog.cpp \
+        pressuregauge.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -68,18 +69,18 @@ HEADERS += adwidgets.hpp\
         centroidform.hpp \
         mspeaktable.hpp \
         msquantable.hpp \
-    mscalibrateform.hpp \
-    msreferencetable.hpp \
-    mscalibratewidget.hpp \
-    msreferencedialog.hpp \
-    mscalibratesummarytable.hpp \
-    mstoleranceform.hpp \
-    mslockform.hpp \
-    progresswnd.hpp \
-    spinslider.hpp \
-    dualspinslider.hpp \
-    filedialog.hpp \
-    pressuregauge.hpp
+        mscalibrateform.hpp \
+        msreferencetable.hpp \
+        mscalibratewidget.hpp \
+        msreferencedialog.hpp \
+        mscalibratesummarytable.hpp \
+        mstoleranceform.hpp \
+        mslockform.hpp \
+        progresswnd.hpp \
+        spinslider.hpp \
+        dualspinslider.hpp \
+        filedialog.hpp \
+        pressuregauge.hpp
 
 unix {
     target.path = /usr/lib
