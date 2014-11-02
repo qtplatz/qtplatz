@@ -1,32 +1,35 @@
-#QT       += gui svg printsupport
-#greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
-#TARGET = adplot
-#TEMPLATE = lib
+
 project(adplot)
 
-set(QT_REQUIRED ON)
-set(CMAKE_PREFIX_PATH /opt/Qt5.3.2/5.3/gcc_64)
+if ( WIN32 )
+  set( CMAKE_PREFIX_PATH "C:/Qt/Qt5.3.2/5.3/msvc2013_64_opengl" )
+  set( QWT "C:/Qwt-6.1.2-svn" )
+else()
+  set( CMAKE_PREFIX_PATH /opt/Qt5.3.2/5.3/gcc_64 )
+  set( QWT "/opt/local/qwt-6.1.2-svn" )
+endif()
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
-set(QWT_ROOT /usr/local/qwt-6.1.2-svn)
 
-find_package(Qt5Widgets)
+# Find the QtWidgets library
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Core REQUIRED)
 
-include_directories( ${Qt5Core_INCLUDES} ${QWT_ROOT}/include )
+include_directories( ${Qt5Core_INCLUDES} ${QWT}/include )
 
-if (Qt5_POSITION_INDEPENDENT_CODE)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+#if (Qt5_POSITION_INDEPENDENT_CODE)
+#  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+#endif()
+
+if ( NOT WIN32 )
+  set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
 endif()
 
-set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
 add_definitions(-DADPLOT_LIBRARY)
 
-#LIBS += -l$$qtLibraryTarget(adcontrols) \
-#        -l$$qtLibraryTarget(adportable) \
-#        -l$$qtLibraryTarget(qtwrapper)
-
-add_library( adplot
+set( SOURCES 
   annotation.cpp 
   annotations.cpp 
   axis.cpp 
@@ -50,3 +53,6 @@ add_library( adplot
   adplotcurve.cpp 
   timingchart.cpp
 )
+
+add_library( adplot ${SOURCES} )
+target_link_libraries( adplot LINK_PUBLIC adcontrols adportable qtwrapper )
