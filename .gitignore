@@ -167,3 +167,9 @@ tests/test_serializer/QuanSequence.bin
 tests/test_serializer/QuanSequence.xml
 tests/test_serializer/descriptions.xml
 tests/test_serializer/idAudit.xml
+
+# CMake
+CMakeCache.txt
+CMakeFiles
+*.cmake
+*_automoc.cpp
