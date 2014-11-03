@@ -31,7 +31,7 @@
 #include <boost/serialization/utility.hpp>
 
 // #include <boost/serialization/base_object.hpp>
-#include <boost/uuid/uuid_serialize.hpp>
+#include <workaround/boost/uuid/uuid_serialize.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/uuid.hpp>

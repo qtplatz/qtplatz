@@ -50,7 +50,7 @@
 #include <compiler/diagnostic_pop.h>
 
 #include <boost/serialization/base_object.hpp>
-#include <boost/uuid/uuid_serialize.hpp>
+#include <workaround/boost/uuid/uuid_serialize.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #if defined _MSC_VER

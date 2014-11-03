@@ -63,12 +63,12 @@ add_library( adwidgets SHARED ${adwidgets_SOURCES} )
 
 target_link_libraries( adwidgets LINK_PUBLIC
                  adplugin
-				 adlog
+		 adlog
                  adcontrols 
-				 adportable	
+		 adportable	
                  adprot
-				 qtwrapper
-				 ${LINK_LIBRARY}
+		 qtwrapper
+		 ${LINK_LIBRARY}
                  Qt5::Widgets
-				 Qt5::PrintSupport
-				 )
+		 Qt5::PrintSupport
+		 )
