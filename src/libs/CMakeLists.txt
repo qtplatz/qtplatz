@@ -1,6 +1,7 @@
 add_subdirectory (adportable)
 add_subdirectory (adcontrols)
 add_subdirectory (acewrapper)
+add_subdirectory (qtwrapper)
 #add_subdirectory (adchem)
 add_subdirectory (adplot)
 add_subdirectory (adprot)
