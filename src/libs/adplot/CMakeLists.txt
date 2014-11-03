@@ -6,11 +6,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Find the QtWidgets library
-find_package(Qt5Widgets CONFIG REQUIRED Core Widgets Gui Svg)
+find_package(Qt5Widgets	CONFIG REQUIRED	Svg Core Widgets Gui )
 
 include_directories( ${QWT}/include
-		      $ENV{QTDIR}/include/QtSvg
-#		      ${Qt5Svg_INCLUDE_DIRS}
+		      ${Qt5Svg_INCLUDE_DIRS}
 		      ${Qt5Widgets_INCLUDE_DIRS}
 		      )
 		     

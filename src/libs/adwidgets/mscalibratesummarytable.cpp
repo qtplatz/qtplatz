@@ -51,6 +51,7 @@
 #include <QKeyEvent>
 #include <QtWidgets/QHeaderView>
 #include <QPainter>
+#include <QtPrintSupport/QPrinter>
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QStyledItemDelegate>

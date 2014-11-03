@@ -46,7 +46,7 @@ namespace adwidgets {
         void register_handler( std::function< void( const adcontrols::MSReference& ) > );
 
     private:
-        Ui::MSReferenceDialog *ui;
+        ::Ui::MSReferenceDialog *ui;
 
         void handleIndexChanged( int index );
         void handleAddReference();

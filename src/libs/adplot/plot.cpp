@@ -39,7 +39,7 @@
 #include <qwt_plot_renderer.h>
 #include <QApplication>
 #include <QClipboard>
-#include <QSvgGenerator>
+//#include <QSvgGenerator>
 
 namespace adplot {
 
