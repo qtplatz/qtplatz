@@ -1,12 +1,13 @@
 
 project(adplot)
 
+cmake_policy(SET CMP0022 NEW)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Find the QtWidgets library
-find_package(Qt5Widgets	CONFIG REQUIRED	Svg Core Widgets Gui )
+find_package(Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
 
 include_directories( ${QWT}/include
 		      ${Qt5Svg_INCLUDE_DIRS}
@@ -52,5 +53,14 @@ set( adplot_SOURCES
 
 set(LINK_LIBRARY optimized qwt debug qwtd )
 
-add_library( adplot ${adplot_SOURCES} )
-target_link_libraries( adplot LINK_PUBLIC adcontrols adportable qtwrapper ${LINK_LIBRARY} )
+add_library( adplot SHARED ${adplot_SOURCES} )
+
+target_link_libraries( adplot LINK_PUBLIC
+                       adcontrols
+					   adportable
+					   qtwrapper
+					   Qt5::Widgets
+					   Qt5::Svg
+					   Qt5::PrintSupport
+					   ${LINK_LIBRARY}
+                     )

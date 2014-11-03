@@ -26,7 +26,7 @@
 #define UUID_HPP
 
 #include <workaround/boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <workaround/boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 
 namespace adportable {

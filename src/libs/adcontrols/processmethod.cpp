@@ -23,6 +23,9 @@
 **************************************************************************/
 #include <compiler/workaround.h>
 #include <compiler/disable_unused_parameter.h>
+#if defined _MSC_VER
+#pragma warning(disable:4996)
+#endif
 
 #include "processmethod.hpp"
 #include "centroidmethod.hpp"
@@ -50,6 +53,9 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
+#if defined _MSC_VER
+#pragma warning(default:4996)
+#endif
 
 using namespace adcontrols;
 

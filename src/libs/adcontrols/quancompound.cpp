@@ -22,9 +22,11 @@
 **
 **************************************************************************/
 
+#if defined _MSC_VER
+#pragma warning (disable:4996)
+#endif
 #include "quancompound.hpp"
 #include "serializer.hpp"
-
 #include <adportable/uuid.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
