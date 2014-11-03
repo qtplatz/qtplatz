@@ -14,10 +14,15 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Find the QtWidgets library
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Core REQUIRED)
+find_package(Qt5Widgets 5.3.2 CONFIG REQUIRED Core Widgets Gui Svg)
 
-include_directories( ${Qt5Core_INCLUDES} ${QWT}/include )
+include_directories( ${QWT}/include
+		      $ENV{QTDIR}/include/QtSvg
+#		      ${Qt5Svg_INCLUDE_DIRS}
+		      ${Qt5Widgets_INCLUDE_DIRS}
+		      )
+		     
+link_directories( ${QWT}/lib )
 
 #if (Qt5_POSITION_INDEPENDENT_CODE)
 #  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -29,7 +34,7 @@ endif()
 
 add_definitions(-DADPLOT_LIBRARY)
 
-set( SOURCES 
+set( adplot_SOURCES 
   annotation.cpp 
   annotations.cpp 
   axis.cpp 
@@ -54,5 +59,7 @@ set( SOURCES
   timingchart.cpp
 )
 
-add_library( adplot ${SOURCES} )
-target_link_libraries( adplot LINK_PUBLIC adcontrols adportable qtwrapper )
+set(LINK_LIBRARY optimized qwt debug qwtd )
+
+add_library( adplot ${adplot_SOURCES} )
+target_link_libraries( adplot LINK_PUBLIC adcontrols adportable qtwrapper ${LINK_LIBRARY} )
