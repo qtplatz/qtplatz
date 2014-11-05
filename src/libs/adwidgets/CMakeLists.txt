@@ -71,4 +71,5 @@ target_link_libraries( adwidgets LINK_PUBLIC
 		 ${LINK_LIBRARY}
                  Qt5::Widgets
 		 Qt5::PrintSupport
+		 ${Boost_LIBRARIES}
 		 )
