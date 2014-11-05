@@ -16,14 +16,6 @@ include_directories( ${QWT}/include
 		     
 link_directories( ${QWT}/lib )
 
-#if (Qt5_POSITION_INDEPENDENT_CODE)
-#  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-#endif()
-
-if ( NOT WIN32 )
-  set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
-endif()
-
 add_definitions(-DADPLOT_LIBRARY)
 
 set( adplot_SOURCES 

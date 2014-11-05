@@ -24,7 +24,6 @@
 
 #include "pressuregauge.hpp"
 #include <boost/numeric/interval.hpp>
-#include <qDebug>
 #include <qwt_thermo.h>
 #include <qwt_scale_engine.h>
 #include <qwt_transform.h>

@@ -20,9 +20,9 @@ link_directories( ${QWT}/lib )
 #  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 #endif()
 
-if ( NOT WIN32 )
-  set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
-endif()
+#if ( NOT WIN32 )
+#  set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
+#endif()
 
 add_definitions(-DADWIDGETS_LIBRARY)
 
@@ -71,4 +71,5 @@ target_link_libraries( adwidgets LINK_PUBLIC
 		 ${LINK_LIBRARY}
                  Qt5::Widgets
 		 Qt5::PrintSupport
+		 ${Boost_LIBRARIES}
 		 )
