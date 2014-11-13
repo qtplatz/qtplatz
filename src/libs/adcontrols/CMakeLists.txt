@@ -1,7 +1,11 @@
 
-#!win32 {
 #  LIBS += -lboost_date_time -lboost_system -lboost_wserialization -lboost_serialization 
-#
+
+cmake_policy(SET CMP0022 NEW)
+
+set(Boost_USE_STATIC_LIBS ON)
+
+find_package(Boost 1.56 COMPONENTS date_time system wserialization serialization)
 
 add_definitions(-DADCONTROLS_LIBRARY)
 
@@ -95,3 +99,5 @@ add_library( adcontrols SHARED
   serializer.cpp )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+target_link_libraries( adcontrols LINK_PUBLIC ${Boost_LIBRARIES} adportable )
+

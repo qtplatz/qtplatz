@@ -1,32 +1,24 @@
-#QT       += gui svg printsupport
-#greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
-#TARGET = adplot
-#TEMPLATE = lib
+
 project(adplot)
 
-set(QT_REQUIRED ON)
-set(CMAKE_PREFIX_PATH /opt/Qt5.3.2/5.3/gcc_64)
+cmake_policy(SET CMP0022 NEW)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
-set(QWT_ROOT /usr/local/qwt-6.1.2-svn)
 
-find_package(Qt5Widgets)
+find_package(Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
 
-include_directories( ${Qt5Core_INCLUDES} ${QWT_ROOT}/include )
+include_directories( ${QWT}/include
+		      ${Qt5Svg_INCLUDE_DIRS}
+		      ${Qt5Widgets_INCLUDE_DIRS}
+		      )
+		     
+link_directories( ${QWT}/lib )
 
-if (Qt5_POSITION_INDEPENDENT_CODE)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
-set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
 add_definitions(-DADPLOT_LIBRARY)
 
-#LIBS += -l$$qtLibraryTarget(adcontrols) \
-#        -l$$qtLibraryTarget(adportable) \
-#        -l$$qtLibraryTarget(qtwrapper)
-
-add_library( adplot
+set( adplot_SOURCES 
   annotation.cpp 
   annotations.cpp 
   axis.cpp 
@@ -50,3 +42,17 @@ add_library( adplot
   adplotcurve.cpp 
   timingchart.cpp
 )
+
+set(LINK_LIBRARY optimized qwt debug qwtd )
+
+add_library( adplot SHARED ${adplot_SOURCES} )
+
+target_link_libraries( adplot LINK_PUBLIC
+                       adcontrols
+					   adportable
+					   qtwrapper
+					   Qt5::Widgets
+					   Qt5::Svg
+					   Qt5::PrintSupport
+					   ${LINK_LIBRARY}
+                     )

@@ -52,7 +52,7 @@ namespace adwidgets {
         void setContents( const adcontrols::TargetingMethod& );
 
     private:
-        Ui::TargetingForm *ui;
+        ::Ui::TargetingForm *ui;
     };
 
 }

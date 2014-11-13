@@ -43,7 +43,7 @@
 #include <qtwrapper/qstring.hpp>
 #include <QLibrary>
 #include <QDir>
-#include <QMessageBox>
+//#include <QMessageBox>
 #include <QWidget>
 #include <map>
 #include <fstream>

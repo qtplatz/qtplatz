@@ -31,7 +31,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <workaround/boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
 using namespace adcontrols;

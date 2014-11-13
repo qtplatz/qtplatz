@@ -34,8 +34,8 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_serialize.hpp>
+#include <workaround/boost/uuid/uuid_io.hpp>
+#include <workaround/boost/uuid/uuid_serialize.hpp>
 #include <string>
 #include <vector>
 

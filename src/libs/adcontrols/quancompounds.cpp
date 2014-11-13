@@ -21,12 +21,18 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+#if defined _MSC_VER
+# pragma warning (disable:4996)
+#endif
 
 #include "quancompounds.hpp"
 #include "serializer.hpp"
 #include <adportable/uuid.hpp>
 #include <boost/serialization/vector.hpp>
 
+#if defined _MSC_VER
+# pragma warning (default:4996)
+#endif
 
 namespace adcontrols {
     

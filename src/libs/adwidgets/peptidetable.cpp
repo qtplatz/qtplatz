@@ -58,7 +58,7 @@ PeptideTable::onInitialUpdate()
     resizeColumnsToContents();
     resizeRowsToContents();
 
-    horizontalHeader()->setResizeMode( QHeaderView::Stretch );
+    horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
 }
 
 void

@@ -30,7 +30,6 @@
 #include "adwidgets_global.hpp"
 
 #include <QTableView>
-#include <QPrinter>
 #include <adplugin/lifecycle.hpp>
 #include <memory>
 
@@ -42,6 +41,7 @@ namespace adcontrols {
     class MSPeaks;
 }
 
+class QPrinter;
 class QStandardItemModel;
 
 namespace adwidgets {

@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "settings.hpp"
 #include <QString>
 #include <QSettings>

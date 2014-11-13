@@ -47,7 +47,7 @@
 #include <boost/format.hpp>
 #include <qdebug.h>
 #include <QApplication>
-#include <QSvgGenerator>
+#include <QtSvg/QSvgGenerator>
 
 namespace adplot {
 

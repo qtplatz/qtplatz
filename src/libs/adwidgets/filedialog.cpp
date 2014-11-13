@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "filedialog.hpp"
 #include <QCheckBox>
 #include <QComboBox>

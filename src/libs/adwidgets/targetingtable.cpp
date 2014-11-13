@@ -135,7 +135,8 @@ TargetingTable::onInitialUpdate()
 
     using namespace adwidgets::detail;
 
-    horizontalHeader()->setResizeMode( QHeaderView::Stretch );
+    // horizontalHeader()->setResizeMode( QHeaderView::Stretch ); // Depricated since 5.0
+    horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch ); // Depricated since 5.0
 
     model.setColumnCount( nbrColums );
     model.setHeaderData( c_peptide,  Qt::Horizontal, QObject::tr( "peptide" ) );

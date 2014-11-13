@@ -1,7 +1,12 @@
-
 add_subdirectory (adportable)
 add_subdirectory (adcontrols)
 add_subdirectory (acewrapper)
-#add_subdirectory (adchem) -- require RDKit 
-#add_subdirectory (adplot) -- require Qt, which I can't get through with cmake yet
+add_subdirectory (qtwrapper)
+#add_subdirectory (adchem)
+add_subdirectory (adplot)
 add_subdirectory (adprot)
+add_subdirectory (adwidgets)
+add_subdirectory (adplugin)
+add_subdirectory (xmlparser)
+add_subdirectory (adlog)
+add_subdirectory (utils)

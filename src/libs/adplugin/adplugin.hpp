@@ -28,7 +28,7 @@
 
 // #include "adplugin_global.h"
 
-#include <qglobal.h>
+#include <QtCore/qglobal.h>
 # define EXPORT_FACTORY( FACTORY_CLASS ) \
 	extern "C" {					     \
         Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance(); \

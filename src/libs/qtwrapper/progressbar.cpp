@@ -25,8 +25,8 @@
 #include "progressbar.hpp"
 #include <QProgressBar>
 #include <QFuture>
-#include <coreplugin/icore.h>
-#include <coreplugin/progressmanager/progressmanager.h>
+//#include <coreplugin/icore.h>
+//#include <coreplugin/progressmanager/progressmanager.h>
 
 using namespace qtwrapper;
 
