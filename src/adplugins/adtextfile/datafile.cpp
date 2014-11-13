@@ -33,6 +33,7 @@
 
 #include "datafile.hpp"
 #include "txtspectrum.hpp"
+#include "txtchromatogram.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datapublisher.hpp>
 #include <adcontrols/datasubscriber.hpp>
@@ -71,8 +72,27 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 bool
 datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
-    TXTSpectrum txt;
+    do {
+        adtextfile::TXTChromatogram txt;
+        if ( txt.load( filename ) ) {
 
+            boost::filesystem::path path( filename );
+            portfolio::Portfolio portfolio;
+            portfolio.create_with_fullpath( filename );
+            portfolio::Folder chromatograms = portfolio.addFolder( L"Chromatograms" );
+
+            int idx = 0;
+            for ( auto it: txt.chromatograms_ ) {
+                std::wstring name( (boost::wformat( L"%1%(%2%)" ) % path.stem().wstring() % idx++).str() );
+                portfolio::Folium folium = chromatograms.addFolium( name );
+                folium.setAttribute( L"dataType", adcontrols::Chromatogram::dataClass() );
+                chro_[ folium.id() ] = it;
+            }
+            return true;
+        }
+    } while(0);
+
+    TXTSpectrum txt;
     if ( ! txt.load( filename ) ) {
         ADERROR() 
             << "datafile '" << filename << "' open failed -- check file access permission";

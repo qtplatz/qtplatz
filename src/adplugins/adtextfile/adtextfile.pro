@@ -27,9 +27,11 @@ DEFINES += ADTXTFACTORY_LIBRARY
 SOURCES += adtextfile.cpp \
     datafile.cpp \
     datafile_factory.cpp \
-    txtspectrum.cpp
+    txtspectrum.cpp \
+    txtchromatogram.cpp
 
 HEADERS += adtextfile.hpp \
     datafile.hpp \
     datafile_factory.hpp \
-    txtspectrum.hpp
+    txtspectrum.hpp \
+    txtchromatogram.hpp

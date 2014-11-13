@@ -72,6 +72,7 @@ TXTSpectrum::load( const std::wstring& name )
 	std::vector< std::wstring > supported_models = adcontrols::MassSpectrometer::get_model_names();
 
 	if ( path.extension() == ".csv" ) {
+
         for ( const auto& model: supported_models ) {
 
             if ( auto spectrometer = adcontrols::MassSpectrometer::find( model.c_str() ) ) {
