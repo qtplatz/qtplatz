@@ -103,7 +103,7 @@ TXTChromatogram::compile_header( std::ifstream& in )
 
     if ( adportable::textfile::getline( in, line ) ) {
 
-		if ( line.find( "mzlist path" ) != line.npos )
+		if ( line.find( "mzlist path" ) == line.npos )
             return false;
     }
 
