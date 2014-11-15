@@ -39,7 +39,7 @@ waveform::waveform()
 bool
 waveform::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 {
-    if ( ms.isCentroid() )
+    if ( ms.isCentroid() || ms.size() < 32 )
         return false;
 
     size_t totalSize = ms.size();

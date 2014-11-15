@@ -55,6 +55,8 @@ set( adwidgets_SOURCES
         dualspinslider.cpp
         filedialog.cpp
         pressuregauge.cpp
+	peaktable.cpp
+	peaktable.hpp
 	)
 
 set(LINK_LIBRARY optimized qwt debug qwtd )

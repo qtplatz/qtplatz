@@ -88,6 +88,10 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
                 folium.setAttribute( L"dataType", adcontrols::Chromatogram::dataClass() );
                 chro_[ folium.id() ] = it;
             }
+
+            processedDataset_.reset( new adcontrols::ProcessedDataset );
+            processedDataset_->xml( portfolio.xml() );
+
             return true;
         }
     } while(0);
@@ -142,9 +146,16 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
     (void)dataType;
 
-	auto it = data_.find( path );
-	if ( it != data_.end() )
-		return it->second;
+    do { // find from a spectrum tree
+        auto it = data_.find( path );
+        if ( it != data_.end() )
+            return it->second;
+    } while ( 0 );
+    do { // find from a chromatogram tree
+        auto it = chro_.find( path );
+        if ( it != chro_.end() )
+            return it->second;
+    } while ( 0 );
 
 	return 0;
 }

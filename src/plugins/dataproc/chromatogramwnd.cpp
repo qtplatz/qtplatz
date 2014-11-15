@@ -47,7 +47,7 @@
 #include <adplugin/plugin_ptr.hpp>
 #include <adplugin/widget_factory.hpp>
 
-#include <qtwidgets/peakresultwidget.hpp>
+#include <adwidgets/peaktable.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include "qtwidgets_name.hpp"
@@ -69,7 +69,7 @@ namespace dataproc {
         }
         void setData( const adcontrols::ChromatogramPtr&, const QString& );
         adplot::ChromatogramWidget * chroWidget_;
-        QWidget * peakWidget_; // adplutin::manager::widget_factory will make a widget
+        adwidgets::PeakTable     * peakWidget_; // adplutin::manager::widget_factory will make a widget      
     };
 
     //----------------------------//
@@ -107,16 +107,17 @@ ChromatogramWnd::init()
 
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
+
         if ( ( pImpl_->chroWidget_ = new adplot::ChromatogramWidget( this ) ) ) {
 
-            pImpl_->peakWidget_ = adplugin::widget_factory::create( "qtwidgets::PeakResultWidget" );
+            if ( ( pImpl_->peakWidget_ = new adwidgets::PeakTable ) ) { // adplugin::widget_factory::create( "qtwidgets::PeakResultWidget" );
 
-            if ( pImpl_->peakWidget_ ) {
                 adplugin::LifeCycle * p = dynamic_cast<adplugin::LifeCycle *>(pImpl_->peakWidget_);
                 if ( p )
                     p->OnInitialUpdate();
-                connect( this, SIGNAL( fireSetData( const adcontrols::PeakResult& ) ),
-                    pImpl_->peakWidget_, SLOT( setData( const adcontrols::PeakResult& ) ) );
+                using adwidgets::PeakTable;
+                using adcontrols::PeakResult;
+                connect( this, &ChromatogramWnd::fireSetData, pImpl_->peakWidget_, static_cast<void(PeakTable::*)(const PeakResult&)>(&PeakTable::setData) );
 
                 splitter->addWidget( pImpl_->chroWidget_ );
                 splitter->addWidget( pImpl_->peakWidget_ );

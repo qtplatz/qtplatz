@@ -164,38 +164,50 @@ bool
 Dataprocessor::save( QString * errorString, const QString& filename, bool /* autoSave */)
 {
 	boost::filesystem::path path( file_->filename() ); // original name
-	if ( path.extension() != L".adfs" )
-		path.replace_extension( L".adfs" );
 
-    if ( filename.isEmpty() || ( path == boost::filesystem::path( filename.toStdString() ) ) ) {
+    if ( filename.isEmpty() && path.extension() == ".adfs" ) {
         // Save
-        if ( !file_->saveContents( L"/Processed", *portfolio_ ) )
-			return false;
-
-    } else { // save as 'filename
-
+        if ( file_->saveContents( L"/Processed", *portfolio_ ) )
+            return true;
+    }
+    if ( !filename.isEmpty() )
         path = filename.toStdWString();
 
-		if ( boost::filesystem::exists( path ) ) {
-            *errorString = "File already exists";
-            return false;
-        }
-        std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
-        if ( !(file_ && file_->saveContents( L"/Processed", *portfolio_, *file_ )) )
-			return false;
+    path.replace_extension( L".adfs" );
+    if ( boost::filesystem::exists( path ) ) {
+        int id = 1;
+        do {
+            boost::filesystem::path backup( path.branch_path() / boost::filesystem::path( path.stem().string() + (boost::format( "~%1%.adfs" ) % id++).str() ) );
+            if ( !boost::filesystem::exists( backup ) ) {
+                boost::system::error_code ec;
+                boost::filesystem::rename( path, backup, ec );
+                if ( ec ) {
+                    *errorString = QString::fromStdString( ec.message() );
+                    return false;
+                }
+                break;
+            }
+        } while ( true );
     }
 
-    // for debug convension
-    do {
+    // save as 'filename
+    std::shared_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
+
+    if ( (file && file->saveContents( L"/Processed", *portfolio_, *file_ )) ) {
+
+        file_ = file;
+        setModified( false );
+
+        // for debugging convension
         path.replace_extension( ".xml" );
         boost::filesystem::remove( path );
         pugi::xml_document dom;
         dom.load( portfolio_->xml().c_str() );
         dom.save_file( path.string().c_str() );
-    } while(0);
+        return true;
 
-    setModified( false );
-    return true;
+    }
+    return false;
 }
 
 bool

@@ -44,7 +44,6 @@ SOURCES += centroiddelegate.cpp \
         logwidget.cpp \
         molwidget.cpp \
         peakmethoddelegate.cpp \
-        peakresultwidget.cpp \
         peakmethodform.cpp \
         qtwidgets.cpp \
         sequencesform.cpp \
@@ -66,7 +65,6 @@ HEADERS += centroiddelegate.hpp \
         elementalcompositionform.hpp \
         factory.hpp \
         logwidget.hpp \
-        peakresultwidget.hpp \
         qtwidgets.hpp \
         sequencesform.hpp \
         sequencesmodel.hpp \

@@ -51,7 +51,8 @@ SOURCES += adwidgets.cpp \
         spinslider.cpp \
         dualspinslider.cpp \
         filedialog.cpp \
-        pressuregauge.cpp
+        pressuregauge.cpp \
+        peaktable.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -80,7 +81,8 @@ HEADERS += adwidgets.hpp\
         spinslider.hpp \
         dualspinslider.hpp \
         filedialog.hpp \
-        pressuregauge.hpp
+        pressuregauge.hpp \
+        peaktable.hpp
 
 unix {
     target.path = /usr/lib
