@@ -31,29 +31,23 @@
 using namespace adplot;
 
 Peak::Peak( const Peak& t ) : curve_( t.curve_ )
-                            , bar_( t.bar_ )
 {
 }
 
 Peak::Peak( plot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
-                                                           , curve_( new QwtPlotCurve() ) 
-														   , bar_( new QwtPlotCurve() ) 
+                                                       , curve_( std::make_shared< QwtPlotCurve >() )
 {
-    QColor color( 0xff, 0, 0, 0x10 );
+    QColor color( 0x7f, 0, 0, 0x60 );
     curve_->setPen( QPen( color ) );
     curve_->setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)
     curve_->attach( plot_ );
 
+    QRectF rc = plot.zoomRect();
+
     double x[2], y[2];
-/*
-	x[0] = adcontrols::timeutil::toMinutes( peak.startTime() );
-    x[1] = adcontrols::timeutil::toMinutes( peak.endTime() );
-    y[0] = peak.startHeight();
-    y[1] = peak.endHeight();
-*/
-	x[0] = x[1] = adcontrols::timeutil::toMinutes( peak.peakTime() );
-    y[0] = 0; 
-	y[1] = std::min( peak.startHeight(), peak.endHeight() );
+    x[ 0 ] = adcontrols::timeutil::toMinutes( peak.startTime() );
+    x[ 1 ] = adcontrols::timeutil::toMinutes( peak.endTime() );
+    y[ 0 ] = y[ 1 ] = std::min( peak.startHeight(), peak.endHeight() ) - (rc.height() / 20);
     
     curve_->setSamples(  x, y, 2 );
 }

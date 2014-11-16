@@ -31,7 +31,7 @@
 #include "peakasymmetry.hpp"
 #include "peakresolution.hpp"
 #include "theoreticalplate.hpp"
-
+#include "retentiontime.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
@@ -44,9 +44,7 @@ namespace adcontrols {
         ~Peak();
         Peak();
         Peak( const Peak& );
-
         typedef double peakheight_t;
-
     public:
         long parentId() const;
         void parentId(long id);
@@ -54,8 +52,6 @@ namespace adcontrols {
         void baseId(long id);
         long peakId() const;
         void peakId(long id);
-        // long UserData() const;
-        // void UserData(long);
 
         void peakFlags(unsigned long);
         unsigned long peakFlags() const;
@@ -113,10 +109,12 @@ namespace adcontrols {
         const PeakAsymmetry& asymmetry() const;
         const PeakResolution& resolution() const;
         const TheoreticalPlate& theoreticalPlate() const;
+        const RetentionTime& retentionTime() const;
 
-        adcontrols::PeakAsymmetry& asymmetry();
-        PeakResolution& resolution();
-        TheoreticalPlate& theoreticalPlate();
+        void setAsymmetry( const adcontrols::PeakAsymmetry& );
+        void setResolution( const PeakResolution& );
+        void setTheoreticalPlate( const TheoreticalPlate& );
+        void setRetentionTime( const RetentionTime& );
 
     private:
 #if defined _MSC_VER
@@ -138,7 +136,6 @@ namespace adcontrols {
         seconds_t startHeight_;
         seconds_t topHeight_;
         seconds_t endHeight_;
-
         double peakArea_;
         double peakHeight_;
         adcontrols::PeakAsymmetry asymmetry_;
@@ -153,44 +150,47 @@ namespace adcontrols {
         double percentArea_;
         double percentHeight_;
         bool manuallyModified_;
+        RetentionTime tr_;
 
     private:
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
-            (void)version;
-	    ar & BOOST_SERIALIZATION_NVP( name_ );
-	    ar & BOOST_SERIALIZATION_NVP( parentId_ );
-	    ar & BOOST_SERIALIZATION_NVP( peakid_ );
-	    ar & BOOST_SERIALIZATION_NVP( baseid_ );
-	    ar & BOOST_SERIALIZATION_NVP( appliedFunctions_ );
-	    ar & BOOST_SERIALIZATION_NVP( peak_flags_ );  // pair<front:3, rear:3>
-	    ar & BOOST_SERIALIZATION_NVP( startPos_ );
-	    ar & BOOST_SERIALIZATION_NVP( topPos_ );
-	    ar & BOOST_SERIALIZATION_NVP( endPos_ );
-	    ar & BOOST_SERIALIZATION_NVP( startTime_ );
-	    ar & BOOST_SERIALIZATION_NVP( peakTime_ );
-	    ar & BOOST_SERIALIZATION_NVP( endTime_ );
-	    ar & BOOST_SERIALIZATION_NVP( startHeight_ );
-	    ar & BOOST_SERIALIZATION_NVP( topHeight_ );
-	    ar & BOOST_SERIALIZATION_NVP( endHeight_ );
-	    ar & BOOST_SERIALIZATION_NVP( peakArea_ );
-	    ar & BOOST_SERIALIZATION_NVP( peakHeight_ );
-	    ar & BOOST_SERIALIZATION_NVP( asymmetry_ );
-	    ar & BOOST_SERIALIZATION_NVP( rs_ );
-	    ar & BOOST_SERIALIZATION_NVP( ntp_ );
-	    ar & BOOST_SERIALIZATION_NVP( capacityFactor_ );
-	    ar & BOOST_SERIALIZATION_NVP( peakWidth_ );
-	    ar & BOOST_SERIALIZATION_NVP( peakAmount_ );
-	    ar & BOOST_SERIALIZATION_NVP( migrationTime_ );
-	    ar & BOOST_SERIALIZATION_NVP( peakEfficiency_ );
-	    ar & BOOST_SERIALIZATION_NVP( massOnColumn_ );
-	    ar & BOOST_SERIALIZATION_NVP( percentArea_ );
-	    ar & BOOST_SERIALIZATION_NVP( percentHeight_ );
-	    ar & BOOST_SERIALIZATION_NVP( manuallyModified_ );
+            void serialize( Archive& ar, const unsigned int version ) {
+            ar & BOOST_SERIALIZATION_NVP( name_ );
+            ar & BOOST_SERIALIZATION_NVP( parentId_ );
+            ar & BOOST_SERIALIZATION_NVP( peakid_ );
+            ar & BOOST_SERIALIZATION_NVP( baseid_ );
+            ar & BOOST_SERIALIZATION_NVP( appliedFunctions_ );
+            ar & BOOST_SERIALIZATION_NVP( peak_flags_ );  // pair<front:3, rear:3>
+            ar & BOOST_SERIALIZATION_NVP( startPos_ );
+            ar & BOOST_SERIALIZATION_NVP( topPos_ );
+            ar & BOOST_SERIALIZATION_NVP( endPos_ );
+            ar & BOOST_SERIALIZATION_NVP( startTime_ );
+            ar & BOOST_SERIALIZATION_NVP( peakTime_ );
+            ar & BOOST_SERIALIZATION_NVP( endTime_ );
+            ar & BOOST_SERIALIZATION_NVP( startHeight_ );
+            ar & BOOST_SERIALIZATION_NVP( topHeight_ );
+            ar & BOOST_SERIALIZATION_NVP( endHeight_ );
+            ar & BOOST_SERIALIZATION_NVP( peakArea_ );
+            ar & BOOST_SERIALIZATION_NVP( peakHeight_ );
+            ar & BOOST_SERIALIZATION_NVP( asymmetry_ );
+            ar & BOOST_SERIALIZATION_NVP( rs_ );
+            ar & BOOST_SERIALIZATION_NVP( ntp_ );
+            ar & BOOST_SERIALIZATION_NVP( capacityFactor_ );
+            ar & BOOST_SERIALIZATION_NVP( peakWidth_ );
+            ar & BOOST_SERIALIZATION_NVP( peakAmount_ );
+            ar & BOOST_SERIALIZATION_NVP( migrationTime_ );
+            ar & BOOST_SERIALIZATION_NVP( peakEfficiency_ );
+            ar & BOOST_SERIALIZATION_NVP( massOnColumn_ );
+            ar & BOOST_SERIALIZATION_NVP( percentArea_ );
+            ar & BOOST_SERIALIZATION_NVP( percentHeight_ );
+            ar & BOOST_SERIALIZATION_NVP( manuallyModified_ );
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( tr_ );
         }
 
     };
 
 }
 
+BOOST_CLASS_VERSION( adcontrols::Peak, 1 )

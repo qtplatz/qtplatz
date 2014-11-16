@@ -46,7 +46,6 @@
 #include <adplot/spectrogramwidget.hpp>
 #include <adplot/peakmarker.hpp>
 #include <adwidgets/msquantable.hpp>
-#include <qtwidgets/peakresultwidget.hpp>
 
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>

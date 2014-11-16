@@ -55,7 +55,7 @@
 #include <deque>
 #include <vector>
 #include <set>
-#include <math.h>
+#include <cmath>
 #include <assert.h>
 
 #define MAX_NDIM        7
@@ -76,6 +76,9 @@ namespace chromatogr {
         static bool tRetention_moment( const Integrator::chromatogram& c, adcontrols::Peak& pk );
         static bool cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss );
         static adcontrols::Peak peak( const Integrator::chromatogram& c, int spos, int tpos, int epos, unsigned long flags );
+        static bool peak_width( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk );
+        static bool asymmetry( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk );
+        static bool theoreticalplate( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk );
     };
 
     class baselineHelper {
@@ -287,9 +290,14 @@ Integrator::updatePeakParameters( const adcontrols::PeakMethod& method )
 
         peakHelper::tRetention_lsq( rdata_, pk ) || peakHelper::tRetention_moment( rdata_, pk );
 
-        // TODO: NTP
         // Peak width
+        peakHelper::peak_width( method, rdata_, pk );
+
+        // NTP
+        peakHelper::theoreticalplate( method, rdata_, pk );        
+
 		// TailingFactor
+        peakHelper::asymmetry( method, rdata_, pk );
 
         // k'
 		if ( method.t0() >= 0.001 )
@@ -744,6 +752,14 @@ peakHelper::tRetention_lsq(  const Integrator::chromatogram& c, adcontrols::Peak
         double tR = (-b) / 2 / c;
 		pk.peakTime( tR );
         (void)a;
+
+        adcontrols::RetentionTime tr;
+        tr.setAlgorithm( adcontrols::RetentionTime::ParaboraFitting );
+        tr.setThreshold( l_threshold, r_threshold );
+        tr.setBoundary( X[ 0 ], X[ X.size() - 1 ] );
+        tr.setEq( a, b, c );
+        pk.setRetentionTime( tr );
+        
         return true;
     }
 	return false;
@@ -765,8 +781,18 @@ peakHelper::tRetention_moment(  const Integrator::chromatogram& c, adcontrols::P
     internal::TimeFunctor functor( c );
     adportable::Moment< internal::TimeFunctor > moment( functor );
 
-    double cx = moment.centerX( &c.v_[0], 0.5, pk.startPos(), pk.topPos(), pk.endPos() );
+    double h = pk.topHeight() - std::min( pk.startHeight(), pk.endHeight() );
+    double threshold = pk.topHeight() - h * 0.5;
+
+    double cx = moment.centerX( &c.v_[ 0 ], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     pk.peakTime( cx );
+
+    adcontrols::RetentionTime tr;
+    tr.setAlgorithm( adcontrols::RetentionTime::Moment );
+    tr.setThreshold( threshold, threshold );
+    tr.setBoundary( moment.xLeft(), moment.xRight() );
+
+    pk.setRetentionTime( tr );
     return true;
 }
 
@@ -825,7 +851,61 @@ peakHelper::peak( const chromatogr::Integrator::chromatogram& c, int spos, int t
     pk.startTime( c.getTime( spos ) );
     pk.peakTime( c.getTime( tpos ) );
     pk.endTime( c.getTime( epos ) );
+
     return pk;
+}
+
+bool
+peakHelper::peak_width( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk )
+{
+    internal::TimeFunctor functor( c );
+    adportable::Moment< internal::TimeFunctor > moment( functor );
+
+    double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
+    double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    
+    pk.peakWidth( width );
+    
+    return true;
+}
+
+bool
+peakHelper::asymmetry( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk )
+{
+    internal::TimeFunctor functor( c );
+    adportable::Moment< internal::TimeFunctor > moment( functor );
+
+    double threshold = pk.topHeight() - pk.peakHeight() * 0.95;
+    double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double a = pk.peakTime() - moment.xLeft();
+    // double b = moment.xRight() - pk.peakTime();
+
+    adcontrols::PeakAsymmetry tf;
+
+    tf.setAsymmetry( width / (2 * a) );
+    tf.setBoundary( moment.xLeft(), moment.xRight() );
+
+    pk.setAsymmetry( tf );
+
+    return true;
+}
+
+bool
+peakHelper::theoreticalplate( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk )
+{
+    internal::TimeFunctor functor( c );
+    adportable::Moment< internal::TimeFunctor > moment( functor );
+
+    double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
+    double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double N = 5.54 * std::sqrt( ( pk.peakTime() * pk.peakTime() ) / width );
+
+    adcontrols::TheoreticalPlate ntp;
+    ntp.ntp( N );
+
+    pk.setTheoreticalPlate( ntp );
+
+    return true;
 }
 
 ///////////////
@@ -841,5 +921,6 @@ baselineHelper::baseline( const chromatogr::Integrator::chromatogram& c, int spo
     bs.stopTime( c.getTime( epos ) );
     bs.startHeight( c.getIntensity( spos ) );
     bs.stopHeight( c.getIntensity( epos ) ) ;
+
     return bs;
 }

@@ -45,9 +45,8 @@ namespace adcontrols {
         double startTime() const;
         double endTime() const;
 
-        void asymmetry( double );
-        void startTime( double value );
-        void endTime( double value );
+        void setAsymmetry( double );
+        void setBoundary( double, double );
 
     private:
         double peakAsymmetry_;

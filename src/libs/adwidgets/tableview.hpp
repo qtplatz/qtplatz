@@ -40,18 +40,21 @@ namespace adwidgets {
         // reimplement QTableView
         void keyPressEvent( QKeyEvent * event ) override;
         void mouseReleaseEvent( QMouseEvent * event ) override;
-        // void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+
         bool allowDelete() { return allowDelete_; }
         void setAllowDelete( bool f ) { allowDelete_ = f; }
 
-        void handleDeleteSelection();
-        void handleCopyToClipboard();
+        virtual void handleDeleteSelection();
+        virtual void handleCopyToClipboard();
+        virtual void showContextMenu( const QPoint& );
+
     private:
         bool allowDelete_;
         
     signals:
 
     public slots:
+        void copy();
 
     };
 

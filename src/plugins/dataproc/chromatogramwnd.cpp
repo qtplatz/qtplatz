@@ -24,8 +24,12 @@
 **************************************************************************/
 
 #include "chromatogramwnd.hpp"
+
+#if ! defined Q_MOC_RUN
 #include "dataprocessor.hpp"
+#include "dataprocconstants.hpp"
 #include "selchanged.hpp"
+#include "qtwidgets_name.hpp"
 #include <adcontrols/description.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -33,43 +37,96 @@
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
-#include <adutils/processeddata.hpp>
-#include <portfolio/folium.hpp>
-#include <boost/variant.hpp>
-#include <boost/any.hpp>
-#include <qtwrapper/qstring.hpp>
-#include <coreplugin/minisplitter.h>
-
-#include <adportable/configuration.hpp>
-
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
-#include <adplugin/widget_factory.hpp>
-
-#include <adwidgets/peaktable.hpp>
+//#include <adplugin/widget_factory.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
-#include "qtwidgets_name.hpp"
+#include <adplot/peakmarker.hpp>
+#include <adportable/configuration.hpp>
+#include <adutils/processeddata.hpp>
+#include <adwidgets/peaktable.hpp>
+#include <portfolio/folium.hpp>
+#include <qtwrapper/qstring.hpp>
+#include <boost/variant.hpp>
+#include <boost/any.hpp>
+#endif
+
+#include <coreplugin/minisplitter.h>
+#include <QAction>
 #include <QBoxLayout>
+#include <QShortcut>
 #include <QMessageBox>
 
 using namespace dataproc;
 
 namespace dataproc {
 
-    class ChromatogramWndImpl {
+    class ChromatogramWnd::impl : public QObject {
+        Q_OBJECT
     public:
-        ~ChromatogramWndImpl() {
+        ~impl() {
+            marker_.reset();
             delete chroWidget_;
-            delete peakWidget_;
+            delete peakTable_;
         }
-        ChromatogramWndImpl() : chroWidget_(0)
-                              , peakWidget_(0) {
+        impl( ChromatogramWnd * p ) : QObject( p )
+                                    , this_( p )
+                                    , chroWidget_( new adplot::ChromatogramWidget )
+                                    , peakTable_(new adwidgets::PeakTable)
+                                    , marker_( std::make_shared< adplot::PeakMarker >() ) {
+
+            using adwidgets::PeakTable;
+
+            auto shortcut = new QShortcut( QKeySequence::Copy, p );
+            connect( shortcut, &QShortcut::activatedAmbiguously, this, &impl::copy );
+            connect( peakTable_, static_cast<void(PeakTable::*)(int)>(&PeakTable::currentChanged), this, &impl::handleCurrentChanged );
+
+            marker_->attach( chroWidget_ );
+            marker_->visible( true );
+            marker_->setYAxis( QwtPlot::yLeft );
+            
         }
-        void setData( const adcontrols::ChromatogramPtr&, const QString& );
+
+        void setData( adcontrols::ChromatogramPtr& ptr ) {
+            data_ = ptr;
+            chroWidget_->setData( ptr );
+            peakResult_.reset();
+            if ( ptr->peaks().size() )
+                peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks() );
+        }
+
+        void setData( adcontrols::PeakResultPtr& ptr ) {
+            peakResult_ = ptr;
+            chroWidget_->setData( *ptr );
+            peakTable_->setData( *ptr );
+        }
+
+        void handleCurrentChanged( int peakId ) {
+            using adcontrols::Peak;
+            if ( peakResult_ ) {
+                const auto& peaks = peakResult_->peaks();
+                auto it = std::find_if( peaks.begin(), peaks.end(), [peakId] ( const Peak& pk ){
+                        return pk.peakId() == peakId;
+                    } );
+                if ( it != peaks.end() ) {
+                    marker_->setPeak( *it );
+                    chroWidget_->replot();
+                }
+            }
+        }
+
+        ChromatogramWnd * this_;
         adplot::ChromatogramWidget * chroWidget_;
-        adwidgets::PeakTable     * peakWidget_; // adplutin::manager::widget_factory will make a widget      
+        adwidgets::PeakTable * peakTable_;
+        std::shared_ptr< adplot::PeakMarker > marker_;
+        adcontrols::ChromatogramPtr data_;
+        adcontrols::PeakResultPtr peakResult_;
+    public slots:
+        void copy() {
+            peakTable_->copy();
+        }
     };
 
     //----------------------------//
@@ -96,44 +153,23 @@ ChromatogramWnd::~ChromatogramWnd()
 }
 
 ChromatogramWnd::ChromatogramWnd( QWidget *parent ) : QWidget(parent)
+                                                    , impl_( new impl( this ) )
 {
-    init();
-}
-
-void
-ChromatogramWnd::init()
-{
-    pImpl_.reset( new ChromatogramWndImpl );
-
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
+
     if ( splitter ) {
 
-        if ( ( pImpl_->chroWidget_ = new adplot::ChromatogramWidget( this ) ) ) {
-
-            if ( ( pImpl_->peakWidget_ = new adwidgets::PeakTable ) ) { // adplugin::widget_factory::create( "qtwidgets::PeakResultWidget" );
-
-                adplugin::LifeCycle * p = dynamic_cast<adplugin::LifeCycle *>(pImpl_->peakWidget_);
-                if ( p )
-                    p->OnInitialUpdate();
-                using adwidgets::PeakTable;
-                using adcontrols::PeakResult;
-                connect( this, &ChromatogramWnd::fireSetData, pImpl_->peakWidget_, static_cast<void(PeakTable::*)(const PeakResult&)>(&PeakTable::setData) );
-
-                splitter->addWidget( pImpl_->chroWidget_ );
-                splitter->addWidget( pImpl_->peakWidget_ );
-                splitter->setOrientation( Qt::Vertical );
-            }
-            else
-                QMessageBox::warning( this, tr("ChromatogramWnd"), tr( "PeakResultWidget in qtwidgets.dll can not be loaded." ) );
-        }
-        else
-            QMessageBox::warning( this, tr("ChromatogramWnd"), tr( "ChromatogramWidget in qtwidgets.dll can not be loaded." ) );
+        splitter->addWidget( impl_->chroWidget_ );
+        splitter->addWidget( impl_->peakTable_ );
+        splitter->setOrientation( Qt::Vertical );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( splitter );
+
+    impl_->peakTable_->OnInitialUpdate();
 }
 
 void
@@ -149,18 +185,17 @@ ChromatogramWnd::draw2( adutils::MassSpectrumPtr& )
 void
 ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
-    pImpl_->chroWidget_->setData( ptr );
-    if ( ptr->size() ) {
-        adcontrols::PeakResult r( ptr->baselines(), ptr->peaks() );
-		emit fireSetData( r );
-	}
+    impl_->setData( ptr );
+    // impl_->chroWidget_->setData( ptr );
+    // impl_->peakTable_->setData( adcontrols::PeakResult( ptr->baselines(), ptr->peaks() ) );
 }
 
 void
 ChromatogramWnd::draw( adutils::PeakResultPtr& ptr )
 {
-	pImpl_->chroWidget_->setData( *ptr );
-    emit fireSetData( *ptr );
+    impl_->setData( ptr );
+	// impl_->chroWidget_->setData( *ptr );
+    // impl_->peakTable_->setData( *ptr );
 }
 
 void
@@ -174,7 +209,7 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * )
         adcontrols::Chromatogram c;
         if ( dset->getTIC( 0, c ) ) {
             c.addDescription( adcontrols::Description( L"filename", file.filename() ) );
-            //pImpl_->setData( c, filename );
+            //impl_->setData( c, filename );
         }
     }
 	*/
@@ -213,9 +248,4 @@ ChromatogramWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 
 ///////////////////////////
 
-void
-ChromatogramWndImpl::setData( const adcontrols::ChromatogramPtr& c, const QString& )
-{
-    chroWidget_->setData( c );
-}
-
+#include "chromatogramwnd.moc"

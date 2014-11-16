@@ -23,11 +23,12 @@
 **************************************************************************/
 
 #include "tableview.hpp"
-
-#include <QKeyEvent>
-#include <QMouseEvent>
 #include <QApplication>
 #include <QClipboard>
+#include <QHeaderView>
+#include <QKeyEvent>
+#include <QMenu>
+#include <QMouseEvent>
 #include <set>
 
 using namespace adwidgets;
@@ -35,6 +36,9 @@ using namespace adwidgets;
 TableView::TableView(QWidget *parent) : QTableView(parent)
                                       , allowDelete_( true )
 {
+    verticalHeader()->setDefaultSectionSize( 18 );
+    setContextMenuPolicy( Qt::CustomContextMenu );
+    connect( this, &QTableView::customContextMenuRequested, this, &TableView::showContextMenu);
 }
 
 void
@@ -66,6 +70,12 @@ TableView::mouseReleaseEvent( QMouseEvent * event )
 }
 
 void
+TableView::copy()
+{
+    handleCopyToClipboard();
+}
+
+void
 TableView::handleCopyToClipboard()
 {
 	QModelIndexList indecies = selectionModel()->selectedIndexes();
@@ -84,7 +94,7 @@ TableView::handleCopyToClipboard()
 
         if ( !isRowHidden( prev.row() ) && !isColumnHidden( prev.column() ) ) {
             
-            QString text = prev.data( Qt::DisplayRole ).toString(); 
+            QString text = prev.data( Qt::EditRole ).toString(); 
 
             selected_text.append( text );
 
@@ -97,7 +107,7 @@ TableView::handleCopyToClipboard()
         prev = index;
     }
     if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
-        selected_text.append( last.data( Qt::DisplayRole ).toString() );
+        selected_text.append( last.data( Qt::EditRole ).toString() );
 
     QApplication::clipboard()->setText( selected_text );
 }
@@ -133,4 +143,14 @@ TableView::handleDeleteSelection()
 		model()->removeRows( range->first, range->second - range->first + 1 );
 
     //emit selectedRowsDeleted();
+}
+
+void
+TableView::showContextMenu( const QPoint& pt )
+{
+    QMenu menu;
+    
+    menu.addAction( "Copy", this, SLOT( copy() ) );
+
+    menu.exec( this->mapToGlobal( pt ) );
 }

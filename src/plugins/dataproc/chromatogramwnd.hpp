@@ -59,7 +59,6 @@ namespace dataproc {
         void draw( std::shared_ptr< adcontrols::PeakResult >& );
         
     signals:
-        void fireSetData( const adcontrols::PeakResult& );
                                                          
     public slots:
         void handleSessionAdded( Dataprocessor* );
@@ -68,8 +67,9 @@ namespace dataproc {
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         
     private:
-        std::shared_ptr<ChromatogramWndImpl> pImpl_;
-        
+        // std::shared_ptr<ChromatogramWndImpl> pImpl_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 }
 

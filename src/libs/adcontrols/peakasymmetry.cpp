@@ -46,9 +46,16 @@ PeakAsymmetry::asymmetry() const
 }
 
 void
-PeakAsymmetry::asymmetry( double value )
+PeakAsymmetry::setAsymmetry( double value )
 {
     peakAsymmetry_ = value;
+}
+
+void
+PeakAsymmetry::setBoundary( double left, double right )
+{
+    peakAsymmetryStartTime_ = left;
+    peakAsymmetryEndTime_ = right;
 }
 
 double
@@ -57,20 +64,9 @@ PeakAsymmetry::startTime() const
     return peakAsymmetryStartTime_;
 }
 
-void
-PeakAsymmetry::startTime( double value )
-{
-    peakAsymmetryStartTime_ = value;
-}
-
 double
 PeakAsymmetry::endTime() const
 {
     return peakAsymmetryEndTime_;
 }
 
-void
-PeakAsymmetry::endTime( double value )
-{
-    peakAsymmetryEndTime_ = value;
-}

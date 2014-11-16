@@ -33,7 +33,10 @@
 class QwtPlotMarker;
 class QwtPlot;
 
-namespace adcontrols { class MSPeakInfoItem; class MassSpectrum; }
+namespace adcontrols {
+    class MSPeakInfoItem; class MassSpectrum;
+    class Chromatogram; class Peak;
+}
 
 namespace adplot {
 
@@ -49,9 +52,15 @@ namespace adplot {
         
         void setYAxis( int );
         void setValue( idAxis, double x, double y );
+
+        // MS peak
         void setPeak( const adcontrols::MSPeakInfoItem&
                       , bool isTime = false, adcontrols::metric::prefix pfx = adcontrols::metric::micro );
         void setPeak( const adcontrols::MassSpectrum&, int idx, bool isTime = false, adcontrols::metric::prefix pfx = adcontrols::metric::micro );
+
+        // Chromatograpic peak
+        void setPeak( const adcontrols::Peak&, bool isMinutes = true, adcontrols::metric::prefix pfx = adcontrols::metric::base );
+
         void visible( bool );
 
         QwtPlotMarker * marker( idAxis );

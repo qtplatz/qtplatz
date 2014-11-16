@@ -44,7 +44,6 @@ namespace adplot {
     private:
         plot * plot_;
 		std::shared_ptr< QwtPlotCurve > curve_;
-		std::shared_ptr< QwtPlotCurve > bar_;
     };
 
 }

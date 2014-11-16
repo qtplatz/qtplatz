@@ -26,6 +26,7 @@
 #include <qwt_plot_marker.h>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/peak.hpp>
 
 // enum { idPeakLeft, idPeakCenter, idPeakRight, idPeakBottom, idPeakThreshold, idPeakTop, numMarkers };
 
@@ -136,4 +137,22 @@ PeakMarker::visible( bool v )
     } else {
         markers_[ idPeakCenter ]->setLinePen( QColor( 0xff, 0, 0, 0x10 ) );
     }
+}
+
+void
+PeakMarker::setPeak( const adcontrols::Peak& pk, bool isMinutes, adcontrols::metric::prefix pfx )
+{
+    if ( ! isMinutes ) {
+        markers_[ idPeakCenter ]->setValue( adcontrols::metric::scale_to( pfx, pk.peakTime() ), 0 );
+        markers_[ idPeakLeft ]->setValue( adcontrols::metric::scale_to( pfx, pk.startTime() ), 0 );
+        markers_[ idPeakRight ]->setValue( adcontrols::metric::scale_to( pfx, pk.endTime() ), 0 );
+    } else {
+        markers_[ idPeakCenter ]->setValue( adcontrols::timeutil::toMinutes( pk.peakTime() ), 0 );
+        markers_[ idPeakLeft ]->setValue( adcontrols::timeutil::toMinutes( pk.startTime() ), 0 );
+        markers_[ idPeakRight ]->setValue( adcontrols::timeutil::toMinutes( pk.endTime() ), 0 );
+    }
+    double hh = pk.topHeight() - pk.peakHeight() / 2;
+    markers_[ idPeakThreshold ]->setValue( 0, hh );
+    markers_[ idPeakBase ]->setValue( 0, std::min( pk.startHeight(), pk.endHeight() ) );
+    markers_[ idPeakTop ]->setValue( 0, pk.topHeight() );
 }

@@ -54,9 +54,11 @@ namespace adwidgets {
         void OnFinalClose();
         bool getContents( boost::any& ) const;
         bool setContents( boost::any& );
-
+        int peakId( int row ) const;
         
     signals:
+        void valueChanged( int row );
+        void currentChanged( int idx );
             
     public slots:
         void setData( const adcontrols::Peaks& );
@@ -65,7 +67,10 @@ namespace adwidgets {
 
     private:
         void add( const adcontrols::Peak& );
-	
+
+        // QTableView
+        void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+        
     private:
         QStandardItemModel * model_;
     };

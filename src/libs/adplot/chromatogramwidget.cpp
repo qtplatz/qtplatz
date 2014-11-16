@@ -427,6 +427,7 @@ ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotatio
     std::wstring label = peak.name();
     if ( label.empty() )
         label = ( boost::wformat( L"%.3lf" ) % tR ).str();
+
     pri = label.empty() ? int( peak.topHeight() ) : int( peak.topHeight() ) + 0x3fffffff;
     
     adcontrols::annotation annot( label, tR, peak.topHeight(), pri );

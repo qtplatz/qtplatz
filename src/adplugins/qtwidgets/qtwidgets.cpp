@@ -25,23 +25,6 @@
 
 #include "qtwidgets.hpp"
 
-#if defined WIN32
-# if defined _DEBUG
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "adplugind.lib")
-#     pragma comment(lib, "qtwrapperd.lib")
-#     pragma comment(lib, "xmlparserd.lib")
-# else
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "adplugin.lib")
-#     pragma comment(lib, "qtwrapper.lib")
-#     pragma comment(lib, "xmlparser.lib")
-# endif
-#endif
-
-
 QtWidgets::QtWidgets()
 {
 }

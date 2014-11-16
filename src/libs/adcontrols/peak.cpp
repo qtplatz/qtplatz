@@ -86,6 +86,7 @@ Peak::Peak( const Peak& t ) : name_( t.name_ )
                             , percentArea_( t.percentArea_ )
                             , percentHeight_( t.percentHeight_ )
                             , manuallyModified_( t.manuallyModified_ )
+                            , tr_( t.tr_ )
 {
 }
 
@@ -371,10 +372,10 @@ Peak::asymmetry() const
     return asymmetry_;
 }
 
-adcontrols::PeakAsymmetry&
-Peak::asymmetry()
+void
+Peak::setAsymmetry( const PeakAsymmetry& t )
 {
-    return asymmetry_;
+    asymmetry_ = t;
 }
 
 const PeakResolution&
@@ -383,10 +384,10 @@ Peak::resolution() const
     return rs_;
 }
 
-PeakResolution&
-Peak::resolution()
+void
+Peak::setResolution( const PeakResolution& t )
 {
-    return rs_;
+    rs_ = t;
 }
 
 const TheoreticalPlate&
@@ -395,10 +396,20 @@ Peak::theoreticalPlate() const
     return ntp_;
 }
 
-TheoreticalPlate&
-Peak::theoreticalPlate()
+void
+Peak::setTheoreticalPlate( const TheoreticalPlate& t )
 {
-    return ntp_;
+    ntp_ = t;
 }
 
+const RetentionTime&
+Peak::retentionTime() const
+{
+    return tr_;
+}
 
+void
+Peak::setRetentionTime( const RetentionTime& tr )
+{
+    tr_ = tr;
+}

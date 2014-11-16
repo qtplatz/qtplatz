@@ -642,27 +642,30 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         size_t pos;
         int index, rep, fcn;
         double minutes;
-        pImpl_->ticFinder( rect.left(), pos, index, rep, fcn, minutes );
-        
-        actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a part of spectrum @%.3fmin (%d/%d)") % minutes % index % fcn ).str().c_str() )
+        if ( !pImpl_->ticFinder( rect.left(), pos, index, rep, fcn, minutes ) ) {
+            minutes = 0;
+            index = fcn = -1;
+        }
+        actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a part of spectrum @%.3fmin (%d/%d)" ) % minutes % index % fcn ).str().c_str() )
                                            , [=] () {
                                                DataprocPlugin::instance()->onSelectSpectrum( minutes, pos, fcn );
                                            } ) );
+
         if ( index < 0 || fcn < 0 )
             actions.back().first->setEnabled( false );
-
+        
         actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a spectrum @%.3f min" ) % rect.left() ).str().c_str() )
                                            , [=] () {
                                                DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
                                            } ) );
 
-        actions.push_back( std::make_pair( menu.addAction( QString("Copy image to clipboard" ) )
+        actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") )
                                            , [=] () {
                                                adplot::plot::copyToClipboard( pImpl_->ticPlot_ );
                                            } ) );
         
         actions.push_back( std::make_pair(
-                               menu.addAction( QString("Save SVG File" ) )
+                               menu.addAction( tr( "Save SVG File" ) )
                                , [=] () {
                                    QString name
                                        = QFileDialog::getSaveFileName( MainWindow::instance()

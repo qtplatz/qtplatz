@@ -53,7 +53,7 @@ namespace adcontrols {
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
-		boost::scoped_ptr< Baselines > baselines_;
+        boost::scoped_ptr< Baselines > baselines_;
 		boost::scoped_ptr< Peaks > peaks_;
 
         friend class boost::serialization::access;
@@ -70,5 +70,7 @@ namespace adcontrols {
 
 	typedef std::shared_ptr<PeakResult> PeakResultPtr;
 }
+
+//BOOST_CLASS_VERSION( adcontrols::PeakResult, 1 )
 
 #endif // PEAKRESULT_HPP
