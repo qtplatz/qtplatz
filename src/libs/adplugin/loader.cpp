@@ -48,8 +48,10 @@ loader::populate( const wchar_t * directory )
 
 	if ( boost::filesystem::exists( dir ) && boost::filesystem::is_directory( dir ) ) {
 		for ( boost::filesystem::directory_iterator it( dir ); it != boost::filesystem::directory_iterator(); ++it ) {
+
 			if ( ! boost::filesystem::is_regular_file( it->status() ) )
 				continue;
+
 			if ( it->path().extension() == L".adplugin" ) {
 				boost::filesystem::path name( it->path() );
 				name.replace_extension();
@@ -72,8 +74,8 @@ loader::populate( const wchar_t * directory )
 #endif
 			}
 		}
-
 	}
+
 	manager::instance()->populated();
 }
 

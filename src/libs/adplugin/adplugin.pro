@@ -13,14 +13,14 @@ include(../../qtplatzlibrary.pri)
 include(../../boost.pri)
 INCLUDEPATH += $$OUT_PWD/..
 
+!win32 {
+  LIBS += -lboost_regex -lboost_filesystem -lboost_system 
+}
+
 LIBS += -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(xmlparser) \
         -l$$qtLibraryTarget(adlog)
-
-!win32 {
-  LIBS += -lboost_filesystem -lboost_system -lboost_regex
-}
 
 DEFINES += ADPLUGIN_LIBRARY
 
@@ -50,3 +50,4 @@ HEADERS += adplugin.hpp \
     orbservant.hpp \
     plugin_ptr.hpp \
     visitor.hpp
+

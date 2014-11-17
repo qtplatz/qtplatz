@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#if defined __GNUC__
+#if defined __GNUC__ && !defined(__APPLE__)
 # pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #endif
 

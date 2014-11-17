@@ -61,6 +61,7 @@ add_library( adcontrols SHARED
   processeddataset.cpp 
   processmethod.cpp 
   reportmethod.cpp 
+  retentiontime.cpp
   tableofelement.cpp 
   targetingmethod.cpp 
   theoreticalplate.cpp 
