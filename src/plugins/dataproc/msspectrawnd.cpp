@@ -310,7 +310,9 @@ void
 MSSpectraWnd::onDataChanged( const QString& foliumGuid, const QString& attGuid, int idx, int fcn )
 {
     // data changed on MSPeakTable via MSProcessingWnd
-
+    (void)fcn;
+    (void)idx;
+    (void)attGuid;
     auto it = dataIds_.find( foliumGuid.toStdWString() );
     if ( it != dataIds_.end() ) {
 
@@ -342,6 +344,10 @@ MSSpectraWnd::onDataChanged( const QString& foliumGuid, const QString& attGuid, 
 void
 MSSpectraWnd::handleDataChanged( const QString& dataGuid, int idx, int fcn, int column, const QVariant& data )
 {
+    (void)data;
+    (void)column;
+    (void)fcn;
+    (void)idx;
     // data changed on MSQuanTable
     if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
         const std::wstring& guid = qpks->parentGuid( dataGuid.toStdWString() );
