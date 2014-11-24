@@ -21,7 +21,9 @@ SOURCES += adextension.cpp \
            ipeptidehandler.cpp \
            ilogger.cpp \
            ibroker.cpp \
-           icontroller.cpp
+           icontroller.cpp \
+           idataproc.cpp \
+           iwidgetfactory.cpp
 
 HEADERS += adextension.hpp\
            adextension_global.hpp \
@@ -33,7 +35,9 @@ HEADERS += adextension.hpp\
            ipeptidehandler.hpp \
            ilogger.hpp \
            ibroker.hpp \
-           icontroller.hpp
+           icontroller.hpp \
+           idataproc.hpp \
+           iwidgetfactory.hpp
 
 unix:!symbian {
     maemo5 {

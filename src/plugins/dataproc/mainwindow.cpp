@@ -48,6 +48,8 @@
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/targeting.hpp>
+#include <adextension/idataproc.hpp>
+#include <adextension/iwidgetfactory.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adplugin/manager.hpp>
@@ -71,6 +73,7 @@
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <extensionsystem/pluginmanager.h>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
@@ -476,8 +479,6 @@ MainWindow::createContents( Core::IMode * mode )
     splitter->setStretchFactor( 1, 1 );
     splitter->setObjectName( QLatin1String( "ModeWidget" ) );
 
-    createDockWidgets();
-
 	return splitter;
 }
 
@@ -526,28 +527,41 @@ MainWindow::createDockWidgets()
 {
     using adportable::Configuration;
 
-    static const struct { 
-        const QString title;
-        const char * wiid;
-        const char * pageName;
+    struct widget { 
+        QString title;
+        QString pageName;
         std::function<QWidget *()> factory;
-    } widgets [] = { 
-        { tr("Centroid"),         "adwidgets::CentroidForm",          "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
-        , { tr("MS Peaks"),       "adwidgets::MSPeakTable", "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
-        , { tr("MS Calibration"), "adwidgets::MSCalibrateWidget",     "MSCalibrateWidget",   [] () { return new adwidgets::MSCalibrateWidget; } }
-        , { tr("MS Chromatogr."), "qtwidgets2::MSChromatogramWidget", "MSChromatogrMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSChromatogramWidget", 0, 0 ); } }
-        , { tr("Targeting"),      "adwidgets::TargetingWidget",       "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
-        , { tr("Peptide"),        "adwidgets::PeptideWidget",         "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
-        , { tr("Peak Find"),      "qtwidgets::PeakMethodForm",        "PeakFindMethod",  [](){ return adplugin::widget_factory::create("qtwidgets::PeakMethodForm", 0, 0 ); } }
-        , { tr("Data property"),  "dataproc::MSPropertyForm",         "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
-        , { tr("TOF Peaks"),      "qtwidgets2::MSPeakView",           "TOFPeaks",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSPeakView", 0, 0 ); } }
+        void operator = (const widget& t) {
+            title = t.title;
+            pageName = t.pageName;
+            factory = t.factory;
+        }
+        widget( const QString& t, const QString& p, std::function<QWidget *()> f ) : title( t ), pageName( p ), factory( f ) {}
     };
-    
+
+    std::vector< widget > widgets = {
+        { tr("Centroid"),         "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
+        , { tr("MS Peaks"),       "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
+        , { tr("MS Calibration"), "MSCalibrateWidget",   [] () { return new adwidgets::MSCalibrateWidget; } }
+        , { tr("MS Chromatogr."), "MSChromatogrMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSChromatogramWidget", 0, 0 ); } }
+        , { tr("Targeting"),      "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
+        , { tr("Peptide"),        "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
+        , { tr("Peak Find"),      "PeakFindMethod",  [](){ return adplugin::widget_factory::create("qtwidgets::PeakMethodForm", 0, 0 ); } }
+        , { tr("Data property"),  "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
+        , { tr("TOF Peaks"),      "TOFPeaks",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSPeakView", 0, 0 ); } }
+    };
+
+    auto list = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iDataproc >();
+    for ( auto v : list ) {
+        for ( auto& wf : *v )
+            widgets.push_back( widget( wf.title(), wf.objname(), [&wf] (){ return wf(); } ) );
+    }
+
     for ( auto& widget: widgets ) {
 
-        QWidget * pWidget = widget.factory ? widget.factory() : adplugin::widget_factory::create( widget.wiid, 0, 0 );
+        QWidget * pWidget = widget.factory();
 
-        if ( pWidget && std::strcmp(widget.wiid, "qtwidgets2::MSPeakView") == 0 ) {
+        if ( pWidget && widget.pageName == "TOFPeaks" ) {
             // TOFPeaks
             connect( this, SIGNAL( onAddMSPeaks( const adcontrols::MSPeaks& ) ), pWidget, SLOT( handle_add_mspeaks( const adcontrols::MSPeaks& ) ) );
             adplugin::LifeCycleAccessor accessor( pWidget );
@@ -584,8 +598,7 @@ MainWindow::createDockWidgets()
         if ( pWidget ) {
             createDockWidget( pWidget, widget.title, widget.pageName );
         } else {
-            ADTRACE() << "dataprocmanager failed to create " << widget.wiid;
-            QMessageBox::critical(0, QLatin1String("dataprocmanager"), widget.wiid );
+            QMessageBox::critical(0, QLatin1String("dataprocmanager"), widget.pageName );
         }
     }
 }
@@ -797,6 +810,8 @@ void
 MainWindow::OnInitialUpdate()
 {
     using adcontrols::ProcessMethod;
+
+    createDockWidgets();
 
     QList< QDockWidget *> widgets = dockWidgets();
   
