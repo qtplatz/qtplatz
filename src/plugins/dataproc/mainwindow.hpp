@@ -162,6 +162,7 @@ namespace dataproc {
         void onAddMSPeaks( const adcontrols::MSPeaks& ) const;
         void onDataMayCanged() const;
         void onZoomedOnSpectrum( const QRectF& ) const;
+        void onZoomedOnChromatogram( const QRectF& ) const;
     };
 
 }

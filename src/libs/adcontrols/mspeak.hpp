@@ -46,8 +46,10 @@ namespace adcontrols {
         double time() const;
         double mass() const;
         int32_t mode() const;
+        int32_t fcn() const;
         double flight_length() const;
         double width( bool isTime = false ) const;
+        double exit_delay() const;
         const std::string& formula() const;
         const std::wstring& description() const;
         const std::string& spectrumId() const;
@@ -56,7 +58,9 @@ namespace adcontrols {
         void time( double );
         void mass( double );
         void mode( int32_t );
+        void fcn( int32_t );
         void width( double, bool isTime = false );
+        void exit_delay( double );
         void flight_length( double );
         void formula( const std::string& );
         void description( const std::wstring& );
@@ -67,6 +71,7 @@ namespace adcontrols {
         double time_;
         double mass_;
         int32_t mode_;  // corresponding to flight length
+        int32_t fcn_;   // protocol id
         double flength_;
         std::string formula_;
         std::wstring description_;
@@ -74,11 +79,11 @@ namespace adcontrols {
         int32_t spectrumIndex_;
         double time_width_;
         double mass_width_;
+        double exit_delay_;
 
         friend class boost::serialization::access;
         template<class Archive>
             void serialize(Archive& ar, const unsigned int version) {
-            (void)(version);
             ar & time_
                 & mass_
                 & mode_
@@ -90,9 +95,15 @@ namespace adcontrols {
                 & time_width_
                 & mass_width_
                 ;
+            if ( version >= 1 ) {
+                ar & fcn_;
+                ar & exit_delay_;
+            }
         }
     };
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::MSPeak, 1 )
 
 #endif // MSPEAK_HPP

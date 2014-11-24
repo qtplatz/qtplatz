@@ -559,43 +559,41 @@ MainWindow::createDockWidgets()
 
     for ( auto& widget: widgets ) {
 
-        QWidget * pWidget = widget.factory();
+        if ( QWidget * pWidget = widget.factory() ) {
 
-        if ( pWidget && widget.pageName == "TOFPeaks" ) {
-            // TOFPeaks
-            connect( this, SIGNAL( onAddMSPeaks( const adcontrols::MSPeaks& ) ), pWidget, SLOT( handle_add_mspeaks( const adcontrols::MSPeaks& ) ) );
-            adplugin::LifeCycleAccessor accessor( pWidget );
-            if ( adplugin::LifeCycle * p = accessor.get() ) {
-                if ( auto wnd = findChild< MSPeaksWnd *>() ) {
-                    boost::any a( static_cast<QWidget *>(wnd) );
-                    p->setContents( a );
+            if ( widget.pageName == "TOFPeaks" ) {
+                // TOFPeaks
+                connect( this, SIGNAL( onAddMSPeaks( const adcontrols::MSPeaks& ) ), pWidget, SLOT( handle_add_mspeaks( const adcontrols::MSPeaks& ) ) );
+                adplugin::LifeCycleAccessor accessor( pWidget );
+                if ( adplugin::LifeCycle * p = accessor.get() ) {
+                    if ( auto wnd = findChild< MSPeaksWnd *>() ) {
+                        boost::any a( static_cast<QWidget *>(wnd) );
+                        p->setContents( a );
+                    }
                 }
             }
-        }
 
-        if ( auto p = dynamic_cast< adwidgets::MSPeakTable *>( pWidget ) ) {
-            // MS Peak list
-            using adwidgets::MSPeakTable;
-            if ( auto wnd = findChild< MSProcessingWnd *>() ) {
-                connect( p, static_cast<void (MSPeakTable::*)(int, int)>(&MSPeakTable::currentChanged), wnd
-                         , [=] ( int idx, int fcn ){ wnd->handleCurrentChanged( idx, fcn ); }
-                    );
-                connect( p, static_cast<void (MSPeakTable::*)(int, int)>(&MSPeakTable::formulaChanged), wnd
-                         , [=] ( int idx, int fcn ){ wnd->handleFormulaChanged( idx, fcn ); }
-                    );
-
-                connect( p, &MSPeakTable::triggerLockMass, wnd, &MSProcessingWnd::handleLockMass );
-                connect( this, &MainWindow::onDataMayCanged, wnd, &MSProcessingWnd::handleDataMayChanged );
+            if ( auto p = dynamic_cast< adwidgets::MSPeakTable *>( pWidget ) ) {
+                using adwidgets::MSPeakTable;
+                if ( auto wnd = findChild< MSProcessingWnd *>() ) {
+                    connect( p, &MSPeakTable::triggerLockMass, wnd, &MSProcessingWnd::handleLockMass );
+                    //connect( this, &MainWindow::onDataMayCanged, wnd, &MSProcessingWnd::handleDataMayChanged );
+                }
             }
-            connect( this, &MainWindow::onZoomedOnSpectrum, p, &MSPeakTable::handle_zoomed );
-        }
+            
+            // all MSPeakTable variants
+            if ( auto wnd = findChild< MSProcessingWnd *>() ) {
+                connect( pWidget, SIGNAL( currentChanged(int, int) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
+                connect( pWidget, SIGNAL( formulaChanged(int, int) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
+                connect( this, SIGNAL( onDataMayCanged() ), wnd, SLOT( handleDataMayChanged() ) );
+            }
+            connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
+            connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) ), pWidget, SLOT( handleZoomedOnChromatogram( const QRectF& ) ) );
 
-        if ( auto p = dynamic_cast< adwidgets::PeptideWidget *>( pWidget ) ) {
-            connect( p, &adwidgets::PeptideWidget::triggerFind, this, &MainWindow::handlePeptideTarget );
-            // (const QVector< QPair<QString, QString> >&) ) );
-        }
+            if ( auto p = dynamic_cast< adwidgets::PeptideWidget *>( pWidget ) ) {
+                connect( p, &adwidgets::PeptideWidget::triggerFind, this, &MainWindow::handlePeptideTarget );
+            }
 
-        if ( pWidget ) {
             createDockWidget( pWidget, widget.title, widget.pageName );
         } else {
             QMessageBox::critical(0, QLatin1String("dataprocmanager"), widget.pageName );

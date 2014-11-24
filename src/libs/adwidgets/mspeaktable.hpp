@@ -72,7 +72,7 @@ namespace adwidgets {
 
     public slots:
         void handleCopyToClipboard();
-        void handle_zoomed( const QRectF& );   // zoomer zoomed
+        void handleZoomedOnSpectrum( const QRectF& );   // zoomer zoomed
 
     private slots:
         void handleValueChanged( const QModelIndex& );

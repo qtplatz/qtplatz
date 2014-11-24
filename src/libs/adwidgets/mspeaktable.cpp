@@ -556,7 +556,7 @@ MSPeakTable::keyPressEvent( QKeyEvent * event )
 }
 
 void
-MSPeakTable::handle_zoomed( const QRectF& rc )
+MSPeakTable::handleZoomedOnSpectrum( const QRectF& rc )
 {
     if ( data_source_.which() == 1 ) {
         auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
