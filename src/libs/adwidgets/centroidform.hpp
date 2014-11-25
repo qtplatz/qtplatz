@@ -28,7 +28,6 @@
 
 #include "adwidgets_global.hpp"
 #include <QWidget>
-// #include <QDeclarativeView>
 #include <QStandardItemModel>
 #include <adplugin/lifecycle.hpp>
 #include <adportable/configuration.hpp>

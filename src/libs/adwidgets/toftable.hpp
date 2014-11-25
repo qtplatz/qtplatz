@@ -22,8 +22,7 @@
 **
 **************************************************************************/
 
-#ifndef MSPEAKTABLE_HPP
-#define MSPEAKTABLE_HPP
+#pragma once
 
 #include <QTableView>
 #include <memory>
@@ -33,7 +32,7 @@ class QStandardItemModel;
 
 namespace adcontrols { class MSPeaks; class MSPeak; }
 
-namespace qtwidgets2 {
+namespace adwidgets {
 
     class TOFTable : public QTableView  {
         Q_OBJECT
@@ -57,7 +56,7 @@ namespace qtwidgets2 {
         std::shared_ptr< QItemDelegate > delegate_;
 
         void addPeak( const adcontrols::MSPeak& );
-        friend class MSPeakView;
+        friend class MSPeakWidget;
     };
 
     class TOFTableDelegate : public QItemDelegate {
@@ -74,4 +73,3 @@ namespace qtwidgets2 {
     };
 }
 
-#endif // MSPEAKTABLE_HPP

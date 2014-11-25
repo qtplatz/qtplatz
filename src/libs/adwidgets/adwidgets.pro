@@ -54,7 +54,10 @@ SOURCES += adwidgets.cpp \
         pressuregauge.cpp \
         peaktable.cpp \
         mschromatogramform.cpp \
-        peakmethodform.cpp
+        peakmethodform.cpp \
+        mspeaksummary.cpp \
+        mspeakwidget.cpp \
+        toftable.cpp        
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -86,7 +89,10 @@ HEADERS += adwidgets.hpp\
         pressuregauge.hpp \
         peaktable.hpp \
         mschromatogramform.hpp \
-        peakmethodform.hpp
+        peakmethodform.hpp \
+        mspeaksummary.hpp \
+        mspeakwidget.hpp \
+        toftable.hpp
 
 unix {
     target.path = /usr/lib

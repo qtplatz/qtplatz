@@ -24,7 +24,7 @@
 
 #include "peakmethodform.hpp"
 #include "ui_peakmethodform.h"
-#include "standarditemhelper.hpp"
+
 #if !defined Q_MOC_RUN
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/processmethod.hpp>

@@ -25,23 +25,26 @@
 #ifndef MSPEAKVIEW_HPP
 #define MSPEAKVIEW_HPP
 
+#include "adwidgets_global.hpp"
+#include <adplugin/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
-#include <adplugin/lifecycle.hpp>
 
 namespace adcontrols { class MSPeaks; }
 
-namespace qtwidgets2 {
+namespace adwidgets {
 
     class MSPeakSummary;
     class TOFTable;
 
-    class MSPeakView : public QWidget
-                     , public adplugin::LifeCycle {
+    class ADWIDGETSSHARED_EXPORT MSPeakWidget : public QWidget
+                                              , public adplugin::LifeCycle {
+
         Q_OBJECT
+
     public:
-        explicit MSPeakView(QWidget *parent = 0);
-        ~MSPeakView();
+        explicit MSPeakWidget(QWidget *parent = 0);
+        ~MSPeakWidget();
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& ) override;

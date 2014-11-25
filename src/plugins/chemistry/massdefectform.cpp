@@ -29,7 +29,7 @@
 #include "massdefectdelegate.hpp"
 #include <adportable/configuration.hpp>
 #include <qstandarditemmodel.h>
-#include <qtwidgets/standarditemhelper.hpp>
+#include <adwidgets/standarditemhelper.hpp>
 
 using namespace chemistry;
 

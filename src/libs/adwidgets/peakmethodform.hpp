@@ -25,8 +25,9 @@
 #ifndef PEAKMETHODFORM_HPP
 #define PEAKMETHODFORM_HPP
 
-#include <QWidget>
+#include "adwidgets_global.hpp"
 #include <adplugin/lifecycle.hpp>
+#include <QWidget>
 #include <memory>
 
 class QStandardItemModel;
@@ -47,8 +48,8 @@ namespace adwidgets {
 	class TimeEventsDelegate;
     class PeakMethodDelegate;
 
-	class PeakMethodForm : public QWidget
-		                 , public adplugin::LifeCycle {
+	class ADWIDGETSSHARED_EXPORT PeakMethodForm : public QWidget
+                                                , public adplugin::LifeCycle {
 		Q_OBJECT
     
 	public:
@@ -73,7 +74,7 @@ namespace adwidgets {
     private slots:
 
     private:
-		Ui::PeakMethodForm *ui;
+        ::Ui::PeakMethodForm *ui;
         std::unique_ptr< adcontrols::PeakMethod > pMethod_;
         std::unique_ptr< QStandardItemModel > pTimeEventsModel_; // time events
 		std::unique_ptr< TimeEventsDelegate > pTimeEventsDelegate_;

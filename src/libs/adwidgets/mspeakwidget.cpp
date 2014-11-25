@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "mspeakview.hpp"
+#include "mspeakwidget.hpp"
 #include "mspeaksummary.hpp"
 #include "toftable.hpp"
 #include <adcontrols/mspeaks.hpp>
@@ -35,14 +35,14 @@
 #include <QBoxLayout>
 #include <tuple>
 
-using namespace qtwidgets2;
+using namespace adwidgets;
 using namespace adcontrols::metric;
 
-MSPeakView::~MSPeakView()
+MSPeakWidget::~MSPeakWidget()
 {
 }
 
-MSPeakView::MSPeakView(QWidget *parent) : QWidget(parent)
+MSPeakWidget::MSPeakWidget(QWidget *parent) : QWidget(parent)
                                         , peakSummary_( new MSPeakSummary(this) )
                                         , tofTable_( new TOFTable(this) )
                                         , mspeaks_( new adcontrols::MSPeaks )
@@ -61,32 +61,32 @@ MSPeakView::MSPeakView(QWidget *parent) : QWidget(parent)
 }
 
 void *
-MSPeakView::query_interface_workaround( const char * typenam )
+MSPeakWidget::query_interface_workaround( const char * typenam )
 {
-    if ( typenam == typeid( MSPeakView ).name() )
-        return static_cast< MSPeakView * >(this);
+    if ( typenam == typeid( MSPeakWidget ).name() )
+        return static_cast< MSPeakWidget * >(this);
     return 0;
 }
 
 void
-MSPeakView::OnCreate( const adportable::Configuration& )
+MSPeakWidget::OnCreate( const adportable::Configuration& )
 {
 }
 
 void
-MSPeakView::OnInitialUpdate()
+MSPeakWidget::OnInitialUpdate()
 {
     peakSummary_->onInitialUpdate( this );
     tofTable_->onInitialUpdate();
 }
 
 void
-MSPeakView::onUpdate( boost::any& )
+MSPeakWidget::onUpdate( boost::any& )
 {
 }
 
 void
-MSPeakView::OnFinalClose()
+MSPeakWidget::OnFinalClose()
 {
     for ( auto& w: clients_ ) {
         disconnect(this, SIGNAL(onSetData( const QString&, const adcontrols::MSPeaks&)), w, SLOT(handleSetData(const QString&, const adcontrols::MSPeaks&)) );
@@ -95,13 +95,13 @@ MSPeakView::OnFinalClose()
 }
 
 bool
-MSPeakView::getContents( boost::any& ) const
+MSPeakWidget::getContents( boost::any& ) const
 {
     return false;
 }
 
 bool
-MSPeakView::setContents( boost::any& a )
+MSPeakWidget::setContents( boost::any& a )
 {
     if ( adportable::a_type< QWidget * >::is_a( a ) ) {
         QWidget * w = boost::any_cast< QWidget * >( a );
@@ -117,7 +117,7 @@ MSPeakView::setContents( boost::any& a )
 }
 
 void
-MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
+MSPeakWidget::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
 {
     for ( auto& peak: peaks ) {
         auto it = std::find_if( mspeaks_->begin(), mspeaks_->end(), [=]( const adcontrols::MSPeak& a ){
@@ -201,7 +201,7 @@ MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
 }
 
 void
-MSPeakView::currentChanged( int mode )
+MSPeakWidget::currentChanged( int mode )
 {
     adcontrols::MSPeaks peaks;
     
@@ -222,7 +222,7 @@ MSPeakView::currentChanged( int mode )
 }
 
 void
-MSPeakView::currentChanged( const std::string& formula )
+MSPeakWidget::currentChanged( const std::string& formula )
 {
     adcontrols::MSPeaks peaks;
     

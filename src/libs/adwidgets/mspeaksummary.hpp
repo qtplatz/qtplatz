@@ -31,16 +31,16 @@
 
 class QStandardItemModel;
 
-namespace qtwidgets2 {
+namespace adwidgets {
 
-    class MSPeakView;
+    class MSPeakWidget;
 
     class MSPeakSummary : public QTreeView {
         Q_OBJECT
     public:
         explicit MSPeakSummary(QWidget *parent = 0);
 
-        void onInitialUpdate( MSPeakView * );
+        void onInitialUpdate( MSPeakWidget* );
 
         void setPolynomials( int mode, const std::vector< double >&, double sd, double v, double l );
         void setPolynomials( const std::string& formula, const std::vector< double >&, double sd, double v );
@@ -53,7 +53,7 @@ namespace qtwidgets2 {
     private:
         std::shared_ptr< QStandardItemModel > model_;
         std::unique_ptr< QItemDelegate > delegate_;
-        MSPeakView * parent_;
+        MSPeakWidget * parent_;
 
         // reimplement QTreeView
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;

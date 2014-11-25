@@ -36,7 +36,7 @@
 #include <QStandardItemModel>
 #include <boost/format.hpp>
 
-namespace qtwidgets2 {
+namespace adwidgets {
 
     enum {
         c_toftable_formula
@@ -85,7 +85,7 @@ namespace qtwidgets2 {
     }
 }
 
-using namespace qtwidgets2; 
+using namespace adwidgets; 
 
 
 TOFTable::TOFTable(QWidget *parent) : QTableView(parent)

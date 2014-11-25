@@ -69,6 +69,7 @@
 #include <adwidgets/mscalibratewidget.hpp>
 #include <adwidgets/mschromatogramform.hpp>
 #include <adwidgets/peakmethodform.hpp>
+#include <adwidgets/mspeakwidget.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/portfolio.hpp>
@@ -548,10 +549,9 @@ MainWindow::createDockWidgets()
         , { tr("MS Chromatogr."), "MSChromatogrMethod",  [](){ return new adwidgets::MSChromatogramForm; } }
         , { tr("Targeting"),      "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
         , { tr("Peptide"),        "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
-        , { tr("Peak Find"),      "PeakFindMethod",  [](){ return return adwidgets::PeakMethodForm; } }
-        // adplugin::widget_factory::create("qtwidgets::PeakMethodForm", 0, 0 ); } }
+        , { tr("Peak Find"),      "PeakFindMethod",  [](){ return new adwidgets::PeakMethodForm; } }
         , { tr("Data property"),  "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
-        , { tr("TOF Peaks"),      "TOFPeaks",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSPeakView", 0, 0 ); } }
+        , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }
     };
 
     auto list = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iDataproc >();

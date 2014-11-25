@@ -5,9 +5,5 @@ SUBDIRS   = \
     adcontroller \
     adbroker \
     addatafile \
-    adtextfile \
-    qtwidgets \
-    qtwidgets2
+    adtextfile
 
-# adcontroller (dll) : adinterface, adportable, acewrapper, xmlparser, adplugin
-# adborker (dll) : adinterface, adportable, acewrapper adcontrols portfolio

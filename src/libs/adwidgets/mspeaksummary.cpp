@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "mspeaksummary.hpp"
-#include "mspeakview.hpp"
+#include "mspeakwidget.hpp"
 #include <qtwrapper/font.hpp>
 #include <QStandardItemModel>
 #include <QApplication>
@@ -31,7 +31,7 @@
 #include <QKeyEvent>
 #include <boost/format.hpp>
 
-namespace qtwidgets2 {
+namespace adwidgets {
     enum {
         r_mass_vs_time
         , r_length_vs_time
@@ -52,7 +52,7 @@ namespace qtwidgets2 {
     };
 }
 
-using namespace qtwidgets2;
+using namespace adwidgets;
 
 MSPeakSummary::MSPeakSummary(QWidget *parent) : QTreeView(parent)
                                               , model_( new QStandardItemModel )
@@ -69,7 +69,7 @@ MSPeakSummary::MSPeakSummary(QWidget *parent) : QTreeView(parent)
 }
 
 void
-MSPeakSummary::onInitialUpdate( MSPeakView * parent )
+MSPeakSummary::onInitialUpdate( MSPeakWidget * parent )
 {
     parent_ = parent;
 
