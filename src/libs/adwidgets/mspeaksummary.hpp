@@ -26,7 +26,6 @@
 #define MSPEAKSUMMARY_HPP
 
 #include <QTreeView>
-#include <QItemDelegate>
 #include <memory>
 
 class QStandardItemModel;
@@ -45,33 +44,27 @@ namespace adwidgets {
         void setPolynomials( int mode, const std::vector< double >&, double sd, double v, double l );
         void setPolynomials( const std::string& formula, const std::vector< double >&, double sd, double v );
         void setResult( int id, const std::vector< double >&, double sd );
+        void clear();
 
     signals:
+        void onClear();
 
     public slots:
 
+    private slots:
+        void handleCopyToClipboard();
+        void handleClear();
+
     private:
         std::shared_ptr< QStandardItemModel > model_;
-        std::unique_ptr< QItemDelegate > delegate_;
         MSPeakWidget * parent_;
+        void showContextMenu( const QPoint& );
 
         // reimplement QTreeView
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;
         void keyPressEvent( QKeyEvent * event ) override;
-        void handleCopyToClipboard();
-    };
 
-    class MSPeakSummaryDelegate : public QItemDelegate {
-        Q_OBJECT
-    public:
-        explicit MSPeakSummaryDelegate(QObject *parent = 0);
-        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-		// void setEditorData(QWidget *editor, const QModelIndex &index) const override;
-        // void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
-        // bool editorEvent( QEvent * event, QAbstractItemModel *
-        //                   , const QStyleOptionViewItem&, const QModelIndex& ) override;
-    signals:
-    public slots:
+        class ItemDelegate;
     };
 
 }

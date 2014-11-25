@@ -50,50 +50,53 @@ namespace adwidgets {
         , c_toftable_num_columns
     };
 
-	using namespace adcontrols::metric;
-
-    TOFTableDelegate::TOFTableDelegate(QObject *parent) : QItemDelegate( parent )
-    {
-    }
-        
-    void
-    TOFTableDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-    {
-        switch( index.column() ) {
-        case c_toftable_time:
-            drawDisplay( painter, option, option.rect
-                         , ( boost::format("%.5lf") % scale_to_micro( index.data( Qt::EditRole ).toDouble() ) ).str().c_str() );
-            break;
-        case c_toftable_mass:
-            drawDisplay( painter, option, option.rect, ( boost::format("%.7lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
-            break;
-		case c_toftable_flength:
-            drawDisplay( painter, option, option.rect, ( boost::format("%.6lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
-            break;
-        case c_toftable_accelerator_voltage:
-            drawDisplay( painter, option, option.rect, ( boost::format("%.1lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
-            break;
-        case c_toftable_mode:
-        case c_toftable_formula:
-        case c_toftable_description:
-        case c_toftable_spectrumId:
-        case c_toftable_num_columns:
-        default:
-            QItemDelegate::paint( painter, option, index );
-            break;
+    class TOFTable::ItemDelegate : public QItemDelegate {
+    public:
+        explicit ItemDelegate( QObject *parent = 0 ) : QItemDelegate( parent ) {
         }
-    }
+
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+            using namespace adcontrols::metric;
+            switch( index.column() ) {
+            case c_toftable_time:
+                drawDisplay( painter, option, option.rect
+                             , ( boost::format("%.5lf") % scale_to_micro( index.data( Qt::EditRole ).toDouble() ) ).str().c_str() );
+                break;
+            case c_toftable_mass:
+                drawDisplay( painter, option, option.rect, ( boost::format("%.7lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+                break;
+            case c_toftable_flength:
+                drawDisplay( painter, option, option.rect, ( boost::format("%.6lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+                break;
+            case c_toftable_accelerator_voltage:
+                drawDisplay( painter, option, option.rect, ( boost::format("%.1lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+                break;
+            case c_toftable_mode:
+            case c_toftable_formula:
+            case c_toftable_description:
+            case c_toftable_spectrumId:
+            case c_toftable_num_columns:
+            default:
+                QItemDelegate::paint( painter, option, index );
+                break;
+            }
+        }
+    signals:
+            
+    public slots:
+    };
+
 }
 
 using namespace adwidgets; 
 
 
-TOFTable::TOFTable(QWidget *parent) : QTableView(parent)
-                                          , model_( std::make_shared< QStandardItemModel >() )
-										  , delegate_( std::make_shared< TOFTableDelegate >() )
+TOFTable::TOFTable(QWidget *parent) : TableView(parent)
+                                    , model_( std::make_shared< QStandardItemModel >() )
 {
     this->setModel( model_.get() );
-	this->setItemDelegate( delegate_.get() );
+    auto delegate = new ItemDelegate;
+	this->setItemDelegate( delegate );
     this->setSortingEnabled( true );
     this->verticalHeader()->setDefaultSectionSize( 18 );
     QFont font;
@@ -108,12 +111,14 @@ TOFTable::onInitialUpdate()
     QStandardItemModel& model = *model_;
     
     model.setColumnCount( c_toftable_num_columns );
+
     model.setHeaderData( c_toftable_time, Qt::Horizontal, QObject::tr( "time(us)" ) );
     model.setHeaderData( c_toftable_mass, Qt::Horizontal, QObject::tr( "m/z" ) );
     model.setHeaderData( c_toftable_mode, Qt::Horizontal, QObject::tr( "laps" ) );
     model.setHeaderData( c_toftable_formula, Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_toftable_description, Qt::Horizontal, QObject::tr( "description" ) );
     model.setHeaderData( c_toftable_spectrumId, Qt::Horizontal, QObject::tr( "spectrum id" ) );
+    model.setHeaderData( c_toftable_flength, Qt::Horizontal, QObject::tr( "length(m)" ) );
     model.setHeaderData( c_toftable_accelerator_voltage, Qt::Horizontal, QObject::tr( "V(acc)" ) );
 
     resizeRowsToContents();
@@ -122,18 +127,18 @@ TOFTable::onInitialUpdate()
 }
 
 void
-TOFTable::setPeaks( const adcontrols::MSPeaks& peaks )
+TOFTable::setPeaks( const adcontrols::MSPeaks& peaks, double t0 )
 {
-    model_->setRowCount(0);
+    // model_->setRowCount(0);
     for ( auto& peak: peaks )
-        addPeak( peak );
+        addPeak( peak, t0 );
 
     resizeRowsToContents();
     resizeColumnsToContents();
 }
 
 void
-TOFTable::addPeak( const adcontrols::MSPeak& peak )
+TOFTable::addPeak( const adcontrols::MSPeak& peak, double t0 )
 {
 	QStandardItemModel& model = *model_;
 
@@ -147,20 +152,14 @@ TOFTable::addPeak( const adcontrols::MSPeak& peak )
 	model.setData( model.index( row, c_toftable_formula ), QString::fromStdString( peak.formula() ) );
 	model.setData( model.index( row, c_toftable_description ), QString::fromStdWString( peak.description() ) );
     model.setData( model.index( row, c_toftable_spectrumId ),  QString::fromStdString( peak.spectrumId() ) );
-    double vacc = adportable::TimeSquaredScanLaw::acceleratorVoltage( peak.mass(), peak.time(), peak.flight_length(), 0.0 );
+    double vacc = adportable::TimeSquaredScanLaw::acceleratorVoltage( peak.mass(), peak.time(), peak.flight_length(), t0 );
     model.setData( model.index( row, c_toftable_accelerator_voltage ), vacc );
 }
 
 void
-TOFTable::keyPressEvent( QKeyEvent * event )
+TOFTable::clear()
 {
-    if ( event->matches( QKeySequence::Copy ) ) {
-        handleCopyToClipboard();
-    } else if ( event->matches( QKeySequence::Paste ) ) {
-        // handlePasteFromClipboard();
-    } else {
-        QTableView::keyPressEvent( event );
-    }
+    model_->setRowCount( 0 );
 }
 
 void

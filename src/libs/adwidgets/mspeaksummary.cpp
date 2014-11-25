@@ -25,11 +25,13 @@
 #include "mspeaksummary.hpp"
 #include "mspeakwidget.hpp"
 #include <qtwrapper/font.hpp>
-#include <QStandardItemModel>
+#include <boost/format.hpp>
 #include <QApplication>
 #include <QClipboard>
+#include <QItemDelegate>
 #include <QKeyEvent>
-#include <boost/format.hpp>
+#include <QMenu>
+#include <QStandardItemModel>
 
 namespace adwidgets {
     enum {
@@ -50,22 +52,50 @@ namespace adwidgets {
     enum {
         c_mspeaksummary_formula
     };
+
+    class MSPeakSummary::ItemDelegate : public QItemDelegate {
+    public:
+        explicit ItemDelegate(QObject *parent = 0) : QItemDelegate( parent ) {
+        }
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+            if ( index.parent() != QModelIndex() ) {
+                switch ( index.column() ) {
+                case c_mspeaksummary_sd:
+                    drawDisplay( painter, option, option.rect, ( boost::format("%.4g") % (index.data( Qt::EditRole ).toDouble() * 1000) ).str().c_str() );
+                    break;
+                case c_mspeaksummary_coeffs:
+                case c_mspeaksummary_coeffs_1:
+                    drawDisplay( painter, option, option.rect, ( boost::format("%.8g") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+                    break;
+                case c_mspeaksummary_t0:
+                    drawDisplay( painter, option, option.rect, ( boost::format("%.7g") % (index.data( Qt::EditRole ).toDouble() * 1000) ).str().c_str() );
+                    break;
+                default:
+                    QItemDelegate::paint( painter, option, index );        
+                }
+            } else {
+                QItemDelegate::paint( painter, option, index );        
+            }
+        }
+    };
 }
 
 using namespace adwidgets;
 
 MSPeakSummary::MSPeakSummary(QWidget *parent) : QTreeView(parent)
                                               , model_( new QStandardItemModel )
-                                              , delegate_( new MSPeakSummaryDelegate )
                                               , parent_( 0 )
 {
     this->setModel( model_.get() );
-    this->setItemDelegate( delegate_.get() );
+    this->setItemDelegate( new ItemDelegate );
     this->setSortingEnabled( true );
     QFont font;
 	this->setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
     this->setTabKeyNavigation( true );
 	this->setSelectionMode( QAbstractItemView::ExtendedSelection );
+
+    setContextMenuPolicy( Qt::CustomContextMenu );
+    connect( this, &QTreeView::customContextMenuRequested, this, &MSPeakSummary::showContextMenu );
 }
 
 void
@@ -82,7 +112,7 @@ MSPeakSummary::onInitialUpdate( MSPeakWidget * parent )
     model.setHeaderData( 2, Qt::Horizontal, QObject::tr( "(b)" ) );
     model.setHeaderData( 3, Qt::Horizontal, QObject::tr( "std. error(ns)" ) );
     model.setHeaderData( 4, Qt::Horizontal, QObject::tr( "t0(ns)" ) );
-    model.setHeaderData( 5, Qt::Horizontal, QObject::tr( "v(us/m/Da)" ) );
+    model.setHeaderData( 5, Qt::Horizontal, QObject::tr( "Vacc est." ) );
     model.setHeaderData( 6, Qt::Horizontal, QObject::tr( "L(m)" ) );
 
     model.setData( model.index( r_mass_vs_time, 0 ), "laps" );
@@ -160,6 +190,17 @@ MSPeakSummary::setResult( int row, const std::vector<double>& coeffs, double sd 
     // model.setData( model.index( row, c_mspeaksummary_t0, parent->index() ), t0 );
 }
 
+void
+MSPeakSummary::clear()
+{
+    QStandardItemModel& model = *model_;
+
+    for ( int row = 0; row < r_num_rows; ++row ) {
+        QStandardItem * p1 = model.itemFromIndex( model.index( row, 0 ) );
+        p1->setRowCount( 0 );
+    }
+}
+
 // override QTreeView
 void
 MSPeakSummary::currentChanged( const QModelIndex& index, const QModelIndex& prev )
@@ -217,33 +258,19 @@ MSPeakSummary::handleCopyToClipboard()
     QApplication::clipboard()->setText( copy_table );
 }
 
-
-////////////////
-
-MSPeakSummaryDelegate::MSPeakSummaryDelegate(QObject *parent) : QItemDelegate( parent )
-{
-}
-        
 void
-MSPeakSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+MSPeakSummary::handleClear()
 {
-    if ( index.parent() != QModelIndex() ) {
-        switch ( index.column() ) {
-        case c_mspeaksummary_sd:
-            drawDisplay( painter, option, option.rect, ( boost::format("%.4g") % (index.data( Qt::EditRole ).toDouble() * 1000) ).str().c_str() );
-            break;
-        case c_mspeaksummary_coeffs:
-        case c_mspeaksummary_coeffs_1:
-            drawDisplay( painter, option, option.rect, ( boost::format("%.8g") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
-            break;
-        case c_mspeaksummary_t0:
-            drawDisplay( painter, option, option.rect, ( boost::format("%.7g") % (index.data( Qt::EditRole ).toDouble() * 1000) ).str().c_str() );
-            break;
-        default:
-            QItemDelegate::paint( painter, option, index );        
-        }
-    } else {
-        QItemDelegate::paint( painter, option, index );        
-    }
+    emit onClear();
 }
 
+void
+MSPeakSummary::showContextMenu( const QPoint& pt )
+{
+    QMenu menu;
+    
+    menu.addAction( "Copy", this, SLOT( handleCopyToClipboard() ) );
+    menu.addAction( "Clear", this, SLOT( handleClear() ) );
+
+    menu.exec( this->mapToGlobal( pt ) );
+}

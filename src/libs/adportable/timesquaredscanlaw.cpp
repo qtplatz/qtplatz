@@ -32,7 +32,7 @@ TimeSquaredScanLaw::TimeSquaredScanLaw( double kAcceleratorVoltage
                                         , double fLength )
     : kAcceleratorVoltage_( kAcceleratorVoltage )
     , tDelay_( tDelay )
-	, kTimeSquaredCoeffs_( 2.0 * kELEMENTAL_CHARGE / kATOMIC_MASS_CONSTANT )
+	, kTimeSquaredCoeffs_( kTimeSquaredCoeffs ) // 2 * ( kElementalCharge / kAtomicMass )
     , fLength_( fLength )
 {
 }

@@ -65,6 +65,9 @@ namespace adwidgets {
     public slots:
         void handle_add_mspeaks( const adcontrols::MSPeaks& );
 
+    private slots:
+        void handleClear();
+
 	private:
         std::unique_ptr< MSPeakSummary > peakSummary_;
         std::unique_ptr< TOFTable > tofTable_;

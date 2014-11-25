@@ -125,3 +125,4 @@ MSPeaks::operator << ( const MSPeak& t )
     vec_.push_back( t );
 	return *this;
 }
+

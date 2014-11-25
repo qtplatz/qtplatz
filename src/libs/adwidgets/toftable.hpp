@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <QTableView>
+#include "tableview.hpp"
 #include <memory>
 #include <QItemDelegate>
 
@@ -34,18 +34,15 @@ namespace adcontrols { class MSPeaks; class MSPeak; }
 
 namespace adwidgets {
 
-    class TOFTable : public QTableView  {
+    class TOFTable : public TableView {
         Q_OBJECT
     public:
         explicit TOFTable(QWidget *parent = 0);
         void onInitialUpdate();
         QStandardItemModel& model() { return *model_; }
-        void setPeaks( const adcontrols::MSPeaks& );
-    protected:
-        // reimplement QTableView
-        // void currentChanged( const QModelIndex&, const QModelIndex& ) override;
-        void keyPressEvent( QKeyEvent * event ) override;
-        
+        void setPeaks( const adcontrols::MSPeaks&, double t0 = 0 );
+        void clear();
+
     signals:
 
     public slots:
@@ -53,23 +50,11 @@ namespace adwidgets {
 
     private:
         std::shared_ptr< QStandardItemModel > model_;
-        std::shared_ptr< QItemDelegate > delegate_;
 
-        void addPeak( const adcontrols::MSPeak& );
+        void addPeak( const adcontrols::MSPeak&, double t0 );
         friend class MSPeakWidget;
+        class ItemDelegate;
     };
 
-    class TOFTableDelegate : public QItemDelegate {
-        Q_OBJECT
-    public:
-        explicit TOFTableDelegate(QObject *parent = 0);
-        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-		// void setEditorData(QWidget *editor, const QModelIndex &index) const override;
-        // void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
-        // bool editorEvent( QEvent * event, QAbstractItemModel *
-        //                   , const QStyleOptionViewItem&, const QModelIndex& ) override;
-    signals:
-    public slots:
-    };
 }
 

@@ -31,6 +31,7 @@
 #include <adportable/float.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/is_type.hpp>
+#include <adportable/timesquaredscanlaw.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
 #include <tuple>
@@ -43,11 +44,14 @@ MSPeakWidget::~MSPeakWidget()
 }
 
 MSPeakWidget::MSPeakWidget(QWidget *parent) : QWidget(parent)
-                                        , peakSummary_( new MSPeakSummary(this) )
-                                        , tofTable_( new TOFTable(this) )
-                                        , mspeaks_( new adcontrols::MSPeaks )
+                                            , peakSummary_( new MSPeakSummary(this) )
+                                            , tofTable_( new TOFTable(this) )
+                                            , mspeaks_( new adcontrols::MSPeaks )
 {
     if ( QSplitter * splitter = new QSplitter ) {
+
+        splitter->setHandleWidth( 1 );
+        splitter->setProperty("minisplitter", true );
 
         splitter->addWidget( peakSummary_.get() );
         splitter->addWidget( tofTable_.get() );
@@ -58,6 +62,8 @@ MSPeakWidget::MSPeakWidget(QWidget *parent) : QWidget(parent)
         layout->setSpacing( 2 );
         layout->addWidget( splitter );
     }
+
+    connect( peakSummary_.get(), static_cast<void(MSPeakSummary::*)()>(&MSPeakSummary::onClear), this, &MSPeakWidget::handleClear );
 }
 
 void *
@@ -127,9 +133,12 @@ MSPeakWidget::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
             });
         if ( it == mspeaks_->end() ) {
             (*mspeaks_) << peak;
-            tofTable_->addPeak( peak );
+            // tofTable_->addPeak( peak );
+        } else {
+            *it = peak; // replace
         }
     }
+    tofTable_->clear();
 
     std::vector< std::tuple< double, double, double > > slopes;
     // estimate t-delay by ions
@@ -137,28 +146,37 @@ MSPeakWidget::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
         std::map< int, adcontrols::MSPeaks > d;
         for ( auto& peak: *mspeaks_ )
             d[ peak.mode() ] << peak;
+
         for ( auto& t: d ) {
             const adcontrols::MSPeaks& pks = t.second;
             const double length = pks[0].flight_length();
+            double t0 = 0;
             if ( pks.size() >= 2 ) {
                 std::vector<double> x, y, coeffs;
                 for ( auto& pk: pks ) {
                     x.push_back( std::sqrt( pk.mass() ) );
                     y.push_back( scale_to_micro( pk.time() ) );
                 }
-
+                
                 adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ); // sqrt(m), time(us) for each length
-
-                double t1 = length / adportable::polfit::estimate_y( coeffs, 1.0 ); // time for unit sqrt(m)
+                
+                // double t1 = length / adportable::polfit::estimate_y( coeffs, 1.0 ); // time for unit sqrt(m)
+                //------- Vacc estimation ---------                
+                t0 = adportable::polfit::estimate_y( coeffs, 0.0 );
+                double t1 = adportable::polfit::estimate_y( coeffs, 1.0 ); // tof for m/z = 1.0
+                double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( 1.0, scale_to_base( t1, micro ), length, scale_to_base( t0, micro ) );
+                //------- Vacc estimation end ---------
 
 				peakSummary_->setPolynomials( t.first
                                               , coeffs
                                               , adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs )
-                                              , t1
+                                              , va
                                               , length );
                 slopes.push_back( std::make_tuple( pks[0].flight_length(), coeffs[0], coeffs[1] ) );
             }
+            tofTable_->setPeaks( t.second, scale_to_base( t0, micro ) );
         }
+
     } while(0);
     
     // estimate t-delay by flength
@@ -240,4 +258,12 @@ MSPeakWidget::currentChanged( const std::string& formula )
         peaks.polinomials( x, y, coeffs );
         emit onSetData( QString::fromStdString( formula ), peaks );
     }
+}
+
+void
+MSPeakWidget::handleClear()
+{
+    mspeaks_->clear();
+    tofTable_->clear();
+    peakSummary_->clear();
 }
