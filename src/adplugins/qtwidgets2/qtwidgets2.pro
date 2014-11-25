@@ -38,8 +38,7 @@ SOURCES += factory.cpp \
         standarditemhelper.cpp \
         tableview.cpp \
         toftable.cpp \
-        qtwidgets2.cpp \
-        mschromatogramwidget.cpp
+        qtwidgets2.cpp
 
 HEADERS += \
         factory.hpp \
@@ -50,8 +49,7 @@ HEADERS += \
         standarditemhelper.hpp \
         tableview.hpp \
         toftable.hpp \
-        qtwidgets2.hpp \
-        mschromatogramwidget.hpp
+        qtwidgets2.hpp
 
 FORMS += \
     mscalibrationform.ui

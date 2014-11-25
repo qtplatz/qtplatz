@@ -42,7 +42,7 @@ namespace adcontrols {
     class ProcessMethod;
 }
 
-namespace qtwidgets {
+namespace adwidgets {
 
 	class TimeEventsDelegate;
     class PeakMethodDelegate;

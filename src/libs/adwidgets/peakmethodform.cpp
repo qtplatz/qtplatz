@@ -24,21 +24,82 @@
 
 #include "peakmethodform.hpp"
 #include "ui_peakmethodform.h"
-#include "timeeventsdelegate.hpp"
-#include "peakmethoddelegate.hpp"
+#include "standarditemhelper.hpp"
+#if !defined Q_MOC_RUN
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adportable/configuration.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/is_type.hpp>
-#include <QStandardItemModel>
-#include "standarditemhelper.hpp"
 #include <boost/any.hpp>
 #include <boost/format.hpp>
+#endif
+
 #include <qtwrapper/qstring.hpp>
+#include <QStandardItemModel>
+#include <QItemDelegate>
+#include <QComboBox>
+#include <QTextDocument>
+#include <QPainter>
+#include <QKeyEvent>
+#include <QEvent>
 #include <qdebug.h>
 
-using namespace qtwidgets;
+namespace adwidgets {
+
+    enum { c_time, c_function, c_event_value };
+
+    class TimeEventsDelegate : public QItemDelegate {
+        Q_OBJECT
+    public:
+        explicit TimeEventsDelegate(QObject *parent = 0);
+
+        QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
+        
+    signals:
+            
+    public slots:
+        
+    };
+  
+    ////////////
+    enum { c_header, c_value, c_num_columns  };
+
+    enum {
+        r_slope
+        , r_min_width
+        , r_min_height
+        , r_drift
+        , r_min_area
+        , r_doubling_time
+        , r_void_time
+        , r_pharmacopoeia
+        , r_num_rows
+    };
+
+	class PeakMethodDelegate : public QItemDelegate {
+		Q_OBJECT
+	public:
+		explicit PeakMethodDelegate(QObject *parent = 0);
+
+        QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+        void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
+        QSize sizeHint( const QStyleOptionViewItem&, const QModelIndex& ) const override;
+        bool editorEvent( QEvent * event, QAbstractItemModel *
+                          , const QStyleOptionViewItem&, const QModelIndex& ) override;
+    
+    signals:
+    
+	public slots:
+
+	};
+}
+
+using namespace adwidgets;
 
 PeakMethodForm::PeakMethodForm(QWidget *parent) : QWidget(parent)
                                                 , ui(new Ui::PeakMethodForm)
@@ -247,3 +308,191 @@ PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
         }
     } while(0);
 }
+
+// #include "timeeventsdelegate.hpp"
+// #include <adcontrols/peakmethod.hpp>
+// #include <boost/format.hpp>
+// #include <QComboBox>
+
+namespace adwidgets { namespace internal {
+
+        static const char * functions [] = {
+            "Lock"
+            , "Forced base"
+            , "Shift base"
+            , "V-to-V"
+            , "Tailing"
+            , "Leading"
+            , "Shoulder"
+            , "Negative peak"
+            , "Negative lock"
+            , "Horizontal base"
+            , "Post horizontal base"
+            , "Forced peak"
+            , "Slope"
+            , "Minimum width"
+            , "Minimum height"
+            , "Minimum area"
+            , "Drift"
+            , "Elmination"
+            , "Manual"
+        };
+    }
+}
+
+#define countof(x) ( sizeof(x)/sizeof(x[0]) )
+
+TimeEventsDelegate::TimeEventsDelegate(QObject *parent) :  QItemDelegate(parent)
+{
+}
+
+QWidget *
+TimeEventsDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if ( index.column() == c_function ) {
+        QComboBox * pCombo = new QComboBox( parent );
+        QStringList list;
+        for ( size_t i = 0; i < countof( internal::functions ); ++i )
+            list << internal::functions[ i ];
+        pCombo->addItems( list );
+        return pCombo;
+    } else {
+        return QItemDelegate::createEditor( parent, option, index );
+  }
+}
+
+void
+TimeEventsDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if ( index.column() == c_function ) {
+        int idx = index.data().toInt() - 1;
+        if ( size_t( idx ) < countof( internal::functions ) )
+            drawDisplay( painter, option, option.rect, internal::functions[ idx ] );
+        else
+            drawDisplay( painter, option, option.rect, index.data().toString() );
+    } else if ( index.column() == c_time ) {
+        double value = index.data().toDouble();
+        drawDisplay( painter, option, option.rect, ( boost::format( "%.4lf" ) % value ).str().c_str() );
+    } else if ( index.column() == c_event_value ) {
+        double value = index.data().toDouble();
+        drawDisplay( painter, option, option.rect, ( boost::format( "%.3lf" ) % value ).str().c_str() );
+    } else {
+        QItemDelegate::paint( painter, option, index );
+    }
+}
+
+void
+TimeEventsDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+    if ( index.column() == c_function ) {
+        QComboBox * p = dynamic_cast< QComboBox * >( editor );
+        int value = p->currentIndex();
+        adcontrols::chromatography::ePeakEvent func = static_cast< adcontrols::chromatography::ePeakEvent >( value + 1 );
+        model->setData( index, func );
+        adcontrols::PeakMethod::TimedEvent event( 0, func );
+        if ( event.isBool() ) {
+			if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).type() != QVariant::Bool )
+                model->setData( model->index( index.row(), c_event_value ), event.boolValue() );
+        } else if ( event.isDouble() ) {
+            if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).type() != QVariant::Double )
+                model->setData( model->index( index.row(), c_event_value ), event.doubleValue() );
+        }
+    } else
+        QItemDelegate::setModelData( editor, model, index );
+
+    if ( index.row() == model->rowCount() - 1 )
+        model->insertRow( index.row() + 1 ); // add last blank line
+}
+
+////////////////////////////////////
+
+PeakMethodDelegate::PeakMethodDelegate(QObject *parent) :  QItemDelegate(parent)
+{
+}
+
+QWidget *
+PeakMethodDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if ( index.row() == r_pharmacopoeia ) {
+        QComboBox * pCombo = new QComboBox( parent );
+        QStringList list;
+        list << "Not specified" << "EP" << "JP" << "USP";
+        pCombo->addItems( list );
+        return pCombo;
+    } else {
+        return QItemDelegate::createEditor( parent, option, index );
+  }
+}
+
+void
+PeakMethodDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if ( index.column() == c_value ) {
+        if ( index.row() == r_pharmacopoeia ) {
+            int value = index.data().toInt();
+            QString text;
+            switch ( value ) {
+            case adcontrols::chromatography::ePHARMACOPOEIA_NotSpcified: text = "Not specified"; break;
+            case adcontrols::chromatography::ePHARMACOPOEIA_EP:          text = "EP"; break;
+            case adcontrols::chromatography::ePHARMACOPOEIA_JP:          text = "JP"; break;
+            case adcontrols::chromatography::ePHARMACOPOEIA_USP:         text = "USP"; break;
+            }
+            drawDisplay( painter, option, option.rect, text );
+        } else {
+            drawDisplay( painter, option, option.rect, ( boost::format( "%.3lf" ) % index.data().toDouble() ).str().c_str() );
+        }
+    } else if ( index.column() == c_header ) {
+        QStyleOptionViewItem op = option;
+        painter->save();
+
+        QTextDocument doc;
+        doc.setHtml( index.data().toString() );
+        op.widget->style()->drawControl( QStyle::CE_ItemViewItem, &op, painter );
+        painter->translate( op.rect.left(), op.rect.top() );
+        QRect clip( 0, 0, op.rect.width(), op.rect.height() );
+        doc.drawContents( painter, clip );
+
+        painter->restore();
+    } else {
+        QItemDelegate::paint( painter, option, index );
+    }
+}
+
+QSize
+PeakMethodDelegate::sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const
+{
+	if ( index.column() == c_header ) {
+		QTextDocument doc;
+		doc.setHtml( index.data().toString() );
+		return QSize( doc.size().width(), doc.size().height() );
+	} else 
+		return QItemDelegate::sizeHint( option, index );
+}
+
+void
+PeakMethodDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+    QItemDelegate::setEditorData( editor, index );
+}
+
+void
+PeakMethodDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+    if ( index.row() == r_pharmacopoeia ) {
+        QComboBox * p = dynamic_cast< QComboBox * >( editor );
+        int value = p->currentIndex();
+        model->setData( index, value );
+    } else
+        QItemDelegate::setModelData( editor, model, index );
+}
+
+bool
+PeakMethodDelegate::editorEvent( QEvent * 
+                                 , QAbstractItemModel * 
+                                 , const QStyleOptionViewItem&
+                                 , const QModelIndex& )
+{
+	return false;
+}
+
+#include "peakmethodform.moc"

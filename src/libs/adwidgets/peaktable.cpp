@@ -237,3 +237,4 @@ PeakTable::currentChanged( const QModelIndex& curr, const QModelIndex& prev )
     }
 }
 
+#include "mschromatogramtable.moc"

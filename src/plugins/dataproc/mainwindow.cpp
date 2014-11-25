@@ -67,6 +67,8 @@
 #include <adwidgets/targetingwidget.hpp>
 #include <adwidgets/mspeaktable.hpp>
 #include <adwidgets/mscalibratewidget.hpp>
+#include <adwidgets/mschromatogramform.hpp>
+#include <adwidgets/peakmethodform.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/portfolio.hpp>
@@ -543,10 +545,11 @@ MainWindow::createDockWidgets()
         { tr("Centroid"),         "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { tr("MS Peaks"),       "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
         , { tr("MS Calibration"), "MSCalibrateWidget",   [] () { return new adwidgets::MSCalibrateWidget; } }
-        , { tr("MS Chromatogr."), "MSChromatogrMethod",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSChromatogramWidget", 0, 0 ); } }
+        , { tr("MS Chromatogr."), "MSChromatogrMethod",  [](){ return new adwidgets::MSChromatogramForm; } }
         , { tr("Targeting"),      "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
         , { tr("Peptide"),        "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
-        , { tr("Peak Find"),      "PeakFindMethod",  [](){ return adplugin::widget_factory::create("qtwidgets::PeakMethodForm", 0, 0 ); } }
+        , { tr("Peak Find"),      "PeakFindMethod",  [](){ return return adwidgets::PeakMethodForm; } }
+        // adplugin::widget_factory::create("qtwidgets::PeakMethodForm", 0, 0 ); } }
         , { tr("Data property"),  "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
         , { tr("TOF Peaks"),      "TOFPeaks",  [](){ return adplugin::widget_factory::create("qtwidgets2::MSPeakView", 0, 0 ); } }
     };

@@ -52,7 +52,9 @@ SOURCES += adwidgets.cpp \
         dualspinslider.cpp \
         filedialog.cpp \
         pressuregauge.cpp \
-        peaktable.cpp
+        peaktable.cpp \
+        mschromatogramform.cpp \
+        peakmethodform.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -82,7 +84,9 @@ HEADERS += adwidgets.hpp\
         dualspinslider.hpp \
         filedialog.hpp \
         pressuregauge.hpp \
-        peaktable.hpp
+        peaktable.hpp \
+        mschromatogramform.hpp \
+        peakmethodform.hpp
 
 unix {
     target.path = /usr/lib
@@ -95,4 +99,6 @@ FORMS += \
     mscalibrateform.ui \
     msreferencedialog.ui \
     mstoleranceform.ui \
-    mslockform.ui
+    mslockform.ui \
+    mschromatogramform.ui \
+    peakmethodform.ui
