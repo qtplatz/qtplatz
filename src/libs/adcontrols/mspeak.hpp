@@ -54,6 +54,7 @@ namespace adcontrols {
         const std::wstring& description() const;
         const std::string& spectrumId() const;
         int32_t spectrumIndex() const;
+        double exact_mass() const;
 
         void time( double );
         void mass( double );
@@ -80,6 +81,7 @@ namespace adcontrols {
         double time_width_;
         double mass_width_;
         double exit_delay_;
+        double exact_mass_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -98,12 +100,13 @@ namespace adcontrols {
             if ( version >= 1 ) {
                 ar & fcn_;
                 ar & exit_delay_;
+                ar & exact_mass_;
             }
         }
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSPeak, 1 )
+BOOST_CLASS_VERSION( adcontrols::MSPeak, 1)
 
 #endif // MSPEAK_HPP

@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mspeak.hpp"
+#include "chemicalformula.hpp"
 using namespace adcontrols;
 
 MSPeak::~MSPeak()
@@ -38,6 +39,7 @@ MSPeak::MSPeak() : time_( 0 )
                  , time_width_( 0 )
                  , mass_width_( 0 )
                  , exit_delay_( 0 )
+                 , exact_mass_( 0 )
 {
 }
 
@@ -53,6 +55,7 @@ MSPeak::MSPeak( const MSPeak& t ) : time_( t.time_ )
                                   , time_width_( t.time_width_ )
                                   , mass_width_( t.mass_width_ )
                                   , exit_delay_( t.exit_delay_ ) 
+                                  , exact_mass_( t.exact_mass_ )
 {
 }
 
@@ -208,5 +211,13 @@ void
 MSPeak::spectrumIndex( int v )
 {
     spectrumIndex_ = v;
+}
+
+double
+MSPeak::exact_mass() const
+{
+    if ( !formula_.empty() && exact_mass_ < 1.0 )
+        const_cast< MSPeak *>(this)->exact_mass_ = ChemicalFormula().getMonoIsotopicMass( formula_ );
+    return exact_mass_;
 }
 
