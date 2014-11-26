@@ -37,7 +37,7 @@ world: qtplatz infitof qtplatz.msi
 
 help:
 	@echo "*	make world	will do full rebuild qtplatz, and generate .MSI setup"
-	@echo "*	make harvent	make translations; make qt; and make plugins' for update .wxi files from scratch"
+	@echo "*	make harvest	make translations; make qt; and make plugins' for update .wxi files from scratch"
 	@echo "*	make all	make .msi from existing binary"
 	@echo "*	make clean	cleans up current dir"
 	@echo "*	make veryclean	CAUTION this cleans all fules according to git repository. == This makes a state right after clean git clone."
