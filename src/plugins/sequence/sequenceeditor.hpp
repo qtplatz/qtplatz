@@ -43,30 +43,17 @@ namespace sequence {
     public:
         ~SequenceEditor();
         explicit SequenceEditor(QObject *parent = 0);
+        bool eventFilter( QObject * object, QEvent * event );
         
         // implement Core::IEditor
-        bool createNew( const QString &contents = QString() ) override;
-        virtual bool open( const QString &fileName = QString() ) override;
-        Core::IDocument *file() override;
-        virtual const char *kind() const;
-        virtual QString displayName() const;
-        virtual void setDisplayName(const QString &title);
-        virtual bool duplicateSupported() const;
-        virtual IEditor *duplicate(QWidget *parent);
-        virtual QByteArray saveState() const;
-        virtual bool restoreState(const QByteArray &state);
-        virtual int currentLine() const;
-        virtual int currentColumn() const;
-        virtual bool isTemporary() const;
-        virtual QWidget *toolBar();
-        virtual const char * uniqueModeName() const;  // enforce editor in specific mode
-
+        bool open( QString*, const QString&, const QString& ) override;
+        Core::IDocument * document() override;
+        QByteArray saveState() const override;
+        bool restoreState( const QByteArray &state ) override;
+        QWidget *toolBar() override;
+        Core::Context context() const override;
         // <-- end Core::IEditor
         
-        // implement IContext
-        Core::Context context() const override;
-        virtual QWidget * widget();
-        // <--
 		void setSequence( const adsequence::sequence& );
         void getSequence( adsequence::sequence& ) const;
 

@@ -27,14 +27,17 @@
 #include "delegatehelper.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/annotation.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
-#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/mspeaks.hpp>
+#include <adcontrols/mspeak.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/targeting.hpp>
+
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
@@ -347,7 +350,8 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
         int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
         
         auto it
-            = std::find_if( candidates.begin(), candidates.end(), [=] ( const adcontrols::Targeting::Candidate& c ){ return c.idx == idx && c.fcn == fcn;  } );
+            = std::find_if( candidates.begin(), candidates.end(), [=] ( const adcontrols::Targeting::Candidate& c ){ 
+                    return c.idx == uint32_t(idx) && c.fcn == uint32_t(fcn);  } );
         if ( it != candidates.end() ) {
             model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->formula ) );
             model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass_error );
@@ -798,5 +802,65 @@ MSPeakTable::exactMass( std::string formula )
         exactMass += a * sign;
     }
     return exactMass;
+}
+
+bool
+MSPeakTable::getMSPeak( adcontrols::MSPeak& peak, int row ) const
+{
+	QStandardItemModel& model = *model_;
+    
+    peak.time( model.index( row, c_mspeaktable_time ).data( Qt::EditRole ).toDouble() );
+    peak.mass( model.index( row, c_mspeaktable_mass ).data( Qt::EditRole ).toDouble() );
+    peak.mode( model.index( row, c_mspeaktable_mode ).data( Qt::EditRole ).toInt() );
+
+    peak.fcn( model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt() );
+    //peak.width( double, bool isTime = false );
+    //peak.exit_delay( double );
+    //peak.flight_length( double );
+    peak.formula( model.index( row, c_mspeaktable_formula ).data( Qt::EditRole ).toString().toStdString() );
+    peak.description( model.index( row, c_mspeaktable_formula ).data( Qt::EditRole ).toString().toStdWString() );
+    peak.spectrumIndex( model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() );
+
+    return true;
+}
+
+bool
+MSPeakTable::getMSPeaks( adcontrols::MSPeaks& peaks, GETPEAKOPTS opt ) const
+{
+    if ( opt == SelectedPeaks ) {
+
+        QModelIndexList list = selectionModel()->selectedIndexes();
+        if ( list.size() < 1 )
+            return false;
+
+        std::set< int > rows;
+        for ( auto index: list )
+            rows.insert( index.row() ); // make unique row list
+
+        for ( auto& row: rows ) {
+            adcontrols::MSPeak pk;
+            if ( getMSPeak( pk, row ) )
+                peaks << pk;
+        }
+
+    } else if ( opt == AssignedPeaks ) {
+        
+        for (int row = 0; row < model_->rowCount(); ++row ) {
+            adcontrols::MSPeak pk;
+            if ( getMSPeak( pk, row ) ) {
+                if ( !pk.formula().empty() )
+                    peaks << pk;
+            }
+        }
+
+    } else {
+
+        for (int row = 0; row < model_->rowCount(); ++row ) {
+            adcontrols::MSPeak pk;
+            if ( getMSPeak( pk, row ) )
+                peaks << pk;
+        }
+    }
+    return true;
 }
 

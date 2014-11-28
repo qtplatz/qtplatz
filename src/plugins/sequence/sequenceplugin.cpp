@@ -37,7 +37,7 @@
 
 #include <QtCore/qplugin.h>
 #include <coreplugin/icore.h>
-#include <coreplugin/uniqueidmanager.h>
+//#include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/editormanager/editormanager.h>
@@ -99,25 +99,19 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     std::wstring pluginpath = qtwrapper::application::path( L".." );  // remove 'bin' from "~/qtplatz/bin"
     
 
-    if ( Core::ICore * core = Core::ICore::instance() ) {
-
-        Core::MimeDatabase* mdb = core->mimeDatabase();
-        if ( ! ( mdb && mdb->addMimeTypes(":/sequence/sequence-mimetype.xml", error_message) ) )
-            return false;
-        
-        QList<int> context;
-        Core::UniqueIDManager * uidm = core->uniqueIDManager();
-        if ( uidm )
-            context.append( uidm->uniqueIdentifier( Constants::C_SEQUENCE ) );
-        
-        if ( Core::ActionManager * am = core->actionManager() ) {
-            // Override system "New..." menu
-            Core::Command* cmd = am->registerAction( new QAction(this), Core::Constants::NEW, context );
-            cmd->action()->setText("New Sample Sequence"); // also change text on menu
-            connect( cmd->action(), SIGNAL( triggered(bool) ), this, SLOT( handleFileNew( bool ) ) );
-        }
-    } else {
+    if ( ! Core::MimeDatabase::addMimeTypes( ":/sequence/sequence-mimetype.xml", error_message ) )
         return false;
+    
+    // QList<int> context;
+    // Core::UniqueIDManager * uidm = core->uniqueIDManager();
+    // if ( uidm )
+    //     context.append( uidm->uniqueIdentifier( Constants::C_SEQUENCE ) );
+    
+    if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
+        // Override system "New..." menu
+        Core::Command* cmd = am->registerAction( new QAction(this), Core::Constants::NEW, Core::Context( Core::Constants::C_GLOBAL ) );
+        cmd->action()->setText("New Sample Sequence"); // also change text on menu
+        connect( cmd->action(), SIGNAL( triggered(bool) ), this, SLOT( handleFileNew( bool ) ) );
     }
 
     // expose editor factory for sequence (table)
@@ -150,8 +144,7 @@ SequencePlugin::aboutToShutdown()
 void
 SequencePlugin::handleFileNew( bool )
 {
-	Core::EditorManager * em = Core::ICore::instance()->editorManager();
-    if ( em ) {
+	if ( Core::EditorManager * em = Core::EditorManager::instance() ) {
         QString pattern;
 		Core::IEditor * editor = em->openEditorWithContents( Constants::C_SEQUENCE, &pattern, "" );
 		em->activateEditor( editor );

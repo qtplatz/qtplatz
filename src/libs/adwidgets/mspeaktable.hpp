@@ -36,7 +36,8 @@
 
 class QStandardItemModel;
 
-namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; class Targeting;  }
+namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; class Targeting;
+    class MSPeaks; class MSPeak; }
 
 namespace adwidgets {
 
@@ -59,11 +60,16 @@ namespace adwidgets {
         bool setContents( boost::any& ) override;
         void * query_interface_workaround( const char * ) override;
 
+        // interface for InfiTOF
+        enum GETPEAKOPTS { AllPeaks, AssignedPeaks, SelectedPeaks };
+        bool getMSPeaks( adcontrols::MSPeaks&, GETPEAKOPTS opt = AllPeaks ) const;
+        bool getMSPeak( adcontrols::MSPeak&, int row ) const;
+
     protected:
         // reimplement QTableView
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;
         void keyPressEvent( QKeyEvent * event ) override;
-        
+
     signals:
         void valueChanged();
         void currentChanged( int idx, int fcn );

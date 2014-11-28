@@ -39,17 +39,21 @@ Mode::Mode(QObject *parent) :  Core::BaseMode(parent)
     setIcon(QIcon(":/sequence/images/DefineControls.png"));
     setPriority( 40 );
 
-    QList<int> contexts = QList<int>() 
-        << Core::UniqueIDManager::instance()->uniqueIdentifier( sequence::Constants::C_SEQUENCE_MODE )
-        << Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDIT_MODE )
-        << Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER )
-        //<< Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE )
-        ;
+    setId( Constants::C_SEQUENCE );
+    setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
+    setContext( Core::Context( Constants::C_SEQUENCE, Core::Constants::C_EDIT_MODE ) );
+
+    // QList<int> contexts = QList<int>() 
+    //     << Core::UniqueIDManager::instance()->uniqueIdentifier( sequence::Constants::C_SEQUENCE_MODE )
+    //     << Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDIT_MODE )
+    //     << Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER )
+    //     //<< Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE )
+    //     ;
         
     setContext( contexts );
 
-    Core::ModeManager *modeManager = Core::ModeManager::instance();
-    connect(modeManager, SIGNAL(currentModeChanged(Core::IMode*)), this, SLOT(grabEditorManager(Core::IMode*)));
+    connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance())
+             , &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
 }
 
 Mode::~Mode()
@@ -62,6 +66,7 @@ Mode::grabEditorManager( Core::IMode * mode )
 {
     if ( mode != this )
         return;
+
     Core::EditorManager * em = Core::EditorManager::instance();
     if ( em && em->currentEditor() )
         em->currentEditor()->widget()->setFocus();

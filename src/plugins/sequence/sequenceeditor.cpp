@@ -37,12 +37,14 @@
 #include <adcontrols/targetingmethod.hpp>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
-#include <coreplugin/uniqueidmanager.h>
-#include <coreplugin/filemanager.h>
+//#include <coreplugin/uniqueidmanager.h>
+//#include <coreplugin/filemanager.h>
 #include <coreplugin/icore.h>
+#include <coreplugin/modemanager.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <QEvent>
 
 using namespace sequence;
 
@@ -59,9 +61,8 @@ SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
                                                 , currRow_( 0 )
                                                 , currCol_( 0 )
 {
-    Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
-    if ( uidm )
-        context_ << uidm->uniqueIdentifier( Constants::C_SEQUENCE_EDITOR );
+    widget_->installEventFilter( this );
+    setWidget( widget_ );
 
     widget_->OnInitialUpdate( file_->adsequence().schema() );
     bool res;	
@@ -71,6 +72,16 @@ SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
 	assert( res );
 	res = connect( widget_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( onCurrentChanged( size_t, size_t ) ) );
 	assert( res );
+}
+
+bool
+SequenceEditor::eventFilter( QObject * object, QEvent * event )
+{
+    if ( object == widget_ ) {
+        if ( event->type() == QEvent::ShowToParent )
+            Core::ModeManager::activateMode( Constants::C_SEQUENCE );
+    }
+    return false;
 }
 
 // Core::IEditor

@@ -63,7 +63,7 @@ SequenceEditorFactory::kind() const
   return kind_;
 }
 
-Core::IFile * 
+Core::IDocument * 
 SequenceEditorFactory::open(const QString& filename )
 {
     Core::EditorManager * em = Core::EditorManager::instance();

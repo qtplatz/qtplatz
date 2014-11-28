@@ -26,7 +26,7 @@
 #ifndef SEQUENCEFILE_H
 #define SEQUENCEFILE_H
 
-#include <coreplugin/ifile.h>
+#include <coreplugin/idocument.h>
 #include <map>
 #include <string>
 #include <memory>
@@ -38,7 +38,7 @@ namespace sequence {
 
     class SequenceEditor;
 
-    class SequenceFile : public Core::IFile {
+    class SequenceFile : public Core::IDocument {
       Q_OBJECT
     public:
       ~SequenceFile();
@@ -48,32 +48,40 @@ namespace sequence {
       void setModified( bool val = true );
 
       // implement Core::IFile
-      virtual bool save(const QString &fileName);
-      virtual QString fileName() const;
-      
-      virtual QString defaultPath() const;
-      virtual QString suggestedFileName() const;
-      virtual QString mimeType() const;
-      
-      virtual bool isModified() const;
-      virtual bool isReadOnly() const;
-      virtual bool isSaveAsAllowed() const;
-      
-      virtual void modified(ReloadBehavior *behavior);
-      virtual void checkPermissions() {}
+        // Core::IDocument
+        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
+        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
 
-      // 
-      adsequence::sequence& adsequence();
-      const adsequence::sequence& adsequence() const;
+        QString defaultPath() const override;
+        QString suggestedFileName() const override;
+        bool isModified() const override;
+        bool isSaveAsAllowed() const override;
+        bool isFileReadOnly() const override;
+        // virtual bool save(const QString &fileName);
+        // virtual QString fileName() const;
+      
+        // virtual QString defaultPath() const;
+        // virtual QString suggestedFileName() const;
+        // virtual QString mimeType() const;
+      
+        // virtual bool isModified() const;
+        // virtual bool isReadOnly() const;
+        // virtual bool isSaveAsAllowed() const;
+      
+        // virtual void modified(ReloadBehavior *behavior);
+        // virtual void checkPermissions() {}
+        // 
+        adsequence::sequence& adsequence();
+        const adsequence::sequence& adsequence() const;
 
-	  void fileName( const QString& );
+        void fileName( const QString& );
 
-      void removeProcessMethod( const std::wstring& );
-	  void removeControlMethod( const std::wstring& );
-	  const adcontrols::ProcessMethod * getProcessMethod( const std::wstring& ) const;
-	  const adcontrols::ControlMethod * getControlMethod( const std::wstring& ) const;
-	  void setProcessMethod( const std::wstring&, const adcontrols::ProcessMethod& );
-	  void setControlMethod( const std::wstring&, const adcontrols::ControlMethod& );
+        void removeProcessMethod( const std::wstring& );
+        void removeControlMethod( const std::wstring& );
+        const adcontrols::ProcessMethod * getProcessMethod( const std::wstring& ) const;
+        const adcontrols::ControlMethod * getControlMethod( const std::wstring& ) const;
+        void setProcessMethod( const std::wstring&, const adcontrols::ProcessMethod& );
+        void setControlMethod( const std::wstring&, const adcontrols::ControlMethod& );
 
     signals:
 

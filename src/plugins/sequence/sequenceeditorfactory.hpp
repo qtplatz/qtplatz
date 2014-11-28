@@ -38,14 +38,15 @@ namespace sequence {
     ~SequenceEditorFactory();
     explicit SequenceEditorFactory(QObject *parent = 0);
 
-      // implement IEditorFactory
-      virtual Core::IEditor *createEditor(QWidget *parent);
-      // <---
-      // implement IFileFactory
-      virtual QStringList mimeTypes() const;
-      virtual QString kind() const;
-      virtual Core::IFile * open(const QString& filename );
-      // <---
+        // implement IEditorFactory
+        Core::IEditor *createEditor() override;
+
+        // <---
+        // implement IFileFactory
+        // virtual QStringList mimeTypes() const;
+        // virtual QString kind() const;
+        // virtual Core::IDocument * open(const QString& filename );
+        // <---
 
     signals:
 
