@@ -579,19 +579,13 @@ MainWindow::createDockWidgets()
                 }
             }
 
-            if ( auto p = dynamic_cast< adwidgets::MSPeakTable *>( pWidget ) ) {
-                using adwidgets::MSPeakTable;
-                if ( auto wnd = findChild< MSProcessingWnd *>() ) {
-                    connect( p, &MSPeakTable::triggerLockMass, wnd, &MSProcessingWnd::handleLockMass );
-                    //connect( this, &MainWindow::onDataMayCanged, wnd, &MSProcessingWnd::handleDataMayChanged );
-                }
-            }
-            
             // all MSPeakTable variants
             if ( auto wnd = findChild< MSProcessingWnd *>() ) {
                 connect( pWidget, SIGNAL( currentChanged(int, int) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
                 connect( pWidget, SIGNAL( formulaChanged(int, int) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
                 connect( pWidget, SIGNAL( foliumDataChanged( const QString& ) ), wnd, SLOT( handleFoliumDataChanged( const QString& ) ) );
+                connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int>>& ) ), wnd, SLOT( handleLockMass( const QVector<QPair<int, int>>& ) ) );
+
             }
             connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
             connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) ), pWidget, SLOT( handleZoomedOnChromatogram( const QRectF& ) ) );
@@ -1080,23 +1074,6 @@ MainWindow::handleFeatureActivated( int value )
 {
     currentFeature_ = static_cast< ProcessType >( value );
 }
-
-
-// void
-// MainWindow::processMethodLoaded( const QString& name, const adcontrols::ProcessMethod& m )
-// {
-// 	QList< QDockWidget * > docs = this->dockWidgets();
-
-// 	std::for_each( docs.begin(), docs.end(), [&]( QDockWidget * dock ){
-// 		QWidget * obj = dock->widget();
-// 		adplugin::LifeCycleAccessor accessor( obj );
-// 		adplugin::LifeCycle * pLifeCycle = accessor.get();
-// 		if ( pLifeCycle ) {
-//             boost::any any( m );
-// 			pLifeCycle->setContents( any );
-//         }
-//     });
-// }
 
 void
 MainWindow::printCurrentView( const QString& pdfname ) const
