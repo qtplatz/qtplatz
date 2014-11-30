@@ -347,12 +347,6 @@ MainWindow::createStyledBarMiddle()
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
-            Core::Context context( (Core::Id( Core::Constants::C_GLOBAL )) );
-            
-            actionApply_ = new QAction( QIcon( Constants::ICON_METHOD_APPLY ), tr("Apply" ), this );
-            bool res = connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
-            assert( res );
-            am->registerAction( actionApply_, Constants::METHOD_APPLY, context );
             toolBarLayout->addWidget( toolButton( am->command( Constants::METHOD_APPLY )->action() ) );
 
             QComboBox * features = new QComboBox;

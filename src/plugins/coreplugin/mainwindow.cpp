@@ -509,10 +509,10 @@ void MainWindow::registerDefaultActions()
     connect(m_openAction, SIGNAL(triggered()), this, SLOT(openFile()));
 
     // Open With Action
-    m_openWithAction = new QAction(tr("Open File &With..."), this);
-    cmd = ActionManager::registerAction(m_openWithAction, Constants::OPEN_WITH, globalContext);
-    mfile->addAction(cmd, Constants::G_FILE_OPEN);
-    connect(m_openWithAction, SIGNAL(triggered()), this, SLOT(openFileWith()));
+    m_openWithAction = 0; // new QAction( tr( "Open File &With..." ), this );
+    //cmd = ActionManager::registerAction( m_openWithAction, Constants::OPEN_WITH, globalContext );
+    //mfile->addAction( cmd, Constants::G_FILE_OPEN );
+    //connect( m_openWithAction, SIGNAL( triggered() ), this, SLOT( openFileWith() ) );
 
     // File->Recent Files Menu
     ActionContainer *ac = ActionManager::createMenu(Constants::M_FILE_RECENTFILES);

@@ -148,6 +148,11 @@ ActionManager::initialize_actions( const Core::Context& context )
             connect( p, &QAction::triggered, this, &ActionManager::actMethodSave );
         }
 
+        if ( auto p = actions_[ idActMethodApply ] = create( Constants::ICON_METHOD_APPLY, tr("Apply process method"), this ) ) {
+            am->registerAction( p, Constants::METHOD_APPLY, context );
+            connect( p, &QAction::triggered, this, &ActionManager::actMethodApply );
+        }
+
         if ( auto p = actions_[ idActPrintCurrentView ] = create( Constants::ICON_PDF, tr("Print current view..."), this ) ) {
             am->registerAction( p, Constants::PRINT_CURRENT_VIEW, context );
             connect( p, &QAction::triggered, this, &ActionManager::actPrintCurrentView );
@@ -258,6 +263,12 @@ ActionManager::actMethodOpen()
     if ( dataproc_document::load( name, pm ) ) {
         dataproc_document::instance()->setProcessMethod( pm, name );
     }
+}
+
+void
+ActionManager::actMethodApply()
+{
+    MainWindow::instance()->actionApply();
 }
 
 

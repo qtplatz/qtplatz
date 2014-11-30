@@ -55,6 +55,7 @@ namespace dataproc {
             , idActImportFile
             , idActMethodOpen
             , idActMethodSave
+            , idActMethodApply
             , idActPrintCurrentView
             , idActCalibFileApply
             , idActProcessCheckedSpectra
@@ -95,6 +96,7 @@ namespace dataproc {
 
         void actPrintCurrentView();
         void actCalibFileApply();
+        void actMethodApply();
     private:
         void handleCheckAllSpectra();   // handled by NavigationWidget
         void handleUncheckAllSpectra(); // handled by NavigationWidget
