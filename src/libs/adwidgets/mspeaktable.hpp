@@ -47,9 +47,10 @@ namespace adwidgets {
                                              , public adplugin::LifeCycle {
         Q_OBJECT
     public:
+        virtual ~MSPeakTable();
         explicit MSPeakTable(QWidget *parent = 0);
         void onInitialUpdate();
-        QStandardItemModel& model() { return *model_; }
+        QStandardItemModel& model();
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
@@ -64,6 +65,8 @@ namespace adwidgets {
         enum GETPEAKOPTS { AllPeaks, AssignedPeaks, SelectedPeaks };
         bool getMSPeaks( adcontrols::MSPeaks&, GETPEAKOPTS opt = AllPeaks ) const;
         bool getMSPeak( adcontrols::MSPeak&, int row ) const;
+
+        virtual int findColumn( const QString& name ) const;
 
     protected:
         // reimplement QTableView
@@ -85,14 +88,9 @@ namespace adwidgets {
         void showContextMenu( const QPoint& );
 
     private:
-        std::shared_ptr< QStandardItemModel > model_;
-        std::shared_ptr< QItemDelegate > delegate_;
+        class impl;
+        impl * impl_;
 
-        boost::variant< std::weak_ptr< adcontrols::MSPeakInfo >
-                        , std::weak_ptr< adcontrols::MassSpectrum > > data_source_;
-        
-        bool inProgress_;
-        static std::shared_ptr< adcontrols::ChemicalFormula > formulaParser_;
         void setPeakInfo( const adcontrols::MSPeakInfo& );
 		void setPeakInfo( const adcontrols::MassSpectrum& );
         void setPeakInfo( const adcontrols::Targeting& );

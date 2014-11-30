@@ -1,6 +1,8 @@
 #ifndef DATAPROCCONSTANTS_HPP
 #define DATAPROCCONSTANTS_HPP
 
+#include <adcontrols/constants.hpp>
+
 namespace dataproc {
 namespace Constants {
 
@@ -41,10 +43,10 @@ namespace Constants {
     const char * const ICON_CALIBFILE       = ":/dataproc/image/calibration32.png";
     // freeware license, Designed by Andy Gongea
     // Folium (attachment) name
-    const wchar_t * const F_DFT_FILTERD        = L"DFT Low Pass Filtered Spectrum";
-    const wchar_t * const F_CENTROID_SPECTRUM  = L"Centroid Spectrum";
-    const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
-    const wchar_t * const F_TARGETING          = L"Targeting";
+    const wchar_t * const F_DFT_FILTERD        = adcontrols::constants::F_DFT_FILTERD;
+    const wchar_t * const F_CENTROID_SPECTRUM  = adcontrols::constants::F_CENTROID_SPECTRUM;
+    const wchar_t * const F_MSPEAK_INFO        = adcontrols::constants::F_MSPEAK_INFO;
+    const wchar_t * const F_TARGETING          = adcontrols::constants::F_TARGETING;
 
     // settings
     const char * const GRP_DATA_FILES       = "DataFiles";

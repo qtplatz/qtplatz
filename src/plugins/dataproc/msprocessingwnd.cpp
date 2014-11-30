@@ -228,7 +228,8 @@ MSProcessingWnd::init()
         if ( ( pImpl_->profileSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
             using adplot::SpectrumWidget;
-            connect( pImpl_->profileSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected), this, &MSProcessingWnd::selectedOnProfile );
+            connect( pImpl_->profileSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected)
+                     , this, &MSProcessingWnd::selectedOnProfile );
             pImpl_->profile_marker_ = std::make_shared< adplot::PeakMarker >();
             pImpl_->profile_marker_->attach( pImpl_->profileSpectrum_ );
             pImpl_->profile_marker_->visible( true );
@@ -238,7 +239,8 @@ MSProcessingWnd::init()
         if ( ( pImpl_->processedSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
             pImpl_->processedSpectrum_->setMinimumHeight( 80 );
             using adplot::SpectrumWidget;
-            connect( pImpl_->processedSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected), this, &MSProcessingWnd::selectedOnProcessed );
+            connect( pImpl_->processedSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected)
+                     , this, &MSProcessingWnd::selectedOnProcessed );
             adplot::Zoomer * zoomer = pImpl_->processedSpectrum_->zoomer();
             connect( zoomer, &adplot::Zoomer::zoomed, this, &MSProcessingWnd::handleZoomedOnSpectrum );
 
@@ -600,6 +602,15 @@ MSProcessingWnd::handleDataMayChanged()
     pImpl_->processedSpectrum_->update();
 }
 
+void
+MSProcessingWnd::handleFoliumDataChanged( const QString& id )
+{
+    if ( id == QString::fromStdWString( idSpectrumFolium_ ) ) {
+        // if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        pImpl_->profileSpectrum_->replot();
+        pImpl_->processedSpectrum_->replot();
+    }
+}
 
 void
 MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked )

@@ -410,8 +410,11 @@ MainWindow::createContents( Core::IMode * mode )
 
         connect( stack_, &QStackedWidget::currentChanged, this, &MainWindow::currentPageChanged );
 
-        wnd.push_back( new MSProcessingWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Process") ), wnd.back() ) );
+        if ( auto pWnd = new MSProcessingWnd ) {
+            wnd.push_back( pWnd );
+            stack_->addWidget( boost::apply_visitor( wnd_set_title( tr( "MS Process" ) ), wnd.back() ) );
+            connect( this, &MainWindow::onDataMayCanged, pWnd, &MSProcessingWnd::handleDataMayChanged );
+        }
 
         wnd.push_back( new ElementalCompWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Elemental Comp.") ), wnd.back() ) );
@@ -543,14 +546,14 @@ MainWindow::createDockWidgets()
     };
 
     std::vector< widget > widgets = {
-        { tr("Centroid"),         "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
-        , { tr("MS Peaks"),       "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
-        , { tr("MS Calibration"), "MSCalibrateWidget",   [] () { return new adwidgets::MSCalibrateWidget; } }
-        , { tr("MS Chromatogr."), "MSChromatogrMethod",  [](){ return new adwidgets::MSChromatogramForm; } }
-        , { tr("Targeting"),      "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
-        , { tr("Peptide"),        "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
-        , { tr("Peak Find"),      "PeakFindMethod",  [](){ return new adwidgets::PeakMethodForm; } }
-        , { tr("Data property"),  "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
+          { tr( "Centroid" ), "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
+        , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
+        , { tr( "MS Calibration" ), "MSCalibrateWidget", [] () { return new adwidgets::MSCalibrateWidget; } }
+        , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramForm; } }
+        , { tr( "Targeting" ), "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
+        , { tr( "Peptide" ), "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
+        , { tr( "Peak Find" ), "PeakFindMethod", [] (){ return new adwidgets::PeakMethodForm; } }
+        , { tr( "Data property" ), "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
         , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }
     };
 
@@ -588,7 +591,7 @@ MainWindow::createDockWidgets()
             if ( auto wnd = findChild< MSProcessingWnd *>() ) {
                 connect( pWidget, SIGNAL( currentChanged(int, int) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
                 connect( pWidget, SIGNAL( formulaChanged(int, int) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
-                connect( this, SIGNAL( onDataMayCanged() ), wnd, SLOT( handleDataMayChanged() ) );
+                connect( pWidget, SIGNAL( foliumDataChanged( const QString& ) ), wnd, SLOT( handleFoliumDataChanged( const QString& ) ) );
             }
             connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
             connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) ), pWidget, SLOT( handleZoomedOnChromatogram( const QRectF& ) ) );

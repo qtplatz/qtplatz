@@ -149,7 +149,7 @@ namespace adwidgets {
         emit valueChanged( index );
     }
 
-    std::shared_ptr< adcontrols::ChemicalFormula > MSPeakTable::formulaParser_;
+
 
     ///////////////////
 
@@ -205,18 +205,38 @@ namespace adwidgets {
         };
 
     }
+    
+    class MSPeakTable::impl {
+    public:
+        std::shared_ptr< QStandardItemModel > model_;
+        std::shared_ptr< QItemDelegate > delegate_;
+
+        impl() : model_( std::make_shared< QStandardItemModel >() )
+            , delegate_( std::make_shared< MSPeakTableDelegate >() )
+            , inProgress_( false ) {
+
+        }
+
+        
+        boost::variant< std::weak_ptr< adcontrols::MSPeakInfo >
+                        , std::weak_ptr< adcontrols::MassSpectrum > > data_source_;
+        bool inProgress_;
+    };
 }
 
 using namespace adwidgets;
 
+MSPeakTable::~MSPeakTable()
+{
+    delete impl_;
+}
+
 MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
-                                          , model_( std::make_shared< QStandardItemModel >() )
-										  , delegate_( std::make_shared< MSPeakTableDelegate >() )
-                                          , inProgress_( false )
+                                          , impl_( new impl() )
 {
     this->setHorizontalHeader( new HtmlHeaderView );
-    this->setModel( model_.get() );
-	this->setItemDelegate( delegate_.get() );
+    this->setModel( impl_->model_.get() );
+	this->setItemDelegate( impl_->delegate_.get() );
     this->setSortingEnabled( true );
     this->verticalHeader()->setDefaultSectionSize( 18 );
     this->setContextMenuPolicy( Qt::CustomContextMenu );
@@ -224,11 +244,8 @@ MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
     QFont font;
 	this->setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
 
-    if ( ! formulaParser_ )
-        formulaParser_ = std::make_shared< adcontrols::ChemicalFormula >();
-
     connect( this, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
-    connect( delegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );
+    connect( impl_->delegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );
 }
 
 void *
@@ -257,7 +274,7 @@ MSPeakTable::onUpdate( boost::any& a )
         // lockMassHandled on MainWindow invoke this method
 
         auto ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( a );
-        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
         if ( wptr.lock() == ptr )
             setData( *ptr );                        
 
@@ -267,7 +284,7 @@ MSPeakTable::onUpdate( boost::any& a )
         int id = boost::any_cast<int>( a );
 
         if ( id == 0 ) { // data may changed
-            boost::apply_visitor( detail::dataMayChanged( this ), data_source_ );
+            boost::apply_visitor( detail::dataMayChanged( this ), impl_->data_source_ );
         }
     }
 }
@@ -288,7 +305,7 @@ MSPeakTable::setContents( boost::any& a )
 {
     if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
         std::weak_ptr< adcontrols::MSPeakInfo > wptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );
-        data_source_ = wptr;
+        impl_->data_source_ = wptr;
         if ( auto ptr = wptr.lock() )
             setPeakInfo( *ptr );            
         return true;
@@ -296,7 +313,7 @@ MSPeakTable::setContents( boost::any& a )
 
     if ( adportable::a_type< adcontrols::MassSpectrumPtr >::is_a( a ) ) {
         std::weak_ptr< adcontrols::MassSpectrum > wptr = boost::any_cast< adcontrols::MassSpectrumPtr >( a );
-        data_source_ = wptr;
+        impl_->data_source_ = wptr;
         if ( auto ptr = wptr.lock() )
             setPeakInfo( *ptr );            
         return true;
@@ -311,11 +328,16 @@ MSPeakTable::setContents( boost::any& a )
     return false;
 }
 
+QStandardItemModel&
+MSPeakTable::model() 
+{
+    return *impl_->model_;
+}
 
 void
 MSPeakTable::onInitialUpdate()
 {
-    QStandardItemModel& model = *model_;
+    QStandardItemModel& model = *impl_->model_;
     
     model.setColumnCount( c_mspeaktable_num_columns );
 
@@ -339,7 +361,7 @@ MSPeakTable::onInitialUpdate()
 void
 MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
 {
-	QStandardItemModel& model = *model_;
+    QStandardItemModel& model = *impl_->model_;
     const auto& candidates = targeting.candidates();
 
     if ( candidates.empty() )
@@ -357,8 +379,8 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
             model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass_error );
         }
     }
-    if ( data_source_.which() == 1 ) {
-        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+    if ( impl_->data_source_.which() == 1 ) {
+        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
         if ( adcontrols::MassSpectrumPtr ptr = wptr.lock() ) {
             std::for_each( candidates.begin(), candidates.end(), [&] ( const adcontrols::Targeting::Candidate& c ){
                 detail::annotation_updator()(ptr, c.idx, c.fcn, c.formula);
@@ -372,7 +394,7 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
 void
 MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
-	QStandardItemModel& model = *model_;
+	QStandardItemModel& model = *impl_->model_;
     setUpdatesEnabled( false );
 
     model.setRowCount( static_cast< int >( info.total_size() ) );
@@ -413,7 +435,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 void
 MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 {
-	QStandardItemModel& model = *model_;
+	QStandardItemModel& model = *impl_->model_;
     size_t total_size = 0;
     setUpdatesEnabled( false );
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
@@ -479,7 +501,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 void
 MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
 {
-	QStandardItemModel& model = *model_;
+	QStandardItemModel& model = *impl_->model_;
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     size_t total_size = 0;
@@ -528,7 +550,7 @@ MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
 void
 MSPeakTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
 {
-    QStandardItemModel& model = *model_;
+    QStandardItemModel& model = *impl_->model_;
     (void)prev;
 
     scrollTo( index, QAbstractItemView::EnsureVisible );
@@ -562,28 +584,30 @@ MSPeakTable::keyPressEvent( QKeyEvent * event )
 void
 MSPeakTable::handleZoomedOnSpectrum( const QRectF& rc )
 {
-    if ( data_source_.which() == 1 ) {
-        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+    QStandardItemModel& model = *impl_->model_;
+
+    if ( impl_->data_source_.which() == 1 ) {
+        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
         if ( auto ptr = wptr.lock() ) {
             std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right() );
             if ( bp.first >= 0 && bp.second >= 0 ) {
                 // ---> change rel. intensity
                 setUpdatesEnabled( false );
                 double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
-                for ( int row = 0; row < model_->rowCount(); ++row )
-                    model_->setData( model_->index( row, c_mspeaktable_relative_intensity )
-                                     , model_->index( row, c_mspeaktable_intensity ).data().toDouble() * 100 / base_height );
+                for ( int row = 0; row < model.rowCount(); ++row )
+                    model.setData( model.index( row, c_mspeaktable_relative_intensity )
+                                     , model.index( row, c_mspeaktable_intensity ).data().toDouble() * 100 / base_height );
                 resizeColumnsToContents();
                 resizeRowsToContents();
                 setUpdatesEnabled( true );
                 // <--- end rel. intensity
 
-                for ( int row = 0; row < model_->rowCount(); ++row ) {
-                    if ( model_->index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == bp.first 
-                         && model_->index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt() == bp.second ) {
+                for ( int row = 0; row < model.rowCount(); ++row ) {
+                    if ( model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == bp.first
+                         && model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt() == bp.second ) {
                         
-                        setCurrentIndex( model_->index( row, c_mspeaktable_mass ) );
-                        scrollTo( model_->index( row, c_mspeaktable_mass ) );
+                        setCurrentIndex( model.index( row, c_mspeaktable_mass ) );
+                        scrollTo( model.index( row, c_mspeaktable_mass ) );
                         break;
                     }
                 }
@@ -595,7 +619,7 @@ MSPeakTable::handleZoomedOnSpectrum( const QRectF& rc )
 void
 MSPeakTable::handleCopyToClipboard()
 {
-    QStandardItemModel& model = *model_;
+    QStandardItemModel& model = *impl_->model_;
     QModelIndexList list = selectionModel()->selectedIndexes();
 
     qSort( list );
@@ -622,6 +646,7 @@ MSPeakTable::handleCopyToClipboard()
 void
 MSPeakTable::showContextMenu( const QPoint& pt )
 {
+    QStandardItemModel& model = *impl_->model_;
     QModelIndex index = currentIndex();
 
 	if ( index.isValid() ) {
@@ -643,15 +668,15 @@ MSPeakTable::showContextMenu( const QPoint& pt )
 
         for ( int row: rows ) {
 
-            QString formula = model_->data( model_->index( row, c_mspeaktable_formula ) ).toString();
+            QString formula = model.data( model.index( row, c_mspeaktable_formula ) ).toString();
 
             if ( ! formula.isEmpty() ) {
                 if ( !refs.isEmpty() )
                     o << ", ";
                 o << formula.toStdString();
 
-                int idx = model_->data( model_->index( row, c_mspeaktable_index ) ).toInt();
-                int fcn = model_->data( model_->index( row, c_mspeaktable_fcn ) ).toInt();
+                int idx = model.data( model.index( row, c_mspeaktable_index ) ).toInt();
+                int fcn = model.data( model.index( row, c_mspeaktable_fcn ) ).toInt();
 
                 refs.push_back( QPair<int,int>( idx, fcn ) );
             }
@@ -667,7 +692,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
 void
 MSPeakTable::handleValueChanged( const QModelIndex& index )
 {
-    if ( inProgress_ )
+    if ( impl_->inProgress_ )
         return;
     if ( index.column() == c_mspeaktable_formula ) {
         formulaChanged( index );
@@ -680,7 +705,7 @@ MSPeakTable::handleValueChanged( const QModelIndex& index )
 void
 MSPeakTable::formulaChanged( const QModelIndex& index )
 {
-	QStandardItemModel& model = *model_;
+	QStandardItemModel& model = *impl_->model_;
 
     if ( index.column() == c_mspeaktable_formula ) {
 
@@ -691,42 +716,18 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
         double mass = model.index( index.row(), c_mspeaktable_mass ).data( Qt::EditRole ).toDouble();
         model.setData( model.index( index.row(), c_mspeaktable_mass_error ), mass - exactMass( formula ) );
 
-        if ( data_source_.which() == 0 ) {
-            auto wptr = boost::get< std::weak_ptr< adcontrols::MSPeakInfo > >( data_source_ );
+        if ( impl_->data_source_.which() == 0 ) {
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MSPeakInfo > >( impl_->data_source_ );
             if ( auto ptr = wptr.lock() ) {
                 adcontrols::segment_wrapper< adcontrols::MSPeakInfo > segs( *ptr );
                 auto it = segs[ fcn ].begin() + idx;
                 it->formula( formula );            
             }
         } else {
-            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
             if ( auto ptr = wptr.lock() ) {
                 if ( detail::annotation_updator()( ptr, idx, fcn, formula ) )
                     emit formulaChanged( idx, fcn );                    
-#if 0
-                adcontrols::segment_wrapper<> segs( *ptr );
-                if ( signed(segs.size()) > fcn ) {
-                    auto& ms = segs[fcn];
-                    adcontrols::annotations& annots = ms.get_annotations();
-                    auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){
-                            return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
-                    if ( it != annots.end() ) {
-                        if ( formula.empty() )
-                            annots.erase( it );
-                        else
-                            it->text( formula, adcontrols::annotation::dataFormula );
-                    } else {
-                        if ( !formula.empty() )
-                            annots << adcontrols::annotation( formula
-                                                            , ms.getMass( idx )
-                                                            , ms.getIntensity( idx )
-                                                            , idx
-                                                            , 0
-                                                            , adcontrols::annotation::dataFormula );
-                    }
-                    emit formulaChanged( idx, fcn );
-                }
-#endif
             }
         }
     }
@@ -735,7 +736,7 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
 void
 MSPeakTable::descriptionChanged( const QModelIndex& index )
 {
-	QStandardItemModel& model = *model_;
+    QStandardItemModel& model = *impl_->model_;
 
     if ( index.column() == c_mspeaktable_description ) {
 
@@ -744,15 +745,15 @@ MSPeakTable::descriptionChanged( const QModelIndex& index )
 
         std::wstring description = index.data( Qt::EditRole ).toString().toStdWString();
 
-        if ( data_source_.which() == 0 ) {
-            auto wptr = boost::get< std::weak_ptr< adcontrols::MSPeakInfo > >( data_source_ );
+        if ( impl_->data_source_.which() == 0 ) {
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MSPeakInfo > >( impl_->data_source_ );
             if ( auto ptr = wptr.lock() ) {
                 adcontrols::segment_wrapper< adcontrols::MSPeakInfo > segs( *ptr );
                 auto it = segs[ fcn ].begin() + idx;
                 it->annotation( description );
             }
         } else {
-            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
             if ( auto ptr = wptr.lock() ) {
                 adcontrols::segment_wrapper<> segs( *ptr );
                 if ( signed(segs.size()) > fcn ) {
@@ -795,10 +796,11 @@ MSPeakTable::exactMass( std::string formula )
         adduct_lose = formula.substr( pos + 1 );
         formula = formula.substr( 0, pos );
     }
-    
-    double exactMass = formulaParser_->getMonoIsotopicMass( formula );
+    adcontrols::ChemicalFormula formulaParser;
+
+    double exactMass = formulaParser.getMonoIsotopicMass( formula );
     if ( !adduct_lose.empty() ) {
-        double a = formulaParser_->getMonoIsotopicMass( adduct_lose );
+        double a = formulaParser.getMonoIsotopicMass( adduct_lose );
         exactMass += a * sign;
     }
     return exactMass;
@@ -807,7 +809,7 @@ MSPeakTable::exactMass( std::string formula )
 bool
 MSPeakTable::getMSPeak( adcontrols::MSPeak& peak, int row ) const
 {
-	QStandardItemModel& model = *model_;
+	QStandardItemModel& model = *impl_->model_;
     
     peak.time( model.index( row, c_mspeaktable_time ).data( Qt::EditRole ).toDouble() );
     peak.mass( model.index( row, c_mspeaktable_mass ).data( Qt::EditRole ).toDouble() );
@@ -845,7 +847,7 @@ MSPeakTable::getMSPeaks( adcontrols::MSPeaks& peaks, GETPEAKOPTS opt ) const
 
     } else if ( opt == AssignedPeaks ) {
         
-        for (int row = 0; row < model_->rowCount(); ++row ) {
+        for (int row = 0; row < impl_->model_->rowCount(); ++row ) {
             adcontrols::MSPeak pk;
             if ( getMSPeak( pk, row ) ) {
                 if ( !pk.formula().empty() )
@@ -855,7 +857,7 @@ MSPeakTable::getMSPeaks( adcontrols::MSPeaks& peaks, GETPEAKOPTS opt ) const
 
     } else {
 
-        for (int row = 0; row < model_->rowCount(); ++row ) {
+        for (int row = 0; row < impl_->model_->rowCount(); ++row ) {
             adcontrols::MSPeak pk;
             if ( getMSPeak( pk, row ) )
                 peaks << pk;
@@ -864,3 +866,13 @@ MSPeakTable::getMSPeaks( adcontrols::MSPeaks& peaks, GETPEAKOPTS opt ) const
     return true;
 }
 
+int
+MSPeakTable::findColumn( const QString& name ) const
+{
+    int nColumn = impl_->model_->columnCount();
+    for ( int col = 0; col < nColumn; ++col ) {
+        if ( impl_->model_->headerData( col, Qt::Horizontal, Qt::EditRole ).toString() == name )
+            return col;
+    }
+    return -1;
+}
