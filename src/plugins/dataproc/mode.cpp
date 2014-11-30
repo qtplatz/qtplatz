@@ -56,9 +56,5 @@ Mode::grabEditorManager(Core::IMode *mode)
 
     if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
         cmd->action()->setText( tr( "Open data files..." ) );
-
-    if ( Core::EditorManager::instance()->currentEditor() )
-        Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
-
 }
 
