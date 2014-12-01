@@ -2,7 +2,7 @@
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
@@ -22,27 +22,31 @@
 **
 **************************************************************************/
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#pragma once
 
-namespace sequence {
+#include <adextension/isequence.hpp>
+#include <vector>
+#include <memory>
 
-    namespace Constants {
+namespace u5303a {
 
-        const char ACTION_ID[]                   = "Sequence.Action";
-        const char MENU_ID[]                     = "Sequence.Menu";
-        const char M_FILE_RECENTFILES []         = "Sequence.Menu.RecentFiles";
+    typedef std::shared_ptr< adextension::iEditorFactory > iEditorFactoryPtr;
+    
+    class iSequenceImpl : public adextension::iSequence {
+    public:
+        iSequenceImpl();
 
-        const char * const C_SEQUENCE            = "Sequence";
-        const char * const C_SEQUENCE_MODE       = "Sequence.Mode";
-        const char * const FILE_OPEN             = "Sequence.FileOpen";
+        virtual size_t size() const;
+        virtual reference operator [] ( size_t idx );
 
-        const char * const C_SEQUENCE_MIMETYPE   = "application/sequ";
-        const char * const C_CTRLMETHOD_MIMETYPE = "application/cmth";
-        const char * const C_PROCMETHOD_MIMETYPE = "application/pmth";
+        iSequenceImpl& operator << ( iEditorFactoryPtr );
 
-        const char * const C_SEQUENCE_EDITOR = "SequenceEditor";
-    }
+    private:
+
+        std::vector< iEditorFactoryPtr > v_;
+
+    };
+
 }
 
-#endif // CONSTANTS_H
+

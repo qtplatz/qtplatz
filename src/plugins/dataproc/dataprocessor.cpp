@@ -167,8 +167,10 @@ Dataprocessor::save( QString * errorString, const QString& filename, bool /* aut
 
     if ( filename.isEmpty() && path.extension() == ".adfs" ) {
         // Save
-        if ( file_->saveContents( L"/Processed", *portfolio_ ) )
+        if ( file_->saveContents( L"/Processed", *portfolio_ ) ) {
+            setModified( false );
             return true;
+        }
     }
     if ( !filename.isEmpty() )
         path = filename.toStdWString();

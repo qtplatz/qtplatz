@@ -26,6 +26,7 @@
 #include "sequenceplugin.hpp"
 #include "sequencewnd.hpp"
 #include "sequenceeditor.hpp"
+#include "constants.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adextension/isequence.hpp>
@@ -103,6 +104,9 @@ MainWindow::OnInitialUpdate()
 {
 	using adextension::iSequence;
 
+    if ( auto editor = findChild< SequenceWnd * >() )
+        editor->OnInitialUpdate( adsequence::schema() );
+
     QList< iSequence * > visitables = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
 
     QWidget * timeEvent = new adwidgets::ControlMethodWidget;
@@ -165,7 +169,57 @@ MainWindow::activateLayout()
 void
 MainWindow::createActions()
 {
-    actionConnect_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr( "Connect" ), this );
+    if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
+        
+        Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
+        menu->menu()->setTitle( tr("Sample Sequence") );
+
+        if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Sequence..." ), this ) ) {
+            am->registerAction( p, Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools->Sequence->Open
+            connect( p, &QAction::triggered, this, &MainWindow::handleOpenSequence );
+            menu->addAction( am->command( Constants::FILE_OPEN ) );
+            am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_SEQUENCE_MODE ) );  // File->Open
+       }
+
+        //------------ method --------------
+        // if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Method..." ), this ) ) {
+        //     am->registerAction( p, Constants::QUAN_METHOD_OPEN, Core::Context( Constants::C_SEQUENCE_MODE ) );
+        //     connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanMethod );
+        //     menu->addAction( am->command( Constants::QUAN_METHOD_OPEN ) );
+        // }
+
+        // if ( auto p = new QAction( QIcon( ":/quan/images/filesave.png" ), tr( "Save Quan Method..." ), this ) ) {
+        //     am->registerAction( p, Constants::QUAN_METHOD_SAVE, Core::Context( Constants::C_QUAN_MODE ) );
+        //     connect( p, &QAction::triggered, this, &MainWindow::handleSaveQuanMethod );
+        //     menu->addAction( am->command( Constants::QUAN_METHOD_SAVE ) );
+        // }
+        //------------ sequence --------------
+        // if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan Sequence..." ), this ) ) {
+        //     am->registerAction( p, Constants::QUAN_SEQUENCE_OPEN, Core::Context( Constants::C_QUAN_MODE ) );
+        //     connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanSequence );
+        //     menu->addAction( am->command( Constants::QUAN_SEQUENCE_OPEN ) );
+        // }
+
+        // if ( auto p = new QAction( QIcon( ":/quan/images/filesave.png" ), tr( "Save Quan Sequence..." ), this ) ) {
+        //     am->registerAction( p, Constants::QUAN_SEQUENCE_SAVE, Core::Context( Constants::C_QUAN_MODE ) );
+        //     connect( p, &QAction::triggered, this, &MainWindow::handleSaveQuanSequence );
+        //     menu->addAction( am->command( Constants::QUAN_SEQUENCE_SAVE ) );
+        // }
+
+        // if ( auto p = new QAction( QIcon( ":/quan/images/run.png" ), tr("Run"), this ) ) {
+        //     am->registerAction( p, Constants::QUAN_SEQUENCE_RUN, Core::Context( Constants::C_QUAN_MODE ) );
+        //     connect( p, &QAction::triggered, this, &MainWindow::run );
+        //     menu->addAction( am->command( Constants::QUAN_SEQUENCE_RUN ) );
+        // }
+
+        // if ( auto p = new QAction( QIcon(":/quan/images/stop.png"), tr("Stop"), this ) ) {
+        //     am->registerAction( p, Constants::QUAN_SEQUENCE_STOP, Core::Context( Constants::C_QUAN_MODE ) );
+        //     connect( p, &QAction::triggered, this, &MainWindow::stop );
+        //     menu->addAction( am->command( Constants::QUAN_SEQUENCE_STOP ) );
+        //     p->setEnabled( false );
+        // }
+        am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
+    }
 }
 
 QWidget *
@@ -174,21 +228,21 @@ MainWindow::createContents( Core::IMode * mode )
     // setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::East );
     setDocumentMode( true );
     setDockNestingEnabled( true );
-
+    
     if ( QBoxLayout * editorHolderLayout = new QVBoxLayout ) {
+
         editorHolderLayout->setMargin( 0 );
         editorHolderLayout->setSpacing( 0 );
 	    
         if ( QWidget * editorWidget = new QWidget ) {
 
             editorWidget->setLayout( editorHolderLayout );
-
-            editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) ); // toolbar [top]
+            
+            editorHolderLayout->addWidget( new SequenceWnd( adsequence::schema() ) ); // toolbar [top]
 
             if ( Core::MiniSplitter * splitter1 = new Core::MiniSplitter ) {
 
                 splitter1->addWidget( editorWidget );        // [Editor]
-                // splitter1->addWidget( new Core::RightPanePlaceHolder( mode ) );
                 splitter1->setStretchFactor( 0, 1 );
                 splitter1->setStretchFactor( 1, 0 );
 
@@ -372,8 +426,7 @@ MainWindow::toolButton( QAction * action )
 QToolButton * 
 MainWindow::toolButton( const char * id )
 {
-    Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
-    return toolButton( mgr->command(id)->action() );
+    return toolButton( Core::ActionManager::instance()->command(id)->action() );
 }
 
 Utils::StyledBar *
@@ -406,4 +459,9 @@ MainWindow::createMidStyledBar()
         toolBarLayout->addItem( new QSpacerItem( 40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
     }
     return toolBar;
+}
+
+void
+MainWindow::handleOpenSequence()
+{
 }

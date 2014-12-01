@@ -25,6 +25,80 @@
 
 #include "controlmethod.hpp"
 #include <adportable/float.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <workaround/boost/uuid/uuid_serialize.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+
+namespace adcontrols {
+    
+    class ControlMethod::impl {
+    public:
+        impl() {}
+        impl( const impl& t ) : subject_( t.subject_ )
+                              , description_( t.description_ )
+                              , items_( t.items_ ) {
+        }
+        std::string subject_;
+        std::string description_;
+        std::vector< controlmethod::MethodItem > items_;
+        idAudit ident_;
+
+    private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
+            ar & BOOST_SERIALIZATION_NVP( subject_ );
+            ar & BOOST_SERIALIZATION_NVP( description_ );
+            ar & BOOST_SERIALIZATION_NVP( items_ );
+            if ( version >= 2 )
+                ar & BOOST_SERIALIZATION_NVP( ident_ );
+        }
+        
+    };
+
+}
+
+BOOST_CLASS_VERSION( adcontrols::ControlMethod::impl, 2 )
+
+namespace adcontrols {
+
+    ////////// PORTABLE BINARY ARCHIVE //////////
+    template<> void
+    ControlMethod::serialize( portable_binary_oarchive& ar, const unsigned int )
+    {
+        ar & *impl_;
+    }
+
+    template<> void
+    ControlMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        if ( version <= 1 )  {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( impl_->subject_ );
+            ar & BOOST_SERIALIZATION_NVP( impl_->description_ );
+            ar & BOOST_SERIALIZATION_NVP( impl_->items_ );
+        } else
+            ar & *impl_;
+    }
+
+    ///////// XML archive ////////
+    template<> ADCONTROLSSHARED_EXPORT void
+    ControlMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+    {
+        ar & boost::serialization::make_nvp("impl", *impl_);
+    }
+
+    template<> ADCONTROLSSHARED_EXPORT void
+    ControlMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+    {
+        ar & boost::serialization::make_nvp( "impl", *impl_ );
+    }
+}
 
 using namespace adcontrols;
 
@@ -32,66 +106,62 @@ ControlMethod::~ControlMethod()
 {
 }
 
-ControlMethod::ControlMethod()
+ControlMethod::ControlMethod() : impl_( new impl() )
 {
 }
 
-ControlMethod::ControlMethod( const ControlMethod& t ) : subject_( t.subject_ )
-                                                       , description_( t.description_ )
-                                                       , items_( t.items_ )
+ControlMethod::ControlMethod( const ControlMethod& t ) : impl_( new impl( *t.impl_ ) ) 
 {
 }
 
-// ControlMethod&
-// ControlMethod::operator = ( const ControlMethod& t )
-// {
-//     subject_ = t.subject_;
-//     description_ = t.description_;
-//     items_ = t.items_;
-//     return *this;
-// }
+ControlMethod&
+ControlMethod::operator = ( const ControlMethod & t )
+{
+    impl_.reset( new impl( *t.impl_ ) );
+    return *this;
+}
 
 ControlMethod::iterator
 ControlMethod::begin()
 {
-    return items_.begin();
+    return impl_->items_.begin();
 }
 
 ControlMethod::iterator
 ControlMethod::end()
 {
-    return items_.end();
+    return impl_->items_.end();
 }
 
 ControlMethod::const_iterator
 ControlMethod::begin() const
 {
-    return items_.begin();
+    return impl_->items_.begin();
 }
 
 ControlMethod::const_iterator
 ControlMethod::end() const
 {
-    return items_.end();
+    return impl_->items_.end();
 }
 
 ControlMethod::iterator
 ControlMethod::erase( iterator pos )
 {
-    return items_.erase( pos );
+    return impl_->items_.erase( pos );
 }
 
 ControlMethod::iterator
 ControlMethod::erase( iterator first, iterator last )
 {
-    return items_.erase( first, last );
+    return impl_->items_.erase( first, last );
 }
 
 ControlMethod::iterator
 ControlMethod::insert( const controlmethod::MethodItem& item )
 {
     using adcontrols::controlmethod::MethodItem;
-    auto it = std::lower_bound( items_.begin(), items_.end(), item, []( const MethodItem& a, const MethodItem& b ){
+    auto it = std::lower_bound( impl_->items_.begin(), impl_->items_.end(), item, []( const MethodItem& a, const MethodItem& b ){
             if ( adportable::compare<double>::essentiallyEqual( a.time(), b.time() ) ) {
                 if ( a.modelname() == b.modelname() )
                     return a.unitnumber() < b.unitnumber();
@@ -99,14 +169,13 @@ ControlMethod::insert( const controlmethod::MethodItem& item )
             }
             return a.time() < b.time();
         });
-    return items_.insert( it, item );
+    return impl_->items_.insert( it, item );
 }
-
 
 size_t
 ControlMethod::size() const 
 {
-    return items_.size();
+    return impl_->items_.size();
 }
 
 using namespace adcontrols::controlmethod;
@@ -222,3 +291,18 @@ MethodItem::size() const
 }
 
 
+bool
+ControlMethod::archive( std::ostream& os, const ControlMethod& t )
+{
+    portable_binary_oarchive ar( os );
+    ar << t;
+    return true;
+}
+
+bool
+ControlMethod::restore( std::istream& is, ControlMethod& t )
+{
+    portable_binary_iarchive ar( is );
+    ar >> t;
+    return true;
+}

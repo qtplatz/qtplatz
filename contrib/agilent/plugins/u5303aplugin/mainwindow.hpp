@@ -40,6 +40,8 @@ namespace Utils { class StyledBar; }
 
 namespace u5303a {
 
+    class iSequenceImpl;
+
     namespace Internal { class u5303APlugin; }
 
 	class MainWindow : public Utils::FancyMainWindow {
@@ -49,7 +51,6 @@ namespace u5303a {
 		~MainWindow();
 
 		QWidget * createContents( Core::IMode * );
-		// void createActions( Internal::tofTunePlugin * );
 		
 		void OnInitialUpdate();
 		void activateLayout();
@@ -64,6 +65,8 @@ namespace u5303a {
 
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::Trace&, const std::wstring& traceId );
+		bool editor_factories( iSequenceImpl& );
+
     private:
         enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
         std::array< QAction *, numActions > actions_;

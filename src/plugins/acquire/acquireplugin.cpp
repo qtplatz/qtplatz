@@ -107,19 +107,10 @@
 #include <QAction>
 #include <QComboBox>
 #include <QtCore/qplugin.h>
-
-#if QT_VERSION >= 0x050000
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QBoxLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QLabel>
-#else
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QBoxLayout>
-#include <QtGui/QToolButton>
-#include <QtGui/QLabel>
-#endif
-
+#include <QHBoxLayout>
+#include <QBoxLayout>
+#include <QToolButton>
+#include <QLabel>
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -358,10 +349,6 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 AcquirePlugin::extensionsInitialized()
 {
-	QList< adextension::iMonitorFactory * > monitors = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iMonitorFactory >();
-	std::for_each( monitors.begin(), monitors.end(), [&]( adextension::iMonitorFactory * factory ){
-            mainWindow_->addMonitorWidget( factory->create(), factory->title() );
-        });
 	mainWindow_->OnInitialUpdate();
 }
 

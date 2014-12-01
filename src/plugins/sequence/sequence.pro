@@ -39,26 +39,26 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
 DEFINES += SEQUENCE_LIBRARY
 
 SOURCES +=  sequenceplugin.cpp \
-    sequenceeditor.cpp \
-    sequenceeditorfactory.cpp \
-    sequencefile.cpp \
-    mainwindow.cpp \
-    mode.cpp \
-    sequencewnd.cpp \
-    sequencedelegate.cpp \
-    sequenceview.cpp
+            sequenceeditor.cpp \
+            sequencefactory.cpp \
+            sequencedocument.cpp \
+            mainwindow.cpp \
+            mode.cpp \
+            sequencewnd.cpp \
+            sequencedelegate.cpp \
+            sequenceview.cpp
 
 HEADERS += sequence_global.h \
-    sequencefile.hpp \
-    sequenceplugin.hpp \
-    sequenceeditorfactory.hpp \
-    sequenceeditor.hpp \
-    constants.hpp \
-    mainwindow.hpp \
-    mode.hpp \
-    sequencewnd.hpp \
-    sequencedelegate.hpp \
-    sequenceview.hpp
+           sequenceplugin.hpp \
+           sequencefactory.hpp \
+           sequencedocument.hpp \
+           sequenceeditor.hpp \
+           constants.hpp \
+           mainwindow.hpp \
+           mode.hpp \
+           sequencewnd.hpp \
+           sequencedelegate.hpp \
+           sequenceview.hpp
 
 OTHER_FILES += sequence.pluginspec \
     sequence-mimetype.xml \

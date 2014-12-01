@@ -58,7 +58,6 @@ namespace acquire {  namespace internal {
             void OnFinalClose();
             // 
             void eventLog( const QString& );
-			void addMonitorWidget( QWidget *, const QString& title );
 
             //
         signals:
@@ -73,7 +72,7 @@ namespace acquire {  namespace internal {
             void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
         private:
-            std::vector< QDockWidget * > dockWidgetVec_;
+            QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
 
         public:
             //const AcquireManagerActions& acquireManagerActions() const;

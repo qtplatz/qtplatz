@@ -24,15 +24,19 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include <adextension/isequence.hpp>
+#include <adextension/ieditorfactory.hpp>
 #include <adplugin/widget_factory.hpp>
-//#include <adplot/plot.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
 #include <adlog/logger.hpp>
+#include <adwidgets/controlmethodwidget.hpp>
+#include <adwidgets/controlmethodcontainer.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <extensionsystem/pluginmanager.h>
 
 #include <boost/variant.hpp>
 #include <boost/noncopyable.hpp>
@@ -66,42 +70,45 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
 void
 MainWindow::init( const adportable::Configuration& config )
 {
-    // Acquire::internal::MainWindowData& m = *d_;
-    
 	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
     setDocumentMode( true );
-
-    const adportable::Configuration * pTab = adportable::Configuration::find( config, "monitor_tab" );
-    if ( pTab ) {
-        using namespace adportable;
-        using namespace adplugin;
-            
-        for ( auto node: *pTab ) {
-			
-            const std::string name = node.name();
-                
-			QWidget * pWidget = adplugin::widget_factory::create( node.component_interface().c_str(), 0, 0 );
-
-            if ( pWidget ) {
-                if ( node.component_interface() == "adplugin::ui::iLog" ) {
-                    connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
-                    emit signal_eventLog( "Hello -- this is acquire plugin" );
-                }
-
-                pWidget->setWindowTitle( qtwrapper::qstring( node.title() ) );
-                QDockWidget * dock = addDockForWidget( pWidget );
-                dockWidgetVec_.push_back( dock );
-            }
-
-
-        }
-
-    }            
 }
 
 void
 MainWindow::OnInitialUpdate()
 {
+    auto timeEvent = new adwidgets::ControlMethodWidget;
+
+    auto visitables = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
+
+	for ( auto v: visitables ) {
+
+        for ( size_t i = 0; i < v->size(); ++i ) {
+
+            adextension::iEditorFactory& factory = (*v)[ i ];
+            if ( factory.method_type() == adextension::iEditorFactory::CONTROL_METHOD ) {
+
+                if ( auto widget = factory.createEditor( 0 ) ) {
+                    // auto container = new adwidgets::ControlMethodContainer;
+                    // container->addWidget( widget, factory.title() );
+
+                    createDockWidget( widget, factory.title(), "ControlMethod" );
+
+                    connect( widget, SIGNAL( onTriggerAdd( const adcontrols::controlmethod::MethodItem& ) )
+                             , timeEvent, SLOT( handleAdd( const adcontrols::controlmethod::MethodItem& ) ) );
+
+                    adplugin::LifeCycleAccessor accessor( widget );
+                    if ( adplugin::LifeCycle * pLifeCycle = accessor.get() )
+                        pLifeCycle->OnInitialUpdate();
+                }
+                
+            }
+
+        }
+    }
+
+    createDockWidget( timeEvent, "Control Method", "ControlMethodWidget" );
+    
 	QList< QDockWidget *> dockWidgets = this->dockWidgets();
   
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
@@ -128,14 +135,22 @@ MainWindow::OnFinalClose()
     }
 }
 
-void
-MainWindow::addMonitorWidget( QWidget * widget, const QString& title )
+QDockWidget *
+MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& objname )
 {
-    if ( widget ) {
-        widget->setWindowTitle( title );
-        QDockWidget * dock = addDockForWidget( widget );
-        dockWidgetVec_.push_back( dock );
-    }
+    QDockWidget * dockWidget = addDockForWidget( widget );
+    dockWidget->setObjectName( widget->objectName() );
+    if ( title.isEmpty() )
+        dockWidget->setWindowTitle( widget->objectName() );
+    else
+        dockWidget->setWindowTitle( title );
+
+    if ( !objname.isEmpty() )
+        dockWidget->setObjectName( objname );        
+
+    addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+
+    return dockWidget;
 }
 
 class scopedSetTrackingEnabled {
@@ -154,26 +169,21 @@ MainWindow::setSimpleDockWidgetArrangement()
 {
     scopedSetTrackingEnabled lock( *this );
     
-    QList< QDockWidget *> dockWidgets = this->dockWidgets();
-
-    if ( dockWidgets.isEmpty() )
-        return;
-
-    for ( auto widget: dockWidgets ) {
+    auto widgets = dockWidgets();
+    for ( auto widget: widgets ) {
 		widget->setFloating( false );
 		removeDockWidget( widget );
 	}
     
-    for ( auto widget: dockWidgets ) {
+    size_t nsize = widgets.size();
+    size_t npos = 0;
+    for ( auto widget: widgets ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
         widget->show();
+        if ( npos++ >= 1 && npos < nsize )
+            tabifyDockWidget( widgets[0], widget );
     }
     
-    // make dockwdigets into a tab
-	std::for_each( dockWidgets.begin() + 1, dockWidgets.end(), [&]( QDockWidget * widget ) {
-		tabifyDockWidget( dockWidgets[0], widget );
-	});
-
     QList< QTabBar * > tabBars = findChildren< QTabBar * >();
 	std::for_each( tabBars.begin(), tabBars.end(), []( QTabBar * tabBar ){ tabBar->setCurrentIndex( 0 ); }); 
 }

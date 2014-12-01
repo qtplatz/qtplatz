@@ -27,7 +27,7 @@
 #include "u5303a_constants.hpp"
 #include "u5303amode.hpp"
 #include "mainwindow.hpp"
-
+#include "isequenceimpl.hpp"
 #include <adportable/debug_core.hpp>
 #include <adlog/logging_handler.hpp>
 
@@ -51,6 +51,7 @@ using namespace u5303a;
 
 u5303APlugin::u5303APlugin() : mainWindow_( new MainWindow() )
                              , mode_( std::make_shared< u5303AMode >(this) )
+                             , iSequenceImpl_( new iSequenceImpl )
 {
     // Create your members
 }
@@ -59,10 +60,15 @@ u5303APlugin::~u5303APlugin()
 {
     // Unregister objects from the plugin manager's object pool
     // Delete members
-    removeObject( mode_.get() );
+    if ( mode_ )
+        removeObject( mode_.get() );
+
+	if ( iSequenceImpl_ )
+		removeObject( iSequenceImpl_.get() );
 }
 
-bool u5303APlugin::initialize(const QStringList &arguments, QString *errorString)
+bool
+u5303APlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
@@ -77,6 +83,9 @@ bool u5303APlugin::initialize(const QStringList &arguments, QString *errorString
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
     addObject( mode_.get() );
+
+    if ( iSequenceImpl_ && mainWindow_->editor_factories( *iSequenceImpl_ ) )
+        addObject( iSequenceImpl_.get() );
 
     QAction *action = new QAction(tr("u5303A action"), this);
 

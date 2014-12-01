@@ -19,9 +19,10 @@ SOURCES += u5303aplugin.cpp \
            u5303amode.cpp \
            document.cpp \
            waveformwnd.cpp \
-    u5303aform.cpp \
-    u5303amethodtable.cpp \
-    u5303amethodwidget.cpp
+           u5303aform.cpp \
+           u5303amethodtable.cpp \
+           u5303amethodwidget.cpp \
+           isequenceimpl.cpp
 
 HEADERS += u5303aplugin.hpp \
         u5303a_global.hpp \
@@ -30,12 +31,14 @@ HEADERS += u5303aplugin.hpp \
         u5303amode.hpp \
         document.hpp \
         waveformwnd.hpp \
-    u5303aform.hpp \
-    u5303amethodtable.hpp \
-    u5303amethodwidget.hpp
+        u5303aform.hpp \
+        u5303amethodtable.hpp \
+        u5303amethodwidget.hpp \
+        isequenceimpl.cpp
 
 LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adlog) \
+        -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(adextension) \
         -l$$qtLibraryTarget(adplot) \

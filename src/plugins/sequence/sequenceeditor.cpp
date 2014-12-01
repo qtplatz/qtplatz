@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "sequenceeditor.hpp"
-#include "sequencefile.hpp"
 #include "constants.hpp"
 #include "sequencewnd.hpp"
 #include "mainwindow.hpp"
@@ -50,20 +49,18 @@ using namespace sequence;
 
 SequenceEditor::~SequenceEditor()
 {
-    delete file_;
-    delete widget_;
+    //delete file_;
+    //delete widget_;
 }
 
 SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
-                                                , displayName_( "Sequence Editor" )
-                                                , file_( new SequenceFile( *this ) )
-                                                , widget_( new SequenceWnd( file_->adsequence().schema(), 0 ) )
-                                                , currRow_( 0 )
-                                                , currCol_( 0 )
+                                                , widget_( new QWidget )
+                                                , proxy_( new SequenceDocProxy )
+
 {
     widget_->installEventFilter( this );
     setWidget( widget_ );
-
+#if 0
     widget_->OnInitialUpdate( file_->adsequence().schema() );
     bool res;	
 	res = connect( widget_, SIGNAL( lineAdded( size_t ) ), this, SLOT( onLineAdded( size_t ) ) );
@@ -72,6 +69,7 @@ SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
 	assert( res );
 	res = connect( widget_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( onCurrentChanged( size_t, size_t ) ) );
 	assert( res );
+#endif
 }
 
 bool
@@ -84,86 +82,16 @@ SequenceEditor::eventFilter( QObject * object, QEvent * event )
     return false;
 }
 
-// Core::IEditor
 bool
-SequenceEditor::createNew(const QString &contents )
+SequenceEditor::open( QString*, const QString&, const QString& )
 {
-    Q_UNUSED( contents );
-
-	widget_->OnInitialUpdate( file_->adsequence().schema() );
-	widget_->setSequenceName( "default.sequ" );
-	file_->fileName( "default.sequ" );
-    file_->setModified( false );
-	return true;
+    return true;
 }
 
-const char *
-SequenceEditor::uniqueModeName() const 
+Core::IDocument *
+SequenceEditor::document()
 {
-    return sequence::Constants::C_SEQUENCE_MODE;
-}
-
-bool
-SequenceEditor::open( const QString &fileName )
-{
-    boost::filesystem::path path( qtwrapper::wstring::copy( fileName ) );
-    
-    if ( boost::filesystem::exists( path ) && file_->load( fileName ) ) {
-
-        setSequence( file_->adsequence() );
-        widget_->setSequenceName( fileName );
-
-        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
-        if ( filemgr && filemgr->addFile( file_ ) )
-            filemgr->addToRecentFiles( fileName );
-
-        return true;
-    } else {
-        widget_->setSequenceName( fileName );
-        return true;
-    }
-
-    return false;
-}
-
-Core::IFile *
-SequenceEditor::file()
-{
-    return static_cast<Core::IFile *>( file_ );
-}
-
-const char *
-SequenceEditor::kind() const
-{
-    return Constants::C_SEQUENCE_EDITOR;
-}
-
-QString
-SequenceEditor::displayName() const
-{
-    // displayName shows on "Open Documents" pane in Navigator
-    if ( file_ )
-        return file_->fileName();
-    return "SequenceEditor";
-}
-
-void
-SequenceEditor::setDisplayName(const QString &title)
-{
-    displayName_ = title;
-}
-
-bool
-SequenceEditor::duplicateSupported() const
-{
-    return false;
-}
-
-Core::IEditor *
-SequenceEditor::duplicate(QWidget *parent)
-{
-    Q_UNUSED( parent );
-    return 0;
+    return proxy_;
 }
 
 QByteArray
@@ -173,160 +101,63 @@ SequenceEditor::saveState() const
 }
 
 bool
-SequenceEditor::restoreState(const QByteArray &state)
+SequenceEditor::restoreState( const QByteArray & )
 {
-	Q_UNUSED( state );
-	return false;
+    return true;
 }
 
-int
-SequenceEditor::currentLine() const
-{
-    return static_cast<int>(currRow_) + 1;
-}
-
-int
-SequenceEditor::currentColumn() const
-{
-    return static_cast<int>(currCol_) + 1;
-}
-
-bool
-SequenceEditor::isTemporary() const
-{
-	return false;
-}
 
 QWidget *
 SequenceEditor::toolBar()
 {
-	return 0;
+    return 0;
 }
-// end Core::IEditor
 
-// implement IContext
-QList<int>
+Core::Context
 SequenceEditor::context() const
-{ 
-    return context_;
-}
-
-QWidget *
-SequenceEditor::widget()
-{ 
-    return widget_;
-}
-
-void
-SequenceEditor::slotTitleChanged( const QString& title )
 {
-    setDisplayName( title );
+    return Core::Context( Constants::C_SEQUENCE );
 }
 
-////
-void
-SequenceEditor::setSequence( const adsequence::sequence& sequence )
+///////////////////
+bool
+SequenceDocProxy::isSaveAsAllowed() const
 {
-    widget_->setSequence( sequence );
-    currRow_ = 0;
-    if ( sequence.size() > 0 )
-        saveToWidget( currRow_ );
+    return true;
 }
 
-void
-SequenceEditor::getSequence( adsequence::sequence& sequence ) const
+bool
+SequenceDocProxy::save( QString * /*errorString*/, const QString& /*filename*/, bool /* autoSave */)
 {
-    widget_->getSequence( sequence );
+    return true;
 }
 
-void
-SequenceEditor::getDefault( adcontrols::ProcessMethod& m ) const
+QString
+SequenceDocProxy::defaultPath() const
 {
-	MainWindow::instance()->getProcessMethod( m );
+    return QString();
 }
 
-void
-SequenceEditor::getDefault( adcontrols::ControlMethod& m ) const
+bool
+SequenceDocProxy::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType )
 {
-	MainWindow::instance()->getControlMethod( m );
+    return true;
 }
 
-void
-SequenceEditor::setModified( bool modified )
+QString
+SequenceDocProxy::suggestedFileName() const
 {
-    file_->setModified( modified );
+    return QString();
 }
 
-void
-SequenceEditor::onLineAdded( size_t /* row */)
+bool
+SequenceDocProxy::isModified() const
 {
-	file_->setModified( true );
+    return false;
 }
 
-void
-SequenceEditor::onLineDeleted( size_t /* row */)
+bool
+SequenceDocProxy::isFileReadOnly() const
 {
-	file_->setModified( true );
-}
-
-void
-SequenceEditor::onCurrentChanged( size_t row, size_t column )
-{
-    saveToObject( currRow_ ); // Widget --> IFile
-    currRow_ = row;
-    currCol_ = column;
-    saveToWidget( row ); // IFile --> Widget
-}
-
-void
-SequenceEditor::saveToObject( size_t row )
-{
-    std::wstring ctrlname = qtwrapper::wstring( widget_->getControlMethodName( row ) );
-    if ( ! ctrlname.empty() ) {
-        const adcontrols::ControlMethod * pCM = file_->getControlMethod( ctrlname );
-        adcontrols::ControlMethod tmp;
-        if ( pCM ) {
-            // each device method editor only update own reagin, so existing method should be preserved
-            // for all existing methods
-            tmp = *pCM;
-        }
-        MainWindow::instance()->getControlMethod( tmp );
-
-        file_->setControlMethod( ctrlname, tmp );
-    }
-
-    std::wstring procname = qtwrapper::wstring( widget_->getProcessMethodName( row ) );
-    if ( ! procname.empty() ) {
-        const adcontrols::ProcessMethod * pPM = file_->getProcessMethod( procname );
-        adcontrols::ProcessMethod tmp;
-        if ( pPM )
-            tmp = *pPM;
-        MainWindow::instance()->getProcessMethod( tmp );
-        file_->setProcessMethod( procname, tmp );
-    }
-}
-
-void
-SequenceEditor::saveToWidget( size_t row )
-{
-    QString qctrlname = widget_->getControlMethodName( row );
-    QString qprocname = widget_->getProcessMethodName( row );
-
-    MainWindow::instance()->setControlMethodName( qctrlname );  // GUI updateGUI (middle bar on MainWindow) update
-    MainWindow::instance()->setProcessMethodName( qprocname );  // GUI updateGUI (middle bar on MainWindow) update
-
-    std::wstring ctrlname = qtwrapper::wstring( qctrlname );
-    if ( ! ctrlname.empty() ) {
-        const adcontrols::ControlMethod * p = file_->getControlMethod( ctrlname );
-        if ( p ) {
-            MainWindow::instance()->setControlMethod( *p );
-        }
-    }
-
-    std::wstring procname = qtwrapper::wstring( qprocname );
-    if ( ! procname.empty() ) {
-        const adcontrols::ProcessMethod * p = file_->getProcessMethod( procname );
-        if ( p )
-            MainWindow::instance()->setProcessMethod( *p );
-    }
+    return false;
 }

@@ -25,6 +25,7 @@
 #include "mainwindow.hpp"
 #include "waveformwnd.hpp"
 #include "document.hpp"
+#include "isequenceimpl.hpp"
 #include "u5303a_constants.hpp"
 #include "u5303amethodwidget.hpp"
 #include <u5303a/digitizer.hpp>
@@ -32,8 +33,8 @@
 #include <adlog/logger.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adextension/isnapshothandler.hpp>
+#include <adextension/ieditorfactory.hpp>
 #include <adinterface/controlserver.hpp>
-//#include <adportable/serializer.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -67,6 +68,32 @@
 #include <QLabel>
 #include <QIcon>
 #include <qdebug.h>
+
+namespace u5303a {
+
+    template<class T> class iEditorFactoryT : public adextension::iEditorFactory {
+
+        MainWindow& mainWindow_;
+        QString title_;
+        QString itemname_;
+
+	public:
+        iEditorFactoryT( MainWindow& w
+                         , const QString& title ) : mainWindow_( w )
+                                                  , title_( title ) {
+        }
+
+        QWidget * createEditor( QWidget * parent ) {
+			return new T( parent );
+		}
+
+        QString title() const { return title_; }
+		
+        adextension::iEditorFactory::METHOD_TYPE method_type() const {
+			return adextension::iEditorFactory::CONTROL_METHOD;
+		}
+    };
+}
 
 using namespace u5303a;
 
@@ -456,5 +483,12 @@ MainWindow::handle_status( int status )
         if ( auto mw = findChild< u5303AMethodWidget * >() )
             mw->onStatus( status );
     }
+}
+
+bool
+MainWindow::editor_factories( iSequenceImpl& impl )
+{
+    impl << iEditorFactoryPtr( new iEditorFactoryT<u5303AMethodWidget>( *this, "U5303A" ) );
+    return true;        
 }
 

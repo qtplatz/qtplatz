@@ -33,28 +33,20 @@ namespace sequence {
   namespace internal {
 
     class SequenceEditorFactory : public Core::IEditorFactory {
-      Q_OBJECT
+
+        Q_OBJECT
+
     public:
-    ~SequenceEditorFactory();
-    explicit SequenceEditorFactory(QObject *parent = 0);
+        ~SequenceEditorFactory();
+        explicit SequenceEditorFactory(QObject *parent = 0);
 
-        // implement IEditorFactory
         Core::IEditor *createEditor() override;
-
-        // <---
-        // implement IFileFactory
-        // virtual QStringList mimeTypes() const;
-        // virtual QString kind() const;
-        // virtual Core::IDocument * open(const QString& filename );
-        // <---
 
     signals:
 
     public slots:
 
     private:
-      QString kind_;
-      QStringList mimeTypes_;
     
     };
 

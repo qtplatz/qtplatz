@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,40 +22,47 @@
 **
 **************************************************************************/
 
-#ifndef U5303AMETHODWIDGET_HPP
-#define U5303AMETHODWIDGET_HPP
+#pragma once
 
 #include <QWidget>
+#include "adwidgets_global.hpp"
 #include <adplugin/lifecycle.hpp>
 
-namespace u5303a {
+class QBoxLayout;
 
-    class u5303AMethodWidget : public QWidget
-                             , public adplugin::LifeCycle {
+namespace adcontrols { namespace controlmethod { class MethodItem; } }
+namespace adportable { class Configuration; }
+
+namespace adwidgets {
+
+    class  ADWIDGETSSHARED_EXPORT ControlMethodContainer : public QWidget
+                                                          , public adplugin::LifeCycle {
+
         Q_OBJECT
+
     public:
-        explicit u5303AMethodWidget(QWidget *parent = 0);
+        explicit ControlMethodContainer( QWidget *parent = 0 );
+        virtual ~ControlMethodContainer();
 
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& );
+        void OnInitialUpdate();
+        void OnFinalClose();
+        bool getContents( boost::any& ) const;
+        bool setContents( boost::any& );
         // LifeCycle
-        void OnCreate( const adportable::Configuration& ) override;
-        void OnInitialUpdate() override;
-        void OnFinalClose() override;
-        //virtual void onUpdate( boost::any& ) {}
-        //virtual bool getContents( boost::any& ) const { return false; }
-        //virtual bool setContents( boost::any& ) { return false; }
 
-        void onInitialUpdate();
-        void onStatus( int );
+        void addWidget( QWidget *, const QString& label );
+        QWidget * widget();
 
     private:
+        QBoxLayout * layout_;
 
     signals:
-
+            
     public slots:
-        void handle_trigger_apply();
-        void getLifeCycle( adplugin::LifeCycle *& p );
+        
     };
 
 }
 
-#endif // U5303AMETHODWIDGET_HPP

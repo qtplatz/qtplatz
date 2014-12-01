@@ -2,7 +2,7 @@
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
@@ -22,38 +22,29 @@
 **
 **************************************************************************/
 
-#include "mode.hpp"
-#include "constants.hpp"
-#include <coreplugin/actionmanager/actionmanager.h>
-#include <coreplugin/editormanager/editormanager.h>
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/modemanager.h>
-#include <coreplugin/editormanager/ieditor.h>
+#include "isequenceimpl.hpp"
 
-using namespace sequence;
+using namespace u5303a;
 
-Mode::Mode(QObject *parent) :  Core::IMode(parent)
+iSequenceImpl::iSequenceImpl()
 {
-    setId( Constants::C_SEQUENCE_MODE );
-    setContext( Core::Context( Constants::C_SEQUENCE_MODE ) );
-    setDisplayName( tr( "Sequence" ) );
-    setIcon(QIcon(":/sequence/images/DefineControls.png"));
-    setPriority( 70 );
-    
-    connect( dynamic_cast<const Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
 }
 
-Mode::~Mode()
+size_t
+iSequenceImpl::size() const
 {
-    //Core::EditorManager::instance()->setParent( 0 );
+    return v_.size();
 }
 
-void
-Mode::grabEditorManager( Core::IMode * mode )
+adextension::iEditorFactory&
+iSequenceImpl::operator [] ( size_t idx )
 {
-    if ( mode != this )
-        return;
+	return *(v_[ idx ].get());
+}
 
-    if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
-        cmd->action()->setText( tr( "Open Sequence..." ) );
+iSequenceImpl&
+iSequenceImpl::operator << ( const iEditorFactoryPtr ptr )
+{
+    v_.push_back( ptr );
+    return *this;
 }

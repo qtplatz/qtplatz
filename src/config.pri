@@ -32,7 +32,7 @@ isEmpty( QWT ) {
 }
 
 QTPLATZ_CONFIG += Acquire
-#QTPLATZ_CONFIG += Sequence
+QTPLATZ_CONFIG += Sequence
 QTPLATZ_CONFIG += Dataproc
 #QTPLATZ_CONFIG += ExampleTOF
 QTPLATZ_CONFIG += Chemistry

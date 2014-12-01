@@ -22,13 +22,13 @@
 **
 **************************************************************************/
 
-#include "sequenceeditorfactory.hpp"
+#include "sequencefactory.hpp"
 #include "sequenceeditor.hpp"
 #include "constants.hpp"
 
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
-#include <coreplugin/ifilefactory.h>
+//#include <coreplugin/ifilefactory.h>
 
 using namespace sequence::internal;
 
@@ -37,37 +37,15 @@ SequenceEditorFactory::~SequenceEditorFactory()
 }
 
 SequenceEditorFactory::SequenceEditorFactory(QObject *parent) :  Core::IEditorFactory(parent)
-                                                              , kind_( Constants::C_SEQUENCE )
 {
-    mimeTypes_ << Constants::C_SEQUENCE_MIMETYPE;
+    setId( Constants::C_SEQUENCE );
+    this->setDisplayName( tr( "OpenWith::Sequence", "Sequence" ) );
+    addMimeType( Constants::C_SEQUENCE_MIMETYPE );
 }
 
-// implementation for IEditorFactory
 Core::IEditor *
-SequenceEditorFactory::createEditor( QWidget * )
+SequenceEditorFactory::createEditor()
 {
     return new SequenceEditor();
-}
-
-// implementation for IFileFactory
-
-QStringList 
-SequenceEditorFactory::mimeTypes() const
-{
-    return mimeTypes_;
-}
-
-QString 
-SequenceEditorFactory::kind() const
-{
-  return kind_;
-}
-
-Core::IDocument * 
-SequenceEditorFactory::open(const QString& filename )
-{
-    Core::EditorManager * em = Core::EditorManager::instance();
-    Core::IEditor * iface = em->openEditor( filename, kind_ );
-    return iface ? iface->file() : 0;
 }
 

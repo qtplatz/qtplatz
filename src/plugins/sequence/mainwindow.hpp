@@ -77,6 +77,7 @@ namespace sequence {
     signals:
             
     public slots:
+        void handleOpenSequence();
 
     private:
         static MainWindow * instance_;

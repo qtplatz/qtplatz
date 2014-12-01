@@ -56,10 +56,5 @@ BatchMode::grabEditorManager(Core::IMode *mode)
 {
     if (mode != this)
         return;
-
-Core::EditorManager * em = Core::EditorManager::instance();
-    
-    if ( em->currentEditor() )
-        em->currentEditor()->widget()->setFocus();
 }
 

@@ -26,7 +26,6 @@
 #include "ui_sequencewidget.h"
 #include "sequencedelegate.hpp"
 #include "sequenceeditor.hpp"
-#include "sequencefile.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adportable/profile.hpp>

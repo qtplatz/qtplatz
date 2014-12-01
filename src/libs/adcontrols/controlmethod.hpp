@@ -26,20 +26,22 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <boost/variant.hpp>
+#include "idaudit.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
-#include <vector>
 #include <memory>
 #include <string>
+#include <vector>
 #include <compiler/disable_dll_interface.h>
 
 namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
+
+    class idAudit;
 
     namespace controlmethod {
 
@@ -48,7 +50,7 @@ namespace adcontrols {
             MethodItem();
             MethodItem( const MethodItem& );
             MethodItem( const std::string& model, uint32_t unitnumber, uint32_t funcid = 0 );
-
+            
             // An analytical instrument is consisted from serveral independent modules
             // such as autosampler, solvent delivery system, 2 units of (same models of) UV detector
             // and so on.  Each module can be indentified by a pair of modelname and unitnumber that 
@@ -87,7 +89,6 @@ namespace adcontrols {
 
         private:
             friend class boost::serialization::access;
-
             template<class Archive>
                 void serialize( Archive& ar, const unsigned int ) {
                 using namespace boost::serialization;
@@ -111,7 +112,7 @@ namespace adcontrols {
         ~ControlMethod();
         ControlMethod();
         ControlMethod( const ControlMethod& );
-        // ControlMethod& operator = ( const ControlMethod& );
+        ControlMethod& operator = ( const ControlMethod& );
 
         static const wchar_t * dataClass() { return L"adcontrols::ControlMethod"; }
         typedef size_t size_type;
@@ -127,26 +128,22 @@ namespace adcontrols {
         iterator erase( iterator first, iterator last );
         iterator insert( const controlmethod::MethodItem& );
 
+        static bool archive( std::ostream&, const ControlMethod& );
+        static bool restore( std::istream&, ControlMethod& );
+        const idAudit& ident() const;
+
     private:
+        class impl;
+        std::unique_ptr< impl > impl_;
+
         friend class boost::serialization::access;
-
-        std::string subject_;
-        std::string description_;
-        std::vector< controlmethod::MethodItem > items_;
-
-        template<class Archive>
-            void serialize( Archive& ar, const unsigned int ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(subject_)
-                & BOOST_SERIALIZATION_NVP(description_)
-                & BOOST_SERIALIZATION_NVP(items_);
-        }
+        template<class Archive> void serialize( Archive& ar, const unsigned int );
     };
 
     typedef std::shared_ptr<ControlMethod> ControlMethodPtr;
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::ControlMethod, 1 )
+BOOST_CLASS_VERSION( adcontrols::ControlMethod, 2 )
 BOOST_CLASS_VERSION( adcontrols::controlmethod::MethodItem, 1 )
 

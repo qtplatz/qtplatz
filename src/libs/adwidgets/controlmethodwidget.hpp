@@ -27,6 +27,7 @@
 
 #include <QWidget>
 #include "adwidgets_global.hpp"
+#include <adplugin/lifecycle.hpp>
 
 class QTabWidget;
 
@@ -36,7 +37,8 @@ namespace adwidgets {
 
     class ControlMethodTable;
 
-    class  ADWIDGETSSHARED_EXPORT ControlMethodWidget : public QWidget {
+    class  ADWIDGETSSHARED_EXPORT ControlMethodWidget : public QWidget
+                                                      , adplugin::LifeCycle {
         Q_OBJECT
     public:
         explicit ControlMethodWidget(QWidget *parent = 0);
@@ -44,6 +46,13 @@ namespace adwidgets {
 
         void addWidget( QWidget *, const QString& label );
         void addWidget( QWidget *, const QIcon&, const QString& );
+
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& );
+        void OnInitialUpdate();
+        void OnFinalClose();
+        bool getContents( boost::any& ) const;
+        bool setContents( boost::any& );
 
     private:
         ControlMethodTable * table_;
@@ -53,6 +62,7 @@ namespace adwidgets {
             
     public slots:
         void handleAdd( const adcontrols::controlmethod::MethodItem& );
+        void getLifeCycle( adplugin::LifeCycle *& p );
         
     };
 

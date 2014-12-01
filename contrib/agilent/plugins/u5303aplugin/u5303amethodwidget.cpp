@@ -81,4 +81,25 @@ u5303AMethodWidget::handle_trigger_apply()
     }
 }
 
+void
+u5303AMethodWidget::OnCreate( const adportable::Configuration& )
+{
+}
+
+void
+u5303AMethodWidget::OnInitialUpdate()
+{
+    onInitialUpdate();
+}
+
+void
+u5303AMethodWidget::OnFinalClose()
+{
+}
+
+void
+u5303AMethodWidget::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = this;
+}
 

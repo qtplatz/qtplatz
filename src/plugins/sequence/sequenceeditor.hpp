@@ -26,6 +26,7 @@
 #ifndef SEQUENCEEDITOR_H
 #define SEQUENCEEDITOR_H
 
+#include <coreplugin/idocument.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <map>
 
@@ -38,6 +39,22 @@ namespace sequence {
     class SequenceWnd;
     class SequenceFile;
 
+    class SequenceDocProxy : public Core::IDocument {
+        Q_OBJECT
+    public:
+        inline Core::IDocument * document() { return this; };
+
+        // Core::IDocument
+        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
+        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
+
+        QString defaultPath() const override;
+        QString suggestedFileName() const override;
+        bool isModified() const override;
+        bool isSaveAsAllowed() const override;
+        bool isFileReadOnly() const override;
+    };
+
     class SequenceEditor : public Core::IEditor {
         Q_OBJECT
     public:
@@ -48,42 +65,20 @@ namespace sequence {
         // implement Core::IEditor
         bool open( QString*, const QString&, const QString& ) override;
         Core::IDocument * document() override;
+
         QByteArray saveState() const override;
         bool restoreState( const QByteArray &state ) override;
+
         QWidget *toolBar() override;
         Core::Context context() const override;
         // <-- end Core::IEditor
         
-		void setSequence( const adsequence::sequence& );
-        void getSequence( adsequence::sequence& ) const;
-
-		void getDefault( adcontrols::ProcessMethod& ) const;
-        void getDefault( adcontrols::ControlMethod& ) const;
-
-		void setModified( bool );
-
-        // interface to SequenceFile
-
     signals:
         void fileNameChanged( const QString&, const QString& );
         
-    public slots:
-        void slotTitleChanged( const QString& title );
-
-    private slots:
-		void onLineAdded( size_t row );
-		void onLineDeleted( size_t prevRow );
-        void onCurrentChanged( size_t row, size_t column );
-            
     private:
-        void saveToObject( size_t row );
-        void saveToWidget( size_t row );
-        QList<int> context_;
-        QString displayName_;  // this will shows on Navigator's 'Open Documents' pane
-        SequenceFile * file_;
-        SequenceWnd * widget_;
-        size_t currRow_;
-        size_t currCol_;
+        QWidget * widget_;
+        SequenceDocProxy * proxy_;
     };
     
 } // sequence

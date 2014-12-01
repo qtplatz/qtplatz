@@ -32,8 +32,6 @@
 #include <adinterface/brokerS.h>
 #include <adinterface/brokerclientS.h>
 
-#include <compiler/diagnostic_pop.h>
-
 #include "session_i.hpp"
 #include <map>
 #include <string>
@@ -74,3 +72,4 @@ namespace adcontroller {
     };
 
 }
+#include <compiler/diagnostic_pop.h>

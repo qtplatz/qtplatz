@@ -26,7 +26,8 @@
 #include "constants.hpp"
 #include "mode.hpp"
 #include "mainwindow.hpp"
-#include "sequenceeditorfactory.hpp"
+#include "sequencefactory.hpp"
+
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/constants.hpp>
 #include <adportable/configuration.hpp>
@@ -35,9 +36,8 @@
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
 
-#include <QtCore/qplugin.h>
 #include <coreplugin/icore.h>
-//#include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/editormanager/editormanager.h>
@@ -53,24 +53,18 @@
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QHBoxLayout>
-# include <QtWidgets/QBoxLayout>
-# include <QtWidgets/QToolButton>
-# include <QtWidgets/QLabel>
-#else
-# include <QtGui/QHBoxLayout>
-# include <QtGui/QBoxLayout>
-# include <QtGui/QToolButton>
-# include <QtGui/QLabel>
-#endif
+#include <QAction>
+#include <QMessageBox>
+#include <QMainWindow>
+#include <QMenu>
+#include <QtPlugin>
 
-#include <QTableWidget>
-#include <QTextEdit>
-#include <QToolButton>
-#include <QStringList>
-#include <QDir>
-#include <QtCore>
+//#include <QTableWidget>
+//#include <QTextEdit>
+//#include <QToolButton>
+//#include <QStringList>
+//#include <QDir>
+//#include <QtCore>
 #include <vector>
 #include <algorithm>
 
@@ -97,29 +91,27 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
 
     //---------
     std::wstring pluginpath = qtwrapper::application::path( L".." );  // remove 'bin' from "~/qtplatz/bin"
-    
 
     if ( ! Core::MimeDatabase::addMimeTypes( ":/sequence/sequence-mimetype.xml", error_message ) )
         return false;
-    
-    // QList<int> context;
-    // Core::UniqueIDManager * uidm = core->uniqueIDManager();
-    // if ( uidm )
-    //     context.append( uidm->uniqueIdentifier( Constants::C_SEQUENCE ) );
-    
+
+#if 0    
     if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
         // Override system "New..." menu
         Core::Command* cmd = am->registerAction( new QAction(this), Core::Constants::NEW, Core::Context( Core::Constants::C_GLOBAL ) );
         cmd->action()->setText("New Sample Sequence"); // also change text on menu
         connect( cmd->action(), SIGNAL( triggered(bool) ), this, SLOT( handleFileNew( bool ) ) );
     }
-
     // expose editor factory for sequence (table)
     addAutoReleasedObject( new SequenceEditorFactory(this) );
 
     mainWindow_->activateLayout();
     mainWindow_->createActions();
-    QWidget * widget = mainWindow_->createContents( mode_.get() );
+#endif
+
+    mainWindow_->createActions();
+
+    auto widget = mainWindow_->createContents( mode_.get() );
 
     mode_->setWidget( widget );
     addObject( mode_.get() );

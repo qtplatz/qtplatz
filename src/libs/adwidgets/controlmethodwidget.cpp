@@ -33,23 +33,13 @@ ControlMethodWidget::ControlMethodWidget(QWidget *parent) : QWidget(parent)
                                                           , table_( new ControlMethodTable )
                                                           , tab_( new QTabWidget )
 {
-    // resize( 200, 100 );
-
     if ( auto layout = new QVBoxLayout( this ) ) {
+
         layout->setMargin(0);
         layout->setSpacing(0);
         layout->addWidget( tab_ );
         tab_->addTab( table_, "Time Events" );
 		tab_->setTabPosition( QTabWidget::South );
-
-        // if ( QSplitter * splitter = new QSplitter ) {
-        //     splitter->addWidget( tab_ );
-        //     splitter->addWidget( table_ );
-        //     // splitter->setStretchFactor( 0, 0 );
-        //     // splitter->setStretchFactor( 1, 1 );
-        //     // splitter->setOrientation ( Qt::Horizontal );
-        //     layout->addWidget( splitter );
-        // }
 
         QSizePolicy sizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
         sizePolicy.setHorizontalStretch(0);
@@ -80,4 +70,58 @@ ControlMethodWidget::addWidget( QWidget * widget, const QIcon& icon, const QStri
 void
 ControlMethodWidget::handleAdd( const adcontrols::controlmethod::MethodItem& )
 {
+}
+
+////////////////
+void
+ControlMethodWidget::OnCreate( const adportable::Configuration& )
+{
+}
+
+void
+ControlMethodWidget::OnInitialUpdate()
+{
+    //update_data( *pMethod_ );
+}
+
+void
+ControlMethodWidget::OnFinalClose()
+{
+}
+
+bool
+ControlMethodWidget::getContents( boost::any& any ) const
+{
+#if 0
+    if ( ! adportable::a_type< adcontrols::ProcessMethod >::is_pointer( any ) )
+        return false;
+
+    adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
+    const_cast< ControlMethodWidget *>(this)->update_data();
+    pm->appendMethod< adcontrols::CentroidMethod >( *pMethod_ );
+#endif    
+    return true;
+}
+
+bool
+ControlMethodWidget::setContents( boost::any& any )
+{
+#if 0
+    if ( ! adportable::a_type< adcontrols::ProcessMethod >::is_a( any ) )
+        return false;
+
+    const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );
+    const adcontrols::CentroidMethod * t = pm.find< adcontrols::CentroidMethod >();
+    if ( ! t )
+        return false;
+    *pMethod_ = *t;
+    update_data( *pMethod_ );
+#endif
+    return true;
+}
+
+void
+ControlMethodWidget::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = this;
 }

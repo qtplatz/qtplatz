@@ -23,10 +23,9 @@
 **
 **************************************************************************/
 
-#ifndef SEQUENCEFILE_H
-#define SEQUENCEFILE_H
+#pragma once
 
-#include <coreplugin/idocument.h>
+#include <QObject>
 #include <map>
 #include <string>
 #include <memory>
@@ -36,40 +35,16 @@ namespace adcontrols { class ProcessMethod; class ControlMethod; }
 
 namespace sequence {
 
-    class SequenceEditor;
+    class SequenceDocument : public QObject {
 
-    class SequenceFile : public Core::IDocument {
-      Q_OBJECT
+        Q_OBJECT
+
     public:
-      ~SequenceFile();
-      explicit SequenceFile( SequenceEditor&, QObject *parent = 0 );
+        ~SequenceDocument();
+        explicit SequenceDocument( QObject *parent = 0 );
 
-      bool load( const QString& path );
-      void setModified( bool val = true );
+        bool load( const QString& path );
 
-      // implement Core::IFile
-        // Core::IDocument
-        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
-        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
-
-        QString defaultPath() const override;
-        QString suggestedFileName() const override;
-        bool isModified() const override;
-        bool isSaveAsAllowed() const override;
-        bool isFileReadOnly() const override;
-        // virtual bool save(const QString &fileName);
-        // virtual QString fileName() const;
-      
-        // virtual QString defaultPath() const;
-        // virtual QString suggestedFileName() const;
-        // virtual QString mimeType() const;
-      
-        // virtual bool isModified() const;
-        // virtual bool isReadOnly() const;
-        // virtual bool isSaveAsAllowed() const;
-      
-        // virtual void modified(ReloadBehavior *behavior);
-        // virtual void checkPermissions() {}
         // 
         adsequence::sequence& adsequence();
         const adsequence::sequence& adsequence() const;
@@ -86,11 +61,8 @@ namespace sequence {
     signals:
 
     protected slots:
-        void modified() { setModified( true ); }
 
     private:
-		SequenceEditor& editor_;
-        const QString mimeType_;
         QString defaultPath_;
         QString filename_;
         bool modified_;
@@ -103,4 +75,3 @@ namespace sequence {
 
 }
 
-#endif // SEQUENCEFILE_H
