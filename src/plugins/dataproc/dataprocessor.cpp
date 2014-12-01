@@ -263,6 +263,7 @@ Dataprocessor::open(const QString &filename )
             try {
                 file->accept( *this );
                 setDisplayName( filename );
+                setFilePath( filename );
                 return true;
             } catch ( boost::exception& ex ) {
                 ADERROR() << boost::diagnostic_information( ex );
@@ -279,12 +280,6 @@ Dataprocessor::open(const QString &filename )
     }
     return false;
 }
-
-//Core::IDocument *
-//Dataprocessor::ifile()
-//{
-//    return static_cast<Core::IDocument *>(ifileimpl_.get());
-//}
 
 adcontrols::datafile&
 Dataprocessor::file()
