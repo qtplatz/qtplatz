@@ -84,7 +84,7 @@ namespace sequence {
         QAction * actionConnect_;
         QLineEdit * ctrlMethodName_;
         QLineEdit * procMethodName_;
-        std::unique_ptr< adcontrols::ControlMethod > defaultControlMethod_;
+        std::shared_ptr< adcontrols::ControlMethod > ctrl_method_;
 
         std::vector< adplugin::LifeCycle * > editors_;
 

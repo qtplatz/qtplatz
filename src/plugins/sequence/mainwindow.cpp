@@ -92,7 +92,7 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , actionConnect_ ( 0 )
                                         , ctrlMethodName_( 0 )
                                         , procMethodName_( 0 )
-                                        , defaultControlMethod_( new adcontrols::ControlMethod() )
+                                        , ctrl_method_( std::make_shared< adcontrols::ControlMethod >() )
 {
     instance_ = this;
 	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
@@ -124,6 +124,7 @@ MainWindow::OnInitialUpdate()
             QWidget * widget = factory.createEditor( 0 );
 			if ( widget ) {
 				createDockWidget( widget, factory.title(), objname );
+
                 if ( factory.method_type() == adextension::iEditorFactory::CONTROL_METHOD )
                     connect( widget, SIGNAL( onTriggerAdd( const adcontrols::controlmethod::MethodItem& ) )
                              , timeEvent, SLOT( handleAdd( const adcontrols::controlmethod::MethodItem& ) ) );
@@ -138,9 +139,9 @@ MainWindow::OnInitialUpdate()
         }
     }
 
-
+    
     // load GUI defined default values for get configuration
-    getControlMethod( *defaultControlMethod_ );
+    getControlMethod( *ctrl_method_ );
 
     setSimpleDockWidgetArrangement();
 }

@@ -26,6 +26,8 @@
 #define DIGITIZER_HPP
 
 #include "u5303a_global.hpp"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
 #include <functional>
 #include <vector>
 #include <memory>
@@ -44,6 +46,19 @@ namespace u5303a {
         std::string Description;
         std::string InstrumentModel;
         std::string FirmwareRevision;
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize( Archive& ar, const unsigned int version ) {
+            using namespace boost::serialization;
+            (void)version;
+            ar & BOOST_SERIALIZATION_NVP( Identifier );
+            ar & BOOST_SERIALIZATION_NVP( Revision );
+            ar & BOOST_SERIALIZATION_NVP( Vendor );
+            ar & BOOST_SERIALIZATION_NVP( Description );
+            ar & BOOST_SERIALIZATION_NVP( InstrumentModel );
+            ar & BOOST_SERIALIZATION_NVP( FirmwareRevision );
+        }
     };
 
 	class U5303ASHARED_EXPORT method {
@@ -68,6 +83,22 @@ namespace u5303a {
         long delay_to_first_s;
         long invert_signal;
         long nsa;
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize( Archive& ar, const unsigned int version ) {
+            using namespace boost::serialization;
+            (void)version;
+            ar & BOOST_SERIALIZATION_NVP( front_end_range );
+            ar & BOOST_SERIALIZATION_NVP( front_end_offset );
+            ar & BOOST_SERIALIZATION_NVP( ext_trigger_level );
+            ar & BOOST_SERIALIZATION_NVP( samp_rate );
+            ar & BOOST_SERIALIZATION_NVP( nbr_of_s_to_acquire );
+            ar & BOOST_SERIALIZATION_NVP( nbr_of_averages );
+            ar & BOOST_SERIALIZATION_NVP( delay_to_first_s );
+            ar & BOOST_SERIALIZATION_NVP( invert_signal );
+            ar & BOOST_SERIALIZATION_NVP( nsa );
+        }
     };
 
 	class U5303ASHARED_EXPORT waveform : public std::enable_shared_from_this< waveform > {
@@ -111,7 +142,8 @@ namespace u5303a {
         void disconnect_waveform( waveform_reply_type );
     };
 
-
 }
+
+BOOST_CLASS_VERSION( u5303a::method, 1 )
 
 #endif

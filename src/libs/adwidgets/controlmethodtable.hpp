@@ -38,6 +38,8 @@ namespace adcontrols { class ControlMethod; namespace controlmethod { class Meth
 
 namespace adwidgets {
 
+    class ControlMeethodWidget;
+
     class ControlMethodTable : public TableView {
         Q_OBJECT
     public:
@@ -45,16 +47,23 @@ namespace adwidgets {
 
         void onInitialUpdate();
 
-        void setContents( const adcontrols::ControlMethod& );
+        void setSharedPointer( std::shared_ptr< adcontrols::ControlMethod > );
+        bool setContents( const adcontrols::ControlMethod& );
         bool getContents( adcontrols::ControlMethod& );
         bool append( const adcontrols::controlmethod::MethodItem& );
         const adcontrols::controlmethod::MethodItem& operator []( int row ) const;
-
         QStandardItemModel& model();
 
+        void addItem( const QString& );
+
+        // TableView
+        void showContextMenu( const QPoint& ) override;
+
     private:
+        friend class ControlMethodWidget;
         QStandardItemModel * model_;
         std::shared_ptr< adcontrols::ControlMethod > method_;
+        QList< QString > items_;
 
     signals:
 

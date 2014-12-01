@@ -28,10 +28,14 @@
 #include <QWidget>
 #include "adwidgets_global.hpp"
 #include <adplugin/lifecycle.hpp>
+#include <memory>
 
 class QTabWidget;
 
-namespace adcontrols { namespace controlmethod { class MethodItem; } }
+namespace adcontrols { 
+    class ControlMethod;
+    namespace controlmethod { class MethodItem; }
+}
 
 namespace adwidgets {
 
@@ -41,11 +45,16 @@ namespace adwidgets {
                                                       , adplugin::LifeCycle {
         Q_OBJECT
     public:
+        ~ControlMethodWidget();
         explicit ControlMethodWidget(QWidget *parent = 0);
 		QSize sizeHint() const override;
 
         void addWidget( QWidget *, const QString& label );
         void addWidget( QWidget *, const QIcon&, const QString& );
+
+        void addItem( const QString&, QWidget * );
+        bool getControlMethod( adcontrols::ControlMethod& );
+        void setControlMethod( const adcontrols::ControlMethod& );
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& );
@@ -55,15 +64,16 @@ namespace adwidgets {
         bool setContents( boost::any& );
 
     private:
-        ControlMethodTable * table_;
-        QTabWidget * tab_;
-        
+        class impl;
+        std::unique_ptr< impl > impl_;
+
     signals:
             
     public slots:
         void handleAdd( const adcontrols::controlmethod::MethodItem& );
         void getLifeCycle( adplugin::LifeCycle *& p );
-        
+    private slots:
+    void showContextMenu( const QPoint& pt );
     };
 
 }

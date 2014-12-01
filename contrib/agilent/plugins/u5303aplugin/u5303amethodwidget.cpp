@@ -26,7 +26,11 @@
 #include "u5303aform.hpp"
 #include "u5303amethodtable.hpp"
 #include "document.hpp"
+#include <u5303a/digitizer.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include <adinterface/controlserver.hpp>
+#include <adportable/is_type.hpp>
+#include <adportable/serializer.hpp>
 #include <u5303a/digitizer.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
@@ -103,3 +107,52 @@ u5303AMethodWidget::getLifeCycle( adplugin::LifeCycle *& p )
     p = this;
 }
 
+bool
+u5303AMethodWidget::getContents( boost::any& a ) const
+{
+    if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
+
+        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
+
+        u5303a::method m;
+        
+        std::string device;
+        adportable::serializer< u5303a::method >::serialize( m, device );
+
+        adcontrols::controlmethod::MethodItem item;
+        item.modelname( "u5303a" );
+        item.isInitialCondition( true );
+        item.itemLabel( "u5303a" );
+        item.unitnumber( 1 );
+        item.funcid( 1 );
+        item.data( device.data(), device.size() );
+        ptr->insert( item );
+        return true;        
+    }
+    else if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_pointer( a ) ) {
+
+        auto pi = boost::any_cast<adcontrols::controlmethod::MethodItem * >( a );                
+
+        u5303a::method m;
+        if ( auto table = findChild< u5303AMethodTable * >() ) {
+            table->getContents( m );
+
+            std::string device;
+            adportable::serializer< u5303a::method >::serialize( m, device );
+            
+            pi->modelname( "u5303a" );
+            pi->itemLabel( "u5303a" );
+            pi->unitnumber( 1 );
+            pi->funcid( 1 );
+            pi->data( device.data(), device.size() );
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+u5303AMethodWidget::setContents( boost::any& )
+{
+    return false;
+}

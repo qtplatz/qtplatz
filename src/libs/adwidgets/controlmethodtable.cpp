@@ -28,6 +28,7 @@
 
 #include <QStandardItemModel>
 #include <QHeaderView>
+#include <QMenu>
 #include <boost/exception/all.hpp>
 
 using namespace adwidgets;
@@ -57,7 +58,7 @@ ControlMethodTable::onInitialUpdate()
 	model.setColumnCount( 3 );
     model.setRowCount( 1 );
 
-    model.setHeaderData( 0,  Qt::Horizontal, QObject::tr( "time(s)" ) );
+    model.setHeaderData( 0,  Qt::Horizontal, QObject::tr( "time(min)" ) );
     model.setHeaderData( 1,  Qt::Horizontal, QObject::tr( "module" ) );
     model.setHeaderData( 2,  Qt::Horizontal, QObject::tr( "description" ) );
 
@@ -68,9 +69,10 @@ ControlMethodTable::onInitialUpdate()
 }
 
 void
-ControlMethodTable::setContents( const adcontrols::ControlMethod& cm )
+ControlMethodTable::setSharedPointer( std::shared_ptr< adcontrols::ControlMethod > ptr )
 {
-    method_ = std::make_shared< adcontrols::ControlMethod >( cm );
+    method_ = ptr;
+    setContents( *method_ );
 }
 
 bool 
@@ -83,12 +85,28 @@ ControlMethodTable::getContents( adcontrols::ControlMethod& cm )
     return false;
 }
 
+bool 
+ControlMethodTable::setContents( const adcontrols::ControlMethod& m )
+{
+    QStandardItemModel& model = *model_;
+    model.setRowCount( m.size() );
+    auto it = m.begin();
+    for ( int row = 0; row < m.size(); ++row ) {
+        model.setData( model.index( row, 0 ), it->time() );
+        model.setData( model.index( row, 1 ), QString::fromStdString( it->modelname() ) );
+        ++it;
+    }
+    return true;
+}
+
 bool
 ControlMethodTable::append( const adcontrols::controlmethod::MethodItem& item )
 {
     (void)item;
     return false;
 }
+
+
 
 const adcontrols::controlmethod::MethodItem&
 ControlMethodTable::operator [] ( int row ) const
@@ -106,8 +124,18 @@ ControlMethodTable::operator [] ( int row ) const
     return *method_->begin();
 }
 
+void
+ControlMethodTable::addItem( const QString& text )
+{
+    items_ << text;
+}
 
-
-
-
-
+void
+ControlMethodTable::showContextMenu( const QPoint& pt )
+{
+    std::vector< QAction * > actions;
+    QMenu menu;
+    
+    actions.push_back( menu.addAction( "Add to peak table" ) );
+    QAction * selected = menu.exec( this->mapToGlobal( pt ) );
+}

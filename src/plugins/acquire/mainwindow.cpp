@@ -77,7 +77,8 @@ MainWindow::init( const adportable::Configuration& config )
 void
 MainWindow::OnInitialUpdate()
 {
-    auto timeEvent = new adwidgets::ControlMethodWidget;
+    auto editor = new adwidgets::ControlMethodWidget;
+    editor->OnInitialUpdate();
 
     auto visitables = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
 
@@ -89,17 +90,10 @@ MainWindow::OnInitialUpdate()
             if ( factory.method_type() == adextension::iEditorFactory::CONTROL_METHOD ) {
 
                 if ( auto widget = factory.createEditor( 0 ) ) {
-                    // auto container = new adwidgets::ControlMethodContainer;
-                    // container->addWidget( widget, factory.title() );
 
                     createDockWidget( widget, factory.title(), "ControlMethod" );
+                    editor->addItem( factory.title(), widget );
 
-                    connect( widget, SIGNAL( onTriggerAdd( const adcontrols::controlmethod::MethodItem& ) )
-                             , timeEvent, SLOT( handleAdd( const adcontrols::controlmethod::MethodItem& ) ) );
-
-                    adplugin::LifeCycleAccessor accessor( widget );
-                    if ( adplugin::LifeCycle * pLifeCycle = accessor.get() )
-                        pLifeCycle->OnInitialUpdate();
                 }
                 
             }
@@ -107,16 +101,8 @@ MainWindow::OnInitialUpdate()
         }
     }
 
-    createDockWidget( timeEvent, "Control Method", "ControlMethodWidget" );
-    
-	QList< QDockWidget *> dockWidgets = this->dockWidgets();
-  
-    foreach ( QDockWidget * dockWidget, dockWidgets ) {
-		adplugin::LifeCycleAccessor accessor( dockWidget->widget() );
-		adplugin::LifeCycle * pLifeCycle = accessor.get();
-		if ( pLifeCycle )
-			pLifeCycle->OnInitialUpdate();
-    }
+    createDockWidget( editor, "Control Method", "ControlMethodWidget" );
+
 	setSimpleDockWidgetArrangement();
 }
 

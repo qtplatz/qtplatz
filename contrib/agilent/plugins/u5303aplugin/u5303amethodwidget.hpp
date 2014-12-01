@@ -41,8 +41,8 @@ namespace u5303a {
         void OnInitialUpdate() override;
         void OnFinalClose() override;
         //virtual void onUpdate( boost::any& ) {}
-        //virtual bool getContents( boost::any& ) const { return false; }
-        //virtual bool setContents( boost::any& ) { return false; }
+        virtual bool getContents( boost::any& ) const;
+        virtual bool setContents( boost::any& );
 
         void onInitialUpdate();
         void onStatus( int );
