@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "acquireplugin.hpp"
+#include "acquiredocument.hpp"
 #include "acquiremode.hpp"
 #include "brokerevent_i.hpp"
 #include "constants.hpp"
@@ -55,6 +56,7 @@
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/centroidmethod.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/trace.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/timeutil.hpp>
@@ -66,7 +68,6 @@
 #include <adportable/configloader.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
-//#include <adportable/serializer.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/manager.hpp>
@@ -107,6 +108,7 @@
 #include <QAction>
 #include <QComboBox>
 #include <QtCore/qplugin.h>
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QBoxLayout>
 #include <QToolButton>
@@ -231,6 +233,8 @@ AcquirePlugin::AcquirePlugin() : mainWindow_(0)
                                , actionStop_(0)
                                , actionSnapshot_(0)
                                , actionInject_(0)
+                               , actMethodOpen_(0)
+                               , actMethodSave_(0)
                                , pConfig_( 0 )
                                , traceBox_( 0 ) 
                                , work_( io_service_ )
@@ -260,6 +264,13 @@ AcquirePlugin::initialize_actions()
     //------------ snapshot -------------
     actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
     connect( actionSnapshot_, &QAction::triggered, this, &AcquirePlugin::actionSnapshot );
+    
+    //------------ method file open/save
+    actMethodOpen_ = new QAction( QIcon( ":/acquire/images/fileopen.png" ), tr( "Method open..." ), this );
+    connect( actMethodOpen_, &QAction::triggered, this, &AcquirePlugin::actMethodOpen );
+
+    actMethodSave_ = new QAction( QIcon( ":/acquire/images/filesave.png" ), tr( "Method save..." ), this );
+    connect( actMethodSave_, &QAction::triggered, this, &AcquirePlugin::actMethodSave );
 
     actionConnect_->setEnabled( true );
     actionInitRun_->setEnabled( false );
@@ -274,15 +285,14 @@ AcquirePlugin::initialize_actions()
     if ( auto am = Core::ActionManager::instance() ) {
         Core::Command * cmd = 0;
         cmd = am->registerAction( actionConnect_, constants::CONNECT, globalcontext );
-        do {
-            //Core::ICore::instance()->modeManager()->addAction( cmd, 90 );
-        } while(0);
 
         cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, globalcontext );
         cmd = am->registerAction( actionRun_, constants::RUN, globalcontext );
         cmd = am->registerAction( actionStop_, constants::STOP, globalcontext );
         cmd = am->registerAction( actionInject_, constants::ACQUISITION, globalcontext );
         cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, globalcontext );
+        cmd = am->registerAction( actMethodOpen_, constants::METHODOPEN, globalcontext );
+        cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, globalcontext );
         (void)cmd;
     }
 }
@@ -330,14 +340,6 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     connect( qbroker, &QBroker::initialized, this, &AcquirePlugin::handle_broker_initialized );
     addObject( qbroker );
 
-    // try {
-    //     // initialize_broker();
-    //     OrbConnection::instance()->initialize();
-    //     Broker::Manager_var mgr = OrbConnection::instance()->brokerManager();
-    // } catch ( ... ) {
-    //     ADERROR() << "exception handled for initailize_broker: " << boost::current_exception_diagnostic_information();
-    // }
-
     mode->setWidget( createContents( mode ) );
 
     mainWindow_->setSimpleDockWidgetArrangement();
@@ -350,6 +352,8 @@ void
 AcquirePlugin::extensionsInitialized()
 {
 	mainWindow_->OnInitialUpdate();
+    document::instance()->initialSetup();
+    mainWindow_->setControlMethod( *document::instance()->controlMethod() );
 }
 
 void
@@ -374,6 +378,8 @@ AcquirePlugin::aboutToShutdown()
 
     actionDisconnect();
     pImpl_->terminate_broker_session();
+
+    document::instance()->finalClose( mainWindow_ );
     mainWindow_->OnFinalClose();
 
     io_service_.stop();
@@ -571,6 +577,39 @@ AcquirePlugin::actionSnapshot()
 			selectRange( m0, m1, 0, 0 );
         }
     }
+}
+
+void
+AcquirePlugin::actMethodOpen()
+{
+    QString name
+        = QFileDialog::getOpenFileName( mainWindow_
+                                        , tr("Open control method")
+                                        , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
+                                        , tr( "Control method files(*.cmth)" ) );
+    adcontrols::ControlMethod m;
+    if ( document::load( name, m ) ) {
+        document::instance()->setControlMethod( m, name );
+        mainWindow_->setControlMethod( m );
+    }
+    
+}
+
+void
+AcquirePlugin::actMethodSave()
+{
+    QString name
+        = QFileDialog::getSaveFileName( mainWindow_
+                                        , tr("Save control method")
+                                        , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
+                                        , tr( "Control method files(*.cmth)" ) );
+    adcontrols::ControlMethod m;
+    mainWindow_->getControlMethod( m );
+    document::instance()->setControlMethod( m );
+    if ( document::save( name, m ) ) {
+        document::instance()->setControlMethod( m, name );
+    }
+
 }
 
 bool
@@ -1063,15 +1102,18 @@ AcquirePlugin::createContents( Core::IMode * mode )
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
         }
+
         Utils::StyledBar * toolBar2 = new Utils::StyledBar;
         if ( toolBar2 ) {
             toolBar2->setProperty( "topBorder", true );
             QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
             toolBarLayout->setMargin(0);
             toolBarLayout->setSpacing(0);
-            //Core::ActionManager *am = Core::ICore::instance()->actionManager();
+
             if ( auto am = Core::ActionManager::instance() ) {
                 toolBarLayout->addWidget( toolButton( actionSnapshot_ ) );
+                toolBarLayout->addWidget( toolButton( actMethodOpen_ ) );
+                toolBarLayout->addWidget( toolButton( actMethodSave_ ) );
                 toolBarLayout->addWidget( new Utils::StyledSeparator );
                 toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );
                 traceBox_ = new QComboBox;
@@ -1084,18 +1126,6 @@ AcquirePlugin::createContents( Core::IMode * mode )
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
         }
-
-        /*
-        //  [TraceWidget] | [RightPanePlaceHolder]
-        Core::MiniSplitter * rightPaneSplitter = new Core::MiniSplitter;
-        if ( rightPaneSplitter ) {
-        rightPaneSplitter->addWidget( new adwidgets::TraceWidget );
-        //rightPaneHSplitter->addWidget( new Core::RightPanePlaceHolder( mode ) );
-        rightPaneSplitter->addWidget( new QTextEdit( "RightPanePlaceHolder" ) );
-        rightPaneSplitter->setStretchFactor( 0, 1 );
-        rightPaneSplitter->setStretchFactor( 1, 0 );
-        }
-        */
 
         QWidget* centralWidget = new QWidget;
         mainWindow_->setCentralWidget( centralWidget );

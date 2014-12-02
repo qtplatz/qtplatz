@@ -31,8 +31,10 @@
 #include <adinterface/receiverC.h>
 #include <utils/fancymainwindow.h>
 
+namespace adcontrols { class ControlMethod; }
 namespace adportable { class Configuration; }
 namespace adextension { class iMonitorFactory; }
+namespace adwidgets { class ControlMethodWidget; }
 class QDockWidget;
 class QAction;
 class QMainWindow;
@@ -50,7 +52,6 @@ namespace acquire {  namespace internal {
             ~MainWindow();
             explicit MainWindow(QWidget *parent = 0);
       
-            // QMainWindow * mainWindow() const;
             void init( const adportable::Configuration& config );
             void setSimpleDockWidgetArrangement();
 
@@ -58,7 +59,8 @@ namespace acquire {  namespace internal {
             void OnFinalClose();
             // 
             void eventLog( const QString& );
-
+            void getControlMethod( adcontrols::ControlMethod& );
+            void setControlMethod( const adcontrols::ControlMethod& );
             //
         signals:
             void signal_eventLog( QString );
@@ -67,15 +69,12 @@ namespace acquire {  namespace internal {
 
         public slots:
             void handle_message( unsigned long msg, unsigned long value );
-            // void handle_eventLog( const ::EventLog::LogMessage& );
             void handle_shutdown();
             void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
         private:
             QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
-
-        public:
-            //const AcquireManagerActions& acquireManagerActions() const;
+            adwidgets::ControlMethodWidget * editor_;
 
         };
 

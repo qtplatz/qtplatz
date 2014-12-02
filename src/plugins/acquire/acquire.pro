@@ -18,6 +18,7 @@ include(../../qwt.pri)
 LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adlog) \
+        -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(adinterface) \
         -l$$qtLibraryTarget(adplot) \
@@ -53,7 +54,8 @@ SOURCES += \
 	acquireplugin.cpp \
         orbconnection.cpp \
 	mainwindow.cpp \
-        qbroker.cpp
+        qbroker.cpp \
+        acquiredocument.cpp
 
 HEADERS +=  acquire_global.h \
 	acquiremode.hpp \
@@ -61,7 +63,8 @@ HEADERS +=  acquire_global.h \
         orbconnection.hpp \
 	mainwindow.hpp \
 	constants.hpp \
-    qbroker.hpp
+        qbroker.hpp \
+        acquiredocument.hpp
 
 OTHER_FILES += acquire.pluginspec \
     acquire.config.xml \

@@ -104,6 +104,8 @@ namespace acquire {
             void actionRun();
             void actionStop();
             void actionInject();
+            void actMethodOpen();
+            void actMethodSave();
 
             void handle_message( unsigned long msg, unsigned long value );
             void handle_shutdown();
@@ -147,6 +149,9 @@ namespace acquire {
             QAction * actionStop_;
             QAction * actionSnapshot_;
             QAction * actionInject_;
+
+            QAction * actMethodOpen_;
+            QAction * actMethodSave_;
             adportable::Configuration * pConfig_;
 
             void initialize_actions();

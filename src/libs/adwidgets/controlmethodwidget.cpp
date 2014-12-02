@@ -148,7 +148,6 @@ void
 ControlMethodWidget::addEditor( QWidget * widget )
 {
     impl_->table_->addItem( widget->objectName() ); // for menu
-    //impl_->widgets_.push_back( widget );
 
     adplugin::LifeCycleAccessor accessor( widget );
     if ( auto lifecycle = accessor.get() ) {
@@ -183,6 +182,20 @@ ControlMethodWidget::setMethod( const adcontrols::controlmethod::MethodItem& mi 
     }
     return false;
 
+}
+
+void
+ControlMethodWidget::setControlMethod( const adcontrols::ControlMethod& m )
+{
+    impl_->method_ = std::make_shared< adcontrols::ControlMethod >( m );
+    impl_->table_->setSharedPointer( impl_->method_ );
+}
+
+bool
+ControlMethodWidget::getControlMethod( adcontrols::ControlMethod& m )
+{
+    m = *(impl_->method_);
+    return true;
 }
 
 ////////////////

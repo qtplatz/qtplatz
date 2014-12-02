@@ -60,18 +60,16 @@ ControlMethodTable::onInitialUpdate()
 {
     QStandardItemModel& model = *model_;
 
-	model.setColumnCount( 5 );
+	model.setColumnCount( 4 );
     model.setRowCount( 1 );
 
     model.setHeaderData( 0,  Qt::Horizontal, QObject::tr( "time(min)" ) );
     model.setHeaderData( 1,  Qt::Horizontal, QObject::tr( "module" ) );
     model.setHeaderData( 2,  Qt::Horizontal, QObject::tr( "function" ) );
     model.setHeaderData( 3,  Qt::Horizontal, QObject::tr( "description" ) );
-    model.setHeaderData( 4,  Qt::Horizontal, QObject::tr( "index" ) );
 
     resizeColumnsToContents();
     resizeRowsToContents();
-    setColumnHidden( 4, true );
 
     horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
 }
@@ -88,14 +86,13 @@ ControlMethodTable::setContents( const adcontrols::ControlMethod& m )
 {
     QStandardItemModel& model = *model_;
     model.setRowCount( int( m.size() ) );
-    auto it = m.begin();
-    for ( int row = 0; row < m.size(); ++row ) {
-        model.setData( model.index( row, 0 ), it->time() );
-        model.setData( model.index( row, 1 ), QString::fromStdString( it->modelname() ) );
-        model.setData( model.index( row, 2 ), it->funcid() );
-        model.setData( model.index( row, 3 ), QString::fromStdString( it->itemLabel() ) );
-        model.setData( model.index( row, 4 ), row );
-        ++it;
+    int row = 0;
+    for ( auto& mi : m ) {
+        model.setData( model.index( row, 0 ), mi.time() );
+        model.setData( model.index( row, 1 ), QString::fromStdString( mi.modelname() ) );
+        model.setData( model.index( row, 2 ), mi.funcid() );
+        model.setData( model.index( row, 3 ), QString::fromStdString( mi.itemLabel() ) );
+        ++row;
     }
     return true;
 }
@@ -107,16 +104,22 @@ ControlMethodTable::addItem( const QString& text )
 }
 
 void
+ControlMethodTable::commit()
+{
+    int row = selectionModel()->currentIndex().row();
+    auto it = method_->begin() + row;
+    parent_->getMethod( *it );
+}
+
+void
 ControlMethodTable::currentChanged( const QModelIndex& curr, const QModelIndex& prev )
 {
     if ( prev.isValid() ) {
-        int idx = model_->index( prev.row(), 4 ).data().toInt();
-        auto it = method_->begin() + idx;
+        auto it = method_->begin() + prev.row();
         parent_->getMethod( *it );
     }
     if ( curr.isValid() ) {
-        int idx = model_->index( curr.row(), 4 ).data().toInt();
-        auto it = method_->begin() + idx;
+        auto it = method_->begin() + curr.row();
         parent_->setMethod( *it );
     }
 }
@@ -148,24 +151,6 @@ ControlMethodTable::showContextMenu( const QPoint& pt )
 
 }
 
-void
-ControlMethodTable::insert( const QString& title
-                            , const adcontrols::controlmethod::MethodItem& mi
-                            , const QModelIndex& index )
-{
-    QStandardItemModel& model = *model_;
-
-    int row = index.isValid() ? index.row() : model.rowCount();
-    model.insertRow( row );
-
-    model.setData( model.index( row, 0 ), mi.time() );
-    model.setData( model.index( row, 1 ), QString::fromStdString( mi.modelname() ) );
-    model.setData( model.index( row, 2 ), mi.funcid() );
-    model.setData( model.index( row, 3 ), QString::fromStdString( mi.itemLabel() ) );
-    size_t idx = std::distance( method_->begin(), method_->insert( mi ) );
-    model.setData( model.index( row, 4 ), idx );
-}
-
 bool
 ControlMethodTable::append( const adcontrols::controlmethod::MethodItem& mi )
 {
@@ -182,3 +167,4 @@ ControlMethodTable::append( const adcontrols::controlmethod::MethodItem& mi )
     model.setData( model.index( row, 4 ), idx );
     return true;
 }
+

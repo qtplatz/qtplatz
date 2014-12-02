@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "controlmethod.hpp"
+#include "serializer.hpp"
 #include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -306,3 +307,16 @@ ControlMethod::restore( std::istream& is, ControlMethod& t )
     ar >> t;
     return true;
 }
+
+bool
+ControlMethod::xml_archive( std::wostream& os, const ControlMethod& t )
+{
+    return internal::xmlSerializer("ControlMethod").archive( os, t );
+}
+
+bool
+ControlMethod::xml_restore( std::wistream& is, ControlMethod& t )
+{
+    return internal::xmlSerializer("ControlMethod").restore( is, t );
+}
+

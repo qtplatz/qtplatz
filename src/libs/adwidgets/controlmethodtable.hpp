@@ -48,14 +48,13 @@ namespace adwidgets {
         void onInitialUpdate();
 
         void setSharedPointer( std::shared_ptr< adcontrols::ControlMethod > );
-        //bool setContents( const adcontrols::ControlMethod& );
         bool getContents( adcontrols::ControlMethod& );
-        bool append( const adcontrols::controlmethod::MethodItem& );
         const adcontrols::controlmethod::MethodItem& operator []( int row ) const;
         QStandardItemModel& model();
 
         void addItem( const QString& );
-        void insert( const QString& title, const adcontrols::controlmethod::MethodItem& mi, const QModelIndex& index );
+        bool append( const adcontrols::controlmethod::MethodItem& );
+        void commit();
 
         // TableView
         void showContextMenu( const QPoint& ) override;

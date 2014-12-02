@@ -356,7 +356,7 @@ MainWindow::createStyledBarMiddle()
             features->addItem( tr("Find peaks") );
             toolBarLayout->addWidget( features );
 
-            connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MainWindow::handleFeatureSelected ); // (int) ) );
+            connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MainWindow::handleFeatureSelected );
             connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &MainWindow::handleFeatureActivated );
             features->setContextMenuPolicy( Qt::CustomContextMenu );
 

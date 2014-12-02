@@ -127,10 +127,12 @@ namespace adcontrols {
         iterator erase( iterator pos );
         iterator erase( iterator first, iterator last );
         iterator insert( const controlmethod::MethodItem& );
+        const idAudit& ident() const;
 
         static bool archive( std::ostream&, const ControlMethod& );
         static bool restore( std::istream&, ControlMethod& );
-        const idAudit& ident() const;
+        static bool xml_archive( std::wostream&, const ControlMethod& );
+        static bool xml_restore( std::wistream&, ControlMethod& );
 
     private:
         class impl;

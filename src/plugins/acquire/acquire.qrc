@@ -25,5 +25,7 @@
         <file>images/Button Rewind.png</file>
         <file>images/Button Stop.png</file>
         <file>images/RunControl.png</file>
+        <file>images/fileopen.png</file>
+        <file>images/filesave.png</file>
     </qresource>
 </RCC>

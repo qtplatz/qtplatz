@@ -63,6 +63,7 @@ MainWindow::~MainWindow()
 }
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
+                                        , editor_(0)
 {
 }
 
@@ -77,8 +78,8 @@ MainWindow::init( const adportable::Configuration& config )
 void
 MainWindow::OnInitialUpdate()
 {
-    auto editor = new adwidgets::ControlMethodWidget;
-    editor->OnInitialUpdate();
+    editor_ = new adwidgets::ControlMethodWidget;
+    editor_->OnInitialUpdate();
 
     auto visitables = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
 
@@ -92,16 +93,17 @@ MainWindow::OnInitialUpdate()
                 if ( auto widget = factory.createEditor( 0 ) ) {
                     widget->setObjectName( factory.title() );
                     createDockWidget( widget, factory.title(), "ControlMethod" );
-                    editor->addEditor( widget );
+                    editor_->addEditor( widget );
                 }
                 
             }
 
         }
     }
-    connect( editor, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
 
-    createDockWidget( editor, "Control Method", "ControlMethodWidget" );
+    connect( editor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
+
+    createDockWidget( editor_, "Control Method", "ControlMethodWidget" );
 
 	setSimpleDockWidgetArrangement();
 }
@@ -169,9 +171,9 @@ MainWindow::setSimpleDockWidgetArrangement()
         if ( npos++ >= 1 && npos < nsize )
             tabifyDockWidget( widgets[0], widget );
     }
-    
-    QList< QTabBar * > tabBars = findChildren< QTabBar * >();
-	std::for_each( tabBars.begin(), tabBars.end(), []( QTabBar * tabBar ){ tabBar->setCurrentIndex( 0 ); }); 
+
+    if ( !widgets.isEmpty() )
+        (*widgets.begin())->raise();
 }
 
 void
@@ -187,6 +189,18 @@ void
 MainWindow::eventLog( const QString& text )
 {
 	emit signal_eventLog( text );
+}
+
+void
+MainWindow::setControlMethod( const adcontrols::ControlMethod& m )
+{
+    editor_->setControlMethod( m );
+}
+
+void
+MainWindow::getControlMethod( adcontrols::ControlMethod& m )
+{
+    editor_->getControlMethod( m );
 }
 
 void
