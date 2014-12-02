@@ -27,6 +27,7 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adplugin/lifecycle.hpp>
+#include <adportable/debug.hpp>
 #include <boost/any.hpp>
 #include <QVBoxLayout>
 #include <QSplitter>
@@ -40,14 +41,57 @@ namespace adwidgets {
         ControlMethodTable * table_;
         QTabWidget * tab_;
         std::shared_ptr< adcontrols::ControlMethod > method_;
-        QList< QWidget * > widgets_;
-        std::vector< adplugin::LifeCycle * > editors_;
+        std::vector< std::pair< adplugin::LifeCycle *, QWidget * > > editors_;
+        ControlMethodWidget * this_;
 
-        impl() : table_( new ControlMethodTable )
-               , tab_( new QTabWidget )
-               , method_( std::make_shared< adcontrols::ControlMethod >() ) {
+        impl( ControlMethodWidget * pThis ) : table_( new ControlMethodTable( pThis ) )
+                                            , tab_( new QTabWidget )
+                                            , method_( std::make_shared< adcontrols::ControlMethod >() )
+                                            , this_( pThis ){
         }
 
+        void addMethod( const QString& key ) {
+            auto it = std::find_if( editors_.begin(), editors_.end(), [key] ( std::pair<adplugin::LifeCycle*, QWidget *>& e ){
+                    return key == e.second->objectName();
+                } );
+            if ( it != editors_.end() ) {
+                if ( auto editor = it->first ) {
+                    adcontrols::controlmethod::MethodItem mi;
+                    boost::any a( &mi );
+                    editor->getContents( a );
+                    mi.isInitialCondition( false );
+                    mi.time( 0 );
+                    table_->append( mi );
+                }
+            }
+        }
+
+        bool getMatchedMethod( adcontrols::controlmethod::MethodItem& mi, const adcontrols::controlmethod::MethodItem& curr ) {
+            boost::any a( &mi );
+            for ( auto editor : editors_ ) {
+                if ( editor.first->getContents( a ) ) {
+                    if ( mi.modelname() == curr.modelname() && mi.itemLabel() == curr.itemLabel() )
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        bool setMatchedMethod( const adcontrols::controlmethod::MethodItem& curr ) {
+            adcontrols::controlmethod::MethodItem mi( curr );
+            boost::any a( &mi );
+            for ( auto editor : editors_ ) {
+                if ( editor.first->getContents( a ) ) {
+                    ADDEBUG() << "onCurrentChanged: " << mi.modelname() << "\tcurr: " << curr.modelname();
+                    if ( mi.modelname() == curr.modelname() && mi.itemLabel() == curr.itemLabel() ) {
+                        editor.first->setContents( boost::any( curr ) );
+                        emit this_->onCurrentChanged( editor.second );
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     };
 
 }
@@ -59,7 +103,7 @@ ControlMethodWidget::~ControlMethodWidget()
 }
 
 ControlMethodWidget::ControlMethodWidget(QWidget *parent) : QWidget(parent)
-                                                          , impl_( new impl() )
+                                                          , impl_( new impl(this) )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
 
@@ -79,6 +123,7 @@ ControlMethodWidget::ControlMethodWidget(QWidget *parent) : QWidget(parent)
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QWidget::customContextMenuRequested, this, &ControlMethodWidget::showContextMenu);
     connect( impl_->table_, &QTableView::customContextMenuRequested, this, &ControlMethodWidget::showContextMenu);
+    connect( impl_->table_, &ControlMethodTable::onAddMethod, [this] ( const QString& item ){ impl_->addMethod( item ); } );
 }
 
 QSize
@@ -100,10 +145,10 @@ ControlMethodWidget::addWidget( QWidget * widget, const QIcon& icon, const QStri
 }
 
 void
-ControlMethodWidget::addItem( const QString& title, QWidget * widget )
+ControlMethodWidget::addEditor( QWidget * widget )
 {
-    impl_->table_->addItem( title );
-    impl_->widgets_.push_back( widget );
+    impl_->table_->addItem( widget->objectName() ); // for menu
+    //impl_->widgets_.push_back( widget );
 
     adplugin::LifeCycleAccessor accessor( widget );
     if ( auto lifecycle = accessor.get() ) {
@@ -112,15 +157,32 @@ ControlMethodWidget::addItem( const QString& title, QWidget * widget )
 
         boost::any a( impl_->method_ );
         lifecycle->getContents( a );
-        impl_->editors_.push_back( lifecycle );
+        impl_->editors_.push_back( std::make_pair( lifecycle, widget ) );
 
     }
-    impl_->table_->setContents( *impl_->method_ );
+    impl_->table_->setSharedPointer( impl_->method_ );
 }
 
-void
-ControlMethodWidget::handleAdd( const adcontrols::controlmethod::MethodItem& )
+bool
+ControlMethodWidget::getMethod( adcontrols::controlmethod::MethodItem& mi )
 {
+    adcontrols::controlmethod::MethodItem temp( mi );
+    if ( impl_->getMatchedMethod( temp, mi ) ) {
+        mi = temp;
+        return true;
+    }
+    return false;
+}
+
+bool
+ControlMethodWidget::setMethod( const adcontrols::controlmethod::MethodItem& mi )
+{
+    adcontrols::controlmethod::MethodItem temp( mi );
+    if ( impl_->setMatchedMethod( mi ) ) {
+        return true;
+    }
+    return false;
+
 }
 
 ////////////////
@@ -141,33 +203,14 @@ ControlMethodWidget::OnFinalClose()
 }
 
 bool
-ControlMethodWidget::getContents( boost::any& any ) const
+ControlMethodWidget::getContents( boost::any& ) const
 {
-#if 0
-    if ( ! adportable::a_type< adcontrols::ProcessMethod >::is_pointer( any ) )
-        return false;
-
-    adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
-    const_cast< ControlMethodWidget *>(this)->update_data();
-    pm->appendMethod< adcontrols::CentroidMethod >( *pMethod_ );
-#endif    
     return true;
 }
 
 bool
-ControlMethodWidget::setContents( boost::any& any )
+ControlMethodWidget::setContents( boost::any& )
 {
-#if 0
-    if ( !adportable::a_type< adcontrols::ControlMethod >::is_a( any ) )
-        return false;
-
-    const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );
-    const adcontrols::CentroidMethod * t = pm.find< adcontrols::CentroidMethod >();
-    if ( ! t )
-        return false;
-    *pMethod_ = *t;
-    // update_data( *pMethod_ );
-#endif
     return true;
 }
 

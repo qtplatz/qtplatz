@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "controlmethodtable.hpp"
+#include "controlmethodwidget.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <qtwrapper/font.hpp>
 
@@ -33,10 +34,14 @@
 
 using namespace adwidgets;
 
-ControlMethodTable::ControlMethodTable( QWidget *parent ) : adwidgets::TableView( parent )
-                                                          , model_( new QStandardItemModel )
+ControlMethodTable::ControlMethodTable( ControlMethodWidget * parent ) : adwidgets::TableView( parent )
+                                                                       , model_( new QStandardItemModel )
+                                                                       , parent_( parent )
 {
     setModel( model_ );
+
+    setSelectionMode( QAbstractItemView::SingleSelection );
+    setSelectionBehavior( QAbstractItemView::SelectRows );
 
     QFont font;
     setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
@@ -55,15 +60,18 @@ ControlMethodTable::onInitialUpdate()
 {
     QStandardItemModel& model = *model_;
 
-	model.setColumnCount( 3 );
+	model.setColumnCount( 5 );
     model.setRowCount( 1 );
 
     model.setHeaderData( 0,  Qt::Horizontal, QObject::tr( "time(min)" ) );
     model.setHeaderData( 1,  Qt::Horizontal, QObject::tr( "module" ) );
-    model.setHeaderData( 2,  Qt::Horizontal, QObject::tr( "description" ) );
+    model.setHeaderData( 2,  Qt::Horizontal, QObject::tr( "function" ) );
+    model.setHeaderData( 3,  Qt::Horizontal, QObject::tr( "description" ) );
+    model.setHeaderData( 4,  Qt::Horizontal, QObject::tr( "index" ) );
 
     resizeColumnsToContents();
     resizeRowsToContents();
+    setColumnHidden( 4, true );
 
     horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
 }
@@ -76,52 +84,20 @@ ControlMethodTable::setSharedPointer( std::shared_ptr< adcontrols::ControlMethod
 }
 
 bool 
-ControlMethodTable::getContents( adcontrols::ControlMethod& cm )
-{
-    if ( method_ ) {
-        cm = *method_;
-        return true;
-    }
-    return false;
-}
-
-bool 
 ControlMethodTable::setContents( const adcontrols::ControlMethod& m )
 {
     QStandardItemModel& model = *model_;
-    model.setRowCount( m.size() );
+    model.setRowCount( int( m.size() ) );
     auto it = m.begin();
     for ( int row = 0; row < m.size(); ++row ) {
         model.setData( model.index( row, 0 ), it->time() );
         model.setData( model.index( row, 1 ), QString::fromStdString( it->modelname() ) );
+        model.setData( model.index( row, 2 ), it->funcid() );
+        model.setData( model.index( row, 3 ), QString::fromStdString( it->itemLabel() ) );
+        model.setData( model.index( row, 4 ), row );
         ++it;
     }
     return true;
-}
-
-bool
-ControlMethodTable::append( const adcontrols::controlmethod::MethodItem& item )
-{
-    (void)item;
-    return false;
-}
-
-
-
-const adcontrols::controlmethod::MethodItem&
-ControlMethodTable::operator [] ( int row ) const
-{
-    typedef boost::error_info< struct tag_errmsg, std::string > info;
-    struct error : virtual boost::exception, virtual std::exception {};
-
-    if ( !method_ ) {
-        BOOST_THROW_EXCEPTION( error() << info( "no method" ) );
-    }
-    if ( unsigned(row) >= method_->size() || row < 0 ) {
-        BOOST_THROW_EXCEPTION( error() << info( "subscript out of range" ) );
-    }
-
-    return *method_->begin();
 }
 
 void
@@ -131,11 +107,78 @@ ControlMethodTable::addItem( const QString& text )
 }
 
 void
+ControlMethodTable::currentChanged( const QModelIndex& curr, const QModelIndex& prev )
+{
+    if ( prev.isValid() ) {
+        int idx = model_->index( prev.row(), 4 ).data().toInt();
+        auto it = method_->begin() + idx;
+        parent_->getMethod( *it );
+    }
+    if ( curr.isValid() ) {
+        int idx = model_->index( curr.row(), 4 ).data().toInt();
+        auto it = method_->begin() + idx;
+        parent_->setMethod( *it );
+    }
+}
+
+void
 ControlMethodTable::showContextMenu( const QPoint& pt )
 {
     std::vector< QAction * > actions;
+    QAction * delete_action;
     QMenu menu;
-    
-    actions.push_back( menu.addAction( "Add to peak table" ) );
-    QAction * selected = menu.exec( this->mapToGlobal( pt ) );
+
+    for ( auto item : items_ )
+        actions.push_back( menu.addAction( "Add line: " + item ) );
+    delete_action = menu.addAction( "Delete line" );
+
+    if ( QAction * selected = menu.exec( this->mapToGlobal( pt ) ) ) {
+        if ( selected == delete_action )
+            ;
+        else {
+            for ( size_t i = 0; i < actions.size(); ++i ) {
+                if ( actions[ i ] == selected ) {
+                    emit onAddMethod( items_[ int( i ) ] );
+                    break;
+                }
+            }
+        }
+
+    }
+
+}
+
+void
+ControlMethodTable::insert( const QString& title
+                            , const adcontrols::controlmethod::MethodItem& mi
+                            , const QModelIndex& index )
+{
+    QStandardItemModel& model = *model_;
+
+    int row = index.isValid() ? index.row() : model.rowCount();
+    model.insertRow( row );
+
+    model.setData( model.index( row, 0 ), mi.time() );
+    model.setData( model.index( row, 1 ), QString::fromStdString( mi.modelname() ) );
+    model.setData( model.index( row, 2 ), mi.funcid() );
+    model.setData( model.index( row, 3 ), QString::fromStdString( mi.itemLabel() ) );
+    size_t idx = std::distance( method_->begin(), method_->insert( mi ) );
+    model.setData( model.index( row, 4 ), idx );
+}
+
+bool
+ControlMethodTable::append( const adcontrols::controlmethod::MethodItem& mi )
+{
+    QStandardItemModel& model = *model_;
+
+    int row = model.rowCount();
+    model.setRowCount( row + 1 );
+
+    model.setData( model.index( row, 0 ), mi.time() );
+    model.setData( model.index( row, 1 ), QString::fromStdString( mi.modelname() ) );
+    model.setData( model.index( row, 2 ), mi.funcid() );
+    model.setData( model.index( row, 3 ), QString::fromStdString( mi.itemLabel() ) );
+    size_t idx = std::distance( method_->begin(), method_->insert( mi ) );
+    model.setData( model.index( row, 4 ), idx );
+    return true;
 }

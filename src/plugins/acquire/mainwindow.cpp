@@ -90,16 +90,16 @@ MainWindow::OnInitialUpdate()
             if ( factory.method_type() == adextension::iEditorFactory::CONTROL_METHOD ) {
 
                 if ( auto widget = factory.createEditor( 0 ) ) {
-
+                    widget->setObjectName( factory.title() );
                     createDockWidget( widget, factory.title(), "ControlMethod" );
-                    editor->addItem( factory.title(), widget );
-
+                    editor->addEditor( widget );
                 }
                 
             }
 
         }
     }
+    connect( editor, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
 
     createDockWidget( editor, "Control Method", "ControlMethodWidget" );
 

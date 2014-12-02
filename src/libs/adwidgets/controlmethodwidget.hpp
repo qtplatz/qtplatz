@@ -52,7 +52,7 @@ namespace adwidgets {
         void addWidget( QWidget *, const QString& label );
         void addWidget( QWidget *, const QIcon&, const QString& );
 
-        void addItem( const QString&, QWidget * );
+        void addEditor( QWidget * );
         bool getControlMethod( adcontrols::ControlMethod& );
         void setControlMethod( const adcontrols::ControlMethod& );
 
@@ -62,18 +62,20 @@ namespace adwidgets {
         void OnFinalClose();
         bool getContents( boost::any& ) const;
         bool setContents( boost::any& );
-
+        // end LifeCycle
+        bool getMethod( adcontrols::controlmethod::MethodItem& mi );
+        bool setMethod( const adcontrols::controlmethod::MethodItem& mi );
     private:
         class impl;
         std::unique_ptr< impl > impl_;
 
     signals:
+        void onCurrentChanged( QWidget * );
             
     public slots:
-        void handleAdd( const adcontrols::controlmethod::MethodItem& );
         void getLifeCycle( adplugin::LifeCycle *& p );
     private slots:
-    void showContextMenu( const QPoint& pt );
+        void showContextMenu( const QPoint& pt );
     };
 
 }
