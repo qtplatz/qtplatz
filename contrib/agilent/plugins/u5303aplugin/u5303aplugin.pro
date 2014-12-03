@@ -43,6 +43,7 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adextension) \
         -l$$qtLibraryTarget(adplot) \
         -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(adwidgets) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(u5303a) \
         -l$$qtLibraryTarget(u5303aspectrometer)

@@ -25,15 +25,18 @@
 #pragma once
 
 #include <utils/fancymainwindow.h>
-#include <memory>
 #include <array>
+#include <atomic>
+#include <memory>
+#include <mutex>
 
 class QHBoxLayout;
 class QWidget;
 class QToolButton;
 class QAction;
 
-namespace adcontrols { class MassSpectrum; class Trace; }
+namespace adcontrols { class MassSpectrum; class Trace; class ControlMethod; }
+namespace adwidgets { class ControlMethodWidget; }
 
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
@@ -53,6 +56,7 @@ namespace u5303a {
 		QWidget * createContents( Core::IMode * );
 		
 		void OnInitialUpdate();
+		void OnFinalClose();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& page = QString() );
@@ -66,6 +70,9 @@ namespace u5303a {
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::Trace&, const std::wstring& traceId );
 		bool editor_factories( iSequenceImpl& );
+        void setControlMethod( const adcontrols::ControlMethod& );
+        void getControlMethod( adcontrols::ControlMethod& m );
+        void editor_commit();
 
     private:
         enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
@@ -92,6 +99,7 @@ namespace u5303a {
 	private:
         QAction * actionConnect_;
         static MainWindow * instance_;
+        adwidgets::ControlMethodWidget * editor_;
 
         void setToolBarDockWidget( QDockWidget * dock );
         void createDockWidgets();

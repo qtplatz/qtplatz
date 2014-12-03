@@ -28,6 +28,7 @@
 #include "u5303amode.hpp"
 #include "mainwindow.hpp"
 #include "isequenceimpl.hpp"
+#include "document.hpp"
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adportable/debug_core.hpp>
@@ -70,7 +71,7 @@ u5303APlugin::~u5303APlugin()
 }
 
 bool
-u5303APlugin::initialize(const QStringList &arguments, QString *errorString)
+u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
 {
     adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
@@ -108,6 +109,7 @@ void u5303APlugin::extensionsInitialized()
 {
     auto factory = u5303aspectrometer::MassSpectrometer::instance();
 	adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
+    document::instance()->initialSetup(); // load default control method
 	mainWindow_->OnInitialUpdate();
 }
 
@@ -116,6 +118,7 @@ ExtensionSystem::IPlugin::ShutdownFlag u5303APlugin::aboutToShutdown()
     // Save settings
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
+    document::instance()->finalClose();
     return SynchronousShutdown;
 }
 

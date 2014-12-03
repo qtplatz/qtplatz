@@ -32,6 +32,8 @@
 #include <vector>
 #include <memory>
 
+namespace adcontrols { class ControlMethod; }
+
 namespace u5303a {
 
     namespace detail { class task; }
@@ -126,7 +128,7 @@ namespace u5303a {
         ~digitizer();
 
         bool peripheral_initialize();
-        bool peripheral_prepare_for_run( const method& );
+        bool peripheral_prepare_for_run( const adcontrols::ControlMethod& );
         bool peripheral_run();
         bool peripheral_stop();
         bool peripheral_trigger_inject();

@@ -27,11 +27,13 @@
 #include <adportable/string.hpp>
 #include "safearray.hpp"
 #include <adlog/logger.hpp>
-#include <boost/bind.hpp>
-#include <workaround/boost/asio.hpp>
+#include <adportable/serializer.hpp>
 #include <adportable/asio/thread.hpp>
+#include <adcontrols/controlmethod.hpp>
+#include <workaround/boost/asio.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
+#include <boost/bind.hpp>
 #include <mutex>
 #include <thread>
 #include <algorithm>
@@ -77,7 +79,7 @@ namespace u5303a {
             
             void terminate();
             bool initialize();
-            bool prepare_for_run( const method& );
+            bool prepare_for_run( const adcontrols::ControlMethod& );
             bool run();
             bool stop();
             bool trigger_inject_out();
@@ -103,9 +105,12 @@ namespace u5303a {
             boost::asio::io_service::strand strand_;
             bool simulated_;
             u5303a::method method_;
-	    u5303a::simulator * simulator_;
+            u5303a::simulator * simulator_;
             uint32_t serialnumber_;
             std::atomic<int> acquire_post_count_;
+            uint64_t inject_timepoint_;
+            std::shared_ptr< adcontrols::ControlMethod > cm_;
+            adcontrols::ControlMethod::const_iterator nextIt_;
 
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
@@ -113,7 +118,7 @@ namespace u5303a {
             bool handle_initial_setup( int nDelay, int nSamples, int nAverage );
             bool handle_terminating();
             bool handle_acquire();
-            bool handle_prepare_for_run( const u5303a::method& );
+            bool handle_prepare_for_run( const adcontrols::ControlMethod& );
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( waveform& );
@@ -145,7 +150,7 @@ digitizer::peripheral_terminate()
 }
 
 bool
-digitizer::peripheral_prepare_for_run( const method& m )
+digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod& m )
 {
     return task::instance()->prepare_for_run( m );
 }
@@ -237,7 +242,7 @@ task::initialize()
 }
 
 bool
-task::prepare_for_run( const u5303a::method& m )
+task::prepare_for_run( const adcontrols::ControlMethod& m )
 {
     ADTRACE() << "u5303a digitizer prepare for run..." << acquire_post_count_;
 
@@ -358,24 +363,35 @@ task::handle_terminating()
 }
 
 bool
-task::handle_prepare_for_run( const u5303a::method& m )
+task::handle_prepare_for_run( const adcontrols::ControlMethod& cm )
 {
-    ADTRACE() << "u5303a::task::handle_prepare_for_run";
-    ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
-              << "\text_trigger_level: " << m.ext_trigger_level 
-              << "\tsamp_rate: " << m.samp_rate
-              << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
-              << "\tnbr_of_average: " << m.nbr_of_averages
-              << "\tdelay_to_first_s: " << m.delay_to_first_s
-              << "\tinvert_signal: " << m.invert_signal
-              << "\tnsa: " << m.nsa;
+    using adcontrols::controlmethod::MethodItem;
 
-    if ( simulated_ )
-        device<Simulate>::setup( *this, m );
-    else
-        device<UserFDK>::setup( *this, m );
-    method_ = m;
-	return true;
+    cm_ = std::make_shared< adcontrols::ControlMethod >( cm );
+    cm_->sort();
+    nextIt_ = std::find_if( cm_->begin(), cm_->end(), [] ( const MethodItem& mi ){ return mi.modelname() == "u5303a"; } );
+    if ( nextIt_ != cm_->end() ) {
+        u5303a::method m;
+        if ( adportable::serializer< u5303a::method >::deserialize( m, nextIt_->data(), nextIt_->size() ) ) {
+            ADTRACE() << "u5303a::task::handle_prepare_for_run";
+            ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
+                      << "\text_trigger_level: " << m.ext_trigger_level 
+                      << "\tsamp_rate: " << m.samp_rate
+                      << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
+                      << "\tnbr_of_average: " << m.nbr_of_averages
+                      << "\tdelay_to_first_s: " << m.delay_to_first_s
+                      << "\tinvert_signal: " << m.invert_signal
+                      << "\tnsa: " << m.nsa;
+        
+            if ( simulated_ )
+                device<Simulate>::setup( *this, m );
+            else
+                device<UserFDK>::setup( *this, m );
+            method_ = m;
+            return true;
+        }
+    }
+    return false;
 }
 
 bool

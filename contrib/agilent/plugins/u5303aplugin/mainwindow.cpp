@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -37,6 +37,9 @@
 #include <adinterface/controlserver.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
+#include <adplugin/lifecycle.hpp>
+#include <adplugin/lifecycleaccessor.hpp>
+#include <adwidgets/controlmethodwidget.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -100,6 +103,7 @@ using namespace u5303a;
 MainWindow * MainWindow::instance_ = 0;
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
+                                        , editor_(0)
 {
     instance_ = this;
 }
@@ -115,17 +119,43 @@ MainWindow::instance()
 }
 
 void
+MainWindow::createDockWidgets()
+{
+    editor_ = new adwidgets::ControlMethodWidget;
+    // editor_->OnInitialUpdate();
+    
+    iEditorFactoryT<u5303AMethodWidget> factory( *this, "U5303A" );
+    if ( auto widget = factory.createEditor(0) ) {
+        widget->setObjectName( factory.title() );
+        createDockWidget( widget, factory.title(), "ControlMethod" );
+        editor_->addEditor( widget );
+    }
+    auto ptr = document::instance()->controlMethod();
+    editor_->getControlMethod( *ptr ); // initialize with defailt initial-condition
+    // createDockWidget( new u5303AMethodWidget(), "U5303A Parameter", "U5303AMethodWidget" );
+    // createDockWidget( new QTextEdit(), "Log", "Log" );
+    connect( editor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
+    createDockWidget( editor_, "Control Method", "ControlMethodWidget" );
+}
+
+void
 MainWindow::OnInitialUpdate()
 {
+    editor_->OnInitialUpdate();
+    auto ptr = document::instance()->controlMethod();
+    editor_->setControlMethod( *document::instance()->controlMethod() );
+
     setSimpleDockWidgetArrangement();
 
-    QList< QDockWidget *> widgets = dockWidgets();
-    for ( auto w: widgets ) {
-        if ( auto t = w->findChild< u5303AMethodWidget * >() )
-            t->onInitialUpdate();
-    }
+    // QList< QDockWidget *> widgets = dockWidgets();
+    // for ( auto w: widgets ) {
+    //     if ( auto t = w->findChild< u5303AMethodWidget * >() )
+    //         t->onInitialUpdate();
+    // }
 
-    connect( document::instance(), SIGNAL( on_reply(const QString&, const QString&) ), this, SLOT( handle_reply( const QString&, const QString& ) ) );
+    connect( document::instance(), SIGNAL( on_reply(const QString&, const QString&) )
+             , this, SLOT( handle_reply( const QString&, const QString& ) ) );
+
     // connect( document::instance(), SIGNAL( on_waveform_received() ), this, SLOT( handle_waveform() ) );
     connect( document::instance(), SIGNAL( on_status(int) ), this, SLOT( handle_status(int) ) );
     for ( auto action: actions_ )
@@ -137,6 +167,17 @@ MainWindow::OnInitialUpdate()
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
     }
 
+}
+
+void
+MainWindow::OnFinalClose()
+{
+    for ( auto dock: dockWidgets() ) {
+        adplugin::LifeCycleAccessor accessor( dock->widget() );
+        if ( auto editor = accessor.get() ) {
+            editor->OnFinalClose();
+        }
+    }
 }
 
 void
@@ -247,13 +288,6 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
     addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
 
     return dockWidget;
-}
-
-void
-MainWindow::createDockWidgets()
-{
-    createDockWidget( new u5303AMethodWidget(), "U5303A Parameter", "U5303AMethodWidget" );
-    createDockWidget( new QTextEdit(), "Log", "Log" );
 }
 
 // static
@@ -492,3 +526,22 @@ MainWindow::editor_factories( iSequenceImpl& impl )
     return true;        
 }
 
+
+void
+MainWindow::setControlMethod( const adcontrols::ControlMethod& m )
+{
+    editor_->setControlMethod( m );
+}
+
+void
+MainWindow::getControlMethod( adcontrols::ControlMethod& m )
+{
+    editor_->getControlMethod( m );
+}
+
+void
+MainWindow::editor_commit()
+{
+    // editor_->commit();
+    // todo...
+}

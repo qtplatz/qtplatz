@@ -65,7 +65,7 @@ u5303AMethodWidget::onInitialUpdate()
 
     if ( auto table = findChild< u5303AMethodTable * >() ) {
         table->onInitialUpdate();
-        table->setContents( document::instance()->method() );
+        table->setContents( u5303a::method() );
     }
 }
 
@@ -79,12 +79,15 @@ u5303AMethodWidget::onStatus( int st )
 void
 u5303AMethodWidget::handle_trigger_apply()
 {
+    document::instance()->prepare_for_run();
+    /*
     if ( auto table = findChild< u5303AMethodTable * >() ) {
         u5303a::method m;
         if ( table->getContents( m ) ) {
             document::instance()->prepare_for_run( m );
         }
     }
+    */
 }
 
 void

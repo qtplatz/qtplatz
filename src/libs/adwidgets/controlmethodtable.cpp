@@ -238,6 +238,9 @@ ControlMethodTable::setData( const adcontrols::controlmethod::MethodItem& mi, in
 {
     QStandardItemModel& model = *model_;
 
+    if ( row < 0 || row >= model.rowCount() )
+        return;
+
     if ( mi.isInitialCondition() ) {
         model.setData( model.index( row, 0 ), -1 );
         model.item( row, 0 )->setEditable( false );

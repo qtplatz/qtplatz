@@ -27,6 +27,11 @@ namespace Constants {
     const char * const ICON_INJECT  = ":/acquire/images/Button Add.png";
     const char * const ICON_SNAPSHOT = ":/acquire/images/snapshot_small.png";
 
+    // settings
+    const char * const GRP_DATA_FILES       = "DataFiles";
+    const char * const GRP_METHOD_FILES     = "MethodFiles";
+    const char * const KEY_FILES            = "Files";
+
 } // namespace u5303
 } // namespace Constants
 

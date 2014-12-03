@@ -30,7 +30,9 @@
 #include <memory>
 #include <deque>
 
-namespace adcontrols { class MassSpectrum; }
+class QSettings;
+
+namespace adcontrols { class MassSpectrum; class ControlMethod; }
 
 namespace u5303a {
 
@@ -47,29 +49,44 @@ namespace u5303a {
     public:
         static document * instance();
 
+        void initialSetup();
+        void finalClose();
+
         void u5303a_connect();
         void u5303a_start_run();
         void u5303a_stop();
         void u5303a_trigger_inject();
         void prepare_for_run();
-        void prepare_for_run( const u5303a::method& );
         std::shared_ptr< const waveform > findWaveform( uint32_t serialnumber = (-1) );
-        const u5303a::method& method() const;
         int32_t device_status() const;
 
         static bool toMassSpectrum( adcontrols::MassSpectrum&, const waveform& );
         static bool appendOnFile( const std::wstring& path, const std::wstring& title, const adcontrols::MassSpectrum&, std::wstring& id );
+
+        QSettings * settings() { return settings_.get(); }
+        void addToRecentFiles( const QString& );
+        QString recentFile( const char * group = 0, bool dir_on_fail = false );
+        std::shared_ptr< adcontrols::ControlMethod > controlMethod() const;
+        void setControlMethod( const adcontrols::ControlMethod& m, const QString& filename );
+
+        static bool load( const QString& filename, adcontrols::ControlMethod& );
+        static bool save( const QString& filename, const adcontrols::ControlMethod& );
         
     private:
         friend struct detail::remover;
+        class exec;
 
         static std::mutex mutex_;
         static document * instance_;
 
         u5303a::digitizer * digitizer_;
         std::deque< std::shared_ptr< const waveform > > que_;
-        std::shared_ptr< u5303a::method > method_;
+        std::shared_ptr< adcontrols::ControlMethod > cm_;
+        std::unique_ptr< exec > exec_;
+
         int32_t device_status_;
+        std::shared_ptr< QSettings > settings_;  // user scope settings
+        QString ctrlmethod_filename_;
 
         void reply_handler( const std::string&, const std::string& );
         void waveform_handler( const waveform * );
@@ -77,6 +94,7 @@ namespace u5303a {
         void on_reply( const QString&, const QString& );
         void on_waveform_received();
         void on_status( int );
+        void onControlMethodChanged( const QString& );
     };
 
 }

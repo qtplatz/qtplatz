@@ -93,7 +93,7 @@ MainWindow::OnInitialUpdate()
                 if ( auto widget = factory.createEditor( 0 ) ) {
                     widget->setObjectName( factory.title() );
                     createDockWidget( widget, factory.title(), "ControlMethod" );
-                    editor_->addEditor( widget );
+                    editor_->addEditor( widget ); // will call OnInitialUpdate
                 }
                 
             }

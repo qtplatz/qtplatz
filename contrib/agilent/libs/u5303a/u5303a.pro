@@ -25,7 +25,8 @@ HEADERS += u5303a_global.hpp \
         waveform_generator.hpp
 
 LIBS += -l$$qtLibraryTarget( adlog ) \
-        -l$$qtLibraryTarget( adportable )
+        -l$$qtLibraryTarget( adportable ) \
+        -l$$qtLibraryTarget( adcontrols )
 
 unix {
     target.path = /usr/lib
