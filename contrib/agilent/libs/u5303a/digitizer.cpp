@@ -24,6 +24,7 @@
 
 #include "digitizer.hpp"
 #include "simulator.hpp"
+#include "sampleprocessor.hpp"
 #include <adportable/string.hpp>
 #include "safearray.hpp"
 #include <adlog/logger.hpp>
@@ -111,6 +112,7 @@ namespace u5303a {
             uint64_t inject_timepoint_;
             std::shared_ptr< adcontrols::ControlMethod > cm_;
             adcontrols::ControlMethod::const_iterator nextIt_;
+            std::deque< std::shared_ptr< SampleProcessor > > queue_;
 
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
@@ -257,6 +259,13 @@ task::prepare_for_run( const adcontrols::ControlMethod& m )
 bool
 task::run()
 {
+    // std::lock_guard< std::mutex > lock( mutex_ );
+	if ( queue_.empty() ) {
+        queue_.push_back( std::make_shared< SampleProcessor >( io_service_ ) );
+        queue_.back()->prepare_storage( 0 ); //pMasterObserver_->_this() );
+    }
+	// status_current_ = ControlServer::ePreparingForRun;
+	// status_being_ = ControlServer::eReadyForRun;
     return true;
 }
 
