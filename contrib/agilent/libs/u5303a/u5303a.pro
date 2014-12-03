@@ -16,15 +16,19 @@ DEFINES += U5303A_LIBRARY
 
 SOURCES += digitizer.cpp \
         simulator.cpp \
-        waveform_generator.cpp
+        waveform_generator.cpp \
+        sampleprocessor.cpp
 
 HEADERS += u5303a_global.hpp \
         digitizer.hpp \
         safearray.hpp \
         simulator.hpp \
-        waveform_generator.hpp
+        waveform_generator.hpp \
+        sampleprocessor.hpp
 
 LIBS += -l$$qtLibraryTarget( adlog ) \
+        -l$$qtLibraryTarget( adfs ) \
+        -l$$qtLibraryTarget( adutils ) \
         -l$$qtLibraryTarget( adportable ) \
         -l$$qtLibraryTarget( adcontrols )
 

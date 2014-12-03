@@ -50,5 +50,17 @@ namespace signalobserver {
         , eFluorescenceSpectrometer 
     };
 
+    typedef std::vector< uint8_t > octet_array;
+
+    struct DataReadBuffer {
+        unsigned long long uptime; // time in usec
+        unsigned long pos;         // data address (sequencial number for first data in this frame)
+        unsigned long fcn;         // function number for spectrum
+        unsigned long ndata;       // number of data in the buffer (for trace, spectrum should be always 1)
+        unsigned long events;      // well known events
+        octet_array xdata;         // encoded data array
+        octet_array xmeta;
+    };
+
 }
 
