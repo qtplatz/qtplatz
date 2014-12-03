@@ -82,8 +82,10 @@ namespace adwidgets {
             boost::any a( &mi );
             for ( auto editor : editors_ ) {
                 if ( editor.first->getContents( a ) ) {
-                    ADDEBUG() << "onCurrentChanged: " << mi.modelname() << "\tcurr: " << curr.modelname();
                     if ( mi.modelname() == curr.modelname() && mi.itemLabel() == curr.itemLabel() ) {
+
+                        ADDEBUG() << "onCurrentChanged: " << mi.modelname() << "\tcurr: " << curr.modelname();
+
                         editor.first->setContents( boost::any( curr ) );
                         emit this_->onCurrentChanged( editor.second );
                         return true;
@@ -194,6 +196,7 @@ ControlMethodWidget::setControlMethod( const adcontrols::ControlMethod& m )
 bool
 ControlMethodWidget::getControlMethod( adcontrols::ControlMethod& m )
 {
+    impl_->table_->commit();
     m = *(impl_->method_);
     return true;
 }

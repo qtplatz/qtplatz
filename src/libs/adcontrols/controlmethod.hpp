@@ -78,6 +78,9 @@ namespace adcontrols {
             size_t size() const;
             void data( const char * data, size_t size );
 
+            const char * description() const;
+            void setDescription( const char * );
+
         private:
             std::string modelname_;
             uint32_t unitnumber_;
@@ -86,11 +89,12 @@ namespace adcontrols {
             uint32_t funcid_;              // MethodFunc
             std::string label_;
             std::string data_;             // serialized data
+            std::string description_;      // utf8
 
         private:
             friend class boost::serialization::access;
             template<class Archive>
-                void serialize( Archive& ar, const unsigned int ) {
+                void serialize( Archive& ar, const unsigned int version ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP(modelname_)
                     & BOOST_SERIALIZATION_NVP(unitnumber_)
@@ -100,6 +104,8 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP(label_)
                     & BOOST_SERIALIZATION_NVP(data_)
                     ;
+                if ( version >= 2 )
+                    ar & BOOST_SERIALIZATION_NVP( description_ );
             }
         };
 
@@ -127,7 +133,10 @@ namespace adcontrols {
         iterator erase( iterator pos );
         iterator erase( iterator first, iterator last );
         iterator insert( const controlmethod::MethodItem& );
+        void push_back( const controlmethod::MethodItem& );
         const idAudit& ident() const;
+        void sort();
+        void clear();
 
         static bool archive( std::ostream&, const ControlMethod& );
         static bool restore( std::istream&, ControlMethod& );
@@ -147,5 +156,5 @@ namespace adcontrols {
 }
 
 BOOST_CLASS_VERSION( adcontrols::ControlMethod, 2 )
-BOOST_CLASS_VERSION( adcontrols::controlmethod::MethodItem, 1 )
+BOOST_CLASS_VERSION( adcontrols::controlmethod::MethodItem, 2 )
 

@@ -63,8 +63,11 @@ namespace adwidgets {
         bool setContents( const adcontrols::ControlMethod& );
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;
         void insertMethod( const QString& model, const QModelIndex& );
+        void sort();
+        void delLine( int row );
+        void setData( const adcontrols::controlmethod::MethodItem&, int row );
+        adcontrols::controlmethod::MethodItem data( int row ) const;
 
-        //friend class ControlMethodWidget;
         ControlMethodWidget * parent_;
         QStandardItemModel * model_;
         std::shared_ptr< adcontrols::ControlMethod > method_;

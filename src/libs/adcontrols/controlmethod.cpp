@@ -162,6 +162,7 @@ ControlMethod::iterator
 ControlMethod::insert( const controlmethod::MethodItem& item )
 {
     using adcontrols::controlmethod::MethodItem;
+
     auto it = std::lower_bound( impl_->items_.begin(), impl_->items_.end(), item, []( const MethodItem& a, const MethodItem& b ){
             if ( adportable::compare<double>::essentiallyEqual( a.time(), b.time() ) ) {
                 if ( a.modelname() == b.modelname() )
@@ -171,6 +172,33 @@ ControlMethod::insert( const controlmethod::MethodItem& item )
             return a.time() < b.time();
         });
     return impl_->items_.insert( it, item );
+}
+
+void
+ControlMethod::push_back( const controlmethod::MethodItem& item )
+{
+    impl_->items_.push_back( item );
+}
+
+void
+ControlMethod::sort()
+{
+    using adcontrols::controlmethod::MethodItem;
+
+    std::sort( impl_->items_.begin(), impl_->items_.end(), []( const MethodItem& a, const MethodItem& b ){
+            if ( adportable::compare<double>::essentiallyEqual( a.time(), b.time() ) ) {
+                if ( a.modelname() == b.modelname() )
+                    return a.unitnumber() < b.unitnumber();
+                return a.modelname() < b.modelname();
+            }
+            return a.time() < b.time();            
+        });
+}
+
+void
+ControlMethod::clear()
+{
+    impl_->items_.clear();
 }
 
 size_t
@@ -283,6 +311,18 @@ MethodItem::data( const char * data, size_t size )
 {
     data_.resize( size );
     std::copy( data, data + size, data_.begin() );
+}
+
+const char *
+MethodItem::description() const
+{
+    return description_.c_str();
+}
+
+void
+MethodItem::setDescription( const char * data )
+{
+    description_ = data ? data : "";
 }
 
 size_t

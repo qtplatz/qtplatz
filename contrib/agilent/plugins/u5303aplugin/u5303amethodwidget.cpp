@@ -40,6 +40,7 @@ using namespace u5303a;
 u5303AMethodWidget::u5303AMethodWidget(QWidget *parent) : QWidget(parent)
 {
     if ( QSplitter * splitter = new QSplitter ) {
+
         splitter->addWidget( new u5303AForm(this) );
         splitter->addWidget( new u5303AMethodTable(this) );
         splitter->setOrientation( Qt::Horizontal );
@@ -61,6 +62,7 @@ u5303AMethodWidget::onInitialUpdate()
         form->onInitialUpdate();
         connect( form, &u5303AForm::trigger_apply, this, &u5303AMethodWidget::handle_trigger_apply );
     }
+
     if ( auto table = findChild< u5303AMethodTable * >() ) {
         table->onInitialUpdate();
         table->setContents( document::instance()->method() );
@@ -152,7 +154,22 @@ u5303AMethodWidget::getContents( boost::any& a ) const
 }
 
 bool
-u5303AMethodWidget::setContents( boost::any& )
+u5303AMethodWidget::setContents( boost::any& a )
 {
+    const adcontrols::controlmethod::MethodItem * pi(0);
+    if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_pointer( a ) ) {
+        pi = boost::any_cast<const adcontrols::controlmethod::MethodItem * >( a );             
+    } else if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_a( a ) ) {   
+        pi = &boost::any_cast<const adcontrols::controlmethod::MethodItem& >( a );
+    }
+    if ( pi ) {
+        u5303a::method m;
+        if ( adportable::serializer< u5303a::method >::deserialize( m, pi->data(), pi->size() ) ) {
+            if ( auto table = findChild< u5303AMethodTable * >() ) {
+                table->setContents( m );
+                return true;
+            }
+        }
+    }
     return false;
 }
