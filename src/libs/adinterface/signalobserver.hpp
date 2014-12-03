@@ -22,6 +22,8 @@
 **
 **************************************************************************/
 
+#include <string>
+
 namespace signalobserver {
 
     const unsigned long wkEvent_Error           = 0x80000000;
@@ -62,5 +64,33 @@ namespace signalobserver {
         octet_array xmeta;
     };
 
+    struct Description {
+        eTRACE_METHOD trace_method;
+        eSPECTROMETER spectrometer;
+        std::wstring trace_id;  // unique name for the trace, can be used as 'data storage name'
+        std::wstring trace_display_name;
+        std::wstring axis_x_label;
+        std::wstring axis_y_label;
+        int32_t axis_x_decimals;
+        int32_t axis_y_decimals;
+    };
+#if 0
+    class Observer {
+        const Description& getDescription() const;
+        boolean setDescription( const Description& desc );
+        unsigned long objId();
+        void assign_objId( in unsigned long oid );
+        boolean isActive();
+        Observers getSiblings();
+        boolean addSibling( in Observer observer );
+        Observer findObserver( in unsigned long objId, in boolean recursive );
+        void uptime( out unsigned long long usec );
+        void uptime_range( out unsigned long long oldest, out unsigned long long newest );
+        boolean readData( in long pos, out DataReadBuffer dataReadBuffer );
+        wstring dataInterpreterClsid();
+        long posFromTime( in unsigned long long usec );
+		boolean readCalibration( in unsigned long idx, out octet_array serialized, out wstring dataClass );
+    };
+#endif
 }
 
