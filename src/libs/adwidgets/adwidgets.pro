@@ -37,7 +37,6 @@ SOURCES += adwidgets.cpp \
         delegatehelper.cpp \
         controlmethodtable.cpp \
         controlmethodwidget.cpp \
-        controlmethodcontainer.cpp \
         centroidform.cpp \
         mspeaktable.cpp \
         msquantable.cpp \
@@ -73,7 +72,6 @@ HEADERS += adwidgets.hpp\
         delegatehelper.hpp \
         controlmethodtable.hpp \
         controlmethodwidget.hpp \
-        controlmethodcontainer.hpp \
         centroidform.hpp \
         mspeaktable.hpp \
         msquantable.hpp \

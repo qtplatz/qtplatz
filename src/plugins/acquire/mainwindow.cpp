@@ -34,7 +34,6 @@
 #include <adportable/string.hpp>
 #include <adlog/logger.hpp>
 #include <adwidgets/controlmethodwidget.hpp>
-#include <adwidgets/controlmethodcontainer.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <extensionsystem/pluginmanager.h>
 
