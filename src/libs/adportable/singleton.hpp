@@ -29,8 +29,8 @@
 
 namespace adportable {
 
-    std::atomic<T*> T::instance_ = 0;
-    std::mutex T::mutex_;
+   std::atomic<T*> T::instance_ = 0;
+   std::mutex T::mutex_;
 
     template<class T> class singleton {
     public:

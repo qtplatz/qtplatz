@@ -21,3 +21,14 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+
+#pragma once
+
+#include "u5303aspectrometer_global.hpp"
+#include <adcontrols/massspectrometer.hpp>
+#include <adplugin/plugin.hpp>
+
+extern "C" {
+    U5303ASPECTROMETERSHARED_EXPORT adcontrols::MassSpectrometer * getMassSpectrometer();
+    U5303ASPECTROMETERSHARED_EXPORT adplugin::plugin * adplugin_plugin_instance();
+}

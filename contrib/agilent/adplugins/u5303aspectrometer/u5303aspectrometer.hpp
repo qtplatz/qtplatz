@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -21,3 +21,17 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+
+#ifndef U5303ASPECTROMETER_HPP
+#define U5303ASPECTROMETER_HPP
+
+#include "u5303aspectrometer_global.hpp"
+
+class U5303ASPECTROMETERSHARED_EXPORT U5303aspectrometer
+{
+
+public:
+    U5303aspectrometer();
+};
+
+#endif // U5303ASPECTROMETER_HPP

@@ -28,9 +28,11 @@
 #include "u5303amode.hpp"
 #include "mainwindow.hpp"
 #include "isequenceimpl.hpp"
+#include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adportable/debug_core.hpp>
 #include <adlog/logging_handler.hpp>
-
+#include <u5303aspectrometer/massspectrometer.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -104,10 +106,9 @@ u5303APlugin::initialize(const QStringList &arguments, QString *errorString)
 
 void u5303APlugin::extensionsInitialized()
 {
+    auto factory = u5303aspectrometer::MassSpectrometer::instance();
+	adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
 	mainWindow_->OnInitialUpdate();
-    // Retrieve objects from the plugin manager's object pool
-    // In the extensionsInitialized function, a plugin can be sure that all
-    // plugins that depend on it are completely initialized.
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag u5303APlugin::aboutToShutdown()

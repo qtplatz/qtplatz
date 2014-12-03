@@ -44,7 +44,8 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adplot) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper) \
-        -l$$qtLibraryTarget(u5303a)
+        -l$$qtLibraryTarget(u5303a) \
+        -l$$qtLibraryTarget(u5303aspectrometer)
 
 # Qt Creator linking
 
