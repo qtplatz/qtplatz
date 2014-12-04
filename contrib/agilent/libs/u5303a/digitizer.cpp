@@ -310,8 +310,8 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     // it is initialized or reset which is the default behavior. By default set to false.
     // CUSTOM FIRMWARE NAME: U5303ADPULX2AVE.bit
 
-	BSTR strInitOptions = L"Simulate=false, DriverSetup=UserDpuA=U5303ADPULX2AVE.BIT, Trace=false"; // <-- this file does not exist
-	//BSTR strInitOptions = L"Simulate=false, DriverSetup=UserDpuA=U5303ADPULX2DIG.bit, Trace=false";
+	//BSTR strInitOptions = L"Simulate=false, DriverSetup=UserDpuA=U5303ADPULX2AVE.BIT, Trace=false"; // <-- this file does not exist
+
     // note that CAL=0 is not necessary with MD2 as the card is initialized without calibration.
 				
     VARIANT_BOOL idQuery = VARIANT_TRUE;
@@ -320,6 +320,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     simulated_ = false;
     bool success = false;
     try {
+        BSTR strInitOptions = L"Simulate=false, DriverSetup= Model=U5303A"; // <-- this file does not exist
         success = spAgDrvr_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
     } catch ( _com_error & e ) {
         ERR(e,"Initialize");
