@@ -535,19 +535,30 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     IAgMD2ChannelPtr spCh1 = task.spAgDrvr()->Channels->Item[L"Channel1"];
     IAgMD2TriggerSourcePtr spTrigSrc = task.spAgDrvr()->Trigger->Sources->Item[L"External1"];
     
+    // Set Interleave ON
     try { spCh1->TimeInterleavedChannelList = "Channel2";       } catch ( _com_error& e ) { TERR(e, "TimeInterleavedChannelList");  }
-    try { spCh1->PutRange(m.front_end_range);                   } catch ( _com_error& e ) { TERR(e, "Range");  }
-    try { spCh1->PutOffset(m.front_end_offset);                 } catch ( _com_error& e ) { TERR(e, "Offset");  }
+    try {
+        auto coupling = AgMC2VerticalCouplingDC;
+        task.spAgDrvr()->Channels->GetItem("Channel1")->Configure(m.front_end_range, m.front_end_offset, coupling, VARIANT_TRUE);
+    } catch ( _com_error& e ) { TERR(e, "Range");  }
+
+    //try { spCh1->PutRange(m.front_end_range);                   } catch ( _com_error& e ) { TERR(e, "Range");  }
+    //try { spCh1->PutOffset(m.front_end_offset);                 } catch ( _com_error& e ) { TERR(e, "Offset");  }
+
     // Setup triggering
     try { task.spAgDrvr()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
-    try { spTrigSrc->PutLevel(m.ext_trigger_level);             } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
+
+    //try { spTrigSrc->PutLevel(m.ext_trigger_level);             } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
+    try { task.spAgDrvr()->Sources->Item[L"External1"]->Level = m.ext_trigger_level; } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
+    try { task.spAgDrvr()->Sources->Item[L"External1"]->Edge->Slope = AgMD2TriggerSlopePositive; } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
         
     // Calibrate
     ADTRACE() << "Calibrating...";
     try { task.spAgDrvr()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
 
     ADTRACE() << "Set the Mode FDK...";
-    try { task.spAgDrvr()->Acquisition->Mode = AgMD2AcquisitionModeUserFDK; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
+    //try { task.spAgDrvr()->Acquisition->Mode = AgMD2AcquisitionModeUserFDK; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
+    try { task.spAgDrvr()->Acquisition2->Mode = AgMD2AcquisitionModeAverager; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
 
     // Set the sample rate and nbr of samples to acquire
     const double sample_rate = 3.2E9;
@@ -578,6 +589,9 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     try { spDpuA->WriteRegisterInt32(0x331c, m.nsa);             } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x331c"); }
     try { spDpuA->WriteRegisterInt32(0x3320, m.delay_to_first_s);} catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3320"); }
     try { spDpuA->WriteRegisterInt32(0x3324, delay_next_acq);    } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3324"); }
+
+    //--->
+    //<---
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
