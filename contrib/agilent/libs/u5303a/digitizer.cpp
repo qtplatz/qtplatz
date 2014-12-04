@@ -552,6 +552,11 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     } catch ( _com_error& e ) {
         TERR(e, "Offset");
     }
+	try {
+		task.spDriver()->Channels2->Item2[L"Channel1"]->DataInversionEnabled = m.invert_signal ? VARIANT_TRUE : VARIANT_FALSE;
+	} catch (_com_error& e) {
+
+	}
 
     // Setup triggering
     try {
@@ -565,8 +570,16 @@ device<UserFDK>::initial_setup( task& task, const method& m )
         TERR(e,"mode");        
     }
     IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[L"External1"];
-    try { spTrigSrc->Level = m.ext_trigger_level;               } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
-    try { spTrigSrc->Edge->Slope = AgMD2TriggerSlopePositive;   } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
+    try {
+		spTrigSrc->Level = m.ext_trigger_level;
+	} catch ( _com_error& e ) {
+		TERR(e, "TriggerSource::Level");
+	}
+    try {
+		spTrigSrc->Edge->Slope = AgMD2TriggerSlopePositive;
+	} catch ( _com_error& e ) {
+		TERR(e, "TriggerSource::Level");
+	}
 
         
     // Calibrate

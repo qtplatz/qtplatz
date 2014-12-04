@@ -122,7 +122,6 @@ void
 MainWindow::createDockWidgets()
 {
     editor_ = new adwidgets::ControlMethodWidget;
-    // editor_->OnInitialUpdate();
     
     iEditorFactoryT<u5303AMethodWidget> factory( *this, "U5303A" );
     if ( auto widget = factory.createEditor(0) ) {
@@ -132,7 +131,6 @@ MainWindow::createDockWidgets()
     }
     auto ptr = document::instance()->controlMethod();
     editor_->getControlMethod( *ptr ); // initialize with defailt initial-condition
-    // createDockWidget( new u5303AMethodWidget(), "U5303A Parameter", "U5303AMethodWidget" );
     // createDockWidget( new QTextEdit(), "Log", "Log" );
     connect( editor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
     createDockWidget( editor_, "Control Method", "ControlMethodWidget" );
@@ -542,6 +540,7 @@ MainWindow::getControlMethod( adcontrols::ControlMethod& m )
 void
 MainWindow::editor_commit()
 {
+    
     // editor_->commit();
     // todo...
 }

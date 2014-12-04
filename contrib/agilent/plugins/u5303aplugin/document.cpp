@@ -144,7 +144,7 @@ document::prepare_for_run()
 {
     using adcontrols::controlmethod::MethodItem;
 
-    MainWindow::instance()->editor_commit(); // todo:  fix this...
+    MainWindow::instance()->getControlMethod( *cm_ );
 
     if ( exec_->prepare_for_run( *cm_ ) ) {
         digitizer_->peripheral_prepare_for_run( *exec_->ctrlm_ );
