@@ -82,13 +82,14 @@ namespace adwidgets {
             boost::any a( &mi );
             for ( auto editor : editors_ ) {
                 if ( editor.first->getContents( a ) ) {
+
                     if ( mi.modelname() == curr.modelname() && mi.itemLabel() == curr.itemLabel() ) {
 
-                        ADDEBUG() << "onCurrentChanged: " << mi.modelname() << "\tcurr: " << curr.modelname();
-
-                        editor.first->setContents( boost::any( curr ) );
+                        boost::any a( curr );
+                        editor.first->setContents( a );
                         emit this_->onCurrentChanged( editor.second );
                         return true;
+
                     }
                 }
             }
