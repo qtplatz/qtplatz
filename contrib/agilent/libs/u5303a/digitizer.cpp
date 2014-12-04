@@ -28,6 +28,7 @@
 #include <adportable/string.hpp>
 #include "safearray.hpp"
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -722,6 +723,12 @@ device<UserFDK>::readData( task& task, waveform& data )
                                                            &scaleFactor,
                                                            &scaleOffset,
                                                            &flags);
+
+        ADDEBUG() << "actual records: " << actualRecords;
+
+		safearray_t<__int64> saFirstValidPoint( firstValidPoint );
+        ADDEBUG() << "first valid point: " << saFirstValidPoint.data()[ 0 ];
+
         data.method_ = task.method();
         data.timestamp_ = std::chrono::duration< uint64_t, std::pico >( std::chrono::high_resolution_clock::now() - __uptime ).count();
 
