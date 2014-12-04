@@ -41,6 +41,7 @@
 #include <chrono>
 #include <atomic>
 
+#import "GlobMgr.dll"          no_namespace // VISA-COM I/O functionality
 #import "IviDriverTypeLib.dll" no_namespace
 #import "AgMD2.dll" no_namespace
 
@@ -90,7 +91,7 @@ namespace u5303a {
             void connect( digitizer::waveform_reply_type f );
             void disconnect( digitizer::waveform_reply_type f );
 
-            inline IAgMD2Ptr& spAgDrvr() { return spAgDrvr_; }
+            inline IAgMD2Ex2Ptr& spDriver() { return spDriver_; }
             inline simulator * simulator() { return simulator_; }
             inline const method& method() const { return method_; }
             void error_reply( const _com_error& e, const std::string& );
@@ -99,7 +100,7 @@ namespace u5303a {
             static task * instance_;
             static std::mutex mutex_;
 
-            IAgMD2Ptr spAgDrvr_;
+            IAgMD2Ex2Ptr spDriver_;
             std::vector< adportable::asio::thread > threads_;
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
@@ -216,7 +217,7 @@ task::task() : work_( io_service_ )
 {
     threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
     io_service_.post( strand_.wrap( [&] { ::CoInitialize( 0 ); } ) );
-    io_service_.post( strand_.wrap( [&] { spAgDrvr_.CreateInstance(__uuidof(AgMD2)); } ) );
+    io_service_.post( strand_.wrap( [&] { spDriver_.CreateInstance(__uuidof(AgMD2)); } ) );
 }
 
 task::~task()
@@ -321,14 +322,14 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     bool success = false;
     try {
         BSTR strInitOptions = L"Simulate=false, DriverSetup= Model=U5303A"; // <-- this file does not exist
-        success = spAgDrvr_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
+        success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
     } catch ( _com_error & e ) {
         ERR(e,"Initialize");
     }
     if ( !success ) {
         try {
             BSTR strInitOptions = L"Simulate=true, DriverSetup= Model=U5303A, Trace=false";
-            success = spAgDrvr_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
+            success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
             simulated_ = true;
             simulator_ = new u5303a::simulator;
             // threads for waveform generation
@@ -343,12 +344,12 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     if ( success ) {
 		identify ident;
 
-        ident.Identifier       = static_cast< const char *>( _bstr_t( spAgDrvr_->Identity->Identifier.GetBSTR() ) );
-        ident.Revision         = static_cast< const char *>( _bstr_t( spAgDrvr_->Identity->Revision.GetBSTR() ) );
-        ident.Vendor           = static_cast< const char *>( _bstr_t( spAgDrvr_->Identity->Vendor.GetBSTR() ) );
-        ident.Description      = static_cast< const char *>( _bstr_t( spAgDrvr_->Identity->Description.GetBSTR() ) );
-        ident.InstrumentModel  = static_cast< const char *>( _bstr_t( spAgDrvr_->Identity->InstrumentModel.GetBSTR() ) );
-        ident.FirmwareRevision = static_cast< const char *>( _bstr_t( spAgDrvr_->Identity->InstrumentFirmwareRevision.GetBSTR() ) );
+        ident.Identifier       = static_cast< const char *>( _bstr_t( spDriver_->Identity->Identifier.GetBSTR() ) );
+        ident.Revision         = static_cast< const char *>( _bstr_t( spDriver_->Identity->Revision.GetBSTR() ) );
+        ident.Vendor           = static_cast< const char *>( _bstr_t( spDriver_->Identity->Vendor.GetBSTR() ) );
+        ident.Description      = static_cast< const char *>( _bstr_t( spDriver_->Identity->Description.GetBSTR() ) );
+        ident.InstrumentModel  = static_cast< const char *>( _bstr_t( spDriver_->Identity->InstrumentModel.GetBSTR() ) );
+        ident.FirmwareRevision = static_cast< const char *>( _bstr_t( spDriver_->Identity->InstrumentFirmwareRevision.GetBSTR() ) );
 
         for ( auto& reply: reply_handlers_ ) reply( "Identifier", ident.Identifier );
         for ( auto& reply: reply_handlers_ ) reply( "Revision", ident.Revision );
@@ -527,77 +528,74 @@ identify::identify( const identify& t ) : Identifier( t.Identifier )
 template<> bool
 device<UserFDK>::initial_setup( task& task, const method& m )
 {
-    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];	
-    IAgMD2LogicDeviceMemoryBankPtr spDDR3A = spDpuA->MemoryBanks->Item[L"DDR3A"];
-    IAgMD2LogicDeviceMemoryBankPtr spDDR3B = spDpuA->MemoryBanks->Item[L"DDR3B"];
+    //IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];	
+    //IAgMD2LogicDeviceMemoryBankPtr spDDR3A = spDpuA->MemoryBanks->Item[L"DDR3A"];
+    //IAgMD2LogicDeviceMemoryBankPtr spDDR3B = spDpuA->MemoryBanks->Item[L"DDR3B"];
 	
     // Create smart pointers to Channels and TriggerSource interfaces
-    IAgMD2ChannelPtr spCh1 = task.spAgDrvr()->Channels->Item[L"Channel1"];
-    IAgMD2TriggerSourcePtr spTrigSrc = task.spAgDrvr()->Trigger->Sources->Item[L"External1"];
+    IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
     
     // Set Interleave ON
     try { spCh1->TimeInterleavedChannelList = "Channel2";       } catch ( _com_error& e ) { TERR(e, "TimeInterleavedChannelList");  }
-    try {
-        auto coupling = AgMC2VerticalCouplingDC;
-        task.spAgDrvr()->Channels->GetItem("Channel1")->Configure(m.front_end_range, m.front_end_offset, coupling, VARIANT_TRUE);
-    } catch ( _com_error& e ) { TERR(e, "Range");  }
-
-    //try { spCh1->PutRange(m.front_end_range);                   } catch ( _com_error& e ) { TERR(e, "Range");  }
-    //try { spCh1->PutOffset(m.front_end_offset);                 } catch ( _com_error& e ) { TERR(e, "Offset");  }
+    try { spCh1->PutRange(m.front_end_range);                   } catch ( _com_error& e ) { TERR(e, "Range");  }
+    try { spCh1->PutOffset(m.front_end_offset);                 } catch ( _com_error& e ) { TERR(e, "Offset");  }
 
     // Setup triggering
-    try { task.spAgDrvr()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
+    try { task.spDriver()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
 
-    //try { spTrigSrc->PutLevel(m.ext_trigger_level);             } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
-    try { task.spAgDrvr()->Sources->Item[L"External1"]->Level = m.ext_trigger_level; } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
-    try { task.spAgDrvr()->Sources->Item[L"External1"]->Edge->Slope = AgMD2TriggerSlopePositive; } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
+    IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[L"External1"];
+    try { spTrigSrc->Level = m.ext_trigger_level;               } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
+    try { spTrigSrc->Edge->Slope = AgMD2TriggerSlopePositive;   } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
         
     // Calibrate
     ADTRACE() << "Calibrating...";
-    try { task.spAgDrvr()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
+    try { task.spDriver()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
 
     ADTRACE() << "Set the Mode FDK...";
-    //try { task.spAgDrvr()->Acquisition->Mode = AgMD2AcquisitionModeUserFDK; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
-    try { task.spAgDrvr()->Acquisition2->Mode = AgMD2AcquisitionModeAverager; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
+    //try { task.spDriver()->Acquisition->Mode = AgMD2AcquisitionModeUserFDK; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
+    try { task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
 
     // Set the sample rate and nbr of samples to acquire
     const double sample_rate = 3.2E9;
-    try { task.spAgDrvr()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
-    try { task.spAgDrvr()->Acquisition->UserControl->PostTrigger = (m.nbr_of_s_to_acquire/32) + 2; } catch ( _com_error& e ) { TERR(e,"PostTrigger"); }
-    try { task.spAgDrvr()->Acquisition->UserControl->PreTrigger = 0; } catch ( _com_error& e ) { TERR(e,"PreTrigger"); }
+    try { task.spDriver()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
+    try { task.spDriver()->Acquisition->UserControl->PostTrigger = (m.nbr_of_s_to_acquire/32) + 2; } catch ( _com_error& e ) { TERR(e,"PostTrigger"); }
+    try { task.spDriver()->Acquisition->UserControl->PreTrigger = 0; } catch ( _com_error& e ) { TERR(e,"PreTrigger"); }
 
     // Start on trigger
-    try { task.spAgDrvr()->Acquisition->UserControl->StartOnTriggerEnabled = 1; } catch ( _com_error& e ) { TERR( e,"StartOnTrigger" ); }
+    try { task.spDriver()->Acquisition->UserControl->StartOnTriggerEnabled = 1; } catch ( _com_error& e ) { TERR( e,"StartOnTrigger" ); }
 
     // Full bandwidth
     try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); }
 
     ADTRACE() << "Apply setup...";
-    try { task.spAgDrvr()->Acquisition->ApplySetup();  } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
+    try { task.spDriver()->Acquisition->ApplySetup();  } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
 
-    long seg_depth = (m.nbr_of_s_to_acquire >> 5) + 5;
+    //long seg_depth = (m.nbr_of_s_to_acquire >> 5) + 5;
     long seg_ctrl = 0x80000;   // Averager mode, Analog trigger
 
     if (m.invert_signal == 1) 	{
         seg_ctrl = seg_ctrl + 0x400000;
     }
-    long delay_next_acq = 2;
-    try { spDpuA->WriteRegisterInt32(0x3300, seg_depth);         } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3300"); }
-    try { spDpuA->WriteRegisterInt32(0x3304, m.nbr_of_averages); } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3304"); }
-    try { spDpuA->WriteRegisterInt32(0x3308, seg_ctrl);          } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3308"); }
-    try { spDpuA->WriteRegisterInt32(0x3318, m.nbr_of_averages); } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3318"); }
-    try { spDpuA->WriteRegisterInt32(0x331c, m.nsa);             } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x331c"); }
-    try { spDpuA->WriteRegisterInt32(0x3320, m.delay_to_first_s);} catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3320"); }
-    try { spDpuA->WriteRegisterInt32(0x3324, delay_next_acq);    } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3324"); }
+    // long delay_next_acq = 2;
+    // try { spDpuA->WriteRegisterInt32(0x3300, seg_depth);         } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3300"); }
+    // try { spDpuA->WriteRegisterInt32(0x3304, m.nbr_of_averages); } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3304"); }
+    // try { spDpuA->WriteRegisterInt32(0x3308, seg_ctrl);          } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3308"); }
+    // try { spDpuA->WriteRegisterInt32(0x3318, m.nbr_of_averages); } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3318"); }
+    // try { spDpuA->WriteRegisterInt32(0x331c, m.nsa);             } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x331c"); }
+    // try { spDpuA->WriteRegisterInt32(0x3320, m.delay_to_first_s);} catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3320"); }
+    // try { spDpuA->WriteRegisterInt32(0x3324, delay_next_acq);    } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3324"); }
 
     //--->
+    task.spDriver()->Acquisition->RecordSize = m.nbr_of_s_to_acquire;
+    task.spDriver()->Acquisition2->NumberOfAverages = m.nbr_of_averages;
+    task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager;
     //<---
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
     // Memory settings
-    try { spDDR3A->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware); } catch (_com_error& e){TERR(e,"DDR3A::AccessControl");}
-    try { spDDR3B->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware); } catch (_com_error& e){TERR(e,"DDR3B::AccessControl");}
+    // try { spDDR3A->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware); } catch (_com_error& e){TERR(e,"DDR3A::AccessControl");}
+    // try { spDDR3B->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware); } catch (_com_error& e){TERR(e,"DDR3B::AccessControl");}
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
@@ -614,8 +612,8 @@ template<> bool
 device<UserFDK>::acquire( task& task )
 {
     //Start the acquisition
-    try { task.spAgDrvr()->Acquisition->UserControl->StartSegmentation(); } catch ( _com_error& e ) { TERR(e, "StartSegmentation"); }
-    try { task.spAgDrvr()->Acquisition->UserControl->StartProcessing(AgMD2UserControlProcessingType1); } catch ( _com_error& e ) {
+    try { task.spDriver()->Acquisition->UserControl->StartSegmentation(); } catch ( _com_error& e ) { TERR(e, "StartSegmentation"); }
+    try { task.spDriver()->Acquisition->UserControl->StartProcessing(AgMD2UserControlProcessingType1); } catch ( _com_error& e ) {
         TERR( e, "StartProcessing" ); }
     return true;
 }
@@ -627,7 +625,7 @@ device<UserFDK>::waitForEndOfAcquisition( task& task, int timeout )
     //Wait for the end of the acquisition
 
     long wait_for_end = 0x80000000;
-    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];	
+    IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];	
 
     int count = 0;
     while ( wait_for_end >= 0x80000000 ) {
@@ -646,7 +644,7 @@ device<UserFDK>::readData( task& task, waveform& data )
 {
     static std::chrono::high_resolution_clock::time_point __uptime = std::chrono::high_resolution_clock::now();
 
-    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];
+    IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];
 
 	long words_32bits = task.method().nbr_of_s_to_acquire;
     data.method_ = task.method();
@@ -672,33 +670,33 @@ device<UserFDK>::readData( task& task, waveform& data )
 template<> bool
 device<Simulate>::initial_setup( task& task, const method& m )
 {
-    IAgMD2LogicDevicePtr spDpuA = task.spAgDrvr()->LogicDevices->Item[L"DpuA"];	
-    IAgMD2LogicDeviceMemoryBankPtr spDDR3A = spDpuA->MemoryBanks->Item[L"DDR3A"];
-    IAgMD2LogicDeviceMemoryBankPtr spDDR3B = spDpuA->MemoryBanks->Item[L"DDR3B"];
+    //IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];	
+    //IAgMD2LogicDeviceMemoryBankPtr spDDR3A = spDpuA->MemoryBanks->Item[L"DDR3A"];
+    //IAgMD2LogicDeviceMemoryBankPtr spDDR3B = spDpuA->MemoryBanks->Item[L"DDR3B"];
 	
     // Create smart pointers to Channels and TriggerSource interfaces
-    IAgMD2ChannelPtr spCh1 = task.spAgDrvr()->Channels->Item[L"Channel1"];
-    IAgMD2TriggerSourcePtr spTrigSrc = task.spAgDrvr()->Trigger->Sources->Item[L"External1"];
+    IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
+    IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[L"External1"];
 
     try { spCh1->TimeInterleavedChannelList = "Channel2";       } catch ( _com_error& e ) { TERR(e, "TimeInterleavedChannelList");  }
     try { spCh1->PutRange(m.front_end_range);                   } catch ( _com_error& e ) { TERR(e, "Range");  }
     try { spCh1->PutOffset(m.front_end_offset);                 } catch ( _com_error& e ) { TERR(e, "Offset");  }
     // Setup triggering
-    try { task.spAgDrvr()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
+    try { task.spDriver()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
     try { spTrigSrc->PutLevel(m.ext_trigger_level);             } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
 
     // Calibrate
     ADTRACE() << "Calibrating...";
-    try { task.spAgDrvr()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
+    try { task.spDriver()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
 
     // Set the sample rate and nbr of samples to acquire
     double sample_rate = 3.2E9;
-    try { task.spAgDrvr()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
+    try { task.spDriver()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
 
     try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
 
     ADTRACE() << "Apply setup...";
-    try { task.spAgDrvr()->Acquisition->ApplySetup();  } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
+    try { task.spDriver()->Acquisition->ApplySetup();  } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 

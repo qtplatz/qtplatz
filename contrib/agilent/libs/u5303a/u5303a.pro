@@ -11,8 +11,19 @@ TEMPLATE = lib
 
 include(../../agilentlibrary.pri)
 include(../../boost.pri)
+IVIROOTDIR = "C:/Program Files/IVI Foundation/IVI"
+VXIPNPPATH = "C:/Program Files/IVI Foundation/VISA"
+#             C:\Program Files\IVI Foundation\VISA\VisaCom64
 
 DEFINES += U5303A_LIBRARY
+INCLUDEPATH += $${IVIROOTDIR}/Include \
+               $${IVIROOTDIR}/Bin \
+               $${VXIPNPPATH}/WinNT/include \
+               $${VXIPNPPATH}/WinNT/agvisa/include \
+               $${VXIPNPPATH}/VisaCom64
+
+
+message("includepath=" $${INCLUDEPATH})
 
 SOURCES += digitizer.cpp \
         simulator.cpp \
