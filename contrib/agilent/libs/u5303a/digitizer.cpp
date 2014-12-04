@@ -536,20 +536,45 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
     
     // Set Interleave ON
-    try { spCh1->TimeInterleavedChannelList = "Channel2";       } catch ( _com_error& e ) { TERR(e, "TimeInterleavedChannelList");  }
-    try { spCh1->PutRange(m.front_end_range);                   } catch ( _com_error& e ) { TERR(e, "Range");  }
-    try { spCh1->PutOffset(m.front_end_offset);                 } catch ( _com_error& e ) { TERR(e, "Offset");  }
+    try {
+        spCh1->TimeInterleavedChannelList = "Channel2";
+    } catch ( _com_error& e ) {
+        TERR(e, "TimeInterleavedChannelList");
+    }
+    try {
+        spCh1->PutRange(m.front_end_range);
+    } catch ( _com_error& e ) {
+        TERR(e, "Range");
+    }
+    try {
+        spCh1->PutOffset(m.front_end_offset);
+    } catch ( _com_error& e ) {
+        TERR(e, "Offset");
+    }
 
     // Setup triggering
-    try { task.spDriver()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
-
+    try {
+        task.spDriver()->Trigger->ActiveSource = "External1";
+    } catch ( _com_error& e ) {
+        TERR(e, "Trigger::ActiveSource");
+    }
+    try {
+        task.spDriver()->Trigger->Delay = 0;
+    } catch ( _com_error& e ) {
+        TERR(e,"mode");        
+    }
     IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[L"External1"];
     try { spTrigSrc->Level = m.ext_trigger_level;               } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
     try { spTrigSrc->Edge->Slope = AgMD2TriggerSlopePositive;   } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
+
         
     // Calibrate
     ADTRACE() << "Calibrating...";
-    try { task.spDriver()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
+    try {
+        task.spDriver()->Calibration->SelfCalibrate();
+    } catch ( _com_error& e ) {
+        TERR(e, "Calibration::SelfCalibrate");
+    }
 
     ADTRACE() << "Set the Mode FDK...";
     //try { task.spDriver()->Acquisition->Mode = AgMD2AcquisitionModeUserFDK; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
@@ -557,26 +582,29 @@ device<UserFDK>::initial_setup( task& task, const method& m )
 
     // Set the sample rate and nbr of samples to acquire
     const double sample_rate = 3.2E9;
-    try { task.spDriver()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
-    try { task.spDriver()->Acquisition->UserControl->PostTrigger = (m.nbr_of_s_to_acquire/32) + 2; } catch ( _com_error& e ) { TERR(e,"PostTrigger"); }
-    try { task.spDriver()->Acquisition->UserControl->PreTrigger = 0; } catch ( _com_error& e ) { TERR(e,"PreTrigger"); }
+    try {
+        task.spDriver()->Acquisition2->SampleRate = sample_rate;
+    }  catch (_com_error& e) {
+        TERR(e,"SampleRate");
+    }
+    // try {
+    //     task.spDriver()->Acquisition->UserControl->PostTrigger = (m.nbr_of_s_to_acquire/32) + 2;
+    // } catch ( _com_error& e ) {
+    //     TERR(e,"PostTrigger");
+    // }
+    //try { task.spDriver()->Acquisition->UserControl->PreTrigger = 0; } catch ( _com_error& e ) { TERR(e,"PreTrigger"); }
 
     // Start on trigger
-    try { task.spDriver()->Acquisition->UserControl->StartOnTriggerEnabled = 1; } catch ( _com_error& e ) { TERR( e,"StartOnTrigger" ); }
+    //try { task.spDriver()->Acquisition->UserControl->StartOnTriggerEnabled = 1; } catch ( _com_error& e ) { TERR( e,"StartOnTrigger" ); }
 
     // Full bandwidth
-    try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); }
-
-    ADTRACE() << "Apply setup...";
-    try { task.spDriver()->Acquisition->ApplySetup();  } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
-
-    //long seg_depth = (m.nbr_of_s_to_acquire >> 5) + 5;
-    long seg_ctrl = 0x80000;   // Averager mode, Analog trigger
-
-    if (m.invert_signal == 1) 	{
-        seg_ctrl = seg_ctrl + 0x400000;
+    try {
+        task.spDriver()->Channels2->GetItem2("Channel1")->Filter->Bypass = 1;
+        // spCh1->Filter->Bypass = 1;
+    } catch ( _com_error& e ) {
+        TERR( e, "Bandwidth" );
     }
-    // long delay_next_acq = 2;
+
     // try { spDpuA->WriteRegisterInt32(0x3300, seg_depth);         } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3300"); }
     // try { spDpuA->WriteRegisterInt32(0x3304, m.nbr_of_averages); } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3304"); }
     // try { spDpuA->WriteRegisterInt32(0x3308, seg_ctrl);          } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3308"); }
@@ -584,20 +612,28 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     // try { spDpuA->WriteRegisterInt32(0x331c, m.nsa);             } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x331c"); }
     // try { spDpuA->WriteRegisterInt32(0x3320, m.delay_to_first_s);} catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3320"); }
     // try { spDpuA->WriteRegisterInt32(0x3324, delay_next_acq);    } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3324"); }
-
     //--->
-    task.spDriver()->Acquisition->RecordSize = m.nbr_of_s_to_acquire;
-    task.spDriver()->Acquisition2->NumberOfAverages = m.nbr_of_averages;
-    task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager;
+    try {
+        task.spDriver()->Acquisition->RecordSize = m.nbr_of_s_to_acquire;
+    } catch ( _com_error& e ) {
+        TERR(e,"mbr_of_s_to_acquire");        
+    }
+    try {
+        task.spDriver()->Acquisition2->NumberOfAverages = m.nbr_of_averages;
+    } catch ( _com_error& e ) {
+        TERR(e,"mbr_of_averages");        
+    }
+    try {
+        task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager;
+    } catch ( _com_error& e ) {
+        TERR(e,"mode");        
+    }
     //<---
-
-    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
-
-    // Memory settings
-    // try { spDDR3A->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware); } catch (_com_error& e){TERR(e,"DDR3A::AccessControl");}
-    // try { spDDR3B->PutAccessControl(AgMD2LogicDeviceMemoryBankAccessControlUserFirmware); } catch (_com_error& e){TERR(e,"DDR3B::AccessControl");}
-
-    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
+    try {
+        task.spDriver()->Calibration->SelfCalibrate();
+    } catch ( _com_error& e ) {
+        TERR(e, "Calibration::SelfCalibrate");
+    }
 
 	return true;
 }
@@ -611,10 +647,16 @@ device<UserFDK>::setup( task& task, const method& m )
 template<> bool
 device<UserFDK>::acquire( task& task )
 {
+    // Perform the acquisition.
+    try {
+        task.spDriver()->Acquisition->Initiate();
+    } catch ( _com_error & e ) {
+        TERR(e,"Initialte");
+    } 
     //Start the acquisition
-    try { task.spDriver()->Acquisition->UserControl->StartSegmentation(); } catch ( _com_error& e ) { TERR(e, "StartSegmentation"); }
-    try { task.spDriver()->Acquisition->UserControl->StartProcessing(AgMD2UserControlProcessingType1); } catch ( _com_error& e ) {
-        TERR( e, "StartProcessing" ); }
+    // try { task.spDriver()->Acquisition->UserControl->StartSegmentation(); } catch ( _com_error& e ) { TERR(e, "StartSegmentation"); }
+    // try { task.spDriver()->Acquisition->UserControl->StartProcessing(AgMD2UserControlProcessingType1); } catch ( _com_error& e ) {
+    //     TERR( e, "StartProcessing" ); }
     return true;
 }
 
@@ -624,17 +666,16 @@ device<UserFDK>::waitForEndOfAcquisition( task& task, int timeout )
 	(void)timeout;
     //Wait for the end of the acquisition
 
-    long wait_for_end = 0x80000000;
-    IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];	
+    long const timeoutInMs = 3000;
 
-    int count = 0;
-    while ( wait_for_end >= 0x80000000 ) {
-        std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
-        try { spDpuA->ReadRegisterInt32( 0x3308, &wait_for_end ); } catch ( _com_error& e ) { TERR(e, "ReadRegisterInt32"); }
-        if ( ++count > 15 ) {
-            ADTRACE() << "U5303A::waitForEndOfAcqisition timed out";
-            return false;
-        }
+    // long wait_for_end = 0x80000000;
+    // IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];	
+
+    std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
+    try {
+        task.spDriver()->Acquisition->WaitForAcquisitionComplete(timeoutInMs);
+    } catch ( _com_error& e ) {
+        TERR(e, "ReadRegisterInt32");
     }
     return true;
 }
@@ -644,24 +685,61 @@ device<UserFDK>::readData( task& task, waveform& data )
 {
     static std::chrono::high_resolution_clock::time_point __uptime = std::chrono::high_resolution_clock::now();
 
-    IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];
-
-	long words_32bits = task.method().nbr_of_s_to_acquire;
-    data.method_ = task.method();
+    IAgMD2Channel2Ptr spCh1 = task.spDriver()->Channels2->Item2[L"Channel1"];
+    // IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];
+    // Fetch the acquired data in array.
+    __int64 firstRecord = 0;
+    __int64 numRecords = 1;
+    __int64 offsetWithinRecord = 0;
+    SAFEARRAY* dataArray = NULL;
+    long actualAverages = 0;
+    __int64 actualRecords = 0;
+    SAFEARRAY* actualPoints = NULL;
+    SAFEARRAY* firstValidPoint = NULL;
+    double initialXOffset = 0.0;
+    SAFEARRAY* initialXTimeSeconds = NULL;
+    SAFEARRAY* initialXTimeFraction = NULL;
+    double xIncrement = 0.0;
+    double scaleFactor = 0.0;
+    double scaleOffset = 0.0;
+    SAFEARRAY* flags = NULL;
+	const int64_t numPointsPerRecord = task.method().nbr_of_s_to_acquire;
 
     try {
-		SAFEARRAY * psaWfmDataRaw(0);
-        spDpuA->ReadIndirectInt32(0x11, 0, words_32bits, &psaWfmDataRaw, &data.actualElements_, &data.firstValidElement_);
-        // workaround
+        spCh1->Measurement2->FetchAccumulatedWaveformInt32(firstRecord,
+                                                           numRecords,
+                                                           offsetWithinRecord,
+                                                           numPointsPerRecord,
+                                                           &dataArray,
+                                                           &actualAverages,
+                                                           &actualRecords,
+                                                           &actualPoints,
+                                                           &firstValidPoint,
+                                                           &initialXOffset,
+                                                           &initialXTimeSeconds,
+                                                           &initialXTimeFraction,
+                                                           &xIncrement,
+                                                           &scaleFactor,
+                                                           &scaleOffset,
+                                                           &flags);
+        data.method_ = task.method();
         data.timestamp_ = std::chrono::duration< uint64_t, std::pico >( std::chrono::high_resolution_clock::now() - __uptime ).count();
 
-		safearray_t<int32_t> sa( psaWfmDataRaw );
-        data.d_.resize( words_32bits );
-        
-		std::copy( sa.data() + data.firstValidElement_, sa.data() + words_32bits, data.d_.begin() );
+		safearray_t<int32_t> sa( dataArray );
+        data.d_.resize( numPointsPerRecord );
+		std::copy( sa.data() + data.firstValidElement_, sa.data() + numPointsPerRecord, data.d_.begin() );
+
+        // Release memory.
+        SafeArrayDestroy(flags);
+        SafeArrayDestroy(initialXTimeFraction);
+        SafeArrayDestroy(initialXTimeSeconds);
+        SafeArrayDestroy(firstValidPoint);
+        SafeArrayDestroy(actualPoints);
+        SafeArrayDestroy(dataArray);
 
     } catch ( _com_error& e ) {
         TERR(e,"readData::ReadIndirectInt32");
+        return false;
     }
     return true;
 }
