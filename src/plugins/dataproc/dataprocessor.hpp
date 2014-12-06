@@ -81,6 +81,7 @@ namespace dataproc {
         bool isModified() const override;
         bool isSaveAsAllowed() const override;
         bool isFileReadOnly() const override;
+        IDocument::ReloadBehavior reloadBehavior( ChangeTrigger state, ChangeType type ) const override;
 
         // Dataprocessor
         void setModified( bool );

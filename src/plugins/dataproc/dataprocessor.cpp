@@ -160,6 +160,13 @@ Dataprocessor::isFileReadOnly() const
     return false;
 }
 
+Core::IDocument::ReloadBehavior
+Dataprocessor::reloadBehavior( ChangeTrigger state, ChangeType type ) const
+{
+    return IDocument::BehaviorSilent;
+}
+
+
 bool
 Dataprocessor::save( QString * errorString, const QString& filename, bool /* autoSave */)
 {
@@ -932,12 +939,15 @@ Dataprocessor::notify( adcontrols::dataSubscriber::idError, const wchar_t * text
 bool
 Dataprocessor::onFileAdded( const std::wstring& path, adfs::file& file )
 {
+    // reload action for snapshot on acquire
+
 	boost::filesystem::path pathname( path );
 	if ( std::distance( pathname.begin(), pathname.end() ) < 3 )
 		return false;
 	if ( path.find( L"/Processed" ) == path.npos ) 
 		return false;
-	std::wstring foldername = pathname.filename().wstring();
+
+    std::wstring foldername = pathname.filename().wstring();
 
 	portfolio::Folder folder = portfolio_->addFolder( foldername );
 	portfolio::Folium folium = folder.addFolium( static_cast< adfs::attributes& >(file).name() );
@@ -945,11 +955,8 @@ Dataprocessor::onFileAdded( const std::wstring& path, adfs::file& file )
     std::for_each( file.begin(), file.end(), [&]( const adfs::attributes::vector_type::value_type& a ){
             folium.setAttribute( a.first, a.second );            
         });
-	// for ( const auto attrib = file.begin(); attrib != file.end(); ++attrib ) 
-	// 	folium.setAttribute( attrib->first, attrib->second );
 	
 	SessionManager::instance()->updateDataprocessor( this, folium );
-    setModified( true );
 
 	return true;
 }
