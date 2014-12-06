@@ -60,7 +60,7 @@ namespace adcontrols {
         void mass( double );
         void mode( int32_t );
         void fcn( int32_t );
-        void width( double, bool isTime = false );
+        void width( double, bool isTime );
         void exit_delay( double );
         void flight_length( double );
         void formula( const std::string& );
