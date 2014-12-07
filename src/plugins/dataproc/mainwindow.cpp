@@ -713,13 +713,13 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 void
 MainWindow::lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& ptr )
 {
-    auto docks = dockWidgets();
-    auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
-    if ( it != docks.end() ) {
-        adplugin::LifeCycleAccessor accessor( (*it)->widget() );
-        if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
-            boost::any any( ptr );
-            pLifeCycle->onUpdate( any );
+    for ( auto& dock : dockWidgets() ) {
+        if ( dock->objectName() == "MSPeakTable" ) {
+            adplugin::LifeCycleAccessor accessor( dock->widget() );
+            if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
+                boost::any any( ptr );
+                pLifeCycle->onUpdate( any );
+            }
         }
     }
 }
@@ -727,13 +727,13 @@ MainWindow::lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& 
 void
 MainWindow::dataMayChanged()
 {
-    auto docks = dockWidgets();
-    auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
-    if ( it != docks.end() ) {
-        adplugin::LifeCycleAccessor accessor( (*it)->widget() );
-        if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
-            boost::any any(int(0));
-            pLifeCycle->onUpdate( any );
+    for ( auto& dock : dockWidgets() ) {
+        if ( dock->objectName() == "MSPeakTable" ) {
+            adplugin::LifeCycleAccessor accessor( dock->widget() );
+            if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
+                boost::any any( int( 0 ) );
+                pLifeCycle->onUpdate( any );
+            }
         }
     }
     emit onDataMayCanged();

@@ -48,7 +48,6 @@
 #include <QItemDelegate>
 #include <QKeyEvent>
 #include <QStandardItemModel>
-#include <QDebug>
 #include <QMenu>
 #include <QPair>
 #include <boost/format.hpp>
@@ -116,8 +115,10 @@ namespace adwidgets {
             drawDisplay( painter, op, option.rect, (boost::format( "%.7lf" ) % index.data( Qt::EditRole ).toDouble()).str().c_str() );
             break;
         case c_mspeaktable_mass_error:
-            if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() )
-                drawDisplay( painter, op, option.rect, (boost::format( "%.7g" ) % (index.data( Qt::EditRole ).toDouble() * 1000)).str().c_str() );
+            if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() ) {
+                double error = index.data().toDouble();
+                drawDisplay( painter, op, option.rect, (boost::format( "%.7g" ) % (error * 1000)).str().c_str() );
+            }
             break;
         case c_mspeaktable_intensity:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_intensity ), Qt::EditRole ).toString().isEmpty() )
@@ -395,6 +396,7 @@ void
 MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
 	QStandardItemModel& model = *impl_->model_;
+
     setUpdatesEnabled( false );
 
     model.setRowCount( static_cast< int >( info.total_size() ) );
@@ -437,7 +439,9 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 {
 	QStandardItemModel& model = *impl_->model_;
     size_t total_size = 0;
+
     setUpdatesEnabled( false );
+ 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     for( auto& t: segs )
         total_size += t.size();
@@ -477,15 +481,16 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
             model.setData( model.index( row, c_mspeaktable_formula ), QString() ); // clear formula
 
-            auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; } );
+            auto it = std::find_if( annots.begin(), annots.end(), [idx] ( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
-                    model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );                    
+                    model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );
                 } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
                     model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->text() ) );
                     model.setData( model.index( row, c_mspeaktable_mass_error ), mass - exactMass( it->text() ) );
-                } 
-                // todo: smiles, MOL
+                } else if ( it->dataFormat() == adcontrols::annotation::dataSmiles ) {
+                    // todo, smiles, MOL, SVG
+                }
 				it = std::find_if( ++it, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });
             }
             ++row;
@@ -514,6 +519,7 @@ MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
     }
 
     setUpdatesEnabled( false );
+
     for ( int row = 0; row < int(total_size); ++row ) {
 
 
