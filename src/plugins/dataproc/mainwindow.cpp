@@ -217,7 +217,6 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , actionApply_( 0 )
                                           , stack_( 0 )
                                           , aboutDlg_(0)
-    // , processMethodNameEdit_( new QLineEdit ) 
                                           , currentFeature_( CentroidProcess )
 {
     std::fill( selPages_.begin(), selPages_.end(), static_cast<QAction *>(0) );

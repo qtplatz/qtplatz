@@ -40,6 +40,7 @@ MSPeak::MSPeak() : time_( 0 )
                  , mass_width_( 0 )
                  , exit_delay_( 0 )
                  , exact_mass_( 0 )
+                 , flags_(0)
 {
 }
 
@@ -48,33 +49,44 @@ MSPeak::MSPeak( const MSPeak& t ) : time_( t.time_ )
                                   , mode_( t.mode_ )
                                   , fcn_( t.fcn_ )
                                   , flength_( t.flength_ )
+                                  , spectrumIndex_( t.spectrumIndex_ )
                                   , formula_( t.formula_ )
                                   , description_( t.description_ )
                                   , spectrumId_( t.spectrumId_ )   
-                                  , spectrumIndex_( t.spectrumIndex_ )
                                   , time_width_( t.time_width_ )
                                   , mass_width_( t.mass_width_ )
                                   , exit_delay_( t.exit_delay_ ) 
                                   , exact_mass_( t.exact_mass_ )
+                                  , flags_( t.flags_ )
 {
 }
 
 MSPeak::MSPeak( double time, double mass, int32_t mode, double flength ) : time_( time )
                                                                          , mass_( mass )
                                                                          , mode_( mode )
-                                                                         , flength_( flength )
                                                                          , fcn_( 0 )
+                                                                         , flength_( flength )
+                                                                         , spectrumIndex_( 0 )
+                                                                         , time_width_( 0 )
+                                                                         , mass_width_( 0 )
                                                                          , exit_delay_( 0 )
+                                                                         , exact_mass_( 0 )
+                                                                         , flags_(0)
 {
 }
 
-MSPeak::MSPeak( const std::string& formula, double mass ) : mass_( mass )
+MSPeak::MSPeak( const std::string& formula, double mass ) : time_( 0 )
+                                                          , mass_( mass )
                                                           , mode_( 0 )
+                                                          , fcn_( 0 )
                                                           , flength_( 0 )
                                                           , formula_( formula )
                                                           , spectrumIndex_( 0 )
-                                                          , fcn_( 0 )
+                                                          , time_width_( 0 )
+                                                          , mass_width_( 0 )
                                                           , exit_delay_( 0 )
+                                                          , exact_mass_( 0 )
+                                                          , flags_(0)
 {
 }
 
@@ -221,3 +233,20 @@ MSPeak::exact_mass() const
     return exact_mass_;
 }
 
+uint32_t
+MSPeak::flags() const
+{
+    return flags_;
+}
+
+void
+MSPeak::setFlags( uint32_t v )
+{
+    flags_ = v;
+}
+
+bool
+MSPeak::isFlag( Flags f ) const
+{
+    return flags_ & f ? true : false;
+}

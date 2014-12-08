@@ -43,6 +43,11 @@ namespace adcontrols {
         MSPeak( const std::string& formula, double mass );
         static const wchar_t * dataClass() { return L"adcontrols::MSPeak"; }
 
+        enum Flags {
+            ManuallyAssigned = 1
+            , LockMassReference = 2
+        };
+
         double time() const;
         double mass() const;
         int32_t mode() const;
@@ -55,6 +60,8 @@ namespace adcontrols {
         const std::string& spectrumId() const;
         int32_t spectrumIndex() const;
         double exact_mass() const;
+        uint32_t flags() const;
+        bool isFlag( Flags ) const;
 
         void time( double );
         void mass( double );
@@ -67,6 +74,7 @@ namespace adcontrols {
         void description( const std::wstring& );
         void spectrumId( const std::string& ); // uuid for a spectrum
         void spectrumIndex( int );
+        void setFlags( uint32_t );
 
     private:
         double time_;
@@ -82,6 +90,7 @@ namespace adcontrols {
         double mass_width_;
         double exit_delay_;
         double exact_mass_;
+        uint32_t flags_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -102,11 +111,13 @@ namespace adcontrols {
                 ar & exit_delay_;
                 ar & exact_mass_;
             }
+            if ( version >= 2 )
+                ar & flags_;
         }
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSPeak, 1)
+BOOST_CLASS_VERSION( adcontrols::MSPeak, 2)
 
 #endif // MSPEAK_HPP
