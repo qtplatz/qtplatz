@@ -273,7 +273,10 @@ ControlMethodTable::data( int row ) const
             
             // time
             double seconds = model_->data( model_->index( row, 0 ) ).toDouble() * 60.0;
-            mi.time( seconds );
+            if ( seconds < 0 )
+                mi.isInitialCondition( true );
+            else
+                mi.time( seconds );
             
             // description
             auto desc = model_->data( model_->index( row, 4 ) ).toString();

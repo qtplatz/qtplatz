@@ -43,7 +43,7 @@
 #include <adinterface/observerevents_i.hpp>
 #include <adinterface/eventlog_helper.hpp>
 #include <adinterface/eventlog_helper.hpp>
-
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/description.hpp>
@@ -527,7 +527,16 @@ AcquirePlugin::actionDisconnect()
 void
 AcquirePlugin::actionInitRun()
 {
+    auto ptr = acquire::document::instance()->controlMethod();
+
+    auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
+    if ( !iControllers.isEmpty() ) {
+        for ( auto& iController : iControllers )
+            iController->preparing_for_run( *ptr );
+    }
+
     if ( ! CORBA::is_nil( session_ ) ) {
+
         ControlMethod::Method m;
         session_->prepare_for_run( m );
         ADTRACE() << "adcontroller status: " << session_->status();

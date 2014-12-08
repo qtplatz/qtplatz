@@ -24,6 +24,8 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "acquiredocument.hpp"
+#include <adextension/icontroller.hpp>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adplugin/widget_factory.hpp>
@@ -105,6 +107,10 @@ MainWindow::OnInitialUpdate()
     createDockWidget( editor_, "Control Method", "ControlMethodWidget" );
 
 	setSimpleDockWidgetArrangement();
+    
+    for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
+        connect( iController, &adextension::iController::onControlMethodChanged, this, &MainWindow::handleControlMethod );
+    }
 }
 
 void
@@ -213,5 +219,17 @@ MainWindow::handle_debug_print( unsigned long priority, unsigned long category, 
     Q_UNUSED( priority );
     Q_UNUSED( category );
     emit signal_eventLog( text );
+}
+
+void
+MainWindow::handleControlMethod()
+{
+    auto ptr = acquire::document::instance()->controlMethod();
+
+    for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
+        iController->preparing_for_run( *ptr );
+    }
+    if ( editor_ )
+        editor_->setControlMethod( *ptr );
 }
 

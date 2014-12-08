@@ -57,13 +57,13 @@ veryclean: clean
 qtplatz:
 	-$(RM) version.wxi
 	cd $(QTPLATZ_PATH)
-	qmake -tp vc -r
+	qmake -config release -tp vc -r
 	cd $(MAKEDIR)
 	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Rebuild /p:Configuration=Release
 
 infitof:
 	cd $(INFITOF_PATH)
-	qmake -tp vc -r
+	qmake -config release -tp vc -r
 	cd $(MAKEDIR)
 	msbuild $(INFITOF_PATH)\infitof.sln /m:4 /t:Rebuild /p:Configuration=Release
 

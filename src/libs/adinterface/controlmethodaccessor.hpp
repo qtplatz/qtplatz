@@ -32,32 +32,6 @@
 
 namespace adinterface {
 
-    class ControlMethodAccessor {
-    public:
-        static bool isPointer( boost::any& a ) {
-			return adportable::a_type< ::ControlMethod::Method >::is_pointer( a );
-        }
-        static bool isReference( boost::any& a ) {
-			return adportable::a_type< ::ControlMethod::Method >::is_a( a );
-        }
-
-        static ::ControlMethod::Method * out( boost::any& a ) {
-            if ( isPointer( a ) ) {
-                ::ControlMethod::Method * m = boost::any_cast< ::ControlMethod::Method * >( a );
-                return m;
-            }
-            return 0;
-        }
-            
-        static const ::ControlMethod::Method * in( boost::any& a ) {
-            if ( isReference( a ) ) {
-                const ::ControlMethod::Method& m = boost::any_cast< const ::ControlMethod::Method& >( a );
-                return &m;
-            }
-            return 0;
-        }
-    };
-
     template<class IM, class Serializer>
     class ControlMethodAccessorT {
         std::wstring instId_;
@@ -84,8 +58,10 @@ namespace adinterface {
         }
 
         bool setMethod( boost::any& a, const IM& im ) const {
-            if ( ::ControlMethod::Method * out = ControlMethodAccessor::out( a ) ) {
-                return setMethod( *out, im );
+
+            if ( adportable::a_type< ::ControlMethod::Method >::is_pointer( a ) ) {
+                auto m = boost::any_cast< ::ControlMethod::Method * >( a );
+                return setMethod( *m, im );
             }
             return false;
         }
@@ -98,10 +74,13 @@ namespace adinterface {
         }
 
         bool getMethod( IM& im, boost::any& a ) {
-            const ::ControlMethod::Method * method = 
-                ControlMethodAccessor::isPointer( a ) ? ControlMethodAccessor::out( a ) : ControlMethodAccessor::in( a );
-            if ( method )
-                return getMethod( im, *method );
+            if ( const ::ControlMethod::Method * method = 
+                 adportable::a_type< ::ControlMethod::Method >::is_pointer( a ) ? 
+                 boost::any_cast< ::ControlMethod::Method * >( a ) :
+                 &(boost::any_cast< const ::ControlMethod::Method& >( a )) ) {
+                
+                return getMethod( im, *method );                
+            }
             return false;
         }
     };

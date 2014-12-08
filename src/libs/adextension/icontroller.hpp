@@ -28,6 +28,10 @@
 #include "adextension_global.hpp"
 #include <functional>
 
+namespace adcontrols {
+    class ControlMethod;
+}
+
 namespace adextension {
 
     class ADEXTENSIONSHARED_EXPORT iController : public QObject {
@@ -35,8 +39,11 @@ namespace adextension {
     public:
         explicit iController(QObject *parent = 0);
         virtual bool wait_for_connection_ready() = 0;
+        virtual bool preparing_for_run( adcontrols::ControlMethod& ) = 0;
         
     signals:
+        void onControlMethodChanged();
+    
 
     public slots:
 

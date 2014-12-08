@@ -76,6 +76,8 @@ namespace acquire {  namespace internal {
             QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
             adwidgets::ControlMethodWidget * editor_;
 
+            void handleControlMethod();
+
         };
 
     }
