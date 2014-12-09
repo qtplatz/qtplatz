@@ -36,6 +36,7 @@
 #include <adportable/string.hpp>
 #include <adlog/logger.hpp>
 #include <adwidgets/controlmethodwidget.hpp>
+#include <adwidgets/samplerunwidget.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <extensionsystem/pluginmanager.h>
 
@@ -64,10 +65,10 @@ MainWindow::~MainWindow()
 }
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
-                                        , editor_(0)
+                                        , cmEditor_( new adwidgets::ControlMethodWidget )
+                                        , runEditor_( new adwidgets::SampleRunWidget )
 {
 }
-
 
 void
 MainWindow::init( const adportable::Configuration& config )
@@ -79,9 +80,12 @@ MainWindow::init( const adportable::Configuration& config )
 void
 MainWindow::OnInitialUpdate()
 {
-    editor_ = new adwidgets::ControlMethodWidget;
-    editor_->OnInitialUpdate();
+    cmEditor_->OnInitialUpdate();
+    runEditor_->OnInitialUpdate();
 
+    createDockWidget( runEditor_, "Sample Run",     "SampleRunWidget" ); // this must be first
+
+    // then, series of individual control method widgets
     auto visitables = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
 
 	for ( auto v: visitables ) {
@@ -94,7 +98,7 @@ MainWindow::OnInitialUpdate()
                 if ( auto widget = factory.createEditor( 0 ) ) {
                     widget->setObjectName( factory.title() );
                     createDockWidget( widget, factory.title(), "ControlMethod" );
-                    editor_->addEditor( widget ); // will call OnInitialUpdate
+                    cmEditor_->addEditor( widget ); // will call OnInitialUpdate
                 }
                 
             }
@@ -102,12 +106,13 @@ MainWindow::OnInitialUpdate()
         }
     }
 
-    connect( editor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
-
-    createDockWidget( editor_, "Control Method", "ControlMethodWidget" );
+    // and this must be very last.
+    createDockWidget( cmEditor_, "Control Method", "ControlMethodWidget" );
 
 	setSimpleDockWidgetArrangement();
-    
+
+    connect( cmEditor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
+
     for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
         connect( iController, &adextension::iController::onControlMethodChanged, this, &MainWindow::handleControlMethod );
     }
@@ -199,14 +204,27 @@ MainWindow::eventLog( const QString& text )
 void
 MainWindow::setControlMethod( const adcontrols::ControlMethod& m )
 {
-    editor_->setControlMethod( m );
+    cmEditor_->setControlMethod( m );
 }
 
 void
 MainWindow::getControlMethod( adcontrols::ControlMethod& m )
 {
-    editor_->getControlMethod( m );
+    cmEditor_->getControlMethod( m );
 }
+
+void
+MainWindow::setSampleRun( const adcontrols::SampleRun& m )
+{
+    runEditor_->setSampleRun( m );
+}
+
+void
+MainWindow::getSampleRun( adcontrols::SampleRun& m )
+{
+    runEditor_->getSampleRun( m );
+}
+
 
 void
 MainWindow::handle_shutdown()
@@ -229,7 +247,7 @@ MainWindow::handleControlMethod()
     for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
         iController->preparing_for_run( *ptr );
     }
-    if ( editor_ )
-        editor_->setControlMethod( *ptr );
+    if ( cmEditor_ )
+        cmEditor_->setControlMethod( *ptr );
 }
 

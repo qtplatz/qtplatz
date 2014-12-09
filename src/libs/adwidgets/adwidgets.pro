@@ -57,7 +57,8 @@ SOURCES += adwidgets.cpp \
         peakmethodform.cpp \
         mspeaksummary.cpp \
         mspeakwidget.cpp \
-        toftable.cpp        
+        toftable.cpp \        
+    samplerunwidget.cpp
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -92,7 +93,8 @@ HEADERS += adwidgets.hpp\
         peakmethodform.hpp \
         mspeaksummary.hpp \
         mspeakwidget.hpp \
-        toftable.hpp
+        toftable.hpp \
+    samplerunwidget.hpp
 
 unix {
     target.path = /usr/lib

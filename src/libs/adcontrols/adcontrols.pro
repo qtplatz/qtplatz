@@ -106,7 +106,8 @@ SOURCES += acceptor.cpp \
     quancalibration.cpp \
     quancalibrations.cpp \
     serializer.cpp \
-    retentiontime.cpp
+    retentiontime.cpp \
+    samplerun.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -200,7 +201,8 @@ HEADERS += acceptor.hpp \
     quancalibration.hpp \
     quancalibrations.hpp \
     serializer.hpp \
-    retentiontime.hpp
+    retentiontime.hpp \
+    samplerun.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 

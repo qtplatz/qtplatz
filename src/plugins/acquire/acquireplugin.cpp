@@ -354,6 +354,7 @@ AcquirePlugin::extensionsInitialized()
 	mainWindow_->OnInitialUpdate();
     document::instance()->initialSetup();
     mainWindow_->setControlMethod( *document::instance()->controlMethod() );
+    mainWindow_->setSampleRun( *document::instance()->sampleRun() );
 }
 
 void

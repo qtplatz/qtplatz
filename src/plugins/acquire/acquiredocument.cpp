@@ -26,6 +26,7 @@
 #include "constants.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/samplerun.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
@@ -69,6 +70,7 @@ document::document(QObject *parent) : QObject(parent)
                                                                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                                 , QLatin1String( "acquire" ) ) )
                                     , cm_( std::make_shared< adcontrols::ControlMethod >() )
+                                    , sampleRun_( std::make_shared< adcontrols::SampleRun >() )
 {
 }
 
@@ -123,6 +125,11 @@ document::initialSetup()
     adcontrols::ControlMethod cm;
     if ( load( QString::fromStdWString( mfile.wstring() ), cm ) )
         setControlMethod( cm, QString() ); // don't save default name
+
+    boost::filesystem::path sfile( dir / "samplerun.sequ" );
+    adcontrols::SampleRun sr;
+    if ( load( QString::fromStdWString( sfile.wstring() ), sr ) )
+        setSampleRun( sr, QString() ); // don't save default name
 }
 
 void
@@ -139,6 +146,56 @@ document::finalClose( internal::MainWindow * mainwindow )
     mainwindow->getControlMethod( *cm_ );
     boost::filesystem::path fname( dir / "default.cmth" );
     save( QString::fromStdWString( fname.wstring() ), *cm_ );
+
+    mainwindow->getSampleRun( *sampleRun_ );
+    boost::filesystem::path sname( dir / "samplerun.sequ" );
+    save( QString::fromStdWString( sname.wstring() ), *sampleRun_ );
+}
+
+std::shared_ptr< adcontrols::ControlMethod >
+document::controlMethod() const
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    return cm_;
+}
+
+std::shared_ptr< adcontrols::SampleRun >
+document::sampleRun() const
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    return sampleRun_;
+}
+
+void
+document::setControlMethod( const adcontrols::ControlMethod& m, const QString& filename )
+{
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        cm_ = std::make_shared< adcontrols::ControlMethod >( m );
+    } while(0);
+
+    if ( ! filename.isEmpty() ) {
+        ctrlmethod_filename_ = filename;
+        qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_METHOD_FILES, constants::KEY_FILES, filename );
+    }
+
+    emit onControlMethodChanged( filename );
+}
+
+void
+document::setSampleRun( const adcontrols::SampleRun& m, const QString& filename )
+{
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        sampleRun_ = std::make_shared< adcontrols::SampleRun >( m );
+    } while(0);
+
+    if ( ! filename.isEmpty() ) {
+        samplerun_filename_ = filename;
+        qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_SEQUENCE_FILES, constants::KEY_FILES, filename );
+    }
+
+    emit onSampleRunChanged( filename );
 }
 
 QString
@@ -215,45 +272,68 @@ document::save( const QString& filename, const adcontrols::ControlMethod& m )
     }
     adfile.commit();
 
-#if 0 // adcontrols can't archive into xml format
-    QFileInfo xmlfile( filename + ".xml" );
-    if ( xmlfile.exists() )
-        QFile::remove( xmlfile.absoluteFilePath() );
-
-    std::wstringstream o;
-    try {
-        adcontrols::ControlMethod::xml_archive( o, m );
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << boost::diagnostic_information( ex );
-    }
-    pugi::xml_document doc;
-    doc.load( o );
-    doc.save_file( xmlfile.absoluteFilePath().toStdString().c_str() );
-#endif
-
     return true;
 }
 
-std::shared_ptr< adcontrols::ControlMethod >
-document::controlMethod() const
+bool
+document::load( const QString& filename, adcontrols::SampleRun& m )
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-    return cm_;
+    QFileInfo fi( filename );
+
+    if ( fi.exists() ) {
+        adfs::filesystem fs;
+        if ( fs.mount( filename.toStdWString().c_str() ) ) {
+            adfs::folder folder = fs.findFolder( L"/SampleRun" );
+        
+            auto files = folder.files();
+            if ( !files.empty() ) {
+                auto file = files.back();
+                try {
+                    file.fetch( m );
+                }
+                catch ( std::exception& ex ) {
+                    QMessageBox::information( 0, "acquire -- Open default sample run"
+                                              , (boost::format( "Failed to open last used sample run file: %1% by reason of %2% @ %3% #%4%" )
+                                                 % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
+                    return false;
+                }
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
-void
-document::setControlMethod( const adcontrols::ControlMethod& m, const QString& filename )
+bool
+document::save( const QString& filename, const adcontrols::SampleRun& m )
 {
+    adfs::filesystem file;
+
+    if ( !file.create( filename.toStdWString().c_str() ) ) {
+        ADTRACE() << "Error: \"" << filename.toStdString() << "\" can't be created";
+        return false;
+    }
+    
+    adfs::folder folder = file.addFolder( L"/SampleRun" );
+    adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
+    try {
+        adfile.dataClass( adcontrols::ControlMethod::dataClass() );
+        adfile.save( m );
+    } catch ( std::exception& ex ) {
+        ADTRACE() << "Exception: " << boost::diagnostic_information( ex );
+        return false;
+    }
+    adfile.commit();
+
     do {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        cm_ = std::make_shared< adcontrols::ControlMethod >( m );
+        boost::filesystem::path xmlfile( filename.toStdWString() );
+        xmlfile.replace_extension( ".xml" );
+        std::wostringstream os;
+        adcontrols::SampleRun::xml_archive( os, m );
+        pugi::xml_document dom;
+        dom.load( pugi::as_utf8( os.str() ).c_str() );
+        dom.save_file( xmlfile.string().c_str() );
     } while(0);
 
-    if ( ! filename.isEmpty() ) {
-        ctrlmethod_filename_ = filename;
-        qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_METHOD_FILES, constants::KEY_FILES, filename );
-    }
-
-    emit onControlMethodChanged( filename );
+    return true;
 }
-

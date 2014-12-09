@@ -25,6 +25,7 @@
 #include "tableview.hpp"
 #include <QApplication>
 #include <QClipboard>
+#include <QContextMenuEvent>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QMenu>
@@ -37,8 +38,8 @@ TableView::TableView(QWidget *parent) : QTableView(parent)
                                       , allowDelete_( true )
 {
     verticalHeader()->setDefaultSectionSize( 18 );
-    setContextMenuPolicy( Qt::CustomContextMenu );
-    connect( this, &QTableView::customContextMenuRequested, this, &TableView::showContextMenu);
+    // setContextMenuPolicy( Qt::CustomContextMenu );
+    // connect( this, &QTableView::customContextMenuRequested, this, &TableView::showContextMenu);
 }
 
 void
@@ -146,11 +147,15 @@ TableView::handleDeleteSelection()
 }
 
 void
-TableView::showContextMenu( const QPoint& pt )
+TableView::addActionsToMenu( QMenu& menu, const QPoint& )
+{
+    menu.addAction( tr( "Copy to clipboard" ), this, SLOT( copy() ) );
+}
+
+void
+TableView::contextMenuEvent( QContextMenuEvent * event )
 {
     QMenu menu;
-    
-    menu.addAction( "Copy", this, SLOT( copy() ) );
-
-    menu.exec( this->mapToGlobal( pt ) );
+    addActionsToMenu( menu, event->pos() );
+    menu.exec( event->globalPos() );
 }

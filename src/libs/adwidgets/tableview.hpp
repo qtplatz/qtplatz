@@ -46,7 +46,10 @@ namespace adwidgets {
 
         virtual void handleDeleteSelection();
         virtual void handleCopyToClipboard();
-        virtual void showContextMenu( const QPoint& );
+        // virtual void showContextMenu( const QPoint& );
+        virtual void addActionsToMenu( QMenu&, const QPoint& );
+
+        void contextMenuEvent( QContextMenuEvent * ) override;
 
     private:
         bool allowDelete_;

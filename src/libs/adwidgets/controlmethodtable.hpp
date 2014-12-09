@@ -57,7 +57,7 @@ namespace adwidgets {
         void commit();
 
         // TableView
-        void showContextMenu( const QPoint& ) override;
+        void showContextMenu( const QPoint& );
 
     private:
         bool setContents( const adcontrols::ControlMethod& );
