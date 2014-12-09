@@ -25,8 +25,14 @@
 #include "session_i.hpp"
 #include "adinterface/receiverC.h"
 #include "adinterface/signalobserverC.h"
+#include <adinterface/controlmethodhelper.hpp>
+#include <adcontrols/samplerun.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include "task.hpp"
 #include <boost/tokenizer.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
 #include <iostream>
 
 using namespace adcontroller;
@@ -114,8 +120,16 @@ session_i::shell( const char * cmdline )
 
 //---------
 CORBA::Boolean
-session_i::prepare_for_run( const ControlMethod::Method& m )
+session_i::prepare_for_run( const ControlMethod::Method& m, const CORBA::WChar * sampleXml )
 {
+    adcontrols::SampleRun sampleRun;
+    adcontrols::ControlMethod cm;
+
+    std::wistringstream is( sampleXml );
+    adcontrols::SampleRun::xml_restore( is, sampleRun );
+
+    adinterface::ControlMethodHelper::copy( cm, m );
+
     iTask::instance()->io_service().post( std::bind(&iTask::handle_prepare_for_run, iTask::instance(), m ) );
     return true;
 }

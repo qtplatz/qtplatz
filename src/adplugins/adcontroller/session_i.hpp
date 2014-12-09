@@ -54,7 +54,7 @@ namespace adcontroller {
 
         ::SignalObserver::Observer_ptr getObserver(void);
 
-        ::CORBA::Boolean prepare_for_run( const ControlMethod::Method& m );
+        ::CORBA::Boolean prepare_for_run( const ControlMethod::Method& m, const CORBA::WChar * sampleXml );
         ::CORBA::Boolean push_back( SampleBroker::SampleSequence_ptr s );
         ::CORBA::Boolean event_out( CORBA::ULong value );
         ::CORBA::Boolean start_run();

@@ -32,14 +32,13 @@ include( ../../tao_idl.pri )
 
 SOURCES += interface.cpp \
         eventlog_helper.cpp \
-    	controlmethodhelper.cpp \
-        controlmethodaccessor.cpp
+    	controlmethodhelper.cpp
 
 HEADERS += interface.hpp \
         eventlog_helper.hpp \
         controlmethodhelper.hpp \
         controlmethodaccessor.hpp \
-    controlserver.hpp
+        controlserver.hpp
 
 OTHER_FILES += \
     adinterface_dependencies.pri

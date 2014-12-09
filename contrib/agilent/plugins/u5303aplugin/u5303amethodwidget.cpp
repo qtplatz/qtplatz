@@ -125,9 +125,9 @@ u5303AMethodWidget::getContents( boost::any& a ) const
         adportable::serializer< u5303a::method >::serialize( m, device );
 
         adcontrols::controlmethod::MethodItem item;
-        item.modelname( "u5303a" );
+        item.setModelname( "u5303a" );
         item.isInitialCondition( true );
-        item.itemLabel( "u5303a" );
+        item.setItemLabel( "u5303a" );
         item.unitnumber( 1 );
         item.funcid( 1 );
         item.data( device.data(), device.size() );
@@ -145,8 +145,8 @@ u5303AMethodWidget::getContents( boost::any& a ) const
             std::string device;
             adportable::serializer< u5303a::method >::serialize( m, device );
             
-            pi->modelname( "u5303a" );
-            pi->itemLabel( "u5303a" );
+            pi->setModelname( "u5303a" );
+            pi->setItemLabel( "u5303a" );
             pi->unitnumber( 1 );
             pi->funcid( 1 );
             pi->data( device.data(), device.size() );

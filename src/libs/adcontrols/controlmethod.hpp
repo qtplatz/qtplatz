@@ -56,8 +56,8 @@ namespace adcontrols {
             // and so on.  Each module can be indentified by a pair of modelname and unitnumber that 
             // is counted from zero (zero is default number).
 
-            const std::string& modelname() const;
-            void modelname( const std::string& );
+            const char * modelname() const;
+            void setModelname( const char * );
             
             uint32_t unitnumber() const;
             void unitnumber( uint32_t );
@@ -71,8 +71,8 @@ namespace adcontrols {
             uint32_t funcid() const;
             void funcid( uint32_t );
 
-            const std::string& itemLabel() const; // short description for Table UI
-            void itemLabel( const std::string& );
+            const char * itemLabel() const; // short description for Table UI
+            void setItemLabel( const char * );
 
             const char * data() const;            // serialized data
             size_t size() const;
@@ -124,6 +124,12 @@ namespace adcontrols {
         typedef size_t size_type;
         typedef std::vector< controlmethod::MethodItem >::iterator iterator;
         typedef std::vector< controlmethod::MethodItem >::const_iterator const_iterator;
+        
+        const char * description() const;
+        void setDescription( const char * );
+
+        const char * subject() const;
+        void setSubject( const char * );
 
         size_type size() const;
         iterator begin();

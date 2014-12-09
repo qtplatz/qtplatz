@@ -21,6 +21,7 @@ win32: DEFINES += _SCL_SECURE_NO_WARNINGS
 LIBS += -l$$qtLibraryTarget(adinterface)
 LIBS += \
      -l$$qtLibraryTarget(adfs) \
+     -l$$qtLibraryTarget(adcontrols) \
      -l$$qtLibraryTarget(adportable) \
      -l$$qtLibraryTarget(adutils) \
      -l$$qtLibraryTarget(acewrapper) \

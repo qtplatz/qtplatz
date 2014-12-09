@@ -34,46 +34,22 @@ module ControlMethod {
         , device_detector              // LC/GC detectors including MS
     };
     
-    struct InstInfo {
-        unsigned long index;
-        unsigned long unit_number;
-        eDeviceCategory category;
-        wstring modelname;
-        wstring serial_number;
-        wstring description;
-    };
-    
-    struct TimeValue {
-        unsigned long sec_;
-        unsigned long usec_;
-    };
-
-    module MethodFunc {
-        const unsigned long SampleDelay   =    1;  // autosampler sample sequence time for overwrap 
-        const unsigned long Inject        =    2;  // specify a time to inject
-        const unsigned long AcqDelay      =    3;  // acquisition delay time 
-        const unsigned long AcqStop       =    4;  // acquisition stop time
-        const unsigned long User          = 1024;  // instrument dependent method after this number
-    };
-    
-    struct MethodLine {
-        wstring modelname;
-        unsigned long index;         // index to instinfo
-        unsigned long unitnumber;
+    struct MethodLine {                // corresponding to adcontrols::controlmethod::MethodItem
+        string modelname;
+        string description;
+        unsigned long unitnumber;     // uint32_t
         boolean isInitialCondition;
-        TimeValue time;
-        unsigned long funcid;        // MethodFunc
-        octet_array xdata;
+        double time;
+        unsigned long funcid;         // uint32_t device dependent
+        string itemlabel;             // short description for funcid
+        octet_array xdata;            // device dependent serialized data
     };
 
     typedef sequence< MethodLine > method_sequence;
-    typedef sequence< InstInfo > instinfo_sequence;
 
     struct Method {
-        wstring subject;
-        wstring description;
-        //-----------//
-        instinfo_sequence iinfo;
+        string subject;
+        string description;
         method_sequence lines;
     };
 

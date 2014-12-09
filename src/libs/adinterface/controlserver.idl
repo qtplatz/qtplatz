@@ -90,8 +90,8 @@ module ControlServer {
         boolean echo(in string msg);
         boolean shell(in string cmdline);
       
-        boolean prepare_for_run(in ControlMethod::Method m);
-        boolean push_back( in SampleBroker::SampleSequence s);
+        boolean prepare_for_run( in ControlMethod::Method m, in wstring sampleRunXml );
+        boolean push_back( in SampleBroker::SampleSequence s );
       
         boolean event_out(in unsigned long event);
         boolean start_run();

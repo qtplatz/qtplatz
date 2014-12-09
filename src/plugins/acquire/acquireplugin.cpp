@@ -57,6 +57,7 @@
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/samplerun.hpp>
 #include <adcontrols/trace.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/timeutil.hpp>
@@ -528,18 +529,29 @@ AcquirePlugin::actionDisconnect()
 void
 AcquirePlugin::actionInitRun()
 {
-    auto ptr = acquire::document::instance()->controlMethod();
+    adcontrols::ControlMethod cm;
+    mainWindow_->getControlMethod( cm );
 
     auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
     if ( !iControllers.isEmpty() ) {
         for ( auto& iController : iControllers )
-            iController->preparing_for_run( *ptr );
+            iController->preparing_for_run( cm ); // *ptr, os.str().c_str() );
     }
+    acquire::document::instance()->setControlMethod( cm );
 
     if ( ! CORBA::is_nil( session_ ) ) {
 
+        adcontrols::SampleRun run;
+        mainWindow_->getSampleRun( run );
+        acquire::document::instance()->setSampleRun( run );
+        std::wostringstream os;
+        adcontrols::SampleRun::xml_archive( os, run );
+
         ControlMethod::Method m;
-        session_->prepare_for_run( m );
+        // copy cm -> m
+
+        session_->prepare_for_run( m, os.str().c_str() );
+
         ADTRACE() << "adcontroller status: " << session_->status();
     }
 }

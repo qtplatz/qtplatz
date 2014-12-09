@@ -27,70 +27,40 @@
 
 #include "controlmethodC.h"
 
+namespace adcontrols { class ControlMethod; namespace controlmethod { class MethodItem; } }
+
 namespace adinterface {
 
-    class Method; // C++ class
-
-    class ControlMethodInstInfo {
-        ControlMethod::InstInfo& info_;
-    public:
-        ControlMethodInstInfo( ControlMethod::InstInfo& );
-        unsigned long index() const;
-        unsigned long unit_number() const; // 0..n
-        ControlMethod::eDeviceCategory category() const;
-        const wchar_t * modelname() const;
-        const wchar_t * serial_number() const;
-        const wchar_t * description() const;
-
-        void unit_number( unsigned long );
-        void category( ControlMethod::eDeviceCategory );
-        void modelname( const std::wstring& );
-        void serial_number( const std::wstring& );
-        void description( const std::wstring& );
-    };
-
-    class ControlMethodLine {
-        ControlMethod::MethodLine& line_;
-    public:
-        ControlMethodLine( ControlMethod::MethodLine& );
-        unsigned long index() const;
-        const wchar_t * modelname() const;
-        void modelname( const std::wstring& modelname );
-        unsigned long unitnumber() const;
-        void unitnumber( unsigned long );
-        bool isInitialCondition() const;
-        void isInitialCondition( bool );
-    };
-
     class ControlMethodHelper {
-        ControlMethod::Method method_;
     public:
-        ControlMethodHelper();
-        ControlMethodHelper( const ControlMethod::Method& );
-        ControlMethodHelper( const ControlMethodHelper& );
+        static void replace_or_add( ::ControlMethod::Method& m
+                                    , const std::string& device
+                                    , const char * modelname
+                                    , bool isInitialCondition = true
+                                    , double time = (-1)
+                                    , uint32_t unitNumber = 0 );
+        
+        static const ::ControlMethod::MethodLine * find( const ControlMethod::Method&
+                                                        , const char * modelname
+                                                        , uint32_t unitNumber = 0 );
 
-        const wchar_t * subject() const ;
-        void subject( const std::wstring& );
+        static ::ControlMethod::MethodLine * find( ControlMethod::Method&
+                                                        , const char * modelname
+                                                        , uint32_t unitNumber = 0 );
 
-        const wchar_t * description() const;
-        void description( const std::wstring& );
+        static void copy( ::ControlMethod::Method&, const adcontrols::ControlMethod& );
 
-        inline operator const ControlMethod::Method& () const { return method_; }
-        unsigned int findInstrument( const std::wstring& modelname, unsigned long unitnumber = 0 );
-        ControlMethod::InstInfo& addInstrument( const std::wstring& modelname, unsigned long unitnumber = 0 );
-        ControlMethod::MethodLine& add( const std::wstring& modelname, unsigned long unitnumber = 0 );
+        static void copy( adcontrols::ControlMethod&, const ::ControlMethod::Method& );
 
-        static unsigned int findInstrument( const ControlMethod::Method&, const std::wstring& modelname, unsigned long unitnumber = 0 );
-        static const ControlMethod::MethodLine* findFirst( const ControlMethod::Method&, const std::wstring& model, unsigned long unitnumber = 0 );
-        static const ControlMethod::MethodLine* findNext( const ControlMethod::Method&, const ControlMethod::MethodLine * );
-        static ControlMethod::MethodLine* findFirst( ControlMethod::Method&, const std::wstring& model, unsigned long unitnumber = 0 );
-        static ControlMethod::MethodLine* findNext( ControlMethod::Method&, const ControlMethod::MethodLine * );
-        static bool append( ControlMethod::Method&, const ControlMethod::MethodLine&, const std::wstring& model, unsigned long unitnumber = 0 );
-        static ControlMethod::MethodLine& add( ControlMethod::Method&, const std::wstring& modelname, unsigned long unitnumber = 0 );
-
-        static bool copy( Method& dst, const ControlMethod::Method& src );
-        static bool copy( ControlMethod::Method& dst, const Method& src );
+    private:
+        static void append( ::ControlMethod::Method& m
+                            , const std::string& device
+                            , const char * modelname
+                            , bool isInitialCondition = true
+                            , double time = (-1)
+                            , uint32_t unitNumber = 0 );
     };
+
 }
 
 #endif // CONTROLMETHODHELPER_HPP

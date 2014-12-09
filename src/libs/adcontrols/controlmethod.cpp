@@ -207,6 +207,30 @@ ControlMethod::size() const
     return impl_->items_.size();
 }
 
+const char * 
+ControlMethod::description() const
+{
+    return impl_->description_.c_str();
+}
+
+void
+ControlMethod::setDescription( const char * t )
+{
+    impl_->description_ = t ? t : "";
+}
+
+const char *
+ControlMethod::subject() const
+{
+    return impl_->subject_.c_str();
+}
+
+void
+ControlMethod::setSubject( const char * t )
+{
+    impl_->subject_ = t ? t : "";
+}
+
 using namespace adcontrols::controlmethod;
 
 MethodItem::MethodItem() : unitnumber_( 0 )
@@ -226,16 +250,16 @@ MethodItem::MethodItem( const MethodItem& t ) : modelname_( t.modelname_ )
 {
 }
 
-const std::string& 
+const char * 
 MethodItem::modelname() const
 {
-    return modelname_;
+    return modelname_.c_str();
 }
 
 void
-MethodItem::modelname( const std::string& value )
+MethodItem::setModelname( const char * value )
 {
-    modelname_ = value;
+    modelname_ = value ? value : "";
 }
 
 uint32_t
@@ -289,15 +313,15 @@ MethodItem::funcid( uint32_t value )
 }
 
 void
-MethodItem::itemLabel( const std::string& value )
+MethodItem::setItemLabel( const char * value )
 {
-    label_ = value;
+    label_ = value ? value : "";
 }
 
-const std::string&
+const char *
 MethodItem::itemLabel() const
 {
-    return label_;
+    return label_.c_str();
 }
 
 const char *

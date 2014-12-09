@@ -23,346 +23,127 @@
 **************************************************************************/
 
 #include "controlmethodhelper.hpp"
-#include "method.hpp"
+#include "controlmethodC.h"
 #include <adportable/debug.hpp>
+#include <adcontrols/controlmethod.hpp>
+#include <adportable/utf.hpp>
 
 using namespace adinterface;
 
-ControlMethodHelper::ControlMethodHelper()
-{
-}
-
-ControlMethodHelper::ControlMethodHelper( const ControlMethodHelper& t ) : method_(t.method_)
-{
-}
-
-ControlMethodHelper::ControlMethodHelper( const ControlMethod::Method& m ) : method_(m)
-{
-}
-
-const wchar_t *
-ControlMethodHelper::subject() const 
-{
-    return method_.subject.in();
-}
-
+// static
 void
-ControlMethodHelper::subject( const std::wstring& text )
+ControlMethodHelper::append( ::ControlMethod::Method& m
+                             , const std::string& device
+                             , const char * modelname
+                             , bool isInitialCondition
+                             , double time
+                             , uint32_t unitNumber)
 {
-    method_.subject = CORBA::wstring_dup( text.c_str() );
-}
-
-const wchar_t *
-ControlMethodHelper::description() const 
-{
-    return method_.description.in();
-}
-
-void
-ControlMethodHelper::description( const std::wstring& text )
-{
-    method_.description = CORBA::wstring_dup( text.c_str() );
-}
-
-unsigned int
-ControlMethodHelper::findInstrument( const std::wstring& modelname, unsigned long unitnumber )
-{
-    for ( size_t i = 0; i < method_.iinfo.length(); ++i ) {
-        if ( modelname == method_.iinfo[uint32_t(i)].modelname.in() && uint32_t(unitnumber) == uint32_t(method_.iinfo[uint32_t(i)].unit_number) )
-            return static_cast<unsigned int>(i);
-    }
-    return (-1); // error
+    m.lines.length( m.lines.length() + 1 ); // add a line
+    ::ControlMethod::MethodLine& line = m.lines[ m.lines.length() - 1 ];
+    line.modelname = CORBA::string_dup( modelname );
+    line.unitnumber = unitNumber;
+    line.isInitialCondition = isInitialCondition;
+    line.time = time;
+    line.xdata.length( static_cast<CORBA::ULong>(device.size()) );
+    std::copy( device.begin(), device.end(), line.xdata.get_buffer() );
+    
 }
 
 // static
-unsigned int
-ControlMethodHelper::findInstrument( const ControlMethod::Method& m, const std::wstring& modelname, unsigned long unitnumber )
+void
+ControlMethodHelper::replace_or_add( ::ControlMethod::Method& m
+                                     , const std::string& device
+                                     , const char * modelname
+                                     , bool isInitialCondition
+                                     , double time
+                                     , uint32_t unitNumber)
 {
-    for ( CORBA::ULong i = 0; i < m.iinfo.length(); ++i ) {
-        if ( modelname == m.iinfo[i].modelname.in() && unitnumber == m.iinfo[i].unit_number )
-            return i;
+    if ( auto mi = find( m, modelname, unitNumber ) ) {
+        mi->modelname = CORBA::string_dup( modelname );
+        mi->unitnumber = unitNumber;
+        mi->xdata.length( CORBA::ULong( device.size() ) );
+        mi->isInitialCondition = isInitialCondition;
+        mi->time = time;
+        std::copy( device.begin(), device.end(), mi->xdata.get_buffer() );
+    } else {
+        append( m, device, modelname, isInitialCondition, unitNumber );
     }
-    return (-1); // error
 }
-
-::ControlMethod::InstInfo&
-ControlMethodHelper::addInstrument( const std::wstring& modelname, unsigned long unitnumber )
-{
-    // adportable::debug() << "ControlMethodHelper::addInstrument(" << modelname << ", " << unitnumber << ")";
-    unsigned int index;
-    if ( ( index = findInstrument( modelname, unitnumber ) ) == unsigned(-1) ) {
-        method_.iinfo.length( method_.iinfo.length() + 1 );
-        ControlMethod::InstInfo& info = method_.iinfo[ method_.iinfo.length() - 1 ];
-        info.index = method_.iinfo.length() - 1;
-        return info;
-    }
-    return method_.iinfo[ index ];
-}
-
-::ControlMethod::MethodLine&
-ControlMethodHelper::add( const std::wstring& modelname, unsigned long unitnumber )
-{
-    // adportable::debug() << "ControlMethodHelper::add(" << modelname << ", " << unitnumber << ")";
-
-    method_.lines.length( method_.lines.length() + 1 );
-    ::ControlMethod::MethodLine&  line = method_.lines[ method_.lines.length() - 1 ];
-
-    line.modelname = CORBA::wstring_dup( modelname.c_str() );
-    line.index = findInstrument( modelname, unitnumber );
-    line.unitnumber = unitnumber;
-    line.isInitialCondition = true;
-
-    return line;
-}
-
 
 // static
-ControlMethod::MethodLine *
-ControlMethodHelper::findFirst( ControlMethod::Method& method, const std::wstring& modelname, unsigned long unitnumber )
+const ::ControlMethod::MethodLine *
+ControlMethodHelper::find( const ::ControlMethod::Method& m
+                           , const char * modelname
+                           , uint32_t unitNumber )
 {
-    size_t nlines = method.lines.length();
+    size_t nlines = m.lines.length();
     for ( size_t i = 0; i < nlines; ++i ) {
-        ControlMethod::MethodLine& line = method.lines[ int(i) ];
-        if ( modelname == line.modelname.in() && unitnumber == line.unitnumber )
+        const ControlMethod::MethodLine& line = m.lines[ int( i ) ];
+        if ( std::strcmp( modelname, line.modelname.in() ) == 0 && unitNumber == line.unitnumber )
             return &line;
     }
     return 0;
 }
 
 // static
-const ControlMethod::MethodLine *
-ControlMethodHelper::findFirst( const ControlMethod::Method& method, const std::wstring& modelname, unsigned long unitnumber )
+::ControlMethod::MethodLine *
+ControlMethodHelper::find( ::ControlMethod::Method& m
+                           , const char * modelname
+                           , uint32_t unitNumber )
 {
-    size_t nlines = method.lines.length();
-    for ( CORBA::ULong i = 0; i < nlines; ++i ) {
-        const ControlMethod::MethodLine& line = method.lines[ i ];
-        if ( modelname == line.modelname.in() && unitnumber == line.unitnumber )
+    size_t nlines = m.lines.length();
+    for ( size_t i = 0; i < nlines; ++i ) {
+        ControlMethod::MethodLine& line = m.lines[ int(i) ];
+        if ( std::strcmp( modelname, line.modelname.in() ) == 0 && unitNumber == line.unitnumber )
             return &line;
     }
     return 0;
 }
 
-// static
-const ControlMethod::MethodLine *
-ControlMethodHelper::findNext( const ControlMethod::Method& method, const ControlMethod::MethodLine * line )
-{
-    if ( line ) {
-        CORBA::ULong nlines = method.lines.length();
-        if ( line >= &method.lines[0] && line < &method.lines[ nlines ] ) {
-            for ( CORBA::ULong i = uint32_t( line - &method.lines[0] ); i < nlines; ++i ) {
-                if ( line->modelname.in() == method.lines[i].modelname.in()
-                    && line->unitnumber == method.lines[i].unitnumber )
-                    return &method.lines[i];
-            }
-        }
-    }
-    return 0;
-}
-
-ControlMethod::MethodLine *
-ControlMethodHelper::findNext( ControlMethod::Method& method, const ControlMethod::MethodLine * line )
-{
-    if ( line ) {
-        CORBA::ULong nlines = method.lines.length();
-        if ( line >= &method.lines[0] && line < &method.lines[ nlines ] ) {
-            for ( uint32_t i = uint32_t( line - &method.lines[0] ); i < nlines; ++i ) {
-                if ( line->modelname.in() == method.lines[i].modelname.in()
-                    && line->unitnumber == method.lines[i].unitnumber )
-                    return &method.lines[i];
-            }
-        }
-    }
-    return 0;
-}
-
-// static
-::ControlMethod::MethodLine&
-ControlMethodHelper::add( ControlMethod::Method& m, const std::wstring& modelname, unsigned long unitnumber )
-{
-    m.lines.length( m.lines.length() + 1 );
-    ::ControlMethod::MethodLine&  line = m.lines[ m.lines.length() - 1 ];
-
-    line.modelname = CORBA::wstring_dup( modelname.c_str() );
-    line.index = findInstrument( m, modelname, unitnumber );
-    line.unitnumber = unitnumber;
-    line.isInitialCondition = true;
-
-    return line;
-}
-
-// static
-bool
-ControlMethodHelper::append( ControlMethod::Method& method, const ControlMethod::MethodLine& line
-                           , const std::wstring& modelname, unsigned long unitnumber )
-{
-    CORBA::ULong n = method.lines.length();
-    method.lines.length( n + 1 );
-    method.lines[ n ] = line;
-    method.lines[ n ].unitnumber = unitnumber;
-    method.lines[ n ].modelname = CORBA::wstring_dup( modelname.c_str() );
-
-    return true;
-}
-
-
-/////////////////
-unsigned long
-ControlMethodLine::index() const
-{
-    return line_.index;
-}
-
-const wchar_t *
-ControlMethodLine::modelname() const
-{
-    return line_.modelname.in();
-}
-
+//static
 void
-ControlMethodLine::modelname( const std::wstring& modelname )
+ControlMethodHelper::copy( ::ControlMethod::Method& d, const adcontrols::ControlMethod& s )
 {
-    line_.modelname = CORBA::wstring_dup( modelname.c_str() );
+    d.subject = CORBA::string_dup( s.subject() );
+    d.description = CORBA::string_dup( s.description() );
+
+    d.lines.length( CORBA::ULong( s.size() ) );
+    CORBA::ULong id = 0;
+    for ( auto& item: s ) {
+        auto& line = d.lines[ id++ ];
+        line.modelname = CORBA::string_dup( item.modelname() );
+        line.description = CORBA::string_dup( item.description() );
+        line.unitnumber = item.unitnumber();
+        line.time = item.time();
+        line.isInitialCondition = item.isInitialCondition();
+        line.funcid = item.funcid();
+        line.itemlabel = CORBA::string_dup( item.itemLabel() );
+        line.xdata.length( CORBA::ULong( item.size() ) );
+        std::copy( item.data(), item.data() + item.size(), line.xdata.get_buffer() );
+    }
 }
 
-unsigned long
-ControlMethodLine::unitnumber() const
-{
-    return line_.unitnumber;
-}
-
+//static
 void
-ControlMethodLine::unitnumber( unsigned long unitnumber )
+ControlMethodHelper::copy( adcontrols::ControlMethod& d, const ::ControlMethod::Method& s )
 {
-    line_.unitnumber = unitnumber;
-}
+    d.setSubject( s.subject.in() );
+    d.setDescription( s.description.in() );
 
-bool
-ControlMethodLine::isInitialCondition() const
-{
-    return line_.isInitialCondition;
-}
-
-void
-ControlMethodLine::isInitialCondition( bool d )
-{
-    line_.isInitialCondition = d;
-}
-
-//////////////
-
-ControlMethodInstInfo::ControlMethodInstInfo( ControlMethod::InstInfo& t ) : info_( t )
-{
-}
-
-unsigned long
-ControlMethodInstInfo::index() const
-{
-    return info_.index;
-}
-
-unsigned long
-ControlMethodInstInfo::unit_number() const // 0..n
-{
-    return info_.unit_number;
-}
-
-::ControlMethod::eDeviceCategory
-ControlMethodInstInfo::category() const
-{
-    return info_.category;
-}
-
-const wchar_t *
-ControlMethodInstInfo::modelname() const
-{
-    return info_.modelname.in();
-}
-
-const wchar_t *
-ControlMethodInstInfo::serial_number() const
-{
-    return info_.serial_number.in();
-}
-
-const wchar_t *
-ControlMethodInstInfo::description() const
-{
-    return info_.description.in();
-}
-
-// static
-bool
-ControlMethodHelper::copy( Method& dst, const ControlMethod::Method& src )
-{
-    dst.iinfo.clear();
-    dst.lines.clear();
-    dst.subject = src.subject.in();
-    dst.description = src.subject.in();
-    for ( CORBA::ULong i = 0; i < src.iinfo.length(); ++i ) {
-        const ControlMethod::InstInfo& s = src.iinfo[ i ];
-        InstInfo info;
-        info.index = s.index;
-        info.unit_number = s.unit_number;
-        info.category = static_cast< eDeviceCategory >( s.category );
-        info.modelname = s.modelname;
-        info.serial_number = s.serial_number;
-        info.description = s.description;
-        dst.iinfo.push_back ( info );
+    size_t nLines = s.lines.length();
+    for ( size_t i = 0; i < nLines; ++i ) {
+        auto& line = s.lines[ CORBA::ULong( i ) ];
+        adcontrols::controlmethod::MethodItem item;
+        item.setModelname( line.modelname );
+        item.setDescription( line.description );
+        item.unitnumber( line.unitnumber );
+        item.time( line.time );
+        item.isInitialCondition( line.isInitialCondition );
+        item.funcid( line.funcid );
+        item.setItemLabel( line.itemlabel );
+        item.data( reinterpret_cast<const char *>(line.xdata.get_buffer()), line.xdata.length() );
+        d.push_back( item );
     }
-
-	for ( CORBA::ULong i = 0; i < src.lines.length(); ++i ) {
-        const ControlMethod::MethodLine& s = src.lines[ i ];
-        dst.lines.push_back( Method::Line() );
-        Method::Line& line = dst.lines.back();
-
-        line.modelname = s.modelname.in();
-        line.index = s.index;
-        line.unitnumber = s.unitnumber;
-        line.isInitialCondition = s.isInitialCondition;
-        line.time.sec_ = s.time.sec_;
-        line.time.usec_ = s.time.usec_;
-        line.funcid = s.funcid;
-        line.xdata.resize( s.xdata.length() );
-        std::copy( s.xdata.get_buffer(), s.xdata.get_buffer() + s.xdata.length(), line.xdata.begin() );
-    }
-    return true;
-}
-
-//static 
-bool
-ControlMethodHelper::copy( ControlMethod::Method& dst, const Method& src )
-{
-    dst.iinfo.length( static_cast< CORBA::ULong >(src.iinfo.size()) );
-    dst.lines.length( static_cast< CORBA::ULong >(src.lines.size()) );
-
-	dst.subject = CORBA::wstring_dup( src.subject.c_str() );
-	dst.description = CORBA::wstring_dup( src.subject.c_str() );
-
-    for ( CORBA::ULong i = 0; i < src.iinfo.size(); ++i ) {
-        const InstInfo& s = src.iinfo[ i ];
-        ControlMethod::InstInfo& info = dst.iinfo[ i ];
-        info.index = s.index;
-        info.unit_number = s.unit_number;
-        info.category = static_cast< ControlMethod::eDeviceCategory >( s.category );
-        info.modelname = CORBA::wstring_dup( s.modelname.c_str() );
-        info.serial_number = CORBA::wstring_dup( s.serial_number.c_str() );
-        info.description = CORBA::wstring_dup( s.description.c_str() );
-    }
-
-    for ( CORBA::ULong i = 0; i < src.lines.size(); ++i ) {
-        const Method::Line& s = src.lines[ i ];
-        ControlMethod::MethodLine& d = dst.lines[ i ];
-
-        d.modelname = CORBA::wstring_dup( s.modelname.c_str() );
-        d.index = s.index;
-        d.unitnumber = s.unitnumber;
-        d.isInitialCondition = s.isInitialCondition;
-        d.time.sec_ = s.time.sec_;
-        d.time.usec_ = s.time.usec_;
-        d.funcid = s.funcid;
-        d.xdata.length( static_cast<CORBA::ULong>(s.xdata.size()) );
-        std::copy( s.xdata.begin(), s.xdata.end(), d.xdata.get_buffer() );
-    }
-    return true;
 }
 
