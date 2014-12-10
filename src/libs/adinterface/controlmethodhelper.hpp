@@ -33,20 +33,39 @@ namespace adinterface {
 
     class ControlMethodHelper {
     public:
+        template<class T> static void replace_or_add( ::ControlMethod::Method& m
+                                               , const std::string& device
+                                               , bool isInitialCondition = true
+                                               , double time = (-1)
+                                               , uint32_t unitNumber = 1 ) {
+            replace_or_add( m, device, T::modelClass(), T::itemClass(), isInitialCondition, time, unitNumber );
+        }
+
+        template<class T> static const ::ControlMethod::MethodLine * find( const ::ControlMethod::Method& m, uint32_t unitNumber = 1 ) {
+            return find( m, T::modelClass(), T::itemClass(), unitNumber );
+        }
+
+        template<class T> static ::ControlMethod::MethodLine * find( ::ControlMethod::Method& m, uint32_t unitNumber = 1 ) {
+            return find( m, T::modelClass(), T::itemClass(), unitNumber );
+        }
+
         static void replace_or_add( ::ControlMethod::Method& m
                                     , const std::string& device
                                     , const char * modelname
+                                    , const char * itemname
                                     , bool isInitialCondition = true
                                     , double time = (-1)
-                                    , uint32_t unitNumber = 0 );
+                                    , uint32_t unitNumber = 1 );
         
         static const ::ControlMethod::MethodLine * find( const ControlMethod::Method&
                                                         , const char * modelname
-                                                        , uint32_t unitNumber = 0 );
+                                                        , const char * itemname
+                                                        , uint32_t unitNumber = 1 );
 
         static ::ControlMethod::MethodLine * find( ControlMethod::Method&
                                                         , const char * modelname
-                                                        , uint32_t unitNumber = 0 );
+                                                        , const char * itemname
+                                                        , uint32_t unitNumber = 1 );
 
         static void copy( ::ControlMethod::Method&, const adcontrols::ControlMethod& );
 
@@ -56,9 +75,10 @@ namespace adinterface {
         static void append( ::ControlMethod::Method& m
                             , const std::string& device
                             , const char * modelname
+                            , const char * itemlabel
                             , bool isInitialCondition = true
                             , double time = (-1)
-                            , uint32_t unitNumber = 0 );
+                            , uint32_t unitNumber = 1 );
     };
 
 }

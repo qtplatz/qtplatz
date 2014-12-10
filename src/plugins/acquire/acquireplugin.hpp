@@ -96,6 +96,9 @@ namespace acquire {
             virtual void extensionsInitialized();
             virtual ShutdownFlag aboutToShutdown();
 
+        public slots:
+            void handleCommitMethods();
+
         private slots:
             void actionConnect();
             void actionDisconnect();

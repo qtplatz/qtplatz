@@ -35,6 +35,7 @@ void
 ControlMethodHelper::append( ::ControlMethod::Method& m
                              , const std::string& device
                              , const char * modelname
+                             , const char * itemname
                              , bool isInitialCondition
                              , double time
                              , uint32_t unitNumber)
@@ -42,6 +43,7 @@ ControlMethodHelper::append( ::ControlMethod::Method& m
     m.lines.length( m.lines.length() + 1 ); // add a line
     ::ControlMethod::MethodLine& line = m.lines[ m.lines.length() - 1 ];
     line.modelname = CORBA::string_dup( modelname );
+    line.itemlabel = CORBA::string_dup( itemname );
     line.unitnumber = unitNumber;
     line.isInitialCondition = isInitialCondition;
     line.time = time;
@@ -55,19 +57,21 @@ void
 ControlMethodHelper::replace_or_add( ::ControlMethod::Method& m
                                      , const std::string& device
                                      , const char * modelname
+                                     , const char * itemname
                                      , bool isInitialCondition
                                      , double time
                                      , uint32_t unitNumber)
 {
-    if ( auto mi = find( m, modelname, unitNumber ) ) {
+    if ( auto mi = find( m, modelname, itemname, unitNumber ) ) {
         mi->modelname = CORBA::string_dup( modelname );
+        mi->itemlabel = CORBA::string_dup( itemname );
         mi->unitnumber = unitNumber;
         mi->xdata.length( CORBA::ULong( device.size() ) );
         mi->isInitialCondition = isInitialCondition;
         mi->time = time;
         std::copy( device.begin(), device.end(), mi->xdata.get_buffer() );
     } else {
-        append( m, device, modelname, isInitialCondition, unitNumber );
+        append( m, device, modelname, itemname, isInitialCondition, unitNumber );
     }
 }
 
@@ -75,12 +79,15 @@ ControlMethodHelper::replace_or_add( ::ControlMethod::Method& m
 const ::ControlMethod::MethodLine *
 ControlMethodHelper::find( const ::ControlMethod::Method& m
                            , const char * modelname
+                           , const char * itemname
                            , uint32_t unitNumber )
 {
     size_t nlines = m.lines.length();
     for ( size_t i = 0; i < nlines; ++i ) {
         const ControlMethod::MethodLine& line = m.lines[ int( i ) ];
-        if ( std::strcmp( modelname, line.modelname.in() ) == 0 && unitNumber == line.unitnumber )
+        if ( std::strcmp( modelname, line.modelname.in() ) == 0 &&
+             std::strcmp( itemname, line.itemlabel.in() ) == 0 &&
+             unitNumber == line.unitnumber )
             return &line;
     }
     return 0;
@@ -90,12 +97,15 @@ ControlMethodHelper::find( const ::ControlMethod::Method& m
 ::ControlMethod::MethodLine *
 ControlMethodHelper::find( ::ControlMethod::Method& m
                            , const char * modelname
+                           , const char * itemname
                            , uint32_t unitNumber )
 {
     size_t nlines = m.lines.length();
     for ( size_t i = 0; i < nlines; ++i ) {
         ControlMethod::MethodLine& line = m.lines[ int(i) ];
-        if ( std::strcmp( modelname, line.modelname.in() ) == 0 && unitNumber == line.unitnumber )
+        if ( std::strcmp( modelname, line.modelname.in() ) == 0 &&
+             std::strcmp( itemname, line.itemlabel.in() ) == 0 &&
+             unitNumber == line.unitnumber )
             return &line;
     }
     return 0;
@@ -112,13 +122,13 @@ ControlMethodHelper::copy( ::ControlMethod::Method& d, const adcontrols::Control
     CORBA::ULong id = 0;
     for ( auto& item: s ) {
         auto& line = d.lines[ id++ ];
-        line.modelname = CORBA::string_dup( item.modelname() );
-        line.description = CORBA::string_dup( item.description() );
+        line.modelname = CORBA::string_dup( item.modelname().c_str() );
+        line.description = CORBA::string_dup( item.description().c_str() );
         line.unitnumber = item.unitnumber();
         line.time = item.time();
         line.isInitialCondition = item.isInitialCondition();
         line.funcid = item.funcid();
-        line.itemlabel = CORBA::string_dup( item.itemLabel() );
+        line.itemlabel = CORBA::string_dup( item.itemLabel().c_str() );
         line.xdata.length( CORBA::ULong( item.size() ) );
         std::copy( item.data(), item.data() + item.size(), line.xdata.get_buffer() );
     }

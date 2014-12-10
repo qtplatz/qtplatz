@@ -29,8 +29,10 @@
 #include <boost/filesystem.hpp>
 #include <workaround/boost/asio.hpp>
 #include <atomic>
+#include <chrono>
 
 namespace adfs { class filesystem; class file; }
+namespace adcontrols { class SampleRun; }
 namespace SignalObserver { struct DataReadBuffer; class Observer; }
 
 namespace adcontroller {
@@ -38,7 +40,7 @@ namespace adcontroller {
     class SampleProcessor {
 	public:
         ~SampleProcessor();
-        SampleProcessor( boost::asio::io_service& );
+        SampleProcessor( boost::asio::io_service&, std::shared_ptr< adcontrols::SampleRun > );
 
         void prepare_storage( SignalObserver::Observer * );
         void handle_data( unsigned long objId, long pos, const SignalObserver::DataReadBuffer& );
@@ -59,6 +61,8 @@ namespace adcontroller {
         std::atomic<unsigned long> objId_front_;
         std::atomic<unsigned int> pos_front_;
         std::atomic< bool > stop_triggered_;
+        std::shared_ptr< adcontrols::SampleRun > sampleRun_;
+        std::chrono::steady_clock::time_point tp_inject_trigger_;
     };
 
 }

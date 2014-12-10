@@ -30,6 +30,7 @@
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
+#include <adinterface/automaton.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
@@ -58,6 +59,53 @@ namespace acquire {
         }
     };
 
+    class document::fsm : public adinterface::fsm::handler {
+    public:
+        adinterface::fsm::controller automaton_;
+        adinterface::instrument::eInstStatus instStatus_;
+
+        fsm() : automaton_( this )
+            , instStatus_( adinterface::instrument::eOff ) {
+        }
+
+        // finite automaton handler
+        void handle_state( bool entering, adinterface::instrument::eInstStatus stat ) override {
+            if ( entering ) {
+                instStatus_ = stat;
+                emit document::instance()->instStateChanged( stat );
+            }
+        }
+
+        void action_on( const adinterface::fsm::onoff& ) override {
+            automaton_.process_event( adinterface::fsm::prepare( std::string() ) );
+            ADDEBUG() << "fsm action_on";
+        }
+
+        void action_prepare_for_run( const adinterface::fsm::prepare& ) override {
+            ADDEBUG() << "fsm action_prepare_for_run";
+        }
+
+        void action_start_run( const adinterface::fsm::run& ) override {
+            ADDEBUG() << "fsm action_start_run";
+        }
+
+        void action_stop_run( const adinterface::fsm::stop& ) override {
+            // stop current run
+            ADDEBUG() << "fsm action_stop_run";
+        }
+
+        void action_off( const adinterface::fsm::onoff& ) override {
+            ADDEBUG() << "fsm action_off";
+        }
+
+        void action_diagnostic( const adinterface::fsm::onoff& ) override {
+            ADDEBUG() << "fsm action_diagnostic";
+        }
+
+        void action_error_detected( const adinterface::fsm::error_detected& ) override {
+            ADDEBUG() << "fsm action_error_detected";
+        }
+    };
 }
 
 using namespace acquire;
@@ -71,6 +119,7 @@ document::document(QObject *parent) : QObject(parent)
                                                                                 , QLatin1String( "acquire" ) ) )
                                     , cm_( std::make_shared< adcontrols::ControlMethod >() )
                                     , sampleRun_( std::make_shared< adcontrols::SampleRun >() )
+                                    , fsm_( new fsm() )
 {
 }
 
@@ -172,6 +221,9 @@ document::setControlMethod( const adcontrols::ControlMethod& m, const QString& f
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
         cm_ = std::make_shared< adcontrols::ControlMethod >( m );
+        for ( auto& item : m ) {
+            ADDEBUG() << item.modelname() << ", " << item.itemLabel() << " initial: " << item.isInitialCondition() << " time: " << item.time();
+        }
     } while(0);
 
     if ( ! filename.isEmpty() ) {
@@ -336,4 +388,28 @@ document::save( const QString& filename, const adcontrols::SampleRun& m )
     } while(0);
 
     return true;
+}
+
+void
+document::handleOnOff()
+{
+    //fsm_->automaton_.process_event( adinterface::fsm::onoff() );
+}
+
+void
+document::handlePrepareForRun()
+{
+    //fsm_->automaton_.process_event( adinterface::fsm::prepare( std::string() ) );
+}
+
+void
+document::handleRun()
+{
+    //fsm_->automaton_.process_event( adinterface::fsm::run() );
+}
+
+void
+document::handleStop()
+{
+    //fsm_->automaton_.process_event( adinterface::fsm::stop() );
 }

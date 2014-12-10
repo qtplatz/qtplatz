@@ -160,7 +160,7 @@ iProxy::eventOut( unsigned long event )
 
 
 bool
-iProxy::prepare_for_run( const SampleBroker::SampleSequenceLine&, const ControlMethod::Method& m )
+iProxy::prepare_for_run( const ControlMethod::Method& m )
 {
     if ( objref_ )
         return impl_->prepare_for_run( m );

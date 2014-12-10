@@ -34,9 +34,11 @@
 #include <adinterface/samplebrokerC.h>
 #include <iostream>
 #include <sstream>
+#include <adinterface/controlmethodhelper.hpp>
 #include <adinterface/eventlog_helper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
+#include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/timer.hpp>
 #include <acewrapper/orbservant.hpp>
@@ -434,14 +436,23 @@ iTask::handle_echo( std::string s )
 }
 
 void
-iTask::handle_prepare_for_run( ControlMethod::Method m )
+iTask::handle_prepare_for_run( std::shared_ptr< adcontrols::ControlMethod > m
+                             , std::shared_ptr< adcontrols::SampleRun > run )
 {
-    SampleBroker::SampleSequenceLine s;
+    ::ControlMethod::Method xm;
     
     std::lock_guard< std::mutex > lock( mutex_ );
+
+    ctrlMethod_ = m;
+    sampleRun_ = run;
+    adinterface::ControlMethodHelper::copy( xm, *ctrlMethod_ );
+    
+    for ( uint32_t i = 0; i < xm.lines.length(); ++i ) {
+        ADDEBUG() << xm.lines[ i ].modelname << "," << xm.lines[ i ].isInitialCondition << " time:" << xm.lines[ i ].time;
+    }
     
     for ( auto& proxy: iproxies_ )
-        proxy->prepare_for_run( s, m ); 
+        proxy->prepare_for_run( xm );
 
 	status_current_ = status_being_ = ControlServer::eReadyForRun;
     io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );
@@ -456,7 +467,7 @@ iTask::handle_start_run()
     std::lock_guard< std::mutex > lock( mutex_ );
 	
 	if ( queue_.empty() ) {
-        queue_.push_back( std::make_shared< SampleProcessor >( io_service_ ) );
+        queue_.push_back( std::make_shared< SampleProcessor >( io_service_, sampleRun_ ) );
         queue_.back()->prepare_storage( pMasterObserver_->_this() );
     }
 
@@ -490,6 +501,9 @@ iTask::handle_stop_run()
         ADTRACE() << "handle_stop_run remove one sample-processor";
         queue_.front()->stop_triggered();
         queue_.pop_front();
+        if ( sampleRun_ && sampleRun_->next_run() < sampleRun_->replicates() ) {
+            handle_start_run();
+        }
     }
 
 	status_current_ = status_being_ = ControlServer::eReadyForRun;

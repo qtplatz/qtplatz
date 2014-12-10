@@ -250,10 +250,10 @@ MethodItem::MethodItem( const MethodItem& t ) : modelname_( t.modelname_ )
 {
 }
 
-const char * 
+const std::string&
 MethodItem::modelname() const
 {
-    return modelname_.c_str();
+    return modelname_;
 }
 
 void
@@ -284,7 +284,8 @@ void
 MethodItem::isInitialCondition( bool value )
 {
     isInitialCondition_ = value;
-    time_ = (-1);
+    if ( isInitialCondition_ )
+        time_ = (-1);
 }
 
 const double&
@@ -318,10 +319,10 @@ MethodItem::setItemLabel( const char * value )
     label_ = value ? value : "";
 }
 
-const char *
+const std::string&
 MethodItem::itemLabel() const
 {
-    return label_.c_str();
+    return label_;
 }
 
 const char *
@@ -337,10 +338,10 @@ MethodItem::data( const char * data, size_t size )
     std::copy( data, data + size, data_.begin() );
 }
 
-const char *
+const std::string&
 MethodItem::description() const
 {
-    return description_.c_str();
+    return description_;
 }
 
 void

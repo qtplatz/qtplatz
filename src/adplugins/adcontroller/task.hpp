@@ -27,6 +27,8 @@
 
 #include <boost/noncopyable.hpp>
 #include <adportable/configuration.hpp>
+#include <adcontrols/controlmethod.hpp>
+#include <adcontrols/samplerun.hpp>
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_deprecated.h>
@@ -43,6 +45,7 @@
 
 namespace pugi { class xml_document; }
 namespace EventLog { struct LogMessage; }
+namespace adcontrols { class ControlMethod; class SampleRun; }
 
 namespace adcontroller {
 
@@ -105,7 +108,8 @@ namespace adcontroller {
         void handle_message( std::wstring name, unsigned long msgid, unsigned long value );
         void handle_eventlog( EventLog::LogMessage );
         void handle_echo( std::string );
-        void handle_prepare_for_run( ControlMethod::Method );
+        void handle_prepare_for_run( std::shared_ptr< adcontrols::ControlMethod >
+                                     , std::shared_ptr< adcontrols::SampleRun > );
         void handle_start_run();
         void handle_resume_run();
         void handle_stop_run();
@@ -145,6 +149,8 @@ namespace adcontroller {
         size_t interval_;
 
         std::vector< adportable::asio::thread > threads_;
+        std::shared_ptr< adcontrols::ControlMethod > ctrlMethod_;
+        std::shared_ptr< adcontrols::SampleRun > sampleRun_;
     };
 
 } // namespace adcontroller

@@ -27,9 +27,12 @@
 #include <adcontrols/samplerun.hpp>
 #ifndef Q_MOC_RUN
 #include <adportable/is_type.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/date_time.hpp>
 #endif
 #include <adportable/scoped_flag.hpp>
-
+#include <adportable/date_string.hpp>
+#include <adportable/profile.hpp>
 #include <qtwrapper/font.hpp>
 #include <QAction>
 #include <QBoxLayout>
@@ -145,6 +148,7 @@ namespace adwidgets {
         // TableView
         void addActionsToMenu( QMenu& menu, const QPoint& pt ) override {
             menuIndex_ = indexAt( pt );
+            menu.addAction( tr( "Set default" ), this, SLOT( setDefault() ) );
             auto action = menu.addAction( tr( "Find directory" ), this, SLOT( findDirectory() ) );
             if ( !(menuIndex_.column() == 1 && menuIndex_.row() == 2) )
                 action->setEnabled( false );
@@ -171,6 +175,17 @@ namespace adwidgets {
             }
             menuIndex_ = QModelIndex();
         }
+
+        void setDefault() {
+            adportable::scoped_flag lock( inProgress_ );
+            
+            boost::filesystem::path path( adportable::profile::user_data_dir< char >() );
+            path /= "data";
+            path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+            model_->setData( model_->index( 2, 1 ), QString::fromStdWString( path.wstring() ) );
+            menuIndex_ = QModelIndex();
+        }
+
     };
     
 }

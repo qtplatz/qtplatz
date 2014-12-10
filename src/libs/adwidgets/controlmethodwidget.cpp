@@ -88,6 +88,7 @@ namespace adwidgets {
                         boost::any a( curr );
                         editor.first->setContents( a );
                         emit this_->onCurrentChanged( editor.second );
+
                         return true;
 
                     }

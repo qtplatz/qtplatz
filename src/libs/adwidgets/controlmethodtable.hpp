@@ -56,7 +56,6 @@ namespace adwidgets {
         bool append( const adcontrols::controlmethod::MethodItem& );
         void commit();
 
-        // TableView
         void showContextMenu( const QPoint& );
 
     private:

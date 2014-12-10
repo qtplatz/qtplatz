@@ -57,11 +57,14 @@ namespace adcontrols {
         const wchar_t * dataDirectory() const;
         void dataDirectory( const wchar_t * );
 
-        const wchar_t * filePrefix() const; // RUN_000
+        const wchar_t * filePrefix() const; // RUN_0001
         void filePrefix( const wchar_t * file );
 
         const char * description() const;
         void description( const char * );
+
+        size_t runno() const;
+        size_t next_run();
 
         static bool archive( std::ostream&, const SampleRun& );
         static bool restore( std::istream&, SampleRun& );

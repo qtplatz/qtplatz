@@ -56,7 +56,8 @@ namespace adcontrols {
         impl() : dataDirectory_( adportable::profile::user_data_dir<wchar_t>() + L"/data" )
                , filePrefix_( L"RUN_0001" )
                , methodTime_( 60.0 )
-               , replicates_( 999 ) {
+               , replicates_( 999 )
+               , runno_(0) {
 
             std::ostringstream os;
 
@@ -73,7 +74,8 @@ namespace adcontrols {
                               , replicates_( t.replicates_ )
                               , dataDirectory_( t.dataDirectory_ )
                               , filePrefix_( t.filePrefix_ )
-                              , description_( t.description_ ) {
+                              , description_( t.description_ )
+                              , runno_(t.runno_) {
         }
 
         idAudit ident_;
@@ -82,6 +84,8 @@ namespace adcontrols {
         std::wstring dataDirectory_;
         std::wstring filePrefix_;
         std::string description_;
+        // exclude from archive
+        size_t runno_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
@@ -204,6 +208,18 @@ void
 SampleRun::description( const char * t )
 {
     impl_->description_ = t ? t : "";
+}
+
+size_t
+SampleRun::runno() const 
+{
+    return impl_->runno_;
+}
+
+size_t
+SampleRun::next_run()
+{
+    return impl_->runno_++;
 }
 
 //static

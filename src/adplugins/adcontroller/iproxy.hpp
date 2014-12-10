@@ -69,8 +69,7 @@ namespace adcontroller {
         bool request_shutdown();
         bool eventOut( unsigned long event );
 
-        bool prepare_for_run( const SampleBroker::SampleSequenceLine&
-                              , const ControlMethod::Method& );
+        bool prepare_for_run( const ControlMethod::Method& );
         bool startRun();   // method start
         bool suspendRun(); // method suspend, will hold before next sample load
         bool resumeRun();  // method restart

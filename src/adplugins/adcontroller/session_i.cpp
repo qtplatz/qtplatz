@@ -28,6 +28,7 @@
 #include <adinterface/controlmethodhelper.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adportable/debug.hpp>
 #include "task.hpp"
 #include <boost/tokenizer.hpp>
 #include <boost/iostreams/device/array.hpp>
@@ -122,15 +123,23 @@ session_i::shell( const char * cmdline )
 CORBA::Boolean
 session_i::prepare_for_run( const ControlMethod::Method& m, const CORBA::WChar * sampleXml )
 {
-    adcontrols::SampleRun sampleRun;
-    adcontrols::ControlMethod cm;
+    auto sr = std::make_shared< adcontrols::SampleRun >();
+    auto cm = std::make_shared< adcontrols::ControlMethod >();
 
     std::wistringstream is( sampleXml );
-    adcontrols::SampleRun::xml_restore( is, sampleRun );
+    adcontrols::SampleRun::xml_restore( is, *sr );
 
-    adinterface::ControlMethodHelper::copy( cm, m );
+    for ( uint32_t i = 0; i < m.lines.length(); ++i ) {
+        ADDEBUG() << m.lines[ i ].modelname << ", " << m.lines[ i ].itemlabel << ", init: " << m.lines[ i ].isInitialCondition << " time:" << m.lines[ i ].time;
+    }
 
-    iTask::instance()->io_service().post( std::bind(&iTask::handle_prepare_for_run, iTask::instance(), m ) );
+    adinterface::ControlMethodHelper::copy( *cm, m );
+
+    for ( auto& item : *cm )
+        ADDEBUG() << item.modelname() << ", " << item.itemLabel() << ", init: " << item.isInitialCondition() << " time:" << item.time();
+    
+    iTask::instance()->io_service().post( std::bind(&iTask::handle_prepare_for_run, iTask::instance(), cm, sr ) );
+
     return true;
 }
 

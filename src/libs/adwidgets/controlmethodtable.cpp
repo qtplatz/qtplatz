@@ -90,6 +90,9 @@ ControlMethodTable::ControlMethodTable( ControlMethodWidget * parent ) : adwidge
     QFont font;
     setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 
+    setContextMenuPolicy( Qt::CustomContextMenu );
+    connect( this, &QTableView::customContextMenuRequested, this, &ControlMethodTable::showContextMenu );
+
     onInitialUpdate();
 }
 
@@ -189,7 +192,7 @@ ControlMethodTable::delLine( int /* row */)
     handleDeleteSelection();
 }
 
-void
+void 
 ControlMethodTable::showContextMenu( const QPoint& pt )
 {
     std::vector< QAction * > actions;
@@ -201,6 +204,8 @@ ControlMethodTable::showContextMenu( const QPoint& pt )
     delete_action = menu.addAction( "Delete line" );
     sort_action = menu.addAction( "Sort" );
 
+    TableView::addActionsToMenu( menu, pt );
+    
     if ( QAction * selected = menu.exec( this->mapToGlobal( pt ) ) ) {
         if ( selected == delete_action )
             delLine( indexAt( pt ).row() );
@@ -214,9 +219,7 @@ ControlMethodTable::showContextMenu( const QPoint& pt )
                 }
             }
         }
-
     }
-
 }
 
 bool
@@ -255,7 +258,7 @@ ControlMethodTable::setData( const adcontrols::controlmethod::MethodItem& mi, in
     model.setData( model.index( row, 1 ), QString::fromStdString( mi.modelname() ) );
     model.setData( model.index( row, 2 ), mi.funcid() );
     model.setData( model.index( row, 3 ), QString::fromStdString( mi.itemLabel() ) );
-    model.setData( model.index( row, 4 ), mi.description() ); // utf8
+    model.setData( model.index( row, 4 ), QString::fromStdString( mi.description() ) ); // utf8
 
     model.item( row, 1 )->setEditable( false );
     model.item( row, 2 )->setEditable( false );

@@ -64,16 +64,27 @@ namespace acquire {
         static bool load( const QString& filename, adcontrols::SampleRun& );
         static bool save( const QString& filename, const adcontrols::SampleRun& );
 
+        // fsm actions
+        void handleOnOff();
+        void handlePrepareForRun();
+        void handleRun();
+        void handleStop();
+
     private:
         std::shared_ptr< QSettings > settings_;  // user scope settings
         std::shared_ptr< adcontrols::ControlMethod > cm_;
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
         QString ctrlmethod_filename_;
         QString samplerun_filename_;
+
+        class fsm;
+        std::unique_ptr< fsm > fsm_;
         
     signals:
         void onControlMethodChanged( const QString& );
         void onSampleRunChanged( const QString& );
+        void instStateChanged( int );
+        void requestCommitMethods();
 
     public slots:
 

@@ -64,6 +64,7 @@
 #include <adorbmgr/orbmgr.hpp>
 #include <adextension/imonitorfactory.hpp>
 #include <adextension/icontroller.hpp>
+#include <adinterface/controlmethodhelper.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
@@ -296,6 +297,8 @@ AcquirePlugin::initialize_actions()
         cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, globalcontext );
         (void)cmd;
     }
+
+    connect( document::instance(), &document::requestCommitMethods, this, &AcquirePlugin::handleCommitMethods );
 }
 
 bool
@@ -399,9 +402,8 @@ AcquirePlugin::actionConnect()
     // using adinterface::EventLog::LogMessageHelper;
     auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
     if ( !iControllers.isEmpty() ) {
-        for ( auto& iController : iControllers ) {
+        for ( auto& iController : iControllers ) 
             iController->wait_for_connection_ready();
-        }
     }
 
     if ( CORBA::is_nil( session_.in() ) ) { //&& !orbServants_.empty() ) {
@@ -489,6 +491,8 @@ AcquirePlugin::actionConnect()
         actionInitRun_->setEnabled( true );
         actionRun_->setEnabled( true );
         ADTRACE() << "adcontroller status: " << session_->status();
+
+        document::instance()->handleOnOff(); // FSM
     }
 }
 
@@ -523,32 +527,25 @@ AcquirePlugin::actionDisconnect()
         // disconnect instrument control session
         session_->disconnect( receiver_i_.get()->_this() );
         adorbmgr::orbmgr::deactivate( receiver_i_->_this() );
+
+        document::instance()->handleOnOff(); // FSM
     }
 }
     
 void
 AcquirePlugin::actionInitRun()
 {
-    adcontrols::ControlMethod cm;
-    mainWindow_->getControlMethod( cm );
-
-    auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
-    if ( !iControllers.isEmpty() ) {
-        for ( auto& iController : iControllers )
-            iController->preparing_for_run( cm ); // *ptr, os.str().c_str() );
-    }
-    acquire::document::instance()->setControlMethod( cm );
+    handleCommitMethods();
 
     if ( ! CORBA::is_nil( session_ ) ) {
 
-        adcontrols::SampleRun run;
-        mainWindow_->getSampleRun( run );
-        acquire::document::instance()->setSampleRun( run );
+        document::instance()->handlePrepareForRun(); // FSM
+        
         std::wostringstream os;
-        adcontrols::SampleRun::xml_archive( os, run );
-
+        adcontrols::SampleRun::xml_archive( os, *document::instance()->sampleRun() );
+        
         ControlMethod::Method m;
-        // copy cm -> m
+        adinterface::ControlMethodHelper::copy( m, *document::instance()->controlMethod() );
 
         session_->prepare_for_run( m, os.str().c_str() );
 
@@ -559,9 +556,10 @@ AcquirePlugin::actionInitRun()
 void
 AcquirePlugin::actionRun()
 {
+    actionInitRun();
     if ( ! CORBA::is_nil( session_ ) ) {
         session_->start_run();
-        ADTRACE() << "adcontroller status: " << session_->status();
+        document::instance()->handleRun(); // FSM
     }
 }
 
@@ -570,7 +568,7 @@ AcquirePlugin::actionStop()
 {
     if ( ! CORBA::is_nil( session_ ) ) {
         session_->stop_run();
-        ADTRACE() << "adcontroller status: " << session_->status();
+        document::instance()->handleStop(); // FSM
     }
 }
 
@@ -579,7 +577,6 @@ AcquirePlugin::actionInject()
 {
     if ( ! CORBA::is_nil( session_ ) ) {
 		session_->event_out( ControlServer::event_InjectOut ); // simulate inject out to modules
-        ADTRACE() << "adcontroller status: " << session_->status();
     }
 }
 
@@ -974,73 +971,6 @@ AcquirePlugin::handle_receiver_debug_print( int32_t, int32_t, std::string text )
     mainWindow_->eventLog( qtext );
 }
 
-#if 0
-void
-AcquirePlugin::initialize_broker()
-{
-    adplugin::orbServant * adBroker = 0;
-    adplugin::orbBroker * orbBroker = 0;
-
-    adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" );
-    if ( adbroker_plugin ) {
-
-        if ( ( orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) ) {
-
-            try {
-                orbBroker->orbmgr_init( 0, 0 );
-            }
-            catch ( ... ) {
-                ADERROR() << "orbBroker raize an exception: " << boost::current_exception_diagnostic_information();
-                QMessageBox::warning( 0, "AcquirePlugin", QString::fromStdString( boost::current_exception_diagnostic_information() ) );
-                return;
-            }
-
-            try { 
-
-                if ( ( adBroker = orbBroker->create_instance() ) ) {
-                    orbServants_.push_back( adBroker );
-                    Broker::Manager_var mgr = Broker::Manager::_narrow( adBroker->_this() );
-                    addObject ( new QBroker( mgr._retn() ) );
-                }
-
-            } catch ( ... ) {
-                ADERROR() << "orbBroker raize an exception: " << boost::current_exception_diagnostic_information();
-				QMessageBox::warning( 0, "AcquirePlugin", QString::fromStdString( boost::current_exception_diagnostic_information() ) );
-                return;
-            }
-        }
-    }
-    if ( adBroker == 0 || orbBroker == 0 ) {
-        ADTRACE() << "adBroker does not initialized (it might be not configured)";
-        return;
-    }
-
-
-    // ----------------------- initialize corba servants ------------------------------
-    std::vector< adplugin::plugin_ptr > factories;
-    adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
-    for ( const adplugin::plugin_ptr& plugin: factories ) {
-
-        ADTRACE() << "initializing " << plugin->clsid() << "{iid: " << plugin->iid() << "}";
-        
-        if ( plugin->iid() == adbroker_plugin->iid() ) // skip "adBroker"
-            continue;
-        
-        try {
-
-            if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) )
-                orbServants_.push_back( servant );
-
-        } catch ( ... ) {
-
-            ADERROR() << "exception while initializing " << plugin->clsid() << "\t" << boost::current_exception_diagnostic_information();
-            QMessageBox::warning( 0, "Exception AcquirePlugin"
-                                  , "If you are on Windows 7 sp1, some of important Windows update is getting involved. \
-Please make sure you have up-to-date for Windows");
-        }
-    }
-}
-#endif
 
 void
 AcquirePlugin::shutdown_broker()
@@ -1051,28 +981,7 @@ AcquirePlugin::shutdown_broker()
 	removeObject( iBroker );
 
     OrbConnection::instance()->shutdown();
-#if 0
-    // destriction must be reverse order
-    for ( orbservant_vector_type::reverse_iterator it = orbServants_.rbegin(); it != orbServants_.rend(); ++it )
-        (*it)->deactivate();
 
-	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
-
-        if ( adplugin::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
-            
-            try {
-
-                orbBroker->orbmgr_shutdown();
-                orbBroker->orbmgr_fini();
-                orbBroker->orbmgr_wait();
-
-            } catch ( boost::exception& ex ) {
-                ADERROR() << boost::diagnostic_information( ex );
-            }
-            
-        }
-    }
-#endif
     ADTRACE() << "AcquirePlugin::shutdown_broker() completed.";
 }
 
@@ -1179,6 +1088,25 @@ AcquirePlugin::createContents( Core::IMode * mode )
         return splitter2;
 }
 
+void
+AcquirePlugin::handleCommitMethods()
+{
+    // Update ControlMethod by UI data with individual initial conditions
+    adcontrols::ControlMethod cm;
+    mainWindow_->getControlMethod( cm );
+
+    auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
+    if ( !iControllers.isEmpty() ) {
+        for ( auto& iController : iControllers )
+            iController->preparing_for_run( cm ); // *ptr, os.str().c_str() );
+    }
+    acquire::document::instance()->setControlMethod( cm ); // commit
+
+    // Update document by UI data
+    adcontrols::SampleRun run;
+    mainWindow_->getSampleRun( run );
+    acquire::document::instance()->setSampleRun( run ); // commit
+}
 
 Q_EXPORT_PLUGIN( AcquirePlugin )
 

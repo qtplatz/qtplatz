@@ -149,7 +149,7 @@ namespace adinterface {
                 }
             };
             struct Running_Exit {
-                template <class Event,class FSM,class STATE> void operator()(Event const&,FSM&,STATE& ) {
+                template <class Event,class FSM,class STATE> void operator()(Event const&,FSM& fsm,STATE& ) {
                     fsm.handler_->handle_state( false, adinterface::instrument::eRunning );
                     std::cout << "leaving: Running" << std::endl;
                 }

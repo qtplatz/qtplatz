@@ -23,7 +23,10 @@
 **************************************************************************/
 
 #include "sampleprocessor.hpp"
+#include "task.hpp"
 #include "logging.hpp"
+#include <adcontrols/samplerun.hpp>
+#include <adcontrols/metric/prefix.hpp>
 #include <adinterface/signalobserverC.h>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
@@ -52,22 +55,25 @@ SampleProcessor::~SampleProcessor()
     ADTRACE() << "SampleProcessor:: -- DTOR -- ";
 }
 
-SampleProcessor::SampleProcessor( boost::asio::io_service& io_service ) : fs_( new adfs::filesystem )
-                                                                        , inProgress_( false )
-                                                                        , myId_( __nid__++ )
-                                                                        , strand_( io_service )
-                                                                        , objId_front_( 0 )
-                                                                        , pos_front_( 0 )
-                                                                        , stop_triggered_( false )
+SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
+                                  , std::shared_ptr< adcontrols::SampleRun > run ) : fs_( new adfs::filesystem )
+                                                                                   , inProgress_( false )
+                                                                                   , myId_( __nid__++ )
+                                                                                   , strand_( io_service )
+                                                                                   , objId_front_( 0 )
+                                                                                   , pos_front_( 0 )
+                                                                                   , stop_triggered_( false )
+                                                                                   , sampleRun_( run )
 {
 }
 
 void
 SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 {
-    boost::filesystem::path path( adportable::profile::user_data_dir< char >() );
-	path /= "data";
-	path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+    // boost::filesystem::path path( adportable::profile::user_data_dir< char >() );
+	// path /= "data";
+	// path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+    boost::filesystem::path path( sampleRun_->dataDirectory() );
 
 	if ( ! boost::filesystem::exists( path ) )
 		boost::filesystem::create_directories( path );
@@ -134,6 +140,7 @@ SampleProcessor::handle_data( unsigned long objId, long pos
                               , const SignalObserver::DataReadBuffer& rdBuf )
 {
     if ( rdBuf.events & SignalObserver::wkEvent_INJECT ) {
+        tp_inject_trigger_ = std::chrono::steady_clock::now(); // CAUTION: this has some unknown delay from exact trigger.
         if ( ! inProgress_ )
             Logging( L"Sample '%1%' got an INJECTION", EventLog::pri_INFO ) % storage_name_.wstring();
 		inProgress_ = true;
@@ -164,6 +171,12 @@ SampleProcessor::handle_data( unsigned long objId, long pos
         else if ( nBehind % 25 == 0 )
             Logging( L"Sample '%1%' %2% data behind.", EventLog::pri_INFO ) % storage_name_.stem() % nBehind;
     }
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
+
+    if ( elapsed_time.count() >= adcontrols::metric::scale_to_micro( sampleRun_->methodTime() ) ) {
+        iTask::instance()->handle_stop_run();
+    }
+
 }
 
 void

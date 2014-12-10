@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include <compiler/diagnostic_push.h>
+//#include <compiler/diagnostic_push.h>
 #include <compiler/disable_deprecated.h>
 #include <compiler/disable_4250.h> // inherits via dominance
 
@@ -72,4 +72,4 @@ namespace adcontroller {
     };
 
 }
-#include <compiler/diagnostic_pop.h>
+//#include <compiler/diagnostic_pop.h>
