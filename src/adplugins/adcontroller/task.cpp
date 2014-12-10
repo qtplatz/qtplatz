@@ -501,9 +501,11 @@ iTask::handle_stop_run()
         ADTRACE() << "handle_stop_run remove one sample-processor";
         queue_.front()->stop_triggered();
         queue_.pop_front();
+#if 0 // debugging sequence
         if ( sampleRun_ && sampleRun_->next_run() < sampleRun_->replicates() ) {
             handle_start_run();
         }
+#endif
     }
 
 	status_current_ = status_being_ = ControlServer::eReadyForRun;

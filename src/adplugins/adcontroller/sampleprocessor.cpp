@@ -32,6 +32,7 @@
 #include <adfs/file.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/date_string.hpp>
+#include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <adutils/mscalibio.hpp>
@@ -171,9 +172,13 @@ SampleProcessor::handle_data( unsigned long objId, long pos
         else if ( nBehind % 25 == 0 )
             Logging( L"Sample '%1%' %2% data behind.", EventLog::pri_INFO ) % storage_name_.stem() % nBehind;
     }
+
     auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
 
-    if ( elapsed_time.count() >= adcontrols::metric::scale_to_micro( sampleRun_->methodTime() ) ) {
+    ADDEBUG() << "handle_data  elapsed time: " << elapsed_time.count() << ", methodTime: " << sampleRun_->methodTime();
+
+    if ( elapsed_time.count() >= sampleRun_->methodTime() ) {
+        inProgress_ = false;
         iTask::instance()->handle_stop_run();
     }
 

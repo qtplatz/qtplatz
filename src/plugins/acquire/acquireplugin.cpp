@@ -419,8 +419,11 @@ AcquirePlugin::actionConnect()
                     
                     receiver_i_.reset( new receiver_i );
 
-                    receiver_i_->assign_message( [=] ( ::Receiver::eINSTEVENT code, uint32_t value ){
-                        this->handle_receiver_message( code, value ); } );
+                    receiver_i_->assign_message( [this] ( ::Receiver::eINSTEVENT code, uint32_t value ){
+                            // this->handle_receiver_message( code, value ); } );
+                            emit onReceiverMessage( static_cast<unsigned long>(code), value );                            
+                        });
+
 
                     receiver_i_->assign_log( [=] ( const ::EventLog::LogMessage& log ){
                         this->handle_receiver_log( log ); } );
@@ -431,8 +434,9 @@ AcquirePlugin::actionConnect()
                     receiver_i_->assign_debug_print( [=]( int32_t pri, int32_t cat, std::string text ){ 
                         this->handle_receiver_debug_print( pri, cat, text ); } );
 
-                    connect( this
-                        , SIGNAL( onReceiverMessage( unsigned long, unsigned long ) ), this, SLOT( handle_message( unsigned long, unsigned long ) ) );
+                    // connect( this
+                    //          , SIGNAL( onReceiverMessage( unsigned long, unsigned long ) ), this, SLOT( handle_message( unsigned long, unsigned long ) ) );
+                        connect( this, &AcquirePlugin::onReceiverMessage, this, &AcquirePlugin::handle_controller_message );
                         
                     if ( session_->connect( receiver_i_->_this(), "acquire" ) )
                         actionConnect_->setEnabled( false );
@@ -820,7 +824,7 @@ AcquirePlugin::handle_event( unsigned long objid, long pos, long flags )
 }
 
 void
-AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
+AcquirePlugin::handle_controller_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
 {
 
     using namespace ControlServer;
@@ -942,20 +946,13 @@ AcquirePlugin::handle_observer_event( uint32_t objid, int32_t pos, int32_t event
 }
 
 void
-AcquirePlugin::handle_receiver_message( Receiver::eINSTEVENT code, uint32_t value )
-{
-    emit onReceiverMessage( static_cast<unsigned long>(code), value );
-    // handle_message
-}
-
-void
 AcquirePlugin::handle_receiver_log( const ::EventLog::LogMessage& log )
 {
     std::wstring text = adinterface::EventLog::LogMessageHelper::toString( log );
     std::string date = adportable::date_string::utc_to_localtime_string( log.tv.sec, log.tv.usec ) + "\t";
     QString qtext = date.c_str();
     qtext += qtwrapper::qstring::copy( text );
-    mainWindow_->eventLog( qtext );
+    mainWindow_->eventLog( qtext ); // will emit signal
 }
 
 void
@@ -968,7 +965,7 @@ void
 AcquirePlugin::handle_receiver_debug_print( int32_t, int32_t, std::string text )
 {
     QString qtext( text.c_str() );
-    mainWindow_->eventLog( qtext );
+    mainWindow_->eventLog( qtext ); // will emit
 }
 
 

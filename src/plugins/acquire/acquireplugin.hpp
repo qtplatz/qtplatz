@@ -110,7 +110,7 @@ namespace acquire {
             void actMethodOpen();
             void actMethodSave();
 
-            void handle_message( unsigned long msg, unsigned long value );
+            void handle_controller_message( unsigned long msg, unsigned long value );
             void handle_shutdown();
             void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
@@ -207,13 +207,10 @@ namespace acquire {
             void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
 
             // receiver_i handlers
-            void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
+            // void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
             void handle_receiver_log( const ::EventLog::LogMessage& );
             void handle_receiver_shutdown();
             void handle_receiver_debug_print( int32_t, int32_t, std::string );
-
-            //typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
-            //std::vector< adplugin::orbServant * > orbServants_;
 
         public:
             static QToolButton * toolButton( QAction * action );
