@@ -114,7 +114,7 @@ namespace adcontroller {
         void handle_resume_run();
         void handle_stop_run();
         void handle_event_out( unsigned long value );
-
+        void post_stop_run(); // <-- from sampleprocessor
 	// 
     public:
         typedef std::shared_ptr< iProxy > iproxy_ptr;

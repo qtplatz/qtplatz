@@ -129,10 +129,6 @@ session_i::prepare_for_run( const ControlMethod::Method& m, const CORBA::WChar *
     std::wistringstream is( sampleXml );
     adcontrols::SampleRun::xml_restore( is, *sr );
 
-    for ( uint32_t i = 0; i < m.lines.length(); ++i ) {
-        ADDEBUG() << m.lines[ i ].modelname << ", " << m.lines[ i ].itemlabel << ", init: " << m.lines[ i ].isInitialCondition << " time:" << m.lines[ i ].time;
-    }
-
     adinterface::ControlMethodHelper::copy( *cm, m );
 
     for ( auto& item : *cm )

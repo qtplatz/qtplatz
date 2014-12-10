@@ -179,7 +179,7 @@ SampleProcessor::handle_data( unsigned long objId, long pos
 
     if ( elapsed_time.count() >= sampleRun_->methodTime() ) {
         inProgress_ = false;
-        iTask::instance()->handle_stop_run();
+        iTask::instance()->post_stop_run();
     }
 
 }
