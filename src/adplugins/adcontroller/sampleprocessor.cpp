@@ -174,8 +174,9 @@ SampleProcessor::handle_data( unsigned long objId, long pos
     }
 
     auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
-
+    
     ADDEBUG() << "handle_data  elapsed time: " << elapsed_time.count() << ", methodTime: " << sampleRun_->methodTime();
+    Logging( L"Elapsed time: %1%", EventLog::pri_INFO ) % double(elapsed_time.count() / 60.0 );
 
     if ( elapsed_time.count() >= sampleRun_->methodTime() ) {
         inProgress_ = false;
