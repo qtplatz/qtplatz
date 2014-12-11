@@ -122,7 +122,7 @@ namespace adwidgets {
             QStandardItemModel& model = *model_;
 
             model.setData( model.index( 0, 1 ), t.methodTime() / 60.0 ); // shows in minutes
-            model.setData( model.index( 1, 1 ), t.replicates() );
+            model.setData( model.index( 1, 1 ), int( t.replicates() ) );
             model.setData( model.index( 2, 1 ), QString::fromStdWString( t.dataDirectory() ) );
             model.setData( model.index( 3, 1 ), QString::fromStdWString( t.filePrefix() ) );
             resizeColumnsToContents();

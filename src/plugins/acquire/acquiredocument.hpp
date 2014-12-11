@@ -46,6 +46,7 @@ namespace acquire {
         static std::mutex mutex_;
     public:
         static document * instance();
+        ~document();
         
         void initialSetup();
         void finalClose( internal::MainWindow * );
