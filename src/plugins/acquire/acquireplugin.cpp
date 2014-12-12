@@ -47,6 +47,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/msreference.hpp>
@@ -690,8 +691,26 @@ AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
             ms = fifo_ms_.back();
         fifo_ms_.clear();
     } while(0);
-    if ( ms )
+    if ( ms ) {
+        std::wostringstream o;
         pImpl_->spectrumPlot_->setData( ms, 0 );
+        double elapsed_time = ms->getMSProperty().timeSinceInjection();
+
+        o << boost::wformat( L"Elapsed time: %.3f min; " ) % (elapsed_time / 60.0);
+
+        auto& descs = ms->getDescriptions();
+        auto it = std::find_if( descs.begin(), descs.end()
+                                , [] ( const adcontrols::description& d ){ return d.key() == L"acquire.title"; } );
+        if ( it != descs.end() )
+            o << it->text() << L"; ";
+
+        it = std::find_if( descs.begin(), descs.end()
+                           , [] ( const adcontrols::description& d ){ return d.key() == L"acquire.protocol.labsl"; } );
+        if ( it != descs.end() )
+            o << it->text() << L"; ";
+
+        pImpl_->spectrumPlot_->setTitle( o.str() );
+    }
         
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
