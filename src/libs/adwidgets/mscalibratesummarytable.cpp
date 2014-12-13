@@ -427,13 +427,13 @@ MSCalibrateSummaryTable::showContextMenu( const QPoint& pt )
     std::vector< QAction * > actions;
     QMenu menu;
     
-    actions.push_back( menu.addAction( "Re-calc polynomials" ) );
-    actions.push_back( menu.addAction( "Assign mass on spectrum" ) );
-    actions.push_back( menu.addAction( "Apply calibration to current dataset" ) );
-    actions.push_back( menu.addAction( "Apply calibration to all datasets" ) );
-    actions.push_back( menu.addAction( "Save as default calibration" ) );
-    actions.push_back( menu.addAction( "Copy summary to clipboard" ) );
-    actions.push_back( menu.addAction( "Add to peak table" ) );
+    actions.push_back( menu.addAction( tr( "Re-calc polynomials" ) ) );
+    actions.push_back( menu.addAction( tr( "Assign mass on spectrum" ) ) );
+    actions.push_back( menu.addAction( tr( "Apply calibration to the dataset (change all spectra in the dataset)" ) ) );
+    //actions.push_back( menu.addAction( tr( "Apply calibration to all spectra in the dataset" ) ) );
+    actions.push_back( menu.addAction( tr( "Save as default calibration" ) ) );
+    actions.push_back( menu.addAction( tr( "Copy summary to clipboard" ) ) );
+    actions.push_back( menu.addAction( tr( "Add to peak table" ) ) );
 
     QAction * selected = menu.exec( this->mapToGlobal( pt ) );
 
@@ -443,13 +443,13 @@ MSCalibrateSummaryTable::showContextMenu( const QPoint& pt )
         emit on_reassign_mass_requested();      // change source mass spectrum m/z array (both profile and centroid)
     } else if ( selected == actions[ 2 ] ) {
         emit on_apply_calibration_to_dataset(); // change whole calibration for current dataset
+    //} else if ( selected == actions[ 3 ] ) {
+        //emit on_apply_calibration_to_all();     // change whole calibration for current dataset
     } else if ( selected == actions[ 3 ] ) {
-        emit on_apply_calibration_to_all();     // change whole calibration for current dataset
-    } else if ( selected == actions[ 4 ] ) {
         emit on_apply_calibration_to_default(); // save calibration as system default
-    } else if ( selected == actions[ 5 ] ) {
+    } else if ( selected == actions[ 4 ] ) {
         copySummaryToClipboard();
-    } else if ( selected == actions[ 6 ] ) {
+    } else if ( selected == actions[ 5 ] ) {
         addSelectionToPeakTable();
     }
 }

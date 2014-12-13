@@ -657,7 +657,8 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
             minutes = 0;
             index = fcn = -1;
         }
-        actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a part of spectrum @%.3fmin (%d/%d)" ) % minutes % index % fcn ).str().c_str() )
+        actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a part of spectrum @%.3fmin (%d/%d)" )
+                                                            % minutes % index % fcn ).str().c_str() )
                                            , [=] () {
                                                DataprocPlugin::instance()->onSelectSpectrum( minutes, pos, fcn );
                                            } ) );
@@ -669,7 +670,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                                            , [=] () {
                                                DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
                                            } ) );
-
+        
         actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") )
                                            , [=] () {
                                                adplot::plot::copyToClipboard( pImpl_->ticPlot_ );
@@ -712,8 +713,13 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
 		QMenu menu;
         std::array< QAction *, 3 > fixedActions;
-		fixedActions[ 0 ] = menu.addAction( QString::fromStdString( (boost::format("RMS in range %.3lf -- %.3lf(us)") % rect.left() % rect.right() ).str() ) );
-		fixedActions[ 1 ] = menu.addAction( QString::fromStdString( (boost::format("Max value in range %.3lf -- %.3lf(us)") % rect.left() % rect.right() ).str() ) );
+        if ( pImpl_->is_time_axis_ ) {
+            fixedActions[ 0 ] = menu.addAction( QString::fromStdString( (boost::format("RMS in range %.3lf -- %.3lf(us)") % rect.left() % rect.right() ).str() ) );
+            fixedActions[ 1 ] = menu.addAction( QString::fromStdString( (boost::format("Max value in range %.3lf -- %.3lf(us)") % rect.left() % rect.right() ).str() ) );
+        } else {
+            fixedActions[ 0 ] = menu.addAction( QString::fromStdString( (boost::format("RMS in m/z range %.3lf -- %.3lf") % rect.left() % rect.right() ).str() ) );
+            fixedActions[ 1 ] = menu.addAction( QString::fromStdString( (boost::format("Max value in m/z range %.3lf -- %.3lf") % rect.left() % rect.right() ).str() ) );
+        }
         fixedActions[ 2 ] = menu.addAction( "Frequency analysis" );
 
         std::pair<size_t, size_t> range;
@@ -728,7 +734,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
             QAction * selectedItem = menu.exec( QCursor::pos() );
             if ( fixedActions[ 0 ] == selectedItem ) {
-                if ( compute_rms( scale_to_base( rect.left(), micro), scale_to_base( rect.right(), micro ) ) > 0 )
+                if ( compute_rms( rect.left(), rect.right() ) > 0 )
                     draw1();
                 return;
             } else if ( fixedActions[ 1 ] == selectedItem ) {
@@ -1108,14 +1114,16 @@ MSProcessingWnd::compute_rms( double s, double e )
 {
 	if ( auto ptr = this->pProfileSpectrum_.second.lock() ) {
 
+        namespace pfx = adcontrols::metric;
+
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
         
         for ( auto& ms: segments ) {
 
             std::pair< size_t, size_t > range;
             if ( pImpl_->is_time_axis_ ) {
-                range.first = ms.getIndexFromTime( s, false );
-                range.second = ms.getIndexFromTime( e, true );
+                range.first = ms.getIndexFromTime( scale_to_base(s, pfx::micro), false );
+                range.second = ms.getIndexFromTime( scale_to_base(e, pfx::micro), true );
             } else {
                 const double * masses = ms.getMassArray();
                 range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
@@ -1134,10 +1142,19 @@ MSProcessingWnd::compute_rms( double s, double e )
 				using namespace adcontrols::metric;
                 
                 ptr->addDescription( adcontrols::description( L"process"
-                                                              , (boost::wformat(L"RMS[%.3lf-%.3lf,N=%d]=%.3lf")
-                                                                 % scale_to_micro(s) % scale_to_micro(e) % n % rms).str() ) );
+                                                              , (boost::wformat(L"RMS[%.3lf-%.3lf(&mu;s),N=%d]=%.3lf")
+                                                                 % scale_to_micro( ms.getTime(range.first) )
+                                                                 % scale_to_micro( ms.getTime(range.second) )
+                                                                 % n
+                                                                 % rms).str() ) );
 
-                QString text = QString::fromStdString( ( boost::format("rms(start,end,N,rms)\t%.14f\t%.14f\t%d\t%.7f") % scale_to_micro(s) % scale_to_micro(e) % n % rms).str() );
+                QString text = QString::fromStdString(
+                    ( boost::format("rms(start,end,N,rms)\t%.14f\t%.14f\t%d\t%.7f")
+                      % scale_to_micro( ms.getTime( range.first ) )
+                      % scale_to_micro( ms.getTime( range.second ) )
+                      % n
+                      % rms).str() );
+
                 QApplication::clipboard()->setText( text );
 
 				return rms;

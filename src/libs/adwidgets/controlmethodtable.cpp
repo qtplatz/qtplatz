@@ -33,6 +33,7 @@
 #include <QStyledItemDelegate>
 #include <boost/exception/all.hpp>
 #include <functional>
+#include <QVariant>
 
 namespace adwidgets {
     namespace controlmethodtable {
@@ -271,8 +272,8 @@ ControlMethodTable::data( int row ) const
 {
     if ( auto item = model_->item( row, 0 ) ) {
         auto v = item->data( Qt::UserRole );
-        if ( qVariantCanConvert< adcontrols::controlmethod::MethodItem >( v ) ) {
-            auto mi = qVariantValue< adcontrols::controlmethod::MethodItem >( v );
+        if ( v.canConvert< adcontrols::controlmethod::MethodItem >() ) {
+            auto mi = v.value< adcontrols::controlmethod::MethodItem >();
             
             // time
             double seconds = model_->data( model_->index( row, 0 ) ).toDouble() * 60.0;

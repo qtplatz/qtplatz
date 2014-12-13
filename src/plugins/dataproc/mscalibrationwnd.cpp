@@ -157,6 +157,7 @@ MSCalibrationWnd::init()
             connect( pSummary, &ST::on_recalibration_requested, this, &MSCalibrationWnd::handle_recalibration_requested );
             connect( pSummary, &ST::on_reassign_mass_requested, this, &MSCalibrationWnd::handle_reassign_mass_requested );
             connect( pSummary, &ST::on_apply_calibration_to_dataset, this, &MSCalibrationWnd::handle_apply_calibration_to_dataset );
+            // connect( pSummary, &ST::on_apply_calibration_to_all, this, &MSCalibrationWnd::handle_apply_calibration_to_all );
             connect( pSummary, &ST::on_apply_calibration_to_default, this, &MSCalibrationWnd::handle_apply_calibration_to_default );
             connect( pSummary, &ST::on_add_selection_to_peak_table, this, &MSCalibrationWnd::handle_add_selection_to_peak_table );
 
