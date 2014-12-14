@@ -232,7 +232,7 @@ MSPeakTable::~MSPeakTable()
     delete impl_;
 }
 
-MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
+MSPeakTable::MSPeakTable(QWidget *parent) : TableView(parent)
                                           , impl_( new impl() )
 {
     this->setHorizontalHeader( new HtmlHeaderView );
@@ -378,6 +378,7 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
         if ( it != candidates.end() ) {
             model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->formula ) );
             model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass_error );
+            model.setData( model.index( row, c_mspeaktable_description ), tr( "Target candidate" ) );
         }
     }
     if ( impl_->data_source_.which() == 1 ) {
@@ -656,7 +657,8 @@ MSPeakTable::showContextMenu( const QPoint& pt )
     QModelIndex index = currentIndex();
 
 	if ( index.isValid() ) {
-        std::vector< QAction * > actions;
+        QAction * action_lock_mass(0);
+        QAction * action_copy_assigned(0);
         QMenu menu;
         
         QModelIndexList list = selectionModel()->selectedIndexes();
@@ -680,18 +682,22 @@ MSPeakTable::showContextMenu( const QPoint& pt )
                 if ( !refs.isEmpty() )
                     o << ", ";
                 o << formula.toStdString();
-
+                
                 int idx = model.data( model.index( row, c_mspeaktable_index ) ).toInt();
                 int fcn = model.data( model.index( row, c_mspeaktable_fcn ) ).toInt();
-
+                
                 refs.push_back( QPair<int,int>( idx, fcn ) );
             }
         }
         
-        actions.push_back( menu.addAction( o.str().c_str() ) );
-        QAction * selected = menu.exec( this->mapToGlobal( pt ) );
-        if ( selected )
-            emit triggerLockMass( refs );
+        action_lock_mass = menu.addAction( o.str().c_str() );
+        action_copy_assigned = menu.addAction( tr("Copy assigned peaks to clipboard"), this, SLOT( handleCopyAssignedPeaks() ) );
+        addActionsToMenu( menu, pt );
+
+        if ( QAction * selected = menu.exec( this->mapToGlobal( pt ) ) ) {
+            if ( selected == action_lock_mass )
+                emit triggerLockMass( refs );
+        }
     }
 }
 
@@ -881,4 +887,28 @@ MSPeakTable::findColumn( const QString& name ) const
             return col;
     }
     return -1;
+}
+
+void
+MSPeakTable::handleCopyAssignedPeaks()
+{
+    QStandardItemModel& model = *impl_->model_;
+
+    QString selected_text;
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        auto formula = model.data( model.index( row, c_mspeaktable_formula ) ).toString();
+        if ( !formula.isEmpty() ) {
+
+            for ( int col = 0; col < model.columnCount(); ++col ) {
+                selected_text.append( model.index( row, col ).data( Qt::EditRole ).toString() );
+                if ( col != model.columnCount() - 1 )
+                    selected_text.append( '\t' );
+            }
+            selected_text.append( '\n' );
+        }
+    }
+
+    QApplication::clipboard()->setText( selected_text );
+
 }

@@ -26,7 +26,7 @@
 #define MSPEAKTABLE_HPP
 
 #include "adwidgets_global.hpp"
-#include <QTableView>
+#include "tableview.hpp"
 #include <QItemDelegate>
 #include <adplugin/lifecycle.hpp>
 #include <memory>
@@ -43,7 +43,7 @@ namespace adwidgets {
 
     namespace detail { struct dataMayChanged; }
 
-    class ADWIDGETSSHARED_EXPORT MSPeakTable : public QTableView
+    class ADWIDGETSSHARED_EXPORT MSPeakTable : public TableView
                                              , public adplugin::LifeCycle {
         Q_OBJECT
     public:
@@ -86,6 +86,7 @@ namespace adwidgets {
     private slots:
         void handleValueChanged( const QModelIndex& );
         void showContextMenu( const QPoint& );
+        void handleCopyAssignedPeaks();
 
     private:
         class impl;

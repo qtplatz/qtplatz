@@ -459,11 +459,11 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
 
         methodselector selector( m );
 
-        if ( procType == CentroidProcess ) {
+        if ( procType == CentroidProcess || procType == TargetingProcess ) {
             selector.append< adcontrols::CentroidMethod >( method );
+            selector.append< adcontrols::TargetingMethod >( method );
         }
         else if ( procType == TargetingProcess ) {
-            selector.append< adcontrols::CentroidMethod >( method );
             selector.append< adcontrols::TargetingMethod >( method );
         }
         else if ( procType == CalibrationProcess ) {
