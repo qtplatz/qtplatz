@@ -23,7 +23,9 @@ SOURCES += constants.cpp \
            ifconfig.cpp \
            ifconfig_windows.cpp \
            iorsender.cpp \
-           iorquery.cpp
+           iorquery.cpp \
+           udpeventreceiver.cpp \
+           udpeventsender.cpp
            
 HEADERS += constants.hpp \
            input_buffer.hpp \
@@ -33,7 +35,10 @@ HEADERS += constants.hpp \
            ifconfig_linux.hpp \
            ifconfig_windows.hpp \
            iorsender.hpp \
-           iorquery.hpp
+           iorquery.hpp \
+           udpeventreceiver.hpp \
+           udpeventsender.hpp
+
 
 OTHER_FILES += \
     acewrapper.pri

@@ -30,17 +30,8 @@ add_executable( eventtool ${eventtool_SOURCES} ${Resources} )
 target_link_libraries( eventtool LINK_PUBLIC
 		       adportable
 		       adwidgets
+		       acewrapper
 		       Qt5::Widgets
 		       Qt5::Widgets
 		       ${Boost_LIBRARIES} )
-
-if( NOT WIN32 )
-  target_link_libraries( eventtool LINK_PUBLIC 
-    boost_system
-    boost_program_options
-    boost_thread
-    boost_serialization
-    boost_filesystem
-    pthread )
-endif()
 

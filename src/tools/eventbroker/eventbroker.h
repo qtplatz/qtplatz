@@ -37,12 +37,13 @@ extern "C" {
 
     typedef void (*event_handler)(uint32_t, void*);
 
-    EVENTBROKER_EXPORT uint32_t eventbroker_count_if();
-    EVENTBROKER_EXPORT const char * eventbroker_if( uint32_t idx );
-    EVENTBROKER_EXPORT const char * eventbroker_ipaddr( uint32_t idx );
-    EVENTBROKER_EXPORT const bool eventbroker_regiser_handler( event_handler );
-    EVENTBROKER_EXPORT const bool eventbroker_unregiser_handler( event_handler );
+    /* EVENTBROKER_EXPORT uint32_t eventbroker_count_if(); */
+    /* EVENTBROKER_EXPORT const char * eventbroker_if( uint32_t idx ); */
+    /* EVENTBROKER_EXPORT const char * eventbroker_ipaddr( uint32_t idx ); */
+    EVENTBROKER_EXPORT bool eventbroker_regiser_handler( event_handler );
+    EVENTBROKER_EXPORT bool eventbroker_unregiser_handler( event_handler );
 
+    EVENTBROKER_EXPORT void eventbroker_bind( const char * host, const char * port = "7125" );
     EVENTBROKER_EXPORT void eventbroker_out( uint32_t );
 
 }

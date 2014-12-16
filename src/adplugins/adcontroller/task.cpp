@@ -29,6 +29,7 @@
 #include "observer_i.hpp"
 #include "manager_i.hpp"
 #include "sampleprocessor.hpp"
+#include <acewrapper/udpeventreceiver.hpp>
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
 #include <adinterface/samplebrokerC.h>
@@ -95,7 +96,14 @@ iTask::iTask() : status_current_( ControlServer::eNothing )
                , work_( io_service_ )
                , timer_( io_service_ )
                , interval_( 3000 ) // ms
+               , udpReceiver_( new acewrapper::udpEventReceiver( io_service_, 7125 ) )
 {
+    udpReceiver_->register_handler( [this]( const char * data, size_t length ){
+            std::string recv( data, length );
+            auto pos = recv.find( "EVENTOUT 1" );
+            if ( pos != std::string::npos )
+                handle_event_out( ControlServer::event_InjectOut );
+        });
 }
 
 void

@@ -46,6 +46,7 @@
 namespace pugi { class xml_document; }
 namespace EventLog { struct LogMessage; }
 namespace adcontrols { class ControlMethod; class SampleRun; }
+namespace acewrapper { class udpEventReceiver; }
 
 namespace adcontroller {
 
@@ -151,6 +152,7 @@ namespace adcontroller {
         std::vector< adportable::asio::thread > threads_;
         std::shared_ptr< adcontrols::ControlMethod > ctrlMethod_;
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
+        std::unique_ptr< acewrapper::udpEventReceiver > udpReceiver_;
     };
 
 } // namespace adcontroller

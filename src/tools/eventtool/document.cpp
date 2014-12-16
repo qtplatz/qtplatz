@@ -29,8 +29,12 @@
 
 #include "document.hpp"
 #include "eventtoolconstants.hpp"
+#include <acewrapper/udpeventreceiver.hpp>
 #include <adinterface/automaton.hpp>
+#include <adportable/asio/thread.hpp>
+#include <adportable/debug.hpp>
 #include <qtwrapper/settings.hpp>
+#include <boost/asio.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/serialization/collection_size_type.hpp>
@@ -54,23 +58,32 @@ namespace eventtool {
             return dir.remove_filename() / "eventtool";
         }
     };
-        
 
     class document::impl : public adinterface::fsm::handler {
     public:
         impl() : settings_( new QSettings( QSettings::IniFormat, QSettings::UserScope
-                                           , QLatin1String( "eventtool" )
-                                           , QLatin1String( "eventtool" ) ) )
+                                           , QLatin1String( "eventtool" ), QLatin1String( "eventtool" ) ) )
                , automaton_( this )
-               , instStatus_( adinterface::instrument::eOff ) {
+               , instStatus_( adinterface::instrument::eOff )
+               , work_( io_service_ )
+               , udpReceiver_( new acewrapper::udpEventReceiver( io_service_, 8125) )  { // this is for debug, actual port# is 7125
 
+            udpReceiver_->register_handler( [ this ]( const char * data, size_t length ) {
+                event_received( data, length );
+            });
+
+            threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
             // don't call automaton_.start() in ctor -- it will call back handle_state() inside the singleton creation.
         }
-            
+
         std::shared_ptr< QSettings > settings_;
         adinterface::fsm::controller automaton_;
         adinterface::instrument::eInstStatus instStatus_;
-
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        std::vector< std::thread > threads_;
+        std::unique_ptr< acewrapper::udpEventReceiver > udpReceiver_;
+            
         // finite automaton handler
         void handle_state( bool entering, adinterface::instrument::eInstStatus ) override;
         void action_on( const adinterface::fsm::onoff& ) override;
@@ -80,6 +93,12 @@ namespace eventtool {
         void action_off( const adinterface::fsm::onoff& ) override;
         void action_diagnostic( const adinterface::fsm::onoff& ) override;
         void action_error_detected( const adinterface::fsm::error_detected& ) override;
+        //
+        void event_received( const char * data, size_t length ) {
+            std::string x( data, length );
+            std::cerr << x << std::endl;
+            ADDEBUG() << x;
+        }
     };
 }
 
@@ -88,6 +107,11 @@ using namespace eventtool;
 
 std::atomic<document *> document::instance_( 0 );
 std::mutex document::mutex_;
+
+document::~document()
+{
+    delete impl_;
+}
 
 document::document( QObject * parent ) : QObject( parent )
                                        , impl_( new impl )

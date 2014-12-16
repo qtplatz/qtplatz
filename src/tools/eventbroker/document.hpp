@@ -22,39 +22,44 @@
 **
 **************************************************************************/
 
-#include "singleton.hpp"
+#pragma once
+
+#include "eventbroker.h"
+#include <acewrapper/ifconfig.hpp>
+#include <boost/asio.hpp>
 #include <atomic>
 #include <mutex>
-#include <acewrapper/ifconfig.hpp>
+#include <memory>
+#include <thread>
 
-using namespace eventbroker;
+namespace acewrapper { class udpEventSender; }
 
-std::atomic< singleton * > singleton::instance_(0);
-std::mutex singleton::mutex_;
 
-singleton::~singleton()
-{
+namespace eventbroker {
+
+    class document {
+        document();
+        static std::atomic< document * > instance_;
+        static std::mutex mutex_;
+        std::vector< acewrapper::ifconfig::ifaddr > bcast_addrs_;
+        std::vector< event_handler > handlers_;
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        std::unique_ptr< acewrapper::udpEventSender > udpSender_;
+        std::vector< std::thread > threads_;
+    public:
+        ~document();
+        static document * instance();
+
+        size_t count_if() const;
+        const char * ifname( size_t idx ) const;
+        const char * ifaddr( size_t idx ) const;
+
+        bool register_handler( event_handler );
+        bool unregister_handler( event_handler );
+        void bind( const char * host, const char * port );
+        void event_out( uint32_t );
+    };
+
 }
 
-singleton::singleton()
-{
-}
-
-singleton *
-singleton::instance()
-{
-    typedef singleton T;
-
-    T * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new T();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
-}

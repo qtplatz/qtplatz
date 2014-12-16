@@ -31,10 +31,13 @@
 #if ! defined Q_MOC_RUN
 #include <boost/msm/back/state_machine.hpp>
 #endif
+#include <boost/asio.hpp>
+
 #include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <thread>
 
 class QSettings;
 
@@ -42,11 +45,11 @@ namespace eventtool {
 
     class document : public QObject {
         Q_OBJECT
+        ~document();
         document( const document& ) = delete;
         document( QObject * parent = 0 );
         static std::atomic< document * > instance_;
         static std::mutex mutex_;
-
     public:
         static document * instance();
 

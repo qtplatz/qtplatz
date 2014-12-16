@@ -9,6 +9,11 @@ add_definitions(-DEVENTBROKER_LIBRARY)
 
 add_library( eventbroker SHARED
   api.cpp 
-  singleton.cpp 
+  document.cpp 
   )
+
+target_link_libraries( eventbroker LINK_PUBLIC
+		       adportable
+		       acewrapper
+		       ${Boost_LIBRARIES} )
 
