@@ -43,8 +43,13 @@ namespace eventtool {
         private slots:
         void on_pushButton_clicked();
 
+        void on_checkBox_clicked(bool checked);
+
     private:
         Ui::EventForm *ui;
+        QString host_;
+        QString port_;
+        short recvPort_;
     };
 }
 

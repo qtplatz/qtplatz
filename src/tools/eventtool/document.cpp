@@ -35,6 +35,7 @@
 #include <adportable/debug.hpp>
 #include <qtwrapper/settings.hpp>
 #include <boost/asio.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/serialization/collection_size_type.hpp>
@@ -61,18 +62,17 @@ namespace eventtool {
 
     class document::impl : public adinterface::fsm::handler {
     public:
+        ~impl() {
+            io_service_.stop();
+            for ( auto& t : threads_ )
+                t.join();
+        }
+
         impl() : settings_( new QSettings( QSettings::IniFormat, QSettings::UserScope
                                            , QLatin1String( "eventtool" ), QLatin1String( "eventtool" ) ) )
                , automaton_( this )
                , instStatus_( adinterface::instrument::eOff )
-               , work_( io_service_ )
-               , udpReceiver_( new acewrapper::udpEventReceiver( io_service_, 8125) )  { // this is for debug, actual port# is 7125
-
-            udpReceiver_->register_handler( [ this ]( const char * data, size_t length ) {
-                event_received( data, length );
-            });
-
-            threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+               , work_(io_service_) {
             // don't call automaton_.start() in ctor -- it will call back handle_state() inside the singleton creation.
         }
 
@@ -94,10 +94,16 @@ namespace eventtool {
         void action_diagnostic( const adinterface::fsm::onoff& ) override;
         void action_error_detected( const adinterface::fsm::error_detected& ) override;
         //
-        void event_received( const char * data, size_t length ) {
+        void event_received( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ) {
             std::string x( data, length );
-            std::cerr << x << std::endl;
-            ADDEBUG() << x;
+            std::cout << x << " from " << ep << std::endl;
+        }
+
+        void monitor_enable( short port ) {
+            udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, port ) );
+            udpReceiver_->register_handler( [this] ( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ) { event_received( data, length, ep ); } );
+            if ( threads_.empty() )
+                threads_.push_back( adportable::asio::thread( [=]{ io_service_.run(); } ) );
         }
     };
 }
@@ -163,9 +169,38 @@ document::inject_event_out()
             std::cout << lib.fileName().toStdString() << "\tloaded." << std::endl;
         }
     }
-    if ( auto event_out = reinterpret_cast<void( *)(uint32_t)>(lib.resolve( "eventbroker_out" )) ) {
+    if ( auto event_out = reinterpret_cast<bool(*)(uint32_t)>(lib.resolve( "eventbroker_out" )) ) {
         event_out( 1 );
     }
+}
+
+void
+document::inject_bind( std::string& host, std::string& port )
+{
+    QLibrary lib( "eventbroker" );
+
+    if ( auto bind = reinterpret_cast<bool(*)(const char * host, const char * port)>(lib.resolve( "eventbroker_bind" )) ) {
+        bind( host.c_str(), port.c_str() );
+    }
+}
+
+bool
+document::monitor_port( short port )
+{
+    try {
+        impl_->monitor_enable( port );
+        return true;
+    }
+    catch ( boost::exception& ex ) {
+        ADDEBUG() << boost::diagnostic_information( ex );
+        return false;
+    }
+}
+
+void
+document::monitor_disable()
+{
+    impl_->udpReceiver_.reset();
 }
 
 //////////////////////

@@ -58,6 +58,9 @@ namespace eventtool {
         QSettings * settings();
 
         void inject_event_out();
+        void inject_bind( std::string& host, std::string& port );
+        bool monitor_port( short port );
+        void monitor_disable();
 
     signals:
         void instStateChanged( int );

@@ -27,9 +27,11 @@
 #include <mutex>
 #include <acewrapper/ifconfig.hpp>
 #include <acewrapper/udpeventsender.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/asio/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/exception/all.hpp>
 
 using namespace eventbroker;
 
@@ -46,7 +48,6 @@ document::~document()
 document::document() : work_( io_service_ )
                      , udpSender_( new acewrapper::udpEventSender( io_service_, "localhost", "7125" ) )
 {
-    acewrapper::ifconfig::broadaddr( bcast_addrs_ );
     threads_.push_back( adportable::asio::thread( [=] {io_service_.run(); } ) );
     threads_.push_back( adportable::asio::thread( [=] {io_service_.run(); } ) );
 }
@@ -70,29 +71,6 @@ document::instance()
     return tmp;
 }
 
-size_t
-document::count_if() const
-{
-    return bcast_addrs_.size();
-}
-
-
-const char *
-document::ifname( size_t idx ) const
-{
-    if ( idx < count_if() )
-        return bcast_addrs_[idx].first.c_str();
-    return 0;
-}
-
-const char *
-document::ifaddr( size_t idx ) const
-{
-    if ( idx < count_if() )
-        return bcast_addrs_[idx].second.c_str();
-    return 0;
-}
-
 bool
 document::register_handler( event_handler h )
 {
@@ -113,15 +91,21 @@ document::unregister_handler( event_handler h )
     return true;
 }
 
-void
+bool
 document::bind( const char * host, const char * port )
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-
-    udpSender_.reset( new acewrapper::udpEventSender( io_service_, host, port ) );
+    try {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        auto ptr = std::make_shared< acewrapper::udpEventSender>( io_service_, host, port );
+        udpSender_ = ptr;
+        return true;
+    } catch ( boost::exception& ex ) {
+        ADDEBUG() << boost::diagnostic_information( ex );
+        return false;
+    }
 }
 
-void
+bool
 document::event_out( uint32_t value )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -129,7 +113,8 @@ document::event_out( uint32_t value )
     if ( udpSender_ ) {
         std::ostringstream o;
         o << "EVENTOUT " << value << std::endl;
-        udpSender_->send_to( o.str() );
+        return udpSender_->send_to( o.str() );
     }
+    return false;
 }
 

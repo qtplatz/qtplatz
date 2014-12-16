@@ -26,13 +26,19 @@
 
 #include "udpeventreceiver.hpp"
 #include <workaround/boost/asio.hpp>
-#include <mutex>
-#include <thread>
 #include <vector>
 #include <string>
 
 using namespace acewrapper;
 using boost::asio::ip::udp;
+
+udpEventReceiver::~udpEventReceiver()
+{
+    std::unique_lock< std::mutex > lock( mutex_ );
+    sock_.cancel();
+    sock_.close();
+    cv_.wait( lock );
+}
 
 udpEventReceiver::udpEventReceiver( boost::asio::io_service& io, short port ) : io_service_( io )
                                                                               , sock_( io, udp::endpoint( udp::v4(), port ) )
@@ -41,7 +47,7 @@ udpEventReceiver::udpEventReceiver( boost::asio::io_service& io, short port ) : 
 } 
 
 void
-udpEventReceiver::register_handler( std::function<void( const char *, size_t )> h )
+udpEventReceiver::register_handler( std::function<void( const char *, size_t, const udp::endpoint& )> h )
 {
     handler_ = h;
 }
@@ -54,10 +60,14 @@ udpEventReceiver::do_receive()
         [this](boost::system::error_code ec, std::size_t bytes_recvd)  {
             if (!ec && bytes_recvd > 0) {
                 if ( handler_ )
-                    handler_( data_, bytes_recvd );
+                    handler_( data_, bytes_recvd, sender_endpoint_ );
                 do_send(bytes_recvd); // echo back
             } else {
-                do_receive();
+                if ( ec == boost::system::errc::operation_canceled ) {
+                    std::lock_guard< std::mutex > lock( mutex_ );
+                    cv_.notify_one();
+                } else
+                    do_receive();
             }
         });
 }

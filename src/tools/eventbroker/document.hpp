@@ -41,24 +41,20 @@ namespace eventbroker {
         document();
         static std::atomic< document * > instance_;
         static std::mutex mutex_;
-        std::vector< acewrapper::ifconfig::ifaddr > bcast_addrs_;
+
         std::vector< event_handler > handlers_;
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
-        std::unique_ptr< acewrapper::udpEventSender > udpSender_;
+        std::shared_ptr< acewrapper::udpEventSender > udpSender_;
         std::vector< std::thread > threads_;
+
     public:
         ~document();
         static document * instance();
-
-        size_t count_if() const;
-        const char * ifname( size_t idx ) const;
-        const char * ifaddr( size_t idx ) const;
-
         bool register_handler( event_handler );
         bool unregister_handler( event_handler );
-        void bind( const char * host, const char * port );
-        void event_out( uint32_t );
+        bool bind( const char * host, const char * port );
+        bool event_out( uint32_t );
     };
 
 }

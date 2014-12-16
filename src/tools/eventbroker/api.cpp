@@ -25,24 +25,6 @@
 #include "eventbroker.h"
 #include "document.hpp"
 
-uint32_t
-eventbroker_count_if()
-{
-    return static_cast<uint32_t>(eventbroker::document::instance()->count_if());
-}
-
-const char *
-eventbroker_if( uint32_t idx )
-{
-    return eventbroker::document::instance()->ifname( idx );
-}
-
-const char *
-eventbroker_ipaddr( uint32_t idx )
-{
-    return eventbroker::document::instance()->ifaddr( idx );
-}
-
 bool
 eventbroker_regiser_handler( event_handler h )
 {
@@ -55,14 +37,14 @@ eventbroker_unregiser_handler( event_handler h )
     return eventbroker::document::instance()->unregister_handler( h );
 }
 
-void
+bool
 eventbroker_bind( const char * host, const char * port )
 {
-    eventbroker::document::instance()->bind( host, port );
+    return eventbroker::document::instance()->bind( host, port );
 }
 
-void
+bool
 eventbroker_out( uint32_t value )
 {
-    eventbroker::document::instance()->event_out( value );
+    return eventbroker::document::instance()->event_out( value );
 }

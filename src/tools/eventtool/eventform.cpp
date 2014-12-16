@@ -29,10 +29,17 @@
 using namespace eventtool;
 
 EventForm::EventForm(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::EventForm)
+    QWidget(parent)
+    , ui( new Ui::EventForm )
+    , host_( "localhost" )
+    , port_( "7125" )
+    , recvPort_( 7125 )
 {
     ui->setupUi(this);
+    ui->editHost->setText( host_ );
+    ui->editPort->setText( port_ );
+    ui->spinPort->setMaximum( 65535 );
+    ui->spinPort->setValue( recvPort_ );
 }
 
 EventForm::~EventForm()
@@ -42,5 +49,28 @@ EventForm::~EventForm()
 
 void EventForm::on_pushButton_clicked()
 {
+    if ( (ui->editHost->text() != host_) ||
+         (ui->editPort->text() != port_) ) {
+        host_ = ui->editHost->text();
+        port_ = ui->editPort->text();
+        document::instance()->inject_bind( host_.toStdString(), port_.toStdString() );
+    }
     document::instance()->inject_event_out();
+}
+
+void
+eventtool::EventForm::on_checkBox_clicked( bool checked )
+{
+    if ( checked ) { // enable
+        short port = ui->spinPort->value();
+        if ( document::instance()->monitor_port( port ) ) {
+            recvPort_ = port;
+        }
+        else {
+            ui->spinPort->setValue( recvPort_ );
+        }
+    }
+    else {
+        document::instance()->monitor_disable();
+    }
 }
