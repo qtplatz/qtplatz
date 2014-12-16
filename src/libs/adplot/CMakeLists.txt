@@ -43,16 +43,16 @@ set( adplot_SOURCES
   timingchart.cpp
 )
 
-set(LINK_LIBRARY optimized qwt debug qwtd )
+set( LINK_LIBRARY optimized qwt debug qwtd )
 
 add_library( adplot SHARED ${adplot_SOURCES} )
 
 target_link_libraries( adplot LINK_PUBLIC
                        adcontrols
-					   adportable
-					   qtwrapper
-					   Qt5::Widgets
-					   Qt5::Svg
-					   Qt5::PrintSupport
-					   ${LINK_LIBRARY}
+		       adportable
+		       qtwrapper
+		       Qt5::Widgets
+		       Qt5::Svg
+		       Qt5::PrintSupport
+		       ${LINK_LIBRARY}
                      )

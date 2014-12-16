@@ -57,6 +57,12 @@ set( adwidgets_SOURCES
         pressuregauge.cpp
 	peaktable.cpp
 	peaktable.hpp
+	samplerunwidget.cpp
+	samplerunwidget.hpp
+	consolewidget.cpp
+	consolewidget.hpp
+	outputwidget.cpp
+	outputwidget.hpp
 	)
 
 set(LINK_LIBRARY optimized qwt debug qwtd )

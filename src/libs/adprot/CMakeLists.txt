@@ -1,5 +1,7 @@
+cmake_policy(SET CMP0022 NEW)
 
 add_definitions(-DADPROT_LIBRARY)
+
 find_package(Boost COMPONENTS system filesystem )
 
 add_library( adprot SHARED

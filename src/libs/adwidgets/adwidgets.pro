@@ -58,7 +58,10 @@ SOURCES += adwidgets.cpp \
         mspeaksummary.cpp \
         mspeakwidget.cpp \
         toftable.cpp \        
-    samplerunwidget.cpp
+        samplerunwidget.cpp \
+	consolewidget.cpp \
+	outputwidget.cpp
+
 
 HEADERS += adwidgets.hpp\
         adwidgets_global.hpp \
@@ -94,7 +97,10 @@ HEADERS += adwidgets.hpp\
         mspeaksummary.hpp \
         mspeakwidget.hpp \
         toftable.hpp \
-    samplerunwidget.hpp
+        samplerunwidget.hpp \
+	consolewidget.hpp
+	outputwidget.hpp
+
 
 unix {
     target.path = /usr/lib
