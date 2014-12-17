@@ -46,6 +46,7 @@
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/pugiwrapper.hpp>
 #include <boost/bind.hpp>
+#include <boost/exception/all.hpp>
 #include <stdexcept>
 #if defined _DEBUG
 # include <iostream>
@@ -96,14 +97,23 @@ iTask::iTask() : status_current_( ControlServer::eNothing )
                , work_( io_service_ )
                , timer_( io_service_ )
                , interval_( 3000 ) // ms
-               , udpReceiver_( new acewrapper::udpEventReceiver( io_service_, 7125 ) )
 {
-    udpReceiver_->register_handler( [this]( const char * data, size_t length ){
+    try {
+        udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, 7125 ) );
+    } catch ( boost::exception& ex ) {
+        ADDEBUG() << boost::diagnostic_information( ex );
+        ADERROR() << boost::diagnostic_information( ex );
+    }
+
+    if ( udpReceiver_ ) {
+        udpReceiver_->register_handler( [this] ( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ){
             std::string recv( data, length );
+            ADTRACE() << "UDP EVENT RECEIVER: got '" << recv << "' from " << ep;
             auto pos = recv.find( "EVENTOUT 1" );
             if ( pos != std::string::npos )
                 handle_event_out( ControlServer::event_InjectOut );
-        });
+        } );
+    }
 }
 
 void
