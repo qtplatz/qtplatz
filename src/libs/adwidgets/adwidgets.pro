@@ -98,7 +98,7 @@ HEADERS += adwidgets.hpp\
         mspeakwidget.hpp \
         toftable.hpp \
         samplerunwidget.hpp \
-	consolewidget.hpp
+	consolewidget.hpp \
 	outputwidget.hpp
 
 

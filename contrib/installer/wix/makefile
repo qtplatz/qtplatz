@@ -59,13 +59,13 @@ qtplatz:
 	cd $(QTPLATZ_PATH)
 	qmake -config release -tp vc -r
 	cd $(MAKEDIR)
-	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Rebuild /p:Configuration=Release
+	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Build /p:Configuration=Release
 
 infitof:
 	cd $(INFITOF_PATH)
 	qmake -config release -tp vc -r
 	cd $(MAKEDIR)
-	msbuild $(INFITOF_PATH)\infitof.sln /m:4 /t:Rebuild /p:Configuration=Release
+	msbuild $(INFITOF_PATH)\infitof.sln /m:4 /t:Build /p:Configuration=Release
 
 version.exe: version.c
 	cl version.c
