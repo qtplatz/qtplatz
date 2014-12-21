@@ -4,6 +4,7 @@ add_subdirectory (acewrapper)
 add_subdirectory (adprot)
 add_subdirectory (xmlparser)
 add_subdirectory (adlog)
+add_subdirectory (adorbmgr)
 
 if ( NOT RTC_ARCH_ARM )
   add_subdirectory (adplugin)
