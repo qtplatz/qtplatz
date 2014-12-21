@@ -1,3 +1,6 @@
 
 add_subdirectory( libs )
-add_subdirectory( tools )
+
+if ( NOT RTC_ARCH_ARM )
+  add_subdirectory( tools )
+endif()

@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "udpeventsender.hpp"
 #include <boost/asio/steady_timer.hpp>
 #include <workaround/boost/asio.hpp>
