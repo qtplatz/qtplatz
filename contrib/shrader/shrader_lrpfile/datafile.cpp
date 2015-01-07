@@ -26,6 +26,7 @@
 #include "../lrpfile/lrpfile.hpp"
 #include "../lrpfile/lrptic.hpp"
 #include "../lrpfile/msdata.hpp"
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -97,7 +98,7 @@ datafile::getFunctionCount() const
 size_t
 datafile::getSpectrumCount( int /* fcn */ ) const
 {
-    return lrpfile_->size();
+    return lrpfile_->number_of_spectra();
 }
 
 //virtual
@@ -109,8 +110,16 @@ datafile::getChromatogramCount() const
 
 //virtual
 bool
-datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
+datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& c ) const
 {
+    if ( lrpfile_ ) {
+        std::vector< double > time, intens;
+        lrpfile_->getTIC( time, intens );
+        c.resize( time.size() );
+        c.setTimeArray( time.data() );
+        c.setIntensityArray( intens.data() );
+        return true;
+    }
 	return false;
 }
 
@@ -118,21 +127,24 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
 bool
 datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, uint32_t /* objid */) const
 {
-    if ( unsigned( idx ) < lrpfile_->size() ) {
-#if 0
-        std::pair< double, double > range = std::make_pair( hdr.ffirst(), hdr.flast() );
-        const size_t npts = hdr.fnpts();
-        ms.resize( npts );
-        ms.setAcquisitionMassRange( range.first, range.second );
-        
-        for ( size_t i = 0; i < npts; ++i ) {
-            ms.setMass( int(i), i * double(( range.second - range.first )) / ( npts - 1 ) + range.first );
-            ms.setIntensity( int(i), sub[i] );
+    if ( lrpfile_ && unsigned( idx ) < lrpfile_->number_of_spectra() ) {
+
+        if ( auto msdata = (*lrpfile_)[ idx ] ) {
+
+            std::vector< double > time, intens;
+            if ( lrpfile_->getMS( *msdata, time, intens ) ) {
+
+                ms.resize( time.size() );
+                ms.setMassArray( time.data() );
+                ms.setIntensityArray( intens.data() );
+
+                ms.setAcquisitionMassRange( time.front(), time.back() );
+
+                return true;
+            }
         }
-        return true;
-#endif
     }
-	return false;
+    return false;
 }
 
 /////////////////////////

@@ -40,5 +40,11 @@ QTPLATZ_CONFIG += Peptide
 QTPLATZ_CONFIG += Quan
 QTPLATZ_CONFIG += Batch
 
+# contrib
+QTPLATZ_CONFIG += Bruker
+QTPLATZ_CONFIG += Galactic
+QTPLATZ_CONFIG += Agilent
+QTPLATZ_CONFIG += Shrader
+
 # no chemistry for ARM platform
 linux-arm-*: QTPLATZ_CONFIG -= ChemSpider Chemistry Peptide

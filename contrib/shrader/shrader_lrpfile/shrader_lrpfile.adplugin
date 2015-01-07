@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2013-2015 MS-Cheminformatics LLC, All rights reserved. -->
+<adplugin name="shrader_lrpfile" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="adplugin.xsd">
+  <Module name="shrader_lrpfile" type="sharedlib" filename="shrader_lrpfile$(configuration).dll"/>
+</adplugin>
