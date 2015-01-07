@@ -170,11 +170,11 @@ copy_stage_files:
 	rm -rf $(STAGEDIR)
 	-@$(MD) $(STAGEDIR)\bin
 	-@$(MD) $(STAGEDIR)\plugins
-	-@$(MD) $(STAGEDIR)\plugins\accessible
+#	-@$(MD) $(STAGEDIR)\plugins\accessible
 	-@$(MD) $(STAGEDIR)\plugins\imageformats
 	-@$(MD)	$(STAGEDIR)\plugins\platforms
 	-@$(MD)	$(STAGEDIR)\plugins\sqldrivers
-	$(CP) $(QTDIR)\plugins\accessible\qtaccessiblewidgets.dll $(STAGEDIR)\plugins\accessible
+#	$(CP) $(QTDIR)\plugins\accessible\qtaccessiblewidgets.dll $(STAGEDIR)\plugins\accessible
 	$(CP) $(QTDIR)\plugins\imageformats\qdds.dll	$(STAGEDIR)\plugins\imageformats
 	$(CP) $(QTDIR)\plugins\imageformats\qgif.dll	$(STAGEDIR)\plugins\imageformats
 	$(CP) $(QTDIR)\plugins\imageformats\qicns.dll	$(STAGEDIR)\plugins\imageformats

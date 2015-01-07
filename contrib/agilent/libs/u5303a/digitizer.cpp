@@ -306,7 +306,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 	(void)nSamples;
 	(void)nDelay;
 	// u5303a::method m;
-	BSTR strResourceDesc = L"PXI4::0::0::INSTR";
+	BSTR strResourceDesc = bstr_t(L"PXI4::0::0::INSTR");
     
     // If desired, use 'DriverSetup= CAL=0' to prevent digitizer from doing a SelfCal (~1 seconds) each time
     // it is initialized or reset which is the default behavior. By default set to false.
@@ -322,14 +322,14 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     simulated_ = false;
     bool success = false;
     try {
-        BSTR strInitOptions = L"Simulate=false, DriverSetup= Model=U5303A"; // <-- this file does not exist
+        BSTR strInitOptions = _bstr_t( L"Simulate=false, DriverSetup= Model=U5303A" ); // <-- this file does not exist
         success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
     } catch ( _com_error & e ) {
         ERR(e,"Initialize");
     }
     if ( !success ) {
         try {
-            BSTR strInitOptions = L"Simulate=true, DriverSetup= Model=U5303A, Trace=false";
+            BSTR strInitOptions = _bstr_t( L"Simulate=true, DriverSetup= Model=U5303A, Trace=false" );
             success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
             simulated_ = true;
             simulator_ = new u5303a::simulator;

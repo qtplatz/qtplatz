@@ -2,56 +2,51 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
         <DirectoryRef Id="PLUGINS">
-            <Directory Id="dir92BC2764D550BB9DCC632B18204CBC60" Name="accessible">
-                <Component Id="cmp682444C5369E9B551197A66E40229DC0" Guid="FACA35A6-0EE5-4246-8D11-E0514601E7B2" Win64="yes">
-                    <File Id="filF5AEBDB968CC09053C44CF293EFA3F49" KeyPath="yes" Source="$(var.QtPluginsDir)\accessible\qtaccessiblewidgets.dll" />
-                </Component>
-            </Directory>
             <Directory Id="dir00DBAB812C0D56F6DAC59DF233575A68" Name="imageformats">
-                <Component Id="cmp73340CB80783929B7838D55A25F883FC" Guid="F4A0E8E2-BB7E-4462-BF42-22D2A1404477" Win64="yes">
+                <Component Id="cmp73340CB80783929B7838D55A25F883FC" Guid="D33EDC18-AA3A-4450-8E30-D1378E0B7A70" Win64="yes">
                     <File Id="filD5F2218EB43D3BD21636DEFEE0CC7573" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qdds.dll" />
                 </Component>
-                <Component Id="cmp6B31B43B44D918712E657570C85E2DF5" Guid="96DAF6FF-4EB0-4037-8133-81E31E2FE88B" Win64="yes">
+                <Component Id="cmp6B31B43B44D918712E657570C85E2DF5" Guid="21047E3F-6EF5-420B-9031-4D87DE7A688E" Win64="yes">
                     <File Id="fil646D9D7BE0588426F7E99DEF1736783D" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qgif.dll" />
                 </Component>
-                <Component Id="cmp8A1C21EC1D1C8278B4A48797FFA7B765" Guid="4A3F9709-02D6-4DA5-86A6-CB9E7968A497" Win64="yes">
+                <Component Id="cmp8A1C21EC1D1C8278B4A48797FFA7B765" Guid="50132039-B955-4C6A-9F8A-9F1AF8767019" Win64="yes">
                     <File Id="filC3CC51AAB0B89A7BA990C1CAE7E1A6CF" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qicns.dll" />
                 </Component>
-                <Component Id="cmpA8D40E64685FFC60AB90CCF5B366047C" Guid="5B7CEA56-2E87-4D83-A78C-1E5171F15A46" Win64="yes">
+                <Component Id="cmpA8D40E64685FFC60AB90CCF5B366047C" Guid="BD827751-687F-4193-9DC1-A874D3FC025B" Win64="yes">
                     <File Id="fil3AFA4702A2898836DFF0E7F99AF7F14A" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qico.dll" />
                 </Component>
-                <Component Id="cmp4CF1C7688789D13AFEF4F35235CB7529" Guid="28634839-8171-44F4-AADF-ABCD71297E03" Win64="yes">
+                <Component Id="cmp4CF1C7688789D13AFEF4F35235CB7529" Guid="F9595721-4249-4A70-9270-84229A3835CF" Win64="yes">
                     <File Id="filF2C418A3528CD810AFF260197544750B" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qjp2.dll" />
                 </Component>
-                <Component Id="cmp04ED2348F4B7D751B579E91626CF488F" Guid="029C5544-1E8D-49C0-A53B-2D0CAC285584" Win64="yes">
+                <Component Id="cmp04ED2348F4B7D751B579E91626CF488F" Guid="CFC41182-238C-406D-8407-2548ECAAAE4E" Win64="yes">
                     <File Id="fil5F0229AB930AA07B659FD4DB569BCB55" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qjpeg.dll" />
                 </Component>
-                <Component Id="cmpFF7542AAC2EF2B640B4BC7830ADBC708" Guid="A8D3B445-FB33-4F34-B032-EC39987193C1" Win64="yes">
+                <Component Id="cmpFF7542AAC2EF2B640B4BC7830ADBC708" Guid="886F7A01-DAA6-4A46-89C4-B7F7F7F9C697" Win64="yes">
                     <File Id="filB9FF6A101D4A76E73F479C635A1D79D0" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qmng.dll" />
                 </Component>
-                <Component Id="cmp7667DC6F8A5A4F5973A24C47BC7B1001" Guid="902D9CE9-4CFC-4971-947F-299B2CD13220" Win64="yes">
+                <Component Id="cmp7667DC6F8A5A4F5973A24C47BC7B1001" Guid="582983E6-AF86-4D1B-BF3A-C73B3782D9A1" Win64="yes">
                     <File Id="filEF286B781A6951AADC7095A878C1510B" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qsvg.dll" />
                 </Component>
-                <Component Id="cmpFE9CB656B1ADD1E78AFED9D1BE05766D" Guid="A06C7E51-8D05-4AE9-BF4E-B011DA4499D3" Win64="yes">
+                <Component Id="cmpFE9CB656B1ADD1E78AFED9D1BE05766D" Guid="059C3D3F-ACAF-4322-B0B1-6BB3BAA85143" Win64="yes">
                     <File Id="fil1CF9B263A824087DC076F190D0C928EE" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qtga.dll" />
                 </Component>
-                <Component Id="cmp1ECC0F48BCC225B9F836D38D061B3AF6" Guid="A0431F82-CC94-4BB0-8956-278482934307" Win64="yes">
+                <Component Id="cmp1ECC0F48BCC225B9F836D38D061B3AF6" Guid="B290D26E-8214-454C-AB5D-D92F10FCDECC" Win64="yes">
                     <File Id="fil4A6BF9150DEFA031429F1D846F614780" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qtiff.dll" />
                 </Component>
-                <Component Id="cmp72FE372D682F49972BE84EA7DA6D96BD" Guid="0530D267-F4F8-4424-B28B-550B8F63AD77" Win64="yes">
+                <Component Id="cmp72FE372D682F49972BE84EA7DA6D96BD" Guid="29B34503-2778-444B-AB1C-D19EC8672D1E" Win64="yes">
                     <File Id="filAA6186F1E50445567A995C1334EA4327" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qwbmp.dll" />
                 </Component>
-                <Component Id="cmp4A72567F23D33B07D49010B2B3C87768" Guid="99FE7397-D748-46E3-9D8D-7EA85F0BB629" Win64="yes">
+                <Component Id="cmp4A72567F23D33B07D49010B2B3C87768" Guid="B924100E-F302-4C66-9F84-A18904C59172" Win64="yes">
                     <File Id="filFE030EA66BDE8EC79D7B857F18C298B9" KeyPath="yes" Source="$(var.QtPluginsDir)\imageformats\qwebp.dll" />
                 </Component>
             </Directory>
             <Directory Id="dir7B69EEA0ECCCD206C3D05B6779E98E12" Name="platforms">
-                <Component Id="cmp2E6C61FDE9A6F8BD067BA44B6D2B864F" Guid="C2C51D0F-A8AB-48B1-9EC2-24255B431E72" Win64="yes">
+                <Component Id="cmp2E6C61FDE9A6F8BD067BA44B6D2B864F" Guid="8751F53A-2FEA-4626-9C37-518530E9F861" Win64="yes">
                     <File Id="filF9734A642C910303AAEEE2F6511A1432" KeyPath="yes" Source="$(var.QtPluginsDir)\platforms\qwindows.dll" />
                 </Component>
             </Directory>
             <Directory Id="dir9DD56870294D740F5AA949BE3CB05596" Name="sqldrivers">
-                <Component Id="cmpF164B8AB404B21DE1C8D23E9A2043145" Guid="188E19FC-88C9-4579-BD37-B7EEB9CC32A9" Win64="yes">
+                <Component Id="cmpF164B8AB404B21DE1C8D23E9A2043145" Guid="D5B11287-2897-4F78-9727-57CFD1FC4A09" Win64="yes">
                     <File Id="fil01C79D94A21495467816D12B37ED95DF" KeyPath="yes" Source="$(var.QtPluginsDir)\sqldrivers\qsqlite.dll" />
                 </Component>
             </Directory>
@@ -59,7 +54,6 @@
     </Fragment>
     <Fragment>
         <ComponentGroup Id="QtPluginsComponents">
-            <ComponentRef Id="cmp682444C5369E9B551197A66E40229DC0" />
             <ComponentRef Id="cmp73340CB80783929B7838D55A25F883FC" />
             <ComponentRef Id="cmp6B31B43B44D918712E657570C85E2DF5" />
             <ComponentRef Id="cmp8A1C21EC1D1C8278B4A48797FFA7B765" />
