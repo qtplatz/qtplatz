@@ -201,7 +201,7 @@ bool
 datafile::is_valid_datafile( const std::wstring& filename )
 {
 	boost::filesystem::path path( filename );
-	if ( path.extension() == L".spc" || path.extension() == L".SPC" )
+	if ( path.extension() == L".lrp" || path.extension() == L".LRP" )
 		return true;
 	return false;
 }
