@@ -2,6 +2,7 @@
 # CMakeLists for adplugin shared library
 #
 cmake_policy(SET CMP0022 NEW)
+cmake_policy(SET CMP0020 NEW)
 
 set(Boost_USE_STATIC_LIBS ON)
 

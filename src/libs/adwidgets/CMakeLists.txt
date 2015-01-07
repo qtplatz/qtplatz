@@ -2,6 +2,7 @@
 project(adwidgets)
 
 cmake_policy(SET CMP0022 NEW)
+cmake_policy(SET CMP0020 NEW)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

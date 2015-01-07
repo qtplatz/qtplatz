@@ -1,15 +1,17 @@
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
-set( eventtool_SOURCES 
-	    document.cpp
-	    document.hpp
-	    main.cpp
-	    mainwindow.cpp
-	    mainwindow.hpp
-	    eventform.cpp
-	    eventform.hpp
-	    )
+include_directories(
+	"${PROJECT_SOURCE_DIR}/src/libs"
+	${QWT}/include
+	${Qt5PrintSupport_INCLUDE_DIRS}
+	)
+
+set( lrpviewer_SOURCES 
+  main.cpp
+  mainwindow.cpp
+  mainwindow.hpp
+  )
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -20,20 +22,29 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-include_directories( ${QWT}/include )
+include_directories(
+	"${PROJECT_SOURCE_DIR}/src/libs"
+	${QWT}/include
+	${Qt5PrintSupport_INCLUDE_DIRS}
+	)
+
 link_directories( ${QWT}/lib )
 
 find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg PrintSupport )
 
 find_package(Boost COMPONENTS program_options system )
 
-add_executable( eventtool ${eventtool_SOURCES} ${Resources} )
+add_executable( lrpviewer ${lrpviewer_SOURCES} ${Resources} )
 
-target_link_libraries( eventtool LINK_PUBLIC
+target_link_libraries( lrpviewer LINK_PUBLIC
+                       lrpfile
 		       adportable
+		       adplot
 		       adwidgets
-		       acewrapper
+		       optimized qwt debug qwtd
 		       Qt5::Widgets
+		       Qt5::Svg
+		       Qt5::PrintSupport
 		       Qt5::Widgets
 		       ${Boost_LIBRARIES} )
 

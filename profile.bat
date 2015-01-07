@@ -62,8 +62,8 @@ echo ======= setup for x64 64bit memory using VS2013 =================
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
 set ACE_ROOT=%USERPROFILE%\src\ACE_wrappers\build\x86_64_120
 set TAO_ROOT=%ACE_ROOT%\TAO
-:set QTDIR=C:\Qt\Qt5.3.2\5.3\msvc2013_64_opengl
-set QWT=C:\Qwt-6.1.2-svn
+:set QTDIR=C:\Qt\Qt5.4\5.4\msvc2013_64_opengl
+set QWT=C:\Qwt-6.1.3-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_57
 set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib

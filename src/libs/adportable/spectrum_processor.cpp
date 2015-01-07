@@ -407,7 +407,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
         if ( 12 < pX[x] && pX[x] < 34 ) {
             o << std::fixed << std::setprecision(14) << x << "\t" << pX[x] << "\t" << pY[x] << "\t" << d1 << "\t" << smoother( &pY[x] )
               << "\t" << ( reduce ? "true" : "false");
-            for ( size_t i = 0; i < state.stack_.size(); ++i )
+            for ( int i = 0; i < int( state.stack_.size() ); ++i )
                 o << "\tstack:" << state.stack_[i].type() << ", " << state.stack_[i].distance();
             o << std::endl;
         }
