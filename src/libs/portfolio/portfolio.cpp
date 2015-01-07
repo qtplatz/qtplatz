@@ -30,16 +30,6 @@
 #include "folium.hpp"
 #include <sstream>
 
-#if defined _MSC_VER
-# if defined _DEBUG
-#    pragma comment(lib, "xmlparserd.lib")
-#    pragma comment(lib, "adportabled.lib")
-# else
-#    pragma comment(lib, "xmlparser.lib")
-#    pragma comment(lib, "adportable.lib")
-# endif
-#endif
-
 using namespace portfolio;
 
 Portfolio::~Portfolio()

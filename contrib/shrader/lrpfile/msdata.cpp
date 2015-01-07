@@ -41,7 +41,7 @@ namespace shrader {
             int16_t flags;      // Integer 2 Record type code = 5
             int16_t threshold;  // Integer 2 D/A threshold in effect at start of scan
             int16_t nions;      // Integer 2 Number of ions in this record
-            int32_t xlow;       //lomass/lotime Long 4 Low mass*65536 (or time*16) stored in this record
+            int32_t xlow;       // lomass/lotime Long 4 Low mass*65536 (or time*16) stored in this record
             int32_t xhigh;      // himass/hitime Long 4 High mass*65536 (or time*16) stored in this record
             union {
                 ION ion[30];
@@ -132,5 +132,27 @@ msdata::xhigh( size_t block ) const
     if ( data_.size() > block )
         return data_[ block ]->xhigh;
     return -1;
+}
+
+size_t
+msdata::size() const
+{
+    return data_.size();
+}
+
+std::pair< const int32_t *, size_t >
+msdata::intensities( size_t block ) const
+{
+    if ( data_.size() > block )
+        return std::make_pair( data_[ block ]->u.profile, data_[ block ]->nions );
+    return std::make_pair( nullptr, 0 );
+}
+
+std::pair< const std::pair< int32_t, int32_t >*, size_t >
+msdata::ions( size_t block ) const
+{
+    if ( data_.size() > block )
+        return std::make_pair( reinterpret_cast< const std::pair< int32_t, int32_t >* >(data_[ block ]->u.ion), data_[ block ]->nions );
+    return std::make_pair( nullptr, 0 );
 }
 

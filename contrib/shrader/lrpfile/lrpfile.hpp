@@ -45,9 +45,22 @@ namespace shrader {
     public:
         ~lrpfile();
         lrpfile( std::istream& in, size_t fsize );
+        typedef std::vector< std::shared_ptr< shrader::msdata > >::iterator iterator;
+        typedef std::vector< std::shared_ptr< shrader::msdata > >::const_iterator const_iterator;
 
         operator bool () const;
         void dump( std::ostream& ) const;
+
+        const lrptic * lrptic() const;
+        const msdata * operator []( size_t idx ) const;
+        size_t number_of_spectra() const { return msdata_.size(); }
+        iterator begin() { return msdata_.begin(); }
+        iterator end() { return msdata_.end(); }
+        const_iterator begin() const { return msdata_.begin(); }
+        const_iterator end() const { return msdata_.end(); }
+
+        bool getTIC( std::vector< double >& time, std::vector< double >& intens ) const;
+        bool getMS( const msdata&, std::vector< double >& time, std::vector< double >& intens ) const;
 
     private:
         bool loaded_;

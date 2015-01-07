@@ -31,7 +31,10 @@
 namespace shrader {
 
     class lrpcalib {
-        enum {  data_size = 256  };
+        enum {
+            data_size = 256
+            , record_type_code = 3
+        };
     public:
         ~lrpcalib();
         lrpcalib( std::istream& in, size_t fsize );

@@ -60,9 +60,9 @@ namespace shrader {
         size_t miscptr() const;                 // Long 4 Pointer to beginning of misc. section;
         size_t labelptr() const;                //  Long 4 Pointer to beginning of scan labels;
 
-        std::ostream& data_type_code( std::ostream& ) const;
-        std::ostream& interfacetype_code( std::ostream& ) const;
-        std::ostream& rawdatatype_code( std::ostream& ) const;
+        std::string data_type_code() const;
+        std::string interfacetype_code() const;
+        std::string rawdatatype_code() const;
 
     private:
         std::array< char, data_size > data_;

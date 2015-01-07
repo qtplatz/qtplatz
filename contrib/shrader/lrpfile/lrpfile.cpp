@@ -63,41 +63,51 @@ lrpfile::operator bool() const
     return loaded_;
 }
 
+const shrader::lrptic *
+lrpfile::lrptic() const
+{
+    return lrptic_.get();
+}
+
+const shrader::msdata *
+lrpfile::operator []( size_t idx ) const
+{
+    if ( msdata_.size() > idx )
+        return msdata_[ idx ].get();
+    return 0;
+}
+
 void
 lrpfile::dump( std::ostream& of ) const
 {
     if ( header_ && *header_ ) {
         of << "flags: " << header_->flags() << std::endl;
-        of << "version: " << header_->version() << std::endl;
-        of << "type: " << header_->type() << "\t";
-        header_->data_type_code( of );
-        of << "analdate: " << header_->analdate() << std::endl;
-        of << "analtime: " << header_->analtime() << std::endl;
-        of << "instrument: " << header_->instrument() << std::endl;
-        of << "operator: " << header_->operator_name() << std::endl;
-        of << "calfile: " << header_->calfile() << std::endl;
-        of << "library: " << header_->library() << std::endl;
-        of << "libcaldate: " << header_->libcaldate() << std::endl;
-        of << "interfacetype: " << header_->interfacetype() << "\t";
-        header_->interfacetype_code( of );
-        of << "rawdatatype: " << header_->rawdatatype() << "\t";
-        header_->rawdatatype_code( of );
-        of << "secondDemention: " << header_->SecondDmension() << std::endl;
-        of << "AltTicPtr: " << header_->AltTicPtr() << std::endl;
-        of << "nscans: " << header_->nscans() << std::endl;
-        of << "setupptr: " << header_->setupptr() << std::endl;
-        of << "calptr: " << header_->calptr() << std::endl;
-        of << "simptr: " << header_->simptr() << std::endl;
-        of << "scanptr: " << header_->scanptr() << std::endl;
-        of << "ticptr: " << header_->ticptr() << std::endl;
-        of << "miscptr: " << header_->miscptr() << std::endl;
-        of << "labelptr" << header_->labelptr() << std::endl;
+        of << boost::format( "version: %1%\t%2%" ) % header_->version() % header_->data_type_code() << std::endl;
+        of << boost::format( "analdate: %1%" ) % header_->analdate() << std::endl;
+        of << boost::format( "analtime: %1%" ) % header_->analtime() << std::endl;
+        of << boost::format( "instrument: %1%" ) % header_->instrument() << std::endl;
+        of << boost::format( "operator: %1%" ) % header_->operator_name() << std::endl;
+        of << boost::format( "calfile: %1%" ) % header_->calfile() << std::endl;
+        of << boost::format( "library: %1%" ) % header_->library() << std::endl;
+        of << boost::format( "libcaldate: %1%" ) % header_->libcaldate() << std::endl;
+        of << boost::format( "interfacetype: %1%\t%2%" ) % header_->interfacetype() % header_->interfacetype_code() << std::endl;
+        of << boost::format( "rawdatatype: %1%\t%2%" ) % header_->rawdatatype() % header_->rawdatatype_code() << std::endl;
+        of << boost::format( "secondDemention: %1%" ) % header_->SecondDmension() << std::endl;
+        of << boost::format( "AltTicPtr: %1%" ) % header_->AltTicPtr() << std::endl;
+        of << boost::format( "nscans: %1%" ) % header_->nscans() << std::endl;
+        of << boost::format( "setupptr: %1%" ) % header_->setupptr() << std::endl;
+        of << boost::format( "calptr: %1%" ) % header_->calptr() << std::endl;
+        of << boost::format( "simptr: %1%" ) % header_->simptr() << std::endl;
+        of << boost::format( "scanptr: %1%" ) % header_->scanptr() << std::endl;
+        of << boost::format( "ticptr: %1%" ) % header_->ticptr() << std::endl;
+        of << boost::format( "miscptr: %1%" ) % header_->miscptr() << std::endl;
+        of << boost::format( "labelptr %1%" ) % header_->labelptr() << std::endl;
     }
     if ( header2_ && *header2_ ) {
         of << "flags: " << header2_->flags() << std::endl;
-        of << "descline1: " << header2_->descline1() << std::endl;
-        of << "descline2: " << header2_->descline2() << std::endl;
-        of << "client: " << header2_->client() << std::endl;
+        of << boost::format( "descline1: %1%" ) % header2_->descline1() << std::endl;
+        of << boost::format( "descline2: %1%" ) % header2_->descline2() << std::endl;
+        of << boost::format( "client: %1%" ) % header2_->client() << std::endl;
         auto pistd = header2_->istd();
         of << "istd (ng): ";
         for ( size_t i = 0; i < 13; ++i )
@@ -107,9 +117,9 @@ lrpfile::dump( std::ostream& of ) const
 
     if ( header3_ && *header3_) {
         of << "flags: " << header3_->flags() << std::endl;
-        of << "installation title: " << header3_->instaltitle() << std::endl;
-        of << "inlet: " << header3_->inlet() << std::endl;
-        of << "comments: " << header3_->comments() << std::endl;
+        of << boost::format( "installation title: %1%" ) % header3_->instaltitle() << std::endl;
+        of << boost::format( "inlet: %1%" ) % header3_->inlet() << std::endl;
+        of << boost::format( "comments: %1%" ) % header3_->comments() << std::endl;
     }
 
     if ( instsetup_ && *instsetup_ ) {
@@ -170,8 +180,8 @@ lrpfile::dump( std::ostream& of ) const
         of << "Maxvolt:\t" << instsetup_->Maxvolt() << "\tMaximum High voltage for instrument" << std::endl;
         of << "PeakFilter:\t" << instsetup_->PeakFilter() << "\t" << std::endl;
         of << "TwoWayScan:\t" << instsetup_->TwoWayScan() << "\t" << std::endl;
-        of << "Dummy:\t" << instsetup_->Dummy() << "\tFuture use" << std::endl;
     }
+
     if ( lrpcalib_ && *lrpcalib_ ) {
         of << "flags:\t" << lrpcalib_->flags() << std::endl;
         for ( int i = 0; i < lrpcalib_->cal_size; ++i ) {
@@ -183,12 +193,93 @@ lrpfile::dump( std::ostream& of ) const
     }
 
     if ( lrptic_ && *lrptic_ ) {
-        of << "----------- TIC --------------";
+        of << "----------- TIC -------------- " << lrptic_->tic().size() << std::endl;
         of << "nexttpr:\t" << lrptic_->nextptr() << std::endl;
         for ( auto& tic: lrptic_->tic() ) {
-            of << boost::format( "\ttime: %.3fs\tintens: %d\toffs: 0x%x\toverload: %d\n" ) % (double( tic.time ) / 1000.0) % tic.intensity % tic.ptr % tic.overload;
+            of << boost::format( "\ttime: %.3fs\tintens: %d\toffs: 0x%x\toverload: %d\n" )
+                % (double( tic.time ) / 1000.0) % tic.intensity % tic.ptr % tic.overload;
         }
-        of << "----------- END of TIC --------------";
+        of << "----------- END of TIC --------------" << std::endl;
+    }
+    of << "total: " << msdata_.size() << " spectra." << std::endl;
+    size_t scan = 0;
+    for ( auto& msdata : msdata_ ) {
+        if ( msdata ) {
+            size_t nblocks = msdata->size();
+            of << "scan: " << ++scan;
+            if ( msdata->is_profile( msdata->flags( 0 ) ) ) {
+                of << " profile ";
+            }
+            else {
+                of << " centroid (or SIM, SRM)";
+            }
+            of << std::endl;
+
+            for ( int blk = 0; blk < nblocks; ++blk ) {
+                of << boost::format( "blk# %2d\tscan# %3d\tnions: %2d" ) % blk % msdata->scan( blk ) % msdata->nions( blk );
+                auto xrange = std::make_pair( msdata->xlow( blk ), msdata->xhigh( blk ) );
+                auto flags = msdata->flags( blk );
+                auto nions = msdata->nions( blk );
+
+                of << boost::format( "\tx-range: (%5d, %5d) d = %2d" )
+                    % xrange.first % xrange.second % (xrange.second - xrange.first);
+
+                if ( msdata->is_mass_array( flags ) ) {
+                    of << " := m/z(" << double( xrange.first ) / 65536 << ", " << double( xrange.second ) / 65536 << ")";
+                } else {
+                    auto range = std::make_pair( double( xrange.first ) / 16, double( xrange.second ) / 16 );
+                    of << boost::format( "\t:= time( %.3f, %.3f ) dt: %.7e" )
+                        % range.first % range.second % ( ( range.second - range.first ) / ( nions - 1 ) );
+                }
+                of << std::endl;
+            }
+        }
     }
 }
 
+bool
+lrpfile::getTIC( std::vector< double >& time, std::vector< double >& intens ) const
+{
+    time.clear();
+    intens.clear();
+
+    if ( lrptic_ && *lrptic_ ) {
+        for ( auto& tic : lrptic_->tic() ) {
+            time.push_back( double( tic.time ) / 1000.0 );
+            intens.push_back( tic.intensity );
+        }
+        return true;
+    }
+    return false;
+}
+
+bool
+lrpfile::getMS( const msdata& msdata, std::vector< double >& time, std::vector< double >& intens ) const
+{
+    time.clear();
+    intens.clear();
+
+    if ( msdata.is_profile( msdata.flags( 0 ) ) ) {
+
+        size_t nblocks = msdata.size();
+    
+        for ( int blk = 0; blk < nblocks; ++blk ) {
+
+            auto flags = msdata.flags( blk );
+            auto nions = msdata.nions( blk );
+            auto xrange = std::make_pair( msdata.xlow( blk ), msdata.xhigh( blk ) );
+            auto range = std::make_pair( double( xrange.first ) / 16, double( xrange.second ) / 16 );
+
+            double sampInterval = ((range.second - range.first) / (nions - 1));
+            auto i = msdata.intensities( blk );
+
+            for ( int n = 0; n < i.second; ++n ) {
+                time.push_back( range.first + n * sampInterval );
+                intens.push_back( i.first[ n ] );
+            }
+
+        }
+        return true;
+    }
+    return false;
+}

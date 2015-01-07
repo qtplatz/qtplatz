@@ -5,6 +5,7 @@ add_subdirectory (adprot)
 add_subdirectory (xmlparser)
 add_subdirectory (adlog)
 add_subdirectory (adorbmgr)
+add_subdirectory (portfolio)
 
 if ( NOT RTC_ARCH_ARM )
   add_subdirectory (adplugin)

@@ -56,6 +56,7 @@ private:
     QDockWidget * addDockForWidget( QWidget * widget );
     void updateDockWidget( QDockWidget * );
     bool Open( const std::string& );
+    void drawTIC( const shrader::lrpfile& );
     void draw( size_t index );
     void dumpspc( const shrader::lrpfile&, std::ostream&  );
     void initialSetup();

@@ -56,7 +56,11 @@ namespace shrader {
         int16_t nions( size_t block = 0 ) const;
         int32_t xlow( size_t block = 0 ) const;   // mass * 65536 | time * 16
         int32_t xhigh( size_t block = 0 ) const;  // mass * 65536 | time * 16
-        size_t size( size_t block = 0 ) const;
+
+        size_t size() const;
+        std::pair< const int32_t *, size_t > intensities( size_t block ) const;
+        std::pair< const std::pair< int32_t, int32_t >*, size_t > ions( size_t block ) const;
+
     private:
         std::vector< std::shared_ptr< detail::msdata > > data_;
         bool loaded_;

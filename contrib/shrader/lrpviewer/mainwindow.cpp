@@ -24,8 +24,10 @@
 
 #include "mainwindow.hpp"
 #include "../lrpfile/lrpfile.hpp"
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adportable/profile.hpp>
 #include <qtwrapper/settings.hpp>
@@ -89,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     QVBoxLayout * toolBarLayout = new QVBoxLayout( centralWidget );
     toolBarLayout->setMargin( 0 );
     toolBarLayout->setSpacing(0);
+    toolBarLayout->addWidget( new adplot::ChromatogramWidget );
     toolBarLayout->addWidget( new adplot::SpectrumWidget );
     toolBarLayout->addWidget( toolBar );
 
@@ -137,6 +140,7 @@ MainWindow::Open( const std::string& filename )
         if ( spcfile_ = std::make_shared< shrader::lrpfile >( in, fsize ) ) {
             dumpspc( *spcfile_, o );
         }
+        drawTIC( *spcfile_ );
         draw( 0 );
         return true;
     }
@@ -146,11 +150,14 @@ MainWindow::Open( const std::string& filename )
 void
 MainWindow::dumpspc( const shrader::lrpfile& spc, std::ostream& o )
 {
-    spc.dump( std::cout );
-    // if ( auto hdr = spc.spchdr() )
-    //     hdr->dump_spchdr( o );
-    // if ( auto sub = spc.subhdr() )
-    //     sub->dump_subhdr( o );
+    std::ofstream out( "dump.txt" );
+    spc.dump( out );
+#if 0
+    std::ostringstream out;
+    if ( auto edit = findChild< QTextEdit * >() ) {
+        edit->insertPlainText( QString::fromStdString( out.str() ) );
+    }
+#endif
 }
 
 void
@@ -188,8 +195,50 @@ MainWindow::actViewNext()
 }
 
 void
+MainWindow::drawTIC( const shrader::lrpfile& lrp )
+{
+    std::vector< double > time, intens;
+    if ( lrp.getTIC( time, intens ) ) {
+
+        auto cptr = std::make_shared< adcontrols::Chromatogram >();
+
+        cptr->resize( time.size() );
+        cptr->setTimeArray( time.data() );
+        cptr->setIntensityArray( intens.data() );
+
+        if ( auto widget = findChild< adplot::ChromatogramWidget * >() )
+            widget->setData( cptr );
+    }
+}
+
+void
 MainWindow::draw( size_t index )
 {
+    std::vector< double > time, intens;
+
+    if ( spcfile_ && (spcfile_->number_of_spectra() > index) ) {
+
+        if ( auto msdata = (*spcfile_)[index] ) {
+
+            if ( spcfile_->getMS( *msdata, time, intens ) ) {
+                size_t npts = time.size();
+
+                auto ms = std::make_shared< adcontrols::MassSpectrum >();
+                ms->resize( npts );
+                ms->setAcquisitionMassRange( time[ 0 ], time[ npts - 1 ] );
+                ms->setMassArray( time.data() );
+                ms->setIntensityArray( intens.data());
+
+                if ( auto spw = findChild< adplot::SpectrumWidget * >() ) {
+                    // spw->setTitle( (boost::format( "%1%[%2%/%3%]" ) % fpath_ % (index_ + 1) % spcfile_->spchdr()->number_of_subfiles()).str() );
+                    spw->setKeepZoomed( false );
+                    spw->setData( ms, 0 );
+                }
+
+            }
+        }
+    }
+
 #if 0
     if ( index < spcfile_->number_of_subfiles() )
         index_ = index;

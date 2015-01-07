@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "lrpheader.hpp"
+#include <sstream>
 
 namespace shrader {
     namespace detail {
@@ -204,21 +205,22 @@ lrpheader::labelptr() const
     return *reinterpret_cast<const int32_t *>(data_.data() + offsetof( detail::header, labelptr ));
 }
 
-std::ostream&
-lrpheader::data_type_code( std::ostream& o ) const
+std::string
+lrpheader::data_type_code() const
 {
+    std::ostringstream o;
     uint32_t code = type();
     o << ( code & 0x0001 ) ? "Mass Data" : "Raw Data";
     o << ", " << ( code & 0x0002 ) ? "Internal Mass Reference" : "External Mass Reference";
     o << ", " << ( code & 0x0004 ) ? "Bar data" : "Profile";
     o << ", " << (code & 0x8000) ? "Ion mobility data" : "";
-    o << std::endl;
-    return o;
+    return o.str();
 }
 
-std::ostream&
-lrpheader::interfacetype_code( std::ostream& o ) const
+std::string
+lrpheader::interfacetype_code() const
 {
+    std::ostringstream o;
     switch( interfacetype() ) {
     case 4: o << "GCmate"; break;
     case 5: o << "TSSWIN"; break;
@@ -227,19 +229,19 @@ lrpheader::interfacetype_code( std::ostream& o ) const
     case 8: o << "Time Of Flight"; break;
     case 9: o << "Extrel(Merlin)"; break;
     }
-    o << std::endl;
-    return o;
+    return o.str();
 }
 
-std::ostream&
-lrpheader::rawdatatype_code( std::ostream& o ) const
+std::string
+lrpheader::rawdatatype_code() const
 {
+    std::ostringstream o;
+
     switch( rawdatatype() ) {
     case 0: o << "undefined??"; break;
     case 1: o << "Drive Values"; break;
     case 2: o << "Time Values"; break;
     case 4: o << "Position Values"; break;
     }
-    o << std::endl;
-    return o;
+    return o.str();
 }

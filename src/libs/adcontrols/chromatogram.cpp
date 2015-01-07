@@ -566,6 +566,8 @@ ChromatogramImpl::setData( size_t idx, const double& d )
 void
 ChromatogramImpl::setTime( size_t idx, const double& d ) // array of second
 {
+    if ( timeArray_.empty() )
+        timeArray_.resize( dataArray_.size() );
     timeArray_[ idx ] = d;
 }
 
