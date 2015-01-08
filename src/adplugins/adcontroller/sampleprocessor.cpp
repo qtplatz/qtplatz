@@ -51,20 +51,21 @@ static size_t __nid__;
 SampleProcessor::~SampleProcessor()
 {
     fs_->close();
-	Logging( L"Sample %1% closed in file '%2%'.", EventLog::pri_INFO ) % storage_name_.stem() % storage_name_.wstring();
-
+	Logging( L"Sample %1% closed in file '%2%'.", EventLog::pri_INFO )
+        % storage_name_.stem() % storage_name_.wstring();
     ADTRACE() << "SampleProcessor:: -- DTOR -- ";
 }
 
 SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
-                                  , std::shared_ptr< adcontrols::SampleRun > run ) : fs_( new adfs::filesystem )
-                                                                                   , inProgress_( false )
-                                                                                   , myId_( __nid__++ )
-                                                                                   , strand_( io_service )
-                                                                                   , objId_front_( 0 )
-                                                                                   , pos_front_( 0 )
-                                                                                   , stop_triggered_( false )
-                                                                                   , sampleRun_( run )
+                                  , std::shared_ptr< adcontrols::SampleRun > run )
+    : fs_( new adfs::filesystem )
+    , inProgress_( false )
+    , myId_( __nid__++ )
+    , strand_( io_service )
+    , objId_front_( 0 )
+    , pos_front_( 0 )
+    , stop_triggered_( false )
+    , sampleRun_( run )
 {
 }
 

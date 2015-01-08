@@ -344,6 +344,8 @@ namespace adportable { namespace peakfind {
 size_t
 spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const double * pY )
 {
+    if ( pX == 0 || pY == 0 )
+        return 0;
     array_wrapper<const double> px( pX, nbrSamples );
     array_wrapper<const double> py( pY, nbrSamples );
     

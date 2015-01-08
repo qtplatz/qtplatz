@@ -96,6 +96,7 @@ iTask::iTask() : status_current_( ControlServer::eNothing )
                , status_being_( ControlServer::eNothing )  
                , work_( io_service_ )
                , timer_( io_service_ )
+               , strand_( io_service_ )
                , interval_( 3000 ) // ms
 {
     try {
@@ -525,14 +526,15 @@ iTask::handle_stop_run()
     io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );
 
     if ( sampleRun_ && sampleRun_->next_run() < sampleRun_->replicates() ) {
-        io_service_.post( std::bind( &iTask::handle_start_run, this ) );
+        io_service_.post( strand_.wrap( [this](){ handle_prepare_for_run( ctrlMethod_, sampleRun_ ); }) );
+        io_service_.post( strand_.wrap( [this](){ handle_start_run(); } ) );
     }
 }
 
 void
 iTask::post_stop_run()
 {
-    io_service_.post( std::bind( &iTask::handle_stop_run, this ) );
+    io_service_.post( strand_.wrap( [this](){ handle_stop_run(); } ) );
 }
 
 void
