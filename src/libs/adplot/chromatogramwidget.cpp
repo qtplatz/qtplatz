@@ -367,14 +367,14 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
     using chromatogram_widget::ChromatogramData; // TraceData;
     
     while ( int ( impl_->traces_.size() ) <= idx )
-		impl_->traces_.push_back( ChromatogramData( *this ) );        
+		impl_->traces_.push_back( ChromatogramData( *this ) );
     
 	auto& trace = boost::get< ChromatogramData >(impl_->traces_[ idx ] );
-    
+
 	trace.plot_curve().setPen( QPen( chromatogram_widget::color_table[idx] ) ); 
     trace.setData( cp );
-    
     impl_->peak_annotations_.clear();
+
     for ( auto& pk: cp->peaks() )
         setPeak( pk, impl_->peak_annotations_ );
     
@@ -407,6 +407,9 @@ ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 {
 	using adcontrols::Peaks;
 	using adcontrols::Baselines;
+
+    impl_->peaks_.clear();
+    impl_->baselines_.clear();
 
 	for ( Baselines::vector_type::const_iterator it = r.baselines().begin(); it != r.baselines().end(); ++it )
 		setBaseline( *it );

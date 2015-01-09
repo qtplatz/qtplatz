@@ -419,7 +419,7 @@ MSProcessingWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& f
 }
 
 void
-MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
+MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
     drawIdx1_ = 0;
     drawIdx2_ = 0;
@@ -505,6 +505,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
                 int idx = 0;
                 for ( auto& folium: folio ) {
                     if ( folium.attribute( L"isChecked" ) == L"true" ) {
+						processor->fetch(folium);
                         if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
                             pImpl_->setCheckedChromatogram( cptr, idx );
                             pImpl_->ticPlot_->setData( cptr, cptr->fcn() );

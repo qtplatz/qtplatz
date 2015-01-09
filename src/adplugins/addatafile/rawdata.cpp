@@ -549,7 +549,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
                         double tic = adportable::spectrum_processor::tic( uint32_t(ms.size()), ms.getIntensityArray(), base, rms );
                         double d = adportable::spectrum_processor::area( x.fraction, base, ms.getIntensityArray(), ms.size() );
 
-                        //ADDEBUG() << "rowid=" << rowid << " fcn=" << fcn << " tic=" << tic << " d=" << d;
+                        ADDEBUG() << "rowid=" << rowid << " fcn=" << fcn << " tic=" << tic << " d=" << d;
 
                         (void)tic;
                         result[ n++ ].setIntensity( x.count++, d );
