@@ -241,17 +241,15 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     connect( pTreeView_, &QTreeView::customContextMenuRequested, this, &NavigationWidget::handleContextMenuRequested );
 
     if ( SessionManager * mgr = SessionManager::instance() ) {
-        //connect( mgr, SIGNAL( onSessionRemoved( Dataprocessor* ) ), this, SLOT( handleRemoveSession( Dataprocessor * ) ) );
+
         connect( mgr, &SessionManager::onSessionRemoved, this, &NavigationWidget::handleRemoveSession );
-        //connect( mgr, SIGNAL( signalAddSession( Dataprocessor* ) ), this, SLOT( handleAddSession( Dataprocessor * ) ) );
+
         connect( mgr, &SessionManager::signalAddSession, this, &NavigationWidget::handleAddSession );
-        //connect( mgr, SIGNAL( onSessionUpdated( Dataprocessor*, const QString& ) ), this, SLOT( handleSessionUpdated( Dataprocessor *, const QString& ) ) );
+
         connect( mgr, &SessionManager::onSessionUpdated, this, [&] ( Dataprocessor* dp, const QString& id ){ handleSessionUpdated( dp, id ); } );
-        // void onSessionUpdated( Dataprocessor *, const QString& foliumId );
-        //connect( mgr, SIGNAL( onFolderChanged( Dataprocessor*, const QString& ) ), this, SLOT( handleFolderChanged( Dataprocessor *, const QString& ) ) );
+
         connect( mgr, &SessionManager::onFolderChanged, this, &NavigationWidget::handleFolderChanged );
         
-        //connect( pModel_, SIGNAL( itemChanged( QStandardItem * ) ), this, SLOT( handleItemChanged( QStandardItem * ) ) );
         connect( pModel_, &QStandardItemModel::itemChanged, this, &NavigationWidget::handleItemChanged );
     }
 
