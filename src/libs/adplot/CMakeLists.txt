@@ -10,13 +10,12 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
 
-include_directories( ${QWT}/include
-		      ${Qt5Svg_INCLUDE_DIRS}
-		      ${Qt5Widgets_INCLUDE_DIRS}
-		      )
+include_directories(
+  ${QWT_INCLUDE_DIR}
+  ${Qt5Svg_INCLUDE_DIRS}
+  ${Qt5Widgets_INCLUDE_DIRS}
+  )
 		     
-link_directories( ${QWT}/lib )
-
 add_definitions(-DADPLOT_LIBRARY)
 
 set( adplot_SOURCES 
@@ -44,16 +43,14 @@ set( adplot_SOURCES
   timingchart.cpp
 )
 
-set( LINK_LIBRARY optimized qwt debug qwtd )
-
 add_library( adplot SHARED ${adplot_SOURCES} )
 
 target_link_libraries( adplot LINK_PUBLIC
-                       adcontrols
-		       adportable
-		       qtwrapper
-		       Qt5::Widgets
-		       Qt5::Svg
-		       Qt5::PrintSupport
-		       ${LINK_LIBRARY}
-                     )
+  adcontrols
+  adportable
+  qtwrapper
+  Qt5::Widgets
+  Qt5::Svg
+  Qt5::PrintSupport
+  optimized ${QWT_LIBRARY} debug ${QWT_LIBRARY_DEBUG}
+  )

@@ -23,6 +23,9 @@
 **************************************************************************/
 
 #include "drawing.hpp"
+#if _MSC_VER
+# pragma warning(disable:4267)
+#endif
 
 #include <GraphMol/Depictor/RDDepictor.h>
 

@@ -648,6 +648,7 @@ void
 MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium& folium )
 {
 	if ( portfolio::Folder folder = folium.getParentFolder() ) {
+
 		if ( folder.name() == L"MSCalibration" ) {
             if ( stack_->currentIndex() != idSelMSCalibration && stack_->currentIndex() != idSelMSCalibSpectra )
                 selPage( idSelMSCalibration );
@@ -658,7 +659,10 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         } else if ( folder.name() == L"Spectrograms" ) {
             if ( stack_->currentIndex() != idSelSpectrogram )
                 selPage( idSelSpectrogram );
-		}
+        } else if ( folder.name() == L"Chromatograms" ) {
+            if ( stack_->currentIndex() != idSelMSProcess )
+                selPage( idSelChromatogram );
+        }
 
         adcontrols::MassSpectrumPtr centroid;
         adcontrols::TargetingPtr targeting;

@@ -1,7 +1,8 @@
 # qtplatz.cmake
 
-set(Boost_USE_STATIC_LIBS ON)
-set(BOOST_VERSION boost-1_57)
+set( Boost_USE_STATIC_LIBS ON )
+set( BOOST_VERSION boost-1_57 )
+set( QWT_DIR $ENV{QWT} )
 
 include(CheckSymbolExists)
 
@@ -20,15 +21,19 @@ if(WIN32)
 
   if ( RTC_ARCH_X64 )
     set( Boost_LIBRARY_DIR "C:/Boost/x86_64/lib")
-    set( CMAKE_PREFIX_PATH "C:\Qt\5.4\msvc2013_64_opengl" )
+    set( CMAKE_PREFIX_PATH "C:/Qt/5.4/msvc2013_64_opengl" )
     message(STATUS "build for x86_64 64bit")
   endif( RTC_ARCH_X64 )
 
   if ( RTC_ARCH_X86 )
     set( Boost_LIBRARY_DIR "C:/Boost/lib")
-    set( CMAKE_PREFIX_PATH "C:\Qt\5.4\msvc2013_opengl" )
+    set( CMAKE_PREFIX_PATH "C:/Qt/5.4/msvc2013_opengl" )
     message(STATUS "build for x86 32bit")
   endif( RTC_ARCH_X86 )
+
+  if ( QWT_DIR STREQUAL "" )
+    set( QWT_DIR "C:\Qwt-6.1.3-svn" )
+  endif()
 
 else( WIN32 )
 
@@ -78,5 +83,4 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 link_directories(${Boost_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib)
-
 

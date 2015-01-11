@@ -158,7 +158,8 @@ iorSender::handle_sendto( const boost::system::error_code& error )
         if ( nextIor_ != iorvec_.end() ) {
             std::string reply( nextIor_->first + "\n" + nextIor_->second );
             send_buffer_.resize( reply.size() + 1 );
-            std::strcpy( &send_buffer_[ 0 ], reply.c_str() );
+            std::copy( reply.begin(), reply.end(), send_buffer_.begin() );
+            //std::strcpy( &send_buffer_[ 0 ], reply.c_str() );
             
             if ( debug_ior_sender )
                 adportable::debug( __FILE__, __LINE__ ) << "## handle_sendto("

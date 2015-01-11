@@ -8,10 +8,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package( Qt5 REQUIRED Widgets Gui Network Core Script PrintSupport )
-
+#find_package( Qt5 REQUIRED Widgets Gui Network Core Script PrintSupport )
 include_directories( ${Qt5Widgets_INCLUDE_DIRS}  )
-
 add_definitions(-DQTCREATOR_UTILS_LIB)
 
 if (WIN32)

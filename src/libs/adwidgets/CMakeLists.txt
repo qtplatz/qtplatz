@@ -8,14 +8,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
+#find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
 
-include_directories( ${QWT}/include
-		     ${Qt5PrintSupport_INCLUDE_DIRS}
-		     ${Qt5Widgets_INCLUDE_DIRS}
-		     )
+include_directories(
+  ${QWT_INCLUDE_DIR}
+  ${Qt5PrintSupport_INCLUDE_DIRS}
+  ${Qt5Widgets_INCLUDE_DIRS}
+  )
 
-link_directories( ${QWT}/lib )
+#link_directories( ${QWT}/lib )
 		     
 #if (Qt5_POSITION_INDEPENDENT_CODE)
 #  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -66,19 +67,17 @@ set( adwidgets_SOURCES
 	outputwidget.hpp
 	)
 
-set(LINK_LIBRARY optimized qwt debug qwtd )
-
 add_library( adwidgets SHARED ${adwidgets_SOURCES} )
 
 target_link_libraries( adwidgets LINK_PUBLIC
-                 adplugin
-		 adlog
-                 adcontrols 
-		 adportable	
-                 adprot
-		 qtwrapper
-		 ${LINK_LIBRARY}
-                 Qt5::Widgets
-		 Qt5::PrintSupport
-		 ${Boost_LIBRARIES}
-		 )
+  adplugin
+  adlog
+  adcontrols
+  adportable	
+  adprot
+  qtwrapper
+  optimized ${QWT_LIBRARY} debug ${QWT_LIBRARY_DEBUG}
+  Qt5::Widgets
+  Qt5::PrintSupport
+  ${Boost_LIBRARIES}
+  )
