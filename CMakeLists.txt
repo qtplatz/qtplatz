@@ -3,28 +3,30 @@ cmake_minimum_required (VERSION 2.8.9)
 cmake_policy( SET CMP0020 NEW )
 project (adtoolkit)
 
-include (qtplatz.cmake)
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/Modules )
-set( Boost_USE_STATIC_LIBS ON )
-set( BOOST_VERSION boost-1_57 )
-set( BOOST_INCLUDEDIR $ENV{BOOST_ROOT}/include/${BOOST_VERSION} )
-set( BOOST_ADDITIONAL_VERSIONS "1.56" "1.57" )
 
-if(WIN32)
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0601")
-  if ( RTC_ARCH_X64 )
-    set( Boost_LIBRARY_DIR "C:/Boost/x86_64/lib")
-  endif()
-  set(Boost_INCLUDE_DIR "C:/Boost/include/${BOOST_VERSION}")
-endif()
+# qtplatz.cmake cofigure boost & compiler
+include (qtplatz.cmake)
+
+set(QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
+set(QTPLATZ_BINARY_DIR ${QTPLATZ_SOURCE_DIR} )
+
+set(CMAKE_INSTALL_PREFIX ${QTPLATZ_SOURCE_DIR})
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib) # static libs, dll's import lib/exp
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/MS-Cheminformatics ) #plugins
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/MS-Cheminformatics ) #plugins
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/MS-Cheminformatics ) #plugins
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin )
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
 
 find_package( Boost REQUIRED )
 find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
 find_package( qwt )
-find_package( rdkitConfig )
-if ( rdkit_VERSION )
-  message( STATUS "Found RDKit: " ${rdkit_VERSION} " in " ${rdkit_DIR} )
-endif()
+find_package( rdkit )
 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
