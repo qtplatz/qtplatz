@@ -7,13 +7,16 @@ else()
 endif()
 
 if ( qwt_DIR )
-  message( STATUS "QWT Found in : " ${qwt_DIR} )
+
   find_path( QWT_INCLUDE_DIR NAMES qwt.h HINTS ${qwt_DIR}/include )
   find_library( QWT_LIBRARY NAMES qwt HINTS ${qwt_DIR}/lib )
   find_library( QWT_LIBRARY_DEBUG NAMES qwtd HINTS ${qwt_DIR}/lib )
 
   set( QWT_INCLUDE_DIRS ${QWT_INCLUDE_DIR} )
   set( QWT_LIBRARIES ${QWT_LIBRARY} )
+  set( qwt_FOUND 1 )
+
+  message( STATUS "QWT Found in : " ${qwt_DIR} )
 
 else()
 
