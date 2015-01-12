@@ -8,10 +8,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
+find_package( Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
+find_package( qwt )
 
 include_directories(
-  ${QWT_INCLUDE_DIR}
+  ${QWT_INCLUDE_DIRS}
   ${Qt5Svg_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   )

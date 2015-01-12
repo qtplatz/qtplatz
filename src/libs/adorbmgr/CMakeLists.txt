@@ -2,6 +2,13 @@
 cmake_policy(SET CMP0022 NEW)
 add_definitions(-DADORBMGR_LIBRARY)
 
+find_package( ace+tao )
+
+if ( ace+tao_FOUND )
+  include_directories( ${ACE+TAO_INCLUDE_DIRS} )
+  link_directories( ${ACE+TAO_LIBRARY_DIRS} )
+endif()
+
 add_library( adorbmgr SHARED
   adorbmgr_global.h
   adorbmgr.cpp

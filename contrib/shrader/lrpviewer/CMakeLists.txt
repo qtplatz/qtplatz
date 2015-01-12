@@ -24,7 +24,7 @@ file(GLOB Resources *.qrc)
 
 include_directories(
 	"${PROJECT_SOURCE_DIR}/src/libs"
-	${QWT}/include
+	${QWT_INCLUDE_DIRS}
 	${Qt5PrintSupport_INCLUDE_DIRS}
 	)
 
@@ -32,7 +32,7 @@ link_directories( ${QWT}/lib )
 
 find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg PrintSupport )
 
-find_package(Boost COMPONENTS program_options system )
+#find_package(Boost COMPONENTS program_options system )
 
 add_executable( lrpviewer ${lrpviewer_SOURCES} ${Resources} )
 
@@ -41,7 +41,7 @@ target_link_libraries( lrpviewer LINK_PUBLIC
 		       adportable
 		       adplot
 		       adwidgets
-		       optimized qwt debug qwtd
+		       optimized ${QWT_LIBRARY} debug ${QWT_LIBRARY_DEBUG}
 		       Qt5::Widgets
 		       Qt5::Svg
 		       Qt5::PrintSupport

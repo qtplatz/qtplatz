@@ -1,9 +1,9 @@
 #
 cmake_minimum_required (VERSION 2.8.9)
 cmake_policy( SET CMP0020 NEW )
-project (adtoolkit)
+project (qtplatz)
 
-set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/Modules )
+list( APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules )
 
 # qtplatz.cmake cofigure boost & compiler
 include (qtplatz.cmake)
@@ -23,10 +23,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin )
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
 
+set( ACE_ROOT $ENV{ACE_ROOT} )
+
 find_package( Boost REQUIRED )
 find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
 find_package( qwt )
 find_package( rdkit )
+
+include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 

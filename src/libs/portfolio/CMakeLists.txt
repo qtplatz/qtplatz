@@ -4,6 +4,8 @@ cmake_policy(SET CMP0022 NEW)
 
 add_definitions(-DPORTFOLIO_LIBRARY)
 
+find_package(Boost COMPONENTS date_time system )
+
 add_library( portfolio SHARED
   portfolio.cpp
   folder.cpp

@@ -5,7 +5,7 @@ cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
 #set(Boost_USE_STATIC_LIBS ON)
-#find_package(Boost 1.56 COMPONENTS date_time system regex)
+find_package(Boost 1.57 COMPONENTS date_time system regex)
 #find_package(Qt5 5.3.2 CONFIG REQUIRED Widgets Core )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -33,10 +33,10 @@ add_library( adplugin SHARED
 #target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 
 target_link_libraries( adplugin LINK_PUBLIC
-                                ${Boost_LIBRARIES}
-								adportable
-								qtwrapper
-								xmlparser
-								adlog
-								Qt5::Widgets )
+  ${Boost_LIBRARIES}
+  adportable
+  qtwrapper
+  xmlparser
+  adlog
+  Qt5::Widgets )
 
