@@ -5,6 +5,7 @@
 #INCLUDEPATH *= $$OUT_PWD/..
 
 add_library( acewrapper
+  constants.cpp
   input_buffer.cpp
   ifconfig.cpp
   ifconfig_windows.cpp

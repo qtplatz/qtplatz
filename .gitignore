@@ -90,6 +90,12 @@ share/qtplatz/phony.c
 share/qtplatz/translations/phony.c
 share/qtplatz/translations/extract-mimetypes.xq
 contrib/installer/nsis/version.nsh
+*C.cpp
+*C.h
+*C.inl
+*S.cpp
+*S.h
+*S.inl
 src/libs/adinterface/*C.cpp
 src/libs/adinterface/*C.h
 src/libs/adinterface/*C.inl

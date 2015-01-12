@@ -14,7 +14,7 @@ if ( ace+tao_FOUND )
   link_directories( ${ACE+TAO_LIBRARY_DIRS} )
 endif()
 
-set(IDLFILES
+set( IDLFILES
   brokerevent.idl
   controlmethod.idl
   controlserver.idl
@@ -44,5 +44,7 @@ add_library( adinterface
   eventlog_helper.hpp
   controlmethodhelper.hpp
   controlserver.hpp
+  ${GENERATED_CPP}
+  ${GENERATED_H}
   )
 

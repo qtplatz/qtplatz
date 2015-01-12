@@ -1,11 +1,10 @@
 # adbloer adplugin
 
 project( adbroker )
-cmake_policy( SET CMP0020 NEW )
-
+#cmake_policy( SET CMP0020 NEW )
 add_definitions(-DADBROKER_LIBRARY)
 
-find_package(Boost 1.57 REQUIRED COMPONENTS regex date_time system filesystem wserialization serialization)
+find_package( Boost 1.57 REQUIRED COMPONENTS regex date_time system filesystem wserialization serialization )
 find_package( Qt5 REQUIRED Core )
 find_package( ace+tao )
 
@@ -47,14 +46,14 @@ add_library( adbroker MODULE
 
 target_link_libraries( adbroker LINK_PUBLIC
   adinterface
-  adcontrols
   adfs
+  adcontrols
   adportable
-  acewrapper
   portfolio
   adplugin
   adorbmgr
   adlog
+  acewrapper
   optimized TAO_Utils debug TAO_Utilsd
   optimized TAO_PI debug TAO_PId
   optimized TAO_PortableServer debug TAO_PortableServerd

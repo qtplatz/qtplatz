@@ -8,11 +8,14 @@ endif()
 
 find_package( ace+tao )
 find_package( Qt5 REQUIRED Core )
+
 include_directories(
   ${ACE+TAO_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
   )
 
+link_directories( ${ACE+TAO_LIBRARY_DIRS} )
+message( "TAO_LIBRARY_DIRS" ${TAO_LIBRARY_DIRS} )
 
 add_library( adcontroller MODULE
   adcontroller.cpp
@@ -46,15 +49,13 @@ if ( CMAKE_SYSTEM_NAME EQUAL Linux )
   set( linux_LIBS dl rt )
 endif()
 
-link_directories( ${ACE+TAO_LIBRARY_DIRS} )
-
 target_link_libraries( adcontroller LINK_PUBLIC
+  acewrapper
   adinterface
   adfs
   adcontrols
   adportable
   adutils
-  acewrapper
   adplugin
   xmlparser
   adlog
@@ -67,5 +68,3 @@ target_link_libraries( adcontroller LINK_PUBLIC
   ${Boost_LIBRARIES}
   ${linux_LIBS}
 )
-
-
