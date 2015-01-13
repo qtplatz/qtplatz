@@ -57,7 +57,7 @@ static const Qt::ItemFlags TOOL_ITEM_FLAGS = Qt::ItemIsSelectable | Qt::ItemIsEn
 ExternalToolModel::ExternalToolModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
-    setSupportedDragActions(Qt::MoveAction);
+    // setSupportedDragActions( Qt::MoveAction );
 }
 
 ExternalToolModel::~ExternalToolModel()

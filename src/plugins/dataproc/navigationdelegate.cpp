@@ -53,6 +53,14 @@ void
 NavigationDelegate::setModelData( QWidget * editor, QAbstractItemModel* model, const QModelIndex& index ) const
 {
     QVariant data = index.data( Qt::UserRole );
+    if ( data.canConvert< portfolio::Folium >() ) {
+        portfolio::Folium folium = data.value< portfolio::Folium >();
+        QString value = static_cast< QLineEdit * >( editor )->text();
+        folium.name( value.toStdWString() );
+    } else {
+        QItemDelegate::setModelData( editor,  model, index );
+    }
+#if DEPRICATED
     if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
         portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
         QString value = static_cast< QLineEdit * >( editor )->text();
@@ -60,6 +68,7 @@ NavigationDelegate::setModelData( QWidget * editor, QAbstractItemModel* model, c
     } else {
         QItemDelegate::setModelData( editor,  model, index );
     }
+#endif
 }
 
 void
@@ -67,16 +76,16 @@ NavigationDelegate::paint( QPainter * painter, const QStyleOptionViewItem& optio
 {
     QVariant data = index.data( Qt::UserRole );
 
-    if ( qVariantCanConvert< Dataprocessor * >( data ) ) {
+    if ( data.canConvert< Dataprocessor * >() ) {
 
-        if ( Dataprocessor * processor = qVariantValue< Dataprocessor * >( data ) ) {
+        if ( Dataprocessor * processor = data.value< Dataprocessor * >() ) {
             adcontrols::datafile& file = processor->file();
             drawDisplay( painter, option, option.rect, qtwrapper::qstring( file.filename() ) );
         }
 
-    } else if ( qVariantCanConvert< portfolio::Folder >( data ) ) {
+    } else if ( data.canConvert< portfolio::Folder >() ) {
         
-        portfolio::Folder folder = qVariantValue< portfolio::Folder >( data );
+        portfolio::Folder folder = data.value< portfolio::Folder >();
         drawDisplay( painter, option, option.rect, QString::fromStdWString( folder.name() ) );
 
     } else {

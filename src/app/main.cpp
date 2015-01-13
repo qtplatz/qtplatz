@@ -37,7 +37,7 @@
 #include <qtsingleapplication.h>
 #include <utils/hostosinfo.h>
 #include <utils/logging.h>
-
+#include <QStandardPaths>
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
@@ -200,7 +200,7 @@ static inline QStringList getPluginPaths()
     // 1) "plugins" (Win/Linux)
     QString pluginPath = rootDirPath;
     pluginPath += QLatin1Char('/');
-    pluginPath += QLatin1String(IDE_LIBRARY_BASENAME);
+    pluginPath += QLatin1String( "lib" );
     pluginPath += QLatin1String("/qtplatz/plugins");
     rc.push_back(pluginPath);
 #else
@@ -214,7 +214,8 @@ static inline QStringList getPluginPaths()
     //    "%LOCALAPPDATA%\QtProject\qtcreator" on Windows Vista and later
     //    "$XDG_DATA_HOME/data/QtProject/qtcreator" or "~/.local/share/data/QtProject/qtcreator" on Linux
     //    "~/Library/Application Support/QtProject/Qt Creator" on Mac
-    pluginPath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+    //pluginPath = QDesktopServices::storageLocation( QDesktopServices::DataLocation );
+    pluginPath = QStandardPaths::StandardLocation( QStandardPaths::DataLocation );
     pluginPath += QLatin1Char('/')
             + QLatin1String(Core::Constants::IDE_SETTINGSVARIANT_STR)
             + QLatin1Char('/');
@@ -302,7 +303,7 @@ int main(int argc, char **argv)
     QApplication::setGraphicsSystem(QLatin1String("raster"));
 #endif
 
-    SharedTools::QtSingleApplication app((QLatin1String(appNameC)), argc, argv);
+    SharedTools::QtSingleApplication app( (QLatin1String( appNameC )), argc, argv );
 
     const int threadCount = QThreadPool::globalInstance()->maxThreadCount();
     QThreadPool::globalInstance()->setMaxThreadCount(qMax(4, 2 * threadCount));

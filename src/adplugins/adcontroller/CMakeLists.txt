@@ -9,6 +9,11 @@ endif()
 find_package( ace+tao )
 find_package( Qt5 REQUIRED Core )
 
+configure_file(
+  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.adplugin"
+  )
+
 include_directories(
   ${ACE+TAO_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}

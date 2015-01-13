@@ -8,6 +8,11 @@ find_package( Boost 1.57 REQUIRED COMPONENTS regex date_time system filesystem w
 find_package( Qt5 REQUIRED Core )
 find_package( ace+tao )
 
+configure_file(
+  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.adplugin"
+  )
+
 if ( ace+tao_FOUND )
   include_directories(
     ${ACE+TAO_INCLUDE_DIRS}

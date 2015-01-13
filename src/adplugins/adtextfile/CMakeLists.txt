@@ -3,6 +3,11 @@ project( adtextfile )
 
 find_package( Qt5 CONFIG REQUIRED Core )
 
+configure_file(
+  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.adplugin"
+  )
+
 include_directories( ${Qt5Core_INCLUDE_DIRS}  )
 
 add_definitions(-DADTXTFACTORY_LIBRARY)

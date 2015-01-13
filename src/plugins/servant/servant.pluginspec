@@ -1,6 +1,6 @@
 <plugin name="servant" version="2.7.8" compatVersion="2.7.8">
     <vendor>MS-Cheminformatics</vendor>
-    <copyright>(C)2010-2013 MS-Cheminformatics LLC</copyright>
+    <copyright>(C)2010-2015 MS-Cheminformatics LLC</copyright>
     <license>
 GNU Lesser General Public License Usage
 

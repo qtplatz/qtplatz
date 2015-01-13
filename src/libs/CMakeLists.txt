@@ -1,13 +1,14 @@
 # adtoolkit 
 
+add_subdirectory (acewrapper)
 add_subdirectory (adportable)
 add_subdirectory (adcontrols)
-add_subdirectory (acewrapper)
+add_subdirectory (adextension)
 add_subdirectory (adfs)
-add_subdirectory (adutils)
-add_subdirectory (adprot)
-add_subdirectory (xmlparser)
 add_subdirectory (adlog)
+add_subdirectory (adprot)
+add_subdirectory (adutils)
+add_subdirectory (xmlparser)
 add_subdirectory (portfolio)
 
 if ( ACE_ROOT )
@@ -22,6 +23,8 @@ if ( NOT RTC_ARCH_ARM )
   add_subdirectory (adplot)
   add_subdirectory (adwidgets)
   add_subdirectory (utils)
+  add_subdirectory (aggregation)
+  add_subdirectory (extensionsystem)
 
   if ( RDKIT_CONFIG_DIR )
     add_subdirectory (adchem)

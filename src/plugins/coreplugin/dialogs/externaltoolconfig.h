@@ -47,8 +47,8 @@ class ExternalToolModel : public QAbstractItemModel
 public:
     explicit ExternalToolModel(QObject *parent);
     ~ExternalToolModel();
-
-    int columnCount(const QModelIndex &parent = QModelIndex()) const;
+    
+    int columnCount( const QModelIndex &parent = QModelIndex() ) const;
     QVariant data(const QModelIndex &modelIndex, int role = Qt::DisplayRole) const;
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     QModelIndex parent(const QModelIndex &child) const;
@@ -73,7 +73,9 @@ public:
     QModelIndex addCategory();
     QModelIndex addTool(const QModelIndex &atIndex);
     void removeTool(const QModelIndex &modelIndex);
-    Qt::DropActions supportedDropActions() const;
+
+    Qt::DropActions supportedDropActions() const override;
+
 private:
     QVariant data(ExternalTool *tool, int role = Qt::DisplayRole) const;
     QVariant data(const QString &category, int role = Qt::DisplayRole) const;

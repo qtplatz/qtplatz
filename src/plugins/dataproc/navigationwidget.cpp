@@ -90,8 +90,8 @@ public:
         for ( int i = 0; i < model.rowCount(); ++i ) {
             QStandardItem * item = model.item( i );
             QVariant v = item->data( Qt::UserRole );
-            if ( qVariantCanConvert< T >( v ) ) {
-                if ( qVariantValue< T >( v ) == value )
+            if (v.canConvert< T >() ) {
+                if ( v.value< T >() == value )
                     return item;
             }
         }
@@ -103,11 +103,11 @@ public:
 		for ( int i = 0; i < item->rowCount(); ++i ) {
 			QStandardItem * child = item->child( i );
 			QVariant v = child->data( Qt::UserRole );
-			if ( qVariantCanConvert< portfolio::Folium >( v ) ) {
-				if ( qVariantValue< portfolio::Folium >( v ).id() == id )
+			if ( v.canConvert< portfolio::Folium >() ) {
+                if ( v.value< portfolio::Folium >().id() == id )
 					return child;
-			} else if ( qVariantCanConvert< portfolio::Folder >( v ) && child->hasChildren() ) {
-				QStandardItem * res = findFolium( child, id );
+			} else if ( v.canConvert< portfolio::Folder >() && child->hasChildren() ) {
+                QStandardItem * res = findFolium( child, id );
 				if ( res )
 					return res;
 			}
@@ -121,8 +121,8 @@ public:
 			QStandardItem * child = item->child( i );
 			QVariant v = child->data( Qt::UserRole );
 
-			if ( qVariantCanConvert< portfolio::Folder >( v ) ) {
-                if ( qVariantValue< portfolio::Folder >( v ).name() == name ) {
+			if ( v.canConvert< portfolio::Folder >() ) {
+                if ( v.value< portfolio::Folder >().name() == name ) {
                     return child;
                 } else if ( child->hasChildren() ) {
                     if ( QStandardItem * res = findFolder( child, name ) )
@@ -135,10 +135,10 @@ public:
 
 	static dataproc::Dataprocessor * findDataprocessor( const QModelIndex& index ) {
 		QModelIndex parent = index.parent();
-		while ( parent.isValid() && ! qVariantCanConvert< dataproc::Dataprocessor * >( parent.data( Qt::UserRole ) ) )
+        while ( parent.isValid() && !parent.data( Qt::UserRole ).canConvert< dataproc::Dataprocessor * >() )
 			parent = parent.parent();
 		if ( parent.isValid() )
-			return qVariantValue< dataproc::Dataprocessor * >( parent.data( Qt::UserRole ) );
+            return parent.data( Qt::UserRole ).value< dataproc::Dataprocessor * >();
 		return 0;
 	}
 };
@@ -320,10 +320,10 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
     // handle checkbox on tree item
     QVariant data = item->data( Qt::UserRole );
 
-    if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+    if ( data.canConvert< portfolio::Folium >() ) {
 
 		Qt::CheckState state = static_cast< Qt::CheckState >( item->data( Qt::CheckStateRole ).toUInt() );
-        portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
+        portfolio::Folium folium = data.value< portfolio::Folium >();
         folium.setAttribute( L"isChecked", state == Qt::Checked ? L"true" : L"false" );
 
 		if ( Dataprocessor * dp = StandardItemHelper::findDataprocessor( item->index() ) )
@@ -448,15 +448,15 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 
         QVariant data = index.data( Qt::UserRole );
 
-		if ( qVariantCanConvert< portfolio::Folder >( data ) ) {
+		if ( data.canConvert< portfolio::Folder >() ) {
 			// folder (Spectra|Chromatograms)
-			portfolio::Folder folder = qVariantValue< portfolio::Folder >( data );
+			portfolio::Folder folder = data.value< portfolio::Folder >();
 			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 			processor->setCurrentSelection( folder );
 
-		} else if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+		} else if ( data.canConvert< portfolio::Folium >() ) {
 
-            portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
+            portfolio::Folium folium = data.value< portfolio::Folium >();
 
 			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 			if ( processor ) {
@@ -635,18 +635,18 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             // this indicates menu requested on folium|folder node
 
             QVariant data = pModel_->data( index, Qt::UserRole );
-            if ( qVariantCanConvert< portfolio::Folder >( data ) ) {
-                if ( auto folder = qVariantValue< portfolio::Folder >( data ) ) {
+            if ( data.canConvert< portfolio::Folder >() ) {
+                if ( auto folder = data.value< portfolio::Folder >() ) {
                     menu.add( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
                     menu.add( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
                 }
             }
-            else if ( qVariantCanConvert< portfolio::Folium >( data ) ) { // an item of [Spectrum|Chrmatogram] selected
+            else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected
 
                 //menu.add( tr( "Check all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
                 //menu.add( tr( "Uncheck all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
             
-                portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
+                portfolio::Folium folium = data.value< portfolio::Folium >();
             
                 if ( (folium.getParentFolder().name() == L"Spectra") ||
                     (folium.getParentFolder().name() == L"MSCalibration") )  {
