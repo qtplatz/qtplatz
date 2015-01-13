@@ -28,7 +28,7 @@
 ****************************************************************************/
 
 #include "coreplugin.h"
-#include "designmode.h"
+//#include "designmode.h"
 #include "editmode.h"
 //#include "helpmanager.h"
 #include "mainwindow.h"
@@ -71,11 +71,13 @@ CorePlugin::~CorePlugin()
         delete m_editMode;
     }
 
+#if 0
     if (m_designMode) {
         if (m_designMode->designModeIsRequired())
             removeObject(m_designMode);
         delete m_designMode;
     }
+#endif
 
     delete m_mainWindow;
 }

@@ -123,7 +123,7 @@ TOFTable::onInitialUpdate()
 
     resizeRowsToContents();
     resizeColumnsToContents();
-    horizontalHeader()->setResizeMode( QHeaderView::Stretch );
+    horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
 }
 
 void

@@ -31,7 +31,7 @@
 #include "coreconstants.h"
 #include "icore.h"
 #include "infobar.h"
-#include "patchtool.h"
+//#include "patchtool.h"
 #include "vcsmanager.h"
 #include "editormanager/editormanager_p.h"
 
@@ -140,7 +140,7 @@ QWidget *GeneralSettings::widget()
         m_page->patchChooser->setToolTip(patchToolTip);
         m_page->patchChooser->setExpectedKind(PathChooser::ExistingCommand);
         m_page->patchChooser->setHistoryCompleter(QLatin1String("General.PatchCommand.History"));
-        m_page->patchChooser->setPath(PatchTool::patchCommand());
+        //m_page->patchChooser->setPath( PatchTool::patchCommand() );
         m_page->autoSaveCheckBox->setChecked(EditorManagerPrivate::autoSaveEnabled());
         m_page->autoSaveInterval->setValue(EditorManagerPrivate::autoSaveInterval());
         m_page->resetWarningsButton->setEnabled(InfoBar::anyGloballySuppressed()
@@ -184,7 +184,7 @@ void GeneralSettings::apply()
                                       m_page->externalFileBrowserEdit->text());
         }
     }
-    PatchTool::setPatchCommand(m_page->patchChooser->path());
+    //PatchTool::setPatchCommand( m_page->patchChooser->path() );
     EditorManagerPrivate::setAutoSaveEnabled(m_page->autoSaveCheckBox->isChecked());
     EditorManagerPrivate::setAutoSaveInterval(m_page->autoSaveInterval->value());
 }

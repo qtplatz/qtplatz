@@ -13,6 +13,7 @@ set(CMAKE_AUTOUIC ON)
 #find_package( Qt5 REQUIRED Widgets Gui Network Core Script PrintSupport )
 find_package( Qt5 REQUIRED Widgets Gui Network Core Script PrintSupport )
 include_directories(
+  ${Qt5Network_INCLUDE_DIRS}
   ${Qt5Script_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   )
@@ -21,6 +22,93 @@ add_definitions(-DQTCREATOR_UTILS_LIB)
 if (WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4250 /wd4290")
 endif(WIN32)
+
+set( utils_lib_SOURCES
+#  environment.cpp
+#  environmentmodel.cpp
+#  qtcprocess.cpp
+#  reloadpromptutils.cpp
+#  settingsselector.cpp
+#  stringutils.cpp
+#  textfieldcheckbox.cpp
+#  textfieldcombobox.cpp
+#  filesearch.cpp
+#  pathchooser.cpp
+#  pathlisteditor.cpp
+#  wizard.cpp
+#  filewizardpage.cpp
+#  filesystemwatcher.cpp
+#  projectintropage.cpp
+#  filenamevalidatinglineedit.cpp
+#  projectnamevalidatinglineedit.cpp
+#  codegeneration.cpp
+#  newclasswidget.cpp
+#  classnamevalidatinglineedit.cpp
+#  linecolumnlabel.cpp
+#  fancylineedit.cpp
+#  qtcolorbutton.cpp
+#  savedaction.cpp
+#  synchronousprocess.cpp
+#  savefile.cpp
+#  fileutils.cpp
+#  textfileformat.cpp
+  consoleprocess.cpp
+#  uncommentselection.cpp
+#  parameteraction.cpp
+#  headerviewstretcher.cpp
+#  checkablemessagebox.cpp
+#  styledbar.cpp
+#  stylehelper.cpp
+#  iwelcomepage.cpp
+#  fancymainwindow.cpp
+#  detailsbutton.cpp
+#  detailswidget.cpp
+#  changeset.cpp
+#  faketooltip.cpp
+#  htmldocextractor.cpp
+#  navigationtreeview.cpp
+#  crumblepath.cpp
+#  historycompleter.cpp
+#  buildablehelperlibrary.cpp
+#  annotateditemdelegate.cpp
+#  fileinprojectfinder.cpp
+#  ipaddresslineedit.cpp
+#  statuslabel.cpp
+#  outputformatter.cpp
+#  flowlayout.cpp
+#  networkaccessmanager.cpp
+#  persistentsettings.cpp
+#  completingtextedit.cpp
+#  json.cpp
+#  portlist.cpp
+#  tcpportsgatherer.cpp
+#  appmainwindow.cpp
+#  sleep.cpp
+#  basetreeview.cpp
+#  qtcassert.cpp
+#  elfreader.cpp
+#  bracematcher.cpp
+#  proxyaction.cpp
+#  elidinglabel.cpp
+#  hostosinfo.cpp
+#  tooltip/tooltip.cpp
+#  tooltip/tips.cpp
+#  tooltip/tipcontents.cpp
+#  unixutils.cpp
+#  ansiescapecodehandler.cpp
+#  execmenu.cpp
+#  completinglineedit.cpp
+#  winutils.cpp
+#  itemviews.cpp
+#  treeviewcombobox.cpp
+#  proxycredentialsdialog.cpp
+)
+
+if (WIN32)
+  SET( utils_lib_SOURCES ${utils_lib_SOURCES} consoleprocess_win.cpp )
+else()
+  SET( utils_lib_SOURCES ${utils_lib_SOURCES} consoleprocess_unix.cpp )
+endif()
 
 set( utils_SOURCES 
      styledbar.cpp           #--
@@ -36,7 +124,7 @@ set( utils_SOURCES
      itemviews.cpp
      treeviewcombobox.cpp
      qtcassert.cpp          #--
-#     qtcprocess.cpp
+     qtcprocess.cpp
      reloadpromptutils.cpp
      settingsselector.cpp
      stringutils.cpp
@@ -46,23 +134,23 @@ set( utils_SOURCES
      pathchooser.cpp
      pathlisteditor.cpp
      wizard.cpp
-#     filewizardpage.cpp
+     filewizardpage.cpp
      filesystemwatcher.cpp
-#     projectintropage.cpp
+     projectintropage.cpp
     filenamevalidatinglineedit.cpp
      projectnamevalidatinglineedit.cpp
      codegeneration.cpp
-#     newclasswidget.cpp
+     newclasswidget.cpp
      classnamevalidatinglineedit.cpp
      linecolumnlabel.cpp
     fancylineedit.cpp
     qtcolorbutton.cpp
-#     savedaction.cpp
+     savedaction.cpp
      synchronousprocess.cpp
      savefile.cpp
      fileutils.cpp
      textfileformat.cpp
-#     consoleprocess.cpp
+     consoleprocess.cpp
      uncommentselection.cpp
      parameteraction.cpp
      headerviewstretcher.cpp
@@ -83,7 +171,7 @@ set( utils_SOURCES
      statuslabel.cpp
      outputformatter.cpp
      flowlayout.cpp
-#     networkaccessmanager.cpp
+     networkaccessmanager.cpp
      persistentsettings.cpp
      completingtextedit.cpp
      json.cpp
@@ -98,16 +186,24 @@ set( utils_SOURCES
      elidinglabel.cpp
      hostosinfo.cpp
      ansiescapecodehandler.cpp
-    execmenu.cpp
+     execmenu.cpp
      completinglineedit.cpp
-#     proxycredentialsdialog.cpp
+     proxycredentialsdialog.cpp
 )
 
-set( RESOURCES utils.qrc )
+set( utils_RESOURCES utils.qrc )
 
-add_library( utils SHARED ${utils_SOURCES} ${RESOURCES} )
+add_library(
+  utils SHARED
+  ${utils_SOURCES}
+  ${utils_lib_SOURCES}
+  ${utils_RESOURCES}
+  )
 
-target_link_libraries( utils LINK_PUBLIC
-  Qt5::Widgets
+target_link_libraries(
+  utils LINK_PUBLIC
   Qt5::Script
-  Qt5::PrintSupport )
+  Qt5::Widgets
+  Qt5::Network
+  Qt5::PrintSupport
+  )

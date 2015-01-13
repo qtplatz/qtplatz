@@ -9,11 +9,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 REQUIRED Script Widgets Core )
+find_package( Qt5 REQUIRED Script Network Widgets Core )
 
 add_definitions(
   -DEXTENSIONSYSTEM_LIBRARY 
   -DIDE_TEST_DIR="${CMAKE_SOURCE_DIR}"
+  -DCMAKE_AUTOMOC
   )
 
 include_directories(

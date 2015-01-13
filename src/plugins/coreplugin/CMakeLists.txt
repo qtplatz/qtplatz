@@ -1,5 +1,5 @@
 cmake_policy( SET CMP0020 NEW )
-project( coreplugin )
+project( core )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -10,7 +10,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plu
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #plugins
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #plugins
 
-find_package( Qt5 CONFIG REQUIRED PrintSupport Script Sql Widgets Gui Core )
+find_package( Qt5 CONFIG REQUIRED PrintSupport Network Script Sql Widgets Gui Core )
 
 add_definitions(
   -DCORE_LIBRARY
@@ -23,6 +23,8 @@ include_directories(
   ${Qt5PrintSupport_INCLUDE_DIRS}
   ${Qt5Script_INCLUDE_DIRS}
   ${Qt5Sql_INCLUDE_DIRS}
+  ${Qt5Gui_INCLUDE_DIRS}
+  ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
   )
@@ -121,13 +123,18 @@ set( core_SOURCES
   textdocument.cpp
   documentmanager.cpp
   removefiledialog.cpp
-#  iversioncontrol.cpp
+  iversioncontrol.cpp
   dialogs/addtovcsdialog.cpp
   icorelistener.cpp
   ioutputpane.cpp
 #  patchtool.cpp
   windowsupport.cpp
   )
+
+if (WIN32)
+  set( core_SOURCES ${core_SOURCES} progressmanager/progressmanager_win.cpp )
+  set( core_LIBS ${core_LIBS} ole32 user32 )
+endif()
 
 set( core_HEADERS
   mainwindow.h
@@ -250,16 +257,19 @@ set( core_RESOURCES
   fancyactionbar.qrc
   )
 
-add_library( ${PROJECT_NAME} MODULE
+add_library(
+  core MODULE
   ${core_SOURCES}
   ${core_HEADERS}
 )
 
 link_directories(  ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} )
 
-target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+target_link_libraries(
+  core LINK_PUBLIC
   utils
   extensionsystem
+  aggregation
   Qt5::PrintSupport
   Qt5::Sql
   Qt5::Widgets
@@ -269,11 +279,6 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 
 #include(find/find.pri)
 #include(locator/locator.pri)
-
-if (WIN32)
-  set( core_SOURCES ${core_SOURCES} progressmanager/progressmanager_win.cpp )
-  set( core_LIBS ${core_LIBS} ole32 user32 )
-endif()
 
 #else:macx {
 #    OBJECTIVE_SOURCES +=
