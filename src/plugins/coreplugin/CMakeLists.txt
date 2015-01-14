@@ -1,5 +1,5 @@
 cmake_policy( SET CMP0020 NEW )
-project( core )
+project( Core )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -7,8 +7,17 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #plugins
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #plugins
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #plugins
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) 
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #dll
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
+
+configure_file(
+  "${PROJECT_SOURCE_DIR}/core.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Core.pluginspec"
+  )
 
 find_package( Qt5 CONFIG REQUIRED PrintSupport Network Script Sql Widgets Gui Core )
 
@@ -258,7 +267,7 @@ set( core_RESOURCES
   )
 
 add_library(
-  core MODULE
+  Core SHARED
   ${core_SOURCES}
   ${core_HEADERS}
 )
@@ -266,7 +275,7 @@ add_library(
 link_directories(  ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} )
 
 target_link_libraries(
-  core LINK_PUBLIC
+  Core LINK_PUBLIC
   utils
   extensionsystem
   aggregation

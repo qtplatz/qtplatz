@@ -25,6 +25,7 @@
 #include "sampleprocessor.hpp"
 #include "task.hpp"
 #include "logging.hpp"
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adinterface/signalobserverC.h>
@@ -57,7 +58,8 @@ SampleProcessor::~SampleProcessor()
 }
 
 SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
-                                  , std::shared_ptr< adcontrols::SampleRun > run )
+                                  , std::shared_ptr< adcontrols::SampleRun > run
+                                  , std::shared_ptr< adcontrols::ControlMethod > cmth )
     : fs_( new adfs::filesystem )
     , inProgress_( false )
     , myId_( __nid__++ )
@@ -66,6 +68,7 @@ SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
     , pos_front_( 0 )
     , stop_triggered_( false )
     , sampleRun_( run )
+    , ctrl_method_( cmth )
 {
 }
 

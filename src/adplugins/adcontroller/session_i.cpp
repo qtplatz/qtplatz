@@ -51,7 +51,7 @@ session_i::session_i()
 CORBA::Char *
 session_i::software_revision()
 {
-    return CORBA::string_dup("2.0");
+    return CORBA::string_dup("3.14");
 }
 
 CORBA::Boolean

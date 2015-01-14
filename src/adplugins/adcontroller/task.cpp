@@ -486,7 +486,7 @@ iTask::handle_start_run()
     std::lock_guard< std::mutex > lock( mutex_ );
 	
 	if ( queue_.empty() ) {
-        queue_.push_back( std::make_shared< SampleProcessor >( io_service_, sampleRun_ ) );
+        queue_.push_back( std::make_shared< SampleProcessor >( io_service_, sampleRun_, ctrlMethod_ ) );
         queue_.back()->prepare_storage( pMasterObserver_->_this() );
     }
 

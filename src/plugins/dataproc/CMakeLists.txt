@@ -1,7 +1,8 @@
-cmake_policy( SET CMP0020 NEW )
 project( dataproc )
+cmake_policy( SET CMP0020 NEW )
+cmake_policy( SET CMP0028 NEW )
 
-find_package( Qt5 CONFIG REQUIRED Core )
+find_package( Qt5 CONFIG REQUIRED Core Network Widgets Sql Script )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -139,9 +140,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adextension
   adportable
   xmlparser
-  optimized Core debug Cored
-  optimized ExtensionSystem debug ExtensionSystemd
-  optimized Utils debug Utilsd
+  Core
+  extensionsystem
+  utils
   Qt5::Core
   ${Boost_LIBRARIES}
 )

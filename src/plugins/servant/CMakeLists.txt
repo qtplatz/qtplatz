@@ -1,7 +1,8 @@
-cmake_policy( SET CMP0020 NEW )
 project( servant )
+cmake_policy( SET CMP0020 NEW )
+cmake_policy( SET CMP0028 NEW )
 
-find_package( Qt5 CONFIG REQUIRED Core )
+find_package( Qt5 CONFIG REQUIRED Core Network Script Sql )
 
 set(CMAKE_AUTOMOC ON)
 
@@ -16,7 +17,7 @@ include_directories(
   )
 
 link_directories(
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject
+  #${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject
   ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
   )
 
@@ -46,8 +47,8 @@ target_link_libraries( servant LINK_PUBLIC
   qtwrapper
   adextension
   xmlparser
-  optimized Core debug Cored
-  ExtensionSystem
+  Core
+  extensionsystem
   Qt5::Core
 )
 

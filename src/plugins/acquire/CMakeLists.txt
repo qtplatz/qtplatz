@@ -1,9 +1,11 @@
 project( acquire )
 cmake_policy( SET CMP0020 NEW )
+cmake_policy( SET CMP0028 NEW )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets )
+find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Script Network )
 find_package( qwt )
 find_package( ace+tao )
+find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -37,6 +39,10 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
+link_directories(
+  ${ACE+TAO_LIBRARY_DIRS}
+  )
+
 set( ${PROJECT_NAME}_SOURCES
   acquiremode.cpp
   acquireplugin.cpp
@@ -64,5 +70,27 @@ add_library(
   ${Resources}
   )
 
-
+target_link_libraries(
+  acquire LINK_PUBLIC
+  adfs
+  adutils
+  adcontrols
+  adinterface
+  adplot
+  adwidgets
+  acewrapper
+  adplugin
+  adextension
+  adorbmgr
+  adlog
+  adportable
+  xmlparser
+  Core
+  optimized TAO_Utils debug TAO_Utilsd
+  optimized TAO_PortableServer debug TAO_PortableServerd
+  optimized TAO_AnyTypeCode debug TAO_AnyTypeCoded
+  optimized TAO debug TAOd
+  optimized ACE debug ACEd
+  ${Boost_LIBRARIES}
+  )
 

@@ -18,13 +18,15 @@ endif()
 
 if ( NOT RTC_ARCH_ARM )
 
+  add_subdirectory (extensionsystem)
   add_subdirectory (adplugin)
   add_subdirectory (qtwrapper)
   add_subdirectory (adplot)
   add_subdirectory (adwidgets)
   add_subdirectory (utils)
   add_subdirectory (aggregation)
-  add_subdirectory (extensionsystem)
+  add_subdirectory (chromatogr)
+  add_subdirectory (adpublisher)
 
   if ( RDKIT_CONFIG_DIR )
     add_subdirectory (adchem)

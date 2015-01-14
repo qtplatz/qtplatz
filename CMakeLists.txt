@@ -1,7 +1,8 @@
 #
+project (adtoolkit)
+
 cmake_minimum_required (VERSION 2.8.9)
 cmake_policy( SET CMP0020 NEW )
-project (qtplatz)
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules )
 
@@ -11,6 +12,9 @@ include (qtplatz.cmake)
 set(QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set(QTPLATZ_BINARY_DIR ${QTPLATZ_SOURCE_DIR} )
 
+#
+# Output directories layout, which is equivalent to original QTC layout
+#
 set(CMAKE_INSTALL_PREFIX ${QTPLATZ_SOURCE_DIR})
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib) # static libs, dll's import lib/exp

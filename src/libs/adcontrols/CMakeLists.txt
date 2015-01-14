@@ -1,5 +1,6 @@
 
 #  LIBS += -lboost_date_time -lboost_system -lboost_wserialization -lboost_serialization 
+project( adcontrols )
 
 cmake_policy(SET CMP0022 NEW)
 

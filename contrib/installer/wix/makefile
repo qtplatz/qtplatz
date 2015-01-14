@@ -33,7 +33,7 @@ OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj 
 
 all: qtplatz.msi
 
-world: qtplatz infitof qtplatz.msi
+world: qtplatz infitof-cmake qtplatz.msi
 
 help:
 	@echo "*	make world	will do full rebuild qtplatz, and generate .MSI setup"
@@ -61,7 +61,15 @@ qtplatz:
 	cd $(MAKEDIR)
 	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Build /p:Configuration=Release
 
-infitof:
+infitof-cmake:
+	cd $(INFITOF_PATH)
+	mkdir release_build
+	cd release_build
+	cmake -G "Visual Studio 12 Win64" ..
+	cd $(MAKEDIR)
+	msbuild $(INFITOF_PATH)\release_build\infitof.sln /m:4 /t:Build /p:Configuration=Release
+
+infitof-qmake:
 	cd $(INFITOF_PATH)
 	qmake -config release -tp vc -r
 	cd $(MAKEDIR)
