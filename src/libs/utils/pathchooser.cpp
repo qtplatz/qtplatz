@@ -594,9 +594,12 @@ QString PathChooser::homePath()
     // Return 'users/<name>/Documents' on Windows, since Windows explorer
     // does not let people actually display the contents of their home
     // directory. Alternatively, create a QtCreator-specific directory?
-    if ( HostOsInfo::isWindowsHost() )
-        return QStandardPaths::StandardLocation( QStandardPaths::DocumentsLocation );
+    if ( HostOsInfo::isWindowsHost() ) {
         //return QDesktopServices::storageLocation( QDesktopServices::DocumentsLocation );
+        auto home = QStandardPaths::standardLocations( QStandardPaths::DocumentsLocation );
+        if ( !home.isEmpty() )
+            return home[0];
+    }
     return QDir::homePath();
 }
 
