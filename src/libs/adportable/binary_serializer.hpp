@@ -127,6 +127,8 @@ namespace adportable {
             }
 
             template<class T> bool operator()( T& data, const char * s, std::size_t size ) {
+				if (size == 0)
+					return false;
                 boost::iostreams::basic_array_source< char > device( s, size );
                 boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( device );
 
