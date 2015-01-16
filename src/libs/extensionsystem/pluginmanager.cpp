@@ -1483,7 +1483,3 @@ QObject *PluginManager::getObjectByClassName(const QString &className)
     }
     return 0;
 }
-
-#if defined CMAKE_AUTOMOC
-# include "pluginmanager.moc"
-#endif
