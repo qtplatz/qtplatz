@@ -12,6 +12,10 @@ if ( qwt_DIR )
   find_library( QWT_LIBRARY NAMES qwt HINTS ${qwt_DIR}/lib )
   find_library( QWT_LIBRARY_DEBUG NAMES qwtd HINTS ${qwt_DIR}/lib )
 
+  if ( NOT QWT_LIBRARY_DEBUG )
+    set( QWT_LIBRARY_DEBUG QWT_LIBRARY )
+  endif()
+
   set( QWT_INCLUDE_DIRS ${QWT_INCLUDE_DIR} )
   set( QWT_LIBRARIES ${QWT_LIBRARY} )
   set( qwt_FOUND 1 )
