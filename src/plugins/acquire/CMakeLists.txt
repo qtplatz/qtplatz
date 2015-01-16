@@ -25,12 +25,20 @@ configure_file(
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.config"
   )
 
+execute_process( COMMAND xmlpatterns -no-format 
+  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
+  )
+
 add_definitions(
   -DACQUIRE_LIBRARY
   -D_SCL_SECURE_NO_WARNINGS
   )
 
 include_directories(
+  ${CMAKE_BINARY_DIR}/src/libs/adinterface
+  ${CMAKE_BINARY_DIR}/src/libs
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${ACE+TAO_INCLUDE_DIRS}
@@ -39,7 +47,16 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
+if (WIN32)
+  set( LINK_DIRS ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
+elseif( ${CMAKE_SYSTEM_NAME} MATCHES Darwin )
+  set( LINK_DIRS ${QTPLATZ_SOURCE_DIR}/bin/qtplatz.app/Contents/Plugins/QtProject )
+else()
+  set( LINK_DIRS ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
+endif()
+
 link_directories(
+  ${LINK_DIRS}
   ${ACE+TAO_LIBRARY_DIRS}
   )
 

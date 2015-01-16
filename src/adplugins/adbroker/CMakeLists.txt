@@ -13,8 +13,12 @@ configure_file(
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.adplugin"
   )
 
+set( CMAKE_INCLUDE_CURRENT_DIR 1 )
+
 if ( ace+tao_FOUND )
   include_directories(
+    ${CMAKE_BINARY_DIR}/src/libs/adinterface
+    ${CMAKE_BINARY_DIR}/src/libs
     ${ACE+TAO_INCLUDE_DIRS}
     ${Qt5Core_INCLUDE_DIRS}
     )

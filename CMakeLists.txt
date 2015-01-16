@@ -39,7 +39,9 @@ include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 if ( NOT WIN32 )
-  set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
+  if ( Linux )
+    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
+  endif()
 endif()
 
 add_definitions(-DUNICODE -D_UNICODE)

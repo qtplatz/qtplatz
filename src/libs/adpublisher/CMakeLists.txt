@@ -51,6 +51,11 @@ set( adpublisher_HEADERS
   msxml_transformer.hpp
   )
 
+if (${CMAKE_SYSTEM_NAME} MATCHES Darwin )
+  include_directories( /opt/local/include/libxml2 )
+  link_directories( /opt/local/lib )
+endif()
+
 set( adpublisher_RESOURCES adpublisher.qrc )
 
 if( WIN32 )
@@ -68,7 +73,7 @@ add_library( adpublisher SHARED
   )
 
 if (NOT WIN32)
-  set(adpublisher_LIBS xlt xml2)
+  set(adpublisher_LIBS xslt xml2)
 endif()
 
 target_link_libraries(

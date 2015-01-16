@@ -1,5 +1,7 @@
 # find RDKit
 
+message( "##### FIND RDKIT #####" )
+
 if ( WIN32 )
   if ( RTC_ARCH_X86 )
     #Win32

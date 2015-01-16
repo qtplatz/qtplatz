@@ -10,9 +10,14 @@ set(IDL_FLAGS "-Wb,pre_include=workaround/ace/pre.h -Wb,post_include=workaround/
 
 find_package( ace+tao )
 if ( ace+tao_FOUND )
-  include_directories( ${ACE+TAO_INCLUDE_DIRS} )
+  include_directories(
+    ${ACE+TAO_INCLUDE_DIRS}
+    ${CMAKE_BINARY_DIR}/src/libs
+    )
   link_directories( ${ACE+TAO_LIBRARY_DIRS} )
 endif()
+
+set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 set( IDLFILES
   brokerevent.idl

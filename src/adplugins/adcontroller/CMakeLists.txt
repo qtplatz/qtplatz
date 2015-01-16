@@ -15,6 +15,8 @@ configure_file(
   )
 
 include_directories(
+  ${CMAKE_BINARY_DIR}/src/libs/adinterface
+  ${CMAKE_BINARY_DIR}/src/libs
   ${ACE+TAO_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
   )

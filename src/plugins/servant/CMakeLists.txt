@@ -11,14 +11,27 @@ configure_file(
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/servant.pluginspec"
   )
 
+execute_process( COMMAND xmlpatterns -no-format 
+  -output ${PROJECT_SOURCE_DIR}/servant.json
+  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+  ${PROJECT_SOURCE_DIR}/servant.pluginspec
+  )
+
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${Qt5Core_INCLUDE_DIRS}
   )
 
+if (WIN32)
+  set( servant_LINK_DIRS ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
+elseif( ${CMAKE_SYSTEM_NAME} MATCHES Darwin )
+  set( servant_LINK_DIRS ${QTPLATZ_SOURCE_DIR}/bin/qtplatz.app/Contents/Plugins/QtProject )
+else()
+  set( servant_LINK_DIRS ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
+endif()
+
 link_directories(
-  #${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
+  ${servant_LINK_DIRS}
   )
 
 add_definitions( -DSERVANT_LIBRARY )
@@ -48,7 +61,7 @@ target_link_libraries( servant LINK_PUBLIC
   adextension
   xmlparser
   Core
-  extensionsystem
+  ExtensionSystem
   Qt5::Core
 )
 
