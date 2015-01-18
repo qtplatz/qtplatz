@@ -44,7 +44,8 @@ include_directories(
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${Qt5Core_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/src         # version.h
+  ${CMAKE_BINARY_DIR}        # version.h
+  ${CMAKE_SOURCE_DIR}/src    # app_version.h
   )
 
 link_directories(
@@ -129,6 +130,7 @@ add_library( ${PROJECT_NAME} MODULE
   mspeakswnd.hpp
   spectrogramwnd.hpp
   ipeptidehandlerimpl.hpp
+  ${Resources}
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
@@ -146,9 +148,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adextension
   adportable
   xmlparser
-  optimized Core debug Cored
-  optimized extensionsystem debug extensionsystemd
-  optimized utils debug utilsd
+  Core
+  extensionsystem
+  utils
   Qt5::Core
   ${Boost_LIBRARIES}
 )

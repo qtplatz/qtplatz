@@ -19,6 +19,12 @@ configure_file(
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Core.pluginspec"
   )
 
+execute_process( COMMAND xmlpatterns -no-format 
+  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
+  )
+
 find_package( Qt5 CONFIG REQUIRED PrintSupport Network Script Sql Widgets Gui Core )
 
 add_definitions(
@@ -270,6 +276,7 @@ add_library(
   Core SHARED
   ${core_SOURCES}
   ${core_HEADERS}
+  ${core_RESOURCES}
 )
 
 link_directories(  ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} )

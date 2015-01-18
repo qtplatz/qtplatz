@@ -1,9 +1,14 @@
 # adchem
+project( adchem )
 
-include( ${RDKIT_CONFIG_DIR}/rdkit-config.cmake )
+cmake_policy( SET CMP0022 NEW )
 
 add_definitions( -DADCHEM_LIBRARY )
+
+find_package( Boost REQUIRED COMPONENTS system )
+
 include_directories( ${RDKit_INCLUDE_DIRS} )
+link_directories( ${rdkit_DIR} )
 
 add_library( adchem SHARED
   adchem.cpp

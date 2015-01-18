@@ -39,7 +39,8 @@ set QWT=C:\Qwt-6.1.3-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_57
 set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
-set RDKIT_INCLUDE=%USERPROFILE%\src\rdkit
+set RDBASE=%USERPROFILE%\src\rdkit
+set RDKIT_INCLUDE=%RDBASE%
 set RDKIT_LIBRARY=%RDBASE%\build_x86_64_120\lib
 goto all_set
 
@@ -54,8 +55,8 @@ set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_57
 set BOOST_LIBRARY=%BOOST_ROOT%\lib
 set RDBASE=%USERPROFILE%\src\rdkit
-#set RDKIT_INCLUDE=%USERPROFILE%\src\rdkit
-#set RDKIT_LIBRARY=%RDBASE%\build_x86_120\lib
+set RDKIT_INCLUDE=%RDBASE%
+set RDKIT_LIBRARY=%RDBASE%\build_x86_64_120\lib
 goto all_set
 
 :all_set

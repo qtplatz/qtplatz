@@ -29,7 +29,7 @@ if ( NOT RTC_ARCH_ARM )
   add_subdirectory (chromatogr)
   add_subdirectory (adpublisher)
 
-  if ( RDKIT_CONFIG_DIR )
+  if ( rdkit_DIR )
     add_subdirectory (adchem)
   endif()
 

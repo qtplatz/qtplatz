@@ -29,7 +29,6 @@ if ( NOT ace+tao_FOUND )
     endif()
 
     message( STATUS "ACE+TAO Found in " ${ace+tao_DIR} )
-    message( STATUS "ACE+TAO INCLUDE_DIRS " ${ACE+TAO_INCLUDE_DIRS} )
   else()
     message( STATUS "ACE+TAO NOT Found" )
   endif()

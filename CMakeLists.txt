@@ -1,5 +1,5 @@
 #
-project (adtoolkit)
+project (qtplatz)
 
 cmake_minimum_required (VERSION 2.8.9)
 cmake_policy( SET CMP0020 NEW )
@@ -64,4 +64,4 @@ endif()
 set(CMAKE_DEBUG_POSTFIX "d")
 
 add_subdirectory (src)
-#add_subdirectory (contrib)
+add_subdirectory (contrib)

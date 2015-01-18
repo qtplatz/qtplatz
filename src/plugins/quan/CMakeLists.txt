@@ -14,9 +14,18 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
+set(COMPAT_VERSION 3.2.81)
+set(VERSION 3.1.4)
+
 configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec"
+  "${PROJECT_SOURCE_DIR}/pluginspec.in"
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  )
+
+execute_process( COMMAND xmlpatterns -no-format 
+  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"  
   )
 
 add_definitions(

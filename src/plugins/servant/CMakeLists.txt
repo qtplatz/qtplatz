@@ -12,6 +12,12 @@ configure_file(
   )
 
 execute_process( COMMAND xmlpatterns -no-format 
+  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
+  )
+
+execute_process( COMMAND xmlpatterns -no-format 
   -output ${PROJECT_SOURCE_DIR}/servant.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   ${PROJECT_SOURCE_DIR}/servant.pluginspec
@@ -61,7 +67,7 @@ target_link_libraries( servant LINK_PUBLIC
   adextension
   xmlparser
   Core
-  ExtensionSystem
+  extensionsystem
   Qt5::Core
 )
 

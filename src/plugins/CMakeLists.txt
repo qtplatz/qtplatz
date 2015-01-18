@@ -1,5 +1,5 @@
 
-include( ${CMAKE_SOURCE_DIR}/qtplatz-config.cmake )
+include( ${CMAKE_SOURCE_DIR}/pluginconfig.cmake )
 
 add_subdirectory( coreplugin )
 add_subdirectory( servant )

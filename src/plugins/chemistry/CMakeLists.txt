@@ -2,7 +2,7 @@ project( chemistry )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-find_package( Qt5 CONFIG REQUIRED Core Network Widgets Sql Script )
+find_package( Qt5 CONFIG REQUIRED Core Network Widgets Svg Sql Script )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -17,22 +17,11 @@ configure_file(
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
   )
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/dataproc-mimetype.xml"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/dataproc-mimetype.xml"
-  )
-
-configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.config"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.config"
-  )
-
 execute_process( COMMAND xmlpatterns -no-format 
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
   )
-
 
 find_package( qwt )
 
@@ -43,8 +32,10 @@ add_definitions(
 
 include_directories(
   ${QWT_INCLUDE_DIRS}
+  ${RDKit_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${Qt5Core_INCLUDE_DIRS}
+  ${Qt5Svg_INCLUDE_DIRS}  
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
@@ -53,104 +44,58 @@ link_directories(
   ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
   )
 
-add_library( ${PROJECT_NAME} MODULE
-  aboutdlg.cpp
-  dataprocplugin.cpp
-  mode.cpp
+set( chemistry_SOURCES
+  chemistryplugin.cpp
+  chemistrymode.cpp
+  moltabledelegate.cpp
+  chemfile.cpp
   mainwindow.cpp
-  dataproc_document.cpp
-  navigationdelegate.cpp
-  navigationwidgetfactory.cpp
-  navigationwidget.cpp
-  dataprocessor.hpp
-  actionmanager.cpp
-  assign_masses.cpp
-  assign_peaks.cpp
-  chromatogramwnd.cpp
-  mass_calibrator.cpp
-  dataproceditor.cpp
-  dataprocessor.cpp
-  dataprocessorfactory.cpp
-  dataprochandler.cpp
-  elementalcompwnd.cpp
-  isequenceimpl.cpp
-  isnapshothandlerimpl.cpp
-  mscalibrationwnd.cpp
-  mscalibspectrawnd.cpp
-  msprocessingwnd.cpp
-  msspectrawnd.cpp
-  sessionmanager.cpp
-  mspropertyform.cpp
-  dataprocessworker.cpp
-  dialogspectrometerchoice.cpp
-  filepropertywidget.cpp
-  mspeakswnd.cpp
-  spectrogramwnd.cpp
-  ipeptidehandlerimpl.cpp
-  aboutdlg.hpp
-  dataproc_global.hpp
-  mimetypehelper.hpp
-  selchanged.hpp
-  qtwidgets_name.hpp
-  dataprocplugin.hpp
-  dataprocconstants.hpp
-  mode.hpp
+  massdefectform.cpp
+  massdefectdelegate.cpp
+  massdefectmethod.cpp
+  moltableview.cpp
+  )
+
+set( chemistry_HEADERS
+  chemistryplugin.hpp
+  chemistry_global.hpp
+  moltabledelegate.hpp
+  chemistryconstants.hpp
+  chemistrymode.hpp
+  chemfile.hpp
   mainwindow.hpp
-  dataproc_document.hpp
-  navigationwidgetfactory.hpp
-  navigationwidget.hpp
-  dataprocessor.hpp
-  actionmanager.hpp
-  chromatogramwnd.hpp
-  dataproceditor.hpp
-  dataprocessor.hpp
-  dataprocessorfactory.hpp
-  dataprochandler.hpp
-  dataprocplugin.hpp
-  elementalcompwnd.hpp
-  isequenceimpl.hpp
-  isnapshothandlerimpl.hpp
-  mscalibrationwnd.hpp
-  mscalibspectrawnd.hpp
-  msprocessingwnd.hpp
-  msspectrawnd.hpp
-  navigationdelegate.hpp
-  navigationwidget.hpp
-  navigationwidgetfactory.hpp
-  sessionmanager.hpp
-  mainwindow.hpp
-  mode.hpp
-  assign_masses.hpp
-  mass_calibrator.hpp
-  assign_peaks.hpp
-  mspropertyform.hpp
-  dataprocessworker.hpp
-  dialogspectrometerchoice.hpp
-  filepropertywidget.hpp
-  mspeakswnd.hpp
-  spectrogramwnd.hpp
-  ipeptidehandlerimpl.hpp
+  massdefectform.hpp
+  massdefectdelegate.hpp
+  massdefectmethod.hpp
+  moltableview.hpp
+  )
+
+add_library( ${PROJECT_NAME} MODULE
+  ${chemistry_SOURCES}
+  ${chemistry_HEADERS}
+  ${Resources}
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  adplot
-  adplugin
-  adcontrols
-  adlog
   adutils
-  adwidgets
-  portfolio
-  qtwrapper
-  adfs
-  chromatogr
-  adprot
-  adextension
   adportable
-  xmlparser
+  adlog
+  adchem
+  adcontrols
+  adplugin
+  qtwrapper
+  adprot
+  FileParsers
+  GraphMol
+  SmilesParse
+  RDGeneral
+  RDGeometryLib
+  SubstructMatch
+  Depictor
+  Descriptors
   Core
-  extensionsystem
-  utils
   Qt5::Core
+  Qt5::Svg
   ${Boost_LIBRARIES}
 )
 
