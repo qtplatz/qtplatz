@@ -14,20 +14,25 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
-  )
+set(COMPAT_VERSION 3.2.81)
+set(VERSION 3.1.4)
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.config"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.config"
+  "${PROJECT_SOURCE_DIR}/pluginspec.in"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
   )
 
 execute_process( COMMAND xmlpatterns -no-format 
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"  
+  )
+
+include_directories(
+  ${QWT_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/src/plugins
+  ${Qt5Core_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
 set( peptide_SOURCES
@@ -76,26 +81,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 
 #QT += core svg printsupport
 #greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
-
 #PROVIDER = MS-Cheminformatics
 
-LIBS += -l$$qtLibraryTarget(adplugin) \
-        -l$$qtLibraryTarget(adcontrols) \
-        -l$$qtLibraryTarget(adlog) \
-        -l$$qtLibraryTarget(adutils) \
-        -l$$qtLibraryTarget(portfolio) \
-        -l$$qtLibraryTarget(adfs) \
-        -l$$qtLibraryTarget(adprot) \
-        -l$$qtLibraryTarget(adextension) \
-        -l$$qtLibraryTarget(adplot) \
-        -l$$qtLibraryTarget(adportable) \
-        -l$$qtLibraryTarget(qtwrapper)
-
-!win32 {
-  LIBS += -lboost_system \
-          -lboost_filesystem \
-          -lboost_date_time
-}
+#  LIBS += -lboost_system           -lboost_filesystem           -lboost_date_time
 
 #linux-*: LIBS += -lqwt -ldl
 #macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
@@ -107,6 +95,4 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
 
 ## set the QTC_BUILD environment variable to override the setting here
 #IDE_BUILD_TREE = $$(QTC_BUILD)
-
-
 
