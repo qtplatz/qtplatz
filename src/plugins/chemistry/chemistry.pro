@@ -50,7 +50,14 @@ LIBS += -l$$qtLibraryTarget( adutils ) \
     LIBS += -lboost_date_time -lboost_filesystem -lboost_system
 }
 
-LIBS += -lFileParsers -lGraphMol -lSmilesParse -lRDGeneral -lRDGeometryLib -lSubstructMatch -lDepictor -lDescriptors
+LIBS += -l$$qtLibraryTarget( FileParsers ) \
+        -l$$qtLibraryTarget( GraphMol ) \
+        -l$$qtLibraryTarget( SmilesParse ) \
+        -l$$qtLibraryTarget( RDGeneral ) \
+        -l$$qtLibraryTarget( RDGeometryLib ) \
+        -l$$qtLibraryTarget( SubstructMatch ) \
+        -l$$qtLibraryTarget( Depictor ) \
+        -l$$qtLibraryTarget( Descriptors )
 
 RESOURCES += \
     chemistry.qrc

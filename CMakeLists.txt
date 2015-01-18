@@ -64,4 +64,4 @@ endif()
 set(CMAKE_DEBUG_POSTFIX "d")
 
 add_subdirectory (src)
-add_subdirectory (contrib)
+#add_subdirectory (contrib)

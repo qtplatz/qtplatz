@@ -29,14 +29,14 @@ HEADERS += adchem.hpp\
     drawing.hpp \
     molecule.hpp
 
-LIBS += -lFileParsers \
-        -lGraphMol \
-        -lSmilesParse \
-        -lRDGeneral \
-        -lRDGeometryLib \
-        -lSubstructMatch \
-        -lDepictor \
-        -lDescriptors
+LIBS += -l$$qtLibraryTarget( FileParsers ) \
+        -l$$qtLibraryTarget( GraphMol ) \
+        -l$$qtLibraryTarget( SmilesParse ) \
+        -l$$qtLibraryTarget( RDGeneral ) \
+        -l$$qtLibraryTarget( RDGeometryLib ) \
+        -l$$qtLibraryTarget( SubstructMatch ) \
+        -l$$qtLibraryTarget( Depictor ) \
+        -l$$qtLibraryTarget( Descriptors )
 !win32 {
   LIBS += -lboost_system
 }

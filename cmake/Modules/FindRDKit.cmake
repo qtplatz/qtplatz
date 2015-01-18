@@ -8,7 +8,7 @@ if ( WIN32 )
     find_path( rdkit_DIR NAMES rdkit-config.cmake PATHS $ENV{RDBASE}/build_x86_120 $ENV{HOME}/src/rdkit/build_x86_120 )
   else()
     #Win64
-    find_path( rdkit_DIR NAMES rdkit-config.cmake PATHS $ENV{RDBASE}/build_x86_64_120 $ENV{HOME}/src/rdkit/build_x86_64_120 )
+    find_path( rdkit_DIR NAMES rdkit-config.cmake rdkit-config.cmake PATHS C:/opt/RDKit/lib $ENV{RDBASE}/build_x86_64_120 )
   endif()
 
 else()

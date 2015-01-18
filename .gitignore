@@ -182,3 +182,4 @@ CMakeFiles
 contrib/agilent/plugins/u5303aplugin/u5303a.qrc.autosave
 build/adtoolkit.opensdf
 build/contrib/shrader/lrpviewer/dump.txt
+build/src/libs/adpublisher/share/qtplatz/xslt
