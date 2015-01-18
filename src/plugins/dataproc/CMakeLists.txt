@@ -27,6 +27,12 @@ configure_file(
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.config"
   )
 
+execute_process( COMMAND xmlpatterns -no-format 
+  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
+  )
+
 find_package( qwt )
 
 add_definitions(
@@ -140,9 +146,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adextension
   adportable
   xmlparser
-  Core
-  extensionsystem
-  utils
+  optimized Core debug Cored
+  optimized extensionsystem debug extensionsystemd
+  optimized utils debug utilsd
   Qt5::Core
   ${Boost_LIBRARIES}
 )

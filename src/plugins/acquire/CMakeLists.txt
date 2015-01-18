@@ -102,7 +102,7 @@ target_link_libraries(
   adlog
   adportable
   xmlparser
-  Core
+  optimized Core debug Cored
   optimized TAO_Utils debug TAO_Utilsd
   optimized TAO_PortableServer debug TAO_PortableServerd
   optimized TAO_AnyTypeCode debug TAO_AnyTypeCoded
