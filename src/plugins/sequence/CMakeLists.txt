@@ -19,10 +19,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 file(GLOB UIs *.ui)
-file(GLOB Resources *.qrc)
-
-set(COMPAT_VERSION 3.2.81)
-set(VERSION 3.1.4)
+set( sequence_RESOURCES sequence.qrc )
 
 set(COMPAT_VERSION 3.2.81)
 set(VERSION 3.1.4)
@@ -107,7 +104,6 @@ target_link_libraries(
   Core
   extensionsystem
   ${Boost_LIBRARIES}
-  ${Resources}
   )
 
 #OTHER_FILES += sequence.pluginspec
