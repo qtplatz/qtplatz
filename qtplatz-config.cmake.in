@@ -1,0 +1,11 @@
+# Compute installation prefix relative to this file
+get_filename_component (_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component (_prefix "${_dir}/.." ABSOLUTE)
+
+# Report other info
+set ( QTPLATZ_SOURCE_DIR "@QTPLATZ_SOURCE_DIR@")
+set ( QTPLATZ_BINARY_DIR "${_dir}")
+set ( QTPLATZ_INCLUDE_DIRS "${QTPLATZ_SOURCE_DIR}/src/libs" )
+
+include( "${QTPLATZ_SOURCE_DIR}/qtplatz.cmake" )
+

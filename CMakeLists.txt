@@ -10,7 +10,8 @@ list( APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules )
 include (qtplatz.cmake)
 
 set(QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
-set(QTPLATZ_BINARY_DIR ${QTPLATZ_SOURCE_DIR} )
+#set(QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
+set(QTPLATZ_BINARY_DIR ${CMAKE_SOURCE_DIR} )  # qmake compatible
 
 #
 # Output directories layout, which is equivalent to original QTC layout
@@ -33,6 +34,14 @@ find_package( Boost REQUIRED )
 find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
 find_package( qwt )
 find_package( rdkit )
+
+configure_file(
+  ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
+  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
+
+install( FILES
+  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake
+  DESTINATION ${CMAKE_SOURCE_DIR}/lib )
 
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
