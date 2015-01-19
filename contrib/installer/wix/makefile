@@ -129,8 +129,7 @@ vc120.wixobj: vc120.wxi
 	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC120.CRT" vc120.wxi
 
 bruker.wixobj: bruker.wxi 
-	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\..\Bruker Daltonik\3.1.2" bruker.wxi
-
+	$(CANDLE) -dSourceDir="$(QTPLATZ_PATH)\..\Bruker Daltonik\3.1.2" bruker.wxi
 
 harvest: copy_stage_files qt plugins translations qtplatz_translations bruker
 
