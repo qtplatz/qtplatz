@@ -35,6 +35,7 @@ Thumbs.db
 src/libs/adinterface/*.cxx
 qtplatz.opensdf
 build
+release_build
 
 # qtcreator generated files
 *.pro.user

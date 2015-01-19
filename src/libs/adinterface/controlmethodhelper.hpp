@@ -25,7 +25,7 @@
 #ifndef CONTROLMETHODHELPER_HPP
 #define CONTROLMETHODHELPER_HPP
 
-#include "controlmethodC.h"
+#include <adinterface/controlmethodC.h>
 
 namespace adcontrols { class ControlMethod; namespace controlmethod { class MethodItem; } }
 

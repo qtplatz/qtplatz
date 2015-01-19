@@ -33,7 +33,7 @@ OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj 
 
 all: qtplatz.msi
 
-world: qtplatz infitof-cmake qtplatz.msi
+world: qtplatz-cmake infitof-cmake qtplatz.msi
 
 help:
 	@echo "*	make world	will do full rebuild qtplatz, and generate .MSI setup"
@@ -54,7 +54,16 @@ veryclean: clean
 	git clean -d -x -f
 	cd $(MAKEDIR)
 
-qtplatz:
+qtplatz-cmake:
+	-$(RM) version.wxi
+	cd $(QTPLATZ_PATH)
+	mkdir release_build
+	cd release_build
+	cmake -G "Visual Studio 12 Win64" ..
+	cd $(MAKEDIR)
+	msbuild $(QTPLATZ_PATH)\release_build\qtplatz.sln /m:4 /t:Build /p:Configuration=Release
+
+qtplatz-qmake:
 	-$(RM) version.wxi
 	cd $(QTPLATZ_PATH)
 	qmake -config release -tp vc -r
@@ -120,7 +129,7 @@ vc120.wixobj: vc120.wxi
 	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC120.CRT" vc120.wxi
 
 bruker.wixobj: bruker.wxi 
-	$(CANDLE) -dSourceDir="C:\Program Files (x86)\Bruker Daltonik\3.1.2" bruker.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\..\Bruker Daltonik\3.1.2" bruker.wxi
 
 
 harvest: copy_stage_files qt plugins translations qtplatz_translations bruker

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "signalobserverS.h"
+#include <adinterface/signalobserverS.h>
 #include <functional>
 
 namespace adinterface {

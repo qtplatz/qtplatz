@@ -3,6 +3,8 @@
 set( Boost_USE_STATIC_LIBS ON )
 set( BOOST_VERSION boost-1_57 )
 
+list( APPEND CMAKE_MODULE_PATH ${QTPLATZ_SOURCE_DIR}/cmake/Modules )
+
 find_package( arch )
 
 #####################
