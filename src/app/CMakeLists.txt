@@ -32,6 +32,7 @@ add_executable( qtplatz
   ../shared/qtlockedfile/qtlockedfile.cpp
   ${lockedfile_SOURCES}
   ${${PROJECT_NAME}_Resources}
+  qtplatz.rc
 )
 
 target_link_libraries(

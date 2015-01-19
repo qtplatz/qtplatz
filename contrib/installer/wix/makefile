@@ -95,8 +95,9 @@ rename.bat: version.exe
 
 qtplatz.msi: version.wxi $(OBJS)
 	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll $(OBJS) -o qtplatz.msi
-	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 	rename.bat
+
+#signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 
 sign:
 	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
