@@ -23,11 +23,28 @@ if ( NOT ace+tao_FOUND )
       set( ACE+TAO_INCLUDE_DIRS ${ACE+TAO_INCLUDE_DIRS} ${ACE_INCLUDE_DIR} )
     endif()
 
+    include( ace+tao-config )
+
+    set( ACE+TAO_LIBRARIES
+      CORBA::TAO_Utils
+      CORBA::TAO_PI
+      CORBA::TAO_PortableServer
+      CORBA::TAO_AnyTypeCode
+      CORBA::TAO
+      CORBA::ACE )
+
+#    set( ACE+TAO_LIBRARIES 
+#      optimized TAO_Utils debug TAO_Utilsd
+#      optimized TAO_PI debug TAO_PId
+#      optimized TAO_PortableServer debug TAO_PortableServerd
+#      optimized TAO_AnyTypeCode debug TAO_AnyTypeCoded
+#      optimized TAO debug TAOd
+#      optimized ACE debug ACEd )
+    
     if ( ACE_INCLUDE_DIR AND TAO_INCLUDE_DIR )
       set( ace+tao_FOUND 1 )
       set( ACE+TAO_INCLUDE_DIRS ${ACE_INCLUDE_DIR} ${TAO_INCLUDE_DIR} )
     endif()
-
     message( STATUS "ACE+TAO Found in " ${ace+tao_DIR} )
   else()
     message( STATUS "ACE+TAO NOT Found" )

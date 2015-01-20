@@ -22,11 +22,7 @@ target_link_libraries( adorbmgr LINK_PUBLIC
   adlog
   adportable
   xmlparser
-  TAO_Utils
-  TAO_PortableServer
-  TAO_AnyTypeCode
-  TAO
-  ACE
+  ${ACE+TAO_LIBRARIES}
   ${Boost_LIBRARIES} )
 
 #LIBS += -l$$qtLibraryTarget(acewrapper) \

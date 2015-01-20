@@ -14,7 +14,6 @@ if ( ace+tao_FOUND )
     ${ACE+TAO_INCLUDE_DIRS}
     ${CMAKE_BINARY_DIR}/src/libs
     )
-  link_directories( ${ACE+TAO_LIBRARY_DIRS} )
 endif()
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )

@@ -66,12 +66,7 @@ target_link_libraries( adcontroller LINK_PUBLIC
   adplugin
   xmlparser
   adlog
-  optimized TAO_Utils debug TAO_Utilsd
-  optimized TAO_PI debug TAO_PId
-  optimized TAO_PortableServer debug TAO_PortableServerd
-  optimized TAO_AnyTypeCode debug TAO_AnyTypeCoded
-  optimized TAO debug TAOd
-  optimized ACE debug ACEd
+  ${ACE+TAO_LIBRARIES}
   ${Boost_LIBRARIES}
   ${linux_LIBS}
 )

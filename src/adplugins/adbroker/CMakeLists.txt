@@ -1,32 +1,31 @@
-# adbloer adplugin
-
 project( adbroker )
-#cmake_policy( SET CMP0020 NEW )
+
 add_definitions(-DADBROKER_LIBRARY)
 
+if ( MSVC )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
+endif()
+
+find_package( ace+tao )
 find_package( Boost 1.57 REQUIRED COMPONENTS regex date_time system filesystem wserialization serialization )
 find_package( Qt5 REQUIRED Core )
-find_package( ace+tao )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.adplugin"
   )
 
-set( CMAKE_INCLUDE_CURRENT_DIR 1 )
-
-if ( ace+tao_FOUND )
-  include_directories(
-    ${CMAKE_BINARY_DIR}/src/libs/adinterface
-    ${CMAKE_BINARY_DIR}/src/libs
-    ${ACE+TAO_INCLUDE_DIRS}
-    ${Qt5Core_INCLUDE_DIRS}
-    )
-endif()
+include_directories(
+  ${CMAKE_BINARY_DIR}/src/libs/adinterface
+  ${CMAKE_BINARY_DIR}/src/libs
+  ${ACE+TAO_INCLUDE_DIRS}
+  ${Qt5Core_INCLUDE_DIRS}
+  )
 
 link_directories( ${ACE+TAO_LIBRARY_DIRS} )
+message( "TAO_LIBRARY_DIRS" ${TAO_LIBRARY_DIRS} )
 
-add_library( adbroker MODULE
+add_library( ${PROJECT_NAME} MODULE
   adbroker.cpp
   brokerconfig.cpp
   brokermanager.cpp
@@ -51,26 +50,23 @@ add_library( adbroker MODULE
   task.hpp
   objectdiscovery.hpp
   orbbroker.hpp
-)
+  )
 
-target_link_libraries( adbroker LINK_PUBLIC
+if ( CMAKE_SYSTEM_NAME EQUAL Linux )
+  set( linux_LIBS dl rt )
+endif()
+
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adorbmgr
+  acewrapper
   adinterface
   adfs
   adcontrols
   adportable
-  portfolio
   adplugin
-  adorbmgr
+  xmlparser
   adlog
-  acewrapper
-  optimized TAO_Utils debug TAO_Utilsd
-  optimized TAO_PI debug TAO_PId
-  optimized TAO_PortableServer debug TAO_PortableServerd
-  optimized TAO_AnyTypeCode debug TAO_AnyTypeCoded
-  optimized TAO debug TAOd
-  optimized ACE debug ACEd
+  ${ACE+TAO_LIBRARIES}  
   ${Boost_LIBRARIES}
+  ${linux_LIBS}
 )
-
-
-
