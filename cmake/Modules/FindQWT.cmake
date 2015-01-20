@@ -8,16 +8,12 @@ endif()
 
 if ( qwt_DIR )
 
-  find_path( QWT_INCLUDE_DIR NAMES qwt.h HINTS ${qwt_DIR}/include )
-  find_library( QWT_LIBRARY NAMES qwt HINTS ${qwt_DIR}/lib )
-  find_library( QWT_LIBRARY_DEBUG NAMES qwtd HINTS ${qwt_DIR}/lib )
-
-  if ( NOT QWT_LIBRARY_DEBUG )
-    set( QWT_LIBRARY_DEBUG QWT_LIBRARY )
-  endif()
-
+  set( QWT_INCLUDE_DIR ${qwt_DIR}/include )
   set( QWT_INCLUDE_DIRS ${QWT_INCLUDE_DIR} )
-  set( QWT_LIBRARIES ${QWT_LIBRARY} )
+
+  include( qwt-config )
+  set( QWT_LIBRARIES qwt )
+
   set( qwt_FOUND 1 )
 
   message( STATUS "QWT Found in : " ${qwt_DIR} )

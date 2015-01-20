@@ -53,5 +53,5 @@ target_link_libraries( adplot LINK_PUBLIC
   Qt5::Widgets
   Qt5::Svg
   Qt5::PrintSupport
-  optimized ${QWT_LIBRARY} debug ${QWT_LIBRARY_DEBUG}
+  ${QWT_LIBRARIES}
   )

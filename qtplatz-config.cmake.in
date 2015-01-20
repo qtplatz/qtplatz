@@ -16,7 +16,10 @@ set ( QTPLATZ_RUNTIME_OUTPUT_DIRECTORY "@CMAKE_RUNTIME_OUTPUT_DIRECTORY@" ) # ex
 
 include( "${QTPLATZ_SOURCE_DIR}/qtplatz.cmake" )
 
-add_library( Core SHARED IMPORTED )
+add_library( QTC::Core SHARED IMPORTED )
+add_library( QTC::ExtensionSystem SHARED IMPORTED )
+add_library( QTC::Utils SHARED IMPORTED )
+
 add_library( adextension SHARED IMPORTED )
 add_library( adcontrols SHARED IMPORTED )
 add_library( adlog SHARED IMPORTED )
@@ -33,9 +36,17 @@ add_library( acewrapper STATIC IMPORTED )
 add_library( adutils STATIC IMPORTED )
 add_library( qtwrapper STATIC IMPORTED )
 
-set_target_properties( Core PROPERTIES
+set_target_properties( QTC::Core PROPERTIES
   IMPORTED_IMPLIB ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Core.lib
   IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Cored.lib )
+
+set_target_properties( QTC::ExtensionSystem PROPERTIES
+  IMPORTED_IMPLIB ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/extensionsystem.lib
+  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/extensionsystemd.lib )
+
+set_target_properties( QTC::Utils PROPERTIES
+  IMPORTED_IMPLIB ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Utils.lib
+  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Utils.lib )
 
 set_target_properties( adextension PROPERTIES
   IMPORTED_IMPLIB ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adextension.lib
