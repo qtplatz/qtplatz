@@ -11,14 +11,6 @@ set(QTPLATZ_BINARY_DIR ${CMAKE_SOURCE_DIR} )  # qmake compatible
 # cofigure boost & compiler
 include (qtplatz.cmake)
 
-configure_file(
-  ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
-  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
-
-install( FILES
-  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake
-  DESTINATION ${CMAKE_SOURCE_DIR}/lib )
-
 #
 # Output directories layout, which is equivalent to original QTC layout
 #
@@ -33,6 +25,14 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plu
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin )
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
+
+configure_file(
+  ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
+  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
+
+install( FILES
+  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake
+  DESTINATION ${CMAKE_SOURCE_DIR}/lib )
 
 set( ACE_ROOT $ENV{ACE_ROOT} )
 

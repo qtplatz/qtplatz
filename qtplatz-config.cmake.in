@@ -3,10 +3,18 @@ get_filename_component (_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 get_filename_component (_prefix "${_dir}/.." ABSOLUTE)
 
 # Report other info
+set ( QTPLATZ_DIR "${_dir}")
+
 set ( QTPLATZ_SOURCE_DIR "@CMAKE_SOURCE_DIR@")
-set ( QTPLATZ_BINARY_DIR "${_dir}")
-set ( QTPLATZ_INCLUDE_DIRS "${QTPLATZ_SOURCE_DIR}/src/libs" "@CMAKE_BINARY_DIR@/src/libs" )
-set ( QTPLATZ_ARCHIVE_DIRECTORY "@CMAKE_BINARY_DIR@/lib" ) # static & dll import libraries (.lib, .exp)
+set ( QTPLATZ_BINARY_DIR "@CMAKE_BINARY_DIR@")
+set ( QTPLATZ_INCLUDE_DIRS "@CMAKE_SOURCE_DIR@/src/libs" "@CMAKE_BINARY_DIR@/src/libs" "@CMAKE_SOURCE_DIR@/src")
+set ( QTPLATZ_LIBRARY_DIRS "@CMAKE_BINARY_DIR@/lib" )
+
+set ( QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY "@CMAKE_ARCHIVE_OUTPUT_DIRECTORY@" ) # .lib
+set ( QTPLATZ_LIBRARY_OUTPUT_DIRECTORY "@CMAKE_LIBRARY_OUTPUT_DIRECTORY@" ) # module (dll)
+set ( QTPLATZ_RUNTIME_OUTPUT_DIRECTORY "@CMAKE_RUNTIME_OUTPUT_DIRECTORY@" ) # exe
 
 include( "${QTPLATZ_SOURCE_DIR}/qtplatz.cmake" )
+
+message("## qtplatz-config.cmake ## " ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY} )
 
