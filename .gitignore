@@ -179,7 +179,6 @@ tests/test_serializer/idAudit.xml
 # CMake
 CMakeCache.txt
 CMakeFiles
-*.cmake
 *_automoc.cpp
 contrib/agilent/plugins/u5303aplugin/u5303a.qrc.autosave
 build/adtoolkit.opensdf
