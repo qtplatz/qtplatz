@@ -146,6 +146,7 @@ target_link_libraries(
   xmlparser
   Core
   extensionsystem
+  ${QWT_LIBRARIES}
   ${Boost_LIBRARIES}
   )
   

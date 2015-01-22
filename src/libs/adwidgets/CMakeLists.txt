@@ -117,7 +117,7 @@ target_link_libraries( adwidgets LINK_PUBLIC
   adportable	
   adprot
   qtwrapper
-  optimized ${QWT_LIBRARY} debug ${QWT_LIBRARY_DEBUG}
+  ${QWT_LIBRARIES}
   Qt5::Widgets
   Qt5::PrintSupport
   ${Boost_LIBRARIES}
