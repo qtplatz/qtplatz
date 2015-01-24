@@ -39,19 +39,20 @@ namespace adcontrols {
     class MSCalibrateResult;
 	class MSCalibration;
     class datafile;
+    class ScanLaw;
 
-    const double kATOMIC_MASS_CONSTANT = 1.66054020e-27; // [kg/u]
-    const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
-    const double kTimeSquaredCoeffs   = 2.0 * kELEMENTAL_CHARGE / kATOMIC_MASS_CONSTANT;
+    // const double kATOMIC_MASS_CONSTANT = 1.66054020e-27; // [kg/u]
+    // const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
+    // const double kTimeSquaredCoeffs   = 2.0 * kELEMENTAL_CHARGE / kATOMIC_MASS_CONSTANT;
     
-    class ADCONTROLSSHARED_EXPORT ScanLaw {
-    public:
-        virtual double getMass( double secs, int mode ) const = 0;
-        virtual double getTime( double mass, int mode ) const = 0;
-        virtual double getMass( double secs, double fLength ) const = 0;
-        virtual double getTime( double mass, double fLength ) const = 0;
-        virtual double fLength( int mode ) const = 0;
-    };
+    // class ADCONTROLSSHARED_EXPORT ScanLaw {
+    // public:
+    //     virtual double getMass( double secs, int mode ) const = 0;
+    //     virtual double getTime( double mass, int mode ) const = 0;
+    //     virtual double getMass( double secs, double fLength ) const = 0;
+    //     virtual double getTime( double mass, double fLength ) const = 0;
+    //     virtual double fLength( int mode ) const = 0;
+    // };
 
 	class ADCONTROLSSHARED_EXPORT MassSpectrometer {
         MassSpectrometer( const MassSpectrometer& ) = delete;  // noncopyable

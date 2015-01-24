@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "massspectrometer.hpp"
+#include "scanlaw.hpp"
 #include "datainterpreter.hpp"
 #include "massspectrometerbroker.hpp"
 #include "massspectrometer_factory.hpp"
@@ -38,6 +39,14 @@
 using namespace adcontrols;
 
 namespace adcontrols {
+
+    ScanLaw::ScanLaw()
+    {
+    }
+    
+    ScanLaw::~ScanLaw()
+    {
+    }
 
 	class MassSpectrometerException : public boost::exception, public std::exception {
 	public:

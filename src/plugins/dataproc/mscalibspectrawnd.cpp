@@ -41,6 +41,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adwidgets/mscalibratesummarytable.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adportable/configuration.hpp>

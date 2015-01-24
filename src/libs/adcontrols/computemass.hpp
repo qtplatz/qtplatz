@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include "mscalibration.hpp"
 #include "metric/prefix.hpp"
+#include "scanlaw.hpp"
 #include <adportable/binary_search.hpp>
 #include <vector>
 #include <string>

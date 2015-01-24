@@ -45,6 +45,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adlog/logger.hpp>
 #include <adplot/picker.hpp>
 #include <adplot/peakmarker.hpp>

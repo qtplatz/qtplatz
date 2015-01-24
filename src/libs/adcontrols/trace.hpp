@@ -58,6 +58,9 @@ namespace adcontrols {
 		int fcn_;
         double minY_;
         double maxY_;
+#if defined _MSC_VER
+# pragma warning(disable:4251)
+#endif
 
         std::vector< size_t > npos_;
         std::vector< double > traceX_;

@@ -29,6 +29,7 @@
 #include "msproperty.hpp"
 #include "annotations.hpp"
 #include "massspectra.hpp"
+#include "scanlaw.hpp"
 #include <adportable/array_wrapper.hpp>
 # if defined _DEBUG || defined DEBUG
 # include <adportable/debug.hpp>

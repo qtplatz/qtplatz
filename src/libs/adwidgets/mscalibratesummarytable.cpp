@@ -35,6 +35,7 @@
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/mspeaks.hpp>
 #include <adcontrols/mspeak.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/computemass.hpp>
 #include <adlog/logger.hpp>
 #include <adutils/processeddata.hpp>
