@@ -1,9 +1,10 @@
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
+find_package( qwt )
 include_directories(
 	"${PROJECT_SOURCE_DIR}/src/libs"
-	${QWT}/include
+	${QWT_INCLUDE_DIR}
 	${Qt5PrintSupport_INCLUDE_DIRS}
 	)
 
@@ -41,7 +42,7 @@ target_link_libraries( lrpviewer LINK_PUBLIC
 		       adportable
 		       adplot
 		       adwidgets
-		       optimized ${QWT_LIBRARY} debug ${QWT_LIBRARY_DEBUG}
+		       ${QWT_LIBRARIES}
 		       Qt5::Widgets
 		       Qt5::Svg
 		       Qt5::PrintSupport
