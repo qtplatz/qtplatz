@@ -8,7 +8,7 @@ cmake_policy(SET CMP0022 NEW)
 
 find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
 
-add_definitions(-DADCONTROLS_LIBRARY)
+add_definitions(-DADCONTROLS_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
 
 add_library( adcontrols SHARED
   acceptor.cpp 
@@ -30,11 +30,17 @@ add_library( adcontrols SHARED
   descriptions.cpp 
   elementalcomposition.cpp 
   elementalcompositioncollection.cpp 
-  elementalcompositionmethod.cpp 
+  elementalcompositionmethod.cpp
   isotopecluster.cpp 
   isotopemethod.cpp 
   lcmsdataset.cpp 
-  lockmass.cpp 
+  lockmass.cpp
+  mappedspectrum.cpp
+  mappedspectrum.hpp
+  mappedspectra.cpp
+  mappedspectra.hpp
+  mappedimage.cpp
+  mappedimage.hpp      
   massspectrometer.cpp 
   massspectrometerbroker.cpp 
   massspectrometer_factory.cpp 
