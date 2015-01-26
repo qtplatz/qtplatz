@@ -102,7 +102,7 @@ namespace signalobserver {
     typedef std::shared_ptr< Observer > ObserverPtr;
     typedef std::vector < ObserverPtr > Observers;
 
-    class Observer : std::enable_shared_from_this< Observer > {
+    class Observer : public std::enable_shared_from_this< Observer > {
         Observer( const Observer& ) = delete;
         void operator = ( const Observer& ) = delete;
     public:
@@ -124,6 +124,8 @@ namespace signalobserver {
             siblings_.push_back( observer->shared_from_this() );
             return true;
         }
+
+        Observers siblings() const                            { return siblings_; }
 
         /** find observer underneath
          */

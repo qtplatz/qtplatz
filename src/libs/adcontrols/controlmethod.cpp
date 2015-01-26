@@ -240,6 +240,16 @@ MethodItem::MethodItem() : unitnumber_( 0 )
 {
 }
 
+MethodItem::MethodItem( const std::string& model
+                        , uint32_t unitnumber
+                        , uint32_t funcid ) : modelname_( model )
+                                                , unitnumber_( unitnumber )
+                                                , isInitialCondition_( true )
+                                                , time_( -1 )
+                                                , funcid_( funcid ) {
+}
+
+
 MethodItem::MethodItem( const MethodItem& t ) : modelname_( t.modelname_ )
                                               , unitnumber_( t.unitnumber_ )
                                               , isInitialCondition_( t.isInitialCondition_ )
