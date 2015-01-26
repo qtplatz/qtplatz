@@ -98,6 +98,7 @@ namespace signalobserver {
     };
 
     class Observer;
+
     typedef std::shared_ptr< Observer > ObserverPtr;
     typedef std::vector < ObserverPtr > Observers;
 
@@ -145,7 +146,7 @@ namespace signalobserver {
         
         virtual void uptime_range( uint64_t& oldest, uint64_t& newest ) const = 0;
         
-        virtual bool readData( uint32_t pos, std::shared_ptr< DataReadBuffer >& dataReadBuffer ) = 0;
+        virtual std::shared_ptr< DataReadBuffer > readData( uint32_t pos ) = 0;
 
         virtual const wchar_t * dataInterpreterClsid() const = 0;
         
