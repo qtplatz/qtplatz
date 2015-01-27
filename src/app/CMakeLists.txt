@@ -44,4 +44,3 @@ target_link_libraries(
   Qt5::Network
 )
 
-

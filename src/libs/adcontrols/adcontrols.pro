@@ -43,6 +43,9 @@ SOURCES += acceptor.cpp \
     isotopemethod.cpp \
     lcmsdataset.cpp \
     lockmass.cpp \
+    mappedspectrum.cpp \
+    mappedspectra.cpp \
+    mappedimage.cpp \
     massspectrometer.cpp \
     massspectrometerbroker.cpp \
     massspectrometer_factory.cpp \
@@ -136,6 +139,9 @@ HEADERS += acceptor.hpp \
     isotopemethod.hpp \
     lcmsdataset.hpp \
     lockmass.hpp \
+    mappedspectrum.hpp \
+    mappedspectra.hpp \
+    mappedimage.hpp \  
     massspectrometer.hpp \
     massspectrometerbroker.hpp \
     massspectrometer_factory.hpp \
