@@ -33,14 +33,6 @@ if ( NOT ace+tao_FOUND )
       CORBA::TAO
       CORBA::ACE )
 
-#    set( ACE+TAO_LIBRARIES 
-#      optimized TAO_Utils debug TAO_Utilsd
-#      optimized TAO_PI debug TAO_PId
-#      optimized TAO_PortableServer debug TAO_PortableServerd
-#      optimized TAO_AnyTypeCode debug TAO_AnyTypeCoded
-#      optimized TAO debug TAOd
-#      optimized ACE debug ACEd )
-    
     if ( ACE_INCLUDE_DIR AND TAO_INCLUDE_DIR )
       set( ace+tao_FOUND 1 )
       set( ACE+TAO_INCLUDE_DIRS ${ACE_INCLUDE_DIR} ${TAO_INCLUDE_DIR} )
@@ -51,8 +43,5 @@ if ( NOT ace+tao_FOUND )
   endif()
 
 endif()
-
-#include_directories( ${ACE_INCLUDE_DIR} ${TAO_INCLUDE_DIR} )
-#link_directories( ${TAO_LIBRARY_DIR} )
 
 

@@ -57,7 +57,6 @@ endif()
 
 link_directories(
   ${LINK_DIRS}
-  ${ACE+TAO_LIBRARY_DIRS}
   )
 
 set( ${PROJECT_NAME}_SOURCES
@@ -103,11 +102,7 @@ target_link_libraries(
   adportable
   xmlparser
   Core
-  optimized TAO_Utils debug TAO_Utilsd
-  optimized TAO_PortableServer debug TAO_PortableServerd
-  optimized TAO_AnyTypeCode debug TAO_AnyTypeCoded
-  optimized TAO debug TAOd
-  optimized ACE debug ACEd
+  ${ACE+TAO_LIBRARIES}
   ${Boost_LIBRARIES}
   )
 
