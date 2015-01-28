@@ -58,22 +58,22 @@ namespace adplot {
         static Qt::GlobalColor color_table[] = {
             Qt::blue          // 0
             , Qt::red           // 1
-            , Qt::green         // 2
+            , Qt::darkGreen     // 2
             , Qt::cyan          // 3
             , Qt::magenta       // 4
             , Qt::yellow        // 5
             , Qt::darkRed       // 6
-            , Qt::darkGreen     // 7
+            , Qt::green         // 7
             , Qt::darkBlue      // 8
             , Qt::darkCyan      // 9
             , Qt::darkMagenta   // 10
             , Qt::darkYellow    // 11
             , Qt::darkGray      // 12
             , Qt::black         // 13
-            , Qt::lightGray      // 14
-            , Qt::white          // 15
-            , Qt::gray    // 16
-            , Qt::transparent    // 17
+            , Qt::lightGray     // 14
+            , Qt::white         // 15
+            , Qt::gray          // 16
+            , Qt::transparent   // 17
         };
         
         class xSeriesData : public QwtSeriesData<QPointF>, boost::noncopyable {
@@ -158,8 +158,8 @@ namespace adplot {
             bool yRight_;
         public:
             std::vector< std::shared_ptr< adPlotCurve > > curves_;
-        private:
             std::shared_ptr< adcontrols::MassSpectrum > pSpectrum_;
+        private:
 			bool isTimeAxis_;
         };
         
@@ -173,7 +173,6 @@ namespace adplot {
                , isTimeAxis_( false )
                , autoYZoom_( true ) 
                , keepZoomed_( true )
-               , axisHadScaled_( false )
                , haxis_( HorizontalAxisMass )
                , focusedFcn_( -1 ) // no focus
             {}
@@ -185,7 +184,6 @@ namespace adplot {
 
         std::atomic<bool> autoYZoom_;
         std::atomic<bool> keepZoomed_;
-        std::atomic<bool> axisHadScaled_;
         std::atomic<HorizontalAxis> haxis_;
         std::atomic<int> focusedFcn_;
 
@@ -436,6 +434,8 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
 
     TraceData& trace = impl_->traces_[ idx ];
 
+    auto lock = trace.pSpectrum_;
+
     QRectF rect;
     trace.setData( *this, ptr, rect, impl_->haxis_, yRight );
 
@@ -452,10 +452,12 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     }
     zoomer()->setZoomBase();
 
-    if ( impl_->axisHadScaled_ && impl_->keepZoomed_ )
-        plot::zoom( z ); // push previous rect
-
-    impl_->axisHadScaled_ = true;
+    if ( lock && impl_->keepZoomed_ ) {
+        auto prev = lock->getAcquisitionMassRange();
+        auto curr = ptr->getAcquisitionMassRange();
+        if ( curr.first <= prev.first && curr.second <= prev.second )
+            plot::zoom( z ); // push previous rect            
+    }
 
     if ( ptr->isCentroid() ) {
         impl_->centroid_ = ptr;
@@ -491,7 +493,8 @@ TraceData::setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const
         ptr->attach( &plot );
         curves_.push_back( ptr );
 
-        QColor color( color_table[ idx_ ] );
+        int cid = ( idx_ + fcn ) % ( sizeof(color_table)/sizeof(color_table[0]) );
+        QColor color( color_table[ cid ] );
         ptr->setPen( color );
         ptr->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
         if ( yRight )

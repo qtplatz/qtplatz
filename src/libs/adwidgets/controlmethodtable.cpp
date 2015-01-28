@@ -142,6 +142,8 @@ ControlMethodTable::setContents( const adcontrols::ControlMethod& m )
         setData( mi, row );
         ++row;
     }
+    if ( m.size() )
+        selectRow( 0 );
     return true;
 }
 

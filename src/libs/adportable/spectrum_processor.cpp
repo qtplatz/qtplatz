@@ -102,8 +102,8 @@ namespace adportable {
     template<typename T> struct areaCalculator {
 
         static double area( const spectrum_processor::areaFraction& frac, double baseH, const T* pData, size_t size ) {
-            assert( frac.lFrac >= 0.0 && frac.lFrac <= 1.0 );
-            assert( frac.uFrac >= 0.0 && frac.uFrac <= 1.0 );
+            //assert( frac.lFrac >= 0.0 && frac.lFrac <= 1.0 );
+            //assert( frac.uFrac >= 0.0 && frac.uFrac <= 1.0 );
             if ( frac.lPos == frac.uPos )
                 return double( pData[ frac.lPos ] );
 

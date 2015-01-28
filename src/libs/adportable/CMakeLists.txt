@@ -8,6 +8,8 @@ add_library( adportable
   date_string.cpp
   debug.cpp
   fft.cpp
+  mslockref.cpp  
+  mslockref.hpp
   polfit.cpp
   portable_binary_oarchive.cpp
   portable_binary_iarchive.cpp

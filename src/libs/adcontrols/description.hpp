@@ -53,11 +53,6 @@ namespace adcontrols {
        const char * xml() const;
        void xml( const char * u );
        
-       // inline const std::wstring& text() const { return text_; }
-       // inline const std::wstring& key() const { return key_; }
-	   // inline const std::string& xml() const { return xml_; }
-	   // inline void xml( const std::string& t ) { xml_ = t; }
-	 
    private:
        time_t tv_sec_;
        long tv_usec_;

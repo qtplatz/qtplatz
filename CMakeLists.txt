@@ -54,6 +54,7 @@ endif()
 add_definitions(-DUNICODE -D_UNICODE)
 
 if (MSVC)
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS )
   message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has native C++11 support.")
 else()
   include(CheckCXXCompilerFlag)
