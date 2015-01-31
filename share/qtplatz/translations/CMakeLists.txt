@@ -12,7 +12,7 @@ set( LANGUAGES cs de fr it ja pl ru sl uk zh_CN zh_TW )
 foreach( lang ${LANGUAGES} )
   set( TS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/qtplatz_${lang}.ts )
   set( ts_files ${ts_files} ${TS_FILE} )
-  set_source_files_properties( ${TS_FILE} PROPERTIES OUTPUT_LOCATION ${CMAKE_CURRENT_SOURCE_DIR} )
+  set_source_files_properties( ${TS_FILE} PROPERTIES OUTPUT_LOCATION ${CMAKE_CURRENT_BINARY_DIR} )
 endforeach()
 
 if ( UPDATE_TRANSLATIONS )
