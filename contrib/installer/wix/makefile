@@ -118,7 +118,7 @@ translations.wixobj: translations.wxi
 	$(CANDLE) -dQtTranslationsDir=$(QTDIR)\translations translations.wxi
 
 qtplatz_translations.wixobj: qtplatz_translations.wxi
-	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\share\qtplatz\translations qtplatz_translations.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_SOURCE_DIR)\share\qtplatz\translations qtplatz_translations.wxi
 
 qtplatz_xslt.wixobj: qtplatz_xslt.wxi
 	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\share\qtplatz\xslt qtplatz_xslt.wxi
