@@ -109,19 +109,19 @@ qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
 	$(CANDLE) qtplatz.wxs
 
 qtplatz_plugins.wixobj: qtplatz_plugins.wxi
-	$(CANDLE) -dSourceDir=$(QTPLATZ_SOURCE_DIR)\lib\qtplatz\plugins qtplatz_plugins.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\lib\qtplatz\plugins qtplatz_plugins.wxi
 
 qtplatz_bin.wixobj: qtplatz_bin.wxi
-	$(CANDLE) -dSourceDir=$(QTPLATZ_SOURCE_DIR)\bin qtplatz_bin.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\bin qtplatz_bin.wxi
 
 translations.wixobj: translations.wxi
 	$(CANDLE) -dQtTranslationsDir=$(QTDIR)\translations translations.wxi
 
 qtplatz_translations.wixobj: qtplatz_translations.wxi
-	$(CANDLE) -dSourceDir=$(QTPLATZ_SOURCE_DIR)\share\qtplatz\translations qtplatz_translations.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\share\qtplatz\translations qtplatz_translations.wxi
 
 qtplatz_xslt.wixobj: qtplatz_xslt.wxi
-	$(CANDLE) -dSourceDir=$(QTPLATZ_SOURCE_DIR)\share\qtplatz\xslt qtplatz_xslt.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\share\qtplatz\xslt qtplatz_xslt.wxi
 
 plugins.wixobj: plugins.wxi
 	$(CANDLE) -dQtPluginsDir=$(QTDIR)\plugins plugins.wxi
@@ -138,22 +138,22 @@ bruker.wixobj: bruker.wxi
 harvest: copy_stage_files qt plugins translations qtplatz_translations bruker
 
 qtplatz_plugins.wxi: makefile
-	$(HEAT) dir $(QTPLATZ_SOURCE_DIR)\lib\qtplatz\plugins \
+	$(HEAT) dir $(QTPLATZ_BINARY_DIR)\lib\qtplatz\plugins \
 	-dr LIB_PLUGINS -cg QtPlatzPluginsComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t qzplugin.xslt -o $@
 
 qtplatz_bin.wxi: makefile
-	$(HEAT) dir $(QTPLATZ_SOURCE_DIR)\bin \
+	$(HEAT) dir $(QTPLATZ_BINARY_DIR)\bin \
 	-dr BIN -cg QtPlatzComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o $@
 
 qtplatz_xslt.wxi: makefile
-	$(HEAT) dir $(QTPLATZ_SOURCE_DIR)\share\qtplatz\xslt \
+	$(HEAT) dir $(QTPLATZ_BINARY_DIR)\share\qtplatz\xslt \
 	-dr XSLT -cg QtPlatzXSLT -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t xslt.xslt -o $@
 
 qtplatz_translations:
-	$(HEAT) dir $(QTPLATZ_SOURCE_DIR)\share\qtplatz\translations \
+	$(HEAT) dir $(QTPLATZ_BINARY_DIR)\share\qtplatz\translations \
 	-dr TRANSLATIONS -cg QtPlatzTranslations -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t qm.xslt -o qtplatz_translations.wxi
 
