@@ -65,27 +65,27 @@ qtplatz-cmake:
 	cd $(QTPLATZ_BINARY_DIR)
 	cmake -G "Visual Studio 12 Win64" ..
 	cd $(MAKEDIR)
-	msbuild $(QTPLATZ_BINARY_DIR)\qtplatz.sln /m:4 /t:Build /p:Configuration=Release
+	msbuild $(QTPLATZ_BINARY_DIR)\qtplatz.sln /m /t:Build /p:Configuration=Release
+
+infitof-cmake:
+	-@$(MD) $(INFITOF_BINARY_DIR)
+	cd $(INFITOF_BINARY_DIR)
+	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_DIR=../qtplatz/$(BUILD) ..
+	cd $(MAKEDIR)
+	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
 
 qtplatz-qmake:
 	-@$(RM) version.wxi
 	cd $(QTPLATZ_SOURCE_DIR)
 	qmake -config release -tp vc -r
 	cd $(MAKEDIR)
-	msbuild $(QTPLATZ_SOURCE_DIR)\qtplatz.sln /m:4 /t:Build /p:Configuration=Release
-
-infitof-cmake:
-	-@$(MD) $(INFITOF_BUILD_DIR)
-	cd $(INFITOF_BUILD_DIR)
-	cmake -G "Visual Studio 12 Win64" ..
-	cd $(MAKEDIR)
-	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m:4 /t:Build /p:Configuration=Release
+	msbuild $(QTPLATZ_SOURCE_DIR)\qtplatz.sln /m /t:Build /p:Configuration=Release
 
 infitof-qmake:
 	cd $(INFITOF_SOURCE_DIR)
 	qmake -config release -tp vc -r
 	cd $(MAKEDIR)
-	msbuild $(INFITOF_SOURCE_DIR)\infitof.sln /m:4 /t:Build /p:Configuration=Release
+	msbuild $(INFITOF_SOURCE_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
 
 version.exe: version.c
 	cl version.c
