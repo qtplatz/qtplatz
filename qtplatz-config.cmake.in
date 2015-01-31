@@ -36,81 +36,85 @@ add_library( acewrapper STATIC IMPORTED )
 add_library( adutils STATIC IMPORTED )
 add_library( qtwrapper STATIC IMPORTED )
 
-set_target_properties( QTC::Core PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Core.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Cored.lib )
+if (WIN32)
+  set_target_properties( QTC::Core PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Core.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Cored.lib )
 
-set_target_properties( QTC::ExtensionSystem PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/extensionsystem.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/extensionsystemd.lib )
+  set_target_properties( QTC::ExtensionSystem PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/extensionsystem.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/extensionsystemd.lib )
 
-set_target_properties( QTC::Utils PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Utils.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Utilsd.lib )
+  set_target_properties( QTC::Utils PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Utils.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Utilsd.lib )
 
-set_target_properties( adextension PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adextension.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adextensiond.lib )
+  set_target_properties( adextension PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adextension.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adextensiond.lib )
 
-set_target_properties( adcontrols PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcontrols.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcontrolsd.lib )
+  set_target_properties( adcontrols PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcontrols.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcontrolsd.lib )
 
-set_target_properties( adlog PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adlog.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adlogd.lib )
+  set_target_properties( adlog PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adlog.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adlogd.lib )
 
-set_target_properties( adplugin PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplugin.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplugind.lib )
+  set_target_properties( adplugin PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplugin.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplugind.lib )
 
-set_target_properties( adorbmgr PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adorbmgr.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adorbmgrd.lib )
+  set_target_properties( adorbmgr PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adorbmgr.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adorbmgrd.lib )
 
-set_target_properties( adsequence PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adsequence.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adsequenced.lib )
+  set_target_properties( adsequence PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adsequence.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adsequenced.lib )
 
-set_target_properties( adsequence PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adsequence.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adsequenced.lib )
+  set_target_properties( adsequence PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adsequence.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adsequenced.lib )
 
-set_target_properties( adplot PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplot.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplotd.lib )
+  set_target_properties( adplot PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplot.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplotd.lib )
 
-set_target_properties( adwidgets PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adwidgets.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adwidgetsd.lib )
+  set_target_properties( adwidgets PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adwidgets.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adwidgetsd.lib )
 
-set_target_properties( portfolio PROPERTIES
-  IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/portfolio.lib
-  IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/portfoliod.lib )
+  set_target_properties( portfolio PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/portfolio.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/portfoliod.lib )
+endif()
+if (WIN32)
+  set_target_properties( adfs PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adfs.lib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adfsd.lib )
 
-set_target_properties( adfs PROPERTIES
-  IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adfs.lib
-  IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adfsd.lib )
+  set_target_properties( adinterface PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adinterface.lib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adinterfaced.lib )
 
-set_target_properties( adinterface PROPERTIES
-  IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adinterface.lib
-  IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adinterfaced.lib )
+  set_target_properties( adportable PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adportable.lib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adportabled.lib )
 
-set_target_properties( adportable PROPERTIES
-  IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adportable.lib
-  IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adportabled.lib )
+  set_target_properties( acewrapper PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acewrapper.lib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acewrapperd.lib )
 
-set_target_properties( acewrapper PROPERTIES
-  IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acewrapper.lib
-  IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acewrapperd.lib )
+  set_target_properties( adutils PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adutils.lib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adutilsd.lib )
 
-set_target_properties( adutils PROPERTIES
-  IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adutils.lib
-  IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adutilsd.lib )
+  set_target_properties( qtwrapper PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/qtwrapper.lib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/qtwrapperd.lib )
 
-set_target_properties( qtwrapper PROPERTIES
-  IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/qtwrapper.lib
-  IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/qtwrapperd.lib )
+endif()
 
 message("## qtplatz-config.cmake ## " ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY} )
 

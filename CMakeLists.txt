@@ -4,9 +4,15 @@ project (qtplatz)
 cmake_minimum_required (VERSION 2.8.9)
 cmake_policy( SET CMP0020 NEW )
 
+set(QMAKE_LAYOUT CACHE BOOL 0)
+
 set(QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
-#set(QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
-set(QTPLATZ_BINARY_DIR ${CMAKE_SOURCE_DIR} )  # qmake compatible
+
+if (QMAKE_LAYOUT)
+  set(QTPLATZ_BINARY_DIR ${CMAKE_SOURCE_DIR} )  # qmake compatible
+else()
+  set(QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
+endif()
 
 # cofigure boost & compiler
 include (qtplatz.cmake)

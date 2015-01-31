@@ -9,8 +9,10 @@
 SH	= CMD.EXE
 TOP    	= ..
 
-QTPLATZ_PATH = ..\..\..
-INFITOF_PATH = $(QTPLATZ_PATH)\..\infitof
+QTPLATZ_SOURCE_DIR = ..\..\..
+QTPLATZ_BINARY_DIR = $(QTPLATZ_SOURCE_DIR)\release_build
+INFITOF_SOURCE_DIR = $(QTPLATZ_SOURCE_DIR)\..\infitof
+INFITOF_BINARY_DIR = $(INFITOF_SOURCE_DIR)\release_build
 
 CANDLE = "$(WIX)bin\Candle.exe"
 LIGHT = "$(WIX)\bin\Light.exe"
@@ -47,42 +49,42 @@ clean:
 	$(RM) *.msi *.wixobj *.wixpdb version.wxi *.zip *.bat *.exe *.obj *~
 
 veryclean: clean
-	cd $(QTPLATZ_PATH)
+	cd $(QTPLATZ_SOURCE_DIR)
 	git clean -d -x -f
 	cd $(MAKEDIR)
-	cd $(INFITOF_PATH)
+	cd $(INFITOF_SOURCE_DIR)
 	git clean -d -x -f
 	cd $(MAKEDIR)
 
 qtplatz-cmake:
 	-$(RM) version.wxi
-	cd $(QTPLATZ_PATH)
-	mkdir release_build
-	cd release_build
+	cd $(QTPLATZ_SOURCE_DIR)
+	-mkdir $(QTPLATZ_BINARY_DIR)
+	cd $(QTPLATZ_BINARY_DIR)
 	cmake -G "Visual Studio 12 Win64" ..
 	cd $(MAKEDIR)
-	msbuild $(QTPLATZ_PATH)\release_build\qtplatz.sln /m:4 /t:Build /p:Configuration=Release
+	msbuild $(QTPLATZ_BINARY_DIR)\qtplatz.sln /m:4 /t:Build /p:Configuration=Release
 
 qtplatz-qmake:
 	-$(RM) version.wxi
-	cd $(QTPLATZ_PATH)
+	cd $(QTPLATZ_SOURCE_DIR)
 	qmake -config release -tp vc -r
 	cd $(MAKEDIR)
-	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Build /p:Configuration=Release
+	msbuild $(QTPLATZ_SOURCE_DIR)\qtplatz.sln /m:4 /t:Build /p:Configuration=Release
 
 infitof-cmake:
-	cd $(INFITOF_PATH)
-	mkdir release_build
-	cd release_build
+	cd $(INFITOF_SOURCE_DIR)
+	-mkdir $(INFITOF_BINARY_DIR)
+	cd $(INFITOF_BINARY_DIR)
 	cmake -G "Visual Studio 12 Win64" ..
 	cd $(MAKEDIR)
-	msbuild $(INFITOF_PATH)\release_build\infitof.sln /m:4 /t:Build /p:Configuration=Release
+	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m:4 /t:Build /p:Configuration=Release
 
 infitof-qmake:
-	cd $(INFITOF_PATH)
+	cd $(INFITOF_SOURCE_DIR)
 	qmake -config release -tp vc -r
 	cd $(MAKEDIR)
-	msbuild $(INFITOF_PATH)\infitof.sln /m:4 /t:Build /p:Configuration=Release
+	msbuild $(INFITOF_SOURCE_DIR)\infitof.sln /m:4 /t:Build /p:Configuration=Release
 
 version.exe: version.c
 	cl version.c
@@ -106,19 +108,19 @@ qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
 	$(CANDLE) qtplatz.wxs
 
 qtplatz_plugins.wixobj: qtplatz_plugins.wxi
-	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\lib\qtplatz\plugins qtplatz_plugins.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_SOURCE_DIR)\lib\qtplatz\plugins qtplatz_plugins.wxi
 
 qtplatz_bin.wixobj: qtplatz_bin.wxi
-	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\bin qtplatz_bin.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_SOURCE_DIR)\bin qtplatz_bin.wxi
 
 translations.wixobj: translations.wxi
 	$(CANDLE) -dQtTranslationsDir=$(QTDIR)\translations translations.wxi
 
 qtplatz_translations.wixobj: qtplatz_translations.wxi
-	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\share\qtplatz\translations qtplatz_translations.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_SOURCE_DIR)\share\qtplatz\translations qtplatz_translations.wxi
 
 qtplatz_xslt.wixobj: qtplatz_xslt.wxi
-	$(CANDLE) -dSourceDir=$(QTPLATZ_PATH)\share\qtplatz\xslt qtplatz_xslt.wxi
+	$(CANDLE) -dSourceDir=$(QTPLATZ_SOURCE_DIR)\share\qtplatz\xslt qtplatz_xslt.wxi
 
 plugins.wixobj: plugins.wxi
 	$(CANDLE) -dQtPluginsDir=$(QTDIR)\plugins plugins.wxi
@@ -130,27 +132,27 @@ vc120.wixobj: vc120.wxi
 	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC120.CRT" vc120.wxi
 
 bruker.wixobj: bruker.wxi 
-	$(CANDLE) -dSourceDir="$(QTPLATZ_PATH)\..\Bruker Daltonik\3.1.2" bruker.wxi
+	$(CANDLE) -dSourceDir="$(QTPLATZ_SOURCE_DIR)\..\Bruker Daltonik\3.1.2" bruker.wxi
 
 harvest: copy_stage_files qt plugins translations qtplatz_translations bruker
 
 qtplatz_plugins.wxi: makefile
-	$(HEAT) dir $(QTPLATZ_PATH)\lib\qtplatz\plugins \
+	$(HEAT) dir $(QTPLATZ_SOURCE_DIR)\lib\qtplatz\plugins \
 	-dr LIB_PLUGINS -cg QtPlatzPluginsComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t qzplugin.xslt -o $@
 
 qtplatz_bin.wxi: makefile
-	$(HEAT) dir $(QTPLATZ_PATH)\bin \
+	$(HEAT) dir $(QTPLATZ_SOURCE_DIR)\bin \
 	-dr BIN -cg QtPlatzComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o $@
 
 qtplatz_xslt.wxi: makefile
-	$(HEAT) dir $(QTPLATZ_PATH)\share\qtplatz\xslt \
+	$(HEAT) dir $(QTPLATZ_SOURCE_DIR)\share\qtplatz\xslt \
 	-dr XSLT -cg QtPlatzXSLT -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t xslt.xslt -o $@
 
 qtplatz_translations:
-	$(HEAT) dir $(QTPLATZ_PATH)\share\qtplatz\translations \
+	$(HEAT) dir $(QTPLATZ_SOURCE_DIR)\share\qtplatz\translations \
 	-dr TRANSLATIONS -cg QtPlatzTranslations -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t qm.xslt -o qtplatz_translations.wxi
 
@@ -187,11 +189,9 @@ copy_stage_files:
 	rm -rf $(STAGEDIR)
 	-@$(MD) $(STAGEDIR)\bin
 	-@$(MD) $(STAGEDIR)\plugins
-#	-@$(MD) $(STAGEDIR)\plugins\accessible
 	-@$(MD) $(STAGEDIR)\plugins\imageformats
 	-@$(MD)	$(STAGEDIR)\plugins\platforms
 	-@$(MD)	$(STAGEDIR)\plugins\sqldrivers
-#	$(CP) $(QTDIR)\plugins\accessible\qtaccessiblewidgets.dll $(STAGEDIR)\plugins\accessible
 	$(CP) $(QTDIR)\plugins\imageformats\qdds.dll	$(STAGEDIR)\plugins\imageformats
 	$(CP) $(QTDIR)\plugins\imageformats\qgif.dll	$(STAGEDIR)\plugins\imageformats
 	$(CP) $(QTDIR)\plugins\imageformats\qicns.dll	$(STAGEDIR)\plugins\imageformats
