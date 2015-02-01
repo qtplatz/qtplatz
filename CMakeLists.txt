@@ -44,6 +44,9 @@ set( ACE_ROOT $ENV{ACE_ROOT} )
 
 find_package( Boost REQUIRED )
 find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
+if ( Qt5-NOTFIND )
+  message( STATUS "Check PATH environment variable" )
+endif()
 find_package( qwt )
 find_package( rdkit )
 
