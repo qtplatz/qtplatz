@@ -1,3 +1,4 @@
+#
 cmake_minimum_required(VERSION 2.8.11)
 project( wix_installer )
 
@@ -31,6 +32,9 @@ list( GET version_numbers 2 VERSION_MICRO )
 list( GET version_numbers 3 VERSION_PATCH )
 
 set( MSIFILE qtplatz-${git_describe}.msi )
+
+string( REGEX REPLACE "/" "\\\\" QTPLATZ_SOURCE_DIR ${QTPLATZ_SOURCE_DIR} )
+message( "QTPLATZ_SOURCE_DIR: " ${QTPLATZ_SOURCE_DIR} )
   
 configure_file(
   "${PROJECT_SOURCE_DIR}/makefile.in"
