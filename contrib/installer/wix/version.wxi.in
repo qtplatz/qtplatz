@@ -1,0 +1,3 @@
+<Include>
+  <?define ProductVersion ="@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_MICRO@.@VERSION_PATCH@" ?>
+</Include>

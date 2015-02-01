@@ -20,7 +20,11 @@ include (qtplatz.cmake)
 #
 # Output directories layout, which is equivalent to original QTC layout
 #
-set(CMAKE_INSTALL_PREFIX ${QTPLATZ_SOURCE_DIR})
+if (WIN32)
+  set(CMAKE_INSTALL_PREFIX "C:/qtplatz" )
+else()
+  set(CMAKE_INSTALL_PREFIX "/usr/local/qtplatz" )
+endif()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib) # static libs, dll's import lib/exp
 
