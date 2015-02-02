@@ -16,10 +16,7 @@ endif()
 
 # cofigure boost & compiler
 include (qtplatz.cmake)
-
 include (qtplatz-version)
-message( "######### git_describe = : " ${git_describe} )
-message( "######### VERSION = : " ${VERSION_MAJOR} "; " ${VERSION_MINOR} "; " ${VERSION_MICRO} "; " ${VERSION_PATCH} "; " ${VERSION_HASH} )
 #
 # Output directories layout, which is equivalent to original QTC layout
 #
@@ -50,7 +47,7 @@ install( FILES
 set( ACE_ROOT $ENV{ACE_ROOT} )
 
 find_package( Boost REQUIRED )
-find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
+find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core Sql )
 if ( Qt5-NOTFIND )
   message( STATUS "Check PATH environment variable" )
 endif()
@@ -91,4 +88,14 @@ add_subdirectory (src)
 add_subdirectory (contrib)
 add_subdirectory (share)
 
-include( qmake-cpack-config.cmake )
+include( qtplatz-cpack-config )
+foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )
+  get_target_property( _loc ${plugin} LOCATION )
+  file( RELATIVE_PATH _rname $ENV{QTDIR}/plugins ${_loc} )
+  get_filename_component(_rpath ${_rname} DIRECTORY )
+  install( FILES ${_loc} DESTINATION plugins/${_rpath} )
+endforeach()
+
+include( CPack )
+
+

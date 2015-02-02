@@ -7,9 +7,11 @@ find_path( INFITOF_SOURCE_DIR NAMES "infitof-config.cmake" HINTS ${QTPLATZ_SOURC
 include( qtplatz-version )
 
 set( MSIFILE qtplatz-${git_describe}.msi )
+set( STAGEDIR ${PROJECT_BINARY_DIR}/stage )
 
 string( REGEX REPLACE "/" "\\\\" QTPLATZ_SOURCE_DIR ${QTPLATZ_SOURCE_DIR} )
 string( REGEX REPLACE "/" "\\\\" INFITOF_SOURCE_DIR ${INFITOF_SOURCE_DIR} )
+string( REGEX REPLACE "/" "\\\\" STAGEDIR ${STAGEDIR} )
   
 configure_file(
   "${PROJECT_SOURCE_DIR}/makefile.in"
@@ -50,7 +52,12 @@ configure_file(
 file( GLOB XSLTFILES ${PROJECT_SOURCE_DIR}/*.xslt )
 file( COPY ${XSLTFILES} DESTINATION ${PROJECT_BINARY_DIR} )
 
-message("## WIX ## XSLTFILES : " ${XSLTFILES} )
+foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )
+  get_target_property( _loc ${plugin} LOCATION )
+  file( RELATIVE_PATH _rname $ENV{QTDIR}/plugins ${_loc} )
+  get_filename_component(_rpath ${_rname} DIRECTORY )
+  file( COPY ${_loc} DESTINATION ${STAGEDIR}/plugins/${_rpath} )
+endforeach()
 
 add_custom_target( makefile DEPENDS makefile.in )
 
