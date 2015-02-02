@@ -1,3 +1,4 @@
+project( acewrapper )
 #TARGET = acewrapper
 #TEMPLATE = lib
 #CONFIG += staticlib
@@ -17,3 +18,6 @@ add_library( acewrapper
   udpeventsender.hpp
 )
            
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

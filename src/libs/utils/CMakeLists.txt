@@ -207,3 +207,7 @@ target_link_libraries(
   Qt5::Network
   Qt5::PrintSupport
   )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

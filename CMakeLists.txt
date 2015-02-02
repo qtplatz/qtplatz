@@ -17,6 +17,9 @@ endif()
 # cofigure boost & compiler
 include (qtplatz.cmake)
 
+include (qtplatz-version)
+message( "######### git_describe = : " ${git_describe} )
+message( "######### VERSION = : " ${VERSION_MAJOR} "; " ${VERSION_MINOR} "; " ${VERSION_MICRO} "; " ${VERSION_PATCH} "; " ${VERSION_HASH} )
 #
 # Output directories layout, which is equivalent to original QTC layout
 #
@@ -88,3 +91,4 @@ add_subdirectory (src)
 add_subdirectory (contrib)
 add_subdirectory (share)
 
+include( qmake-cpack-config.cmake )

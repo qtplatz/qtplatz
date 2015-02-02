@@ -103,3 +103,6 @@ target_link_libraries(
 ## for cross compile, --sysroot will be automatically added
 #  INCLUDEPATH += /usr/include/libxml2
 #}
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

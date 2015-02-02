@@ -106,3 +106,12 @@ target_link_libraries(
   ${Boost_LIBRARIES}
   )
 
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.config"
+  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )

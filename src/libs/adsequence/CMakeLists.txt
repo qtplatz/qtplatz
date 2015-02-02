@@ -32,3 +32,6 @@ add_library( adsequence SHARED
 target_link_libraries( adsequence LINK_PUBLIC
   ${Boost_LIBRARIES} adportable
   )
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

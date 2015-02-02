@@ -30,3 +30,7 @@ add_library( adfs
   sqlite3.h
   ${adfs_SOURCE}
   )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

@@ -74,7 +74,7 @@
         </Directory>
     </Fragment>
     <?define TOP = "../../.." ?>
-    <?define InfiTOFDir   = "$(var.TOP)/../infitof" ?>
+    <!-- <?define InfiTOFDir   = "$(var.TOP)/../infitof" ?> -->
     <?define EZUSBDir     = "$(var.InfiTOFDir)/libusb-win32/usbdriver" ?>
     <?define InMSCheminfo = "$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics" ?>
     <?define InQt         = "$(env.QTDIR)" ?>

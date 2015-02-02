@@ -55,3 +55,7 @@ target_link_libraries( adplot LINK_PUBLIC
   Qt5::PrintSupport
   ${QWT_LIBRARIES}
   )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

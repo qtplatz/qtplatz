@@ -105,3 +105,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 #linux-*: LIBS += -lqwt -ldl -lboost_thread -lrt
 #FORMS +=    mspropertyform.ui    dialogspectrometerchoice.ui
 
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES ${PROJECT_NAME}.pluginspec DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )

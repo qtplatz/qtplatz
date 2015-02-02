@@ -70,3 +70,10 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${Boost_LIBRARIES}
   ${linux_LIBS}
 )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES ${PROJECT_NAME}.adplugin DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )

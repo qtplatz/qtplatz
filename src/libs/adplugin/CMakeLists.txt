@@ -1,6 +1,8 @@
 #
 # CMakeLists for adplugin shared library
 #
+project( adplugin )
+
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
@@ -40,3 +42,6 @@ target_link_libraries( adplugin LINK_PUBLIC
   adlog
   Qt5::Widgets )
 
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

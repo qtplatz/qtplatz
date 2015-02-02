@@ -155,8 +155,13 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${Boost_LIBRARIES}
 )
 
-#LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
-#QT += core svg printsupport
-#linux-*: LIBS += -lqwt -ldl -lboost_thread -lrt
-#FORMS +=    mspropertyform.ui    dialogspectrometerchoice.ui
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
+install( FILES
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.config"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/dataproc-mimetype.xml"
+  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )

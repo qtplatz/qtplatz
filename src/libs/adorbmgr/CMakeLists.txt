@@ -1,4 +1,4 @@
-
+project( adorbmgr )
 cmake_policy(SET CMP0022 NEW)
 add_definitions(-DADORBMGR_LIBRARY)
 
@@ -24,6 +24,10 @@ target_link_libraries( adorbmgr LINK_PUBLIC
   xmlparser
   ${ACE+TAO_LIBRARIES}
   ${Boost_LIBRARIES} )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 #LIBS += -l$$qtLibraryTarget(acewrapper) \
 #        -l$$qtLibraryTarget(adlog) \

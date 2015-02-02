@@ -44,3 +44,4 @@ target_link_libraries(
   Qt5::Network
 )
 
+install( TARGETS qtplatz RUNTIME DESTINATION bin COMPONENT applications )

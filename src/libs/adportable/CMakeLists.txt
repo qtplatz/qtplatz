@@ -1,4 +1,6 @@
 
+project( adportable )
+
 add_library( adportable
   base64.cpp
   configloader.cpp
@@ -29,3 +31,7 @@ add_library( adportable
   uuid.cpp )
 
 target_include_directories( adportable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

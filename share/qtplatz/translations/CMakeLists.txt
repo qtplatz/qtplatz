@@ -39,6 +39,7 @@ file( WRITE phony.c "int main() { return 0; }" )
 #add_custom_target( translations_target DEPENDS ${qm_files} )
 add_executable( translations phony.c ${qm_files} )
 
-install( FILES ${qm_files} DESTINATION ${CMAKE_SOURCE_DIR}/translations )
+#install( FILES ${qm_files} DESTINATION ${CMAKE_SOURCE_DIR}/translations )
+install( FILES ${qm_files} DESTINATION share/qtplatz/translations COMPONENT translations )
 set_directory_properties( PROPERTIES CLEAN_NO_CUSTOM true )
 

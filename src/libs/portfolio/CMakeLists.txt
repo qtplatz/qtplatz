@@ -1,3 +1,4 @@
+project( portfolio )
 
 #cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0022 NEW)
@@ -28,3 +29,6 @@ target_link_libraries( portfolio LINK_PUBLIC
 
 #win32: LIBS += -lole32
 #!win32: LIBS += -lboost_date_time -lboost_system 
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

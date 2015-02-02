@@ -40,3 +40,9 @@ target_link_libraries( addatafile LINK_PUBLIC
   adplugin
 )
         
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES ${PROJECT_NAME}.adplugin DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )

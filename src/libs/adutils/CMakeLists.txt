@@ -21,3 +21,7 @@ add_library( adutils
   acquiredconf.hpp
   acquireddata.hpp
   )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

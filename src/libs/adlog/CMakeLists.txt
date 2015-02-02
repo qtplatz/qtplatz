@@ -1,4 +1,4 @@
-
+project( adlog )
 cmake_policy(SET CMP0022 NEW)
 
 #set(Boost_USE_STATIC_LIBS ON)
@@ -19,3 +19,6 @@ target_link_libraries( adlog LINK_PUBLIC
 		       adportable
 		       )
 
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

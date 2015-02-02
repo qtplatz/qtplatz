@@ -41,3 +41,7 @@ add_library( adextension SHARED ${adextension_SOURCES} )
 target_link_libraries( adextension LINK_PUBLIC 
   Qt5::Core
   )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

@@ -318,3 +318,9 @@ endif()
 
 #OTHER_FILES += editormanager/BinFiles.mimetypes.xml
 
+install( TARGETS Core
+  RUNTIME DESTINATION lib/qtplatz/plugins/QtProject COMPONENT plugins
+  LIBRARY DESTINATION lib/qtplatz/plugins/QtProject COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES ${PROJECT_NAME}.pluginspec DESTINATION lib/qtplatz/plugins/QtProject COMPONENT plugins )

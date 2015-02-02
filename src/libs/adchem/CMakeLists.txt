@@ -29,3 +29,7 @@ target_link_libraries( adchem LINK_PUBLIC
   Descriptors
   adportable
   ${Boost_LIBRARIES} )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

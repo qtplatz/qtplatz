@@ -52,3 +52,6 @@ add_library( adinterface
   ${GENERATED_H}
   )
 
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT apprications
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

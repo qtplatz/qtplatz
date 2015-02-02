@@ -79,20 +79,10 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${Boost_LIBRARIES}
 )
 
-#QT += core svg printsupport
-#greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
-#PROVIDER = MS-Cheminformatics
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-#  LIBS += -lboost_system           -lboost_filesystem           -lboost_date_time
-
-#linux-*: LIBS += -lqwt -ldl
-#macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
-
-# peptide files
-
-## set the QTC_SOURCE environment variable to override the setting here
-#QTCREATOR_SOURCES = $$(QTC_SOURCE)
-
-## set the QTC_BUILD environment variable to override the setting here
-#IDE_BUILD_TREE = $$(QTC_BUILD)
-
+install( FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )

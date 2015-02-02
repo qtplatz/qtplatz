@@ -14,8 +14,8 @@ MSIFILE = @MSIFILE@
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 QTPLATZ_BINARY_DIR = @QTPLATZ_SOURCE_DIR@\$(BUILD)
 
-INFITOF_SOURCE_DIR = $(QTPLATZ_SOURCE_DIR)\..\infitof
-INFITOF_BINARY_DIR = $(INFITOF_SOURCE_DIR)\$(BUILD)
+INFITOF_SOURCE_DIR = @INFITOF_SORUCE_DIR@\..\infitof
+INFITOF_BINARY_DIR = @INFITOF_SOURCE_DIR@\$(BUILD)
 
 CANDLE = "$(WIX)bin\Candle.exe"
 LIGHT = "$(WIX)\bin\Light.exe"
@@ -49,7 +49,7 @@ help:
 
 clean:
 	$(RM) /S /F /Q $(STAGEDIR)
-	$(RM) *.msi *.wixobj *.wixpdb version.wxi *.zip *.bat *.exe *.obj *~
+	$(RM) *.msi *.wixobj *.wixpdb *.zip *.bat *.exe *.obj *~
 
 veryclean: clean
 	cd $(QTPLATZ_SOURCE_DIR)
@@ -60,7 +60,6 @@ veryclean: clean
 	cd $(MAKEDIR)
 
 qtplatz-cmake:
-	-@$(RM) version.wxi
 	-@$(MD) $(QTPLATZ_BINARY_DIR)
 	cd $(QTPLATZ_BINARY_DIR)
 	cmake -G "Visual Studio 12 Win64" ..
@@ -70,39 +69,18 @@ qtplatz-cmake:
 infitof-cmake:
 	-@$(MD) $(INFITOF_BINARY_DIR)
 	cd $(INFITOF_BINARY_DIR)
-	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_DIR=../qtplatz/$(BUILD) ..
+	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_DIR=$(QTPLATZ_BINARY_DIR) ..
 	cd $(MAKEDIR)
 	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
-
-qtplatz-qmake:
-	-@$(RM) version.wxi
-	cd $(QTPLATZ_SOURCE_DIR)
-	qmake -config release -tp vc -r
-	cd $(MAKEDIR)
-	msbuild $(QTPLATZ_SOURCE_DIR)\qtplatz.sln /m /t:Build /p:Configuration=Release
-
-infitof-qmake:
-	cd $(INFITOF_SOURCE_DIR)
-	qmake -config release -tp vc -r
-	cd $(MAKEDIR)
-	msbuild $(INFITOF_SOURCE_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
-
-version.exe: version.c
-	cl version.c
-
-version.wxi: version.exe ../../../.git
-	git describe | version > version.wxi
 
 $(MSIFILE): version.wxi $(OBJS)
 	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll $(OBJS) -o $@
 
-#signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
-
 sign:
 	signtool sign /t http://timestamp.digicert.com /a $(MSIFILE)
 
-qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
-	$(CANDLE) qtplatz.wxs
+qtplatz.wixobj: version.wxi qtplatz.wxs
+	$(CANDLE) -dInfiTOFDir=$(INFITOF_SOURCE_DIR) qtplatz.wxs
 
 qtplatz_plugins.wixobj: qtplatz_plugins.wxi
 	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\lib\qtplatz\plugins qtplatz_plugins.wxi

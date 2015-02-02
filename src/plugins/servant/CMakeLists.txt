@@ -76,3 +76,9 @@ target_link_libraries( servant LINK_PUBLIC
 #    servant.pluginspec \
 #    servant.config
 
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES ${PROJECT_NAME}.pluginspec DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
