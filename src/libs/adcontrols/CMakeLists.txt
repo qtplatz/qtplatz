@@ -112,7 +112,7 @@ target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 target_link_libraries( adcontrols LINK_PUBLIC ${Boost_LIBRARIES} adportable )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION bin COMPONENT apprications
+  RUNTIME DESTINATION bin COMPONENT applications
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 install( FILES

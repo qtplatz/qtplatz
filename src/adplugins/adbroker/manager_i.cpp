@@ -29,6 +29,7 @@
 #include "objectdiscovery.hpp"
 #include <acewrapper/orbservant.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/string.hpp>
 #include <regex>
 
@@ -220,6 +221,7 @@ manager_i::find_object( const char * regex )
 	std::regex re( regex );
 	std::cmatch matches;
 	auto itr = std::find_if( objVec_.begin(), objVec_.end(), [&](const std::map<std::string, CORBA::Object_var>::value_type& d) {
+        ADDEBUG() << "\nregex_match:" << d.first.c_str() << " == " << regex;
 		return std::regex_match( d.first.c_str(), matches, re );
 	} );
 	if ( itr != objVec_.end() )

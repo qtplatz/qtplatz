@@ -30,5 +30,5 @@ target_link_libraries( portfolio LINK_PUBLIC
 #win32: LIBS += -lole32
 #!win32: LIBS += -lboost_date_time -lboost_system 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION bin COMPONENT apprications
+  RUNTIME DESTINATION bin COMPONENT applications
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

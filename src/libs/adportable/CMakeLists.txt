@@ -33,5 +33,5 @@ add_library( adportable
 target_include_directories( adportable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION bin COMPONENT apprications
+  RUNTIME DESTINATION bin COMPONENT applications
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

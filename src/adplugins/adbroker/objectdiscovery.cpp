@@ -25,6 +25,7 @@
 
 #include "objectdiscovery.hpp"
 #include <acewrapper/iorquery.hpp>
+#include <adportable/debug.hpp>
 
 #include "manager_i.hpp"
 #include <acewrapper/constants.hpp>
@@ -76,6 +77,8 @@ void
 ObjectDiscovery::reply_handler( const std::string& ident, const std::string& ior )
 {
 	std::string name;
+
+    ADDEBUG() << "ObjectDiscovery: " << ident << ", " << ior;
 
     if ( unregister_lookup( ident, name ) ) {
         ADTRACE() << "ObjectDiscovery: name=" << name << ", " << ident 
