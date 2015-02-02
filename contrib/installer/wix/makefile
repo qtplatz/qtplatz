@@ -106,7 +106,7 @@ sign:
 	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
 
 qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
-	$(CANDLE) qtplatz.wxs
+	$(CANDLE) -dInfiTOFDir=$(INFITOF_SOURCE_DIR) -dTOP=$(QTPLATZ_SOURCE_DIR) qtplatz.wxs
 
 qtplatz_plugins.wixobj: qtplatz_plugins.wxi
 	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\lib\qtplatz\plugins qtplatz_plugins.wxi
