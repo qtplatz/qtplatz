@@ -138,11 +138,42 @@ namespace adportable {
         }
     };
 
+    struct tic_calculator {
+        template<typename T> double operator () ( size_t nbrSamples, const T * praw, double& dbase, double& rms, size_t N ) {
+
+            if ( nbrSamples < N )
+                return 0.0;
+
+            averager base;
+            //averager avgr;
+            int cnt = 1;
+            do {
+                slope_counter counter(20.0);
+                for ( size_t x = (N/2); x < nbrSamples - (N/2); ++x ) {
+                    //avgr( praw[x] );
+                    if ( counter( convolute<T>( &praw[x] ) ) > N )
+                        base( praw[ x - (N/2) ] );
+                    else if ( counter.n > N )
+                        cnt++;
+                }
+            } while (0);
+            dbase = base.average();
+            rms = base.rms();
+            double ax = 0;
+            for ( size_t i = 0; i < nbrSamples; ++i )
+                ax += praw[ i ] - dbase;
+            return ax; //avgr.average() - dbase;
+        }
+
+    };
+    
 }
 
 double
 spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase, double& rms, size_t N )
 {
+    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+#if 0
     averager base;
     averager avgr;
     int cnt = 1;
@@ -163,12 +194,15 @@ spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase,
     double ax = 0;
     for ( size_t i = 0; i < nbrSamples; ++i )
         ax += praw[ i ] - dbase;
-    return ax; 
+    return ax;
+#endif
 }
 
 double
 spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, double& rms, size_t N )
 {
+    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+#if 0    
     if ( nbrSamples < N )
         return 0.0;
 
@@ -191,6 +225,7 @@ spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, 
     for ( size_t i = 0; i < nbrSamples; ++i )
         ax += praw[ i ] - dbase;
     return ax; //avgr.average() - dbase;
+#endif
 }
 
 void
