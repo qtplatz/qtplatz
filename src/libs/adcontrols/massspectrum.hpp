@@ -97,6 +97,7 @@ namespace adcontrols {
         const double * getMassArray() const;
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
+        double compute_mass( double time ) const;
         size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
         size_t operator << ( const std::pair< double, double >& ); // add (mass,intensity), return index
 
@@ -184,6 +185,7 @@ namespace adcontrols {
         static void set_color( MassSpectrum&, size_t fcn, size_t idx, int color );
         static int  get_color( const MassSpectrum&, size_t fcn, size_t idx );
         static std::pair<int, int> base_peak_index( const MassSpectrum&, double lMass, double uMass );
+        static std::pair<double, double> acquisition_time_range( const MassSpectrum& );
         static double get_mass( const MassSpectrum&, const std::pair< int, int >& );
         static double get_intensity( const MassSpectrum&, const std::pair< int, int >& );
         static bool add( MassSpectrum&, const MassSpectrum& );

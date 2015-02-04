@@ -67,7 +67,8 @@ namespace adportable {
             return Xr - Xl;
         }
 
-        double centerX( const double * py, double threshold, uint32_t spos, uint32_t tpos, size_t epos ) {
+        double centreX( const double * py, double threshold, uint32_t spos, uint32_t tpos, size_t epos ) {
+
             int xL = left_bound<double>( py, threshold, tpos, spos );
             int xR = right_bound<double>( py, threshold, tpos, epos );
             Xl = left_intersection( py, xL, threshold );

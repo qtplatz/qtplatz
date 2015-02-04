@@ -89,6 +89,12 @@ MSPeakInfoItem::peak_index() const
     return peak_index_;
 }
 
+void
+MSPeakInfoItem::set_peak_index( unsigned int idx )
+{
+    peak_index_ = idx;
+}
+
 unsigned int
 MSPeakInfoItem::peak_start_index() const
 {
@@ -96,7 +102,7 @@ MSPeakInfoItem::peak_start_index() const
 }
 
 void
-MSPeakInfoItem::peak_start_index( unsigned int idx )
+MSPeakInfoItem::set_peak_start_index( unsigned int idx )
 {
     peak_start_index_ = idx;
 }
@@ -108,7 +114,7 @@ MSPeakInfoItem::peak_end_index() const
 }
 
 void
-MSPeakInfoItem::peak_end_index( unsigned int idx )
+MSPeakInfoItem::set_peak_end_index( unsigned int idx )
 {
     peak_end_index_ = idx;
 }
@@ -120,7 +126,7 @@ MSPeakInfoItem::base_height() const
 }
 
 void
-MSPeakInfoItem::base_height( double h )
+MSPeakInfoItem::set_base_height( double h )
 {
     base_height_ = h;
 }
@@ -137,10 +143,22 @@ MSPeakInfoItem::area() const
     return area_;
 }
 
+void
+MSPeakInfoItem::set_area( double a )
+{
+    area_ = a;
+}
+
 double
 MSPeakInfoItem::height() const
 {
     return height_;
+}
+
+void
+MSPeakInfoItem::set_height( double h )
+{
+    height_ = h;
 }
 
 double
@@ -155,6 +173,15 @@ MSPeakInfoItem::time( bool time ) const
     return time ? time_from_time_ : time_from_mass_;
 }
 
+void
+MSPeakInfoItem::set_time( double t, bool from_time )
+{
+    if ( from_time )
+        time_from_time_ = t;
+    else
+        time_from_mass_ = t;
+}
+
 double
 MSPeakInfoItem::centroid_left( bool time ) const
 {
@@ -167,10 +194,34 @@ MSPeakInfoItem::centroid_right( bool time ) const
     return time ? centroid_right_time_ : centroid_right_mass_;
 }
 
+void
+MSPeakInfoItem::set_centroid_left( double t, bool time )
+{
+    if ( time )
+        centroid_left_time_ = t;
+    else
+        centroid_left_mass_ = t;
+}
+
+void
+MSPeakInfoItem::set_centroid_right( double t, bool time )
+{
+    if ( time )
+        centroid_right_time_ = t;
+    else
+        centroid_right_mass_ = t;
+}
+
 double
 MSPeakInfoItem::centroid_threshold() const
 {
     return centroid_threshold_;
+}
+
+void
+MSPeakInfoItem::set_centroid_threshold( double t )
+{
+    centroid_threshold_ = t;
 }
 
 double

@@ -95,6 +95,12 @@ SGFilter::operator()( const int32_t * y ) const
     return convolution( y, coefficients_.data(), norm_, m_ );
 }
 
+double
+SGFilter::operator()( const std::function< double(size_t) > fy, size_t cx ) const
+{
+    return convolution( fy, cx, coefficients_.data(), norm_, m_ );
+}
+
 int
 SGFilter::m() const
 {
@@ -201,6 +207,19 @@ SGFilter::convolution( const int32_t * y, const double * C, const double& norm, 
     y -= m / 2;
     for ( int i = 0; i < m; ++i )
         fxi += y[ i ] * C[ i ];
+    return fxi / norm;
+}
+
+// static
+double
+SGFilter::convolution( const std::function< double( size_t ) > fy, size_t cx, const double * C, const double& norm, int m )
+{
+    double fxi = 0;
+    if ( cx <(  m / 2 ) )
+        return 0;
+    cx -= m / 2;
+    for ( int i = 0; i < m; ++i )
+        fxi += fy( cx + i ) * C[ i ];
     return fxi / norm;
 }
 

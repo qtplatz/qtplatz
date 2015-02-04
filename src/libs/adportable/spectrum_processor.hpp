@@ -28,9 +28,9 @@
 #include <vector>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 
 namespace adportable {
-
 
     class spectrum_processor {
     public:
@@ -67,15 +67,47 @@ namespace adportable {
     class spectrum_peakfinder {
     public:
         enum WidthMethod { Constant, Proportional, TOF };
-        spectrum_peakfinder( double pw = 0.1, double bw = 50, WidthMethod wm = Constant );
+        spectrum_peakfinder( double pw = 0.1, double bw = 0, WidthMethod wm = Constant );
         size_t operator()( size_t nbrSamples, const double *pX, const double * pY );
-
         double peakwidth_;
         double atmz_;
-        double baseline_width_;
-        std::vector< double > pdebug_;   // for internal debug
         WidthMethod width_method_;
         std::vector< peakinfo > results_;
+    };
+
+    /** \brief simplified peak finder for any waveform w/ centroid
+     * 
+     * waveform_peakfinder ctor take a functor as an argument, which return peak width and 
+     * number of samples equivalent to peak width for SG filter.
+     */
+    class waveform_peakfinder {
+    public:
+        
+        struct peakinfo {
+            size_t spos;
+            size_t epos;
+            size_t tpos;
+            double height;
+            double centreX;
+            double xleft;
+            double xright;
+            peakinfo( size_t x1, size_t x2, size_t tp, double h = 0, double c = 0 )
+                : spos( x1 ), epos( x2 ), tpos( tp ), height(h), centreX(c), xleft(0), xright(0)
+                {}
+        };
+        
+        waveform_peakfinder( std::function< double( size_t idx, int& npeakw )> fpeakw );
+        
+        size_t operator()( std::function< double( size_t ) > fx
+                           , const double * pY
+                           , size_t beg, size_t end
+                           , std::vector< waveform_peakfinder::peakinfo >& results );
+        double dbase() const;
+        double rms() const;        
+    private:
+        std::function< double( size_t idx, int& )> fpeakw_;
+        double dbase_;
+        double rms_;
     };
 	
 }

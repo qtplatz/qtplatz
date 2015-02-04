@@ -28,7 +28,7 @@
 #include "array_wrapper.hpp"
 #include <boost/variant.hpp>
 #include <compiler/diagnostic_pop.h>
-
+#include "moment.hpp"
 #include "sgfilter.hpp"
 
 #include <cmath>
@@ -56,7 +56,15 @@ namespace adportable {
         fxi = fxi / __norm5__;
         return fxi;  
     }
-		
+    template<typename _fy> static inline double convolute( const _fy fy, size_t idx ) {
+        double fxi;
+        fxi  = 0; // __1st_derivative5__[0] * py[0];
+        fxi += __1st_derivative5__[1] * ( -fy( idx - 1 ) + fy( idx + 1 ) );
+        fxi += __1st_derivative5__[2] * ( -fy( idx - 2 ) + fy( idx + 2 ) );
+        fxi = fxi / __norm5__;
+        return fxi;  
+    }
+
     struct slope_counter {
         size_t uc, dc, zc, bc;
         size_t w;
@@ -139,24 +147,24 @@ namespace adportable {
     };
 
     struct tic_calculator {
+
         template<typename T> double operator () ( size_t nbrSamples, const T * praw, double& dbase, double& rms, size_t N ) {
 
             if ( nbrSamples < N )
                 return 0.0;
 
             averager base;
-            //averager avgr;
             int cnt = 1;
             do {
                 slope_counter counter(20.0);
                 for ( size_t x = (N/2); x < nbrSamples - (N/2); ++x ) {
-                    //avgr( praw[x] );
                     if ( counter( convolute<T>( &praw[x] ) ) > N )
                         base( praw[ x - (N/2) ] );
                     else if ( counter.n > N )
                         cnt++;
                 }
             } while (0);
+
             dbase = base.average();
             rms = base.rms();
             double ax = 0;
@@ -165,67 +173,129 @@ namespace adportable {
             return ax; //avgr.average() - dbase;
         }
 
+        template< typename _fy > double
+        operator () ( _fy fy, size_t beg, size_t end, double& dbase, double& rms, size_t N ) {
+            averager base;
+            int cnt = 1;
+            do {
+                slope_counter counter(20.0);
+                for ( size_t x = beg + (N/2); x < end - (N/2); ++x ) {
+                    if ( counter( convolute( fy, x ) ) > N )
+                        base( fy( x - (N/2) ) );
+                    else if ( counter.n > N )
+                        cnt++;
+                }
+            } while (0);
+            
+            dbase = base.average();
+            rms = base.rms();
+            double ax = 0;
+            for ( size_t x = beg; x < end; ++x )
+                ax += fy(x) - dbase;
+            return ax;
+        }
+
     };
+
+    struct waveform_peakfinder_i {
+
+        std::function< double( size_t idx, int& iw )>& fpeakw_;
+        const double rms_;
+        const double dbase_;
+
+        inline void internal_update( size_t idx, double& peakw, int& iw, int& m, int& NH, double& slope ) const {
+            peakw = fpeakw_( idx, iw );
+            m = ( iw < 5 ) ? 5 : iw | 0x01;    // n-order for SGFilter
+            NH = m / 2;
+            slope = rms_ / double( iw * 8 );            
+        }
+
+        waveform_peakfinder_i( std::function< double( size_t idx, int& n )>& fpeakw, double dbase, double rms )
+            : fpeakw_( fpeakw )
+            , dbase_( dbase ), rms_( rms ) {
+        }
+        
+        template< typename _fx, typename Ty >
+        size_t find ( _fx fx, const Ty * pY, size_t beg, size_t end
+                      , std::vector< adportable::waveform_peakfinder::peakinfo >& results  ) const {
+            
+            if ( pY == 0 || ( end - beg ) < 7 )
+                return 0;
+
+            array_wrapper<const Ty> py( pY, end );
+            
+            // int noise = int(rms); //5; // assume LSB noise
+            int iw = 5;
+            int m = iw;
+            int NH = m / 2;
+            double peakw = fpeakw_( beg, iw );
+            double slope = double( rms_ ) / double( iw * 8 );
+            internal_update( beg, peakw, iw, m, NH, slope );
+            
+            SGFilter diff( m, SGFilter::Derivative1, SGFilter::Cubic );
+
+            peakfind::slope_state<peakfind::counter> state( iw / 2 );
     
+            size_t base_pos = 0, base_c = 0;
+
+            for ( size_t x = beg + NH; x < end - NH; ++x ) {
+
+                double d1 = diff( &pY[x] );
+
+                bool reduce = false;
+                if ( d1 >= slope ) {
+                    base_c = 0;
+                    reduce = state.process_slope( peakfind::counter( x, peakfind::Up ) );
+                } else if ( d1 <= (-slope ) ) {
+                    base_c = 0;
+                    reduce = state.process_slope( peakfind::counter( x, peakfind::Down ) );
+                } else {
+                    if ( state.stack_.size() < 2 ) {
+                        ++base_c;
+                        base_pos = x;
+                    }
+                }
+
+                if ( reduce ) {
+                    std::pair< peakfind::counter, peakfind::counter > peak;
+                    while ( state.reduce( peak ) ) {
+                        if ( fx( peak.second.tpos_ ) - fx( peak.first.bpos_ ) >= peakw ) {
+                            results.push_back( waveform_peakfinder::peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
+                        }
+                    }
+                    internal_update( x, peakw, iw, m, NH, slope );
+                } 
+            }
+
+            if ( ! state.stack_.empty() ) {
+
+                if ( state.stack_.top().type() == peakfind::Down )
+                    state.stack_.push( peakfind::counter( end - 1, peakfind::None ) ); // dummy
+
+                std::pair< peakfind::counter, peakfind::counter > peak;
+
+                while ( state.reduce( peak ) ) {
+                    if ( fx( peak.second.tpos_ ) - fx( peak.first.bpos_ ) >= peakw ) {
+                        results.push_back( waveform_peakfinder::peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
+                    }
+                }
+            }
+            
+            return results.size();
+        }
+    };
 }
 
 double
 spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase, double& rms, size_t N )
 {
     return tic_calculator()( nbrSamples, praw, dbase, rms, N );
-#if 0
-    averager base;
-    averager avgr;
-    int cnt = 1;
-    do {
-        slope_counter counter(20.0);
-
-        for ( size_t x = (N/2); x < nbrSamples - (N/2); ++x ) {
-            avgr( praw[x] );
-            if ( counter( convolute<int32_t>( &praw[x] ) ) > N )
-                base( praw[ x - (N/2) ] );
-            else if ( counter.n > N )
-                cnt++;
-        }
-
-    } while (0);
-    dbase = base.average();
-	rms = base.rms();
-    double ax = 0;
-    for ( size_t i = 0; i < nbrSamples; ++i )
-        ax += praw[ i ] - dbase;
-    return ax;
-#endif
 }
 
 double
 spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, double& rms, size_t N )
 {
     return tic_calculator()( nbrSamples, praw, dbase, rms, N );
-#if 0    
-    if ( nbrSamples < N )
-        return 0.0;
-
-    averager base;
-    averager avgr;
-    int cnt = 1;
-    do {
-        slope_counter counter(20.0);
-        for ( size_t x = (N/2); x < nbrSamples - (N/2); ++x ) {
-            avgr( praw[x] );
-            if ( counter( convolute<double>( &praw[x] ) ) > N )
-                base( praw[ x - (N/2) ] );
-            else if ( counter.n > N )
-                cnt++;
-        }
-    } while (0);
-    dbase = base.average();
-	rms = base.rms();
-    double ax = 0;
-    for ( size_t i = 0; i < nbrSamples; ++i )
-        ax += praw[ i ] - dbase;
-    return ax; //avgr.average() - dbase;
-#endif
 }
 
 void
@@ -263,22 +333,26 @@ spectrum_processor::moving_average( size_t nbrSamples, double * pY, const double
 		pY[i] = ax;
 }
 
+/** \brief simple peak area calculation.  
+ *
+ *  make sum for data between beg to end - 1.
+ */
 double
 spectrum_processor::area( const double * beg, const double * end, double base )
 {
     double a = 0;
-	for ( const double * p = beg; p != end; ++p ) {
+	for ( const double * p = beg; p != end; ++p ) {  
 		if ( *p > base )
 			a += *p - base;
 	}
-    a += *end;
     return a;
 }
 
-spectrum_peakfinder::spectrum_peakfinder(double pw, double bw, WidthMethod wm ) : peakwidth_( pw )
-                                                                                , atmz_( 0 )
-                                                                                , baseline_width_( bw )
-                                                                                , width_method_( wm ) 
+spectrum_peakfinder::spectrum_peakfinder(double pw
+                                         , double /* bw */
+                                         , WidthMethod wm ) : peakwidth_( pw )
+                                                            , atmz_( 0 )
+                                                            , width_method_( wm ) 
 {
 }
 
@@ -377,16 +451,13 @@ namespace adportable { namespace peakfind {
 }
 
 size_t
-spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const double * pY )
+spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const double * pY )
 {
     if ( pX == 0 || pY == 0 )
         return 0;
     array_wrapper<const double> px( pX, nbrSamples );
     array_wrapper<const double> py( pY, nbrSamples );
     
-    pdebug_.resize( nbrSamples );
-    memset( &pdebug_[0], 0, sizeof(double) * nbrSamples );
-
     size_t w = 7; // std::distance( xIt, it );  // make odd
     size_t atmz = 0;
     if ( width_method_ == TOF ) {
@@ -535,4 +606,59 @@ double
 spectrum_processor::area( const areaFraction& frac, double base, const int32_t* pData, size_t nData )
 {
     return areaCalculator<int32_t>::area( frac, base, pData, nData );
+}
+
+
+///////////////
+waveform_peakfinder::waveform_peakfinder( std::function< double( size_t idx, int& n )> fpeakw )
+    : fpeakw_( fpeakw )
+    , dbase_( 0 )
+    , rms_( 0 )
+{
+}
+
+/** \brief find peaks from waveform, intended input is the time-of-flight mass spectrum
+ * 
+ * Internally, it compute rms and baseline level by using TIC calculation algorithm.
+ * Computed baseline level can be returned by dbase() method, and rms() method for RMS.
+ * dbase is used for peak height determination, and rms is used for slope determination.
+ */
+size_t
+waveform_peakfinder::operator()( std::function< double ( size_t ) > fx
+                                 , const double * pY
+                                 , size_t beg, size_t end
+                                 , std::vector< waveform_peakfinder::peakinfo >& results )
+{
+    // compute baseline level and rms
+    spectrum_processor::tic( end - beg, &pY[beg], dbase_, rms_ );
+
+    // find peaks
+    waveform_peakfinder_i finder( fpeakw_, dbase_, rms_ );
+
+    if ( finder.find( fx, pY, beg, end, results ) ) {
+        adportable::Moment< decltype(fx) > moment( fx );
+        for ( auto& pk: results ) {
+            auto it = std::max_element( pY + pk.spos, pY + pk.epos );
+            pk.tpos = std::distance( pY, it );
+            pk.height = *it - dbase_;
+            double threshold = pk.height / 2 + dbase_;
+            pk.centreX = moment.centreX( pY, threshold, uint32_t(pk.spos), uint32_t(pk.tpos), uint32_t(pk.epos) );
+            pk.xleft = moment.xLeft();
+            pk.xright = moment.xRight();
+        }
+        return results.size();        
+    }
+    return 0;
+}
+
+double
+waveform_peakfinder::dbase() const
+{
+    return dbase_;
+}
+
+double
+waveform_peakfinder::rms() const
+{
+    return rms_;
 }

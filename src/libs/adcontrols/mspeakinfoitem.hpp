@@ -44,22 +44,31 @@ namespace adcontrols {
         MSPeakInfoItem( const MSPeakInfoItem& );
 
         double mass() const;
-        void mass( double ); // re-calibration will update only mass
+        void mass( double );     // historical api for re-calibration, this will also change centroid left/right values
         double area() const;
+        void set_area( double ); // deplicated, use set_mass instead
         double height() const;
-        double time( bool time = false ) const;
+        void set_height( double );
+        double time( bool from_time = false ) const;
+        void set_time( double, bool from_time = false );
         unsigned int peak_index() const;
-        void peak_index( int );
+        void set_peak_index( unsigned int );
         unsigned int peak_start_index() const;
-        void peak_start_index( unsigned int );
+        void set_peak_start_index( unsigned int );
         unsigned int peak_end_index() const;
-        void peak_end_index( unsigned int );
+        void set_peak_end_index( unsigned int );
         double base_height() const;
-        void base_height( double );
+        void set_base_height( double );
 
         double centroid_left( bool time = false ) const;
+        void set_centroid_left( double t, bool time );
+        
         double centroid_right( bool time = false ) const;
+        void set_centroid_right( double t, bool time );
+
         double centroid_threshold() const;
+        void set_centroid_threshold( double );
+
         double widthHH( bool time = false ) const;
         double hh_left_time() const;
         double hh_right_time() const;

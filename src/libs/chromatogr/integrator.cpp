@@ -784,7 +784,7 @@ peakHelper::tRetention_moment(  const Integrator::chromatogram& c, adcontrols::P
     double h = pk.topHeight() - std::min( pk.startHeight(), pk.endHeight() );
     double threshold = pk.topHeight() - h * 0.5;
 
-    double cx = moment.centerX( &c.v_[ 0 ], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double cx = moment.centreX( &c.v_[ 0 ], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     pk.peakTime( cx );
 
     adcontrols::RetentionTime tr;

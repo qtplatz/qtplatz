@@ -52,6 +52,7 @@
 
 #include <compiler/diagnostic_pop.h>
 
+#include <algorithm>
 #include <sstream>
 #include <vector>
 #include <map>
@@ -425,6 +426,21 @@ const double *
 MassSpectrum::getTimeArray() const
 {
     return pImpl_->getTimeArray();
+}
+
+double
+MassSpectrum::compute_mass( double time ) const
+{
+    if ( !pImpl_->calibration_.coeffs().empty() ) {
+        double mq = MSCalibration::compute( pImpl_->calibration_.coeffs(), time );
+        return mq * mq;
+    } else {
+        const auto& prop = pImpl_->getMSProperty();
+        if ( auto scanlaw = prop.scanLaw() ) {
+            return scanlaw->getMass( time, prop.mode() );
+        }
+    }
+    return 0;
 }
 
 size_t
@@ -1055,6 +1071,20 @@ segments_helper::normalize( MassSpectrum& vms, uint32_t imaginalNumAverage )
     return true;
 }
 
+//static
+std::pair<double, double>
+segments_helper::acquisition_time_range( const MassSpectrum& ms )
+{
+    std::pair< double, double > range( std::numeric_limits<double>::max(), 0 );
+
+    for ( auto& fms: segment_wrapper< const MassSpectrum >( ms ) ) {
+        std::pair< double, double > x = fms.getMSProperty().instTimeRange();
+        range.first = std::min( range.first, x.first );
+        range.second = std::max( range.second, x.second );
+    }
+    return range;
+}
+
 bool
 MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double>& range ) const
 {
@@ -1102,3 +1132,4 @@ MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double
     ms.set_annotations( annots );
     return true;
 }
+
