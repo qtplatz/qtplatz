@@ -31,6 +31,7 @@
 #include "mspeakinfo.hpp"
 #include "mspeakinfoitem.hpp"
 #include <adportable/polfit.hpp>
+#include <adportable/float.hpp>
 
 using namespace adcontrols;
 
@@ -50,7 +51,18 @@ lockmass::operator bool () const
 lockmass&
 lockmass::operator << ( const lockmass::reference& t )
 {
+    if ( ! references_.empty() ) {
+
+        auto it = std::find_if( references_.begin(), references_.end(), [t]( const lockmass::reference& a ){
+                return adportable::compare<double>::essentiallyEqual( t.exactMass(), a.exactMass() ); });
+
+        if ( it != references_.end() )
+            references_.erase( it );
+
+    }
+    
     references_.push_back( t );
+    
 	return *this;
 }
 
