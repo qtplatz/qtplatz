@@ -72,6 +72,7 @@
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/binary_serializer.hpp>
+#include <adportable/debug.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/plugin.hpp>
@@ -759,7 +760,7 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 {
     ACE_UNUSED_ARG( pos );
 
-    do {
+    try {
         std::lock_guard< std::mutex > lock( mutex_ );
         
         if ( observerMap_.find( objId ) == observerMap_.end() ) {
@@ -778,47 +779,54 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                 return;
             }
         }
-    } while (0);
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
+    }
+    try {
+        long& npos = npos_map_[ objId ];
 
-    long& npos = npos_map_[ objId ];
+        if ( pos < npos )
+            return;
 
-    if ( pos < npos )
-        return;
+        auto it = observerMap_.find( objId );
+        SignalObserver::Observer_ptr tgt = std::get<0>( it->second ).in();
+        SignalObserver::Description_var& desc = std::get<1>( it->second );
+        auto spectrometer = std::get<4>( it->second );
 
-    auto it = observerMap_.find( objId );
-    SignalObserver::Observer_ptr tgt = std::get<0>( it->second ).in();
-    SignalObserver::Description_var& desc = std::get<1>( it->second );
-    auto spectrometer = std::get<4>( it->second );
+        const adcontrols::DataInterpreter& dataInterpreter = spectrometer->getDataInterpreter();
 
-    const adcontrols::DataInterpreter& dataInterpreter = spectrometer->getDataInterpreter();
+        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
+            if ( !std::get<3>( it->second ) )
+                std::get<3>( it->second ) = readCalibrations( it->second );
 
-    if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
-        if ( ! std::get<3>( it->second ) )
-            std::get<3>( it->second ) = readCalibrations( it->second );
-        
-        try {
-            SignalObserver::DataReadBuffer_var rb;
-            while ( tgt->readData( npos, rb ) ) {
-                ++npos;
-                readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
-            }
-            emit onUpdateUIData( objId, pos );
-        } catch ( CORBA::Exception& ex ) {
-            ADTRACE() << "handle_update_data got an corba exception: " << ex._info().c_str();
-        }
-
-    } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
-        try {
-            SignalObserver::DataReadBuffer_var rb;
-            while ( tgt->readData( npos, rb ) ) {
-                npos = rb->pos + rb->ndata;
-                readTrace( desc, rb, dataInterpreter, objId );
+            try {
+                SignalObserver::DataReadBuffer_var rb;
+                while ( tgt->readData( npos, rb ) ) {
+                    ++npos;
+                    readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
+                }
                 emit onUpdateUIData( objId, pos );
-                return;
+            } catch ( CORBA::Exception& ex ) {
+                ADTRACE() << "handle_update_data got an corba exception: " << ex._info().c_str();
+            } catch ( ... ) {
+                ADTRACE() << boost::current_exception_diagnostic_information();
             }
-        } catch ( CORBA::Exception& ex ) {
-            ADTRACE() << "handle_update_data got an corba exception: " << ex._info().c_str();
+
+        } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
+            try {
+                SignalObserver::DataReadBuffer_var rb;
+                while ( tgt->readData( npos, rb ) ) {
+                    npos = rb->pos + rb->ndata;
+                    readTrace( desc, rb, dataInterpreter, objId );
+                    emit onUpdateUIData( objId, pos );
+                    return;
+                }
+            } catch ( CORBA::Exception& ex ) {
+                ADTRACE() << "handle_update_data got an corba exception: " << ex._info().c_str();
+            }
         }
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
     }
 }
 
