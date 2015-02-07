@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "udpeventreceiver.hpp"
 #include <workaround/boost/asio.hpp>
 #include <vector>

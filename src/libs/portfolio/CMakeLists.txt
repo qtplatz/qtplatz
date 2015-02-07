@@ -27,6 +27,10 @@ target_link_libraries( portfolio LINK_PUBLIC
   adportable  
   xmlparser )
 
+set_target_properties( portfolio
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
+
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules  
