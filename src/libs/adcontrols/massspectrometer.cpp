@@ -96,11 +96,6 @@ MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : proxy_in
 {
 }
 
-//MassSpectrometer::MassSpectrometer( const MassSpectrometer& t ) : proxy_instance_( t.proxy_instance_ )
-//                                                                , datafile_( t.datafile_ )
-//{
-//}
-
 MassSpectrometer::~MassSpectrometer()
 {
 }
