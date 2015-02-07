@@ -15,11 +15,11 @@ configure_file(
   )
 
 add_subdirectory( libs )
-add_subdirectory( app )
-add_subdirectory( adplugins )
-add_subdirectory( plugins )
 
-if ( NOT RTC_ARCH_ARM )
-  add_subdirectory( tools )
+if ( NOT QTPLATZ_CORELIB_ONLY )
+  add_subdirectory( adplugins )
+  add_subdirectory( app )
+  add_subdirectory( plugins )
+  add_subdirectory( tools )  
 endif()
 

@@ -23,15 +23,19 @@ if( WIN32 )
 else()
 
   if ( RTC_ARCH_ARM )
-    set(Boost_INCLUDE_DIR "/usr/local/arm-linux-gnueabihf/usr/local/include")
-    set(Boost_LIBRARY_DIR "/usr/local/arm-linux-gnueabihf/usr/local/lib")
+#    set(Boost_INCLUDE_DIR "/usr/local/arm-linux-gnueabihf/usr/local/include")
+#    set(Boost_LIBRARY_DIR "/usr/local/arm-linux-gnueabihf/usr/local/lib")
   else()
     set(Boost_INCLUDE_DIR "/usr/local/${BOOST_VERSION}/include")
     set(Boost_LIBRARY_DIR "/usr/local/${BOOST_VERSION}/lib")
   endif()
 
 endif()
-  
+
+if ( RTC_ARCH_ARM )
+  set( QTPLATZ_CORELIB_ONLY 1 )
+endif()
+
 #find_package(Boost REQUIRED)
 
 #####################

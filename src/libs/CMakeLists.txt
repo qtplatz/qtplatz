@@ -3,7 +3,6 @@
 add_subdirectory (acewrapper)
 add_subdirectory (adportable)
 add_subdirectory (adcontrols)
-add_subdirectory (adextension)
 add_subdirectory (adsequence)
 add_subdirectory (adfs)
 add_subdirectory (adlog)
@@ -17,7 +16,9 @@ if ( ACE_ROOT )
   add_subdirectory (adinterface)
 endif()
 
-if ( NOT RTC_ARCH_ARM )
+if ( NOT QTPLATZ_CORELIB_ONLY )
+
+  add_subdirectory (adextension)
 
   add_subdirectory (extensionsystem)
   add_subdirectory (utils)

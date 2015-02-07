@@ -27,8 +27,7 @@ target_link_libraries( portfolio LINK_PUBLIC
   adportable  
   xmlparser )
 
-#win32: LIBS += -lole32
-#!win32: LIBS += -lboost_date_time -lboost_system 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT modules  
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
