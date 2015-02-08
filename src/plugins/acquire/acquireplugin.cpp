@@ -990,15 +990,14 @@ AcquirePlugin::handle_observer_event( uint32_t objid, int32_t pos, int32_t event
 void
 AcquirePlugin::handle_receiver_log( const ::EventLog::LogMessage& log )
 {
+    QString msg;
     try {
-        std::wstring text = adinterface::EventLog::LogMessageHelper::toString( log );
-        std::string date = adportable::date_string::utc_to_localtime_string( log.tv.sec, log.tv.usec ) + "\t";
-        QString qtext = date.c_str();
-        qtext += qtwrapper::qstring::copy( text );
-        mainWindow_->eventLog( qtext ); // will emit signal
+        msg = QString::fromStdString( adportable::date_string::utc_to_localtime_string( log.tv.sec, log.tv.usec ) + "\t" );
+        msg += QString::fromStdWString( adinterface::EventLog::LogMessageHelper::toString( log ) );
+        mainWindow_->eventLog( msg ); // will emit signal
     } catch ( ... ) {
-        ADDEBUG() << boost::current_exception_diagnostic_information();
-        assert( 0 );
+        msg += QString::fromStdString( boost::current_exception_diagnostic_information() );
+        mainWindow_->eventLog( msg );
     }
 }
 
