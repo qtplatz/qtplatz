@@ -84,7 +84,7 @@
 
 #include <adportable/date_string.hpp>
 #include <adportable/fft.hpp>
-
+#include <adportable/debug.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
 
@@ -846,41 +846,55 @@ AcquirePlugin::handle_event( unsigned long objid, long pos, long flags )
 void
 AcquirePlugin::handle_controller_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
 {
+    try {
+        using namespace ControlServer;
 
-    using namespace ControlServer;
+        if ( msg == Receiver::STATE_CHANGED ) {
 
-    if ( msg == Receiver::STATE_CHANGED ) {
+            ADTRACE() << "handle_message( STATE_CHANGED, " << value << ")";
 
-		ADTRACE() << "handle_message( STATE_CHANGED, " << value << ")";
-
-        eStatus status = eStatus( value );
-        if ( status == eWaitingForContactClosure ) {
-            actionInject_->setEnabled( true );
-            actionStop_->setEnabled( true );
-            actionRun_->setEnabled( false );
-        } else if ( status == ePreparingForRun ) {
-            actionStop_->setEnabled( false );
-        } else if ( status == eReadyForRun ) {
-            actionStop_->setEnabled( false );
-			actionRun_->setEnabled( true );
-        } else if ( status == eRunning ) {
-            actionStop_->setEnabled( true );
-			actionInject_->setEnabled( false );
-			actionRun_->setEnabled( false );
+            eStatus status = eStatus( value );
+            if ( status == eWaitingForContactClosure ) {
+                actionInject_->setEnabled( true );
+                actionStop_->setEnabled( true );
+                actionRun_->setEnabled( false );
+            } else if ( status == ePreparingForRun ) {
+                actionStop_->setEnabled( false );
+            } else if ( status == eReadyForRun ) {
+                actionStop_->setEnabled( false );
+                actionRun_->setEnabled( true );
+            } else if ( status == eRunning ) {
+                actionStop_->setEnabled( true );
+                actionInject_->setEnabled( false );
+                actionRun_->setEnabled( false );
+            }
         }
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
+        assert( 0 );
     }
 }
 
 void
 AcquirePlugin::handle_shutdown()
 {
-    mainWindow_->handle_shutdown();
+    try { 
+        mainWindow_->handle_shutdown();
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
+        assert( 0 );        
+    }
 }
 
 void
 AcquirePlugin::handle_debug_print( unsigned long priority, unsigned long category, QString text )
 {
-    mainWindow_->handle_debug_print( priority, category, text );
+    try {
+        mainWindow_->handle_debug_print( priority, category, text );
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
+        assert( 0 );        
+    }
 }
 
 void
@@ -968,11 +982,16 @@ AcquirePlugin::handle_observer_event( uint32_t objid, int32_t pos, int32_t event
 void
 AcquirePlugin::handle_receiver_log( const ::EventLog::LogMessage& log )
 {
-    std::wstring text = adinterface::EventLog::LogMessageHelper::toString( log );
-    std::string date = adportable::date_string::utc_to_localtime_string( log.tv.sec, log.tv.usec ) + "\t";
-    QString qtext = date.c_str();
-    qtext += qtwrapper::qstring::copy( text );
-    mainWindow_->eventLog( qtext ); // will emit signal
+    try {
+        std::wstring text = adinterface::EventLog::LogMessageHelper::toString( log );
+        std::string date = adportable::date_string::utc_to_localtime_string( log.tv.sec, log.tv.usec ) + "\t";
+        QString qtext = date.c_str();
+        qtext += qtwrapper::qstring::copy( text );
+        mainWindow_->eventLog( qtext ); // will emit signal
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
+        assert( 0 );
+    }
 }
 
 void
