@@ -3,8 +3,10 @@ if ( NOT ace+tao_FOUND )
 
   if ( WIN32 )
     find_path( ace+tao_DIR NAMES ace/ace.h HINTS ENV ACE_ROOT C:/ACE_wrappers )
+  elseif( RTC_ARCH_ARM )
+    find_path( ace+tao_DIR NAMES ace/ace.h include/ace/ACE.h HINTS ENV ACE_ROOT usr/local )    
   else()
-    find_path( ace+tao_DIR NAMES ace/ace.h include/ace/ace.h HINTS ENV ACE_ROOT /usr/local/ace+tao/6.3.0 /usr/local/ace+tao/6.2.8 )
+    find_path( ace+tao_DIR NAMES ace/ace.h include/ace/ACE.h HINTS ENV ACE_ROOT /usr/local/ace+tao/6.3.0 /usr/local/ace+tao/6.2.8 )
   endif()
 
   if ( ace+tao_DIR )
@@ -13,7 +15,7 @@ if ( NOT ace+tao_FOUND )
     set( ACE+TAO_LIBRARY_DIR  ${ace+tao_DIR}/lib )
     set( ACE+TAO_LIBRARY_DIRS ${ACE+TAO_LIBRARY_DIR} )
 
-    find_path( ACE_INCLUDE_DIR NAMES ace/ace.h HINTS ${ace+tao_DIR} ${ace+tao_DIR}/include )
+    find_path( ACE_INCLUDE_DIR NAMES ace/ACE.h HINTS ${ace+tao_DIR} ${ace+tao_DIR}/include )
     find_path( TAO_INCLUDE_DIR NAMES tao/corba.h HINTS ${ace+tao_DIR}/TAO ${ace+tao_DIR} ${ace+tao_DIR}/include )
 
     if ( ACE_INCLUDE_DIR )

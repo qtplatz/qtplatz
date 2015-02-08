@@ -11,10 +11,8 @@ add_subdirectory (adutils)
 add_subdirectory (xmlparser)
 add_subdirectory (portfolio)
 
-if ( ACE_ROOT )
-  add_subdirectory (adorbmgr)
-  add_subdirectory (adinterface)
-endif()
+add_subdirectory (adorbmgr)
+add_subdirectory (adinterface)
 
 if ( NOT QTPLATZ_CORELIB_ONLY )
 
