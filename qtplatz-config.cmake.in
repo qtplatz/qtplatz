@@ -91,6 +91,48 @@ if (WIN32)
   set_target_properties( portfolio PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/portfolio.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/portfoliod.lib )
+
+else() #Linux
+
+  set_target_properties( QTC::Core PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libCore.so )
+
+  set_target_properties( QTC::ExtensionSystem PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libextensionsystem.so )
+
+  set_target_properties( QTC::Utils PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libUtils.so )
+
+  set_target_properties( adextension PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadextension.so )
+
+  set_target_properties( adcontrols PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadcontrols.so )
+
+  set_target_properties( adlog PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadlog.so )
+
+  set_target_properties( adplugin PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadplugin.so )
+
+  set_target_properties( adorbmgr PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadorbmgr.so )
+
+  set_target_properties( adsequence PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadsequence.so )
+
+  set_target_properties( adsequence PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadsequence.so )
+
+  set_target_properties( adplot PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadplot.so )
+
+  set_target_properties( adwidgets PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadwidgets.so )
+
+  set_target_properties( portfolio PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libportfolio.so )
+
 endif()
 
 if (WIN32)
