@@ -55,7 +55,7 @@ namespace adcontroller {
 		Broker::Manager_ptr getBrokerManager();
 
         // ControlServer::Manager
-        ControlServer::Session_ptr getSession( const CORBA::WChar * ) override;
+        ControlServer::Session_ptr getSession( const CORBA::Char * ) override;
         Broker::Logger_ptr getLogger();
 
         // BrokerClient::Accessor

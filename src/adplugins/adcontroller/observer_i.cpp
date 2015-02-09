@@ -267,7 +267,7 @@ observer_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out d
     return cache_->read( pos, dataReadBuffer );
 }
 
-::CORBA::WChar *
+::CORBA::Char *
 observer_i::dataInterpreterClsid (void)
 {
 	if ( ! CORBA::is_nil( source_observer_ ) )
@@ -282,7 +282,7 @@ observer_i::posFromTime( CORBA::ULongLong usec )
 }
 
 CORBA::Boolean
-observer_i::readCalibration( CORBA::ULong idx, SignalObserver::octet_array_out data, CORBA::WString_out dataClass )
+observer_i::readCalibration( CORBA::ULong idx, SignalObserver::octet_array_out data, CORBA::String_out dataClass )
 {
 	if ( ! CORBA::is_nil( source_observer_ ) )
 		return source_observer_->readCalibration( idx, data, dataClass );

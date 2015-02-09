@@ -120,15 +120,15 @@ logger_i::nextLog( Broker::LogMessage& msg )
     return findLog( msg.logId, msg );
 }
 
-CORBA::WChar *
+CORBA::Char *
 logger_i::to_string( const Broker::LogMessage& msg )
 {
-    std::wostringstream o;
+    std::ostringstream o;
 
-	o << adportable::utf::to_wstring( adportable::date_string::utc_to_localtime_string( msg.tv_sec, msg.tv_usec ) );
+    o << adportable::date_string::utc_to_localtime_string( msg.tv_sec, msg.tv_usec );
 	o << msg.text.in();
 
-    CORBA::WString_var s = CORBA::wstring_dup( o.str().c_str() );
+    CORBA::String_var s = CORBA::string_dup( o.str().c_str() );
     return s._retn();
 }
 
@@ -141,7 +141,7 @@ logger_i::register_handler( LogHandler_ptr handler )
     data.handler_ = LogHandler::_duplicate( handler );
       
     if ( std::find(handler_set_.begin(), handler_set_.end(), data) != handler_set_.end() ) {
-        throw Broker::Logger::AlreadyExist( L"handler already exist" );
+        throw Broker::Logger::AlreadyExist();
     } else {
         handler_set_.push_back( data );
         return true;

@@ -370,7 +370,7 @@ AcquirePlugin::handle_broker_initialized()
     if ( CORBA::is_nil( mgr ) )
         return;
 
-    pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
+    pImpl_->brokerSession_ = mgr->getSession( "acquire" );
     if ( CORBA::is_nil( pImpl_->brokerSession_ ) )
         return;
     
@@ -416,7 +416,7 @@ AcquirePlugin::actionConnect()
             CORBA::Object_var obj = broker->find_object( adcontroller::manager::_name() );
             ::ControlServer::Manager_var manager = ::ControlServer::Manager::_narrow( obj );
             if ( !CORBA::is_nil( manager ) ) {
-                session_ = manager->getSession( L"acquire" );
+                session_ = manager->getSession( "acquire" );
                 if ( !CORBA::is_nil( session_.in() ) ) {
                     
                     receiver_i_.reset( new receiver_i );
@@ -507,14 +507,14 @@ AcquirePlugin::populate( SignalObserver::Observer_var& observer )
 {
     SignalObserver::Description_var topLevelDesc = observer->getDescription();
 
-    std::wstring topLevelName = topLevelDesc->trace_display_name.in();
-    traceBox_->addItem( qtwrapper::qstring( topLevelName ) );
+    std::string topLevelName = topLevelDesc->trace_display_name.in();
+    traceBox_->addItem( QString::fromStdString( topLevelName ) );
 
     SignalObserver::Observers_var children = observer->getSiblings();
     for ( CORBA::ULong i = 0; i < children->length(); ++i ) {
         SignalObserver::Description_var secondLevelDesc = children[i]->getDescription();
-        CORBA::WString_var secondLevelName = children[i]->getDescription()->trace_display_name.in();
-        traceBox_->addItem( qtwrapper::qstring( L"   " + std::wstring( secondLevelName ) ) );
+        CORBA::String_var secondLevelName = children[i]->getDescription()->trace_display_name.in();
+        traceBox_->addItem( QString( "   %1" ).arg( secondLevelName.in() ) );
     }
 }
 
@@ -553,7 +553,7 @@ AcquirePlugin::actionInitRun()
         ControlMethod::Method m;
         adinterface::ControlMethodHelper::copy( m, *document::instance()->controlMethod() );
 
-        session_->prepare_for_run( m, os.str().c_str() );
+        session_->prepare_for_run( m, adportable::utf::to_utf8( os.str() ).c_str() );
 
         ADTRACE() << "adcontroller status: " << session_->status();
     }
@@ -734,7 +734,7 @@ AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
 bool
 AcquirePlugin::readCalibrations( observer_type& obs )
 {
-    CORBA::WString_var dataClass;
+    CORBA::String_var dataClass;
     SignalObserver::Observer_ptr tgt = std::get<0>( obs ).in();
     auto spectrometer = std::get<4>( obs );
 
@@ -743,9 +743,9 @@ AcquirePlugin::readCalibrations( observer_type& obs )
     bool success = false;
     CORBA::ULong idx = 0;
     while ( tgt->readCalibration( idx++, data, dataClass ) ) {
-        if ( std::wcscmp( dataClass, adcontrols::MSCalibrateResult::dataClass() ) == 0 ) {
+        auto wdataClass = adportable::utf::to_wstring( dataClass.in() );
+        if ( std::wcscmp( wdataClass.c_str(), adcontrols::MSCalibrateResult::dataClass() ) == 0 ) {
             adcontrols::MSCalibrateResult result;
-            //if ( adportable::serializer< adcontrols::MSCalibrateResult >::deserialize( result, reinterpret_cast<const char *>(data->get_buffer()), data->length() ) )
             if ( adportable::binary::deserialize<>()(result, reinterpret_cast<const char *>(data->get_buffer()), data->length()) )
                 success = true;
             if ( spectrometer )
@@ -768,11 +768,11 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
             if ( CORBA::is_nil( tgt.in() ) )
                 return;
 
-            CORBA::WString_var name = tgt->dataInterpreterClsid();
+            CORBA::String_var name = tgt->dataInterpreterClsid();
             if ( auto spectrometer = adcontrols::MassSpectrometer::create( name.in() ))  {
 
                 SignalObserver::Description_var desc = tgt->getDescription();
-                observerMap_[ objId ] = std::make_tuple( tgt, desc, name.in(), false, spectrometer );
+                observerMap_[ objId ] = std::make_tuple( tgt, desc, adportable::utf::to_wstring( name.in() ), false, spectrometer );
                 npos_map_[ objId ] = pos;
             } else {
                 ADTRACE() << "receive data from unavilable spectrometer: " << name.in();
@@ -954,7 +954,7 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 				path /= "acquire.adfs";
 				
                 try {
-					pImpl_->brokerSession_->coaddSpectrum( path.wstring().c_str() /* L"acquire" */, tgt, x1, x2 );
+					pImpl_->brokerSession_->coaddSpectrum( path.string().c_str() /* L"acquire" */, tgt, x1, x2 );
                 } catch ( std::exception& ex ) {
                     QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );
                 }

@@ -16,35 +16,34 @@ interface BrokerEventSink;
 
 module Broker {
 
-   typedef sequence< wstring > args_type;
+   typedef sequence< string > args_type;
 
     struct LogMessage {
         unsigned long logId;
         long priority;
         long long tv_sec;
         long tv_usec;
-        wstring msgId;
-        wstring srcId;
-        wstring text;
+        string msgId;
+        string srcId;
+        string text;
         args_type args;
     };
 
     interface Session {
         boolean connect( in string user, in string pass, in string token, in BrokerEventSink cb );
         boolean disconnect( in BrokerEventSink cb );
-
-		boolean coaddSpectrum( in wstring token, in SignalObserver::Observer observer, in double x1, in double x2 );
+		boolean coaddSpectrum( in string token, in SignalObserver::Observer observer, in double x1, in double x2 );
     };
 
     interface Logger {
         exception AlreadyExist {
-            wstring reason_;
+            string reason_;
         };
         void log( in LogMessage msg );
 
         boolean findLog( in unsigned long logId, inout LogMessage msg );
         boolean nextLog( inout LogMessage msg );
-        wstring to_string( in LogMessage msg );
+        string to_string( in LogMessage msg );
 
         boolean register_handler( in LogHandler handler );
         boolean unregister_handler( in LogHandler handler );
@@ -69,7 +68,7 @@ module Broker {
 
         boolean register_handler( in ObjectReceiver cb );
         boolean unregister_handler( in ObjectReceiver cb );
-        Session getSession( in wstring connStr );
+        Session getSession( in string connStr );
         Logger getLogger();
 
 

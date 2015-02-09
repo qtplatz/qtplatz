@@ -25,6 +25,7 @@
 #pragma once
 
 #include <adinterface/brokereventS.h>
+#include <adportable/utf.hpp>
 #include <functional>
 
 namespace acquire {
@@ -35,15 +36,15 @@ namespace acquire {
             if ( message_ )
                 message_( message );
         }
-        void portfolio_created( const ::CORBA::WChar * token ) override {
+        void portfolio_created( const ::CORBA::Char * token ) override {
             if ( portfolio_created_ )
-                portfolio_created_( token );
+                portfolio_created_( adportable::utf::to_wstring( token ) );
         }
-        void folium_added( const ::CORBA::WChar * token
-                           , const ::CORBA::WChar * path
-                           , const ::CORBA::WChar * folderId ) override {
+        void folium_added( const ::CORBA::Char * token
+                           , const ::CORBA::Char * path
+                           , const ::CORBA::Char * folderId ) override {
             if ( folium_added_ )
-                folium_added_( token, path, folderId );
+                folium_added_( adportable::utf::to_wstring( token ), adportable::utf::to_wstring( path ), adportable::utf::to_wstring( folderId ) );
         }
 
     public:

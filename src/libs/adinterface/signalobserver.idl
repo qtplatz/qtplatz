@@ -71,10 +71,10 @@ module SignalObserver {
     struct Description {
         eTRACE_METHOD trace_method;
         eSPECTROMETER spectrometer;
-        wstring trace_id;  // unique name for the trace, can be used as 'data storage name'
-        wstring trace_display_name;
-        wstring axis_x_label;
-        wstring axis_y_label;
+        string trace_id;  // unique name for the trace, can be used as 'data storage name'
+        string trace_display_name;
+        string axis_x_label;
+        string axis_y_label;
         long axis_x_decimals;
         long axis_y_decimals;
     };
@@ -146,13 +146,13 @@ module SignalObserver {
         // can turns into meaningfull object such as spectrum or chromatogram
         // this string can be CLSID/GUID for Microsoft COM, 
         // CORBA object name or internal C++ class name that is core software can handle
-        wstring dataInterpreterClsid();
+        string dataInterpreterClsid();
         long posFromTime( in unsigned long long usec );
 
 		// if instrument has one or more calibration information, adcontroller retrive them though this
 		// interface start with idx = 0 until return false;  all data will be set to datainterpreter 
 		// and also save into data file under /Calibration folder
-		boolean readCalibration( in unsigned long idx, out octet_array serialized, out wstring dataClass );
+		boolean readCalibration( in unsigned long idx, out octet_array serialized, out string dataClass );
     };
     
 };

@@ -1,9 +1,8 @@
 project( acewrapper )
-#TARGET = acewrapper
-#TEMPLATE = lib
-#CONFIG += staticlib
-#win32: QMAKE_CXXFLAGS += -D_CRT_SECURE_NO_WARNINGS
-#INCLUDEPATH *= $$OUT_PWD/..
+
+if (WIN32)
+  add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS)
+endif()
 
 add_library( acewrapper
   constants.cpp

@@ -11,75 +11,75 @@ module SampleBroker {
 
 	enum SampleType { SAMPLE_UNKNOWN, SAMPLE_STANDARD, SAMPLE_QC };
 
-    typedef sequence< wstring > wstringSequence;
+    typedef sequence< string > stringSequence;
 
 	struct SampleSequenceLine {
-		wstring sampleId_;
+		string sampleId_;
 		SampleType sampType_;
 		short stdLevel_;
         short stdReplicates_;
-		wstring vialNumber_;
-		wstring dataName_;
-		wstring ctrlMethodName_;
-		wstring procMethodName_;
-		wstring sampleDescription_;
-		wstring targetMolecules_;  // either list of formula or list of mol-file
+		string vialNumber_;
+		string dataName_;
+		string ctrlMethodName_;
+		string procMethodName_;
+		string sampleDescription_;
+		string targetMolecules_;  // either list of formula or list of mol-file
 		double injVolume_;
         double methodTime_;
 		double istdAmount_;       // added amount of ISTD
-        wstringSequence userValues_;
+        stringSequence userValues_;
 	};
 
-	struct CompoundResponse {
-        short stdLevel_;
-		short stdReplicates_;
-		double responce_;       // peak height or area on chromatogram
-	};
+	// struct CompoundResponse {
+    //     short stdLevel_;
+	// 	short stdReplicates_;
+	// 	double responce_;       // peak height or area on chromatogram
+	// };
 
-    typedef sequence< CompoundResponse > CompoundResponseSequence;
+    // typedef sequence< CompoundResponse > CompoundResponseSequence;
 
-	struct CompoundCalibData {
-		wstring compoundName_;  // compund::detection to be unique
-        wstring detection_;     // ex UV:250nm, mass:152.1708 etc.
-        CompoundResponseSequence responses_;
-	};
+	// struct CompoundCalibData {
+	// 	string compoundName_;  // compund::detection to be unique
+    //     string detection_;     // ex UV:250nm, mass:152.1708 etc.
+    //     CompoundResponseSequence responses_;
+	// };
 
-	struct CompoundData {
-		wstring compoundName_;  // compund::detection to be unique
-        wstring detection_;     // ex UV:250nm, mass:152.1708 etc.
-		wstring formula_;       // optional
-		wstring molstring_;     // more optional
-		double retentionTime_;  // required
-		boolean isIntStd_;
-	};
+	// struct CompoundData {
+	// 	string compoundName_;  // compund::detection to be unique
+    //     string detection_;     // ex UV:250nm, mass:152.1708 etc.
+	// 	string formula_;       // optional
+	// 	string molstring_;     // more optional
+	// 	double retentionTime_;  // required
+	// 	boolean isIntStd_;
+	// };
 
-    typedef sequence< CompoundData > CompoundDataSequence;
-    typedef sequence< CompoundCalibData > CompoundCalibDataSequence;
+    // typedef sequence< CompoundData > CompoundDataSequence;
+    // typedef sequence< CompoundCalibData > CompoundCalibDataSequence;
 
-	struct IDTable {
-        CompoundDataSequence compounds_;
-        CompoundCalibDataSequence calibResults_;
-	};
+	// struct IDTable {
+    //     CompoundDataSequence compounds_;
+    //     CompoundCalibDataSequence calibResults_;
+	// };
 
-	struct QuantMethod {
-		wstring idtableName_;
-        short nLevels_;
-        short nReplicates_;
-        boolean bracketing_;
-	};
+	// struct QuantMethod {
+	// 	wstring idtableName_;
+    //     short nLevels_;
+    //     short nReplicates_;
+    //     boolean bracketing_;
+	// };
 
-    typedef sequence< SampleSequenceLine > SampleSequenceLines;
+    // typedef sequence< SampleSequenceLine > SampleSequenceLines;
 
-	struct SampleSequenceData {
-        wstringSequence userColumns_;
-        SampleSequenceLines lines_;
-        QuantMethod quantMethod_;
-		IDTable idTable_;
-	};
+	//struct SampleSequenceData {
+    //     stringSequence userColumns_;
+    //     SampleSequenceLines lines_;
+    //     QuantMethod quantMethod_;
+	// 	IDTable idTable_;
+    //};
 
 	interface SampleSequence {
-		SampleSequenceData getSampleSequenceData();
-	};
+        string getSampleSequenceData();
+    };
 
 };
 

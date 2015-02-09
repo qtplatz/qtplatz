@@ -49,7 +49,7 @@ namespace broker {
         void log( const Broker::LogMessage& );
         bool findLog( CORBA::ULong logId, Broker::LogMessage& msg );
         bool nextLog( Broker::LogMessage& msg );
-        CORBA::WChar * to_string( const Broker::LogMessage& msg );
+        CORBA::Char * to_string( const Broker::LogMessage& msg );
 
         bool register_handler( LogHandler_ptr );
         bool unregister_handler( LogHandler_ptr );

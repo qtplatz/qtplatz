@@ -27,6 +27,7 @@
 
 #include <string>
 #include <adportable/string.hpp>
+#include <adportable/utf.hpp>
 #include <boost/format.hpp>
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_deprecated.h>
@@ -50,9 +51,16 @@ namespace adinterface {
             template<class T> LogMessageHelper& operator % (const T& t) {
                 msg_.args.length( msg_.args.length() + 1 );
                 msg_.args[ msg_.args.length() - 1 ]
-                    = CORBA::wstring_dup( ( boost::wformat(L"%1%") % t ).str().c_str() );
+                    = CORBA::string_dup( ( boost::format( "%1%" ) % t ).str().c_str() );
                 return *this;
             }
+            template<> LogMessageHelper& operator % (const std::wstring & t) {
+                msg_.args.length( msg_.args.length() + 1 );
+                msg_.args[ msg_.args.length() - 1 ] = CORBA::string_dup( adportable::utf::to_utf8( t ).c_str() );
+                return *this;
+            }
+
+
             inline ::EventLog::LogMessage & get() { return msg_; }
             static std::wstring toString( const ::EventLog::LogMessage& );
             

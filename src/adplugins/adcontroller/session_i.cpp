@@ -29,6 +29,7 @@
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include "task.hpp"
 #include <boost/tokenizer.hpp>
 #include <boost/iostreams/device/array.hpp>
@@ -60,7 +61,7 @@ session_i::connect( Receiver_ptr receiver, const CORBA::Char * token )
     ACE_UNUSED_ARG(token);
 
     if ( ! iTask::instance()->connect( _this(), receiver, token ) ) {
-        throw ControlServer::Session::CannotAdd( L"receiver already exist" );
+        throw ControlServer::Session::CannotAdd( "receiver already exist" );
         return false;
     }
     return true;
@@ -121,12 +122,13 @@ session_i::shell( const char * cmdline )
 
 //---------
 CORBA::Boolean
-session_i::prepare_for_run( const ControlMethod::Method& m, const CORBA::WChar * sampleXml )
+session_i::prepare_for_run( const ControlMethod::Method& m, const CORBA::Char * sampleXml )
 {
     auto sr = std::make_shared< adcontrols::SampleRun >();
     auto cm = std::make_shared< adcontrols::ControlMethod >();
 
-    std::wistringstream is( sampleXml );
+    std::wstring xml( adportable::utf::to_wstring( sampleXml ) );
+    std::wistringstream is( xml );
     adcontrols::SampleRun::xml_restore( is, *sr );
 
     adinterface::ControlMethodHelper::copy( *cm, m );

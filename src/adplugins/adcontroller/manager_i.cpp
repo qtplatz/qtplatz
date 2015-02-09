@@ -26,6 +26,7 @@
 #include "session_i.hpp"
 #include "task.hpp"
 #include <acewrapper/orbservant.hpp>
+#include <adportable/utf.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <cassert>
 
@@ -61,7 +62,7 @@ manager_i::shutdown()
 }
 
 ControlServer::Session_ptr
-manager_i::getSession( const CORBA::WChar * token )
+manager_i::getSession( const CORBA::Char * ctoken )
 {
     PortableServer::POA_var poa = manager_i::instance()->poa(); // getServantManager()->root_poa();
 
@@ -70,6 +71,8 @@ manager_i::getSession( const CORBA::WChar * token )
 
     if ( session_list_.empty() )
         adcontroller::iTask::instance()->open();
+
+    auto token = adportable::utf::to_wstring( ctoken );
 
     session_map_type::iterator it = session_list_.find( token );
     if ( it == session_list_.end() ) 

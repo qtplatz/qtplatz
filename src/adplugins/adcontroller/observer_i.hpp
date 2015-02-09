@@ -52,25 +52,25 @@ namespace adcontroller {
         observer_i( SignalObserver::Observer_ptr source = 0 );
         ~observer_i(void);
 
-        virtual ::SignalObserver::Description * getDescription (void);
-        virtual ::CORBA::Boolean setDescription ( const ::SignalObserver::Description & desc );
-        virtual ::CORBA::ULong objId();
-        virtual void assign_objId( CORBA::ULong oid );
+        virtual ::SignalObserver::Description * getDescription (void) override;
+        virtual ::CORBA::Boolean setDescription ( const ::SignalObserver::Description & desc ) override;
+        virtual ::CORBA::ULong objId() override;
+        virtual void assign_objId( CORBA::ULong oid ) override;
 
         virtual ::CORBA::Boolean connect( ::SignalObserver::ObserverEvents_ptr cb
                                           , ::SignalObserver::eUpdateFrequency frequency
-                                          , const CORBA::Char * );
-        virtual ::CORBA::Boolean disconnect( ::SignalObserver::ObserverEvents_ptr cb );
-        virtual ::CORBA::Boolean isActive (void);
-        virtual ::SignalObserver::Observers * getSiblings (void);
-        virtual ::CORBA::Boolean addSibling ( ::SignalObserver::Observer_ptr observer);
-        virtual ::SignalObserver::Observer * findObserver( CORBA::ULong objId, CORBA::Boolean recursive );
-        virtual void uptime ( ::CORBA::ULongLong_out usec );
-        virtual void uptime_range( ::CORBA::ULongLong_out oldest, ::CORBA::ULongLong_out newest );
-        virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
-        virtual ::CORBA::WChar * dataInterpreterClsid (void);
-        virtual ::CORBA::Long posFromTime( ::CORBA::ULongLong usec );
-        CORBA::Boolean readCalibration( CORBA::ULong idx, SignalObserver::octet_array_out, CORBA::WString_out ) override;
+                                          , const CORBA::Char * ) override;
+        virtual ::CORBA::Boolean disconnect( ::SignalObserver::ObserverEvents_ptr cb ) override;
+        virtual ::CORBA::Boolean isActive (void) override;
+        virtual ::SignalObserver::Observers * getSiblings (void) override;
+        virtual ::CORBA::Boolean addSibling ( ::SignalObserver::Observer_ptr observer) override;
+        virtual ::SignalObserver::Observer * findObserver( CORBA::ULong objId, CORBA::Boolean recursive ) override;
+        virtual void uptime ( ::CORBA::ULongLong_out usec ) override;
+        virtual void uptime_range( ::CORBA::ULongLong_out oldest, ::CORBA::ULongLong_out newest ) override;
+        virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer) override;
+        virtual ::CORBA::Char * dataInterpreterClsid (void) override;
+        virtual ::CORBA::Long posFromTime( ::CORBA::ULongLong usec ) override;
+        CORBA::Boolean readCalibration( CORBA::ULong idx, SignalObserver::octet_array_out, CORBA::String_out ) override;
         
         /// <-- end implementation ---
         //--------------------------------------------

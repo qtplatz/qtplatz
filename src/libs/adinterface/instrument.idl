@@ -52,7 +52,7 @@ module Instrument {
    interface Session {
       
        exception CannotAdd {
-           wstring reason_;
+           string reason_;
        };
       
        string software_revision();  // ex. L"1.216"

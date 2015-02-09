@@ -66,7 +66,7 @@ namespace adbroker {
         bool register_handler( Broker::ObjectReceiver_ptr cb );
         bool unregister_handler( Broker::ObjectReceiver_ptr cb );
 
-        Broker::Session_ptr getSession( const CORBA::WChar * );
+        Broker::Session_ptr getSession( const CORBA::Char * );
         Broker::Logger_ptr getLogger();
 
         void shutdown();

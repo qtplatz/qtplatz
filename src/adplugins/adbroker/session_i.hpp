@@ -52,7 +52,7 @@ namespace adbroker {
         virtual bool connect( const char * user, const char * pass, const char * token, BrokerEventSink_ptr );
         virtual bool disconnect( BrokerEventSink_ptr );
         // <---------------------------------
-		virtual bool coaddSpectrum( const CORBA::WChar * token, SignalObserver::Observer_ptr observer, double x1, double x2);
+		virtual bool coaddSpectrum( const CORBA::Char * token, SignalObserver::Observer_ptr observer, double x1, double x2);
     private:
         std::wstring token_;
 

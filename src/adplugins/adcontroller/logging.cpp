@@ -56,12 +56,12 @@ Logging::commit_to_broker()
             blog.priority = elog.priority;
             blog.tv_sec = elog.tv.sec;
             blog.tv_usec = elog.tv.usec;
-            blog.msgId = CORBA::wstring_dup( elog.msgId );
-            blog.srcId = CORBA::wstring_dup( elog.srcId );
-            blog.text = CORBA::wstring_dup( elog.format );
+            blog.msgId = CORBA::string_dup( elog.msgId );
+            blog.srcId = CORBA::string_dup( elog.srcId );
+            blog.text = CORBA::string_dup( elog.format );
             blog.args.length( elog.args.length() );
             for ( CORBA::ULong i = 0; i < elog.args.length(); ++i )
-                blog.args[i] = CORBA::wstring_dup( elog.args[i] );
+                blog.args[i] = CORBA::string_dup( elog.args[i] );
             logger->log( blog );
         }
     }

@@ -26,6 +26,6 @@
 
 interface BrokerEventSink {
     oneway void message( in string message ); // send message to client
-    oneway void portfolio_created( in wstring token );
-    oneway void folium_added( in wstring token, in wstring path, in wstring folderId );
+    oneway void portfolio_created( in string token );
+    oneway void folium_added( in string token, in string path, in string folderId );
 };

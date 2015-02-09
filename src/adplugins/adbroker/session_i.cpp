@@ -29,6 +29,7 @@
 #include "task.hpp"
 #include <portfolio/folium.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adportable/utf.hpp>
 #include <acewrapper/orbservant.hpp>
 #include <sstream>
 
@@ -102,10 +103,10 @@ session_i::disconnect( BrokerEventSink_ptr cb )
 }
 
 bool
-session_i::coaddSpectrum( const CORBA::WChar * token, SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
+session_i::coaddSpectrum( const CORBA::Char * token, SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
 {
     adbroker::Task * pTask = adbroker::BrokerManager::task();
-    pTask->io_service().post( std::bind(&Task::handleCoaddSpectrum, pTask, std::wstring(token), observer, x1, x2 ) );
+    pTask->io_service().post( std::bind( &Task::handleCoaddSpectrum, pTask, adportable::utf::to_wstring( token ), observer, x1, x2 ) );
 	return true;
 }
 

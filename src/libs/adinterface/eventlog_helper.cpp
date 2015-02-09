@@ -25,6 +25,7 @@
 
 #include "eventlog_helper.hpp"
 #include "eventlogC.h"
+#include <adportable/utf.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <sstream>
@@ -32,16 +33,13 @@
 
 namespace adinterface { namespace EventLog {
 
-        template<> LogMessageHelper& LogMessageHelper::operator % (const std::string& t)
-        {
-            msg_.args.length( msg_.args.length() + 1 ); // add an argument in vector
-            std::wstring ws;
-            ws.assign( t.begin(), t.end() );
-            msg_.args[ msg_.args.length() - 1 ] = CORBA::wstring_dup( ws.c_str() );
-            return *this;
-        }
-        
-    }
+         template<> LogMessageHelper& LogMessageHelper::operator % (const std::string& t)
+         {
+             msg_.args.length( msg_.args.length() + 1 ); // add an argument in vector
+             msg_.args[ msg_.args.length() - 1 ] = CORBA::string_dup( t.c_str() );
+             return *this;
+         }
+     }
 }
 
 using namespace adinterface;
@@ -50,13 +48,13 @@ using namespace adinterface::EventLog;
 std::wstring
 adinterface::EventLog::LogMessageHelper::toString( const ::EventLog::LogMessage& msg )
 {
-    const wchar_t * fmt = msg.format.in();
+    auto fmt = adportable::utf::to_wstring( msg.format.in() );
     CORBA::ULong narg = msg.args.length();
 
     boost::wformat format( fmt );
 
     for ( CORBA::ULong i = 0; i < narg; ++i )
-        format % static_cast<const wchar_t *>( msg.args[i].in() );
+        format % adportable::utf::to_wstring( msg.args[i].in() );
 
     std::wostringstream o;
     try {
@@ -78,11 +76,11 @@ LogMessageHelper::LogMessageHelper( const std::wstring& format
 	msg_.tv.usec = long( std::chrono::duration_cast< std::chrono::microseconds >( duration ).count() - (msg_.tv.sec * 1000000) );
 
     if ( ! msgId.empty() )
-        msg_.msgId = CORBA::wstring_dup( msgId.c_str() );
+        msg_.msgId = CORBA::string_dup( adportable::utf::to_utf8( msgId ).c_str() );
     if ( ! srcId.empty() )
-        msg_.srcId = CORBA::wstring_dup( srcId.c_str() );
+        msg_.srcId = CORBA::string_dup( adportable::utf::to_utf8( srcId ).c_str() );
     if ( ! format.empty() )
-        msg_.format = CORBA::wstring_dup( format.c_str() );
+        msg_.format = CORBA::string_dup( adportable::utf::to_utf8( format ).c_str() );
 }
 
 LogMessageHelper::LogMessageHelper( const LogMessageHelper& t ) : msg_( t.msg_ )
@@ -92,7 +90,7 @@ LogMessageHelper::LogMessageHelper( const LogMessageHelper& t ) : msg_( t.msg_ )
 LogMessageHelper&
 LogMessageHelper::format( const std::wstring& fmt )
 {
-    msg_.format = CORBA::wstring_dup( fmt.c_str() );
+    msg_.format = CORBA::string_dup( adportable::utf::to_utf8( fmt ).c_str() );
     return *this;
 }
 

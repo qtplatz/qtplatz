@@ -36,6 +36,7 @@
 #include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/utf.hpp>
 #include <adutils/mscalibio.hpp>
 #include <adutils/acquiredconf.hpp>
 #include <adutils/acquireddata.hpp>
@@ -200,14 +201,14 @@ SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
             
             SignalObserver::Observer_ptr observer = vec[ i ];
             unsigned long objId = observer->objId();
-            CORBA::WString_var dataClass;
+            CORBA::String_var dataClass;
             SignalObserver::octet_array_var data;
             CORBA::ULong idx = 0;
             while ( observer->readCalibration( idx++, data, dataClass ) ) {
                 adfs::stmt sql( fs_->db() );
                 sql.prepare( "INSERT INTO Calibration VALUES(:objid,:dataClass,:data,0)" );
                 sql.bind( 1 ) = objId;
-                sql.bind( 2 ) = std::wstring( dataClass.in() );
+                sql.bind( 2 ) = std::wstring( adportable::utf::to_wstring( dataClass.in() ) );
                 sql.bind( 3 ) = adfs::blob( data->length(), reinterpret_cast< const int8_t *>( data->get_buffer() ) );
                 if ( sql.step() == adfs::sqlite_done )
                     sql.commit();
@@ -236,23 +237,23 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
             
             unsigned long objId = observer->objId();
             
-			CORBA::WString_var clsid = observer->dataInterpreterClsid();
+			CORBA::String_var clsid = observer->dataInterpreterClsid();
 			SignalObserver::Description_var desc = observer->getDescription();
-			CORBA::WString_var trace_id = desc->trace_id.in();
-			CORBA::WString_var trace_display_name = desc->trace_display_name.in();
-			CORBA::WString_var axis_x_label = desc->axis_x_label.in();
-			CORBA::WString_var axis_y_label = desc->axis_y_label.in();
+			CORBA::String_var trace_id = desc->trace_id.in();
+			CORBA::String_var trace_display_name = desc->trace_display_name.in();
+			CORBA::String_var axis_x_label = desc->axis_x_label.in();
+			CORBA::String_var axis_y_label = desc->axis_y_label.in();
 
             adutils::AcquiredConf::insert( fs_->db()
                                            , objId
                                            , pobjId
-                                           , std::wstring( clsid.in() )
+                                           , adportable::utf::to_wstring( clsid.in() )
                                            , uint64_t( desc->trace_method )
                                            , uint64_t( desc->spectrometer )
-                                           , std::wstring( trace_id.in() )
-                                           , std::wstring( trace_display_name.in() )
-                                           , std::wstring( axis_x_label.in() )
-                                           , std::wstring( axis_y_label.in() )
+                                           , adportable::utf::to_wstring( trace_id.in() )
+                                           , adportable::utf::to_wstring( trace_display_name.in() )
+                                           , adportable::utf::to_wstring( axis_x_label.in() )
+                                           , adportable::utf::to_wstring( axis_y_label.in() )
                                            , uint64_t( desc->axis_x_decimals )
                                            , uint64_t( desc->axis_y_decimals ) );
         }

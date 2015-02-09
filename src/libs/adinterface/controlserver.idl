@@ -68,7 +68,7 @@ module ControlServer {
     interface Session {
       
         exception CannotAdd {
-            wstring reason_;
+            string reason_;
         };
        
         string software_revision();  // ex. L"1.216"
@@ -90,7 +90,7 @@ module ControlServer {
         boolean echo(in string msg);
         boolean shell(in string cmdline);
       
-        boolean prepare_for_run( in ControlMethod::Method m, in wstring sampleRunXml );
+        boolean prepare_for_run( in ControlMethod::Method m, in string sampleRunXml );
         boolean push_back( in SampleBroker::SampleSequence s );
       
         boolean event_out(in unsigned long event);
@@ -101,7 +101,7 @@ module ControlServer {
     };
 
     interface Manager : BrokerClient::Accessor {
-        Session getSession( in wstring connStr );
+        Session getSession( in string connStr );
     };
 
 };

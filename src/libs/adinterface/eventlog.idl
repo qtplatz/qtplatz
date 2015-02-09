@@ -21,16 +21,16 @@ module EventLog {
         long usec;
     };
 
-    typedef sequence< wstring > wstring_sequence;
+    typedef sequence< string > string_sequence;
     
     struct LogMessage {
         unsigned long logId;  // unique number for each log message, such as sequencial number
         long priority;
         TimeValue tv;
-        wstring msgId;        // such as 'error code' for end user
-        wstring srcId;        // source device id
-        wstring format;
-        wstring_sequence args;
+        string msgId;        // such as 'error code' for end user
+        string srcId;        // source device id
+        string format;
+        string_sequence args;
     };
 
     interface dummy {

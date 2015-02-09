@@ -42,6 +42,7 @@
 #include <adfs/folder.hpp>
 #include <adfs/file.hpp>
 #include <adportable/float.hpp>
+#include <adportable/utf.hpp>
 #include <adlog/logger.hpp>
 #include <sstream>
 #include <iostream>
@@ -58,18 +59,19 @@ namespace adbroker {
  
         struct portfolio_created {
             std::wstring token;
-            portfolio_created( const std::wstring& tok ) : token( tok ) {}
+            std::string u8token;
+            portfolio_created( const std::wstring& tok ) : token( tok ), u8token( adportable::utf::to_utf8( tok ) ) {}
             void operator () ( Task::session_data& d ) const {
-                d.receiver_->portfolio_created( token.c_str() );
+                d.receiver_->portfolio_created( u8token.c_str() );
             }
         };
         //--------------------------
         struct folium_added {
-            std::wstring token_;
-            std::wstring path_;
-            std::wstring id_;
+            std::string token_;
+            std::string path_;
+            std::string id_;
             folium_added( const std::wstring& tok, const std::wstring& path, const std::wstring id )
-                : token_( tok ), path_(path), id_(id) {
+                : token_( adportable::utf::to_utf8( tok ) ), path_( adportable::utf::to_utf8( path ) ), id_( adportable::utf::to_utf8( id ) ) {
             }
             void operator () ( Task::session_data& d ) const {
                 d.receiver_->folium_added( token_.c_str(), path_.c_str(), id_.c_str() );
@@ -172,7 +174,7 @@ void
 Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_ptr observer, double x1, double x2 )
 {
     SignalObserver::Description_var desc = observer->getDescription();
-    CORBA::WString_var clsid = observer->dataInterpreterClsid();
+    CORBA::String_var clsid = observer->dataInterpreterClsid();
 
     if ( ! ( ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) &&
              ( desc->spectrometer == SignalObserver::eMassSpectrometer ) ) )
@@ -264,7 +266,7 @@ Task::appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum
 	}
 
     for ( session_data& d: session_set_ )
-        d.receiver_->folium_added( filename.c_str(), L"/Processed/Spectra", id.c_str() );
+        d.receiver_->folium_added( adportable::utf::to_utf8( filename ).c_str(), "/Processed/Spectra", adportable::utf::to_utf8( id ).c_str() );
 }
 
 void

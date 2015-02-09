@@ -31,6 +31,7 @@
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/string.hpp>
+#include <adportable/utf.hpp>
 #include <regex>
 
 using namespace adbroker;
@@ -97,16 +98,17 @@ manager_i::shutdown()
 }
 
 Broker::Session_ptr
-manager_i::getSession( const CORBA::WChar * token )
+manager_i::getSession( const CORBA::Char * _token )
 {
     PortableServer::POA_var poa = ::adbroker::manager_i::instance()->poa();
 
     if ( CORBA::is_nil( poa ) )
         return 0;
 
+    auto token = adportable::utf::to_wstring( _token );
     session_map_type::iterator it = session_list_.find( token );
     if ( it == session_list_.end() )
-        session_list_[ token ].reset( new adbroker::session_i( token ) );
+        session_list_[ token ].reset( new adbroker::session_i( token.c_str() ) );
 
     CORBA::Object_ptr obj = poa->servant_to_reference( session_list_[ token ].get() );
     try {
