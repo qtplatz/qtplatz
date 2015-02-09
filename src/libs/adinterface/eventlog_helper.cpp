@@ -31,17 +31,6 @@
 #include <sstream>
 #include <chrono>
 
-namespace adinterface { namespace EventLog {
-
-         template<> LogMessageHelper& LogMessageHelper::operator % (const std::string& t)
-         {
-             msg_.args.length( msg_.args.length() + 1 ); // add an argument in vector
-             msg_.args[ msg_.args.length() - 1 ] = CORBA::string_dup( t.c_str() );
-             return *this;
-         }
-     }
-}
-
 using namespace adinterface;
 using namespace adinterface::EventLog;
 
