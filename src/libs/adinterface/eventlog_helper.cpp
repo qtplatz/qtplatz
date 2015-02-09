@@ -34,6 +34,18 @@
 using namespace adinterface;
 using namespace adinterface::EventLog;
 
+namespace adinterface { namespace EventLog {
+
+        template<> LogMessageHelper& LogMessageHelper::operator % (const std::wstring & t) {
+            msg_.args.length( msg_.args.length() + 1 );
+            msg_.args[ msg_.args.length() - 1 ]
+                = CORBA::string_dup( adportable::utf::to_utf8( t ).c_str() );
+            return *this;
+        }
+        
+    }
+}
+
 std::wstring
 adinterface::EventLog::LogMessageHelper::toString( const ::EventLog::LogMessage& msg )
 {

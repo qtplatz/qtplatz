@@ -62,12 +62,6 @@ namespace adinterface {
             ::EventLog::LogMessage msg_;
         };
 
-        template<> LogMessageHelper& LogMessageHelper::operator % (const std::wstring & t) {
-            msg_.args.length( msg_.args.length() + 1 );
-            msg_.args[ msg_.args.length() - 1 ]
-                = CORBA::string_dup( adportable::utf::to_utf8( t ).c_str() );
-            return *this;
-        }
-
+        template<> LogMessageHelper& LogMessageHelper::operator % (const std::wstring & t);
     }
 }
