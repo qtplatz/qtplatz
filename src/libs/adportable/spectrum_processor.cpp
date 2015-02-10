@@ -26,6 +26,7 @@
 #include <compiler/disable_unused_parameter.h>
 #include "spectrum_processor.hpp"
 #include "array_wrapper.hpp"
+#include "polfit.hpp"
 #include <boost/variant.hpp>
 #include <compiler/diagnostic_pop.h>
 #include "moment.hpp"
@@ -372,7 +373,7 @@ namespace adportable { namespace peakfind {
             peakw = fpeakw_( idx, iw );
             m = ( iw < 5 ) ? 5 : iw | 0x01;    // n-order for SGFilter
             NH = m / 2;
-            slope = rms_ / double( iw * 8 );            
+            slope = rms_ / double( iw * 16 );
         }
 
         waveform_peakfinder_i( std::function< double( size_t idx, int& n )>& fpeakw, double dbase, double rms )
@@ -394,7 +395,7 @@ namespace adportable { namespace peakfind {
             int m = iw;
             int NH = m / 2;
             double peakw = fpeakw_( beg, iw );
-            double slope = double( rms_ ) / double( iw * 8 );
+            double slope = double( rms_ ) / double( iw * 16 );
             internal_update( beg, peakw, iw, m, NH, slope );
             
             SGFilter diff( m, SGFilter::Derivative1, SGFilter::Cubic );
@@ -650,6 +651,35 @@ waveform_peakfinder::operator()( std::function< double ( size_t ) > fx
         return results.size();        
     }
     return 0;
+}
+
+bool
+waveform_peakfinder::fit( std::function< double ( size_t ) > fx
+                         , const double * pY
+                         , size_t spos
+                         , size_t tpos
+                         , size_t epos
+                         , waveform_peakfinder::parabola& pk )
+{
+    pk.spos = spos;
+    pk.tpos = tpos;
+    pk.epos = epos;
+    if ( ( epos - spos ) + 1 >= 5 ) {
+        std::vector< double > x, y, r;
+        for ( size_t i = pk.spos; i <= pk.epos; ++i ) {
+            x.push_back( fx( i ) );
+            y.push_back( pY[ i ] );
+        }
+        if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 3, r ) ) {
+            pk.a = r[0];  // y = a + bx + cx^2
+            pk.b = r[1];
+            pk.c = r[2];
+            pk.centreX = (-pk.b) / ( 2 * pk.c ); // first delivative of quadratic eq, at x = 0;
+            pk.height = ( pk.a + pk.b * pk.centreX + pk.c * ( pk.centreX * pk.centreX ) ) - dbase_;
+        }
+        return true;
+    }
+    return false;
 }
 
 double

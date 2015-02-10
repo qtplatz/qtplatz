@@ -95,13 +95,33 @@ namespace adportable {
                 : spos( x1 ), epos( x2 ), tpos( tp ), height(h), centreX(c), xleft(0), xright(0)
                 {}
         };
-        
+
+        struct parabola {
+            size_t spos;
+            size_t epos;
+            size_t tpos;
+            double height;
+            double centreX;
+            double a, b, c;  // a + bx + cx^2
+            parabola( size_t x1 = 0, size_t x2 = 0, size_t tp = 0, double h = 0, double c = 0 )
+                : spos( x1 ), epos( x2 ), tpos( tp ), height(h), centreX(c), a(0), b(0), c(0)
+                {}
+        };
+
         waveform_peakfinder( std::function< double( size_t idx, int& npeakw )> fpeakw );
         
         size_t operator()( std::function< double( size_t ) > fx
                            , const double * pY
                            , size_t beg, size_t end
                            , std::vector< waveform_peakfinder::peakinfo >& results );
+
+        bool fit( std::function< double( size_t ) > fx
+                  , const double * pY
+                  , size_t spos
+                  , size_t tpos
+                  , size_t epos
+                  , waveform_peakfinder::parabola& result );
+        
         double dbase() const;
         double rms() const;        
     private:
