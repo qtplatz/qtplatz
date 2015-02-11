@@ -68,6 +68,7 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , cmEditor_( new adwidgets::ControlMethodWidget )
                                         , runEditor_( new adwidgets::SampleRunWidget )
 {
+    connect( cmEditor_, &adwidgets::ControlMethodWidget::onImportInitialCondition, this, &MainWindow::handleControlMethod );
 }
 
 void

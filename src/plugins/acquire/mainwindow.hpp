@@ -73,14 +73,12 @@ namespace acquire {  namespace internal {
             void handle_message( unsigned long msg, unsigned long value );
             void handle_shutdown();
             void handle_debug_print( unsigned long priority, unsigned long category, QString text );
+            void handleControlMethod();
 
         private:
             QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
             adwidgets::ControlMethodWidget * cmEditor_;
             adwidgets::SampleRunWidget * runEditor_;
-
-            void handleControlMethod();
-
         };
 
     }

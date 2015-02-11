@@ -51,23 +51,19 @@ namespace adwidgets {
                     QStyledItemDelegate::paint( painter, option, index );
                 }
             }
-#if 0
+
             void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
 
                 QStyledItemDelegate::setModelData( editor, model, index );
 
-                auto v = model->item( index.row(), 0 );
-                if ( qVariantCanConvert< adcontrols::controlmethod::MethodItem >( v ) ) {
-
-                    auto mi = qVariantValue< adcontrols::controlmethod::MethodItem >( v );
-
+                auto v = model->index( index.row(), 0 ).data( Qt::UserRole );
+                if ( v.canConvert< adcontrols::controlmethod::MethodItem >() ) {
+                    auto mi = v.value< adcontrols::controlmethod::MethodItem >();
                     if ( index.column() == 0 && !mi.isInitialCondition() )
-                        mi.time( index.data().toDouble() * 60.0 ); // set in seconds
-                    
-                    model->item( index.row(), 0 )->setData( qVariantFromValue<adcontrols::controlmethod::MethodItem>( mi ), Qt::UserRole );
+                        mi.time( index.data().toDouble() * 60.0 );  // seconds is the internal format
+                    model->setData( model->index( index.row(), 0 ), qVariantFromValue<adcontrols::controlmethod::MethodItem>( mi ), Qt::UserRole );
                 }
             }
-#endif
 
         };
 
@@ -142,8 +138,14 @@ ControlMethodTable::setContents( const adcontrols::ControlMethod& m )
         setData( mi, row );
         ++row;
     }
-    if ( m.size() )
-        selectRow( 0 );
+    if ( m.size() ) {
+        if ( currentIndex().row() != 0 )
+            selectRow( 0 );
+        else {
+            auto mi = data( 0 );
+            parent_->setMethod( *m.begin() );
+        }
+    }
     return true;
 }
 
@@ -185,6 +187,7 @@ ControlMethodTable::currentChanged( const QModelIndex& curr, const QModelIndex& 
 void
 ControlMethodTable::sort()
 {
+    commit();
     method_->sort();
     setContents( *method_ );
 }
@@ -206,6 +209,7 @@ ControlMethodTable::showContextMenu( const QPoint& pt )
         actions.push_back( menu.addAction( "Add line: " + item ) );
     delete_action = menu.addAction( "Delete line" );
     sort_action = menu.addAction( "Sort" );
+    QAction * import_init = menu.addAction( "Import Inital Condition" );
 
     TableView::addActionsToMenu( menu, pt );
     
@@ -214,6 +218,8 @@ ControlMethodTable::showContextMenu( const QPoint& pt )
             delLine( indexAt( pt ).row() );
         else if ( selected == sort_action )
             sort();
+        else if ( selected == import_init )
+            emit parent_->onImportInitialCondition();
         else {
             for ( size_t i = 0; i < actions.size(); ++i ) {
                 if ( actions[ i ] == selected ) {

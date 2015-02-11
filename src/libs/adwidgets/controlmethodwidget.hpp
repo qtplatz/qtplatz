@@ -41,6 +41,12 @@ namespace adwidgets {
 
     class ControlMethodTable;
 
+    /** \brief ControlMethodWidget is an editor for instrument control time event.
+     * It is a complex of consisted instrument method for thier initial-condition
+     * and timed events.
+     *
+     */
+
     class  ADWIDGETSSHARED_EXPORT ControlMethodWidget : public QWidget
                                                       , adplugin::LifeCycle {
         Q_OBJECT
@@ -71,6 +77,10 @@ namespace adwidgets {
 
     signals:
         void onCurrentChanged( QWidget * );
+
+        /** Menu items "Import Initial Condition" emit 'onImportInitialCondition' signal
+        */
+        void onImportInitialCondition();
             
     public slots:
         void getLifeCycle( adplugin::LifeCycle *& p );

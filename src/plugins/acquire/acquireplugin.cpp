@@ -361,6 +361,9 @@ AcquirePlugin::extensionsInitialized()
     document::instance()->initialSetup();
     mainWindow_->setControlMethod( *document::instance()->controlMethod() );
     mainWindow_->setSampleRun( *document::instance()->sampleRun() );
+
+    // gather and initialize control method,time events
+    mainWindow_->handleControlMethod();
 }
 
 void
