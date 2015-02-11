@@ -111,48 +111,63 @@ module SignalObserver {
     
     interface Observer {
 
-        // getDescription returns description
+        /** \brief getDescription returns description
+         */
         Description getDescription();
         boolean setDescription( in Description desc );
 
         unsigned long objId();
         void assign_objId( in unsigned long oid );
 
-        // client can monitor real time events, it is optional
+        /** \brief client can monitor real time events, it is optional
+         */
         boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency, in string token );
         boolean disconnect( in ObserverEvents cb );
 
         boolean isActive();
 
-        // getSblings returns Observers, which share time base and events.
-        // Top level 'Observer' object is responcible to issue events 'OnUpdateData', 'OnEvent', 
-        // so application does not need to hookup events for shiblings.
+        /** getSblings returns Observers, which share time base and events.
+         *
+         * Top level 'Observer' object is responcible to issue events 'OnUpdateData', 'OnEvent', 
+         * so application does not need to hookup events for shiblings.
+         */
         Observers getSiblings();
 
-        // Instrument controller will add/remove sibling by changing method while running sequence
+        /** Instrument controller will add/remove sibling by changing method while running sequence
+         */
         boolean addSibling( in Observer observer );
         Observer findObserver( in unsigned long objId, in boolean recursive );
 
-        // uptime returns micro seconds since start moniring, 
-        // this number never reset to zero while running
+        /** uptime returns micro seconds since start moniring, 
+         * this number never reset to zero while running
+         */
         void uptime( out unsigned long long usec );
 
-		// 
         void uptime_range( out unsigned long long oldest, out unsigned long long newest );
 
         boolean readData( in long pos, out DataReadBuffer dataReadBuffer );
 
-        // dataInterpreterClsid tells you object location that knows data array structure
-        // can turns into meaningfull object such as spectrum or chromatogram
-        // this string can be CLSID/GUID for Microsoft COM, 
-        // CORBA object name or internal C++ class name that is core software can handle
+        /** dataInterpreterClsid tells you object location that knows data array structure
+         * can turns into meaningfull object such as spectrum or chromatogram
+         * this string can be CLSID/GUID for Microsoft COM, 
+         * CORBA object name or internal C++ class name that is core software can handle
+         */
         string dataInterpreterClsid();
         long posFromTime( in unsigned long long usec );
 
-		// if instrument has one or more calibration information, adcontroller retrive them though this
-		// interface start with idx = 0 until return false;  all data will be set to datainterpreter 
-		// and also save into data file under /Calibration folder
+		/** if instrument has one or more calibration information, adcontroller retrive them though this
+         * interface start with idx = 0 until return false;  all data will be set to datainterpreter 
+         * and also save into data file under /Calibration folder
+         */
 		boolean readCalibration( in unsigned long idx, out octet_array serialized, out string dataClass );
+
+        /** \brief set the process method as serialzied octet stream
+         */
+        boolean setProcessMethod( in string dataClass, in octet_array serialized );
+
+        /** \brief get the process method as serialzied octet stream which stroed in the observer object
+         */
+        boolean processMethod( in string dataClass, out octet_array serialized );
     };
     
 };

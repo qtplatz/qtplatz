@@ -71,6 +71,8 @@ namespace adcontroller {
         virtual ::CORBA::Char * dataInterpreterClsid (void) override;
         virtual ::CORBA::Long posFromTime( ::CORBA::ULongLong usec ) override;
         CORBA::Boolean readCalibration( CORBA::ULong idx, SignalObserver::octet_array_out, CORBA::String_out ) override;
+        CORBA::Boolean setProcessMethod( const CORBA::Char *, const SignalObserver::octet_array& ) override;
+        CORBA::Boolean processMethod( const CORBA::Char *, SignalObserver::octet_array_out ) override;
         
         /// <-- end implementation ---
         //--------------------------------------------

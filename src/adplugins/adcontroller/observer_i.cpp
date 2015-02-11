@@ -289,6 +289,23 @@ observer_i::readCalibration( CORBA::ULong idx, SignalObserver::octet_array_out d
 	return false;
 }
 
+CORBA::Boolean
+observer_i::setProcessMethod( const CORBA::Char * dataClass, const SignalObserver::octet_array& data )
+{
+	if ( ! CORBA::is_nil( source_observer_ ) )
+		return source_observer_->setProcessMethod( dataClass, data );
+	return false;
+}
+
+CORBA::Boolean
+observer_i::processMethod( const CORBA::Char * dataClass, SignalObserver::octet_array_out data )
+{
+	if ( ! CORBA::is_nil( source_observer_ ) )
+		return source_observer_->processMethod( dataClass, data );
+	return false;
+}
+
+
 observer_i *
 observer_i::find_cache_observer( unsigned long objId )
 {

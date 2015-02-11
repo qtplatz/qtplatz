@@ -192,6 +192,11 @@ MassSpectrometer::datafile() const
     return datafile_;
 }
 
+void
+MassSpectrometer::setDebugTrace( const char * logfile, int level )
+{
+}
+
 const MassSpectrometer*
 MassSpectrometer::find( const wchar_t * dataInterpreterClsid )
 {

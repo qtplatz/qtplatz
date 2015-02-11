@@ -72,6 +72,7 @@ namespace adcontrols {
         virtual const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const;
         virtual const adcontrols::MSCalibration * findCalibration( int mode ) const;
         virtual adcontrols::datafile * datafile() const;
+        virtual void setDebugTrace( const char * logfile, int level );
 
         // static methods 
         static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid );
