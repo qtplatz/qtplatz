@@ -38,6 +38,7 @@ namespace adcontrols {
 	class MSProperty;
     class MSCalibrateResult;
 	class MSCalibration;
+    class ProcessMethod;
     class datafile;
     class ScanLaw;
 
@@ -73,6 +74,7 @@ namespace adcontrols {
         virtual const adcontrols::MSCalibration * findCalibration( int mode ) const;
         virtual adcontrols::datafile * datafile() const;
         virtual void setDebugTrace( const char * logfile, int level );
+        virtual void setProcessMethod( const std::shared_ptr< adcontrols::ProcessMethod > ) { return; }
 
         // static methods 
         static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid );
