@@ -126,14 +126,14 @@ lrpfile::dump( std::ostream& of ) const
         of << "flags:\t" << instsetup_->flags() << std::endl;
         of << "ionization:\t" << instsetup_->ionization() << std::endl;
         of << "\tIonization method code:\t" << instsetup_->describe_ionization() << std::endl;
-        of << "upperdrive:\t" << instsetup_->upperdrive() << "\tUpper mass drive" << std::endl;
-        of << "lowerdrive:\t" << instsetup_->lowerdrive() << "\tLower mass drive" << std::endl;
+        of << "#### upperdrive:\t" << instsetup_->upperdrive() << "\tUpper mass drive" << std::endl;
+        of << "#### lowerdrive:\t" << instsetup_->lowerdrive() << "\tLower mass drive" << std::endl;
         of << "umasslim:\t" << double(instsetup_->umasslim()) / 65536 << "\tUpper mass limit of scan" << std::endl;
         of << "lmasslim:\t" << double(instsetup_->lmasslim()) / 65536 << "\tLower mass limit of scan" << std::endl;
         of << "ucallim:\t" << double(instsetup_->ucallim()) / 65536 << "\tUpper mass limit of calibration" << std::endl;
         of << "lcallim:\t" << double(instsetup_->lcallim()) / 65536 << "\tLower mass limit of calibration" << std::endl;
         of << "aves:\t" << instsetup_->aves() << "\tNumber A/D readings per D/A step" << std::endl;
-        of << "stepsize:\t" << instsetup_->stepsize() << "\tStep size between data points" << std::endl;
+        of << "#### stepsize:\t" << instsetup_->stepsize() << "\tStep size between data points" << std::endl;
         of << "scanspeed:\t" << instsetup_->scanspeed() << "\tScan/second" << std::endl;
         of << "scancycle:\t" << instsetup_->scancycle() << "\tInterscan delay (msec)" << std::endl;
         of << "caltable:\t" << instsetup_->caltable() << "\tCalibration table used" << std::endl;
@@ -143,7 +143,7 @@ lrpfile::dump( std::ostream& of ) const
         of << "reswindow:\t" << instsetup_->reswindow() << "\tPeak width used for peak detection" << std::endl;
         of << "calslope:\t" << instsetup_->calslope() << "\tCalibration slope (linear scan only)" << std::endl;
         of << "calinter:\t" << instsetup_->calinter() << "\tCalibration intercept(linear scan only)" << std::endl;
-        of << "clockbaud:\t" << instsetup_->clockbaud() << "\tClock baud rate in seconds/data point" << std::endl;
+        of << "#### clockbaud:\t" << instsetup_->clockbaud() << "\tClock baud rate in seconds/data point" << std::endl;
         of << "overload:\t" << instsetup_->overload() << "\tMaximum intensity(A/D max - baseline value)" << std::endl;
         of << "timewindow:\t" << instsetup_->timewindow() << "\tnot used" << std::endl;
         of << "masswindow:\t" << instsetup_->masswindow() << "\tMass window for selected ion monitoring" << std::endl;
