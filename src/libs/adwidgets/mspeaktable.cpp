@@ -457,11 +457,11 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
         QString protlabel;
 
         auto& descs = fms.getDescriptions();
-        auto it = std::find_if( descs.begin(), descs.end(), [] ( const adcontrols::description& d ){ return d.key() == L"acquire.protocol.label"; } );
+        auto it = std::find_if( descs.begin(), descs.end(), [] ( const adcontrols::description& d ){
+                return std::wcscmp( d.key(), L"acquire.protocol.label" ) == 0; } );
         if ( it != descs.end() ) {
             protlabel = QString::fromStdWString( (boost::wformat( L"#%d %s" ) % fcn % it->text() ).str() );
-        }
-        else {
+        } else {
             protlabel = QString::fromStdString( (boost::format( "#%1%" ) % fcn).str() );
         }
 

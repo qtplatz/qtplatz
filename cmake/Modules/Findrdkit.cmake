@@ -1,5 +1,9 @@
 # find RDKit
 
+if ( rdkit_FOUND )
+  return()
+endif()
+
 if ( WIN32 )
   if ( RTC_ARCH_X86 )
     #Win32
@@ -16,13 +20,13 @@ else()
 endif()
 
 if ( rdkit_DIR )
+
+  set( rdkit_FOUND 1 )
+
   if ( APPLE )
-    #include( ${rdkit_DIR}/rdkit-config.cmake )
-    #include( ${rdkit_DIR}/CMakeFiles/Export/lib/rdkit-targets.cmake )
-    get_filename_component (_dir ${rdkit_DIR}/rdkit-config.cmake PATH)
-    get_filename_component (_prefix "${_dir}/.." ABSOLUTE)
-    #set (RDKit_INCLUDE_DIRS "${_prefix}/include/rdkit")    # if INSTALL_INTREE is OFF
+    get_filename_component (_prefix "${rdkit_DIR}/.." ABSOLUTE)
     set (RDKit_INCLUDE_DIRS "${_prefix}/Code")
+    include( rdkit-darwin-config )
   else()
     find_package( rdkit CONFIG )
     message( STATUS "RDKit version: " ${rdkit_VERSION} " in " ${rdkit_DIR} )

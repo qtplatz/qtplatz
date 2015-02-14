@@ -34,23 +34,29 @@ if (WIN32)
 
 else()
 
+  if ( APPLE )
+    set( SO "dylib" )
+  else()
+    set( SO "so" )
+  endif()
+
   set_target_properties( CORBA::ACE PROPERTIES
-    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libACE.so )
+    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libACE.${SO} )
 
   set_target_properties( CORBA::TAO PROPERTIES
-    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO.so )
+    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO.${SO} )
 
   set_target_properties( CORBA::TAO_Utils PROPERTIES
-    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO_Utils.so )
+    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO_Utils.${SO} )
 
   set_target_properties( CORBA::TAO_PI PROPERTIES
-    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO_PI.so )
+    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO_PI.${SO} )
 
   set_target_properties( CORBA::TAO_PortableServer PROPERTIES
-    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO_PortableServer.so )
+    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO_PortableServer.${SO} )
 
   set_target_properties( CORBA::TAO_AnyTypeCode PROPERTIES
-    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO_AnyTypeCode.so )
+    IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libTAO_AnyTypeCode.${SO} )
 
 endif()
 

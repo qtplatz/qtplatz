@@ -6,9 +6,15 @@ if( NOT _defined )
   
   add_library( qwt STATIC IMPORTED )
 
-  set_target_properties( qwt PROPERTIES
-    IMPORTED_LOCATION ${qwt_DIR}/lib/qwt.lib
-    IMPORTED_LOCATION_DEBUG ${qwt_DIR}/lib/qwtd.lib
-    )
+  if ( WIN32 ) 
+    set_target_properties( qwt PROPERTIES
+      IMPORTED_LOCATION ${qwt_DIR}/lib/qwt.lib
+      IMPORTED_LOCATION_DEBUG ${qwt_DIR}/lib/qwtd.lib
+      )
+  else()
+    set_target_properties( qwt PROPERTIES
+      IMPORTED_LOCATION ${qwt_DIR}/lib/libqwt.a
+      )
+  endif()
 
 endif()

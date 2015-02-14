@@ -35,6 +35,8 @@ set( IDLFILES
 
 if ( MSVC )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
+elseif( APPLE )
+  add_definitions( -Wno-deprecated-register )
 endif()
 
 ADD_CORBA_SERVERS(GENERATED_CPP GENERATED_H ${IDLFILES})
