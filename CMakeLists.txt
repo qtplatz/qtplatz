@@ -23,6 +23,8 @@ include (qtplatz-version)
 #
 if (WIN32)
   set(CMAKE_INSTALL_PREFIX "C:/qtplatz" )
+elseif(APPLE)
+  set(CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 else()
   set(CMAKE_INSTALL_PREFIX "/usr/local/qtplatz" )
 endif()

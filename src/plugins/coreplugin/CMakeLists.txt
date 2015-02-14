@@ -309,7 +309,7 @@ if ( UNIX )
     #eval(image$${imagesize}.files = images/logo/$${imagesize}/QtProject-qtcreator.png)
     #eval(image$${imagesize}.path = $$QTC_PREFIX/share/icons/hicolor/$${imagesize}x$${imagesize}/apps)
     configure_file(
-      images/logo/$${imagesize}/QtProject-qtcreator.png
+      images/logo/${imagesize}/QtProject-qtcreator.png
       ${CMAKE_BINARY_DIR}/share/icons/hicolor/${imagesize}x${imagesize}/apps
       )
   endforeach( imagesize )
