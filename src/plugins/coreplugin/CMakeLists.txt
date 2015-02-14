@@ -150,6 +150,33 @@ if (WIN32)
   set( core_SOURCES ${core_SOURCES} progressmanager/progressmanager_win.cpp )
   set( core_LIBS ${core_LIBS} ole32 user32 )
 endif()
+if (APPLE)
+  include_directories ( /Developer/Headers/FlatCarbon )
+  find_library( CARBON_LIBRARY Carbon )
+  find_library( APP_SERVICES_LIBRARY ApplicationServices )
+  find_library( APP_KIT_LIBRARY AppKit )
+  find_library( APP_DISK_ARBITRATION_LIBRARY DiskArbitration )
+  find_library( APP_SECURITY_LIBRARY Security )
+  find_library( APP_OPENGL_LIBRARY OpenGL )
+  find_library( APP_AGL_LIBRARY AGL )
+  message( "########### " ${APP_SERVICES_LIBRARY} )
+  message( "########### " ${APP_KIT_LIBRARY} )
+  mark_as_advanced ( CARBON_LIBRARY  APP_SERVICES_LIBRARY )
+  set ( EXTRA_LIBS ${CARBON_LIBRARY} ${QUICKTIME_LIBRARY} ${APP_SERVICES_LIBRARY} )
+
+  set( core_SOURCES ${core_SOURCES} progressmanager/progressmanager_mac.mm )
+  # LIBS += -framework AppKit
+  # LIBS  = -framework AppKit -framework DiskArbitration -framework IOKit -framework Security -framework ApplicationServices -framework OpenGL -framework AGL
+
+elseif(UNIX)
+  set( core_SOURCES ${core_SOURCES} progressmanager/progressmanager_x11.cpp )
+#    IMAGE_SIZE_LIST = 16 24 32 48 64 128 256 512
+#    for(imagesize, IMAGE_SIZE_LIST) {
+#        eval(image$${imagesize}.files = images/logo/$${imagesize}/QtProject-qtcreator.png)
+#        eval(image$${imagesize}.path = $$QTC_PREFIX/share/icons/hicolor/$${imagesize}x$${imagesize}/apps)
+#        INSTALLS += image$${imagesize}
+#    }
+endif()
 
 set( core_HEADERS
   mainwindow.h
@@ -291,6 +318,8 @@ target_link_libraries(
   Qt5::Widgets
   Qt5::Gui
   Qt5::Core
+  ${MHDVIEWER_EXE_NAME}
+  ${EXTRA_LIBS}
 )
 
 #include(find/find.pri)
