@@ -24,17 +24,6 @@
 
 #include "chromatogr.hpp"
 
-#if defined WIN32 && defined _MSC_VER
-#  if defined _DEBUG
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#  else
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#  endif
-#endif
-
-
 Chromatogr::Chromatogr()
 {
 }

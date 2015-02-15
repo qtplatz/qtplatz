@@ -19,7 +19,9 @@ add_library( chromatogr SHARED
   chromatography.hpp
   differential.hpp
   averager.hpp
-  integrator.hpp  
+  integrator.hpp
+  simulator.cpp
+  simulator.hpp
   )
 
 target_link_libraries(

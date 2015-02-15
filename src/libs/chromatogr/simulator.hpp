@@ -25,38 +25,47 @@
 #pragma once
 
 #include "chromatogr_global.hpp"
+#include <cstdint>
+#include <vector>
 
 namespace chromatogr {
 
     namespace simulator {
 
-        class CHROMATOGRSHARED_EXPORT Peak {
-            const double retention_time_;
-            const double theoretical_plate_;
-            const double tailing_factor_;
-            const double scale_factor_;
+        class CHROMATOGRSHARED_EXPORT peak {
+            double retention_time_;
+            double theoretical_plate_;
+            double height_;
+            double sigma_;
+            double distribution_height_;
         public:
-            Peak( double retention_time, double theoretical_plate = 10000.0, double scale_factor_ = 1.0, double tailing_factor = 1.0 );
-            double intensity_at_a_time( double t );
+            peak& operator = ( const peak& );
+            peak( double retention_time, double theoretical_plate = 10000.0, double height = 1000.0 );
+            double intensity( double t ) const;
         };
 
-        template<typename T> class CHROMATOGRSHARED_EXPORT Chromatogram {
-            std::vector< T > chromatogram_;
-            double sampInterval_;
+        class CHROMATOGRSHARED_EXPORT peaks {
+#if _MSC_VER
+# pragma warning(disable:4251)
+#endif
+            std::vector< peak > peaks_;
+#if _MSC_VER
+# pragma warning(default:4251)
+#endif
         public:
-            Chromatogram( const std::vector< Peak >& peaks, double sampInterval );
-            Chromatogram( const Chromatogram& t ) : chromatogram_( t.chromatogram_ ), sampInterval_( t.sampInterval_ ) {
-            }
+            typedef std::vector< peak >::iterator iterator;
+            typedef std::vector< peak >::const_iterator const_iterator;
+
+            void operator << ( const peak& );
+            size_t size() const;
+            iterator begin() { return peaks_.begin(); }
+            iterator end() { return peaks_.end(); }
+            const_iterator begin() const { return peaks_.begin(); }
+            const_iterator end() const { return peaks_.end(); }
+            double intensity( double t ) const;
         };
 
-        class CHROMATOGRSHARED_EXPORT Chromatography {
-        public:
-            ~Chromatography();
-            Chromatography();
-            template<typename T> void operator()( const std::vector< Peak >& peaks, Chromatogram<T>& chromatogram, double sampInterval = 1.0, double runLength = 60.0 );
-            double intensity( const std::vector< Peak >& peaks, double time ) const;
-    };
-    
+    }
 }
 
-#endif // CHROMATOGRAPHY_HPP
+
