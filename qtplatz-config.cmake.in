@@ -30,6 +30,7 @@ add_library( adorbmgr SHARED IMPORTED )
 add_library( adsequence SHARED IMPORTED )
 add_library( adplot SHARED IMPORTED )
 add_library( adwidgets SHARED IMPORTED )
+add_library( chromatogr SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
 
 add_library( adfs STATIC IMPORTED )
@@ -88,6 +89,10 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adwidgets.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adwidgetsd.lib )
 
+  set_target_properties( chromatogr PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/chromatogr.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/chromatogrd.lib )
+  
   set_target_properties( portfolio PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/portfolio.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/portfoliod.lib )
@@ -130,6 +135,9 @@ else() #Linux
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadwidgets.so )
 
+  set_target_properties( chromatogr PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libchromatogr.so )
+  
   set_target_properties( portfolio PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libportfolio.so )
 

@@ -3,12 +3,9 @@ project( chromatogr )
 
 cmake_policy(SET CMP0022 NEW)
 
-find_package( Qt5 REQUIRED Core )
 #find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
 
 add_definitions(-DCHROMATOGR_LIBRARY)
-
-include_directories( ${Qt5Core_INCLUDE_DIRS} )
 
 add_library( chromatogr SHARED 
   chromatogr.cpp
@@ -30,6 +27,9 @@ target_link_libraries(
   adportable
   ${Boost_LIBRARIES} )
 
+set_target_properties( chromatogr
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )      
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
