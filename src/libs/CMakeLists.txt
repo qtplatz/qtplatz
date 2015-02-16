@@ -27,7 +27,6 @@ if ( NOT QTPLATZ_CORELIB_ONLY )
   add_subdirectory (adplot)
   add_subdirectory (adwidgets)
   add_subdirectory (aggregation)
-  add_subdirectory (chromatogr)
   add_subdirectory (adpublisher)
 
   if ( rdkit_DIR )

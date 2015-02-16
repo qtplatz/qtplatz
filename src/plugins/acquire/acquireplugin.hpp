@@ -186,6 +186,7 @@ namespace acquire {
 
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
+            boost::asio::io_service::strand strand_;
             std::vector< adportable::asio::thread > threads_;
             std::mutex mutex_;
 

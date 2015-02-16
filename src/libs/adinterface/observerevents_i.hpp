@@ -26,6 +26,7 @@
 
 #include <adinterface/signalobserverS.h>
 #include <functional>
+#include <adportable/debug.hpp>
 
 namespace adinterface {
 

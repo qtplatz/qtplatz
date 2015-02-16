@@ -148,6 +148,7 @@ namespace adcontroller {
         boost::asio::io_service::work work_;
         boost::asio::deadline_timer timer_;
         boost::asio::io_service::strand strand_;
+        boost::asio::io_service::strand strand2_;
         size_t interval_;
 
         std::vector< adportable::asio::thread > threads_;

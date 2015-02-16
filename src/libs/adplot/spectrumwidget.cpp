@@ -59,12 +59,12 @@ namespace adplot {
             Qt::blue          // 0
             , Qt::red           // 1
             , Qt::darkGreen     // 2
-            , Qt::cyan          // 3
+            , Qt::cyan         // 3
             , Qt::magenta       // 4
             , Qt::yellow        // 5
             , Qt::darkRed       // 6
             , Qt::green         // 7
-            , Qt::darkBlue      // 8
+            , Qt::red          // 8
             , Qt::darkCyan      // 9
             , Qt::darkMagenta   // 10
             , Qt::darkYellow    // 11
@@ -453,9 +453,9 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     zoomer()->setZoomBase();
 
     if ( lock && impl_->keepZoomed_ ) {
-        auto prev = lock->getAcquisitionMassRange();
+        // auto prev = lock->getAcquisitionMassRange();
         auto curr = ptr->getAcquisitionMassRange();
-        if ( curr.first <= prev.first && curr.second <= prev.second )
+        if ( z.left() < curr.second || curr.first < z.right() )
             plot::zoom( z ); // push previous rect            
     }
 
@@ -487,8 +487,15 @@ void
 TraceData::setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const QRectF& rect, bool yRight )
 {
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
+
+    // std::pair< double, double > range = ms.getAcquisitionMassRange();
+    // ADDEBUG() << "segments size=" << segments.size() << " range(" << range.first << ", " << range.second << ")";
+    
     int fcn = 0;
     for ( auto& seg: segments ) {
+
+        // ADDEBUG() << "seg[" << fcn << "] size=" << seg.size() << " range: " << seg.getMass(0) << ", " << seg.getMass( seg.size() - 1 );
+        
         auto ptr = std::make_shared< adPlotCurve >();
         ptr->attach( &plot );
         curves_.push_back( ptr );

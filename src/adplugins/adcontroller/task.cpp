@@ -50,6 +50,7 @@
 #include <stdexcept>
 #if defined _DEBUG
 # include <iostream>
+# include <qDebug>
 #endif
 
 using namespace adcontroller;
@@ -97,13 +98,13 @@ iTask::iTask() : status_current_( ControlServer::eNothing )
                , work_( io_service_ )
                , timer_( io_service_ )
                , strand_( io_service_ )
+               , strand2_( io_service_ )                 
                , interval_( 3000 ) // ms
 {
     try {
         udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, 7125 ) );
     } catch ( boost::exception& ex ) {
         ADDEBUG() << boost::diagnostic_information( ex );
-        ADERROR() << boost::diagnostic_information( ex );
     }
 
     if ( udpReceiver_ ) {
@@ -336,8 +337,8 @@ iTask::getStatusBeing()
 bool
 iTask::observer_update_data( unsigned long parentId, unsigned long objid, long pos )
 {
-    // come from oProxy::OnUpdateData --> schedule invoke handle_observer_update_data
-    io_service_.post( std::bind(&iTask::handle_observer_update_data, this, parentId, objid, pos ) );
+    // came from CORBA::oProxy::OnUpdateData --> schedule invoke handle_observer_update_data
+    io_service_.post( strand2_.wrap( std::bind(&iTask::handle_observer_update_data, this, parentId, objid, pos ) ) );
     return true;
 }
 
@@ -384,8 +385,13 @@ void
 iTask::handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos )
 {
     using SignalObserver::DataReadBuffer_var;
-    
+
+    // read data from source (actual) data observer via CORBA
     if ( DataReadBuffer_var rp = pMasterObserver_->handle_data( parentId, objId, pos ) ) {
+        
+        if ( objId == 1 ) {
+            qDebug() << "handle_observer_update_data pos=" << pos << " rp.pos=" << rp->pos;
+        }
 
         std::lock_guard< std::mutex > lock( mutex_ );
 

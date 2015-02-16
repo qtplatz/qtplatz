@@ -242,6 +242,7 @@ AcquirePlugin::AcquirePlugin() : mainWindow_(0)
                                , pConfig_( 0 )
                                , traceBox_( 0 ) 
                                , work_( io_service_ )
+                               , strand_( io_service_ )
 {
 }
 
@@ -799,12 +800,16 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
         const adcontrols::DataInterpreter& dataInterpreter = spectrometer->getDataInterpreter();
 
         if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
+
+            // ADDEBUG() << "handle_updae_data( " << objId << ", " << pos << ") npos=" << npos;
+            
             if ( !std::get<3>( it->second ) )
                 std::get<3>( it->second ) = readCalibrations( it->second );
 
             try {
                 SignalObserver::DataReadBuffer_var rb;
-                while ( tgt->readData( npos, rb ) ) {
+                while ( tgt->readData( npos, rb ) && npos <= pos ) {
+                    // ADDEBUG() << "\treadData( " << npos << " ) " << rb->pos;
                     ++npos;
                     readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
                 }
@@ -975,7 +980,7 @@ AcquirePlugin::handle_observer_config_changed( uint32_t objid, SignalObserver::e
 void
 AcquirePlugin::handle_observer_update_data( uint32_t objid, int32_t pos )
 {
-    io_service_.post( std::bind(&AcquirePlugin::handle_update_data, this, objid, pos ) );    
+    io_service_.post( strand_.wrap( std::bind(&AcquirePlugin::handle_update_data, this, objid, pos ) ) );    
 }
 
 void
