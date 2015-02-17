@@ -26,6 +26,7 @@
 #define EVENTFORM_HPP
 
 #include <QWidget>
+#include <chrono>
 
 namespace Ui {
 class EventForm;
@@ -40,7 +41,10 @@ namespace eventtool {
         explicit EventForm( QWidget *parent = 0 );
         ~EventForm();
 
-        private slots:
+    public slots:
+        void handle_timeout();
+
+     private slots:
         void on_pushButton_clicked();
 
         void on_checkBox_clicked(bool checked);
@@ -50,6 +54,7 @@ namespace eventtool {
         QString host_;
         QString port_;
         short recvPort_;
+        std::chrono::steady_clock::time_point last_inject_;
     };
 }
 

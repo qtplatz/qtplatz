@@ -49,6 +49,7 @@
 #include <QStackedWidget>
 #include <QStatusBar>
 #include <QTextEdit>
+#include <QTimer>
 #include <QToolBar>
 #include <QtDebug>
 #include <functional>
@@ -62,6 +63,7 @@ const QString rsrcPath = ":/eventtool/images/win";
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
                                         , stacked_( 0 )
+                                        , timer_(new QTimer(this))
 {
     //Manhattan::Utils::StyleHelper::setBaseColor( QColor( Manhattan::Utils::StyleHelper::DEFAULT_BASE_COLOR ) );
 
@@ -90,9 +92,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     auto widget = new QWidget;
     setCentralWidget( widget );
 
+    eventtool::EventForm * eventform = new eventtool::EventForm( this );
     if ( ( stacked_ = new QStackedWidget ) ) {
-
-        stacked_->addWidget( new eventtool::EventForm( this ) );
+        
+        stacked_->addWidget( eventform );
         stacked_->setCurrentIndex( 0 );
 
     }
@@ -105,6 +108,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     }
     createDockWidgets();
     connect( eventtool::document::instance(), &eventtool::document::instStateChanged, this, &MainWindow::handleInstState );
+    connect( timer_, &QTimer::timeout, eventform, &eventtool::EventForm::handle_timeout );
+    timer_->start( 3000 );
 }
 
 MainWindow::~MainWindow()

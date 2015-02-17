@@ -17,3 +17,7 @@ target_link_libraries( eventbroker LINK_PUBLIC
 		       acewrapper
 		       ${Boost_LIBRARIES} )
 
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

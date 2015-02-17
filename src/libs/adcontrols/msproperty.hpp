@@ -123,7 +123,7 @@ namespace adcontrols {
         static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix pfx );
 
     private:
-        uint32_t time_since_injection_; // msec
+        uint32_t time_since_injection_; // usec
         double instAccelVoltage_;       // for scan law
         double instTDelay_;             // for scan law
         uint32_t deprecated_instNumAvrg_;               // use sampleData

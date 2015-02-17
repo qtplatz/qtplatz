@@ -40,6 +40,9 @@ EventForm::EventForm(QWidget *parent) :
     ui->editPort->setText( port_ );
     ui->spinPort->setMaximum( 65535 );
     ui->spinPort->setValue( recvPort_ );
+    ui->doubleSpinBox->setValue( 1.0 );
+    ui->checkBoxRepeat->setChecked( Qt::Unchecked );
+    
 }
 
 EventForm::~EventForm()
@@ -49,6 +52,7 @@ EventForm::~EventForm()
 
 void EventForm::on_pushButton_clicked()
 {
+    // bind required if destination host is not the localhost
     if ( (ui->editHost->text() != host_) ||
          (ui->editPort->text() != port_) ) {
         host_ = ui->editHost->text();
@@ -56,6 +60,7 @@ void EventForm::on_pushButton_clicked()
         document::instance()->inject_bind( host_.toStdString(), port_.toStdString() );
     }
     document::instance()->inject_event_out();
+    last_inject_ = std::chrono::steady_clock::now();
 }
 
 void
@@ -72,5 +77,16 @@ eventtool::EventForm::on_checkBox_clicked( bool checked )
     }
     else {
         document::instance()->monitor_disable();
+    }
+}
+
+void
+eventtool::EventForm::handle_timeout()
+{
+    if ( ui->checkBoxRepeat->isChecked() ) {
+        double minutes = ui->doubleSpinBox->value();
+        auto duration = std::chrono::steady_clock::now() - last_inject_;
+        if ( std::chrono::duration_cast<std::chrono::minutes>( duration ).count() >= minutes )
+            on_pushButton_clicked();
     }
 }

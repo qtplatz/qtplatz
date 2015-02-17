@@ -706,15 +706,6 @@ AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
         auto& descs = ms->getDescriptions();
         for ( auto& d: descs )
             o << d.text() << L"; ";
-        // auto it = std::find_if( descs.begin(), descs.end()
-        //                         , [] ( const adcontrols::description& d ){ return d.key() == L"acquire.title"; } );
-        // if ( it != descs.end() )
-        //     o << it->text() << L"; ";
-
-        // it = std::find_if( descs.begin(), descs.end()
-        //                    , [] ( const adcontrols::description& d ){ return d.key() == L"acquire.protocol.label"; } );
-        // if ( it != descs.end() )
-        //     o << it->text() << L"; ";
         pImpl_->spectrumPlot_->setTitle( o.str() );
     }
         

@@ -51,6 +51,10 @@ clean:
 	$(RM) /S /F /Q $(STAGEDIR)
 	$(RM) *.msi *.wixobj *.wixpdb version.wxi *.zip *.bat *.exe *.obj *~
 
+destclean:
+	-@$(RM) $(QTPLATZ_BINARY_DIR)
+	-@$(RM) $(INFITOF_BINARY_DIR)
+
 veryclean: clean
 	cd $(QTPLATZ_SOURCE_DIR)
 	git clean -d -x -f

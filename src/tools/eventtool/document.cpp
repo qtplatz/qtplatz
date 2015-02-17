@@ -162,26 +162,37 @@ document::finalClose()
 void
 document::inject_event_out()
 {
-    QLibrary lib( "eventbroker" );
-
-    if ( !lib.isLoaded() ) {
+    const char * libs [] = { "eventbroker", "eventbrokerd" };
+    
+    for ( auto name: libs ) {
+        QLibrary lib( name );
         if ( lib.load() ) {
             std::cout << lib.fileName().toStdString() << "\tloaded." << std::endl;
+            if ( auto event_out = reinterpret_cast<bool(*)(uint32_t)>(lib.resolve( "eventbroker_out" )) ) {
+                event_out( 1 );
+                return;
+            }      
         }
     }
-    if ( auto event_out = reinterpret_cast<bool(*)(uint32_t)>(lib.resolve( "eventbroker_out" )) ) {
-        event_out( 1 );
-    }
+    std::cout << "eventbroker.dll not found. Inject event can not be issued." << std::endl;
 }
 
 void
 document::inject_bind( std::string& host, std::string& port )
 {
-    QLibrary lib( "eventbroker" );
+    const char * libs [] = { "eventbroker", "eventbrokerd" };    
 
-    if ( auto bind = reinterpret_cast<bool(*)(const char * host, const char * port)>(lib.resolve( "eventbroker_bind" )) ) {
-        bind( host.c_str(), port.c_str() );
+    for ( auto name: libs ) {
+        QLibrary lib( name );
+        if ( lib.load() ) {
+            if ( auto bind = reinterpret_cast<bool(*)(const char * host, const char * port)>(lib.resolve( "eventbroker_bind" )) ) {
+                bind( host.c_str(), port.c_str() );
+                std::cout << lib.fileName().toStdString() << "\tloaded, bind to " << host << ":" << port << std::endl;
+                return;
+            }            
+        }
     }
+    std::cout << "eventbroker.dll not found." << std::endl;    
 }
 
 bool

@@ -61,6 +61,7 @@ namespace eventtool {
         void inject_bind( std::string& host, std::string& port );
         bool monitor_port( short port );
         void monitor_disable();
+        void handle_timeout();
 
     signals:
         void instStateChanged( int );

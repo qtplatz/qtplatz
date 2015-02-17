@@ -40,6 +40,7 @@ QT_FORWARD_DECLARE_CLASS(QPrinter)
 QT_FORWARD_DECLARE_CLASS(QStackedWidget)
 QT_FORWARD_DECLARE_CLASS(QDockWidget)
 QT_FORWARD_DECLARE_CLASS(QStyledBar)
+QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class QStackedWidget;
 
@@ -94,6 +95,7 @@ private slots:
     QAction *actionSave;
     QToolBar *tb_;
     QStackedWidget * stacked_;
+    QTimer * timer_;
 };
 
 #endif // MAINWINDOW_HPP
