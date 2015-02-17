@@ -50,7 +50,6 @@
 #include <stdexcept>
 #if defined _DEBUG
 # include <iostream>
-# include <qDebug>
 #endif
 
 using namespace adcontroller;
@@ -389,10 +388,6 @@ iTask::handle_observer_update_data( unsigned long parentId, unsigned long objId,
     // read data from source (actual) data observer via CORBA
     if ( DataReadBuffer_var rp = pMasterObserver_->handle_data( parentId, objId, pos ) ) {
         
-        if ( objId == 1 ) {
-            qDebug() << "handle_observer_update_data pos=" << pos << " rp.pos=" << rp->pos;
-        }
-
         std::lock_guard< std::mutex > lock( mutex_ );
 
         for ( auto q: queue_ ) {

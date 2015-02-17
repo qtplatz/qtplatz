@@ -110,9 +110,12 @@ MainWindow::createContents( Core::IMode * )
     auto doc = QuanDocument::instance();
     connect( doc, &QuanDocument::onSequenceCompleted, this, &MainWindow::handleSequenceCompleted );
 
+    // [Select Data] double tab
+    
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
         QuanConfigWidget * mw = 0;
         if ( auto widget = new QuanConfigWidget ) {
+            // Configuration
             auto panel = std::make_shared< PanelData >( tr("Configuration")
                                                         , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
                                                         , widget );
@@ -122,6 +125,7 @@ MainWindow::createContents( Core::IMode * )
         }
         
         if ( auto widget = new DataSequenceWidget ) {
+            // Select Data (table)
             auto panel = std::make_shared< PanelData >( tr("Select Data")
                                                         , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
                                                         , widget );
@@ -133,6 +137,8 @@ MainWindow::createContents( Core::IMode * )
         
         stack_->addWidget( panelsWidget );
     }
+
+    // [Compounds & Protocols] double tab
     
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {    
         if ( auto widget = new CompoundsWidget ) {
