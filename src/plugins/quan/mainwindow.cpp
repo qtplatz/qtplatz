@@ -133,6 +133,7 @@ MainWindow::createContents( Core::IMode * )
             connect( panelsWidget, &PanelsWidget::onCommit, widget, &DataSequenceWidget::commit );
             connect( mw, &QuanConfigWidget::onLevelChanged, widget, &DataSequenceWidget::handleLevelChaged );
             connect( mw, &QuanConfigWidget::onReplicatesChanged, widget, &DataSequenceWidget::handleReplicatesChanged );
+            connect( mw, &QuanConfigWidget::onSampleInletChanged, widget, &DataSequenceWidget::handleSampleInletChanged );
         }
         
         stack_->addWidget( panelsWidget );

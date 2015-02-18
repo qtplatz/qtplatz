@@ -54,6 +54,7 @@ set( quan_SOURCES
   doubletabwidget.cpp
   datasequencewidget.cpp
   datasequencetree.cpp
+  datasequencetable.cpp  
   compoundswidget.cpp
   compoundstable.cpp
   quanconfigform.cpp
@@ -92,6 +93,7 @@ set( quan_HEADERS
   doubletabwidget.hpp
   datasequencewidget.hpp
   datasequencetree.hpp
+  datasequencetable.hpp
   compoundswidget.hpp
   compoundstable.hpp
   quanconfigform.hpp

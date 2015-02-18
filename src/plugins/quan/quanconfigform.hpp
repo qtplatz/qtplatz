@@ -49,8 +49,13 @@ namespace quan {
         QSpinBox * spinLevels();
         QSpinBox * spinReplicates();
 
+    signals:
+        void onSampleInletChanged( int /* adcontrols::QuanSample::QuanInlet */);
+
     private slots:
         void on_pushButton_clicked();
+        void on_radioButton_clicked();
+        void on_radioButton_2_clicked();
 
     private:
         Ui::QuanConfigForm *ui;

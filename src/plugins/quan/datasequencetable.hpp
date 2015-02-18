@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,10 +22,10 @@
 **
 **************************************************************************/
 
-#ifndef DATASEQUENCETREE_HPP
-#define DATASEQUENCETREE_HPP
+#ifndef DATASEQUENCETABLE_HPP
+#define DATASEQUENCETABLE_HPP
 
-#include <QTreeView>
+#include <adwidgets/tableview.hpp>
 #include <memory>
 #include <thread>
 #include <mutex>
@@ -39,12 +39,12 @@ namespace adcontrols { class datafile; class QuanSequence; class QuanSample; }
 
 namespace quan {
 
-    namespace datasequencetree { class dataSubscriber; }
+    namespace datasequencetable { class dataSubscriber; }
 
-    class DataSequenceTree : public QTreeView {
+    class DataSequenceTable : public adwidgets::TableView {
         Q_OBJECT
     public:
-        explicit DataSequenceTree(QWidget *parent = 0);
+        explicit DataSequenceTable(QWidget *parent = 0);
 
         void setData( std::shared_ptr< adcontrols::datafile >& );
         void setData( const QStringList& );
@@ -53,7 +53,6 @@ namespace quan {
 
         void handleLevelChanged( int );
         void handleReplicatesChanged( int );
-        std::shared_ptr< QStandardItemModel > model() { return model_; }
 
     protected:
         void dragEnterEvent( QDragEnterEvent * ) override;
@@ -62,20 +61,19 @@ namespace quan {
         void dropEvent( QDropEvent * ) override;
 
     private:
-        std::vector< std::shared_ptr< datasequencetree::dataSubscriber > > dataSubscribers_;
+        std::vector< std::shared_ptr< datasequencetable::dataSubscriber > > dataSubscribers_;
         std::shared_ptr< QStandardItemModel > model_;
         std::vector< std::thread > threads_;
         std::mutex mutex_;
 
         void handleValueChanged( const QModelIndex& );
         void dropIt( const std::wstring& );
-        void handleIt( datasequencetree::dataSubscriber * );
+        void handleIt( datasequencetable::dataSubscriber * );
         std::atomic< size_t > dropCount_;
 
         void handleData( int row );
-        void setRaw( datasequencetree::dataSubscriber *, QStandardItem * );
-        size_t setProcessed( datasequencetree::dataSubscriber *, QStandardItem * );
-        
+        void setRaw( datasequencetable::dataSubscriber *, QStandardItem * );
+        size_t setProcessed( datasequencetable::dataSubscriber *, QStandardItem * );
 
     signals:
         void onJoin( int row );
@@ -90,4 +88,4 @@ namespace quan {
 
 }
 
-#endif // DATASEQUENCETREE_HPP
+#endif // DATASEQUENCETABLE_HPP

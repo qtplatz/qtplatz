@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "datasequencetree.hpp"
+#include "datasequencetable.hpp"
 #include "quanconstants.hpp"
 #include "quandocument.hpp"
 #include <adcontrols/datafile.hpp>
@@ -67,7 +67,7 @@
 
 namespace quan {
 
-    namespace datasequencetree {
+    namespace datasequencetable {
 
         static std::array< const wchar_t *, 3 > extensions = { { L".adfs", L".csv", L".txt" } };
 
@@ -225,83 +225,22 @@ namespace quan {
         };
 
         struct Chromatography {
-            static void setRow( QStandardItemModel& model, int row, const QString& data_type, const QModelIndex& parent = QModelIndex()) {
-                model.setData( model.index( row, c_data_type, parent ), data_type );
-                model.setData( model.index( row, c_sample_type, parent ), "UNK" );
-                model.setData( model.index( row, c_process, parent ), "TIC" ); // | Chromatogram Generation
-                model.setData( model.index( row, c_level, parent ), 0 ); // level
+            static void setRow( QStandardItemModel& model, int row, const adcontrols::QuanSample& sample ) {
+                model.setData( model.index( row, c_data_type ), QString::fromStdWString( sample.dataSource() ) );
+                model.setData( model.index( row, c_sample_type), "UNK" );
+                model.setData( model.index( row, c_process ), "TIC" ); // | Chromatogram Generation
+                model.setData( model.index( row, c_level ), 0 ); // level
             }
         };
-
-        struct Infusion {
-
-            static void setFileRow( QStandardItemModel& model, int row, const QString& dataSource ) {
-
-                model.setData( model.index( row, c_datafile ), dataSource );
-                model.itemFromIndex( model.index( row, c_datafile ) )->setEditable( false ); // not editable
-
-                model.setData( model.index( row, c_data_type ), "file" );
-                model.itemFromIndex( model.index( row, c_data_type ) )->setEditable( false );
-
-                model.setData( model.index( row, c_sample_type ), "UNK" ); // UNK as default value
-            }
-
-            static void setRow( QStandardItemModel& model
-                                , int row
-                                , const adcontrols::QuanSample& sample
-                                , const QModelIndex& parent = QModelIndex() ) {
-
-                model.itemFromIndex( model.index( row, c_datafile, parent ) )->setEditable( false ); // not editable
-
-                // name ( datafile )
-                model.setData( model.index( row, c_datafile, parent ), QString::fromStdWString( sample.name() ) );
-
-                // data_type
-                model.setData( model.index( row, c_data_type, parent ), QString::fromStdWString( sample.dataType() ) );
-                model.itemFromIndex( model.index( row, c_data_type, parent ) )->setEditable( false );
-
-                model.setData( model.index( row, c_description, parent ), QString::fromStdWString( sample.description() ) );
-
-                QString sample_type_string = "?";
-                switch ( sample.sampleType() ) {
-                case adcontrols::QuanSample::SAMPLE_TYPE_UNKNOWN: sample_type_string = "UNK"; break;
-                case adcontrols::QuanSample::SAMPLE_TYPE_STD:     sample_type_string = "STD"; break;
-                case adcontrols::QuanSample::SAMPLE_TYPE_QC:      sample_type_string = "QC"; break;
-                case adcontrols::QuanSample::SAMPLE_TYPE_BLANK:   sample_type_string = "BLANK"; break;
-                }
-                model.setData( model.index( row, c_sample_type, parent ), sample_type_string );
-                model.setData( model.index( row, c_channel, parent ), sample.channel() );
-                model.setData( model.index( row, c_level, parent ), sample.level() );
-
-                if ( sample.dataGeneration() == adcontrols::QuanSample::ASIS ) {
-                    model.setData( model.index( row, c_process, parent ), "AS IS" );
-                }
-                else if ( sample.dataGeneration() == adcontrols::QuanSample::GenerateSpectrum ) {
-                    std::pair< uint32_t, uint32_t > range = std::make_pair( sample.scan_range_first(), sample.scan_range_second() );
-                    if ( range.first == 0 && range.second == 0 ) // take 1st
-                        model.setData( model.index( row, c_process, parent ), Constants::cmbTake1st );
-                    if ( range.first == 1 && range.second == 1 ) // take 2nd
-                        model.setData( model.index( row, c_process, parent ), Constants::cmbTake2nd );
-                    if ( range.first == uint32_t( -1 ) ) // take last
-                        model.setData( model.index( row, c_process, parent ), Constants::cmbTakeLast );
-                    if ( range.first == 0 && range.second == uint32_t( -1 ) ) // average all
-                        model.setData( model.index( row, c_process, parent ), Constants::cmbAvgAll );
-                }
-                else if ( sample.dataGeneration() == adcontrols::QuanSample::ProcessRawSpectra ) {
-                    model.setData( model.index( row, c_process, parent ), Constants::cmbProcEach );
-                }
-            }
-        };
-
     }
 }
 
 using namespace quan;
-using namespace quan::datasequencetree;
+using namespace quan::datasequencetable;
 
-DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
-                                                    , model_( new QStandardItemModel )
-                                                    , dropCount_( 0 )
+DataSequenceTable::DataSequenceTable(QWidget *parent) : TableView(parent)
+                                                      , model_( new QStandardItemModel )
+                                                      , dropCount_( 0 )
 {
     auto delegate = new ItemDelegate;
     delegate->register_valueChanged( [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); } );
@@ -310,7 +249,6 @@ DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
     delegate->replicates( qm.replicates() );
 
     setItemDelegate( delegate );
-    setModel( model_.get() );
     
     QStandardItemModel& model = *model_;
     model.setColumnCount( number_of_columns );
@@ -322,20 +260,20 @@ DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
     model.setHeaderData( c_channel, Qt::Horizontal, tr("ch#") );              // data channel (usually same as protocol#, but depends)
     model.setHeaderData( c_description, Qt::Horizontal, tr("Description") );  // if standard
 
-    connect( this, &DataSequenceTree::onJoin, this, &DataSequenceTree::handleJoin );
+    connect( this, &DataSequenceTable::onJoin, this, &DataSequenceTable::handleJoin );
 
     setAcceptDrops( true );
     setContextMenuPolicy( Qt::CustomContextMenu );
-    connect( this, &QTreeView::customContextMenuRequested, this, &DataSequenceTree::handleContextMenu );
+    connect( this, &TableView::customContextMenuRequested, this, &DataSequenceTable::handleContextMenu );
 }
 
 void
-DataSequenceTree::setData( std::shared_ptr< adcontrols::datafile >& )
+DataSequenceTable::setData( std::shared_ptr< adcontrols::datafile >& )
 {
 }
 
 void
-DataSequenceTree::setData( const QStringList& list )
+DataSequenceTable::setData( const QStringList& list )
 {
     for ( int i = 0; i < list.size(); ++i ) {
         boost::filesystem::path path( list.at( i ).toStdWString() );
@@ -347,7 +285,7 @@ DataSequenceTree::setData( const QStringList& list )
 }
 
 void
-DataSequenceTree::handleData( int row )
+DataSequenceTable::handleData( int row )
 {
     QStandardItemModel& model = *model_;
 
@@ -365,11 +303,11 @@ DataSequenceTree::handleData( int row )
         setRaw( data, model.itemFromIndex( model.index( row, 0 ) ) );
         setProcessed( data, model.itemFromIndex( model.index( row, 0 ) ) );
     }
-    expandAll();
+    //expandAll();
 }
 
 void
-DataSequenceTree::handleValueChanged( const QModelIndex& index )
+DataSequenceTable::handleValueChanged( const QModelIndex& index )
 {
     QStandardItemModel& model = *model_;
 
@@ -399,7 +337,7 @@ DataSequenceTree::handleValueChanged( const QModelIndex& index )
 }
 
 void
-DataSequenceTree::handleIt( dataSubscriber * ptr )
+DataSequenceTable::handleIt( dataSubscriber * ptr )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     dataSubscribers_.push_back( ptr->shared_from_this() );
@@ -407,7 +345,7 @@ DataSequenceTree::handleIt( dataSubscriber * ptr )
 }
 
 void
-DataSequenceTree::handleJoin( int row )
+DataSequenceTable::handleJoin( int row )
 {
     if ( dropCount_ && (--dropCount_ == 0) ) {
         std::lock_guard< std::mutex > lock( mutex_ );
@@ -418,7 +356,7 @@ DataSequenceTree::handleJoin( int row )
 }
 
 void
-DataSequenceTree::dropIt( const std::wstring& path )
+DataSequenceTable::dropIt( const std::wstring& path )
 {
     QStandardItemModel& model = *model_;
     int row = model.rowCount();
@@ -441,7 +379,7 @@ DataSequenceTree::dropIt( const std::wstring& path )
 }
 
 void
-DataSequenceTree::dragEnterEvent( QDragEnterEvent * event )
+DataSequenceTable::dragEnterEvent( QDragEnterEvent * event )
 {
 	if ( const QMimeData * mimeData = event->mimeData() ) {
         if ( mimeData->hasUrls() ) {
@@ -462,19 +400,19 @@ DataSequenceTree::dragEnterEvent( QDragEnterEvent * event )
 }
 
 void
-DataSequenceTree::dragMoveEvent( QDragMoveEvent * event )
+DataSequenceTable::dragMoveEvent( QDragMoveEvent * event )
 {
     event->accept();
 }
 
 void
-DataSequenceTree::dragLeaveEvent( QDragLeaveEvent * event )
+DataSequenceTable::dragLeaveEvent( QDragLeaveEvent * event )
 {
 	event->accept();
 }
 
 void
-DataSequenceTree::dropEvent( QDropEvent * event )
+DataSequenceTable::dropEvent( QDropEvent * event )
 {
 	if ( const QMimeData * mimeData = event->mimeData() ) {
         if ( mimeData->hasUrls() ) {
@@ -491,7 +429,7 @@ DataSequenceTree::dropEvent( QDropEvent * event )
 }
 
 void
-DataSequenceTree::setRaw( dataSubscriber * data, QStandardItem * parent )
+DataSequenceTable::setRaw( dataSubscriber * data, QStandardItem * parent )
 {
     QStandardItemModel& model = *model_;    
     if ( data ) {
@@ -517,7 +455,7 @@ DataSequenceTree::setRaw( dataSubscriber * data, QStandardItem * parent )
                     std::wstring desc = segs[ fcn ].getDescriptions().toString();
                     sample.description( desc.c_str() );
                 }
-                Infusion::setRow( model, fcn, sample, parent->index() );
+                //Chromatography::setRow( model, fcn, sample, parent->index() );
                 // Infusion::setRow( model, fcn, "raw", parent->index(), fcn + 1 );
             }
         }
@@ -526,13 +464,13 @@ DataSequenceTree::setRaw( dataSubscriber * data, QStandardItem * parent )
 }
 
 size_t
-DataSequenceTree::setProcessed( dataSubscriber * data, QStandardItem * parent )
+DataSequenceTable::setProcessed( dataSubscriber * data, QStandardItem * parent )
 {
     QStandardItemModel& model = *model_;
 
     size_t rowCount = 0;
     if ( data ) {
-
+#if 0
         if ( auto pf = data->processed() ) {
 
             for ( auto& folder : pf->folders() ) {
@@ -561,150 +499,94 @@ DataSequenceTree::setProcessed( dataSubscriber * data, QStandardItem * parent )
                 }
             }
         }
+#endif
     }
     return rowCount;
 }
 
 bool
-DataSequenceTree::getContents( adcontrols::QuanSequence& seq )
+DataSequenceTable::getContents( adcontrols::QuanSequence& seq )
 {
     QStandardItemModel& model = *model_;    
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        auto parent = model.item( row, c_datafile );
-        std::wstring datafile = parent->data( Qt::EditRole ).toString().toStdWString();
 
-        for ( int subRow = 0; subRow < parent->rowCount(); ++subRow ) {
+        adcontrols::QuanSample sample;
 
-            adcontrols::QuanSample sample;
-            sample.dataSource( datafile.c_str() );
-            sample.inletType( adcontrols::QuanSample::Infusion );
-            // dataGuid
-            sample.name( model.index( subRow, c_datafile, parent->index() ).data().toString().toStdWString().c_str( ) );
+        std::wstring datafile = model.data( model.index( row, c_datafile ), Qt::EditRole ).toString().toStdWString();
+        sample.dataSource( datafile.c_str() );
+        sample.dataType( L"file" );
 
-            std::wstring data_type = model.index( subRow, c_data_type, parent->index() ).data().toString().toStdWString();
-            sample.dataType( data_type.c_str() );
-
-            std::wstring samp_type = model.index( subRow, c_sample_type, parent->index() ).data().toString().toStdWString();
-            if ( samp_type == L"UNK" )
-                sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_UNKNOWN );
-            else if ( samp_type == L"STD" )
-                sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_STD );
-            else if ( samp_type == L"QC" )
-                sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_QC );
-            else if ( samp_type == L"BLANK" )
-                sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_BLANK );
-
-            int channel = model.index( subRow, c_channel, parent->index() ).data().toInt();
-            sample.channel( channel );
-
-            int level = model.index( subRow, c_level, parent->index() ).data().toInt();
-            sample.level( level );
-            
-            QString process = model.index( subRow, c_process, parent->index() ).data().toString();
-            if ( process == Constants::cmbAvgAll ) {
-                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
-                sample.scan_range( 0, -1 );
-            }
-            else if ( process == Constants::cmbTake1st ) {
-                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
-                sample.scan_range( 0, 0 );
-            }
-            else if ( process == Constants::cmbTake2nd ) {
-                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
-                sample.scan_range( 1, 1 );
-            }
-            else if ( process == Constants::cmbTakeLast ) {
-                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
-                sample.scan_range( -1, -1 );
-            }
-            else if ( process == Constants::cmbProcEach ) {
-                sample.dataGeneration( adcontrols::QuanSample::ProcessRawSpectra );
-                sample.scan_range( 0, -1 );
-            }
-            else if ( process == "AS IS" ) {
-                sample.dataGeneration( adcontrols::QuanSample::ASIS );
-            }
-            seq << sample;
-        }
+        std::wstring samp_type = model.data( model.index( row, c_sample_type ) ).toString().toStdWString();
+        if ( samp_type == L"UNK" )
+            sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_UNKNOWN );
+        else if ( samp_type == L"STD" )
+            sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_STD );
+        else if ( samp_type == L"QC" )
+            sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_QC );
+        else if ( samp_type == L"BLANK" )
+            sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_BLANK );
+        seq << sample;
     }
     return true;
 }
 
 bool
-DataSequenceTree::setContents( const adcontrols::QuanSequence& seq )
+DataSequenceTable::setContents( const adcontrols::QuanSequence& seq )
 {
     QStandardItemModel& model = *model_;    
 
     if ( seq.size() == 0 )
         return true;
 
-    model.setRowCount( 0 );
-
-    std::map< std::wstring, int > files;
-
-    for ( auto sample: seq ) {
-        if ( files.find( sample.dataSource() ) == files.end() ) {
-            int row = model.rowCount();
-            files[ sample.dataSource() ] = row;
-            
-            model.insertRow( row );
-            Infusion::setFileRow( model, row, QString::fromStdWString( sample.dataSource() ) );
-        }
-        int row = files[ sample.dataSource() ];
-        if ( auto parent = model.itemFromIndex( model.index( row, c_datafile ) ) ) {
-            int subrow = parent->rowCount();
-            parent->insertRow( subrow, new QStandardItem() );
-            parent->setColumnCount( number_of_columns );
-            Infusion::setRow( model, subrow, sample, parent->index() );
-        }
+    model.setRowCount( int( seq.size() ) );
+    int row = 0;
+    for ( auto sample : seq ) {
+        Chromatography::setRow( model, row++, sample );// QString::fromStdWString( sample.dataSource() ) );
     }
-
-    expandAll();
-
     return true;
 }
 
 void
-DataSequenceTree::handleContextMenu( const QPoint& pt )
+DataSequenceTable::handleContextMenu( const QPoint& pt )
 {
     QMenu menu;
 
-    menu.addAction( "Delete line", this, SLOT( delLine() ) );
-    menu.addAction( "Add line", this, SLOT( delAll() ) );
-    menu.addAction( "Clear all", this, SLOT( delAll() ) );
+    menu.addAction( tr("Delete line"), this, SLOT( delLine() ) );
+    menu.addAction( tr("Add line"), this, SLOT( delAll() ) );
+    menu.addAction( tr("Clear all"), this, SLOT( delAll() ) );
     
     menu.exec( mapToGlobal( pt ) );
 }
 
 void
-DataSequenceTree::delAll()
+DataSequenceTable::delAll()
 {
     model_->setRowCount( 0 );
 }
 
 void
-DataSequenceTree::delLine()
+DataSequenceTable::delLine()
 {
     QModelIndex index = currentIndex();
     model_->removeRow( index.row(), index.parent() );
 }
 
 void
-DataSequenceTree::addLine()
+DataSequenceTable::addLine()
 {
     // QModelIndex index = currentIndex();
     // model_->removeRow( index.row(), index.parent() );
-    QMessageBox::information( 0, "DataSequenceTree", "Not yet implemented, Sorry" );
+    QMessageBox::information( 0, "DataSequenceTable", "Not yet implemented, Sorry" );
 }
 
 void
-DataSequenceTree::handleLevelChanged( int value )
+DataSequenceTable::handleLevelChanged( int value )
 {
     dynamic_cast<ItemDelegate *>(itemDelegate())->levels( value );
 }
 
 void
-DataSequenceTree::handleReplicatesChanged( int value )
+DataSequenceTable::handleReplicatesChanged( int value )
 {
     dynamic_cast<ItemDelegate *>(itemDelegate())->replicates( value );
 }

@@ -24,6 +24,7 @@
 
 #include "datasequencewidget.hpp"
 #include "datasequencetree.hpp"
+#include "datasequencetable.hpp"
 #include "quandocument.hpp"
 #include "paneldata.hpp"
 #include "quanconstants.hpp"
@@ -35,6 +36,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quanmethod.hpp>
+#include <adcontrols/quansample.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
@@ -42,13 +44,55 @@
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
 #include <boost/format.hpp>
+#include <boost/variant.hpp>
 #include <QAction>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QStackedWidget>
 #include <QToolButton>
 #include <QFileDialog>
+
+namespace quan {
+
+    struct datasequence_type {
+
+        template<typename X> void setData( QWidget * w, const X& x ) {
+            if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
+                p->setData( x );
+            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+                p->setData( x );
+        }
+        template<typename X> bool getContents( QWidget * w, X& x ) {
+            if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
+                return p->getContents( x );
+            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+                return p->getContents( x );
+            return false;
+        }
+        template<typename X> bool setContents( QWidget * w, const X& x ) {
+            if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
+                return p->setContents( x );
+            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+                return p->setContents( x );
+            return false;
+        }
+        void handleLevelChanged( QWidget * w, int x ) {
+            if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
+                return p->handleLevelChanged( x );
+            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+                return p->handleLevelChanged( x );
+        }
+        void handleReplicatesChanged( QWidget * w, int x ) {
+            if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
+                return p->handleReplicatesChanged( x );
+            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+                return p->handleReplicatesChanged( x );
+        }
+    };
+
+}
 
 using namespace quan;
 
@@ -58,7 +102,9 @@ DataSequenceWidget::~DataSequenceWidget()
 
 DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
                                                         , layout_( new QGridLayout )
-                                                        , dataSequenceTree_( new DataSequenceTree )
+                                                        , stack_(new QStackedWidget( this ))
+                                                        , dataSequenceInfusion_( new DataSequenceTree )
+                                                        , dataSequenceChromatography_( new DataSequenceTable )
 {
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
@@ -67,7 +113,11 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
 
     const int row = layout_->rowCount();
     layout_->addWidget( dataSelectionBar(), row, 0 );
-    layout_->addWidget( dataSequenceTree_.get(), row + 1, 0 );
+    stack_->addWidget( dataSequenceInfusion_.get() );
+    stack_->addWidget( dataSequenceChromatography_.get() );
+    layout_->addWidget( stack_.get() );
+    
+    stack_->setCurrentIndex( 1 );
 
     QuanDocument::instance()->register_dataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
 }
@@ -79,7 +129,7 @@ DataSequenceWidget::commit()
         if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
             sequence->outfile( edit->text().toStdWString().c_str() );
         }
-        if ( dataSequenceTree_->getContents( *sequence ) )
+        if ( datasequence_type().getContents( stack_->currentWidget(), *sequence ) )
             QuanDocument::instance()->quanSequence( sequence );
     }
 }
@@ -148,16 +198,17 @@ DataSequenceWidget::dataSelectionBar()
 
         // open datafile(s) 
         connect( button, &QToolButton::clicked, this, [this] ( bool ){
-                boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
-                dir /= L"data";
-                
-                QFileDialog dlg( 0, tr("Open data file(s)"), QString::fromStdWString( dir.wstring() ) );
+
+                QFileDialog dlg( 0, tr( "Open data file(s)" ), QuanDocument::instance()->lastDataDir() );
+
                 dlg.setNameFilter( tr("Data Files(*.adfs *.csv *.txt *.spc)") );
                 dlg.setFileMode( QFileDialog::ExistingFiles );
                 
                 if ( dlg.exec() == QDialog::Accepted ) {
                     auto result = dlg.selectedFiles();
-                    dataSequenceTree_->setData( result );
+                    datasequence_type().setData( stack_->currentWidget(), result );
+                    QDir dir( result[ 0 ] );
+                    QuanDocument::instance()->addRecentDataDir( dir.absolutePath() );
                 }
             } );
 
@@ -215,23 +266,34 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
             }
             edit->setText( QString::fromStdWString( path.wstring() ) ); // native format
         }
-        dataSequenceTree_->setContents( *QuanDocument::instance()->quanSequence() );
+        datasequence_type().setContents( stack_->currentWidget(), *QuanDocument::instance()->quanSequence() );
     }
     if ( id == idQuanMethod ) {
         auto& qm = QuanDocument::instance()->quanMethod();
-        dataSequenceTree_->handleLevelChaged( qm.levels() );
-        dataSequenceTree_->handleReplicatesChanged( qm.replicates() );
+        datasequence_type().handleLevelChanged( stack_->currentWidget(), qm.levels() );
+        datasequence_type().handleReplicatesChanged( stack_->currentWidget(), qm.replicates() );
     }
 }
 
 void
 DataSequenceWidget::handleLevelChaged( int value )
 {
-    dataSequenceTree_->handleLevelChaged( value );
+    datasequence_type().handleLevelChanged( stack_->currentWidget(), value );
 }
 
 void
 DataSequenceWidget::handleReplicatesChanged( int value )
 {
-    dataSequenceTree_->handleReplicatesChanged( value );
+    datasequence_type().handleReplicatesChanged( stack_->currentWidget(), value );
 }
+
+void
+DataSequenceWidget::handleSampleInletChanged( int inlet )
+{
+    if ( adcontrols::QuanSample::Chromatography == inlet ) {
+        stack_->setCurrentIndex( 1 );
+    } else {
+        stack_->setCurrentIndex( 0 );
+    }
+}
+

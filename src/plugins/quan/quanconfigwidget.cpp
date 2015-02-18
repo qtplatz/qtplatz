@@ -93,6 +93,7 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
     const int row = layout_->rowCount();
     layout_->addWidget( form_.get(), row, 0 );
     form_->setContents( QuanDocument::instance()->quanMethod() );
+    connect( form_.get(), &QuanConfigForm::onSampleInletChanged, [this] ( int t ) { emit onSampleInletChanged( t ); } );
 
 }
 

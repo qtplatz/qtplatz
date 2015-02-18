@@ -26,6 +26,7 @@
 #include "ui_quanconfigform.h"
 #include <qtwrapper/font.hpp>
 #include <adcontrols/quanmethod.hpp>
+#include <adcontrols/quansample.hpp>
 #include <QMessageBox>
 #include <algorithm>
 
@@ -269,3 +270,18 @@ QuanConfigForm::on_pushButton_clicked()
     QMessageBox::information(0, "QuanConfigForm", "Sorry, not implemented yet");
 }
 
+void
+QuanConfigForm::on_radioButton_clicked()
+{
+    if ( ui->radioButton->isChecked() )
+        emit onSampleInletChanged( int( adcontrols::QuanSample::Chromatography ) );
+    else
+        emit onSampleInletChanged( int( adcontrols::QuanSample::Infusion ) );
+}
+
+
+void
+QuanConfigForm::on_radioButton_2_clicked()
+{
+    on_radioButton_clicked();
+}

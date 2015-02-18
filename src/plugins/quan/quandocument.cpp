@@ -553,6 +553,12 @@ QuanDocument::lastDataDir() const
 }
 
 void
+QuanDocument::addRecentDataDir( const QString& dir )
+{
+    addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, dir );
+}
+
+void
 QuanDocument::addRecentFiles( const QString& group, const QString& key, const QString& value )
 {
     std::vector< QString > list;

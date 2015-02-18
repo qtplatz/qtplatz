@@ -119,6 +119,7 @@ namespace quan {
         QString lastMethodDir() const;
         QString lastSequenceDir() const;
         QString lastDataDir() const;
+        void addRecentDataDir( const QString& );
 
         bool load( const boost::filesystem::path&, adcontrols::QuanSequence& );
         bool save( const boost::filesystem::path&, const adcontrols::QuanSequence&, bool updateSettings );

@@ -58,6 +58,7 @@ namespace quan {
     signals:
         void onLevelChanged( int );
         void onReplicatesChanged( int );
+        void onSampleInletChanged( int /* adcontrols::QuanSample::QuanInlet */);
 
     public slots:
 

@@ -29,10 +29,12 @@
 #include <memory>
 
 class QGridLayout;
+class QStackedWidget;
 
 namespace quan {
 
-    class DataSequenceTree;
+    class DataSequenceTree;  // Infusion (no timed peak)
+    class DataSequenceTable; // Chromatography 
 
     class DataSequenceWidget : public QWidget
     {
@@ -47,7 +49,9 @@ namespace quan {
 
     private:
         QGridLayout * layout_;
-        std::unique_ptr< DataSequenceTree > dataSequenceTree_;
+        std::unique_ptr< QStackedWidget > stack_;
+        std::unique_ptr< DataSequenceTree > dataSequenceInfusion_;
+        std::unique_ptr< DataSequenceTable > dataSequenceChromatography_;
 
         QWidget * dataSelectionBar();
         void handleDataChanged( int, bool );
@@ -57,6 +61,8 @@ namespace quan {
     public slots :
         void handleLevelChaged( int );
         void handleReplicatesChanged( int );
+        void handleSampleInletChanged( int /* adcontrols::QuanSample::QuanInlet */);
+
     };
 
 }
