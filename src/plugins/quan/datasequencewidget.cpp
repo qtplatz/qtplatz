@@ -248,28 +248,30 @@ DataSequenceWidget::dataSelectionBar()
 void
 DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
 {
-    if ( id == idQuanSequence && fnChanged ) {
-        if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
-            boost::filesystem::path path( QuanDocument::instance()->quanSequence()->outfile() );
-            path = path.generic_wstring(); // posix format
-            int number = 0;
-            if ( boost::filesystem::exists( path ) ) {
-                std::wstring stem = path.stem().wstring();
-                if ( std::isdigit( stem.at( stem.size() - 1 ) ) ) {
-                    auto pos = stem.find_last_not_of( L"0123456789" );
-                    if ( pos != std::wstring::npos ) {
-                        number = std::stoi( stem.substr( pos + 1 ) );
-                        stem = stem.substr( 0, pos + 1 );
+    if ( id == idQuanSequence ) { // && fnChanged ) {
+        if ( fnChanged ) { // result outfile changed
+            if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
+                boost::filesystem::path path( QuanDocument::instance()->quanSequence()->outfile() );
+                path = path.generic_wstring(); // posix format
+                int number = 0;
+                if ( boost::filesystem::exists( path ) ) {
+                    std::wstring stem = path.stem().wstring();
+                    if ( std::isdigit( stem.at( stem.size() - 1 ) ) ) {
+                        auto pos = stem.find_last_not_of( L"0123456789" );
+                        if ( pos != std::wstring::npos ) {
+                            number = std::stoi( stem.substr( pos + 1 ) );
+                            stem = stem.substr( 0, pos + 1 );
+                        }
                     }
+                    boost::filesystem::path next;
+                    path.remove_filename();
+                    do {
+                        next = path / boost::filesystem::path( stem + (boost::wformat( L"%d.adfs" ) % ++number).str() );
+                    } while ( boost::filesystem::exists( next ) );
+                    path = next.generic_wstring();
                 }
-                boost::filesystem::path next;
-                path.remove_filename();
-                do {
-                    next = path / boost::filesystem::path( stem + (boost::wformat( L"%d.adfs" ) % ++number).str() );
-                } while ( boost::filesystem::exists( next ) );
-                path = next.generic_wstring();
+                edit->setText( QString::fromStdWString( path.wstring() ) ); // native format
             }
-            edit->setText( QString::fromStdWString( path.wstring() ) ); // native format
         }
         datasequence_type().setContents( stack_->currentWidget(), *QuanDocument::instance()->quanSequence() );
     }
@@ -304,7 +306,7 @@ DataSequenceWidget::handleSampleInletChanged( int inlet )
     } else {
         stack_->setCurrentIndex( 1 );
     }
-    datasequence_type().handleLevelChanged( stack_->currentWidget(), levels_ );
-    datasequence_type().handleReplicatesChanged( stack_->currentWidget(), replicates_ );    
+    datasequence_type().handleLevelChanged( stack_->currentWidget(), int(levels_) );
+    datasequence_type().handleReplicatesChanged( stack_->currentWidget(), int(replicates_) );    
 }
 

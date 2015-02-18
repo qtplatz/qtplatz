@@ -122,15 +122,6 @@ namespace quan {
                 painter->restore();                
             }
             
-            // void setEditorData( QWidget * editor, const QModelIndex& index ) const {
-            //     if ( index.column() == c_sample_type() ) {
-            //         if ( auto combo = qobject_cast< QComboBox * >( editor ) ) {
-            //             combo->currentIndex();
-            //         }
-            //     } else
-            //         QStyledItemDelegate::setEditorData( editor, index );                
-            // }
-            
             void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const {
                 if ( index.column() == c_sample_type ) {
                     if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
@@ -179,6 +170,7 @@ namespace quan {
                     model.setData( model.index( row, c_level ), sample.level() ); // n/a for UNK
                 else
                     model.setData( model.index( row, c_level ), "n/a" );
+                model.setData( model.index( row, c_description ), QString::fromStdWString( sample.description() ) );
             }
             
             static void getRow( QStandardItemModel& model, int row, adcontrols::QuanSample& sample ) {
@@ -189,6 +181,7 @@ namespace quan {
                     sample.level( model.index( row, c_level ).data( Qt::EditRole ).toInt() );
                 else
                     sample.level( 0 );
+                sample.description( model.index( row, c_description ).data().toString().toStdWString().c_str() );
             }
         };
     }
@@ -367,8 +360,6 @@ bool
 DataSequenceTable::setContents( const adcontrols::QuanSequence& seq )
 {
     QStandardItemModel& model = *model_;
-
-    return true;
 
     if ( seq.size() == 0 )
         return true;
