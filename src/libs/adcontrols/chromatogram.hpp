@@ -104,11 +104,16 @@ namespace adcontrols {
         void setFcn( int );
         int fcn() const;
 
+        double time( size_t idx ) const;
+        double intensity( size_t idx ) const;
         void setIntensity( size_t idx, double );
         void setTime( size_t idx, double );
         void setIntensityArray( const double * );
         void setTimeArray( const double * );
         void addEvent( const Event& );
+
+        // append (time,intensity) to the end of chromatogram
+        void operator << ( const std::pair<double, double>& );  
 
         seconds_t sampInterval() const; // seconds
         void sampInterval( const seconds_t&  );

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,6 +24,7 @@
 
 #include "quansampleprocessor.hpp"
 #include "quanprocessor.hpp"
+#include "quanchromatograms.hpp"
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
@@ -122,7 +123,12 @@ QuanSampleProcessor::dryrun()
             progress_total_++;
             break;
         case adcontrols::QuanSample::GenerateChromatogram:
-            // not implemented
+            if ( procmethod_ ) {
+                if ( auto qm = procmethod_->find< adcontrols::QuanMethod >() ) {
+                    progress_total_ = int( nSpectra_ );
+                }
+            }
+            
             break;
         }
     }
@@ -142,6 +148,18 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
         switch ( sample.dataGeneration() ) {
 
         case adcontrols::QuanSample::GenerateChromatogram:
+            if ( raw_ ) {
+                auto chroms = std::make_shared< QuanChromatograms >( procmethod_ );
+                adcontrols::MassSpectrum ms;
+                size_t pos = 0;
+                while ( pos = read_raw_spectrum( pos, raw_, ms ) ) {
+                    chroms->processIt( pos, ms );
+                    if ( (*progress_)() )
+                        return false;
+                }
+                chroms->save( *portfolio_ );
+                datafile_->saveContents( L"/Processed", *portfolio_ );
+            }
             break; // ignore for this version
 
         case adcontrols::QuanSample::GenerateSpectrum:
@@ -154,6 +172,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 }
             }
             break;
+
         case adcontrols::QuanSample::ProcessRawSpectra:
             if ( raw_ ) {
                 adcontrols::MassSpectrum ms;

@@ -162,7 +162,9 @@ namespace quan {
 
         ////////////////
         struct Chromatography {
+            
             static void setRow( QStandardItemModel& model, int row, const adcontrols::QuanSample& sample ) {
+                
                 model.setData( model.index( row, c_datafile ), QString::fromStdWString( sample.dataSource() ) );
                 model.setData( model.index( row, c_sample_type ), sample.sampleType() );
                 model.setData( model.index( row, c_process ), sample.dataGeneration() ); // | Chromatogram Generation
@@ -174,6 +176,7 @@ namespace quan {
             }
             
             static void getRow( QStandardItemModel& model, int row, adcontrols::QuanSample& sample ) {
+                
                 sample.dataSource( model.index( row, c_datafile ).data( Qt::EditRole ).toString().toStdWString().c_str() );
                 sample.sampleType( adcontrols::QuanSample::QuanSampleType( model.index( row, c_sample_type ).data( Qt::EditRole ).toInt() ) );
                 sample.dataGeneration( adcontrols::QuanSample::QuanDataGeneration( model.index( row, c_process ).data( Qt::EditRole ).toInt() ) );
@@ -182,6 +185,8 @@ namespace quan {
                 else
                     sample.level( 0 );
                 sample.description( model.index( row, c_description ).data().toString().toStdWString().c_str() );
+
+                sample.inletType( adcontrols::QuanSample::Chromatography );                
             }
         };
     }

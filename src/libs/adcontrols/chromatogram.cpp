@@ -282,6 +282,29 @@ Chromatogram::getIntensityArray() const
 }
 
 void
+Chromatogram::operator << ( const std::pair<double, double>& data )
+{
+    pImpl_->isConstantSampling_ = false;
+    pImpl_->timeArray_.push_back( data.first );
+    pImpl_->dataArray_.push_back( data.second );
+    if ( pImpl_->timeArray_.size() == 1 )
+        pImpl_->timeRange_.first = pImpl_->timeArray_.front();
+    pImpl_->timeRange_.second = pImpl_->timeArray_.back();
+}
+
+double
+Chromatogram::time( size_t idx ) const
+{
+    return pImpl_->timeArray_[ idx ];
+}
+
+double
+Chromatogram::intensity( size_t idx ) const
+{
+    return pImpl_->dataArray_[ idx ];
+}
+
+void
 Chromatogram::setIntensity( size_t idx, double d )
 {
     pImpl_->setData( idx, d );

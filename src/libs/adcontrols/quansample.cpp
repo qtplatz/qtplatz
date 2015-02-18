@@ -358,7 +358,9 @@ QuanSample::uuid() const { return impl_->uuid_; }
 
 QuanSample::QuanDataGeneration
 QuanSample::dataGeneration() const
-{ return impl_->dataGeneration_; }
+{
+    return impl_->dataGeneration_;
+}
 
 void
 QuanSample::dataGeneration( QuanDataGeneration v ) { impl_->dataGeneration_ = v; }

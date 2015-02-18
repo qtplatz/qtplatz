@@ -59,6 +59,7 @@ set( quan_SOURCES
   compoundstable.cpp
   quanconfigform.cpp
   quanconfigwidget.cpp
+  quanchromatograms.cpp  
   quandatawriter.cpp
   quansampleprocessor.cpp
   processmethodwidget.cpp
@@ -98,6 +99,7 @@ set( quan_HEADERS
   compoundstable.hpp
   quanconfigform.hpp
   quanconfigwidget.hpp
+  quanchromatograms.hpp
   quandatawriter.hpp
   quansampleprocessor.hpp
   processmethodwidget.hpp
