@@ -78,48 +78,68 @@ namespace quan {
 
         enum {
             c_datafile
-            , c_data_type       // RAW | Spectrum | Chromatogram
             , c_sample_type     // standard | unknown | QC
-            , c_process         // chromaotgram generation | 
+            , c_process         // chromaotgram generation |
             , c_level
-            , c_channel
             , c_description
             , number_of_columns
         };
 
-        class ItemDelegate : public QStyledItemDelegate {
+        static const QStringList sample_type_names = { "UNK", "STD", "QC", "BLANK" };    
+        static const QStringList process_names = { "AS-IS", "Spectrum", "Chromatogram", "Raw Spectra" };
+
+        class ItemDelegate : public QStyledItemDelegate { 
         public:
 
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
 
                 QStyleOptionViewItem op( option );
+
                 painter->save();
 
-                std::string samp_type = index.model()->index( index.row(), c_sample_type, index.parent() ).data().toString().toStdString();
-                std::string data_type = index.model()->index( index.row(), c_data_type, index.parent() ).data().toString().toStdString();
+                auto samp_type = index.model()->index( index.row(), c_sample_type ).data( Qt::EditRole ).toInt();
                 int level = index.model()->index( index.row(), c_level, index.parent() ).data().toInt();
-
-                if ( data_type != "file" ) {  // "raw" | "spc"
-                    if ( samp_type == "STD" ) {
-                        if ( level <= 0 || level > levels_ )
-                            painter->fillRect( option.rect, QColor( 0xff, 0x66, 0x44, 0x40 ) ); // tomato (error; either this is, or number of levels in QuanMethod)
-                        else
-                            painter->fillRect( option.rect, QColor( 174, 198, 207, 0x20 ) ); // pastel blue
-                    } else
-                        painter->fillRect( option.rect, QColor( 119, 221, 119, 0x10 ) ); // pastel green (UNK/QC/BLANK)
+                
+                if ( samp_type == adcontrols::QuanSample::SAMPLE_TYPE_STD ) {
+                    if ( level <= 0 || level > levels_ )
+                        painter->fillRect( option.rect, QColor( 0xff, 0x66, 0x44, 0x40 ) ); // tomato (error; either this is, or number of levels in QuanMethod)
+                    else
+                        painter->fillRect( option.rect, QColor( 174, 198, 207, 0x20 ) ); // pastel blue
+                } else {
+                    painter->fillRect( option.rect, QColor( 119, 221, 119, 0x10 ) ); // pastel green (UNK/QC/BLANK)
                 }
+
                 if ( index.column() == c_datafile ) {
                     op.textElideMode = Qt::ElideLeft;
                     QStyledItemDelegate::paint( painter, op, index );
-                } else
+                } else if ( index.column() == c_sample_type ) {
+                    painter->drawText( op.rect, Qt::AlignHCenter | Qt::AlignVCenter, sample_type_names.at( samp_type ) );
+                } else if ( index.column() == c_process ) {
+                    painter->drawText( op.rect, Qt::AlignHCenter | Qt::AlignVCenter, process_names.at( index.data( Qt::EditRole ).toInt() ) );
+                } else {
                     QStyledItemDelegate::paint( painter, op, index );
+                }
                 painter->restore();                
             }
-            void setEditorData( QWidget * editor, const QModelIndex& index ) const {
-                QStyledItemDelegate::setEditorData( editor, index );
-            }
+            
+            // void setEditorData( QWidget * editor, const QModelIndex& index ) const {
+            //     if ( index.column() == c_sample_type() ) {
+            //         if ( auto combo = qobject_cast< QComboBox * >( editor ) ) {
+            //             combo->currentIndex();
+            //         }
+            //     } else
+            //         QStyledItemDelegate::setEditorData( editor, index );                
+            // }
+            
             void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const {
-                QStyledItemDelegate::setModelData( editor, model, index );
+                if ( index.column() == c_sample_type ) {
+                    if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
+                        int idx = combo->currentIndex();
+                        model->setData( index, combo->currentIndex(), Qt::EditRole );
+                    }
+                } else {
+                    QStyledItemDelegate::setModelData( editor, model, index );
+                }
                 if ( valueChanged_ )
                     valueChanged_( index );
             }
@@ -131,22 +151,8 @@ namespace quan {
             QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
                 if ( index.column() == c_sample_type ) {
                     QComboBox * pCombo = new QComboBox( parent );
-                    pCombo->addItems( QStringList() << "UNK" << "STD" << "QC" );
+                    pCombo->addItems( sample_type_names );
                     return pCombo;
-                }
-                if ( index.column() == c_process ) {
-                    const QAbstractItemModel& model = *index.model();
-                    QString data_type = model.index( index.row(), c_data_type, index.parent() ).data().toString();
-                    if ( data_type == "raw" ) {
-                        QComboBox * pCombo = new QComboBox( parent );
-                        pCombo->addItems( QStringList() << Constants::cmbAvgAll
-                                          << Constants::cmbTake1st << Constants::cmbTake2nd << Constants::cmbTakeLast << Constants::cmbProcEach );
-                        return pCombo;
-                    } else if ( data_type == "spc" ) {
-                        QComboBox * pCombo = new QComboBox( parent );
-                        pCombo->addItems( QStringList() << "AS IS" );
-                        return pCombo;
-                    }
                 }
                 return QStyledItemDelegate::createEditor( parent, option, index );
             }
@@ -154,6 +160,7 @@ namespace quan {
             void register_valueChanged( std::function<void( const QModelIndex& )> f ) { 
                 valueChanged_ = f;
             }
+            
             void levels( int value ) { levels_ = value; }
             void replicates( int value ) { replicates_ = value; }
         private:
@@ -163,73 +170,25 @@ namespace quan {
         };
 
         ////////////////
-
-        class dataSubscriber : public adcontrols::dataSubscriber
-                             , public std::enable_shared_from_this< dataSubscriber > {
-        public:
-            dataSubscriber( int row
-                            , const std::wstring& filename
-                            , std::function<void( dataSubscriber *)> f ) : row_( row )
-                                                                         , filename_( filename )
-                                                                         , raw_(0)
-                                                                         , callback_(f){
-            }
-            void open() {
-                try {
-                    if ( ( datafile_ = std::shared_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename_, true ) )  ) )
-                        datafile_->accept( *this );
-                    callback_( this );
-                } catch ( ... ) {
-                    ADERROR() << boost::current_exception_diagnostic_information();
-                    QMessageBox::warning(0, "Quan dataSubscriber", boost::current_exception_diagnostic_information().c_str() );
-                }
-            }
-            
-            // implementation
-            bool subscribe( const adcontrols::LCMSDataset& d ) override {
-                raw_ = &d;
-                try { 
-                    size_t pos = d.find_scan( 0, 0 ); // find first data for  protoId = 0
-                    ms_ = std::make_shared< adcontrols::MassSpectrum >();
-                    d.getSpectrum( -1, pos, *ms_ );
-                } catch ( ... ) {
-                    ADERROR() << boost::current_exception_diagnostic_information();
-                    QMessageBox::warning(0, "Quan dataSubscriber", boost::current_exception_diagnostic_information().c_str() );
-                }
-                return true;
-            }
-
-            bool subscribe( const adcontrols::ProcessedDataset& d ) override {
-                portfolio_ = std::make_shared< portfolio::Portfolio >( d.xml() );
-                return true;
-            }
-
-            // local impl
-            const adcontrols::LCMSDataset * raw() {
-                return raw_;
-            }
-            portfolio::Portfolio * processed() {
-                return portfolio_.get();
-            }
-            adcontrols::MassSpectrum * ms() { return ms_.get(); }
-            const std::wstring& filename() const { return filename_;  }
-            int row() const { return row_; }
-        private:
-            int row_;
-            std::wstring filename_;
-            std::shared_ptr< adcontrols::MassSpectrum > ms_;
-            std::shared_ptr< adcontrols::datafile > datafile_;
-            std::shared_ptr< portfolio::Portfolio > portfolio_;
-            const adcontrols::LCMSDataset * raw_;
-            std::function< void( dataSubscriber * ) > callback_;
-        };
-
         struct Chromatography {
             static void setRow( QStandardItemModel& model, int row, const adcontrols::QuanSample& sample ) {
-                model.setData( model.index( row, c_data_type ), QString::fromStdWString( sample.dataSource() ) );
-                model.setData( model.index( row, c_sample_type), "UNK" );
-                model.setData( model.index( row, c_process ), "TIC" ); // | Chromatogram Generation
-                model.setData( model.index( row, c_level ), 0 ); // level
+                model.setData( model.index( row, c_datafile ), QString::fromStdWString( sample.dataSource() ) );
+                model.setData( model.index( row, c_sample_type ), sample.sampleType() );
+                model.setData( model.index( row, c_process ), sample.dataGeneration() ); // | Chromatogram Generation
+                if ( sample.sampleType() == adcontrols::QuanSample::SAMPLE_TYPE_STD )
+                    model.setData( model.index( row, c_level ), sample.level() ); // n/a for UNK
+                else
+                    model.setData( model.index( row, c_level ), "n/a" );
+            }
+            
+            static void getRow( QStandardItemModel& model, int row, adcontrols::QuanSample& sample ) {
+                sample.dataSource( model.index( row, c_datafile ).data( Qt::EditRole ).toString().toStdWString().c_str() );
+                sample.sampleType( adcontrols::QuanSample::QuanSampleType( model.index( row, c_sample_type ).data( Qt::EditRole ).toInt() ) );
+                sample.dataGeneration( adcontrols::QuanSample::QuanDataGeneration( model.index( row, c_process ).data( Qt::EditRole ).toInt() ) );
+                if ( sample.sampleType() == adcontrols::QuanSample::SAMPLE_TYPE_STD )
+                    sample.level( model.index( row, c_level ).data( Qt::EditRole ).toInt() );
+                else
+                    sample.level( 0 );
             }
         };
     }
@@ -238,29 +197,42 @@ namespace quan {
 using namespace quan;
 using namespace quan::datasequencetable;
 
-DataSequenceTable::DataSequenceTable(QWidget *parent) : TableView(parent)
+DataSequenceTable::DataSequenceTable(QWidget *parent) : adwidgets::TableView(parent)
                                                       , model_( new QStandardItemModel )
                                                       , dropCount_( 0 )
 {
     auto delegate = new ItemDelegate;
-    delegate->register_valueChanged( [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); } );
+
+    setItemDelegate( delegate );
+    setModel( model_.get() );
+    
     auto& qm = QuanDocument::instance()->quanMethod();
     delegate->levels( qm.levels() );
     delegate->replicates( qm.replicates() );
 
-    setItemDelegate( delegate );
-    
+    delegate->register_valueChanged( [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); } );
+
+    onInitialUpdate();
+}
+
+void
+DataSequenceTable::onInitialUpdate()
+{
     QStandardItemModel& model = *model_;
+    model.setRowCount( 0 );
     model.setColumnCount( number_of_columns );
+
     model.setHeaderData( c_datafile, Qt::Horizontal, tr("Data name") );       // read only
-    model.setHeaderData( c_data_type, Qt::Horizontal, tr("Data type") );      // read only
+
     model.setHeaderData( c_sample_type, Qt::Horizontal, tr("Sample type") );  // UNK/STD/QC
-    model.setHeaderData( c_process, Qt::Horizontal, tr("Spectrum method") );  // Average (start,end)
+    model.setHeaderData( c_process, Qt::Horizontal, tr("Data Generation") );  // Average (start,end)
     model.setHeaderData( c_level, Qt::Horizontal, tr("Level") );              // if standard
-    model.setHeaderData( c_channel, Qt::Horizontal, tr("ch#") );              // data channel (usually same as protocol#, but depends)
+
     model.setHeaderData( c_description, Qt::Horizontal, tr("Description") );  // if standard
 
-    connect( this, &DataSequenceTable::onJoin, this, &DataSequenceTable::handleJoin );
+    resizeColumnsToContents();
+    resizeRowsToContents();
+    //horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
 
     setAcceptDrops( true );
     setContextMenuPolicy( Qt::CustomContextMenu );
@@ -285,28 +257,6 @@ DataSequenceTable::setData( const QStringList& list )
 }
 
 void
-DataSequenceTable::handleData( int row )
-{
-    QStandardItemModel& model = *model_;
-
-    dataSubscriber * data = 0;
-    do {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        auto it = std::find_if( dataSubscribers_.begin(), dataSubscribers_.end(), [row]( const std::shared_ptr< dataSubscriber >& d ){
-                return d->row() == row;
-            });
-        if ( it != dataSubscribers_.end() )
-            data = it->get();
-    } while(0);
-
-    if ( data ) {
-        setRaw( data, model.itemFromIndex( model.index( row, 0 ) ) );
-        setProcessed( data, model.itemFromIndex( model.index( row, 0 ) ) );
-    }
-    //expandAll();
-}
-
-void
 DataSequenceTable::handleValueChanged( const QModelIndex& index )
 {
     QStandardItemModel& model = *model_;
@@ -314,45 +264,18 @@ DataSequenceTable::handleValueChanged( const QModelIndex& index )
     if ( index.column() == c_sample_type ) {
 
         int level = 0;
-        if ( index.data().toString() == "STD" ) {
-            if ( (level = model.index( index.row(), c_level, index.parent() ).data().toInt()) == 0 )
+        if ( index.data( Qt::EditRole ).toInt() == adcontrols::QuanSample::SAMPLE_TYPE_STD ) {
+            if ( ( level = model.index( index.row(), c_level ).data().toInt() ) == 0 )
                 level = 1;
             // Level for STD must be >1
-            model.setData( model.index( index.row(), c_level, index.parent() ), level ); 
-            model.itemFromIndex( model.index( index.row(), c_level, index.parent() ) )->setEditable( true );
+            model.setData( model.index( index.row(), c_level, index.parent() ), level );
+            model.itemFromIndex( model.index( index.row(), c_level ) )->setEditable( true );
         } else {
             // UNK/QC/BLAND must be 0 (n/a)
-            model.setData( model.index( index.row(), c_level, index.parent() ), 0 ); 
-            model.itemFromIndex( model.index( index.row(), c_level, index.parent() ) )->setEditable( false );
-        }
-        
-        if ( index.parent() == QModelIndex() ) {
-            auto parent = model.item( index.row() );
-            for ( int row = 0; row < parent->rowCount(); ++row ) {
-                model.setData( model.index( row, c_sample_type, parent->index() ), index.data() );
-                model.setData( model.index( row, c_level, parent->index() ), level );  // set parent's level
-            }
+            model.setData( model.index( index.row(), c_level ), "n/a" ); 
+            model.itemFromIndex( model.index( index.row(), c_level ) )->setEditable( false );
         }
     }
-}
-
-void
-DataSequenceTable::handleIt( dataSubscriber * ptr )
-{
-    std::lock_guard< std::mutex > lock( mutex_ );
-    dataSubscribers_.push_back( ptr->shared_from_this() );
-    emit onJoin( ptr->row() );
-}
-
-void
-DataSequenceTable::handleJoin( int row )
-{
-    if ( dropCount_ && (--dropCount_ == 0) ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        std::for_each( threads_.begin(), threads_.end(), [] ( std::thread& t ){ t.join(); } );
-        threads_.clear();
-    }
-    handleData( row );
 }
 
 void
@@ -361,21 +284,19 @@ DataSequenceTable::dropIt( const std::wstring& path )
     QStandardItemModel& model = *model_;
     int row = model.rowCount();
 
-    // This hits to boost/msvc bug #6320 that is marked as 'fixed' but it seems still exists
-    // and reproducible on Boost 1.55 + vc12 (VisualStudio 2013) -- workaround applied on all datafile accessors.
-
-    std::lock_guard< std::mutex > lock( mutex_ );
-
-    auto reader = std::make_shared< dataSubscriber >( row, path, [this] ( dataSubscriber * p ){ handleIt( p ); } );
-    auto it = std::find_if( dataSubscribers_.begin(), dataSubscribers_.end()
-                            , [=] ( const std::shared_ptr<dataSubscriber>& d ){ return d->filename() == path; } );
-    if ( it == dataSubscribers_.end() ) {
-        model.insertRow( row );
-        model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
-        model.setData( model.index( row, c_data_type ), "file" );
-        ++dropCount_;
-        threads_.push_back( std::thread( [reader] (){ reader->open(); } ) );
-    }
+    model.insertRow( row );
+    adcontrols::QuanSample sample;
+    
+    sample.dataSource( path.c_str() );
+    sample.inletType( adcontrols::QuanSample::Chromatography );
+    sample.dataGeneration( adcontrols::QuanSample::GenerateChromatogram );
+    sample.level( 1 );
+    sample.injVol( 1.0 );
+    // sample.addedAmounts( 0 ); // for infusion
+    // istd[] to be added
+    Chromatography::setRow( model, row, sample );
+    // model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
+    ++dropCount_;
 }
 
 void
@@ -428,82 +349,6 @@ DataSequenceTable::dropEvent( QDropEvent * event )
     }
 }
 
-void
-DataSequenceTable::setRaw( dataSubscriber * data, QStandardItem * parent )
-{
-    QStandardItemModel& model = *model_;    
-    if ( data ) {
-
-        if ( auto raw = data->raw() ) {
-
-            int n = int( raw->getFunctionCount() );
-            parent->setRowCount( n );
-            parent->setColumnCount( number_of_columns );
-
-            for ( int fcn = 0; fcn < n; ++fcn ) {
-                model.setData( model.index( fcn, c_datafile, parent->index() ),  QString( "Fcn# %1" ).arg( fcn + 1 ), Qt::EditRole );
-
-                adcontrols::QuanSample sample;
-                sample.name( ( boost::wformat( L"Fcn# %1%" ) % (fcn + 1) ).str().c_str() ); // --> c_datafile as 'Fcn# 1'
-                sample.channel( fcn + 1 );  // signal channel 
-                sample.dataType( L"raw" );
-                sample.dataGeneration( adcontrols::QuanSample::GenerateSpectrum );
-                sample.scan_range( 0, -1 );
-
-                if ( data->ms() ) {
-                    adcontrols::segment_wrapper<> segs( *data->ms() );
-                    std::wstring desc = segs[ fcn ].getDescriptions().toString();
-                    sample.description( desc.c_str() );
-                }
-                //Chromatography::setRow( model, fcn, sample, parent->index() );
-                // Infusion::setRow( model, fcn, "raw", parent->index(), fcn + 1 );
-            }
-        }
-    }
-
-}
-
-size_t
-DataSequenceTable::setProcessed( dataSubscriber * data, QStandardItem * parent )
-{
-    QStandardItemModel& model = *model_;
-
-    size_t rowCount = 0;
-    if ( data ) {
-#if 0
-        if ( auto pf = data->processed() ) {
-
-            for ( auto& folder : pf->folders() ) {
-
-                if ( folder.name() == L"Spectra" ) {
-
-                    int row = parent->rowCount();
-
-                    if ( ( rowCount = folder.folio().size() ) ) {
-
-                        parent->setRowCount( int( rowCount + row ) );
-                        parent->setColumnCount( number_of_columns );
-
-                        for ( auto& folium : folder.folio() ) {
-
-                            adcontrols::QuanSample sample;
-
-                            sample.name( folium.name().c_str() );
-                            sample.dataType( L"spc" );
-
-                            Infusion::setRow( model, row, sample, parent->index() );
-
-                            ++row;
-                        }
-                    }
-                }
-            }
-        }
-#endif
-    }
-    return rowCount;
-}
-
 bool
 DataSequenceTable::getContents( adcontrols::QuanSequence& seq )
 {
@@ -511,21 +356,9 @@ DataSequenceTable::getContents( adcontrols::QuanSequence& seq )
     for ( int row = 0; row < model.rowCount(); ++row ) {
 
         adcontrols::QuanSample sample;
-
-        std::wstring datafile = model.data( model.index( row, c_datafile ), Qt::EditRole ).toString().toStdWString();
-        sample.dataSource( datafile.c_str() );
-        sample.dataType( L"file" );
-
-        std::wstring samp_type = model.data( model.index( row, c_sample_type ) ).toString().toStdWString();
-        if ( samp_type == L"UNK" )
-            sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_UNKNOWN );
-        else if ( samp_type == L"STD" )
-            sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_STD );
-        else if ( samp_type == L"QC" )
-            sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_QC );
-        else if ( samp_type == L"BLANK" )
-            sample.sampleType( adcontrols::QuanSample::SAMPLE_TYPE_BLANK );
+        Chromatography::getRow( *model_, row, sample );
         seq << sample;
+
     }
     return true;
 }
@@ -533,7 +366,9 @@ DataSequenceTable::getContents( adcontrols::QuanSequence& seq )
 bool
 DataSequenceTable::setContents( const adcontrols::QuanSequence& seq )
 {
-    QStandardItemModel& model = *model_;    
+    QStandardItemModel& model = *model_;
+
+    return true;
 
     if ( seq.size() == 0 )
         return true;
@@ -549,13 +384,17 @@ DataSequenceTable::setContents( const adcontrols::QuanSequence& seq )
 void
 DataSequenceTable::handleContextMenu( const QPoint& pt )
 {
+    QAction * delete_action;
     QMenu menu;
 
-    menu.addAction( tr("Delete line"), this, SLOT( delLine() ) );
-    menu.addAction( tr("Add line"), this, SLOT( delAll() ) );
-    menu.addAction( tr("Clear all"), this, SLOT( delAll() ) );
+    delete_action = menu.addAction( tr( "Delete line" ), this, SLOT( delLine() ) );
+    auto index = currentIndex();
+    if ( !index.isValid() )
+        delete_action->setEnabled( false );
+
+    TableView::addActionsToMenu( menu, pt );
     
-    menu.exec( mapToGlobal( pt ) );
+    menu.exec( this->mapToGlobal( pt ) );
 }
 
 void
@@ -582,12 +421,14 @@ DataSequenceTable::addLine()
 void
 DataSequenceTable::handleLevelChanged( int value )
 {
-    dynamic_cast<ItemDelegate *>(itemDelegate())->levels( value );
+    if ( auto delegate = dynamic_cast<ItemDelegate *>( itemDelegate() ) )
+        delegate->levels( value );
 }
 
 void
 DataSequenceTable::handleReplicatesChanged( int value )
 {
-    dynamic_cast<ItemDelegate *>(itemDelegate())->replicates( value );
+    if ( auto delegate = dynamic_cast<ItemDelegate *>( itemDelegate() ) )
+        delegate->replicates( value );
 }
 

@@ -46,6 +46,8 @@ namespace quan {
     public:
         explicit DataSequenceTable(QWidget *parent = 0);
 
+        void onInitialUpdate();
+
         void setData( std::shared_ptr< adcontrols::datafile >& );
         void setData( const QStringList& );
         bool setContents( const adcontrols::QuanSequence& );
@@ -63,23 +65,15 @@ namespace quan {
     private:
         std::vector< std::shared_ptr< datasequencetable::dataSubscriber > > dataSubscribers_;
         std::shared_ptr< QStandardItemModel > model_;
-        std::vector< std::thread > threads_;
-        std::mutex mutex_;
 
         void handleValueChanged( const QModelIndex& );
         void dropIt( const std::wstring& );
-        void handleIt( datasequencetable::dataSubscriber * );
         std::atomic< size_t > dropCount_;
-
-        void handleData( int row );
-        void setRaw( datasequencetable::dataSubscriber *, QStandardItem * );
-        size_t setProcessed( datasequencetable::dataSubscriber *, QStandardItem * );
 
     signals:
         void onJoin( int row );
 
     private slots:
-        void handleJoin( int row );
         void handleContextMenu( const QPoint& );
         void delAll();
         void delLine();

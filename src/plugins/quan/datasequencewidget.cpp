@@ -105,6 +105,8 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
                                                         , stack_(new QStackedWidget( this ))
                                                         , dataSequenceInfusion_( new DataSequenceTree )
                                                         , dataSequenceChromatography_( new DataSequenceTable )
+                                                        , levels_(1)
+                                                        , replicates_(1)
 {
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
@@ -113,11 +115,14 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
 
     const int row = layout_->rowCount();
     layout_->addWidget( dataSelectionBar(), row, 0 );
-    stack_->addWidget( dataSequenceInfusion_.get() );
+
+    // Chromatography 
     stack_->addWidget( dataSequenceChromatography_.get() );
+
+    // Infusion
+    stack_->addWidget( dataSequenceInfusion_.get() );
+
     layout_->addWidget( stack_.get() );
-    
-    stack_->setCurrentIndex( 1 );
 
     QuanDocument::instance()->register_dataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
 }
@@ -270,6 +275,8 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
     }
     if ( id == idQuanMethod ) {
         auto& qm = QuanDocument::instance()->quanMethod();
+        levels_ = qm.levels();
+        replicates_ = qm.replicates();
         datasequence_type().handleLevelChanged( stack_->currentWidget(), qm.levels() );
         datasequence_type().handleReplicatesChanged( stack_->currentWidget(), qm.replicates() );
     }
@@ -278,12 +285,14 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
 void
 DataSequenceWidget::handleLevelChaged( int value )
 {
+    levels_ = value;
     datasequence_type().handleLevelChanged( stack_->currentWidget(), value );
 }
 
 void
 DataSequenceWidget::handleReplicatesChanged( int value )
 {
+    replicates_ = value;
     datasequence_type().handleReplicatesChanged( stack_->currentWidget(), value );
 }
 
@@ -291,9 +300,11 @@ void
 DataSequenceWidget::handleSampleInletChanged( int inlet )
 {
     if ( adcontrols::QuanSample::Chromatography == inlet ) {
-        stack_->setCurrentIndex( 1 );
-    } else {
         stack_->setCurrentIndex( 0 );
+    } else {
+        stack_->setCurrentIndex( 1 );
     }
+    datasequence_type().handleLevelChanged( stack_->currentWidget(), levels_ );
+    datasequence_type().handleReplicatesChanged( stack_->currentWidget(), replicates_ );    
 }
 

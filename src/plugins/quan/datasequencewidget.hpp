@@ -52,6 +52,8 @@ namespace quan {
         std::unique_ptr< QStackedWidget > stack_;
         std::unique_ptr< DataSequenceTree > dataSequenceInfusion_;
         std::unique_ptr< DataSequenceTable > dataSequenceChromatography_;
+        size_t levels_;
+        size_t replicates_;
 
         QWidget * dataSelectionBar();
         void handleDataChanged( int, bool );
