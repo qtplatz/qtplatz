@@ -71,7 +71,7 @@ set( chemistry_HEADERS
   moltableview.hpp
   )
 
-add_library( ${PROJECT_NAME} MODULE
+add_library( ${PROJECT_NAME} SHARED
   ${chemistry_SOURCES}
   ${chemistry_HEADERS}
   ${Resources}

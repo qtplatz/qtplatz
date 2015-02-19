@@ -178,7 +178,7 @@ document::inject_event_out()
 }
 
 void
-document::inject_bind( std::string& host, std::string& port )
+document::inject_bind( const std::string& host, const std::string& port )
 {
     const char * libs [] = { "eventbroker", "eventbrokerd" };    
 

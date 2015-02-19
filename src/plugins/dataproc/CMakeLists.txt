@@ -53,7 +53,7 @@ link_directories(
   ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
   )
 
-add_library( ${PROJECT_NAME} MODULE
+add_library( ${PROJECT_NAME} SHARED
   aboutdlg.cpp
   dataprocplugin.cpp
   mode.cpp

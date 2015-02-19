@@ -27,6 +27,7 @@ link_directories( ${QWT}/lib )
 find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg PrintSupport )
 
 #find_package(Boost COMPONENTS program_options system )
+find_package(Boost COMPONENTS system )
 
 add_executable( eventtool ${eventtool_SOURCES} ${Resources} )
 

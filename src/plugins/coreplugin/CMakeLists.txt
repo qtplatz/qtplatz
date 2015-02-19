@@ -6,6 +6,15 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+if ( APPLE )
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject ) #plugins
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject ) 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject ) 
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject ) #dll
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject )
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject )
+else()
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #plugins
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) 
@@ -13,6 +22,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plu
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #dll
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
+endif()
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/core.pluginspec"
@@ -150,6 +160,7 @@ if (WIN32)
   set( core_SOURCES ${core_SOURCES} progressmanager/progressmanager_win.cpp )
   set( core_LIBS ${core_LIBS} ole32 user32 )
 endif()
+
 if (APPLE)
   include_directories ( /Developer/Headers/FlatCarbon )
   find_library( CARBON_LIBRARY Carbon )
@@ -159,16 +170,17 @@ if (APPLE)
   find_library( APP_SECURITY_LIBRARY Security )
   find_library( APP_OPENGL_LIBRARY OpenGL )
   find_library( APP_AGL_LIBRARY AGL )
-  message( "########### " ${APP_SERVICES_LIBRARY} )
-  message( "########### " ${APP_KIT_LIBRARY} )
-  mark_as_advanced ( CARBON_LIBRARY  APP_SERVICES_LIBRARY )
-  set ( EXTRA_LIBS ${CARBON_LIBRARY} ${QUICKTIME_LIBRARY} ${APP_SERVICES_LIBRARY} )
+#  mark_as_advanced ( CARBON_LIBRARY  APP_SERVICES_LIBRARY APP_KIT_LIBRARY )
+#  set ( EXTRA_LIBS ${CARBON_LIBRARY} ${QUICKTIME_LIBRARY} ${APP_SERVICES_LIBRARY} ${APP_KIT_LIBRARY} )
+  mark_as_advanced ( APP_SERVICES_LIBRARY APP_KIT_LIBRARY )
+  set ( EXTRA_LIBS ${APP_SERVICES_LIBRARY} ${APP_KIT_LIBRARY} )
 
   set( core_SOURCES ${core_SOURCES} progressmanager/progressmanager_mac.mm )
   # LIBS += -framework AppKit
   # LIBS  = -framework AppKit -framework DiskArbitration -framework IOKit -framework Security -framework ApplicationServices -framework OpenGL -framework AGL
 
 elseif(UNIX)
+
   set( core_SOURCES ${core_SOURCES} progressmanager/progressmanager_x11.cpp )
 #    IMAGE_SIZE_LIST = 16 24 32 48 64 128 256 512
 #    for(imagesize, IMAGE_SIZE_LIST) {

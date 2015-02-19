@@ -42,7 +42,7 @@ link_directories(
 
 add_definitions( -DSERVANT_LIBRARY )
 
-add_library( servant MODULE
+add_library( servant SHARED
   outputwindow.cpp
   servant.cpp
   servantmode.cpp

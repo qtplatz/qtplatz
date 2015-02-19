@@ -55,7 +55,7 @@ set( peptide_HEADERS
   digestedpeptidetable.hpp
   )
 
-add_library( ${PROJECT_NAME} MODULE
+add_library( ${PROJECT_NAME} SHARED
   ${peptide_SOURCES}
   ${peptide_HEADERS}
   ${Resources}

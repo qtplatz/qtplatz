@@ -80,7 +80,7 @@ set( sequence_HEADERS
   sequenceview.hpp
   )
 
-add_library( sequence MODULE
+add_library( sequence SHARED
   ${sequence_SOURCES}
   ${sequence_HEADERS}
   ${sequence_RESOURCES}
