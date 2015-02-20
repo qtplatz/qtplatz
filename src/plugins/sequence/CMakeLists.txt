@@ -10,11 +10,6 @@ find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Script Netwo
 find_package( qwt )
 find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/sequence-mimetype.xml"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sequence-mimetype.xml"
-  )
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -28,8 +23,14 @@ set(VERSION 3.1.4)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/pluginspec.in"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
+
+configure_file(
+  "${PROJECT_SOURCE_DIR}/sequence-mimetype.xml"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
+  )
+
 
 execute_process( COMMAND xmlpatterns -no-format 
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
