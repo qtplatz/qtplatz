@@ -1,6 +1,9 @@
-project( acquire )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
+
+project( acquire )
+
+set( PROVIDER MS-Cheminformatics )
 
 find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Script Network )
 find_package( qwt )
@@ -17,12 +20,12 @@ file(GLOB Resources *.qrc)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.config"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.config"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.config"
   )
 
 execute_process( COMMAND xmlpatterns -no-format 
@@ -106,6 +109,10 @@ target_link_libraries(
   ${Boost_LIBRARIES}
   )
 
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
+
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
   LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
@@ -115,3 +122,5 @@ install( FILES
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.config"
   DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+
+

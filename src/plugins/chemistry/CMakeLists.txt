@@ -1,9 +1,14 @@
-project( chemistry )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
+project( chemistry )
+
+set( PROVIDER MS-Cheminformatics )
+
 find_package( Qt5 CONFIG REQUIRED Core Network Widgets Svg Sql Script )
 find_package( rdkit )
+
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/MS-Chrminformatics ) #plugins
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -15,7 +20,7 @@ file(GLOB Resources *.qrc)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 execute_process( COMMAND xmlpatterns -no-format 
@@ -100,10 +105,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${Boost_LIBRARIES}
 )
 
-#LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
-#QT += core svg printsupport
-#linux-*: LIBS += -lqwt -ldl -lboost_thread -lrt
-#FORMS +=    mspropertyform.ui    dialogspectrometerchoice.ui
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins

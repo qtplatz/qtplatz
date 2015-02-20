@@ -1,32 +1,24 @@
 cmake_policy( SET CMP0020 NEW )
+
 project( Core )
+set( PROVIDER QtProject )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-if ( APPLE )
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject ) #plugins
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject ) 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject ) 
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject ) #plugins
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject ) #dll
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject )
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns/QtProject )
-else()
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #plugins
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) 
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject ) #dll
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
-endif()
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject ) #dll
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/core.pluginspec"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Core.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 execute_process( COMMAND xmlpatterns -no-format 
@@ -37,10 +29,11 @@ execute_process( COMMAND xmlpatterns -no-format
 
 find_package( Qt5 CONFIG REQUIRED PrintSupport Network Script Sql Widgets Gui Core )
 
-add_definitions(
-  -DCORE_LIBRARY
-  -D_SCL_SECURE_NO_WARNINGS
-  )
+add_definitions(  -DCORE_LIBRARY )
+
+if ( WIN32 )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
+endif()
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src		# app/app_version.h
@@ -53,11 +46,6 @@ include_directories(
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
   )
-
-#QT += network script sql printsupport
-
-#include(../../qtplatzplugin.pri)
-#include(../../shared/scriptwrapper/scriptwrapper.pri)
 
 if ( MSVC )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4290 /wd4250")
@@ -358,6 +346,10 @@ if ( UNIX )
 endif()
 
 #OTHER_FILES += editormanager/BinFiles.mimetypes.xml
+
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS Core
   RUNTIME DESTINATION lib/qtplatz/plugins/QtProject COMPONENT plugins

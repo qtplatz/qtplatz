@@ -1,8 +1,10 @@
-#
-project( sequence )
-#
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
+
+project( sequence )
+set( PROVIDER MS-Cheminformatics )
+
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/MS-Chrminformatics ) #plugins
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Script Network WebKit WebKitWidgets )
 find_package( qwt )
@@ -105,6 +107,10 @@ target_link_libraries(
   extensionsystem
   ${Boost_LIBRARIES}
   )
+
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
 
 #OTHER_FILES += sequence.pluginspec
 #    sequence-mimetype.xml

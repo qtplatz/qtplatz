@@ -1,6 +1,9 @@
-project( dataproc )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
+
+project( dataproc )
+
+set( PROVIDER MS-Cheminformatics )
 
 find_package( Qt5 CONFIG REQUIRED Core Network Widgets Sql Script )
 
@@ -14,17 +17,17 @@ file(GLOB Resources *.qrc)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/dataproc-mimetype.xml"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/dataproc-mimetype.xml"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
   )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.config"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.config"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.config"
   )
 
 execute_process( COMMAND xmlpatterns -no-format 
@@ -154,6 +157,10 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Qt5::Core
   ${Boost_LIBRARIES}
 )
+
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins

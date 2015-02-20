@@ -1,14 +1,19 @@
-project( servant )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
+project( servant )
+
+set( PROVIDER MS-Cheminformatics )
+
 find_package( Qt5 CONFIG REQUIRED Core Network Script Sql )
+
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/MS-Chrminformatics ) #plugins
 
 set(CMAKE_AUTOMOC ON)
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/servant.pluginspec"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/servant.pluginspec"
+  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 execute_process( COMMAND xmlpatterns -no-format 
@@ -71,14 +76,15 @@ target_link_libraries( servant LINK_PUBLIC
   Qt5::Core
 )
 
-#LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
-#OTHER_FILES += \
-#    servant.pluginspec \
-#    servant.config
-
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
   LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 install( FILES ${PROJECT_NAME}.pluginspec DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
+
+#  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )      

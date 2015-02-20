@@ -1,6 +1,8 @@
-project( Quan )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
+
+project( Quan )
+set( PROVIDER MS-Cheminformatics )
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Script Network WebKit WebKitWidgets )
 find_package( qwt )
@@ -19,7 +21,7 @@ set(VERSION 3.1.4)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/pluginspec.in"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 execute_process( COMMAND xmlpatterns -no-format 
@@ -156,6 +158,10 @@ target_link_libraries(
   
 #linux-*: LIBS += -lqwt -ldl -lrt
 #macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
+
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins

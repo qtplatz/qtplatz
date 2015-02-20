@@ -111,9 +111,7 @@ add_library( adcontrols SHARED
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 target_link_libraries( adcontrols LINK_PUBLIC ${Boost_LIBRARIES} adportable )
 
-set_target_properties( adcontrols
-  PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )      
+#set_target_properties( adcontrols  PROPERTIES  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )      
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

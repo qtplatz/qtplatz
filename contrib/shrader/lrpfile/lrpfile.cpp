@@ -32,6 +32,7 @@
 #include "lrptic.hpp"
 #include "msdata.hpp"
 #include <boost/format.hpp>
+#include <istream>
 
 using namespace shrader;
 

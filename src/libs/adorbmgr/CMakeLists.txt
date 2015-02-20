@@ -27,9 +27,9 @@ target_link_libraries( adorbmgr LINK_PUBLIC
   ${ACE+TAO_LIBRARIES}
   ${Boost_LIBRARIES} )
 
-set_target_properties( ${PROJECT_NAME}
-  PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )      
+#set_target_properties( ${PROJECT_NAME}
+#  PROPERTIES
+#  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )      
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

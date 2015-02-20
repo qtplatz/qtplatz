@@ -19,9 +19,9 @@ target_link_libraries( adlog LINK_PUBLIC
 		       adportable
 		       )
 
-set_target_properties( adlog
-  PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )    
+#set_target_properties( adlog
+#  PROPERTIES
+#  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )    
 		     
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

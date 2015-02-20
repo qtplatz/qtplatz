@@ -137,7 +137,7 @@ MainWindow::Open( const std::string& filename )
         boost::filesystem::ifstream in( fpath, std::ios_base::binary );
         std::ostringstream o;
         o << fpath << std::endl;
-        if ( spcfile_ = std::make_shared< shrader::lrpfile >( in, fsize ) ) {
+        if ( ( spcfile_ = std::make_shared< shrader::lrpfile >( in, fsize ) ) ) {
             dumpspc( *spcfile_, o );
         }
         drawTIC( *spcfile_ );

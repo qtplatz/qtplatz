@@ -1,5 +1,6 @@
 
 project( peptide )
+set( PROVIDER MS-Cheminformatics )
 
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
@@ -19,7 +20,7 @@ set(VERSION 3.1.4)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/pluginspec.in"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 execute_process( COMMAND xmlpatterns -no-format 
@@ -78,6 +79,10 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Qt5::Core
   ${Boost_LIBRARIES}
 )
+
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
