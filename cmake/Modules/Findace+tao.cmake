@@ -26,10 +26,14 @@ if ( NOT ace+tao_FOUND )
     string( REGEX REPLACE "#define[ \t]*ACE_VERSION[ \t]+\"(.*)\"" "\\1" ACE_VERSION ${ace_version} )
 
     file( STRINGS ${TAO_INCLUDE_DIR}/tao/Version.h tao_version REGEX "^#define[ \t]+TAO_VERSION" )
-    string( REGEX REPLACE "#define[ \t]*TAO_VERSION[ \t]+\"(.*)\"" "\\1" TAO_VERSION ${tao_version} )    
-    
+    string( REGEX REPLACE "#define[ \t]*TAO_VERSION[ \t]+\"(.*)\"" "\\1" TAO_VERSION ${tao_version} )
+
     set( ace+tao_FOUND 1 )
-    set( ACE+TAO_LIBRARY_DIR  ${ace+tao_DIR}/lib )
+
+    find_library( _path TAO HINTS usr/local/ace+tao/6.3.1 usr/local/ace+tao/6.3.1 usr/local/ace+tao/6.2.8 )
+    get_filename_component( ACE+TAO_LIBRARY_DIR ${_path} PATH )
+    
+    #set( ACE+TAO_LIBRARY_DIR  ${ace+tao_DIR}/lib )
     set( ACE+TAO_LIBRARY_DIRS ${ACE+TAO_LIBRARY_DIR} )
     
     include( ace+tao-config )
