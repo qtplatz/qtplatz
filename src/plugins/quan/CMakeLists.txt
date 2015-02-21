@@ -168,5 +168,6 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-install( FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"
+install( FILES
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
