@@ -4,8 +4,6 @@ cmake_policy( SET CMP0028 NEW )
 project( sequence )
 set( PROVIDER MS-Cheminformatics )
 
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/MS-Chrminformatics ) #plugins
-
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Script Network WebKit WebKitWidgets )
 find_package( qwt )
 find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
@@ -35,7 +33,7 @@ configure_file(
 execute_process( COMMAND xmlpatterns -no-format 
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.pluginspec"  
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"  
   )
 
 add_definitions(
@@ -83,7 +81,7 @@ set( sequence_HEADERS
   sequenceview.hpp
   )
 
-add_library( sequence SHARED
+add_library( sequence MODULE
   ${sequence_SOURCES}
   ${sequence_HEADERS}
   ${sequence_RESOURCES}

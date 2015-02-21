@@ -299,6 +299,8 @@ set( core_RESOURCES
   fancyactionbar.qrc
   )
 
+# Core.so directory linked with other plugins, so it should not be MODULE
+
 add_library(
   Core SHARED
   ${core_SOURCES}

@@ -83,7 +83,7 @@ set( ${PROJECT_NAME}_HEADERS
   )
 
 add_library(
-  acquire SHARED
+  acquire MODULE
   ${${PROJECT_NAME}_SOURCES}
   ${${PROJECT_NAME}_HEADERS}
   ${Resources}
