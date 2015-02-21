@@ -109,14 +109,8 @@ target_link_libraries(
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} # for WIN32  
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} # for WIN32
+)
 
-#OTHER_FILES += sequence.pluginspec
-#    sequence-mimetype.xml
-#    sequence_dependencies.pri
-
-#RESOURCES +=
-#    sequence.qrc
-
-#FORMS +=
-#    sequencewidget.ui
