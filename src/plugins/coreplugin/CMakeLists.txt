@@ -3,18 +3,16 @@ cmake_policy( SET CMP0020 NEW )
 project( Core )
 set( PROVIDER QtProject )
 
+#if (WIN32)
+#  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject ) #dll
+#  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
+#  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
+#endif()
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject ) #plugins
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
-
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject ) #dll
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/QtProject )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/core.pluginspec"
@@ -324,15 +322,6 @@ target_link_libraries(
   ${EXTRA_LIBS}
 )
 
-#include(find/find.pri)
-#include(locator/locator.pri)
-
-#else:macx {
-#    OBJECTIVE_SOURCES +=
-#        progressmanager/progressmanager_mac.mm
-#    LIBS += -framework AppKit
-#else:unix {
-
 if ( UNIX )
   set( core_SOURCES ${core_SOURCES} progressmanager/progressmanager_x11.cpp )
 
@@ -347,10 +336,10 @@ if ( UNIX )
 
 endif()
 
-#OTHER_FILES += editormanager/BinFiles.mimetypes.xml
-
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} # for WIN32
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} # for WIN32
   LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS Core
