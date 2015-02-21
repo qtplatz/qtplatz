@@ -6,7 +6,6 @@ if ( NOT ace+tao_FOUND )
   elseif( RTC_ARCH_ARM AND CMAKE_CROSSCOMPILING )
     find_path( ace+tao_DIR NAMES include/ace/ACE.h HINTS usr/local/ace+tao/6.3.1 )
     string( REGEX REPLACE "(.*)/include" "\\1" ace+tao_DIR ${ace+tao_DIR} )
-    message( "##### ace+tao_DIR=" ${ace+tao_DIR} )
   else()
     find_path( ace+tao_DIR NAMES ace/ACE.h include/ace/ACE.h HINTS ENV ACE_ROOT
       /usr/local/ace+tao/6.3.1 /usr/local/ace+tao/6.3.0 /usr/local/ace+tao/6.2.8 )
