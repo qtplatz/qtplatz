@@ -30,10 +30,7 @@ if ( NOT ace+tao_FOUND )
 
     set( ace+tao_FOUND 1 )
 
-    find_library( _path TAO HINTS usr/local/ace+tao/6.3.1 usr/local/ace+tao/6.3.1 usr/local/ace+tao/6.2.8 )
-    get_filename_component( ACE+TAO_LIBRARY_DIR ${_path} PATH )
-    
-    #set( ACE+TAO_LIBRARY_DIR  ${ace+tao_DIR}/lib )
+    set( ACE+TAO_LIBRARY_DIR  ${ace+tao_DIR}/lib )
     set( ACE+TAO_LIBRARY_DIRS ${ACE+TAO_LIBRARY_DIR} )
     
     include( ace+tao-config )
