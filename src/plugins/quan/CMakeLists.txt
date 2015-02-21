@@ -128,7 +128,7 @@ set( quan_HEADERS
 set( quan_RESOURCES quan.qrc )
 set( quan_FORMS doubletabwidget.ui  quanconfigform.ui  quanqueryform.ui )
 
-add_library( Quan SHARED
+add_library( Quan MODULE
   ${quan_SOURCES}
   ${quan_HEADERS}
   ${quan_RESOURCES}

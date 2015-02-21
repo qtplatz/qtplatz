@@ -41,7 +41,7 @@ if ( APPLE )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS )
-  set( CMAKE_SHARED_MODULE_SUFFIX "dylib" )
+  set( CMAKE_SHARED_MODULE_SUFFIX ".dylib" )
   set( CMAKE_MACOSX_RPATH 1 )
 
 else()

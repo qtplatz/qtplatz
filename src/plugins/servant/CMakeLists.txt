@@ -19,13 +19,7 @@ configure_file(
 execute_process( COMMAND xmlpatterns -no-format 
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
-  )
-
-execute_process( COMMAND xmlpatterns -no-format 
-  -output ${PROJECT_SOURCE_DIR}/servant.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${PROJECT_SOURCE_DIR}/servant.pluginspec
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"  
   )
 
 include_directories(
