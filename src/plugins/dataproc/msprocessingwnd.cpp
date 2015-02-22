@@ -887,24 +887,33 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
             if ( !ptr->isCentroid() )
                 return;
 
+            auto pkinfo = pkinfo_.second.lock();
+
             adcontrols::ProcessMethod pm;
             MainWindow::instance()->getProcessMethod( pm );
             if ( const auto mchro = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
                 std::vector< std::tuple< int, double, double > > ranges;  // fcn, mass (beg, end)
-
+                size_t fcn = 0;
                 for ( auto& fms : adcontrols::segment_wrapper<>( *ptr ) ) {
                     
                     size_t idx = fms.lower_bound( rect.left() );
                     if ( idx != fms.npos ) {
                         do {
 
-                            if ( fms.getIntensity( idx ) >= rect.top() )
-                                ranges.push_back( std::make_tuple( fms.protocolId(), fms.getMass( idx ), mchro->width_at_mass( fms.getMass( idx ) ) ) );
+                            if ( fms.getIntensity( idx ) >= rect.top() ) {
+                                double window = mchro->width_at_mass( fms.getMass( idx ) );
+                                if ( window < 1.0e-9 /* nDa */ && pkinfo ) {
+                                    adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > vinfo( *pkinfo );
+                                    auto info = vinfo[ fcn ].begin() + idx;
+                                    window = info->widthHH();
+                                }
+                                ranges.push_back( std::make_tuple( fms.protocolId(), fms.getMass( idx ), window ) );
+                            }
 
                         } while ( ++idx < fms.size() && fms.getMass( idx ) < rect.right() );
                     }
-
+                    ++fcn;
                 }
                 if ( !ranges.empty() ) {
                     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )

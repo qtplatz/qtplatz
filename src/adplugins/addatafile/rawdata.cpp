@@ -533,7 +533,9 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 
                         *pChro << std::make_pair( time, d );
 
-                        ADDEBUG() << " tic=" << tic << ", mass=(" << lMass << ", " << uMass << "), d=" << d << ", time=" << fms.getMSProperty().timeSinceInjection();
+                        ADDEBUG() << " tic=" << tic << ", mass=(" << lMass << ", " << uMass
+                                  << "), frac=(" << fraction.lPos << ", " << fraction.uPos << ", " << fraction.lFrac << ", " << fraction.uFrac
+                                  << "), d="  << d << ", time=" << fms.getMSProperty().timeSinceInjection();
                     }
                 }
 

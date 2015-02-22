@@ -26,8 +26,11 @@
          <layout class="QGridLayout" name="gridLayout">
           <item row="3" column="0">
            <widget class="QRadioButton" name="radioButton_2">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
-             <string>RadioButton</string>
+             <string>PPM</string>
             </property>
            </widget>
           </item>
@@ -35,7 +38,20 @@
            <widget class="QComboBox" name="comboBox"/>
           </item>
           <item row="2" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox">
+            <property name="decimals">
+             <number>4</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
+            </property>
+           </widget>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_2">
@@ -71,6 +87,9 @@
            <widget class="QRadioButton" name="radioButton">
             <property name="text">
              <string>Dalton</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
