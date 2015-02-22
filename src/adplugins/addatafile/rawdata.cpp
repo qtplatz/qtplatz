@@ -464,28 +464,28 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 
     const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
     
-    typedef std::tuple< int, double, double, adcontrols::Chromatogram * > mass_window_t;
+    typedef std::tuple< int, double, double, std::vector< adcontrols::Chromatogram >::size_type > mass_window_t;
     std::vector< mass_window_t > masses;
 
     for ( auto& range: ranges ) {
 
         result.push_back( adcontrols::Chromatogram() );
-        auto pChro = &result.back();
+        auto idChro = result.size() - 1;
         
         int fcn = std::get<0>( range );
         
         if ( std::get<2>( range ) <= 1.0 ) {
             double mass = std::get<1>( range );
             double width = std::get<2>( range );
-            pChro->addDescription( adcontrols::description( L"Create"
-                                                            , ( boost::wformat( L"m/z %.4lf (W:%.4fmDa) %d" ) % mass % ( width * 1000 ) % fcn ).str() ) );
-            masses.push_back( std::make_tuple( fcn, mass - width / 2, mass + width / 2, pChro ) );
+            result.back().addDescription( adcontrols::description( L"Create"
+                                                                  , ( boost::wformat( L"m/z %.4lf (W:%.4fmDa) %d" ) % mass % ( width * 1000 ) % fcn ).str() ) );
+            masses.push_back( std::make_tuple( fcn, mass - width / 2, mass + width / 2, idChro ) );
         } else {
             double lMass = std::get<1>( range );
             double uMass = std::get<2>( range );
-            pChro->addDescription( adcontrols::description( L"Create"
+            result.back().addDescription( adcontrols::description( L"Create"
                                                             , ( boost::wformat( L"m/z (%.4lf - %.4lf) %d" ) % lMass % uMass % fcn ).str() ) );
-            masses.push_back( std::make_tuple( fcn, lMass, uMass, pChro ) );            
+            masses.push_back( std::make_tuple( fcn, lMass, uMass, idChro ) );
         }
     }
     
@@ -524,14 +524,14 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
                     double uMass = std::get<2>( t );
 
                     if ( fms.getMass( 0 ) < lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
-                        auto pChro = std::get<3>( t );
+                        auto idChro = std::get<3>( t );
 
                         adportable::spectrum_processor::areaFraction fraction;
                         adportable::spectrum_processor::getFraction( fraction, fms.getMassArray(), fms.size(), lMass, uMass );
 
                         double d = adportable::spectrum_processor::area( fraction, base, fms.getIntensityArray(), fms.size() );
 
-                        *pChro << std::make_pair( time, d );
+                        result[ idChro ] << std::make_pair( time, d );
 
                         ADDEBUG() << " tic=" << tic << ", mass=(" << lMass << ", " << uMass
                                   << "), frac=(" << fraction.lPos << ", " << fraction.uPos << ", " << fraction.lFrac << ", " << fraction.uFrac
