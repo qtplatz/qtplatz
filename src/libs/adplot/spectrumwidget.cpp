@@ -674,27 +674,29 @@ TraceData::y_range( double left, double right ) const
     double bottom = -10;
 
     // if ( const std::shared_ptr< adcontrols::MassSpectrum > ms = pSpectrum_.lock() ) {
-    if ( auto ms = pSpectrum_ ) {
-        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
-        bool isCentroid = ms->isCentroid();
+    if ( auto _ms = pSpectrum_ ) {
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *_ms );
         for ( auto& seg: segments ) {
+
+            bool isCentroid = seg.isCentroid();
 
             if ( seg.size() == 0 )
                 continue;
 
             size_t idleft(0), idright(0);
+            bool outofrange( false );
 
             if ( isTimeAxis_ ) {
                 using namespace adcontrols::metric;
                 double uleft = scale_to_base(left, micro);
                 double uright = scale_to_base(right, micro);
+                if ( uright < seg.getTime( 0 ) || seg.getTime( seg.size() - 1 ) < uleft )
+                    outofrange = true;
 
                 if ( isCentroid ) {
-                    if ( ms->isCentroid() ) {
-                        const double * x = seg.getTimeArray();
-                        idleft = std::distance( x, std::lower_bound( x, x + seg.size(), uleft ) );
-                        idright = std::distance( x, std::lower_bound( x, x + seg.size(), uright ) );
-                    }
+                    const double * x = seg.getTimeArray();
+                    idleft = std::distance( x, std::lower_bound( x, x + seg.size(), uleft ) );
+                    idright = std::distance( x, std::lower_bound( x, x + seg.size(), uright ) );
                 } else {
                     // std::pair< double, double > range = seg.getMSProperty().instTimeRange();
                     
@@ -715,24 +717,28 @@ TraceData::y_range( double left, double right ) const
                 }
             } else {
                 // mass axis
+                if ( right < seg.getMass( 0 ) || seg.getMass( seg.size() - 1 ) < left )
+                    outofrange = true;
 				const double * x = seg.getMassArray();
                 idleft = std::distance( x, std::lower_bound( x, x + seg.size(), left ) );
                 idright = std::distance( x, std::lower_bound( x, x + seg.size(), right ) );
             }
+            if ( outofrange )
+                continue;
+
+            if ( idleft >= seg.size() )
+                idleft = 0;
 
             if ( idleft )
                 --idleft;
 
-            if ( idleft >= ms->size() )
-                idleft = 0;
-
-            if ( idright >= ms->size() && ms->size() )
-                idright = ms->size() - 1;
+            if ( seg.size() && idright >= seg.size() )
+                idright = seg.size() - 1;
             
-            if ( idleft < idright ) {
+            if ( idleft <= idright ) {
                 const double * y = seg.getIntensityArray();
                 
-                auto minmax = std::minmax_element( y + idleft, y + idright );
+                auto minmax = std::minmax_element( y + idleft, y + idright + 1 );
                 double min = *minmax.first;
                 double max = *minmax.second;
 
