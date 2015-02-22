@@ -1,4 +1,6 @@
+
 project( adbroker )
+set( PROVIDER MS-Cheminformatics )
 
 add_definitions(-DADBROKER_LIBRARY)
 
@@ -12,7 +14,7 @@ find_package( Qt5 REQUIRED Core )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
-  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROJECT_NAME}.adplugin"
+  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   )
 
 include_directories(
@@ -70,6 +72,12 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${Boost_LIBRARIES}
   ${linux_LIBS}
 )
+
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
+  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
