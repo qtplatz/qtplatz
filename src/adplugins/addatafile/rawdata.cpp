@@ -454,108 +454,92 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
     
 	auto it = std::find_if( conf_.begin(), conf_.end(), []( const adutils::AcquiredConf::data& c ){
             return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";  });
+    
 	if ( it == conf_.end() )
         return false;
-
-    struct range_wrapper {
-        size_t count;
-        int fcn;
-        double lMass, uMass;
-        adportable::spectrum_processor::areaFraction fraction;
-        range_wrapper() : count(0) {}
-        range_wrapper( const std::tuple<int, double, double >& x ) : count( 0 ), fcn( std::get<0>( x ) ), lMass( std::get<1>( x ) ), uMass( std::get<2>( x ) ) {}
-        range_wrapper( const range_wrapper& t ) : count( t.count ), fcn( t.fcn ), lMass( t.lMass ), uMass( t.uMass ), fraction( t.fraction ) {
-        }
-    };
-
-    std::vector< range_wrapper > xv;
-    std::set< int > fcns;
-    std::for_each( ranges.begin(), ranges.end(), [&] ( const std::tuple<int, double, double>& x ){
-            fcns.insert( std::get<0>( x ) );
-            xv.push_back( range_wrapper( x ) );
-        } );
-
-    for ( auto it = xv.begin(); it != xv.end(); ++it ) {
-        if ( size_t( it->fcn ) < tic_.size() ) {
-            adcontrols::Chromatogram c;
-            c.resize( tic_[ it->fcn ]->size() );
-            c.setTimeArray( tic_[ it->fcn ]->getTimeArray() ); 
-            std::wostringstream o;
-            if ( it->uMass < 1.0 ) {
-                o << boost::wformat( L"m/z %.4lf (W:%.4lfDa) %d" ) % it->lMass % it->uMass % it->fcn;
-                double lMass = it->lMass - it->uMass / 2;
-                double uMass = it->lMass + it->uMass / 2;
-                it->lMass = lMass;
-                it->uMass = uMass;
-            } else {
-                o << boost::wformat( L"m/z (%.4lf - %.4lf) %d" ) % it->lMass % it->uMass % it->fcn;
-            }
-            c.addDescription( adcontrols::description( L"Create", o.str() ) );
-            result.push_back( c );
-        }
-    }
 
     auto spectrometer = getSpectrometer( it->objid, it->dataInterpreterClsid.c_str() );
     if ( !spectrometer )
         return false;
 
     const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
+    
+    typedef std::tuple< int, double, double, adcontrols::Chromatogram * > mass_window_t;
+    std::vector< mass_window_t > masses;
 
+    for ( auto& range: ranges ) {
+
+        result.push_back( adcontrols::Chromatogram() );
+        auto pChro = &result.back();
+        
+        int fcn = std::get<0>( range );
+        
+        if ( std::get<2>( range ) <= 1.0 ) {
+            double mass = std::get<1>( range );
+            double width = std::get<2>( range );
+            pChro->addDescription( adcontrols::description( L"Create"
+                                                            , ( boost::wformat( L"m/z %.4lf (W:%.4fmDa) %d" ) % mass % ( width * 1000 ) % fcn ).str() ) );
+            masses.push_back( std::make_tuple( fcn, mass - width / 2, mass + width / 2, pChro ) );
+        } else {
+            double lMass = std::get<1>( range );
+            double uMass = std::get<2>( range );
+            pChro->addDescription( adcontrols::description( L"Create"
+                                                            , ( boost::wformat( L"m/z (%.4lf - %.4lf) %d" ) % lMass % uMass % fcn ).str() ) );
+            masses.push_back( std::make_tuple( fcn, lMass, uMass, pChro ) );            
+        }
+    }
+    
+    std::sort( masses.begin(), masses.end(), []( const mass_window_t& a, const mass_window_t& b ){ return std::get<1>(a) < std::get<1>(b); } );
+    
     int nProgress = 0;
     adfs::stmt sql( dbf_.db() );
-    if ( sql.prepare( "SELECT rowid,fcn FROM AcquiredData WHERE oid = ? ORDER BY npos" ) ) {
-        sql.bind( 1 ) = it->objid;
+
+    uint64_t pos = npos0_;
+
+    for ( int i = 0; i < tic_[0]->size(); ++i ) {
+
+        progress( nProgress++, long( tic_[ 0 ]->size() ) );
         
-        adcontrols::MassSpectrum ms;
-        
-        while ( sql.step() == adfs::sqlite_row ) {
+        adcontrols::MassSpectrum _ms;
+        adcontrols::translate_state state;
 
-            progress( nProgress++, long( fcnVec_.size() ) );
-            
-            uint64_t rowid = sql.get_column_value< uint64_t >( 0 );
-            int fcn = static_cast<int>(sql.get_column_value< int64_t >( 1 ));
-            
-            if ( fcns.find( fcn ) == fcns.end() )
-                continue;
+        // read all protocols
+        while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, pos++, _ms, it->trace_id ) ) == adcontrols::translate_indeterminate )
+            ;
 
-            adfs::blob blob;
-            std::vector< char > xdata;
-            std::vector< char > xmeta;
+        if ( state == adcontrols::translate_complete ) {
 
-            if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
-                xdata.resize( blob.size() );
-                if ( blob.size() )
-                    blob.read( reinterpret_cast< int8_t *>( xdata.data() ), blob.size() );
-            }
+            adcontrols::segment_wrapper<> segments( _ms );
+            for( auto& fms: segments ) {
 
-            if ( blob.open( dbf_.db(), "main", "AcquiredData", "meta", rowid, adfs::readonly ) ) {
-                xmeta.resize( blob.size() );
-                if ( blob.size() )
-                    blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
-            }
+                double base(0), rms(0);
+                double tic = adportable::spectrum_processor::tic( uint32_t(fms.size()), fms.getIntensityArray(), base, rms );
+                double time = fms.getMSProperty().timeSinceInjection();
+                if ( time > 4000 ) // workaround for negative time at the begining of time event function delay
+                    time = 0;
+                
+                for ( auto& t: masses ) {
+                    
+                    double lMass = std::get<1>( t );
+                    double uMass = std::get<2>( t );
 
-            size_t idData = 0;
-            if ( interpreter.translate( ms
-                                        , xdata.data(), xdata.size()
-                                        , xmeta.data(), xmeta.size()
-                                        , *spectrometer, idData++, it->trace_id.c_str() ) != adcontrols::translate_error ) {
-                int n = 0;
-                for ( auto& x : xv ) {
-                    if ( x.fcn == fcn ) {
-                        if ( x.count == 0 )
-                            adportable::spectrum_processor::getFraction( x.fraction, ms.getMassArray(), ms.size(), x.lMass, x.uMass );
-                        
-                        double base(0), rms(0);
-                        double tic = adportable::spectrum_processor::tic( uint32_t(ms.size()), ms.getIntensityArray(), base, rms );
-                        double d = adportable::spectrum_processor::area( x.fraction, base, ms.getIntensityArray(), ms.size() );
+                    if ( fms.getMass( 0 ) < lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
+                        auto pChro = std::get<3>( t );
 
-                        ADDEBUG() << "rowid=" << rowid << " fcn=" << fcn << " tic=" << tic << " d=" << d;
+                        adportable::spectrum_processor::areaFraction fraction;
+                        adportable::spectrum_processor::getFraction( fraction, fms.getMassArray(), fms.size(), lMass, uMass );
 
-                        (void)tic;
-                        result[ n++ ].setIntensity( x.count++, d );
+                        double d = adportable::spectrum_processor::area( fraction, base, fms.getIntensityArray(), fms.size() );
+
+                        *pChro << std::make_pair( time, d );
+
+                        ADDEBUG() << " tic=" << tic << ", mass=(" << lMass << ", " << uMass << "), d=" << d << ", time=" << fms.getMSProperty().timeSinceInjection();
                     }
                 }
+
             }
+        } else if ( state == adcontrols::no_more_data ) {
+            return true;
         }
     }
     return true;
@@ -634,7 +618,7 @@ rawdata::fetchSpectrum( int64_t objid
 
             }
         }
-        return adcontrols::translate_error;
+        return adcontrols::no_more_data;
     }
     return adcontrols::no_interpreter;
 }

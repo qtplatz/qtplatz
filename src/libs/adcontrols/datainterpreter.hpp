@@ -43,6 +43,7 @@ namespace adcontrols {
         , translate_complete      // all spectra has been packed
         , translate_indeterminate // part of protocol acquisition has been packed into target
         , no_interpreter          // data interpreter not installed
+        , no_more_data
     };
 
     class ADCONTROLSSHARED_EXPORT DataInterpreter {

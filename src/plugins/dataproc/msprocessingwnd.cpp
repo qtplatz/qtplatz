@@ -884,26 +884,34 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 
         if ( auto ptr = pProcessedSpectrum_.second.lock() ) {
 
+            if ( !ptr->isCentroid() )
+                return;
+
             adcontrols::ProcessMethod pm;
             MainWindow::instance()->getProcessMethod( pm );
             if ( const auto mchro = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
-                std::vector< std::tuple< int, double, double > > ranges;
-                // auto& fgms = adcontrols::segment_wrapper<>( *ptr );
-                for ( auto& xms : adcontrols::segment_wrapper<>( *ptr ) ) {
-                    std::pair< size_t, size_t > range = std::make_pair( xms.lower_bound( rect.left() ), xms.lower_bound( rect.right() ) );
-                    for ( size_t i = range.first; i != xms.npos && i < range.second; ++i ) {
-                        if ( xms.getIntensity( i ) >= rect.top() )
-                            ranges.push_back( std::make_tuple( xms.protocolId(), xms.getMass( i ), mchro->width_at_mass( xms.getMass( i ) ) ) );
+                std::vector< std::tuple< int, double, double > > ranges;  // fcn, mass (beg, end)
+
+                for ( auto& fms : adcontrols::segment_wrapper<>( *ptr ) ) {
+                    
+                    size_t idx = fms.lower_bound( rect.left() );
+                    if ( idx != fms.npos ) {
+                        do {
+
+                            if ( fms.getIntensity( idx ) >= rect.top() )
+                                ranges.push_back( std::make_tuple( fms.protocolId(), fms.getMass( idx ), mchro->width_at_mass( fms.getMass( idx ) ) ) );
+
+                        } while ( ++idx < fms.size() && fms.getMass( idx ) < rect.right() );
                     }
 
-
+                }
+                if ( !ranges.empty() ) {
                     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )
                         DataprocessWorker::instance()->createChromatograms( processor, ranges );
                 }
 
-            }
-            else {
+            } else {
                 // no method found
             }
 
