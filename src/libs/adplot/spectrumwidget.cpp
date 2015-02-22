@@ -670,75 +670,64 @@ TraceData::setFocusedFcn( int fcn )
 std::pair< double, double >
 TraceData::y_range( double left, double right ) const
 {
+    namespace metric = adcontrols::metric;
     double top = 100;
     double bottom = -10;
+    double xleft = isTimeAxis_ ? metric::scale_to_base( left, metric::micro ) : left;
+    double xright = isTimeAxis_ ? metric::scale_to_base( left, metric::micro ) : right;
 
-    // if ( const std::shared_ptr< adcontrols::MassSpectrum > ms = pSpectrum_.lock() ) {
-    if ( auto _ms = pSpectrum_ ) {
-        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *_ms );
+    if ( pSpectrum_ ) {
+
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *pSpectrum_ );
+
         for ( auto& seg: segments ) {
 
             bool isCentroid = seg.isCentroid();
 
             if ( seg.size() == 0 )
                 continue;
+            std::pair<double, double> range = isTimeAxis_ ?
+                std::make_pair( seg.getTime( 0 ), seg.getTime( seg.size() - 1 ) ) :
+                std::make_pair( seg.getMass( 0 ), seg.getMass( seg.size() - 1 ) );
 
-            size_t idleft(0), idright(0);
-            bool outofrange( false );
-
-            if ( isTimeAxis_ ) {
-                using namespace adcontrols::metric;
-                double uleft = scale_to_base(left, micro);
-                double uright = scale_to_base(right, micro);
-                if ( uright < seg.getTime( 0 ) || seg.getTime( seg.size() - 1 ) < uleft )
-                    outofrange = true;
-
-                if ( isCentroid ) {
-                    const double * x = seg.getTimeArray();
-                    idleft = std::distance( x, std::lower_bound( x, x + seg.size(), uleft ) );
-                    idright = std::distance( x, std::lower_bound( x, x + seg.size(), uright ) );
-                } else {
-                    // std::pair< double, double > range = seg.getMSProperty().instTimeRange();
-                    
-                    struct X {
-                        static uint32_t index( double interval, uint32_t delay, uint32_t nSamples, double t ) {
-                            uint32_t idx = uint32_t( t / interval + 0.5 );
-                            if ( idx < delay )
-                                return 0;
-                            idx -= delay;
-                            if ( idx >= nSamples )
-                                return nSamples - 1;
-                            return idx;
-                        }
-                    };
-                    const adcontrols::MSProperty::SamplingInfo& info = seg.getMSProperty().getSamplingInfo();
-                    idleft = X::index( info.fSampInterval(), info.nSamplingDelay, info.nSamples, uleft );
-                    idright = X::index( info.fSampInterval(), info.nSamplingDelay, info.nSamples, uright );
-                }
-            } else {
-                // mass axis
-                if ( right < seg.getMass( 0 ) || seg.getMass( seg.size() - 1 ) < left )
-                    outofrange = true;
-				const double * x = seg.getMassArray();
-                idleft = std::distance( x, std::lower_bound( x, x + seg.size(), left ) );
-                idright = std::distance( x, std::lower_bound( x, x + seg.size(), right ) );
-            }
-            if ( outofrange )
+            if ( xright < range.first || range.second < xleft )
                 continue;
 
+            size_t idleft( 0 ), idright( 0 );
+
+            if ( isTimeAxis_ && !isCentroid ) {
+                struct index {
+                    const adcontrols::MSProperty::SamplingInfo& info_;
+                    index( const adcontrols::MSProperty::SamplingInfo& info ) : info_( info ) {}
+                    uint32_t operator ()( double t ) const {
+                        uint32_t idx = uint32_t( t / info_.fSampInterval() + 0.5 );
+                        if ( idx < info_.nSamplingDelay )
+                            return 0;
+                        idx -= info_.nSamplingDelay;
+                        if ( idx >= info_.nSamples )
+                            return info_.nSamples - 1;
+                        return idx;
+                    }
+                };
+                const adcontrols::MSProperty::SamplingInfo& info = seg.getMSProperty().getSamplingInfo();
+                idleft = index( seg.getMSProperty().getSamplingInfo() )( xleft );
+                idright = index( seg.getMSProperty().getSamplingInfo() )( xright );
+            } else {
+                const double * x = isTimeAxis_ ? seg.getTimeArray() : seg.getMassArray();
+                idleft = std::distance( x, std::lower_bound( x, x + seg.size(), xleft ) );
+                idright = std::distance( x, std::lower_bound( x, x + seg.size(), xright ) );
+            }
+
             if ( idleft >= seg.size() )
-                idleft = 0;
+                continue;
 
-            if ( idleft )
-                --idleft;
-
-            if ( seg.size() && idright >= seg.size() )
-                idright = seg.size() - 1;
+            if ( idright > seg.size() )
+                idright = seg.size();
             
             if ( idleft <= idright ) {
                 const double * y = seg.getIntensityArray();
                 
-                auto minmax = std::minmax_element( y + idleft, y + idright + 1 );
+                auto minmax = std::minmax_element( y + idleft, y + idright );
                 double min = *minmax.first;
                 double max = *minmax.second;
 
@@ -746,7 +735,7 @@ TraceData::y_range( double left, double right ) const
                 if ( ! isCentroid ) {
                     bottom = min - (max - min) / 25;
                 } else {
-                    bottom = -10;
+                    bottom = -( max - min ) / 25;
                 }
             }
         }
