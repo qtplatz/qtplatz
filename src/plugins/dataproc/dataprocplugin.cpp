@@ -354,38 +354,36 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
             if ( !cptr )
                 return;
 
-            size_t cidx1 = cptr->toDataIndex( adcontrols::Chromatogram::toSeconds( x1 ) );
-            size_t cidx2 = cptr->toDataIndex( adcontrols::Chromatogram::toSeconds( x2 ) );
-
+            //size_t cidx1 = cptr->toDataIndex( adcontrols::Chromatogram::toSeconds( x1 ) );
+            //size_t cidx2 = cptr->toDataIndex( adcontrols::Chromatogram::toSeconds( x2 ) );
+            size_t pos1 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x1 ) );
+            size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) );
             double t1 = x1; //adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos1 ) ); // to minuites
             double t2 = x2; // adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos2 ) ); // to minutes
             
             try {
                 adcontrols::MassSpectrum ms;
-                int cidx = int( cidx1 );
-                if ( dset->getSpectrum( -1, cidx++, ms ) ) {
-                    if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
-                        t1 = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
+
+                int pos = int( pos1 );
+                if ( dset->getSpectrum( -1, pos++, ms ) ) {
+
+                    t1 = adcontrols::Chromatogram::toMinutes( ms.getMSProperty().timeSinceInjection() );
                 
                     std::wostringstream text;
-                    if ( cidx2 > cidx1 ) {
+                    if ( pos2 > pos1 ) {
                         auto progress = adwidgets::ProgressWnd::instance()->addbar();
                         adwidgets::ProgressWnd::instance()->show();
                         adwidgets::ProgressWnd::instance()->raise();
 
-                        //QProgressBar progressBar;
-                        //progressBar.setRange( static_cast<int>(pos1), static_cast<int>(pos2) );
-                        //progressBar.setVisible( true );
-                        
                         std::thread t( [&] (){
-                                progress->setRange( int( cidx1 ), int( cidx2 ) );
+                                progress->setRange( int( pos1 ), int( pos2 ) );
                                 adcontrols::MassSpectrum a;
-                                while ( cidx < int( cidx2 ) && dset->getSpectrum( -1, cidx++, a ) ) {
+                                while ( pos < int( pos2 ) && dset->getSpectrum( -1, pos++, a ) ) {
                                     adcontrols::segments_helper::add( ms, a );
                                     (*progress)();
                                 }
                                 if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
-                                    t2 = a.getMSProperty().timeSinceInjection() / 60.0; // to min
+                                    t2 = adcontrols::Chromatogram::toMinutes( a.getMSProperty().timeSinceInjection() );
                             } );
 
                         t.join();
@@ -402,9 +400,9 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
                     if ( folium ) {
                         bool hasCentroid( false );
-                        if ( cidx1 == cidx2 && dset->hasProcessedSpectrum( 0, static_cast<int>(cidx1) ) ) {
+                        if ( pos == pos2 && dset->hasProcessedSpectrum( 0, static_cast<int>( pos1 ) ) ) {
                             adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-                            if ( dset->getSpectrum( 0, static_cast<int>(cidx1), *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
+                            if ( dset->getSpectrum( 0, static_cast<int>( pos1 ), *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
                                 hasCentroid = true;
                                 portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
                                 att.assign( pCentroid, pCentroid->dataClass() );
