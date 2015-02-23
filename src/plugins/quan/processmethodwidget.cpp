@@ -28,6 +28,7 @@
 #include <adwidgets/centroidform.hpp>
 #include <adwidgets/mstoleranceform.hpp>
 #include <adwidgets/mslockform.hpp>
+#include <adwidgets/peakmethodform.hpp>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -57,7 +58,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     layout_->addWidget( tolerances, 0, 1 ); // row = 0; column = 1
     auto tLayout = new QVBoxLayout( tolerances );
     // ----------------------------
-    // |             | Lock mass  |
+    // |             | Lock mass  | PeakFind
     // |             --------------
     // |             | assign     |
     // |---------------------------
@@ -69,6 +70,17 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
 
     if ( auto form = new adwidgets::MSToleranceForm )
         tLayout->addWidget( form );
+
+    if ( auto widget = new QWidget ) {
+        layout_->addWidget( widget, 0, 2 );// row = 0, column = 2
+        auto layout = new QVBoxLayout( widget );
+        if ( auto form = new adwidgets::PeakMethodForm ) {
+            layout->addWidget( form );
+            form->OnInitialUpdate();
+            // connect
+        }
+    }
+        
 
     tLayout->addStretch( 1 );
 
