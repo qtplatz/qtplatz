@@ -39,6 +39,7 @@
 #include <QStandardItemModel>
 #include <QItemDelegate>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QTextDocument>
 #include <QPainter>
 #include <QKeyEvent>
@@ -419,6 +420,12 @@ PeakMethodDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &op
         list << "Not specified" << "EP" << "JP" << "USP";
         pCombo->addItems( list );
         return pCombo;
+    } else if ( index.row() == r_slope ) {
+        QDoubleSpinBox * w = new QDoubleSpinBox( parent );
+        w->setMinimum( 0.0 );
+        w->setMaximum( 1000.0 );
+        w->setDecimals( 3 );
+        return w;
     } else {
         return QItemDelegate::createEditor( parent, option, index );
   }

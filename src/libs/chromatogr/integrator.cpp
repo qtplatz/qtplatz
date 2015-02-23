@@ -87,11 +87,15 @@ namespace chromatogr {
             };
 
             inline double getIntensity( long pos ) const {
+                if ( pos < 0 || pos >= size() )
+                    return 0;
                 return v_[pos];
             }
 
             inline double getTime( long pos ) const {
-                return t_.empty() ? minTime_ + pos * sampInterval_ : t_[ pos ];
+                if ( pos >= 0 && pos < t_.size() )
+                    return t_.empty() ? minTime_ + pos * sampInterval_ : t_[ pos ];
+                return 0;
             }
         };
         
@@ -193,7 +197,9 @@ namespace chromatogr {
         double adddata( double time, double intensity );
         void update_params();
         void pkfind(long pos, double df1, double df2);
-        void pktop(int f, int z);
+        void assign_vallay( size_t pos, size_t downpos );
+        void assign_pktop( size_t pos, size_t uppos );
+        // void pktop(int f, int z);
         void pkbas(int t, double d);
         void pksta();
         void pkreduce();
@@ -372,20 +378,12 @@ Integrator::impl::updatePeakAreaHeight( const adcontrols::PeakMethod& )
 void
 Integrator::impl::rejectPeaks(const adcontrols::PeakMethod & mth)
 {
-	double minArea = mth.minimumArea();
-    using adcontrols::Peaks;
-    using adcontrols::Peak;
+    auto pos = std::remove_if( peaks_.begin(), peaks_.end(), [mth] ( const adcontrols::Peak& a ) {
+            return a.peakArea() <= mth.minimumArea() || a.peakHeight() <= mth.minimumHeight();
+        } );
 
-	if (minArea > 0.0) {
-		Peaks::vector_type::iterator pos = std::remove_if( peaks_.begin(), peaks_.end(), boost::bind( &Peak::peakArea, _1 ) < minArea );
+    if ( pos != peaks_.end() )
         peaks_.erase( pos, peaks_.end() );
-	}
-
-	double minHeight = mth.minimumHeight();
-	if (minHeight > 0.0) {
-		Peaks::vector_type::iterator pos = std::remove_if( peaks_.begin(), peaks_.end(), boost::bind( &Peak::peakHeight, _1 ) < minHeight );
-		peaks_.erase( pos, peaks_.end() );
-	}
 }
 
 
@@ -420,100 +418,128 @@ Integrator::impl::updatePeakParameters( const adcontrols::PeakMethod& method )
 }
 
 void
-Integrator::impl::pkfind(long pos, double df1, double )
+Integrator::impl::pkfind( long pos, double df1, double )
 {
-	int	sstf;
-	int	mwup, mwflat, mwdn;
-
 	if ( offIntegration_ )
 		return;
-  
-	mwup = mw_;
-	if (mwup < 3)
-		mwup = 3;
-	else if (mwup > 32)
-		mwup = 32;
-	mwflat = mwdn = mwup;
-	if (stf_ > 0) {
-		mwflat = mw_ / 2;
-		mwdn = 1;
-	} else if (stf_ < 0) {
-		mwflat = mw_ / 2;
-		mwup = 1;
-	}
-	sstf = stf_;
-	if (df1 < -(ss_))	 {	/* Down slope */
-		if (dc_ == 0) {
-			ld_ = pos;
-			ldd_ = rdata_.getIntensity( ld_ );
-		}
-		++dc_;
-		uc_ = zc_ = 0;
-	} else if (df1 > ss_)	 {	/* UP slope */
-		if (uc_ == 0) {
-			lu_ = pos;
-			lud_ = rdata_.getIntensity( ld_ );
-		}
-		++uc_;
-		dc_ = zc_ = 0;
-	} else {
-		if (zc_ == 0) { 
-			lz_ = pos;
-			lzd_ = rdata_.getIntensity( ld_ );
-		}
-		++zc_;
-	}
-	if (mwup <= uc_)	 	{	/* upslope found */
-		stf_ = 1;
-	} else if (mwdn <= dc_)	 {	/* downslope found */
-		stf_ = -1;
-	}
-	if (mwflat <= zc_)	 {	/* baslien founded */
-		stf_ = 0;
-		uc_ = dc_ = 0;
-	}
 
-	if (stf_ != sstf)	 {
-		if (sstf < 0 && stf_ > 0)	 {
-			pktop(-1, pos - ld_);		/* Valley detect */
-		} else if (sstf > 0 && stf_ < 0)	 {
-			pktop(1,  pos - lu_);		/* Top detect */
-		} else if (sstf && !stf_)	 {
-			pkbas(lz_, lzd_);		/* Peak end */
-		} else {
-			pksta();			/* Peak start */
-		}
-	}
+    int	mwup, mwflat, mwdn;
+
+	mwup = mw_;
+    if ( mwup < 3 )
+		mwup = 3;
+    else if ( mwup > 32 )
+        mwup = 32;
+    mwflat = mwdn = mwup;
+    if ( stf_ > 0 ) {
+        mwflat = mw_ / 2;
+        mwdn = 1;
+    } else if ( stf_ < 0 ) {
+        mwflat = mw_ / 2;
+        mwup = 1;
+    }
+
+    int sstf = stf_;
+    if ( df1 < -( ss_ ) ) {	/* Down slope */
+
+        if ( dc_ == 0 ) {
+            ld_ = pos; // - mw_ / 2;
+            ldd_ = rdata_.getIntensity( ld_ );
+        }
+        ++dc_;
+        uc_ = zc_ = 0;
+
+    } else if ( df1 > ss_ ) {	/* UP slope */
+
+        if ( uc_ == 0 ) {
+            lu_ = pos;
+            lud_ = rdata_.getIntensity( ld_ );
+        }
+        ++uc_;
+        dc_ = zc_ = 0;
+
+    } else {
+        
+        if ( zc_ == 0 ) {
+            lz_ = pos;
+            lzd_ = rdata_.getIntensity( ld_ );
+        }
+        ++zc_;
+    }
+    
+    if ( mwup <= uc_ ) {	/* upslope found */
+        stf_ = 1;
+    } else if ( mwdn <= dc_ ) {	/* downslope found */
+        stf_ = -1;
+    }
+    
+    if ( mwflat <= zc_ ) {	/* baslien founded */
+        stf_ = 0;
+        uc_ = dc_ = 0;
+    }
+    
+    if ( stf_ != sstf ) {
+        if ( sstf < 0 && stf_ > 0 ) {
+            // pktop( -1, pos - ld_ );		/* Valley detect */
+            assign_vallay( pos, ld_ );
+        } else if ( sstf > 0 && stf_ < 0 ) {
+            // pktop( 1, pos - lu_ );		/* Top detect */
+            assign_pktop( pos, lu_ );
+        } else if ( sstf && !stf_ ) {
+            pkbas( lz_, lzd_ );		/* Peak end */
+        } else {
+            pksta();			/* Peak start */
+        }
+    }
 }
 
 void
-Integrator::impl::pktop(int f, int z)
+Integrator::impl::assign_vallay( size_t pos, size_t ld )
 {
-    if (f < 0) { // VALLAY
+    auto it = std::min_element( rdata_.v_.begin() + ld, rdata_.v_.begin() + pos );
+    auto vallay = std::distance( rdata_.v_.begin(), it );
+    stack_.push( PEAKSTACK( PKVAL, long( vallay ), *it ) );
+    pkreduce();
+}
+
+void
+Integrator::impl::assign_pktop( size_t pos, size_t uppos )
+{
+    auto it = std::max_element( rdata_.v_.begin() + uppos, rdata_.v_.begin() + pos );
+    auto apex = std::distance( rdata_.v_.begin(), it );
+    stack_.push( PEAKSTACK( PKTOP, long( apex ), *it ) );
+}
+
+#if 0
+void
+Integrator::impl::pktop( int f, int z )
+{
+    if ( f < 0 ) { // VALLAY
         long pos = lu_ + 1;
-        while (pos && --z >= 0) {
+        while ( pos && --z >= 0 ) {
             double d = rdata_.getIntensity( pos );
-            if (d < lud_) {
+            if ( d < lud_ ) {
                 lud_ = d;
                 lu_ = pos;
             }
             --pos;
         }
-        stack_.push( PEAKSTACK(PKVAL, lu_, lud_) );
+        stack_.push( PEAKSTACK( PKVAL, lu_, lud_ ) );
         pkreduce();
     } else {  // TOP
         long pos = ld_ + 1;
-        while (pos && --z >= 0) {
+        while ( pos && --z >= 0 ) {
             double d = rdata_.getIntensity( pos );
-            if (d >= ldd_) {
+            if ( d >= ldd_ ) {
                 ldd_ = d;
                 ld_ = pos;
             }
             --pos;
         }
-        stack_.push( PEAKSTACK(PKTOP, ld_, ldd_) );
+        stack_.push( PEAKSTACK( PKTOP, ld_, ldd_ ) );
     }
 }
+#endif
 
 void
 Integrator::impl::pkbas(int t, double d)
@@ -552,25 +578,30 @@ Integrator::impl::pkreduce()
 #endif
 
 	if (stack_.size() <= 1)	 {		/* stack empty */
+
 		stack_.pop();
 		return;
+
 	} else if (stack_.size() == 2)	 {
+
 		if ((sp0 == PKVAL) && (stack_[1] == PKSTA))	 { 	 /* SV */
 			stack_.pop();
 			stack_.pop();
 			sp0 = PKSTA;
 			stack_.push(sp0);
-
 			return;
 		} else if ((stack_[0] == PKBAS) && (stack_[1] == PKSTA)) { /* SB */
 			stack_.pop();
 			stack_.pop();
 			return;
 		}
+
 	} else if (stack_.size() >= 3) {
+
 		PEAKSTACK sp1 = stack_[1];
 		PEAKSTACK sp2 = stack_[2];
 		stack_.pop(); // remove sp0
+
 		if (sp1 != PKTOP)	 {
 			if (sp0 == PKBAS && sp2 == PKSTA)	 {  /* SVB */
 				stack_.pop();  // remove sp1
@@ -582,12 +613,16 @@ Integrator::impl::pkreduce()
 			}
 		} else {
 			unsigned long flags = sp2.stat() << 6 | sp1.stat() | sp0.stat();
-			peaks_.add( peakHelper::peak(rdata_, sp2.pos(), sp1.pos(), sp0.pos(), flags) ); 
+            peaks_.add( peakHelper::peak( rdata_, sp2.pos(), sp1.pos(), sp0.pos(), flags ) );
 		}
+
 		stack_.pop();	// remove sp1, PKTOP
+
 		if (sp2 == PKSTA && sp0 == PKBAS)	 { /* SxB */
+
             baselines_.add( baselineHelper::baseline( rdata_, sp2.pos(), sp0.pos() ) );
 			stack_.pop();	// remove sp2, PKSTA
+
 		} else if (sp2 == PKVAL && sp0 == PKBAS) { /* VxB */
 			stack_.pop();	// remove sp2, PKVAL
 			if (!stack_.empty()) {
@@ -944,8 +979,9 @@ peakHelper::updateAreaHeight( const integrator::chromatogram& c, const adcontrol
     double height = c.getIntensity( pk.topPos() ) - bs.height( pk.topPos() );
     for ( int pos = pk.startPos(); pos <= pk.endPos(); ++pos ) {
         double h = c.getIntensity(pos) - bs.height(pos);
-        double w = c.getTime( pos + 1 );
-        area += h * w;
+        double w = c.getTime( pos + 1 ) - c.getTime( pos );
+        if ( h >= 0.0 )
+            area += h * w;
     }
     pk.peakArea( area );
     pk.peakHeight( height );
@@ -991,7 +1027,6 @@ peakHelper::asymmetry( const adcontrols::PeakMethod&, const integrator::chromato
     double threshold = pk.topHeight() - pk.peakHeight() * 0.95;
     double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     double a = pk.peakTime() - moment.xLeft();
-    // double b = moment.xRight() - pk.peakTime();
 
     adcontrols::PeakAsymmetry tf;
 
@@ -1011,7 +1046,7 @@ peakHelper::theoreticalplate( const adcontrols::PeakMethod&, const integrator::c
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
     double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
-    double N = 5.54 * std::sqrt( ( pk.peakTime() * pk.peakTime() ) / width );
+    double N = 5.54 * ( ( pk.peakTime() / width ) * ( pk.peakTime() / width ) );
 
     adcontrols::TheoreticalPlate ntp;
     ntp.ntp( N );

@@ -91,6 +91,7 @@ namespace dataproc {
 
         void setData( adcontrols::ChromatogramPtr& ptr ) {
             data_ = ptr;
+            chroWidget_->clear();
             chroWidget_->setData( ptr );
             peakResult_.reset();
             if ( ptr->peaks().size() )

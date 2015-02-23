@@ -27,10 +27,10 @@
           <item row="3" column="0">
            <widget class="QRadioButton" name="radioButton_2">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="text">
-             <string>PPM</string>
+             <string>R. P.</string>
             </property>
            </widget>
           </item>
@@ -71,7 +71,20 @@
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QSpinBox" name="spinBox"/>
+           <widget class="QSpinBox" name="spinBox">
+            <property name="minimum">
+             <number>1000</number>
+            </property>
+            <property name="maximum">
+             <number>500000</number>
+            </property>
+            <property name="singleStep">
+             <number>1000</number>
+            </property>
+            <property name="value">
+             <number>3000</number>
+            </property>
+           </widget>
           </item>
           <item row="6" column="1">
            <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>

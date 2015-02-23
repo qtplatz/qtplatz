@@ -30,8 +30,8 @@
 
 using namespace adwidgets;
 
-MSChromatogramForm::MSChromatogramForm(QWidget *parent) :  QWidget(parent),
-                                                           ui(new Ui::MSChromatogramForm)
+MSChromatogramForm::MSChromatogramForm( QWidget *parent ) : QWidget( parent )
+                                                        , ui( new Ui::MSChromatogramForm )
 {
     ui->setupUi(this);
     ui->comboBox->addItems( QStringList() << tr( "Profile" ) << tr( "Centroid" ) );
@@ -99,6 +99,7 @@ MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
         ui->radioButton->setChecked( true );
     else
         ui->radioButton_2->setChecked( true );
+    
     ui->doubleSpinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInDa ) );
     ui->spinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInRP ) );
 
