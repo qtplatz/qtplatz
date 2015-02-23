@@ -23,13 +23,15 @@
 **************************************************************************/
 
 #include "quanchromatograms.hpp"
-#include <adcontrols/processmethod.hpp>
-#include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/utf.hpp>
@@ -49,28 +51,46 @@ QuanChromatograms::QuanChromatograms( const std::shared_ptr< adcontrols::Process
                                                                                               , uptime_( 0 )
 {
     if ( auto qm = pm_->find< adcontrols::QuanMethod >() ) {
-        
+    }
+
+    if ( auto tm = pm_->find< adcontrols::TargetingMethod >() ) {
+        tolerance_ = tm->tolerance( adcontrols::idToleranceDaltons );
     }
     
-    if ( auto compounds_ = pm_->find< adcontrols::QuanCompounds >() ) {
-        adcontrols::ChemicalFormula parser;
+    if ( auto pCompounds = pm_->find< adcontrols::QuanCompounds >() ) {
+        if ( auto lkm = pm_->find< adcontrols::MSLockMethod >() ) {
 
-        for ( auto& comp : *compounds_ ) {
+            if ( lkm->enabled() ) {
+                
+                mslockm_ = std::make_shared< adcontrols::MSLockMethod >( *lkm );
+                mslock_ = std::make_shared< adcontrols::lockmass >();
 
-            std::string formula( comp.formula() );
-            double exactMass = parser.getMonoIsotopicMass( formula );
-
-            if ( !formula.empty() ) {
-                targets_.push_back( std::make_pair( exactMass, formula ) );
-                if ( comp.isLKMSRef() )
-                    references_.push_back( exactMass );
             }
         }
     }
     
-    if ( auto tm = pm_->find< adcontrols::TargetingMethod >() ) {
-        tolerance_ = tm->tolerance( adcontrols::idToleranceDaltons );
+    if ( auto compounds_ = pm_->find< adcontrols::QuanCompounds >() ) {
+        
+        adcontrols::ChemicalFormula parser;
+        
+        for ( auto& comp : *compounds_ ) {
+            
+            std::string formula( comp.formula() );
+            double exactMass = parser.getMonoIsotopicMass( formula );
+            
+            if ( ! formula.empty() ) {
+                
+                targets_.push_back( std::make_tuple( formula, exactMass, std::make_shared< adcontrols::Chromatogram >() ) );
+
+                if ( comp.isLKMSRef() )
+                    references_.push_back( exactMass );
+                
+            }
+        }
+
+        std::sort( targets_.begin(), targets_.end(), []( const target_t& a, const target_t& b ){ return std::get<idMass>(a) < std::get<idMass>(b); } );
     }
+    
 }
 
 QuanChromatograms::QuanChromatograms( const QuanChromatograms& t ) : targets_( t.targets_ )
@@ -87,48 +107,101 @@ QuanChromatograms::processIt( size_t pos, adcontrols::MassSpectrum& ms )
     
     if ( auto pCentroidMethod = pm_->find< adcontrols::CentroidMethod >() ) {
     }
+
+    if ( mslockm_ && mslock_ )
+        mslock( ms );
     
-    if ( auto pCompounds = pm_->find< adcontrols::QuanCompounds >() ) {
-        if ( auto lkm = pm_->find< adcontrols::MSLockMethod >() ) {
-            if ( lkm->enabled() ) {
-                // todo: copy from acquisition lockmass process
-            }
-        }
-    }
     int fcn = 0;
     for ( auto& fms: segments ) {
 
         double rms, base;
         double tic = adportable::spectrum_processor::tic( ms.size(), ms.getIntensityArray(), base, rms );
         double time = fms.getMSProperty().timeSinceInjection();
+        if ( time >= 4000 ) // workaround for negative time value at the begining of time-event function caused delay
+            time = 0;
         
-        auto mrange = std::make_pair( fms.getMass( 0 ), fms.getMass( fms.size() - 1 ) );
+        for ( auto& t: targets_ ) {
 
-        for ( auto& target: targets_ ) {
+            double mass = std::get< idMass >( t );
+            double lMass = mass - tolerance_ / 2;
+            double uMass = mass + tolerance_ / 2;
 
-            double mass = target.first;
+            if ( fms.getMass( 0 ) < lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
+                
+                if ( auto pChro = std::get< idChromatogram >( t ) ) {
 
-            if ( mrange.first < mass && mass < mrange.second ) {
-                auto chro = chromatograms_[ target.second ];
-                if ( !chro ) {
-                    chro = std::make_shared< adcontrols::Chromatogram >();
-                    chromatograms_[ target.second ] = chro;
+                    adportable::spectrum_processor::areaFraction fraction;
+                    adportable::spectrum_processor::getFraction( fraction, fms.getMassArray(), fms.size(), lMass, uMass );
+                    
+                    double d = adportable::spectrum_processor::area( fraction, base, fms.getIntensityArray(), fms.size() );
+                    
+                    *pChro << std::make_pair( time, d );
                 }
-
-                adportable::spectrum_processor::areaFraction fraction;
-                adportable::spectrum_processor::getFraction( fraction, fms.getMassArray(), fms.size(), mass - tolerance_, mass + tolerance_ );
-                double i = adportable::spectrum_processor::area( fraction, base, ms.getIntensityArray(), ms.size() );
-                double elapsed = chro->size() ? chro->time( chro->size() - 1 ) : 0;
-                if ( time < 4000 )
-                    *chro << std::make_pair( time, i );
-#if defined _DEBUG
-                if ( target.second == "N2" )
-                    ADDEBUG() << "fcn:" << fcn << " pos:" << pos << " mass:" << mass << " time:" << time << " i:" << i;
-#endif
+                
             }
+            
         }
         ++fcn;
     }
+    return true;
+}
+
+bool
+QuanChromatograms::mslock( adcontrols::MassSpectrum& profile )
+{
+    //--------- centroid --------
+    auto centroid = std::make_shared< adcontrols::MassSpectrum >();
+
+    if ( auto m = pm_->find< adcontrols::CentroidMethod >() ) {
+
+        adcontrols::CentroidProcess peak_detector;
+
+        adcontrols::segment_wrapper<> segments( profile );
+        
+        centroid->clone( profile, false );
+
+        if ( peak_detector( *m, profile ) ) {
+            peak_detector.getCentroidSpectrum( *centroid );
+
+            for ( auto fcn = 0; fcn < profile.numSegments(); ++fcn ) {
+                adcontrols::MassSpectrum cseg;
+                peak_detector( profile.getSegment( fcn ) );
+                peak_detector.getCentroidSpectrum( cseg );
+                centroid->addSegment( cseg );
+            }
+
+        }
+    }
+    
+    //--------- lockmass --------
+    // this does not find reference from segments attached to 'centroid'
+    if ( centroid ) {
+        
+        adcontrols::MSFinder find( mslockm_->tolerance( mslockm_->toleranceMethod() ), mslockm_->algorithm(), mslockm_->toleranceMethod() );
+
+        adcontrols::segment_wrapper<> segments( *centroid );
+        
+        if ( auto pCompounds = pm_->find< adcontrols::QuanCompounds >() ) {
+            for ( auto& compound: *pCompounds ) {
+
+                if ( compound.isLKMSRef() ) {
+                    double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( compound.formula() );                    
+
+                    for ( auto& fms: segments ) {
+                        if ( fms.getMass( 0 ) < exactMass && exactMass < fms.getMass( fms.size() - 1 ) ) {
+                            auto idx = find( fms, exactMass );
+                            if ( idx != adcontrols::MSFinder::npos ) {
+                                *mslock_ << adcontrols::lockmass::reference( compound.formula(), exactMass, fms.getMass( idx ), fms.getTime( idx ) );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if ( mslock_ )
+        mslock_->fit();
+    ( *mslock_ )( profile, true );
     return true;
 }
 
@@ -136,10 +209,13 @@ void
 QuanChromatograms::save( portfolio::Portfolio& portfolio )
 {
     auto folder = portfolio.addFolder( L"Chromatograms" );
-    for ( auto& chro: chromatograms_ ) {
-        std::wstring wformula = adportable::utf::to_wstring( chro.first );
+    for ( auto& t : targets_ ) {
+        std::wstring wformula = adportable::utf::to_wstring( std::get<idFormula>( t ) );
+        if ( auto folium = folder.findFoliumByName( wformula ) )
+            folder.removeFolium( folium );
         auto folium = folder.addFolium( wformula );
-        folium.assign( chro.second, chro.second->dataClass() );
+        auto pChro = std::get<idChromatogram>( t );
+        folium.assign( pChro, pChro->dataClass() );
     }
 }
 

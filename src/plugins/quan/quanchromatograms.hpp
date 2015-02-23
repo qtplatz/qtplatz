@@ -41,12 +41,14 @@ namespace adcontrols {
     class TargetingMethod;
     class ChemicalFormula;
     class Chromatogram;
+    class lockmass;
 }
 namespace portfolio { class Portfolio; }
 
 namespace quan {
 
     class QuanChromatograms {
+
         QuanChromatograms& operator = (const QuanChromatograms&) = delete;
 
     public:
@@ -54,20 +56,23 @@ namespace quan {
         QuanChromatograms( const std::shared_ptr< adcontrols::ProcessMethod> );
         QuanChromatograms( const QuanChromatograms& );
 
+        bool mslock( adcontrols::MassSpectrum& ms );
         bool processIt( size_t pos, adcontrols::MassSpectrum& ms );
         void save( portfolio::Portfolio& portfolio );
 
     private:
-        // enum { idExactMass, idFcn, idFormula, idChromatogram };
-        // std::vector< std::tuple< double, int /* fcn */, std::string /*formula*/, std::shared_ptr< adcontrols::Chromatogram > > targets_;
-        std::vector< std::pair<double, std::string > > targets_;
-        std::map< std::string, std::shared_ptr< adcontrols::Chromatogram > > chromatograms_;
+        enum { idFormula, idMass, idChromatogram };
+        typedef std::tuple< std::string, double, std::shared_ptr< adcontrols::Chromatogram > > target_t;
+
+        std::vector< target_t > targets_; // order by mass
 
         const std::shared_ptr< adcontrols::ProcessMethod > pm_;
         adcontrols::QuanCompounds * compounds_;
         double tolerance_;
         std::vector< double > references_;
         double uptime_;
+        std::shared_ptr< adcontrols::MSLockMethod > mslockm_;
+        std::shared_ptr< adcontrols::lockmass > mslock_;
     };
 
 }
