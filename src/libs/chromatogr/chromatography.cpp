@@ -120,12 +120,22 @@ ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& c )
 	integrator.drift( method_.drift() / 60.0 );  // uV/min -> uV/sec
 
 	integrator.timeOffset( c.minimumTime() );
-    integrator.samping_interval( c.sampInterval() ); // sec
 	const size_t nSize = c.size();
-	const double * y = c.getIntensityArray();
 
-	for ( size_t i = 0; i < nSize; ++i )
-		integrator << *y++;
+    if ( c.isConstantSampledData() ) {
+
+        integrator.samping_interval( c.sampInterval() ); // sec
+        const double * y = c.getIntensityArray();
+        for ( size_t i = 0; i < nSize; ++i )
+            integrator << *y++;
+
+    } else {
+
+        const double * y = c.getIntensityArray();
+        const double * x = c.getTimeArray();
+        for ( size_t i = 0; i < c.size(); ++i )
+            integrator << std::make_pair( *x++, *y++ );
+    }
 
 	integrator.close( method_, peaks_, baselines_ );
     

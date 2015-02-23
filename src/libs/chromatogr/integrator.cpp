@@ -47,6 +47,8 @@
 #include <adcontrols/baseline.hpp>
 #include <adportable/moment.hpp>
 #include <adportable/polfit.hpp>
+#include <adportable/sgfilter.hpp>
+#include <adportable/float.hpp>
 #include <boost/bind.hpp>
 #include <boost/numeric/interval.hpp>
 #include <functional>
@@ -56,11 +58,8 @@
 #include <vector>
 #include <set>
 #include <cmath>
-#include <assert.h>
-
-#define MAX_NDIM        7
-#define MAXDIMENTION    (MAX_NDIM+1+2)  /* for 1-origin code + (mc = 2) */
-// #define MAXDBUF 512  // should be power of 2
+#include <cassert>
+#include <memory>
 
 #define HEIGHT_2_SIGMA   0.6065307
 #define HEIGHT_3_SIGMA   0.3246525
@@ -69,21 +68,163 @@
 
 namespace chromatogr {
 
+    namespace integrator {
+
+        class chromatogram {
+        public:
+            double sampInterval_;
+            double minTime_;
+            std::vector<double> v_;
+            std::vector<double> t_;
+            std::vector<double> d1_;
+            
+            inline const double * get() const {
+                return v_.data();
+            };
+
+            inline size_t size() const {
+                return v_.size();
+            };
+
+            inline double getIntensity( long pos ) const {
+                return v_[pos];
+            }
+
+            inline double getTime( long pos ) const {
+                return t_.empty() ? minTime_ + pos * sampInterval_ : t_[ pos ];
+            }
+        };
+        
+    }
+
+    enum PEAKSTATE {
+        PKUNDEF = (-1),
+        PKTOP =  1,
+        PKVAL =  2,
+        PKSTA =  3,
+        PKBAS =  4,
+    };
+    
+    class PEAKSTACK {
+        PEAKSTATE stat_;
+        long pos_;
+        double height_;
+    public:
+        PEAKSTACK(PEAKSTATE st, long tpos, double h) : stat_(st), pos_(tpos), height_(h) { /**/ };
+    public:
+        double height() const                      { return height_; };
+        long pos() const                           { return pos_;    };
+        PEAKSTATE stat() const                     { return stat_;   };
+        bool operator == (PEAKSTATE st) const      { return stat_ == st; };
+        bool operator != (PEAKSTATE st) const      { return stat_ != st; };
+        void operator = (PEAKSTATE st)             { stat_ = st; };
+    };
+    
+    class Integrator::impl {
+    public:
+        impl() : posg_( 0 )
+               , posc_( 0 )
+               , ndata_( 0 )
+               , dc_(0) /* down count */
+               , uc_(0) /* up count */
+               , zc_(0) /* zero count */
+               , lu_(0) /* up start position */
+               , ld_(0) /* down start position */
+               , lz_(0) /* zero start position */
+               , lud_(0.0)
+               , ldd_(0.0)
+               , lzd_(0.0)
+               , stf_(0)
+               , lockc_(0)
+               , mw_(3)
+               , ss_(0)
+               , ndiff_(5)
+               , dirty_(true)
+               , numAverage_(3)
+               , minw_( 0.5 /* second */)
+               , slope_( 0.1 /* uV/s */ )
+               , drift_( 0.0 /* uV/min */ )
+               , detectSholder_(false)
+               , detectNegative_(false)
+               , offIntegration_(false)
+               , timeOffset_(0) {
+        }
+        ~impl() {
+        }
+        
+        std::shared_ptr< adportable::SGFilter > sgd1_;
+        
+        integrator::chromatogram rdata_;
+        
+        stack< PEAKSTACK > stack_;
+
+        adcontrols::Peaks peaks_;
+        adcontrols::Baselines baselines_;
+
+        std::vector<double> data0_;  // zero degree (noize reduced) data
+        int posg_; // writing pointer + 1
+        int posc_; // current pkfind pointer
+        size_t ndata_;
+        double data_[256];
+        long dc_;  /* down count */
+        long uc_;  /* up count */
+        long zc_;  /* zero count */
+        long lu_;  /* up start position */
+        long ld_;  /* down start position */
+        long lz_;  /* zero start position */
+        double lud_;
+        double ldd_;
+        double lzd_;
+        long stf_;
+        long lockc_;
+        long mw_;
+        double ss_;
+        unsigned long ndiff_;
+        bool dirty_;
+        long numAverage_;
+        double minw_;
+        double slope_;
+        double drift_;
+        bool detectSholder_;
+        bool detectNegative_;
+        bool offIntegration_;
+        double timeOffset_;
+        //
+        double adddata( double time, double intensity );
+        void update_params();
+        void pkfind(long pos, double df1, double df2);
+        void pktop(int f, int z);
+        void pkbas(int t, double d);
+        void pksta();
+        void pkreduce();
+        void pkcorrect(PEAKSTACK & sp, int f);
+        bool intercept(const class adcontrols::Baseline& bs, long pos, double height);
+        void assignBaseline();
+        void reduceBaselines();
+        void fixupPenetration( adcontrols::Baseline& );
+        bool fixBaseline( adcontrols::Baseline&, adcontrols::Baselines& );
+        void updatePeakAreaHeight( const adcontrols::PeakMethod& );
+        void rejectPeaks( const adcontrols::PeakMethod& );
+        void updatePeakParameters( const adcontrols::PeakMethod& );
+        bool fixDrift( adcontrols::Peaks&, adcontrols::Baselines&, double drift );
+        void remove( adcontrols::Baselines&, const adcontrols::Peaks& );
+    };
+
     class peakHelper {
     public:
-        static void updateAreaHeight( const Integrator::chromatogram& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk );
-        static bool tRetention_lsq( const Integrator::chromatogram& c, adcontrols::Peak& pk );
-        static bool tRetention_moment( const Integrator::chromatogram& c, adcontrols::Peak& pk );
+        static void updateAreaHeight( const integrator::chromatogram& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk );
+        static bool tRetention_lsq( const integrator::chromatogram& c, adcontrols::Peak& pk );
+        static bool tRetention_moment( const integrator::chromatogram& c, adcontrols::Peak& pk );
         static bool cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss );
-        static adcontrols::Peak peak( const Integrator::chromatogram& c, int spos, int tpos, int epos, unsigned long flags );
-        static bool peak_width( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk );
-        static bool asymmetry( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk );
-        static bool theoreticalplate( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk );
+        static adcontrols::Peak peak( const integrator::chromatogram& c, int spos, int tpos, int epos, unsigned long flags );
+        static bool peak_width( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk );
+        static bool asymmetry( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk );
+        static bool theoreticalplate( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk );
     };
 
     class baselineHelper {
     public:
-        static adcontrols::Baseline baseline( const Integrator::chromatogram& c, int, int );
+        static adcontrols::Baseline baseline( const integrator::chromatogram& c, int, int );
     };
 
 }
@@ -92,155 +233,128 @@ using namespace chromatogr;
 
 Integrator::~Integrator(void)
 {
+    delete impl_;
 }
 
-Integrator::Integrator(void) : posg_( 0 )
-                             , posc_( 0 )
-                             , ndata_( 0 )
-                             , dc_(0) /* down count */
-                             , uc_(0) /* up count */
-                             , zc_(0) /* zero count */
-                             , lu_(0) /* up start position */
-                             , ld_(0) /* down start position */
-                             , lz_(0) /* zero start position */
-                             , lud_(0.0)
-                             , ldd_(0.0)
-                             , lzd_(0.0)
-                             , stf_(0)
-                             , lockc_(0)
-                             , mw_(3)
-                             , ss_(0)
-                             , ndiff_(5)
-                             , dirty_(true)
-                             , numAverage_(3)
-                             , minw_( 0.5 /* second */)
-                             , slope_( 0.1 /* uV/s */ )
-                             , drift_( 0.0 /* uV/min */ )
-                             , detectSholder_(false)
-                             , detectNegative_(false)
-                             , offIntegration_(false)
-                             , timeOffset_(0)
+Integrator::Integrator(void) : impl_( new Integrator::impl() )
 {
-}
-
-void
-Integrator::update_params()
-{
-    mw_ = long ( minw_ / rdata_.sampInterval_ );
-    if ( mw_ < 3 )
-        mw_ = 3;
-    mw_ |= 1;  // force 'odd'
-    numAverage_ = mw_;
 }
 
 void
 Integrator::samping_interval(double sampIntval /* seconds */)
 {
-    rdata_.sampInterval_ = sampIntval;
-    update_params();
+    impl_->rdata_.sampInterval_ = sampIntval;
+    impl_->update_params();
 }
 
 void
 Integrator::minimum_width(double minw)
 {
-    minw_ = minw;
-    update_params();
+    impl_->minw_ = minw;
+    impl_->update_params();
 }
 
 void
 Integrator::slope_sensitivity(double slope)
 {
-    slope_ = slope;
-    ss_ = slope_;
+    impl_->slope_ = slope;
+    impl_->ss_ = slope;
 }
 
 void
 Integrator::drift(double drift)
 {
-	drift_ = drift;
+	impl_->drift_ = drift;
 }
 
 void
 Integrator::timeOffset( double sec )
 {
-	rdata_.minTime_ = timeOffset_ = sec;
+	impl_->rdata_.minTime_ = impl_->timeOffset_ = sec;
 }
 
 double
 Integrator::currentTime() const
 {
-	return rdata_.minTime_ + posg_ * rdata_.sampInterval_;
+	return impl_->rdata_.minTime_ + impl_->posg_ * impl_->rdata_.sampInterval_;
+}
+
+void
+Integrator::operator << ( const std::pair<double, double>& data )
+{
+    double d1 = impl_->adddata( data.first, data.second );
+    impl_->pkfind( impl_->posc_, d1, 0 );
 }
 
 void
 Integrator::operator << ( double adval )
 {
-	if ( posg_ == 0 )
-		posc_ = numAverage_ / 2;
+	if ( impl_->posg_ == 0 )
+		impl_->posc_ = impl_->numAverage_ / 2;
 
-    posg_++;
+    impl_->posg_++;
 
     double d0 = adval;
     double d1 = 0;
     double d2 = 0;
 
-    Averager avgr(numAverage_);
-	differential<double> diff1(ndiff_);
-	differential2<double> diff2(ndiff_);
+    Averager avgr(impl_->numAverage_);
+	differential<double> diff1(impl_->ndiff_);
+	differential2<double> diff2(impl_->ndiff_);
 
-    rdata_.v_.push_back(adval);  // raw data
+    impl_->rdata_.v_.push_back(adval);  // raw data
 
     //  r[0][1][2][3][4]  := (size = 5)
     // d0[0][1][X]        := (create 3rd place.  First two data has to be estimated)
     // d1[0][X]
 
-	if ( posg_ <= (numAverage_ / 2) )
-		data0_.push_back( d0 );
+    if ( impl_->posg_ <= ( impl_->numAverage_ / 2 ) )
+		impl_->data0_.push_back( d0 );
 
-	if ( posg_ >= numAverage_ ) {
-		d0 = avgr( &rdata_.v_[ posg_ - numAverage_ ] );
-		data0_.push_back( d0 );
+	if ( impl_->posg_ >= impl_->numAverage_ ) {
+        d0 = avgr( &impl_->rdata_.v_[ impl_->posg_ - impl_->numAverage_ ] );
+		impl_->data0_.push_back( d0 );
 	}
 
-	if ( posg_ >= long (ndiff_ + (numAverage_ / 2)) ) {
-		int pos = posg_ - (ndiff_ + (numAverage_ / 2));
-		d1 = diff1( &data0_[ pos ] );
-		d2 = diff2( &data0_[ pos ] );
-		pkfind(posc_++, d1, d2);
+    if ( impl_->posg_ >= long( impl_->ndiff_ + ( impl_->numAverage_ / 2 ) ) ) {
+		int pos = impl_->posg_ - (impl_->ndiff_ + (impl_->numAverage_ / 2));
+		d1 = diff1( &impl_->data0_[ pos ] );
+		d2 = diff2( &impl_->data0_[ pos ] );
+        impl_->pkfind( impl_->posc_++, d1, d2 );
 	}
 }
 
 void
 Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks, adcontrols::Baselines& baselines )
 {
-	if ( !stack_.empty() ) {
-		if ( (stack_[0] == PKTOP) || (stack_[0] == PKVAL) ) {
-			stack_.push( PEAKSTACK(PKBAS, long(rdata_.size() - 1), 0) );
-			pkreduce();
+	if ( !impl_->stack_.empty() ) {
+		if ( (impl_->stack_[0] == PKTOP) || (impl_->stack_[0] == PKVAL) ) {
+			impl_->stack_.push( PEAKSTACK(PKBAS, long(impl_->rdata_.size() - 1), 0) );
+			impl_->pkreduce();
 		}
 	}
 
-	assignBaseline();
-	reduceBaselines();
-    peakHelper::cleanup_baselines( peaks_, baselines_ );
+    impl_->assignBaseline();
+    impl_->reduceBaselines();
+    peakHelper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
 
-	if ( fixDrift( peaks_, baselines_, drift_ ) ) {
-        peakHelper::cleanup_baselines( peaks_, baselines_ );
-		reduceBaselines();
+    if ( impl_->fixDrift( impl_->peaks_, impl_->baselines_, impl_->drift_ ) ) {
+        peakHelper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
+        impl_->reduceBaselines();
 	}
 
-    updatePeakAreaHeight( mth );
-	rejectPeaks( mth );
-    peakHelper::cleanup_baselines( peaks_, baselines_ );
+    impl_->updatePeakAreaHeight( mth );
+    impl_->rejectPeaks( mth );
+    peakHelper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
 
-    updatePeakParameters( mth );
+    impl_->updatePeakParameters( mth );
 
-    peaks = peaks_;
-	baselines = baselines_;
+    peaks = impl_->peaks_;
+	baselines = impl_->baselines_;
 }
 
 void
-Integrator::updatePeakAreaHeight( const adcontrols::PeakMethod& )
+Integrator::impl::updatePeakAreaHeight( const adcontrols::PeakMethod& )
 {
     using adcontrols::Baselines;
     using adcontrols::Baseline;
@@ -248,15 +362,15 @@ Integrator::updatePeakAreaHeight( const adcontrols::PeakMethod& )
     for ( adcontrols::Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
 		long baseId = it->baseId();
 		if ( baseId >= 0 ) { 
-            Baselines::vector_type::iterator pbs = std::find_if( baselines_.begin(), baselines_.end(), boost::bind( &Baseline::baseId, _1 ) == baseId );
-			if ( pbs != baselines_.end() )
+            Baselines::vector_type::iterator pbs = std::find_if(baselines_.begin(), baselines_.end(), boost::bind( &Baseline::baseId, _1 ) == baseId );
+            if ( pbs != baselines_.end() )
                 peakHelper::updateAreaHeight(rdata_, *pbs, *it);
 		}
 	}
 }
 
 void
-Integrator::rejectPeaks(const adcontrols::PeakMethod & mth)
+Integrator::impl::rejectPeaks(const adcontrols::PeakMethod & mth)
 {
 	double minArea = mth.minimumArea();
     using adcontrols::Peaks;
@@ -276,7 +390,7 @@ Integrator::rejectPeaks(const adcontrols::PeakMethod & mth)
 
 
 void
-Integrator::updatePeakParameters( const adcontrols::PeakMethod& method )
+Integrator::impl::updatePeakParameters( const adcontrols::PeakMethod& method )
 {
     using adcontrols::Baselines;
     using adcontrols::Peaks;
@@ -306,9 +420,8 @@ Integrator::updatePeakParameters( const adcontrols::PeakMethod& method )
 }
 
 void
-Integrator::pkfind(long pos, double df1, double df2)
+Integrator::impl::pkfind(long pos, double df1, double )
 {
-    (void)df2;
 	int	sstf;
 	int	mwup, mwflat, mwdn;
 
@@ -374,7 +487,7 @@ Integrator::pkfind(long pos, double df1, double df2)
 }
 
 void
-Integrator::pktop(int f, int z)
+Integrator::impl::pktop(int f, int z)
 {
     if (f < 0) { // VALLAY
         long pos = lu_ + 1;
@@ -403,14 +516,14 @@ Integrator::pktop(int f, int z)
 }
 
 void
-Integrator::pkbas(int t, double d)
+Integrator::impl::pkbas(int t, double d)
 {
     stack_.push( PEAKSTACK(PKBAS, t, d) );
     pkreduce();				/* Peak end */
 }
 
 void
-Integrator::pksta()
+Integrator::impl::pksta()
 {
     if (stf_ < 0)
         stack_.push( PEAKSTACK(PKSTA, ld_, ldd_) );
@@ -419,7 +532,7 @@ Integrator::pksta()
 }
 
 void
-Integrator::pkreduce()
+Integrator::impl::pkreduce()
 {
     PEAKSTACK sp0 = stack_.top();
  
@@ -496,7 +609,7 @@ Integrator::pkreduce()
 }
 
 bool
-Integrator::intercept(const adcontrols::Baseline & bs, long pos, double height)
+Integrator::impl::intercept(const adcontrols::Baseline & bs, long pos, double height)
 {
 	double h;
 	long d = pos - bs.startPos();
@@ -509,7 +622,7 @@ Integrator::intercept(const adcontrols::Baseline & bs, long pos, double height)
 }
 
 bool
-Integrator::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss, double drift )
+Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss, double drift )
 {
     using adcontrols::Baselines;
     using adcontrols::Baseline;
@@ -545,7 +658,7 @@ Integrator::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss, doubl
 }
 
 bool
-Integrator::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& fixed )
+Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& fixed )
 {
 	bool res = false;
 
@@ -611,7 +724,7 @@ Integrator::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& fixed 
 }
 
 void
-Integrator::assignBaseline()
+Integrator::impl::assignBaseline()
 {
     using adcontrols::Baselines;
     using adcontrols::Baseline;
@@ -634,7 +747,7 @@ Integrator::assignBaseline()
 }
 
 void 
-Integrator::fixupPenetration( adcontrols::Baseline & bs)
+Integrator::impl::fixupPenetration( adcontrols::Baseline & bs)
 {
     using adcontrols::Peaks;
     using adcontrols::Peak;
@@ -696,7 +809,7 @@ Integrator::fixupPenetration( adcontrols::Baseline & bs)
 }
 
 void
-Integrator::reduceBaselines()
+Integrator::impl::reduceBaselines()
 {
     using adcontrols::Baselines;
 
@@ -718,7 +831,7 @@ Integrator::reduceBaselines()
 ///////////////////////////////
 // static
 bool
-peakHelper::tRetention_lsq(  const Integrator::chromatogram& c, adcontrols::Peak& pk )
+peakHelper::tRetention_lsq(  const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
 	double l_threshold = pk.topHeight() - ( (pk.topHeight() - pk.startHeight()) * 0.3 );
     double r_threshold = pk.topHeight() - ( (pk.topHeight() - pk.endHeight()) * 0.3 );
@@ -768,15 +881,15 @@ peakHelper::tRetention_lsq(  const Integrator::chromatogram& c, adcontrols::Peak
 namespace chromatogr { namespace internal {
 
         struct TimeFunctor {
-            const Integrator::chromatogram& c_;
-            TimeFunctor( const Integrator::chromatogram& c ) : c_( c ) { }
+            const integrator::chromatogram& c_;
+            TimeFunctor( const integrator::chromatogram& c ) : c_( c ) { }
             double operator ()( int pos ) const { return c_.getTime( pos ); }
         };
     }
 }
 
 bool
-peakHelper::tRetention_moment(  const Integrator::chromatogram& c, adcontrols::Peak& pk )
+peakHelper::tRetention_moment(  const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
     internal::TimeFunctor functor( c );
     adportable::Moment< internal::TimeFunctor > moment( functor );
@@ -825,7 +938,7 @@ peakHelper::cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselin
 
 // static
 void
-peakHelper::updateAreaHeight( const Integrator::chromatogram& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk )
+peakHelper::updateAreaHeight( const integrator::chromatogram& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk )
 {
     double area = 0;
     double height = c.getIntensity( pk.topPos() ) - bs.height( pk.topPos() );
@@ -839,7 +952,7 @@ peakHelper::updateAreaHeight( const Integrator::chromatogram& c, const adcontrol
 }
 
 adcontrols::Peak
-peakHelper::peak( const chromatogr::Integrator::chromatogram& c, int spos, int tpos, int epos, unsigned long flags )
+peakHelper::peak( const chromatogr::integrator::chromatogram& c, int spos, int tpos, int epos, unsigned long flags )
 {
     adcontrols::Peak pk;
 
@@ -856,7 +969,7 @@ peakHelper::peak( const chromatogr::Integrator::chromatogram& c, int spos, int t
 }
 
 bool
-peakHelper::peak_width( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk )
+peakHelper::peak_width( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
     internal::TimeFunctor functor( c );
     adportable::Moment< internal::TimeFunctor > moment( functor );
@@ -870,7 +983,7 @@ peakHelper::peak_width( const adcontrols::PeakMethod&, const Integrator::chromat
 }
 
 bool
-peakHelper::asymmetry( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk )
+peakHelper::asymmetry( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
     internal::TimeFunctor functor( c );
     adportable::Moment< internal::TimeFunctor > moment( functor );
@@ -891,7 +1004,7 @@ peakHelper::asymmetry( const adcontrols::PeakMethod&, const Integrator::chromato
 }
 
 bool
-peakHelper::theoreticalplate( const adcontrols::PeakMethod&, const Integrator::chromatogram& c, adcontrols::Peak& pk )
+peakHelper::theoreticalplate( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
     internal::TimeFunctor functor( c );
     adportable::Moment< internal::TimeFunctor > moment( functor );
@@ -911,7 +1024,7 @@ peakHelper::theoreticalplate( const adcontrols::PeakMethod&, const Integrator::c
 ///////////////
 
 adcontrols::Baseline
-baselineHelper::baseline( const chromatogr::Integrator::chromatogram& c, int spos, int epos )
+baselineHelper::baseline( const chromatogr::integrator::chromatogram& c, int spos, int epos )
 {
     adcontrols::Baseline bs;
 
@@ -923,4 +1036,51 @@ baselineHelper::baseline( const chromatogr::Integrator::chromatogram& c, int spo
     bs.stopHeight( c.getIntensity( epos ) ) ;
 
     return bs;
+}
+
+/////////////////////////////
+void
+Integrator::impl::update_params()
+{
+    mw_ = long ( minw_ / rdata_.sampInterval_ );
+    if ( mw_ < 3 )
+        mw_ = 3;
+    mw_ |= 1;  // force 'odd'
+    numAverage_ = mw_;
+}
+
+double
+Integrator::impl::adddata( double time, double intensity )
+{
+    rdata_.t_.push_back( time );
+    rdata_.v_.push_back( intensity );
+    rdata_.d1_.push_back( 0 );
+    
+    if ( rdata_.t_.size() >= 2 ) {
+        // estimate sampling interval (average)
+        size_t advance = rdata_.t_.size() < 5 ? rdata_.t_.size() : 5;
+        rdata_.sampInterval_ = ( rdata_.t_.back() - rdata_.t_[ rdata_.t_.size() - advance ] ) / advance; // last 'advance' points or all
+
+        int mw = std::max( 5, int( minw_ / rdata_.sampInterval_ ) | 1 );
+        if ( mw != mw_ ) {
+            mw_ = mw;
+            sgd1_.reset();
+        }
+
+    }
+
+    if ( rdata_.size() >= mw_ ) {
+
+        if ( ! sgd1_ )
+            sgd1_ = std::make_shared< adportable::SGFilter >( mw_, adportable::SGFilter::Derivative1, adportable::SGFilter::Cubic );
+
+        double d1 = (*sgd1_)( &rdata_.v_[ rdata_.size() - mw_ ] );
+
+        posg_ = int( rdata_.size() - 1 );
+        posc_ = int( rdata_.size() - ( mw_ / 2 ) - 1 );
+
+        rdata_.d1_[ posc_ ] = d1;
+        return d1;
+    }
+    return 0;
 }

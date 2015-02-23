@@ -35,117 +35,71 @@ namespace adcontrols {
 
 namespace chromatogr {
 
-    //------- Intergrator ---------//
-
+    /**
+       \brief Integrator class process input data (usually from ADC) stream and process it
+       as chromatography data for find peaks and baseline determination.
+    */
     class Integrator {
+        Integrator( const Integrator& ) = delete;
+        Integrator& operator = ( const Integrator& ) = delete;
     public:
         Integrator(void);
         virtual ~Integrator(void);
 
-        class chromatogram {
-        public:
-            double sampInterval_;
-            double minTime_;
-            std::vector<double> v_;
-            inline const double * get() const { return &v_[0]; };
-            inline size_t size() const { return v_.size(); };
-            inline double getIntensity( long pos ) const { return v_[pos]; }
-            inline double getTime( long pos ) const { return minTime_ + pos * sampInterval_; }
-        };
-        
     private:
-        enum PEAKSTATE {
-            PKUNDEF = (-1),
-            PKTOP =  1,
-            PKVAL =  2,
-            PKSTA =  3,
-            PKBAS =  4,
-        };
-        
-        class PEAKSTACK {
-            PEAKSTATE stat_;
-            long pos_;
-            double height_;
-        public:
-            PEAKSTACK(PEAKSTATE st, long tpos, double h) : stat_(st), pos_(tpos), height_(h) { /**/ };
-        public:
-            double height() const                      { return height_; };
-            long pos() const                           { return pos_;    };
-            PEAKSTATE stat() const                     { return stat_;   };
-            bool operator == (PEAKSTATE st) const      { return stat_ == st; };
-            bool operator != (PEAKSTATE st) const      { return stat_ != st; };
-            void operator = (PEAKSTATE st)             { stat_ = st; };
-        };
-
-        chromatogram rdata_;
-        stack< PEAKSTACK > stack_;
-        adcontrols::Peaks peaks_;
-        adcontrols::Baselines baselines_;
-
-        std::vector<double> data0_;  // zero degree (noize reduced) data
-        int posg_; // writing pointer + 1
-        int posc_; // current pkfind pointer
-        size_t ndata_;
-        double data_[256];
-        long dc_;  /* down count */
-        long uc_;  /* up count */
-        long zc_;  /* zero count */
-        long lu_;  /* up start position */
-        long ld_;  /* down start position */
-        long lz_;  /* zero start position */
-        double lud_;
-        double ldd_;
-        double lzd_;
-        long stf_;
-        long lockc_;
-        long mw_;
-        double ss_;
-        unsigned long ndiff_;
-        bool dirty_;
-        long numAverage_;
-        double minw_;
-        double slope_;
-        double drift_;
-        bool detectSholder_;
-        bool detectNegative_;
-        bool offIntegration_;
-        double timeOffset_;
+        class impl;
+        impl * impl_;
         
     public:
-        void samping_interval(double /* seconds */);
+        /**
+           \brief Set sampling interval for input data if data has contenious constant time interval, otherwise set zero.
+        */
+        void samping_interval( double /* seconds */ );
+
+        /**
+           \brief Set peak width (seconds) for first elute compounds in your interst.
+        */        
         void minimum_width(double /* seconds */);
+
+        /**
+           \brief Set baseline start recognition threshold.
+        */        
         void slope_sensitivity(double /* uV / second */);
+
+        /**
+           \brief drift give a hint to software for determine baseline either v-to-v or perpendicular dropping.
+         */
         void drift(double /* uV / second */);
         
         double currentTime() const;
-        void timeOffset( double peaktime );
-        
-        void operator << ( double v );  // analogue input
-		void close( const class adcontrols::PeakMethod&, adcontrols::Peaks&, adcontrols::Baselines& );
-        void offIntegration( bool f ) { offIntegration_ = f; }
-        bool offIntegration() const { return offIntegration_; }
-        
-    private:
-        void update_params();
-        
-        void pkfind(long pos, double df1, double df2);
-        void pktop(int f, int z);
-        void pkbas(int t, double d);
-        void pksta();
-        void pkreduce();
-        void pkcorrect(PEAKSTACK & sp, int f);
-        bool intercept(const class adcontrols::Baseline& bs, long pos, double height);
 
-        void assignBaseline();
-        void reduceBaselines();
-        void fixupPenetration( adcontrols::Baseline& );
-        bool fixBaseline( adcontrols::Baseline&, adcontrols::Baselines& );
-        void updatePeakAreaHeight( const adcontrols::PeakMethod& );
-        void rejectPeaks( const adcontrols::PeakMethod& );
-        void updatePeakParameters( const adcontrols::PeakMethod& );
+        void timeOffset( double peaktime );
+
+        /**
+           \brief add a new data intensity (ADC value).  Sampling interval must be set in advance.
+        */
+        void operator << ( double v );  // analogue input
         
-        bool fixDrift( adcontrols::Peaks&, adcontrols::Baselines&, double drift );
-        void remove( adcontrols::Baselines&, const adcontrols::Peaks& );
+        /**
+           \brief add data point as pair of (time(seconds), intensity) for non time constant acquisition
+        */
+        void operator << ( const std::pair<double, double >& v );
+
+        /**
+           \brief close out data stream, and fix all detected peaks and baselines
+        */
+		void close( const class adcontrols::PeakMethod&, adcontrols::Peaks&, adcontrols::Baselines& );
+        
+        /**
+           \brief Stop integration during data input when this flag set true.  
+           Set this flags will ignore from peak detection process for all incoming data by '<<' operator.
+         */
+        void offIntegration( bool f );
+
+        /**
+           \brief 
+         */
+        bool offIntegration() const;
     };
 
 }
