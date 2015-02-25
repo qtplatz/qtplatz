@@ -64,11 +64,17 @@ namespace quan {
         void commit( QuanSampleProcessor& ); //portfolio::Portfolio& portfolio );
         bool lockmass_enabled() const;
 
-    private:
         enum { idFormula, idMass, idChromatogram, idPeakResult };
         typedef std::tuple< std::string, double
                             , std::shared_ptr< adcontrols::Chromatogram >
                             , std::shared_ptr< adcontrols::PeakResult> > target_t;
+
+        typedef std::vector< target_t >::const_iterator const_iterator;
+
+        const_iterator begin() const { return targets_.begin(); }
+        const_iterator end() const { return targets_.end(); }        
+        
+    private:
 
         std::vector< target_t > targets_; // order by mass
 

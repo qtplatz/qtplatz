@@ -38,6 +38,8 @@ namespace adfs { class stmt; }
 
 namespace quan {
 
+    class QuanChromatograms;
+
     class QuanDataWriter  {
         QuanDataWriter( const QuanDataWriter& ) = delete;
     public:
@@ -49,6 +51,7 @@ namespace quan {
         adfs::file write( const adcontrols::ProcessMethod& );
         adfs::file write( const adcontrols::QuanSequence& );
         adfs::file write( const adcontrols::QuanSample& );
+        bool write( std::shared_ptr< QuanChromatograms > chro, const std::wstring& title );
 
         bool drop_table();
         bool create_table();

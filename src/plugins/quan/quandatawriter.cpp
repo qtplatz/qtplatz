@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,10 +23,13 @@
 **************************************************************************/
 
 #include "quandatawriter.hpp"
+#include "quanchromatograms.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
@@ -44,6 +47,7 @@
 #include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/uuid.hpp>
+#include <adportable/utf.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -85,6 +89,37 @@ QuanDataWriter::write( const adcontrols::MassSpectrum& ms, const std::wstring& t
     return adfs::file();
 }
 
+bool
+QuanDataWriter::write( std::shared_ptr< QuanChromatograms > chroms, const std::wstring& dataSource )
+{
+    boost::filesystem::path path( dataSource );
+
+    if ( adfs::folder folder = fs_.addFolder( L"/Processed/Chromatograms" ) ) {
+
+        for ( auto& t : *chroms ) {
+            
+            const std::string& formula = std::get< QuanChromatograms::idFormula >( t );
+            auto pChro = std::get< QuanChromatograms::idChromatogram >( t );
+            auto pResult = std::get< QuanChromatograms::idPeakResult >( t );
+
+            std::wstring title = adportable::utf::to_wstring( formula ) + L"; " + path.stem().wstring();
+            
+            if ( adfs::file file = folder.addFile( adfs::create_uuid(), title ) ) {
+                file.dataClass( pChro->dataClass() );
+                if ( file.save( *pChro ) ) {
+                    file.commit();
+                    if ( adfs::file afile = file.addAttachment( adfs::create_uuid() ) ) {
+                        afile.dataClass( pResult->dataClass() );
+                        afile.save( *pResult );
+                    }
+                }
+            }
+            
+        }
+    }
+    return true;
+}
+
 adfs::file
 QuanDataWriter::write( const adcontrols::ProcessMethod& pm )
 {
@@ -112,6 +147,7 @@ QuanDataWriter::write( const adcontrols::QuanSequence& t)
     }
     return adfs::file();
 }
+
 
 bool
 QuanDataWriter::create_table()

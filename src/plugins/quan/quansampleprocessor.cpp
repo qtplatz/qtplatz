@@ -159,7 +159,8 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                         return false;
                 }
                 chroms->commit( *this );
-                datafile_->saveContents( L"/Processed", *portfolio_ );
+                datafile_->saveContents( L"/Processed", *portfolio_ ); // save on raw data file
+                writer->write( chroms, sample.dataSource() );
             }
             break; // ignore for this version
 
