@@ -149,15 +149,16 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
         case adcontrols::QuanSample::GenerateChromatogram:
             if ( raw_ ) {
+
                 auto chroms = std::make_shared< QuanChromatograms >( procmethod_ );
                 adcontrols::MassSpectrum ms;
                 size_t pos = 0;
                 while ( pos = read_raw_spectrum( pos, raw_, ms ) ) {
-                    chroms->processIt( pos, ms );
+                    chroms->processIt( pos, ms, *this );
                     if ( (*progress_)() )
                         return false;
                 }
-                chroms->save( *portfolio_ );
+                chroms->commit( *this );
                 datafile_->saveContents( L"/Processed", *portfolio_ );
             }
             break; // ignore for this version

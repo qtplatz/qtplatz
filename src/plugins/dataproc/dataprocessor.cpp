@@ -1336,3 +1336,10 @@ Dataprocessor::loadMSCalibration( const std::wstring& filename, adcontrols::MSCa
 }
 
 
+void
+Dataprocessor::exportXML() const
+{
+    boost::filesystem::path path( filename() );
+    path += ".xml";
+    portfolio_->save( path.wstring() );
+}

@@ -635,13 +635,15 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             // this indicates menu requested on folium|folder node
 
             QVariant data = pModel_->data( index, Qt::UserRole );
+
             if ( data.canConvert< portfolio::Folder >() ) {
+
                 if ( auto folder = data.value< portfolio::Folder >() ) {
                     menu.add( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
                     menu.add( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
                 }
-            }
-            else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected
+
+            } else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected
 
                 //menu.add( tr( "Check all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
                 //menu.add( tr( "Uncheck all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
@@ -685,16 +687,14 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     }
                 }
                 if ( folium.getParentFolder().name() == L"Chromatograms" ) {
-                    QMenu menu;
                     QAction * doSpectrogram = 0;
-                    doSpectrogram = menu.addAction( tr( "Create Spectrogram" ) );
-                    if ( QAction* selectedItem = menu.exec( globalPos ) ) {
-                        if ( doSpectrogram == selectedItem ) {
-                            processor->createSpectrogram();
-                        }
-                    }
+                    menu.add( tr( "Remove unchecked items" ), RemoveChecked( this ) );
+                    doSpectrogram = menu.add( tr( "Create Spectrogram" ), [] ( Dataprocessor * processor ) { processor->createSpectrogram(); } );
                 }
             }
+
+            menu.add( tr( "Export data tree to XML" ), [] ( Dataprocessor * processor ) { processor->exportXML(); } );
+
             auto selected = menu.exec( globalPos );
             if ( selected != menu.actions.end() )
                 selected->second( processor );

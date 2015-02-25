@@ -62,8 +62,12 @@ namespace quan {
         QuanSampleProcessor( QuanProcessor *, std::vector< adcontrols::QuanSample >& );
         bool operator()( std::shared_ptr< QuanDataWriter > writer );
         QuanProcessor * processor();
+        const adcontrols::LCMSDataset * getLCMSDataset() const { return raw_; }
+        adcontrols::datafile * datafile() { return datafile_.get(); }
+        portfolio::Portfolio * portfolio() { return portfolio_.get(); }
         
     private:
+        friend class QuanChromatograms;
         std::wstring path_;
         const adcontrols::LCMSDataset * raw_;
         std::vector< adcontrols::QuanSample > samples_;

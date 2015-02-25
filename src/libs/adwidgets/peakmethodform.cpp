@@ -44,7 +44,7 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QEvent>
-#include <qdebug.h>
+#include <QDebug>
 
 namespace adwidgets {
 
@@ -53,12 +53,14 @@ namespace adwidgets {
     class TimeEventsDelegate : public QItemDelegate {
         Q_OBJECT
     public:
-        explicit TimeEventsDelegate(QObject *parent = 0);
+        explicit TimeEventsDelegate(PeakMethodForm *, QObject *parent = 0);
 
         QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
         void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
         void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
-        
+    private:
+        PeakMethodForm * form_;
+
     signals:
             
     public slots:
@@ -83,7 +85,7 @@ namespace adwidgets {
 	class PeakMethodDelegate : public QItemDelegate {
 		Q_OBJECT
 	public:
-		explicit PeakMethodDelegate(QObject *parent = 0);
+		explicit PeakMethodDelegate(PeakMethodForm *, QObject *parent = 0);
 
         QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
         void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
@@ -92,6 +94,8 @@ namespace adwidgets {
         QSize sizeHint( const QStyleOptionViewItem&, const QModelIndex& ) const override;
         bool editorEvent( QEvent * event, QAbstractItemModel *
                           , const QStyleOptionViewItem&, const QModelIndex& ) override;
+    private:
+        PeakMethodForm * form_;
     
     signals:
     
@@ -106,9 +110,9 @@ PeakMethodForm::PeakMethodForm(QWidget *parent) : QWidget(parent)
                                                 , ui(new Ui::PeakMethodForm)
                                                 , pMethod_( new adcontrols::PeakMethod ) 
                                                 , pTimeEventsModel_( new QStandardItemModel )
-                                                , pTimeEventsDelegate_( new TimeEventsDelegate )
+                                                , pTimeEventsDelegate_( new TimeEventsDelegate(this) )
                                                 , pGlobalModel_( new QStandardItemModel )
-                                                , pGlobalDelegate_( new PeakMethodDelegate )
+                                                , pGlobalDelegate_( new PeakMethodDelegate(this) )
 {
     ui->setupUi(this);
 
@@ -343,7 +347,7 @@ namespace adwidgets { namespace internal {
 
 #define countof(x) ( sizeof(x)/sizeof(x[0]) )
 
-TimeEventsDelegate::TimeEventsDelegate(QObject *parent) :  QItemDelegate(parent)
+TimeEventsDelegate::TimeEventsDelegate(PeakMethodForm * form, QObject *parent) : QItemDelegate(parent), form_( form )
 {
 }
 
@@ -403,11 +407,13 @@ TimeEventsDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, con
 
     if ( index.row() == model->rowCount() - 1 )
         model->insertRow( index.row() + 1 ); // add last blank line
+
+    emit form_->valueChanged();
 }
 
 ////////////////////////////////////
 
-PeakMethodDelegate::PeakMethodDelegate(QObject *parent) :  QItemDelegate(parent)
+PeakMethodDelegate::PeakMethodDelegate(PeakMethodForm * form, QObject *parent) : QItemDelegate(parent), form_( form )
 {
 }
 
@@ -491,6 +497,7 @@ PeakMethodDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, con
         model->setData( index, value );
     } else
         QItemDelegate::setModelData( editor, model, index );
+    emit form_->valueChanged();
 }
 
 bool

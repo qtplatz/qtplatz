@@ -44,7 +44,6 @@ ProcessMethodWidget::~ProcessMethodWidget()
 
 ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
                                                           , layout_( new QGridLayout )
-                                                          , form_( new adwidgets::CentroidForm )
 {
     auto topLayout = new QHBoxLayout( this );
     topLayout->setMargin( 0 );
@@ -52,41 +51,37 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     topLayout->addLayout( layout_ );
     topLayout->addStretch( 1 );
 
-    layout_->addWidget( form_ ); 
+    // ----------------------------------------
+    // |             | Lock mass  | PeakFind  |
+    // |             -------------|           |
+    // |             | assign     |           |
+    // ----------------------------------------
+    auto centroidform = new adwidgets::CentroidForm;
+    layout_->addWidget( centroidform );
 
-    auto tolerances = new QWidget;
-    layout_->addWidget( tolerances, 0, 1 ); // row = 0; column = 1
-    auto tLayout = new QVBoxLayout( tolerances );
-    // ----------------------------
-    // |             | Lock mass  | PeakFind
-    // |             --------------
-    // |             | assign     |
-    // |---------------------------
-    if ( auto form = new adwidgets::MSLockForm ) {
-        tLayout->addWidget( form );
-        // MSLock GroupBox check state --> reflect to MS Lock row in Compounds table
-        connect( form, &adwidgets::MSLockForm::toggled, this, [] ( bool checked ){ QuanDocument::instance()->mslock_enabled( checked ); } );
-    }
-
-    if ( auto form = new adwidgets::MSToleranceForm )
-        tLayout->addWidget( form );
-
-    if ( auto widget = new QWidget ) {
-        layout_->addWidget( widget, 0, 2 );// row = 0, column = 2
-        auto layout = new QVBoxLayout( widget );
-        if ( auto form = new adwidgets::PeakMethodForm ) {
-            layout->addWidget( form );
-            form->OnInitialUpdate();
-            // connect
+    if ( auto widget = new QWidget ) { // Lock mass, assign method column
+        layout_->addWidget( widget, 0, 1 ); // row = 0; column = 1
+        auto tLayout = new QVBoxLayout( widget );
+        if ( auto form = new adwidgets::MSLockForm ) {
+            tLayout->addWidget( form );
+            // MSLock GroupBox check state --> reflect to MS Lock row in Compounds table
+            connect( form, &adwidgets::MSLockForm::toggled, this, [] ( bool checked ) { QuanDocument::instance()->mslock_enabled( checked ); } );
         }
+
+        // row = 1, column 1
+        if ( auto form = new adwidgets::MSToleranceForm )
+            tLayout->addWidget( form );
     }
+
+    auto peakmethodform = new adwidgets::PeakMethodForm;
+    layout_->addWidget( peakmethodform, 0, 2 ); // row = 0, column = 2; Chromatography peak method column
         
+    //tLayout->addStretch( 1 );
+    centroidform->OnInitialUpdate();
+    peakmethodform->OnInitialUpdate();
 
-    tLayout->addStretch( 1 );
-
-    form_->OnInitialUpdate();
-
-    connect( form_, &adwidgets::CentroidForm::valueChanged, this, &ProcessMethodWidget::commit );
+    connect( centroidform, &adwidgets::CentroidForm::valueChanged, this, &ProcessMethodWidget::commit );
+    connect( peakmethodform, &adwidgets::PeakMethodForm::valueChanged, this, &ProcessMethodWidget::commit );
 
     QuanDocument::instance()->register_dataChanged( [this]( int id, bool load ){ handleDataChanged( id, load ); });
     
@@ -97,12 +92,22 @@ void
 ProcessMethodWidget::handleDataChanged( int id, bool load )
 {
     if ( id == idProcMethod && load ) {
+
         const adcontrols::ProcessMethod pm = QuanDocument::instance()->procMethod();
         boost::any a( pm );
-        form_->setContents( a );
+
+        if ( auto centroidform = findChild< adwidgets::CentroidForm * >() ) {
+            centroidform->setContents( a );
+        }
+
+        if ( auto peakmethodform = findChild< adwidgets::PeakMethodForm * >() ) {
+            peakmethodform->setContents( a );
+        }
+        
         if ( auto form = findChild< adwidgets::MSLockForm * >() ) {
             form->setContents( pm, true );
         }
+
         if ( auto form = findChild< adwidgets::MSToleranceForm * >() ) {
             if ( auto pTgt = pm.find< adcontrols::TargetingMethod >() ) {
                 form->setContents( *pTgt );
@@ -115,7 +120,12 @@ void
 ProcessMethodWidget::commit()
 {
     adcontrols::ProcessMethod pm;
-    form_->getContents( pm );
+
+    if ( auto form = findChild< adwidgets::CentroidForm * >() ) 
+        form->getContents( pm );
+
+    if ( auto form = findChild< adwidgets::PeakMethodForm * >() ) 
+        form->getContents( pm );
 
     if ( auto form = findChild< adwidgets::MSLockForm * >() )
         form->getContents( pm );

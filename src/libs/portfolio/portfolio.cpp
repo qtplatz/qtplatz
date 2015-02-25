@@ -82,6 +82,15 @@ Portfolio::attributes() const
     return impl_->attributes();
 }
 
+size_t
+Portfolio::removed_dataids( std::vector< std::string >& v ) const
+{
+    v.clear();
+    for ( const auto& dataid : impl_->removed_ )
+        v.push_back( dataid );
+    return v.size();
+}
+
 /////////////
 
 bool

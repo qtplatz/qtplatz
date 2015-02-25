@@ -70,6 +70,7 @@ namespace adwidgets {
 
     signals:
 		void apply( adcontrols::ProcessMethod& );
+        void valueChanged();
 
     private slots:
 

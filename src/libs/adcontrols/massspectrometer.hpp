@@ -30,7 +30,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -92,7 +91,9 @@ namespace adcontrols {
 
         const MassSpectrometer * proxy_instance_;
         adcontrols::datafile * datafile_;
-
+#if _MSC_VER
+# pragma warning(disable:4251)
+#endif
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > mode_calib_map_;
     };
 

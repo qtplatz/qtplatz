@@ -26,6 +26,7 @@
 #pragma once
 
 #include <boost/any.hpp>
+#include <set>
 #include <map>
 #include <xmlparser/pugixml.hpp>
 #include "node.hpp"
@@ -60,10 +61,13 @@ namespace portfolio {
             pugi::xml_document& getDocument() { return doc_; }
             static std::wstring newGuid();
             bool collect_garbage();
+            void removed( const std::string& idataId );
      
         private:
+            friend class Portfolio;
             bool isXMLLoaded_;
             std::map< std::wstring, boost::any > db_;
+            std::set< std::string > removed_;  // [@dataId]
             pugi::xml_document doc_;
         };
     }

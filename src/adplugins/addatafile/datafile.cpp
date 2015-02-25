@@ -253,6 +253,11 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     if ( ! mounted_ )
         return false;
 
+    std::vector< std::string > removed;
+    if ( portfolio.removed_dataids( removed ) > 0 ) {
+        removeContents( removed );
+    }
+
     if ( calibration_modified_ ) {
         for ( auto calib: calibrations_ )
             adutils::fsio::save_mscalibfile( dbf_, *calib.second );
@@ -281,7 +286,12 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     if ( ! mounted_ )
         return false;
 
+    std::vector< std::string > removed;
+    if ( portfolio.removed_dataids( removed ) > 0 )
+        removeContents( removed );
+
     adfs::stmt sql( dbf_.db() );
+
     sql.begin();
 
     dbf_.addFolder( path );
@@ -333,6 +343,27 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     std::string xml = portfolio.xml();
     processedDataset_->xml( xml );
 
+    return true;
+}
+
+bool
+datafile::removeContents( const std::vector< std::string >& dataids )
+{
+    // not completed yet
+    if ( ! mounted_ )
+        return false;
+
+    adfs::stmt sql( dbf_.db() );
+
+    for ( auto& dataid : dataids ) {
+        sql.prepare( "DELETE FROM file WHERE fileid = (SELECT fileid FROM directory WHERE name = ?)" );
+        sql.bind( 1 ) = dataid;
+        if ( sql.step() == adfs::sqlite_done ) {
+            sql.prepare( "DELETE FROM directory WHERE name = ?" );
+            sql.bind( 1 ) = dataid;
+            sql.step();
+        }
+    }
     return true;
 }
 

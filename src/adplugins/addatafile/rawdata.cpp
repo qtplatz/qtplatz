@@ -284,8 +284,7 @@ rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_
                 == adcontrols::translate_indeterminate )
             if ( ++index == fcnIdx_.end() )  // move forward to next protocol (rep'licates is the offset for actual spectrum)
                 break;
-    }
-    else {
+    } else {
         state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos, ms, it->trace_id );
     }
 
@@ -296,6 +295,7 @@ rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_
     }
     if ( fcn < 0 )
         return state == adcontrols::translate_complete;
+    
     return state == adcontrols::translate_complete || state == adcontrols::translate_indeterminate;
 }
 
@@ -609,7 +609,7 @@ rawdata::fetchSpectrum( int64_t objid
             sql.bind( 2 ) = npos;
 
             if ( sql.step() == adfs::sqlite_row ) {
-                int fcn          = int( sql.get_column_value< int64_t >( 0 ) );
+                int fcn = int( sql.get_column_value< int64_t >( 0 ) );
                 (void)fcn;
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( 1 );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( 2 );
@@ -678,3 +678,23 @@ rawdata::getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char
     return adcontrols::translate_error;
 }
 
+bool
+rawdata::mslocker( adcontrols::lockmass& mslk, uint32_t objid ) const
+{
+    if ( objid == 0 ) {
+        auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
+                return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+            });
+        if ( it == conf_.end() )
+            return false;
+        objid = uint32_t( it->objid );
+    }
+
+    auto it = spectrometers_.find( objid );
+    if ( it != spectrometers_.end() ) {
+        auto& interpreter = it->second->getDataInterpreter();
+        if ( interpreter.has_lockmass() )
+            return interpreter.lockmass( mslk );
+    }
+    return false;
+}

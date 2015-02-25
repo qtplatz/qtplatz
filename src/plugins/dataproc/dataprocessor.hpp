@@ -88,6 +88,8 @@ namespace dataproc {
         bool create( const QString& token );
         bool open( const QString& );
         // Core::IDocument * ifile();
+
+        void exportXML() const;
         
 		const std::wstring& filename() const;
         adcontrols::datafile& file();

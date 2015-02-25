@@ -120,6 +120,18 @@ lockmass::clear()
     references_.clear();
 }
 
+size_t
+lockmass::size() const
+{
+    return references_.size();
+}
+
+bool
+lockmass::empty() const
+{
+    return references_.empty();
+}
+
 ///////////////////
 
 // static

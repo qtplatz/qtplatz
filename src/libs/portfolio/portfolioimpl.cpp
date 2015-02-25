@@ -204,7 +204,11 @@ PortfolioImpl::collect_garbage()
             assert(0);            
         }
     }
-	for ( auto garbage: candidates )
-		db_.erase( garbage );
 	return true;
+}
+
+void
+PortfolioImpl::removed( const std::string& dataId )
+{
+    removed_.insert( dataId );
 }

@@ -44,10 +44,12 @@ namespace adcontrols {
 		static const wchar_t * dataClass() { return L"PeakResult"; }
 
 		const Baselines& baselines() const;
-		Baselines& baselines();
+        Baselines& baselines();
+        void setBaselines( const Baselines& );
 
 		const Peaks& peaks() const;
-		Peaks& peaks();
+        Peaks& peaks();
+        void setPeaks( const Peaks& );
 
 	private:
 #if defined _MSC_VER

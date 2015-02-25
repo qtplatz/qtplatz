@@ -72,6 +72,11 @@ PeakResult::baselines()
 	return * baselines_;
 }
 
+void
+PeakResult::setBaselines( const Baselines& t )
+{
+    *baselines_ = t;
+}
 
 const Peaks&
 PeakResult::peaks() const
@@ -83,6 +88,12 @@ Peaks&
 PeakResult::peaks()
 {
 	return * peaks_;
+}
+
+void
+PeakResult::setPeaks( const Peaks& t )
+{
+    *peaks_ = t;
 }
 
 // ----- static -----

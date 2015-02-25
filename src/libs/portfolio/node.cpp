@@ -222,8 +222,11 @@ Node::removeFolium( const std::wstring& id )
 	std::string query = "./folium[@dataId=\"" + pugi::as_utf8( id ) + "\"]";
     try {
         pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
-        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it )
+        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
             node_.remove_child( it->node() );
+            impl_->removed( it->node().attribute( "dataId" ).as_string() );
+        }
+        impl_->removed( pugi::as_utf8(id) );
         return !nodes.empty();
     } catch ( pugi::xpath_exception& ex ) {
         ADDEBUG() << "xml_exception: " << ex.what();
@@ -240,8 +243,10 @@ Node::addAttachment( const std::wstring& name, bool bUniq )
         std::string query = "./attachment[@name=\"" + utf::to_utf8( name ) + "\"]";
         try {
             pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
-            for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it )
+            for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
                 node_.remove_child( it->node() );
+                impl_->removed( it->node().attribute( "dataId" ).as_string() );
+            }
         } catch ( pugi::xpath_exception& ex ) {
             ADDEBUG() << "xml_exception: " << ex.what();
             BOOST_THROW_EXCEPTION( ex );
@@ -265,8 +270,10 @@ Node::removeAttachment( const std::wstring& name )
 	std::string query = "./attachment[@name=\"" + pugi::as_utf8( name ) + "\"]";
     try {
         pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
-        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it )
+        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
             node_.remove_child( it->node() );
+            impl_->removed( it->node().attribute( "dataId" ).as_string() );
+        }
         return !nodes.empty();
     } catch ( pugi::xpath_exception& ex ) {
         ADDEBUG() << "xml_exception: " << ex.what();

@@ -65,6 +65,8 @@ namespace portfolio {
 		std::wstring wxml() const;
 		std::wstring fullpath() const;
 
+        size_t removed_dataids( std::vector<std::string>& ) const;
+
         // for debugging convension
         bool save( const std::wstring& filename ) const;
      

@@ -90,6 +90,8 @@ namespace adcontrols {
 
         lockmass& operator << ( const reference& );
         void clear();
+        size_t size() const;
+        bool empty() const;
 
         static bool findReferences( lockmass&,  const adcontrols::MassSpectrum& );
         static bool findReferences( lockmass&,  const adcontrols::MassSpectrum&, int idx, int fcn );

@@ -58,6 +58,7 @@ namespace addatafile {
         bool saveContents( const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& ) override;
         bool saveContents( const std::wstring&, const portfolio::Portfolio& ) override;
         bool loadContents( const std::wstring& path, const std::wstring& id, adcontrols::dataSubscriber& ) override;
+        bool removeContents( const std::vector< std::string >& dataids );
 
         bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& ) override;
         bool readCalibration( size_t idx, adcontrols::MSCalibrateResult& ) const override;

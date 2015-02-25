@@ -31,21 +31,24 @@
 #include <tuple>
 
 namespace adcontrols {
-    class QuanSample;
-    class QuanCompounds;
-    class ProcessMethod;
-    class MassSpectrum;
-    class MSPeakInfo;
     class CentroidMethod;
-    class MSLockMethod;
-    class TargetingMethod;
     class ChemicalFormula;
     class Chromatogram;
+    class MassSpectrum;
+    class MSLockMethod;
+    class MSPeakInfo;
+    class PeakResult;
+    class ProcessMethod;
+    class QuanCompounds;
+    class QuanSample;
+    class TargetingMethod;
     class lockmass;
 }
 namespace portfolio { class Portfolio; }
 
 namespace quan {
+
+    class QuanSampleProcessor;
 
     class QuanChromatograms {
 
@@ -56,13 +59,16 @@ namespace quan {
         QuanChromatograms( const std::shared_ptr< adcontrols::ProcessMethod> );
         QuanChromatograms( const QuanChromatograms& );
 
-        bool mslock( adcontrols::MassSpectrum& ms );
-        bool processIt( size_t pos, adcontrols::MassSpectrum& ms );
-        void save( portfolio::Portfolio& portfolio );
+        bool doMSLock( adcontrols::MassSpectrum& ms );
+        bool processIt( size_t pos, adcontrols::MassSpectrum& ms, QuanSampleProcessor& );
+        void commit( QuanSampleProcessor& ); //portfolio::Portfolio& portfolio );
+        bool lockmass_enabled() const;
 
     private:
-        enum { idFormula, idMass, idChromatogram };
-        typedef std::tuple< std::string, double, std::shared_ptr< adcontrols::Chromatogram > > target_t;
+        enum { idFormula, idMass, idChromatogram, idPeakResult };
+        typedef std::tuple< std::string, double
+                            , std::shared_ptr< adcontrols::Chromatogram >
+                            , std::shared_ptr< adcontrols::PeakResult> > target_t;
 
         std::vector< target_t > targets_; // order by mass
 

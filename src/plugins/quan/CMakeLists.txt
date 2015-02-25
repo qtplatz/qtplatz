@@ -148,6 +148,7 @@ target_link_libraries(
   adwidgets
   adportable
   adpublisher
+  chromatogr
   qtwrapper
   xmlparser
   Core

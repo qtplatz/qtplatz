@@ -23,18 +23,22 @@
 **************************************************************************/
 
 #include "quanchromatograms.hpp"
+#include "quansampleprocessor.hpp"
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/utf.hpp>
+#include <chromatogr/chromatography.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
@@ -80,7 +84,7 @@ QuanChromatograms::QuanChromatograms( const std::shared_ptr< adcontrols::Process
             
             if ( ! formula.empty() ) {
                 
-                targets_.push_back( std::make_tuple( formula, exactMass, std::make_shared< adcontrols::Chromatogram >() ) );
+                targets_.push_back( std::make_tuple( formula, exactMass, std::make_shared< adcontrols::Chromatogram >(), nullptr ) );
 
                 if ( comp.isLKMSRef() )
                     references_.push_back( exactMass );
@@ -101,15 +105,23 @@ QuanChromatograms::QuanChromatograms( const QuanChromatograms& t ) : targets_( t
 }
 
 bool
-QuanChromatograms::processIt( size_t pos, adcontrols::MassSpectrum& ms )
+QuanChromatograms::processIt( size_t pos, adcontrols::MassSpectrum& ms, QuanSampleProcessor& processor )
 {
-    adcontrols::segment_wrapper<> segments( ms );
-    
     if ( auto pCentroidMethod = pm_->find< adcontrols::CentroidMethod >() ) {
     }
+    
+    if ( lockmass_enabled() ) {
+        bool locked = false;
+        if ( auto raw = processor.getLCMSDataset() ) {
+            adcontrols::lockmass lkms;
+            if ( raw->mslocker( lkms ) )
+                locked = lkms( ms, true );
+        }
+        if ( !locked )
+            doMSLock( ms );
+    }
 
-    if ( mslockm_ && mslock_ )
-        mslock( ms );
+    adcontrols::segment_wrapper<> segments( ms );
     
     int fcn = 0;
     for ( auto& fms: segments ) {
@@ -147,7 +159,7 @@ QuanChromatograms::processIt( size_t pos, adcontrols::MassSpectrum& ms )
 }
 
 bool
-QuanChromatograms::mslock( adcontrols::MassSpectrum& profile )
+QuanChromatograms::doMSLock( adcontrols::MassSpectrum& profile )
 {
     //--------- centroid --------
     auto centroid = std::make_shared< adcontrols::MassSpectrum >();
@@ -206,16 +218,51 @@ QuanChromatograms::mslock( adcontrols::MassSpectrum& profile )
 }
 
 void
-QuanChromatograms::save( portfolio::Portfolio& portfolio )
+QuanChromatograms::commit( QuanSampleProcessor& processor )
 {
-    auto folder = portfolio.addFolder( L"Chromatograms" );
-    for ( auto& t : targets_ ) {
-        std::wstring wformula = adportable::utf::to_wstring( std::get<idFormula>( t ) );
-        if ( auto folium = folder.findFoliumByName( wformula ) )
-            folder.removeFolium( folium );
-        auto folium = folder.addFolium( wformula );
-        auto pChro = std::get<idChromatogram>( t );
-        folium.assign( pChro, pChro->dataClass() );
+    if ( auto peakm = pm_->find< adcontrols::PeakMethod >() ) {
+        chromatogr::Chromatography peakfinder( *peakm );
+
+        for ( auto& t: targets_ ) {
+            if ( auto pChro = std::get< idChromatogram >( t ) ) {
+                if ( peakfinder( *pChro ) ) {
+                    auto result = std::make_shared< adcontrols::PeakResult >();
+                    result->setBaselines( peakfinder.getBaselines() );
+                    result->setPeaks( peakfinder.getPeaks() );
+                    std::get< idPeakResult >( t ) = result;
+                }
+            }
+        }
+    }
+
+    
+    if ( auto portfolio = processor.portfolio() ) {
+
+        auto folder = portfolio->addFolder( L"Chromatograms" );
+
+        for ( auto& t : targets_ ) {
+            std::wstring wformula = adportable::utf::to_wstring( std::get<idFormula>( t ) );
+            auto pChro = std::get<idChromatogram>( t );
+            
+            while ( auto folium = folder.findFoliumByName( wformula ) ) {
+                processor.fetch( folium );
+                folder.removeFolium( folium );
+            }
+            
+            if ( auto folium = folder.addFolium( wformula ) ) {
+                folium.assign( pChro, pChro->dataClass() );
+
+                portfolio::Folium att = folium.addAttachment( L"Peak Result" );
+                if ( auto pResult = std::get< idPeakResult >( t ) )
+                    att.assign( pResult, pResult->dataClass() );
+                att.addAttachment( L"Process Method" ).assign( pm_, pm_->dataClass() );
+            }
+        }
     }
 }
 
+bool
+QuanChromatograms::lockmass_enabled() const
+{
+    return mslockm_ && mslock_;
+}

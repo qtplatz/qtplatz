@@ -29,7 +29,7 @@
 
 class QGridLayout;
 
-namespace adwidgets { class CentroidForm; }
+namespace adwidgets { class CentroidForm; class PeakMethodForm; }
 
 namespace quan {
 
@@ -43,7 +43,6 @@ namespace quan {
 
     private:
         QGridLayout * layout_;
-        adwidgets::CentroidForm * form_;
         void handleDataChanged( int, bool );
 
     signals:
