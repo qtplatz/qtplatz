@@ -25,6 +25,7 @@
 #include "massspectrometer.hpp"
 #include "datainterpreter.hpp"
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adplugin/visitor.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 

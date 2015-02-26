@@ -1,9 +1,8 @@
-<plugin name=\"u5303aplugin\" version=\"1.0.1\" compatVersion=\"1.3.1\">
+<plugin name="@PROJECT_NAME@" version="@VERSION@" compatVersion="@COMPAT_VERSION@">
     <vendor>MS-Cheminformatics</vendor>
-    <copyright>(C) 2014 MS-Cheminformatics LLC</copyright>
+    <copyright>(C) 2010-2015, MS-Cheminformatics LLC</copyright>
     <license>Put your license text here</license>
-    <description>Put a short description of your plugin here</description>
-    <url>http://www.ms-cheminfo.com</url>
-    $$dependencyList
+    <description>Quantitative Analysis add onto QtPlatz</description>
+    <url>http://www.qtplatz.com</url>
+    @DEPENDENCY_LIST@
 </plugin>
-

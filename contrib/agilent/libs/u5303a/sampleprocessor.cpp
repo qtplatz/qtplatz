@@ -39,7 +39,7 @@
 #include <adfs/folder.hpp>
 #include <boost/date_time.hpp>
 #include <boost/format.hpp>
-#include <regex>
+//#include <regex>
 
 using namespace u5303a;
 

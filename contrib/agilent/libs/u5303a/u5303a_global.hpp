@@ -25,12 +25,12 @@
 #ifndef U5303A_GLOBAL_HPP
 #define U5303A_GLOBAL_HPP
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
 #if defined(U5303A_LIBRARY)
-#  define U5303ASHARED_EXPORT Q_DECL_EXPORT
+#  define U5303ASHARED_EXPORT DECL_EXPORT
 #else
-#  define U5303ASHARED_EXPORT Q_DECL_IMPORT
+#  define U5303ASHARED_EXPORT DECL_IMPORT
 #endif
 
 #endif // U5303A_GLOBAL_HPP
