@@ -260,7 +260,7 @@ QuanProcessor::doQuantification( adfs::sqlite& db )
     };
 
     std::map< uint64_t, unknown > unknowns;
-
+    
     if ( sql.prepare( "\
 SELECT QuanResponse.id, QuanSample.id, QuanCompound.formula, intensity, a, b, c, d, e, f \
 FROM QuanResponse, QuanCompound, QuanSample, QuanCalib \

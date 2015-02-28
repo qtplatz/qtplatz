@@ -17,7 +17,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 file(GLOB UIs *.ui)
-file(GLOB Resources *.qrc)
+file(GLOB u5303a_Resources *.qrc)
 
 set(COMPAT_VERSION 3.2.81)
 set(VERSION 3.1.4)
@@ -46,7 +46,7 @@ add_definitions(
 include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${CMAKE_BINARY_DIR}/src/libs/adinterface
-  ${CMAKE_BINARY_DIR}/src/libs
+  ${CMAKE_SOURCE_DIR}/src/libs
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${ACE+TAO_INCLUDE_DIRS}
@@ -79,6 +79,7 @@ add_library(
   u5303amethodtable.hpp
   u5303amethodwidget.hpp
   isequenceimpl.cpp
+  ${u5303a_Resources}
   )
 
 target_link_libraries(

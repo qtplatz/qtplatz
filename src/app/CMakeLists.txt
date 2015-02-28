@@ -29,17 +29,30 @@ else()
     )
 endif()
 
-add_executable( qtplatz 
+set( SOURCES
   main.cpp 
   ../tools/qtcreatorcrashhandler/crashhandlersetup.cpp
   ../tools/qtcreatorcrashhandler/crashhandlersetup.h
   ../shared/qtsingleapplication/qtsingleapplication.cpp
   ../shared/qtsingleapplication/qtlocalpeer.cpp
   ../shared/qtlockedfile/qtlockedfile.cpp
-  ${lockedfile_SOURCES}
-  ${${PROJECT_NAME}_Resources}
-  qtplatz.rc
-)
+  )
+
+if ( WIN32 )
+  add_executable( qtplatz WIN32
+    ${SOURCES}  
+    ${lockedfile_SOURCES}
+    ${${PROJECT_NAME}_Resources}
+    qtplatz.rc
+    )
+else()
+  add_executable( qtplatz WIN32
+    ${SOURCES}  
+    ${lockedfile_SOURCES}
+    ${${PROJECT_NAME}_Resources}
+    qtplatz.rc
+    )
+endif()
 
 target_link_libraries(
   qtplatz LINK_PUBLIC

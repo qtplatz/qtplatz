@@ -25,7 +25,7 @@
 #ifndef U5303AMETHODTABLE_HPP
 #define U5303AMETHODTABLE_HPP
 
-#include <QTableView>
+#include <adwidgets/tableview.hpp>
 
 class QStandardItemModel;
 
@@ -33,7 +33,7 @@ namespace u5303a {
 
     class method; // defined in <u5303a/digitizer.hpp>
 
-    class u5303AMethodTable : public QTableView  {
+    class u5303AMethodTable : public adwidgets::TableView  {
         Q_OBJECT
     public:
         explicit u5303AMethodTable(QWidget *parent = 0);

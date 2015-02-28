@@ -29,19 +29,50 @@
 #include <QStyledItemDelegate>
 #include <QHeaderView>
 #include <QTextDocument>
+#include <QComboBox>
 
 namespace u5303a {
 
-    enum { c_item_name
-           , c_item_value
-           , c_description
+    enum { c_item_name, c_item_value, c_description };
+    enum { r_front_end_range
+           , r_front_end_offset
+           , r_sampling_rate
+           , r_ext_trigger_level
+           , number_of_samples
+           , number_of_average
+           , delay_to_first_sample
+           , invert_signal
+           , nsa
     };
     
-    // class u5303AMethodDelegate : public QStyledItemDelegate {
-    //     Q_OBJECT
-    // public:
+    class u5303AMethodDelegate : public QStyledItemDelegate {
+        // Q_OBJECT
+    public:
+        void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            return QStyledItemDelegate::paint( painter, option, index );
+        }
+        void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
+            if ( index.row() == r_sampling_rate ) {
+                if ( auto combo = qobject_cast< QComboBox * >( editor ) ) {
+                    int idx = combo->currentIndex();
+                    double value = ( idx == 0 ) ? 3.2e9 : 1.0e9;
+                    model->setData( index, value, Qt::EditRole );
+                }
+            } else {
+                return QStyledItemDelegate::setModelData( editor, model, index );
+            }
+        }
+        QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            if ( index.row() == r_sampling_rate ) {
+                auto combo = new QComboBox( parent );
+                combo->addItems( QStringList() << "3.2GS/s" << "1.0GS/s" );
+                return combo;
+            } else {
+                return QStyledItemDelegate::createEditor( parent, option, index );
+            }
+        }
         
-    // };
+    };
 
 }
 
@@ -52,12 +83,12 @@ u5303AMethodTable::~u5303AMethodTable()
     delete model_;
 }
 
-u5303AMethodTable::u5303AMethodTable(QWidget *parent) : QTableView(parent)
+u5303AMethodTable::u5303AMethodTable(QWidget *parent) : adwidgets::TableView(parent)
                                                       , model_( new QStandardItemModel )
                                                       , in_progress_( false )
 {
     setModel( model_ );
-	// setItemDelegate( new u5303AMethodDelegate );
+	setItemDelegate( new u5303AMethodDelegate );
     QFont font;
     setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 }
@@ -99,7 +130,7 @@ u5303AMethodTable::onInitialUpdate()
     ++row;
     model.setData( model.index( row, 0 ), "sampling rate" );
     model.setData( model.index( row, 1 ), m.samp_rate );
-    model.setData( model.index( row, 2 ), "sampling rate (3.2GS/s)" );
+    model.setData( model.index( row, 2 ), "sampling rate (1.0GS/s or 3.2GS/s)" );
     ++row;
     model.setData( model.index( row, 0 ), "ext. trigger level" );
     model.setData( model.index( row, 1 ), m.ext_trigger_level );

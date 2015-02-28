@@ -327,6 +327,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     } catch ( _com_error & e ) {
         ERR(e,"Initialize");
     }
+    
     if ( !success ) {
         try {
             BSTR strInitOptions = _bstr_t( L"Simulate=true, DriverSetup= Model=U5303A, Trace=false" );
@@ -360,8 +361,16 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 
         if ( simulated_ )
             device<Simulate>::initial_setup( *this, method_ );
-        else
+        else {
             device<UserFDK>::initial_setup( *this, method_ );
+
+            auto iinfo = spDriver_->InstrumentInfo;
+            long chassisNumber = iinfo->ChassisNumber;
+            auto ioVersion = iinfo->IOVersion;
+            auto nbrADCBits = iinfo->NbrADCBits;
+            auto options = iinfo->Options;
+            auto serialNumber = iinfo->SerialNumberString;
+        }
     }
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
@@ -817,7 +826,10 @@ template<> bool
 device<Simulate>::readData( task& task, waveform& data )
 {
     data.method_ = task.method();
-    if ( simulator * simulator = task.simulator() )
-        return simulator->readData( data );
+    if ( simulator * simulator = task.simulator() ) {
+        simulator->readData( data );
+        data.xIncrement = data.method_.samp_rate;
+        return true;
+    }
     return false;
 }
