@@ -34,6 +34,10 @@
 
 namespace adcontrols { class ControlMethod; }
 
+#if defined _MSC_VER
+# pragma warning(disable:4251)
+#endif
+
 namespace u5303a {
 
     namespace detail { class task; }
@@ -111,7 +115,14 @@ namespace u5303a {
             , firstValidElement_(0)
             , wellKnownEvents_(0)
             , serialnumber_(0)
-            , timestamp_(0) {
+            , timestamp_(0)
+            , actualAverages(0)
+            , actualRecords(0)
+            , initialXOffset(0)
+            , xIncrement(0)
+            , scaleFactor(0)
+            , scaleOffset(0)
+            , numPointsPerRecord(0) {
         }
         method method_;
         uint32_t serialnumber_;
@@ -119,6 +130,13 @@ namespace u5303a {
         uint64_t timestamp_;
         int64_t actualElements_;
         int64_t firstValidElement_;
+        int32_t actualAverages;
+        int64_t actualRecords;
+        double initialXOffset;
+        double xIncrement;
+        double scaleFactor;
+        double scaleOffset;
+        int64_t numPointsPerRecord;
         std::vector< int32_t > d_;
     };
 

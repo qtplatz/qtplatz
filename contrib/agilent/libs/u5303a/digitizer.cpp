@@ -554,7 +554,7 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     }
 	try {
 		task.spDriver()->Channels2->Item2[L"Channel1"]->DataInversionEnabled = m.invert_signal ? VARIANT_TRUE : VARIANT_FALSE;
-	} catch (_com_error& e) {
+	} catch (_com_error&) {
 
 	}
 
@@ -595,22 +595,23 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     try { task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
 
     // Set the sample rate and nbr of samples to acquire
+    bool success = false;
     const double sample_rate = 3.2E9;
     try {
         task.spDriver()->Acquisition2->SampleRate = sample_rate;
+        success = true;
     }  catch (_com_error& e) {
         TERR(e,"SampleRate");
     }
-    // try {
-    //     task.spDriver()->Acquisition->UserControl->PostTrigger = (m.nbr_of_s_to_acquire/32) + 2;
-    // } catch ( _com_error& e ) {
-    //     TERR(e,"PostTrigger");
-    // }
-    //try { task.spDriver()->Acquisition->UserControl->PreTrigger = 0; } catch ( _com_error& e ) { TERR(e,"PreTrigger"); }
-
+    if ( !success ) {
+        try {
+            task.spDriver()->Acquisition2->SampleRate = 1.0E9;
+            success = true;
+        } catch ( _com_error& e ) {
+            TERR( e, "SampleRate" );
+        }
+    }
     // Start on trigger
-    //try { task.spDriver()->Acquisition->UserControl->StartOnTriggerEnabled = 1; } catch ( _com_error& e ) { TERR( e,"StartOnTrigger" ); }
-
     // Full bandwidth
     try {
         task.spDriver()->Channels2->GetItem2("Channel1")->Filter->Bypass = 1;
@@ -619,13 +620,6 @@ device<UserFDK>::initial_setup( task& task, const method& m )
         TERR( e, "Bandwidth" );
     }
 
-    // try { spDpuA->WriteRegisterInt32(0x3300, seg_depth);         } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3300"); }
-    // try { spDpuA->WriteRegisterInt32(0x3304, m.nbr_of_averages); } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3304"); }
-    // try { spDpuA->WriteRegisterInt32(0x3308, seg_ctrl);          } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3308"); }
-    // try { spDpuA->WriteRegisterInt32(0x3318, m.nbr_of_averages); } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3318"); }
-    // try { spDpuA->WriteRegisterInt32(0x331c, m.nsa);             } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x331c"); }
-    // try { spDpuA->WriteRegisterInt32(0x3320, m.delay_to_first_s);} catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3320"); }
-    // try { spDpuA->WriteRegisterInt32(0x3324, delay_next_acq);    } catch ( _com_error& e ) { TERR(e, "WriteRegisterInt32,0x3324"); }
     //--->
     try {
         task.spDriver()->Acquisition->RecordSize = m.nbr_of_s_to_acquire;
@@ -707,37 +701,37 @@ device<UserFDK>::readData( task& task, waveform& data )
     __int64 offsetWithinRecord = 0;
     SAFEARRAY* dataArray = NULL;
     long actualAverages = 0;
-    __int64 actualRecords = 0;
+    // __int64 actualRecords = 0;
     SAFEARRAY* actualPoints = NULL;
     SAFEARRAY* firstValidPoint = NULL;
     double initialXOffset = 0.0;
     SAFEARRAY* initialXTimeSeconds = NULL;
     SAFEARRAY* initialXTimeFraction = NULL;
-    double xIncrement = 0.0;
-    double scaleFactor = 0.0;
-    double scaleOffset = 0.0;
+    // double xIncrement = 0.0;
+    // double scaleFactor = 0.0;
+    // double scaleOffset = 0.0;
     SAFEARRAY* flags = NULL;
 	const int64_t numPointsPerRecord = task.method().nbr_of_s_to_acquire;
-
+    
     try {
-        spCh1->Measurement2->FetchAccumulatedWaveformInt32(firstRecord,
-                                                           numRecords,
-                                                           offsetWithinRecord,
-                                                           numPointsPerRecord,
-                                                           &dataArray,
-                                                           &actualAverages,
-                                                           &actualRecords,
-                                                           &actualPoints,
-                                                           &firstValidPoint,
-                                                           &initialXOffset,
-                                                           &initialXTimeSeconds,
-                                                           &initialXTimeFraction,
-                                                           &xIncrement,
-                                                           &scaleFactor,
-                                                           &scaleOffset,
-                                                           &flags);
+        spCh1->Measurement2->FetchAccumulatedWaveformInt32( firstRecord
+                                                            , numRecords
+                                                            , offsetWithinRecord
+                                                            , numPointsPerRecord
+                                                            , &dataArray
+                                                            , &actualAverages
+                                                            , &data.actualRecords
+                                                            , &actualPoints
+                                                            , &firstValidPoint
+                                                            , &initialXOffset
+                                                            , &initialXTimeSeconds
+                                                            , &initialXTimeFraction
+                                                            , &data.xIncrement
+                                                            , &data.scaleFactor
+                                                            , &data.scaleOffset
+                                                            , &flags );
 
-        ADDEBUG() << "actual records: " << actualRecords;
+        data.actualAverages = actualAverages;
 
 		safearray_t<__int64> saFirstValidPoint( firstValidPoint );
         ADDEBUG() << "first valid point: " << saFirstValidPoint.data()[ 0 ];
@@ -768,10 +762,6 @@ device<UserFDK>::readData( task& task, waveform& data )
 template<> bool
 device<Simulate>::initial_setup( task& task, const method& m )
 {
-    //IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];	
-    //IAgMD2LogicDeviceMemoryBankPtr spDDR3A = spDpuA->MemoryBanks->Item[L"DDR3A"];
-    //IAgMD2LogicDeviceMemoryBankPtr spDDR3B = spDpuA->MemoryBanks->Item[L"DDR3B"];
-	
     // Create smart pointers to Channels and TriggerSource interfaces
     IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
     IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[L"External1"];

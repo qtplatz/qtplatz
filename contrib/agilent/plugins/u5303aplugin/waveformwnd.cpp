@@ -113,7 +113,7 @@ WaveformWnd::handle_waveform()
                                                    , uint32_t(waveform->d_.size())
                                                    , waveform->method_.nbr_of_averages + 1
                                                    , 0 );
-		info.fSampInterval( 1.0 / waveform->method_.samp_rate );
+		info.fSampInterval( 1.0 / waveform->xIncrement );
         prop.acceleratorVoltage( 3000 );
 		prop.setSamplingInfo( info );
         using namespace adcontrols::metric;
