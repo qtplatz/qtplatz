@@ -605,7 +605,7 @@ device<UserFDK>::initial_setup( task& task, const method& m )
 
     // Set the sample rate and nbr of samples to acquire
     bool success = false;
-    const double sample_rate = 3.2E9;
+    const double sample_rate = m.samp_rate; // 3.2E9;
     try {
         task.spDriver()->Acquisition2->SampleRate = sample_rate;
         success = true;
@@ -787,7 +787,7 @@ device<Simulate>::initial_setup( task& task, const method& m )
     try { task.spDriver()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
 
     // Set the sample rate and nbr of samples to acquire
-    double sample_rate = 3.2E9;
+    double sample_rate = m.samp_rate; // 3.2E9;
     try { task.spDriver()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
 
     try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
