@@ -268,7 +268,7 @@ SpectrumWidget::scaleY( const QRectF& rc, std::pair< double, double >& left, std
     using spectrumwidget::TraceData;
     bool hasYLeft( false ), hasYRight( false );
     
-    left = right = std::make_pair( 0.0, 0.0 );
+    left = right = std::make_pair( std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max() );
 
     for ( const TraceData& trace: impl_->traces_ ) {
         std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
@@ -446,8 +446,7 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
 
     if ( scaleY( rect, left, right ) && yRight ) {
         setAxisScale( QwtPlot::yRight, right.first, right.second );
-    }
-    else {
+    } else {
         setAxisScale( QwtPlot::yLeft, left.first, left.second );
     }
     zoomer()->setZoomBase();
@@ -674,7 +673,7 @@ TraceData::y_range( double left, double right ) const
     double top = 100;
     double bottom = -10;
     double xleft = isTimeAxis_ ? metric::scale_to_base( left, metric::micro ) : left;
-    double xright = isTimeAxis_ ? metric::scale_to_base( left, metric::micro ) : right;
+    double xright = isTimeAxis_ ? metric::scale_to_base( right, metric::micro ) : right;
 
     if ( pSpectrum_ ) {
 
