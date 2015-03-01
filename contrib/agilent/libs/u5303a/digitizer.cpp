@@ -32,6 +32,7 @@
 #include <adportable/serializer.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/metric/prefix.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
@@ -95,6 +96,7 @@ namespace u5303a {
             inline IAgMD2Ex2Ptr& spDriver() { return spDriver_; }
             inline simulator * simulator() { return simulator_; }
             inline const method& method() const { return method_; }
+            inline const identify& ident() const { return *ident_; }
             void error_reply( const _com_error& e, const std::string& );
 
         private:
@@ -115,9 +117,9 @@ namespace u5303a {
             std::shared_ptr< adcontrols::ControlMethod > cm_;
             adcontrols::ControlMethod::const_iterator nextIt_;
             std::deque< std::shared_ptr< SampleProcessor > > queue_;
-
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
+            std::shared_ptr< identify > ident_;
 
             bool handle_initial_setup( int nDelay, int nSamples, int nAverage );
             bool handle_terminating();
@@ -312,8 +314,6 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     // it is initialized or reset which is the default behavior. By default set to false.
     // CUSTOM FIRMWARE NAME: U5303ADPULX2AVE.bit
 
-	//BSTR strInitOptions = L"Simulate=false, DriverSetup=UserDpuA=U5303ADPULX2AVE.BIT, Trace=false"; // <-- this file does not exist
-
     // note that CAL=0 is not necessary with MD2 as the card is initialized without calibration.
 				
     VARIANT_BOOL idQuery = VARIANT_TRUE;
@@ -344,33 +344,39 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     }
 
     if ( success ) {
-		identify ident;
+        
+        ident_ = std::make_shared< identify >();
 
-        ident.Identifier       = static_cast< const char *>( _bstr_t( spDriver_->Identity->Identifier.GetBSTR() ) );
-        ident.Revision         = static_cast< const char *>( _bstr_t( spDriver_->Identity->Revision.GetBSTR() ) );
-        ident.Vendor           = static_cast< const char *>( _bstr_t( spDriver_->Identity->Vendor.GetBSTR() ) );
-        ident.Description      = static_cast< const char *>( _bstr_t( spDriver_->Identity->Description.GetBSTR() ) );
-        ident.InstrumentModel  = static_cast< const char *>( _bstr_t( spDriver_->Identity->InstrumentModel.GetBSTR() ) );
-        ident.FirmwareRevision = static_cast< const char *>( _bstr_t( spDriver_->Identity->InstrumentFirmwareRevision.GetBSTR() ) );
+        try {
+            ident_->Identifier = static_cast<const char *>( _bstr_t( spDriver_->Identity->Identifier.GetBSTR() ) );
+            ident_->Revision = static_cast<const char *>( _bstr_t( spDriver_->Identity->Revision.GetBSTR() ) );
+            ident_->Vendor = static_cast<const char *>( _bstr_t( spDriver_->Identity->Vendor.GetBSTR() ) );
+            ident_->Description = static_cast<const char *>( _bstr_t( spDriver_->Identity->Description.GetBSTR() ) );
+            ident_->InstrumentModel = static_cast<const char *>( _bstr_t( spDriver_->Identity->InstrumentModel.GetBSTR() ) );
+            ident_->FirmwareRevision = static_cast<const char *>( _bstr_t( spDriver_->Identity->InstrumentFirmwareRevision.GetBSTR() ) );
+            if ( auto iinfo = spDriver_->InstrumentInfo ) {
+                ident_->SerialNumber = iinfo->SerialNumberString;
+                ident_->IOVersion = iinfo->IOVersion;
+                ident_->Options = iinfo->Options;
+                ident_->NbrADCBits = iinfo->NbrADCBits;
+            }
+        } catch ( _com_error& ex ) {
+            ERR( ex, "Identification failed." );
+        }
 
-        for ( auto& reply: reply_handlers_ ) reply( "Identifier", ident.Identifier );
-        for ( auto& reply: reply_handlers_ ) reply( "Revision", ident.Revision );
-        for ( auto& reply: reply_handlers_ ) reply( "Description", ident.Description );
-        for ( auto& reply: reply_handlers_ ) reply( "InstrumentModel", ident.InstrumentModel );
-        for ( auto& reply: reply_handlers_ ) reply( "InstrumentFirmwareRevision", ident.FirmwareRevision );
+        for ( auto& reply: reply_handlers_ ) reply( "Identifier", ident_->Identifier );
+        for ( auto& reply: reply_handlers_ ) reply( "Revision", ident_->Revision );
+        for ( auto& reply: reply_handlers_ ) reply( "Description", ident_->Description );
+        for ( auto& reply: reply_handlers_ ) reply( "InstrumentModel", ident_->InstrumentModel );
+        for ( auto& reply: reply_handlers_ ) reply( "InstrumentFirmwareRevision", ident_->FirmwareRevision );
+        for ( auto& reply: reply_handlers_ ) reply( "SerialNumber", ident_->SerialNumber );
+        for ( auto& reply: reply_handlers_ ) reply( "IOVersion", ident_->IOVersion );
+        for ( auto& reply: reply_handlers_ ) reply( "Options", ident_->Options );
 
         if ( simulated_ )
             device<Simulate>::initial_setup( *this, method_ );
-        else {
+        else
             device<UserFDK>::initial_setup( *this, method_ );
-
-            auto iinfo = spDriver_->InstrumentInfo;
-            long chassisNumber = iinfo->ChassisNumber;
-            auto ioVersion = iinfo->IOVersion;
-            auto nbrADCBits = iinfo->NbrADCBits;
-            auto options = iinfo->Options;
-            auto serialNumber = iinfo->SerialNumberString;
-        }
     }
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
@@ -426,9 +432,8 @@ task::handle_acquire()
     --acquire_post_count_;
     if ( acquire() ) {
         if ( waitForEndOfAcquisition( 3000 ) ) {
-            auto avgr = std::make_shared< waveform >();
+            auto avgr = std::make_shared< waveform >( ident_ );
             if ( readData( *avgr ) ) {
-				ADTRACE() << "readDate : " << avgr->serialnumber_;
                 // if ( software_events_ ) {
                 //     avgr->wellKnownEvents |= software_events_; // marge with hardware events
                 //     software_events_ = 0;
@@ -472,7 +477,7 @@ task::waitForEndOfAcquisition( int timeout )
 bool
 task::readData( waveform& data )
 {
-    data.serialnumber_ = serialnumber_++;
+    data.serialnumber = serialnumber_++;
     if ( simulated_ )
         return device<Simulate>::readData( *this, data );
     else
@@ -532,6 +537,10 @@ identify::identify( const identify& t ) : Identifier( t.Identifier )
                                         , Description( t.Description )
                                         , InstrumentModel( t.InstrumentModel )
                                         , FirmwareRevision( t.FirmwareRevision )
+                                        , SerialNumber( t.SerialNumber )
+                                        , Options( t.Options )
+                                        , IOVersion( t.IOVersion )
+                                        , NbrADCBits( t.NbrADCBits )
 {
 }
 
@@ -700,27 +709,19 @@ device<UserFDK>::waitForEndOfAcquisition( task& task, int timeout )
 template<> bool
 device<UserFDK>::readData( task& task, waveform& data )
 {
-    static std::chrono::high_resolution_clock::time_point __uptime = std::chrono::high_resolution_clock::now();
-
-    IAgMD2Channel2Ptr spCh1 = task.spDriver()->Channels2->Item2[L"Channel1"];
-    // IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];
-    // Fetch the acquired data in array.
+    IAgMD2Channel2Ptr spCh1 = task.spDriver()->Channels2->Item2[ L"Channel1" ];
     __int64 firstRecord = 0;
     __int64 numRecords = 1;
     __int64 offsetWithinRecord = 0;
-    SAFEARRAY* dataArray = NULL;
+    SAFEARRAY* dataArray = 0;
     long actualAverages = 0;
     // __int64 actualRecords = 0;
-    SAFEARRAY* actualPoints = NULL;
-    SAFEARRAY* firstValidPoint = NULL;
-    double initialXOffset = 0.0;
-    SAFEARRAY* initialXTimeSeconds = NULL;
-    SAFEARRAY* initialXTimeFraction = NULL;
-    // double xIncrement = 0.0;
-    // double scaleFactor = 0.0;
-    // double scaleOffset = 0.0;
-    SAFEARRAY* flags = NULL;
-	const int64_t numPointsPerRecord = task.method().nbr_of_s_to_acquire;
+    SAFEARRAY* actualPoints = 0;
+    SAFEARRAY* firstValidPoint = 0;
+    SAFEARRAY* initialXTimeSeconds = 0;
+    SAFEARRAY* initialXTimeFraction = 0;
+    SAFEARRAY* flags = 0;
+    const int64_t numPointsPerRecord = task.method().nbr_of_s_to_acquire;
     
     try {
         spCh1->Measurement2->FetchAccumulatedWaveformInt32( firstRecord
@@ -729,28 +730,32 @@ device<UserFDK>::readData( task& task, waveform& data )
                                                             , numPointsPerRecord
                                                             , &dataArray
                                                             , &actualAverages
-                                                            , &data.actualRecords
+                                                            , &data.meta.actualRecords
                                                             , &actualPoints
                                                             , &firstValidPoint
-                                                            , &initialXOffset
+                                                            , &data.meta.initialXOffset
                                                             , &initialXTimeSeconds
                                                             , &initialXTimeFraction
-                                                            , &data.xIncrement
-                                                            , &data.scaleFactor
-                                                            , &data.scaleOffset
+                                                            , &data.meta.xIncrement
+                                                            , &data.meta.scaleFactor
+                                                            , &data.meta.scaleOffset
                                                             , &flags );
 
-        data.actualAverages = actualAverages;
+        data.method_ = task.method();
+
+        data.meta.actualAverages = actualAverages;
 
 		safearray_t<__int64> saFirstValidPoint( firstValidPoint );
-        ADDEBUG() << "first valid point: " << saFirstValidPoint.data()[ 0 ];
+        data.meta.firstValidPoint = saFirstValidPoint.data()[ 0 ];
 
-        data.method_ = task.method();
-        data.timestamp_ = std::chrono::duration< uint64_t, std::pico >( std::chrono::high_resolution_clock::now() - __uptime ).count();
+        safearray_t< double > saInitialXTimeSeconds( initialXTimeSeconds );
+        safearray_t< double > saInitialXTimeFraction( initialXTimeFraction );
+        data.meta.initialXTimeSeconds = saInitialXTimeSeconds.data()[ 0 ] + saInitialXTimeFraction.data()[ 0 ];
 
 		safearray_t<int32_t> sa( dataArray );
         data.d_.resize( numPointsPerRecord );
-		std::copy( sa.data() + data.firstValidElement_, sa.data() + numPointsPerRecord, data.d_.begin() );
+        std::copy( sa.data() + data.meta.firstValidPoint, sa.data() + numPointsPerRecord, data.d_.begin() );
+        data.meta.firstValidPoint = 0;
 
         // Release memory.
         SafeArrayDestroy(flags);
@@ -828,7 +833,12 @@ device<Simulate>::readData( task& task, waveform& data )
     data.method_ = task.method();
     if ( simulator * simulator = task.simulator() ) {
         simulator->readData( data );
-        data.xIncrement = data.method_.samp_rate;
+        data.meta.xIncrement = 1.0 / data.method_.samp_rate;
+        data.meta.actualAverages = data.method_.nbr_of_averages;
+        data.meta.numPointsPerRecord = data.method_.nbr_of_s_to_acquire;
+        data.meta.scaleFactor = 1.0;
+        data.meta.scaleOffset = 0.0;
+        
         return true;
     }
     return false;

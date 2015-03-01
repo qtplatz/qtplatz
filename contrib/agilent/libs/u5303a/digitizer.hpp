@@ -52,18 +52,27 @@ namespace u5303a {
         std::string Description;
         std::string InstrumentModel;
         std::string FirmwareRevision;
+        std::string SerialNumber;
+        std::string Options;
+        std::string IOVersion;
+        uint32_t    NbrADCBits;
     private:
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            (void)version;
             ar & BOOST_SERIALIZATION_NVP( Identifier );
             ar & BOOST_SERIALIZATION_NVP( Revision );
             ar & BOOST_SERIALIZATION_NVP( Vendor );
             ar & BOOST_SERIALIZATION_NVP( Description );
             ar & BOOST_SERIALIZATION_NVP( InstrumentModel );
             ar & BOOST_SERIALIZATION_NVP( FirmwareRevision );
+            if ( version >= 1 ) {
+                ar & BOOST_SERIALIZATION_NVP( SerialNumber );
+                ar & BOOST_SERIALIZATION_NVP( Options );
+                ar & BOOST_SERIALIZATION_NVP( IOVersion );
+                ar & BOOST_SERIALIZATION_NVP( NbrADCBits );                
+            }
         }
     };
 
@@ -107,29 +116,21 @@ namespace u5303a {
         }
     };
 
-	class U5303ASHARED_EXPORT waveform : public std::enable_shared_from_this< waveform > {
-		waveform( const waveform& ); // = delete;
-		void operator = ( const waveform& ); // = delete;
-	public:
-		waveform() : actualElements_(0)
-            , firstValidElement_(0)
-            , wellKnownEvents_(0)
-            , serialnumber_(0)
-            , timestamp_(0)
-            , actualAverages(0)
-            , actualRecords(0)
-            , initialXOffset(0)
-            , xIncrement(0)
-            , scaleFactor(0)
-            , scaleOffset(0)
-            , numPointsPerRecord(0) {
+	class U5303ASHARED_EXPORT metadata {
+    public:
+        metadata() : initialXTimeSeconds( 0 )
+			, actualElements( 0 )
+            , firstValidPoint( 0 )
+            , actualAverages( 0 )
+            , actualRecords( 0 )
+            , initialXOffset( 0 )
+            , scaleFactor( 0 )
+            , scaleOffset( 0 )
+            , numPointsPerRecord( 0 ) {
         }
-        method method_;
-        uint32_t serialnumber_;
-        uint32_t wellKnownEvents_;
-        uint64_t timestamp_;
-        int64_t actualElements_;
-        int64_t firstValidElement_;
+        double initialXTimeSeconds; 
+        int64_t actualElements;
+        int64_t firstValidPoint;
         int32_t actualAverages;
         int64_t actualRecords;
         double initialXOffset;
@@ -137,8 +138,52 @@ namespace u5303a {
         double scaleFactor;
         double scaleOffset;
         int64_t numPointsPerRecord;
-        std::vector< int32_t > d_;
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize( Archive& ar, const unsigned int version ) {
+            using namespace boost::serialization;
+            (void)version;
+            ar & BOOST_SERIALIZATION_NVP( initialXTimeSeconds );
+            ar & BOOST_SERIALIZATION_NVP( actualElements ); 
+            ar & BOOST_SERIALIZATION_NVP( firstValidPoint );
+            ar & BOOST_SERIALIZATION_NVP( actualAverages );
+            ar & BOOST_SERIALIZATION_NVP( actualRecords );
+            ar & BOOST_SERIALIZATION_NVP( initialXOffset );
+            ar & BOOST_SERIALIZATION_NVP( xIncrement );
+            ar & BOOST_SERIALIZATION_NVP( scaleFactor );
+            ar & BOOST_SERIALIZATION_NVP( scaleOffset );
+        }
     };
+    
+	class U5303ASHARED_EXPORT waveform : public std::enable_shared_from_this< waveform > {
+		waveform( const waveform& ); // = delete;
+		void operator = ( const waveform& ); // = delete;
+	public:
+        waveform( std::shared_ptr< identify >& id ) : ident_( id ), wellKnownEvents( 0 ), serialnumber( 0 ) {
+        }
+        method method_;
+        metadata meta;
+        uint32_t serialnumber;
+        uint32_t wellKnownEvents;
+        std::vector< int32_t > d_;
+        std::shared_ptr< identify > ident_;
+    };
+
+	class U5303ASHARED_EXPORT device_data {
+    public:
+        identify ident;
+        metadata meta;
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize( Archive& ar, const unsigned int ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( ident );
+            ar & BOOST_SERIALIZATION_NVP( meta );           
+        }
+    };
+    
 
     class U5303ASHARED_EXPORT digitizer {
     public:
@@ -165,5 +210,6 @@ namespace u5303a {
 }
 
 BOOST_CLASS_VERSION( u5303a::method, 1 )
+BOOST_CLASS_VERSION( u5303a::identify, 1 )
 
 #endif

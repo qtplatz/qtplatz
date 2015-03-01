@@ -39,7 +39,7 @@ namespace u5303a {
         void addIons( const std::vector< std::pair<double, double> >& ); // pair<mass, intensity>
         void onTriggered(); // ns
         const std::vector< int32_t >& waveform() const;
-        uint64_t timestamp() const;
+        double timestamp() const;
         uint32_t serialNumber() const;
         uint32_t startDelay() const;
         uint32_t nbrWaveforms() const;
@@ -51,7 +51,7 @@ namespace u5303a {
         uint32_t nStartDelay_;
         uint32_t nbrSamples_;
         uint32_t sampInterval_; // ps
-        uint64_t timeStamp_;    // ps
+        double timeStamp_;    // s
         uint32_t nbrWaveforms_;
 
         std::vector< int32_t > waveform_;

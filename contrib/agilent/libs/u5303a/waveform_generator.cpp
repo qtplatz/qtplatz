@@ -91,13 +91,13 @@ void
 waveform_generator::onTriggered()
 {
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();    
-    timeStamp_ = std::chrono::duration< uint64_t, std::pico >( now - __uptime__ ).count(); // ps
+    timeStamp_ = std::chrono::duration< double >( now - __uptime__ ).count(); // s
 
     noise __noise__( -15.0, 35.0 );
 
     using namespace adcontrols::metric;
 
-    double seconds = scale_to_base<double>( double(timeStamp_), pico );
+    double seconds = timeStamp_;
     double hf = ( std::sin( seconds / 10.0 ) + 1.20 ) / 2.20;
 
     std::vector< double > times;
@@ -105,8 +105,8 @@ waveform_generator::onTriggered()
 	static int counter;
 
     std::ostringstream o;
-	auto d =  std::chrono::duration< uint64_t, std::nano >( now - __last__ ).count();
-	o << "onTriggerd: " << counter++ << " t: " << seconds << " " << int( d / 1000000); // ms
+    auto d = std::chrono::duration< double >( now - __last__ ).count();
+    o << "onTriggerd: " << counter++ << " t: " << seconds << " " << int( d * 1000 ); // ms
 	__last__ = now;
 
     for ( const auto& ion: ions_ ) {
@@ -146,7 +146,7 @@ waveform_generator::waveform() const
     return waveform_;
 }
 
-uint64_t
+double
 waveform_generator::timestamp() const
 {
     return timeStamp_;

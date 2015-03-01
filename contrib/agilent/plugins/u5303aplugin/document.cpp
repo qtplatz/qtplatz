@@ -35,6 +35,7 @@
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <adportable/serializer.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
@@ -207,7 +208,7 @@ document::findWaveform( uint32_t serialnumber )
     if ( que_.empty() )
         return 0;
 	std::shared_ptr< const waveform > ptr = que_.back();
-	ADTRACE() << "findWaveform: " << ptr->serialnumber_;
+    //ADTRACE() << "findWaveform: " << ptr->serialnumber_;
     //if ( serialnumber == (-1) )
     return ptr;
 	/*
@@ -244,8 +245,15 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
-    prop.setTimeSinceInjection( scale_to_base<double>( double( waveform.timestamp_ ), pico ) );
+    prop.setTimeSinceInjection( waveform.meta.initialXTimeSeconds );
     prop.setDataInterpreterClsid( "u5303a" );
+
+    u5303a::device_data data;
+    data.ident = *waveform.ident_;
+    data.meta = waveform.meta;
+    std::string ar;
+    adportable::binary::serialize<>()( data, ar );
+    prop.setDeviceData( ar.data(), ar.size() );
 
     // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );

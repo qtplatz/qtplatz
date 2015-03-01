@@ -31,6 +31,7 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/trace.hpp>
+#include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QSplitter>
@@ -92,13 +93,13 @@ WaveformWnd::handle_waveform()
 {
     if ( auto waveform = document::instance()->findWaveform() ) {
         double dbase(0), rms(0);
+        double timestamp = waveform->meta.initialXTimeSeconds; 
         do {
             // timed trace
             const int32_t * data = waveform->d_.data();
             double tic = adportable::spectrum_processor::tic( static_cast<unsigned int>(waveform->d_.size()), data, dbase, rms );
 
-            double t = adcontrols::metric::scale_to_base( waveform->timestamp_, adcontrols::metric::pico );
-			tp_->push_back( waveform->serialnumber_, t, tic );
+			tp_->push_back( waveform->serialnumber, timestamp, tic );
             tpw_->setData( *tp_ );
         } while(0);
 
@@ -109,16 +110,20 @@ WaveformWnd::handle_waveform()
 
         adcontrols::MSProperty prop = sp_->getMSProperty();
 		adcontrols::MSProperty::SamplingInfo info( 0
-                                                   , waveform->method_.delay_to_first_s
+                                                   , uint32_t( waveform->meta.initialXOffset / waveform->meta.xIncrement )
                                                    , uint32_t(waveform->d_.size())
-                                                   , waveform->method_.nbr_of_averages + 1
+                                                   , waveform->meta.actualAverages
                                                    , 0 );
-		info.fSampInterval( 1.0 / waveform->xIncrement );
+        info.fSampInterval( waveform->meta.xIncrement );
         prop.acceleratorVoltage( 3000 );
 		prop.setSamplingInfo( info );
         using namespace adcontrols::metric;
-        prop.setTimeSinceInjection( double( waveform->timestamp_ ) ); // to base
+        prop.setTimeSinceInjection( timestamp ); // seconds
         prop.setDataInterpreterClsid( "u5303a" );
+
+        
+
+        
         // prop.setDeviceData(); TBA
         sp_->setMSProperty( prop );
 
@@ -128,8 +133,8 @@ WaveformWnd::handle_waveform()
 			sp_->setIntensity( idx++, y - dbase );
 		spw_->setData( sp_, 0 );
         spw_->setKeepZoomed( true );
-		std::chrono::duration< uint64_t, std::pico > pico( waveform->timestamp_ );
-		typedef std::chrono::duration<double> seconds;
-		spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f" ) % std::chrono::duration_cast<seconds>( pico ).count() % rms ).str() );
+        //std::chrono::duration< uint64_t, std::pico > pico( waveform->timestamp_ );
+        //typedef std::chrono::duration<double> seconds;
+        spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f" ) % waveform->meta.initialXTimeSeconds % rms ).str() );
     }
 }
