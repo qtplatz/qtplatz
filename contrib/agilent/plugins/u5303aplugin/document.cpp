@@ -237,8 +237,8 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
 
     adcontrols::MSProperty prop = sp.getMSProperty();
     adcontrols::MSProperty::SamplingInfo info( 0
-                                               , waveform.method_.delay_to_first_s
-                                               , uint32_t(waveform.d_.size())
+                                               , uint32_t( waveform.meta.initialXOffset / waveform.meta.xIncrement + 0.5 )
+                                               , uint32_t( waveform.d_.size() )
                                                , waveform.method_.nbr_of_averages + 1
                                                , 0 );
     info.fSampInterval( 1.0 / waveform.method_.samp_rate );

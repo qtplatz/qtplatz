@@ -85,7 +85,7 @@ namespace u5303a {
 			, samp_rate( 1.0e9 )			// sampling rate (1.0GS/s)
             , nbr_of_s_to_acquire( 100000 ) // from 1 to 480,000 samples
             , nbr_of_averages( 512 )		// number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
-            , delay_to_first_s( 0 )         // from 0 to 16,000,000 "blocks". Each block shifts by 10ns. 
+            , delay_to_first_sample( 0 )                    // delay from trigger (seconds)
             , invert_signal( 0 )            // 0-> no inversion , 1-> signal inverted
             , nsa( 0x0 ) {                  // bit[31]->enable, bits[11:0]->threshold
         }
@@ -95,7 +95,7 @@ namespace u5303a {
 		double samp_rate; // HZ
         long nbr_of_s_to_acquire;
         long nbr_of_averages;
-        long delay_to_first_s;
+        double delay_to_first_sample;
         long invert_signal;
         long nsa;
     private:
@@ -110,7 +110,13 @@ namespace u5303a {
             ar & BOOST_SERIALIZATION_NVP( samp_rate );
             ar & BOOST_SERIALIZATION_NVP( nbr_of_s_to_acquire );
             ar & BOOST_SERIALIZATION_NVP( nbr_of_averages );
-            ar & BOOST_SERIALIZATION_NVP( delay_to_first_s );
+            if ( version < 2 ) {
+                long tmp;
+                ar & BOOST_SERIALIZATION_NVP( tmp );
+                delay_to_first_sample = 0;
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( delay_to_first_sample );
+            }
             ar & BOOST_SERIALIZATION_NVP( invert_signal );
             ar & BOOST_SERIALIZATION_NVP( nsa );
         }
@@ -209,7 +215,7 @@ namespace u5303a {
 
 }
 
-BOOST_CLASS_VERSION( u5303a::method, 1 )
+BOOST_CLASS_VERSION( u5303a::method, 2 )
 BOOST_CLASS_VERSION( u5303a::identify, 1 )
 
 #endif

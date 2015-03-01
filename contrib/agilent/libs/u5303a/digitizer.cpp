@@ -402,11 +402,11 @@ task::handle_prepare_for_run( const adcontrols::ControlMethod& cm )
         if ( adportable::serializer< u5303a::method >::deserialize( m, nextIt_->data(), nextIt_->size() ) ) {
             ADTRACE() << "u5303a::task::handle_prepare_for_run";
             ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
-                      << "\text_trigger_level: " << m.ext_trigger_level 
+                      << "\text_trigger_level: " << m.ext_trigger_level
                       << "\tsamp_rate: " << m.samp_rate
                       << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
                       << "\tnbr_of_average: " << m.nbr_of_averages
-                      << "\tdelay_to_first_s: " << m.delay_to_first_s
+                      << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample )
                       << "\tinvert_signal: " << m.invert_signal
                       << "\tnsa: " << m.nsa;
         
@@ -583,11 +583,11 @@ device<UserFDK>::initial_setup( task& task, const method& m )
         TERR(e, "Trigger::ActiveSource");
     }
     try {
-        task.spDriver()->Trigger->Delay = 0;
+        task.spDriver()->Trigger->Delay = m.delay_to_first_sample;
     } catch ( _com_error& e ) {
         TERR(e,"mode");        
     }
-    IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[L"External1"];
+    IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[ L"External1" ];
     try {
 		spTrigSrc->Level = m.ext_trigger_level;
 	} catch ( _com_error& e ) {

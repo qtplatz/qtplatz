@@ -145,7 +145,7 @@ u5303AMethodTable::onInitialUpdate()
     model.setData( model.index( row, 2 ), "number of averages ninus one." );
     ++row;
     model.setData( model.index( row, 0 ), "delay to first sample" );
-    model.setData( model.index( row, 1 ), m.delay_to_first_s );
+    model.setData( model.index( row, 1 ), m.delay_to_first_sample );
     model.setData( model.index( row, 2 ), "delay to first sample" );
     ++row;
     model.setData( model.index( row, 0 ), "invert signal" );
@@ -189,7 +189,7 @@ u5303AMethodTable::setContents( const u5303a::method& m )
     ++row;
     model.setData( model.index( row, 1 ), m.nbr_of_averages );
     ++row;
-    model.setData( model.index( row, 1 ), m.delay_to_first_s );
+    model.setData( model.index( row, 1 ), m.delay_to_first_sample * 1.0e6 ); // s -> us
     ++row;
     model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
     ++row;
@@ -218,7 +218,7 @@ u5303AMethodTable::getContents( u5303a::method& m )
     ++row;
 	m.nbr_of_averages = model.index( row, 1 ).data().toInt();
     ++row;
-	m.delay_to_first_s = model.index( row, 1 ).data().toInt();
+    m.delay_to_first_sample = model.index( row, 1 ).data().toDouble() * 1.0e-6; // us -> s
     ++row;
     m.invert_signal = model.index( row, 1 ).data().toBool() ? 1 : 0;
     ++row;
