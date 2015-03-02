@@ -2,13 +2,19 @@
 if ( NOT ace+tao_FOUND )
 
   if ( WIN32 )
+
     find_path( ace+tao_DIR NAMES ace/ACE.h HINTS ENV ACE_ROOT C:/ACE_wrappers )
+
   elseif( RTC_ARCH_ARM AND CMAKE_CROSSCOMPILING )
-    find_path( ace+tao_DIR NAMES include/ace/ACE.h HINTS usr/local/ace+tao/6.3.1 )
+
+    find_path( ace+tao_DIR NAMES include/ace/ACE.h HINTS $ENV{ACE_ROOT} usr/local/ace+tao/6.3.1 usr/local/ace+tao/6.3.0 )
     string( REGEX REPLACE "(.*)/include" "\\1" ace+tao_DIR ${ace+tao_DIR} )
+
   else()
-    find_path( ace+tao_DIR NAMES ace/ACE.h include/ace/ACE.h HINTS ENV ACE_ROOT
+
+    find_path( ace+tao_DIR NAMES ace/ACE.h include/ace/ACE.h HINTS $ENV{ACE_ROOT}
       /usr/local/ace+tao/6.3.1 /usr/local/ace+tao/6.3.0 /usr/local/ace+tao/6.2.8 )
+
   endif()
 
   if ( ace+tao_DIR )
