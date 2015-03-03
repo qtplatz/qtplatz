@@ -35,6 +35,7 @@ namespace portfolio {
 
     class Folium;
     class Folder;
+    class Portfolio;
 
     namespace internal {
 
@@ -62,13 +63,14 @@ namespace portfolio {
             static std::wstring newGuid();
             bool collect_garbage();
             void removed( const std::string& idataId );
-     
+
         private:
-            friend class Portfolio;
+            friend class portfolio::Portfolio;
+            
             bool isXMLLoaded_;
             std::map< std::wstring, boost::any > db_;
-            std::set< std::string > removed_;  // [@dataId]
             pugi::xml_document doc_;
+            std::set< std::string > removed_;  // [@dataId]
         };
     }
 }

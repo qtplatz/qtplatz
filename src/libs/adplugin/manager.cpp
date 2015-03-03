@@ -44,7 +44,7 @@
 #include <QLibrary>
 #include <QDir>
 //#include <QMessageBox>
-#include <QWidget>
+//#include <QWidget>
 #include <map>
 #include <fstream>
 

@@ -32,10 +32,6 @@ else()
 
 endif()
 
-if ( RTC_ARCH_ARM )
-  set( QTPLATZ_CORELIB_ONLY 1 )
-endif()
-
 #find_package(Boost REQUIRED)
 
 #####################

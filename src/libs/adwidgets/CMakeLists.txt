@@ -1,15 +1,16 @@
 
 project(adwidgets)
 
-cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
+cmake_policy(SET CMP0022 NEW)
+cmake_policy(SET CMP0028 NEW)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-#find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
+find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
 
 include_directories(
   ${QWT_INCLUDE_DIR}

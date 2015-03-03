@@ -25,6 +25,7 @@
 #include "mscalibratewidget.hpp"
 #include "mscalibrateform.hpp"
 #include "msreferencetable.hpp"
+#include "msreference.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/debug.hpp>

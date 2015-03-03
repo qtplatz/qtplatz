@@ -15,22 +15,32 @@ add_subdirectory (portfolio)
 add_subdirectory (adorbmgr)
 add_subdirectory (adinterface)
 
-if ( NOT QTPLATZ_CORELIB_ONLY )
+if ( Qt5_FOUND )
+  
+  add_subdirectory (qtwrapper)
+  add_subdirectory (adplot)
 
   add_subdirectory (adextension)
 
-  add_subdirectory (extensionsystem)
-  add_subdirectory (utils)
+  find_package( Qt5 COMPONENTS Script QUIET )
+
+  if ( Qt5Script_FOUND )
+    add_subdirectory (extensionsystem)
+    add_subdirectory (utils)
+  endif()
   
   add_subdirectory (adplugin)
-  add_subdirectory (qtwrapper)
-  add_subdirectory (adplot)
   add_subdirectory (adwidgets)
   add_subdirectory (aggregation)
-  add_subdirectory (adpublisher)
 
-  if ( rdkit_DIR )
-    add_subdirectory (adchem)
+  find_package( Qt5 COMPONENTS XmlPatterns QUIET )
+
+  if ( Qt5XmlPatterns_FOUND )
+    add_subdirectory (adpublisher)
   endif()
 
+endif()
+
+if ( rdkit_DIR )
+  add_subdirectory (adchem)
 endif()

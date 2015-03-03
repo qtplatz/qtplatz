@@ -3,12 +3,13 @@
 #
 project( adplugin )
 
+cmake_policy(SET CMP0028 NEW)
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
 #set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.57 COMPONENTS date_time system regex)
-#find_package(Qt5 5.3.2 CONFIG REQUIRED Widgets Core )
+find_package( Boost 1.57 COMPONENTS date_time system regex )
+find_package( Qt5 5.3.2 CONFIG REQUIRED Widgets Core )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

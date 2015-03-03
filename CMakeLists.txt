@@ -5,7 +5,8 @@ cmake_minimum_required (VERSION 2.8.9)
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW )
 
-set(QMAKE_LAYOUT CACHE BOOL 0)
+set( QMAKE_LAYOUT CACHE BOOL 0 )
+set( QTPLATZ_CORELIB_ONLY CACHE BOOL 0 )
 
 set(QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 
@@ -75,15 +76,18 @@ set( ACE_ROOT $ENV{ACE_ROOT} )
 find_package( Boost REQUIRED )
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
-if ( NOT QTPLATZ_CORELIB_ONLY )
-
-  find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core Sql )
-  if ( Qt5-NOTFIND )
-    message( STATUS "Check PATH environment variable" )
+find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
+if ( Qt5_FOUND )
+  message( "#### Qt5 Found #####" )      
+  find_package( qwt QUIET )
+  if ( qwt_FOUND )
+    message( "#### QWT Found #####" )      
   endif()
-  find_package( qwt )
-  find_package( rdkit )
+endif()
 
+find_package( rdkit QUIET )
+if ( rdkit_FOUND )
+  message( "#### RDKit Found #####" )        
 endif()
 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
