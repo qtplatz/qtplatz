@@ -71,14 +71,14 @@ install( FILES
   ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake
   DESTINATION ${CMAKE_SOURCE_DIR}/lib )
 
-set( ACE_ROOT $ENV{ACE_ROOT} )
+#set( ACE_ROOT $ENV{ACE_ROOT} )
 
 find_package( Boost REQUIRED )
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
 find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
 if ( Qt5_FOUND )
-  message( "#### Qt5 Found #####" )      
+  message( "#### Qt5 Found @ " ${Qt5_DIR} " #####" )      
   find_package( qwt QUIET )
   if ( qwt_FOUND )
     message( "#### QWT Found #####" )      
