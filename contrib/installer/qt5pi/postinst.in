@@ -2,7 +2,7 @@
 
 echo "qt5pi post installation..."
 
-if [ "$1" == "configure" ]; then
+if [ "$1" = "configure" ]; then
    echo "@INSTALL_DIRECTORY@/lib" > /etc/ld.so.conf.d/qt5pi.conf
    ldconfig
 fi
