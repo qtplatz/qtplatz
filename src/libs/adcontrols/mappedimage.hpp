@@ -69,6 +69,7 @@ namespace adcontrols {
                     , unsigned int high = std::numeric_limits<unsigned int>::max() );
 
         operator const boost::numeric::ublas::matrix< double >& () const;
+        double max_z() const;
 
     private:
         class impl;

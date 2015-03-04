@@ -40,17 +40,20 @@ namespace adcontrols {
     public:
         ~impl() {}
         impl( size_t i, size_t j ) : data_( i, j )
-                                   , tof_range_( std::make_pair( 0, 0 ) ) {
+                                   , tof_range_( std::make_pair( 0, 0 ) )
+                                   , z_( std::numeric_limits<double>::min() ) {
             data_.clear();
         }
         impl( impl& t ) : data_( t.data_ )
-                        , tof_range_( std::make_pair( 0, 0 ) ) {
+                        , tof_range_( std::make_pair( 0, 0 ) )
+                        , z_( t.z_ ) {
         }            
 
         adcontrols::idAudit ident_;
         boost::numeric::ublas::matrix< double > data_;
         boost::uuids::uuid data_origin_uuid_;
         std::pair< uint32_t, uint32_t > tof_range_;
+        double z_;
 
     private:
             
@@ -158,8 +161,10 @@ MappedImage::merge( const boost::numeric::ublas::matrix<uint16_t>& frame, unsign
         for ( size_t j = 0; j < frame.size2(); ++j ) {
 
             if ( auto tof = frame(i, j) ) { // has hit
-                if ( low <= tof && tof <= high )
-                    impl_->data_(i, j)++;
+                if ( low <= tof && tof <= high ) {
+                    impl_->data_( i, j ) += 1.0;
+                    impl_->z_ = std::max( impl_->z_, impl_->data_( i, j ) );
+                }
             }
             
         }
@@ -170,4 +175,10 @@ MappedImage::merge( const boost::numeric::ublas::matrix<uint16_t>& frame, unsign
 MappedImage::operator const boost::numeric::ublas::matrix< double >& () const
 {
     return impl_->data_;
+}
+
+double
+MappedImage::max_z() const
+{
+    return impl_->z_;
 }
