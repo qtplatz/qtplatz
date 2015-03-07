@@ -54,6 +54,8 @@ set( adpublisher_HEADERS
 if (${CMAKE_SYSTEM_NAME} MATCHES Darwin )
   include_directories( /opt/local/include/libxml2 )
   link_directories( /opt/local/lib )
+elseif (${CMAKE_SYSTEM_NAME} MATCHES Linux )
+  include_directories( /usr/include/libxml2 )
 endif()
 
 set( adpublisher_RESOURCES adpublisher.qrc )

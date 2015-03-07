@@ -26,7 +26,7 @@ configure_file(
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/sequence-mimetype.xml"
-  "${QTPLATZ_PLUGIN_DIRECTORY}}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
+  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
   )
 
 

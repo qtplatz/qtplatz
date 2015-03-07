@@ -1,6 +1,8 @@
 cmake_policy( SET CMP0020 NEW )
+cmake_policy( SET CMP0028 NEW )
 
 project( addatafile )
+
 set( PROVIDER MS-Cheminformatics )
 
 find_package( Qt5 CONFIG REQUIRED Core )
@@ -13,8 +15,6 @@ configure_file(
 include_directories( ${Qt5Core_INCLUDE_DIRS}  )
 
 add_definitions(-DADDATAFILE_LIBRARY)
-
-#  LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time -ldl
 
 add_library( addatafile MODULE 
   addatafile.cpp
