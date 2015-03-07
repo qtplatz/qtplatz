@@ -24,6 +24,7 @@
 
 #include "instsetup.hpp"
 #include <sstream>
+#include <cstddef>
 
 namespace shrader {
     namespace detail {

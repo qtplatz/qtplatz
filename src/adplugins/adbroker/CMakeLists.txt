@@ -1,3 +1,4 @@
+cmake_policy( SET CMP0028 NEW )
 
 project( adbroker )
 set( PROVIDER MS-Cheminformatics )

@@ -1,5 +1,7 @@
+cmake_policy( SET CMP0028 NEW )
 
 project( adcontroller )
+
 set( PROVIDER MS-Cheminformatics )
 
 add_definitions(-DADCONTROLLER_LIBRARY)

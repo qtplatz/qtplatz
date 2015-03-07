@@ -51,7 +51,7 @@ namespace shrader {
         operator bool () const;
         void dump( std::ostream& ) const;
 
-        const lrptic * lrptic() const;
+        const shrader::lrptic * lrptic() const;
         const msdata * operator []( size_t idx ) const;
         size_t number_of_spectra() const { return msdata_.size(); }
         iterator begin() { return msdata_.begin(); }

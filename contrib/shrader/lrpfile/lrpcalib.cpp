@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "lrpcalib.hpp"
+#include <cstddef>
 #include <istream>
 
 namespace shrader {

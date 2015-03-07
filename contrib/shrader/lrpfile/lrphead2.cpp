@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "lrphead2.hpp"
+#include <cstddef>
 #include <istream>
 
 namespace shrader {

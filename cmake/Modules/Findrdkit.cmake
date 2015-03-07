@@ -15,7 +15,7 @@ if ( WIN32 )
 
 else()
 
-  find_path( rdkit_DIR NAMES rdkit-config.cmake PATHS $ENV{RDBASE}/build $ENV{HOME}/src/rdkit/build /usr/local/rdkit ) 
+  find_path( rdkit_DIR NAMES rdkit-config.cmake PATHS $ENV{RDBASE}/build $ENV{HOME}/src/rdkit/build /usr/local/rdkit /usr/local/lib ) 
 
 endif()
 

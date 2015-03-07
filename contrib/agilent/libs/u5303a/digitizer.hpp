@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,6 +28,7 @@
 #include "u5303a_global.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <cstdint>
 #include <functional>
 #include <vector>
 #include <memory>
@@ -92,12 +93,12 @@ namespace u5303a {
         double front_end_range;
         double front_end_offset;
         double ext_trigger_level;
-		double samp_rate; // HZ
-        long nbr_of_s_to_acquire;
-        long nbr_of_averages;
+	double samp_rate; // HZ
+	int32_t nbr_of_s_to_acquire;
+        int32_t nbr_of_averages;
         double delay_to_first_sample;
-        long invert_signal;
-        long nsa;
+        int32_t invert_signal;
+        int32_t nsa;
     private:
         friend class boost::serialization::access;
         template<class Archive>

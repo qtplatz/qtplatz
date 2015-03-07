@@ -1,8 +1,9 @@
+cmake_policy( SET CMP0028 NEW )
+cmake_policy( SET CMP0022 NEW )
 
 #  LIBS += -lboost_date_time -lboost_system -lboost_wserialization -lboost_serialization 
 project( adcontrols )
 
-cmake_policy(SET CMP0022 NEW)
 
 #set(Boost_USE_STATIC_LIBS ON)
 

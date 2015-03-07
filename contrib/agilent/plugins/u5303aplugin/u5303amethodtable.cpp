@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -137,7 +137,7 @@ u5303AMethodTable::onInitialUpdate()
     model.setData( model.index( row, 2 ), "external trigger threshold" );
     ++row;
     model.setData( model.index( row, 0 ), "number of samples" );
-    model.setData( model.index( row, 1 ), m.nbr_of_s_to_acquire );
+    model.setData( model.index( row, 1 ), uint32_t( m.nbr_of_s_to_acquire ) );
     model.setData( model.index( row, 2 ), "number of sample points in a spectrum" );
     ++row;
     model.setData( model.index( row, 0 ), "number of average" );

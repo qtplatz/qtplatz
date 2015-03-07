@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,12 +25,12 @@
 #ifndef U5303ASPECTROMETER_GLOBAL_HPP
 #define U5303ASPECTROMETER_GLOBAL_HPP
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
 #if defined(U5303ASPECTROMETER_LIBRARY)
-#  define U5303ASPECTROMETERSHARED_EXPORT Q_DECL_EXPORT
+#  define U5303ASPECTROMETERSHARED_EXPORT DECL_EXPORT
 #else
-#  define U5303ASPECTROMETERSHARED_EXPORT Q_DECL_IMPORT
+#  define U5303ASPECTROMETERSHARED_EXPORT DECL_IMPORT
 #endif
 
 #endif // U5303ASPECTROMETER_GLOBAL_HPP

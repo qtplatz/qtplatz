@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "simions.hpp"
+#include <cstddef>
 #include <istream>
 
 namespace shrader {

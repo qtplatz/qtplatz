@@ -1,3 +1,5 @@
+cmake_policy( SET CMP0028 NEW )
+
 project( u5303aspectrometer )
 
 add_definitions(-DU5303ASPECTROMETER_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
