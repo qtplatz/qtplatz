@@ -33,8 +33,6 @@
 #include <boost/system/system_error.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include "debug.hpp"
-
 using namespace adportable;
 
 serialport::serialport( boost::asio::io_service& io_service
@@ -77,20 +75,16 @@ serialport::open( const std::string& device_name, unsigned int baud_rate )
 void
 serialport::write( const char * data, std::size_t length )
 {
-    if ( length == 0 ) {
-        adportable::debug(__FILE__, __LINE__) << "serialport::write requested with zero length -- ignored.";
+    if ( length == 0 )
         return;
-    }
     boost::asio::write( port_, boost::asio::buffer( data, length ) );
 }
 
 bool
 serialport::write( const char * data, std::size_t length, unsigned long microseconds )
 {
-    if ( length == 0 ) {
-        adportable::debug(__FILE__, __LINE__) << "serialport::write requested with zero length -- ignored.";
+    if ( length == 0 )
         return false;
-    }
 
     std::unique_lock< std::mutex > lock( mutex_ );
     outbuf_ = std::string( data, length );
@@ -156,11 +150,8 @@ serialport::handle_write( const boost::system::error_code& error, std::size_t by
         if ( outbuf_.size() == bytes_transferred ) {
             outbuf_.clear();
             cond_.notify_one();        
-        } else
-            adportable::debug(__FILE__, __LINE__ ) 
-                << bytes_transferred << " octets written out of requested " << outbuf_.size() << " octets";
+        }
         
-    } else 
-        adportable::debug(__FILE__, __LINE__) << "handle_write: " << error;
+    }
 }
 

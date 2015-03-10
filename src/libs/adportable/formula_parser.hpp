@@ -35,7 +35,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <boost/format.hpp>
 
 namespace adportable {
 

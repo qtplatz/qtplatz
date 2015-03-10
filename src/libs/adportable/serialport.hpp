@@ -48,7 +48,7 @@ namespace adportable {
         bool open( const std::string& device_name, unsigned int baud_rate = 0 );
 
         void write ( const char *, std::size_t );
-        bool write ( const char *, std::size_t, unsigned long milliseconds );
+        bool write ( const char *, std::size_t, unsigned long microseconds );
 
     private:
         std::mutex mutex_;
