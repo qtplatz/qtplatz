@@ -41,6 +41,7 @@
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/mspeaks.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/processmethod.hpp>

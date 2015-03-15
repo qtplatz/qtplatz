@@ -24,12 +24,12 @@
 
 #pragma once
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
 #if defined(SHRADER_LRPFILE_LIBRARY)
-#  define SHRADER_LRPFILE_LIBRARY_EXPORT Q_DECL_EXPORT
+#  define SHRADER_LRPFILE_LIBRARY_EXPORT DECL_EXPORT
 #else
-#  define SHRADER_LRPFILE_LIBRARY_EXPORT Q_DECL_IMPORT
+#  define SHRADER_LRPFILE_LIBRARY_EXPORT DECL_IMPORT
 #endif
 
 

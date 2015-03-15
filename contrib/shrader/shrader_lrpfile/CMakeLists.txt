@@ -1,10 +1,6 @@
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-find_package( Qt5 CONFIG REQUIRED Core )
-
-include_directories( ${Qt5Core_INCLUDE_DIRS}  )
-
 add_definitions(-DSHRADER_LRPFILE_LIBRARY)
 
 add_library( shrader_lrpfile SHARED
@@ -22,4 +18,4 @@ target_link_libraries( shrader_lrpfile LINK_PUBLIC
   adcontrols
   portfolio )
 
-#target_include_directories( sitcp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+

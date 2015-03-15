@@ -24,84 +24,7 @@ if (WIN32)
 endif(WIN32)
 
 set( utils_lib_SOURCES
-#  environment.cpp
-#  environmentmodel.cpp
-#  qtcprocess.cpp
-#  reloadpromptutils.cpp
-#  settingsselector.cpp
-#  stringutils.cpp
-#  textfieldcheckbox.cpp
-#  textfieldcombobox.cpp
-#  filesearch.cpp
-#  pathchooser.cpp
-#  pathlisteditor.cpp
-#  wizard.cpp
-#  filewizardpage.cpp
-#  filesystemwatcher.cpp
-#  projectintropage.cpp
-#  filenamevalidatinglineedit.cpp
-#  projectnamevalidatinglineedit.cpp
-#  codegeneration.cpp
-#  newclasswidget.cpp
-#  classnamevalidatinglineedit.cpp
-#  linecolumnlabel.cpp
-#  fancylineedit.cpp
-#  qtcolorbutton.cpp
-#  savedaction.cpp
-#  synchronousprocess.cpp
-#  savefile.cpp
-#  fileutils.cpp
-#  textfileformat.cpp
   consoleprocess.cpp
-#  uncommentselection.cpp
-#  parameteraction.cpp
-#  headerviewstretcher.cpp
-#  checkablemessagebox.cpp
-#  styledbar.cpp
-#  stylehelper.cpp
-#  iwelcomepage.cpp
-#  fancymainwindow.cpp
-#  detailsbutton.cpp
-#  detailswidget.cpp
-#  changeset.cpp
-#  faketooltip.cpp
-#  htmldocextractor.cpp
-#  navigationtreeview.cpp
-#  crumblepath.cpp
-#  historycompleter.cpp
-#  buildablehelperlibrary.cpp
-#  annotateditemdelegate.cpp
-#  fileinprojectfinder.cpp
-#  ipaddresslineedit.cpp
-#  statuslabel.cpp
-#  outputformatter.cpp
-#  flowlayout.cpp
-#  networkaccessmanager.cpp
-#  persistentsettings.cpp
-#  completingtextedit.cpp
-#  json.cpp
-#  portlist.cpp
-#  tcpportsgatherer.cpp
-#  appmainwindow.cpp
-#  sleep.cpp
-#  basetreeview.cpp
-#  qtcassert.cpp
-#  elfreader.cpp
-#  bracematcher.cpp
-#  proxyaction.cpp
-#  elidinglabel.cpp
-#  hostosinfo.cpp
-#  tooltip/tooltip.cpp
-#  tooltip/tips.cpp
-#  tooltip/tipcontents.cpp
-#  unixutils.cpp
-#  ansiescapecodehandler.cpp
-#  execmenu.cpp
-#  completinglineedit.cpp
-#  winutils.cpp
-#  itemviews.cpp
-#  treeviewcombobox.cpp
-#  proxycredentialsdialog.cpp
 )
 
 if (WIN32)
@@ -114,9 +37,9 @@ set( utils_SOURCES
      styledbar.cpp           #--
      stylehelper.cpp         #--
      fancymainwindow.cpp     #--
-     tooltip/tooltip.cpp          #--
-     tooltip/tips.cpp         #--
-     tooltip/tipcontents.cpp         #--
+#    tooltip/tooltip.cpp          #--
+#    tooltip/tips.cpp         #--
+#    tooltip/tipcontents.cpp         #--
      unixutils.cpp         #--
      environment.cpp
      environmentmodel.cpp

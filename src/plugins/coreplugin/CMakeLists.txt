@@ -15,7 +15,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/core.pluginspec"
+  "${PROJECT_SOURCE_DIR}/Core.pluginspec"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 

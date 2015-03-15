@@ -1,6 +1,6 @@
 # qtplatz.cmake
 
-set( Boost_USE_STATIC_LIBS ON )
+#set( Boost_USE_STATIC_LIBS ON )
 set( BOOST_VERSION boost-1_57 )
 
 set( CMAKE_PREFIX_PATH $ENV{QTDIR} )
