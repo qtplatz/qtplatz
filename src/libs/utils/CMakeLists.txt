@@ -28,7 +28,9 @@ set( utils_lib_SOURCES
 )
 
 if (WIN32)
-  SET( utils_lib_SOURCES ${utils_lib_SOURCES} consoleprocess_win.cpp )
+  SET( utils_lib_SOURCES ${utils_lib_SOURCES}
+    consoleprocess_win.cpp
+    )
 else()
   SET( utils_lib_SOURCES ${utils_lib_SOURCES} consoleprocess_unix.cpp )
 endif()
@@ -37,9 +39,9 @@ set( utils_SOURCES
      styledbar.cpp           #--
      stylehelper.cpp         #--
      fancymainwindow.cpp     #--
-#    tooltip/tooltip.cpp          #--
-#    tooltip/tips.cpp         #--
-#    tooltip/tipcontents.cpp         #--
+     tooltip/tooltip.cpp          #--
+     tooltip/tips.cpp         #--
+     tooltip/tipcontents.cpp         #--
      unixutils.cpp         #--
      environment.cpp
      environmentmodel.cpp

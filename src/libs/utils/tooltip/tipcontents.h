@@ -34,6 +34,7 @@
 
 #include <QString>
 #include <QColor>
+class QWidget;
 
 namespace Utils {
 
