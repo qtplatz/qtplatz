@@ -3,7 +3,7 @@ if ( NOT ace+tao_FOUND )
 
   if ( WIN32 )
 
-    find_path( ace+tao_DIR NAMES ace/ACE.h HINTS ENV ACE_ROOT C:/ACE_wrappers )
+    find_path( ace+tao_DIR NAMES ace/ACE.h HINTS $ENV{ACE_ROOT} C:/ACE_wrappers )
 
   elseif( RTC_ARCH_ARM AND CMAKE_CROSSCOMPILING )
 

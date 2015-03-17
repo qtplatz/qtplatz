@@ -5,7 +5,7 @@ set( PROVIDER MS-Cheminformatics )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-find_package( Qt5 CONFIG REQUIRED Core Network Widgets Sql Script )
+find_package( Qt5 CONFIG REQUIRED Core Network Widgets Sql Script PrintSupport Svg )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

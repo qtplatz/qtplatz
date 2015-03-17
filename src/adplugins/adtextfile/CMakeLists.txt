@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 project( adtextfile )
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core )
+find_package( Qt5 CONFIG REQUIRED Core Widgets )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"

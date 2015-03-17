@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.8.11)
 project( translations )
 
-find_package( Qt5LinguistTools )
-
-message( STATUS "Qt5LinguistTools: " ${Qt5LinguistTools_DIR} )
+find_package( Qt5LinguistTools QUIET )
+if ( NOT Qt5LinguistTools_FOUND )
+  return()
+endif()
 
 set( UPDATE_TRANSLATIONS OFF )
 

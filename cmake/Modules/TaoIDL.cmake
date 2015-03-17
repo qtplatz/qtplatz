@@ -21,7 +21,7 @@ MACRO(ADD_CORBA_SERVERS _sources _headers)
          ADD_CUSTOM_COMMAND(OUTPUT ${_tserver} ${_server} ${_client} ${_tserverh} ${_serverh} ${_clienth}
            COMMAND ${TAO_IDL} ${IDLFLAGS} ${_tmp_FILE} -o ${CMAKE_CURRENT_BINARY_DIR} -I${CMAKE_CURRENT_SOURCE_DIR} ${IDL_INCLUDES}
            DEPENDS ${_tmp_FILE}
-         )
+           )
      ENDIF (NOT HAVE_${_basename}_SERVER_RULE)
 
      set(${_sources} ${${_sources}} ${_server} ${_tserver} ${_client})

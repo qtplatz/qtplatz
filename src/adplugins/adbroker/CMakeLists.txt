@@ -11,7 +11,7 @@ endif()
 
 find_package( ace+tao )
 find_package( Boost 1.57 REQUIRED COMPONENTS regex date_time system filesystem wserialization serialization )
-find_package( Qt5 REQUIRED Core )
+find_package( Qt5 REQUIRED Core Widgets )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"

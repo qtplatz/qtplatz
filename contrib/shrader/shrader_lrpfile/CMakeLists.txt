@@ -2,6 +2,7 @@ cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
 add_definitions(-DSHRADER_LRPFILE_LIBRARY)
+find_package( Qt5 CONFIG REQUIRED Widgets ) # <-- adplugin depend on it
 
 add_library( shrader_lrpfile SHARED
   shrader_lrpfile.cpp

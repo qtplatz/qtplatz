@@ -24,16 +24,15 @@
 
 #include "libxslt_transformer.hpp"
 #include <xmlparser/pugixml.hpp>
-#include <libxslt/xsltInternals.h>
-#include <libxslt/xslt.h>
 #include <libxslt/transform.h>
+#include <libxslt/xslt.h>
 #include <libxslt/xsltutils.h>
+#include <libxslt/xsltInternals.h>
 #include <boost/filesystem/path.hpp>
 #include <QCoreApplication>
 #include <QMessageBox>
 #include <QString>
 #include <fstream>
-
 
 using namespace adpublisher;
 using namespace adpublisher::libxslt;

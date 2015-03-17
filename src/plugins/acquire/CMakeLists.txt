@@ -5,7 +5,7 @@ project( acquire )
 
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Script Network )
+find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Script Network PrintSupport Svg )
 find_package( qwt )
 find_package( ace+tao )
 find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization )

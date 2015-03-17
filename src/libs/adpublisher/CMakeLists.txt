@@ -30,7 +30,7 @@ include_directories(
   )
 
 set( adpublisher_SOURCES
-  adpublisher.cpp
+#  adpublisher.cpp
   document.cpp
   docbrowser.cpp
   doceditor.cpp
@@ -51,11 +51,23 @@ set( adpublisher_HEADERS
   msxml_transformer.hpp
   )
 
+find_package( libxml2 )
+if ( libxml2_FOUND )
+  include_directories( ${libxml2_INCLUDE_DIRS} )
+  message( "##### libxml2: " ${libxml2_INCLUDE_DIRS} "; " ${libxml2_LIBRARIES} )
+endif()
+
+find_package( libxslt )
+if ( libxslt_FOUND )
+  include_directories( ${libxslt_INCLUDE_DIRS} )
+  message( "##### libxslt: " ${libxslt_INCLUDE_DIRS} "; " ${libxslt_LIBRARIES} )
+endif()
+
 if (${CMAKE_SYSTEM_NAME} MATCHES Darwin )
-  include_directories( /opt/local/include/libxml2 )
+  # include_directories( /opt/local/include/libxml2 )
   link_directories( /opt/local/lib )
 elseif (${CMAKE_SYSTEM_NAME} MATCHES Linux )
-  include_directories( /usr/include/libxml2 )
+  #link_directories( /usr/local/lib )
 endif()
 
 set( adpublisher_RESOURCES adpublisher.qrc )
@@ -75,7 +87,7 @@ add_library( adpublisher SHARED
   )
 
 if (NOT WIN32)
-  set(adpublisher_LIBS xslt xml2)
+  set(adpublisher_LIBS ${libxml2_LIBRARIES} ${libxslt_LIBRARIES} )
 endif()
 
 target_link_libraries(

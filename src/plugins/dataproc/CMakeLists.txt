@@ -5,7 +5,7 @@ project( dataproc )
 
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg ) 
+find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Script Network ) 
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

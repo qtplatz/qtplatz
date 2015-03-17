@@ -149,46 +149,46 @@ elseif ( APPLE )
 else()  #Linux
 
   set_target_properties( QTC::Core PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libCore.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/QtProject/libCore.so )
 
   set_target_properties( QTC::ExtensionSystem PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libextensionsystem.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.so )
 
   set_target_properties( QTC::Utils PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libUtils.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libUtils.so )
 
   set_target_properties( adextension PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadextension.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadextension.so )
 
   set_target_properties( adcontrols PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadcontrols.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcontrols.so )
 
   set_target_properties( adlog PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadlog.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadlog.so )
 
   set_target_properties( adplugin PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadplugin.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin.so )
 
   set_target_properties( adorbmgr PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadorbmgr.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr.so )
 
   set_target_properties( adsequence PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadsequence.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadsequence.so )
 
   set_target_properties( adsequence PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadsequence.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadsequence.so )
 
   set_target_properties( adplot PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadplot.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot.so )
 
   set_target_properties( adwidgets PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libadwidgets.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadwidgets.so )
 
   set_target_properties( chromatogr PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libchromatogr.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libchromatogr.so )
   
   set_target_properties( portfolio PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/qtplatz/libportfolio.so )
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libportfolio.so )
 
 endif()
 

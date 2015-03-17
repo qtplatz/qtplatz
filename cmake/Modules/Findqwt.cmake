@@ -1,5 +1,9 @@
 # find QWT
 
+if ( qwt_FOUND )
+  return()
+endif()
+
 if ( WIN32 )
   find_path( qwt_DIR NAMES include/qwt.h HINTS $ENV{QWT} C:/Qwt-6.1.2-svn C:/Qwt-6.1.3-svn )
 else()
