@@ -22,3 +22,9 @@ if ( libxml2_INCLUDE_DIR )
   set( libxml2_LIBRARIES ${libxml2_LIBRARY} )
 endif()
 
+if ( libxml2_FOUND )
+  message( STATUS "Found libxml2 in " ${libxml2_LIBRARY} ", " ${libxml2_INCLUDE_DIR} )
+else()
+  message( STATUS "libxml2 not find" )
+endif()
+

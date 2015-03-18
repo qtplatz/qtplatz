@@ -30,7 +30,6 @@ include_directories(
   )
 
 set( adpublisher_SOURCES
-#  adpublisher.cpp
   document.cpp
   docbrowser.cpp
   doceditor.cpp
@@ -51,44 +50,44 @@ set( adpublisher_HEADERS
   msxml_transformer.hpp
   )
 
-find_package( libxml2 )
-if ( libxml2_FOUND )
+if ( NOT WIN32 )
+
+  find_package( libxml2 )
+  if ( NOT libxml2_FOUND )
+    message( FATAL_ERROR "*** libxml2 NOT FOUND ***")
+  endif()
+  
+  find_package( libxslt )
+  if ( NOT libxslt_FOUND )
+    message( FATAL_ERROR "*** libxslt NOT FOUND ***")  
+  endif()
+
   include_directories( ${libxml2_INCLUDE_DIRS} )
-  message( "##### libxml2: " ${libxml2_INCLUDE_DIRS} "; " ${libxml2_LIBRARIES} )
-endif()
+  include_directories( ${libxslt_INCLUDE_DIRS} )  
 
-find_package( libxslt )
-if ( libxslt_FOUND )
-  include_directories( ${libxslt_INCLUDE_DIRS} )
-  message( "##### libxslt: " ${libxslt_INCLUDE_DIRS} "; " ${libxslt_LIBRARIES} )
-endif()
+  set( adpublisher_SOURCES ${adpublisher_SOURCES} libxslt_transformer.cpp )
+  set( adpublisher_HEADERS ${adpublisher_HEADERS} libxslt_transformer.hpp )
 
-if (${CMAKE_SYSTEM_NAME} MATCHES Darwin )
-  # include_directories( /opt/local/include/libxml2 )
-  link_directories( /opt/local/lib )
-elseif (${CMAKE_SYSTEM_NAME} MATCHES Linux )
-  #link_directories( /usr/local/lib )
+  set(adpublisher_LIBS ${libxml2_LIBRARIES} ${libxslt_LIBRARIES} )
+
+  if (${CMAKE_SYSTEM_NAME} MATCHES Darwin ) # APPLE
+    link_directories( /opt/local/lib )
+  endif()
+
+else()
+
+  set( adpublisher_SOURCES ${adpublisher_SOURCES} msxml_transformer.cpp )
+  set( adpublisher_HEADERS ${adpublisher_HEADERS} msxml_transformer.hpp )
+
 endif()
 
 set( adpublisher_RESOURCES adpublisher.qrc )
-
-if( WIN32 )
-  set( adpublisher_SOURCES ${adpublisher_SOURCES} msxml_transformer.cpp )
-  set( adpublisher_HEADERS ${adpublisher_HEADERS} msxml_transformer.hpp )
-else()
-  set( adpublisher_SOURCES ${adpublisher_SOURCES} libxslt_transformer.cpp )
-  set( adpublisher_HEADERS ${adpublisher_HEADERS} libxslt_transformer.hpp )
-endif()
 
 add_library( adpublisher SHARED
   ${adpublisher_SOURCES}
   ${adpublisher_HEADERS}
   ${adpublisher_RESOURCES}  
   )
-
-if (NOT WIN32)
-  set(adpublisher_LIBS ${libxml2_LIBRARIES} ${libxslt_LIBRARIES} )
-endif()
 
 target_link_libraries(
   adpublisher LINK_PUBLIC
@@ -104,19 +103,6 @@ target_link_libraries(
   ${adpublisher_LIBS}
 )
 
-#macx {
-# check with command: xml2-config --cflags --libs
-#  LIBS += -L/opt/local/lib -lxml2 -lz -lpthread -liconv -lm
-#  INCLUDEPATH += /opt/local/include/libxml2
-#}
-
-#linux-* {
-##  message("QMAKESPEC=" $$QMAKESPEC)
-##  message("QMAKE_CC=" $$QMAKE_CC)
-## check with command: xml2-config --cflags --libs
-## for cross compile, --sysroot will be automatically added
-#  INCLUDEPATH += /usr/include/libxml2
-#}
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
