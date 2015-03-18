@@ -1,9 +1,5 @@
 # qtplatz.cmake
 
-if ( WIN32 AND APPLE )
-  set( Boost_USE_STATIC_LIBS ON )
-endif()
-
 set( BOOST_VERSION boost-1_57 )
 
 set( CMAKE_PREFIX_PATH $ENV{QTDIR} )
@@ -18,22 +14,30 @@ find_package( arch )
 if( WIN32 )
 
   set( BOOST_ROOT "C:/Boost/include/${BOOST_VERSION}" )
+  set( Boost_USE_STATIC_LIBS ON )
 
   if ( RTC_ARCH_X64 )
+    
     set( Boost_LIBRARY_DIR "C:/Boost/x86_64/lib" )
+    
+  else()
+
+    set( Boost_LIBRARY_DIR "C:/Boost/lib" )    
+    
   endif()
 
 else()
 
   if ( RTC_ARCH_ARM )
-#    set(Boost_INCLUDE_DIR "/usr/local/arm-linux-gnueabihf/usr/local/include")
-#    set(Boost_LIBRARY_DIR "/usr/local/arm-linux-gnueabihf/usr/local/lib")
+    # do nothing -- expect boost on /usr/local/include and /usr/local/lib
   else()
     set(Boost_INCLUDE_DIR "/usr/local/${BOOST_VERSION}/include")
     set(Boost_LIBRARY_DIR "/usr/local/${BOOST_VERSION}/lib")
   endif()
 
 endif()
+
+message( STATUS "Boost_LIBRARY_DIR: " ${Boost_LIBRARY_DIR} )
 
 #find_package(Boost REQUIRED)
 
