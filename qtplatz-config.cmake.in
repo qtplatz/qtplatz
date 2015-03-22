@@ -22,6 +22,9 @@ if ( APPLE )
   set ( CMAKE_MACOSX_RPATH @CMAKE_MACOSX_RPATH@ )
 endif()
 
+set ( CPACK_SET_DESTDIR @CPACK_SET_DESTDIR@ )
+set ( CPACK_INSTALL_PREFIX @CPACK_INSTALL_PREFIX@ )
+
 include( "${QTPLATZ_SOURCE_DIR}/qtplatz.cmake" )
 
 add_library( QTC::Core SHARED IMPORTED )

@@ -57,10 +57,10 @@ target_link_libraries( adplot LINK_PUBLIC
   )
 
 if( APPLE )
-#  install( TARGETS ${PROJECT_NAME}
-#    RUNTIME DESTINATION bin COMPONENT applications
-#    LIBRARY DESTINATION Contents/PlugIns COMPONENT libraries
-#    ARCHIVE DESTINATION Contents/PlugIns COMPONENT libraries )
+  install( TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION bin COMPONENT applications
+    LIBRARY DESTINATION Contents/PlugIns COMPONENT libraries
+    ARCHIVE DESTINATION Contents/PlugIns COMPONENT libraries )
 else()
   install( TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin COMPONENT applications

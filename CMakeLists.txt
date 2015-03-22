@@ -8,13 +8,16 @@ cmake_policy( SET CMP0042 NEW )
 set( QMAKE_LAYOUT CACHE BOOL 0 )
 set( QTPLATZ_CORELIB_ONLY CACHE BOOL 0 )
 
-set(QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
-
-if (QMAKE_LAYOUT)
-  set(QTPLATZ_BINARY_DIR ${CMAKE_SOURCE_DIR} )  # qmake compatible
+if ( WIN32 )
+  set( CMAKE_INSTALL_PREFIX "C:/qtplatz" )
+elseif( APPLE )
+  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 else()
-  set(QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
+  set( CMAKE_INSTALL_PREFIX "/usr/local/qtplatz" )  
 endif()
+
+set(QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
+set(QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
 # cofigure boost & compiler
 include (qtplatz.cmake)
@@ -23,13 +26,6 @@ include (qtplatz-version)
 #
 # Output directories layout, which is equivalent to original QTC layout
 #
-if (WIN32)
-  set( CMAKE_INSTALL_PREFIX "C:/qtplatz" )
-elseif(APPLE)
-  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
-else()
-  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
-endif()
 
 if ( APPLE )
 
@@ -69,13 +65,20 @@ else()
 
 endif()
 
+set( CPACK_SET_DESTDIR ON )
+if( WIN32 )
+  set( CPACK_INSTALL_PREFIX "C:/qtplatz" )
+elseif ( APPLE )
+  set( CPACK_INSTALL_PREFIX "/opt/qtplatz.app" )  
+else() # Linux
+  set( CPACK_INSTALL_PREFIX "/usr/local" )
+endif()
+
 configure_file(
   ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
   ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
 
-install( FILES
-  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake
-  DESTINATION ${CMAKE_SOURCE_DIR}/lib )
+install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION lib COMPONENT libraries )
 
 #set( ACE_ROOT $ENV{ACE_ROOT} )
 
@@ -126,20 +129,24 @@ set(CMAKE_DEBUG_POSTFIX "d")
 
 add_subdirectory (src)
 
-if ( NOT QTPLATZ_CORELIB_ONLY )
-
-  add_subdirectory (contrib)
-  add_subdirectory (share)
-
-  if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
-    set( CPACK_GENERATOR "DEB" )
-    set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
-    if ( RTC_ARCH_ARM )
-      set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
-    endif()
+if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+  set( CPACK_GENERATOR "DEB" )
+  set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
+  set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/postinst" )  
+  if ( RTC_ARCH_ARM )
+    set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
   endif()
 
-  include( qtplatz-cpack-config )
+  set( INSTALL_DIRECTORY ${CPACK_INSTALL_PREFIX}/lib )  
+  configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/postinst.in ${CMAKE_CURRENT_BINARY_DIR}/postinst @ONLY )
+endif()
+
+include( qtplatz-cpack-config )
+add_subdirectory (contrib)
+
+if ( NOT QTPLATZ_CORELIB_ONLY )
+
+  add_subdirectory (share)
 
   foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )
     get_target_property( _loc ${plugin} LOCATION )
@@ -148,8 +155,8 @@ if ( NOT QTPLATZ_CORELIB_ONLY )
     install( FILES ${_loc} DESTINATION plugins/${_rpath} )
   endforeach()
 
-  include( CPack )
-
 endif()
+
+include( CPack )
 
 

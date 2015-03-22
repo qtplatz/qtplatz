@@ -213,5 +213,4 @@ install( FILES
   quancalibration.hpp 
   quancalibrations.hpp 
   serializer.hpp
-  DESTINATION include/adcontrols
-  COMPONENT headers )
+  DESTINATION include/qtplatz/adcontrols COMPONENT headers )
