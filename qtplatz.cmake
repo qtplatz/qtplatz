@@ -37,8 +37,7 @@ else()
 
 endif()
 
-message( STATUS "Boost_LIBRARY_DIR: " ${Boost_LIBRARY_DIR} )
-
+#message( STATUS "Boost_LIBRARY_DIR: " ${Boost_LIBRARY_DIR} )
 #find_package(Boost REQUIRED)
 
 #####################

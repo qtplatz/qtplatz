@@ -12,7 +12,6 @@ if (WIN32)
 
 else()
 
-  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )  
   include( qtplatz-cpack-config )
 
   set( CPACK_INSTALL_CMAKE_PROJECTS )
