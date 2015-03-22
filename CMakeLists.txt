@@ -28,7 +28,7 @@ if (WIN32)
 elseif(APPLE)
   set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 else()
-  set( CMAKE_INSTALL_PREFIX "/usr/local/qtplatz" )
+  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 endif()
 
 if ( APPLE )
@@ -46,7 +46,8 @@ if ( APPLE )
   set( CMAKE_MACOSX_RPATH 1 )
   
   set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns )
-
+  set( QTPLATZ_PLUGIN_DESTINATION bin/qtplatz.app/Contents/PlugIns )
+  
 else()
 
   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib) # static libs, dll's import lib/exp
@@ -59,8 +60,9 @@ else()
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
   
-  set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins )  
-
+  set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins )
+  set( QTPLATZ_PLUGIN_DESTINATION lib/qtplatz/plugins )
+  
   if ( CROSS_COMPILING )
     set( CMAKE_PREFIX_PATH /usr/local/qt5 )
   endif()
@@ -128,6 +130,14 @@ if ( NOT QTPLATZ_CORELIB_ONLY )
 
   add_subdirectory (contrib)
   add_subdirectory (share)
+
+  if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+    set( CPACK_GENERATOR "DEB" )
+    set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
+    if ( RTC_ARCH_ARM )
+      set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
+    endif()
+  endif()
 
   include( qtplatz-cpack-config )
 
