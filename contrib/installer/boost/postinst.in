@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "boost post installation..."
+echo "installing boost libraries to @INSTALL_DIRECTORY@ ..."
+
+if [ "$1" = "configure" ]; then
+   echo "@INSTALL_DIRECTORY@" > /etc/ld.so.conf.d/boost.conf
+   ldconfig
+fi
+
