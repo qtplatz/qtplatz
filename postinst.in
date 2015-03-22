@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo "qtplatz post installation..."
+echo "installing qtplatz advanced libraries to @INSTALL_DIRECTORY@ ..."
+
+if [ "$1" = "configure" ]; then
+    echo "@INSTALL_DIRECTORY@" > /etc/ld.so.conf.d/qtplatz.conf
+    echo "@INSTALL_DIRECTORY@/qtplatz" >> /etc/ld.so.conf.d/qtplatz.conf    
+    ldconfig
+fi
+
