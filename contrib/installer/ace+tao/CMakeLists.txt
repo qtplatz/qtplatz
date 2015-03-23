@@ -19,10 +19,10 @@ if ( WIN32 )
     "${ace+tao_DIRS}/*.dll" )
 elseif( APPLE )
   file( GLOB _libs RELATIVE "${ace+tao_DIR}"
-    "${ACE+TAO_LIBRARY_DIR}/libACE_*.dylib*" "${ACE+TAO_LIBRARY_DIR}/libTAO_*.dylib*" )
+    "${ACE+TAO_LIBRARY_DIR}/libACE*.dylib*" "${ACE+TAO_LIBRARY_DIR}/libTAO*.dylib*" )
 else()
   file( GLOB _libs RELATIVE "${ace+tao_DIR}"
-    "${ACE+TAO_LIBRARY_DIR}/libACE_*.so*" "${ACE+TAO_LIBRARY_DIR}/libTAO_*.so*" )  
+    "${ACE+TAO_LIBRARY_DIR}/libACE*.so*" "${ACE+TAO_LIBRARY_DIR}/libTAO*.so*" )  
 endif()
 
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
