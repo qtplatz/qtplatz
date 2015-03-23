@@ -12,14 +12,9 @@ if (WIN32)
 
 else()
 
-  include( qtplatz-cpack-config )
-
-  set( CPACK_INSTALL_CMAKE_PROJECTS )
-  add_subdirectory( ace+tao )
-  list( APPEND CPACK_INSTALL_CMAKE_PROJECTS ${CMAKE_CURRENT_BINARY_DIR}/ace+tao;ace+tao;Runtime;/)
-  
-  add_subdirectory( boost )
-  list( APPEND CPACK_INSTALL_CMAKE_PROJECTS ${CMAKE_CURRENT_BINARY_DIR}/boost;boost;Runtime;/)
+  message(STATUS "On Linux(debian), independent .deb package for qt5, ace+tao and boost should be created" )
 
 endif()
+
+
 

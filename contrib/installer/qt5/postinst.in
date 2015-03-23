@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "qt5pi post installation..."
+echo "qt5 post installation..."
 
 if [ "$1" = "configure" ]; then
    echo "@TARGET_LIBRARY_DIRECTORY@" > /etc/ld.so.conf.d/qt5.conf

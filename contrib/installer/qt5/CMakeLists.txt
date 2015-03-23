@@ -3,31 +3,43 @@ cmake_policy( SET CMP0020 NEW )
 
 project (qt5-dev)
 
-if ( "${QTPLATZ_SOURCE_DIR}" STREQUAL "" )
+if ( CMAKE_SYSTEM_NAME MATCHES Linux )
 
-  set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../../.. )
-  include( ${QTPLATZ_SOURCE_DIR}/qtplatz.cmake )
+  set( CMAKE_PREFIX_PATH /usr/local/qt5 /opt/qt5pi )
 
-  if ( RTC_ARCH_ARM )
-    set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
+  set( CPACK_GENERATOR DEB )
+  set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
+  set( CPACK_DEBIAN_PACKAGE_VERSION "${VERSION}" )
+  set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_BINARY_DIR}/postinst" )
+
+  if ( CMAKE_CROSSCOMPILING )
+    include(CheckSymbolExists)    
+    check_symbol_exists( "__arm__" "" RTC_ARCH_ARM )
+    if ( RTC_ARCH_ARM )
+      set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
+    endif()
   endif()
 
-endif()
+  set( CPACK_SET_DESTDIR ON )
+  if ( "${CPACK_INSTALL_PREFIX}" STREQUAL "" )
+    set( CPACK_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} )
+  endif()
 
-if ( CMAKE_SYSTEM_NAME MATCHES Linux )
-  set( CMAKE_PREFIX_PATH /usr/local/qt5 /opt/qt5pi )
-  set( CPACK_GENERATOR DEB )
+  set( TARGET_LIBRARY_DIRECTORY ${CPACK_INSTALL_PREFIX}/qt5/lib )    
+
+  # replace TARGET_LIBRARY_DIRECTORY with actual value at install-destination
+  configure_file( ${CMAKE_SOURCE_DIR}/postinst.in ${CMAKE_BINARY_DIR}/postinst @ONLY ) 
+  
 endif()
 
 find_package( Qt5 CONFIG REQUIRED Core Widgets )
 
 get_filename_component( _dir ${Qt5_DIR}/../../.. REALPATH )
-message( "## Qt5_DIR: " ${_dir} )
+message( "##### install prefix: "    ${CMAKE_INSTALL_PREFIX} ";" ${CPACK_INSTALL_PREFIX} )
+message( "##### library directory: " ${TARGET_LIBRARY_DIRECTORY} )
+message( "##### source directory: "  ${_dir} )
 
 install( DIRECTORY ${_dir} DESTINATION . )
-
-set( TARGET_LIBRARY_DIRECTORY ${CPACK_INSTALL_PREFIX}/qt5/lib )
-configure_file( ${CMAKE_SOURCE_DIR}/postinst.in ${CMAKE_BINARY_DIR}/postinst @ONLY ) 
 
 set( CPACK_PACKAGE_NAME "qt5-dev" )
 set( CPACK_PACKAGE_VENDOR "ms-cheminfo.com" )
@@ -36,12 +48,7 @@ set( CPACK_PACKAGE_VERSION_MAJOR ${Qt5_VERSION_MAJOR} )
 set( CPACK_PACKAGE_VERSION_MINOR ${Qt5_VERSION_MINOR} )
 set( CPACK_PACKAGE_VERSION_PATCH ${Qt5_VERSION_PATCH} )
 
-set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
-set( CPACK_DEBIAN_PACKAGE_VERSION "${VERSION}" )
-set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_BINARY_DIR}/postinst" )
-
-set( CPACK_SET_DESTDIR ON )
-set( CPACK_INSTALL_PREFIX ${INSTALL_DIRECTORY} )
+#set( CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON )
 
 include( CPack )
 
