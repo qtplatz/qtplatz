@@ -12,6 +12,7 @@ add_library( adportable
   debug.cpp
   debug_core.cpp
   fft.cpp
+  http_client.cpp
   lifecycleframe.cpp
   mslockref.cpp  
   mslockref.hpp
