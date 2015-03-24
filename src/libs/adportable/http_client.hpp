@@ -37,10 +37,17 @@ namespace adportable {
     public:
         ~http_client();        
         http_client( boost::asio::io_service&, const std::string& server );
-
-        bool request( const std::string& path, std::ostream& response, unsigned int& status_code );
+        
+        bool get( const std::string& path, std::ostream& response, unsigned int& status_code );
+        bool post( const std::string& path, std::ostream& response, unsigned int& status_code
+                   , const char * content_type = "application/xml" );
 
     private:
+        bool sync_write( boost::asio::streambuf& req
+                         , unsigned int& status_code
+                         , std::string& http_version
+                         , std::ostream& result );
+            
         boost::asio::io_service& io_service_;
         std::string server_;
         boost::asio::ip::tcp::resolver::iterator endpoint_iterator_;

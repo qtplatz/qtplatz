@@ -24,7 +24,6 @@
 **************************************************************************/
 
 #include "http_client.hpp"
-#include <iostream>
 
 using boost::asio::ip::tcp;
 
@@ -44,22 +43,17 @@ http_client::http_client( boost::asio::io_service& io_service
 }
 
 bool
-http_client::request( const std::string& path, std::ostream& result, unsigned int& status_code )
+http_client::sync_write( boost::asio::streambuf& request
+                         , unsigned int& status_code
+                         , std::string& http_version
+                         , std::ostream& result )
 {
     try {
         tcp::socket socket( io_service_ );
-        
         boost::asio::connect( socket, endpoint_iterator_ );
 
-        boost::asio::streambuf request;
-        std::ostream request_stream(&request);
-        request_stream << "GET " << path << " HTTP/1.0\r\n";
-        request_stream << "Host: " << server_ << "\r\n";
-        request_stream << "Accept: */*\r\n";
-        request_stream << "Connection: close\r\n\r\n";
-
         // Send the request.
-        boost::asio::write(socket, request);
+        boost::asio::write( socket, request );
 
         // Read the response status line. The response streambuf will automatically
         // grow to accommodate the entire line. The growth may be limited by passing
@@ -68,13 +62,12 @@ http_client::request( const std::string& path, std::ostream& result, unsigned in
         boost::asio::read_until( socket, response, "\r\n" );
 
         // Check that response is OK.
-        std::istream response_stream(&response);
-        std::string http_version;
+        std::istream response_stream( &response );
         response_stream >> http_version;
         response_stream >> status_code;
         
         std::string status_message;
-        std::getline(response_stream, status_message);
+        std::getline( response_stream, status_message );
         if ( !response_stream || http_version.substr(0, 5) != "HTTP/") {
             result << "Invalid response\n";
             return false;
@@ -84,7 +77,7 @@ http_client::request( const std::string& path, std::ostream& result, unsigned in
             result << "Response returned with status code " << status_code << "\n";
             return false;
         }
-
+        
         // Read the response headers, which are terminated by a blank line.
         boost::asio::read_until(socket, response, "\r\n\r\n");
 
@@ -97,7 +90,7 @@ http_client::request( const std::string& path, std::ostream& result, unsigned in
         // Write whatever content we already have to output.
         if (response.size() > 0)
             result << &response;
-
+        
         // Read until EOF, writing data to output as we go.
         boost::system::error_code error;
         while (boost::asio::read(socket, response,
@@ -113,4 +106,35 @@ http_client::request( const std::string& path, std::ostream& result, unsigned in
     }
     
     return true;
+}
+
+bool
+http_client::get( const std::string& path, std::ostream& result, unsigned int& status_code )
+{
+    try {
+        boost::asio::streambuf request;
+        std::ostream request_stream( &request );
+
+        request_stream << "GET " << path << " HTTP/1.0\r\n";
+        request_stream << "Host: " << server_ << "\r\n";
+        request_stream << "Accept: */*\r\n";
+        request_stream << "Connection: close\r\n\r\n";
+
+        std::string http_version;
+        return sync_write( request, status_code, http_version, result );
+        
+    } catch ( std::exception& e ) {
+        result << "Exception: " << e.what() << "\n";
+    }
+    return false;
+}
+
+bool
+http_client::post( const std::string& path
+                   , std::ostream& result
+                   , unsigned int& status_code
+                   , const char * content_type )
+{
+    result << "Not implemented yet";
+    return false;
 }
