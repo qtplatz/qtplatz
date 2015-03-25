@@ -74,7 +74,7 @@ qtplatz-cmake:
 infitof-cmake:
 	-@$(MD) $(INFITOF_BINARY_DIR)
 	cd $(INFITOF_BINARY_DIR)
-	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_DIR=../qtplatz/$(BUILD) ..
+	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_BUILD_DIR=../qtplatz/$(BUILD) ..
 	cd $(MAKEDIR)
 	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
 
