@@ -41,6 +41,7 @@ add_library( adplot SHARED IMPORTED )
 add_library( adwidgets SHARED IMPORTED )
 add_library( chromatogr SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
+add_library( u5303a SHARED IMPORTED )
 
 add_library( adfs STATIC IMPORTED )
 add_library( adinterface STATIC IMPORTED )
@@ -105,6 +106,11 @@ if (WIN32)
   set_target_properties( portfolio PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/portfolio.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/portfoliod.lib )
+
+  # u5303a is available only on Windows (COM dependent module)
+  set_target_properties( u5303a PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/u5303a.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/u5303ad.lib )
 
 elseif ( APPLE )
 
