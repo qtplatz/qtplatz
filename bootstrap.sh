@@ -14,7 +14,7 @@ cd build-$cross_target
 case $cross_target in
     helio)
 	cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-$cross_target.cmake \
-	      -DCMAKE_PREFIX_PATH=/usr/local/qt5 ..
+	      -DCMAKE_PREFIX_PATH=/usr/local/qt5 -DQTPLATZ_CORELIB_ONLY=1 ..
 	;;
     raspi)
 	cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-raspi.cmake \
