@@ -80,27 +80,6 @@ adplugin::orbServant *
 orbBroker::create_instance() const
 {
     return new adBroker;
-    // if ( adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance() ) {
-
-    //     if ( adBroker * broker = new adBroker ) {
-
-	// 		try {
-	// 			broker->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-	// 		} catch ( CORBA::Exception& ex ) {
-	// 			ADWARN() << ex._info().c_str();
-	// 			return 0;
-	// 		} catch ( ... ) {
-	// 			ADWARN() << boost::current_exception_diagnostic_information();
-	// 			return 0;
-	// 		}
-
-    //         std::string ior = broker->activate();
-    //         if ( !ior.empty() ) {
-    //             return broker;
-    //         }
-    //     }
-    // }
-    // return 0;
 }
 
 adplugin::orbServant *
@@ -151,18 +130,17 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
 
                     if ( !CORBA::is_nil( accessor ) ) {
 
+                        // set adpluginspec -- it includes lookup if required
                         Broker::Manager_var mgr = adbroker::manager_i::instance()->impl()._this();
                         accessor->setBrokerManager( mgr.in() );
                         accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );
 
                         try {
                             mgr->register_object( orbServant->object_name(), obj );
-                        }
-                        catch ( CORBA::Exception& ex ) {
+                        } catch ( CORBA::Exception& ex ) {
                             factory->release( orbServant );
                             BOOST_THROW_EXCEPTION( error() << info( ex._info().c_str() ) );
-                        }
-                        catch ( ... ) {
+                        } catch ( ... ) {
                             ADERROR() << "register_object";
                             BOOST_THROW_EXCEPTION( error() << info( boost::current_exception_diagnostic_information() ) );
                         }

@@ -32,7 +32,7 @@
 
 using namespace adcontroller;
 
-acewrapper::ORBServant< manager_i > * manager_i::instance_ = 0;
+std::atomic< acewrapper::ORBServant< manager_i > * > manager_i::instance_(0);
 std::mutex manager_i::mutex_;
 
 manager_i::manager_i(void) 
@@ -43,17 +43,23 @@ manager_i::~manager_i(void)
 {
 }
 
- acewrapper::ORBServant< manager_i > *
+acewrapper::ORBServant< manager_i > *
 manager_i::instance()
 {
-    if ( instance_ == 0 ) {
+    typedef acewrapper::ORBServant< manager_i > T;
+    T * tmp = instance_.load( std::memory_order_relaxed );
+    std::atomic_thread_fence( std::memory_order_acquire );
+    if ( tmp == nullptr ) {
         std::lock_guard< std::mutex > lock( mutex_ );
-        if ( instance_ == 0 )
-            instance_ = new acewrapper::ORBServant< manager_i >;
+        tmp = instance_.load( std::memory_order_relaxed );
+        if ( tmp == nullptr ) {
+            tmp = new T();
+            std::atomic_thread_fence( std::memory_order_release );
+            instance_.store( tmp, std::memory_order_relaxed );
+        }
     }
-    return instance_;
+    return tmp;
 }
-
 
 void
 manager_i::shutdown()

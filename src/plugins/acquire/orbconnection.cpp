@@ -26,7 +26,9 @@
 #include "orbconnection.hpp"
 
 #include <adinterface/brokerC.h>
+#include <adinterface/brokerclientC.h>
 #include <adorbmgr/orbmgr.hpp>
+#include <adplugin/orbfactory.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/plugin.hpp>
@@ -121,6 +123,9 @@ OrbConnection::initialize()
         ADTRACE() << "adBroker does not initialized (it might be not configured)";
         return false;
     }
+    Broker::Manager_var bMgr( Broker::Manager::_narrow( adBroker->_this() ) );
+    if ( CORBA::is_nil( bMgr ) )
+        return false;
 
     // ----------------------- initialize corba servants ------------------------------
     std::vector< adplugin::plugin_ptr > factories;
@@ -131,17 +136,41 @@ OrbConnection::initialize()
             continue;
 
         ADTRACE() << "initializing " << plugin->clsid() << "{iid: " << plugin->iid() << "}";
+        if ( auto factory = plugin->query_interface< adplugin::orbFactory >() ) {
+            if ( auto servant = factory->create_instance() ) {
+                try {
+                    servant->initialize( mgr->orb(), mgr->root_poa(), mgr->poa_manager() );
+                    std::string ior = servant->activate();
 
-        try {
+                    CORBA::Object_var obj( servant->_this() );
+                    if ( !CORBA::is_nil( obj.in() ) ) {
 
-            if ( adplugin::orbServant * servant = (*orbBroker)(plugin.get()) )
-                orbServants_.push_back( servant );
+                        BrokerClient::Accessor_var accessor( BrokerClient::Accessor::_narrow( obj ) );
+                        if ( !CORBA::is_nil( accessor.in() ) ) {
 
-        } catch ( ... ) {
-            ADERROR() << "exception while initializing " << plugin->clsid() << "\t" << boost::current_exception_diagnostic_information();
-            QMessageBox::warning( 0, "Exception AcquirePlugin"
-                , "If you are on Windows 7 sp1, some of important Windows update is getting involved. \
-                  Please make sure you have up-to-date for Windows" );
+                            accessor->setBrokerManager( bMgr );
+                            accessor->adpluginspec( plugin->clsid(), plugin->adpluginspec() );
+
+                            try {
+                                bMgr->register_object( servant->object_name(), obj );
+                                orbServants_.push_back( servant );
+
+                            } catch ( CORBA::Exception& ex ) {
+                                factory->release( servant );
+                                ADERROR() << ex._info().c_str();
+                            }
+                        }
+                    } else {
+                        factory->release( servant );
+                    }
+                } catch ( ... ) {
+                    ADERROR() << "exception while initializing " << plugin->clsid() << "\t" << boost::current_exception_diagnostic_information();
+                    QMessageBox::warning( 0, "Exception AcquirePlugin"
+                                          , "If you are on Windows 7 sp1, some of important Windows update is getting involved. \
+                                            Please make sure you have up-to-date for Windows" );
+                }
+            }
+
         }
     }
     initialized_ = true;

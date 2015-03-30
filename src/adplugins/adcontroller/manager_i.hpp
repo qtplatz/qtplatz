@@ -25,7 +25,6 @@
 
 #pragma once
 
-//#include <compiler/diagnostic_push.h>
 #include <compiler/disable_deprecated.h>
 #include <compiler/disable_4250.h> // inherits via dominance
 
@@ -33,6 +32,7 @@
 #include <adinterface/brokerclientS.h>
 
 #include "session_i.hpp"
+#include <atomic>
 #include <map>
 #include <string>
 #include <mutex>
@@ -46,7 +46,7 @@ namespace adcontroller {
         manager_i(void);
         ~manager_i(void);
         friend class acewrapper::ORBServant< ::adcontroller::manager_i >;
-        static acewrapper::ORBServant< manager_i > * instance_;
+        static std::atomic< acewrapper::ORBServant< manager_i > * > instance_;
         static std::mutex mutex_;
     public:
         static acewrapper::ORBServant< manager_i > * instance();
@@ -72,4 +72,3 @@ namespace adcontroller {
     };
 
 }
-//#include <compiler/diagnostic_pop.h>
