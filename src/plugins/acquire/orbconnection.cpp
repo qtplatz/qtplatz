@@ -26,6 +26,7 @@
 #include "orbconnection.hpp"
 
 #include <adinterface/brokerC.h>
+#include <adorbmgr/orbmgr.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/plugin.hpp>
@@ -77,6 +78,7 @@ OrbConnection::initialize()
     if ( initialized_ )
         return false;
 
+    auto mgr = adorbmgr::orbmgr::instance();
     adplugin::orbServant * adBroker = 0;
     adplugin::orbBroker * orbBroker = 0;
 
@@ -99,6 +101,9 @@ OrbConnection::initialize()
 
             try {
                 if ( (adBroker = orbBroker->create_instance()) ) {
+
+                    adBroker->initialize( mgr->orb(), mgr->root_poa(), mgr->poa_manager() );
+                    std::string ior = adBroker->activate();
                     orbServants_.push_back( adBroker );
                     //Broker::Manager_var mgr = Broker::Manager::_narrow( adBroker->_this() );
                     //addObject( new QBroker( mgr._retn() ) );

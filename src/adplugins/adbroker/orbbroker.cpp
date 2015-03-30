@@ -79,27 +79,28 @@ orbBroker::orbmgr_wait()
 adplugin::orbServant *
 orbBroker::create_instance() const
 {
-    if ( adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance() ) {
+    return new adBroker;
+    // if ( adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance() ) {
 
-        if ( adBroker * broker = new adBroker ) {
+    //     if ( adBroker * broker = new adBroker ) {
 
-			try {
-				broker->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-			} catch ( CORBA::Exception& ex ) {
-				ADWARN() << ex._info().c_str();
-				return 0;
-			} catch ( ... ) {
-				ADWARN() << boost::current_exception_diagnostic_information();
-				return 0;
-			}
+	// 		try {
+	// 			broker->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+	// 		} catch ( CORBA::Exception& ex ) {
+	// 			ADWARN() << ex._info().c_str();
+	// 			return 0;
+	// 		} catch ( ... ) {
+	// 			ADWARN() << boost::current_exception_diagnostic_information();
+	// 			return 0;
+	// 		}
 
-            std::string ior = broker->activate();
-            if ( !ior.empty() ) {
-                return broker;
-            }
-        }
-    }
-    return 0;
+    //         std::string ior = broker->activate();
+    //         if ( !ior.empty() ) {
+    //             return broker;
+    //         }
+    //     }
+    // }
+    // return 0;
 }
 
 adplugin::orbServant *

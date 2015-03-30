@@ -60,10 +60,11 @@ namespace adplugin {
             // QLibrary.setLoadHints(QLibrary::ResolveAllSymbolsHint| QLibrary::ExportExternalSymbolsHint)
             // a.k.a. RTLD_NOW|RTLD_GLOBAL for dlopen
             // This hit to a problem on Apple clang 4.0 based on LLVM 3.1svn
-            // 2013 Jun 1st, -thoshi
-			 T* p = dynamic_cast<T*>(this);
-			 if ( !p )
-				p = reinterpret_cast<T*>( query_interface_workaround( typeid(T).name() ) );
+            // 2013 Jun 1st, -toshi
+            T* p( 0 );
+            try { p = dynamic_cast<T*>( this ); } catch ( ... ) {}
+            if ( !p )
+                p = reinterpret_cast<T*>( query_interface_workaround( typeid( T ).name() ) );
             return p;
         }
     };

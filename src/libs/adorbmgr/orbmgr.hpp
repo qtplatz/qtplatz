@@ -26,23 +26,19 @@
 
 #include <adorbmgr/adorbmgr_global.h>
 #include <adportable/asio/thread.hpp>
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_dll_interface.h>
 #include <atomic>
 #include <mutex>
 #include <thread>
 #include <condition_variable>
 
-class TAO_ServantBase;
 namespace CORBA { class ORB; class Object; }
-namespace boost { class barrier; }
+class TAO_ServantBase;
 namespace PortableServer {
-    class POA; class POAManager;
+    class POA;
+    class POAManager;
     typedef TAO_ServantBase ServantBase;
     typedef ServantBase *Servant;
 }
-
-class TAO_ORB_Manager;
 
 namespace adorbmgr {
 
@@ -51,7 +47,7 @@ namespace adorbmgr {
         orbmgr( const orbmgr& ); // noncopyable
         orbmgr( CORBA::ORB * orb = 0
                 , PortableServer::POA * poa = 0
-                , PortableServer::POAManager * mgr = 0);
+                , PortableServer::POAManager * mgr = 0 );
     public:
         int init( int ac, char * av[] );
 		bool spawn();
@@ -72,18 +68,8 @@ namespace adorbmgr {
         static orbmgr * instance();
 
     private:
-
-		void run();
-
-        static std::atomic< orbmgr * > instance_;
-        static std::mutex mutex_;
-        bool thread_running_;
-        size_t init_count_;
-        adportable::asio::thread * thread_;
-        TAO_ORB_Manager * taomgr_;
-        std::condition_variable cond_;
+        class impl;
+        impl * impl_;
     };
-
 }
 
-#include <compiler/diagnostic_pop.h>

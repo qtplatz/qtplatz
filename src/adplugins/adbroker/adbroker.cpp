@@ -38,6 +38,7 @@
 #include <adlog/logger.hpp>
 #include "manager_i.hpp"
 #include "brokermanager.hpp"
+#include <atomic>
 #include <mutex>
 
 using namespace acewrapper;
@@ -100,11 +101,15 @@ class adbroker_plugin : public adplugin::plugin
                       , public adplugin::orbFactory
                       , public adbroker::orbBroker {
 
-    static adbroker_plugin * instance_;
+    static std::atomic< adbroker_plugin * > instance_;
+    static std::mutex mutex_;
+
     adbroker_plugin() {}
     ~adbroker_plugin() {}
+
 public:
     static adbroker_plugin * instance();
+
     // plugin
     virtual const char * iid() const;
     virtual void accept( adplugin::visitor&, const char * );
@@ -116,18 +121,26 @@ public:
     }
 };
 
-adbroker_plugin * adbroker_plugin::instance_ = 0;
-static std::mutex __mutex;
+std::atomic< adbroker_plugin * > adbroker_plugin::instance_(0);
+std::mutex adbroker_plugin::mutex_;
 
 adbroker_plugin *
 adbroker_plugin::instance()
 {
-    if ( instance_ == 0 ) {
-        std::lock_guard< std::mutex > lock( __mutex );
-        if ( instance_ == 0 )
-            instance_ = new adbroker_plugin();
+    typedef adbroker_plugin T;
+
+    T * tmp = instance_.load( std::memory_order_relaxed );
+    std::atomic_thread_fence( std::memory_order_acquire );
+    if ( tmp == nullptr ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        tmp = instance_.load( std::memory_order_relaxed );
+        if ( tmp == nullptr ) {
+            tmp = new T();
+            std::atomic_thread_fence( std::memory_order_release );
+            instance_.store( tmp, std::memory_order_relaxed );
+        }
     }
-    return instance_;
+    return tmp;
 }
 
 const char *
@@ -152,7 +165,8 @@ adbroker_plugin::query_interface_workaround( const char * typenam )
     return 0;
 }
 
-Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance()
+Q_DECL_EXPORT adplugin::plugin *
+adplugin_plugin_instance()
 {
     return adbroker_plugin::instance();
 }

@@ -34,7 +34,7 @@ set( IDLFILES
   )
 
 if ( MSVC )
-  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4996 )
 elseif( APPLE )
   add_definitions( -Wno-deprecated-register )
 endif()

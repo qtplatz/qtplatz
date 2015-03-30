@@ -1,4 +1,5 @@
 cmake_policy( SET CMP0028 NEW )
+cmake_policy( SET CMP0020 NEW )
 
 project( u5303aspectrometer )
 
