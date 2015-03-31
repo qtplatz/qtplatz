@@ -38,7 +38,7 @@ using namespace adcontrols::metric;
 std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
 std::chrono::high_resolution_clock::time_point __last__;
 static uint32_t __serialNumber__;
-static const adportable::TimeSquaredScanLaw scanLaw;
+//static const adportable::TimeSquaredScanLaw scanLaw;
 
 namespace u5303a {
 
@@ -59,10 +59,12 @@ namespace u5303a {
 
 using namespace u5303a;
 
-waveform_generator::waveform_generator( double sampInterval
+waveform_generator::waveform_generator( std::shared_ptr< adportable::TimeSquaredScanLaw >& law
+                                        , double sampInterval
                                         , double startDelay
                                         , uint32_t nbrSamples
-                                        , uint32_t nbrWaveforms ) : sampInterval_( sampInterval )
+                                        , uint32_t nbrWaveforms ) : scanLaw_( law )
+                                                                  , sampInterval_( sampInterval )
                                                                   , startDelay_( startDelay )
                                                                   , nbrSamples_( nbrSamples )
                                                                   , timeStamp_( 0 )
@@ -110,7 +112,7 @@ waveform_generator::onTriggered()
 	__last__ = now;
 
     for ( const auto& ion: ions_ ) {
-        double t = scanLaw.getTime( ion.mass, int(0) );
+        double t = scanLaw_->getTime( ion.mass, int(0) );
         times.push_back( t );
         o << "\tm/z=" << std::setprecision(4) << std::fixed << ion.mass
           << " tof=" << scale_to_micro(t);
@@ -138,7 +140,7 @@ waveform_generator::onTriggered()
 double
 waveform_generator::mass_to_time( double mass, int nTurn )
 {
-    return scanLaw.getTime( mass, nTurn );
+    return scanLaw_->getTime( mass, nTurn );
 }
 
 const std::vector< int32_t >&

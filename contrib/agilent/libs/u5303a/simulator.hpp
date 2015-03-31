@@ -31,6 +31,7 @@
 #include <vector>
 
 namespace boost { namespace asio { class io_service; } }
+namespace adportable { class TimeSquaredScanLaw; }
 
 namespace u5303a {
     
@@ -40,11 +41,12 @@ namespace u5303a {
     class simulator  {
     public:
         ~simulator();
-        simulator();
+        simulator( std::shared_ptr< adportable::TimeSquaredScanLaw >& );
 
         bool acquire( boost::asio::io_service& );
         bool waitForEndOfAcquisition();
         bool readData( waveform& );
+        void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& );
         
     private:
         std::mutex mutex_;
@@ -54,6 +56,7 @@ namespace u5303a {
         std::atomic<bool> hasWaveform_;
         std::atomic<bool> acqTriggered_;
         std::vector< std::shared_ptr< waveform_generator > > waveforms_;
+        std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
         void post( waveform_generator * );
     };
 

@@ -34,6 +34,7 @@
 #include <memory>
 
 namespace adcontrols { class ControlMethod; }
+namespace adportable { class TimeSquaredScanLaw; }
 
 #if defined _MSC_VER
 # pragma warning(disable:4251)
@@ -204,6 +205,7 @@ namespace u5303a {
         bool peripheral_stop();
         bool peripheral_trigger_inject();
         bool peripheral_terminate();
+        void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef std::function< void( const std::string, const std::string ) > command_reply_type;
         typedef std::function< void( const waveform * ) > waveform_reply_type;

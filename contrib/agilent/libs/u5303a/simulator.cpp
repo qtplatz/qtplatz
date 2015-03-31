@@ -30,7 +30,7 @@
 
 using namespace u5303a;
 
-simulator::simulator()
+simulator::simulator( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr ) : scanlaw_( ptr )
 {
     const double total = 60000;
     ions_.push_back( std::make_pair( 18.0105646, 1000.0 ) ); // H2O
@@ -51,7 +51,7 @@ simulator::acquire( boost::asio::io_service& io_service )
     if ( ! acqTriggered_ ) {
 
         io_service.post( [&]() {
-                auto generator = std::make_shared< waveform_generator >( 1.0e-9, 0.0, 65535 );
+                auto generator = std::make_shared< waveform_generator >( scanlaw_, 1.0e-9, 0.0, 65535 );
                 generator->addIons( ions_ );
                 generator->onTriggered();
                 std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) ); // simulate triggers
@@ -111,4 +111,10 @@ simulator::post( waveform_generator * generator )
     auto ptr = generator->shared_from_this();
     std::lock_guard< std::mutex > lock( mutex_ );
     waveforms_.push_back( ptr );
+}
+
+void
+simulator::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
+{
+    scanlaw_ = ptr;
 }

@@ -27,11 +27,14 @@
 #include <utility>
 #include <memory>
 
+namespace adportable { class TimeSquaredScanLaw; }
+
 namespace u5303a {
 
     class waveform_generator : public std::enable_shared_from_this< waveform_generator > {
     public:
-        waveform_generator( double sampInterval = 1.0e-9
+        waveform_generator( std::shared_ptr< adportable::TimeSquaredScanLaw >& law
+                            , double sampInterval = 1.0e-9
                             , double startDelay = 0
                             , uint32_t nbrSamples = 65536
                             , uint32_t nbrWavefoms = 1 );
@@ -63,7 +66,8 @@ namespace u5303a {
         };
 
         std::vector< ion_t > ions_; // pair<time, intensity>
-        static double mass_to_time( double mass, int nTurn = 0 );
+        std::shared_ptr< adportable::TimeSquaredScanLaw > scanLaw_;
+        double mass_to_time( double mass, int nTurn = 0 );
     };
 
 }

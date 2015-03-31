@@ -31,6 +31,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/asio/thread.hpp>
+#include <adportable/timesquaredscanlaw.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <workaround/boost/asio.hpp>
@@ -93,6 +94,7 @@ namespace u5303a {
             void disconnect( digitizer::command_reply_type f );
             void connect( digitizer::waveform_reply_type f );
             void disconnect( digitizer::waveform_reply_type f );
+            void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr );
 
             inline IAgMD2Ex2Ptr& spDriver() { return spDriver_; }
             inline simulator * simulator() { return simulator_; }
@@ -120,6 +122,7 @@ namespace u5303a {
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< identify > ident_;
+            std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
 
             bool handle_initial_setup( int nDelay, int nSamples, int nAverage );
             bool handle_terminating();
@@ -224,6 +227,12 @@ void
 digitizer::disconnect_waveform( waveform_reply_type f )
 {
     task::instance()->disconnect( f );
+}
+
+void
+digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
+{
+    task::instance()->setScanLaw( ptr );
 }
 
 ////////////////////
@@ -349,7 +358,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             BSTR strInitOptions = _bstr_t( L"Simulate=true, DriverSetup= Model=U5303A, Trace=false" );
             success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
             simulated_ = true;
-            simulator_ = new u5303a::simulator;
+            simulator_ = new u5303a::simulator( scanlaw_ );
             // threads for waveform generation
             threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
             threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
@@ -529,6 +538,14 @@ task::error_reply( const _com_error& e, const std::string& method )
     _bstr_t msg( _bstr_t(L"Error: ") + e.Description() + L": " + e.ErrorMessage() );
     for ( auto& reply: reply_handlers_ )
         reply( method, static_cast< const char *>( msg ) );
+}
+
+void
+task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
+{
+    scanlaw_ = ptr;
+    if ( simulator_ )
+        simulator_->setScanLaw( ptr );
 }
 
 ///
