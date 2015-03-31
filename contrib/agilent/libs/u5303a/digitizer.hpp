@@ -77,7 +77,7 @@ namespace u5303a {
         }
     };
 
-	class U5303ASHARED_EXPORT method {
+	class /* U5303ASHARED_EXPORT */ method {
     public:
         method()
             : front_end_range( 2.0 )        // 1V,2V range
@@ -93,8 +93,8 @@ namespace u5303a {
         double front_end_range;
         double front_end_offset;
         double ext_trigger_level;
-	double samp_rate; // HZ
-	int32_t nbr_of_s_to_acquire;
+        double samp_rate; // HZ
+        int32_t nbr_of_s_to_acquire;
         int32_t nbr_of_averages;
         double delay_to_first_sample;
         int32_t invert_signal;
@@ -123,7 +123,7 @@ namespace u5303a {
         }
     };
 
-	class U5303ASHARED_EXPORT metadata {
+    class /* U5303ASHARED_EXPORT */ metadata {
     public:
         metadata() : initialXTimeSeconds( 0 )
 			, actualElements( 0 )
@@ -199,6 +199,7 @@ namespace u5303a {
 
         bool peripheral_initialize();
         bool peripheral_prepare_for_run( const adcontrols::ControlMethod& );
+        bool peripheral_prepare_for_run( const u5303a::method& );
         bool peripheral_run();
         bool peripheral_stop();
         bool peripheral_trigger_inject();

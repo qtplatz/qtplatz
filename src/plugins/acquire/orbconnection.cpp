@@ -77,18 +77,20 @@ OrbConnection::instance()
 bool
 OrbConnection::initialize()
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
     if ( initialized_ )
         return false;
 
     auto mgr = adorbmgr::orbmgr::instance();
     adplugin::orbServant * adBroker = 0;
     adplugin::orbBroker * orbBroker = 0;
-
+    
     adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" );
     if ( adbroker_plugin ) {
-
+        
         if ( (orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >()) ) {
-
+            
             try {
                 orbBroker->orbmgr_init( 0, 0 );
             } catch ( CORBA::Exception& ex ) {
@@ -103,7 +105,7 @@ OrbConnection::initialize()
 
             try {
                 if ( (adBroker = orbBroker->create_instance()) ) {
-
+                    
                     adBroker->initialize( mgr->orb(), mgr->root_poa(), mgr->poa_manager() );
                     std::string ior = adBroker->activate();
                     orbServants_.push_back( adBroker );
@@ -131,16 +133,17 @@ OrbConnection::initialize()
     std::vector< adplugin::plugin_ptr > factories;
     adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
     for ( const adplugin::plugin_ptr& plugin : factories ) {
-
+        
         if ( plugin->iid() == adbroker_plugin->iid() ) // skip "adBroker"
             continue;
-
-        ADTRACE() << "initializing " << plugin->clsid() << "{iid: " << plugin->iid() << "}";
+        
+        std::string clsid = plugin->clsid();
+        ADTRACE() << "initializing " << clsid << "{iid: " << plugin->iid() << "}";
         if ( auto factory = plugin->query_interface< adplugin::orbFactory >() ) {
             if ( auto servant = factory->create_instance() ) {
                 try {
                     servant->initialize( mgr->orb(), mgr->root_poa(), mgr->poa_manager() );
-                    std::string ior = servant->activate();
+                    servant->activate();
 
                     CORBA::Object_var obj( servant->_this() );
                     if ( !CORBA::is_nil( obj.in() ) ) {

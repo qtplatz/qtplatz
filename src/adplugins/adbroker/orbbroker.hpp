@@ -39,7 +39,7 @@ namespace adbroker {
         virtual ~orbBroker();
         
         // orbServant creator -- histrical
-        virtual adplugin::orbServant * operator()( adplugin::plugin * ) const override;
+        // virtual adplugin::orbServant * operator()( adplugin::plugin * ) const override;
 
         // Borker instance
         virtual adplugin::orbServant * create_instance() const override;

@@ -82,6 +82,7 @@ orbBroker::create_instance() const
     return new adBroker;
 }
 
+#if 0
 adplugin::orbServant *
 orbBroker::operator()( adplugin::plugin * plugin ) const
 {
@@ -161,4 +162,4 @@ orbBroker::operator()( adplugin::plugin * plugin ) const
 
     return 0;
 }
-
+#endif

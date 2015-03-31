@@ -12,7 +12,8 @@
     <Configuration name="infitof.controller.1"
 		   id="infitof.1"
 		   type="object_reference"
-		   ns_name="jp.ac.osaka-u.qtplatz.instrument.session.infitofd">
+		   ns_name="com.ms-cheminfo.qtplatz.instrument.session.infitofcontroller">
+              <!-- ns_name="jp.ac.osaka-u.qtplatz.instrument.session.infitofd"> -->
       <!-- Module describes hardware instance
 	   following 'id' is the target string for "IOR?" query string
 	   if reference attribute set to 'lookup' that will be looking up using udp broadcast or multicast
@@ -22,6 +23,7 @@
 	      reference="lookup"
 	      iid="jp.ac.osaka-u.qtplatz.instrument.session.infitofd"/>
     </Configuration>
+    
   </Configuration>
 
 </adplugin>

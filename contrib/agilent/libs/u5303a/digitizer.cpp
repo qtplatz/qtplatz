@@ -83,7 +83,8 @@ namespace u5303a {
             
             void terminate();
             bool initialize();
-            bool prepare_for_run( const adcontrols::ControlMethod& );
+            // bool prepare_for_run( const adcontrols::ControlMethod& );
+            bool prepare_for_run( const u5303a::method& );
             bool run();
             bool stop();
             bool trigger_inject_out();
@@ -114,8 +115,7 @@ namespace u5303a {
             uint32_t serialnumber_;
             std::atomic<int> acquire_post_count_;
             uint64_t inject_timepoint_;
-            std::shared_ptr< adcontrols::ControlMethod > cm_;
-            adcontrols::ControlMethod::const_iterator nextIt_;
+
             std::deque< std::shared_ptr< SampleProcessor > > queue_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
@@ -124,7 +124,8 @@ namespace u5303a {
             bool handle_initial_setup( int nDelay, int nSamples, int nAverage );
             bool handle_terminating();
             bool handle_acquire();
-            bool handle_prepare_for_run( const adcontrols::ControlMethod& );
+            // bool handle_prepare_for_run( const adcontrols::ControlMethod& );
+            bool handle_prepare_for_run( const u5303a::method& );
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( waveform& );
@@ -157,6 +158,23 @@ digitizer::peripheral_terminate()
 
 bool
 digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod& m )
+{
+    using adcontrols::controlmethod::MethodItem;
+
+    adcontrols::ControlMethod cm( m );
+    cm.sort();
+    auto it = std::find_if( cm.begin(), cm.end(), [] ( const MethodItem& mi ){ return mi.modelname() == "u5303a"; } );
+    if ( it != cm.end() ) {
+        u5303a::method m;
+        if ( adportable::serializer< u5303a::method >::deserialize( m, it->data(), it->size() ) ) {
+            return task::instance()->prepare_for_run( m );
+        }
+    }
+    return false;
+}
+
+bool
+digitizer::peripheral_prepare_for_run( const u5303a::method& m )
 {
     return task::instance()->prepare_for_run( m );
 }
@@ -247,11 +265,22 @@ task::initialize()
     return true;
 }
 
-bool
-task::prepare_for_run( const adcontrols::ControlMethod& m )
-{
-    ADTRACE() << "u5303a digitizer prepare for run..." << acquire_post_count_;
+// bool
+// task::prepare_for_run( const adcontrols::ControlMethod& m )
+// {
+//     ADTRACE() << "u5303a digitizer prepare for run..." << acquire_post_count_;
 
+//     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
+//     if ( acquire_post_count_ == 0 ) {
+//         acquire_post_count_++;
+//         io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );
+// 	}
+//     return true;
+// }
+
+bool
+task::prepare_for_run( const u5303a::method& m )
+{
     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
     if ( acquire_post_count_ == 0 ) {
         acquire_post_count_++;
@@ -259,6 +288,7 @@ task::prepare_for_run( const adcontrols::ControlMethod& m )
 	}
     return true;
 }
+
 
 bool
 task::run()
@@ -389,37 +419,58 @@ task::handle_terminating()
 	return false;
 }
 
-bool
-task::handle_prepare_for_run( const adcontrols::ControlMethod& cm )
-{
-    using adcontrols::controlmethod::MethodItem;
+// bool
+// task::handle_prepare_for_run( const adcontrols::ControlMethod& cm )
+// {
+//     using adcontrols::controlmethod::MethodItem;
 
-    cm_ = std::make_shared< adcontrols::ControlMethod >( cm );
-    cm_->sort();
-    nextIt_ = std::find_if( cm_->begin(), cm_->end(), [] ( const MethodItem& mi ){ return mi.modelname() == "u5303a"; } );
-    if ( nextIt_ != cm_->end() ) {
-        u5303a::method m;
-        if ( adportable::serializer< u5303a::method >::deserialize( m, nextIt_->data(), nextIt_->size() ) ) {
-            ADTRACE() << "u5303a::task::handle_prepare_for_run";
-            ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
-                      << "\text_trigger_level: " << m.ext_trigger_level
-                      << "\tsamp_rate: " << m.samp_rate
-                      << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
-                      << "\tnbr_of_average: " << m.nbr_of_averages
-                      << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample )
-                      << "\tinvert_signal: " << m.invert_signal
-                      << "\tnsa: " << m.nsa;
+//     cm_ = std::make_shared< adcontrols::ControlMethod >( cm );
+//     cm_->sort();
+//     nextIt_ = std::find_if( cm_->begin(), cm_->end(), [] ( const MethodItem& mi ){ return mi.modelname() == "u5303a"; } );
+//     if ( nextIt_ != cm_->end() ) {
+//         u5303a::method m;
+//         if ( adportable::serializer< u5303a::method >::deserialize( m, nextIt_->data(), nextIt_->size() ) ) {
+//             ADTRACE() << "u5303a::task::handle_prepare_for_run";
+//             ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
+//                       << "\text_trigger_level: " << m.ext_trigger_level
+//                       << "\tsamp_rate: " << m.samp_rate
+//                       << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
+//                       << "\tnbr_of_average: " << m.nbr_of_averages
+//                       << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample )
+//                       << "\tinvert_signal: " << m.invert_signal
+//                       << "\tnsa: " << m.nsa;
         
-            if ( simulated_ )
-                device<Simulate>::setup( *this, m );
-            else
-                device<UserFDK>::setup( *this, m );
-            method_ = m;
-            return true;
-        }
-    }
-    return false;
+//             if ( simulated_ )
+//                 device<Simulate>::setup( *this, m );
+//             else
+//                 device<UserFDK>::setup( *this, m );
+//             method_ = m;
+//             return true;
+//         }
+//     }
+//     return false;
+// }
+
+bool
+task::handle_prepare_for_run( const u5303a::method& m )
+{
+    ADTRACE() << "u5303a::task::handle_prepare_for_run";
+    ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
+              << "\text_trigger_level: " << m.ext_trigger_level
+              << "\tsamp_rate: " << m.samp_rate
+              << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
+              << "\tnbr_of_average: " << m.nbr_of_averages
+              << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample )
+              << "\tinvert_signal: " << m.invert_signal
+              << "\tnsa: " << m.nsa;
+    if ( simulated_ )
+        device<Simulate>::setup( *this, m );
+    else
+        device<UserFDK>::setup( *this, m );
+    method_ = m;
+    return true;
 }
+
 
 bool
 task::handle_acquire()

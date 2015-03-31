@@ -48,7 +48,7 @@ namespace adplugin {
         orbBroker();
 
         // orbServant creator -- histrical
-        virtual adplugin::orbServant * operator()( adplugin::plugin * ) const = 0;
+        // virtual adplugin::orbServant * operator()( adplugin::plugin * ) const = 0;
         virtual adplugin::orbServant * create_instance() const = 0;
         virtual bool orbmgr_init( int ac, char * av [] ) const = 0;
         virtual void orbmgr_shutdown() = 0;
