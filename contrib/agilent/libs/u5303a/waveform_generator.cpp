@@ -59,16 +59,16 @@ namespace u5303a {
 
 using namespace u5303a;
 
-waveform_generator::waveform_generator( uint32_t nStartDelay
-                                                , uint32_t nbrSamples
-                                                , uint32_t nbrWaveforms
-                                                , uint32_t sampInterval ) : nStartDelay_( nStartDelay )
-    , nbrSamples_( nbrSamples )
-    , sampInterval_( sampInterval )
-    , timeStamp_( 0 )
-    , nbrWaveforms_( nbrWaveforms )
-    , waveform_( nbrSamples_ )
-    , serialNumber_( __serialNumber__++ )
+waveform_generator::waveform_generator( double sampInterval
+                                        , double startDelay
+                                        , uint32_t nbrSamples
+                                        , uint32_t nbrWaveforms ) : sampInterval_( sampInterval )
+                                                                  , startDelay_( startDelay )
+                                                                  , nbrSamples_( nbrSamples )
+                                                                  , timeStamp_( 0 )
+                                                                  , nbrWaveforms_( nbrWaveforms )
+                                                                  , waveform_( nbrSamples_ )
+                                                                  , serialNumber_( __serialNumber__++ )
 {
 }
 
@@ -119,7 +119,8 @@ waveform_generator::onTriggered()
 
     size_t idx = 0;
     for ( int32_t& d: waveform_ ) {
-        double t = scale_to_base<double>( ( nStartDelay_ + idx++ ) * double(sampInterval_), pico );
+
+        double t = startDelay_ + sampInterval_ * idx++;
 
         auto itIon = ions_.begin();
         auto itTime = times.begin();
@@ -158,10 +159,10 @@ waveform_generator::serialNumber() const
     return serialNumber_;
 }
 
-uint32_t
+double
 waveform_generator::startDelay() const
 {
-    return nStartDelay_;
+    return startDelay_;
 }
 
 uint32_t
@@ -176,7 +177,7 @@ waveform_generator::nbrSamples() const
     return nbrSamples_;
 }
 
-uint32_t
+double
 waveform_generator::sampInterval() const
 {
     return sampInterval_;

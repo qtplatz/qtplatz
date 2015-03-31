@@ -51,7 +51,7 @@ simulator::acquire( boost::asio::io_service& io_service )
     if ( ! acqTriggered_ ) {
 
         io_service.post( [&]() {
-                auto generator = std::make_shared< waveform_generator >();
+                auto generator = std::make_shared< waveform_generator >( 1.0e-9, 0.0, 65535 );
                 generator->addIons( ions_ );
                 generator->onTriggered();
                 std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) ); // simulate triggers

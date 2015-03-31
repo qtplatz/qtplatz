@@ -31,29 +31,29 @@ namespace u5303a {
 
     class waveform_generator : public std::enable_shared_from_this< waveform_generator > {
     public:
-        waveform_generator( uint32_t nStartDelay = 0
+        waveform_generator( double sampInterval = 1.0e-9
+                            , double startDelay = 0
                             , uint32_t nbrSamples = 65536
-                            , uint32_t nbrWavefoms = 1
-                            , uint32_t sampInterval_ = 500 );
+                            , uint32_t nbrWavefoms = 1 );
 
         void addIons( const std::vector< std::pair<double, double> >& ); // pair<mass, intensity>
         void onTriggered(); // ns
         const std::vector< int32_t >& waveform() const;
         double timestamp() const;
         uint32_t serialNumber() const;
-        uint32_t startDelay() const;
+        double startDelay() const;
         uint32_t nbrWaveforms() const;
         uint32_t nbrSamples() const;
-        uint32_t sampInterval() const;
+        double sampInterval() const;
         
     private:
+        double startDelay_;
+        double sampInterval_; // ps
         uint32_t serialNumber_;
-        uint32_t nStartDelay_;
         uint32_t nbrSamples_;
-        uint32_t sampInterval_; // ps
         double timeStamp_;    // s
         uint32_t nbrWaveforms_;
-
+        
         std::vector< int32_t > waveform_;
 
         struct ion_t {
