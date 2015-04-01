@@ -89,7 +89,7 @@ namespace u5303a {
         QString ctrlmethod_filename_;
 
         void reply_handler( const std::string&, const std::string& );
-        void waveform_handler( const waveform * );
+        bool waveform_handler( const waveform *, u5303a::method& );
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();

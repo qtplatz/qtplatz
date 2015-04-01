@@ -128,6 +128,7 @@ namespace u5303a {
             bool handle_terminating();
             bool handle_acquire();
             bool handle_prepare_for_run( const u5303a::method );
+            bool handle_protocol( const u5303a::method );            
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( waveform& );
@@ -276,6 +277,16 @@ task::initialize()
 bool
 task::prepare_for_run( const u5303a::method& m )
 {
+    ADTRACE() << "u5303a::task::prepare_for_run";
+    ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
+              << "\text_trigger_level: " << m.ext_trigger_level
+              << "\tsamp_rate: " << m.samp_rate
+              << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
+              << "\tnbr_of_average: " << m.nbr_of_averages
+              << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample )
+              << "\tinvert_signal: " << m.invert_signal
+              << "\tnsa: " << m.nsa;
+    
     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
     if ( acquire_post_count_ == 0 ) {
         acquire_post_count_++;
@@ -362,7 +373,6 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             // threads for waveform generation
             threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
             threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
-            threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
         } catch ( _com_error & e ) {
             ERR( e, "Initialize" );
         }
@@ -417,15 +427,23 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const u5303a::method m )
 {
-    ADTRACE() << "u5303a::task::handle_prepare_for_run";
-    ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
-              << "\text_trigger_level: " << m.ext_trigger_level
-              << "\tsamp_rate: " << m.samp_rate
+    if ( simulated_ )
+        device<Simulate>::initial_setup( *this, m );
+    else
+        device<UserFDK>::initial_setup( *this, m );
+    method_ = m;
+    return true;
+}
+
+bool
+task::handle_protocol( const u5303a::method m )
+{
+#if defined _DEBUG
+    ADTRACE() << "u5303a::task::handle_protocol"
               << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
               << "\tnbr_of_average: " << m.nbr_of_averages
-              << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample )
-              << "\tinvert_signal: " << m.invert_signal
-              << "\tnsa: " << m.nsa;
+              << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample );
+#endif
     if ( simulated_ )
         device<Simulate>::setup( *this, m );
     else
@@ -459,8 +477,11 @@ task::handle_acquire()
                 //     }
                 // }
                 // assert( avgr->nbrSamples );
-                for ( auto& reply: waveform_handlers_ )
-                    reply( avgr.get() );
+                u5303a::method m;
+                for ( auto& reply: waveform_handlers_ ) {
+                    if ( reply( avgr.get(), m ) )
+                        handle_protocol( m );
+                }
             }
         } else {
             ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
@@ -689,7 +710,23 @@ device<UserFDK>::initial_setup( task& task, const method& m )
 template<> bool
 device<UserFDK>::setup( task& task, const method& m )
 {
-    return device<UserFDK>::initial_setup( task, m );
+    IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
+    try {
+        task.spDriver()->Trigger->Delay = m.delay_to_first_sample;
+    } catch ( _com_error& e ) {
+        TERR(e,"mode");        
+    }
+    try {
+        task.spDriver()->Acquisition->RecordSize = m.nbr_of_s_to_acquire;
+    } catch ( _com_error& e ) {
+        TERR(e,"mbr_of_s_to_acquire");        
+    }
+    try {
+        task.spDriver()->Acquisition2->NumberOfAverages = m.nbr_of_averages;
+    } catch ( _com_error& e ) {
+        TERR(e,"mbr_of_averages");        
+    }
+    return true; //device<UserFDK>::initial_setup( task, m );
 }
 
 template<> bool
@@ -798,6 +835,9 @@ device<UserFDK>::readData( task& task, waveform& data )
 template<> bool
 device<Simulate>::initial_setup( task& task, const method& m )
 {
+    if ( simulator * simulator = task.simulator() )
+        simulator->setup( m );
+
     // Create smart pointers to Channels and TriggerSource interfaces
     IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
     IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[L"External1"];
@@ -830,7 +870,20 @@ device<Simulate>::initial_setup( task& task, const method& m )
 template<> bool
 device<Simulate>::setup( task& task, const method& m )
 {
-    return device<Simulate>::initial_setup( task, m );
+    if ( simulator * simulator = task.simulator() )
+        simulator->setup( m );
+    
+    // Set the sample rate and nbr of samples to acquire
+    // double sample_rate = m.samp_rate; // 3.2E9;
+    //try { task.spDriver()->Acquisition->PutSampleRate( sample_rate ); } catch ( _com_error& e ) { TERR( e, "SampleRate" ); }
+    //try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
+
+    ADTRACE() << "Apply setup...";
+    try { task.spDriver()->Acquisition->ApplySetup(); } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
+
+    //std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
+    
+    return true; // device<Simulate>::initial_setup( task, m );
 }
 
 template<> bool
@@ -855,12 +908,6 @@ device<Simulate>::readData( task& task, waveform& data )
     data.method_ = task.method();
     if ( simulator * simulator = task.simulator() ) {
         simulator->readData( data );
-        data.meta.xIncrement = 1.0 / data.method_.samp_rate;
-        data.meta.actualAverages = data.method_.nbr_of_averages;
-        data.meta.numPointsPerRecord = data.method_.nbr_of_s_to_acquire;
-        data.meta.scaleFactor = 1.0;
-        data.meta.scaleOffset = 0.0;
-        
         return true;
     }
     return false;

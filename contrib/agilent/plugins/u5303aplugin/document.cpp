@@ -136,7 +136,7 @@ void
 document::u5303a_connect()
 {
     digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
-    digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1 ) );
+    digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2 ) );
     digitizer_->peripheral_initialize();
 }
 
@@ -189,8 +189,8 @@ document::reply_handler( const std::string& method, const std::string& reply )
     }
 }
 
-void
-document::waveform_handler( const waveform * p )
+bool
+document::waveform_handler( const waveform * p, u5303a::method& )
 {
     auto ptr = p->shared_from_this();
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -198,6 +198,7 @@ document::waveform_handler( const waveform * p )
         que_.pop_front();
 	que_.push_back( ptr );
     emit on_waveform_received();
+    return false;
 }
 
 std::shared_ptr< const waveform >

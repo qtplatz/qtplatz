@@ -208,7 +208,7 @@ namespace u5303a {
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef std::function< void( const std::string, const std::string ) > command_reply_type;
-        typedef std::function< void( const waveform * ) > waveform_reply_type;
+        typedef std::function< bool( const waveform *, u5303a::method& ) > waveform_reply_type;
 
         void connect_reply( command_reply_type ); // method,reply
         void disconnect_reply( command_reply_type );

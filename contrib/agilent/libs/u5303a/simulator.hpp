@@ -37,6 +37,7 @@ namespace u5303a {
     
     class waveform_generator;
     class waveform;
+    class method;
 
     class simulator  {
     public:
@@ -47,7 +48,7 @@ namespace u5303a {
         bool waitForEndOfAcquisition();
         bool readData( waveform& );
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& );
-        
+        void setup( const method& );
     private:
         std::mutex mutex_;
         std::condition_variable cond_;
@@ -57,6 +58,11 @@ namespace u5303a {
         std::atomic<bool> acqTriggered_;
         std::vector< std::shared_ptr< waveform_generator > > waveforms_;
         std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
+        double sampInterval_;
+        double startDelay_;
+        uint32_t nbrSamples_;
+        uint32_t nbrWaveforms_;
+
         void post( waveform_generator * );
     };
 

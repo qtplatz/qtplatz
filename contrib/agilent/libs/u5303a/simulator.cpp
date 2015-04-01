@@ -31,6 +31,10 @@
 using namespace u5303a;
 
 simulator::simulator( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr ) : scanlaw_( ptr )
+                                                                               , sampInterval_( 1.0e-9 )
+                                                                               , startDelay_( 0.0 )
+                                                                               , nbrSamples_( 10000 )
+                                                                               , nbrWaveforms_( 496 )
 {
     const double total = 60000;
     ions_.push_back( std::make_pair( 18.0105646, 1000.0 ) ); // H2O
@@ -51,11 +55,17 @@ simulator::acquire( boost::asio::io_service& io_service )
     if ( ! acqTriggered_ ) {
 
         io_service.post( [&]() {
-                auto generator = std::make_shared< waveform_generator >( scanlaw_, 1.0e-9, 0.0, 65535 );
+                auto generator = std::make_shared< waveform_generator >( scanlaw_
+                                                                         , sampInterval_
+                                                                         , startDelay_
+                                                                         , int32_t( nbrSamples_ ), int32_t( nbrWaveforms_ ) );
                 generator->addIons( ions_ );
                 generator->onTriggered();
-                std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) ); // simulate triggers
+
+                std::this_thread::sleep_for( std::chrono::milliseconds( nbrWaveforms_ ) ); // simulate triggers
+
                 post( generator.get() );
+
                 hasWaveform_ = true;
                 std::unique_lock< std::mutex > lock( queue_ );
                 cond_.notify_one();
@@ -95,11 +105,22 @@ simulator::readData( waveform& data )
 
     if ( ptr ) {
         data.d_ = ptr->waveform();
+        data.method_.delay_to_first_sample = startDelay_;
+        data.method_.nbr_of_averages = int32_t( nbrWaveforms_ );
+        data.method_.nbr_of_s_to_acquire =int32_t( nbrSamples_ );
+        data.method_.samp_rate = 1.0 / sampInterval_;
         data.meta.initialXTimeSeconds = ptr->timestamp();
         data.serialnumber = ptr->serialNumber();
         data.wellKnownEvents = 0;
         data.meta.actualElements = data.d_.size();
         data.meta.firstValidPoint = 0;
+        data.meta.xIncrement = sampInterval_;
+        data.meta.initialXOffset = startDelay_;
+        data.meta.actualAverages = int32_t( nbrWaveforms_ );
+        data.meta.numPointsPerRecord = data.method_.nbr_of_s_to_acquire;
+        data.meta.scaleFactor = 1.0;
+        data.meta.scaleOffset = 0.0;
+
         return true;
     }
     return false;
@@ -117,4 +138,13 @@ void
 simulator::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 {
     scanlaw_ = ptr;
+}
+
+void
+simulator::setup( const method& m )
+{
+    sampInterval_ = 1.0 / m.samp_rate;
+    startDelay_ = m.delay_to_first_sample;
+    nbrSamples_ = m.nbr_of_s_to_acquire;
+    nbrWaveforms_ = m.nbr_of_averages;
 }
