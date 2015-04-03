@@ -598,11 +598,13 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
     
     // Set Interleave ON
+#if 0
     try {
         spCh1->TimeInterleavedChannelList = "Channel2";
     } catch ( _com_error& e ) {
         TERR(e, "TimeInterleavedChannelList");
     }
+#endif
     try {
         spCh1->PutRange(m.front_end_range);
     } catch ( _com_error& e ) {
@@ -657,7 +659,7 @@ device<UserFDK>::initial_setup( task& task, const method& m )
 
     // Set the sample rate and nbr of samples to acquire
     bool success = false;
-    const double sample_rate = m.samp_rate; // 3.2E9;
+    const double sample_rate = 1.0e9; //m.samp_rate; // 3.2E9;
     try {
         task.spDriver()->Acquisition2->SampleRate = sample_rate;
         success = true;
@@ -672,15 +674,16 @@ device<UserFDK>::initial_setup( task& task, const method& m )
             TERR( e, "SampleRate" );
         }
     }
+
     // Start on trigger
     // Full bandwidth
+#if 0
     try {
         task.spDriver()->Channels2->GetItem2("Channel1")->Filter->Bypass = 1;
-        // spCh1->Filter->Bypass = 1;
     } catch ( _com_error& e ) {
         TERR( e, "Bandwidth" );
     }
-
+#endif
     //--->
     try {
         task.spDriver()->Acquisition->RecordSize = m.nbr_of_s_to_acquire;
@@ -711,11 +714,14 @@ template<> bool
 device<UserFDK>::setup( task& task, const method& m )
 {
     IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
+#if 0
     try {
-        task.spDriver()->Trigger->Delay = m.delay_to_first_sample;
+        uint64_t nDelay = uint64_t( m.delay_to_first_sample / 1.0e-9 + 0.5 ); // ns
+        task.spDriver()->Trigger->Delay = double( ( nDelay / 16 ) * 16 ) * 1.0e-9;
     } catch ( _com_error& e ) {
         TERR(e,"mode");        
     }
+    // task.spDriver()->Calibration->SelfCalibrate();
     try {
         task.spDriver()->Acquisition->RecordSize = m.nbr_of_s_to_acquire;
     } catch ( _com_error& e ) {
@@ -726,6 +732,7 @@ device<UserFDK>::setup( task& task, const method& m )
     } catch ( _com_error& e ) {
         TERR(e,"mbr_of_averages");        
     }
+#endif
     return true; //device<UserFDK>::initial_setup( task, m );
 }
 
@@ -760,7 +767,7 @@ device<UserFDK>::waitForEndOfAcquisition( task& task, int timeout )
     try {
         task.spDriver()->Acquisition->WaitForAcquisitionComplete(timeoutInMs);
     } catch ( _com_error& e ) {
-        TERR(e, "ReadRegisterInt32");
+        TERR(e, "WaitForAcquisitionComplete");
     }
     return true;
 }
@@ -854,7 +861,7 @@ device<Simulate>::initial_setup( task& task, const method& m )
     try { task.spDriver()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
 
     // Set the sample rate and nbr of samples to acquire
-    double sample_rate = m.samp_rate; // 3.2E9;
+    double sample_rate = 1.0e9; //m.samp_rate; // 3.2E9;
     try { task.spDriver()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
 
     try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
