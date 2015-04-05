@@ -369,7 +369,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             BSTR strInitOptions = _bstr_t( L"Simulate=true, DriverSetup= Model=U5303A, Trace=false" );
             success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
             simulated_ = true;
-            simulator_ = new u5303a::simulator( scanlaw_ );
+            simulator_ = new u5303a::simulator();
             // threads for waveform generation
             threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
             threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
@@ -565,8 +565,6 @@ void
 task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 {
     scanlaw_ = ptr;
-    if ( simulator_ )
-        simulator_->setScanLaw( ptr );
 }
 
 ///

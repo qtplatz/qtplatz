@@ -17,7 +17,6 @@ add_definitions(-DU5303A_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
 set( u5303a_SOURCES
   digitizer.cpp
   simulator.cpp
-  waveform_generator.cpp
   sampleprocessor.cpp
   )
 
@@ -26,7 +25,6 @@ set( u5303a_HEADERS
   digitizer.hpp
   safearray.hpp
   simulator.hpp
-  waveform_generator.hpp 
   sampleprocessor.hpp
   )
 

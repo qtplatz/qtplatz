@@ -31,24 +31,26 @@
 #include <vector>
 
 namespace boost { namespace asio { class io_service; } }
-namespace adportable { class TimeSquaredScanLaw; }
+namespace adinterface { class waveform_generator;  }
 
 namespace u5303a {
     
-    class waveform_generator;
     class waveform;
     class method;
 
     class simulator  {
     public:
         ~simulator();
-        simulator( std::shared_ptr< adportable::TimeSquaredScanLaw >& );
+        simulator();
 
         bool acquire( boost::asio::io_service& );
         bool waitForEndOfAcquisition();
         bool readData( waveform& );
-        void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& );
         void setup( const method& );
+
+        void protocol_handler( double, double );
+
+        static simulator * instance();
     private:
         std::mutex mutex_;
         std::condition_variable cond_;
@@ -56,14 +58,15 @@ namespace u5303a {
         std::vector< std::pair< double, double > > ions_; // pair<mass, intensity>
         std::atomic<bool> hasWaveform_;
         std::atomic<bool> acqTriggered_;
-        std::vector< std::shared_ptr< waveform_generator > > waveforms_;
-        std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
+        std::vector< std::shared_ptr< adinterface::waveform_generator > > waveforms_;
         double sampInterval_;
         double startDelay_;
         uint32_t nbrSamples_;
         uint32_t nbrWaveforms_;
+        double exitDelay_;
+        static simulator * instance_;
 
-        void post( waveform_generator * );
+        void post( adinterface::waveform_generator * );
     };
 
 }

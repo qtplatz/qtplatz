@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,18 +24,37 @@
 
 #include "simulator.hpp"
 #include "digitizer.hpp"
-#include "waveform_generator.hpp"
+#include <adinterface/waveform_generator.hpp>
 #include <workaround/boost/asio.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
 #include <thread>
+
+namespace u5303a {
+    simulator * simulator::instance_(0);
+}
+
+waveform_generator_generator_t __waveform_generator_generator;
 
 using namespace u5303a;
 
-simulator::simulator( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr ) : scanlaw_( ptr )
-                                                                               , sampInterval_( 1.0e-9 )
-                                                                               , startDelay_( 0.0 )
-                                                                               , nbrSamples_( 10000 )
-                                                                               , nbrWaveforms_( 496 )
+simulator::simulator() : sampInterval_( 1.0e-9 )
+                       , startDelay_( 0.0 )
+                       , nbrSamples_( 10000 & ~0x0f )
+                       , nbrWaveforms_( 496 )
+                       , exitDelay_( 0.0 )
 {
+    boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
+    if ( boost::interprocess::interprocess_mutex * mx
+         = shm.find_or_construct< boost::interprocess::interprocess_mutex >( "waveform_simulator_mutex" )() ) {
+
+        auto ptr = shm.find< waveform_generator_generator_t >( "waveform_generator_generator" );
+        boost::interprocess::scoped_lock< boost::interprocess::interprocess_mutex > lock( *mx );
+        if ( __waveform_generator_generator = *ptr.first )
+            auto p = __waveform_generator_generator( 0, 0, 0, 0 );
+    }
+    
+    instance_ = this;
+
     const double total = 60000;
     ions_.push_back( std::make_pair( 18.0105646, 1000.0 ) ); // H2O
     ions_.push_back( std::make_pair( 28.006148,  0.7809 * total ) ); // N2
@@ -45,6 +64,20 @@ simulator::simulator( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr ) :
 
 simulator::~simulator()
 {
+    instance_ = 0;
+}
+
+simulator *
+simulator::instance()
+{
+    return instance_;
+}
+
+void
+simulator::protocol_handler( double delay, double width )
+{
+    exitDelay_ = delay;
+    (void)width;
 }
 
 bool
@@ -55,21 +88,23 @@ simulator::acquire( boost::asio::io_service& io_service )
     if ( ! acqTriggered_ ) {
 
         io_service.post( [&]() {
-                auto generator = std::make_shared< waveform_generator >( scanlaw_
-                                                                         , sampInterval_
-                                                                         , startDelay_
-                                                                         , int32_t( nbrSamples_ ), int32_t( nbrWaveforms_ ) );
-                generator->addIons( ions_ );
-                generator->onTriggered();
+            if ( __waveform_generator_generator ) {
 
-                std::this_thread::sleep_for( std::chrono::milliseconds( nbrWaveforms_ ) ); // simulate triggers
+                if ( auto generator = __waveform_generator_generator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
 
-                post( generator.get() );
+                    generator->addIons( ions_ );
+                    generator->onTriggered();
 
-                hasWaveform_ = true;
-                std::unique_lock< std::mutex > lock( queue_ );
-                cond_.notify_one();
-            } );
+                    std::this_thread::sleep_for( std::chrono::milliseconds( nbrWaveforms_ ) ); // simulate triggers
+
+                    post( generator.get() );
+
+                    hasWaveform_ = true;
+                    std::unique_lock< std::mutex > lock( queue_ );
+                    cond_.notify_one();
+                }
+            }
+        } );
 
         acqTriggered_ = true;
         return true;        
@@ -93,7 +128,7 @@ simulator::waitForEndOfAcquisition()
 bool
 simulator::readData( waveform& data )
 {
-    std::shared_ptr< waveform_generator > ptr;
+    std::shared_ptr< adinterface::waveform_generator > ptr;
 
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
@@ -104,7 +139,8 @@ simulator::readData( waveform& data )
     } while(0);
 
     if ( ptr ) {
-        data.d_ = ptr->waveform();
+        data.d_.resize( ptr->nbrSamples() );
+        std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), data.d_.begin() );
         data.method_.delay_to_first_sample = startDelay_;
         data.method_.nbr_of_averages = int32_t( nbrWaveforms_ );
         data.method_.nbr_of_s_to_acquire =int32_t( nbrSamples_ );
@@ -127,17 +163,11 @@ simulator::readData( waveform& data )
 }
 
 void
-simulator::post( waveform_generator * generator )
+simulator::post( adinterface::waveform_generator * generator )
 {
     auto ptr = generator->shared_from_this();
     std::lock_guard< std::mutex > lock( mutex_ );
     waveforms_.push_back( ptr );
-}
-
-void
-simulator::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
-{
-    scanlaw_ = ptr;
 }
 
 void
