@@ -471,7 +471,7 @@ MainWindow::actSnapshot()
                 boost::filesystem::create_directories( path, ec );
             }
             path /= "u5303a.adfs";
-            std::wstring title = ( boost::wformat( L"Spectrum %1%" ) % waveform->serialnumber ).str();
+            std::wstring title = ( boost::wformat( L"Spectrum %1%" ) % waveform->serialnumber_ ).str();
             std::wstring folderId;
 			if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
                 auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();

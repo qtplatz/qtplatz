@@ -64,6 +64,7 @@ namespace u5303a {
         uint32_t nbrSamples_;
         uint32_t nbrWaveforms_;
         double exitDelay_;
+        std::shared_ptr< u5303a::method > method_;
         static simulator * instance_;
 
         void post( adinterface::waveform_generator * );

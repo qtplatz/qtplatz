@@ -236,6 +236,28 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
     task::instance()->setScanLaw( ptr );
 }
 
+//////////////
+
+const int32_t *
+waveform::trim( metadata& meta, uint32_t& nSamples ) const
+{
+    meta = meta_;
+
+    size_t offset = 0;
+    if ( method_.digitizer_delay_to_first_sample < method_.delay_to_first_sample_ )
+        offset = size_t( ( ( method_.delay_to_first_sample_ - method_.digitizer_delay_to_first_sample ) / meta.xIncrement ) + 0.5 );
+
+    nSamples = method_.nbr_of_s_to_acquire_;
+    if ( nSamples + offset > method_.digitizer_nbr_of_s_to_acquire )
+        nSamples = uint32_t( method_.digitizer_nbr_of_s_to_acquire - offset );
+
+    meta.initialXOffset = method_.delay_to_first_sample_;
+    meta.actualPoints = nSamples;
+
+    return d_.data() + offset;
+}
+
+
 ////////////////////
 
 task::task() : work_( io_service_ )
@@ -279,13 +301,13 @@ task::prepare_for_run( const u5303a::method& m )
 {
     ADTRACE() << "u5303a::task::prepare_for_run";
     ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
-              << "\text_trigger_level: " << m.ext_trigger_level
-              << "\tsamp_rate: " << m.samp_rate
-              << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
-              << "\tnbr_of_average: " << m.nbr_of_averages
-              << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample )
-              << "\tinvert_signal: " << m.invert_signal
-              << "\tnsa: " << m.nsa;
+        << "\text_trigger_level: " << m.ext_trigger_level
+        << "\tsamp_rate: " << m.samp_rate
+        << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire_ << "; " << m.digitizer_nbr_of_s_to_acquire
+        << "\tnbr_of_average: " << m.nbr_of_averages
+        << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
+        << "\tinvert_signal: " << m.invert_signal
+        << "\tnsa: " << m.nsa;
     
     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
     if ( acquire_post_count_ == 0 ) {
@@ -440,9 +462,9 @@ task::handle_protocol( const u5303a::method m )
 {
 #if defined _DEBUG
     ADTRACE() << "u5303a::task::handle_protocol"
-              << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
-              << "\tnbr_of_average: " << m.nbr_of_averages
-              << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample );
+        << "\tnbr_of_samples: " << m.digitizer_nbr_of_s_to_acquire
+        << "\tnbr_of_average: " << m.nbr_of_averages
+        << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample );
 #endif
     if ( simulated_ )
         device<Simulate>::setup( *this, m );
@@ -512,7 +534,7 @@ task::waitForEndOfAcquisition( int timeout )
 bool
 task::readData( waveform& data )
 {
-    data.serialnumber = serialnumber_++;
+    data.serialnumber_ = serialnumber_++;
     if ( simulated_ )
         return device<Simulate>::readData( *this, data );
     else
@@ -626,7 +648,7 @@ device<UserFDK>::initial_setup( task& task, const method& m )
         TERR(e, "Trigger::ActiveSource");
     }
     try {
-        task.spDriver()->Trigger->Delay = m.delay_to_first_sample;
+        task.spDriver()->Trigger->Delay = m.digitizer_delay_to_first_sample;
     } catch ( _com_error& e ) {
         TERR(e,"mode");        
     }
@@ -684,7 +706,7 @@ device<UserFDK>::initial_setup( task& task, const method& m )
 #endif
     //--->
     try {
-        task.spDriver()->Acquisition->RecordSize = m.nbr_of_s_to_acquire;
+        task.spDriver()->Acquisition->RecordSize = m.digitizer_nbr_of_s_to_acquire;
     } catch ( _com_error& e ) {
         TERR(e,"mbr_of_s_to_acquire");        
     }
@@ -781,11 +803,11 @@ device<UserFDK>::readData( task& task, waveform& data )
     long actualAverages = 0;
     // __int64 actualRecords = 0;
     SAFEARRAY* actualPoints = 0;
-    SAFEARRAY* firstValidPoint = 0;
+    SAFEARRAY* firstValidPoints = 0;
     SAFEARRAY* initialXTimeSeconds = 0;
     SAFEARRAY* initialXTimeFraction = 0;
     SAFEARRAY* flags = 0;
-    const int64_t numPointsPerRecord = task.method().nbr_of_s_to_acquire;
+    const int64_t numPointsPerRecord = task.method().digitizer_nbr_of_s_to_acquire;
     
     try {
         spCh1->Measurement2->FetchAccumulatedWaveformInt32( firstRecord
@@ -794,38 +816,40 @@ device<UserFDK>::readData( task& task, waveform& data )
                                                             , numPointsPerRecord
                                                             , &dataArray
                                                             , &actualAverages
-                                                            , &data.meta.actualRecords
+                                                            , &data.meta_.actualRecords
                                                             , &actualPoints
-                                                            , &firstValidPoint
-                                                            , &data.meta.initialXOffset
+                                                            , &firstValidPoints
+                                                            , &data.meta_.initialXOffset
                                                             , &initialXTimeSeconds
                                                             , &initialXTimeFraction
-                                                            , &data.meta.xIncrement
-                                                            , &data.meta.scaleFactor
-                                                            , &data.meta.scaleOffset
+                                                            , &data.meta_.xIncrement
+                                                            , &data.meta_.scaleFactor
+                                                            , &data.meta_.scaleOffset
                                                             , &flags );
 
         data.method_ = task.method();
 
-        data.meta.actualAverages = actualAverages;
+        data.meta_.actualAverages = actualAverages;
 
-		safearray_t<__int64> saFirstValidPoint( firstValidPoint );
-        data.meta.firstValidPoint = saFirstValidPoint.data()[ 0 ];
+		safearray_t<__int64> saFirstValidPoint( firstValidPoints );
+        __int64 firstValidPoint = saFirstValidPoint.data()[ 0 ];
+
+        safearray_t<int> saFlags( flags );
+        data.meta_.flags = saFlags.data()[ 0 ];
 
         safearray_t< double > saInitialXTimeSeconds( initialXTimeSeconds );
         safearray_t< double > saInitialXTimeFraction( initialXTimeFraction );
-        data.meta.initialXTimeSeconds = saInitialXTimeSeconds.data()[ 0 ] + saInitialXTimeFraction.data()[ 0 ];
+        data.meta_.initialXTimeSeconds = saInitialXTimeSeconds.data()[ 0 ] + saInitialXTimeFraction.data()[ 0 ];
 
 		safearray_t<int32_t> sa( dataArray );
         data.d_.resize( numPointsPerRecord );
-        std::copy( sa.data() + data.meta.firstValidPoint, sa.data() + numPointsPerRecord, data.d_.begin() );
-        data.meta.firstValidPoint = 0;
+        std::copy( sa.data() + firstValidPoint, sa.data() + numPointsPerRecord, data.d_.begin() );
 
         // Release memory.
         SafeArrayDestroy(flags);
         SafeArrayDestroy(initialXTimeFraction);
         SafeArrayDestroy(initialXTimeSeconds);
-        SafeArrayDestroy(firstValidPoint);
+        SafeArrayDestroy(firstValidPoints);
         SafeArrayDestroy(actualPoints);
         SafeArrayDestroy(dataArray);
 
@@ -860,14 +884,10 @@ device<Simulate>::initial_setup( task& task, const method& m )
 
     // Set the sample rate and nbr of samples to acquire
     double sample_rate = 1.0e9; //m.samp_rate; // 3.2E9;
-    try { task.spDriver()->Acquisition->PutSampleRate(sample_rate); }  catch (_com_error& e) { TERR(e,"SampleRate"); }
+    //try { task.spDriver()->Acquisition->PutSampleRate( sample_rate ); } catch ( _com_error& e ) { TERR( e, "SampleRate" ); }
+    //try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
 
-    try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
-
-    ADTRACE() << "Apply setup...";
     try { task.spDriver()->Acquisition->ApplySetup();  } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
-
-    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
 	return true;
 }
@@ -917,3 +937,4 @@ device<Simulate>::readData( task& task, waveform& data )
     }
     return false;
 }
+

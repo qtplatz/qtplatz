@@ -93,13 +93,13 @@ WaveformWnd::handle_waveform()
 {
     if ( auto waveform = document::instance()->findWaveform() ) {
         double dbase(0), rms(0);
-        double timestamp = waveform->meta.initialXTimeSeconds; 
+        double timestamp = waveform->meta_.initialXTimeSeconds; 
         do {
             // timed trace
             const int32_t * data = waveform->d_.data();
             double tic = adportable::spectrum_processor::tic( static_cast<unsigned int>(waveform->d_.size()), data, dbase, rms );
 
-			tp_->push_back( waveform->serialnumber, timestamp, tic );
+			tp_->push_back( waveform->serialnumber_, timestamp, tic );
             tpw_->setData( *tp_ );
         } while(0);
 
@@ -110,11 +110,11 @@ WaveformWnd::handle_waveform()
 
         adcontrols::MSProperty prop = sp_->getMSProperty();
 		adcontrols::MSProperty::SamplingInfo info( 0
-                                                   , uint32_t( waveform->meta.initialXOffset / waveform->meta.xIncrement )
+                                                   , uint32_t( waveform->meta_.initialXOffset / waveform->meta_.xIncrement + 0.5 )
                                                    , uint32_t(waveform->d_.size())
-                                                   , waveform->meta.actualAverages
+                                                   , waveform->meta_.actualAverages
                                                    , 0 );
-        info.fSampInterval( waveform->meta.xIncrement );
+        info.fSampInterval( waveform->meta_.xIncrement );
         prop.acceleratorVoltage( 3000 );
 		prop.setSamplingInfo( info );
         using namespace adcontrols::metric;
@@ -135,6 +135,6 @@ WaveformWnd::handle_waveform()
         spw_->setKeepZoomed( true );
         //std::chrono::duration< uint64_t, std::pico > pico( waveform->timestamp_ );
         //typedef std::chrono::duration<double> seconds;
-        spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f" ) % waveform->meta.initialXTimeSeconds % rms ).str() );
+        spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f" ) % waveform->meta_.initialXTimeSeconds % rms ).str() );
     }
 }

@@ -238,7 +238,7 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
 
     adcontrols::MSProperty prop = sp.getMSProperty();
     adcontrols::MSProperty::SamplingInfo info( 0
-                                               , uint32_t( waveform.meta.initialXOffset / waveform.meta.xIncrement + 0.5 )
+                                               , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
                                                , uint32_t( waveform.d_.size() )
                                                , waveform.method_.nbr_of_averages + 1
                                                , 0 );
@@ -246,12 +246,12 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
-    prop.setTimeSinceInjection( waveform.meta.initialXTimeSeconds );
+    prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
     prop.setDataInterpreterClsid( "u5303a" );
 
     u5303a::device_data data;
     data.ident = *waveform.ident_;
-    data.meta = waveform.meta;
+    data.meta = waveform.meta_;
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );

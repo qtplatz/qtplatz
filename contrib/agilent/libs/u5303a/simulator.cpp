@@ -42,6 +42,7 @@ simulator::simulator() : sampInterval_( 1.0e-9 )
                        , nbrSamples_( 10000 & ~0x0f )
                        , nbrWaveforms_( 496 )
                        , exitDelay_( 0.0 )
+                       , method_( std::make_shared< u5303a::method >() )
 {
     boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
     if ( boost::interprocess::interprocess_mutex * mx
@@ -141,21 +142,20 @@ simulator::readData( waveform& data )
     if ( ptr ) {
         data.d_.resize( ptr->nbrSamples() );
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), data.d_.begin() );
-        data.method_.delay_to_first_sample = startDelay_;
+        data.method_ = *method_;
+        data.method_.digitizer_delay_to_first_sample = startDelay_;
         data.method_.nbr_of_averages = int32_t( nbrWaveforms_ );
-        data.method_.nbr_of_s_to_acquire =int32_t( nbrSamples_ );
-        data.method_.samp_rate = 1.0 / sampInterval_;
-        data.meta.initialXTimeSeconds = ptr->timestamp();
-        data.serialnumber = ptr->serialNumber();
-        data.wellKnownEvents = 0;
-        data.meta.actualElements = data.d_.size();
-        data.meta.firstValidPoint = 0;
-        data.meta.xIncrement = sampInterval_;
-        data.meta.initialXOffset = startDelay_;
-        data.meta.actualAverages = int32_t( nbrWaveforms_ );
-        data.meta.numPointsPerRecord = data.method_.nbr_of_s_to_acquire;
-        data.meta.scaleFactor = 1.0;
-        data.meta.scaleOffset = 0.0;
+        data.method_.digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+
+        data.meta_.initialXTimeSeconds = ptr->timestamp();
+        data.serialnumber_ = ptr->serialNumber();
+        data.wellKnownEvents_ = 0;
+        data.meta_.actualPoints = data.d_.size();
+        data.meta_.xIncrement = sampInterval_;
+        data.meta_.initialXOffset = startDelay_;
+        data.meta_.actualAverages = int32_t( nbrWaveforms_ );
+        data.meta_.scaleFactor = 1.0;
+        data.meta_.scaleOffset = 0.0;
 
         return true;
     }
@@ -173,8 +173,9 @@ simulator::post( adinterface::waveform_generator * generator )
 void
 simulator::setup( const method& m )
 {
+    *method_ = m;
     sampInterval_ = 1.0 / m.samp_rate;
-    startDelay_ = m.delay_to_first_sample;
-    nbrSamples_ = m.nbr_of_s_to_acquire;
+    startDelay_ = m.digitizer_delay_to_first_sample;
+    nbrSamples_ = m.digitizer_nbr_of_s_to_acquire;
     nbrWaveforms_ = m.nbr_of_averages;
 }

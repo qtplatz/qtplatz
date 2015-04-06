@@ -85,76 +85,79 @@ namespace u5303a {
             , front_end_offset( 0.0 )       // [-0.5V,0.5V], [-1V,1V] offset
             , ext_trigger_level( 1.0 )      // external trigger threshold
 			, samp_rate( 1.0e9 )			// sampling rate (1.0GS/s)
-            , nbr_of_s_to_acquire( 100000 ) // from 1 to 480,000 samples
+            , nbr_of_s_to_acquire_( 100000 ) // from 1 to 480,000 samples
             , nbr_of_averages( 512 )		// number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
-            , delay_to_first_sample( 0 )                    // delay from trigger (seconds)
+            , delay_to_first_sample_( 0 )    // delay from trigger (seconds)
             , invert_signal( 0 )            // 0-> no inversion , 1-> signal inverted
-            , nsa( 0x0 ) {                  // bit[31]->enable, bits[11:0]->threshold
+            , nsa( 0x0 )
+            , digitizer_delay_to_first_sample( 0 )
+            , digitizer_nbr_of_s_to_acquire( 100000 ) {                  // bit[31]->enable, bits[11:0]->threshold
         }
         double front_end_range;
         double front_end_offset;
         double ext_trigger_level;
         double samp_rate; // HZ
-        int32_t nbr_of_s_to_acquire;
+        int32_t nbr_of_s_to_acquire_;
         int32_t nbr_of_averages;
-        double delay_to_first_sample;
+        double delay_to_first_sample_;
         int32_t invert_signal;
         int32_t nsa;
+        double digitizer_delay_to_first_sample; // actual delay set to u5303a
+        uint32_t digitizer_nbr_of_s_to_acquire; // actual number of samples per waveform
     private:
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            (void)version;
             ar & BOOST_SERIALIZATION_NVP( front_end_range );
             ar & BOOST_SERIALIZATION_NVP( front_end_offset );
             ar & BOOST_SERIALIZATION_NVP( ext_trigger_level );
             ar & BOOST_SERIALIZATION_NVP( samp_rate );
-            ar & BOOST_SERIALIZATION_NVP( nbr_of_s_to_acquire );
+            ar & BOOST_SERIALIZATION_NVP( nbr_of_s_to_acquire_ );
             ar & BOOST_SERIALIZATION_NVP( nbr_of_averages );
-            if ( version < 2 ) {
-                long tmp;
-                ar & BOOST_SERIALIZATION_NVP( tmp );
-                delay_to_first_sample = 0;
-            } else {
-                ar & BOOST_SERIALIZATION_NVP( delay_to_first_sample );
-            }
+            ar & BOOST_SERIALIZATION_NVP( delay_to_first_sample_ );
             ar & BOOST_SERIALIZATION_NVP( invert_signal );
             ar & BOOST_SERIALIZATION_NVP( nsa );
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( digitizer_delay_to_first_sample );
+                ar & BOOST_SERIALIZATION_NVP( digitizer_nbr_of_s_to_acquire );
+            }
         }
     };
 
     class /* U5303ASHARED_EXPORT */ metadata {
     public:
         metadata() : initialXTimeSeconds( 0 )
-			, actualElements( 0 )
-            , firstValidPoint( 0 )
+			, actualPoints( 0 )
+            , flags( 0 )
             , actualAverages( 0 )
             , actualRecords( 0 )
             , initialXOffset( 0 )
             , scaleFactor( 0 )
-            , scaleOffset( 0 )
-            , numPointsPerRecord( 0 ) {
+            , scaleOffset(0) {
         }
         double initialXTimeSeconds; 
-        int64_t actualElements;
-        int64_t firstValidPoint;
+        int64_t actualPoints;
+        int32_t flags;
         int32_t actualAverages;
         int64_t actualRecords;
         double initialXOffset;
         double xIncrement;
         double scaleFactor;
         double scaleOffset;
-        int64_t numPointsPerRecord;
     private:
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            (void)version;
             ar & BOOST_SERIALIZATION_NVP( initialXTimeSeconds );
-            ar & BOOST_SERIALIZATION_NVP( actualElements ); 
-            ar & BOOST_SERIALIZATION_NVP( firstValidPoint );
+            ar & BOOST_SERIALIZATION_NVP( actualPoints );
+            if ( version == 0 ) {
+                int64_t firstValidPoint;
+                ar & BOOST_SERIALIZATION_NVP( firstValidPoint );
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( flags );
+            }
             ar & BOOST_SERIALIZATION_NVP( actualAverages );
             ar & BOOST_SERIALIZATION_NVP( actualRecords );
             ar & BOOST_SERIALIZATION_NVP( initialXOffset );
@@ -168,14 +171,19 @@ namespace u5303a {
 		waveform( const waveform& ); // = delete;
 		void operator = ( const waveform& ); // = delete;
 	public:
-        waveform( std::shared_ptr< identify >& id ) : ident_( id ), wellKnownEvents( 0 ), serialnumber( 0 ) {
+        waveform( std::shared_ptr< identify >& id ) : ident_( id ), wellKnownEvents_( 0 ), serialnumber_( 0 ) {
         }
+        
+        const int32_t * trim( metadata&, uint32_t& ) const;
+        
         method method_;
-        metadata meta;
-        uint32_t serialnumber;
-        uint32_t wellKnownEvents;
+        metadata meta_;
+        uint32_t serialnumber_;
+        uint32_t wellKnownEvents_;
         std::vector< int32_t > d_;
         std::shared_ptr< identify > ident_;
+    private:
+        
     };
 
 	class U5303ASHARED_EXPORT device_data {
@@ -219,7 +227,8 @@ namespace u5303a {
 
 }
 
-BOOST_CLASS_VERSION( u5303a::method, 2 )
+BOOST_CLASS_VERSION( u5303a::method, 3 )
+BOOST_CLASS_VERSION( u5303a::metadata, 1 )
 BOOST_CLASS_VERSION( u5303a::identify, 1 )
 
 #endif
