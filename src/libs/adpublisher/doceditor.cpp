@@ -229,7 +229,7 @@ docEditor::setupEditActions( QMenu * menu )
     menu->addAction(a);
     a = actions_[ idActionCopy ] = new QAction( QIcon::fromTheme( "edit-copy", QIcon( qrcpath + "/editcopy.png" ) ), tr( "&Copy" ), this );
     a->setPriority(QAction::LowPriority);
-    a->setShortcut(QKeySequence::Copy);
+    a->setShortcut( QKeySequence::Copy );
     tb->addAction(a);
     menu->addAction(a);
     a = actions_[ idActionPaste ] = new QAction( QIcon::fromTheme( "edit-paste", QIcon( qrcpath + "/editpaste.png" ) ), tr( "&Paste" ), this );

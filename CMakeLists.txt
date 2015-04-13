@@ -78,6 +78,13 @@ configure_file(
   ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
   ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
 
+if ( WIN32 )
+  set( SOLUTION_FILE "qtplatz" )  
+  configure_file(
+    ${QTPLATZ_SOURCE_DIR}/makefile.nmake.in
+    ${CMAKE_BINARY_DIR}/makefile @ONLY )
+endif()
+
 install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION lib COMPONENT libraries )
 
 #set( ACE_ROOT $ENV{ACE_ROOT} )

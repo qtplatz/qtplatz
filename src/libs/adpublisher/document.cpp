@@ -47,7 +47,7 @@ using namespace adpublisher;
 document::document() : doc_( std::make_shared< pugi::xml_document >() )
 {
     if ( auto comment = doc_->append_child( pugi::node_comment ) ) {
-        comment.set_value( "Copyright(C) 2010-2014, MS-Cheminformatics LLC, All rights reserved." );
+        comment.set_value( "Copyright(C) 2010-2015, MS-Cheminformatics LLC, All rights reserved." );
     }
     if ( auto article = doc_->append_child( "article" ) ) {
 
