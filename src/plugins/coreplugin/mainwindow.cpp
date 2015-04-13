@@ -591,8 +591,8 @@ void MainWindow::registerDefaultActions()
     medit->addAction(cmd, Constants::G_EDIT_COPYPASTE);
     tmpaction->setEnabled(false);
 
+#if 0 // 2015-04-13 TH
     // Copy Action
-    
     icon = QIcon::fromTheme(QLatin1String("edit-copy"), QIcon(QLatin1String(Constants::ICON_COPY)));
     tmpaction = new QAction(icon, tr("&Copy"), this);
     cmd = ActionManager::registerAction(tmpaction, Constants::COPY, globalContext);
@@ -624,7 +624,7 @@ void MainWindow::registerDefaultActions()
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+L")));
     medit->addAction(cmd, Constants::G_EDIT_OTHER);
     tmpaction->setEnabled(false);
-
+#endif
     // Options Action
     mtools->appendGroup(Constants::G_TOOLS_OPTIONS);
     mtools->addSeparator(globalContext, Constants::G_TOOLS_OPTIONS);
