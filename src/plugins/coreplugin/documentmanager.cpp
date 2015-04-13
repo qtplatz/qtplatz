@@ -218,7 +218,7 @@ DocumentManager::DocumentManager(QObject *parent)
 {
     d = new DocumentManagerPrivate;
     m_instance = this;
-    qApp->installEventFilter(this);
+    //qApp->installEventFilter(this);
 
     readSettings();
 }
@@ -1458,6 +1458,7 @@ void DocumentManager::executeOpenWithMenuAction(QAction *action)
         EditorManager::openExternalEditor(entry.fileName, entry.externalEditor->id());
 }
 
+// TH: this was disabled by removing 'installeventfilter' call, 
 bool DocumentManager::eventFilter(QObject *obj, QEvent *e)
 {
     if (obj == qApp && e->type() == QEvent::ApplicationActivate) {

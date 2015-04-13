@@ -28,6 +28,7 @@
 #include <QContextMenuEvent>
 #include <QHeaderView>
 #include <QKeyEvent>
+#include <QList>
 #include <QMenu>
 #include <QMouseEvent>
 #include <set>
@@ -38,8 +39,6 @@ TableView::TableView(QWidget *parent) : QTableView(parent)
                                       , allowDelete_( true )
 {
     verticalHeader()->setDefaultSectionSize( 18 );
-    // setContextMenuPolicy( Qt::CustomContextMenu );
-    // connect( this, &QTableView::customContextMenuRequested, this, &TableView::showContextMenu);
 }
 
 void

@@ -1,0 +1,21 @@
+#!nmake
+
+MSBUILD=msbuild
+CONFIG=Debug
+CONFIG_DEBUG=Debug
+CONFIG_RELEASE=Release
+CONFIG_PACKAGE=PACKAGE
+BUILD_TARGET=Build
+SOLUTION_FILE=@SOLUTION_FILE@
+
+all:
+	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:$(BUILD_TARGET) /p:Configuration=$(CONFIG)
+
+debug:
+	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:$(BUILD_TARGET) /p:Configuration=$(CONFIG_DEBUG)
+	
+release:
+	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:$(BUILD_TARGET) /p:Configuration=$(CONFIG_RELEASE)
+	
+package:
+	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:PACKAGE /p:Configuration=$(CONFIG_PACKAGE)

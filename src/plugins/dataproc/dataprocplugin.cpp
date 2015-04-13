@@ -427,8 +427,6 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 void
 DataprocPlugin::extensionsInitialized()
 {
-    
-    // auto editMode = Core::ModeManager::mode( Core::Id( Core::EDIT_MODE ) );
     mainWindow_->OnInitialUpdate();
     dataproc_document::instance()->initialSetup();
 }
