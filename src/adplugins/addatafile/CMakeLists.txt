@@ -5,14 +5,14 @@ project( addatafile )
 
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets )
+#find_package( Qt5 CONFIG REQUIRED Core Widgets )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   )
 
-include_directories( ${Qt5Core_INCLUDE_DIRS}  )
+#include_directories( ${Qt5Core_INCLUDE_DIRS}  )
 
 add_definitions(-DADDATAFILE_LIBRARY)
 

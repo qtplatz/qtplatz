@@ -11,7 +11,6 @@ if ( MSVC )
 endif()
 
 find_package( ace+tao )
-find_package( Qt5 REQUIRED Core Widgets )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
@@ -22,7 +21,6 @@ include_directories(
   ${CMAKE_BINARY_DIR}/src/libs/adinterface
   ${CMAKE_BINARY_DIR}/src/libs
   ${ACE+TAO_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
   )
 
 link_directories( ${ACE+TAO_LIBRARY_DIRS} )
