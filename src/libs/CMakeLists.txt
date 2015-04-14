@@ -20,10 +20,7 @@ if ( Qt5_FOUND )
   add_subdirectory (adplugin)
   add_subdirectory (qtwrapper)
   add_subdirectory (adwidgets)
-
-  if ( QWT_FOUND )
-    add_subdirectory (adplot)
-  endif()
+  add_subdirectory (adplot)
 
   if ( NOT QTPLATZ_CORELIB_ONLY )
 

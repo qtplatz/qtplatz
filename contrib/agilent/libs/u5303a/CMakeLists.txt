@@ -1,4 +1,5 @@
 cmake_policy( SET CMP0020 NEW )
+cmake_policy( SET CMP0022 NEW )
 cmake_policy( SET CMP0028 NEW )
 
 project( u5303a )
@@ -10,7 +11,6 @@ find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem ws
 
 set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
 set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
-#             C:\Program Files\IVI Foundation\VISA\VisaCom64
 
 add_definitions(-DU5303A_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
 

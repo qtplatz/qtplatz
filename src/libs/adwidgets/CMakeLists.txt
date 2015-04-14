@@ -32,7 +32,7 @@ file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
 set( _sources "" )
-if ( QWT_FOUND )
+if ( qwt_FOUND )
   set ( _sources pressuregauge.cpp )
 endif()
 
