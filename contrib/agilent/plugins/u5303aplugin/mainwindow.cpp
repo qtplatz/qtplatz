@@ -38,7 +38,7 @@
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
 #include <adplugin/lifecycle.hpp>
-#include <adplugin/lifecycleaccessor.hpp>
+#include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adwidgets/controlmethodwidget.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>

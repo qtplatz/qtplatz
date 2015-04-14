@@ -29,8 +29,8 @@
 #include <adinterface/brokerclientC.h>
 #include <adorbmgr/orbmgr.hpp>
 #include <adplugin/orbfactory.hpp>
-#include <adplugin/loader.hpp>
-#include <adplugin/manager.hpp>
+#include <adplugin_manager/loader.hpp>
+#include <adplugin_manager/manager.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
 #include <adplugin/orbbroker.hpp>

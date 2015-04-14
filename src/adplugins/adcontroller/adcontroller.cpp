@@ -172,7 +172,7 @@ adcontroller_plugin::create_instance()
 
 /////////////////////
 
-Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance()
+DECL_EXPORT adplugin::plugin * adplugin_plugin_instance()
 {
     return adcontroller_plugin::instance();
 }

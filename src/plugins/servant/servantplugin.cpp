@@ -39,11 +39,11 @@
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adlog/logging_handler.hpp>
 #include <adlog/logger.hpp>
-#include <adplugin/loader.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
 #include <adplugin/orbfactory.hpp>
-#include <adplugin/manager.hpp>
+#include <adplugin_manager/manager.hpp>
+#include <adplugin_manager/loader.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/orbbroker.hpp>
 #include <adlog/logging_handler.hpp>

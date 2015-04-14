@@ -24,7 +24,7 @@
 
 #include "loader.hpp"
 #include "manager.hpp"
-#include "constants.hpp"
+#include <adplugin/constants.hpp>
 #include <boost/filesystem.hpp>
 #include <adlog/logger.hpp>
 #include <QLibrary>

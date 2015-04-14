@@ -63,9 +63,9 @@
 #include <adportable/configuration.hpp>
 #include <adlog/logger.hpp>
 #include <adplugin/lifecycle.hpp>
-#include <adplugin/lifecycleaccessor.hpp>
-#include <adplugin/manager.hpp>
-#include <adplugin/widget_factory.hpp>
+#include <adplugin_manager/lifecycleaccessor.hpp>
+#include <adplugin_manager/manager.hpp>
+//#include <adplugin/widget_factory.hpp>
 #include <adportable/xml_serializer.hpp> // for quick print
 
 #include <qwt_plot_renderer.h>

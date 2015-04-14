@@ -33,7 +33,7 @@
 #include <adextension/ieditorfactory.hpp>
 #include <adportable/configuration.hpp>
 #include <adplugin/lifecycle.hpp>
-#include <adplugin/lifecycleaccessor.hpp>
+#include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
 #include <adwidgets/controlmethodwidget.hpp>

@@ -50,10 +50,9 @@
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
 #include <adportable/utf.hpp>
-#include <adplugin/manager.hpp>
-#include <adplugin/widget_factory.hpp>
 #include <adplugin/lifecycle.hpp>
-#include <adplugin/lifecycleaccessor.hpp>
+#include <adplugin_manager/lifecycleaccessor.hpp>
+#include <adplugin_manager/manager.hpp>
 #include <adutils/processeddata.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>

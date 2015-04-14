@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,15 +23,13 @@
 **
 **************************************************************************/
 
-#ifndef ADBROKER_GLOBAL_H
-#define ADBROKER_GLOBAL_H
+#pragma once
 
 #include <compiler/decl_export.h>
 
-#if defined(ADBROKER_LIBRARY)
-#  define ADBROKERSHARED_EXPORT DECL_EXPORT
+#if defined(ADPLUGIN_LIBRARY)
+#  define ADPLUGINSHARED_EXPORT DECL_EXPORT
 #else
-#  define ADBROKERSHARED_EXPORT DECL_IMPORT
+#  define ADPLUGINSHARED_EXPORT DECL_IMPORT
 #endif
 
-#endif // ADBROKER_GLOBAL_H

@@ -26,12 +26,12 @@
 #ifndef ADDATAFILE_GLOBAL_H
 #define ADDATAFILE_GLOBAL_H
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
 #if defined(ADDATAFILE_LIBRARY)
-#  define ADDATAFILESHARED_EXPORT Q_DECL_EXPORT
+#  define ADDATAFILESHARED_EXPORT DECL_EXPORT
 #else
-#  define ADDATAFILESHARED_EXPORT Q_DECL_IMPORT
+#  define ADDATAFILESHARED_EXPORT DECL_IMPORT
 #endif
 
 #endif // ADDATAFILE_GLOBAL_H

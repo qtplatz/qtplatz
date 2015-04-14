@@ -53,11 +53,10 @@
 #include <adextension/isnapshothandler.hpp>
 
 #include <adplugin/plugin.hpp>
-#include <adplugin/loader.hpp>
-#include <adplugin/widget_factory.hpp>
-
 #include <adplugin/constants.hpp>
-#include <adplugin/manager.hpp>
+#include <adplugin_manager/loader.hpp>
+#include <adplugin_manager/manager.hpp>
+
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>

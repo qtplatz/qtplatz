@@ -26,7 +26,7 @@
 #pragma once
 
 #include "adplugin_global.h"
-#include "plugin_ptr.hpp"
+#include <adplugin/plugin_ptr.hpp>
 #include <vector>
 #include <string>
 

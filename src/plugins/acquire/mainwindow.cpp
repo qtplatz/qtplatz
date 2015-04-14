@@ -28,10 +28,9 @@
 #include <adextension/icontroller.hpp>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
-#include <adplugin/widget_factory.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/lifecycle.hpp>
-#include <adplugin/lifecycleaccessor.hpp>
+#include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
 #include <adlog/logger.hpp>

@@ -24,12 +24,12 @@
 
 #include <compiler/disable_unused_parameter.h>
 #include "manager.hpp"
-#include "adplugin.hpp"
-#include "lifecycle.hpp"
-#include "constants.hpp"
-#include "plugin.hpp"
-#include "plugin_ptr.hpp"
-#include "visitor.hpp"
+#include <adplugin/adplugin.hpp>
+#include <adplugin/lifecycle.hpp>
+#include <adplugin/constants.hpp>
+#include <adplugin/plugin.hpp>
+#include <adplugin/plugin_ptr.hpp>
+#include <adplugin/visitor.hpp>
 #include "loader.hpp"
 #include <adportable/configuration.hpp>
 #include <acewrapper/constants.hpp>

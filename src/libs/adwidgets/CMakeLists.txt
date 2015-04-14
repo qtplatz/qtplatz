@@ -118,6 +118,7 @@ add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}
 
 target_link_libraries( adwidgets LINK_PUBLIC
   adplugin
+  adplugin_manager
   adlog
   adcontrols
   adportable	

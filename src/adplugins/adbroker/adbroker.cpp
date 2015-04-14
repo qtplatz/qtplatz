@@ -165,7 +165,7 @@ adbroker_plugin::query_interface_workaround( const char * typenam )
     return 0;
 }
 
-Q_DECL_EXPORT adplugin::plugin *
+DECL_EXPORT adplugin::plugin *
 adplugin_plugin_instance()
 {
     return adbroker_plugin::instance();

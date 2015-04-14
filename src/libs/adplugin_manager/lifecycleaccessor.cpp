@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "lifecycleaccessor.hpp"
-#include "lifecycle.hpp"
+#include <adplugin/lifecycle.hpp>
 #include <QMetaEnum>
 #include <QDebug>
 #include <fstream>

@@ -28,10 +28,10 @@
 
 #include "adplugin_global.h"
 
-# define EXPORT_FACTORY( FACTORY_CLASS ) \
-  extern "C" {								\
-    DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();		\
-  }									\
-  adplugin::plugin * adplugin_plugin_instance() { return FACTORY_CLASS::instance(); }
+// # define EXPORT_FACTORY( FACTORY_CLASS ) \
+//   extern "C" {								\
+//     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();		\
+//   }									\
+//   adplugin::plugin * adplugin_plugin_instance() { return FACTORY_CLASS::instance(); }
 
 #endif // ADPLUGIN_H

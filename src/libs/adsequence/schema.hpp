@@ -30,6 +30,9 @@
 #include <boost/serialization/string.hpp>
 #include <vector>
 #include <string>
+#if _MSC_VER
+# pragma warning(disable:4251)
+#endif
 
 namespace adsequence {
 

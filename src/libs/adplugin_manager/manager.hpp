@@ -28,7 +28,7 @@
 #include "adplugin_global.h"
 
 #include <string>
-#include "plugin_ptr.hpp"
+#include <adplugin/plugin_ptr.hpp>
 #include <vector>
 
 class QString;

@@ -73,8 +73,8 @@
 #include <adportable/profile.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
-#include <adplugin/loader.hpp>
-#include <adplugin/manager.hpp>
+#include <adplugin_manager/loader.hpp>
+#include <adplugin_manager/manager.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
 #include <adplugin/orbbroker.hpp>

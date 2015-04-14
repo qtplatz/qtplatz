@@ -61,6 +61,7 @@ target_link_libraries( servant LINK_PUBLIC
   adextension
   adportable
   adplugin
+  adplugin_manager
   adlog
   qtwrapper
   adextension

@@ -25,7 +25,7 @@
 #include "controlmethodwidget.hpp"
 #include "controlmethodtable.hpp"
 #include <adcontrols/controlmethod.hpp>
-#include <adplugin/lifecycleaccessor.hpp>
+#include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adportable/debug.hpp>
 #include <boost/any.hpp>

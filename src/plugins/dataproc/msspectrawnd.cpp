@@ -39,7 +39,7 @@
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
-#include <adplugin/widget_factory.hpp>
+//#include <adplugin/widget_factory.hpp>
 #include <adportable/configuration.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>

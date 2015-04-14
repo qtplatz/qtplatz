@@ -65,5 +65,5 @@ private:
 };
 
 extern "C" {
-    Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
+    DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
