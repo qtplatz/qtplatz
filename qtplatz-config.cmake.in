@@ -38,6 +38,7 @@ add_library( adextension SHARED IMPORTED )
 add_library( adcontrols SHARED IMPORTED )
 add_library( adlog SHARED IMPORTED )
 add_library( adplugin SHARED IMPORTED )
+add_library( adplugin_manager SHARED IMPORTED )
 add_library( adorbmgr SHARED IMPORTED )
 add_library( adsequence SHARED IMPORTED )
 add_library( adplot SHARED IMPORTED )
@@ -81,6 +82,10 @@ if (WIN32)
   set_target_properties( adplugin PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplugin.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplugind.lib )
+
+  set_target_properties( adplugin_manager PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplugin_manager.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplugin_managerd.lib )
 
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adorbmgr.lib
@@ -138,6 +143,9 @@ elseif ( APPLE )
   set_target_properties( adplugin PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin.dylib )
 
+  set_target_properties( adplugin_manager PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin_manager.dylib )
+
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr.dylib )
 
@@ -181,6 +189,9 @@ else()  #Linux
 
   set_target_properties( adplugin PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin.so )
+
+  set_target_properties( adplugin_manager PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin_manager.so )  
 
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr.so )
