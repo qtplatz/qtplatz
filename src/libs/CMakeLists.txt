@@ -14,10 +14,10 @@ add_subdirectory (portfolio)
 
 add_subdirectory (adorbmgr)
 add_subdirectory (adinterface)
+add_subdirectory (adplugin)
 
 if ( Qt5_FOUND )
   
-  add_subdirectory (adplugin)
   add_subdirectory (qtwrapper)
   add_subdirectory (adwidgets)
   add_subdirectory (adplot)

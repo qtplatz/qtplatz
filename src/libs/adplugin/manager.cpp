@@ -27,7 +27,6 @@
 #include "adplugin.hpp"
 #include "lifecycle.hpp"
 #include "constants.hpp"
-// #include "lifecycleaccessor.hpp"
 #include "plugin.hpp"
 #include "plugin_ptr.hpp"
 #include "visitor.hpp"
@@ -76,18 +75,18 @@ namespace adplugin {
     class plugin_data {
         adplugin::plugin_ptr plugin_;
     public:
-		plugin_data() {
-		}
+        plugin_data() {
+        }
         plugin_data( adplugin::plugin_ptr ptr ) : plugin_( ptr ) {
         }
         plugin_data( const plugin_data& t ) : plugin_( t.plugin_ ) {
         }
         const char * clsid() const { 
-			return plugin_->clsid();
-		}
+            return plugin_->clsid();
+        }
         const char * iid() const { 
-			return plugin_->iid(); 
-		}
+            return plugin_->iid(); 
+        }
         adplugin::plugin_ptr plugin() const { return plugin_; }
         adplugin::plugin * p() { return plugin_.get(); }
         bool operator == ( const adplugin::plugin& t ) const {
