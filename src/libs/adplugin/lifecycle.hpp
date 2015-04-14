@@ -55,7 +55,7 @@ namespace adplugin {
         }
 		
     protected:
-		inline bool isScoped() const { return scope_flag_; }
+	inline bool isScoped() const { return scope_flag_; }
 
         bool scope_flag_;
 

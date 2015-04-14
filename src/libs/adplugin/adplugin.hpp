@@ -26,13 +26,12 @@
 #ifndef ADPLUGIN_H
 #define ADPLUGIN_H
 
-// #include "adplugin_global.h"
+#include "adplugin_global.h"
 
-#include <QtCore/qglobal.h>
 # define EXPORT_FACTORY( FACTORY_CLASS ) \
-	extern "C" {					     \
-        Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance(); \
-    }\
-    adplugin::plugin * adplugin_plugin_instance() { return FACTORY_CLASS::instance(); }
+  extern "C" {								\
+    DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();		\
+  }									\
+  adplugin::plugin * adplugin_plugin_instance() { return FACTORY_CLASS::instance(); }
 
 #endif // ADPLUGIN_H

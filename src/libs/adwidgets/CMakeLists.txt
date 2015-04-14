@@ -31,6 +31,11 @@ add_definitions(-DADWIDGETS_LIBRARY)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
+set( _sources "" )
+if ( QWT_FOUND )
+  set ( _sources pressuregauge.cpp )
+endif()
+
 set( ${PROJECT_NAME}_SOURCES
   adwidgets.cpp
   targetingform.cpp
@@ -57,7 +62,6 @@ set( ${PROJECT_NAME}_SOURCES
   spinslider.cpp
   dualspinslider.cpp
   filedialog.cpp
-  pressuregauge.cpp
   peaktable.cpp
   mschromatogramform.cpp
   peakmethodform.cpp
@@ -67,6 +71,7 @@ set( ${PROJECT_NAME}_SOURCES
   samplerunwidget.cpp
   consolewidget.cpp
   outputwidget.cpp
+  ${_sources}
 )
 
 set( ${PROJECT_NAME}_HEADERS

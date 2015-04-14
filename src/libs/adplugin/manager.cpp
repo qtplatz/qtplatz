@@ -27,7 +27,7 @@
 #include "adplugin.hpp"
 #include "lifecycle.hpp"
 #include "constants.hpp"
-#include "lifecycleaccessor.hpp"
+// #include "lifecycleaccessor.hpp"
 #include "plugin.hpp"
 #include "plugin_ptr.hpp"
 #include "visitor.hpp"
@@ -42,9 +42,6 @@
 #include <adportable/string.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <QLibrary>
-#include <QDir>
-//#include <QMessageBox>
-//#include <QWidget>
 #include <map>
 #include <fstream>
 
@@ -154,7 +151,7 @@ manager::install( QLibrary& lib, const std::string& adpluginspec )
 {
     std::ostringstream s;
     std::ifstream inf( adpluginspec.c_str() );
-	std::copy( std::istreambuf_iterator<char>(inf), std::istreambuf_iterator<char>(), std::ostreambuf_iterator<char>(s) );
+    std::copy( std::istreambuf_iterator<char>(inf), std::istreambuf_iterator<char>(), std::ostreambuf_iterator<char>(s) );
     return d_->install( lib, adpluginspec, s.str() );
 }
 

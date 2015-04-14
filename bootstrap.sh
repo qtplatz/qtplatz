@@ -20,7 +20,10 @@ case $cross_target in
 	cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-raspi.cmake \
 	      -DCMAKE_PREFIX_PATH=/opt/qt5pi ..
 	;;
-    $arch)
+    i686)
+	cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc ..
+	;;	
+    x86_64)
 	cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc_64 ..
 	;;
     *)
