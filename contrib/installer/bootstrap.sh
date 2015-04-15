@@ -1,8 +1,12 @@
 #!/bin/sh
 
+arch=`arch`
+cwd=`pwd`
+target_arch=$cross_target
+
 if [ -z $cross_target ]; then
-    echo "No cross_target variable has set."
-    exit 3
+    target_arch=$arch    
+    echo "No cross_target variable found -- creating native build for $target_arch."
 fi
 
 args="$@"
@@ -16,17 +20,22 @@ do
     case $var in
 	qt5|boost|ace+tao)
 	    echo "building package generator for $var on $cross_target"
-	    mkdir -p build-$cross_target/$var
-	    ( cd build-$cross_target/$var;
-	      cmake -DCMAKE_TOOLCHAIN_FILE=../../../../toolchain-$cross_target.cmake ../../$var )
+	    mkdir -p build-$target_arch/$var
+	    if [ -z $cross_target ]; then
+		( cd build-$target_arch/$var;
+		  cmake -DCMAKE_PREFIX_PATH=/usr/local/boost-1_57 ../../$var )
+	    else
+		( cd build-$target_arch/$var;
+		  cmake -DCMAKE_TOOLCHAIN_FILE=../../../../toolchain-$target_arch.cmake ../../$var )
+	    fi
 	    ;;
 	clean)
-	    echo rm -rf build-$cross_target
-	    rm -rf build-$cross_target
+	    echo rm -rf build-$target_arch
+	    -rm -rf build-$target_arch	    
 	    ;;
 	build)
 	    for pkg in boost qt5 ace+tao; do
-		( cd build-$cross_target/$pkg;
+		( cd build-$target_arch/$pkg;
 		  make package;
 		  mv *.deb ..
 		)
