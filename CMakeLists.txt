@@ -135,8 +135,6 @@ endif()
 
 set(CMAKE_DEBUG_POSTFIX "d")
 
-add_subdirectory (src)
-
 if ( WIN32 )
   set( CPACK_GENERATOR "WIX" )
 endif()
@@ -153,22 +151,14 @@ if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/postinst.in ${CMAKE_CURRENT_BINARY_DIR}/postinst @ONLY )
 endif()
 
-include( qtplatz-cpack-config )
+add_subdirectory (src)
 add_subdirectory (contrib)
-
-if ( NOT QTPLATZ_CORELIB_ONLY )
-
+if ( Qt5_FOUND )
   add_subdirectory (share)
-
-  foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )
-    get_target_property( _loc ${plugin} LOCATION )
-    file( RELATIVE_PATH _rname $ENV{QTDIR}/plugins ${_loc} )
-    get_filename_component(_rpath ${_rname} DIRECTORY )
-    install( FILES ${_loc} DESTINATION plugins/${_rpath} )
-  endforeach()
-
 endif()
 
+include( qtplatz-cpack-config )
+include( ace+tao-cpack )
+include( qt5-cpack )
+
 include( CPack )
-
-

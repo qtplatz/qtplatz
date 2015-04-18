@@ -1,7 +1,11 @@
 
 include( "qtplatz-version" )
 
-set( CPACK_PACKAGE_NAME "qtplatz" )
+if ( WIN32 )
+  set( CPACK_PACKAGE_NAME "QtPlatz" )
+else()
+  set( CPACK_PACKAGE_NAME "qtplatz" )
+endif()
 set( CPACK_PACKAGE_VENDOR "MS-Cheminfo.com" )
 set( CPACK_PACKAGE_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}.${VERSION_PATCH} )
 set( CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR} )
@@ -24,12 +28,11 @@ cpack_add_component( headers           DISPLAY_NAME "C++ Headers"
 cpack_add_component_group( Runtime )
 cpack_add_component_group( Development )
 
-set( CPACK_COMPONENT_GROUP_DEVELOPMENT_PARENT_GROUP "Runtime")
 set( CPACK_ALL_INSTALL_TYPES Full Developer)
 set( CPACK_COMPONENT_LIBRARIES_INSTALL_TYPES Developer Full )
 set( CPACK_COMPONENT_HEADERS_INSTALL_TYPES Developer Full )
 set( CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Full )
 
 set( CPACK_PACKAGE_EXECUTABLES qtplatz "QtPlatz" )
-set( CPACK_CREATE_DESKTOP_LINKS qtplatz )
+set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 
