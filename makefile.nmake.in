@@ -13,9 +13,13 @@ all:
 
 debug:
 	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:$(BUILD_TARGET) /p:Configuration=$(CONFIG_DEBUG)
-	
+
 release:
 	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:$(BUILD_TARGET) /p:Configuration=$(CONFIG_RELEASE)
-	
+
 package:
-	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:PACKAGE /p:Configuration=$(CONFIG_PACKAGE)
+	$(MSBUILD) PACKAGE.vcxproj /m /p:Configuration=$(CONFIG_RELEASE)
+
+install:
+	$(MSBUILD) INSTALL.vcxproj /m /p:Configuration=$(CONFIG_RELEASE)
+

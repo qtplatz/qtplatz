@@ -65,13 +65,14 @@ else()
 
 endif()
 
-set( CPACK_SET_DESTDIR ON )
 if( WIN32 )
   set( CPACK_INSTALL_PREFIX "C:/qtplatz" )
 elseif ( APPLE )
-  set( CPACK_INSTALL_PREFIX "/opt/qtplatz.app" )  
+  set( CPACK_INSTALL_PREFIX "/opt/qtplatz.app" )
+  set( CPACK_SET_DESTDIR ON )  
 else() # Linux
   set( CPACK_INSTALL_PREFIX "/usr/local" )
+  set( CPACK_SET_DESTDIR ON )
 endif()
 
 configure_file(
@@ -135,6 +136,10 @@ endif()
 set(CMAKE_DEBUG_POSTFIX "d")
 
 add_subdirectory (src)
+
+if ( WIN32 )
+  set( CPACK_GENERATOR "WIX" )
+endif()
 
 if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   set( CPACK_GENERATOR "DEB" )
