@@ -7,7 +7,7 @@ if ( Qt5_FOUND )
     get_target_property( _loc ${plugin} LOCATION )
     file( RELATIVE_PATH _rname $ENV{QTDIR}/plugins ${_loc} )
     get_filename_component(_rpath ${_rname} DIRECTORY )
-    install( FILES ${_loc} DESTINATION plugins/${_rpath} )
+    install( FILES ${_loc} DESTINATION plugins/${_rpath} COMPONENT runtime_libraries )
   endforeach()
 
   if ( WIN32 )
@@ -23,9 +23,9 @@ if ( Qt5_FOUND )
 
   # message( "qt4 dir: " ${_dir}/icuin52.${SO} )
   install( FILES
-    ${_dir}/icuin52.${SO}
-    ${_dir}/icuuc52.${SO}
-    ${_dir}/icudt52.${SO}
+    ${_dir}/icudt53.${SO}
+    ${_dir}/icuin53.${SO}
+    ${_dir}/icuuc53.${SO}
     ${_dir}/Qt5CLucene.${SO}
     DESTINATION bin COMPONENT runtime_libraries )
   
