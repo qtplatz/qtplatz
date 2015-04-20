@@ -3,7 +3,9 @@ cmake_policy( SET CMP0020 NEW )
 
 project( u5303aspectrometer )
 
-add_definitions(-DU5303ASPECTROMETER_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
+if ( MSVC )
+  add_definitions(-DU5303ASPECTROMETER_LIBRARY -D_SCL_SECURE_NO_WARNINGS -wd4996 )
+endif()
 
 #include(../../agilentlibrary.pri)
 #include(../../boost.pri)

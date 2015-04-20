@@ -34,10 +34,11 @@ execute_process( COMMAND xmlpatterns -no-format
   ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
   )
 
-add_definitions(
-  -DACQUIRE_LIBRARY
-  -D_SCL_SECURE_NO_WARNINGS
-  )
+add_definitions( -DACQUIRE_LIBRARY )
+
+if ( MSVC )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4996 )
+endif()
 
 include_directories(
   ${CMAKE_BINARY_DIR}/src/libs/adinterface

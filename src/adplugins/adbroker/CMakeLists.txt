@@ -6,7 +6,7 @@ set( PROVIDER MS-Cheminformatics )
 add_definitions(-DADBROKER_LIBRARY)
 
 if ( MSVC )
-  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4996 )
 endif()
 
 find_package( ace+tao )
