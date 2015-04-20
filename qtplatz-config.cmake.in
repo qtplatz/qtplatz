@@ -34,8 +34,9 @@ add_library( QTC::Core SHARED IMPORTED )
 add_library( QTC::ExtensionSystem SHARED IMPORTED )
 add_library( QTC::Utils SHARED IMPORTED )
 
-add_library( adextension SHARED IMPORTED )
+add_library( adchem SHARED IMPORTED )
 add_library( adcontrols SHARED IMPORTED )
+add_library( adextension SHARED IMPORTED )
 add_library( adlog SHARED IMPORTED )
 add_library( adplugin SHARED IMPORTED )
 add_library( adplugin_manager SHARED IMPORTED )
@@ -71,6 +72,10 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adextension.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adextensiond.lib )
 
+  set_target_properties( adchem PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adchem.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adchemd.lib )
+  
   set_target_properties( adcontrols PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcontrols.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcontrolsd.lib )
@@ -134,6 +139,9 @@ elseif ( APPLE )
   set_target_properties( adextension PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadextension.dylib )
 
+  set_target_properties( adchem PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadchem.dylib )
+
   set_target_properties( adcontrols PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcontrols.dylib )
 
@@ -180,6 +188,9 @@ else()  #Linux
 
   set_target_properties( adextension PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadextension.so )
+
+  set_target_properties( adchem PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadchem.so )
 
   set_target_properties( adcontrols PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcontrols.so )
