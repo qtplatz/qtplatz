@@ -19,9 +19,13 @@ if ( Qt5_FOUND )
   endif()
 
   get_target_property( _loc Qt5::Core LOCATION )
+
   get_filename_component( _dir ${_loc} DIRECTORY )
 
-  # message( "qt4 dir: " ${_dir}/icuin52.${SO} )
+  # message( "qt5 dir: " ${_dir}/icuin52.${SO} )
+
+  install( FILES ${_dir}/qt.conf DESTINATION bin COMPONENT runtime_libraries )
+  
   install( FILES
     ${_dir}/icudt53.${SO}
     ${_dir}/icuin53.${SO}
@@ -49,4 +53,5 @@ if ( Qt5_FOUND )
     install( FILES ${_loc} DESTINATION bin COMPONENT runtime_libraries )
 
   endforeach()
+
 endif()
