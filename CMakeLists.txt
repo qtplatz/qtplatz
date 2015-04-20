@@ -158,7 +158,11 @@ if ( Qt5_FOUND )
 endif()
 
 include( qtplatz-cpack-config )
-include( ace+tao-cpack )
-include( qt5-cpack )
+if ( WIN32 )
+  include( ace+tao-cpack )
+  include( qt5-cpack )
+else()
+  message( STATUS "Require separate qt5 and tao installer" )
+endif()
 
 include( CPack )
