@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -34,7 +34,6 @@
 #include <workaround/boost/uuid/uuid_io.hpp>
 #include <workaround/boost/uuid/uuid_serialize.hpp>
 #include <string>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -54,14 +53,18 @@ namespace adcontrols {
         static bool xml_restore( std::wistream&, idAudit& );
 
     private:
+#if defined _MSC_VER
+# pragma warning(disable:4251)
+#endif
         boost::uuids::uuid uuid_;
-        
         std::string digest_;
         std::string dateCreated_;
         std::wstring idComputer_;
         std::wstring idCreatedBy_;
         std::wstring nameCreatedBy_;
-        
+#if defined  _MSC_VER
+# pragma warning(default:4251)
+#endif
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int ) {

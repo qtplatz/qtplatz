@@ -1,6 +1,9 @@
 project( adorbmgr )
 cmake_policy(SET CMP0022 NEW)
 add_definitions(-DADORBMGR_LIBRARY)
+if ( MSVC )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4996 )
+endif()
 
 find_package( ace+tao )
 
