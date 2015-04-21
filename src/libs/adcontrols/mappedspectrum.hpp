@@ -40,13 +40,16 @@ namespace adcontrols {
         MappedSpectrum(const MappedSpectrum &);
         MappedSpectrum & operator = ( const MappedSpectrum & rhs );
 
-        typedef std::pair< uint32_t, uint32_t > datum_type;
+        typedef std::pair< double, uint32_t > datum_type; // time(s), intensity
         typedef std::vector< datum_type >::iterator iterator;
         typedef std::vector< datum_type >::const_iterator const_iterator;
 
         size_t size() const;
         const datum_type& operator []( size_t idx ) const;
         MappedSpectrum& operator << ( const datum_type& );
+
+        inline double time( size_t idx ) const { return data_[ idx ].first; }
+        inline uint32_t intensity( size_t idx ) const { return data_[ idx ].second; }
             
         iterator begin();
         iterator end();

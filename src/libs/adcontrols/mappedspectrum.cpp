@@ -25,6 +25,7 @@
 #include "mappedspectrum.hpp"
 
 #include <adcontrols/idaudit.hpp>
+#include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
@@ -149,7 +150,7 @@ MappedSpectrum::operator << ( const datum_type& t )
 
         if ( it != data_.end() ) {
 
-            if ( it->first == t.first )
+            if ( adportable::compare< decltype( datum_type::first ) >::approximatelyEqual( it->first, t.first ) )
                 it->second += t.second;
             else
                 data_.insert( it, t );

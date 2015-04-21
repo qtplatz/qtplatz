@@ -153,8 +153,8 @@ MappedSpectra::operator += ( const boost::numeric::ublas::matrix< uint16_t >& fr
 
         for ( size_t i = 0; i < impl_->data_.size1(); ++i ) {
             for ( size_t j = 0; j < impl_->data_.size2(); ++j ) {
-                if ( auto tof = frame( i, j ) ) {
-                    (impl_->data_)( i, j ) << std::make_pair( tof, 1 );
+                if ( auto raw = frame(i, j) ) {
+                    ( impl_->data_ )( i, j ) << std::make_pair( raw, 1 );
                 }
             }
         }
