@@ -26,15 +26,13 @@
 #pragma once
 
 #include <adportable/configuration.hpp>
-#include <string>
-#include <boost/noncopyable.hpp>
-
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_deprecated.h>
-
 #include <adinterface/receiverS.h>
 #include <adinterface/instrumentC.h>
 #include <compiler/diagnostic_pop.h>
+#include <string>
+#include <atomic>
 
 namespace ControlMethod {
     struct Methohd;
@@ -49,7 +47,9 @@ namespace adcontroller {
     class iTask;
     class oProxy;
 
-    class iProxy : public POA_Receiver, boost::noncopyable {
+    class iProxy : public POA_Receiver {
+		iProxy(const iProxy&) = delete;
+		void operator = (const iProxy&) = delete;
     public:
         iProxy( iTask& );
 
@@ -82,7 +82,8 @@ namespace adcontroller {
         inline operator bool () const { return objref_; }
 
     private:
-        bool objref_;
+		std::atomic< bool > objref_;
+		std::atomic< bool > isConnected_;
         unsigned long objId_;
         Instrument::Session_var impl_;
         // iTask& task_;

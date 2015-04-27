@@ -35,7 +35,8 @@
 using namespace adcontroller;
 
 iProxy::iProxy( iTask& ) : objref_( false )
-                         , objId_(0) 
+                         , isConnected_( false )
+						 , objId_(0)
 {
 }
 
@@ -79,6 +80,7 @@ void
 iProxy::message( ::Receiver::eINSTEVENT msg, CORBA::ULong value )
 {
     unsigned long msgId = static_cast< unsigned long >( msg );
+	// messaged need to be cashed here for exact state change of the control server
 	iTask::instance()->io_service().post( std::bind(&iTask::handle_message, iTask::instance(), name_, msgId, value ) );
 }
 
@@ -116,8 +118,10 @@ iProxy::reset_clock()
 bool
 iProxy::connect( const std::string& token )
 {
-    if ( objref_ )
-        return impl_->connect( this->_this(), token.c_str() );
+	if (objref_) {
+		isConnected_ = impl_->connect(this->_this(), token.c_str());
+		return isConnected_;
+	}
     return false;
 }
 
@@ -126,7 +130,9 @@ iProxy::disconnect()
 {
     if ( objref_ ) {
 		try {
-			return impl_->disconnect( this->_this() );
+			impl_->disconnect(this->_this());
+			isConnected_ = false;
+			return true;
 		} catch ( CORBA::Exception& ex ) {
 			ADERROR() << "iProxy::disconnect got an exception: " << ex._info().c_str();
 		}

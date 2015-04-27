@@ -34,6 +34,8 @@
 #include <u5303a/digitizer.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
+#include <QMessagebox>
+#include <boost/exception/all.hpp>
 
 using namespace u5303a;
 
@@ -166,14 +168,20 @@ u5303AMethodWidget::setContents( boost::any& a )
     } else if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_a( a ) ) {   
         pi = &boost::any_cast<const adcontrols::controlmethod::MethodItem& >( a );
     }
-    if ( pi ) {
-        u5303a::method m;
-        if ( adportable::serializer< u5303a::method >::deserialize( m, pi->data(), pi->size() ) ) {
-            if ( auto table = findChild< u5303AMethodTable * >() ) {
-                table->setContents( m );
-                return true;
-            }
-        }
+	if (pi) {
+		u5303a::method m;
+		try {
+			if (adportable::serializer< u5303a::method >::deserialize(m, pi->data(), pi->size())) {
+				if (auto table = findChild< u5303AMethodTable * >()) {
+					table->setContents(m);
+					return true;
+				}
+			}
+		} catch (boost::exception& ex) {
+			QMessageBox::warning(this, "U5303A Method", QString::fromStdString(boost::diagnostic_information(ex)));
+		} catch ( ... ) {
+			QMessageBox::warning(this, "U5303A Method", QString::fromStdString(boost::current_exception_diagnostic_information()));
+		}
     }
     return false;
 }
