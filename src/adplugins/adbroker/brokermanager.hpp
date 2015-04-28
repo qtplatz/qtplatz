@@ -56,6 +56,9 @@ namespace adbroker {
         BrokerSession * getBrokerSession();
   
     private:
+#if defined _MSC_VER
+# pragma warning(disable:4251)
+#endif
         static BrokerManager * instance_;
         static std::mutex mutex_;
         std::unique_ptr< Task > pTask_;

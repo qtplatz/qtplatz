@@ -109,10 +109,11 @@ iTask::iTask() : status_current_( ControlServer::eNothing )
     if ( udpReceiver_ ) {
         udpReceiver_->register_handler( [this] ( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ){
             std::string recv( data, length );
-            ADTRACE() << "UDP EVENT RECEIVER: got '" << recv << "' from " << ep;
+			ADTRACE() << "UDP EVENT RECEIVER: got '" << recv << "' from " << ep;
             auto pos = recv.find( "EVENTOUT 1" );
-            if ( pos != std::string::npos )
-                handle_event_out( ControlServer::event_InjectOut );
+			if (pos != std::string::npos) {
+				handle_event_out(ControlServer::event_InjectOut);
+			}
         } );
     }
 }
@@ -543,13 +544,19 @@ iTask::handle_event_out( unsigned long value )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
-    for ( auto& proxy: iproxies_ )
-        proxy->eventOut( value );
-
 	if ( value == ControlServer::event_InjectOut && status_current_ == ControlServer::eWaitingForContactClosure ) {
+
+		for (auto& proxy : iproxies_)
+			proxy->eventOut(value);
+
         status_current_ = status_being_ = ControlServer::eRunning;
         io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );     
-    }
+	}
+	else {
+		if (auto events = value & ~ControlServer::event_InjectOut) // exclude INJECT event while acquisitioon running
+			for (auto& proxy : iproxies_)
+				proxy->eventOut(events);
+	}
 }
 
 void
