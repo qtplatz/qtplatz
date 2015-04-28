@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -498,6 +498,7 @@ iTask::handle_start_run()
     for ( auto& proxy: iproxies_ )
         proxy->startRun();
 
+    // notify start_run, which initialize next 'run name', 'run length' on acquisition UI
 	status_current_ = status_being_ = ControlServer::eWaitingForContactClosure;
     io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );
 }
@@ -603,4 +604,12 @@ iTask::handle_eventlog( EventLog::LogMessage log )
             d.failed_++;
         }
     }
+}
+
+std::shared_ptr< const SampleProcessor >
+iTask::getCurrentSampleProcessor() const
+{
+    if ( !queue_.empty() )
+        return queue_.front();
+    return 0;
 }

@@ -23,14 +23,15 @@
 **************************************************************************/
 
 #include "session_i.hpp"
-#include "adinterface/receiverC.h"
-#include "adinterface/signalobserverC.h"
+#include "sampleprocessor.hpp"
+#include "task.hpp"
+#include <adinterface/receiverC.h>
+#include <adinterface/signalobserverC.h>
 #include <adinterface/controlmethodhelper.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
-#include "task.hpp"
 #include <boost/tokenizer.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -185,4 +186,18 @@ session_i::push_back( SampleBroker::SampleSequence_ptr sequence )
 session_i::getObserver (void)
 {
     return iTask::instance()->getObserver();
+}
+
+CORBA::Char *
+session_i::running_sample()
+{
+    if ( auto sp = iTask::instance()->getCurrentSampleProcessor() ) {
+        if ( auto run = sp->sampleRun() ) {
+            std::wostringstream os;
+            adcontrols::SampleRun::xml_archive( os, *run );
+            std::string utf8 = adportable::utf::to_utf8( os.str().c_str() );
+            return CORBA::string_dup( utf8.c_str() );
+        }
+    }
+    return 0;
 }

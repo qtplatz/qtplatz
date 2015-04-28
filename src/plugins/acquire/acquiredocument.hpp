@@ -70,7 +70,7 @@ namespace acquire {
         void handlePrepareForRun();
         void handleRun();
         void handleStop();
-
+        void notify_ready_for_run( const char * xml );
     private:
         std::shared_ptr< QSettings > settings_;  // user scope settings
         std::shared_ptr< adcontrols::ControlMethod > cm_;
@@ -83,12 +83,12 @@ namespace acquire {
         
     signals:
         void onControlMethodChanged( const QString& );
-        void onSampleRunChanged( const QString& );
+        void onSampleRunChanged( const QString&, const QString& );
         void instStateChanged( int );
         void requestCommitMethods();
 
     public slots:
-
+        
     };
 
 }

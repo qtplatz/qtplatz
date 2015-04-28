@@ -98,6 +98,7 @@ module ControlServer {
         boolean suspend_run();
         boolean resume_run();
         boolean stop_run();
+        string running_sample(); // sampleRun in boost::xml_seriarizer output
     };
 
     interface Manager : BrokerClient::Accessor {

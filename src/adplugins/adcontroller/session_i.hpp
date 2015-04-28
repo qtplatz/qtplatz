@@ -42,25 +42,26 @@ namespace adcontroller {
         session_i();
       
         ::CORBA::Char * software_revision() override;
-        ::CORBA::Boolean connect( Receiver_ptr receiver, const CORBA::Char * token );
-        ::CORBA::Boolean disconnect( Receiver_ptr receiver );
-        ::CORBA::Boolean setConfiguration( const CORBA::Char * xml );
-        ::CORBA::Boolean configComplete();
-        ::ControlServer::eStatus status();
-        ::CORBA::Boolean initialize();
-        ::CORBA::Boolean shutdown();
-        ::CORBA::Boolean echo( const CORBA::Char * msg );
-        ::CORBA::Boolean shell( const CORBA::Char * cmdline );
+        ::CORBA::Boolean connect( Receiver_ptr receiver, const CORBA::Char * token ) override;
+        ::CORBA::Boolean disconnect( Receiver_ptr receiver ) override;
+        ::CORBA::Boolean setConfiguration( const CORBA::Char * xml ) override;
+        ::CORBA::Boolean configComplete() override;
+        ::ControlServer::eStatus status() override;
+        ::CORBA::Boolean initialize() override;
+        ::CORBA::Boolean shutdown() override;
+        ::CORBA::Boolean echo( const CORBA::Char * msg ) override;
+        ::CORBA::Boolean shell( const CORBA::Char * cmdline ) override;
 
-        ::SignalObserver::Observer_ptr getObserver(void);
+        ::SignalObserver::Observer_ptr getObserver(void) override;
 
-        ::CORBA::Boolean prepare_for_run( const ControlMethod::Method& m, const CORBA::Char * sampleXml );
-        ::CORBA::Boolean push_back( SampleBroker::SampleSequence_ptr s );
-        ::CORBA::Boolean event_out( CORBA::ULong value );
-        ::CORBA::Boolean start_run();
-        ::CORBA::Boolean suspend_run();
-        ::CORBA::Boolean resume_run();
-        ::CORBA::Boolean stop_run();
+        ::CORBA::Boolean prepare_for_run( const ControlMethod::Method& m, const CORBA::Char * sampleXml ) override;
+        ::CORBA::Boolean push_back( SampleBroker::SampleSequence_ptr s ) override;
+        ::CORBA::Boolean event_out( CORBA::ULong value ) override;
+        ::CORBA::Boolean start_run() override;
+        ::CORBA::Boolean suspend_run() override;
+        ::CORBA::Boolean resume_run() override;
+        ::CORBA::Boolean stop_run() override;
+        ::CORBA::Char * running_sample() override;
       
     private:
 

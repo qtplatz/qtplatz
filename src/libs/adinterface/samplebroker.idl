@@ -30,53 +30,6 @@ module SampleBroker {
         stringSequence userValues_;
 	};
 
-	// struct CompoundResponse {
-    //     short stdLevel_;
-	// 	short stdReplicates_;
-	// 	double responce_;       // peak height or area on chromatogram
-	// };
-
-    // typedef sequence< CompoundResponse > CompoundResponseSequence;
-
-	// struct CompoundCalibData {
-	// 	string compoundName_;  // compund::detection to be unique
-    //     string detection_;     // ex UV:250nm, mass:152.1708 etc.
-    //     CompoundResponseSequence responses_;
-	// };
-
-	// struct CompoundData {
-	// 	string compoundName_;  // compund::detection to be unique
-    //     string detection_;     // ex UV:250nm, mass:152.1708 etc.
-	// 	string formula_;       // optional
-	// 	string molstring_;     // more optional
-	// 	double retentionTime_;  // required
-	// 	boolean isIntStd_;
-	// };
-
-    // typedef sequence< CompoundData > CompoundDataSequence;
-    // typedef sequence< CompoundCalibData > CompoundCalibDataSequence;
-
-	// struct IDTable {
-    //     CompoundDataSequence compounds_;
-    //     CompoundCalibDataSequence calibResults_;
-	// };
-
-	// struct QuantMethod {
-	// 	wstring idtableName_;
-    //     short nLevels_;
-    //     short nReplicates_;
-    //     boolean bracketing_;
-	// };
-
-    // typedef sequence< SampleSequenceLine > SampleSequenceLines;
-
-	//struct SampleSequenceData {
-    //     stringSequence userColumns_;
-    //     SampleSequenceLines lines_;
-    //     QuantMethod quantMethod_;
-	// 	IDTable idTable_;
-    //};
-
 	interface SampleSequence {
         string getSampleSequenceData();
     };

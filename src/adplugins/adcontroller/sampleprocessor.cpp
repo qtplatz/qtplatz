@@ -110,6 +110,7 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 	filename.replace_extension( ".adfs" );
 
 	storage_name_ = filename.normalize();
+    sampleRun_->filePrefix( filename.stem().c_str() );
 	
 	///////////// creating filesystem ///////////////////
 	if ( ! fs_->create( storage_name_.wstring().c_str() ) )
@@ -261,4 +262,10 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
             populate_descriptions( vec[ i ] );
 
     }
+}
+
+std::shared_ptr< const adcontrols::SampleRun >
+SampleProcessor::sampleRun() const
+{
+    return sampleRun_;
 }

@@ -29,7 +29,6 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -63,8 +62,12 @@ namespace adcontrols {
         void polinomials( const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& coeffs);
 
     private:
-        std::vector< value_type > vec_;
 
+#if defined _MSC_VER
+# pragma warning(disable:4251)
+#endif
+
+        std::vector< value_type > vec_;
         std::vector< double > x_;
         std::vector< double > y_;
         std::vector< double > coeffs_;

@@ -117,6 +117,7 @@
 #include <QBoxLayout>
 #include <QToolButton>
 #include <QLabel>
+#include <QLineEdit>
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -440,9 +441,7 @@ AcquirePlugin::actionConnect()
                     receiver_i_->assign_debug_print( [=]( int32_t pri, int32_t cat, std::string text ){ 
                         this->handle_receiver_debug_print( pri, cat, text ); } );
 
-                    // connect( this
-                    //          , SIGNAL( onReceiverMessage( unsigned long, unsigned long ) ), this, SLOT( handle_message( unsigned long, unsigned long ) ) );
-                        connect( this, &AcquirePlugin::onReceiverMessage, this, &AcquirePlugin::handle_controller_message );
+                    connect( this, &AcquirePlugin::onReceiverMessage, this, &AcquirePlugin::handle_controller_message );
                         
                     if ( session_->connect( receiver_i_->_this(), "acquire" ) )
                         actionConnect_->setEnabled( false );
@@ -493,6 +492,7 @@ AcquirePlugin::actionConnect()
                         }
                     }
                 }
+                actionInitRun();
             }
         }
     }
@@ -858,22 +858,32 @@ AcquirePlugin::handle_controller_message( unsigned long /* Receiver::eINSTEVENT 
 
         if ( msg == Receiver::STATE_CHANGED ) {
 
-            ADTRACE() << "handle_message( STATE_CHANGED, " << value << ")";
-
             eStatus status = eStatus( value );
+
             if ( status == eWaitingForContactClosure ) {
+
                 actionInject_->setEnabled( true );
                 actionStop_->setEnabled( true );
                 actionRun_->setEnabled( false );
+
+                CORBA::String_var xml = session_->running_sample();
+                document::instance()->notify_ready_for_run( xml );
+
             } else if ( status == ePreparingForRun ) {
+
                 actionStop_->setEnabled( false );
+
             } else if ( status == eReadyForRun ) {
+
                 actionStop_->setEnabled( false );
                 actionRun_->setEnabled( true );
+
             } else if ( status == eRunning ) {
+
                 actionStop_->setEnabled( true );
                 actionInject_->setEnabled( false );
                 actionRun_->setEnabled( false );
+
             }
         }
     } catch ( ... ) {
@@ -1063,17 +1073,38 @@ AcquirePlugin::createContents( Core::IMode * mode )
             toolBar->setProperty( "topBorder", true );
             QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
             toolBarLayout->setMargin(0);
-            toolBarLayout->setSpacing(0);
+            toolBarLayout->setSpacing( 4 );
+
+            auto cmdLayout = new QHBoxLayout();
             // Core::ActionManager *am = Core::ICore::instance()->actionManager();
             if ( auto am = Core::ActionManager::instance() ) {
-                toolBarLayout->addWidget(toolButton(am->command(constants::CONNECT)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(constants::INITIALRUN)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(constants::RUN)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(constants::STOP)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(constants::ACQUISITION)->action()));
+                cmdLayout->addWidget( toolButton( am->command( constants::CONNECT )->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( constants::INITIALRUN )->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( constants::RUN )->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( constants::STOP )->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( constants::ACQUISITION )->action() ) );
             }
+            toolBarLayout->addLayout( cmdLayout );
             toolBarLayout->addWidget( new Utils::StyledSeparator );
-            toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
+
+            auto infoLayout = new QHBoxLayout();
+
+            if ( auto edit = new QLineEdit() ) {
+                infoLayout->addWidget( new QLabel( tr( "Run name:" ) ) );
+                edit->setObjectName( "RunName" );
+                infoLayout->addWidget( edit );
+                connect( acquire::document::instance(), &acquire::document::onSampleRunChanged, [edit] ( const QString& name, const QString& dir ) {edit->setText( name ); } );
+            }
+            infoLayout->addWidget( new Utils::StyledSeparator );
+            if ( auto edit = new QLineEdit() ) {
+                infoLayout->addWidget( new QLabel( tr( "Data save in:" ) ) );
+                edit->setObjectName( "DataSaveIn" );
+                infoLayout->addWidget( edit );
+                infoLayout->setStretchFactor( edit, 1 );
+                connect( acquire::document::instance(), &acquire::document::onSampleRunChanged, [edit] ( const QString& name, const QString& dir ) {edit->setText( dir ); } );
+            }
+            toolBarLayout->addLayout( infoLayout );
+            toolBarLayout->addSpacerItem( new QSpacerItem( 32, 0, QSizePolicy::Expanding ) );
         }
 
         Utils::StyledBar * toolBar2 = new Utils::StyledBar;

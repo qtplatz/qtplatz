@@ -116,6 +116,7 @@ namespace adcontroller {
         void handle_stop_run();
         void handle_event_out( unsigned long value );
         void post_stop_run(); // <-- from sampleprocessor
+        std::shared_ptr< const SampleProcessor > getCurrentSampleProcessor() const;
 	// 
     public:
         typedef std::shared_ptr< iProxy > iproxy_ptr;

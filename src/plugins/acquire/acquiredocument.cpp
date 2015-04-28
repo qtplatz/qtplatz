@@ -34,6 +34,8 @@
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/date_string.hpp>
+#include <adportable/utf.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -48,6 +50,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/date_time.hpp>
 #include <atomic>
 
 namespace acquire {
@@ -181,8 +184,15 @@ document::initialSetup()
 
     boost::filesystem::path sfile( dir / "samplerun.sequ" );
     adcontrols::SampleRun sr;
-    if ( load( QString::fromStdWString( sfile.wstring() ), sr ) )
+    if ( load( QString::fromStdWString( sfile.wstring() ), sr ) ) {
+        //boost::filesystem::path path( sr.dataDirectory() );
+        boost::filesystem::path path( adportable::profile::user_data_dir< char >() );
+        path /= "data";
+        path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+        sr.dataDirectory( path.normalize().wstring().c_str() );
+
         setSampleRun( sr, QString() ); // don't save default name
+    }
 }
 
 void
@@ -241,17 +251,13 @@ document::setControlMethod( const adcontrols::ControlMethod& m, const QString& f
 void
 document::setSampleRun( const adcontrols::SampleRun& m, const QString& filename )
 {
-    do {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        sampleRun_ = std::make_shared< adcontrols::SampleRun >( m );
-    } while(0);
+    sampleRun_ = std::make_shared< adcontrols::SampleRun >( m );
 
     if ( ! filename.isEmpty() ) {
         samplerun_filename_ = filename;
         qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_SEQUENCE_FILES, constants::KEY_FILES, filename );
     }
-
-    emit onSampleRunChanged( filename );
+    emit onSampleRunChanged( filename, QString::fromWCharArray( sampleRun_->dataDirectory() ) );
 }
 
 QString
@@ -416,4 +422,19 @@ void
 document::handleStop()
 {
     //fsm_->automaton_.process_event( adinterface::fsm::stop() );
+}
+
+// See also AcquirePlugin::handle_controller_message
+void
+document::notify_ready_for_run( const char * xml )
+{
+    if ( xml ) {
+        std::wstring wxml( adportable::utf::to_wstring( xml ) );
+        std::wistringstream is( wxml );
+
+        adcontrols::SampleRun run;
+        adcontrols::SampleRun::xml_restore( is, run );
+        //double length = run.methodTime();
+        emit onSampleRunChanged( QString::fromWCharArray( run.filePrefix() ), QString::fromWCharArray( run.dataDirectory() ) );
+    }
 }

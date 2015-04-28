@@ -49,6 +49,7 @@ namespace adcontroller {
         boost::asio::io_service::strand& strand() { return strand_; }
         void pos_front( unsigned int pos, unsigned long objId );
         void stop_triggered();
+        std::shared_ptr< const adcontrols::SampleRun > sampleRun() const;
         
     private:
 		void create_acquireddata_table();

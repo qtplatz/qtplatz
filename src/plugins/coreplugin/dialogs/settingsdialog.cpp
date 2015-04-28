@@ -400,9 +400,9 @@ void SettingsDialog::createGui()
     m_headerLabel->setFont(headerLabelFont);
 
     QHBoxLayout *headerHLayout = new QHBoxLayout;
-    const int leftMargin = qApp->style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
-    headerHLayout->addSpacerItem(new QSpacerItem(leftMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
-    headerHLayout->addWidget(m_headerLabel);
+    const int leftMargin = qApp->style()->pixelMetric( QStyle::PM_LayoutLeftMargin );
+    headerHLayout->addSpacerItem( new QSpacerItem( leftMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored ) );
+    headerHLayout->addWidget( m_headerLabel );
 
     m_stackedLayout->setMargin(0);
     m_stackedLayout->addWidget(new QWidget(this)); // no category selected, for example when filtering
