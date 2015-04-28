@@ -27,15 +27,62 @@
 #include "task.hpp"
 #include "manager_i.hpp"
 #include <acewrapper/orbservant.hpp>
-#include <adportable/string.hpp>
+#include <adinterface/receiverS.h>
+#include <adinterface/instrumentC.h>
 #include <adlog/logger.hpp>
+#include <adportable/configuration.hpp>
+#include <adportable/string.hpp>
 #include <stdexcept>
 #include <functional>
 
+namespace adcontroller {
+
+    class iProxy::impl : public POA_Receiver {
+        impl( const impl& ) = delete;
+        void operator = ( const impl& ) = delete;
+
+    public:
+        impl() : objId_(0)
+            , remote_status_( Instrument::eNothing ) {
+        }
+        
+        uint32_t objId_;
+        Instrument::Session_var session_;
+        adportable::Configuration config_;
+        std::wstring name_;
+        Instrument::eInstStatus remote_status_;
+
+        // POA_Receiver
+        void message( ::Receiver::eINSTEVENT msg, uint32_t value ) {
+            auto msgId = static_cast< unsigned long >( msg );
+            if ( msgId == Receiver::STATE_CHANGED ) {
+                remote_status_ = static_cast<Instrument::eInstStatus>( value );
+            }
+            iTask::instance()->io_service().post( std::bind(&iTask::handle_message, iTask::instance(), name_, msgId, value ) );
+        }
+        
+        void log( const EventLog::LogMessage& log ) {
+            iTask::instance()->io_service().post( std::bind(&iTask::handle_eventlog, iTask::instance(), log ) );
+        }
+        
+        void shutdown() {
+        }
+
+        void debug_print( int32_t pri, int32_t cat, const char * text ) {
+            (void)pri; (void)cat; (void)text;
+        }
+    };
+    
+}
+
 using namespace adcontroller;
 
-iProxy::iProxy( iTask& ) : objref_( false )
-                         , objId_(0) 
+iProxy::~iProxy()
+{
+    delete impl_;
+}
+
+iProxy::iProxy( iTask& t ) : impl_( new impl() )
 {
 }
 
@@ -44,11 +91,11 @@ iProxy::iProxy( iTask& ) : objref_( false )
 bool
 iProxy::initialConfiguration( const adportable::Configuration& c )
 {
-    config_ = c;
-    std::string nsname = config_.attribute( "ns_name" );
-    name_ = adportable::string::convert( config_.name() );
+    impl_->config_ = c;
+    std::string nsname = impl_->config_.attribute( "ns_name" );
+    impl_->name_ = adportable::string::convert( impl_->config_.name() );
     
-    if ( config_.attribute( "type" ) == "object_reference" ) { // CORBA Object
+    if ( impl_->config_.attribute( "type" ) == "object_reference" ) { // CORBA Object
 
         if ( ! nsname.empty() ) {
 
@@ -58,10 +105,9 @@ iProxy::initialConfiguration( const adportable::Configuration& c )
             try {
                 CORBA::Object_var obj = bmgr->find_object( nsname.c_str() );
                 if ( ! CORBA::is_nil( obj.in() ) ) {
-                    impl_ = Instrument::Session::_narrow( obj );
-                    if ( ! CORBA::is_nil( impl_ ) ) {
-                        if ( impl_->echo( "hello" ) )
-                            objref_ = true;
+                    impl_->session_ = Instrument::Session::_narrow( obj );
+                    if ( !CORBA::is_nil( impl_->session_ ) ) {
+                        return true;
                     }
                 } 
             } catch ( CORBA::Exception& ex ) {
@@ -71,43 +117,16 @@ iProxy::initialConfiguration( const adportable::Configuration& c )
     } else {
         ADERROR() << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
     }
-    return objref_;
+    return false;
 }
-
-// POA_Receiver
-void
-iProxy::message( ::Receiver::eINSTEVENT msg, CORBA::ULong value )
-{
-    unsigned long msgId = static_cast< unsigned long >( msg );
-	iTask::instance()->io_service().post( std::bind(&iTask::handle_message, iTask::instance(), name_, msgId, value ) );
-}
-
-// POA_Receiver
-void
-iProxy::log( const EventLog::LogMessage& log )
-{
-    iTask::instance()->io_service().post( std::bind(&iTask::handle_eventlog, iTask::instance(), log ) );
-}
-
-// POA_Receiver
-void
-iProxy::shutdown()
-{
-    // connection shoutdown ack.
-    // do nothing
-}
-
-// POA_Receiver
-void
-iProxy::debug_print( CORBA::Long pri, CORBA::Long cat, const char * text )
-{
-    ACE_UNUSED_ARG(pri);
-    ACE_UNUSED_ARG(cat);
-    ACE_UNUSED_ARG(text);
-}
-
 
 // iProxy
+iProxy::operator bool() const
+{
+    return !CORBA::is_nil( impl_->session_ );
+}
+
+
 void
 iProxy::reset_clock()
 {
@@ -116,17 +135,17 @@ iProxy::reset_clock()
 bool
 iProxy::connect( const std::string& token )
 {
-    if ( objref_ )
-        return impl_->connect( this->_this(), token.c_str() );
+    if ( !CORBA::is_nil( impl_->session_ ) )
+        return impl_->session_->connect( impl_->_this(), token.c_str() );
     return false;
 }
 
 bool
 iProxy::disconnect()
 {
-    if ( objref_ ) {
-		try {
-			return impl_->disconnect( this->_this() );
+    if ( !CORBA::is_nil( impl_->session_ ) ) {
+        try {
+            return impl_->session_->disconnect( impl_->_this() );
 		} catch ( CORBA::Exception& ex ) {
 			ADERROR() << "iProxy::disconnect got an exception: " << ex._info().c_str();
 		}
@@ -137,24 +156,24 @@ iProxy::disconnect()
 bool
 iProxy::initialize()
 {
-    if ( objref_ )
-        return impl_->initialize();
+    if ( !CORBA::is_nil( impl_->session_ ) )    
+        return impl_->session_->initialize();
     return false;
 }
 
 bool
 iProxy::request_shutdown()
 {
-    if ( objref_ )
-        return impl_->shutdown();
+    if ( !CORBA::is_nil( impl_->session_ ) )    
+        return impl_->session_->shutdown();
     return false;
 }
 
 bool
 iProxy::eventOut( unsigned long event )
 {
-    if ( objref_ )
-        return impl_->event_out( event );
+    if ( !CORBA::is_nil( impl_->session_ ) )        
+        return impl_->session_->event_out( event );
     return false;
 }
 
@@ -162,64 +181,68 @@ iProxy::eventOut( unsigned long event )
 bool
 iProxy::prepare_for_run( const ControlMethod::Method& m )
 {
-    if ( objref_ )
-        return impl_->prepare_for_run( m );
+    if ( !CORBA::is_nil( impl_->session_ ) )
+        return impl_->session_->prepare_for_run( m );
     return false;
 }
 
 bool
 iProxy::startRun()
 {
-    if ( objref_ )
-        return impl_->start_run();
+    if ( !CORBA::is_nil( impl_->session_ ) )
+        return impl_->session_->start_run();
     return false;
 }
 
 bool
 iProxy::suspendRun()
 {
-    if ( objref_ )
-        return impl_->suspend_run();
+    if ( !CORBA::is_nil( impl_->session_ ) )
+        return impl_->session_->suspend_run();
     return false;
 }
 
 bool
 iProxy::resumeRun()
 {
-    if ( objref_ )
-        return impl_->resume_run();
+    if ( !CORBA::is_nil( impl_->session_ ) )
+        return impl_->session_->resume_run();
     return false;
 }
 
 bool
 iProxy::stopRun()
 {
-    if ( objref_ )
-        return impl_->stop_run();
+    if ( !CORBA::is_nil( impl_->session_ ) )
+        return impl_->session_->stop_run();
     return false;
 }
 
        
-unsigned long
+uint32_t
 iProxy::getStatus()
 {
-    return impl_->get_status();
+    if ( !CORBA::is_nil( impl_->session_ ) )    
+        return impl_->session_->get_status();
+    return 0;
 }
 
 Instrument::Session_ptr
 iProxy::getSession()
 {
-    return Instrument::Session::_duplicate( impl_ );
+    if ( !CORBA::is_nil( impl_->session_ ) )        
+        return Instrument::Session::_duplicate( impl_->session_ );
+    return 0;
 }
 
 void
 iProxy::objId( unsigned long id )
 {
-    objId_ = id;
+    impl_->objId_ = id;
 }
 
-unsigned long
+uint32_t
 iProxy::objId() const
 {
-    return objId_;
+    return impl_->objId_;
 }

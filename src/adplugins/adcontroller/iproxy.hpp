@@ -25,41 +25,29 @@
 
 #pragma once
 
-#include <adportable/configuration.hpp>
+#include <cstdint>
 #include <string>
-#include <boost/noncopyable.hpp>
+#include <adinterface/receiverC.h>
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_deprecated.h>
-
-#include <adinterface/receiverS.h>
-#include <adinterface/instrumentC.h>
-#include <compiler/diagnostic_pop.h>
-
-namespace ControlMethod {
-    struct Methohd;
-}
-
-namespace SampleBroker {
-	struct SampleSequenceLine;
-}
+namespace adportable    { class Configuration; }
+namespace ControlMethod { struct Method; }
+namespace SampleBroker  { struct SampleSequenceLine; }
+namespace EventLog      { struct LogMessage; }
+namespace Instrument    { class Session; }
 
 namespace adcontroller {
 
     class iTask;
     class oProxy;
 
-    class iProxy : public POA_Receiver, boost::noncopyable {
+    class iProxy {
+        iProxy( const iProxy& ) = delete;
+        void operator = ( const iProxy& ) = delete;
     public:
+        ~iProxy();
         iProxy( iTask& );
 
         bool initialConfiguration( const adportable::Configuration& );
-
-        // POA_Receiver
-        void message( ::Receiver::eINSTEVENT msg, CORBA::ULong value );
-        void log( const EventLog::LogMessage& );
-        void shutdown();
-        void debug_print( CORBA::Long pri, CORBA::Long cat, const char * text );
 
         // iProxy
         void reset_clock();
@@ -75,19 +63,17 @@ namespace adcontroller {
         bool resumeRun();  // method restart
         bool stopRun();    // method(sequence) stop
        
-        unsigned long getStatus();
-        Instrument::Session_ptr getSession();
+        uint32_t getStatus();
+        Instrument::Session * getSession();
+
         void objId( unsigned long );
-        unsigned long objId() const;
-        inline operator bool () const { return objref_; }
+        uint32_t objId() const;
+
+        operator bool() const;
 
     private:
-        bool objref_;
-        unsigned long objId_;
-        Instrument::Session_var impl_;
-        // iTask& task_;
-        adportable::Configuration config_;
-        std::wstring name_;
+        class impl;
+        impl * impl_;
     };
     
 }
