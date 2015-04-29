@@ -1091,14 +1091,14 @@ AcquirePlugin::createContents( Core::IMode * mode )
 
             if ( auto edit = new QLineEdit() ) {
                 infoLayout->addWidget( new QLabel( tr( "Run name:" ) ) );
-                edit->setObjectName( "RunName" );
+                edit->setReadOnly( true );
                 infoLayout->addWidget( edit );
                 connect( acquire::document::instance(), &acquire::document::onSampleRunChanged, [edit] ( const QString& name, const QString& dir ) {edit->setText( name ); } );
             }
             infoLayout->addWidget( new Utils::StyledSeparator );
             if ( auto edit = new QLineEdit() ) {
                 infoLayout->addWidget( new QLabel( tr( "Data save in:" ) ) );
-                edit->setObjectName( "DataSaveIn" );
+                edit->setReadOnly( true );
                 infoLayout->addWidget( edit );
                 infoLayout->setStretchFactor( edit, 1 );
                 connect( acquire::document::instance(), &acquire::document::onSampleRunChanged, [edit] ( const QString& name, const QString& dir ) {edit->setText( dir ); } );
