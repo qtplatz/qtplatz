@@ -19,7 +19,7 @@ if ( CMAKE_SYSTEM_NAME MATCHES Linux )
       set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
     endif()
   else()
-    return();  # do nothing for native build -- usually, binary installer is avilable
+    return()  # do nothing for native build -- usually, binary installer is avilable
   endif()
 
   set( CPACK_SET_DESTDIR ON )
