@@ -39,7 +39,6 @@
 
 #include "integrator.hpp"
 #include "averager.hpp"
-#include "differential.hpp"
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
@@ -51,8 +50,10 @@
 #include <adportable/float.hpp>
 #include <boost/bind.hpp>
 #include <boost/numeric/interval.hpp>
+
 #include <functional>
 #include <algorithm>
+#include <fstream>
 #include <sstream>
 #include <deque>
 #include <vector>
@@ -123,6 +124,8 @@ namespace chromatogr {
         bool operator != (PEAKSTATE st) const      { return stat_ != st; };
         void operator = (PEAKSTATE st)             { stat_ = st; };
     };
+
+    enum PEAK_START_STATE { PEAK_STATE_NEGATIVE = ( -1 ), PEAK_STATE_BASELINE = 0, PEAK_STATE_POSITIVE = 1 };
     
     class Integrator::impl {
     public:
@@ -137,8 +140,7 @@ namespace chromatogr {
                , lz_(0) /* zero start position */
                , lud_(0.0)
                , ldd_(0.0)
-               , lzd_(0.0)
-               , stf_(0)
+               , stf_( PEAK_STATE_BASELINE )
                , lockc_(0)
                , mw_(3)
                , ss_(0)
@@ -152,10 +154,12 @@ namespace chromatogr {
                , detectNegative_(false)
                , offIntegration_(false)
                , timeOffset_(0) {
+#if defined _DEBUG
+            outf_.open( "C:/Users/Toshi/src/peak.txt" );
+#endif
         }
         ~impl() {
         }
-        
         std::shared_ptr< adportable::SGFilter > sgd1_;
         
         integrator::chromatogram rdata_;
@@ -170,18 +174,18 @@ namespace chromatogr {
         int posc_; // current pkfind pointer
         size_t ndata_;
         double data_[256];
-        long dc_;  /* down count */
-        long uc_;  /* up count */
-        long zc_;  /* zero count */
-        long lu_;  /* up start position */
-        long ld_;  /* down start position */
-        long lz_;  /* zero start position */
+        uint32_t dc_;  /* down count */
+        uint32_t uc_;  /* up count */
+        uint32_t zc_;  /* zero count */
+        uint32_t lu_;  /* up start position */
+        uint32_t ld_;  /* down start position */
+        uint32_t lz_;  /* zero start position */
         double lud_;
         double ldd_;
         double lzd_;
-        long stf_;
-        long lockc_;
-        long mw_;
+        PEAK_START_STATE stf_;
+        uint32_t lockc_;
+        uint32_t mw_;
         double ss_;
         unsigned long ndiff_;
         bool dirty_;
@@ -193,6 +197,10 @@ namespace chromatogr {
         bool detectNegative_;
         bool offIntegration_;
         double timeOffset_;
+#if defined _DEBUG
+        std::ofstream outf_;
+#endif
+
         //
         double adddata( double time, double intensity );
         void update_params();
@@ -295,8 +303,10 @@ Integrator::operator << ( const std::pair<double, double>& data )
 void
 Integrator::operator << ( double adval )
 {
-	if ( impl_->posg_ == 0 )
-		impl_->posc_ = impl_->numAverage_ / 2;
+    if ( impl_->posg_ == 0 ) {
+        impl_->posc_ = impl_->numAverage_ / 2;
+        impl_->sgd1_ = std::make_shared< adportable::SGFilter >( impl_->ndiff_, adportable::SGFilter::Derivative1, adportable::SGFilter::Cubic );
+    }
 
     impl_->posg_++;
 
@@ -305,8 +315,8 @@ Integrator::operator << ( double adval )
     double d2 = 0;
 
     Averager avgr(impl_->numAverage_);
-	differential<double> diff1(impl_->ndiff_);
-	differential2<double> diff2(impl_->ndiff_);
+    //differential<double> diff1( impl_->ndiff_ );
+    //differential2<double> diff2( impl_->ndiff_ );
 
     impl_->rdata_.v_.push_back(adval);  // raw data
 
@@ -324,9 +334,9 @@ Integrator::operator << ( double adval )
 
     if ( impl_->posg_ >= long( impl_->ndiff_ + ( impl_->numAverage_ / 2 ) ) ) {
 		int pos = impl_->posg_ - (impl_->ndiff_ + (impl_->numAverage_ / 2));
-		d1 = diff1( &impl_->data0_[ pos ] );
-		d2 = diff2( &impl_->data0_[ pos ] );
-        impl_->pkfind( impl_->posc_++, d1, d2 );
+		d1 = (*impl_->sgd1_)( &impl_->data0_[ pos ] );
+        //d2 = diff2( &impl_->data0_[ pos ] );
+        impl_->pkfind( impl_->posc_++, d1, 0.0 );
 	}
 }
 
@@ -423,69 +433,58 @@ Integrator::impl::pkfind( long pos, double df1, double )
 	if ( offIntegration_ )
 		return;
 
-    int	mwup, mwflat, mwdn;
+    uint32_t mwup = mw_ < 3 ? 3 : mw_ >= 32 ? 32 : mw_;
+    uint32_t mwflat( mwup / 2 ), mwdn( mwup );
 
-	mwup = mw_;
-    if ( mwup < 3 )
-		mwup = 3;
-    else if ( mwup > 32 )
-        mwup = 32;
-    mwflat = mwdn = mwup;
     if ( stf_ > 0 ) {
-        mwflat = mw_ / 2;
-        mwdn = 1;
+        mwdn = 3;
     } else if ( stf_ < 0 ) {
-        mwflat = mw_ / 2;
-        mwup = 1;
+        mwup = 3;
     }
 
-    int sstf = stf_;
+    auto prev_stf = stf_;
+
     if ( df1 < -( ss_ ) ) {	/* Down slope */
 
-        if ( dc_ == 0 ) {
+        if ( dc_++ == 0 ) {
             ld_ = pos; // - mw_ / 2;
             ldd_ = rdata_.getIntensity( ld_ );
         }
-        ++dc_;
-        uc_ = zc_ = 0;
+        uc_ = 0;
 
     } else if ( df1 > ss_ ) {	/* UP slope */
 
-        if ( uc_ == 0 ) {
+        if ( uc_++ == 0 ) {
             lu_ = pos;
             lud_ = rdata_.getIntensity( ld_ );
         }
-        ++uc_;
-        dc_ = zc_ = 0;
+        dc_ = 0;
 
-    } else {
-        
-        if ( zc_ == 0 ) {
-            lz_ = pos;
-            lzd_ = rdata_.getIntensity( ld_ );
-        }
-        ++zc_;
     }
     
     if ( mwup <= uc_ ) {	/* upslope found */
-        stf_ = 1;
+        stf_ = PEAK_STATE_POSITIVE;
+        zc_ = 0;
     } else if ( mwdn <= dc_ ) {	/* downslope found */
-        stf_ = -1;
+        stf_ = PEAK_STATE_NEGATIVE;
+        zc_ = 0;
+    } else {
+        if ( zc_++ == 0 )
+            lz_ = pos;
+        uint32_t count = std::max( uc_, dc_ ) + mw_ * 2;
+        if ( zc_ > count && stf_ != PEAK_STATE_BASELINE )
+            stf_ = PEAK_STATE_BASELINE;
     }
+#if defined _DEBUG
+    outf_ << pos << ",\t" << uc_ << ",\t" << dc_ << ",\t" << zc_ << ",\t" << rdata_.getIntensity( pos ) << ",\t" << df1 << std::endl;
+#endif
     
-    if ( mwflat <= zc_ ) {	/* baslien founded */
-        stf_ = 0;
-        uc_ = dc_ = 0;
-    }
-    
-    if ( stf_ != sstf ) {
-        if ( sstf < 0 && stf_ > 0 ) {
-            // pktop( -1, pos - ld_ );		/* Valley detect */
+    if ( stf_ != prev_stf ) {
+        if ( prev_stf == PEAK_STATE_NEGATIVE && stf_ == PEAK_STATE_POSITIVE ) {
             assign_vallay( pos, ld_ );
-        } else if ( sstf > 0 && stf_ < 0 ) {
-            // pktop( 1, pos - lu_ );		/* Top detect */
+        } else if ( prev_stf == PEAK_STATE_POSITIVE && stf_ == PEAK_STATE_NEGATIVE ) {
             assign_pktop( pos, lu_ );
-        } else if ( sstf && !stf_ ) {
+        } else if ( prev_stf != PEAK_STATE_BASELINE && stf_ == PEAK_STATE_BASELINE ) {
             pkbas( lz_, lzd_ );		/* Peak end */
         } else {
             pksta();			/* Peak start */
@@ -510,37 +509,6 @@ Integrator::impl::assign_pktop( size_t pos, size_t uppos )
     stack_.push( PEAKSTACK( PKTOP, long( apex ), *it ) );
 }
 
-#if 0
-void
-Integrator::impl::pktop( int f, int z )
-{
-    if ( f < 0 ) { // VALLAY
-        long pos = lu_ + 1;
-        while ( pos && --z >= 0 ) {
-            double d = rdata_.getIntensity( pos );
-            if ( d < lud_ ) {
-                lud_ = d;
-                lu_ = pos;
-            }
-            --pos;
-        }
-        stack_.push( PEAKSTACK( PKVAL, lu_, lud_ ) );
-        pkreduce();
-    } else {  // TOP
-        long pos = ld_ + 1;
-        while ( pos && --z >= 0 ) {
-            double d = rdata_.getIntensity( pos );
-            if ( d >= ldd_ ) {
-                ldd_ = d;
-                ld_ = pos;
-            }
-            --pos;
-        }
-        stack_.push( PEAKSTACK( PKTOP, ld_, ldd_ ) );
-    }
-}
-#endif
-
 void
 Integrator::impl::pkbas(int t, double d)
 {
@@ -551,10 +519,17 @@ Integrator::impl::pkbas(int t, double d)
 void
 Integrator::impl::pksta()
 {
-    if (stf_ < 0)
-        stack_.push( PEAKSTACK(PKSTA, ld_, ldd_) );
-    else
-        stack_.push( PEAKSTACK(PKSTA, lu_, lud_) );
+    uint32_t backtrack = 3;
+
+    if ( stf_ == PEAK_STATE_NEGATIVE ) {
+        while ( --backtrack && ld_ && rdata_.getIntensity( ld_ - 1 ) > rdata_.getIntensity( ld_ ) )
+            --ld_;
+        stack_.push( PEAKSTACK( PKSTA, ld_, rdata_.getIntensity( ld_ ) ) );
+    }  else {
+        while ( --backtrack && lu_ && rdata_.getIntensity( lu_ - 1 ) < rdata_.getIntensity( lu_ ) )
+            --lu_;
+        stack_.push( PEAKSTACK( PKSTA, lu_, rdata_.getIntensity( lu_ ) ) );
+    }
 }
 
 void
@@ -562,7 +537,7 @@ Integrator::impl::pkreduce()
 {
     PEAKSTACK sp0 = stack_.top();
  
-#if defined _DEBUG && 0
+#if defined _DEBUG 
     std::string s;
     for (int i = 0; i < int(stack_.size()); ++i) {
         if (stack_[i] == PKVAL)
@@ -574,7 +549,7 @@ Integrator::impl::pkreduce()
 		if (stack_[i] == PKBAS)
 			s += "B";
 	}
-	debug_trace(LOG_DEBUG, "pkreduce: stack [%s]", s.c_str(), 0);
+    outf_ << "pkreduce: stack [" << s << "]" << std::endl;
 #endif
 
 	if (stack_.size() <= 1)	 {		/* stack empty */
