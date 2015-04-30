@@ -434,7 +434,9 @@ document::notify_ready_for_run( const char * xml )
 
         adcontrols::SampleRun run;
         adcontrols::SampleRun::xml_restore( is, run );
-        //double length = run.methodTime();
+
         emit onSampleRunChanged( QString::fromWCharArray( run.filePrefix() ), QString::fromWCharArray( run.dataDirectory() ) );
+        double length = run.methodTime();
+        emit onSampleRunLength( QString( "%1 min" ).arg( QString::number( length / 60, 'f', 1 ) ) );
     }
 }

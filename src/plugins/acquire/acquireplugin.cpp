@@ -1093,14 +1093,20 @@ AcquirePlugin::createContents( Core::IMode * mode )
                 infoLayout->addWidget( new QLabel( tr( "Run name:" ) ) );
                 edit->setReadOnly( true );
                 infoLayout->addWidget( edit );
+                infoLayout->setStretchFactor( edit, 2 );
                 connect( acquire::document::instance(), &acquire::document::onSampleRunChanged, [edit] ( const QString& name, const QString& dir ) {edit->setText( name ); } );
+            }
+            if ( auto label = new QLabel( "" ) ) {
+                infoLayout->addWidget( label );
+                infoLayout->setStretchFactor( label, 1 );
+                connect( acquire::document::instance(), &acquire::document::onSampleRunLength, [label] ( const QString& text ) {label->setText( text ); } );
             }
             infoLayout->addWidget( new Utils::StyledSeparator );
             if ( auto edit = new QLineEdit() ) {
                 infoLayout->addWidget( new QLabel( tr( "Data save in:" ) ) );
                 edit->setReadOnly( true );
                 infoLayout->addWidget( edit );
-                infoLayout->setStretchFactor( edit, 1 );
+                infoLayout->setStretchFactor( edit, 3 );
                 connect( acquire::document::instance(), &acquire::document::onSampleRunChanged, [edit] ( const QString& name, const QString& dir ) {edit->setText( dir ); } );
             }
             toolBarLayout->addLayout( infoLayout );

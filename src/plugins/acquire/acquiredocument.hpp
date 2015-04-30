@@ -84,6 +84,7 @@ namespace acquire {
     signals:
         void onControlMethodChanged( const QString& );
         void onSampleRunChanged( const QString&, const QString& );
+        void onSampleRunLength( const QString& );
         void instStateChanged( int );
         void requestCommitMethods();
 
