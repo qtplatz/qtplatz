@@ -540,20 +540,27 @@ iTask::handle_event_out( unsigned long value )
 
     if ( value & ControlServer::event_InjectOut ) {
 
-        if ( status_current_ == ControlServer::eWaitingForContactClosure ) {
+        if ( status_current_ == ControlServer::eWaitingForContactClosure 
+             || status_current_ == ControlServer::eReadyForRun ) {
+
+            ADDEBUG() << "INJECT Event accepted at state " << status_current_;
+
             for ( auto& proxy : iproxies_ )
                 proxy->eventOut( value );
 
             status_current_ = status_being_ = ControlServer::eRunning;
             io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );
+
+        } else {
+
+            ADDEBUG() << "INJECT Event ignored where state was " << status_current_;
+
         }
 
     } else {
-
         for ( auto& proxy : iproxies_ )
             proxy->eventOut( value );
-
-    }
+	}
 }
 
 void
