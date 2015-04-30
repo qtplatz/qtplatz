@@ -482,7 +482,6 @@ iTask::handle_prepare_for_run( std::shared_ptr< adcontrols::ControlMethod > m
 void
 iTask::handle_start_run()
 {
-    ADTRACE() << "######################### handle_start_run...";
     Logging( L"handle start run" );
 
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -491,9 +490,6 @@ iTask::handle_start_run()
         queue_.push_back( std::make_shared< SampleProcessor >( io_service_, sampleRun_, ctrlMethod_ ) );
         queue_.back()->prepare_storage( pMasterObserver_->_this() );
     }
-
-	status_current_ = ControlServer::ePreparingForRun;
-	status_being_ = ControlServer::eReadyForRun;
 
     for ( auto& proxy: iproxies_ )
         proxy->startRun();
@@ -525,9 +521,6 @@ iTask::handle_stop_run()
         queue_.pop_front();
     }
 
-	status_current_ = status_being_ = ControlServer::eReadyForRun;
-    io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );
-
     if ( sampleRun_ && sampleRun_->next_run() < sampleRun_->replicates() ) {
         io_service_.post( strand_.wrap( [this](){ handle_prepare_for_run( ctrlMethod_, sampleRun_ ); }) );
         io_service_.post( strand_.wrap( [this](){ handle_start_run(); } ) );
@@ -545,19 +538,22 @@ iTask::handle_event_out( unsigned long value )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
-	if ( value == ControlServer::event_InjectOut && status_current_ == ControlServer::eWaitingForContactClosure ) {
+    if ( value & ControlServer::event_InjectOut ) {
 
-		for (auto& proxy : iproxies_)
-			proxy->eventOut(value);
+        if ( status_current_ == ControlServer::eWaitingForContactClosure ) {
+            for ( auto& proxy : iproxies_ )
+                proxy->eventOut( value );
 
-        status_current_ = status_being_ = ControlServer::eRunning;
-        io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );     
-	}
-	else {
-		if (auto events = value & ~ControlServer::event_InjectOut) // exclude INJECT event while acquisitioon running
-			for (auto& proxy : iproxies_)
-				proxy->eventOut(events);
-	}
+            status_current_ = status_being_ = ControlServer::eRunning;
+            io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );
+        }
+
+    } else {
+
+        for ( auto& proxy : iproxies_ )
+            proxy->eventOut( value );
+
+    }
 }
 
 void
