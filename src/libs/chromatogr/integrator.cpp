@@ -46,6 +46,7 @@
 #include <adcontrols/baseline.hpp>
 #include <adportable/moment.hpp>
 #include <adportable/polfit.hpp>
+#include <adportable/profile.hpp>
 #include <adportable/sgfilter.hpp>
 #include <adportable/float.hpp>
 #include <boost/bind.hpp>
@@ -98,6 +99,7 @@ namespace chromatogr {
                     return t_.empty() ? minTime_ + pos * sampInterval_ : t_[ pos ];
                 return 0;
             }
+            chromatogram() : sampInterval_( 0 ), minTime_( 0 ) {}
         };
         
     }
@@ -155,7 +157,8 @@ namespace chromatogr {
                , offIntegration_(false)
                , timeOffset_(0) {
 #if defined _DEBUG
-            outf_.open( "C:/Users/Toshi/src/peak.txt" );
+            std::string file = adportable::profile::user_data_dir<char>() + "/data/integrator.txt";
+            outf_.open( file );
 #endif
         }
         ~impl() {
@@ -315,8 +318,6 @@ Integrator::operator << ( double adval )
     double d2 = 0;
 
     Averager avgr(impl_->numAverage_);
-    //differential<double> diff1( impl_->ndiff_ );
-    //differential2<double> diff2( impl_->ndiff_ );
 
     impl_->rdata_.v_.push_back(adval);  // raw data
 
@@ -433,7 +434,13 @@ Integrator::impl::pkfind( long pos, double df1, double )
 	if ( offIntegration_ )
 		return;
 
-    uint32_t mwup = mw_ < 3 ? 3 : mw_ >= 32 ? 32 : mw_;
+    if ( pos <= 2 )
+        return;
+
+    uint32_t mwup = int( ( minw_ / rdata_.sampInterval_ ) / 2 );
+    if ( mwup < 2 )
+        mwup = 2;
+
     uint32_t mwflat( mwup / 2 ), mwdn( mwup );
 
     if ( stf_ > 0 ) {
@@ -1084,7 +1091,7 @@ Integrator::impl::adddata( double time, double intensity )
         if ( ! sgd1_ )
             sgd1_ = std::make_shared< adportable::SGFilter >( mw_, adportable::SGFilter::Derivative1, adportable::SGFilter::Cubic );
 
-        double d1 = (*sgd1_)( &rdata_.v_[ rdata_.size() - mw_ ] );
+        double d1 = ( *sgd1_ )( &rdata_.v_[ rdata_.size() - ( 1 + mw_ / 2 ) ] );
 
         posg_ = int( rdata_.size() - 1 );
         posc_ = int( rdata_.size() - ( mw_ / 2 ) - 1 );

@@ -321,6 +321,8 @@ rawdata::index( size_t pos, int& idx, int& fcn, int& rep, double * time ) const
     //       1011   0     1
 
     if ( fcnIdx_.size() == 1 ) { // no protocol sequence acquisition
+        if ( pos >= fcnVec_.size() )
+            return false;
         fcn = std::get<1>( fcnVec_[ pos ] );
         rep = 0;
         idx = int( pos );
