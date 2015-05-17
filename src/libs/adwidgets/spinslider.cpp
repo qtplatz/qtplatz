@@ -167,10 +167,10 @@ SpinSlider::handleSpinValueChanged( double value )
 {
     auto& slider = std::get<2>(impl_->d_);
     slider.setValue( static_cast<int>( value ) );
-
+#if defined _DEBUG && 0
     auto& actLabel = std::get<3>(impl_->d_);
     actLabel.setText( QString( "<font color=%1>%2</font>" ).arg( "gray", QString::number(value, 'f', 1) ) );
-    
+#endif    
     emit valueChanged( value );
 }
 
