@@ -184,6 +184,12 @@ DualSpinSlider::setActualValues( const QPair<double, double>& actuals )
 }
 
 void
+DualSpinSlider::setActualValue( idPair idx, double value )
+{
+    std::get<3>( impl_->d_[idx] ).setText( QString::number( value, 'f', 1 ) );
+}
+
+void
 DualSpinSlider::setValue( idPair idx, double value )
 {
     std::get<1>( impl_->d_[idx] ).setValue( value );
