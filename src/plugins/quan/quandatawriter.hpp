@@ -33,7 +33,7 @@
 #include <mutex>
 #include <functional>
 
-namespace adcontrols { class MassSpectrum; class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds; class QuanMethod; class idAudit; }
+namespace adcontrols { class Chromatogram; class MassSpectrum; class PeakResult; class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds; class QuanMethod; class idAudit; }
 namespace adfs { class stmt; }
 
 namespace quan {
@@ -51,7 +51,9 @@ namespace quan {
         adfs::file write( const adcontrols::ProcessMethod& );
         adfs::file write( const adcontrols::QuanSequence& );
         adfs::file write( const adcontrols::QuanSample& );
-        bool write( std::shared_ptr< QuanChromatograms > chro, const std::wstring& title );
+        adfs::file write( const adcontrols::Chromatogram&, const std::wstring& title );
+        
+        // bool write( std::shared_ptr< QuanChromatograms > chro, const std::wstring& title, std::vector< std::wstring >& );
 
         bool drop_table();
         bool create_table();

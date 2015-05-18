@@ -45,6 +45,9 @@
 #include <adcontrols/mslockmethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/peakresult.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/peak.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
@@ -68,6 +71,7 @@
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/filesystem/path.hpp>
 #include <algorithm>
 
 using namespace quan;
@@ -159,8 +163,19 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                         return false;
                 }
                 chroms->commit( *this );
-                datafile_->saveContents( L"/Processed", *portfolio_ ); // save on raw data file
-                writer->write( chroms, sample.dataSource() );
+                datafile_->saveContents( L"/Processed", *portfolio_ ); // save on raw (original) data file
+                
+                // std::vector< std::wstring > guids;
+                // writer->write( chroms, sample.dataSource(), guids ); // save into result file
+                
+                for ( auto it = chroms->begin(); it != chroms->end(); ++it ) {
+                    auto file = processIt( sample
+                                           , std::get< QuanChromatograms::idFormula >( *it )
+                                           , std::get< QuanChromatograms::idMass >( *it )
+                                           , std::get< QuanChromatograms::idChromatogram >( *it )
+                                           , std::get< QuanChromatograms::idPeakResult >( *it ), writer.get() );
+                    writer->insert_table( sample, file.name() );
+                }
             }
             break; // ignore for this version
 
@@ -347,6 +362,62 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
     }
 
     return true;
+}
+
+adfs::file
+QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
+                                , const std::string& formula
+                                , double mass
+                                , std::shared_ptr< adcontrols::Chromatogram > chro
+                                , std::shared_ptr< adcontrols::PeakResult > pkResult
+                                , QuanDataWriter * writer )
+{
+    boost::filesystem::path path( sample.dataSource() );
+    std::wstring title = path.stem().wstring() + L", " + adportable::utf::to_wstring( formula );
+
+    auto normalized_formula = cformula_->standardFormula( formula );
+    const adcontrols::QuanCompound * pCompound(0);
+
+    auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >();
+    if ( pCompounds ) {
+        auto it = std::find_if( pCompounds->begin(), pCompounds->end(), [normalized_formula]( const adcontrols::QuanCompound& c ){
+                return adcontrols::ChemicalFormula::standardFormula( c.formula() ) == normalized_formula;
+            });
+        if ( it != pCompounds->end() )
+            pCompound = &(*it);
+    }
+
+    auto& pks = pkResult->peaks();
+    if ( pks.size() ) {
+        // quck dirty hack -- pick largest peak as 'target' molecule
+        auto maxIt = std::max_element( pks.begin(), pks.end()
+                                       , [] ( const adcontrols::Peak& a, const adcontrols::Peak& b ) { return a.peakHeight() < b.peakHeight(); } );
+        maxIt->name( adportable::utf::to_wstring( formula ) );
+
+        if ( pCompound ) {
+            adcontrols::QuanResponse resp;
+            resp.formula( formula.c_str() );
+            resp.uuid_cmpd( pCompound->uuid() );
+            resp.uuid_cmpd_table( pCompounds->uuid() );
+            resp.formula( pCompound->formula() );
+            resp.idx_ = 0;
+            resp.fcn_ = chro->fcn();
+            resp.mass_ = mass;
+            resp.intensity_ = maxIt->peakArea();
+            resp.amounts_ = 0;
+            resp.tR_ = double( adcontrols::timeutil::toMinutes( maxIt->peakTime() ) );
+            sample << resp;
+        }
+    }
+
+    adfs::file file = writer->write( *chro, title );
+
+    auto afile = writer->attach< adcontrols::PeakResult >( file, *pkResult, pkResult->dataClass() );
+
+    writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
+    writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
+    
+    return file;
 }
 
 adfs::file

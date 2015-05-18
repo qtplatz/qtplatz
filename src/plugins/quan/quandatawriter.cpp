@@ -89,8 +89,32 @@ QuanDataWriter::write( const adcontrols::MassSpectrum& ms, const std::wstring& t
     return adfs::file();
 }
 
+adfs::file
+QuanDataWriter::write( const adcontrols::Chromatogram& c, const std::wstring& tittle )
+{
+    if ( adfs::folder folder = fs_.addFolder( L"/Processed/Chromatograms" ) ) {
+
+        if ( adfs::file file = folder.addFile( adfs::create_uuid(), tittle ) ) {
+
+            file.dataClass( c.dataClass() );
+
+            if ( file.save( c ) )
+                file.commit();
+
+            // if ( adfs::file afile = file.addAttachment( adfs::create_uuid() ) ) {
+            //     afile.dataClass( result.dataClass() );
+            //     afile.save( result );
+            // }
+            
+            return file;
+        }
+    }
+    return adfs::file();
+}
+
+#if 0
 bool
-QuanDataWriter::write( std::shared_ptr< QuanChromatograms > chroms, const std::wstring& dataSource )
+QuanDataWriter::write( std::shared_ptr< QuanChromatograms > chroms, const std::wstring& dataSource, std::vector< std::wstring >& guids )
 {
     boost::filesystem::path path( dataSource );
 
@@ -98,13 +122,16 @@ QuanDataWriter::write( std::shared_ptr< QuanChromatograms > chroms, const std::w
 
         for ( auto& t : *chroms ) {
             
-            const std::string& formula = std::get< QuanChromatograms::idFormula >( t );
-            auto pChro = std::get< QuanChromatograms::idChromatogram >( t );
-            auto pResult = std::get< QuanChromatograms::idPeakResult >( t );
+            const std::string& formula = t.formula();
+            auto pChro = t.chromatogram();
+            auto pResult = t.peakResult();
 
-            std::wstring title = adportable::utf::to_wstring( formula ) + L"; " + path.stem().wstring();
+            std::wstring title = path.stem().wstring() + L", " + adportable::utf::to_wstring( formula );
             
-            if ( adfs::file file = folder.addFile( adfs::create_uuid(), title ) ) {
+            auto uuid = adfs::create_uuid();
+            guids.push_back( uuid );
+            
+            if ( adfs::file file = folder.addFile( uuid, title ) ) {
                 file.dataClass( pChro->dataClass() );
                 if ( file.save( *pChro ) ) {
                     file.commit();
@@ -119,6 +146,7 @@ QuanDataWriter::write( std::shared_ptr< QuanChromatograms > chroms, const std::w
     }
     return true;
 }
+#endif
 
 adfs::file
 QuanDataWriter::write( const adcontrols::ProcessMethod& pm )

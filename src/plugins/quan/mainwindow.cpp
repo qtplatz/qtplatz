@@ -169,7 +169,7 @@ MainWindow::createContents( Core::IMode * )
             panelsWidget->addPanel( data.get() );
             widget->setMaximumHeight( std::numeric_limits<int>::max() );
         }
-#if 0
+//#if 0
         if ( auto widget = new QuanQueryWidget ) {
             auto data = std::make_shared< PanelData >( "Query"
                                                        , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
@@ -177,7 +177,7 @@ MainWindow::createContents( Core::IMode * )
             widget->setMinimumHeight( 40 );
             panelsWidget->addPanel( data.get() );
         }
-#endif
+//#endif
         stack_->addWidget( panelsWidget );
     }
 

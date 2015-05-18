@@ -33,16 +33,18 @@
 
 namespace adcontrols {
     class datafile;
-    class QuanSample;
-    class QuanCompounds;
+    class CentroidMethod;
+    class ChemicalFormula;
+    class Chromatogram;
     class LCMSDataset;
-    class ProcessMethod;
     class MassSpectrum;
     class MSPeakInfo;
-    class CentroidMethod;
     class MSLockMethod;
+    class ProcessMethod;
+    class PeakResult;
     class TargetingMethod;
-    class ChemicalFormula;
+    class QuanSample;
+    class QuanCompounds;
 }
 
 namespace portfolio { class Portfolio; class Folium;  }
@@ -52,6 +54,7 @@ namespace quan {
 
     class QuanDataWriter;
     class QuanProcessor;
+    class QuanChromatogram;
 
     class QuanSampleProcessor : public adcontrols::dataSubscriber {
         QuanSampleProcessor( const QuanSampleProcessor& ) = delete;
@@ -96,6 +99,13 @@ namespace quan {
         void dryrun();
 
         adfs::file processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer, bool bSerialize = true );
+        adfs::file processIt( adcontrols::QuanSample&
+                              , const std::string& formula
+                              , double mass
+                              , std::shared_ptr< adcontrols::Chromatogram > chro
+                              , std::shared_ptr< adcontrols::PeakResult > result
+                              , QuanDataWriter * writer );
+
         QuanProcessor * quanProcessor();
 
         static bool doCentroid( adcontrols::MSPeakInfo& pkInfo
