@@ -56,6 +56,8 @@ namespace quan {
         void handleLevelChanged( int );
         void handleReplicatesChanged( int );
 
+        void handleDeleteSelection() override;
+
     protected:
         void dragEnterEvent( QDragEnterEvent * ) override;
         void dragMoveEvent( QDragMoveEvent * ) override;

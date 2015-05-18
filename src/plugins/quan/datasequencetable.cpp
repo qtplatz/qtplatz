@@ -82,6 +82,7 @@ namespace quan {
             , c_process         // chromaotgram generation |
             , c_level
             , c_description
+            , c_error_state
             , number_of_columns
         };
 
@@ -107,6 +108,9 @@ namespace quan {
                         painter->fillRect( option.rect, QColor( 174, 198, 207, 0x20 ) ); // pastel blue
                 } else {
                     painter->fillRect( option.rect, QColor( 119, 221, 119, 0x10 ) ); // pastel green (UNK/QC/BLANK)
+                }
+                if ( index.model()->index( index.row(), c_error_state ).data( Qt::EditRole ).toBool() ) {
+                    painter->fillRect( option.rect, QColor( 0xff, 0x66, 0x44, 0x40 ) ); // tomato (error; duplicate file)
                 }
 
                 if ( index.column() == c_datafile ) {
@@ -138,7 +142,7 @@ namespace quan {
             QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 return QStyledItemDelegate::sizeHint( option, index );
             }
-
+            
             QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
                 if ( index.column() == c_sample_type ) {
                     QComboBox * pCombo = new QComboBox( parent );
@@ -188,6 +192,23 @@ namespace quan {
 
                 sample.inletType( adcontrols::QuanSample::Chromatography );                
             }
+
+            static void duplicate_file_check( QStandardItemModel& model ) {
+
+                for ( int row = 0; row < model.rowCount(); ++row )
+                    model.setData( model.index( row, c_error_state ), false );
+
+                for ( int row = 0; row < model.rowCount(); ++row ) {
+                    boost::filesystem::path a( model.index( row, c_datafile ).data( Qt::EditRole ).toString().toStdWString() );
+
+                    for ( int i = row + 1; i < model.rowCount(); ++i ) {
+                        boost::filesystem::path b( model.index( i, c_datafile ).data( Qt::EditRole ).toString().toStdWString() );
+                        if ( a == b )
+                            model.setData( model.index( i, c_error_state ), true );
+                    }
+                }
+            }
+
         };
     }
 }
@@ -228,9 +249,11 @@ DataSequenceTable::onInitialUpdate()
 
     model.setHeaderData( c_description, Qt::Horizontal, tr("Description") );  // if standard
 
+    model.setHeaderData( c_error_state, Qt::Horizontal, tr( "Error Status" ) );
+    setColumnHidden( c_error_state, true );
+
     resizeColumnsToContents();
     resizeRowsToContents();
-    //horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
 
     setAcceptDrops( true );
     setContextMenuPolicy( Qt::CustomContextMenu );
@@ -252,6 +275,9 @@ DataSequenceTable::setData( const QStringList& list )
             dropIt( path.wstring() );
         }
     }
+    Chromatography::duplicate_file_check( *model_ );
+    resizeColumnsToContents();
+    resizeRowsToContents();
 }
 
 void
@@ -290,7 +316,6 @@ DataSequenceTable::dropIt( const std::wstring& path )
     sample.dataGeneration( adcontrols::QuanSample::GenerateChromatogram );
     sample.level( 1 );
     sample.injVol( 1.0 );
-    // sample.addedAmounts( 0 ); // for infusion
     // istd[] to be added
     Chromatography::setRow( model, row, sample );
     // model.setData( model.index( row, c_datafile ), QString::fromStdWString( path ) );
@@ -343,6 +368,8 @@ DataSequenceTable::dropEvent( QDropEvent * event )
                 if ( it != extensions.end() )
                     dropIt( path.wstring() );
             }
+            Chromatography::duplicate_file_check( *model_ );
+            resizeColumnsToContents();
         }
     }
 }
@@ -374,6 +401,12 @@ DataSequenceTable::setContents( const adcontrols::QuanSequence& seq )
     for ( auto sample : seq ) {
         Chromatography::setRow( model, row++, sample );// QString::fromStdWString( sample.dataSource() ) );
     }
+
+    Chromatography::duplicate_file_check( model );
+
+    resizeColumnsToContents();
+    resizeRowsToContents();
+    
     return true;
 }
 
@@ -402,8 +435,19 @@ DataSequenceTable::delAll()
 void
 DataSequenceTable::delLine()
 {
-    QModelIndex index = currentIndex();
-    model_->removeRow( index.row(), index.parent() );
+    // QMenu entry
+    //QModelIndex index = currentIndex();
+    //model_->removeRow( index.row(), index.parent() );
+    TableView::handleDeleteSelection();
+    Chromatography::duplicate_file_check( *model_ );
+}
+
+void
+DataSequenceTable::handleDeleteSelection()
+{
+    // DEL Key entry
+    TableView::handleDeleteSelection();
+    Chromatography::duplicate_file_check( *model_ );
 }
 
 void
