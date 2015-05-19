@@ -33,14 +33,16 @@ QuanPlotData::~QuanPlotData()
 {
 }
 
-QuanPlotData::QuanPlotData() : profile( std::make_shared< adcontrols::MassSpectrum >() )
-                             , centroid( std::make_shared< adcontrols::MassSpectrum >() )
-                             , pkinfo( std::make_shared< adcontrols::MSPeakInfo >() )
+QuanPlotData::QuanPlotData()
 {
 }
 
 QuanPlotData::QuanPlotData( const QuanPlotData& t ) : profile( t.profile )
                                                     , centroid( t.centroid )
                                                     , pkinfo( t.pkinfo )
+                                                    , chromatogram( t.chromatogram )
+                                                    , pkResult( t.pkResult )
+                                                    , sample( t.sample )
+                                                    , procmethod( t.procmethod )
 {
 }

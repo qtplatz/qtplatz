@@ -26,7 +26,7 @@
 #define QUANPLOTDATA_HPP
 
 #include <memory>
-namespace adcontrols { class MassSpectrum; class MSPeakInfo; }
+namespace adcontrols { class MassSpectrum; class MSPeakInfo; class Chromatogram; class PeakResult; class QuanSample; class ProcessMethod; }
 
 namespace quan {
 
@@ -40,6 +40,10 @@ namespace quan {
         std::shared_ptr< adcontrols::MassSpectrum > filterd;
         std::shared_ptr< adcontrols::MassSpectrum > centroid;
         std::shared_ptr< adcontrols::MSPeakInfo > pkinfo;
+        std::shared_ptr< adcontrols::Chromatogram > chromatogram;
+        std::shared_ptr< adcontrols::PeakResult > pkResult;
+        std::shared_ptr< adcontrols::QuanSample > sample;
+        std::shared_ptr< adcontrols::ProcessMethod > procmethod;
     };
 
 }

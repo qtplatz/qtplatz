@@ -51,7 +51,7 @@ namespace quan {
         std::shared_ptr< QuanQuery > query();
         adfs::sqlite& db();
 
-        adfs::file select_file( const std::wstring& dataClass );
+        adfs::file select_file( const std::wstring& dataClass, const wchar_t * folder = L"/Processed/Spectra" );
 
         QuanPlotData * fetch( const std::wstring& dataGuid );
 

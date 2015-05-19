@@ -346,8 +346,7 @@ fs::select_folders( sqlite& db, int64_t parent_id, std::vector<folder>& vec )
                 (void)ctime;
                 (void)mtime;
             } catch ( std::out_of_range& ex ) {
-                adportable::debug(__FILE__, __LINE__) << "Outof range error: " << ex.what();
-                assert(0);
+                adportable::debug( __FILE__, __LINE__ ) << "Outof range error: " << ex.what();
             }
             vec.push_back( folder(db, rowid, name) );
         }

@@ -39,16 +39,16 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT QuanResponses  {
     public:
         QuanResponses();
-        QuanResponses( const QuanResponses& t ) : values_( t.values_ ) {}
+        QuanResponses( const QuanResponses& t );
 
-        QuanResponses& operator << (const QuanResponse& t) { values_.push_back( t ); return *this; }
+        QuanResponses& operator << (const QuanResponse& t);
 
-        size_t size() const { return values_.size(); }
-        void clear() { values_.clear(); }
-        std::vector< QuanResponse >::iterator begin() { return values_.begin(); }
-        std::vector< QuanResponse >::iterator end() { return values_.end(); }
-        std::vector< QuanResponse >::const_iterator begin() const { return values_.begin(); }
-        std::vector< QuanResponse >::const_iterator end() const { return values_.end(); }
+        size_t size() const;
+        void clear();
+        std::vector< QuanResponse >::iterator begin();
+        std::vector< QuanResponse >::iterator end();
+        std::vector< QuanResponse >::const_iterator begin() const;
+        std::vector< QuanResponse >::const_iterator end() const;
 
     private:
         std::vector< QuanResponse > values_;

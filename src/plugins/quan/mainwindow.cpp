@@ -101,7 +101,7 @@ MainWindow::createContents( Core::IMode * )
 
     connect( tabWidget, &DoubleTabWidget::currentIndexChanged, this, &MainWindow::handleIndexChanged );
 
-    tabWidget->addTab( tr( "Quan" ), "", QStringList() << tr( "Select Data" ) << tr( "Compounds & Protocols" ) << tr( "Reports" ) << tr( "Review Result" ) );
+    tabWidget->addTab( tr( "Quan" ), "", QStringList() << tr( "Select Data" ) << tr( "Compounds & Protocols" ) << tr( "Reports" ) << tr( "Review Result" ) << tr("Query"));
     viewLayout->addWidget( tabWidget );
     tabWidget->setCurrentIndex( 0 );
 
@@ -169,15 +169,6 @@ MainWindow::createContents( Core::IMode * )
             panelsWidget->addPanel( data.get() );
             widget->setMaximumHeight( std::numeric_limits<int>::max() );
         }
-//#if 0
-        if ( auto widget = new QuanQueryWidget ) {
-            auto data = std::make_shared< PanelData >( "Query"
-                                                       , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
-                                                       , widget );
-            widget->setMinimumHeight( 40 );
-            panelsWidget->addPanel( data.get() );
-        }
-//#endif
         stack_->addWidget( panelsWidget );
     }
 
@@ -190,6 +181,17 @@ MainWindow::createContents( Core::IMode * )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
             widget->setMaximumHeight( std::numeric_limits<int>::max() );
+        }
+        stack_->addWidget( panelsWidget );
+    }
+
+    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
+        if ( auto widget = new QuanQueryWidget ) {
+            auto data = std::make_shared< PanelData >( "Query"
+                                                       , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
+                                                       , widget );
+            widget->setMinimumHeight( 40 );
+            panelsWidget->addPanel( data.get() );
         }
         stack_->addWidget( panelsWidget );
     }

@@ -60,11 +60,13 @@ namespace quan {
         QuanResultWidget * respTable_;
         std::unique_ptr< adplot::plot > calibplot_;
         std::unique_ptr< QuanPlotWidget > dplot_;
+        std::unique_ptr< QuanPlotWidget > cplot_;
 
         std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
         std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
         std::map< boost::uuids::uuid, std::shared_ptr< detail::calib_curve > > calib_curves_; // cmpdId, cuarve
         std::map< boost::uuids::uuid, std::shared_ptr< detail::calib_data > > calib_data_;    // cmpdId, data
+
         boost::uuids::uuid uuid_plot_;
         std::set< boost::uuids::uuid > cmpds_;
         

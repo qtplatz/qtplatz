@@ -54,8 +54,9 @@ namespace adcontrols {
         const boost::uuids::uuid& uuid_cmpd() const { return idCompound_; }
 
         int32_t idx_;                    // index on centroid spectrum
-        boost::uuids::uuid idTable_; // foreign key reference to QuanCompounds (a file of molecles)
+        boost::uuids::uuid idTable_;     // foreign key reference to QuanCompounds (a file of molecles)
         boost::uuids::uuid idCompound_;  // foreign key reference to QuanCompound (a molecule)
+        std::wstring dataGuid_;          // reference to spectrum|chromatogram data on 'adfs' file system
         int32_t fcn_;                    // function (protocol) id on centroid spectrum
         double intensity_;               // area | height from chromatogram/spectrum
         double amounts_;                 // result
@@ -65,21 +66,24 @@ namespace adcontrols {
         std::string formula_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(  idCompound_ )
-                & BOOST_SERIALIZATION_NVP( idTable_ )                
-                & BOOST_SERIALIZATION_NVP( formula_ )                
-                & BOOST_SERIALIZATION_NVP( idx_ )                
-                & BOOST_SERIALIZATION_NVP( fcn_ )                                
-                & BOOST_SERIALIZATION_NVP( intensity_ )
-                & BOOST_SERIALIZATION_NVP( amounts_ )
-                & BOOST_SERIALIZATION_NVP( mass_ )
-                & BOOST_SERIALIZATION_NVP( tR_ )
-                ;
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP(  dataGuid_ );
+            ar & BOOST_SERIALIZATION_NVP(  idCompound_ );
+            ar & BOOST_SERIALIZATION_NVP( idTable_ );
+            ar & BOOST_SERIALIZATION_NVP( formula_ );
+            ar & BOOST_SERIALIZATION_NVP( idx_ );
+            ar & BOOST_SERIALIZATION_NVP( fcn_ );
+            ar & BOOST_SERIALIZATION_NVP( intensity_ );
+            ar & BOOST_SERIALIZATION_NVP( amounts_ );
+            ar & BOOST_SERIALIZATION_NVP( mass_ );
+            ar & BOOST_SERIALIZATION_NVP( tR_ );
         }            
     };
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::QuanResponse, 1 )
 
 #endif // QUANRESPONSE_HPP

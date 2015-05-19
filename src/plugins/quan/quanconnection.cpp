@@ -35,6 +35,9 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/peakresult.hpp>
+#include <adcontrols/quansample.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <dataproc/dataprocconstants.hpp>
@@ -83,9 +86,9 @@ QuanConnection::db()
 }
 
 adfs::file
-QuanConnection::select_file( const std::wstring& dataGuid )
+QuanConnection::select_file( const std::wstring& dataGuid, const wchar_t * path )
 {
-    if ( auto folder = fs_->findFolder( L"/Processed/Spectra" ) )
+    if ( auto folder = fs_->findFolder( path ) ) // L"/Processed/Spectra" | L"/Processed/Chromatograms
         return folder.selectFile( dataGuid );
     return adfs::file();
 }
@@ -95,50 +98,73 @@ QuanConnection::fetch( const std::wstring& dataGuid )
 {
     if ( cache_.find( dataGuid ) != cache_.end() )
         return cache_[ dataGuid ].get();
-    
-    if ( auto file = select_file( dataGuid ) ) {
-        
+
+    adfs::file file;
+    if ( ( file = select_file( dataGuid, L"/Processed/Spectra" ) )
+         || ( file = select_file( dataGuid, L"/Processed/Chromatograms" ) ) ) {
+
         auto d = std::make_shared< QuanPlotData >();
 
-        // ADDEBUG() << "file::dataClass=" << file.dataClass() << "\tname:" << file.name();
-
         if ( file.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
-
+            d->profile = std::make_shared< adcontrols::MassSpectrum >();
             try {
-                if ( file.fetch( *d->profile ) ) {
+                if ( ! file.fetch( *d->profile ) )
+                    return 0;
+            } catch ( std::exception& ex ) {
+                ADERROR() << boost::diagnostic_information( ex );
+                return 0;
+            }
 
-                    auto atts = file.attachments();
-                    for ( auto& att : atts ) {
-
-                        if ( att.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
-
-                            if ( att.attribute( L"name" ) == dataproc::Constants::F_CENTROID_SPECTRUM ) {
-                                if ( !att.fetch( *d->centroid ) )
-                                    return 0;
-
-                            } else if ( att.attribute( L"name" ) == dataproc::Constants::F_DFT_FILTERD ) {
-                                d->filterd = std::make_shared< adcontrols::MassSpectrum >();
-                                att.fetch( *d->filterd );
-                                if ( d->filterd->size() == 0 )
-                                    d->filterd.reset();
-                            }
-
-                        } else if ( att.dataClass() == adcontrols::MSPeakInfo::dataClass() ) {
-
-                            if ( !att.fetch( *d->pkinfo ) )
-                                return 0;
-
-                        }
-                    }
-                }
+        } else if ( file.dataClass() == adcontrols::Chromatogram::dataClass() ) {
+            d->chromatogram = std::make_shared< adcontrols::Chromatogram >();
+            try {
+                if ( ! file.fetch( *d->chromatogram ) )
+                    return 0;
             } catch ( std::exception& ex ) {
                 ADERROR() << boost::diagnostic_information( ex );
                 return 0;
             }
         }
 
-        cache_[ dataGuid ] = d;
+        auto atts = file.attachments();
+        for ( auto& att : atts ) {
+            auto name = att.attribute( L"name" );
 
+            if ( att.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
+                if ( att.attribute( L"name" ) == dataproc::Constants::F_CENTROID_SPECTRUM ) {
+
+                    d->centroid = std::make_shared< adcontrols::MassSpectrum >();
+                    att.fetch( *d->centroid );
+
+                } else if ( att.attribute( L"name" ) == dataproc::Constants::F_DFT_FILTERD ) {
+
+                    d->filterd = std::make_shared< adcontrols::MassSpectrum >();
+                    att.fetch( *d->filterd );
+
+                }
+            } else if ( att.dataClass() == adcontrols::MSPeakInfo::dataClass() ) {
+
+                d->pkinfo = std::make_shared< adcontrols::MSPeakInfo >();
+                att.fetch( *d->pkinfo );
+
+            } else if ( att.dataClass() == adcontrols::PeakResult::dataClass() ) {
+
+                d->pkResult = std::make_shared< adcontrols::PeakResult >();
+                att.fetch( *d->pkResult );
+
+            } else if ( att.dataClass() == adcontrols::QuanSample::dataClass() ) {
+
+                d->sample = std::make_shared< adcontrols::QuanSample >();
+                att.fetch( *d->sample );                
+
+            } else if ( att.dataClass() == adcontrols::ProcessMethod::dataClass() ) {
+
+                d->procmethod = std::make_shared< adcontrols::ProcessMethod >();
+                att.fetch( *d->procmethod );                
+
+            }
+        }
+        cache_[ dataGuid ] = d;
         return cache_[ dataGuid ].get();
     }
     return 0;

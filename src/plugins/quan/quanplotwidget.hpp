@@ -43,14 +43,18 @@ namespace quan {
         Q_OBJECT
     public:
         ~QuanPlotWidget();
-        QuanPlotWidget( QWidget * parent = 0 );
+        QuanPlotWidget( QWidget * parent = 0, bool isChromatogram = false );
 
         void setData( const QuanPlotData *, size_t idx, int fcn, const std::wstring& dataSource );
         adplot::plot * dataplot() { return dplot_.get(); }
         void dataplot( adplot::plot * p ) { dplot_.reset( p ); }
 
         static std::string toSVG( const QuanPlotData&, size_t idx, int fcn );
+
     private:
+        void setSpectrum( const QuanPlotData *, size_t idx, int fcn, const std::wstring& dataSource );
+        void setChromatogram( const QuanPlotData * , size_t idx, int fcn, const std::wstring& dataSource );
+        bool isChromatogram_;
         std::unique_ptr< adplot::plot > dplot_;
         std::unique_ptr< adplot::PeakMarker > marker_;
         void handleDataChanged( int id, bool f );

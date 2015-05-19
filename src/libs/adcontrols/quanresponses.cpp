@@ -29,3 +29,50 @@ using namespace adcontrols;
 QuanResponses::QuanResponses()
 {
 }
+
+QuanResponses::QuanResponses( const QuanResponses& t ) : values_( t.values_ )
+{
+}
+
+QuanResponses&
+QuanResponses::operator << (const QuanResponse& t )
+{
+    values_.push_back( t );
+    return *this;
+}
+
+size_t
+QuanResponses::size() const
+{
+    return values_.size();
+}
+
+void
+QuanResponses::clear()
+{
+    values_.clear();
+}
+
+std::vector< QuanResponse >::iterator
+QuanResponses::begin()
+{
+    return values_.begin();
+}
+
+std::vector< QuanResponse >::iterator
+QuanResponses::end()
+{
+    return values_.end();
+}
+
+std::vector< QuanResponse >::const_iterator
+QuanResponses::begin() const
+{
+    return values_.begin();
+}
+
+std::vector< QuanResponse >::const_iterator
+QuanResponses::end() const
+{
+    return values_.end();
+}

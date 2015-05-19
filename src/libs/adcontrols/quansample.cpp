@@ -62,7 +62,6 @@ namespace adcontrols {
                               , name_( t.name_ )
                               , dataType_( t.dataType_ )
                               , dataSource_( t.dataSource_ )
-                              , dataGuid_( t.dataGuid_ )
                               , sampleType_( t.sampleType_ )
                               , level_( t.level_ )
                               , istdId_( t.istdId_ )
@@ -82,7 +81,7 @@ namespace adcontrols {
         std::wstring name_;
         std::wstring dataType_;
         std::wstring dataSource_;                // fullpath for data file + "::" + data node
-        std::wstring dataGuid_;                  // data guid on portfolio (for redisplay)
+        // std::wstring dataGuid_;               // data guid on portfolio (for redisplay)
         QuanSampleType sampleType_;
         QuanInlet inletType_;                    // Infusion | Chromatogram
         int32_t level_;                          // 0 for UNK, otherwise >= 1
@@ -106,7 +105,10 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( name_ );
             ar & BOOST_SERIALIZATION_NVP( dataSource_ );
             ar & BOOST_SERIALIZATION_NVP( dataType_ );
-            ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
+            if ( version <= 3 ) {
+                std::wstring dataGuid;
+                ar & BOOST_SERIALIZATION_NVP( dataGuid ); // depricated
+            }
             ar & BOOST_SERIALIZATION_NVP( sampleType_ );
             ar & BOOST_SERIALIZATION_NVP( level_ );
             ar & BOOST_SERIALIZATION_NVP( istdId_ );
@@ -123,7 +125,7 @@ namespace adcontrols {
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanSample::impl, 3 )
+BOOST_CLASS_VERSION( adcontrols::QuanSample::impl, 4 )
 
 namespace adcontrols {
 
@@ -229,18 +231,6 @@ QuanSample::dataSource( const wchar_t * v )
     impl_->dataSource_ = v ? v : L"";
 }
 
-
-const wchar_t *
-QuanSample::dataGuid() const
-{
-    return impl_->dataGuid_.c_str();
-}
-
-void
-QuanSample::dataGuid( const wchar_t * v )
-{
-    impl_->dataGuid_ = v ? v : L"";
-}
 
 const wchar_t *
 QuanSample::description() const

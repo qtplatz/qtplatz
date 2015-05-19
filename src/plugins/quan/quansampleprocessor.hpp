@@ -99,12 +99,12 @@ namespace quan {
         void dryrun();
 
         adfs::file processIt( adcontrols::QuanSample&, adcontrols::MassSpectrum& ms, QuanDataWriter * writer, bool bSerialize = true );
-        adfs::file processIt( adcontrols::QuanSample&
-                              , const std::string& formula
-                              , double mass
-                              , std::shared_ptr< adcontrols::Chromatogram > chro
-                              , std::shared_ptr< adcontrols::PeakResult > result
-                              , QuanDataWriter * writer );
+        bool processIt( adcontrols::QuanSample&
+                        , const std::string& formula
+                        , double mass
+                        , std::shared_ptr< adcontrols::Chromatogram > chro
+                        , std::shared_ptr< adcontrols::PeakResult > result
+                        , const std::wstring& dataGuid );
 
         QuanProcessor * quanProcessor();
 

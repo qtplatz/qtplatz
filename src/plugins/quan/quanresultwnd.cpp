@@ -72,7 +72,8 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
                                               , cmpdWidget_( new QuanCmpdWidget )
                                               , respTable_( new QuanResultWidget )
                                               , calibplot_( new adplot::plot )
-                                              , dplot_( new QuanPlotWidget )
+                                              , dplot_( new QuanPlotWidget( 0, false ) )
+                                              , cplot_( new QuanPlotWidget( 0, true ) )
 {
     QwtPlotGrid * grid = new QwtPlotGrid;
     grid->setMajorPen( Qt::gray, 0, Qt::DotLine );
@@ -90,12 +91,13 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
         wndSplitter->addWidget( respTable_ );
 
         if ( Core::MiniSplitter  * splitter2 = new Core::MiniSplitter ) { // left pane split top (table) & bottom (time,mass plot)
-            splitter2->setOrientation( Qt::Horizontal );        // Plot | Text
+            splitter2->setOrientation( Qt::Horizontal );        // Caibration curve plot | Mass spectrum plot
             wndSplitter->addWidget( splitter2 );
             
             splitter2->addWidget( calibplot_.get() );
             splitter2->addWidget( dplot_.get() );
         }
+        wndSplitter->addWidget( cplot_.get() ); // Chromatogram
     }
     splitter->addWidget( cmpdWidget_ );
     splitter->setStretchFactor( 0, 5 );
@@ -229,6 +231,7 @@ QuanResultWnd::handleResponseSelected( int respId )
         }
         if ( auto d = conn->fetch( dataGuid ) ) {
             dplot_->setData( d, idx, fcn, dataSource );
+            cplot_->setData( d, idx, fcn, dataSource );
         }
     }
 }
