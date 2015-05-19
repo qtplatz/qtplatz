@@ -356,6 +356,15 @@ MainWindow::run()
 {
     commit();
 
+    if ( auto qm = QuanDocument::instance()->pm().find< adcontrols::QuanMethod >() ) {
+        if ( qm->levels() == 1 && qm->replicates() == 1 ) {
+            if ( qm->equation() != adcontrols::QuanMethod::idCalibOnePoint ) {
+                QMessageBox::critical( this, "Quan Method Error", "Calibration Eq. does not match with selected levels/replicates." );
+                return;
+            }
+        }
+    }
+
     if ( auto sequence = QuanDocument::instance()->quanSequence() ) {
 
         if ( sequence->size() == 0 ) {

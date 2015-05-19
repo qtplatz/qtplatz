@@ -131,6 +131,10 @@ QuanSampleProcessor::dryrun()
                 if ( auto qm = procmethod_->find< adcontrols::QuanMethod >() ) {
                     progress_total_ = int( nSpectra_ );
                 }
+                if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
+                    progress_total_ += int( pCompounds->size() );
+                }
+                progress_total_++;                
             }
             
             break;
@@ -186,8 +190,10 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                             writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
                         }
                     }
+                    (*progress_)();                    
                 }
                 writer->insert_table( sample ); // once per sample
+                (*progress_)();
             }
             break; // ignore for this version
 

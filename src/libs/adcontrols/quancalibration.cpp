@@ -131,6 +131,7 @@ QuanCalibration::fit( int nTerm, bool forceOrigin, WEIGHTING wType )
         double sum_x = std::accumulate( x_.begin(), x_.end(), 0.0, [](double a, double b) { return a + b; } );
         double sum_y = std::accumulate( y_.begin(), y_.end(), 0.0, [](double a, double b) { return a + b; } );
         coefficients_.push_back( sum_y / sum_x );
+        return true;
     }
     if ( adportable::polfit::fit( x_.data(), y_.data(), x_.size(), nTerm, coefficients_, chisqr_, adportable::polfit::WeightingType( wType ) ) ) {
         if ( forceOrigin )

@@ -341,8 +341,10 @@ fs::select_folders( sqlite& db, int64_t parent_id, std::vector<folder>& vec )
             int64_t rowid = sql.get_column_value<int64_t>( 0 );
             std::wstring name = sql.get_column_value<std::wstring>( 1 );
             try {
-                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.get_column_value<std::wstring>( 2 ) );
-                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.get_column_value<std::wstring>( 3 ) );
+                auto create_time = sql.get_column_value<std::wstring>( 2 );
+                auto modify_time = sql.get_column_value<std::wstring>( 3 );
+                boost::posix_time::ptime ctime = to_posix_time::ptime( create_time );
+                boost::posix_time::ptime mtime = to_posix_time::ptime( modify_time );
                 (void)ctime;
                 (void)mtime;
             } catch ( std::out_of_range& ex ) {

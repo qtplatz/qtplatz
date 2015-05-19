@@ -202,6 +202,7 @@ ORDER BY QuanCompound.id" ) ) {
             do {
                 map.second.fit( 1 ); // single point, average 
             } while (0);
+            break;
         case adcontrols::QuanMethod::idCalibLinear_origin:
             do {
                 map.second.fit( 2, true ); // force zero for 1'st term
@@ -288,7 +289,11 @@ AND QuanResponse.idCmpd = QuanCalib.idCmpd" ) ) {
     sql.begin();
     for ( auto& unk : unknowns ) {
         if ( !unk.second.coeffs.empty() ) {
-            unk.second.amount = adportable::polfit::estimate_y( unk.second.coeffs, unk.second.intensity );
+            if ( unk.second.coeffs.size() == 1 ) {
+                unk.second.amount = unk.second.coeffs[ 0 ] * unk.second.intensity;
+            } else {
+                unk.second.amount = adportable::polfit::estimate_y( unk.second.coeffs, unk.second.intensity );
+            }
             if ( sql.prepare( "UPDATE QuanResponse SET amount = :amount WHERE id = :id" ) ) {
                 sql.bind( 1 ) = unk.second.amount;
                 sql.bind( 2 ) = unk.first;
