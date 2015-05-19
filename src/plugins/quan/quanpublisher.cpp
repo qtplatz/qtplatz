@@ -577,7 +577,7 @@ QuanPublisher::appendQuanCalib( pugi::xml_node& doc )
                         
                         adfs::stmt sql2( conn_->db() );
                         if ( sql2.prepare("\
-SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity, QuanResponse.formula, QuanSample.dataGuid, QuanResponse.id \
+SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity, QuanResponse.formula, dataGuid, QuanResponse.id \
 FROM QuanCompound, QuanSample, QuanAmount, QuanResponse \
 WHERE QuanCompound.uuid = :uuid AND QuanCompound.uuid = QuanAmount.idCmpd AND QuanCompound.uuid = QuanResponse.idCmpd \
 AND sampleType = 1 AND QuanResponse.idSample = QuanSample.id AND QuanAmount.level = QuanSample.level \
