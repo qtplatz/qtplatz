@@ -492,7 +492,9 @@ docEditor::fileSaveAs()
         fn += ".odt"; // default
     }
 */
-    setCurrentFileName(fn);
+	this->doc_->save( fn.toStdString() );
+    	
+	setCurrentFileName(fn);
     return fileSave();
 }
 
