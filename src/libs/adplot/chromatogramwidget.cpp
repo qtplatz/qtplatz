@@ -42,6 +42,7 @@
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
+#include <adcontrols/retentiontime.hpp>
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -52,6 +53,7 @@
 #include <boost/format.hpp>
 #include <boost/variant.hpp>
 #include <queue>
+#include <memory>
 
 using namespace adplot;
 
@@ -243,6 +245,7 @@ namespace adplot {
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;	
         std::function< bool( const QPointF&, QwtText& ) > tracker_hook_;
+        std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
         
         void clear();
         void removeData( int );
@@ -360,6 +363,8 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yaxis2 )
 void
 ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& cp, int idx, bool )
 {
+    impl_->curves_.clear();
+
     if ( cp->size() < 2 )
         return;
 
@@ -410,6 +415,7 @@ ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 
     impl_->peaks_.clear();
     impl_->baselines_.clear();
+    impl_->curves_.clear();
 
 	for ( Baselines::vector_type::const_iterator it = r.baselines().begin(); it != r.baselines().end(); ++it )
 		setBaseline( *it );
@@ -448,6 +454,8 @@ ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
 void
 ChromatogramWidget::plotAnnotations( const adcontrols::annotations& vec )
 {
+    impl_->clear_annotations();
+
     adplot::Annotations w( *this, impl_->annotation_markers_ );
     
     for ( auto& a: vec ) {
@@ -455,6 +463,31 @@ ChromatogramWidget::plotAnnotations( const adcontrols::annotations& vec )
         text.setColor( Qt::darkGreen );
         text.setFont( Annotation::font() );
         w.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+    }
+}
+
+void
+ChromatogramWidget::drawPeakParameter( const adcontrols::Peak& pk )
+{
+    auto tr = pk.retentionTime();
+
+    if ( tr.algorithm() == adcontrols::RetentionTime::ParaboraFitting ) {
+
+        auto curve = std::make_shared< QwtPlotCurve >();
+        QPolygonF points;
+
+        double a, b, c;
+        tr.eq( a, b, c );
+        enum { width = 10 };
+        for ( int i = 0; i <= width; ++i ) {
+            double x = tr.boundary( 0 ) + ( ( tr.boundary( 1 ) - tr.boundary( 0 ) ) * i ) / width;
+            double y = a + ( b * x ) + ( c * x * x );
+            points << QPointF( adcontrols::Chromatogram::toMinutes( x ), y );
+            curve->setSamples( points );
+        }
+        curve->setPen( QPen( QColor( 240, 0, 0, 0x80 ) ) );
+        curve->attach( this );
+        impl_->curves_.push_back( curve );
     }
 }
 

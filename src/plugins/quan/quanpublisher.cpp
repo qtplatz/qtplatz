@@ -30,6 +30,7 @@
 #include "quansvgplot.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/idaudit.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -279,29 +280,60 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
 
     if ( auto data = conn_->fetch( dataGuid ) ) {
 
-        detail::append_class()(dst, data->profile->getDescriptions(), "class adcontrols::descriptions");
+        if ( data->chromatogram ) {
 
-        QuanSvgPlot svg;
-        //auto gnode = dst.append_child( "traces" );
+            detail::append_class()( dst, data->chromatogram->getDescriptions(), "class adcontrols::descriptions" );
+            QuanSvgPlot svg;
 
-        if ( svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string() ) ) {
-            pugi::xml_document dom;
-            if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
-                auto trace = dst.append_child( "trace" );
-                trace.append_attribute( "contents" ) = "resp_spectrum";
-                trace.append_copy( dom.select_single_node( "/svg" ).node() );
+            if ( svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string() ) ) {
+                pugi::xml_document dom;
+                if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
+                    auto trace = dst.append_child( "trace" );
+                    trace.append_attribute( "contents" ) = "resp_spectrum";
+                    trace.append_copy( dom.select_single_node( "/svg" ).node() );
+                }
             }
-        }
-        
-        auto it = resp_data_.find( respid );
-        if ( it != resp_data_.end() ) {
-            if ( auto calib = find_calib_curve( it->second->cmpId ) ) {
-                if ( svg.plot( *it->second, *calib ) ) {
-                    pugi::xml_document dom;
-                    if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
-                        auto trace = dst.append_child( "trace" );
-                        trace.append_attribute( "contents" ) = "resp_calib";
-                        trace.append_copy( dom.select_single_node( "/svg" ).node() );
+
+            auto it = resp_data_.find( respid );
+            if ( it != resp_data_.end() ) {
+                if ( auto calib = find_calib_curve( it->second->cmpId ) ) {
+                    if ( svg.plot( *it->second, *calib ) ) {
+                        pugi::xml_document dom;
+                        if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
+                            auto trace = dst.append_child( "trace" );
+                            trace.append_attribute( "contents" ) = "resp_calib";
+                            trace.append_copy( dom.select_single_node( "/svg" ).node() );
+                        }
+                    }
+                }
+            }
+
+        } else if ( data->profile ) {
+
+            detail::append_class()( dst, data->profile->getDescriptions(), "class adcontrols::descriptions" );
+
+            QuanSvgPlot svg;
+            //auto gnode = dst.append_child( "traces" );
+
+            if ( svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string() ) ) {
+                pugi::xml_document dom;
+                if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
+                    auto trace = dst.append_child( "trace" );
+                    trace.append_attribute( "contents" ) = "resp_spectrum";
+                    trace.append_copy( dom.select_single_node( "/svg" ).node() );
+                }
+            }
+
+            auto it = resp_data_.find( respid );
+            if ( it != resp_data_.end() ) {
+                if ( auto calib = find_calib_curve( it->second->cmpId ) ) {
+                    if ( svg.plot( *it->second, *calib ) ) {
+                        pugi::xml_document dom;
+                        if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
+                            auto trace = dst.append_child( "trace" );
+                            trace.append_attribute( "contents" ) = "resp_calib";
+                            trace.append_copy( dom.select_single_node( "/svg" ).node() );
+                        }
                     }
                 }
             }

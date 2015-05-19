@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,11 +27,14 @@
 #include "quanplotdata.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/descriptions.hpp>
-#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/peakresult.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/peak.hpp>
+#include <adcontrols/quanmethod.hpp>
 
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/peakmarker.hpp>
@@ -41,31 +44,6 @@
 #include <qwt_plot_marker.h>
 #include <QBoxLayout>
 #include <boost/format.hpp>
-
-#if 0
-namespace quan { 
-    namespace detail {
-
-        template<typename T > struct widget_get {
-
-            QuanPlotWidget& parent;
-
-            widget_get( QuanPlotWidget& t ) : parent( t ) {
-            }
-
-            T* operator ()() {
-                if ( auto t = dynamic_cast<T*>(parent.dataplot()) )
-                    return t;
-                auto pT = new T;
-                parent.dataplot( pT );
-                if ( auto layout = parent.findChild<QHBoxLayout *>() )
-                    layout->addWidget( parent.dataplot() );
-                return pT;
-            }
-        };
-    }
-}
-#endif
 
 using namespace quan;
 
@@ -101,8 +79,6 @@ QuanPlotWidget::QuanPlotWidget( QWidget * parent, bool isChromatogram ) : QWidge
 void
 QuanPlotWidget::handleDataChanged( int id, bool )
 {
-    //auto layout = findChild< QHBoxLayout * >();
-
     if ( id == idQuanMethod ) {
         auto& method = QuanDocument::instance()->quanMethod();
         (void)method;
@@ -162,8 +138,22 @@ void
 QuanPlotWidget::setChromatogram( const QuanPlotData * d, size_t idx, int fcn, const std::wstring& dataSource )
 {
     if ( auto pw = dynamic_cast<adplot::ChromatogramWidget *>( dplot_.get() ) ) {
+
         pw->setTitle( dataSource + L", " + d->chromatogram->getDescriptions().toString() );
         pw->setData( d->chromatogram, 0, true );
+
+        if ( d->pkResult ) {
+            pw->setData( *d->pkResult );
+            
+            if ( idx < d->pkResult->peaks().size() ) {
+                auto item = d->pkResult->peaks().begin() + idx;
+                marker_->setPeak( *item );
+                marker_->visible( true );
+                pw->drawPeakParameter( *item );
+            }
+
+        }
+        
     }
 
 }

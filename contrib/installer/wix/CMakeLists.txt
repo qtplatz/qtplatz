@@ -49,7 +49,7 @@ configure_file(
   @ONLY
   )
 
-file( GLOB XSLTFILES ${PROJECT_SOURCE_DIR}/*.xslt )
+file( GLOB XSLTFILES ${PROJECT_SOURCE_DIR}/*.xsl )
 file( COPY ${XSLTFILES} DESTINATION ${PROJECT_BINARY_DIR} )
 
 foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )

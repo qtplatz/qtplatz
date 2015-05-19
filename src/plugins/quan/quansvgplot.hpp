@@ -40,6 +40,9 @@ namespace quan {
         const char * data() const { return svg_.data(); }
         size_t size() const { return svg_.size(); }
     private:
+        bool plot_chromatogram( const QuanPlotData&, size_t idx, int fcn, const std::string& );
+        bool plot_spectrum( const QuanPlotData&, size_t idx, int fcn, const std::string& );
+
         QByteArray svg_;
     };
 

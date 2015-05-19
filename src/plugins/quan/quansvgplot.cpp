@@ -26,12 +26,17 @@
 #include "quanplot.hpp"
 #include "quanplotdata.hpp"
 #include <adportable/utf.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/peakresult.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/peak.hpp>
 #include <adplot/peakmarker.hpp>
 #include <adplot/spectrumwidget.hpp>
+#include <adplot/chromatogramwidget.hpp>
 #include <qwt_plot_marker.h>
 #include <qwt_plot_renderer.h>
 #include <QSvgGenerator>
@@ -50,6 +55,19 @@ QuanSvgPlot::QuanSvgPlot()
 bool
 QuanSvgPlot::plot( const QuanPlotData& data, size_t idx, int fcn, const std::string& dataSource )
 {
+    if ( data.chromatogram )
+        return plot_chromatogram( data, idx, fcn, dataSource );
+    else
+        return plot_spectrum( data, idx, fcn, dataSource );
+    return false;
+}
+
+bool
+QuanSvgPlot::plot_spectrum( const QuanPlotData& data, size_t idx, int fcn, const std::string& dataSource )
+{
+    if ( ! data.profile )
+        return false;
+    
     auto tCentroid( std::make_shared< adcontrols::MassSpectrum >() );
     auto tProfile( std::make_shared< adcontrols::MassSpectrum >() );
 
@@ -80,7 +98,7 @@ QuanSvgPlot::plot( const QuanPlotData& data, size_t idx, int fcn, const std::str
     QBuffer buffer( &svg_ );
     generator.setOutputDevice( &buffer );
     generator.setTitle( "QtPlatz Generated SVG" );
-    generator.setDescription( "Copyright (C) 2014 MS-Cheminformataics, All rights reserved" );
+    generator.setDescription( "Copyright (C) 2013-2015 MS-Cheminformataics, All rights reserved" );
 
     QRectF rect( 0, 0, 350, 300 );
     generator.setViewBox( rect );
@@ -105,6 +123,61 @@ QuanSvgPlot::plot( const QuanPlotData& data, size_t idx, int fcn, const std::str
 
     plot.setTitle( dataSource + ", " + adportable::utf::to_utf8( data.centroid->getDescriptions().toString() ) );
     plot.setFooter( (boost::format( "FWHM=%.1fmDa (%.2fns)" ) % (pk.widthHH( false ) * 1000) % adcontrols::metric::scale_to_nano( pk.widthHH( true ) )).str() );
+
+    QPainter painter;
+    painter.begin( &generator );
+
+    renderer.render( &plot, &painter, rect );
+    
+    painter.end();
+
+    return true;
+}
+
+bool
+QuanSvgPlot::plot_chromatogram( const QuanPlotData& data, size_t idx, int fcn, const std::string& dataSource )
+{
+    if ( ! data.chromatogram )
+        return false;
+    
+    QSvgGenerator generator;
+
+    svg_.clear();
+    QBuffer buffer( &svg_ );
+    generator.setOutputDevice( &buffer );
+    generator.setTitle( "QtPlatz Generated SVG" );
+    generator.setDescription( "Copyright (C) 2013-2015 MS-Cheminformataics, All rights reserved" );
+
+    QRectF rect( 0, 0, 350, 300 );
+    generator.setViewBox( rect );
+
+    QwtPlotRenderer renderer;
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+
+    adplot::ChromatogramWidget plot;
+    plot.setData( data.chromatogram, 0 );
+    plot.setData( *data.pkResult );
+
+    adplot::PeakMarker marker;
+    
+    if ( idx < data.pkResult->peaks().size() ) {
+
+        // set color etc.
+        for ( int id = 0; id < adplot::PeakMarker::numMarkers; ++id )
+            marker.marker( adplot::PeakMarker::idAxis(id) )->setLinePen( QColor(0xff, 0, 0, 0x80), 0, Qt::DashLine );
+        
+        auto item = data.pkResult->peaks().begin() + idx;
+        marker.setPeak( *item );
+        plot.drawPeakParameter( *item );
+
+        marker.attach( &plot );
+        marker.visible(true);
+    }
+    
+    plot.setTitle( dataSource + ", " + adportable::utf::to_utf8( data.chromatogram->getDescriptions().toString() ) );
+        //plot.setFooter( (boost::format( "FWHM=%.1fmDa (%.2fns)" ) % (pk.widthHH( false ) * 1000) % adcontrols::metric::scale_to_nano( pk.widthHH( true ) )).str() );
 
     QPainter painter;
     painter.begin( &generator );
