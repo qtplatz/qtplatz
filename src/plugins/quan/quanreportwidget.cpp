@@ -85,6 +85,8 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QVBoxLayout( this ) )
                                                     , docEditor_( new adpublisher::docEditor )
 {
+    docEditor_->setSettings( QuanDocument::instance()->settings_ptr() );
+
     if ( auto am = Core::ActionManager::instance() ) {
 
         if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_FILE_MENU ) ) {
@@ -231,13 +233,17 @@ QuanReportWidget::filePublish()
     qtwrapper::waitCursor w;
     
     Core::ProgressManager::addTask( progress.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
+
+    docEditor_->fetchTemplate();
+    auto article = docEditor_->document();
+    QuanDocument::instance()->docTemplate( article );
     
     if ( auto publisher = QuanDocument::instance()->publisher() ) {
 
         try {
 
             auto conn = QuanDocument::instance()->connection();
-            (*publisher)( conn, progress );
+            ( *publisher )( conn, progress, article->xml_document().get() );
 
         } catch ( boost::exception& ex ) {
             QMessageBox::information( this, "QuanReportWidget", ( boost::diagnostic_information( ex ) + "(1)").c_str() );
@@ -285,4 +291,6 @@ QuanReportWidget::filePublish()
 void
 QuanReportWidget::fileDebug()
 {
+    auto doc = std::make_shared< adpublisher::document >();
+    docEditor_->setDocument( doc );
 }

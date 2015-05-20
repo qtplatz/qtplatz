@@ -52,6 +52,7 @@ namespace adpublisher {
 
         void setCompleter( QCompleter * );
         QCompleter * completer() const;
+        void fetch( pugi::xml_document& xml );
 
     protected:
         void keyPressEvent( QKeyEvent * );

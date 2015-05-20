@@ -141,7 +141,7 @@ QuanPublisher::QuanPublisher() : bProcessed_( false )
 
 QuanPublisher::QuanPublisher( const QuanPublisher& t ) : bProcessed_( t.bProcessed_ )
                                                        , conn_( t.conn_ )
-                                                       , xmldoc_( t.xmldoc_ )
+                                                       //, xmloutput_( t.xmloutput_ )
                                                        , filepath_( t.filepath_ )
                                                        , calib_curves_( t.calib_curves_ )
                                                        , resp_data_( t.resp_data_ )
@@ -151,8 +151,8 @@ QuanPublisher::QuanPublisher( const QuanPublisher& t ) : bProcessed_( t.bProcess
 bool
 QuanPublisher::prepare_document()
 {
-    xmldoc_ = std::make_shared< pugi::xml_document >();
-    auto decl = xmldoc_->prepend_child( pugi::node_declaration );
+    xmloutput_ = std::make_shared< pugi::xml_document >(); // reset
+    auto decl = xmloutput_->prepend_child( pugi::node_declaration );
 
     decl.append_attribute("version") = "1.0";
     decl.append_attribute("encoding") = "UTF-8";
@@ -162,20 +162,21 @@ QuanPublisher::prepare_document()
 }
 
 bool
-QuanPublisher::operator()( QuanConnection * conn, std::function<void(int)> progress )
+QuanPublisher::operator()( QuanConnection * conn, std::function<void(int)> progress, pugi::xml_document * article )
 {
     if ( !(conn_ = conn->shared_from_this() ) )
         return false;
 
+    std::shared_ptr< pugi::xml_document > xmloutput;
     prepare_document();
 
-    if ( auto doc = xmldoc_->append_child( "qtplatz_document" ) ) {
+    if ( auto doc = xmloutput_->append_child( "qtplatz_document" ) ) {
         doc.append_attribute( "creator" ) = "Quan.qtplatzplugin.ms-cheminfo.com";
         adcontrols::idAudit id;
         detail::append_class()(doc, id, "class adcontrols::idAudit");
 
-        if ( auto docTemplate = QuanDocument::instance()->docTemplate() ) {
-            doc.append_copy( docTemplate->xml_document()->select_single_node( "/article" ).node() );
+        if ( article ) {
+            doc.append_copy( article->select_single_node( "/article" ).node() );
         }
         
         int step = 1;
@@ -216,7 +217,7 @@ QuanPublisher::operator()( QuanConnection * conn )
 
     prepare_document();
 
-    if ( auto doc = xmldoc_->append_child( "qtplatz_document" ) ) {
+    if ( auto doc = xmloutput_->append_child( "qtplatz_document" ) ) {
         doc.append_attribute( "creator" ) = "Quan.qtplatzplugin.ms-cheminfo.com";
         adcontrols::idAudit id;
         detail::append_class()(doc, id, "class adcontrols::idAudit");
@@ -351,7 +352,7 @@ QuanPublisher::appendTraceData( ProgressHandler& progress )
         size_t nTask = std::count_if( resp_data_.begin(), resp_data_.end(), [] ( decltype(*resp_data_.begin())& d ){ return d.second->sampType == 0; } );
         progress.setProgressRange( 0, int(nTask) );
 
-        if ( auto doc = xmldoc_->select_single_node( "/qtplatz_document" ).node() ) {
+        if ( auto doc = xmloutput_->select_single_node( "/qtplatz_document" ).node() ) {
 
             auto spectra = doc.append_child( "PlotData" );
 
@@ -371,7 +372,7 @@ bool
 QuanPublisher::save_file( const char * filepath ) const
 {
     if ( bProcessed_ )
-        return xmldoc_->save_file( filepath );
+        return xmloutput_->save_file( filepath );
     return false;
 }
 

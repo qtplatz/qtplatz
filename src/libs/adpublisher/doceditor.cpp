@@ -81,15 +81,16 @@ docEditor::~docEditor()
 }
 
 docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
-                                        , doc_( std::make_shared< adpublisher::document >() )
                                         , tree_( new docTree )
                                         , text_( new docEdit )
                                         , browser_( new docBrowser )
-                                        , comboStyle(0)
-                                        , comboFont(0)
-                                        , comboSize(0)
+                                        , dirty_( false )
+                                        , comboStyle( 0 )
+                                        , comboFont( 0 )
+                                        , comboSize( 0 )
                                         , stacked_( new QStackedWidget )
-                                        , tb(0)
+                                        , tb( 0 )
+                                        , settings_( 0 )
 {
     std::fill( actions_.begin(), actions_.end(), static_cast<QAction*>(0) );
 
@@ -109,16 +110,12 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
     splitter->setHandleWidth( 1 );
     splitter->setOrientation( Qt::Horizontal );
     splitter->addWidget( tree_.get() );
-    // splitter->addWidget( text_.get() );
     splitter->addWidget( stacked_ );
     connect( stacked_, &QStackedWidget::currentChanged, this, &docEditor::currentPageChanged );
 
     splitter->setStretchFactor( 1, 3 );
 
     layout->addWidget( splitter );
-
-    tree_->setDocument( doc_ );
-    text_->setDocument( doc_ );
 
     completer = new QCompleter( this );
     completer->setModel( modelFromFile( ":/adpublisher/wordlist.txt" ) );
@@ -131,6 +128,12 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
     connect(text_.get(), &docEdit::cursorPositionChanged, this, &docEditor::cursorPositionChanged );
     stacked_->setCurrentIndex( 0 ); // Template as default
 
+}
+
+void
+docEditor::setSettings( std::shared_ptr< QSettings > p )
+{
+    settings_ = p;
 }
 
 void
@@ -149,6 +152,7 @@ docEditor::onInitialUpdate()
     alignmentChanged( text_->alignment() );
 
     connect(text_->document(), &QTextDocument::modificationChanged,  actions_[ idActionSave ], &QAction::setEnabled );
+    connect(text_->document(), &QTextDocument::modificationChanged,  this, &docEditor::setDirty );
     connect(text_->document(), &QTextDocument::modificationChanged,  this, &docEditor::setWindowModified );
     connect(text_->document(), &QTextDocument::undoAvailable,  actions_[ idActionUndo ], &QAction::setEnabled );
     connect(text_->document(), &QTextDocument::redoAvailable,  actions_[ idActionRedo ], &QAction::setEnabled );
@@ -163,13 +167,6 @@ docEditor::setDocument( std::shared_ptr< adpublisher::document >& t )
     stacked_->setCurrentIndex(0);
     if ( auto w = findChild< QComboBox * >( "comboBrowser ") )
         w->setCurrentIndex(0);
-#if 0
-    if ( auto node = doc_->xml_document()->select_single_node( "/article|/book" ) ) {
-        text_->setDocument( doc_ );
-    }
-    else if ( auto node = doc_->xml_document()->select_single_node( "/qtpaltz_document" ) ) { 
-    }
-#endif
 }
 
 void
@@ -192,6 +189,7 @@ docEditor::setOutput( const QUrl& url )
 std::shared_ptr< adpublisher::document > 
 docEditor::document()
 {
+    
     return doc_;
 }
 
@@ -384,21 +382,14 @@ docEditor::load( const QString &f )
 {
     if (!QFile::exists(f))
         return false;
-    QFile file(f);
-    if (!file.open(QFile::ReadOnly))
-        return false;
 
-    QByteArray data = file.readAll();
-    QTextCodec *codec = Qt::codecForHtml(data);
-    QString str = codec->toUnicode(data);
-    if (Qt::mightBeRichText(str)) {
-        text_->setHtml(str);
-    } else {
-        str = QString::fromLocal8Bit(data);
-        text_->setPlainText(str);
-    }
+    auto doc = std::make_shared< adpublisher::document >();
+
+    if ( doc->load_file( f.toStdString().c_str() ) )
+        setDocument( doc );
 
     setCurrentFileName(f);
+
     return true;
 }
 
@@ -448,10 +439,14 @@ docEditor::fileNew()
 void
 docEditor::fileOpen()
 {
-    QString fn = QFileDialog::getOpenFileName(this, tr("Open File..."),
-                                              QString(), tr("HTML-Files (*.htm *.html);;All Files (*)"));
-    if (!fn.isEmpty())
+    QString value = recentFile( "Publisher", "Files" );
+    QString fn = QFileDialog::getOpenFileName(this, tr("Open report template file...")
+                                              , value
+                                              , tr("Quan report template xml files (*.xml);;All Files (*)"));
+    if ( ! fn.isEmpty() ) {
+        addRecentFiles( "Publisher", "Files", fn );
         load(fn);
+    }
 }
 
 bool
@@ -479,9 +474,11 @@ docEditor::fileSave()
 bool
 docEditor::fileSaveAs()
 {
+    QString value = recentFile( "Publisher", "Files" );
+    
     QString fn = QFileDialog::getSaveFileName( this
-                                               , tr( "Save as..." )
-                                               , QString()
+                                               , tr( "Save report template as..." )
+                                               , value
                                                , tr( "Template files (*.xml);;ODF files (*.odt);;HTML-Files (*.htm *.html);;All Files (*)" ) );
     if (fn.isEmpty())
         return false;
@@ -752,4 +749,88 @@ docEditor::modelFromFile(const QString& fileName)
 void
 docEditor::currentPageChanged( int )
 {
+}
+
+void
+docEditor::addRecentFiles( const QString& group, const QString& key, const QString& value )
+{
+    if ( settings_ ) {
+        
+        std::vector< QString > list;
+        getRecentFiles( group, key, list );
+
+        boost::filesystem::path path = boost::filesystem::path( value.toStdWString() ).generic_wstring();
+        auto it = std::remove_if( list.begin(), list.end(), [path] ( const QString& a ){ return path == a.toStdWString(); } );
+        if ( it != list.end() )
+            list.erase( it, list.end() );
+
+        settings_->beginGroup( group );
+
+        settings_->beginWriteArray( key );
+        settings_->setArrayIndex( 0 );
+        settings_->setValue( "File", QString::fromStdWString( path.generic_wstring() ) );
+        for ( size_t i = 0; i < list.size() && i < 7; ++i ) {
+            settings_->setArrayIndex( int(i + 1) );
+            settings_->setValue( "File", list[ i ] );
+        }
+        settings_->endArray();
+
+        settings_->endGroup();
+
+    }
+}
+
+void
+docEditor::getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const
+{
+    if ( settings_ ) {
+
+        settings_->beginGroup( group );
+
+        int size = settings_->beginReadArray( key );
+        for ( int i = 0; i < size; ++i ) {
+            settings_->setArrayIndex( i );
+            list.push_back( settings_->value( "File" ).toString() );
+        }
+        settings_->endArray();
+
+        settings_->endGroup();
+    }
+}
+
+QString
+docEditor::recentFile( const QString& group, const QString& key ) const
+{
+    QString value;
+
+    if ( settings_ ) {
+        
+        settings_->beginGroup( group );
+    
+        if ( int size = settings_->beginReadArray( key ) ) {
+            (void)size;
+            settings_->setArrayIndex( 0 );
+            value = settings_->value( "File" ).toString();
+        }
+        settings_->endArray();
+    
+        settings_->endGroup();
+    }
+
+    return value;
+}
+
+void
+docEditor::fetchTemplate()
+{
+    adpublisher::document doc;
+    auto xml = doc.xml_document();
+    text_->fetch( *xml );
+    doc_->xml_document()->reset( *xml );
+}
+
+void
+docEditor::setDirty()
+{
+    dirty_ = true;
 }

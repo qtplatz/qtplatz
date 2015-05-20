@@ -116,6 +116,7 @@ namespace quan {
         void sample_processed( QuanSampleProcessor * ); // within a sample process thread
 
         QSettings * settings() { return settings_.get(); }
+        std::shared_ptr< QSettings > settings_ptr() { return settings_; }
         QString lastMethodDir() const;
         QString lastSequenceDir() const;
         QString lastDataDir() const;
@@ -134,8 +135,7 @@ namespace quan {
         typedef std::vector< std::shared_ptr< PanelData > > page_type;
         typedef std::map< int, page_type > chapter_type;
         std::map< int, chapter_type > book_;
-        std::unique_ptr< QSettings > settings_;
-
+        std::shared_ptr< QSettings > settings_;
         std::shared_ptr< QuanConnection > quanConnection_;
 
         std::vector< std::function< void( int, bool ) > > clients_;
@@ -150,7 +150,7 @@ namespace quan {
         std::shared_ptr< adpublisher::document > docTemplate_;
 
         std::vector< std::shared_ptr< QuanProcessor > > exec_;
-
+        
         bool processed( adcontrols::QuanSample& );
 
         bool save_default_methods();

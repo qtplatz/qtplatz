@@ -31,7 +31,7 @@
 #  include "libxslt_transformer.hpp"
 # endif
 #endif
-
+#include <adportable/profile.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -40,6 +40,7 @@
 #include <boost/filesystem.hpp>
 #include <QApplication>
 #include <QFileInfo>
+
 //#include <QXmlQuery>
 
 using namespace adpublisher;
@@ -53,12 +54,12 @@ document::document() : doc_( std::make_shared< pugi::xml_document >() )
 
         if ( auto title = article.append_child( "title" ) ) {
             title.append_attribute( "lang" ) = "en-us";
-            title.text().set( "Qualitative and quantitative accuracy on TOFMS for Ambient Air Component" );
+            title.text().set( "Quantitative analysis report." );
         }
 
         if ( auto author = article.append_child( "author" ) ) {
             author.append_attribute( "lang" ) = "en-us";
-            author.text().set( "Toshinobu Hondo" );
+            author.text().set( adportable::profile::user_login_name<char>().c_str() );
         }
 
         if ( auto sec = article.append_child( "section" ) ) {
@@ -72,9 +73,7 @@ document::document() : doc_( std::make_shared< pugi::xml_document >() )
             
             if ( auto para = sec.append_child( "paragraph" ) ) {
                 para.append_attribute( "lang" ) = "en-us";
-                para.text().set( "\
-A single LC/TOFMS offers the advantage of a full scan which, by allowing all analytes to reach the detector, gives way for multiple applications. However, analyzing the data acquired from a full scan can quickly become a limiting factor in high-throughput (HT) analysis. Accurate results in qualitative and quantitative high-performance liquid chromatographic (HPLC) analysis are fundamentally dependant on the degree of separation obtained for the component peak. In a full scan, analytes can experience suppression as they might still contain contaminates which can lead to inaccurate intensities and co-eluted compounds. Another disadvantage is the inability to avoid drift which makes it difficult to target the analytes of choice using current targeting software where a time range must be entered for each compound. \
-The work presented here shows how using a newly developed targeting algorithm allows an isolated mass spectrum to be targeted from a complex sample matrix. This technique allows a single LC/TOFMS to become an instrument that can be used for quantitative HT analysis." );
+                para.text().set( "Introduction to be added..." );
             }
         }
 
@@ -85,6 +84,10 @@ The work presented here shows how using a newly developed targeting algorithm al
             if ( auto title = sec.append_child( "title" ) ) {
                 title.text().set( "Methods" );
                 title.append_attribute( "lang" ) = "en-us";
+            }
+            if ( auto para = sec.append_child( "paragraph" ) ) {
+                para.append_attribute( "lang" ) = "en-us";
+                para.text().set( "Column: 0.32mmID 10mL, 3&mu;m\nCarrier: He, Flow rage: 5mL/min\nDetector: InfiTOF, ..." );
             }
         }
 

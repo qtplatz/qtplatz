@@ -51,7 +51,7 @@ namespace quan {
         operator bool () const { return bProcessed_; }
 
         bool operator()( QuanConnection * );
-        bool operator()( QuanConnection *, std::function<void(int)> progress );
+        bool operator()( QuanConnection *, std::function<void(int)> progress, pugi::xml_document * article = 0 );
 
         const boost::filesystem::path& filepath() const;
         bool save_file( const char * filepath ) const;
@@ -92,13 +92,13 @@ namespace quan {
         };
 
         const calib_curve * find_calib_curve( const boost::uuids::uuid& );
-
+        
         bool appendTraceData( ProgressHandler& progress );
 
     private:
         bool bProcessed_;
         std::shared_ptr< QuanConnection > conn_;
-        std::shared_ptr< pugi::xml_document > xmldoc_;
+        std::shared_ptr< pugi::xml_document > xmloutput_;
         boost::filesystem::path filepath_;
 
         std::map< boost::uuids::uuid, std::shared_ptr< calib_curve > > calib_curves_; // cmpdId, curve
@@ -109,10 +109,10 @@ namespace quan {
         bool appendQuanResponseUnk( pugi::xml_node& );
         bool appendQuanResponseStd( pugi::xml_node& );
         bool appendQuanCalib( pugi::xml_node& );
-        bool prepare_document();
         bool appendTraceData( pugi::xml_node dst, const pugi::xml_node& response );
         bool appendPlot( pugi::xml_node& dst, const QuanPlotData&, size_t idx, int fcn, const std::string& );
         bool appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakInfo&, size_t idx, int fcn );
+        bool prepare_document();
     };
 
 }

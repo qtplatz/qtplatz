@@ -41,6 +41,7 @@ class QTextCharFormat;
 class QPrinter;
 class QAbstractItemModel;
 class QStackedWidget;
+class QSettings;
 
 namespace adpublisher {
 
@@ -56,12 +57,15 @@ namespace adpublisher {
         ~docEditor();
         explicit docEditor(QWidget *parent = 0);
 
+        void setSettings( std::shared_ptr< QSettings > );
+
         std::shared_ptr< adpublisher::document > document();
         void setDocument( std::shared_ptr< adpublisher::document >& );
         void setOutput( const QString&, const QString& method = QString() );
         void setOutput( const QUrl& );
         void setupEditActions( QMenu* );
         void setupTextActions( QMenu* );
+        void fetchTemplate();
 
         void onInitialUpdate();
         
@@ -91,6 +95,7 @@ namespace adpublisher {
         std::unique_ptr< docEdit > text_;
         std::unique_ptr< docBrowser > browser_;
         std::array< QAction *, nIdActions > actions_;
+        bool dirty_;
 
         QComboBox *comboStyle;
         QFontComboBox *comboFont;
@@ -101,6 +106,8 @@ namespace adpublisher {
         QString fileName;
         QCompleter *completer;
 
+        std::shared_ptr< QSettings > settings_;
+
         bool load(const QString &f);
         bool maybeSave();
         void setCurrentFileName(const QString &fileName);
@@ -109,6 +116,10 @@ namespace adpublisher {
         void colorChanged(const QColor &c);
         void alignmentChanged(Qt::Alignment a);
         QAbstractItemModel * modelFromFile(const QString& fileName);
+
+        QString recentFile( const QString& group, const QString& key ) const;
+        void addRecentFiles( const QString& group, const QString& key, const QString& value );
+        void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const;
 
     signals:
 
@@ -138,6 +149,7 @@ namespace adpublisher {
         void clipboardDataChanged();
         void about();
         void printPreview(QPrinter *);
+        void setDirty();
     };
 
 }

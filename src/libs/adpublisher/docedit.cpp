@@ -43,6 +43,8 @@
 #include <cstring>
 #include <functional>
 #include <fstream>
+#include <regex>
+#include <map>
 
 namespace adpublisher {
 
@@ -139,7 +141,7 @@ namespace adpublisher {
                     (*this)(child, frame, level + 1);
                 }
                 cursor = pframe ? pframe->lastCursorPosition() : mainFrame->lastCursorPosition();
-                cursor.insertText( QString( "</%1>" ).arg( node.node().name() ), tagFormat ); // </tag>
+                //cursor.insertText( QString( "</%1>" ).arg( node.node().name() ), tagFormat ); // </tag>
             }
         };
 
@@ -380,4 +382,87 @@ docEdit::addSummaryTable()
 void
 docEdit::handleBlockDeleted()
 {
+}
+
+void
+docEdit::fetch( pugi::xml_document& xml )
+{
+    QString article_title, article_author;
+    std::map< std::string, std::pair< QString, QString > > sections;
+
+    auto cursor = document()->find( "<article>" ); // find a top of the 'article'
+    if ( !cursor.isNull() ) {
+        auto block = cursor.block().next();
+        if ( block.isValid() ) {
+            if ( block.text().contains( "<title lang=\"en-us\">" ) ) {
+                block = block.next();
+                if ( block.isValid() )
+                    article_title = block.text();
+            }
+        }
+    }
+
+    cursor = document()->find( "<author" ); // find 'author'
+    if ( ! cursor.isNull() ) {
+        auto block = cursor.block().next();
+        if ( block.isValid() ) {
+            article_author = block.text();
+        }
+    }
+    cursor = document()->find( "<section" ); // find sections
+    while ( ! cursor.isNull() ) {
+
+        std::string section_id;
+        QString section_title, paragraph;
+        auto block = cursor.block();
+        if ( block.isValid() ) {
+            std::string text = block.text().toStdString();
+
+            std::regex regex( "<section[ \t]*id=\"(.*)\"[ \t]+.*" );
+            std::smatch match;
+            if ( std::regex_match( text, match, regex ) ) {
+                if ( match.size() >= 2 )
+                    section_id = match[ 1 ].str();
+            }
+        }
+
+        if ( ( block = block.next() ).isValid() ) {
+            if ( block.text().contains( "<title lang=" ) ) {
+                if ( ( block = block.next() ).isValid() )
+                    section_title = block.text();
+                if ( ( block = block.next() ).isValid() ) {
+                    if ( block.text().contains( "<paragraph lang=" ) ) {
+                        if ( ( block = block.next() ).isValid() ) {
+                            paragraph = block.text();
+                        }
+                    }
+                }
+            }
+        }
+
+        sections[ section_id ] = std::make_pair( section_title, paragraph );
+
+        cursor = document()->find( "<section", cursor ); // next
+    }
+    
+    auto doc = xml.document_element();
+    if ( auto node = doc.select_single_node( "/article/title" ) ) {
+        node.node().text() = static_cast<const char *>( article_title.toUtf8() );
+    }
+    if ( auto node = doc.select_single_node( "/article/author" ) ) {
+        node.node().text() = static_cast<const char *>( article_author.toUtf8() );
+    }
+    for ( auto& sec : sections ) {
+        QString query_title = QString( "/article/section[@id='%1']/title" ).arg( sec.first.c_str() );
+        QString query_para = QString( "/article/section[@id='%1']/paragraph" ).arg( sec.first.c_str() );
+
+        if ( auto node = doc.select_single_node(static_cast< const char *>( query_title.toUtf8() ) ) ) {
+            node.node().text() = static_cast<const char *>( sec.second.first.toUtf8() );
+        }
+        if ( auto node = doc.select_single_node(static_cast< const char *>( query_para.toUtf8() ) ) ) {
+            node.node().text() = static_cast<const char *>( sec.second.second.toUtf8() );
+        }
+    }
+
+
 }

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -78,9 +78,9 @@ QuanDocument::~QuanDocument()
 {
 }
 
-QuanDocument::QuanDocument() : settings_( new QSettings(QSettings::IniFormat, QSettings::UserScope
-                                                        , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                        , QLatin1String( "Quan" ) ) )
+QuanDocument::QuanDocument() : settings_( std::make_shared< QSettings >(QSettings::IniFormat, QSettings::UserScope
+                                                                        , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                                                        , QLatin1String( "Quan" ) ) )
                              , postCount_( 0 )
                              , pm_(std::make_shared< adcontrols::ProcessMethod >())
                              , quanSequence_( std::make_shared< adcontrols::QuanSequence >() )
@@ -207,7 +207,7 @@ QuanDocument::load_default_doctemplate()
     boost::filesystem::path backup = dir / L"QuanDocTemplate.xml";
 
     auto doc = std::make_shared< adpublisher::document >();
-    if ( boost::filesystem::exists( backup ) && load( backup, *doc ) ) {
+    if ( doc->load_file( backup.string().c_str() ) ) {
         docTemplate_ = doc;
         return true;
     }
