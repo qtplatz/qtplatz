@@ -52,6 +52,20 @@ Trace::Trace( const Trace& t ) : fcn_( t.fcn_ )
 {
 }
 
+Trace&
+Trace::operator = ( const Trace& t )
+{
+    fcn_ = t.fcn_;
+	lower_limit = t.lower_limit;
+	upper_limit = t.upper_limit;
+    minY_ = t.minY_;
+    maxY_ = t.maxY_;
+    traceX_ = t.traceX_;
+    traceY_ = t.traceY_;
+    events_ = t.events_;
+    return *this;
+}
+
 void
 Trace::set_fcn( size_t n )
 {
