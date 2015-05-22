@@ -34,10 +34,10 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT Trace {
     public:
         ~Trace();
-        Trace( int fcn = 0 );
+		Trace( int fcn = 0, unsigned lower = 2048 - 512, unsigned upper = 2048 );
         Trace( const Trace& );
-        const static unsigned upper_limit = 2048;
-        const static unsigned lower_limit = 2048 - 512;
+		const unsigned upper_limit;// 2048
+        const unsigned lower_limit;// = 2048 - 512;
 
         void set_fcn( size_t fcn );
         inline int fcn() const { return fcn_; }

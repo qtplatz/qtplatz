@@ -34,11 +34,16 @@ Trace::~Trace()
 {
 }
 
-Trace::Trace( int fcn ) : fcn_( fcn ), minY_( -10 ), maxY_( 90 )
+Trace::Trace( int fcn, unsigned lower, unsigned upper ) : fcn_( fcn )
+                                                        , lower_limit( lower )
+														, upper_limit( upper )
+                                                        , minY_( -10 ), maxY_( 90 )
 {
 }
 
 Trace::Trace( const Trace& t ) : fcn_( t.fcn_ )
+                               , lower_limit( t.lower_limit )
+							   , upper_limit( t.upper_limit )
                                , minY_( t.minY_ )
                                , maxY_( t.maxY_ )
                                , traceX_( t.traceX_ )
