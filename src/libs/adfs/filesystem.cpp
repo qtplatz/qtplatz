@@ -72,6 +72,9 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
 
         adfs::stmt sql( *db_ );
 
+        sql.exec( "PRAGMA synchronous = OFF" );
+        sql.exec( "PRAGMA journal_mode = MEMORY" );
+
         if ( page_size )
             sql.exec( ( boost::format( "PRAGMA page_size = %1%" ) % page_size ).str() );
 
