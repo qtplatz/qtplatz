@@ -25,6 +25,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <compiler/disable_dll_interface.h>
 #include <boost/serialization/version.hpp>
 #include <vector>
 #include <cstdint>
@@ -47,6 +48,7 @@ namespace adcontrols {
         size_t size() const;
         const datum_type& operator []( size_t idx ) const;
         MappedSpectrum& operator << ( const datum_type& );
+        MappedSpectrum& operator += ( const MappedSpectrum& );
 
         inline double time( size_t idx ) const { return data_[ idx ].first; }
         inline uint32_t intensity( size_t idx ) const { return data_[ idx ].second; }
@@ -61,15 +63,17 @@ namespace adcontrols {
             
     private:
 
-# if _MSC_VER
-# pragma warning( disable:4251 )            
-# endif
         std::vector< datum_type > data_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
+
+#if defined _MSC_VER
+    template class ADCONTROLSSHARED_EXPORT std::vector < MappedSpectrum::datum_type > ;
+#endif
 }
+
 
 BOOST_CLASS_VERSION( adcontrols::MappedSpectrum, 1 )
 

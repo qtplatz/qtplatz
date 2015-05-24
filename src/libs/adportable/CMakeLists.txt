@@ -2,6 +2,7 @@
 project( adportable )
 
 add_library( adportable
+  array_wrapper.hpp
   base64.cpp
   bzip2.cpp
   configloader.cpp
@@ -21,6 +22,7 @@ add_library( adportable
   portable_binary_iarchive.cpp
   posix_path.cpp
   profile.cpp
+  semaphore.hpp
   serialport.cpp
   sgfilter.cpp
   spectrum_processor.cpp

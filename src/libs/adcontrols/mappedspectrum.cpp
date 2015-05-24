@@ -145,8 +145,8 @@ MappedSpectrum::operator << ( const datum_type& t )
 
     } else {
 
-        auto it = std::lower_bound( data_.begin(), data_.end(), t
-                                    , [] ( const datum_type& a, const datum_type& b ) { return a.first < b.first; } );
+        auto it = std::lower_bound( data_.begin(), data_.end(), t.first
+                                    , [] ( const datum_type& a, const double& b ) { return a.first < b; } );
 
         if ( it != data_.end() ) {
 
@@ -164,3 +164,34 @@ MappedSpectrum::operator << ( const datum_type& t )
     return *this;
 }
 
+MappedSpectrum&
+MappedSpectrum::operator += ( const MappedSpectrum& t )
+{
+    if ( data_.empty() ) {
+
+        data_ = t.data_;
+
+    } else {
+
+        for ( auto inIt = t.data_.begin(); inIt != t.data_.end(); ++inIt ) {
+
+            auto it = std::lower_bound( data_.begin(), data_.end(), inIt->first, [] ( const datum_type& a, const double& b ) { return a.first < b; } );
+ 
+            if ( it != data_.end() ) {
+        
+                if ( adportable::compare< decltype( datum_type::first ) >::approximatelyEqual( it->first, inIt->first ) )
+                    it->second += inIt->second;
+                else
+                    data_.insert( it, *inIt );
+        
+            } else {
+
+                while ( inIt != t.data_.end() )
+                    data_.push_back( *inIt++ );
+                break;
+
+            }
+        }
+    }
+    return *this;
+}
