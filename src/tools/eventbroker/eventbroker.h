@@ -35,7 +35,7 @@
 
 extern "C" {
 
-    typedef void (*event_handler)(uint32_t, void*);
+    typedef void( *event_handler )( const char * dllfunc, uint32_t result_code, double duration, const char * msg );
 
     EVENTBROKER_EXPORT bool eventbroker_regiser_handler( event_handler );
     EVENTBROKER_EXPORT bool eventbroker_unregiser_handler( event_handler );

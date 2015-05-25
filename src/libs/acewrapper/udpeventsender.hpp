@@ -28,25 +28,25 @@
 #include <condition_variable>
 #include <thread>
 #include <mutex>
+#include <functional>
 
 namespace acewrapper {
 
     class udpEventSender {
     public:
         udpEventSender( boost::asio::io_service&, const char * host, const char * port );
+        enum result_code { transaction_completed, transaction_timeout };
         
-        bool send_to( const std::string& );
+        bool send_to( const std::string&
+                      , std::function< void( result_code, double, const char * ) > callback  = [](result_code, double, const char *){});
 
     private:
         enum { max_length = 1024 };
         boost::asio::ip::udp::socket sock_;
         boost::asio::ip::udp::endpoint endpoint_;
         char data_[ max_length ];
-
         std::condition_variable cv_;
         std::mutex mutex_;
     };
 
 }
-
-

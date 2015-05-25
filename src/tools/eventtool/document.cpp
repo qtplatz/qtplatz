@@ -29,7 +29,9 @@
 
 #include "document.hpp"
 #include "eventtoolconstants.hpp"
+#include "../eventbroker/eventbroker.h"
 #include <acewrapper/udpeventreceiver.hpp>
+#include <acewrapper/ifconfig.hpp>
 #include <adinterface/automaton.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/debug.hpp>
@@ -45,6 +47,7 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/format.hpp>
 #include <QSettings>
 #include <QMessageBox>
 #include <QLibrary>
@@ -96,7 +99,7 @@ namespace eventtool {
         //
         void event_received( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ) {
             std::string x( data, length );
-            std::cout << x << " from " << ep << std::endl;
+            std::cout << x << "\tfrom " << ep << std::endl;
         }
 
         void monitor_enable( short port ) {
@@ -159,19 +162,42 @@ document::finalClose()
 {
 }
 
+#if defined _DEBUG
+const char * libs[] = { "eventbrokerd", "eventbroker" };
+#else
+const char * libs[] = { "eventbroker", "eventbrokerd" };
+#endif
+
 void
 document::inject_event_out()
 {
-    const char * libs [] = { "eventbroker", "eventbrokerd" };
+    static bool load_successed = false;
     
     for ( auto name: libs ) {
         QLibrary lib( name );
         if ( lib.load() ) {
-            std::cout << lib.fileName().toStdString() << "\tloaded." << std::endl;
-            if ( auto event_out = reinterpret_cast<bool(*)(uint32_t)>(lib.resolve( "eventbroker_out" )) ) {
+            if ( !load_successed ) {
+                std::cout << lib.fileName().toStdString() << "\tloaded." << std::endl;
+                load_successed = true;
+            }
+            if ( auto event_out = reinterpret_cast<bool( *)( uint32_t )>( lib.resolve( "eventbroker_out" ) ) ) {
+
+                auto callback = [] ( const char * dllfunc, uint32_t rcode, double duration, const char * msg ) {
+                    std::cout << boost::format( "%s: %s in %.3f milliseconds." ) % dllfunc % msg % (duration * 1000) << std::endl;
+                };
+
+                if ( auto register_handler = reinterpret_cast<bool(*)(event_handler)>( lib.resolve( "eventbroker_regiser_handler" ) ) )
+                    register_handler( callback );
+
                 event_out( 1 );
+
+                if ( auto unregister_handler = reinterpret_cast<bool(*)(event_handler)>( lib.resolve( "eventbroker_unregiser_handler" ) ) )
+                    unregister_handler( callback );
+
                 return;
-            }      
+            } else {
+                std::cout << lib.fileName().toStdString() << " can't resolve entry point for 'eventbroker_out'" << std::endl;
+            }
         }
     }
     std::cout << "eventbroker.dll not found. Inject event can not be issued." << std::endl;
@@ -180,8 +206,6 @@ document::inject_event_out()
 void
 document::inject_bind( const std::string& host, const std::string& port )
 {
-    const char * libs [] = { "eventbroker", "eventbrokerd" };    
-
     for ( auto name: libs ) {
         QLibrary lib( name );
         if ( lib.load() ) {
@@ -264,5 +288,16 @@ document::impl::handle_state( bool entering, adinterface::instrument::eInstStatu
     if ( entering ) {
         instStatus_ = stat;
         emit document::instance()->instStateChanged( stat );
+    }
+}
+
+void
+document::initialized()
+{
+    acewrapper::ifconfig::ifvec addrs;
+    if ( acewrapper::ifconfig::if_addrs( addrs ) ) {
+        for ( auto& addr : addrs ) {
+            std::cout << "interface: " << addr.first << "\t" << addr.second << std::endl;
+        }
     }
 }

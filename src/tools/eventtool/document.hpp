@@ -57,6 +57,8 @@ namespace eventtool {
         void finalClose();
         QSettings * settings();
 
+        void initialized();
+
         void inject_event_out();
         void inject_bind( const std::string& host, const std::string& port );
         bool monitor_port( short port );

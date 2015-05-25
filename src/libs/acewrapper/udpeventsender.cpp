@@ -41,7 +41,7 @@ udpEventSender::udpEventSender( boost::asio::io_service& io, const char * host, 
 } 
 
 bool
-udpEventSender::send_to( const std::string& data )
+udpEventSender::send_to( const std::string& data, std::function< void( result_code, double, const char *) > callback )
 {
     auto tp = std::chrono::steady_clock::now();
 
@@ -77,13 +77,16 @@ udpEventSender::send_to( const std::string& data )
 
     cv_.wait( lock );
 
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - tp).count();
+    double elapsed_time = duration * 1.0e-6; // to seconds
+
     if ( transferred == 0 ) { // timed out
-        std::cout << "time out" << std::endl;
+        callback( transaction_timeout, elapsed_time, ec.message().c_str() );
         return false;
     }
 
-    std::cout << "transaction completed in "
-        << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - tp).count() << " ms" << std::endl;
+    callback( transaction_completed, elapsed_time, "success" );
+
     return true;
 }
 

@@ -348,7 +348,6 @@ MainWindow::handleFeatureActivated( int )
 void
 MainWindow::onInitialUpdate()
 {
-
     auto docks = findChildren< QDockWidget *>();
     for ( auto& widget : docks ) {
         widget->setFloating( false );
@@ -362,6 +361,8 @@ MainWindow::onInitialUpdate()
         if ( npos++ >= 2 )
             tabifyDockWidget( docks[ 1 ], widget );
     }
+
+    eventtool::document::instance()->initialized();
 }
 
 

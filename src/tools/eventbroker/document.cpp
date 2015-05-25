@@ -32,6 +32,8 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/format.hpp>
+#include <iostream>
 
 using namespace eventbroker;
 
@@ -113,7 +115,10 @@ document::event_out( uint32_t value )
     if ( udpSender_ ) {
         std::ostringstream o;
         o << "EVENTOUT " << value << std::endl;
-        return udpSender_->send_to( o.str() );
+        return udpSender_->send_to( o.str(), [=] ( acewrapper::udpEventSender::result_code code, double duration, const char * msg ) {
+            for ( auto callback : handlers_ )
+                callback( "event_out", code, duration, msg );
+        } );
     }
     return false;
 }

@@ -91,6 +91,7 @@ ifconfig::if_addrs( std::vector< std::pair< std::string, std::string > >& vec )
                     vec.push_back( std::make_pair( (boost::format( "%d" ) % i).str(), addr ) );
 			}
 		}
+        return true;
 	}
     return false;
 }
