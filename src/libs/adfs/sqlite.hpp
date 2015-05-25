@@ -126,6 +126,7 @@ namespace adfs {
         std::string column_name( int ) const;
         std::wstring wcolumn_name( int ) const;
         std::string column_decltype( int ) const;
+        int data_count() const;
 
         // column_value_type column_value( int );
         template<typename T> T get_column_value( int ) const;

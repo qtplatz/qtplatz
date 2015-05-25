@@ -56,10 +56,11 @@ namespace adfs {
     namespace detail {
         struct error_log {
             static void log( const std::string& sql, const char * msg ) {
-				ADDEBUG() << sql << "\terror : " << msg;
+                ADDEBUG() << sql << "\terror : " << (msg ? msg : "nullstr");
             }
             static void log( const std::wstring& sql, const char * msg ) {
-				ADDEBUG() << sql << "\terror : " << msg;
+                if ( msg )
+                    ADDEBUG() << sql << "\terror : " << ( msg ? msg : "nullstr" );
             }
         };
     };
@@ -311,6 +312,12 @@ bool
 stmt::is_null_column( int nCol ) const
 {
     return sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL;
+}
+
+int
+stmt::data_count() const
+{
+    return sqlite3_data_count( stmt_ );
 }
 
 namespace adfs {

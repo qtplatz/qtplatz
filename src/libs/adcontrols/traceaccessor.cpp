@@ -42,6 +42,14 @@ TraceAccessor::TraceAccessor( const TraceAccessor& t ) : trace_( t.trace_ )
 {
 }
 
+TraceAccessor&
+TraceAccessor::operator += ( const TraceAccessor& t )
+{
+    //std::copy( t.trace_.begin(), t.trace_.end(), std::back_inserter( trace_ ) );
+    trace_.insert( trace_.end(), t.trace_.begin(), t.trace_.end() );
+    return *this;
+}
+
 void
 TraceAccessor::clear()
 {

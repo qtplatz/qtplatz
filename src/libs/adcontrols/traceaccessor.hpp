@@ -41,6 +41,9 @@ namespace adcontrols {
         ~TraceAccessor();
         TraceAccessor();
         TraceAccessor( const TraceAccessor& );
+        TraceAccessor& operator += ( const TraceAccessor& );
+        inline bool empty() const { return trace_.empty(); }
+        inline size_t size() const { return trace_.size(); }
 
         struct fcnData {
             int fcn;
