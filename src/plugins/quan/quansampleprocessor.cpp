@@ -139,6 +139,7 @@ namespace quan {
                             auto resp = std::make_shared< adcontrols::QuanResponse >();
 
                             if ( find_target_peak( *resp, formula, mass, chro, pkres, file.name() ) ) {
+
                                 std::get< QuanChromatograms::idQuanResponse >( *it ) = resp;
                                 if ( is2nd )
                                     sample << *resp;
