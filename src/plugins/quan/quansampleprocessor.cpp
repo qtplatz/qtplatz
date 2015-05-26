@@ -80,8 +80,9 @@ namespace quan {
     class QuanChromatogramProcessor {
         std::shared_ptr< const adcontrols::ProcessMethod > procm_;
     public:
-        QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm ) : procm_( pm )
-                                                                                           , chroms_( std::make_shared< QuanChromatograms >( pm ) ) {
+        QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm )
+            : procm_( pm )
+            , chroms_( std::make_shared< QuanChromatograms >( pm ) ) {
             
         }
 
@@ -135,14 +136,20 @@ namespace quan {
 
                         if ( auto pkres = std::get< QuanChromatograms::idPeakResult >( *it ) ) {
 
-                            double mass = std::get< QuanChromatograms::idMass >( *it );
+                                                            
+                            double exactmass = std::get< QuanChromatograms::idMass >( *it );
+
                             auto resp = std::make_shared< adcontrols::QuanResponse >();
 
-                            if ( find_target_peak( *resp, formula, mass, chro, pkres, file.name() ) ) {
+                            if ( find_target_peak( *resp, formula, exactmass, chro, pkres, file.name() ) ) {
 
                                 std::get< QuanChromatograms::idQuanResponse >( *it ) = resp;
-                                if ( is2nd )
+                                if ( is2nd ) {
+                                    double matchedMass = std::get< QuanChromatograms::idMatchedMass >( *it );
+                                    if ( matchedMass > 0.7 )
+                                        resp->mass_ = matchedMass;
                                     sample << *resp;
+                                }
                             }
                             auto afile = writer->attach< adcontrols::PeakResult >( file, *pkres, pkres->dataClass() );
                             writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
@@ -236,6 +243,8 @@ namespace quan {
                                     auto pk = pkinf.begin() + idx;
                                     std::get< QuanChromatograms::idIdxFcn>( *it ) = std::make_pair( idx, fcn );
                                     std::get< QuanChromatograms::idMSWidth>( *it ) = std::make_pair( pk->centroid_left(), pk->centroid_right() );
+
+                                    std::get< QuanChromatograms::idMatchedMass >( *it ) = pk->mass();
 
                                     auto formula = std::get< QuanChromatograms::idFormula >( *it );
                                     auto exactMass = std::get< QuanChromatograms::idMass >( *it );

@@ -93,7 +93,9 @@ QuanChromatograms::QuanChromatograms( std::shared_ptr< const adcontrols::Process
             }
         }
 
-        std::sort( targets_.begin(), targets_.end(), []( const target_t& a, const target_t& b ){ return std::get<idMass>(a) < std::get<idMass>(b); } );
+        std::sort( targets_.begin(), targets_.end()
+                   , []( const target_t& a, const target_t& b ){
+                       return std::get<idMass>(a) < std::get<idMass>(b); } );
     }
     
 }
