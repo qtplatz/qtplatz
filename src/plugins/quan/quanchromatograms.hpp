@@ -40,6 +40,7 @@ namespace adcontrols {
     class PeakResult;
     class ProcessMethod;
     class QuanCompounds;
+    class QuanResponse;
     class QuanSample;
     class TargetingMethod;
     class lockmass;
@@ -56,21 +57,35 @@ namespace quan {
 
     public:
         ~QuanChromatograms();
-        QuanChromatograms( const std::shared_ptr< adcontrols::ProcessMethod> );
+        QuanChromatograms( std::shared_ptr< const adcontrols::ProcessMethod> );
         QuanChromatograms( const QuanChromatograms& );
 
         bool doMSLock( adcontrols::MassSpectrum& ms );
-        bool processIt( size_t pos, adcontrols::MassSpectrum& ms, QuanSampleProcessor& );
+        bool process1st( size_t pos, adcontrols::MassSpectrum& ms, QuanSampleProcessor& );
+        bool process2nd( size_t pos, const adcontrols::MassSpectrum& ms );
         void commit( QuanSampleProcessor& ); //portfolio::Portfolio& portfolio );
         bool lockmass_enabled() const;
 
-        enum { idFormula, idMass, idChromatogram, idPeakResult };
-        typedef std::tuple< std::string, double
+        enum { idFormula, idMass, idChromatogram, idPeakResult, idQuanResponse, idSpectrum, idCentroid, idMSPeakInfo, idIdxFcn, idMatchedMass, idMSWidth };
+        typedef std::tuple< std::string
+                            , double
                             , std::shared_ptr< adcontrols::Chromatogram >
-                            , std::shared_ptr< adcontrols::PeakResult> > target_t;
+                            , std::shared_ptr< adcontrols::PeakResult>
+                            , std::shared_ptr< adcontrols::QuanResponse >
+                            , std::shared_ptr< adcontrols::MassSpectrum > // profile
+                            , std::shared_ptr< adcontrols::MassSpectrum > // centroid
+                            , std::shared_ptr< adcontrols::MSPeakInfo >
+                            , std::pair< size_t, size_t > // idx, fcn
+                            , double // matched mass
+                            , std::pair<double, double > // ms left, right
+                            > target_t;
 
         typedef std::vector< target_t >::const_iterator const_iterator;
+        typedef std::vector< target_t >::iterator iterator;        
 
+        iterator begin() { return targets_.begin(); }
+        iterator end()   { return targets_.end(); }
+        
         const_iterator begin() const { return targets_.begin(); }
         const_iterator end() const { return targets_.end(); }        
         
@@ -78,7 +93,7 @@ namespace quan {
 
         std::vector< target_t > targets_; // order by mass
 
-        const std::shared_ptr< adcontrols::ProcessMethod > pm_;
+        std::shared_ptr< const adcontrols::ProcessMethod > pm_;
         adcontrols::QuanCompounds * compounds_;
         double tolerance_;
         std::vector< double > references_;

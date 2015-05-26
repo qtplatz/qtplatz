@@ -49,7 +49,7 @@ QuanChromatograms::~QuanChromatograms()
 {
 }
 
-QuanChromatograms::QuanChromatograms( const std::shared_ptr< adcontrols::ProcessMethod > pm ) : pm_( pm )
+QuanChromatograms::QuanChromatograms( std::shared_ptr< const adcontrols::ProcessMethod > pm ) : pm_( pm )
                                                                                               , tolerance_( 0.010 )
                                                                                               , compounds_( 0 )
                                                                                               , uptime_( 0 )
@@ -84,7 +84,8 @@ QuanChromatograms::QuanChromatograms( const std::shared_ptr< adcontrols::Process
             
             if ( ! formula.empty() ) {
                 
-                targets_.push_back( std::make_tuple( formula, exactMass, std::make_shared< adcontrols::Chromatogram >(), nullptr ) );
+                targets_.push_back( std::make_tuple( formula, exactMass, std::make_shared< adcontrols::Chromatogram >()
+                    , nullptr, nullptr, nullptr, nullptr, nullptr, std::make_pair( 0, 0 ), 0.0, std::make_pair( 0.0, 0.0 ) ) );
 
                 if ( comp.isLKMSRef() )
                     references_.push_back( exactMass );
@@ -105,7 +106,7 @@ QuanChromatograms::QuanChromatograms( const QuanChromatograms& t ) : targets_( t
 }
 
 bool
-QuanChromatograms::processIt( size_t pos, adcontrols::MassSpectrum& ms, QuanSampleProcessor& processor )
+QuanChromatograms::process1st( size_t pos, adcontrols::MassSpectrum& ms, QuanSampleProcessor& processor )
 {
     if ( auto pCentroidMethod = pm_->find< adcontrols::CentroidMethod >() ) {
     }
@@ -152,6 +153,48 @@ QuanChromatograms::processIt( size_t pos, adcontrols::MassSpectrum& ms, QuanSamp
                 
             }
             
+        }
+        ++fcn;
+    }
+    return true;
+}
+
+bool
+QuanChromatograms::process2nd( size_t pos, const adcontrols::MassSpectrum& ms )
+{
+    adcontrols::segment_wrapper<const adcontrols::MassSpectrum> segments( ms );
+    
+    int fcn = 0;
+    for ( auto& fms: segments ) {
+
+        double rms, base;
+        double tic = adportable::spectrum_processor::tic( ms.size(), ms.getIntensityArray(), base, rms );
+        double time = fms.getMSProperty().timeSinceInjection();
+        if ( time >= 4000 ) // workaround for negative time value at the begining of time-event function caused delay
+            time = 0;
+        
+        for ( auto& t: targets_ ) {
+
+            double lMass = std::get< idMSWidth >( t ).first;
+            double uMass = std::get< idMSWidth >( t ).second;
+
+            if ( lMass < uMass ) {
+
+                if ( fms.getMass( 0 ) < lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
+                    
+                    if ( auto pChro = std::get< idChromatogram >( t ) ) {
+                        
+                        adportable::spectrum_processor::areaFraction fraction;
+                        adportable::spectrum_processor::getFraction( fraction, fms.getMassArray(), fms.size(), lMass, uMass );
+                        
+                        double d = adportable::spectrum_processor::area( fraction, base, fms.getIntensityArray(), fms.size() );
+                        
+                        *pChro << std::make_pair( time, d );
+                    }
+                    
+                }
+                
+            }
         }
         ++fcn;
     }
@@ -235,7 +278,6 @@ QuanChromatograms::commit( QuanSampleProcessor& processor )
         }
     }
 
-    
     if ( auto portfolio = processor.portfolio() ) {
 
         auto folder = portfolio->addFolder( L"Chromatograms" );
@@ -259,6 +301,7 @@ QuanChromatograms::commit( QuanSampleProcessor& processor )
             }
         }
     }
+
 }
 
 bool

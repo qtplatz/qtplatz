@@ -49,6 +49,12 @@ Peaks::add( const Peak& pk )
 }
 
 ///////////////
+Peaks::vector_type::const_iterator
+Peaks::find_peakId( long peakid ) const
+{
+    return std::find_if( peaks_.begin(), peaks_.end(), [peakid] ( const value_type& pk ) { return pk.peakId() == peakid; } );
+}
+
 
 Peaks::vector_type::const_iterator
 Peaks::find_first_peak( const Baseline& bs ) const

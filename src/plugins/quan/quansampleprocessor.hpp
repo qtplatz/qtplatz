@@ -107,7 +107,7 @@ namespace quan {
                         , const std::wstring& dataGuid );
 
         QuanProcessor * quanProcessor();
-
+    public:
         static bool doCentroid( adcontrols::MSPeakInfo& pkInfo
                                 , adcontrols::MassSpectrum& res
                                 , const adcontrols::MassSpectrum& profile
