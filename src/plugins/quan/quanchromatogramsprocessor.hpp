@@ -80,7 +80,8 @@ namespace quan {
         
         std::shared_ptr< QuanChromatograms > chroms_;
         std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
-    };
+
+	};
     
 }
 

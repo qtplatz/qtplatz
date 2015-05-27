@@ -265,38 +265,39 @@ QuanChromatogramProcessor::identify_cpeak( adcontrols::QuanResponse& resp
                                            , std::shared_ptr< adcontrols::Chromatogram > chro
                                            , std::shared_ptr< adcontrols::PeakResult > pkResult )
 {
-    if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
-                
-        auto itCompound = std::find_if( pCompounds->begin(), pCompounds->end(), [formula] ( const adcontrols::QuanCompound& c ) {
-                return c.formula() == formula;
-            } );
-                
-        // Identify chromatographic peak
-                
-        auto& pks = pkResult->peaks();        
-        if ( itCompound != pCompounds->end() && pks.size() > 0 ) {
-                    
-            auto pk = std::max_element( pks.begin(), pks.end()
-                                        , [] ( const adcontrols::Peak& a, const adcontrols::Peak& b ) { return a.peakHeight() < b.peakHeight(); } );
-                    
-            // assign peak name
-            pk->name( adportable::utf::to_wstring( formula ) );
-                    
-            // set response 
-            resp.formula( formula.c_str() );
-            resp.uuid_cmpd( itCompound->uuid() );
-            resp.uuid_cmpd_table( pCompounds->uuid() );
-            resp.formula( itCompound->formula() );
-            resp.idx_ = pk->peakId();
-            resp.fcn_ = chro->fcn();
-            //resp.mass_ = mass;
-            resp.intensity_ = pk->peakArea();
-            resp.amounts_ = 0;
-            resp.tR_ = double( adcontrols::timeutil::toMinutes( pk->peakTime() ) );
-            //resp.dataGuid_ = dataGuid;
-            return true;
-        }
-    }
+	if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
+
+		auto itCompound = std::find_if( pCompounds->begin(), pCompounds->end(), [formula] ( const adcontrols::QuanCompound& c ) {
+			return c.formula() == formula;
+		} );
+
+		// Identify chromatographic peak
+		if ( pkResult ) {
+			auto& pks = pkResult->peaks();
+			if ( itCompound != pCompounds->end() && pks.size() > 0 ) {
+
+				auto pk = std::max_element( pks.begin(), pks.end()
+					, [] ( const adcontrols::Peak& a, const adcontrols::Peak& b ) { return a.peakHeight() < b.peakHeight(); } );
+
+				// assign peak name
+				pk->name( adportable::utf::to_wstring( formula ) );
+
+				// set response 
+				resp.formula( formula.c_str() );
+				resp.uuid_cmpd( itCompound->uuid() );
+				resp.uuid_cmpd_table( pCompounds->uuid() );
+				resp.formula( itCompound->formula() );
+				resp.idx_ = pk->peakId();
+				resp.fcn_ = chro->fcn();
+				//resp.mass_ = mass;
+				resp.intensity_ = pk->peakArea();
+				resp.amounts_ = 0;
+				resp.tR_ = double( adcontrols::timeutil::toMinutes( pk->peakTime() ) );
+				//resp.dataGuid_ = dataGuid;
+				return true;
+			}
+		}
+	}
     return false;
 }
 
