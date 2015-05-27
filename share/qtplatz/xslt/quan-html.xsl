@@ -296,6 +296,9 @@
     </table>
     -->
   </xsl:template>
+
+  <xsl:template match="QuanDataGuids">
+  </xsl:template>
   
   <xsl:template match="ProcessMethod">
   </xsl:template>
@@ -359,7 +362,7 @@
 	    </table>
 	  </td>
 	  <td> <div style="width:350px;height:300px"> <xsl:copy-of select="trace[@contents='resp_spectrum']"/> </div> </td>
-	  <td> <div style="width:350px;height:300px"> <xsl:copy-of select="trace[@contents='resp_reference_spectrum']"/> </div> </td>
+	  <td> <div style="width:350px;height:300px"> <xsl:copy-of select="trace[@contents='resp_reference_spectrum']"/> </div> </td>	  
 	  <td> <div style="width:350px;height:300px"> <xsl:copy-of select="trace[@contents='resp_calib']"/> </div> </td>
 	</tr>
       </xsl:for-each>
