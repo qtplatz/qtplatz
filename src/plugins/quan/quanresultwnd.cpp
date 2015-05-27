@@ -109,7 +109,7 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     layout->addWidget( splitter );
 
     connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanResultWnd::handleConnectionChanged );
-    cmpdWidget_->table().setSelectionMode( QAbstractItemView::MultiSelection );
+    //cmpdWidget_->table().setSelectionMode( QAbstractItemView::MultiSelection );
     cmpdWidget_->table().setSelectionBehavior( QAbstractItemView::SelectRows );
     connect( &cmpdWidget_->table(), &QuanResultTable::onCurrentChanged, this, &QuanResultWnd::handleCompoundSelected );
     connect( cmpdWidget_->table().selectionModel(), &QItemSelectionModel::selectionChanged, this, &QuanResultWnd::handleCompoundSelectionChanged );
@@ -229,10 +229,25 @@ QuanResultWnd::handleResponseSelected( int respId )
                 dataSource = sql.get_column_value< std::wstring >( 3 );
             }
         }
-        if ( auto d = conn->fetch( dataGuid ) ) {
-            dplot_->setData( d, idx, fcn, dataSource );
-            cplot_->setData( d, idx, fcn, dataSource );
+        if ( !dataGuid.empty() ) {
+            if ( auto d = conn->fetch( dataGuid ) ) {
+                dplot_->setData( d, idx, fcn, dataSource );
+                cplot_->setData( d, idx, fcn, dataSource );
+            }
+            if ( sql.prepare( "SELECT refDataGuid,idx,fcn FROM QuanDataGuids WHERE dataGuid = ?" ) ) {
+                sql.bind( 1 ) = dataGuid;
+                while ( sql.step() == adfs::sqlite_row ) {
+                    auto refDataGuid = sql.get_column_value< std::wstring >( 0 );
+                    auto idx = sql.get_column_value< uint64_t >( 1 );
+                    auto fcn = sql.get_column_value< uint64_t >( 2 );
+                    auto d = conn->fetch( refDataGuid );
+                    dplot_->setData( d, idx, fcn, dataSource );
+                    cplot_->setData( d, idx, fcn, dataSource );
+                }
+            }
+
         }
+
     }
 }
 

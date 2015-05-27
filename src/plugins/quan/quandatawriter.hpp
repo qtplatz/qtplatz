@@ -32,6 +32,7 @@
 #include <string>
 #include <mutex>
 #include <functional>
+#include <tuple>
 
 namespace adcontrols { class Chromatogram; class MassSpectrum; class PeakResult; class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds; class QuanMethod; class idAudit; }
 namespace adfs { class stmt; }
@@ -62,7 +63,7 @@ namespace quan {
         bool insert_table( const adcontrols::QuanSequence& );
         bool insert_table( const adcontrols::QuanCompounds& );
         bool insert_table( const adcontrols::QuanSample& );
-        bool insert_table( const std::wstring& dataGuid, const std::vector< std::wstring >& dataGuids );
+        bool insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, size_t, size_t> >& dataGuids );
 
         static bool insert_table( adfs::stmt&, const adcontrols::idAudit&, const std::string& what );
 

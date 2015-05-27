@@ -56,7 +56,7 @@ namespace quan {
         std::string formula_;
         double exactMass_;
         double matchedMass_;
-        std::vector< std::wstring > dataGuids_;  // dataGuids for reference spectra (eseentially, single item)
+        std::vector< std::tuple< std::wstring, size_t, size_t> > dataGuids_;  // dataGuids (guid,idx,fcn)
         std::vector< uint32_t > indecies_;
         std::array< std::wstring, 2 > dataGuid_;  // dataGuid for phase chromatograms
         std::array< std::shared_ptr< adcontrols::Chromatogram >, 2 > cmgrs_;

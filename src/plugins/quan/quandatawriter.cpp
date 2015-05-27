@@ -291,7 +291,7 @@ CREATE TABLE QuanCalib (\
 ,FOREIGN KEY ( uuid ) REFERENCES idAudit ( uuid ) \
 )" );
 
-    result &= sql.exec("CREATE TABLE QuanDataGuids( dataGuid TEXT PRIMARY KEY, refDataGuid TEXT )" );
+    result &= sql.exec("CREATE TABLE QuanDataGuids( dataGuid TEXT, refDataGuid TEXT, idx INTEGER, fcn INTEGER )" );
 
     return result;
 }
@@ -549,18 +549,20 @@ FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
 }
 
 bool
-QuanDataWriter::insert_table( const std::wstring& dataGuid, const std::vector< std::wstring >& dataGuids )
+QuanDataWriter::insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, size_t, size_t > >& dataGuids )
 {
     if ( !dataGuid.empty() ) {
 
         adfs::stmt sql( fs_.db() );
 
         for ( const auto& guid: dataGuids ) {
-            if ( ! guid.empty() ) {
-                if ( sql.prepare( "INSERT INTO QuanDataGuids (dataGuid,refDataGuid) VALUES (?,?)" ) ) {
+            if ( !std::get<0>( guid ).empty() ) {
+                if ( sql.prepare( "INSERT INTO QuanDataGuids (dataGuid,refDataGuid,idx,fcn) VALUES (?,?,?,?)" ) ) {
 
                     sql.bind( 1 ) = dataGuid;
-                    sql.bind( 2 ) = guid;
+                    sql.bind( 2 ) = std::get<0>( guid );
+                    sql.bind( 3 ) = std::get<1>( guid ); // idx
+                    sql.bind( 4 ) = std::get<2>( guid ); // fcn
 
                     if ( sql.step() != adfs::sqlite_done )
                         ADTRACE() << "sql error";
