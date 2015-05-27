@@ -107,42 +107,6 @@ QuanDataWriter::write( const adcontrols::Chromatogram& c, const std::wstring& ti
     return adfs::file();
 }
 
-#if 0
-bool
-QuanDataWriter::write( std::shared_ptr< QuanChromatograms > chroms, const std::wstring& dataSource, std::vector< std::wstring >& guids )
-{
-    boost::filesystem::path path( dataSource );
-
-    if ( adfs::folder folder = fs_.addFolder( L"/Processed/Chromatograms" ) ) {
-
-        for ( auto& t : *chroms ) {
-            
-            const std::string& formula = t.formula();
-            auto pChro = t.chromatogram();
-            auto pResult = t.peakResult();
-
-            std::wstring title = path.stem().wstring() + L", " + adportable::utf::to_wstring( formula );
-            
-            auto uuid = adfs::create_uuid();
-            guids.push_back( uuid );
-            
-            if ( adfs::file file = folder.addFile( uuid, title ) ) {
-                file.dataClass( pChro->dataClass() );
-                if ( file.save( *pChro ) ) {
-                    file.commit();
-                    if ( adfs::file afile = file.addAttachment( adfs::create_uuid() ) ) {
-                        afile.dataClass( pResult->dataClass() );
-                        afile.save( *pResult );
-                    }
-                }
-            }
-            
-        }
-    }
-    return true;
-}
-#endif
-
 adfs::file
 QuanDataWriter::write( const adcontrols::ProcessMethod& pm )
 {
@@ -580,4 +544,35 @@ FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
     }
     sql.commit();
     return true;
+}
+
+bool
+QuanDataWriter::insert_table( const std::wstring& dataGuid, const std::vector< std::wstring >& dataGuids )
+{
+    if ( !dataGuid.empty() ) {
+
+        adfs::stmt sql( fs_.db() );
+
+        sql.exec(
+        "CREATE TABLE IF NOT EXISTS QuanDataGuids(\
+dataGuid INTEGER PRIMARY KEY \
+refDataGuid TEXT             \
+,FOREIGN KEY ( id ) REFERENCES QuanResponse ( id ) )" );
+        
+        for ( const auto& guid: dataGuids ) {
+            if ( ! guid.empty() ) {
+                if ( sql.prepare( "INSERT INTO QuanDataGuids (dataGuid,refDataGuid) VALUES (?,?)" ) ) {
+
+                    sql.bind( 1 ) = dataGuid;
+                    sql.bind( 2 ) = guid;
+
+                    if ( sql.step() != adfs::sqlite_done )
+                        ADTRACE() << "sql error";
+                }
+            }
+        }
+
+        return true;
+    }
+    return false;
 }

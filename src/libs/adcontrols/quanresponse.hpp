@@ -62,6 +62,7 @@ namespace adcontrols {
         double amounts_;                 // result
         double mass_;                    // observed mass
         double tR_;                      // observed retention time
+
     private:
         std::string formula_;
 

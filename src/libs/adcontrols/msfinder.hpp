@@ -50,7 +50,7 @@ namespace adcontrols {
 
         static const size_t npos = size_t( -1 ); // no peak has found
 
-        size_t operator()( const MassSpectrum&, double mass );
+        size_t operator()( const MassSpectrum&, double mass ) const;
         
         double width() const { return width_; }
         idToleranceMethod toleranceMethod() const { return toleranceMethod_; }

@@ -28,7 +28,7 @@
 #include <vector>
 #include <map>
 #include <memory>
-#include <tuple>
+#include <array>
 
 namespace adcontrols {
     class CentroidMethod;
@@ -51,6 +51,51 @@ namespace quan {
 
     class QuanSampleProcessor;
 
+    class QuanChromatogram {
+    public:
+        std::string formula_;
+        double exactMass_;
+        double matchedMass_;
+        std::vector< std::wstring > dataGuids_;  // dataGuids for reference spectra (eseentially, single item)
+        std::vector< uint32_t > indecies_;
+        std::array< std::wstring, 2 > dataGuid_;  // dataGuid for phase chromatograms
+        std::array< std::shared_ptr< adcontrols::Chromatogram >, 2 > cmgrs_;
+        std::array< std::shared_ptr< adcontrols::PeakResult>, 2 > pkres_;
+        std::shared_ptr< adcontrols::QuanResponse > resp_;
+        std::shared_ptr< adcontrols::MassSpectrum > profile_;
+        std::shared_ptr< adcontrols::MassSpectrum > filtered_;
+        std::shared_ptr< adcontrols::MassSpectrum > centroid_;
+        std::shared_ptr< adcontrols::MSPeakInfo > mspeaks_;
+        std::pair< size_t, size_t > idxfcn_;
+        std::pair< double, double > mswidth_;
+        QuanChromatogram() : exactMass_( 0 ), matchedMass_( 0 )
+            {}
+        QuanChromatogram( const QuanChromatogram& t ) : formula_( t.formula_ )
+                                                      , exactMass_( t.exactMass_ )
+                                                      , matchedMass_( t.matchedMass_ )
+                                                      , dataGuid_( t.dataGuid_ )
+                                                      , dataGuids_( t.dataGuids_ )
+                                                      , indecies_( t.indecies_ )
+                                                      , cmgrs_( t.cmgrs_ )
+                                                      , pkres_( t.pkres_ )
+                                                      , resp_( t.resp_ )
+                                                      , profile_( t.profile_ )
+                                                      , centroid_( t.centroid_ )
+                                                      , mspeaks_( t.mspeaks_ )
+                                                      , idxfcn_( t.idxfcn_ )
+                                                      , mswidth_( t.mswidth_ ) {
+        }
+
+        QuanChromatogram( const std::string& formula
+                          , double exactMass
+                          , std::pair< size_t, size_t > idxfcn ) : formula_( formula )
+                                                                 , exactMass_( exactMass )
+                                                                 , idxfcn_( idxfcn )
+            {}
+        
+        inline bool operator < ( const QuanChromatogram& t ) const { return exactMass_ < t.exactMass_; }
+    };
+
     class QuanChromatograms {
 
         QuanChromatograms& operator = (const QuanChromatograms&) = delete;
@@ -60,38 +105,31 @@ namespace quan {
         QuanChromatograms( std::shared_ptr< const adcontrols::ProcessMethod> );
         QuanChromatograms( const QuanChromatograms& );
 
+
+        enum process_phase { _1st, _2nd };
+
         bool doMSLock( adcontrols::MassSpectrum& ms );
         bool process1st( size_t pos, adcontrols::MassSpectrum& ms, QuanSampleProcessor& );
         bool process2nd( size_t pos, const adcontrols::MassSpectrum& ms );
-        void commit( QuanSampleProcessor& ); //portfolio::Portfolio& portfolio );
+        void process_chromatograms( QuanSampleProcessor&, process_phase );
         bool lockmass_enabled() const;
-
-        enum { idFormula, idMass, idChromatogram, idPeakResult, idQuanResponse, idSpectrum, idCentroid, idMSPeakInfo, idIdxFcn, idMatchedMass, idMSWidth };
-        typedef std::tuple< std::string
-                            , double
-                            , std::shared_ptr< adcontrols::Chromatogram >
-                            , std::shared_ptr< adcontrols::PeakResult>
-                            , std::shared_ptr< adcontrols::QuanResponse >
-                            , std::shared_ptr< adcontrols::MassSpectrum > // profile
-                            , std::shared_ptr< adcontrols::MassSpectrum > // centroid
-                            , std::shared_ptr< adcontrols::MSPeakInfo >
-                            , std::pair< size_t, size_t > // idx, fcn
-                            , double // matched mass
-                            , std::pair<double, double > // ms left, right
-                            > target_t;
-
-        typedef std::vector< target_t >::const_iterator const_iterator;
-        typedef std::vector< target_t >::iterator iterator;        
-
-        iterator begin() { return targets_.begin(); }
-        iterator end()   { return targets_.end(); }
+        bool apply_lockmass( size_t pos, adcontrols::MassSpectrum& ms, QuanSampleProcessor& );
         
-        const_iterator begin() const { return targets_.begin(); }
-        const_iterator end() const { return targets_.end(); }        
+        typedef std::vector< QuanChromatogram >::const_iterator const_iterator;
+        typedef std::vector< QuanChromatogram >::iterator iterator;        
+
+        iterator begin() { return candidates_.begin(); }
+        iterator end()   { return candidates_.end(); }
+        
+        const_iterator begin() const { return candidates_.begin(); }
+        const_iterator end() const { return candidates_.end(); }        
         
     private:
+        enum { idFormula, idExactMass };
+        typedef std::tuple< std::string, double > target_type;
 
-        std::vector< target_t > targets_; // order by mass
+        std::vector< target_type > targets_;
+        std::vector< QuanChromatogram > candidates_; // order by mass
 
         std::shared_ptr< const adcontrols::ProcessMethod > pm_;
         adcontrols::QuanCompounds * compounds_;

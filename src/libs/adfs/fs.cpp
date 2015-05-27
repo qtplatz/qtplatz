@@ -48,7 +48,9 @@ namespace adfs {
 
         struct to_posix_time {
             static boost::posix_time::ptime ptime( const std::wstring& v ) {
-                return boost::posix_time::time_from_string( adportable::utf::to_utf8( v ) );
+                // "%Y-%b-%d %H:%M:%S%F"
+                std::string utf8 = adportable::utf::to_utf8( v );
+                return boost::posix_time::time_from_string( utf8 );
             }
         };
 

@@ -64,6 +64,7 @@ set( quan_SOURCES
   quanchromatograms.cpp  
   quandatawriter.cpp
   quansampleprocessor.cpp
+  quanchromatogramsprocessor.cpp
   processmethodwidget.cpp
   quanreportwidget.cpp
   quanquerywidget.cpp
@@ -102,6 +103,7 @@ set( quan_HEADERS
   quanconfigform.hpp
   quanconfigwidget.hpp
   quanchromatograms.hpp
+  quanchromatogramsprocessor.hpp
   quandatawriter.hpp
   quansampleprocessor.hpp
   processmethodwidget.hpp

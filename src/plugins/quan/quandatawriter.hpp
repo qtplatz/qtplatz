@@ -62,6 +62,7 @@ namespace quan {
         bool insert_table( const adcontrols::QuanSequence& );
         bool insert_table( const adcontrols::QuanCompounds& );
         bool insert_table( const adcontrols::QuanSample& );
+        bool insert_table( const std::wstring& dataGuid, const std::vector< std::wstring >& dataGuids );
 
         static bool insert_table( adfs::stmt&, const adcontrols::idAudit&, const std::string& what );
 

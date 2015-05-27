@@ -101,7 +101,7 @@ MSFinder::MSFinder( double width, idFindAlgorithm a, idToleranceMethod w ) : wid
 }
 
 size_t
-MSFinder::operator()( const MassSpectrum& ms, double mass )
+MSFinder::operator()( const MassSpectrum& ms, double mass ) const
 {
     double tolerance = (toleranceMethod_ == idToleranceDaltons) ? width_ : (mass * width_ / 1.0e6);
     
