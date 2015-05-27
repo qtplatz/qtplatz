@@ -290,8 +290,10 @@ CREATE TABLE QuanCalib (\
 ,FOREIGN KEY ( idCompound ) REFERENCES QuanCompound ( id ) \
 ,FOREIGN KEY ( uuid ) REFERENCES idAudit ( uuid ) \
 )" );
-    return result;
 
+    result &= sql.exec("CREATE TABLE QuanDataGuids( dataGuid TEXT PRIMARY KEY, refDataGuid TEXT )" );
+
+    return result;
 }
 
 bool
@@ -553,12 +555,6 @@ QuanDataWriter::insert_table( const std::wstring& dataGuid, const std::vector< s
 
         adfs::stmt sql( fs_.db() );
 
-        sql.exec(
-        "CREATE TABLE IF NOT EXISTS QuanDataGuids(\
-dataGuid INTEGER PRIMARY KEY \
-refDataGuid TEXT             \
-,FOREIGN KEY ( id ) REFERENCES QuanResponse ( id ) )" );
-        
         for ( const auto& guid: dataGuids ) {
             if ( ! guid.empty() ) {
                 if ( sql.prepare( "INSERT INTO QuanDataGuids (dataGuid,refDataGuid) VALUES (?,?)" ) ) {
