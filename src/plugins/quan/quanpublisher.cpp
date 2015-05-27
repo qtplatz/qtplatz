@@ -195,11 +195,15 @@ QuanPublisher::operator()( QuanConnection * conn, std::function<void(int)> progr
                         if ( appendQuanCalib( doc ) ) {
                             progress( step++ );
 
-                            boost::filesystem::path path( conn->filepath() );
-                            path.replace_extension( ".published.xml" );
-                            filepath_ = path.string();
-                            bProcessed_ = true;
-                            return true;
+                            if ( appendQuanDataGuids( doc ) ) {
+                                progress( step++ );
+
+                                boost::filesystem::path path( conn->filepath() );
+                                path.replace_extension( ".published.xml" );
+                                filepath_ = path.string();
+                                bProcessed_ = true;
+                                return true;
+                            }
                         }
                     }
                 }
@@ -255,10 +259,10 @@ QuanPublisher::appendMSPeakInfo( pugi::xml_node& dst, const adcontrols::MSPeakIn
 }
 
 bool
-QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& response )
+QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& response, const std::string& refGuid, int refidx, int reffcn )
 {
     auto respid = response.select_single_node( "column[@name='id']" ).node().text().as_int();
-
+    
     if ( auto node = dst.append_child( "dataSource" ) )
         node.text() = response.select_single_node( "column[@name='dataSource']" ).node().text().as_string();
 
@@ -308,7 +312,7 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
                     }
                 }
             }
-
+            
         } else if ( data->profile ) {
 
             detail::append_class()( dst, data->profile->getDescriptions(), "class adcontrols::descriptions" );
@@ -340,6 +344,27 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
             }
         }
     }
+    if ( !refGuid.empty() ) {
+
+        if ( auto data = conn_->fetch( pugi::as_wide( refGuid ) ) ) {
+
+            if ( data->profile ) {
+
+                detail::append_class()( dst, data->profile->getDescriptions(), "class adcontrols::descriptions" );
+
+                QuanSvgPlot svg;
+                
+                if ( svg.plot( *data, refidx, reffcn, "data source tba" ) ) {
+                    pugi::xml_document dom;
+                    if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
+                        auto trace = dst.append_child( "trace" );
+                        trace.append_attribute( "contents" ) = "resp_reference_spectrum";
+                        trace.append_copy( dom.select_single_node( "/svg" ).node() );
+                    }
+                }
+            }
+        }        
+    }
     
     return true;
 }
@@ -352,15 +377,53 @@ QuanPublisher::appendTraceData( ProgressHandler& progress )
         size_t nTask = std::count_if( resp_data_.begin(), resp_data_.end(), [] ( decltype(*resp_data_.begin())& d ){ return d.second->sampType == 0; } );
         progress.setProgressRange( 0, int(nTask) );
 
+
         if ( auto doc = xmloutput_->select_single_node( "/qtplatz_document" ).node() ) {
+
+            // list reference data guids
+            std::map< std::string, std::tuple< std::string, int, int > > refData;
+            auto guids = doc.select_nodes( "QuanDataGuids/row" );
+            for ( auto& guid : guids ) {
+                auto dataGuidStr = guid.node().select_single_node( "column[@name='dataGuid']" ).node().text().as_string();
+                refData[ dataGuidStr ] =
+                    std::make_tuple( guid.node().select_single_node( "column[@name='refDataGuid']" ).node().text().as_string()
+                                     , guid.node().select_single_node( "column[@name='idx']" ).node().text().as_int()
+                                     , guid.node().select_single_node( "column[@name='fcn']" ).node().text().as_int() );
+            }
+            //---
 
             auto spectra = doc.append_child( "PlotData" );
 
-            auto unks = doc.select_nodes( "QuanResponse[@sampleType='UNK']/row" );
-            for ( auto& unk : unks ) {
-                appendTraceData( spectra.append_child( "PeakResponse" ), unk.node() );
+            auto stds = doc.select_nodes( "QuanResponse[@sampleType='STD']/row" );
+            for ( auto& std : stds ) {
+                std::string refGuid;
+                int fcn(0), idx(0);
+                auto it = refData.find( std.node().select_single_node( "column[@name='dataGuid']" ).node().text().as_string() );
+                if ( it != refData.end() ) {
+                    refGuid = std::get<0>(it->second);
+                    idx = std::get<1>(it->second);
+                    fcn = std::get<2>(it->second);                    
+                }
+                
+                appendTraceData( spectra.append_child( "PeakResponse" ), std.node(), refGuid, idx, fcn );
                 progress();
             }
+
+            auto unks = doc.select_nodes( "QuanResponse[@sampleType='UNK']/row" );
+            for ( auto& unk : unks ) {
+                std::string refGuid;
+                int fcn(0), idx(0);                
+                auto it = refData.find( unk.node().select_single_node( "column[@name='dataGuid']" ).node().text().as_string() );
+                if ( it != refData.end() ) {
+                    refGuid = std::get<0>(it->second);
+                    idx = std::get<1>(it->second);
+                    fcn = std::get<2>(it->second);                                        
+                }
+                
+                appendTraceData( spectra.append_child( "PeakResponse" ), unk.node(), refGuid, idx, fcn );
+                progress();
+            }
+
         }
         return true;        
     }
@@ -611,3 +674,26 @@ ORDER BY QuanAmount.level" ) ) {
     return false;
 }
 
+bool
+QuanPublisher::appendQuanDataGuids( pugi::xml_node& doc )
+{
+    if ( auto node = doc.append_child( "QuanDataGuids" ) ) {
+
+        adfs::stmt sql( conn_->db() );
+        if ( sql.prepare(
+                 "SELECT id, QuanResponse.dataGuid, refDataGuid,QuanDataGuids.idx,QuanDataGuids.fcn \
+FROM QuanResponse, QuanDataGuids WHERE QuanResponse.dataGuid = QuanDataGuids.dataGuid" ) ) {
+
+            int nSelected = 0;
+            while ( sql.step() == adfs::sqlite_row ) {
+                auto rnode = node.append_child( "row" );
+                detail::append_column append( rnode );
+                for ( int col = 0; col < sql.column_count(); ++col ) {
+                    append( sql, col );
+                }
+            } // for
+        } //if
+        return true;
+    } //if
+    return false;
+}
