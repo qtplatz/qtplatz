@@ -6,12 +6,12 @@ endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES Darwin )
   
-  find_path( libxml2_INCLUDE_DIR NAMES libxml/xpath.h PATHS /opt/local/include/libxml2 )
+  find_path( libxml2_INCLUDE_DIR NAMES libxml/xpath.h PATHS /usr/include/libxml2 /opt/local/include/libxml2 )
+  find_library( libxml2_LIBRARY NAMES xml2 libxml2 PATHS /usr/lib /opt/local )
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES Linux )
 
   find_path( libxml2_INCLUDE_DIR NAMES libxml/xpath.h PATHS /usr/include/libxml2 /usr/local/include/libxml2 )
-
   find_library( libxml2_LIBRARY NAMES xml2 libxml2 PATHS /usr/lib )
 
 endif()

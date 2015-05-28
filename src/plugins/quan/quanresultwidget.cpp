@@ -78,7 +78,7 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) :  QWidget(parent)
         
         topLayout->addWidget( toolBar ); // <-------- add to toolbar
     }
-    if ( table_ = new QuanResultTable )
+    if ( ( table_ = new QuanResultTable ) )
         topLayout->addWidget( table_ );
 
     table_->setColumnHide( "uuid" );

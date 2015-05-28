@@ -6,7 +6,8 @@ endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES Darwin )
   
-  find_path( libxslt_INCLUDE_DIR NAMES libxslt/xslt.h PATHS /opt/local/include )
+  find_path( libxslt_INCLUDE_DIR NAMES libxslt/xslt.h PATHS /usr/include /opt/local/include )
+  find_library( libxslt_LIBRARY NAMES xslt libxslt PATHS /usr/lib )
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES Linux )
 

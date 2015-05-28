@@ -110,7 +110,8 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 	filename.replace_extension( ".adfs" );
 
 	storage_name_ = filename.normalize();
-    sampleRun_->filePrefix( filename.stem().c_str() );
+
+    sampleRun_->filePrefix( filename.stem().wstring().c_str() );
 	
 	///////////// creating filesystem ///////////////////
 	if ( ! fs_->create( storage_name_.wstring().c_str() ) )

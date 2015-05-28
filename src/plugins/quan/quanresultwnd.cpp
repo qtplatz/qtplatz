@@ -154,7 +154,7 @@ QuanResultWnd::handleCompoundSelected( const QModelIndex& index )
 
     auto publisher = QuanDocument::instance()->publisher();
     if ( !publisher ) {
-        if ( publisher = std::make_shared< QuanPublisher >() ) {
+        if ( ( publisher = std::make_shared< QuanPublisher >() ) ) {
             if ( (*publisher)(QuanDocument::instance()->connection()) )
                 QuanDocument::instance()->publisher( publisher );
             else
@@ -176,7 +176,7 @@ QuanResultWnd::handleResponseSelected( int respId )
 
         auto publisher = QuanDocument::instance()->publisher();
         if ( !publisher ) {
-            if ( publisher = std::make_shared< QuanPublisher >() ) {
+            if ( ( publisher = std::make_shared< QuanPublisher >() ) ) {
                 if ( (*publisher)( conn ) )
                     QuanDocument::instance()->publisher( publisher );
                 else

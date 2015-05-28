@@ -165,7 +165,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 size_t pos = 0;
                 do {
                     auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                    if ( pos = read_raw_spectrum( pos, raw_, *ms ) ) {
+                    if ( ( pos = read_raw_spectrum( pos, raw_, *ms ) ) ) {
                         chromatogram_processor->process1st( pos - 1, ms, *this );
                         if ( ( *progress_ )( ) )
                             return false;

@@ -489,7 +489,8 @@ docEditor::fileSaveAs()
         fn += ".odt"; // default
     }
 */
-	this->doc_->save( fn.toStdString() );
+    std::string fname = fn.toStdString();
+	this->doc_->save( fname );
     	
 	setCurrentFileName(fn);
     return fileSave();
