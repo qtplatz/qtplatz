@@ -153,6 +153,18 @@ Peak::name( const std::wstring& name )
     name_ = name;
 }
 
+const char *
+Peak::formula() const
+{
+    return formula_.c_str();
+}
+
+void
+Peak::formula( const char * formula )
+{
+    formula_ = formula ? formula : "";
+}
+
 long
 Peak::appliedFunctions() const
 {

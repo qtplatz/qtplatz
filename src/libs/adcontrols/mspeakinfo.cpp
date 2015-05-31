@@ -197,3 +197,15 @@ MSPeakInfo::trim( MSPeakInfo& clone, const std::pair<double, double>& range ) co
     return true;
 }
 
+const MSPeakInfoItem&
+MSPeakInfo::front() const
+{
+    return vec_.front();
+}
+
+const MSPeakInfoItem&
+MSPeakInfo::back() const
+{
+    return vec_.back();
+}
+

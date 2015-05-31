@@ -58,6 +58,10 @@ namespace adcontrols {
 
         const std::wstring& name() const;
         void  name(const std::wstring& );
+
+        const char * formula() const;
+        void  formula(const char * );
+           
         long  appliedFunctions() const;
         void  appliedFunctions( long );
         long  startPos() const;
@@ -116,11 +120,15 @@ namespace adcontrols {
         void setTheoreticalPlate( const TheoreticalPlate& );
         void setRetentionTime( const RetentionTime& );
 
+        void userData( uint64_t );
+        uint64_t userData() const;
+
     private:
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
         std::wstring name_;
+        std::string formula_;
         long parentId_;
         long peakid_;
         long baseid_;
@@ -151,6 +159,7 @@ namespace adcontrols {
         double percentHeight_;
         bool manuallyModified_;
         RetentionTime tr_;
+        uint64_t userData_;
 
     private:
         friend class boost::serialization::access;
@@ -187,10 +196,14 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( manuallyModified_ );
             if ( version >= 1 )
                 ar & BOOST_SERIALIZATION_NVP( tr_ );
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( formula_ );
+                ar & BOOST_SERIALIZATION_NVP( userData_ );
+            }
         }
 
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::Peak, 1 )
+BOOST_CLASS_VERSION( adcontrols::Peak, 2 )

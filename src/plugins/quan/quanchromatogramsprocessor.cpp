@@ -23,10 +23,12 @@
 **************************************************************************/
 
 #include "quanchromatogramsprocessor.hpp"
-#include "quansampleprocessor.hpp"
-#include "quanprocessor.hpp"
 #include "quanchromatograms.hpp"
+#include "quanchromatogram.hpp"
 #include "quandatawriter.hpp"
+#include "quanprocessor.hpp"
+#include "quansampleprocessor.hpp"
+#include "quantarget.hpp"
 #include "quandocument.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
 #include <adcontrols/annotation.hpp>
@@ -74,41 +76,126 @@
 #include <portfolio/folium.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/format.hpp>
 #include <algorithm>
 
 using namespace quan;
 
 QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm )
     : procm_( pm )
-    , chroms_( std::make_shared< QuanChromatograms >( pm ) )
 {
+    
+    if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
+        if ( auto lkm = procm_->find< adcontrols::MSLockMethod >() ) {
+
+            if ( lkm->enabled() ) {
+                
+                mslockm_ = std::make_shared< adcontrols::MSLockMethod >( *lkm );
+                mslock_ = std::make_shared< adcontrols::lockmass >();
+
+            }
+        }
+    }
+    
+    if ( auto compounds = procm_->find< adcontrols::QuanCompounds >() ) {
+        
+        adcontrols::ChemicalFormula parser;
+        
+        for ( auto& comp : *compounds ) {
+            
+            std::string formula( comp.formula() );
+            double exactMass = parser.getMonoIsotopicMass( formula );
+            
+            if ( ! formula.empty() ) {
+
+                if ( comp.isLKMSRef() )
+                    references_.push_back( exactMass );
+                
+            }
+        }
+
+    }
 }
 
 void
 QuanChromatogramProcessor::process1st( size_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms, QuanSampleProcessor& sampleprocessor )
 {
-    if ( chroms_->lockmass_enabled() )
-        chroms_->apply_lockmass( pos, *ms, sampleprocessor );
-    
-    chroms_->process1st( pos, *ms, sampleprocessor );
-    
-    spectra_[ pos ] = ms; // keep processed profile spectrum for second phase
-}
+    correct_baseline( *ms );
 
+    if ( mslockm_ && mslock_ ) {
+        bool locked = false;
+        if ( auto raw = sampleprocessor.getLCMSDataset() ) {
+            adcontrols::lockmass lkms;
+            if ( raw->mslocker( lkms ) )
+                locked = lkms( *ms, true );
+        }
+        if ( !locked )
+            doMSLock( *ms );
+    }
+    
+    std::get< idProfile >( spectra_[ pos ] ) = ms; // keep processed profile spectrum for second phase
+
+    std::shared_ptr< adcontrols::MSPeakInfo > pkInfo;
+    std::shared_ptr< adcontrols::MassSpectrum > centroid;
+    std::shared_ptr< adcontrols::MassSpectrum > filtered;
+
+    if ( doCentroid( *ms, *procm_, pkInfo, centroid, filtered ) ) {
+        std::get< idCentroid >( spectra_[ pos ] ) = centroid;
+        std::get< idFiltered >( spectra_[ pos ] ) = filtered;
+        std::get< idMSPeakInfo >( spectra_[ pos ] ) = pkInfo;
+    }
+
+}
 
 void
-QuanChromatogramProcessor::process_chromatograms( QuanSampleProcessor& sampleprocessor, QuanChromatograms::process_phase phase )
+QuanChromatogramProcessor::find_candidates( std::vector< std::shared_ptr< QuanChromatograms > >& vec )
 {
-    chroms_->process_chromatograms( sampleprocessor, phase );
+    std::vector< std::shared_ptr< QuanTarget > > targets;
+
+    if ( auto compounds = procm_->find< adcontrols::QuanCompounds >() ) {
+
+        for ( auto& comp : *compounds ) {
+            
+            std::string formula( comp.formula() );
+            if ( ! formula.empty() ) {
+
+                targets.push_back( std::make_shared< QuanTarget >( formula ) );
+                
+            }
+        }
+    }
+
+    for ( auto& t: targets ) {
+
+        std::vector < QuanChromatograms::computed_target_value > developped_target_values;
+        t->compute_candidate_masses( 0.002, 0.010, developped_target_values );
+        
+        vec.push_back( std::make_shared< QuanChromatograms >( t->formula(), developped_target_values ) );
+    }
+
+    for ( auto& sp : spectra_ ) {
+        for ( auto& candidates: vec )
+            candidates->append_to_chromatogram( sp.first, std::get<idProfile>( sp.second ) );
+    }
+
+    auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
+    
+    for ( auto& candidates: vec ) {
+        candidates->process_chromatograms( procm_ );
+        if ( pCompounds )
+            candidates->identify_cpeak( pCompounds, procm_ );
+    }
 }
 
+
 std::wstring
-QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::string& formula, QuanChromatograms::process_phase phase )
+QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::string& formula, double error, QuanChromatograms::process_phase phase )
 {
 
     boost::filesystem::path path( dataSource );
 
-    std::wstring title = path.stem().wstring() + L", " + adportable::utf::to_wstring( formula );
+    std::wstring title = ( boost::wformat( L"%s, %s %.3f" ) % path.stem().wstring() % adportable::utf::to_wstring( formula ) % error ).str();
+
     if ( phase == QuanChromatograms::_1st )
         title += L" (1st phase)";
 
@@ -118,10 +205,45 @@ QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::st
 void
 QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
                                                          , const wchar_t * dataSource
+                                                         , std::shared_ptr< const QuanChromatograms > candidates
+                                                         , QuanChromatograms::process_phase phase )
+{
+    for ( auto & chro : *candidates ) {
+                
+        std::string formula = chro->formula_;
+        std::wstring title = make_title( dataSource, formula, chro->matchedMass_ - chro->exactMass_, phase );
+                
+        if ( chro ) {
+            
+            if ( adfs::file file = writer->write( *chro->chromatogram_, title ) ) {
+
+                chro->dataGuid_ = file.name(); // dataGuid for Chromatogarm on adfs
+                
+                if ( auto pkinfo = chro->peakinfo_ ) {
+
+                    if ( !chro->resp_ )
+                        chro->resp_ = std::make_shared< adcontrols::QuanResponse >();
+
+                    chro->resp_->dataGuid_ = chro->dataGuid_;
+                            
+                    auto afile = writer->attach< adcontrols::PeakResult >( file, *pkinfo, pkinfo->dataClass() );
+                    writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
+                }
+            }
+        }
+
+    }
+}
+
+void
+QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
+                                                         , const wchar_t * dataSource
                                                          , QuanChromatograms::process_phase phase
                                                          , std::shared_ptr< adwidgets::Progress > progress )
 {
 
+
+#if 0
     for ( auto it = chroms_->begin(); it != chroms_->end(); ++it ) {
                 
         std::string formula = it->formula_;
@@ -147,6 +269,7 @@ QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDa
         }
         progress && (*progress)();                    
     }
+#endif
 }
 
 //static
@@ -186,7 +309,7 @@ size_t
 QuanChromatogramProcessor::collect_candidate_spectra( std::shared_ptr< adwidgets::Progress > progress )
 {
     size_t n = 0;
-    
+#if 0
     for ( auto it = chroms_->begin(); it != chroms_->end(); ++it ) {
 
         progress && ( *progress )( );
@@ -205,9 +328,13 @@ QuanChromatogramProcessor::collect_candidate_spectra( std::shared_ptr< adwidgets
                     auto spIt = spectra_.find( npos );
 
                     if ( spIt != spectra_.end() ) {
+                        ++n;
 
-                        it->profile_ = spIt->second;
-
+                        it->profile_ = std::get<idProfile>( spIt->second );
+                        it->filtered_ = std::get< idFiltered >( spIt->second );
+                        it->centroid_ = std::get< idCentroid >( spIt->second );
+                        it->mspeaks_  = std::get< idMSPeakInfo >( spIt->second );
+#if 0
                         std::shared_ptr< adcontrols::MSPeakInfo > pkInfo;
                         std::shared_ptr< adcontrols::MassSpectrum > centroid;
                         std::shared_ptr< adcontrols::MassSpectrum > filtered;
@@ -220,17 +347,20 @@ QuanChromatogramProcessor::collect_candidate_spectra( std::shared_ptr< adwidgets
                             it->mspeaks_ = pkInfo;
                             ++n;
                         }
+#endif
                     }
                 }
             }
         }
     }
+#endif
     return n;
 }
 
 bool
 QuanChromatogramProcessor::assign_mspeak( const adcontrols::MSFinder& find, QuanChromatogram& c )
 {
+#if 0
     if ( c.centroid_ ) {
         
         auto& fms = adcontrols::segment_wrapper<>( *c.centroid_ )[ c.idxfcn_.second ];
@@ -256,9 +386,11 @@ QuanChromatogramProcessor::assign_mspeak( const adcontrols::MSFinder& find, Quan
             }
         }
     }
+#endif
     return false;
 }
 
+#if 0
 bool
 QuanChromatogramProcessor::identify_cpeak( adcontrols::QuanResponse& resp
                                            , const std::string& formula
@@ -300,12 +432,13 @@ QuanChromatogramProcessor::identify_cpeak( adcontrols::QuanResponse& resp
 	}
     return false;
 }
+#endif
 
 void
 QuanChromatogramProcessor::save_candidate_spectra( std::shared_ptr< QuanDataWriter > writer
                                                    , adcontrols::QuanSample& sample
                                                    , std::shared_ptr< adwidgets::Progress > progress ) {
-
+#if 0
     for ( auto it = chroms_->begin(); it != chroms_->end(); ++it ) {
 
         std::wstring title = make_title( sample.dataSource(), it->formula_, QuanChromatograms::_2nd );
@@ -325,12 +458,20 @@ QuanChromatogramProcessor::save_candidate_spectra( std::shared_ptr< QuanDataWrit
             }
         }
     }
+#endif
 }
         
 void
 QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::QuanSample& sample
                                , std::shared_ptr< QuanDataWriter > writer, std::shared_ptr< adwidgets::Progress > progress )
 {
+    std::vector< std::shared_ptr< QuanChromatograms > > candidates_v;
+    find_candidates( candidates_v );
+
+    for ( auto& candidates: candidates_v )
+        save_candidate_chromatograms( writer, sample.dataSource(), candidates, QuanChromatograms::_1st );
+    
+#if 0
     process_chromatograms( processor, QuanChromatograms::_1st );
 
     std::for_each( chroms_->begin(), chroms_->end(), [=]( QuanChromatogram& c ){
@@ -381,7 +522,7 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
         });
 
     for ( auto& sp : spectra_ ) {
-        chroms_->process2nd( sp.first, *sp.second );
+        chroms_->process2nd( sp.first, *std::get< idProfile >( sp.second ) );
         progress && ( *progress )();        
     }
     
@@ -405,6 +546,82 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
     std::for_each( chroms_->begin(), chroms_->end()
                    , [&] ( const QuanChromatogram& c ) { if ( c.resp_ ) sample << *c.resp_; } );
 
+#endif
+}
 
+void
+QuanChromatogramProcessor::correct_baseline( adcontrols::MassSpectrum& profile )
+{
+    if ( profile.isCentroid() )
+        return;
+    adcontrols::segment_wrapper<> segments( profile );
+
+    for ( auto& ms: segments ) {
+        double dbase(0), rms(0), tic(0);
+        const double * data = ms.getIntensityArray();
+        tic = adportable::spectrum_processor::tic( static_cast< unsigned int >( ms.size() ), data, dbase, rms );
+
+        for ( size_t idx = 0; idx < ms.size(); ++idx )
+            ms.setIntensity( idx, data[ idx ] - dbase );
+    }
+}
+
+bool
+QuanChromatogramProcessor::doMSLock( adcontrols::MassSpectrum& profile )
+{
+    //--------- centroid --------
+    auto centroid = std::make_shared< adcontrols::MassSpectrum >();
+
+    if ( auto m = procm_->find< adcontrols::CentroidMethod >() ) {
+
+        adcontrols::CentroidProcess peak_detector;
+
+        adcontrols::segment_wrapper<> segments( profile );
+        
+        centroid->clone( profile, false );
+
+        if ( peak_detector( *m, profile ) ) {
+            peak_detector.getCentroidSpectrum( *centroid );
+
+            for ( auto fcn = 0; fcn < profile.numSegments(); ++fcn ) {
+                adcontrols::MassSpectrum cseg;
+                peak_detector( profile.getSegment( fcn ) );
+                peak_detector.getCentroidSpectrum( cseg );
+                centroid->addSegment( cseg );
+            }
+
+        }
+    }
+    
+    //--------- lockmass --------
+    // this does not find reference from segments attached to 'centroid'
+    if ( centroid ) {
+        
+        adcontrols::MSFinder find( mslockm_->tolerance( mslockm_->toleranceMethod() ), mslockm_->algorithm(), mslockm_->toleranceMethod() );
+
+        adcontrols::segment_wrapper<> segments( *centroid );
+        
+        if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
+            for ( auto& compound: *pCompounds ) {
+
+                if ( compound.isLKMSRef() ) {
+                    double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( compound.formula() );                    
+
+                    for ( auto& fms: segments ) {
+                        if ( fms.getMass( 0 ) < exactMass && exactMass < fms.getMass( fms.size() - 1 ) ) {
+                            auto idx = find( fms, exactMass );
+                            if ( idx != adcontrols::MSFinder::npos ) {
+                                *mslock_ << adcontrols::lockmass::reference( compound.formula(), exactMass, fms.getMass( idx ), fms.getTime( idx ) );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if ( mslock_ )
+        mslock_->fit();
+    ( *mslock_ )( profile, true );
+    return true;
 }
 

@@ -135,8 +135,13 @@ namespace quan {
                     opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
                     QStyledItemDelegate::paint( painter, opt, index );
 
-                }
-                else if ( c_level_0 <= index.column() && index.column() <= c_level_last ) {
+                } else if ( index.column() == c_tR ) {
+
+                    double data = index.data( Qt::EditRole ).toDouble();
+                    std::string text = ( boost::format( "%.3f" ) % data ).str();
+                    painter->drawText( opt.rect, Qt::AlignRight | Qt::AlignVCenter, text.c_str() );
+
+                } else if ( c_level_0 <= index.column() && index.column() <= c_level_last ) {
 
                     double data = index.data( Qt::EditRole ).toDouble();
                     const char * fmt = "%.4lf";
@@ -145,8 +150,6 @@ namespace quan {
                     std::string text = ( boost::format( fmt ) % data ).str();
                     painter->drawText( opt.rect, Qt::AlignRight | Qt::AlignVCenter, text.c_str() );
 
-                // } else if ( index.column() == c_description ) {
-                //     adwidgets::DelegateHelper::render_html( painter, opt, index.data().toString() );
                 } else {
                     QStyledItemDelegate::paint( painter, opt, index );
                 }
@@ -159,7 +162,7 @@ namespace quan {
             }
 
             QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
-                if ( c_level_0 <= index.column() && index.column() <= c_level_last ) {
+                if ( index.column() == c_tR || ( c_level_0 <= index.column() && index.column() <= c_level_last ) ) {
                     QLineEdit * edit = new QLineEdit( parent );
                     edit->setText( QString::fromStdString( (boost::format( "%g" ) % index.data().toDouble() ).str() ) );
                     return edit;
@@ -327,7 +330,7 @@ CompoundsTable::getContents( adcontrols::QuanCompounds& c )
             continue;
         a.description( model.index( row, c_description ).data().toString().toStdWString().c_str() );
         a.mass( model.index( row, c_mass ).data().toDouble() );
-        a.tR( model.index( row, c_tR ).data().toDouble() );
+        a.tR( model.index( row, c_tR ).data().toDouble() * 60.0 ); // min -> sec
         a.isISTD( model.index( row, c_isISTD ).data().toBool() );
         a.idISTD( model.index( row, c_isISTD ).data().toInt() );
         a.isLKMSRef( model.index( row, c_isLKMSReference ).data().toBool() );
@@ -362,7 +365,7 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
         std::string formula = comp.formula();
         model.setData( model.index( row, c_formula ), QString::fromStdString( formula ) );
         model.setData( model.index( row, c_mass ), comp.mass() );
-        model.setData( model.index( row, c_tR ), comp.tR() );
+        model.setData( model.index( row, c_tR ), comp.tR() / 60.0 ); // sec -> min
         model.setData( model.index( row, c_description ), QString::fromStdWString( comp.description() ) );
 
         model.item( row, c_mass )->setEditable( false );

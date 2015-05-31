@@ -47,8 +47,10 @@ link_directories(
   )
 
 set( quan_SOURCES
-  quanplugin.cpp
   mainwindow.cpp
+  quanplugin.cpp
+  quaneditor.cpp
+  quanfactory.cpp
   quanmode.cpp
   quandocument.cpp
   panelswidget.cpp
@@ -61,6 +63,7 @@ set( quan_SOURCES
   compoundstable.cpp
   quanconfigform.cpp
   quanconfigwidget.cpp
+  quanchromatogram.cpp  
   quanchromatograms.cpp  
   quandatawriter.cpp
   quansampleprocessor.cpp
@@ -79,17 +82,18 @@ set( quan_SOURCES
   quancmpdwidget.cpp
   quanplotdata.cpp
   quanpublisher.cpp
-  quansvgplot.cpp
   quanplot.cpp
-  quanfactory.cpp
-  quaneditor.cpp
+  quansvgplot.cpp
+  quantarget.cpp
   )
 
 set( quan_HEADERS
+  mainwindow.hpp
   quanplugin.hpp
   quan_global.hpp
   quanconstants.hpp
-  mainwindow.hpp
+  quaneditor.hpp
+  quanfactory.hpp
   quanmode.hpp
   quandocument.hpp
   panelswidget.hpp
@@ -102,6 +106,7 @@ set( quan_HEADERS
   compoundstable.hpp
   quanconfigform.hpp
   quanconfigwidget.hpp
+  quanchromatogram.hpp  
   quanchromatograms.hpp
   quanchromatogramsprocessor.hpp
   quandatawriter.hpp
@@ -121,10 +126,9 @@ set( quan_HEADERS
   quanplotdata.hpp
   quanpublisher.hpp
   quanprogress.hpp
-  quansvgplot.hpp
   quanplot.hpp
-  quanfactory.hpp
-  quaneditor.hpp
+  quansvgplot.hpp
+  quantarget.cpp  
   )
 
 set( quan_RESOURCES quan.qrc )

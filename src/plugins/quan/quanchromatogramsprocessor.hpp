@@ -35,6 +35,7 @@ namespace quan {
 
     class QuanSampleProcessor;
     class QuanDataWriter;
+    class QuanTarget;
 
     class QuanChromatogramProcessor {
         std::shared_ptr< const adcontrols::ProcessMethod > procm_;
@@ -47,15 +48,28 @@ namespace quan {
         void doit( QuanSampleProcessor&, adcontrols::QuanSample&
                    , std::shared_ptr< QuanDataWriter >, std::shared_ptr< adwidgets::Progress > );
 
+        enum { idFormula, idExactMass };
+        typedef std::tuple< std::string, double > target_type;        
+
     private:
+        bool doMSLock( adcontrols::MassSpectrum& profile );
+        void correct_baseline( adcontrols::MassSpectrum& profile );
+
+        void find_candidates( std::vector< std::shared_ptr< QuanChromatograms > >& );
+        
         void process_chromatograms( QuanSampleProcessor& sampleprocessor, QuanChromatograms::process_phase phase );
 
-        static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, QuanChromatograms::process_phase phase );
+        static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, double error, QuanChromatograms::process_phase phase );
 
         void save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
                                            , const wchar_t * dataSource
                                            , QuanChromatograms::process_phase phase
                                            , std::shared_ptr< adwidgets::Progress > progress );
+
+        void save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
+                                           , const wchar_t * dataSource
+                                           , std::shared_ptr< const QuanChromatograms >
+                                           , QuanChromatograms::process_phase phase );
 
         static bool doCentroid( const adcontrols::MassSpectrum& profile
                                 , const adcontrols::ProcessMethod& pm
@@ -63,24 +77,25 @@ namespace quan {
                                 , std::shared_ptr< adcontrols::MassSpectrum >& centroid
                                 , std::shared_ptr< adcontrols::MassSpectrum >& filtered );
         
-        
         size_t collect_candidate_spectra( std::shared_ptr< adwidgets::Progress > progress );
         
         bool assign_mspeak( const adcontrols::MSFinder& find, QuanChromatogram& c );
         
-        bool identify_cpeak( adcontrols::QuanResponse& resp
-                             , const std::string& formula
-                             , std::shared_ptr< adcontrols::Chromatogram > chro
-                             , std::shared_ptr< adcontrols::PeakResult > pkResult );
-
         void save_candidate_spectra( std::shared_ptr< QuanDataWriter > writer
                                      , adcontrols::QuanSample& sample
                                      , std::shared_ptr< adwidgets::Progress > progress );
 
-        
-        std::shared_ptr< QuanChromatograms > chroms_;
-        std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
+        enum { idProfile, idCentroid, idFiltered, idMSPeakInfo };
 
+        std::map< size_t, std::tuple< std::shared_ptr< adcontrols::MassSpectrum >
+                                      , std::shared_ptr< adcontrols::MassSpectrum >
+                                      , std::shared_ptr< adcontrols::MassSpectrum >
+                                      , std::shared_ptr< adcontrols::MSPeakInfo> > > spectra_;
+
+        std::shared_ptr< adcontrols::MSLockMethod > mslockm_;
+        std::shared_ptr< adcontrols::lockmass > mslock_;
+        std::vector< double > references_;
+        std::vector< std::shared_ptr< QuanTarget > > targets_;
 	};
     
 }

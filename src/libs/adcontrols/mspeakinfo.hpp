@@ -27,7 +27,6 @@
 
 #pragma once
 
-
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -39,6 +38,10 @@
 namespace adcontrols {
 
     class MSPeakInfoItem;
+    class MSPeakInfo;
+
+    ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < MSPeakInfoItem > ;
+    ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < MSPeakInfo > ;
 
     class ADCONTROLSSHARED_EXPORT MSPeakInfo {
     public:
@@ -57,6 +60,8 @@ namespace adcontrols {
         size_t size() const;
         size_t total_size() const;
         void clear();
+        const MSPeakInfoItem& front() const;
+        const MSPeakInfoItem& back() const;        
 
         MSPeakInfo& operator << ( const MSPeakInfoItem& );
 
