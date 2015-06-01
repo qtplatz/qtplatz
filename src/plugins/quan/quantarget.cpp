@@ -72,7 +72,7 @@ QuanTarget::formulae() const
 }
 
 void
-QuanTarget::compute_candidate_masses( double mspeak_width, double tolerance, std::vector< computed_candidate_value >& masses )
+QuanTarget::compute_candidate_masses( double mspeak_width, double tolerance, std::vector< target_value >& masses )
 {
     for ( auto& f: formulae_ ) {
 
@@ -80,13 +80,13 @@ QuanTarget::compute_candidate_masses( double mspeak_width, double tolerance, std
         double exactMass = QuanTarget::exactMass( f );
         int charge = QuanTarget::charge( f );
 
-        masses.push_back( std::make_tuple( formula_adducts, exactMass, charge, exactMass, mspeak_width ) );
+        masses.push_back( target_value( formula_adducts, exactMass, charge, exactMass, mspeak_width ) );
 
         double d = mspeak_width;
         
         while ( d < tolerance ) {
-            masses.push_back( std::make_tuple( formula_adducts, exactMass, charge, exactMass - d, mspeak_width ) );
-            masses.push_back( std::make_tuple( formula_adducts, exactMass, charge, exactMass + d, mspeak_width ) );
+            masses.push_back( target_value( formula_adducts, exactMass, charge, exactMass - d, mspeak_width ) );
+            masses.push_back( target_value( formula_adducts, exactMass, charge, exactMass + d, mspeak_width ) );
             d += mspeak_width;
         }
     }

@@ -100,9 +100,17 @@ QuanChromatograms::~QuanChromatograms()
 }
 
 QuanChromatograms::QuanChromatograms( const std::string& formula
-                                      , const std::vector< computed_target_value >& values) : formula_( formula )
-                                                                                            , target_values_( values )
-                                                                                            , identified_(false)
+                                      , const std::vector< QuanTarget::target_value >& values ) : formula_( formula )
+                                                                                                , target_values_( values )
+                                                                                                , identified_(false)
+{
+}
+
+QuanChromatograms::QuanChromatograms( const std::string& formula
+                                      , const QuanCandidate& c ) : formula_( formula )
+                                                                , target_values_( { QuanTarget::target_value( c.formula(), c.exactMass(), 1, c.matchedMass(), c.width() ) } )
+                                                                , identified_(false)
+                                                                , candidate_( std::make_shared< QuanCandidate >( c ) )
 {
 }
 
@@ -121,12 +129,8 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
 
         for ( auto& m : target_values_ ) {
 
-            const double exactMass = target_exactMass( m );
-            const double matchedMass = target_matchedMass( m );
-            const double width = target_width( m );
-            
-            double lMass = matchedMass - width / 2;
-            double uMass = matchedMass + width / 2;
+            double lMass = m.matchedMass - m.width / 2;
+            double uMass = m.matchedMass + m.width / 2;
 
             if ( fms.getMass( 0 ) <= lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
                 double y( 0 );
@@ -144,8 +148,8 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
                 auto chro = std::find_if( begin(), end()
                                           , [=] ( std::shared_ptr<QuanChromatogram>& c ) { return c->fcn_ == fcn && c->candidate_index_ == candidate_index; } );
                 if ( chro == end() ) {
-                    candidates_.push_back( std::make_shared< QuanChromatogram >( fcn, candidate_index, formula_, exactMass, matchedMass, std::make_pair( lMass, uMass) ) );
-                    chro = candidates_.end() - 1;
+                    qchro_.push_back( std::make_shared< QuanChromatogram >( fcn, candidate_index, formula_, m.exactMass, m.matchedMass, std::make_pair( lMass, uMass ) ) );
+                    chro = qchro_.end() - 1;
                 }
                 ( *chro )->append( uint32_t( pos ), time, y );
             }
@@ -160,14 +164,14 @@ void
 QuanChromatograms::process_chromatograms( std::shared_ptr< const adcontrols::ProcessMethod > pm )
 {
     if ( pm ) {
-        for ( auto& c: candidates_ )
+        for ( auto& c: qchro_ )
             c->peakinfo_ = std::make_shared< adcontrols::PeakResult >(); // reset all
         
         if ( auto peakm = pm->find< adcontrols::PeakMethod >() ) {
             
             chromatogr::Chromatography peakfinder( *peakm );
             
-            for ( auto& c: candidates_ ) {
+            for ( auto& c: qchro_ ) {
                 
                 if ( auto chro = c->chromatogram_ ) {
                     
@@ -193,7 +197,7 @@ QuanChromatograms::identify( const adcontrols::QuanCompounds * cmpds
 {
     identified_ = false;
 
-    for ( auto& c : candidates_ ) {
+    for ( auto& c : qchro_ ) {
 
         if ( c->identify( *cmpds ) )  // identified by retention time
             identified_ = true;
@@ -206,7 +210,7 @@ QuanChromatograms::identify( const adcontrols::QuanCompounds * cmpds
 void
 QuanChromatograms::getPeaks( std::vector< std::pair< uint32_t, adcontrols::Peak * > >& vec, bool identified )
 {
-    for ( auto& c : candidates_ ) {
+    for ( auto& c : qchro_ ) {
         
         for ( auto& pk : c->peaks( identified ) ) {
             uint32_t pos = c->pos_from_peak( *pk );
@@ -219,10 +223,10 @@ QuanChromatograms::getPeaks( std::vector< std::pair< uint32_t, adcontrols::Peak 
 uint32_t
 QuanChromatograms::posFromPeak( uint32_t candidate_index, const adcontrols::Peak& peak ) const
 {
-    auto it = std::find_if( candidates_.begin(), candidates_.end(), [candidate_index](const std::shared_ptr< QuanChromatogram >& c ){
+    auto it = std::find_if( qchro_.begin(), qchro_.end(), [candidate_index](const std::shared_ptr< QuanChromatogram >& c ){
             return c->candidate_index() == candidate_index; });
 
-    if ( it != candidates_.end() )
+    if ( it != qchro_.end() )
         return (*it)->pos_from_peak( peak );
     
     return (-1);
@@ -231,15 +235,14 @@ QuanChromatograms::posFromPeak( uint32_t candidate_index, const adcontrols::Peak
 void
 QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, std::function<spectra_type(uint32_t)> read )
 {
-    if ( candidates_.empty() )
+    if ( qchro_.empty() )
         return;
 
     adcontrols::ChemicalFormula parser;
 
     std::map< std::string, double > formulae;
     for ( auto& tgt : target_values_ ) {
-        std::string formula = target_formula( tgt );
-        formulae[ formula ] = parser.getMonoIsotopicMass( formula );
+        formulae[ tgt.formula ] = parser.getMonoIsotopicMass( tgt.formula );
     }
 
     struct peak_score_type {
@@ -251,11 +254,10 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
             : candidate_index( _candidaet_index ), fcn( _fcn ), peak( _peak ), score( 0 ) {
         }
     };
-    // typedef std::tuple< uint32_t, uint32_t, adcontrols::Peak *, int > peak_score_type;
     
     std::vector< peak_score_type > peaks;
 
-    for ( auto& c : candidates_ ) {
+    for ( auto& c : qchro_ ) {
         if ( identified_ ) {
             for ( auto& ppk : c->peaks( false ) )
                 peaks.push_back( peak_score_type( c->candidate_index(), c->fcn(), ppk ) );
@@ -268,7 +270,7 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
             double h = ( *maxIt )->peakHeight();
 
             ( *maxIt )->formula( c->formula_.c_str() );
-            ( *maxIt )->name( adportable::utf::to_wstring( c->formula_ ).c_str() );
+            ( *maxIt )->name( adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( c->formula_ ) ) );
 
             auto it = std::remove_if( xpeaks.begin(), xpeaks.end(), [h]( const adcontrols::Peak * a ){ return a->peakHeight() < h * 0.1; } );
             if ( it != xpeaks.end() )
@@ -285,8 +287,6 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
         auto it = std::remove_if( peaks.begin(), peaks.end(), [] ( const peak_score_type& t ) { return std::string( t.peak->formula() ).empty(); } );
         if ( it != peaks.end() )
             peaks.erase( it, peaks.end() );
-    } else {
-        
     }
 
     std::vector < std::vector< peak_score_type > > partitioned;
@@ -317,10 +317,10 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
 
         auto& pk = *p.begin();
 
-        auto itChro = std::find_if( candidates_.begin(), candidates_.end(), [ pk ]( const std::shared_ptr< QuanChromatogram >& c ){
+        auto itChro = std::find_if( qchro_.begin(), qchro_.end(), [ pk ]( const std::shared_ptr< QuanChromatogram >& c ){
                 return c->candidate_index() == pk.candidate_index; } );
 
-        if ( itChro != candidates_.end() ) {
+        if ( itChro != qchro_.end() ) {
 
             double width = std::abs( ( *itChro )->matchedMass() - ( *itChro )->exactMass() ) * 2.01;
             if ( width < 0.002 )
@@ -331,8 +331,8 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
             uint32_t pos = ( *itChro )->pos_from_peak( *pk.peak );
             auto sp = read( pos );
             
-            if ( auto centroid = std::get< idCentroid >( sp ) ) {
-                if ( auto pkinfo = std::get< idMSPeakInfo >( sp ) ) {
+            if ( auto centroid = sp.centroid ) {
+                if ( auto pkinfo = sp.mspkinfo ) {
                     
                     for ( auto& f : formulae ) {
                         
@@ -355,7 +355,18 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
                             
                             positive_candidate[ pk.candidate_index ] = *itChro;
 
-                            refined.push_back( QuanCandidate( formula, exactMass, mspk->mass(), std::make_pair( mspk->centroid_left(), mspk->centroid_right() ), pk.peak->peakTime(), pk.fcn ) );
+                            refined.push_back( QuanCandidate( formula
+                                                            , exactMass
+                                                            , mspk->mass()
+                                                            , std::make_pair( mspk->centroid_left(), mspk->centroid_right() )
+                                                            , pk.peak->peakTime()
+                                                            , pk.fcn
+                                                            , uint32_t( idx )
+                                                            , sp.profile
+                                                            , sp.centroid
+                                                            , sp.filtered
+                                                            , sp.mspkinfo
+                                                            ) );
                         }
                         
                     }
@@ -364,9 +375,40 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
         }
     } // for peaks
 
-    candidates_.clear();
+    qchro_.clear();
     for ( auto& candidate : positive_candidate )
-        candidates_.push_back( candidate.second );
+        qchro_.push_back( candidate.second );
 
 }
-                                         
+
+void
+QuanChromatograms::finalize( std::function<spectra_type(uint32_t)> read )
+{
+    for ( auto& c : qchro_ ) {
+
+        auto xpeaks = c->peaks( false );
+        if ( xpeaks.empty() )
+            continue;
+
+        if ( !identified_ ) {
+            auto maxIt = std::max_element( xpeaks.begin(), xpeaks.end()
+                                           , []( const adcontrols::Peak * a, const adcontrols::Peak * b ){ return a->peakHeight() < b->peakHeight(); } );
+            
+            ( *maxIt )->formula( c->formula_.c_str() );
+            ( *maxIt )->name( adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( c->formula_ ) ) );
+        }
+
+        for ( auto& pk: xpeaks ) {
+            if ( ! std::string( pk->formula() ).empty() ) {
+                // read and assign mass
+            }
+        }
+    } // for peaks
+}
+
+void
+QuanChromatograms::setReferenceDataGuid( const std::wstring& dataGuid )
+{
+    if ( candidate_ )
+        candidate_->setReferenceDataGuid( dataGuid );
+}

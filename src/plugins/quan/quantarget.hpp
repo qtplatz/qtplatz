@@ -59,16 +59,19 @@ namespace quan {
         static inline double exactMass( const value_type& t ) { return std::get< 1 >( t ); }
         static inline int charge( const value_type& t ) { return std::get< 2 >( t ); }
 
-        typedef std::tuple< std::string, double, int, double, double > computed_candidate_value;
+        // typedef std::tuple< std::string, double, int, double, double > computed_candidate_value;
+        struct target_value {
+            std::string formula;
+            double exactMass;
+            double matchedMass;
+            double width;
+            int charge;
+            target_value( const std::string& _formula, double _exactMass, int _charge, double _matchedMass, double _width )
+                : formula( _formula ), exactMass( _exactMass ), matchedMass( _matchedMass ), width( _width ), charge( _charge ) {
+            }
+        };
 
-        static inline std::string formula( const computed_candidate_value& t ) { return std::get< 0 >( t ); }
-        static inline double exactMass( const computed_candidate_value& t ) { return std::get< 1 >( t ); }
-        static inline int charge( const computed_candidate_value& t ) { return std::get< 2 >( t ); }
-        static inline double matchedMass( const computed_candidate_value& t ) { return std::get< 3 >( t ); }
-        static inline double matchedWidth( const computed_candidate_value& t ) { return std::get< 4 >( t ); }
-
-        void compute_candidate_masses( double mspeak_width, double tolerance
-                                       , std::vector< std::tuple<std::string, double, int, double, double> >& ); // formula, exact, charge, matched, width
+        void compute_candidate_masses( double mspeak_width, double tolerance, std::vector< target_value >& );
 
     private:
         std::string formula_;
