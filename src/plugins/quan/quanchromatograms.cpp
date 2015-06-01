@@ -24,8 +24,11 @@
 
 #include "quanchromatograms.hpp"
 #include "quanchromatogram.hpp"
+#include "quancandidate.hpp"
 #include "quansampleprocessor.hpp"
 #include "quantarget.hpp"
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -49,7 +52,9 @@
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
+#include <algorithm>
 #include <numeric>
+#include <set>
 
 namespace quan {
     
@@ -97,6 +102,7 @@ QuanChromatograms::~QuanChromatograms()
 QuanChromatograms::QuanChromatograms( const std::string& formula
                                       , const std::vector< computed_target_value >& values) : formula_( formula )
                                                                                             , target_values_( values )
+                                                                                            , identified_(false)
 {
 }
 
@@ -141,8 +147,7 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
                     candidates_.push_back( std::make_shared< QuanChromatogram >( fcn, candidate_index, formula_, exactMass, matchedMass, std::make_pair( lMass, uMass) ) );
                     chro = candidates_.end() - 1;
                 }
-
-                *( *chro )->chromatogram_ << std::make_pair( time, y );
+                ( *chro )->append( uint32_t( pos ), time, y );
             }
                         
             candidate_index++;
@@ -170,6 +175,9 @@ QuanChromatograms::process_chromatograms( std::shared_ptr< const adcontrols::Pro
                         
                         c->peakinfo_->setBaselines( peakfinder.getBaselines() );
                         c->peakinfo_->setPeaks( peakfinder.getPeaks() );
+
+                        for ( auto& pk: c->peakinfo_->peaks() )
+                            pk.userData( c->candidate_index() );
                         
                     }
                 }
@@ -179,9 +187,186 @@ QuanChromatograms::process_chromatograms( std::shared_ptr< const adcontrols::Pro
 
 }
 
-void
-QuanChromatograms::identify_cpeak( const adcontrols::QuanCompounds * cmpds, std::shared_ptr< const adcontrols::ProcessMethod > )
+bool
+QuanChromatograms::identify( const adcontrols::QuanCompounds * cmpds
+                             , std::shared_ptr< const adcontrols::ProcessMethod > )
 {
-    for ( auto& c: candidates_ )
-        c->identify( *cmpds );
+    identified_ = false;
+
+    for ( auto& c : candidates_ ) {
+
+        if ( c->identify( *cmpds ) )  // identified by retention time
+            identified_ = true;
+    }
+
+    return identified_;
+
 }
+
+void
+QuanChromatograms::getPeaks( std::vector< std::pair< uint32_t, adcontrols::Peak * > >& vec, bool identified )
+{
+    for ( auto& c : candidates_ ) {
+        
+        for ( auto& pk : c->peaks( identified ) ) {
+            uint32_t pos = c->pos_from_peak( *pk );
+            vec.push_back( std::make_pair( c->candidate_index(), pk ) );
+        }
+
+    }
+}
+
+uint32_t
+QuanChromatograms::posFromPeak( uint32_t candidate_index, const adcontrols::Peak& peak ) const
+{
+    auto it = std::find_if( candidates_.begin(), candidates_.end(), [candidate_index](const std::shared_ptr< QuanChromatogram >& c ){
+            return c->candidate_index() == candidate_index; });
+
+    if ( it != candidates_.end() )
+        return (*it)->pos_from_peak( peak );
+    
+    return (-1);
+}
+
+void
+QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, std::function<spectra_type(uint32_t)> read )
+{
+    if ( candidates_.empty() )
+        return;
+
+    adcontrols::ChemicalFormula parser;
+
+    std::map< std::string, double > formulae;
+    for ( auto& tgt : target_values_ ) {
+        std::string formula = target_formula( tgt );
+        formulae[ formula ] = parser.getMonoIsotopicMass( formula );
+    }
+
+    struct peak_score_type {
+        uint32_t candidate_index;
+        uint32_t fcn;
+        adcontrols::Peak * peak;
+        int score;
+        peak_score_type( uint32_t _candidaet_index, uint32_t _fcn, adcontrols::Peak * _peak )
+            : candidate_index( _candidaet_index ), fcn( _fcn ), peak( _peak ), score( 0 ) {
+        }
+    };
+    // typedef std::tuple< uint32_t, uint32_t, adcontrols::Peak *, int > peak_score_type;
+    
+    std::vector< peak_score_type > peaks;
+
+    for ( auto& c : candidates_ ) {
+        if ( identified_ ) {
+            for ( auto& ppk : c->peaks( false ) )
+                peaks.push_back( peak_score_type( c->candidate_index(), c->fcn(), ppk ) );
+        } else {
+            auto xpeaks = c->peaks( false );
+            if ( xpeaks.empty() )
+                return;
+
+            auto maxIt = std::max_element( xpeaks.begin(), xpeaks.end(), []( const adcontrols::Peak * a, const adcontrols::Peak * b ){ return a->peakHeight() < b->peakHeight(); } );
+            double h = ( *maxIt )->peakHeight();
+
+            ( *maxIt )->formula( c->formula_.c_str() );
+            ( *maxIt )->name( adportable::utf::to_wstring( c->formula_ ).c_str() );
+
+            auto it = std::remove_if( xpeaks.begin(), xpeaks.end(), [h]( const adcontrols::Peak * a ){ return a->peakHeight() < h * 0.1; } );
+            if ( it != xpeaks.end() )
+                xpeaks.erase( it, xpeaks.end() );
+
+            for ( auto& ppk : xpeaks )
+                peaks.push_back( peak_score_type( c->candidate_index(), c->fcn(), ppk ) );            
+        }
+    }
+    if ( peaks.empty() )
+        return;
+
+    if ( identified_ ) { // if retention-time identified
+        auto it = std::remove_if( peaks.begin(), peaks.end(), [] ( const peak_score_type& t ) { return std::string( t.peak->formula() ).empty(); } );
+        if ( it != peaks.end() )
+            peaks.erase( it, peaks.end() );
+    } else {
+        
+    }
+
+    std::vector < std::vector< peak_score_type > > partitioned;
+    if ( peaks.size() >= 2 ) {
+
+        // order of retention time
+        std::sort( peaks.begin(), peaks.end(), [] ( const peak_score_type& a, const peak_score_type& b ) { return a.peak->peakTime() < b.peak->peakTime(); } );
+
+        auto it = peaks.begin();
+        while ( it != peaks.end() ) {
+            double width = identified_ ? it->peak->peakWidth() * 0.2 : it->peak->peakWidth() / 0.4;
+            auto p = std::lower_bound( it, peaks.end(), ( *it->peak ), [width] ( const peak_score_type& a, const adcontrols::Peak& pk ) {
+                    double tR = a.peak->peakTime();
+                    return ( pk.peakTime() - width ) < tR && tR < ( pk.peakTime() + width );
+                } );
+            partitioned.push_back( std::vector< peak_score_type >( it, p ) );
+            it = p;
+        };
+    }
+    for ( auto& p: partitioned ) {
+        std::sort( p.begin(), p.end(), [] ( const peak_score_type& a, const peak_score_type& b ) { return a.candidate_index < b.candidate_index; } );
+        p.begin()->score = int( p.size() );
+    }
+
+    std::map< uint32_t, std::shared_ptr< QuanChromatogram> > positive_candidate;
+
+    for ( auto& p: partitioned ) {
+
+        auto& pk = *p.begin();
+
+        auto itChro = std::find_if( candidates_.begin(), candidates_.end(), [ pk ]( const std::shared_ptr< QuanChromatogram >& c ){
+                return c->candidate_index() == pk.candidate_index; } );
+
+        if ( itChro != candidates_.end() ) {
+
+            double width = std::abs( ( *itChro )->matchedMass() - ( *itChro )->exactMass() ) * 2.01;
+            if ( width < 0.002 )
+                width = 0.002;
+
+            adcontrols::MSFinder find( width, adcontrols::idFindClosest );
+            
+            uint32_t pos = ( *itChro )->pos_from_peak( *pk.peak );
+            auto sp = read( pos );
+            
+            if ( auto centroid = std::get< idCentroid >( sp ) ) {
+                if ( auto pkinfo = std::get< idMSPeakInfo >( sp ) ) {
+                    
+                    for ( auto& f : formulae ) {
+                        
+                        double& exactMass = f.second;
+                        const std::string& formula = f.first;
+                        
+                        auto& fms = adcontrols::segment_wrapper<>( *centroid )[ pk.fcn ];
+                        auto& fpkinf = adcontrols::segment_wrapper<adcontrols::MSPeakInfo>( *pkinfo )[ pk.fcn ];
+                        
+                        auto idx = find( fms, exactMass );
+
+                        // assign & annotate on mass spectrum
+                        if ( idx != adcontrols::MSFinder::npos && idx < fpkinf.size() ) {
+
+                            auto mspk = fpkinf.begin() + idx;
+                            mspk->formula( formula );
+                                                    
+                            adcontrols::annotation anno( formula, mspk->mass(), mspk->height(), int( idx ), int( mspk->height() ), adcontrols::annotation::dataFormula );
+                            fms.get_annotations() << anno;
+                            
+                            positive_candidate[ pk.candidate_index ] = *itChro;
+
+                            refined.push_back( QuanCandidate( formula, exactMass, mspk->mass(), std::make_pair( mspk->centroid_left(), mspk->centroid_right() ), pk.peak->peakTime(), pk.fcn ) );
+                        }
+                        
+                    }
+                }
+            }
+        }
+    } // for peaks
+
+    candidates_.clear();
+    for ( auto& candidate : positive_candidate )
+        candidates_.push_back( candidate.second );
+
+}
+                                         

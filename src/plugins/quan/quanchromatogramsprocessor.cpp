@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "quanchromatogramsprocessor.hpp"
+#include "quancandidate.hpp"
 #include "quanchromatograms.hpp"
 #include "quanchromatogram.hpp"
 #include "quandatawriter.hpp"
@@ -166,7 +167,8 @@ QuanChromatogramProcessor::find_candidates( std::vector< std::shared_ptr< QuanCh
     }
 
     for ( auto& t: targets ) {
-
+        // a target := a molecule|compound <- several trial chromatograms (0.002Da step)
+        
         std::vector < QuanChromatograms::computed_target_value > developped_target_values;
         t->compute_candidate_masses( 0.002, 0.010, developped_target_values );
         
@@ -174,30 +176,50 @@ QuanChromatogramProcessor::find_candidates( std::vector< std::shared_ptr< QuanCh
     }
 
     for ( auto& sp : spectra_ ) {
-        for ( auto& candidates: vec )
-            candidates->append_to_chromatogram( sp.first, std::get<idProfile>( sp.second ) );
+        for ( auto& candidate: vec )
+            candidate->append_to_chromatogram( sp.first, std::get<idProfile>( sp.second ) );
     }
 
     auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
-    
-    for ( auto& candidates: vec ) {
-        candidates->process_chromatograms( procm_ );
+
+    for ( auto& candidate: vec ) {
+        candidate->process_chromatograms( procm_ );
         if ( pCompounds )
-            candidates->identify_cpeak( pCompounds, procm_ );
+            candidate->identify( pCompounds, procm_ );
     }
+        
 }
 
+void
+QuanChromatogramProcessor::refine_candidates( std::vector< std::shared_ptr< QuanChromatograms > >& vec )
+{
+    for ( auto& candidate: vec ) {
+        // candidate has the parallel processed chromatograms against single target mass
+
+        std::vector< QuanCandidate > refined;
+
+        candidate->refine_chromatograms( refined, [=](uint32_t pos){
+                auto it = spectra_.find( pos );
+                if ( it != spectra_.end() )
+                    return spectra_[ pos ];
+                else
+                   return QuanChromatograms::spectra_type( 0, 0, 0, 0 );
+            });
+
+    }
+    
+    
+}
 
 std::wstring
-QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::string& formula, double error, QuanChromatograms::process_phase phase )
+QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::string& formula, double error, const wchar_t * trailer )
 {
 
     boost::filesystem::path path( dataSource );
 
     std::wstring title = ( boost::wformat( L"%s, %s %.3f" ) % path.stem().wstring() % adportable::utf::to_wstring( formula ) % error ).str();
 
-    if ( phase == QuanChromatograms::_1st )
-        title += L" (1st phase)";
+    title += trailer;  //L" (1st phase)";
 
     return title;
 }
@@ -206,12 +228,12 @@ void
 QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
                                                          , const wchar_t * dataSource
                                                          , std::shared_ptr< const QuanChromatograms > candidates
-                                                         , QuanChromatograms::process_phase phase )
+                                                         , const wchar_t * title_trailer )
 {
     for ( auto & chro : *candidates ) {
                 
         std::string formula = chro->formula_;
-        std::wstring title = make_title( dataSource, formula, chro->matchedMass_ - chro->exactMass_, phase );
+        std::wstring title = make_title( dataSource, formula, chro->matchedMass_ - chro->exactMass_, title_trailer );
                 
         if ( chro ) {
             
@@ -235,42 +257,6 @@ QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDa
     }
 }
 
-void
-QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
-                                                         , const wchar_t * dataSource
-                                                         , QuanChromatograms::process_phase phase
-                                                         , std::shared_ptr< adwidgets::Progress > progress )
-{
-
-
-#if 0
-    for ( auto it = chroms_->begin(); it != chroms_->end(); ++it ) {
-                
-        std::string formula = it->formula_;
-        std::wstring title = make_title( dataSource, formula, phase );
-                
-        if ( auto chro = it->cmgrs_[ phase ] ) {
-            
-            if ( adfs::file file = writer->write( *chro, title ) ) {
-
-                it->dataGuid_[ phase ] = file.name(); // dataGuid for Chromatogarm on adfs
-                
-                if ( auto pkres = it->pkres_[ phase ] ) {
-
-                    if ( ! it->resp_ )
-                        it->resp_ = std::make_shared< adcontrols::QuanResponse >();
-
-                    it->resp_->dataGuid_ = it->dataGuid_[ phase ];
-                            
-                    auto afile = writer->attach< adcontrols::PeakResult >( file, *pkres, pkres->dataClass() );
-                    writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
-                }
-            }
-        }
-        progress && (*progress)();                    
-    }
-#endif
-}
 
 //static
 bool
@@ -278,8 +264,8 @@ QuanChromatogramProcessor::doCentroid( const adcontrols::MassSpectrum& profile
                         , const adcontrols::ProcessMethod& pm
                         , std::shared_ptr< adcontrols::MSPeakInfo >& pkInfo
                         , std::shared_ptr< adcontrols::MassSpectrum >& centroid
-                        , std::shared_ptr< adcontrols::MassSpectrum >& filtered ) {
-
+                        , std::shared_ptr< adcontrols::MassSpectrum >& filtered )
+{
     pkInfo = std::make_shared< adcontrols::MSPeakInfo >();
     centroid = std::make_shared< adcontrols::MassSpectrum >();
     filtered.reset();
@@ -302,91 +288,6 @@ QuanChromatogramProcessor::doCentroid( const adcontrols::MassSpectrum& profile
             return QuanSampleProcessor::doCentroid( *pkInfo, *centroid, profile, *pCentroidMethod );
         }
     }
-    return false;
-}
-
-size_t
-QuanChromatogramProcessor::collect_candidate_spectra( std::shared_ptr< adwidgets::Progress > progress )
-{
-    size_t n = 0;
-#if 0
-    for ( auto it = chroms_->begin(); it != chroms_->end(); ++it ) {
-
-        progress && ( *progress )( );
-
-        auto pkres = it->pkres_[ QuanChromatograms::_1st ];
-
-        if ( pkres ) {
-
-            auto pk = pkres->peaks().find_peakId( it->resp_->idx_ );
-
-            if ( pk != pkres->peaks().end() ) {
-
-                if ( pk->topPos() < it->indecies_.size() ) {
-
-                    auto npos = it->indecies_[ pk->topPos() ]; // bin# on chrmatogram --> scan# on raw data
-                    auto spIt = spectra_.find( npos );
-
-                    if ( spIt != spectra_.end() ) {
-                        ++n;
-
-                        it->profile_ = std::get<idProfile>( spIt->second );
-                        it->filtered_ = std::get< idFiltered >( spIt->second );
-                        it->centroid_ = std::get< idCentroid >( spIt->second );
-                        it->mspeaks_  = std::get< idMSPeakInfo >( spIt->second );
-#if 0
-                        std::shared_ptr< adcontrols::MSPeakInfo > pkInfo;
-                        std::shared_ptr< adcontrols::MassSpectrum > centroid;
-                        std::shared_ptr< adcontrols::MassSpectrum > filtered;
-
-                        if ( doCentroid( *spIt->second, *procm_, pkInfo, centroid, filtered ) ) {
-                            if ( filtered )
-                                it->filtered_ = filtered;
-
-                            it->centroid_ = centroid;
-                            it->mspeaks_ = pkInfo;
-                            ++n;
-                        }
-#endif
-                    }
-                }
-            }
-        }
-    }
-#endif
-    return n;
-}
-
-bool
-QuanChromatogramProcessor::assign_mspeak( const adcontrols::MSFinder& find, QuanChromatogram& c )
-{
-#if 0
-    if ( c.centroid_ ) {
-        
-        auto& fms = adcontrols::segment_wrapper<>( *c.centroid_ )[ c.idxfcn_.second ];
-
-        size_t idx = find( fms, c.exactMass_ );
-
-        if ( idx != adcontrols::MSFinder::npos ) {
-            
-            c.idxfcn_.first = idx;
-            c.matchedMass_ = fms.getMass( idx );
-            
-            auto pkinf = adcontrols::segment_wrapper< adcontrols::MSPeakInfo >( *c.mspeaks_ )[ c.idxfcn_.second ];
-            if ( idx < pkinf.size() ) {
-                
-                auto pk = pkinf.begin() + idx;
-                pk->formula( c.formula_ );
-                adcontrols::annotation anno( c.formula_, pk->mass(), pk->height(), int( idx ), pk->height(), adcontrols::annotation::dataFormula );
-                fms.get_annotations() << anno;
-                
-                c.mswidth_ = std::make_pair( pk->centroid_left(), pk->centroid_right() );
-
-                return true;
-            }
-        }
-    }
-#endif
     return false;
 }
 
@@ -469,7 +370,12 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
     find_candidates( candidates_v );
 
     for ( auto& candidates: candidates_v )
-        save_candidate_chromatograms( writer, sample.dataSource(), candidates, QuanChromatograms::_1st );
+        save_candidate_chromatograms( writer, sample.dataSource(), candidates, L"(1st phase)" );
+
+    refine_candidates( candidates_v );
+
+    for ( auto& candidates: candidates_v )
+        save_candidate_chromatograms( writer, sample.dataSource(), candidates, L"(2nd phase)" );
     
 #if 0
     process_chromatograms( processor, QuanChromatograms::_1st );

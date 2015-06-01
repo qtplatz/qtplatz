@@ -46,6 +46,7 @@ QuanChromatogram::QuanChromatogram( uint32_t fcn
                                                                                  , matchedMass_( matchedMass )
                                                                                  , msrange_( range )
                                                                                  , chromatogram_( std::make_shared< adcontrols::Chromatogram >() )
+                                                                                 , peakId_( -1 )
 {
 }
         
@@ -56,7 +57,7 @@ QuanChromatogram::append( uint32_t pos, double time, double value )
     ( *chromatogram_ ) << std::make_pair( time, value );
 }
 
-void
+bool
 QuanChromatogram::identify( const adcontrols::QuanCompounds& cmpds )
 {
     if ( peakinfo_ ) {
@@ -85,7 +86,8 @@ QuanChromatogram::identify( const adcontrols::QuanCompounds& cmpds )
                             it = next; // take closest one
                         
                     }
-                    
+
+                    peakId_ = it->peakId();
                     it->formula( cmpd.formula() );
                     auto text = adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( cmpd.formula() ) );
                     it->name( text );
@@ -96,5 +98,62 @@ QuanChromatogram::identify( const adcontrols::QuanCompounds& cmpds )
         }
         
     }
+    return is_identified();
 }
 
+bool
+QuanChromatogram::is_identified() const
+{
+    return peakId_ != uint32_t(-1);
+}
+
+uint32_t
+QuanChromatogram::identfied_peakid() const
+{
+    return peakId_;
+}
+
+const adcontrols::Peak *
+QuanChromatogram::find_peak( uint32_t peakId ) const
+{
+    if ( peakinfo_ ) {
+        auto it = peakinfo_->peaks().find_peakId( peakId );
+        if ( it != peakinfo_->peaks().end() )
+            return &( *it );
+    }
+    return 0;
+}
+
+std::vector< adcontrols::Peak * >
+QuanChromatogram::peaks( bool identified )
+{
+    std::vector< adcontrols::Peak* > vec;
+
+    if ( peakinfo_ ) {
+
+        if ( peakId_ != uint32_t( -1 ) ) {
+
+            auto it = peakinfo_->peaks().find_peakId( peakId_ );
+            adcontrols::Peak * p = &( *it );
+            vec.push_back( p );
+
+        } else {
+
+            for ( auto& pk: peakinfo_->peaks() )
+                vec.push_back( &pk );
+
+        }
+    }
+    return vec;
+}
+
+uint32_t
+QuanChromatogram::pos_from_peak( const adcontrols::Peak& pk ) const
+{
+    if ( pk.topPos() < indecies_.size() ) {
+        
+        return indecies_[ pk.topPos() ];
+        
+    }
+    return (-1);
+}

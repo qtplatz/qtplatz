@@ -24,11 +24,12 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <array>
+#include <functional>
 #include <map>
 #include <memory>
-#include <array>
+#include <string>
+#include <vector>
 
 namespace adcontrols {
     class CentroidMethod;
@@ -53,6 +54,7 @@ namespace quan {
 
     class QuanSampleProcessor;
     class QuanChromatogram;
+    class QuanCandidate;
 
     class QuanChromatograms {
 
@@ -63,6 +65,7 @@ namespace quan {
         ~QuanChromatograms();
 
         typedef std::tuple< std::string, double, int, double, double > computed_target_value;
+
         static inline const std::string& target_formula( computed_target_value& t ) { return std::get<0>(t) ; }
         static inline double target_exactMass( computed_target_value& t ) { return std::get<1>( t ); }
         static inline int target_charge( computed_target_value& t ) { return std::get<2>( t ); }
@@ -72,11 +75,18 @@ namespace quan {
         QuanChromatograms( const std::string& formula
                            , const std::vector< computed_target_value >& target_values );
 
-        // QuanChromatograms& operator << ( const std::tuple< std::tuple< std::formula, double, int /* charge */ >, double double >& );
-
         void append_to_chromatogram( size_t pos, std::shared_ptr<const adcontrols::MassSpectrum> );
         void process_chromatograms( std::shared_ptr< const adcontrols::ProcessMethod > pm );
-        void identify_cpeak( const adcontrols::QuanCompounds *, std::shared_ptr< const adcontrols::ProcessMethod > pm );
+        bool identify( const adcontrols::QuanCompounds *, std::shared_ptr< const adcontrols::ProcessMethod > pm );
+
+        enum { idProfile, idCentroid, idFiltered, idMSPeakInfo };
+
+        typedef std::tuple< std::shared_ptr< adcontrols::MassSpectrum >
+                            , std::shared_ptr< adcontrols::MassSpectrum >
+                            , std::shared_ptr< adcontrols::MassSpectrum >
+                            , std::shared_ptr< adcontrols::MSPeakInfo> > spectra_type;
+
+        void refine_chromatograms( std::vector< QuanCandidate >& refined, std::function<spectra_type( uint32_t pos )> reader );
         
         enum process_phase { _1st, _2nd };
 
@@ -89,8 +99,9 @@ namespace quan {
         const_iterator begin() const { return candidates_.begin(); }
         const_iterator end() const { return candidates_.end(); }
 
-        typedef std::tuple< std::string, double > target_type;
-        
+        void getPeaks( std::vector< std::pair< uint32_t, adcontrols::Peak * > >&, bool identified_only = true );
+        uint32_t posFromPeak( uint32_t candidate_index, const adcontrols::Peak& ) const;
+
     private:
         std::string formula_;
         std::vector< computed_target_value > target_values_; // exact, matched, width
@@ -106,6 +117,7 @@ namespace quan {
         double uptime_;
         std::shared_ptr< adcontrols::MSLockMethod > mslockm_;
         std::shared_ptr< adcontrols::lockmass > mslock_;
+        bool identified_;
     };
 
 }

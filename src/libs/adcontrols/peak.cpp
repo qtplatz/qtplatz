@@ -165,6 +165,18 @@ Peak::formula( const char * formula )
     formula_ = formula ? formula : "";
 }
 
+void
+Peak::userData( uint64_t v )
+{
+    userData_ = v;
+}
+
+uint64_t
+Peak::userData() const
+{
+    return userData_;
+}
+
 long
 Peak::appliedFunctions() const
 {

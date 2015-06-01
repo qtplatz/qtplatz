@@ -56,10 +56,11 @@ namespace quan {
         void correct_baseline( adcontrols::MassSpectrum& profile );
 
         void find_candidates( std::vector< std::shared_ptr< QuanChromatograms > >& );
+        void refine_candidates( std::vector< std::shared_ptr< QuanChromatograms > >& );
         
         void process_chromatograms( QuanSampleProcessor& sampleprocessor, QuanChromatograms::process_phase phase );
 
-        static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, double error, QuanChromatograms::process_phase phase );
+        static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, double error, const wchar_t * trailer = L"" );
 
         void save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
                                            , const wchar_t * dataSource
@@ -69,7 +70,7 @@ namespace quan {
         void save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
                                            , const wchar_t * dataSource
                                            , std::shared_ptr< const QuanChromatograms >
-                                           , QuanChromatograms::process_phase phase );
+                                           , const wchar_t * title_trailer = L"" );
 
         static bool doCentroid( const adcontrols::MassSpectrum& profile
                                 , const adcontrols::ProcessMethod& pm

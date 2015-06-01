@@ -38,6 +38,7 @@ namespace adcontrols {
     class MSLockMethod;
     class MSPeakInfo;
     class PeakResult;
+    class Peak;
     class ProcessMethod;
     class QuanCompounds;
     class QuanResponse;
@@ -56,6 +57,11 @@ namespace quan {
         QuanChromatogram& operator = ( const QuanChromatogram& ) = delete;
 
     public:
+        uint32_t candidate_index() const { return candidate_index_; }
+        uint32_t fcn() const { return fcn_; }
+        double matchedMass() const { return matchedMass_; }
+        double exactMass() const { return exactMass_; }
+        
         uint32_t fcn_;
         uint32_t candidate_index_;
         
@@ -69,9 +75,6 @@ namespace quan {
         
         std::vector< uint32_t > indecies_;
         std::shared_ptr< adcontrols::QuanResponse > resp_;
-        std::shared_ptr< adcontrols::MassSpectrum > profile_;
-        std::shared_ptr< adcontrols::MassSpectrum > filtered_;
-        std::shared_ptr< adcontrols::MassSpectrum > centroid_;
         std::shared_ptr< adcontrols::MSPeakInfo > mspeaks_;
         std::pair< double, double > msrange_;
 
@@ -79,10 +82,17 @@ namespace quan {
         
         void append( uint32_t pos, double time, double value );
 
-        void identify( const adcontrols::QuanCompounds& );
+        bool identify( const adcontrols::QuanCompounds& );
+        bool is_identified() const;
+        uint32_t identfied_peakid() const;
+        const adcontrols::Peak * find_peak( uint32_t peakId ) const;
+        uint32_t pos_from_peak( const adcontrols::Peak& ) const;
+        std::vector< adcontrols::Peak * > peaks( bool identified );
         
         inline bool operator < ( const QuanChromatogram& t ) const { return exactMass_ < t.exactMass_; }
+    private:
+        uint32_t peakId_;
     };
 
-}
+} 
 

@@ -61,6 +61,7 @@ set( quan_SOURCES
   datasequencetable.cpp  
   compoundswidget.cpp
   compoundstable.cpp
+  quancandidate.cpp
   quanconfigform.cpp
   quanconfigwidget.cpp
   quanchromatogram.cpp  
@@ -106,6 +107,7 @@ set( quan_HEADERS
   compoundstable.hpp
   quanconfigform.hpp
   quanconfigwidget.hpp
+  quancandidate.hpp
   quanchromatogram.hpp  
   quanchromatograms.hpp
   quanchromatogramsprocessor.hpp
