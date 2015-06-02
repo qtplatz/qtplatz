@@ -46,6 +46,7 @@ QuanChromatogram::QuanChromatogram( uint32_t fcn
                                                                                  , matchedMass_( matchedMass )
                                                                                  , msrange_( range )
                                                                                  , chromatogram_( std::make_shared< adcontrols::Chromatogram >() )
+                                                                                 , peakinfo_( std::make_shared< adcontrols::PeakResult >() )
                                                                                  , peakId_( -1 )
 {
 }
@@ -125,24 +126,13 @@ QuanChromatogram::find_peak( uint32_t peakId ) const
 }
 
 std::vector< adcontrols::Peak * >
-QuanChromatogram::peaks( bool identified )
+QuanChromatogram::peaks()
 {
     std::vector< adcontrols::Peak* > vec;
 
     if ( peakinfo_ ) {
-
-        if ( peakId_ != uint32_t( -1 ) ) {
-
-            auto it = peakinfo_->peaks().find_peakId( peakId_ );
-            adcontrols::Peak * p = &( *it );
-            vec.push_back( p );
-
-        } else {
-
-            for ( auto& pk: peakinfo_->peaks() )
-                vec.push_back( &pk );
-
-        }
+        for ( auto& pk: peakinfo_->peaks() )
+            vec.push_back( &pk );
     }
     return vec;
 }

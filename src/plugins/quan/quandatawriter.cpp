@@ -549,7 +549,7 @@ FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
 }
 
 bool
-QuanDataWriter::insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, size_t, size_t > >& dataGuids )
+QuanDataWriter::insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, uint32_t, uint32_t > >& dataGuids )
 {
     if ( !dataGuid.empty() ) {
 

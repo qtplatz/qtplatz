@@ -60,6 +60,13 @@ PeakResult::PeakResult( const Baselines& bs
 {
 }
 
+void
+PeakResult::clear()
+{
+    baselines_.reset( new Baselines() );
+    peaks_.reset( new Peaks() );
+}
+
 const Baselines& 
 PeakResult::baselines() const
 {

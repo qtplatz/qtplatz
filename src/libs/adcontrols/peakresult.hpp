@@ -25,6 +25,7 @@
 #ifndef PEAKRESULT_HPP
 #define PEAKRESULT_HPP
 
+#include <compiler/disable_dll_interface.h>
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
@@ -51,10 +52,9 @@ namespace adcontrols {
         Peaks& peaks();
         void setPeaks( const Peaks& );
 
+        void clear();
+
 	private:
-#if defined _MSC_VER
-# pragma warning( disable: 4251 )
-#endif
         boost::scoped_ptr< Baselines > baselines_;
 		boost::scoped_ptr< Peaks > peaks_;
 

@@ -110,25 +110,15 @@ namespace quan {
         
         const_iterator begin() const { return qchro_.begin(); }
         const_iterator end() const { return qchro_.end(); }
-
-        void getPeaks( std::vector< std::pair< uint32_t, adcontrols::Peak * > >&, bool identified_only = true );
-        uint32_t posFromPeak( uint32_t candidate_index, const adcontrols::Peak& ) const;
-
         std::shared_ptr< QuanCandidate > quanCandidate() { return candidate_; }
 
     private:
         std::string formula_;
         std::vector< QuanTarget::target_value > target_values_; // exact, matched, width
-        
-        enum { idFormula, idExactMass };
-        typedef std::tuple< std::string, double > target_type;
-
         std::vector< std::shared_ptr< QuanChromatogram > > qchro_;
         std::shared_ptr< QuanCandidate > candidate_;
-        
-        adcontrols::QuanCompounds * compounds_;
-        double tolerance_;
         std::vector< double > references_;
+        double tolerance_;
         double uptime_;
         std::shared_ptr< adcontrols::MSLockMethod > mslockm_;
         std::shared_ptr< adcontrols::lockmass > mslock_;

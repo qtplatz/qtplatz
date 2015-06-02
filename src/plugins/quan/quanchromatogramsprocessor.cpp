@@ -222,19 +222,15 @@ QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDa
                 
         if ( chro ) {
             
-            if ( adfs::file file = writer->write( *chro->chromatogram_, title ) ) {
+            if ( adfs::file file = writer->write( *chro->chromatogram(), title ) ) {
 
                 chro->setDataGuid( file.name() ); // dataGuid for Chromatogarm on adfs
                 
-                if ( auto pkinfo = chro->peakinfo_ ) {
-                    
-                    if ( !chro->resp_ )
-                        chro->resp_ = std::make_shared< adcontrols::QuanResponse >();
+                if ( auto pkinfo = chro->peakResult() ) {
 
-                    chro->resp_->dataGuid_ = chro->dataGuid();
-                            
                     auto afile = writer->attach< adcontrols::PeakResult >( file, *pkinfo, pkinfo->dataClass() );
                     writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
+
                 }
             }
         }
@@ -414,7 +410,6 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
         if ( auto candidate = qchro->quanCandidate() ) {
 
             std::wstring dataGuid;
-
             if ( save_candidate_spectra( writer, dataGuid, sample.dataSource(), *candidate ) ) {
 
                 std::for_each( qchro->begin(), qchro->end(), [=] ( std::shared_ptr<QuanChromatogram> c ) {
@@ -427,41 +422,46 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
     // identify all
 	if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
         for ( auto& qchro: qcrms_v ) {
-            std::for_each( qchro->begin(), qchro->end(), [=] ( std::shared_ptr<QuanChromatogram> c ) {
-                    //auto peaks = c->identified_peaks( pCompounds );
+
+            save_candidate_chromatograms( writer, sample.dataSource(), qchro, L"(final)" );
+
+            std::for_each( qchro->begin(), qchro->end(), [&] ( std::shared_ptr<QuanChromatogram> c ) {
+
+                    std::string formula = c->formula();
+                    auto itCmpd = std::find_if( pCompounds->begin(), pCompounds->end(), [c] ( const adcontrols::QuanCompound& cmpd ) { return cmpd.formula() == c->formula(); } );
+                    if ( itCmpd != pCompounds->end() ) {
+
+                        auto& peaks = c->peakResult()->peaks();
+                        auto& pk = std::find_if( peaks.begin(), peaks.end(), [c] ( const adcontrols::Peak& p ) { return std::string( p.formula() ) == c->formula(); } );
+
+                        if ( pk != peaks.end() ) {
+
+                            adcontrols::QuanResponse resp;
+
+                            resp.dataGuid_ = c->dataGuid();
+                            resp.mass_ = c->matchedMass();
+                            resp.formula( c->formula().c_str() );
+                            resp.uuid_cmpd( itCmpd->uuid() );
+                            resp.uuid_cmpd_table( pCompounds->uuid() );
+                            resp.idx_ = pk->peakId();
+                            resp.fcn_ = c->fcn();
+                            resp.intensity_ = pk->peakArea();
+                            resp.amounts_ = 0;
+                            resp.tR_ = double( adcontrols::timeutil::toMinutes( pk->peakTime() ) );
+
+                            sample << resp;
+                        }
+                    }
                 });
         }
     }
 
     for ( auto& qchro : qcrms_v ) {
-        save_candidate_chromatograms( writer, sample.dataSource(), qchro, L"(final)" );
-        // for ( auto & c : *qchro ) {
-        //     c->dataGuid_
-        // }
+
+        for ( auto & c : *qchro )
+            writer->insert_table( c->dataGuid(), c->referenceDataGuids() );
+        
     }
-    
-#if 0
-    process_chromatograms( processor, QuanChromatograms::_2nd );
-    std::for_each( chroms_->begin(), chroms_->end(), [=]( QuanChromatogram& c ){
-            // c.resp_ will override
-            identify_cpeak( *c.resp_, c.formula_, c.cmgrs_[ QuanChromatograms::_2nd ], c.pkres_[ QuanChromatograms::_2nd ] );
-            c.resp_->mass_ = c.matchedMass_;
-        });
-
-    // save chromatograms
-    for ( auto phase: { QuanChromatograms::_1st, QuanChromatograms::_2nd } )
-        save_candidate_chromatograms( writer, sample.dataSource(), phase, progress );
-
-    // save reference dataGuids
-    std::for_each( chroms_->begin(), chroms_->end(), [=]( QuanChromatogram& c ){
-            for ( auto guid: c.dataGuid_ )
-                writer->insert_table( guid, c.dataGuids_ );
-        });
-    
-    std::for_each( chroms_->begin(), chroms_->end()
-                   , [&] ( const QuanChromatogram& c ) { if ( c.resp_ ) sample << *c.resp_; } );
-
-#endif
 }
 
 void

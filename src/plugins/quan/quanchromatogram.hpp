@@ -61,33 +61,44 @@ namespace quan {
 
         uint32_t candidate_index() const { return candidate_index_; }
         uint32_t fcn() const { return fcn_; }
+
         double matchedMass() const { return matchedMass_; }
         double exactMass() const { return exactMass_; }
 
         void setDataGuid( const std::wstring& dataGuid );
         const std::wstring& dataGuid() const;
+
         void setReferenceDataGuid( const std::wstring& dataGuid, uint32_t idx, uint32_t fcn );
+
         const std::vector< std::tuple< std::wstring, uint32_t, uint32_t > >& referenceDataGuids() { return dataGuids_; }
+
         uint32_t candidate_index() { return candidate_index_; }
+
         const std::string& formula() { return formula_; }
 
         void append( uint32_t pos, double time, double value );
 
         bool identify( const adcontrols::QuanCompounds&, const std::string& formula );
 
+
         bool is_identified() const;
         uint32_t identfied_peakid() const;
+
         const adcontrols::Peak * find_peak( uint32_t peakId ) const;
+        std::vector< adcontrols::Peak * > find_peaks( const std::string& formula );
+
         uint32_t pos_from_peak( const adcontrols::Peak& ) const;
-        std::vector< adcontrols::Peak * > peaks( bool identified );
+        std::vector< adcontrols::Peak * > peaks();
         
         inline bool operator < ( const QuanChromatogram& t ) const { return exactMass_ < t.exactMass_; }
 
+        std::shared_ptr< adcontrols::Chromatogram > chromatogram() { return chromatogram_; }
+        std::shared_ptr< adcontrols::PeakResult> peakResult()      { return peakinfo_; }
+
+    private:
         std::shared_ptr< adcontrols::Chromatogram > chromatogram_;
         std::shared_ptr< adcontrols::PeakResult> peakinfo_;
-        std::shared_ptr< adcontrols::QuanResponse > resp_;
         
-    private:
         std::wstring dataGuid_;
         std::vector< std::tuple< std::wstring, uint32_t, uint32_t> > dataGuids_;  // reference spectra (guid,idx,fcn)
         uint32_t fcn_;
