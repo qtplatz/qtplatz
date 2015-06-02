@@ -146,7 +146,7 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
                 }
 
                 auto chro = std::find_if( begin(), end()
-                                          , [=] ( std::shared_ptr<QuanChromatogram>& c ) { return c->fcn_ == fcn && c->candidate_index_ == candidate_index; } );
+                                          , [=] ( std::shared_ptr<QuanChromatogram>& c ) { return c->fcn() == fcn && c->candidate_index() == candidate_index; } );
                 if ( chro == end() ) {
                     qchro_.push_back( std::make_shared< QuanChromatogram >( fcn, candidate_index, formula_, m.exactMass, m.matchedMass, std::make_pair( lMass, uMass ) ) );
                     chro = qchro_.end() - 1;
@@ -199,7 +199,7 @@ QuanChromatograms::identify( const adcontrols::QuanCompounds * cmpds
 
     for ( auto& c : qchro_ ) {
 
-        if ( c->identify( *cmpds ) )  // identified by retention time
+        if ( c->identify( *cmpds, c->formula() ) )  // identified by retention time, if formula match
             identified_ = true;
     }
 
@@ -269,8 +269,8 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
             auto maxIt = std::max_element( xpeaks.begin(), xpeaks.end(), []( const adcontrols::Peak * a, const adcontrols::Peak * b ){ return a->peakHeight() < b->peakHeight(); } );
             double h = ( *maxIt )->peakHeight();
 
-            ( *maxIt )->formula( c->formula_.c_str() );
-            ( *maxIt )->name( adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( c->formula_ ) ) );
+            ( *maxIt )->formula( c->formula().c_str() );
+            ( *maxIt )->name( adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( c->formula() ) ) );
 
             auto it = std::remove_if( xpeaks.begin(), xpeaks.end(), [h]( const adcontrols::Peak * a ){ return a->peakHeight() < h * 0.1; } );
             if ( it != xpeaks.end() )
@@ -394,8 +394,8 @@ QuanChromatograms::finalize( std::function<spectra_type(uint32_t)> read )
             auto maxIt = std::max_element( xpeaks.begin(), xpeaks.end()
                                            , []( const adcontrols::Peak * a, const adcontrols::Peak * b ){ return a->peakHeight() < b->peakHeight(); } );
             
-            ( *maxIt )->formula( c->formula_.c_str() );
-            ( *maxIt )->name( adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( c->formula_ ) ) );
+            ( *maxIt )->formula( c->formula().c_str() );
+            ( *maxIt )->name( adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( c->formula() ) ) );
         }
 
         for ( auto& pk: xpeaks ) {
@@ -406,9 +406,3 @@ QuanChromatograms::finalize( std::function<spectra_type(uint32_t)> read )
     } // for peaks
 }
 
-void
-QuanChromatograms::setReferenceDataGuid( const std::wstring& dataGuid )
-{
-    if ( candidate_ )
-        candidate_->setReferenceDataGuid( dataGuid );
-}

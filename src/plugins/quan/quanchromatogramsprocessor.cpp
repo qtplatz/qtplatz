@@ -217,21 +217,21 @@ QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDa
 {
     for ( auto & chro : *chromatograms ) {
                 
-        std::string formula = chro->formula_;
-        std::wstring title = make_title( dataSource, formula, chro->matchedMass_ - chro->exactMass_, title_trailer );
+        std::string formula = chro->formula();
+        std::wstring title = make_title( dataSource, formula, chro->matchedMass() - chro->exactMass(), title_trailer );
                 
         if ( chro ) {
             
             if ( adfs::file file = writer->write( *chro->chromatogram_, title ) ) {
 
-                chro->dataGuid_ = file.name(); // dataGuid for Chromatogarm on adfs
+                chro->setDataGuid( file.name() ); // dataGuid for Chromatogarm on adfs
                 
                 if ( auto pkinfo = chro->peakinfo_ ) {
                     
                     if ( !chro->resp_ )
                         chro->resp_ = std::make_shared< adcontrols::QuanResponse >();
 
-                    chro->resp_->dataGuid_ = chro->dataGuid_;
+                    chro->resp_->dataGuid_ = chro->dataGuid();
                             
                     auto afile = writer->attach< adcontrols::PeakResult >( file, *pkinfo, pkinfo->dataClass() );
                     writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
@@ -378,19 +378,20 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
             save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(1st phase)" );
 #endif
         find_candidates( qcrms_v1, candidates );
-
+#if 0
         for ( auto& qcrms : qcrms_v1 )
             save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(2nd phase)" );
-
+#endif
     } while ( 0 );
 
     // ---------- run quantitative analysis process ----------------
-    // process based on found mass
+    // process based on found mass -- QuanChromatograms now point single chromatogram
     std::vector< std::shared_ptr< QuanChromatograms > > qcrms_v;
     for ( auto& candidate : candidates ) {
         qcrms_v.push_back( std::make_shared< QuanChromatograms >( candidate.formula(), candidate ) );
     }
-    
+
+    // re-generate chromatograms
     for ( auto& sp : spectra_ ) {
         for ( auto& candidate : qcrms_v )
             candidate->append_to_chromatogram( sp.first, sp.second.profile );
@@ -398,17 +399,37 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
 
     auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
     for ( auto& qchro : qcrms_v ) {
+
         qchro->process_chromatograms( procm_ );
         if ( pCompounds )
-            qchro->identify( pCompounds, procm_ );
-        qchro->finalize( [=] ( uint32_t pos ) { auto it = spectra_.find( pos ); if ( it != spectra_.end() ) return it->second; else return QuanChromatograms::spectra_type(); } );
+            qchro->identify( pCompounds, procm_ ); // retention time id
+
+        qchro->finalize( [=] ( uint32_t pos ) {    // m/z id (if not identified yet)
+                auto it = spectra_.find( pos );
+                if ( it != spectra_.end() ) return it->second; else return QuanChromatograms::spectra_type(); } );
     }
 
+    // save reference spectra
     for ( auto& qchro : qcrms_v ) {
         if ( auto candidate = qchro->quanCandidate() ) {
+
             std::wstring dataGuid;
-            if ( save_candidate_spectra( writer, dataGuid, sample.dataSource(), *candidate ) )
-                qchro->setReferenceDataGuid( dataGuid );
+
+            if ( save_candidate_spectra( writer, dataGuid, sample.dataSource(), *candidate ) ) {
+
+                std::for_each( qchro->begin(), qchro->end(), [=] ( std::shared_ptr<QuanChromatogram> c ) {
+                        c->setReferenceDataGuid( dataGuid, candidate->idx(), candidate->fcn() );
+                    } );
+            }
+        }
+    }
+
+    // identify all
+	if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
+        for ( auto& qchro: qcrms_v ) {
+            std::for_each( qchro->begin(), qchro->end(), [=] ( std::shared_ptr<QuanChromatogram> c ) {
+                    //auto peaks = c->identified_peaks( pCompounds );
+                });
         }
     }
 
@@ -420,36 +441,6 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
     }
     
 #if 0
-    // save_candidate_spectra( writer, sample, progress );
-    std::for_each( chroms_->begin(), chroms_->end(), [=]( QuanChromatogram& c ){
-
-            std::wstring title = make_title( sample.dataSource(), c.formula_, QuanChromatograms::_2nd );
-            
-            if ( auto profile = c.profile_ ) {
-
-                if ( adfs::file file = writer->write( *profile, title ) ) {
-                    
-                    c.dataGuids_.push_back( std::make_tuple( file.name(), c.idxfcn_.first, c.idxfcn_.second ) );
-                    
-                    if ( auto filtered = c.filtered_ ) {
-                        writer->attach< adcontrols::MassSpectrum >( file, *filtered, dataproc::Constants::F_DFT_FILTERD );
-                    }
-                    if ( auto centroid = c.centroid_ ) {
-                        auto afile = writer->attach< adcontrols::MassSpectrum >( file, *centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
-                        writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
-                    }
-                    if ( auto pkinfo = c.mspeaks_ ) {
-                        writer->attach< adcontrols::MSPeakInfo >( file, *pkinfo, dataproc::Constants::F_MSPEAK_INFO );
-                    }
-                }
-            }
-        });
-
-    for ( auto& sp : spectra_ ) {
-        chroms_->process2nd( sp.first, *std::get< idProfile >( sp.second ) );
-        progress && ( *progress )();        
-    }
-    
     process_chromatograms( processor, QuanChromatograms::_2nd );
     std::for_each( chroms_->begin(), chroms_->end(), [=]( QuanChromatogram& c ){
             // c.resp_ will override

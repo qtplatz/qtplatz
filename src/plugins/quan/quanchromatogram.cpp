@@ -58,7 +58,7 @@ QuanChromatogram::append( uint32_t pos, double time, double value )
 }
 
 bool
-QuanChromatogram::identify( const adcontrols::QuanCompounds& cmpds )
+QuanChromatogram::identify( const adcontrols::QuanCompounds& cmpds, const std::string& formula )
 {
     if ( peakinfo_ ) {
 
@@ -156,4 +156,22 @@ QuanChromatogram::pos_from_peak( const adcontrols::Peak& pk ) const
         
     }
     return (-1);
+}
+
+void
+QuanChromatogram::setReferenceDataGuid( const std::wstring& dataGuid, uint32_t idx, uint32_t fcn )
+{
+    dataGuids_.push_back( std::make_tuple( dataGuid, idx, fcn ) );
+}
+
+void
+QuanChromatogram::setDataGuid( const std::wstring& dataGuid )
+{
+    dataGuid_ = dataGuid;
+}
+
+const std::wstring&
+QuanChromatogram::dataGuid() const
+{
+    return dataGuid_;
 }

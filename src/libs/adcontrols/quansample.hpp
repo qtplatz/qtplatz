@@ -143,9 +143,6 @@ namespace adcontrols {
 
     private:
 
-#   if  defined _MSC_VER
-#   pragma warning(disable:4251)
-#   endif
         class impl;
         std::unique_ptr< impl > impl_;
 

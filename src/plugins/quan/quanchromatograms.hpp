@@ -115,7 +115,6 @@ namespace quan {
         uint32_t posFromPeak( uint32_t candidate_index, const adcontrols::Peak& ) const;
 
         std::shared_ptr< QuanCandidate > quanCandidate() { return candidate_; }
-        void setReferenceDataGuid( const std::wstring& dataGuid );
 
     private:
         std::string formula_;
