@@ -70,7 +70,7 @@ namespace quan {
         portfolio::Portfolio * portfolio() { return portfolio_.get(); }
         
     private:
-        friend class QuanChromatograms;
+        friend class QuanChromatogramProcessor;
         std::wstring path_;
         const adcontrols::LCMSDataset * raw_;
         std::vector< adcontrols::QuanSample > samples_;

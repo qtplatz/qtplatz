@@ -28,6 +28,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <compiler/disable_dll_interface.h>
 #include <boost/serialization/version.hpp>
 #include <memory>
 
@@ -45,7 +46,7 @@ namespace adcontrols {
         static const wchar_t * dataClass() { return L"adcontrols::MSChromatogramMethod"; }
 
         enum DataSource { Profile, Centroid };
-        enum WidthMethod { widthInDa, widthInRP };
+        enum WidthMethod { widthInDa, widthInRP, widthPeakFWHM };
 
         DataSource dataSource() const;
         void dataSource( enum DataSource );
@@ -64,10 +65,6 @@ namespace adcontrols {
         bool operator == ( const MSChromatogramMethod& ) const;
         
     private:
-
-#   if  defined _MSC_VER
-#   pragma warning(disable:4251)
-#   endif
 
         class impl;
         std::unique_ptr< impl > impl_;

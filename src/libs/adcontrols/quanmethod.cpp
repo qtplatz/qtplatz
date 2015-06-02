@@ -40,6 +40,8 @@ QuanMethod::QuanMethod() : eq_(idCalibLinear)
                          , replicates_(1)
                          , use_bracketing_( true )
                          , bracketing_( idBracketStandard )
+                         , debug_level_( 0 )
+                         , save_on_datasource_( false )
 {
 }
 
@@ -54,9 +56,11 @@ QuanMethod::QuanMethod( const QuanMethod& t ) : ident_( t.ident_ )
                                               , levels_( t.levels_)
                                               , replicates_( t.replicates_ )
                                               , polynomialOrder_( t.polynomialOrder_ )
-    , quanMethodFilename_( t.quanMethodFilename_ )
-    , quanCompoundsFilename_( t.quanCompoundsFilename_ )
-    , quanSequenceFilename_( t.quanSequenceFilename_ )
+                                              , quanMethodFilename_( t.quanMethodFilename_ )
+                                              , quanCompoundsFilename_( t.quanCompoundsFilename_ )
+                                              , quanSequenceFilename_( t.quanSequenceFilename_ )
+                                              , debug_level_( t.debug_level_ )
+                                              , save_on_datasource_( t.save_on_datasource_ )
 {
 }
 
@@ -180,3 +184,26 @@ QuanMethod::replicates( uint32_t v )
     replicates_ = v;
 }
 
+uint32_t
+QuanMethod::debug_level() const
+{
+    return debug_level_;
+}
+
+void
+QuanMethod::debug_level( uint32_t v )
+{
+    debug_level_ = v;
+}
+
+bool
+QuanMethod::save_on_datasource() const
+{
+    return save_on_datasource_;
+}
+
+void
+QuanMethod::save_on_datasource( bool v )
+{
+    save_on_datasource_ = v;
+}

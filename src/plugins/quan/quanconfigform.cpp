@@ -56,6 +56,8 @@ namespace quan {
             , idSpinReplicates
             , idCbxBracketing
             , idComboBracketing
+            , idComboDebugLevel
+            , idCbxSaveOnDataSource
             , idEnd
         };
         struct ui_accessor {
@@ -86,6 +88,8 @@ namespace quan {
                 case idSpinReplicates: return ui_->spinBox_2;
                 case idCbxBracketing: return ui_->checkBox;
                 case idComboBracketing: return ui_->comboBox_2;
+                case idComboDebugLevel: return ui_->comboBox_DebugLevel;
+                case idCbxSaveOnDataSource: return ui_->checkBox_2;
                 case idEnd:
                     break;
                 }
@@ -126,6 +130,10 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
         combo->clear();
         combo->insertItems( 0, QStringList() << tr("None") << tr("Standard") << tr("Moving(Overlapped)") << tr("Average") );
     }
+    if ( QComboBox * combo = dynamic_cast<QComboBox *>(accessor( idComboDebugLevel )) ) {
+        combo->clear();
+        combo->insertItems( 0, QStringList() << tr("None") << tr("2nd phase") << tr("1st phase") );
+    }
 }
 
 QuanConfigForm::~QuanConfigForm()
@@ -162,6 +170,13 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
         case adcontrols::QuanMethod::idCalibLinear:        combo->setCurrentIndex( 2 ); break;
         case adcontrols::QuanMethod::idCalibPolynomials:   combo->setCurrentIndex( 3 + order ); break;
         }
+    }
+
+    if ( auto combo = dynamic_cast<QComboBox *>( accessor( idComboBracketing ) ) ) {
+        combo->setCurrentIndex( m.debug_level() / 2 );
+    }
+    if ( auto cbx = dynamic_cast<QCheckBox *>(accessor( idCbxSaveOnDataSource )) ) {
+        cbx->setChecked( m.save_on_datasource() ? Qt::Checked : Qt::Unchecked );
     }
 
     if ( m.isChromatogram() ) {
@@ -222,6 +237,15 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
             m.equation( adcontrols::QuanMethod::idCalibPolynomials );
             m.polynomialOrder( idEq - 3 + 2 );
         }
+    }
+    
+    if ( auto combo = dynamic_cast<QComboBox *>( accessor( idComboDebugLevel ) ) ) {
+        uint32_t debuglevel = combo->currentIndex();
+        m.debug_level( debuglevel * 2 );  // 0, 2, 4
+    }
+    if ( auto cbx = dynamic_cast<QCheckBox *>(accessor( idCbxSaveOnDataSource )) ) {
+        bool save = cbx->isChecked();
+        m.save_on_datasource( save );
     }
 
     if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioChromatogram )) )

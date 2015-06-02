@@ -38,7 +38,7 @@ namespace adcontrols {
         DataSource dataSource_;
         WidthMethod widthMethod_;
         std::array< double, 2 > width_;
-        std::pair< double, double > mass_limits_;
+        std::pair< double, double > mass_limits_; // lower, upper
         
         friend class boost::serialization::access;
         template<class Archive>
@@ -57,7 +57,7 @@ namespace adcontrols {
         impl() : dataSource_( Profile )
                , widthMethod_( widthInDa )
                , mass_limits_( -1, -1 ) {
-            width_[ widthInDa ] = 0.001;
+            width_[ widthInDa ] = 0.002;
             width_[ widthInRP ] = 100000;
         }
 

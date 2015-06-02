@@ -100,6 +100,12 @@ namespace adcontrols {
         uint32_t replicates() const;
         void replicates( uint32_t );
 
+        uint32_t debug_level() const;
+        void debug_level( uint32_t );
+
+        bool save_on_datasource() const;
+        void save_on_datasource( bool );        
+
         const wchar_t * quanMethodFilename() const { return quanMethodFilename_.c_str(); }
         void quanMethodFilename( const wchar_t * d ) { quanMethodFilename_ = d; }
         const wchar_t * quanCompoundsFilename() const { return quanCompoundsFilename_.c_str(); }
@@ -119,14 +125,16 @@ namespace adcontrols {
         uint32_t levels_;
         uint32_t replicates_;
         uint32_t polynomialOrder_;
-
+        uint32_t debug_level_; // determine which intermediate results to be stored on database
+        bool save_on_datasource_;
+        
         std::wstring quanMethodFilename_;
         std::wstring quanCompoundsFilename_;
         std::wstring quanSequenceFilename_;
 
         friend class boost::serialization::access;
         template<class Archive>
-            void serialize( Archive& ar, const unsigned int ) {
+            void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
 
             ar & BOOST_SERIALIZATION_NVP( ident_ )
@@ -144,12 +152,16 @@ namespace adcontrols {
                 & BOOST_SERIALIZATION_NVP( quanCompoundsFilename_ )
                 & BOOST_SERIALIZATION_NVP( quanSequenceFilename_ )
                 ;
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( debug_level_ );
+                ar & BOOST_SERIALIZATION_NVP( save_on_datasource_ );
+            }
         };
 
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanMethod, 1 )
+BOOST_CLASS_VERSION( adcontrols::QuanMethod, 2 )
 
 #endif // QUANMETHOD_HPP

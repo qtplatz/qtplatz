@@ -303,55 +303,18 @@ QuanChromatogramProcessor::doCentroid( const adcontrols::MassSpectrum& profile
     return false;
 }
 
-#if 0
-bool
-QuanChromatogramProcessor::identify_cpeak( adcontrols::QuanResponse& resp
-                                           , const std::string& formula
-                                           , std::shared_ptr< adcontrols::Chromatogram > chro
-                                           , std::shared_ptr< adcontrols::PeakResult > pkResult )
-{
-	if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
-
-		auto itCompound = std::find_if( pCompounds->begin(), pCompounds->end(), [formula] ( const adcontrols::QuanCompound& c ) {
-			return c.formula() == formula;
-		} );
-
-		// Identify chromatographic peak
-		if ( pkResult ) {
-			auto& pks = pkResult->peaks();
-			if ( itCompound != pCompounds->end() && pks.size() > 0 ) {
-
-				auto pk = std::max_element( pks.begin(), pks.end()
-					, [] ( const adcontrols::Peak& a, const adcontrols::Peak& b ) { return a.peakHeight() < b.peakHeight(); } );
-
-				// assign peak name
-				pk->name( adportable::utf::to_wstring( formula ) );
-
-				// set response 
-				resp.formula( formula.c_str() );
-				resp.uuid_cmpd( itCompound->uuid() );
-				resp.uuid_cmpd_table( pCompounds->uuid() );
-				resp.formula( itCompound->formula() );
-				resp.idx_ = pk->peakId();
-				resp.fcn_ = chro->fcn();
-				//resp.mass_ = mass;
-				resp.intensity_ = pk->peakArea();
-				resp.amounts_ = 0;
-				resp.tR_ = double( adcontrols::timeutil::toMinutes( pk->peakTime() ) );
-				//resp.dataGuid_ = dataGuid;
-				return true;
-			}
-		}
-	}
-    return false;
-}
-#endif
-
 void
 QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::QuanSample& sample
                                , std::shared_ptr< QuanDataWriter > writer, std::shared_ptr< adwidgets::Progress > progress )
 {
     std::vector< QuanCandidate > candidates;
+    uint32_t debug_level = 0;
+    bool save_on_datasource = false;
+
+    if ( auto qm = procm_->find< adcontrols::QuanMethod >() ) {
+        debug_level = qm->debug_level();
+        save_on_datasource = qm->save_on_datasource();
+    }
 
     do { // first phase
         std::vector< std::shared_ptr< QuanTarget > > targets;
@@ -369,15 +332,19 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
 
         std::vector< std::shared_ptr< QuanChromatograms > > qcrms_v1;
         find_parallel_chromatograms( qcrms_v1, targets );
-#if 0
-        for ( auto& qcrms : qcrms_v1 )
-            save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(1st phase)" );
-#endif
+
+        if ( debug_level >= 4 ) {
+            for ( auto& qcrms : qcrms_v1 )
+                save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(1st phase)" );
+        }
+
         find_candidates( qcrms_v1, candidates );
-#if 0
-        for ( auto& qcrms : qcrms_v1 )
-            save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(2nd phase)" );
-#endif
+
+        if ( debug_level >= 2 ) {
+            for ( auto& qcrms : qcrms_v1 )
+                save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(2nd phase)" );
+        }
+
     } while ( 0 );
 
     // ---------- run quantitative analysis process ----------------
@@ -461,6 +428,54 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
         for ( auto & c : *qchro )
             writer->insert_table( c->dataGuid(), c->referenceDataGuids() );
         
+    }
+
+    if ( save_on_datasource ) {
+        
+        if ( auto portfolio = processor.portfolio() ) {
+
+            if ( auto folder = portfolio->addFolder( L"Chromatograms" ) ) {
+
+                for ( auto& qchro : qcrms_v ) {
+                    for ( auto & c : *qchro ) {
+                        
+                        std::wstring title = adportable::utf::to_wstring( c->formula() );
+                        while ( auto folium = folder.findFoliumByName( title ) ) {
+                            processor.fetch( folium );
+                            folder.removeFolium( folium );
+                        }
+                        if ( auto folium = folder.addFolium( title ) ) {
+                            folium.assign( c->chromatogram(), c->chromatogram()->dataClass() );
+                            portfolio::Folium att = folium.addAttachment( L"Peak Result" );
+                            if ( auto result = c->peakResult() )
+                                att.assign( result, result->dataClass() );
+                            att.addAttachment( L"Process Method" ).assign( procm_, procm_->dataClass() );
+                        }
+                    }
+                }
+            }
+#if 0
+            if ( auto folder = portfolio->addFolder( L"Spectra" ) ) {
+                
+                for ( auto& qchro : qcrms_v ) {
+                    std::wstring title = adportable::utf::to_wstring( c->formula() );
+                    if ( auto candidate = qchro->quanCandidate() ) {
+                        if ( auto profile = candidate->profile() ) {
+                            while ( auto folium = folder.findFoliumByName( title ) ) {
+                                processor.fetch( folium );
+                                folder.removeFolium( folium );
+                            }
+                            if ( auto folium = folder.addFolium( title ) ) {
+                                folium.assign( profile, profile->dataClass() );
+                            }
+                        }
+                    }
+                }
+            }
+#endif
+            if ( auto datafile = processor.datafile() )
+                datafile->saveContents( L"/Processed", *portfolio );
+        }
     }
 }
 
