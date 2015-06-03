@@ -48,6 +48,7 @@ namespace quan {
         QuanDataWriter( const std::wstring& path );
 
         bool open();
+        void remove( const std::wstring& title, const wchar_t * directory );
         adfs::file write( const adcontrols::MassSpectrum& ms, const std::wstring& tittle );
         adfs::file write( const adcontrols::ProcessMethod& );
         adfs::file write( const adcontrols::QuanSequence& );

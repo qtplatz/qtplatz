@@ -240,9 +240,10 @@ QuanResultWnd::handleResponseSelected( int respId )
                     auto refDataGuid = sql.get_column_value< std::wstring >( 0 );
                     auto idx = sql.get_column_value< uint64_t >( 1 );
                     auto fcn = sql.get_column_value< uint64_t >( 2 );
-                    auto d = conn->fetch( refDataGuid );
-                    dplot_->setData( d, idx, fcn, dataSource );
-                    cplot_->setData( d, idx, fcn, dataSource );
+                    if ( auto d = conn->fetch( refDataGuid ) ) {
+                        dplot_->setData( d, idx, fcn, dataSource );
+                        cplot_->setData( d, idx, fcn, dataSource );
+                    }
                 }
             }
 

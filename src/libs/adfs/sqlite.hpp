@@ -50,6 +50,7 @@ namespace adfs {
         sqlite( const sqlite& ) = delete;
         sqlite& operator = (const sqlite&) = delete;
         static uuid_format uuid_format_;
+        uint32_t fs_format_version_;
     public:
         ~sqlite();
         sqlite();
@@ -61,6 +62,8 @@ namespace adfs {
         bool close();
         void error_message( const char * msg );
         void register_error_handler( std::function<void( const char * )> );
+        void set_fs_format_version( uint32_t );
+        uint32_t fs_format_version() const;        
         static void uuid_storage_format( uuid_format );
         static uuid_format uuid_storage_format();
     };

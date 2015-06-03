@@ -82,6 +82,9 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
             internal::fs::prealloc( *db_, alloc );
 
         if ( internal::fs::format( *db_, filename, format_version_ ) ) {
+
+            db_->set_fs_format_version( format_version_ );
+
             sql.exec( "PRAGMA FOREIGN_KEYS = ON" );
             return true;
         }
@@ -101,6 +104,8 @@ filesystem::mount( const wchar_t * filename )
     if ( db_->open( filepath.c_str() ) ) {
 
         if ( internal::fs::mount( *db_, format_version_ ) ) {
+
+            db_->set_fs_format_version( format_version_ );
 
             if ( format_version_ >= 3 ) {
                 adfs::stmt sql( *db_ );

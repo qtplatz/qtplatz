@@ -50,7 +50,7 @@ namespace adfs {
 
         class fs {
         public:
-            static const int format_version = 3;
+            static const int format_version = 4;
             static bool format( sqlite& db, const std::wstring& filename, int& version );
             static bool format_superblock( sqlite& db, const std::wstring& filename );
             static bool format_directory( sqlite& db );

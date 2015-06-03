@@ -109,7 +109,7 @@ std::size_t
 file::write( std::size_t size, const char_t * p )
 {
     if ( internal::fs::write( *db_, rowid_, size, p ) ) {
-        commit(); // commit attribute -- TODO: this api is confusing, consider change!!! TH 14th Nov 2011
+        attributes::commit();
         return size;
     }
     return 0;

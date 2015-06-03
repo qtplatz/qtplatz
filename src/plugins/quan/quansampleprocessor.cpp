@@ -173,9 +173,6 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 } while ( pos );
                 chromatogram_processor->doit( *this, sample, writer, progress_ );
                 writer->insert_table( sample ); // once per sample
-#if ! defined _DEBUG
-                // datafile_->saveContents( L"/Processed", *portfolio_ );
-#endif
                 (*progress_)();
             }
             break; // ignore for this version

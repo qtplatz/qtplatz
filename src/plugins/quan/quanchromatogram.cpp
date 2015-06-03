@@ -31,8 +31,28 @@
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/utf.hpp>
+#include <adportable/float.hpp>
+
+namespace quan {
+    namespace quanchromatogram {
+        namespace adc = adcontrols;        
+
+        struct tRComp {
+
+            bool operator () ( const adc::Peak& pk, double refTime ) { 
+                return ( pk.peakTime() - pk.peakWidth() ) < refTime;  }
+            bool operator () ( double refTime, const adc::Peak& pk ) { return 
+                refTime < ( pk.peakTime() + pk.peakWidth() );  }
+            
+            bool operator () ( const adc::QuanCompound& cmpd, double refTime ) { return cmpd.tR() < refTime; }
+            bool operator () ( double refTime, const adc::QuanCompound& cmpd ) { return refTime < cmpd.tR(); }
+        };
+
+    }
+}
 
 using namespace quan;
+using namespace quan::quanchromatogram;
 
 QuanChromatogram::QuanChromatogram( uint32_t fcn
                                     , uint32_t candidate_index
@@ -62,42 +82,42 @@ bool
 QuanChromatogram::identify( const adcontrols::QuanCompounds& cmpds, const std::string& formula )
 {
     if ( peakinfo_ ) {
+        using adcontrols::QuanCompound;
+        namespace adc = adcontrols;
+
+        // auto p = std::make_pair( std::lower_bound( cmpds.begin(), cmpds.end(), massrange_.first, [=](const QuanCompound& a, double m) { return a.mass() < m;} )
+        //                          , std::upper_bound( cmpds.begin(), cmpds.end(), massrange_.second, [=](double m, const QuanCompound& a) { return m < a.mass(); } ) );
+
+        auto cmpd = std::find_if( cmpds.begin(), cmpds.end(), [formula]( const QuanCompound& a ){ return a.formula() == formula; } );
+        if ( cmpd == cmpds.end() )
+            return false;
+
+        double refSeconds = cmpd->tR();
+        if ( adportable::compare<double>::essentiallyEqual( refSeconds, 0.0 ) )
+            return false;  // no time specified
 
         auto& peaks = peakinfo_->peaks();
+        if ( peaks.size() == 0 )
+            return false;
 
-        for ( auto& cmpd : cmpds ) {
-
-            double refSeconds = cmpd.tR();
-            double tolerance = ( msrange_.second - msrange_.first ) * 10;
-            double lMass = cmpd.mass() - tolerance;
-            double uMass = cmpd.mass() + tolerance;
-
-            if ( lMass < cmpd.mass() && cmpd.mass() < uMass ) {
-                
-                auto it = std::find_if( peaks.begin(), peaks.end(), [refSeconds] ( const adcontrols::Peak& pk ) {
-                        return (pk.peakTime() - pk.peakWidth()) < refSeconds && refSeconds < ( pk.peakTime() + pk.peakWidth() ); } );
-                
-                if ( it != peaks.end() ) {
-                    
-                    for ( auto next = it; next != peaks.end() &&
-                          ( ( ( next->peakTime() - next->peakWidth() ) < refSeconds ) &&
-                              ( refSeconds < ( next->peakTime() + next->peakWidth() ) ) ); ++next ) {
-                        
-                        if ( std::abs( it->peakTime() - refSeconds ) > std::abs( next->peakTime() - refSeconds ) )
-                            it = next; // take closest one
-                        
-                    }
-
-                    peakId_ = it->peakId();
-                    it->formula( cmpd.formula() );
-                    auto text = adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( cmpd.formula() ) );
-                    it->name( text );
-                    
-                }
-                
-            }
-        }
+        // find first occurance that refSeconds is grater than peak start, wich can be out of scope
+        auto pk = std::lower_bound( peaks.begin(), peaks.end(), refSeconds
+                                    , [] ( const adc::Peak& a, double t ) { return a.peakTime() < ( t - a.peakTime() - a.peakWidth() / 2 ); } );
         
+        if ( pk == peaks.end() )
+            return false;
+
+        while ( ( pk + 1 ) != peaks.end() ) {
+            if ( std::abs( pk->peakTime() - refSeconds ) > std::abs( ( pk + 1 )->peakTime() - refSeconds ) )
+                ++pk;
+            else
+                break;
+        }
+        if ( pk->startTime() < refSeconds && refSeconds < pk->endTime() ) {
+            pk->formula( formula.c_str() );
+            pk->name( adc::ChemicalFormula::formatFormula( adportable::utf::to_wstring( pk->formula() ) ) );
+            peakId_ = pk->peakId();
+        }
     }
     return is_identified();
 }

@@ -53,10 +53,7 @@ namespace adfs {
         file( sqlite&, boost::int64_t rowid, const std::wstring& name, bool is_attachment = false );
 
     public:
-
         bool empty() const;
-        // void operator = ( boost::any& );
-        // operator boost::any& ();
 
         std::vector< file > attachments();
         const std::vector< file > attachments() const;

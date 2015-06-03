@@ -75,6 +75,37 @@ QuanDataWriter::open()
     return true;
 }
 
+void
+QuanDataWriter::remove( const std::wstring& title, const wchar_t * directory )
+{
+    if ( adfs::folder folder = fs_.addFolder( directory ) ) { // directory := L"/Processed/Spectra" | L"/Processed/Chromatograms" ...
+
+        auto vec = folder.files();
+        std::for_each( vec.begin(), vec.end(), [=] ( const adfs::file& f ) {
+            if ( f.attribute( L"name" ) == title ) {
+
+                adfs::stmt sql( fs_.db() );
+                sql.begin();
+
+                auto atts = f.attachments();
+                atts.push_back( f );  // append 'file' at the end if attachements
+
+                for ( auto att : atts ) {
+                    auto guid = att.name();
+                    sql.prepare( "DELETE FROM file WHERE fileid = (SELECT fileid FROM directory WHERE name = ?)" );
+                    sql.bind( 1 ) = adportable::utf::to_utf8( guid );
+                    if ( sql.step() == adfs::sqlite_done ) {
+                        sql.prepare( "DELETE FROM directory WHERE name = ?" );
+                        sql.bind( 1 ) = adportable::utf::to_utf8( guid );
+                        sql.step();
+                    }
+                }
+                sql.commit();
+            }
+        } );
+    }
+}
+
 adfs::file
 QuanDataWriter::write( const adcontrols::MassSpectrum& ms, const std::wstring& tittle )
 {
@@ -409,9 +440,6 @@ QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
     sql.begin();
     for ( auto& sample: t ) {
 
-//         if ( sql.prepare( "INSERT INTO QuanSample\
-// (uuid,idSequence,uidQuanSequence,row,name,dataType,dataSource,dataGuid,sampleType,level,ISTDID,injVol,amountsAdded,channel,dataGeneration,data_first,data_second)\
-// SELECT ?,id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {
         if ( sql.prepare( "INSERT INTO QuanSample\
 (uuid,idSequence,uidQuanSequence,row,name,dataType,dataSource,sampleType,level,ISTDID,injVol,amountsAdded,channel,dataGeneration,data_first,data_second) \
 SELECT ?,id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {

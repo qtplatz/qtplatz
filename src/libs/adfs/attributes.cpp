@@ -145,14 +145,46 @@ attributes::commit()
     if ( dirty_ ) {
         std::string device;
         if ( adfs::cpio::serialize( *this, device ) ) {
+
+            uint32_t format_version = fetch_format_version();
+
             adfs::stmt sql( db() );
-            if ( sql.prepare( "UPDATE directory SET attr = ? WHERE rowid = ?" ) ) {
-                sql.bind( 1 ) = blob( device.size(), reinterpret_cast<const int8_t *>(device.data()) );
-                sql.bind( 2 ) = rowid();
-                if ( sql.step() == adfs::sqlite_done )
-                    dirty_ = false;
+            if ( format_version >= 4 ) {
+                if ( sql.prepare( "UPDATE directory SET attr = ?, display_name = ?, dataclass = ? WHERE rowid = ?" ) ) {
+                    sql.bind( 1 ) = blob( device.size(), reinterpret_cast<const int8_t *>( device.data() ) );
+                    sql.bind( 2 ) = this->name();
+                    sql.bind( 3 ) = this->dataClass();
+                    sql.bind( 4 ) = rowid();
+                    if ( sql.step() == adfs::sqlite_done )
+                        dirty_ = false;
+                }
+            } else {
+                if ( sql.prepare( "UPDATE directory SET attr = ? WHERE rowid = ?" ) ) {
+                    sql.bind( 1 ) = blob( device.size(), reinterpret_cast<const int8_t *>( device.data() ) );
+                    sql.bind( 2 ) = rowid();
+                    if ( sql.step() == adfs::sqlite_done )
+                        dirty_ = false;
+                }
             }
         }
     }
     return ! dirty_;
+}
+
+uint32_t
+attributes::fetch_format_version() const
+{
+    uint32_t format_version = 0;
+    if ( format_version = db().fs_format_version() )
+        return format_version;
+    
+    adfs::stmt sql( db() );
+    if ( sql.prepare( "PRAGMA TABLE_INFO(directory)" ) ) {
+        while ( sql.step() == adfs::sqlite_row ) {
+            if ( sql.get_column_value< std::string >( 1 ) == "display_name" )
+                return 4;
+        }
+        return 3;
+    }
+    return 0;
 }

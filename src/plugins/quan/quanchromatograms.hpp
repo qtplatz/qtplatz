@@ -111,6 +111,7 @@ namespace quan {
         const_iterator begin() const { return qchro_.begin(); }
         const_iterator end() const { return qchro_.end(); }
         std::shared_ptr< QuanCandidate > quanCandidate() { return candidate_; }
+        void refactor();
 
     private:
         std::string formula_;

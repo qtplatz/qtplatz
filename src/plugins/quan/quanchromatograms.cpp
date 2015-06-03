@@ -202,17 +202,27 @@ QuanChromatograms::identify( const adcontrols::QuanCompounds * cmpds
 }
 
 void
+QuanChromatograms::refactor()
+{
+    auto it = std::remove_if( begin(), end(), []( const std::shared_ptr< QuanChromatogram >& p ){ return ! p->is_identified(); } );
+    if ( it != end() )
+        qchro_.erase( it, end() );
+}
+
+
+void
 QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, std::function<spectra_type(uint32_t)> read )
 {
     if ( qchro_.empty() )
         return;
 
+    // all chromatograms in qchro_ are the candidates for 'formula' (single species of mol, charge and adduct)
+
     adcontrols::ChemicalFormula parser;
 
     std::map< std::string, double > formulae;
-    for ( auto& tgt : target_values_ ) {
-        formulae[ tgt.formula ] = parser.getMonoIsotopicMass( tgt.formula );
-    }
+    for ( auto& tgt : target_values_ )
+        formulae[ tgt.formula ] = parser.getMonoIsotopicMass( tgt.formula ); // this should be one item
 
     struct peak_score_type {
         uint32_t candidate_index;

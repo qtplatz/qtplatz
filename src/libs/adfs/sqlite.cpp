@@ -100,7 +100,20 @@ sqlite::~sqlite()
 }
 
 sqlite::sqlite() : db_( 0 )
+                 , fs_format_version_( 0 )
 {
+}
+
+void
+sqlite::set_fs_format_version( uint32_t v )
+{
+    fs_format_version_ = v;
+}
+
+uint32_t
+sqlite::fs_format_version() const
+{
+    return fs_format_version_;
 }
 
 void

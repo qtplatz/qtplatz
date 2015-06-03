@@ -56,6 +56,7 @@
 #include <coreplugin/navigationwidget.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/documentmanager.h>
 #include <utils/styledbar.h>
 
 #include <QFileDialog>
@@ -397,6 +398,9 @@ MainWindow::run()
 
     if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_RUN )->action() )
         stop->setEnabled( false );
+
+    boost::filesystem::path path = QuanDocument::instance()->quanSequence()->outfile();
+    Core::DocumentManager::setProjectsDirectory( QString::fromStdWString( path.parent_path().wstring() ) );
 
     QuanDocument::instance()->run();
 }

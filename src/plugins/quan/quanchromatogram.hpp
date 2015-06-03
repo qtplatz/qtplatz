@@ -78,8 +78,10 @@ namespace quan {
 
         void append( uint32_t pos, double time, double value );
 
+        /** identify
+         *  \brief identify peak that matches retention time for given formula listed in QuanCompounds
+         */
         bool identify( const adcontrols::QuanCompounds&, const std::string& formula );
-
 
         bool is_identified() const;
         uint32_t identfied_peakid() const;

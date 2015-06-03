@@ -336,8 +336,6 @@ QuanDocument::run()
                 
                 // deep copy which prepare for a long background process (e.g. chromatogram search...)
                 auto dup = std::make_shared< adcontrols::ProcessMethod >( *pm_ );
-                //dup->appendMethod( *method_->quanMethod() );      // write data into QtPlatz filesystem region (for C++)
-                //dup->appendMethod( *method_->quanCompounds() );   // ibid
 
                 auto que = std::make_shared< QuanProcessor >( quanSequence_, dup );
                 exec_.push_back( que );

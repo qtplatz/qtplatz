@@ -96,6 +96,17 @@ QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::st
     return title;
 }
 
+// static
+std::wstring
+QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const QuanCandidate& candidate, const wchar_t * trailer )
+{
+    boost::filesystem::path path( dataSource );
+    std::wstring title = ( boost::wformat( L"%s, %s" ) % path.stem().wstring() % adportable::utf::to_wstring( candidate.formula() ) ).str();
+    title += trailer;  //L" (1st phase)";
+    
+    return title;
+}
+
 
 QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm )
     : procm_( pm )
@@ -184,28 +195,11 @@ QuanChromatogramProcessor::find_parallel_chromatograms( std::vector< std::shared
 
     auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
 
-    for ( auto& candidate: vec ) {
-        candidate->process_chromatograms( procm_ );
+    for ( auto& qchro: vec ) {
+        qchro->process_chromatograms( procm_ );
         if ( pCompounds )
-            candidate->identify( pCompounds, procm_ );
-    }
-}
-
-void
-QuanChromatogramProcessor::find_candidates( std::vector< std::shared_ptr< QuanChromatograms > >& vec, std::vector<QuanCandidate>& refined )
-{
-    for ( auto& qcrms: vec ) {
-
-        // candidate has the parallel processed chromatograms against single target mass
-
-        qcrms->refine_chromatograms( refined, [=](uint32_t pos){
-                auto it = spectra_.find( pos );
-                if ( it != spectra_.end() )
-                    return it->second;
-                else
-                    return QuanChromatograms::spectra_type();
-            });
-
+            if ( qchro->identify( pCompounds, procm_ ) )
+                qchro->refactor();
     }
 }
 
@@ -221,7 +215,7 @@ QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDa
         std::wstring title = make_title( dataSource, formula, chro->matchedMass() - chro->exactMass(), title_trailer );
                 
         if ( chro ) {
-            
+
             if ( adfs::file file = writer->write( *chro->chromatogram(), title ) ) {
 
                 chro->setDataGuid( file.name() ); // dataGuid for Chromatogarm on adfs
@@ -238,19 +232,16 @@ QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDa
     }
 }
 
-bool
-QuanChromatogramProcessor::save_candidate_spectra( std::shared_ptr< QuanDataWriter > writer
-                                                   , std::wstring& dataGuid
-                                                   , const wchar_t * dataSource
-                                                   , const QuanCandidate& candidate
-                                                   , const wchar_t * title_trailer )
+std::wstring
+QuanChromatogramProcessor::save_spectrum( std::shared_ptr< QuanDataWriter > writer
+                                          , const QuanCandidate& candidate
+                                          , const std::wstring& title )
 {
-    boost::filesystem::path path( dataSource );
-    
-    std::wstring title = ( boost::wformat( L"%s, %s" ) % path.stem().wstring() % adportable::utf::to_wstring( candidate.formula() ) ).str();
-    title += title_trailer;
-
+    std::wstring dataGuid;
+        
     if ( auto profile = candidate.profile() ) {
+
+        writer->remove( title, L"/Processed/Spectra" );
 
         if ( adfs::file file = writer->write( *profile, title ) ) {
             if ( auto filtered = candidate.filtered() ) {
@@ -264,10 +255,9 @@ QuanChromatogramProcessor::save_candidate_spectra( std::shared_ptr< QuanDataWrit
                 writer->attach< adcontrols::MSPeakInfo >( file, *pkinfo, dataproc::Constants::F_MSPEAK_INFO );
             }
             dataGuid = file.name();
-            return true;
         }
     }
-    return false;
+    return dataGuid;
 }
         
 //static
@@ -307,7 +297,6 @@ void
 QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::QuanSample& sample
                                , std::shared_ptr< QuanDataWriter > writer, std::shared_ptr< adwidgets::Progress > progress )
 {
-    std::vector< QuanCandidate > candidates;
     uint32_t debug_level = 0;
     bool save_on_datasource = false;
 
@@ -316,6 +305,8 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
         save_on_datasource = qm->save_on_datasource();
     }
 
+    std::vector< QuanCandidate > candidates;
+    
     do { // first phase
         std::vector< std::shared_ptr< QuanTarget > > targets;
 
@@ -330,15 +321,25 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
             }
         }
 
+        // find all peaks, and retention-time identification
         std::vector< std::shared_ptr< QuanChromatograms > > qcrms_v1;
         find_parallel_chromatograms( qcrms_v1, targets );
-
+        
         if ( debug_level >= 4 ) {
             for ( auto& qcrms : qcrms_v1 )
                 save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(1st phase)" );
         }
 
-        find_candidates( qcrms_v1, candidates );
+        // re-generate chromatograms according to found masses at the c-peak
+        for ( auto& qcrms: qcrms_v1 ) {
+            qcrms->refine_chromatograms( candidates, [=](uint32_t pos){
+                    auto it = spectra_.find( pos );
+                    if ( it != spectra_.end() )
+                        return it->second;
+                    else
+                        return QuanChromatograms::spectra_type();
+                });
+        }
 
         if ( debug_level >= 2 ) {
             for ( auto& qcrms : qcrms_v1 )
@@ -376,9 +377,9 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
     for ( auto& qchro : qcrms_v ) {
         if ( auto candidate = qchro->quanCandidate() ) {
 
-            std::wstring dataGuid;
-            if ( save_candidate_spectra( writer, dataGuid, sample.dataSource(), *candidate ) ) {
-
+            std::wstring title = make_title( sample.dataSource(), *candidate );
+            std::wstring dataGuid = save_spectrum( writer, *candidate, title );
+            if ( ! dataGuid.empty() ) {
                 std::for_each( qchro->begin(), qchro->end(), [=] ( std::shared_ptr<QuanChromatogram> c ) {
                         c->setReferenceDataGuid( dataGuid, candidate->idx(), candidate->fcn() );
                     } );
@@ -424,57 +425,34 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
     }
 
     for ( auto& qchro : qcrms_v ) {
-
         for ( auto & c : *qchro )
             writer->insert_table( c->dataGuid(), c->referenceDataGuids() );
-        
     }
-
+    
     if ( save_on_datasource ) {
-        
-        if ( auto portfolio = processor.portfolio() ) {
+        if ( auto source = std::make_shared< QuanDataWriter >( sample.dataSource() ) ) {
+            if ( source->open() ) {
 
-            if ( auto folder = portfolio->addFolder( L"Chromatograms" ) ) {
-
+                // save reference spectra
                 for ( auto& qchro : qcrms_v ) {
-                    for ( auto & c : *qchro ) {
+
+                    if ( auto candidate = qchro->quanCandidate() )
+                        save_spectrum( source, *candidate, make_title( sample.dataSource(), *candidate ) );
+
+                    for ( auto& chro: *qchro ) {
                         
-                        std::wstring title = adportable::utf::to_wstring( c->formula() );
-                        while ( auto folium = folder.findFoliumByName( title ) ) {
-                            processor.fetch( folium );
-                            folder.removeFolium( folium );
-                        }
-                        if ( auto folium = folder.addFolium( title ) ) {
-                            folium.assign( c->chromatogram(), c->chromatogram()->dataClass() );
-                            portfolio::Folium att = folium.addAttachment( L"Peak Result" );
-                            if ( auto result = c->peakResult() )
-                                att.assign( result, result->dataClass() );
-                            att.addAttachment( L"Process Method" ).assign( procm_, procm_->dataClass() );
-                        }
-                    }
-                }
-            }
-#if 0
-            if ( auto folder = portfolio->addFolder( L"Spectra" ) ) {
-                
-                for ( auto& qchro : qcrms_v ) {
-                    std::wstring title = adportable::utf::to_wstring( c->formula() );
-                    if ( auto candidate = qchro->quanCandidate() ) {
-                        if ( auto profile = candidate->profile() ) {
-                            while ( auto folium = folder.findFoliumByName( title ) ) {
-                                processor.fetch( folium );
-                                folder.removeFolium( folium );
-                            }
-                            if ( auto folium = folder.addFolium( title ) ) {
-                                folium.assign( profile, profile->dataClass() );
+                        std::wstring title = make_title( sample.dataSource(), chro->formula(), chro->matchedMass() - chro->exactMass(), L"(final)" );
+                        writer->remove( title, L"/Processed/Chromatograms" );
+                        
+                        if ( adfs::file file = writer->write( *chro->chromatogram(), title ) ) {
+                            if ( auto pkinfo = chro->peakResult() ) {
+                                auto afile = writer->attach< adcontrols::PeakResult >( file, *pkinfo, pkinfo->dataClass() );
+                                writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
                             }
                         }
                     }
                 }
             }
-#endif
-            if ( auto datafile = processor.datafile() )
-                datafile->saveContents( L"/Processed", *portfolio );
         }
     }
 }

@@ -46,7 +46,8 @@ namespace adfs {
         
     public:
         operator bool () const;
-        
+        bool format_version() const;
+
         std::wstring name() const;
         void name( const std::wstring& name );
 
@@ -76,6 +77,7 @@ namespace adfs {
     private:
         bool dirty_;
         vector_type attrib_;
+        uint32_t fetch_format_version() const;
 
         template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             (void)version;

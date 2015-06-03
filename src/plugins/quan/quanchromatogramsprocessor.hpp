@@ -58,9 +58,8 @@ namespace quan {
         void find_parallel_chromatograms( std::vector< std::shared_ptr< QuanChromatograms > >&
                                           , const std::vector< std::shared_ptr< QuanTarget > >& targets );
 
-        void find_candidates( std::vector< std::shared_ptr< QuanChromatograms > >&, std::vector< QuanCandidate >& );
-        
         static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, double error, const wchar_t * trailer = L"" );
+        static std::wstring make_title( const wchar_t * dataSource, const QuanCandidate&, const wchar_t * trailer = L"" );        
 
         static bool doCentroid( const adcontrols::MassSpectrum& profile
                                 , const adcontrols::ProcessMethod& pm
@@ -73,11 +72,9 @@ namespace quan {
                                            , std::shared_ptr< const QuanChromatograms >
                                            , const wchar_t * title_trailer = L"" );
         
-        bool save_candidate_spectra( std::shared_ptr< QuanDataWriter > writer
-                                     , std::wstring& dataGuid
-                                     , const wchar_t * dataSource
-                                     , const QuanCandidate&
-                                     , const wchar_t * title_trailer = L"" );
+        std::wstring save_spectrum( std::shared_ptr< QuanDataWriter > writer
+                                    , const QuanCandidate&
+                                    , const std::wstring& title );
         
         std::map< size_t, QuanChromatograms::spectra_type > spectra_;
         std::shared_ptr< adcontrols::MSLockMethod > mslockm_;
