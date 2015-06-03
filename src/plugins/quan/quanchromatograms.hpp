@@ -56,6 +56,7 @@ namespace quan {
     class QuanSampleProcessor;
     class QuanChromatogram;
     class QuanCandidate;
+    struct peak_score_type;
 
     class QuanChromatograms {
 
@@ -124,6 +125,9 @@ namespace quan {
         std::shared_ptr< adcontrols::MSLockMethod > mslockm_;
         std::shared_ptr< adcontrols::lockmass > mslock_;
         bool identified_;
+
+        void refine_identified_chromatograms( std::function<spectra_type( uint32_t pos )> reader, std::vector< peak_score_type >& );
+        void refine_unidentified_chromatograms( std::function<spectra_type( uint32_t pos )> reader, std::vector< peak_score_type >& );
     };
 
 }
