@@ -396,11 +396,14 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
             std::for_each( qchro->begin(), qchro->end(), [&] ( std::shared_ptr<QuanChromatogram> c ) {
 
                     std::string formula = c->formula();
-                    auto itCmpd = std::find_if( pCompounds->begin(), pCompounds->end(), [c] ( const adcontrols::QuanCompound& cmpd ) { return cmpd.formula() == c->formula(); } );
+                    auto itCmpd = std::find_if( pCompounds->begin(), pCompounds->end()
+                                                , [c] ( const adcontrols::QuanCompound& cmpd ) { return cmpd.formula() == c->formula(); } );
                     if ( itCmpd != pCompounds->end() ) {
 
                         auto& peaks = c->peakResult()->peaks();
-                        auto& pk = std::find_if( peaks.begin(), peaks.end(), [c] ( const adcontrols::Peak& p ) { return std::string( p.formula() ) == c->formula(); } );
+                        auto pk = std::find_if( peaks.begin(), peaks.end()
+                                                , [c] ( const adcontrols::Peak& p ) {
+                                                    return std::string( p.formula() ) == c->formula(); } );
 
                         if ( pk != peaks.end() ) {
 
