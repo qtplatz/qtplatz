@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/query">
+        <file>images/Sqlite-square-icon.svg</file>
+        <file>images/64px-Sqlite-square-icon.svg.png</file>
+        <file>images/build.png</file>
+        <file>images/build@2x.png</file>
+        <file>images/Desktop.png</file>
+        <file>images/mode_project.png</file>
+        <file>images/mode_project@2x.png</file>
+        <file>images/fileopen.png</file>
+        <file>images/filesave.png</file>
+    </qresource>
+</RCC>

@@ -242,10 +242,10 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
     } else {
         refine_unidentified_chromatograms( read, peaks );        
     }
-
+    
     if ( peaks.empty() )
         return;
-
+    
     std::vector < std::vector< peak_score_type > > partitioned;
     if ( peaks.size() >= 2 ) {
 
@@ -275,7 +275,7 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
         }
     }
 
-    std::map< uint32_t, std::shared_ptr< QuanChromatogram> > positive_candidate;
+    std::map < uint32_t, std::pair< std::shared_ptr< QuanChromatogram>, std::shared_ptr< QuanCandidate > > > positive_candidate;
 
     for ( auto& p: partitioned ) {
 
@@ -300,41 +300,43 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
                     
                     auto& fms = adcontrols::segment_wrapper<>( *centroid )[ pk.fcn ];
                     auto& fpkinf = adcontrols::segment_wrapper<adcontrols::MSPeakInfo>( *pkinfo )[ pk.fcn ];
-                        
+                    
                     auto idx = find( fms, ( *itChro )->exactMass() );
-
+                    
                     // assign & annotate on mass spectrum
                     if ( idx != adcontrols::MSFinder::npos && idx < fpkinf.size() ) {
-
+                        
                         auto mspk = fpkinf.begin() + idx;
                         mspk->formula( ( *itChro )->formula() );
-                                                    
+                        
                         adcontrols::annotation anno( mspk->formula(), mspk->mass(), mspk->height(), int( idx ), int( mspk->height() ), adcontrols::annotation::dataFormula );
                         fms.get_annotations() << anno;
-                            
-                        positive_candidate[ pk.candidate_index ] = *itChro;
 
-                        refined.push_back( QuanCandidate( ( *itChro )->formula()
-                                                            , ( *itChro )->exactMass()
-                                                            , mspk->mass()
-                                                            , std::make_pair( mspk->centroid_left(), mspk->centroid_right() )
-                                                            , pk.peak->peakTime()
-                                                            , pk.fcn
-                                                            , uint32_t( idx )
-                                                            , sp.profile
-                                                            , sp.centroid
-                                                            , sp.filtered
-                                                            , sp.mspkinfo
-                                                            ) );
+                        auto qc = std::make_shared< QuanCandidate >( ( *itChro )->formula()
+                                                                     , ( *itChro )->exactMass()
+                                                                     , mspk->mass()
+                                                                     , std::make_pair( mspk->centroid_left(), mspk->centroid_right() )
+                                                                     , pk.peak->peakTime()
+                                                                     , pk.fcn
+                                                                     , uint32_t( idx )
+                                                                     , sp.profile
+                                                                     , sp.centroid
+                                                                     , sp.filtered
+                                                                     , sp.mspkinfo );
+                        positive_candidate[ pk.candidate_index ] = std::make_pair( *itChro, qc );
                     }
                 }
             }
         }
     } // for peaks
 
+    // remained chrmatograms will be stored as 'phase-2'
     qchro_.clear();
-    for ( auto& candidate : positive_candidate )
-        qchro_.push_back( candidate.second );
+
+    for ( auto& candidate : positive_candidate ) {
+        qchro_.push_back( candidate.second.first );
+        refined.push_back( *candidate.second.second );
+    }
 
 }
 
@@ -376,36 +378,6 @@ QuanChromatograms::refine_unidentified_chromatograms( std::function<spectra_type
             }
         }
     }
-
-#if 0
-        // for no tR identified peak found (or tR not specified (0.0))
-        
-        auto xpeaks = c->peaks();
-        if ( xpeaks.empty() )
-            return;
-        
-        // sort desencing order of peak height
-        std::sort( xpeaks.begin(), xpeak.end(), []( const adcontrols::Peak * a, const adcontrols::Peak * b ){ return a->peakHeight() > b->peakHeight(); } );
-        
-        // find highest peak
-        auto maxIt = std::max_element( xpeaks.begin(), xpeaks.end(), []( const adcontrols::Peak * a, const adcontrols::Peak * b ){ return a->peakHeight() < b->peakHeight(); } );
-        double h = ( *maxIt )->peakHeight();
-        
-        // remove less than 10% height than highest peak
-        auto it = std::remove_if( xpeaks.begin(), xpeaks.end(), [h]( const adcontrols::Peak * a ){ return a->peakHeight() < h * 0.1; } );
-        if ( it != xpeaks.end() )
-            xpeaks.erase( it, xpeaks.end() );
-        
-        ( *maxIt )->formula( c->formula().c_str() );
-        ( *maxIt )->name( adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( c->formula() ) ) );
-        
-        auto it = std::remove_if( xpeaks.begin(), xpeaks.end(), [h]( const adcontrols::Peak * a ){ return a->peakHeight() < h * 0.1; } );
-        if ( it != xpeaks.end() )
-            xpeaks.erase( it, xpeaks.end() );
-        
-        for ( auto& ppk : xpeaks )
-            peaks.push_back( peak_score_type( c->candidate_index(), c->fcn(), ppk ) );            
-#endif
 }
 
 void
@@ -423,12 +395,6 @@ QuanChromatograms::finalize( std::function<spectra_type(uint32_t)> read )
             
             ( *maxIt )->formula( c->formula().c_str() );
             ( *maxIt )->name( adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( c->formula() ) ) );
-        }
-
-        for ( auto& pk: xpeaks ) {
-            if ( ! std::string( pk->formula() ).empty() ) {
-                // read and assign mass
-            }
         }
     } // for peaks
 }

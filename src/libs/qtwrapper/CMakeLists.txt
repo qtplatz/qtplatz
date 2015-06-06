@@ -23,6 +23,7 @@ add_library( qtwrapper
   progressbar.cpp
   font.cpp
   settings.cpp
+  progresshandler.hpp
 )
 
 install( TARGETS ${PROJECT_NAME}

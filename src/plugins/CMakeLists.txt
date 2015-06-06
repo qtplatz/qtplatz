@@ -35,3 +35,7 @@ endif()
 if ( QTPLATZ_CONFIG_Batch )
   add_subdirectory( batchproc )
 endif()
+
+if ( QTPLATZ_CONFIG_Query )
+  add_subdirectory( query )
+endif()

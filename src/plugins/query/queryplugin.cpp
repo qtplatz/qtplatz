@@ -1,0 +1,91 @@
+/**************************************************************************
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+*
+** Contact: info@ms-cheminfo.com
+**
+** Commercial Usage
+**
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
+
+#include "queryplugin.hpp"
+#include "mainwindow.hpp"
+#include "queryconstants.hpp"
+#include "queryfactory.hpp"
+#include "querymode.hpp"
+#include <coreplugin/icore.h>
+#include <coreplugin/icontext.h>
+#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/actionmanager/command.h>
+#include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/coreconstants.h>
+
+#include <QAction>
+#include <QMessageBox>
+#include <QMainWindow>
+#include <QMenu>
+
+#include <QtPlugin>
+
+using namespace query;
+
+QueryPlugin::QueryPlugin() : mode_( std::make_shared<QueryMode>( this ) )
+                           , mainWindow_( new MainWindow() )
+{
+}
+
+QueryPlugin::~QueryPlugin()
+{
+    if ( mode_ )
+        removeObject( mode_.get() );
+    // mainWindow has been deleted at BaseMode dtor
+}
+
+bool
+QueryPlugin::initialize(const QStringList &arguments, QString *errorString)
+{
+    Q_UNUSED(arguments)
+    Q_UNUSED(errorString)
+
+    mainWindow_->createActions();
+
+    mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
+
+    addObject( mode_.get() );
+
+    // it's conflict with Dataproc document factory on MIME due to both support application/adfs
+    // addAutoReleasedObject( new QueryFactory( this ) );
+    
+    return true;
+}
+
+void QueryPlugin::extensionsInitialized()
+{
+    mainWindow_->onInitialUpdate();
+}
+
+ExtensionSystem::IPlugin::ShutdownFlag QueryPlugin::aboutToShutdown()
+{
+    // Save settings
+    // Disconnect from signals that are not needed during shutdown
+    // Hide UI (if you add UI that is not in the main window directly)
+    mainWindow_->onFinalClose();
+    return SynchronousShutdown;
+}
+
+Q_EXPORT_PLUGIN2(Query, QueryPlugin)
+
