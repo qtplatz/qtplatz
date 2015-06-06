@@ -40,8 +40,10 @@ namespace adcontrols {
     class MSPeakInfoItem;
     class MSPeakInfo;
 
+#if defined _MSC_VER
     ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < MSPeakInfoItem > ;
     ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < MSPeakInfo > ;
+#endif
 
     class ADCONTROLSSHARED_EXPORT MSPeakInfo {
     public:
