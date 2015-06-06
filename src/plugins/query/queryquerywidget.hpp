@@ -33,6 +33,7 @@ namespace query {
 
     class QueryQueryForm;
     class QueryResultTable;
+    class QueryQuery;
 
     class QueryQueryWidget : public QWidget  {
         Q_OBJECT
@@ -47,7 +48,10 @@ namespace query {
 
         void executeQuery();
 
+        void handleQueryData( std::shared_ptr < QueryQuery > );
+
     signals:
+        void onQueryData( std::shared_ptr< QueryQuery > );
 
     public slots :
         void handleConnectionChanged();
@@ -57,5 +61,4 @@ namespace query {
     };
 
 }
-
 

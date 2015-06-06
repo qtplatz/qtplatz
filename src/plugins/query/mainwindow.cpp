@@ -181,51 +181,13 @@ MainWindow::createActions()
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("Query") );
 
-        if ( auto p = new QAction( QIcon( ":/query/images/fileopen.png" ), tr( "Open Query Result..." ), this ) ) {
-            am->registerAction( p, Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools->Query->Open
-            connect( p, &QAction::triggered, this, &MainWindow::handleOpenQueryResult );
+        if ( auto p = new QAction( QIcon( ":/query/images/fileopen.png" ), tr( "Open SQLite file..." ), this ) ) {
+
+            am->registerAction( p, Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Query|Open SQLite file...
+            connect( p, &QAction::triggered, this, &MainWindow::handleOpen );
             menu->addAction( am->command( Constants::FILE_OPEN ) );
-
-            am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_QUERY_MODE ) );  // File->Open
+            am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_QUERY_MODE ) );    // File|Open
        }
-
-        //------------ method --------------
-        if ( auto p = new QAction( QIcon( ":/query/images/fileopen.png" ), tr( "Open Query Method..." ), this ) ) {
-            am->registerAction( p, Constants::QUERY_METHOD_OPEN, Core::Context( Constants::C_QUERY_MODE ) );
-            connect( p, &QAction::triggered, this, &MainWindow::handleOpenQueryMethod );
-            menu->addAction( am->command( Constants::QUERY_METHOD_OPEN ) );
-        }
-
-        if ( auto p = new QAction( QIcon( ":/query/images/filesave.png" ), tr( "Save Query Method..." ), this ) ) {
-            am->registerAction( p, Constants::QUERY_METHOD_SAVE, Core::Context( Constants::C_QUERY_MODE ) );
-            connect( p, &QAction::triggered, this, &MainWindow::handleSaveQueryMethod );
-            menu->addAction( am->command( Constants::QUERY_METHOD_SAVE ) );
-        }
-        //------------ sequence --------------
-        if ( auto p = new QAction( QIcon( ":/query/images/fileopen.png" ), tr( "Open Query Sequence..." ), this ) ) {
-            am->registerAction( p, Constants::QUERY_SEQUENCE_OPEN, Core::Context( Constants::C_QUERY_MODE ) );
-            connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuerySequence );
-            menu->addAction( am->command( Constants::QUERY_SEQUENCE_OPEN ) );
-        }
-
-        if ( auto p = new QAction( QIcon( ":/query/images/filesave.png" ), tr( "Save Query Sequence..." ), this ) ) {
-            am->registerAction( p, Constants::QUERY_SEQUENCE_SAVE, Core::Context( Constants::C_QUERY_MODE ) );
-            connect( p, &QAction::triggered, this, &MainWindow::handleSaveQuerySequence );
-            menu->addAction( am->command( Constants::QUERY_SEQUENCE_SAVE ) );
-        }
-
-        if ( auto p = new QAction( QIcon( ":/query/images/run.png" ), tr("Run"), this ) ) {
-            am->registerAction( p, Constants::QUERY_SEQUENCE_RUN, Core::Context( Constants::C_QUERY_MODE ) );
-            connect( p, &QAction::triggered, this, &MainWindow::run );
-            menu->addAction( am->command( Constants::QUERY_SEQUENCE_RUN ) );
-        }
-
-        if ( auto p = new QAction( QIcon(":/query/images/stop.png"), tr("Stop"), this ) ) {
-            am->registerAction( p, Constants::QUERY_SEQUENCE_STOP, Core::Context( Constants::C_QUERY_MODE ) );
-            connect( p, &QAction::triggered, this, &MainWindow::stop );
-            menu->addAction( am->command( Constants::QUERY_SEQUENCE_STOP ) );
-            p->setEnabled( false );
-        }
 
         am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
     }
@@ -260,46 +222,30 @@ MainWindow::commit()
 }
 
 void
-MainWindow::run()
+MainWindow::handleOpen()
 {
+    try {
+        QString name = QFileDialog::getOpenFileName( this
+                                                     , tr( "Open Quantitative Analysis Result file" )
+                                                     , QueryDocument::instance()->lastDataDir()
+                                                     , tr( "File(*.adfs)|(*)" ) );
+        if ( !name.isEmpty() ) {
+
+            qtwrapper::waitCursor wait;
+
+            if ( auto connection = std::make_shared< QueryConnection >() ) {
+
+                if ( connection->connect( name.toStdWString() ) ) {
+                    // kick QuanReportWidget (calibartion & result view) updae
+                    QueryDocument::instance()->setConnection( connection.get() );
+                }
+            }
+
+            Core::ModeManager::activateMode( Core::Id( Constants::C_QUERY_MODE ) );
+        }
+    } catch ( ... ) {
+        QMessageBox::warning( this, "Query MainWindow", boost::current_exception_diagnostic_information().c_str() );
+    }
+    
 }
 
-void
-MainWindow::stop()
-{
-}
-
-void
-MainWindow::handleSequenceCompleted()
-{
-}
-
-void
-MainWindow::handleOpenQueryResult()
-{
-}
-
-void
-MainWindow::handleOpenQueryMethod()
-{
-}
-
-void
-MainWindow::handleSaveQueryMethod()
-{
-}
-
-void
-MainWindow::handleOpenQuerySequence()
-{
-}
-
-void
-MainWindow::handleSaveQuerySequence()
-{
-}
-
-void
-MainWindow::handleRecentFiles()
-{
-}

@@ -55,4 +55,6 @@ namespace query {
 
 }
 
+Q_DECLARE_METATYPE(std::shared_ptr< query::QueryQuery >)
+
 #endif // QUERYQUERY_HPP

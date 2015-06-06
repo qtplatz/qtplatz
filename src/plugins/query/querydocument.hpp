@@ -41,8 +41,6 @@ class QSettings;
 
 namespace query {
     
-    namespace detail { class dataWriter; }
-
     class QueryConnection;
 
     class QueryDocument : public QObject {
@@ -65,15 +63,12 @@ namespace query {
         void onInitialUpdate();
         void onFinalClose();
 
-        //QSettings * settings() { return settings_.get(); }
-        std::shared_ptr< QSettings > settings_ptr() { return settings_; }
+        inline QSettings& settings() { return *settings_; }
+        QString lastDataDir() const;
 
     private:
-        void addRecentFiles( const QString& group, const QString& key, const QString& value );
-        void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const;
-        QString recentFile( const QString& group, const QString& key ) const;
-
         std::shared_ptr< QSettings > settings_;
+        std::shared_ptr< QueryConnection > queryConnection_;
 
     signals:
         void onConnectionChanged();

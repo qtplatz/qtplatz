@@ -31,7 +31,9 @@
 #include "queryresulttable.hpp"
 #include <adportable/profile.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/progressmanager/progressmanager.h>
 #include <utils/styledbar.h>
 #include <QFileDialog>
 #include <QLabel>
@@ -57,6 +59,8 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
                                                     , form_( new QueryQueryForm )
                                                     , table_( new QueryResultTable )
 {
+    qRegisterMetaType < std::shared_ptr< QueryQuery > >();
+
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
     topLayout->setSpacing( 0 );
@@ -88,6 +92,7 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
     layout_->addWidget( table_.get() );
     //layout_->setRowStretch( 1, 0 );
     //layout_->setRowStretch( 2, 1 );
+    bool rcode = connect( this, &QueryQueryWidget::onQueryData, &QueryQueryWidget::handleQueryData );
 }
 
 void
@@ -102,10 +107,10 @@ void
 QueryQueryWidget::executeQuery()
 {
     if ( auto connection = QueryDocument::instance()->connection() ) {
-        form_->setSQL(
-            "SELECT dataSource, row, level, formula, mass, intensity, sampleType FROM QuerySample,QueryResponse \
-WHERE QuerySample.id = idSample AND formula like '%' ORDER BY formula" );
-        std::wstring sql = form_->sql().toStdWString();
+        form_->setSQL( "SELECT * FROM sqlite_master WHERE type='table'" );
+
+        std::string sql = form_->sql().toStdString();
+
         if ( auto query = connection->query() ) {
             if ( query->prepare( sql ) ) {
                 table_->prepare( *query );
@@ -126,15 +131,28 @@ QueryQueryWidget::handleQuery( const QString& sql )
             qtwrapper::waitCursor wait;
 
             std::wstring wsql = sql.toStdWString();
-
+            
             wsql.erase( std::remove( wsql.begin(), wsql.end(), '\\' ) );
             
             if ( query->prepare( wsql ) ) {
+
                 table_->prepare( *query );
-                while ( query->step() == adfs::sqlite_row ) {
-                    table_->addRecord( *query );
-                }
+
+                qtwrapper::ProgressHandler handler( 0, 5 );
+                Core::ProgressManager::addTask( handler.progress.future(), "Query database...", Constants::QUERY_TASK_OPEN );
+                
+                std::thread work( [&]{ 
+                        while ( query->step() == adfs::sqlite_row )
+                            emit onQueryData( query );
+                    });
+                work.join();
             }
         }
     }
+}
+
+void
+QueryQueryWidget::handleQueryData( std::shared_ptr< QueryQuery > data )
+{
+    table_->addRecord( *data );
 }

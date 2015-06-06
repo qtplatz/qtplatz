@@ -80,6 +80,13 @@ QueryQueryForm::on_comboBox_currentIndexChanged(int index)
 {
     int idx = 0;
     if ( index == idx++ ) { // view all (simple)
+
+        setSQL( "SELECT * FROM sqlite_master WHERE type='table'" );
+    } else if ( index == idx++ ) {
+
+        setSQL("SELECT * from AcquiredData" );
+
+    } else if ( index == idx++ ) { // view all (simple)
         setSQL("\
 SELECT dataSource, QuerySample.name, level, formula, mass, intensity, sampletype FROM QuerySample, QueryResponse \
 WHERE QuerySample.id = QueryResponse.idSample ORDER BY mass" );

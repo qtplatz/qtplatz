@@ -70,19 +70,14 @@ namespace query {
         void commit();
         void handleIndexChanged( int index, int subIndex );
         void handleSequenceCompleted();
-        void handleOpenQueryResult();
-        void handleOpenQueryMethod();
-        void handleSaveQueryMethod();
-        void handleOpenQuerySequence();
-        void handleSaveQuerySequence();
-        void handleRecentFiles();
+        void handleOpen();
 
     signals:
 
     public slots:
+
     private slots:
-        void run();
-        void stop();
+
     };
 
 }

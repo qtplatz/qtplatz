@@ -44,8 +44,6 @@ namespace query {
         void prepare( const QueryQuery& );
         void addRecord( const QueryQuery& );
 
-        // QSize sizeHint() const override { return QSize( 900, 900 ); }
-
         void setColumnHide( const std::string& );
         void clear();
         int findColumn( const QString& );

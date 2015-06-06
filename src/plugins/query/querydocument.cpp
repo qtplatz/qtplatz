@@ -37,6 +37,7 @@
 #include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <adpublisher/document.hpp>
+#include <qtwrapper/settings.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
@@ -112,89 +113,46 @@ QueryDocument::onFinalClose()
 void
 QueryDocument::setConnection( QueryConnection * conn )
 {
-    //queryConnection_ = conn->shared_from_this();
+    queryConnection_ = conn->shared_from_this();
 
-    qtwrapper::ProgressHandler handler( 0, 5 );
-    qtwrapper::waitCursor w;
-#if 0
-    if ( ( publisher_ = std::make_shared< QueryPublisher >() ) ) {
+    //qtwrapper::ProgressHandler handler( 0, 5 );
+    //qtwrapper::waitCursor w;
+    //if ( ( publisher_ = std::make_shared< QueryPublisher >() ) ) {
         
-        Core::ProgressManager::addTask( handler.progress.future(), "Query connecting database...", Constants::QUERY_TASK_OPEN );
-        
-        std::thread work( [&] () { (*publisher_)(conn, handler); } );
-        
-        work.join();
+    //Core::ProgressManager::addTask( handler.progress.future(), "Query connecting database...", Constants::QUERY_TASK_OPEN );
+    //std::thread work( [&] () { ( *publisher_ )( conn, handler ); } );
+    //work.join();
+    qtwrapper::settings( *settings_ ).addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, QString::fromStdWString( conn->filepath() ) );
 
-        emit onConnectionChanged();
-    }
-
-    addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, QString::fromStdWString( conn->filepath() ) );
-#endif
+    emit onConnectionChanged();
 }
 
 QueryConnection *
 QueryDocument::connection()
 {
-    //return queryConnection_.get();
-    return 0;
+    return queryConnection_.get();
 }
 
-void
-QueryDocument::addRecentFiles( const QString& group, const QString& key, const QString& value )
-{
-    std::vector< QString > list;
-    getRecentFiles( group, key, list );
+// void
+// QueryDocument::addRecentFiles( const QString& group, const QString& key, const QString& value )
+// {
+//     qtwrapper::settings( *settings_ ).addRecentFiles( group, key, value );
+// }
 
-    boost::filesystem::path path = boost::filesystem::path( value.toStdWString() ).generic_wstring();
-    auto it = std::remove_if( list.begin(), list.end(), [path] ( const QString& a ){ return path == a.toStdWString(); } );
-    if ( it != list.end() )
-        list.erase( it, list.end() );
+// void
+// QueryDocument::getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const
+// {
+//     qtwrapper::settings( *settings_ ).getRecentFiles( group, key, list );
+// }
 
-    settings_->beginGroup( group );
-
-    settings_->beginWriteArray( key );
-    settings_->setArrayIndex( 0 );
-    settings_->setValue( "File", QString::fromStdWString( path.generic_wstring() ) );
-    for ( size_t i = 0; i < list.size() && i < 7; ++i ) {
-        settings_->setArrayIndex( int(i + 1) );
-        settings_->setValue( "File", list[ i ] );
-    }
-    settings_->endArray();
-
-    settings_->endGroup();
-}
-
-void
-QueryDocument::getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const
-{
-    settings_->beginGroup( group );
-
-    int size = settings_->beginReadArray( key );
-    for ( int i = 0; i < size; ++i ) {
-        settings_->setArrayIndex( i );
-        list.push_back( settings_->value( "File" ).toString() );
-    }
-    settings_->endArray();
-
-    settings_->endGroup();
-}
+// QString
+// QueryDocument::recentFile( const QString& group, const QString& key ) const
+// {
+//     return qtwrapper::settings( *settings_ ).recentFile( group, key );    
+// }
 
 QString
-QueryDocument::recentFile( const QString& group, const QString& key ) const
+QueryDocument::lastDataDir() const
 {
-    QString value;
-
-    settings_->beginGroup( group );
-    
-    if ( int size = settings_->beginReadArray( key ) ) {
-        (void)size;
-        settings_->setArrayIndex( 0 );
-        value = settings_->value( "File" ).toString();
-    }
-    settings_->endArray();
-    
-    settings_->endGroup();
-
-    return value;
+    return qtwrapper::settings( *settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
 }
-
