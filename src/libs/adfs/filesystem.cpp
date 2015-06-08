@@ -62,7 +62,7 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
     if ( boost::filesystem::exists( filepath ) ) {
         boost::system::error_code ec;
         if ( ! boost::filesystem::remove( filepath, ec ) ) {
-            throw adfs::exception( ec.message(), ec.category().name() );
+            //throw adfs::exception( ec.message(), ec.category().name() );
             return false;
         }
     }
