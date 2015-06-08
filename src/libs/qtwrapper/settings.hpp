@@ -34,9 +34,9 @@ namespace qtwrapper {
         QSettings& settings_;
         settings( QSettings& settings );
 
-        QString recentFile( const QString& group, const QString& key );
+        QString recentFile( const QString& group, const QString& key ) const;
         void addRecentFiles( const QString& group, const QString& key, const QString& value );
-        void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list );
+        void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const;
 
     };
 }

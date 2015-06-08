@@ -165,16 +165,21 @@ namespace adplot {
         class ChromatogramData {
         public:
             ~ChromatogramData() { }
-			ChromatogramData( plot& plot ) : curve_( plot ) { }
-            ChromatogramData( const ChromatogramData& t ) : curve_( t.curve_ ), rect_( t.rect_ ), grab_( t.grab_ ) { }
+			ChromatogramData( plot& plot ) : curve_( plot ), y2_(false) { }
+            ChromatogramData( const ChromatogramData& t ) : curve_( t.curve_ ), rect_( t.rect_ ), grab_( t.grab_ ), y2_( t.y2_ ) { }
 
-            void setData( const std::shared_ptr< adcontrols::Chromatogram>& cp ) {
+            inline bool y2() const { return y2_; }
+
+            void setData( const std::shared_ptr< adcontrols::Chromatogram>& cp, bool y2 ) {
                 grab_ = cp;
                 auto range_x = adcontrols::Chromatogram::toMinutes( cp->timeRange() );
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
                 rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first );
+                if ( y2 )
+                    curve_.p()->setYAxis( QwtPlot::yRight );
                 curve_.p()->setData( new xSeriesData( cp, rect_ ) );
             }
+
 			const QRectF& boundingRect() const { return rect_; };
 			QwtPlotCurve& plot_curve() { return *curve_.p(); }
             void drawMarkers( QwtPlot * plot, const std::pair< double, double >& range ) {
@@ -197,6 +202,7 @@ namespace adplot {
             PlotCurve curve_;
             QRectF rect_;
             std::shared_ptr< adcontrols::Chromatogram > grab_;
+            bool y2_;
         };
         
         typedef boost::variant< ChromatogramData, TraceData<adcontrols::Trace> > trace_variant;
@@ -319,10 +325,8 @@ ChromatogramWidget::removeData( int idx, bool bReplot )
 }
 
 void
-ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yaxis2 )
+ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yRight )
 {
-    (void)yaxis2;
-
     if ( c.size() < 2 )
         return;
     
@@ -354,14 +358,14 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yaxis2 )
                     rect.setTop( rc.top() );
             }
             setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() + rect.width() / 20.0 );
-            setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
+            setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
             zoomer()->setZoomBase();
         }
     }
 }
 
 void
-ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& cp, int idx, bool )
+ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& cp, int idx, bool yRight )
 {
     impl_->curves_.clear();
 
@@ -377,7 +381,7 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
 	auto& trace = boost::get< ChromatogramData >(impl_->traces_[ idx ] );
 
 	trace.plot_curve().setPen( QPen( chromatogram_widget::color_table[idx] ) ); 
-    trace.setData( cp );
+    trace.setData( cp, yRight );
     impl_->peak_annotations_.clear();
 
     for ( auto& pk: cp->peaks() )
@@ -390,20 +394,25 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
     QRectF rect = trace.boundingRect();
     std::pair< double, double > horizontal( std::make_pair( rect.left(), rect.right() ) );
     std::pair< double, double > vertical( std::make_pair( rect.bottom(), rect.top() ) );
+    
     for ( const auto& v: impl_->traces_ ) {
         auto& trace = boost::get< ChromatogramData >( v );
-        QRectF rc = trace.boundingRect();
-        horizontal.first = std::min( horizontal.first, rc.left() );
-        horizontal.second = std::max( horizontal.second, rc.right() );
-        vertical.first = std::min( vertical.first, rc.bottom() );
-        vertical.second = std::max( vertical.second, rc.top() );
+        if ( trace.y2() == yRight ) {
+            QRectF rc = trace.boundingRect();
+            horizontal.first = std::min( horizontal.first, rc.left() );
+            horizontal.second = std::max( horizontal.second, rc.right() );
+            vertical.first = std::min( vertical.first, rc.bottom() );
+            vertical.second = std::max( vertical.second, rc.top() );
+        }
     }
     double h = vertical.second - vertical.first;
     vertical.first -= h * 0.05;
     vertical.second += h * 0.10;
     
     setAxisScale( QwtPlot::xBottom, horizontal.first, horizontal.second );
-    setAxisScale( QwtPlot::yLeft, vertical.first, vertical.second );
+    // setAxisScale( QwtPlot::yLeft, vertical.first, vertical.second );
+    setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, vertical.first, vertical.second );
+
     zoomer()->setZoomBase();
 }
 

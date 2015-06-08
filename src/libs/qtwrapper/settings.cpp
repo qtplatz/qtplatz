@@ -35,7 +35,7 @@ settings::settings( QSettings& settings ) : settings_( settings )
 }
 
 QString
-settings::recentFile( const QString& group, const QString& key )
+settings::recentFile( const QString& group, const QString& key ) const
 {
     QString value;
 
@@ -85,7 +85,7 @@ settings::addRecentFiles( const QString& group, const QString& key, const QStrin
 }
 
 void
-settings::getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list )
+settings::getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const
 {
     settings_.beginGroup( group );
 
