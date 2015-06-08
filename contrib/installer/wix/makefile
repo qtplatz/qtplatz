@@ -17,6 +17,9 @@ QTPLATZ_BINARY_DIR = $(QTPLATZ_SOURCE_DIR)\$(BUILD)
 INFITOF_SOURCE_DIR = $(QTPLATZ_SOURCE_DIR)\..\infitof
 INFITOF_BINARY_DIR = $(INFITOF_SOURCE_DIR)\$(BUILD)
 
+MALPIX_SOURCE_DIR = $(QTPLATZ_SOURCE_DIR)\..\malpix
+MALPIX_BINARY_DIR = $(MALPIX_SOURCE_DIR)\$(BUILD)
+
 CANDLE = "$(WIX)bin\Candle.exe"
 LIGHT = "$(WIX)\bin\Light.exe"
 LIT = "$(WIX)\bin\Lit.exe"
@@ -38,14 +41,16 @@ OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj 
 
 all: qtplatz.msi
 
-world: qtplatz-cmake infitof-cmake qtplatz.msi
+infitof-world: qtplatz-cmake infitof-cmake qtplatz.msi
+malpix-world: qtplatz-cmake malpix qtplatz.msi
+world: qtplatz-cmake infitof-cmake malpix qtplatz.msi
 
 help:
 	@echo "*	make world	will do full rebuild qtplatz, and generate .MSI setup"
 	@echo "*	make harvest	make translations; make qt; and make plugins' for update .wxi files from scratch"
 	@echo "*	make all	make .msi from existing binary"
 	@echo "*	make clean	cleans up current dir"
-	@echo "*	make veryclean	CAUTION this cleans all fules according to git repository. == This makes a state right after clean git clone."
+	@echo "*	make veryclean	CAUTION this cleans all files according to git repository. == This makes a state just run git clone."
 
 clean:
 	$(RM) /S /F /Q $(STAGEDIR)
@@ -60,6 +65,9 @@ veryclean: clean
 	git clean -d -x -f
 	cd $(MAKEDIR)
 	cd $(INFITOF_SOURCE_DIR)
+	git clean -d -x -f
+	cd $(MAKEDIR)
+	cd $(MALPIX_SOURCE_DIR)
 	git clean -d -x -f
 	cd $(MAKEDIR)
 
@@ -77,6 +85,12 @@ infitof-cmake:
 	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_BUILD_DIR=../qtplatz/$(BUILD) ..
 	cd $(MAKEDIR)
 	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
+
+malpix:
+	cd $(MALPIX_SOURCE_DIR)
+	bootstrap $(BUILD)
+	cd $(MAKEDIR)
+	msbuild $(MALPIX_BINARY_DIR)\malpix.sln /m /t:Build /p:Configuration=Release
 
 version.exe: version.c
 	cl version.c
