@@ -226,7 +226,7 @@ MSChromatogramMethod::upper_limit( double v )
     impl_->mass_limits_.second = v;
 }
 
-//static
+
 double
 MSChromatogramMethod::width_at_mass( double mass ) const
 {

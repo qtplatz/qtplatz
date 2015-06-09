@@ -26,8 +26,87 @@
 #include "chromatogram.hpp"
 #include "lcmsdataset.hpp"
 #include "massspectrum.hpp"
+#include "mschromatogrammethod.hpp"
+#include "msproperty.hpp"
+#include "description.hpp"
+#include "descriptions.hpp"
+#include <adportable/spectrum_processor.hpp>
+#include <boost/format.hpp>
+#include <numeric>
 
 namespace adcontrols {
+
+    namespace mschromatogramextractor {
+
+        template< typename It > struct accumulate {
+            size_t size_;
+            const It xbeg_;
+            const It xend_;        
+            const It y_;
+
+            accumulate( It x, It y, size_t size ) : size_( size )
+                                                  , xbeg_( x )
+                                                  , xend_( x + size )
+                                                  , y_( y ) {
+            }
+        
+            double operator()( double lMass, double uMass ) const {
+                if ( size_ ) {
+                    auto lit = std::lower_bound( xbeg_, xend_, lMass );
+                    if ( lit != xend_ ) {
+                        auto bpos = std::distance( xbeg_, lit );
+                        auto uit = std::lower_bound( xbeg_, xend_, uMass );
+                        if ( uit == xend_ )
+                            uit--;
+                        while ( uMass < *uit )
+                            --uit;
+                        auto epos = std::distance( xbeg_, uit );
+                        if ( bpos > epos )
+                            epos = bpos;
+
+                        return std::accumulate( y_ + bpos, y_ + epos, 0.0 );
+                    }
+                }
+                return 0.0;
+            }
+        };
+
+        /////////////////////////////////////
+        class xChromatogram {
+            xChromatogram( const xChromatogram& ) = delete;
+            xChromatogram& operator = ( const xChromatogram& ) = delete;
+        public:
+            xChromatogram( const MSChromatogramMethod::value_type& target
+                           , double width
+                           , uint32_t fcn
+                           , uint32_t target_index = 0 ) : fcn_( fcn )
+                                                         , target_index_( target_index )
+                                                         , target_( target )
+                                                         , pchr_( std::make_shared< adcontrols::Chromatogram >() )  {
+                
+                (*pchr_) << std::make_pair( 0.0, 0.0 ); // force add origin
+                
+                pchr_->addDescription(
+                    adcontrols::description( L"Create"
+                                             , ( boost::wformat( L"%s %.4f (%.fmDa)" )
+                                                 % adportable::utf::to_wstring( target.formula )
+                                                 % target.mass
+                                                 % ( width * 1000 )
+                                                 ).str() ) );
+                
+            }
+            
+            void append( uint32_t pos, double time, double y ) {
+                (*pchr_) << std::make_pair( time, y );
+            }
+
+            uint32_t fcn_;
+            uint32_t target_index_;
+            MSChromatogramMethod::value_type target_;
+            std::shared_ptr< adcontrols::Chromatogram > pchr_;
+            
+        };
+    }
     
     class MSChromatogramExtractor::impl {
     public:
@@ -37,8 +116,10 @@ namespace adcontrols {
         void prepare_spectra( size_t pos, std::shared_ptr< adcontrols::MassSpectrum > );
         void create_chromatograms( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                    , const adcontrols::MSChromatogramMethod& m );
-        void append_to_chromatogram( size_t pos, std::shared_ptr<const adcontrols::MassSpectrum> ms );
+        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSChromatogramMethod& );
         size_t read_raw_spectrum( size_t pos, const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& );
+
+        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram > > results_;
 
         std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
         const adcontrols::LCMSDataset * raw_;
@@ -57,7 +138,7 @@ MSChromatogramExtractor::MSChromatogramExtractor( const adcontrols::LCMSDataset 
 }
 
 bool
-MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec
+MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                        , const MSChromatogramMethod& cm
                                        , std::function<bool( size_t, size_t )> progress )
 {
@@ -70,6 +151,8 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         return false;
 
     progress( 0, nSpectra );
+
+    impl_->results_.clear();
     
     size_t pos = 0;
     size_t n( 0 );
@@ -77,11 +160,15 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         auto ms = std::make_shared< adcontrols::MassSpectrum >();
         if ( ( pos = impl_->read_raw_spectrum( pos, impl_->raw_, *ms ) ) ) {
             impl_->prepare_spectra( pos - 1, ms );
+            impl_->append_to_chromatogram( pos, *ms, cm );
             if ( progress( ++n, nSpectra ) )
                 return false;
         }
     } while ( pos );
-    
+
+    for ( auto& r : impl_->results_ )
+        vec.push_back( r->pchr_ );
+
     return true;
 }
 
@@ -113,23 +200,19 @@ MSChromatogramExtractor::impl::prepare_spectra( size_t pos, std::shared_ptr< adc
             doMSLock( *ms );
     }
 #endif
+
     spectra_[ pos ] = ms; // keep processed profile spectrum for second phase
 }
 
-#if 0
-void
-MSChromatogramExtractor::create_chromatograms( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
-                                             , const adcontrols::MSChromatogramMethod& m )
-{
-    for ( auto& sp : spectra_ ) {
-        
-    }
-}
 
 void
-MSChromatogramExtractor::append_to_chromatogram( size_t pos, std::shared_ptr<const adcontrols::MassSpectrum> ms )
+MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSChromatogramMethod& cm )
 {
-    adcontrols::segment_wrapper<const adcontrols::MassSpectrum> segments( *ms );
+    using namespace adcontrols::mschromatogramextractor;
+    
+    adcontrols::segment_wrapper<const adcontrols::MassSpectrum> segments( ms );
+
+    double width = cm.width( cm.widthMethod() );
 
     uint32_t fcn = 0;
 
@@ -137,12 +220,13 @@ MSChromatogramExtractor::append_to_chromatogram( size_t pos, std::shared_ptr<con
         
         double time = fms.getMSProperty().timeSinceInjection();
 
-        uint32_t candidate_index = 0; //  index to masses_
+        uint32_t target_index = 0; //  index to the cm.targets();
 
-        for ( auto& m : target_values_ ) {
+        for ( auto& m : cm.targets() ) {
 
-            double lMass = m.matchedMass - m.width / 2;
-            double uMass = m.matchedMass + m.width / 2;
+            double width = cm.width_at_mass( m.mass ); // cm.width( cm.widthMethod() );
+            double lMass = m.mass - width / 2;
+            double uMass = m.mass + width / 2;
 
             if ( fms.getMass( 0 ) <= lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
                 double y( 0 );
@@ -156,21 +240,19 @@ MSChromatogramExtractor::append_to_chromatogram( size_t pos, std::shared_ptr<con
 
                     y = adportable::spectrum_processor::area( fraction, base, fms.getIntensityArray(), fms.size() );
                 }
-
-                auto chro = std::find_if( begin(), end()
-                                          , [=] ( std::shared_ptr<QuanChromatogram>& c ) { return c->fcn() == fcn && c->candidate_index() == candidate_index; } );
-                if ( chro == end() ) {
-                    qchro_.push_back( std::make_shared< QuanChromatogram >( fcn, candidate_index, formula_, m.exactMass, m.matchedMass, std::make_pair( lMass, uMass ) ) );
-                    chro = qchro_.end() - 1;
+                
+                auto chro = std::find_if( results_.begin(), results_.end()
+                                          , [=] ( std::shared_ptr<xChromatogram>& c ) { return c->fcn_ == fcn && c->target_index_ == target_index; } );
+                if ( chro == results_.end() ) {
+                    results_.push_back( std::make_shared< xChromatogram >( m, width, fcn, target_index ) );
+                    chro = results_.end() - 1;
                 }
                 ( *chro )->append( uint32_t( pos ), time, y );
             }
                         
-            candidate_index++;
+            target_index++;
         }
         ++fcn;    
     }
 }
 
-
-#endif
