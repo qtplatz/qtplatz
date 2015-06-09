@@ -28,9 +28,10 @@
 #include "tableview.hpp"
 
 class QStandardItemModel;
+class QMenu;
 
 namespace adprot { class digestedPeptides; }
-namespace adcontrols { class TargetingMethod; }
+namespace adcontrols { class TargetingMethod; class MSChromatogramMethod; }
 
 namespace adwidgets {
 
@@ -40,23 +41,31 @@ namespace adwidgets {
         explicit TargetingTable(QWidget *parent = 0);
         ~TargetingTable();
 
+        enum fields { idFormula, idMass, idDescription };
+
         void onInitialUpdate();
+        void setEditable( fields, bool );
 
         void setContents( const adprot::digestedPeptides& );
         void setContents( const adcontrols::TargetingMethod& );
         void getContents( adcontrols::TargetingMethod& );
 
+        void setContents( const adcontrols::MSChromatogramMethod& );
+        void getContents( adcontrols::MSChromatogramMethod& );
+        
         QStandardItemModel& model();
 
     private:
         QStandardItemModel * model_;
+        bool mass_editable_;
 
         void handleValueChanged( const QModelIndex& );
         void handleContextMenu( const QPoint& );
         void enable_all( bool );
 
     signals:
-
+        void onContextMenu( QMenu&, const QPoint& );
+                                           
     public slots:
 
     };

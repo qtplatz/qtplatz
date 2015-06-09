@@ -388,8 +388,17 @@ MainWindow::run()
             if ( reply == QMessageBox::No )
                 return;
 
-            if ( reply == QMessageBox::Yes )
-                boost::filesystem::remove( path );
+            if ( reply == QMessageBox::Yes ) {
+                boost::system::error_code ec;
+                boost::filesystem::remove( path, ec );
+                if ( ec ) {
+                    auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
+                                                        , QString( "File %1% cannot be removed. Overwrite?" ).arg( file )
+                                                        , QMessageBox::Yes, QMessageBox::No, QMessageBox::Ignore );
+                    if ( reply == QMessageBox::No )
+                        return;
+                }
+            }
         }
     }
 

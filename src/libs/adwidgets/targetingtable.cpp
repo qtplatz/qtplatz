@@ -29,10 +29,15 @@
 #include <adprot/peptide.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/mschromatogrammethod.hpp>
+#include <adportable/float.hpp>
+#include <QDoubleSpinBox>
 #include <QHeaderView>
 #include <QMenu>
+#include <QPainter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
+
 #include <boost/format.hpp>
 #include <qtwrapper/font.hpp>
 #include <functional>
@@ -60,16 +65,23 @@ namespace adwidgets {
                 opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
                 if ( index.column() == c_formula ) {
-
+                    
                     std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                     DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
 
                 } else if ( index.column() == c_mass ) {
 
+                    painter->save();
+                    std::string formula = index.model()->index( index.row(), c_formula ).data( Qt::EditRole ).toString().toStdString();
+                    double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
+                    double mass = index.data( Qt::EditRole ).toDouble();
+                    if ( !adportable::compare<double>::approximatelyEqual( exactMass, mass ) )
+                        painter->fillRect( option.rect, QColor( 0xff, 0x66, 0x44, 0x40 ) );
                     QStyledItemDelegate::paint( painter, opt, index );
+                    painter->restore();
 
                 } else {
-                    
+
                     QStyledItemDelegate::paint( painter, opt, index );
 
                 }
@@ -79,6 +91,17 @@ namespace adwidgets {
                 QStyledItemDelegate::setModelData( editor, model, index );
                 if ( valueChanged_ )
                     valueChanged_( index );
+            }
+
+            QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
+                if ( index.column() == c_mass ) {
+                    auto widget = new QDoubleSpinBox( parent );
+                    widget->setMinimum( 0 ); widget->setMaximum( 5000 ); widget->setSingleStep( 0.0001 ); widget->setDecimals( 7 );
+                    widget->setValue( index.data( Qt::EditRole ).toDouble() );
+                    return widget;
+                } else {
+                    return QStyledItemDelegate::createEditor( parent, option, index );
+                }
             }
             
             //QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
@@ -101,6 +124,7 @@ namespace adwidgets {
 
 TargetingTable::TargetingTable(QWidget *parent) : TableView(parent)
                                                 , model_( new QStandardItemModel() )
+                                                , mass_editable_( false )
 {
     setModel( model_ );
     auto delegate = new detail::TargetingDelegate;
@@ -179,7 +203,6 @@ TargetingTable::setContents( const adcontrols::TargetingMethod& method )
 
         double exactMass = cformula.getMonoIsotopicMass( formula_data::formula( formula ) );
         model_->setData( model_->index( row, c_mass ), exactMass );
-
         ++row;
     }
 
@@ -209,6 +232,64 @@ TargetingTable::getContents( adcontrols::TargetingMethod& method )
 }
 
 void
+TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
+{
+    QStandardItemModel& model = *model_;
+    using namespace adwidgets::detail;
+    adcontrols::ChemicalFormula cformula;
+
+    mass_editable_ = true;
+
+    model.setRowCount( int( m.targets().size() + 1 ) ); // add one free line for add formula
+
+    int row = 0;
+    for ( auto& value: m.targets() ) {
+
+        model.setData( model.index( row, c_formula ), QString::fromStdString( value.formula ) );
+        if ( auto item = model.item( row, c_formula ) ) {
+            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+            item->setEditable( true );
+            model.setData( model.index( row, c_formula ), value.enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
+
+        if ( value.mass < 0.7 )
+            model.setData( model.index( row, c_mass ), cformula.getMonoIsotopicMass( value.formula ) );
+        else
+            model.setData( model.index( row, c_mass ), value.mass );
+
+        model.item( row, c_mass )->setEditable( true );
+
+        model.setData( model.index( row, c_description ), QString::fromStdWString( value.memo ) );
+        model.item( row, c_description )->setEditable( true );
+
+        ++row;
+    }
+
+}
+
+void
+TargetingTable::getContents( adcontrols::MSChromatogramMethod& m )
+{
+    QStandardItemModel& model = *model_;
+    using namespace adwidgets::detail;
+
+    std::vector< adcontrols::MSChromatogramMethod::value_type > vec;
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        adcontrols::MSChromatogramMethod::value_type value;
+
+        value.formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
+        value.enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
+        value.memo = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
+        value.mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+
+        if ( !value.formula.empty() )
+            vec.push_back( value );
+    }
+    m.targets( vec );
+}
+
+void
 TargetingTable::handleValueChanged( const QModelIndex& index )
 {
     using namespace adwidgets::detail;
@@ -229,12 +310,17 @@ TargetingTable::handleValueChanged( const QModelIndex& index )
         adcontrols::ChemicalFormula cformula;
         double exactMass = cformula.getMonoIsotopicMass( formula );
         model_->setData( model_->index( index.row(), c_mass ), exactMass );
+        if ( mass_editable_ )
+            model_->item( index.row(), c_mass )->setEditable( true );
     }
-    if ( index.row() == model_->rowCount() - 1 )
+    if ( index.row() == model_->rowCount() - 1 ) {
+
         model_->insertRow( index.row() + 1 );
 
-    resizeColumnsToContents();
-    resizeRowsToContents();
+    }
+
+    // resizeColumnsToContents();
+    // resizeRowsToContents();
 }
 
 void
@@ -242,6 +328,8 @@ TargetingTable::handleContextMenu( const QPoint& pt )
 {
     QMenu menu;
 
+    emit onContextMenu( menu, pt );
+    
     typedef std::pair< QAction *, std::function< void() > > action_type;
 
     std::vector< action_type > actions;
@@ -255,6 +343,8 @@ TargetingTable::handleContextMenu( const QPoint& pt )
         if ( it != actions.end() )
             (it->second)();
     }
+    
+
 }
 
 void
@@ -268,3 +358,11 @@ TargetingTable::enable_all( bool enable )
     }
 
 }
+
+void
+TargetingTable::setEditable( fields id, bool enable )
+{
+    if ( id == idMass )
+        mass_editable_ = enable;
+}
+

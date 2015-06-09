@@ -24,12 +24,29 @@
 
 #include "mschromatogrammethod.hpp"
 #include "serializer.hpp"
+#include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/utility.hpp>
-#include <boost/serialization/access.hpp>
+
 #include <array>
 #include <adportable/float.hpp>
+
+namespace boost {
+    namespace serialization {
+
+        using namespace adcontrols;
+
+        template <class Archive >
+        void serialize( Archive& ar, MSChromatogramMethod::value_type& p, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( p.enable );
+            ar & BOOST_SERIALIZATION_NVP( p.mass );
+            ar & BOOST_SERIALIZATION_NVP( p.formula );
+            ar & BOOST_SERIALIZATION_NVP( p.memo );
+        }
+    }
+}
 
 namespace adcontrols {
 
@@ -39,19 +56,21 @@ namespace adcontrols {
         WidthMethod widthMethod_;
         std::array< double, 2 > width_;
         std::pair< double, double > mass_limits_; // lower, upper
+
+        std::vector< MSChromatogramMethod::value_type > formulae_;
         
         friend class boost::serialization::access;
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
 
-            (void)version;
-
             ar & BOOST_SERIALIZATION_NVP( dataSource_ );
             ar & BOOST_SERIALIZATION_NVP( widthMethod_ );
             ar & boost::serialization::make_nvp( "width0", width_[ 0 ] );
             ar & boost::serialization::make_nvp( "width1", width_[ 1 ] );
             ar & BOOST_SERIALIZATION_NVP( mass_limits_ );
+            if ( version >= 4 )
+                ar & BOOST_SERIALIZATION_NVP( formulae_ );
         }
         
         impl() : dataSource_( Profile )
@@ -64,12 +83,13 @@ namespace adcontrols {
         impl( const impl& t ) : dataSource_( t.dataSource_ )
                               , widthMethod_( t.widthMethod_ )
                               , width_( t.width_)
-                              , mass_limits_( t.mass_limits_ ) {
+                              , mass_limits_( t.mass_limits_ )
+                              , formulae_( t.formulae_ ) {
         }
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod::impl, 3 )
+BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod::impl, 4 )
 
 namespace adcontrols {
 
@@ -77,7 +97,7 @@ namespace adcontrols {
     template<> void
     MSChromatogramMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-        ar & *impl_; // write v3 format
+        ar & *impl_; // write v4 format
     }
 
     template<> void
@@ -86,7 +106,7 @@ namespace adcontrols {
         if ( version <= 2 )
             impl_->serialize( ar, version );
         else
-            ar & *impl_; // read form v3 format stream
+            ar & *impl_;
     }
 
     ///////// XML archive ////////
@@ -214,5 +234,17 @@ MSChromatogramMethod::width_at_mass( double mass ) const
         return mass / impl_->width_[ impl_->widthMethod_ ];
     else 
         return impl_->width_[ impl_->widthMethod_ ];
+}
+
+const std::vector< MSChromatogramMethod::value_type >&
+MSChromatogramMethod::targets() const
+{
+    return impl_->formulae_;
+}
+
+void
+MSChromatogramMethod::targets( const std::vector< value_type >& f )
+{
+    impl_->formulae_ = f;
 }
 

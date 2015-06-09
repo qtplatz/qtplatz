@@ -130,6 +130,7 @@ namespace dataproc {
         void handleFeatureActivated( int );
         void handlePeptideTarget( const QVector<QPair<QString, QString> >& );
         void handleProcessMethodChanged( const QString& );
+        void handleProcess( const QString& );
 
         friend class MSPeaksWnd;
 

@@ -174,7 +174,7 @@ document::initialSetup()
         path = QFileInfo( path ).path();
     }
     // fake project directory for help initial openfiledialog location
-    Core::DocumentManager::setProjectsDirectory( path );
+    //Core::DocumentManager::setProjectsDirectory( path ); -- Quan plugin may set already
     Core::DocumentManager::setUseProjectsDirectory( true );
 
     boost::filesystem::path mfile( dir / "default.cmth" );

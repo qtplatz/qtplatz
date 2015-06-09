@@ -64,6 +64,7 @@ set( ${PROJECT_NAME}_SOURCES
   filedialog.cpp
   peaktable.cpp
   mschromatogramform.cpp
+  mschromatogramwidget.cpp
   peakmethodform.cpp
   mspeaksummary.cpp
   mspeakwidget.cpp
@@ -105,6 +106,7 @@ set( ${PROJECT_NAME}_HEADERS
   pressuregauge.hpp
   peaktable.hpp
   mschromatogramform.hpp
+  mschromatogramwidget.hpp  
   peakmethodform.hpp
   mspeaksummary.hpp
   mspeakwidget.hpp

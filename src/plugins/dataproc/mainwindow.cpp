@@ -27,6 +27,7 @@
 #include "chromatogramwnd.hpp"
 #include "dataproc_document.hpp"
 #include "dataprocessor.hpp"
+#include "dataprocessworker.hpp"
 #include "dataprocplugin.hpp"
 #include "dataprocessorfactory.hpp"
 #include "elementalcompwnd.hpp"
@@ -66,7 +67,7 @@
 #include <adwidgets/targetingwidget.hpp>
 #include <adwidgets/mspeaktable.hpp>
 #include <adwidgets/mscalibratewidget.hpp>
-#include <adwidgets/mschromatogramform.hpp>
+#include <adwidgets/mschromatogramwidget.hpp>
 #include <adwidgets/peakmethodform.hpp>
 #include <adwidgets/mspeakwidget.hpp>
 #include <portfolio/folder.hpp>
@@ -541,7 +542,7 @@ MainWindow::createDockWidgets()
           { tr( "Centroid" ), "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
         , { tr( "MS Calibration" ), "MSCalibrateWidget", [] () { return new adwidgets::MSCalibrateWidget; } }
-        , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramForm; } }
+        , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramWidget; } }
         , { tr( "Targeting" ), "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
         , { tr( "Peptide" ), "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
         , { tr( "Peak Find" ), "PeakFindMethod", [] (){ return new adwidgets::PeakMethodForm; } }
@@ -581,6 +582,7 @@ MainWindow::createDockWidgets()
             }
             connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
             connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) ), pWidget, SLOT( handleZoomedOnChromatogram( const QRectF& ) ) );
+            connect( pWidget, SIGNAL( onProcess( const QString& ) ), this, SLOT( handleProcess( const QString& ) ) );
 
             if ( auto p = dynamic_cast< adwidgets::PeptideWidget *>( pWidget ) ) {
                 connect( p, &adwidgets::PeptideWidget::triggerFind, this, &MainWindow::handlePeptideTarget );
@@ -707,6 +709,25 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                 pLifeCycle->setContents( acentroid );
                 if ( targeting )
                     pLifeCycle->setContents( atargeting );
+            }
+        }
+    }
+}
+
+void
+MainWindow::handleProcess( const QString& origin )
+{
+    if ( origin == "MSChromatogramWidget" ) {
+        // generate chromatograms
+        auto pm = std::make_shared< adcontrols::ProcessMethod >();
+        getProcessMethod( *pm );
+        if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
+            auto& targets = cm->targets();
+            if ( !targets.empty() ) {
+                
+                if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
+                    DataprocessWorker::instance()->createChromatograms( processor, pm, origin );
+
             }
         }
     }

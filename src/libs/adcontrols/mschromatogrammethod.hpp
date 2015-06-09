@@ -31,6 +31,8 @@
 #include <compiler/disable_dll_interface.h>
 #include <boost/serialization/version.hpp>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace boost { namespace serialization { class access; } }
 
@@ -63,6 +65,19 @@ namespace adcontrols {
         void upper_limit( double );
         double width_at_mass( double mass ) const;
         bool operator == ( const MSChromatogramMethod& ) const;
+
+        struct ADCONTROLSSHARED_EXPORT value_type {
+            bool enable;
+            double mass;
+            std::string formula;
+            std::wstring memo;
+            value_type() : enable( true ), mass( 0 ) {}
+            value_type( const value_type& t ) : enable( t.enable ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
+            }
+        };
+
+        const std::vector< value_type >& targets() const;
+        void targets( const std::vector< value_type >& );
         
     private:
 
@@ -74,6 +89,10 @@ namespace adcontrols {
     };
     
 }
+
+#if defined _MSC_VER
+    template class ADCONTROLSSHARED_EXPORT std::vector < adcontrols::MSChromatogramMethod::value_type > ;
+#endif
 
 BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod, 3 )
 

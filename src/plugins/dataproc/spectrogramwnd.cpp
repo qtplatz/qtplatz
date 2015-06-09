@@ -240,10 +240,12 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
             adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
             double y = 0;
             for ( auto& seg: segs ) {
-                adportable::array_wrapper< const double > masses( seg.getMassArray(), seg.size() );
-                auto it = std::lower_bound( masses.begin(), masses.end(), m1 );
-                while ( *it++ <= m2 )
-                    y += seg.getIntensity( std::distance( masses.begin(), it ) );
+                const double * masses = seg.getMassArray();
+                if ( masses && segs.size() ) {
+                    auto it = std::lower_bound( masses, masses + seg.size(), m1 );
+                    while ( *it++ <= m2 )
+                        y += seg.getIntensity( std::distance( masses, it ) );
+                }
             }
             cp->setIntensity( idx++, y );
         }

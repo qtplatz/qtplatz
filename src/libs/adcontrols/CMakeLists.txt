@@ -70,7 +70,7 @@ add_library( adcontrols SHARED
   samplerun.cpp
   scanlaw.hpp
   tableofelement.cpp 
-  targetingmethod.cpp 
+  targetingmethod.cpp
   theoreticalplate.cpp 
   timeutil.cpp 
   trace.cpp 
@@ -86,8 +86,9 @@ add_library( adcontrols SHARED
   mspeak.cpp 
   mspeaks.cpp 
   msqpeak.cpp 
-  msqpeaks.cpp 
-  mschromatogrammethod.cpp 
+  msqpeaks.cpp
+  mschromatogramextractor.cpp     
+  mschromatogrammethod.cpp
   spectrogram.cpp 
   targeting.cpp 
   logging_hook.cpp 
@@ -178,7 +179,7 @@ install( FILES
   samplerun.hpp
   scanlaw.hpp
   tableofelement.hpp 
-  targetingmethod.hpp 
+  targetingmethod.hpp
   theoreticalplate.hpp 
   timeutil.hpp 
   trace.hpp 
@@ -194,7 +195,8 @@ install( FILES
   mspeak.hpp 
   mspeaks.hpp 
   msqpeak.hpp 
-  msqpeaks.hpp 
+  msqpeaks.hpp
+  mschromatogramextractor.hpp
   mschromatogrammethod.hpp 
   spectrogram.hpp 
   targeting.hpp 

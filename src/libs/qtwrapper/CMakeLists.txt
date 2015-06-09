@@ -20,7 +20,6 @@ add_library( qtwrapper
   application.cpp
   qstring.cpp
   xmlformatter.cpp
-  progressbar.cpp
   font.cpp
   settings.cpp
   progresshandler.hpp

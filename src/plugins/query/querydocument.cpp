@@ -39,7 +39,7 @@
 #include <adpublisher/document.hpp>
 #include <qtwrapper/settings.hpp>
 #include <qtwrapper/waitcursor.hpp>
-#include <qtwrapper/progresshandler.hpp>
+//#include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>

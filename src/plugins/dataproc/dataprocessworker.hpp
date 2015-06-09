@@ -33,9 +33,11 @@
 #include <tuple>
 #include <vector>
 
-namespace adcontrols { class MassSpectrum; class ProcessMethod; }
+namespace adcontrols { class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; }
 namespace adprot { class digestedPeptides; }
-namespace qtwrapper { class ProgressBar; }
+namespace adwidgets { class Progress;  }
+
+class QString;
 
 namespace dataproc {
 
@@ -54,6 +56,7 @@ namespace dataproc {
         static DataprocessWorker * instance();
         static void dispose();
         
+        void createChromatograms( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
         void createChromatograms( Dataprocessor *, const std::vector< std::tuple< int, double, double > >& );
         void createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass );
         void createSpectrogram( Dataprocessor * );
@@ -62,22 +65,29 @@ namespace dataproc {
 
     private:
         void terminate();
+
+        /* Generage chromatogram by MSChromatoramMethod::targets vector */
+        void handleCreateChromatograms( Dataprocessor *
+                                        , const adcontrols::MSChromatogramMethod&
+                                        , std::shared_ptr< const adcontrols::ProcessMethod >
+                                        , std::shared_ptr<adwidgets::Progress> );
+
         void handleCreateChromatograms( Dataprocessor *
                                         , const std::shared_ptr< adcontrols::ProcessMethod >
                                         , const std::vector< std::tuple< int, double, double > >&
-                                        , qtwrapper::ProgressBar* );
+                                        , std::shared_ptr<adwidgets::Progress> );
 
         void handleCreateSpectrogram( Dataprocessor *
                                       , const std::shared_ptr< adcontrols::ProcessMethod >
-                                      , qtwrapper::ProgressBar* );
+                                      , std::shared_ptr<adwidgets::Progress> );
         
         void handleClusterSpectrogram( Dataprocessor *
                                        , const std::shared_ptr< adcontrols::ProcessMethod >
-                                       , qtwrapper::ProgressBar* );
+                                       , std::shared_ptr<adwidgets::Progress> );
 
         void handleFindPeptide( Dataprocessor *
                                 , const std::shared_ptr< adcontrols::ProcessMethod >
-                                , qtwrapper::ProgressBar* );
+                                , std::shared_ptr<adwidgets::Progress> );
 
         void join( const adportable::asio::thread::id& );
     };
