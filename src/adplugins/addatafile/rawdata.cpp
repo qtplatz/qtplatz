@@ -699,6 +699,8 @@ rawdata::getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char
 bool
 rawdata::mslocker( adcontrols::lockmass& mslk, uint32_t objid ) const
 {
+    return false;
+
     if ( objid == 0 ) {
         auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
                 return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
