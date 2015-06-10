@@ -361,6 +361,17 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
             candidate->append_to_chromatogram( sp.first, sp.second.profile );
     }
 
+    std::pair< double, double > time_range =
+        std::make_pair( spectra_.begin()->second.profile->getMSProperty().timeSinceInjection()
+                      , spectra_.rbegin()->second.profile->getMSProperty().timeSinceInjection() );
+
+    for ( auto& qchro : qcrms_v ) {
+        std::for_each( qchro->begin(), qchro->end(), [=] ( std::shared_ptr<QuanChromatogram> c ) {
+                c->chromatogram()->minimumTime( time_range.first );
+                c->chromatogram()->maximumTime( time_range.second );
+            });
+    }
+
     auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
     for ( auto& qchro : qcrms_v ) {
 

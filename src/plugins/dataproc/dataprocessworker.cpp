@@ -202,7 +202,7 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor * processor
     if ( auto dset = processor->getLCMSDataset() ) {
         adcontrols::MSChromatogramExtractor extract( dset );
 
-        extract( vec, cm, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int(total) ); return ( *progress )( int(curr) ); } );
+        extract( vec, *pm, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
 
     }
 
@@ -223,20 +223,18 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
                                               , const std::vector< std::tuple< int, double, double > >& ranges
 											  , std::shared_ptr<adwidgets::Progress> progress )
 {
-    std::vector< adcontrols::Chromatogram > vec;
+    std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
-        dset->getChromatograms( ranges, vec, [=](long curr, long total)->bool{
-                if ( curr == 0 )
-                    progress->setRange( 0, total );
-                (*progress)( curr );
-				return true;
-            } );
+
+        adcontrols::MSChromatogramExtractor extract( dset );
+        extract( vec, ranges, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
+
     }
 
     portfolio::Folium folium;
     for ( auto c: vec )
-        folium = processor->addChromatogram( c, *method );
+        folium = processor->addChromatogram( *c, *method );
 	SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );

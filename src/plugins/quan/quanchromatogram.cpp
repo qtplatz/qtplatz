@@ -68,12 +68,16 @@ QuanChromatogram::QuanChromatogram( uint32_t fcn
                                                                                  , chromatogram_( std::make_shared< adcontrols::Chromatogram >() )
                                                                                  , peakinfo_( std::make_shared< adcontrols::PeakResult >() )
                                                                                  , peakId_( -1 )
+                                                                                 , count_( 0 )
 {
 }
         
 void
 QuanChromatogram::append( uint32_t pos, double time, double value )
 {
+    if ( count_++ == 0 && pos > 0 )
+        return;  // ignore first data after chromatogram condition change
+    
     indecies_.push_back( pos );
     ( *chromatogram_ ) << std::make_pair( time, value );
 }

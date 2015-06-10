@@ -52,6 +52,10 @@ namespace adcontrols {
         bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
                          , const ProcessMethod&
                          , std::function<bool( size_t, size_t )> progress );
+
+        bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
+                         , const std::vector< std::tuple< int, double, double > >& ranges
+                         , std::function<bool( size_t, size_t )> progress );
         
     private:
         class impl;

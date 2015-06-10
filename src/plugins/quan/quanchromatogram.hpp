@@ -111,6 +111,7 @@ namespace quan {
         std::vector< uint32_t > indecies_; // adfs 'pos' - bin# map
         std::shared_ptr< adcontrols::MSPeakInfo > mspeaks_;
         std::pair< double, double > msrange_;
+        uint32_t count_;
         
     private:
         uint32_t peakId_;
