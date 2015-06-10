@@ -31,10 +31,11 @@
 using namespace adwidgets;
 
 MSChromatogramForm::MSChromatogramForm( QWidget *parent ) : QWidget( parent )
-                                                        , ui( new Ui::MSChromatogramForm )
+                                                          , ui( new Ui::MSChromatogramForm )
 {
     ui->setupUi(this);
     ui->comboBox->addItems( QStringList() << tr( "Profile" ) << tr( "Centroid" ) );
+    connect( ui->checkBox, &QCheckBox::stateChanged, this, [this] ( int state ) { emit onEnableLockMass( state == Qt::Checked ); } );
 }
 
 MSChromatogramForm::~MSChromatogramForm()
@@ -95,7 +96,7 @@ void
 MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
 {
     ui->comboBox->setCurrentIndex( m.dataSource() );
-    if ( m.width() == adcontrols::MSChromatogramMethod::widthInDa )
+    if ( m.widthMethod() == adcontrols::MSChromatogramMethod::widthInDa )
         ui->radioButton->setChecked( true );
     else
         ui->radioButton_2->setChecked( true );
@@ -111,6 +112,10 @@ MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
     
     ui->doubleSpinBox_2->setValue( m.lower_limit() );
     ui->doubleSpinBox_3->setValue( m.upper_limit() );
+
+    ui->checkBox->setChecked( m.lockmass() );
+
+    ui->doubleSpinBox_4->setValue( m.tolerance() * 1000.0 );
 }
 
 void
@@ -127,6 +132,10 @@ MSChromatogramForm::getContents( adcontrols::MSChromatogramMethod& m ) const
 
     m.lower_limit( ui->doubleSpinBox_2->value() );
     m.upper_limit( ui->doubleSpinBox_3->value() );
+
+    m.lockmass( ui->checkBox->isChecked() );
+
+    m.tolerance( ui->doubleSpinBox_4->value() / 1000.0 );
 }
 
 

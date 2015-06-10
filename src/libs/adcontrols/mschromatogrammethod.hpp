@@ -64,15 +64,22 @@ namespace adcontrols {
         void lower_limit( double );
         void upper_limit( double );
         double width_at_mass( double mass ) const;
+
+        bool lockmass() const;
+        void lockmass( bool );
+        double tolerance() const;
+        void tolerance( double );
+        
         bool operator == ( const MSChromatogramMethod& ) const;
 
         struct ADCONTROLSSHARED_EXPORT value_type {
             bool enable;
+            bool msref;
             double mass;
             std::string formula;
             std::wstring memo;
-            value_type() : enable( true ), mass( 0 ) {}
-            value_type( const value_type& t ) : enable( t.enable ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
+            value_type() : enable( true ), msref( false ), mass( 0 ) {}
+            value_type( const value_type& t ) : enable( t.enable ), msref( t.msref ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
             }
         };
 

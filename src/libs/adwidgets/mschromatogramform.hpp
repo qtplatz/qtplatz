@@ -57,6 +57,9 @@ namespace adwidgets {
     public slots:
         void getLifeCycle( adplugin::LifeCycle *& p );
 
+    signals:
+        void onEnableLockMass( bool );
+
     private:
         Ui::MSChromatogramForm *ui;
         void setContents( const adcontrols::MSChromatogramMethod& );

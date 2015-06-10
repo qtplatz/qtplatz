@@ -41,6 +41,7 @@ namespace boost {
         template <class Archive >
         void serialize( Archive& ar, MSChromatogramMethod::value_type& p, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( p.enable );
+            ar & BOOST_SERIALIZATION_NVP( p.msref );            
             ar & BOOST_SERIALIZATION_NVP( p.mass );
             ar & BOOST_SERIALIZATION_NVP( p.formula );
             ar & BOOST_SERIALIZATION_NVP( p.memo );
@@ -56,8 +57,9 @@ namespace adcontrols {
         WidthMethod widthMethod_;
         std::array< double, 2 > width_;
         std::pair< double, double > mass_limits_; // lower, upper
-
         std::vector< MSChromatogramMethod::value_type > formulae_;
+        bool enable_lockmass_;
+        double tolerance_;
         
         friend class boost::serialization::access;
         template<class Archive>
@@ -69,13 +71,18 @@ namespace adcontrols {
             ar & boost::serialization::make_nvp( "width0", width_[ 0 ] );
             ar & boost::serialization::make_nvp( "width1", width_[ 1 ] );
             ar & BOOST_SERIALIZATION_NVP( mass_limits_ );
-            if ( version >= 4 )
+            if ( version >= 4 ) {
                 ar & BOOST_SERIALIZATION_NVP( formulae_ );
+                ar & BOOST_SERIALIZATION_NVP( enable_lockmass_ );
+                ar & BOOST_SERIALIZATION_NVP( tolerance_ );
+            }
         }
         
         impl() : dataSource_( Profile )
                , widthMethod_( widthInDa )
-               , mass_limits_( -1, -1 ) {
+               , mass_limits_( -1, -1 )
+               , enable_lockmass_( false )
+               , tolerance_( 0.020 ) {
             width_[ widthInDa ] = 0.002;
             width_[ widthInRP ] = 100000;
         }
@@ -84,7 +91,9 @@ namespace adcontrols {
                               , widthMethod_( t.widthMethod_ )
                               , width_( t.width_)
                               , mass_limits_( t.mass_limits_ )
-                              , formulae_( t.formulae_ ) {
+                              , formulae_( t.formulae_ )
+                              , enable_lockmass_( t.enable_lockmass_ )
+                              , tolerance_( t.tolerance_ ) {
         }
     };
 }
@@ -246,5 +255,29 @@ void
 MSChromatogramMethod::targets( const std::vector< value_type >& f )
 {
     impl_->formulae_ = f;
+}
+
+bool
+MSChromatogramMethod::lockmass() const
+{
+    return impl_->enable_lockmass_;
+}
+
+void
+MSChromatogramMethod::lockmass( bool enable )
+{
+    impl_->enable_lockmass_ = enable;
+}
+
+double
+MSChromatogramMethod::tolerance() const
+{
+    return impl_->tolerance_;
+}
+
+void
+MSChromatogramMethod::tolerance( double value )
+{
+    impl_->tolerance_ = value;
 }
 

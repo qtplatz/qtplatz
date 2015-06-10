@@ -23,16 +23,22 @@
 **************************************************************************/
 
 #include "mschromatogramextractor.hpp"
+#include "centroidmethod.hpp"
+#include "chemicalformula.hpp"
 #include "chromatogram.hpp"
+#include "centroidprocess.hpp"
 #include "description.hpp"
 #include "descriptions.hpp"
 #include "lcmsdataset.hpp"
 #include "lockmass.hpp"
 #include "massspectrum.hpp"
 #include "mschromatogrammethod.hpp"
+#include "msfinder.hpp"
+#include "mslockmethod.hpp"
 #include "msproperty.hpp"
 #include "processmethod.hpp"
 #include <adportable/spectrum_processor.hpp>
+#include "waveform.hpp"
 #include <boost/format.hpp>
 #include <numeric>
 
@@ -112,7 +118,6 @@ namespace adcontrols {
             uint32_t count_; // data count
             MSChromatogramMethod::value_type target_;
             std::shared_ptr< adcontrols::Chromatogram > pchr_;
-            
         };
     }
     
@@ -120,17 +125,24 @@ namespace adcontrols {
     public:
         impl( const adcontrols::LCMSDataset * raw ) : raw_( raw )
             {}
-        
-        void prepare_spectra( size_t pos, std::shared_ptr< adcontrols::MassSpectrum > );
+
+        void prepare_mslock( const adcontrols::MSChromatogramMethod&, const adcontrols::ProcessMethod& );
+        void apply_mslock( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod&, adcontrols::lockmass& );
+        void prepare_spectrum( size_t pos, std::shared_ptr< adcontrols::MassSpectrum > );
         void create_chromatograms( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                    , const adcontrols::MSChromatogramMethod& m );
         void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSChromatogramMethod& );
         size_t read_raw_spectrum( size_t pos, const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& );
 
-        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram > > results_;
+        bool doMSLock( adcontrols::lockmass& mslock, const adcontrols::MassSpectrum& centroid, const adcontrols::MSLockMethod& m );
+        bool doCentroid( adcontrols::MassSpectrum& centroid, const adcontrols::MassSpectrum& profile, const adcontrols::CentroidMethod& );
 
+        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram > > results_;
         std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
         const adcontrols::LCMSDataset * raw_;
+        std::shared_ptr< adcontrols::MSLockMethod > lockm_;
+        std::vector< std::pair< std::string, double > > msrefs_;
+        std::shared_ptr< adcontrols::CentroidMethod > centroidMetod_;
     };
 }
 
@@ -163,18 +175,32 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         progress( 0, nSpectra );
 
         impl_->results_.clear();
+        
+        if ( cm->lockmass() )
+            impl_->prepare_mslock( *cm, pm );
 
         size_t pos = 0;
         size_t n( 0 );
+
+        adcontrols::lockmass mslock;
         do {
             auto ms = std::make_shared< adcontrols::MassSpectrum >();
+
             if ( ( pos = impl_->read_raw_spectrum( pos, impl_->raw_, *ms ) ) ) {
-                impl_->prepare_spectra( pos - 1, ms );
-                impl_->append_to_chromatogram( pos - 1, *ms, *cm );
+
+                if ( cm->lockmass() )
+                    impl_->apply_mslock( ms, pm, mslock );
+                
+                impl_->prepare_spectrum( pos - 1, ms );
+
                 if ( progress( ++n, nSpectra ) )
                     return false;
             }
         } while ( pos );
+
+        for ( auto& ms : impl_->spectra_ ) {
+            impl_->append_to_chromatogram( ms.first, *ms.second, *cm );
+        }
 
         std::pair< double, double > time_range =
             std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
@@ -204,7 +230,7 @@ MSChromatogramExtractor::impl::read_raw_spectrum( size_t pos, const adcontrols::
 
 
 void
-MSChromatogramExtractor::impl::prepare_spectra( size_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms )
+MSChromatogramExtractor::impl::prepare_spectrum( size_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms )
 {
     bool locked = false;
 
@@ -270,3 +296,106 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontr
     }
 }
 
+void
+MSChromatogramExtractor::impl::prepare_mslock( const adcontrols::MSChromatogramMethod& cm, const adcontrols::ProcessMethod& pm )
+{
+    msrefs_.clear();
+    
+    if ( cm.lockmass() ) {
+        for ( auto& target: cm.targets() ) {
+            if ( target.msref ) {
+                double exactmass = adcontrols::ChemicalFormula().getMonoIsotopicMass( target.formula );
+                msrefs_.push_back( std::make_pair( target.formula, exactmass ) );
+            }
+        }
+
+        if ( auto lockm = pm.find< adcontrols::MSLockMethod >() ) {
+            lockm_ = std::make_shared< adcontrols::MSLockMethod >( *lockm );
+        } else {
+            lockm_ = std::make_shared< adcontrols::MSLockMethod >();
+        }
+        lockm_->setAlgorithm( adcontrols::idFindLargest );
+        lockm_->setTolerance( adcontrols::idToleranceDaltons, cm.tolerance() );
+    }
+}
+
+void
+MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > profile, const adcontrols::ProcessMethod& pm, adcontrols::lockmass& mslock )
+{
+    if ( auto cm = pm.find< adcontrols::CentroidMethod >() ) {
+
+        adcontrols::MassSpectrum centroid;
+
+        if ( cm->noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter ) {
+            adcontrols::MassSpectrum filtered;
+            filtered.clone( *profile, true );
+            for ( auto& ms : adcontrols::segment_wrapper<>( filtered ) ) {
+                adcontrols::waveform::fft::lowpass_filter( ms, cm->cutoffFreqHz() );
+                double base( 0 ), rms( 0 );
+                const double * intens = ms.getIntensityArray();
+                adportable::spectrum_processor::tic( uint32_t( ms.size() ), intens, base, rms );
+                for ( size_t i = 0; i < ms.size(); ++i )
+                    ms.setIntensity( i, intens[ i ] - base );
+            }
+            // filtered.addDescription( adcontrols::description( L"process", dataproc::Constants::F_DFT_FILTERD ) );
+            doCentroid( centroid, filtered, *cm );
+        } else {
+            doCentroid( centroid, *profile, *cm );
+        }
+        
+        adcontrols::lockmass temp;
+        if ( doMSLock( temp, centroid, *lockm_ ) )
+            mslock = temp;
+    }
+    
+    if ( mslock )
+        mslock( *profile );
+}
+
+bool
+MSChromatogramExtractor::impl::doCentroid(adcontrols::MassSpectrum& centroid
+                                          , const adcontrols::MassSpectrum& profile
+                                          , const adcontrols::CentroidMethod& m )
+{
+    adcontrols::CentroidProcess peak_detector;
+    bool result = false;
+    
+    centroid.clone( profile, false );
+    
+    if ( peak_detector( m, profile ) ) {
+        result = peak_detector.getCentroidSpectrum( centroid );
+        // pkInfo = peak_detector.getPeakInfo();
+    }
+    
+    if ( profile.numSegments() > 0 ) {
+        for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
+            adcontrols::MassSpectrum temp;
+            result |= peak_detector( profile.getSegment( fcn ) );
+            // pkInfo.addSegment( peak_detector.getPeakInfo() );
+            peak_detector.getCentroidSpectrum( temp );
+            centroid.addSegment( temp );
+        }
+    }
+    return result;
+}
+
+bool
+MSChromatogramExtractor::impl::doMSLock( adcontrols::lockmass& mslock
+                                       , const adcontrols::MassSpectrum& centroid
+                                       , const adcontrols::MSLockMethod& m )
+{
+    // TODO: consider how to handle segmented spectrum -- current impl is always process first 
+    adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );
+
+    for ( auto& msref : msrefs_ ) {
+        size_t idx = find( centroid, msref.second );
+        if ( idx != adcontrols::MSFinder::npos ) 
+            mslock << adcontrols::lockmass::reference( msref.first, msref.second, centroid.getMass( idx ), centroid.getTime( idx ) );
+    }
+
+    if ( mslock.fit() ) {
+        // mslock( centroid, true );
+        return true;
+    }
+    return false;
+}

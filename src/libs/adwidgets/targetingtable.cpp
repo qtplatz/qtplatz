@@ -52,6 +52,7 @@ namespace adwidgets {
             c_peptide
             , c_formula
             , c_mass
+            , c_msref
             , c_description
             , nbrColums
         };
@@ -70,7 +71,7 @@ namespace adwidgets {
                     DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
 
                 } else if ( index.column() == c_mass ) {
-
+                    
                     painter->save();
                     std::string formula = index.model()->index( index.row(), c_formula ).data( Qt::EditRole ).toString().toStdString();
                     double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
@@ -104,13 +105,17 @@ namespace adwidgets {
                 }
             }
             
-            //QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            //    if ( index.column() == 1 ) {
-            //        return DelegateHelper::html_size_hint( option, index );
-            //    } else {
-            //        return QStyledItemDelegate::sizeHint( option, index );
-            //    }
-            //}
+            // QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            //     auto sz = QStyledItemDelegate::sizeHint( option, index );
+            //     if ( index.column() == c_formula ) {
+            //         sz.wisth() * 2;
+            //     }
+            //     if ( index.column() == 1 ) {
+            //         return DelegateHelper::html_size_hint( option, index );
+            //     } else {
+            //         return 
+            //     }
+            // }
         public:
             void register_handler( std::function< void( const QModelIndex& ) > f ) {
                 valueChanged_ = f;
@@ -159,18 +164,22 @@ TargetingTable::onInitialUpdate()
 
     using namespace adwidgets::detail;
 
-    // horizontalHeader()->setResizeMode( QHeaderView::Stretch ); // Depricated since 5.0
-    horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch ); // Depricated since 5.0
+    horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Stretch );
+    horizontalHeader()->setStretchLastSection( true );
 
     model.setColumnCount( nbrColums );
     model.setHeaderData( c_peptide,  Qt::Horizontal, QObject::tr( "peptide" ) );
     model.setHeaderData( c_formula,  Qt::Horizontal, QObject::tr( "formula" ) );
-    model.setHeaderData( c_mass,  Qt::Horizontal, QObject::tr( "mass" ) );
+    model.setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "mass" ) );
+    model.setHeaderData( c_msref, Qt::Horizontal, QObject::tr( "lock mass" ) );
     model.setHeaderData( c_description, Qt::Horizontal, QObject::tr( "memo" ) );
 
     setColumnHidden( c_peptide, true );
+    enableLockMass( false );
 
-    resizeColumnsToContents();
+    setEditTriggers( QAbstractItemView::AllEditTriggers );
+    
+    //resizeColumnsToContents();
     resizeRowsToContents();
 }
 
@@ -205,8 +214,8 @@ TargetingTable::setContents( const adcontrols::TargetingMethod& method )
         model_->setData( model_->index( row, c_mass ), exactMass );
         ++row;
     }
-
-    resizeColumnsToContents();
+    enableLockMass( false );
+    // resizeColumnsToContents();
     resizeRowsToContents();
 }
 
@@ -239,7 +248,8 @@ TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
     adcontrols::ChemicalFormula cformula;
 
     mass_editable_ = true;
-
+    enableLockMass( m.lockmass() );
+    
     model.setRowCount( int( m.targets().size() + 1 ) ); // add one free line for add formula
 
     int row = 0;
@@ -259,12 +269,19 @@ TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
 
         model.item( row, c_mass )->setEditable( true );
 
+        model.setData( model.index( row, c_msref ), value.msref );
+        if ( auto cbx = model.item( row, c_msref ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model.setData( model.index( row, c_msref ), value.msref ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
+        
         model.setData( model.index( row, c_description ), QString::fromStdWString( value.memo ) );
         model.item( row, c_description )->setEditable( true );
 
         ++row;
     }
-
+    setColumnWidth( c_msref, 60 );
 }
 
 void
@@ -282,6 +299,7 @@ TargetingTable::getContents( adcontrols::MSChromatogramMethod& m )
         value.enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
         value.memo = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
         value.mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+        value.msref = model.index( row, c_msref ).data( Qt::CheckStateRole ).toBool();
 
         if ( !value.formula.empty() )
             vec.push_back( value );
@@ -314,6 +332,13 @@ TargetingTable::handleValueChanged( const QModelIndex& index )
             model_->item( index.row(), c_mass )->setEditable( true );
             model_->setData( model_->index( index.row(), c_description ), QString( "" ) );            
         }
+
+        model_->setData( model_->index( index.row(), c_msref ), false );
+        if ( auto cbx = model_->item( index.row(), c_msref ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model_->setData( model_->index( index.row(), c_msref ), Qt::Unchecked, Qt::CheckStateRole );
+        }
     }
     
     if ( index.column() == c_mass ) {
@@ -327,7 +352,7 @@ TargetingTable::handleValueChanged( const QModelIndex& index )
             model_->setData( model_->index( index.row(), c_description ), QString( "" ) );
         }
     }
-    
+
     if ( index.row() == model_->rowCount() - 1 ) {
 
         model_->insertRow( index.row() + 1 );
@@ -381,3 +406,8 @@ TargetingTable::setEditable( fields id, bool enable )
         mass_editable_ = enable;
 }
 
+void
+TargetingTable::enableLockMass( bool enable )
+{
+    setColumnHidden( detail::c_msref, !enable );
+}

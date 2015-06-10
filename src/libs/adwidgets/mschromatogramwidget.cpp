@@ -52,7 +52,10 @@ MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QWidget(parent)
             layout->addWidget( splitter );
         }
     }
-
+    if ( auto form = findChild< MSChromatogramForm * >() ) {
+        if ( auto table = findChild< TargetingTable *>() )
+            connect( form, &MSChromatogramForm::onEnableLockMass, table, [table] ( bool enable ) { table->enableLockMass( enable ); } );
+    }
 }
 
 MSChromatogramWidget::~MSChromatogramWidget()

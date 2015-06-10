@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>adwidgets::MSChromatogramForm</class>
- <widget class="QWidget" name="MSChromatogramForm">
+ <widget class="QWidget" name="adwidgets::MSChromatogramForm">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -24,6 +24,9 @@
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboBox"/>
+          </item>
           <item row="3" column="0">
            <widget class="QRadioButton" name="radioButton_2">
             <property name="enabled">
@@ -34,8 +37,29 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboBox"/>
+          <item row="5" column="0">
+           <widget class="QCheckBox" name="checkBox_lower">
+            <property name="text">
+             <string>Lower limit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_2"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Data source</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Mass window</string>
+            </property>
+           </widget>
           </item>
           <item row="2" column="1">
            <widget class="QDoubleSpinBox" name="doubleSpinBox">
@@ -52,42 +76,6 @@
              <double>0.001000000000000</double>
             </property>
            </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Mass window</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_2"/>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Data source</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QSpinBox" name="spinBox">
-            <property name="minimum">
-             <number>1000</number>
-            </property>
-            <property name="maximum">
-             <number>500000</number>
-            </property>
-            <property name="singleStep">
-             <number>1000</number>
-            </property>
-            <property name="value">
-             <number>3000</number>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_3">
@@ -106,7 +94,7 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="0">
+          <item row="8" column="0">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -119,10 +107,29 @@
             </property>
            </spacer>
           </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="checkBox_lower">
+          <item row="6" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="spinBox">
+            <property name="minimum">
+             <number>100</number>
+            </property>
+            <property name="maximum">
+             <number>10000000</number>
+            </property>
+            <property name="singleStep">
+             <number>1000</number>
+            </property>
+            <property name="value">
+             <number>3000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QCheckBox" name="checkBox">
             <property name="text">
-             <string>Lower limit</string>
+             <string>Lockmass (mDa)</string>
             </property>
            </widget>
           </item>
@@ -130,6 +137,16 @@
            <widget class="QCheckBox" name="checkBox_upper">
             <property name="text">
              <string>Upper limit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_4">
+            <property name="suffix">
+             <string comment="mDa"/>
+            </property>
+            <property name="maximum">
+             <double>1000.000000000000000</double>
             </property>
            </widget>
           </item>

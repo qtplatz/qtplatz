@@ -52,6 +52,7 @@ namespace adwidgets {
 
         void setContents( const adcontrols::MSChromatogramMethod& );
         void getContents( adcontrols::MSChromatogramMethod& );
+        void enableLockMass( bool );
         
         QStandardItemModel& model();
 
@@ -67,7 +68,7 @@ namespace adwidgets {
         void onContextMenu( QMenu&, const QPoint& );
                                            
     public slots:
-
+    
     };
 
 }

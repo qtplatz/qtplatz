@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include <compiler/disable_dll_interface.h>
 #include "adcontrols_global.h"
 #include "msfinder.hpp"
 #include <boost/serialization/nvp.hpp>
@@ -67,7 +68,6 @@ namespace adcontrols {
         const wchar_t * xmlReferences() const;
 
     private:
-#include <compiler/disable_dll_interface.h>
         bool enabled_;
         bool enablePeakThreshold_;
         idToleranceMethod toleranceMethod_;

@@ -202,7 +202,7 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor * processor
     if ( auto dset = processor->getLCMSDataset() ) {
         adcontrols::MSChromatogramExtractor extract( dset );
 
-        extract( vec, cm, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, total ); return ( *progress )( curr ); } );
+        extract( vec, cm, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int(total) ); return ( *progress )( int(curr) ); } );
 
     }
 
