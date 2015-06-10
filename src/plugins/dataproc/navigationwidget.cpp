@@ -29,6 +29,7 @@
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
 #include "actionmanager.hpp"
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adutils/processeddata.hpp>
@@ -512,6 +513,16 @@ namespace dataproc {
 		}
 	};
 
+	struct export_chromatogram {
+		static bool write( std::ostream& o, const adcontrols::Chromatogram& c ) {
+            for ( size_t n = 0; n < c.size(); ++n ) {
+                o << std::scientific << std::setprecision( 15 ) << c.time( n )
+                  << std::fixed << std::setprecision( 13 ) << c.intensity( n ) << std::endl;
+            }
+			return true;
+		}
+	};
+
     enum ActionType { checkAll, unCheckAll, asProfile, asCentroid, doCalibration, removedChecked, asDFTProfile };
 
     struct CheckState {
@@ -541,23 +552,18 @@ namespace dataproc {
             std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
             while ( !boost::filesystem::is_directory( path ) )
                 path = path.branch_path();
-
-            QString dir( QString::fromStdWString( path.wstring() ) );
-            QString name( QString::fromStdWString( folium.name() ) );
-
+            
             QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
-                , QObject::tr( "Save spectrum" )
-                , dir
-                , name
-                , QObject::tr( "qtplatz (*.adfs);;Text files (*.txt)" ) );
-                                                                      
+                                                                        , QObject::tr( "Save spectrum" )
+                                                                        , QString::fromStdWString( path.wstring() )
+                                                                        , QString::fromStdWString( folium.name() ) 
+                                                                        , QObject::tr( "qtplatz (*.adfs);;Text files (*.txt)" ) );
             
             boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
             
             if ( dstfile.extension() == ".adfs" ) {
                 adutils::fsio2::appendOnFile( dstfile.wstring(), folium, processor->file() );
-            }
-            else {
+            } else {
                 boost::filesystem::ofstream of( dstfile );
                 auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
                 export_spectrum::write( of, *ms );
@@ -565,6 +571,35 @@ namespace dataproc {
         }        
     };
 
+    struct SaveChromatogramAs {
+        portfolio::Folium folium;
+        SaveChromatogramAs( portfolio::Folium& f ) : folium( f )
+            {}
+        void operator()( Dataprocessor * processor ) {
+            
+            boost::filesystem::path path( processor->file().filename() );
+            std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
+            while ( !boost::filesystem::is_directory( path ) )
+                path = path.branch_path();
+
+            QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
+                                                                        , QObject::tr( "Save Chromatogarm" )
+                                                                        , QString::fromStdWString( path.wstring() )
+                                                                        , QString::fromStdWString( folium.name() )
+                                                                        , QObject::tr( "Text files (*.txt);;qtplatz (*.adfs)" ) );
+            
+            boost::filesystem::path dstfile( filename.toStdWString() );
+            
+            if ( dstfile.extension() == ".adfs" ) {
+                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, processor->file() );
+            } else {
+                boost::filesystem::ofstream of( dstfile );
+                if ( auto c = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) )
+                    export_chromatogram::write( of, *c );
+            }
+        }        
+    };
+    
     struct CalibrationAction {
         CalibrationAction() {}
 
@@ -630,7 +665,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     active_spectrum = QString::fromStdWString( active_folium.name() );
             }
         }
-
+        
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
             // this indicates menu requested on folium|folder node
 
@@ -687,9 +722,12 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     }
                 }
                 if ( folium.getParentFolder().name() == L"Chromatograms" ) {
+
                     QAction * doSpectrogram = 0;
                     menu.add( tr( "Remove unchecked items" ), RemoveChecked( this ) );
                     doSpectrogram = menu.add( tr( "Create Spectrogram" ), [] ( Dataprocessor * processor ) { processor->createSpectrogram(); } );
+
+                    menu.add( tr("Save Chromatogram as..."), SaveChromatogramAs( folium ), true );
                 }
             }
 
