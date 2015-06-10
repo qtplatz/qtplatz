@@ -50,7 +50,7 @@ namespace adcontrols {
         MSChromatogramExtractor( const adcontrols::LCMSDataset * );
 
         bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
-                         , const MSChromatogramMethod&
+                         , const ProcessMethod&
                          , std::function<bool( size_t, size_t )> progress );
         
     private:

@@ -310,9 +310,24 @@ TargetingTable::handleValueChanged( const QModelIndex& index )
         adcontrols::ChemicalFormula cformula;
         double exactMass = cformula.getMonoIsotopicMass( formula );
         model_->setData( model_->index( index.row(), c_mass ), exactMass );
-        if ( mass_editable_ )
+        if ( mass_editable_ ) {
             model_->item( index.row(), c_mass )->setEditable( true );
+            model_->setData( model_->index( index.row(), c_description ), QString( "" ) );            
+        }
     }
+    
+    if ( index.column() == c_mass ) {
+        std::string formula = index.model()->index( index.row(), c_formula ).data( Qt::EditRole ).toString().toStdString();
+        double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
+        double mass = index.data( Qt::EditRole ).toDouble();
+        if ( !adportable::compare<double>::approximatelyEqual( exactMass, mass ) ) {
+            double d = ( mass - exactMass ) * 1000;
+            model_->setData( model_->index( index.row(), c_description ), QString( "(off by %1mDa)" ).arg( QString::number( d, 'f', 3 ) ) );
+        } else {
+            model_->setData( model_->index( index.row(), c_description ), QString( "" ) );
+        }
+    }
+    
     if ( index.row() == model_->rowCount() - 1 ) {
 
         model_->insertRow( index.row() + 1 );
