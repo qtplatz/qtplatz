@@ -27,6 +27,7 @@
 #include "adcontrols_global.h"
 #include <boost/numeric/ublas/fwd.hpp>
 #include <cstdint>
+#include <functional>
 
 namespace boost { namespace serialization { class access; } }
 namespace adcontrols { class idAudit; }
@@ -59,8 +60,8 @@ namespace adcontrols {
         MappedSpectrum& operator ()( size_t i, size_t j );
         const MappedSpectrum& operator ()( size_t i, size_t j ) const;
 
-        MappedSpectra& operator += ( const boost::numeric::ublas::matrix< uint16_t >& frame );
-            
+        MappedSpectra& average( const boost::numeric::ublas::matrix< uint16_t >& frame, std::function<double( uint16_t )> binary_to_time );
+
     private:
         class impl;
         impl * impl_;

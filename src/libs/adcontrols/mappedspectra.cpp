@@ -145,16 +145,16 @@ MappedSpectra::operator ()( size_t i, size_t j ) const
 {
     return (impl_->data_)( i, j );
 }
-            
+
 MappedSpectra&
-MappedSpectra::operator += ( const boost::numeric::ublas::matrix< uint16_t >& frame )
+MappedSpectra::average( const boost::numeric::ublas::matrix< uint16_t >& frame, std::function<double( uint16_t )> binary_to_time )
 {
     if ( impl_->data_.size1() <= frame.size1() && impl_->data_.size2() <= frame.size2() ) {
 
         for ( size_t i = 0; i < impl_->data_.size1(); ++i ) {
             for ( size_t j = 0; j < impl_->data_.size2(); ++j ) {
                 if ( auto raw = frame(i, j) ) {
-                    ( impl_->data_ )( i, j ) << std::make_pair( raw, 1 );
+                    ( impl_->data_ )( i, j ) << std::make_pair( binary_to_time( raw ), 1 );
                 }
             }
         }
