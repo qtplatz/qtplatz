@@ -557,7 +557,9 @@ TraceData::setCentroidData( plot& plot, const adcontrols::MassSpectrum& _ms, con
             curve->attach( &plot );
             curves_.push_back( curve );
 
-            QColor color( color_table[ 0 ] );
+            int cid = ( idx_ ) % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) );
+            QColor color( color_table[ cid ] );
+            //QColor color( color_table[ 0 ] );
             color.setAlpha( 255 - (idx_ * 16) );
             curve->setPen( QPen( color ) );
             curve->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
@@ -670,7 +672,7 @@ std::pair< double, double >
 TraceData::y_range( double left, double right ) const
 {
     namespace metric = adcontrols::metric;
-    double top = 100;
+    double top = 20;
     double bottom = -10;
     double xleft = isTimeAxis_ ? metric::scale_to_base( left, metric::micro ) : left;
     double xright = isTimeAxis_ ? metric::scale_to_base( right, metric::micro ) : right;
