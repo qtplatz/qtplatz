@@ -42,13 +42,19 @@ namespace adcontrols {
     public:
         idAudit();
         idAudit( const idAudit& );
-        const char * digest() const { return digest_.c_str(); }
-        const char * dateCreated() const { return dateCreated_.c_str(); }
-        const wchar_t * idComputer() const { return idComputer_.c_str(); }
-        const wchar_t * idCreatedBy() const { return idCreatedBy_.c_str(); }
-        const wchar_t * nameCreatedBy() const { return nameCreatedBy_.c_str(); }
+        const char * digest() const;
+        const char * dateCreated() const;
+        const wchar_t * idComputer() const;
+        const wchar_t * idCreatedBy() const;
+        const wchar_t * nameCreatedBy() const;
+        const boost::uuids::uuid& uuid() const;
 
-        const boost::uuids::uuid& uuid() const { return uuid_; }
+        void setUuid( const boost::uuids::uuid& id );
+        void setDigest( const char * );
+        void setDateCreated( const char * );
+        void setIdComputer( const wchar_t * );
+        void setIdCreatedBy( const wchar_t * );
+        void setNameCreatedBy( const wchar_t * );
 
         static bool xml_archive( std::wostream&, const idAudit& );
         static bool xml_restore( std::wistream&, idAudit& );

@@ -56,6 +56,78 @@ idAudit::idAudit( const idAudit& t ) : uuid_( t.uuid_ )
 {
 }
 
+const char *
+idAudit::digest() const
+{
+    return digest_.c_str();
+}
+
+const char *
+idAudit::dateCreated() const
+{
+    return dateCreated_.c_str();
+}
+
+const wchar_t *
+idAudit::idComputer() const
+{
+    return idComputer_.c_str();
+}
+
+const wchar_t *
+idAudit::idCreatedBy() const
+{
+    return idCreatedBy_.c_str();
+}
+
+const wchar_t *
+idAudit::nameCreatedBy() const
+{
+    return nameCreatedBy_.c_str();
+}
+
+const boost::uuids::uuid&
+idAudit::uuid() const
+{
+    return uuid_;
+}
+
+void
+idAudit::setUuid( const boost::uuids::uuid& id )
+{
+    uuid_ = id;
+}
+
+void
+idAudit::setDigest( const char * digest )
+{
+    digest_ = digest ? digest : "";
+}
+
+void
+idAudit::setDateCreated( const char * date )
+{
+    dateCreated_ = date ? date : "";
+}
+
+void
+idAudit::setIdComputer( const wchar_t * value )
+{
+    idComputer_ = value ? value : L"";
+}
+
+void
+idAudit::setIdCreatedBy( const wchar_t * value )
+{
+    idCreatedBy_ = value ? value : L"";
+}
+
+void
+idAudit::setNameCreatedBy( const wchar_t * value )
+{
+    nameCreatedBy_ = value ? value : L"";
+}
+
 
 //static
 bool
