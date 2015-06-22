@@ -56,7 +56,7 @@ else()
   CHECK_CXX_COMPILER_FLAG("-std=c++03" COMPILER_SUPPORTS_CXX03)
 
   if(COMPILER_SUPPORTS_CXX11)
-    if ( CMAKE_CROSSCOMPILING )
+    if ( RTC_ARCH_ARM )
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     else()
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")

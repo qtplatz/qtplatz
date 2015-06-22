@@ -26,6 +26,9 @@ case $cross_target in
     x86_64)
 	cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc_64 ..
 	;;
+    armv7l)
+	cmake -DCMAKE_PREFIX_PATH=/usr/local/qt5 -DQTPLATZ_CORELIB_ONLY=1 ..
+	;;
     *)
 	echo "Unknown cross_target: $cross_target"
 	;;
