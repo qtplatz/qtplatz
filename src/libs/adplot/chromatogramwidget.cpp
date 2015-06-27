@@ -367,13 +367,13 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yRight )
 void
 ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& cp, int idx, bool yRight )
 {
-    impl_->curves_.clear();
-
     if ( cp->size() < 2 )
         return;
 
     using adcontrols::Chromatogram;
     using chromatogram_widget::ChromatogramData; // TraceData;
+
+    QRectF z = zoomer()->zoomRect(); // current (:= previous) zoom
     
     while ( int ( impl_->traces_.size() ) <= idx )
 		impl_->traces_.push_back( ChromatogramData( *this ) );
@@ -410,26 +410,27 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
     vertical.second += h * 0.10;
     
     setAxisScale( QwtPlot::xBottom, horizontal.first, horizontal.second );
-    // setAxisScale( QwtPlot::yLeft, vertical.first, vertical.second );
     setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, vertical.first, vertical.second );
 
-    zoomer()->setZoomBase();
+    zoomer()->setZoomBase(); // zoom base set to data range
+
+    //if keep zoomed
+    //if ( z.left() < horizontal.first || horizontal.second < z.right() )
+    //    plot::zoom( z ); // push previous rect
 }
 
 void
-ChromatogramWidget::setZoomBase( const std::pair< double, double >& range, bool horizontal )
+ChromatogramWidget::setZoomed( const QRectF& rect, bool keepY )
 {
-    QRectF bz = plot::zoomer()->zoomBase();
-    if ( horizontal ) {
-        bz.setLeft( range.first );
-        bz.setRight( range.second );
-    } else {
-        bz.setBottom( range.first );
-        bz.setTop( range.second );
-    }
-    plot::zoomer()->setZoomBase();
-}
+    auto rc( rect );
 
+    if ( keepY ) {
+        QRectF z = zoomer()->zoomRect(); // current (:= previous) zoom
+        rc.setBottom( z.bottom() );
+        rc.setTop( z.top() );
+    }
+    plot::zoom( rc );
+}
 
 void
 ChromatogramWidget::setData( const adcontrols::PeakResult& r )
