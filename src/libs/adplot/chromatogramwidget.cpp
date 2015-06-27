@@ -417,6 +417,21 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
 }
 
 void
+ChromatogramWidget::setZoomBase( const std::pair< double, double >& range, bool horizontal )
+{
+    QRectF bz = plot::zoomer()->zoomBase();
+    if ( horizontal ) {
+        bz.setLeft( range.first );
+        bz.setRight( range.second );
+    } else {
+        bz.setBottom( range.first );
+        bz.setTop( range.second );
+    }
+    plot::zoomer()->setZoomBase();
+}
+
+
+void
 ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 {
 	using adcontrols::Peaks;
