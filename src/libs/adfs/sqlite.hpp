@@ -25,7 +25,6 @@
 
 #pragma once
 
-#include <boost/noncopyable.hpp>
 #include <compiler/workaround.h>
 #include <string>
 #include <cstdint>
@@ -44,11 +43,12 @@ namespace adfs {
     class blob;
     class null;
 
-    class sqlite : boost::noncopyable {
+    class sqlite {
+        sqlite( const sqlite& ) = delete;
+        sqlite& operator = ( const sqlite& ) = delete;
+
         sqlite3 * db_;
         std::function< void( const char *) > error_handler_;
-        sqlite( const sqlite& ) = delete;
-        sqlite& operator = (const sqlite&) = delete;
         static uuid_format uuid_format_;
         uint32_t fs_format_version_;
     public:
