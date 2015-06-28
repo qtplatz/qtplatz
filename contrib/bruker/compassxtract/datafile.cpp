@@ -25,6 +25,7 @@
 #include "datafile.hpp"
 #include "safearray.hpp"
 #include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/description.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -41,6 +42,7 @@
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <vector>
+#include <atlbase.h>
 
 namespace compassxtract {
 
@@ -156,56 +158,99 @@ datafile::findObjId( const std::wstring& traceId ) const
 	return 0;
 }
 
-#if defined _MSC_VER
-# pragma warning(disable:4482)
-#endif
 //virtual
 bool
 datafile::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objId ) const
 {
 	(void)fcn;
+    auto spectrumType = ( objId <= 1 ) ? EDAL::SpectrumType_Profile : EDAL::SpectrumType_Line;
 
 	try {
-		EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
-		EDAL::IMSSpectrumPtr pSpectrum = pSpectra->GetItem( long(pos) + 1 ); // 1-origin
-
-		if ( pSpectrum->Polarity == EDAL::SpectrumPolarity::IonPolarity_Negative )
-			ms.setPolarity( adcontrols::MS_POLARITY::PolarityNegative );
-		else if ( pSpectrum->Polarity == EDAL::SpectrumPolarity::IonPolarity_Positive )
-			ms.setPolarity( adcontrols::MS_POLARITY::PolarityPositive );
-		else
-			ms.setPolarity( adcontrols::MS_POLARITY::PolarityIndeterminate );
-
-		adcontrols::MSProperty prop = ms.getMSProperty();
-		prop.setTimeSinceInjection( static_cast< unsigned long >( pSpectrum->RetentionTime /* sec */ * 1.0e6 ) ); // usec
-        ms.setMSProperty( prop ); // <- end of prop set
-
-		_variant_t vMasses, vIntens;
-        if ( objId <= 1 ) {
-			pSpectrum->GetMassIntensityValues( EDAL::SpectrumType_Profile, &vMasses, &vIntens );
-			ms.setCentroid( adcontrols::CentroidNone );  // profile
-        } else { // objId should be 2
-			pSpectrum->GetMassIntensityValues( EDAL::SpectrumType_Line, &vMasses, &vIntens );
-			ms.setCentroid( adcontrols::CentroidNative );
-		}
-
-		SafeArray sa_masses( vMasses );
-        ms.resize( sa_masses.size() );
-        ms.setMassArray( reinterpret_cast< const double *>( sa_masses.p() ) );
-    
-		SafeArray sa_intensities( vIntens );
-        ms.setIntensityArray( reinterpret_cast< const double *>( sa_intensities.p() ) );
-
-        ms.setAcquisitionMassRange( ms.getMass( 0 ), ms.getMass( ms.size() - 1 ) );
-
-		return true;
-	} catch(_com_error& ex ) {
-		ADERROR() << std::wstring( ex.ErrorMessage() );
-		return false;
+        if ( EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection() ) {
+            
+            long nItem = pSpectra->Count;
+            
+            if ( long( pos ) >= nItem ) {
+                ADTRACE() << "getSpectrum(" << pos << ") requsted but the " << nItem << " spectrum is avilable";
+                return false;
+            }
+            
+            if ( EDAL::IMSSpectrum2Ptr pSpectrum = pSpectra->GetItem( long( pos ) + 1 ) ) { // 1-origin
+                
+                if ( objId <= 1 ) {
+                    if ( import( ms, pSpectrum, EDAL::SpectrumType_Profile ) )
+                        return true;
+                    if ( import( ms, pSpectrum, EDAL::SpectrumType_Line ) ) {
+                        if ( refMS_ && !refMS_->isCentroid() ) {
+                            auto pair = refMS_->getAcquisitionMassRange();
+                            ms.setAcquisitionMassRange( pair.first, pair.second );
+                        }
+                        return true;
+                    }
+                } else {
+                    if ( import( ms, pSpectrum, EDAL::SpectrumType_Line ) ) {
+                        if ( refMS_ && !refMS_->isCentroid() ) {
+                            auto pair = refMS_->getAcquisitionMassRange();
+                            ms.setAcquisitionMassRange( pair.first, pair.second );
+                        }
+                        return true;
+                    }
+                }
+            }
+        }
+    } catch ( _com_error& ex ) {
+        ADERROR() << std::wstring( ex.ErrorMessage() );
 	}
 	return false;
 }
 
+
+bool
+datafile::import( adcontrols::MassSpectrum& ms, EDAL::IMSSpectrum2Ptr ptr, EDAL::SpectrumTypes spType ) const
+{
+    if ( ptr->HasSpecType( spType ) == VARIANT_FALSE )
+        return false;
+
+    auto polarity =
+        ( ptr->Polarity == EDAL::SpectrumPolarity::IonPolarity_Positive ) ? adcontrols::MS_POLARITY::PolarityPositive
+        : ( ptr->Polarity == EDAL::SpectrumPolarity::IonPolarity_Negative ) ? adcontrols::MS_POLARITY::PolarityNegative
+        : adcontrols::MS_POLARITY::PolarityIndeterminate;
+
+    ms.setPolarity( polarity );
+
+    adcontrols::MSProperty prop = ms.getMSProperty();
+    double seconds = ptr->RetentionTime;
+    prop.setTimeSinceInjection( uint32_t( seconds * 1.0e6 ) ); // usec
+
+    ms.setMSProperty( prop ); // <- end of prop set
+
+    _variant_t vMasses, vIntens;
+    
+    HRESULT hr = ptr->GetMassIntensityValues( spType, &vMasses, &vIntens );
+    if ( SUCCEEDED( hr ) ) {
+        
+        _variant_t vMasses, vIntens;
+        
+        hr = ptr->GetMassIntensityValues( EDAL::SpectrumType_Profile, &vMasses, &vIntens );
+        if ( SUCCEEDED( hr ) ) {
+            ms.setCentroid( adcontrols::CentroidNone );
+            
+            SafeArray sa_masses( vMasses );
+            SafeArray sa_intensities( vIntens );
+            
+            size_t count = sa_masses.size();
+            
+            ms.resize( count );
+            ms.setMassArray( reinterpret_cast<const double *>( sa_masses.p() ) );
+            ms.setIntensityArray( reinterpret_cast<const double *>( sa_intensities.p() ) );
+            ms.setAcquisitionMassRange( ms.getMass( 0 ), ms.getMass( ms.size() - 1 ) );
+
+            return true;
+        }
+    }
+    return false;
+}
+    
 /////////////////////////
 
 bool
@@ -239,17 +284,19 @@ datafile::_open( const std::wstring& filename, bool )
 				std::string creationDate = boost::posix_time::to_simple_string( date_t::ptime( st ) );
                 
 				// CString creationDate = dt.Format( _T("%m/%d/%Y %H:%M") );
-                std::cout << "Analysis:     " << analysisName << std::endl;
-                std::cout << "Operator:     " << operatorName << std::endl;
-                std::cout << "Date/TimeIso: " << dateIso << std::endl;
-				std::cout << "Date/Time:    " << creationDate << std::endl;
-				std::cout << "Description:  " << analysisDesc << std::endl;
+                ADTRACE() << "Analysis:     " << analysisName;
+                ADTRACE() << "Operator:     " << operatorName;
+                ADTRACE() << "Date/TimeIso: " << dateIso;
+                ADTRACE() << "Date/Time:    " << creationDate;
+                ADTRACE() << "Description:  " << analysisDesc;
 
-				// get a pointer to the interface of this analysis' spectrum collection
-				// the spectrum collection can then be used to retrieve indivudual spectrums
-				EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
-				size_t n = pSpectra->Count;
-				(void)n;
+                if ( EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection() ) {
+                    if ( EDAL::IMSSpectrum2Ptr p = pSpectra->GetItem( 1 ) ) {
+                        auto sp = std::make_shared< adcontrols::MassSpectrum >();
+                        if ( import( *sp, p, EDAL::SpectrumType_Profile ) )
+                            refMS_ = sp;
+                    }
+                }
             }
         } catch(_com_error& ex ) {
 			ADERROR() << ex.ErrorMessage();
@@ -279,10 +326,11 @@ SumIntensity               float Sum of all intensities (aka Total Ion Current)
 bool
 datafile::getTIC( int fcn, adcontrols::Chromatogram& c ) const
 {
-	(void)fcn;
-
 	CComBSTR strSumIntensities( L"SumIntensity" );
 	CComBSTR strRetentionTime(  L"RetentionTime" );
+
+    if ( fcn >= 1 )
+        return false;
 
 	if( pAnalysis_->HasAnalysisData( &strSumIntensities ) )	{
 		_variant_t vIntens = pAnalysis_->GetAnalysisData( &strSumIntensities );
@@ -297,27 +345,37 @@ datafile::getTIC( int fcn, adcontrols::Chromatogram& c ) const
 		SafeArray sTimes( vTimes );
 		c.setTimeArray( reinterpret_cast< const double *>( sTimes.p() ) );
 	}
+
+    c.addDescription( adcontrols::description( L"create", L"TIC" ) );
+
 	return true;
 }
 
 bool
 datafile::getTIC()
 {
-	pTIC_.reset( new adcontrols::Chromatogram() );
+    pTIC_ = std::make_shared< adcontrols::Chromatogram >();
 	return getTIC( 0, *pTIC_ );
 }
 
 size_t
-datafile::posFromTime( double minutes ) const
+datafile::posFromTime( double seconds ) const
 {
 	using adportable::array_wrapper;
 	if ( ! pTIC_ )
 		const_cast< datafile *>(this)->getTIC();
-	double t = adcontrols::Chromatogram::toSeconds( minutes );
-	array_wrapper< const double > times( pTIC_->getTimeArray(), pTIC_->size() );
-	array_wrapper< const double >::iterator it = std::lower_bound( times.begin(), times.end(), t );
-	long pos = static_cast<long>( std::distance( times.begin(), it ) );
-	return pos;
+
+    if ( seconds < 0 )
+        seconds = 0;
+
+    const double * times = pTIC_->getTimeArray();
+    auto count = pTIC_->size();
+    auto it = std::lower_bound( times, times + count, seconds );
+    if ( it != times + count ) {
+        return std::distance( times, it );
+    } else {
+        return count;
+    }
 }
 
 double
@@ -349,38 +407,6 @@ datafile::is_valid_datafile( const std::wstring& filename )
 		} catch(_com_error& ex ) {
 			ADERROR() << ex.ErrorMessage();
 		}
-
-/*
-            if( SUCCEEDED(hr) )  {
-
-				// this is basic information retrievable
-				// right from the analysis
-                _bstr_t operatorName, analysisName, dateIso, analysisDesc;
-                operatorName = pAnalysis->GetOperatorName();
-                analysisName = pAnalysis->GetAnalysisName();
-                dateIso      = pAnalysis->GetAnalysisDateTimeIsoString();
-				analysisDesc = pAnalysis->GetAnalysisDescription();
-
-                COleDateTime dt = pAnalysis->GetAnalysisDateTime();
-                CString creationDate = dt.Format( _T("%m/%d/%Y %H:%M") );
-
-                std::cout << "Analysis:     " << analysisName << std::endl;
-                std::cout << "Operator:     " << operatorName << std::endl;
-                std::cout << "Date/TimeIso: " << dateIso << std::endl;
-                std::cout << "Date/Time:    " << creationDate << std::endl;
-				std::cout << "Description:  " << analysisDesc << std::endl;
-
-				// get a pointer to the interface of this analysis' spectrum collection
-				// the spectrum collection can then be used to retrieve indivudual spectrums
-                EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis->GetMSSpectrumCollection();
-
-				// example for new (CXT 3.1) data access functions
-				DumpHighestTICSpectrum( pAnalysis );
-
-				// dump all the spectrum data
-                DumpSpectra(pSpectra);
-            }
-*/
     }
 	return false;
 }

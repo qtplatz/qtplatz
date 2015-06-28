@@ -1,6 +1,6 @@
 # qtplatz.cmake
 
-set( BOOST_VERSION boost-1_57 )
+set( BOOST_VERSION boost-1_58 )
 
 set( CMAKE_PREFIX_PATH $ENV{QTDIR} )
 
