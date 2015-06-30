@@ -23,7 +23,7 @@ do
 	    mkdir -p build-$target_arch/$var
 	    if [ -z $cross_target ]; then
 		( cd build-$target_arch/$var;
-		  cmake -DCMAKE_PREFIX_PATH=/usr/local/boost-1_57 ../../$var )
+		  cmake -DCMAKE_PREFIX_PATH=/usr/local/boost-1_58 ../../$var )
 	    else
 		( cd build-$target_arch/$var;
 		  cmake -DCMAKE_TOOLCHAIN_FILE=../../../../toolchain-$target_arch.cmake ../../$var )

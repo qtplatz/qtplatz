@@ -1,0 +1,64 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          acqiris
+# Required-Start:    $local_fs $syslog
+# Required-Stop:     $local_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Load kernel module and create device nodes at boot time.
+# Description:       Load kernel module and create device nodes at boot time for acqiris instruments.
+### END INIT INFO
+
+
+function aq_start()
+{
+    /sbin/modprobe acqiris || exit 1
+    major=$(/usr/bin/awk '$2=="acqiris" {print $1}' /proc/devices)
+    if test -e /sys/module/acqiris/parameters/nbrdev ;
+    then nbrdev=$(/bin/cat /sys/module/acqiris/parameters/nbrdev)
+    else nbrdev=$(/bin/cat /sys/module/acqiris/nbrdev)
+    fi
+    test -e /dev/acqrsPCI && /bin/rm -f /dev/acqrs*
+    /bin/mknod -m 666 /dev/acqrsPCI c ${major} 0
+    n=0
+    while (( $n < $nbrdev ))
+    do
+        (( minor = $n + 1 ))
+        /bin/mknod -m 666 /dev/acqrs${n} c ${major} ${minor}
+        n=${minor}
+    done
+}
+
+
+function aq_stop()
+{
+    /sbin/modprobe -r acqiris && \
+        test -e /dev/acqrsPCI && /bin/rm -f /dev/acqrs*
+}
+
+
+case "$1" in
+    start)
+        aq_start
+        exit 0
+    ;;
+
+    stop)
+        aq_stop
+        exit 0
+    ;;
+
+    restart)
+        aq_stop
+        aq_start
+        exit 0
+    ;;
+
+    *)
+        echo "Error: argument '$1' not supported." >&2
+        exit 0
+    ;;
+esac
+
+

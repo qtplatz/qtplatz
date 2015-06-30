@@ -1,0 +1,3 @@
+This directory contains modified acqiris Linux driver that port to Linux 3.16 version.
+acqiris-kernel26module.patch is the diff with original kernel26module provided from Acqiris CD-Rom42c distribution.
+
