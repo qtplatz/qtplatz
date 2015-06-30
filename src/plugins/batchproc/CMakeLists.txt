@@ -92,7 +92,7 @@ add_library( batchproc MODULE
 
 if ( APPLE )
   set( platform_libs bz2 )
-elseif( ${CMAKE_SYSTEM} MACHES "Linux" )
+elseif( ${CMAKE_SYSTEM} MATCHES "Linux" )
   set( platform_libs bz2 dl )
 endif()
 
