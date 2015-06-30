@@ -30,6 +30,7 @@
 #include <atomic>
 #include <memory>
 #include <map>
+#include <mutex>
 #include <vector>
 
 class QGridLayout;
@@ -41,9 +42,11 @@ namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT ProgressWnd : public QDialog  {
         Q_OBJECT
+
         ~ProgressWnd();
         explicit ProgressWnd(QWidget *parent = 0);
-        static ProgressWnd * instance_;
+        static std::atomic< ProgressWnd * > instance_;
+        static std::mutex mutex_;
     public:
         static ProgressWnd * instance();
         std::shared_ptr< Progress > addbar();

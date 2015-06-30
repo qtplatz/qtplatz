@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2013-2015 MS-Cheminformatics LLC, All rights reserved. -->
+
+<adplugin name="@PROJECT_NAME@"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:noNamespaceSchemaLocation="adplugin.xsd">
+
+  <Module name="@PROJECT_NAME@"
+	  type="sharedlib"
+	  filename="@PROJECT_NAME@$(configuration).dll"
+	  />
+
+</adplugin>

@@ -25,12 +25,12 @@
 #ifndef FTICR_GLOBAL_HPP
 #define FTICR_GLOBAL_HPP
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
 #if defined(FTICR_LIBRARY)
-#  define FTICRSHARED_EXPORT Q_DECL_EXPORT
+#  define FTICRSHARED_EXPORT DECL_EXPORT
 #else
-#  define FTICRSHARED_EXPORT Q_DECL_IMPORT
+#  define FTICRSHARED_EXPORT DECL_IMPORT
 #endif
 
 #endif // FTICR_GLOBAL_HPP
