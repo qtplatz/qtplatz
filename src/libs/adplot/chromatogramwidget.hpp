@@ -61,6 +61,7 @@ namespace adplot {
         void removeData( int idx, bool report = true );
         void register_tracker( std::function< bool( const QPointF&, QwtText& ) > );
         void drawPeakParameter( const adcontrols::Peak& );
+        void setZoomed( const QRectF&, bool keepY = true );
 
 	private:
         void setBaseline( const adcontrols::Baseline& );

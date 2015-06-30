@@ -28,15 +28,17 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/processeddataset.hpp>
-#include <boost/noncopyable.hpp>
 #include <memory>
 #import <CompassXtractMS.dll>
+
+namespace adcontrols { class Chromatogram; class MassSpectrum; }
 
 namespace compassxtract {
 
 	class datafile : public adcontrols::datafile
-		           , public adcontrols::LCMSDataset
-				   , boost::noncopyable {
+                   , public adcontrols::LCMSDataset {
+        datafile( const datafile& ) = delete;
+        datafile& operator = ( const datafile& ) = delete;
 	public:
 		datafile();
 
@@ -65,9 +67,12 @@ namespace compassxtract {
 		static bool is_valid_datafile( const std::wstring& );
 	private:
 		bool getTIC();
+        bool import( adcontrols::MassSpectrum&, EDAL::IMSSpectrum2Ptr, EDAL::SpectrumTypes ) const;
+
 		std::wstring filename_; // root directory name
 		std::unique_ptr< adcontrols::ProcessedDataset> processedDataset_;
-		std::unique_ptr< adcontrols::Chromatogram > pTIC_;
+        std::shared_ptr< adcontrols::Chromatogram > pTIC_;
+        std::shared_ptr< adcontrols::MassSpectrum > refMS_;
 		EDAL::IMSAnalysis2Ptr pAnalysis_;
 	};
 

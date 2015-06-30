@@ -31,14 +31,25 @@
 
 using namespace adwidgets;
 
-ProgressWnd * ProgressWnd::instance_;
+std::atomic< ProgressWnd * > ProgressWnd::instance_;
+std::mutex ProgressWnd::mutex_;
 
-ProgressWnd * 
+ProgressWnd *
 ProgressWnd::instance()
 {
-    if ( !instance_ )
-        instance_ = new ProgressWnd;
-    return instance_;
+    typedef ProgressWnd T;
+    T * tmp = instance_.load( std::memory_order_relaxed );
+    std::atomic_thread_fence( std::memory_order_acquire );
+    if ( tmp == nullptr ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        tmp = instance_.load( std::memory_order_relaxed );
+        if ( tmp == nullptr ) {
+            tmp = new T();
+            std::atomic_thread_fence( std::memory_order_release );
+            instance_.store( tmp, std::memory_order_relaxed );
+        }
+    }
+    return tmp;
 }
 
 ProgressWnd::~ProgressWnd()
@@ -159,8 +170,9 @@ ProgressWnd::handleRemove( int id )
 ////////////////////////////
 
 Progress::Progress(ProgressWnd * p, int id) : wnd_(p), id_(id), range_( 0, 0 )
-
 {
+    if ( !wnd_ )
+        throw std::bad_alloc();
 }
 
 Progress::~Progress()
