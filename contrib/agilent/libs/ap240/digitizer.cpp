@@ -445,9 +445,14 @@ task::terminate()
 bool
 task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 {
-	// ap240::method m;
     simulated_ = false;
     bool success = false;
+
+    method_.samp_rate = 0.5e9;  // Hz
+    method_.digitizer_nbr_of_s_to_acquire = 1600; // nSamples;  // number of samples per waveform
+    method_.nStartDelay = 32; // nDelay;
+    method_.delay_to_first_sample_ = double( nDelay ) / method_.samp_rate;
+    method_.nbr_of_averages = 8;
 
     ViStatus status;
     ViStatus * pStatus = &status;
@@ -687,7 +692,7 @@ device_ap240::initial_setup( task& task, const method& m )
     ViStatus status;
     ViStatus * pStatus = &status;
 
-    int nDelay = 32;
+    int nDelay = m.nStartDelay;
     int nSamples = 1600;
     int nAverage = 4;
 
@@ -861,7 +866,6 @@ bool
 device_ap240::readData( task& task, waveform& data )
 {
     data.method_ = task.method();
-#if 0
     AqReadParameters readPar;
     AqDataDescriptor dataDesc;
     AqSegmentDescriptorAvg segDesc;
@@ -869,23 +873,33 @@ device_ap240::readData( task& task, waveform& data )
     memset(&dataDesc, 0, sizeof(dataDesc));
     memset(&segDesc, 0, sizeof(segDesc));
 
-    avgr.waveform.resize( nbrSamples_ + 32 );
+    data.d_.resize( task.method().digitizer_nbr_of_s_to_acquire + 32 );
 
     readPar.dataType = ReadInt32;
     readPar.readMode = ReadModeAvgW;
     readPar.nbrSegments = 1;
-    readPar.nbrSamplesInSeg = nbrSamples_;
-    readPar.dataArraySize = ( nbrSamples_ + 32 ) * sizeof( long );
+    readPar.nbrSamplesInSeg = task.method().digitizer_nbr_of_s_to_acquire;
+    readPar.dataArraySize = data.d_.size() * sizeof( long );
     readPar.segDescArraySize = sizeof( AqSegmentDescriptorAvg );
     const int channel = 1;
-    ViStatus st = AcqrsD1_readData(inst_
+    ViStatus st = AcqrsD1_readData( task.inst()
                                    , channel
                                    , &readPar
-                                   , avgr.waveform.data()
+                                   , data.d_.data()
                                    , &dataDesc
                                    , &segDesc );
-    checkError( inst_, st, "AcqrsD1_readData", 0 );
-#endif
+
+    task::checkError( task.inst(), st, "AcqrsD1_readData", 0 );
+    data.meta_.actualAverages = segDesc.actualTriggersInSeg;
+    data.meta_.actualPoints = data.d_.size();
+    data.meta_.actualRecords = 0; // ??
+    data.meta_.flags = segDesc.flags; // markers
+    data.meta_.initialXOffset = dataDesc.sampTime * ( data.method_.nStartDelay - dataDesc.indexFirstPoint );
+    data.meta_.initialXTimeSeconds = double( static_cast<uint64_t>( segDesc.timeStampHi ) << 32LL + segDesc.timeStampLo ) * 1.0e-12; // ps -> s
+    data.meta_.scaleFactor = 1.0;
+    data.meta_.scaleOffset = 0;
+    data.meta_.xIncrement = 0.5e-9;
+    
         // avgr.sampInterval = static_cast<unsigned long>( scale_to_pico( desc.dataDesc.sampTime ) + 0.5 );
         // avgr.uptime = ( static_cast< unsigned long long>( segDesc.timeStampHi ) << 32 | segDesc.timeStampLo ) / 1000000LL; // us
 

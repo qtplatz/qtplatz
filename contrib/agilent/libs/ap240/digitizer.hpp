@@ -87,7 +87,7 @@ namespace ap240 {
             : front_end_range( 2.0 )        // 1V,2V range
             , front_end_offset( 0.0 )       // [-0.5V,0.5V], [-1V,1V] offset
             , ext_trigger_level( 1.0 )      // external trigger threshold
-			, samp_rate( 1.0e9 )			// sampling rate (1.0GS/s)
+			, samp_rate( 0.5e9 )			// sampling rate (1.0GS/s)
             , nbr_of_s_to_acquire_( 100000 ) // from 1 to 480,000 samples
             , nbr_of_averages( 512 )		// number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
             , delay_to_first_sample_( 0 )    // delay from trigger (seconds)
@@ -107,6 +107,8 @@ namespace ap240 {
         int32_t nsa;
         double digitizer_delay_to_first_sample; // actual delay set to ap240
         uint32_t digitizer_nbr_of_s_to_acquire; // actual number of samples per waveform
+        // ap240 specific
+        uint32_t nStartDelay;
     private:
         friend class boost::serialization::access;
         template<class Archive>
