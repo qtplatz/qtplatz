@@ -54,9 +54,6 @@
 # undef TERR
 #endif
 
-#define ERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_ERROR)<<e.Description()<<", "<<e.ErrorMessage(); error_reply(e,m); } while(0)
-#define TERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_ERROR)<<e.Description()<<", "<<e.ErrorMessage(); task.error_reply(e,m); } while(0)
-
 namespace ap240 {
 
     class simulator;
@@ -449,8 +446,8 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     bool success = false;
 
     method_.samp_rate = 0.5e9;  // Hz
-    method_.digitizer_nbr_of_s_to_acquire = 1600; // nSamples;  // number of samples per waveform
-    method_.nStartDelay = 32; // nDelay;
+    method_.digitizer_nbr_of_s_to_acquire = nSamples;  // number of samples per waveform
+    method_.nStartDelay = nDelay;
     method_.delay_to_first_sample_ = double( nDelay ) / method_.samp_rate;
     method_.nbr_of_averages = 8;
 
@@ -697,10 +694,10 @@ device_ap240::initial_setup( task& task, const method& m )
     ViStatus * pStatus = &status;
 
     std::cout << "######### device_ap240::initial_setup #############" << std::endl;
-
+    
     int nDelay = m.nStartDelay;
-    int nSamples = 1600;
-    int nAverage = 4;
+    int nSamples = m.nbr_of_s_to_acquire_;
+    int nAverage = m.nbr_of_averages;
 
     if ( pStatus == 0 )
         pStatus = &status;
@@ -854,14 +851,12 @@ device_ap240::setup( task& task, const method& m )
 bool
 device_ap240::acquire( task& task )
 {
-    std::cout << "######### device_ap240::acquire #############" << std::endl;
     return AcqrsD1_acquire( task.inst() ) == VI_SUCCESS;
 }
 
 bool
 device_ap240::waitForEndOfAcquisition( task& task, int timeout )
 {
-    std::cout << "######### device_ap240::waitForEndOfAcquisition #############" << std::endl;    
     return AcqrsD1_waitForEndOfAcquisition( task.inst(), ViInt32( timeout ) ) == VI_SUCCESS;
     // case VI_SUCCESS: return success;
     // case ACQIRIS_ERROR_ACQ_TIMEOUT: return error_timeout;
@@ -873,8 +868,6 @@ device_ap240::waitForEndOfAcquisition( task& task, int timeout )
 bool
 device_ap240::readData( task& task, waveform& data )
 {
-    std::cout << "######### device_ap240::readData #############" << std::endl;
-    
     data.method_ = task.method();
     AqReadParameters readPar;
     AqDataDescriptor dataDesc;
@@ -888,18 +881,27 @@ device_ap240::readData( task& task, waveform& data )
     readPar.dataType = ReadInt32;
     readPar.readMode = ReadModeAvgW;
     readPar.nbrSegments = 1;
-    readPar.nbrSamplesInSeg = task.method().digitizer_nbr_of_s_to_acquire;
-    readPar.dataArraySize = data.d_.size() * sizeof( long );
+    readPar.nbrSamplesInSeg = task.method().digitizer_nbr_of_s_to_acquire; // nbrSamples
+    readPar.dataArraySize = data.d_.size() * sizeof( long );               // (nbrSamples + 32) * sizeof(ong)
     readPar.segDescArraySize = sizeof( AqSegmentDescriptorAvg );
     const int channel = 1;
-    ViStatus st = AcqrsD1_readData( task.inst()
-                                   , channel
-                                   , &readPar
-                                   , data.d_.data()
-                                   , &dataDesc
-                                   , &segDesc );
 
-    task::checkError( task.inst(), st, "AcqrsD1_readData", 0 );
+    std::cout << "## device_ap240::readData ##"
+              << std::endl;
+    
+    ViStatus st = AcqrsD1_readData( task.inst()
+                                    , channel
+                                    , &readPar
+                                    , data.d_.data()
+                                    , &dataDesc
+                                    , &segDesc );
+    
+    task::checkError( task.inst(), st, "AcqrsD1_readData", __LINE__ );
+
+    std::cout << "actualTriggersInSeg: " << segDesc.actualTriggersInSeg
+              << "\tsize: " << data.d_.size()
+              << std::endl;    
+    
     data.meta_.actualAverages = segDesc.actualTriggersInSeg;
     data.meta_.actualPoints = data.d_.size();
     data.meta_.actualRecords = 0; // ??
