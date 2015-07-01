@@ -460,6 +460,8 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     if ( pStatus == 0 )
         pStatus = &status;
 
+    std::cout << "AcqirisDxDir=" << getenv("AcqirisDxDir") << std::endl;
+
     if ( getenv("AcqirisDxDir") == 0 ) {
         std::cerr << L"AcqirisDxDir environment variable not set." << std::endl;
         return false;
@@ -472,6 +474,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         return false;
     }
 #endif
+    std::cerr << "found /dev/acqrsPCI" << std::endl;
 
     if ( ( status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ ) ) != VI_SUCCESS ) {
         std::cerr << error_msg( status, "Acqiris::findDevice()" ) << std::endl;
@@ -488,7 +491,8 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         status = Acqrs_init( const_cast< char *>(device_name_.c_str()), VI_FALSE, VI_FALSE, &inst_);
         if ( inst_ != ViSession(-1) && getInstrumentData() ) {
             std::cerr << "\tfound device on: " << device_name_ << std::endl;
-            return true;
+            success = true;
+            break;
         } else {
             std::cerr << error_msg( status, "Acqiris::findDevice" ) << std::endl;
         }
@@ -692,6 +696,8 @@ device_ap240::initial_setup( task& task, const method& m )
     ViStatus status;
     ViStatus * pStatus = &status;
 
+    std::cout << "######### device_ap240::initial_setup #############" << std::endl;
+
     int nDelay = m.nStartDelay;
     int nSamples = 1600;
     int nAverage = 4;
@@ -848,12 +854,14 @@ device_ap240::setup( task& task, const method& m )
 bool
 device_ap240::acquire( task& task )
 {
+    std::cout << "######### device_ap240::acquire #############" << std::endl;
     return AcqrsD1_acquire( task.inst() ) == VI_SUCCESS;
 }
 
 bool
 device_ap240::waitForEndOfAcquisition( task& task, int timeout )
 {
+    std::cout << "######### device_ap240::waitForEndOfAcquisition #############" << std::endl;    
     return AcqrsD1_waitForEndOfAcquisition( task.inst(), ViInt32( timeout ) ) == VI_SUCCESS;
     // case VI_SUCCESS: return success;
     // case ACQIRIS_ERROR_ACQ_TIMEOUT: return error_timeout;
@@ -865,6 +873,8 @@ device_ap240::waitForEndOfAcquisition( task& task, int timeout )
 bool
 device_ap240::readData( task& task, waveform& data )
 {
+    std::cout << "######### device_ap240::readData #############" << std::endl;
+    
     data.method_ = task.method();
     AqReadParameters readPar;
     AqDataDescriptor dataDesc;
