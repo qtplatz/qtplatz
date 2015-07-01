@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/ap240">
+        <file>images/image001_512.png</file>
+    </qresource>
+</RCC>

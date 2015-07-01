@@ -1,9 +1,0 @@
-# USE .subdir AND .depends !
-# OTHERWISE PLUGINS WILL BUILD IN WRONG ORDER (DIRECTORIES ARE COMPILED IN PARALLEL)
-
-TEMPLATE  = subdirs
-
-win32: SUBDIRS = plugin_u5303a
-
-plugin_u5303a.subdir = u5303aplugin
-
