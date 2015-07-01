@@ -886,9 +886,6 @@ device_ap240::readData( task& task, waveform& data )
     readPar.segDescArraySize = sizeof( AqSegmentDescriptorAvg );
     const int channel = 1;
 
-    std::cout << "## device_ap240::readData ##"
-              << std::endl;
-    
     ViStatus st = AcqrsD1_readData( task.inst()
                                     , channel
                                     , &readPar
@@ -898,8 +895,14 @@ device_ap240::readData( task& task, waveform& data )
     
     task::checkError( task.inst(), st, "AcqrsD1_readData", __LINE__ );
 
+    std::cout << "## device_ap240::readData ##" << std::endl;
+    double elapsed = double( static_cast<uint64_t>( segDesc.timeStampHi ) << 32 | segDesc.timeStampLo ) * 1.0e-12; // ps -> s
     std::cout << "actualTriggersInSeg: " << segDesc.actualTriggersInSeg
               << "\tsize: " << data.d_.size()
+              << "\tindexFirstPoint: " << dataDesc.indexFirstPoint
+              << "\tnDelayt: " << data.method_.nStartDelay
+              << "\tT: " << segDesc.timeStampHi << ":" << segDesc.timeStampLo
+              << "\tX: " << elapsed
               << std::endl;    
     
     data.meta_.actualAverages = segDesc.actualTriggersInSeg;
@@ -907,7 +910,7 @@ device_ap240::readData( task& task, waveform& data )
     data.meta_.actualRecords = 0; // ??
     data.meta_.flags = segDesc.flags; // markers
     data.meta_.initialXOffset = dataDesc.sampTime * ( data.method_.nStartDelay - dataDesc.indexFirstPoint );
-    data.meta_.initialXTimeSeconds = double( static_cast<uint64_t>( segDesc.timeStampHi ) << 32LL + segDesc.timeStampLo ) * 1.0e-12; // ps -> s
+    data.meta_.initialXTimeSeconds = elapsed; //double( static_cast<uint64_t>( segDesc.timeStampHi ) << 32LL + segDesc.timeStampLo ) * 1.0e-12; // ps -> s
     data.meta_.scaleFactor = 1.0;
     data.meta_.scaleOffset = 0;
     data.meta_.xIncrement = 0.5e-9;
