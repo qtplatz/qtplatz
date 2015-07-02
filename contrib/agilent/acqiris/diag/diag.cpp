@@ -227,7 +227,7 @@ acqiris::initial_setup( int nDelay, int nSamples, int nAverage )
         return false;
 
     // External trig. input
-    status = AcqrsD1_configVertical( inst_, -1, 5.0, 0.0, 3 /*DC 50ohm*/, 0 /* no bw */);
+    status = AcqrsD1_configVertical( inst_, -1, 0.5, 0.0, 3 /*DC 50ohm*/, 2 /* no bw */);
     if ( checkError( inst_, status, "configVertical (2)", __LINE__ ) )
         return false;
     
@@ -240,7 +240,8 @@ acqiris::initial_setup( int nDelay, int nSamples, int nAverage )
         return false;
 	
     // ExtTrigSource(-1), DC coupling(0), positive(0), 1000mV (1400)
-    status = AcqrsD1_configTrigSource( inst_, -1, 0, 0, 500, 0 );  
+    status = AcqrsD1_configTrigSource( inst_, -1, 0, 0, 500, 0 );
+    //status = AcqrsD1_configTrigSource( inst_, -1, 0, 0, -25.0, 0 ); // negative  
     if ( checkError( inst_, status, "AcqrsD1_configTrigSource", __LINE__  ) )
         return false;
 	

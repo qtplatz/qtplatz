@@ -43,6 +43,12 @@ namespace ap240 {
            , delay_to_first_sample
            , invert_signal
            , nsa
+           , r_ext_trigger_slope
+           , r_ext_trigger_range
+           , r_ext_trigger_offset
+           , r_ext_trigger_bandwidth
+           , r_ch1_bandwidth
+           , nrows
     };
     
     class ap240MethodDelegate : public QStyledItemDelegate {
@@ -51,21 +57,23 @@ namespace ap240 {
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             return QStyledItemDelegate::paint( painter, option, index );
         }
+        
         void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
             if ( index.row() == r_sampling_rate ) {
                 if ( auto combo = qobject_cast< QComboBox * >( editor ) ) {
                     int idx = combo->currentIndex();
-                    double value = ( idx == 0 ) ? 3.2e9 : 1.0e9;
+                    double value = ( idx == 0 ) ? 1.0/0.5e-9 : 1.0/1.0e-9;
                     model->setData( index, value, Qt::EditRole );
                 }
             } else {
                 return QStyledItemDelegate::setModelData( editor, model, index );
             }
         }
+
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             if ( index.row() == r_sampling_rate ) {
                 auto combo = new QComboBox( parent );
-                combo->addItems( QStringList() << "3.2GS/s" << "1.0GS/s" );
+                combo->addItems( QStringList() << "2.0GS/s" << "1.0GS/s" );
                 return combo;
             } else {
                 return QStyledItemDelegate::createEditor( parent, option, index );
@@ -84,8 +92,8 @@ ap240MethodTable::~ap240MethodTable()
 }
 
 ap240MethodTable::ap240MethodTable(QWidget *parent) : adwidgets::TableView(parent)
-                                                      , model_( new QStandardItemModel )
-                                                      , in_progress_( false )
+                                                    , model_( new QStandardItemModel )
+                                                    , in_progress_( false )
 {
     setModel( model_ );
 	setItemDelegate( new ap240MethodDelegate );
@@ -111,7 +119,7 @@ ap240MethodTable::onInitialUpdate()
     QStandardItemModel& model = *model_;
 
     model.setColumnCount( 3 );
-    model.setRowCount( 8 );
+    model.setRowCount( nrows );
     
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr( "parameter" ) );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr( "value" ) );
@@ -122,15 +130,15 @@ ap240MethodTable::onInitialUpdate()
     int row = 0;
     model.setData( model.index( row, 0 ), "front end range" );
     model.setData( model.index( row, 1 ), m.front_end_range );
-    model.setData( model.index( row, 2 ), "1V/2V range" );
+    model.setData( model.index( row, 2 ), "Range(V) (Max. 5V)" );
     ++row;
     model.setData( model.index( row, 0 ), "front end offset" );
     model.setData( model.index( row, 1 ), m.front_end_offset );
-    model.setData( model.index( row, 2 ), "[-0.5V,0.5V], [-1V,1V] offset" );
+    model.setData( model.index( row, 2 ), "Offset(V)" );
     ++row;
     model.setData( model.index( row, 0 ), "sampling rate" );
     model.setData( model.index( row, 1 ), m.samp_rate );
-    model.setData( model.index( row, 2 ), "sampling rate (1.0GS/s or 3.2GS/s)" );
+    model.setData( model.index( row, 2 ), "sampling rate (2.0GS/s or 1.0GS/s)" );
     ++row;
     model.setData( model.index( row, 0 ), "ext. trigger level" );
     model.setData( model.index( row, 1 ), m.ext_trigger_level );
@@ -155,6 +163,26 @@ ap240MethodTable::onInitialUpdate()
     model.setData( model.index( row, 0 ), "nsa" );
     model.setData( model.index( row, 1 ), m.nsa );
     model.setData( model.index( row, 2 ), "bit[31]->enable, bit[11:0]->threshold" );
+    ++row;
+    model.setData( model.index( row, 0 ), "trig. slope" );
+    model.setData( model.index( row, 1 ), m.ext_trigger_slope );
+    model.setData( model.index( row, 2 ), "0:Positive, 1:Negative" );
+    ++row;
+    model.setData( model.index( row, 0 ), "trig. full scale" );
+    model.setData( model.index( row, 1 ), m.ext_trigger_range );
+    model.setData( model.index( row, 2 ), "Ext. trigger full scale (V)" );
+    ++row;
+    model.setData( model.index( row, 0 ), "trig. offset" );
+    model.setData( model.index( row, 1 ), m.ext_trigger_offset );
+    model.setData( model.index( row, 2 ), "Ext. trigger offset(V)" );
+    ++row;
+    model.setData( model.index( row, 0 ), "trig. band width" );
+    model.setData( model.index( row, 1 ), m.ext_trigger_bandwidth );
+    model.setData( model.index( row, 2 ), "Ext. trigger bandwidth (0:None, 1:20MHz, 2:700MHz" );
+    ++row;
+    model.setData( model.index( row, 0 ), "ch1. band width" );
+    model.setData( model.index( row, 1 ), m.ch1_bandwidth );
+    model.setData( model.index( row, 2 ), "Ch1. bandwidth (0:None, 1:20MHz, 2:700MHz" );    
 
     resizeColumnsToContents();
 	resizeRowsToContents();
@@ -195,6 +223,12 @@ ap240MethodTable::setContents( const ap240::method& m )
     ++row;
     model.setData( model.index( row, 1 ), m.nsa );
 
+    model.setData( model.index( r_ext_trigger_slope, 1 ), m.ext_trigger_slope );
+    model.setData( model.index( r_ext_trigger_range, 1 ), m.ext_trigger_range );
+    model.setData( model.index( r_ext_trigger_offset, 1 ), m.ext_trigger_offset );
+    model.setData( model.index( r_ext_trigger_bandwidth, 1 ), m.ext_trigger_bandwidth );
+    model.setData( model.index( r_ch1_bandwidth, 1 ), m.ch1_bandwidth );
+
     in_progress_ = false;
 	
 	return true;
@@ -223,6 +257,12 @@ ap240MethodTable::getContents( ap240::method& m )
     m.invert_signal = model.index( row, 1 ).data().toBool() ? 1 : 0;
     ++row;
     m.nsa = model.index( row, 1 ).data().toInt();
+
+    m.ext_trigger_slope = model.index( r_ext_trigger_slope, 1 ).data().toInt();
+    m.ext_trigger_range = model.index( r_ext_trigger_range, 1 ).data().toDouble();
+    m.ext_trigger_offset = model.index( r_ext_trigger_offset, 1 ).data().toDouble();
+    m.ext_trigger_bandwidth = model.index( r_ext_trigger_bandwidth, 1 ).data().toInt();
+    m.ch1_bandwidth = model.index( r_ch1_bandwidth, 1 ).data().toInt();            
 
     in_progress_ = true;
     for ( int row = 0; row < model.rowCount(); ++row )

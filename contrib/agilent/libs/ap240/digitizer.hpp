@@ -86,16 +86,22 @@ namespace ap240 {
         method()
             : front_end_range( 2.0 )        // 1V,2V range
             , front_end_offset( 0.0 )       // [-0.5V,0.5V], [-1V,1V] offset
-            , ext_trigger_level( 1.0 )      // external trigger threshold
-			, samp_rate( 0.5e9 )			// sampling rate (1.0GS/s)
-            , nbr_of_s_to_acquire_( 100000 ) // from 1 to 480,000 samples
-            , nbr_of_averages( 512 )		// number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
-            , delay_to_first_sample_( 0 )    // delay from trigger (seconds)
+            , ext_trigger_level( 0.5 )      // external trigger threshold
+			, samp_rate( 1/0.5e-9 )			// sampling rate (1.0GS/s)
+            , nbr_of_s_to_acquire_( 10016 ) // from 1 to 480,000 samples
+            , nbr_of_averages( 128 )		// number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
+            , delay_to_first_sample_( 0 )   // delay from trigger (seconds)
             , invert_signal( 0 )            // 0-> no inversion , 1-> signal inverted
             , nsa( 0x0 )
             , digitizer_delay_to_first_sample( 0 )
-            , digitizer_nbr_of_s_to_acquire( 100000 ) {                  // bit[31]->enable, bits[11:0]->threshold
-        }
+            , digitizer_nbr_of_s_to_acquire( 10016 )
+            , ext_trigger_slope( 0 )
+            , ext_trigger_range( 1.0 )
+            , ext_trigger_offset( 0.0 )
+            , ext_trigger_bandwidth( 2 )
+            , ch1_bandwidth( 2 )
+            , average_mode( 2 )
+            { }
         double front_end_range;
         double front_end_offset;
         double ext_trigger_level;
@@ -107,8 +113,13 @@ namespace ap240 {
         int32_t nsa;
         double digitizer_delay_to_first_sample; // actual delay set to ap240
         uint32_t digitizer_nbr_of_s_to_acquire; // actual number of samples per waveform
-        // ap240 specific
-        uint32_t nStartDelay;
+        uint32_t ext_trigger_polarity; // 0(pos)|1(neg)
+        double ext_trigger_range;
+        double ext_trigger_offset;
+        uint32_t ext_trigger_slope;
+        uint32_t ext_trigger_bandwidth;
+        uint32_t ch1_bandwidth;        
+        uint32_t average_mode;
     private:
         friend class boost::serialization::access;
         template<class Archive>
@@ -123,10 +134,15 @@ namespace ap240 {
             ar & BOOST_SERIALIZATION_NVP( delay_to_first_sample_ );
             ar & BOOST_SERIALIZATION_NVP( invert_signal );
             ar & BOOST_SERIALIZATION_NVP( nsa );
-            if ( version >= 3 ) {
-                ar & BOOST_SERIALIZATION_NVP( digitizer_delay_to_first_sample );
-                ar & BOOST_SERIALIZATION_NVP( digitizer_nbr_of_s_to_acquire );
-            }
+            ar & BOOST_SERIALIZATION_NVP( digitizer_delay_to_first_sample );
+            ar & BOOST_SERIALIZATION_NVP( digitizer_nbr_of_s_to_acquire );
+            ar & BOOST_SERIALIZATION_NVP( ext_trigger_polarity );
+            ar & BOOST_SERIALIZATION_NVP( ext_trigger_range );
+            double ext_trigger_offset;
+        uint32_t ext_trigger_slope;
+        uint32_t ext_trigger_bandwidth;
+        uint32_t ch1_bandwidth;        
+        uint32_t average_mode;            
         }
     };
 
