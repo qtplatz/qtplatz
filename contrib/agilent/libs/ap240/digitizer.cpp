@@ -127,7 +127,9 @@ namespace ap240 {
                 //return true;
                 return false;
             }
+
             inline ViSession inst() const { return inst_; }
+            
             bool nbrSamples( size_t nbrSamples ) {
 
                 ViInt32 int32Arg( static_cast<ViInt32>(nbrSamples) );
@@ -380,7 +382,7 @@ bool
 task::initialize()
 {
     ADTRACE() << "ap240 digitizer initializing...";
-    io_service_.post( strand_.wrap( [&] { handle_initial_setup( 32 * 1024, 1024 * 10, 2 ); } ) );
+    io_service_.post( strand_.wrap( [&] { handle_initial_setup( 32, 16000, 8 ); } ) );
     return true;
 }
 
@@ -449,8 +451,8 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 
     method_.samp_rate = 1.0/0.5e-9; // 2GS/s
     method_.digitizer_nbr_of_s_to_acquire = nSamples;  // number of samples per waveform
-    method_.delay_to_first_sample_ = int( double( nDelay ) / method_.samp_rate ) & 0x1f;
-    method_.nbr_of_averages = 8;
+    method_.delay_to_first_sample_ = double( nDelay ) / method_.samp_rate;
+    method_.nbr_of_averages = nAverage;
 
     ViStatus status;
     ViStatus * pStatus = &status;
@@ -459,14 +461,12 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         pStatus = &status;
 
     if ( getenv("AcqirisDxDir") == 0 ) {
-        std::cerr << L"AcqirisDxDir environment variable not set." << std::endl;
         ADTRACE() << L"AcqirisDxDir environment variable not set.";
     }
     
 #ifdef _LINUX
     struct stat st;
     if ( stat( "/dev/acqrsPCI", &st ) != 0 ) {
-        std::cerr << "/dev/acqrsPID does not exists" << std::endl;
         ADTRACE() << "/dev/acqrsPID does not exists";
         return false;
     }
@@ -474,10 +474,8 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     std::cerr << "found /dev/acqrsPCI" << std::endl;
 
     if ( ( status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ ) ) != VI_SUCCESS ) {
-        std::cerr << error_msg( status, "Acqiris::findDevice()" ) << std::endl;
         ADTRACE() << error_msg( status, "Acqiris::findDevice()" );
     } else {
-        std::cout << boost::format( "find %1% acqiris devices." ) % numInstruments_ << std::endl;
         ADTRACE() << boost::format( "find %1% acqiris devices." ) % numInstruments_;
     }
     
@@ -489,12 +487,10 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         inst_ = (-1);
         status = Acqrs_init( const_cast< char *>(device_name_.c_str()), VI_FALSE, VI_FALSE, &inst_);
         if ( inst_ != ViSession(-1) && getInstrumentData() ) {
-            std::cerr << "\tfound device on: " << device_name_ << std::endl;
             ADTRACE() << "\tfound device on: " << device_name_;
             success = true;
             break;
         } else {
-            std::cerr << error_msg( status, "Acqiris::findDevice" ) << std::endl;
             ADTRACE() << error_msg( status, "Acqiris::findDevice" );
         }
     }
@@ -564,19 +560,24 @@ task::handle_acquire()
 
     --acquire_post_count_;
     if ( acquire() ) {
-        if ( waitForEndOfAcquisition( 5000 ) ) {
-            auto avgr = std::make_shared< waveform >( ident_ );
-            if ( readData( *avgr ) ) {
-                ap240::method m;
-                for ( auto& reply: waveform_handlers_ ) {
-                    if ( reply( avgr.get(), m ) )
-                        handle_protocol( m );
+        int retry = 3;
+        do {
+            if ( waitForEndOfAcquisition( 3000 ) ) {
+                auto avgr = std::make_shared< waveform >( ident_ );
+                if ( readData( *avgr ) ) {
+                    ap240::method m;
+                    for ( auto& reply: waveform_handlers_ ) {
+                        if ( reply( avgr.get(), m ) )
+                            handle_protocol( m );
+                    }
                 }
+                return true;            
+            } else {
+                ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
             }
-        } else {
-            ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
-        }
-        return true;
+        } while ( retry-- );
+
+        AcqrsD1_stopAcquisition( inst_ );
     }
     return false;
 }
@@ -686,10 +687,7 @@ device_ap240::initial_setup( task& task, const method& m )
     ViStatus status;
     ViStatus * pStatus = &status;
 
-    std::cout << "######### device_ap240::initial_setup #############" << std::endl;
-    ADTRACE() << "######### device_ap240::initial_setup #############";
-    
-    int nDelay =  static_cast<int>(m.delay_to_first_sample_ / m.samp_rate + 0.5) & 0x1f; // fold of 32
+    int nDelay =  static_cast<int>(m.delay_to_first_sample_ * m.samp_rate) & ~0x1f; // fold of 32
     int nSamples = m.nbr_of_s_to_acquire_;
     int nAverage = m.nbr_of_averages;
 
@@ -912,6 +910,7 @@ device_ap240::readData( task& task, waveform& data )
     data.d_.resize( data.d_.size() - 32 );
 
     std::cout << "## device_ap240::readData ##" << std::endl;
+
     double elapsed = double( static_cast<uint64_t>( segDesc.timeStampHi ) << 32 | segDesc.timeStampLo ) * 1.0e-12; // ps -> s
 
     std::cout << "actualTriggersInSeg: " << segDesc.actualTriggersInSeg
@@ -921,34 +920,34 @@ device_ap240::readData( task& task, waveform& data )
               << "\tX: " << elapsed
               << std::endl;
 
-    uint32_t nStartDelay = uint32_t( data.method_.digitizer_delay_to_first_sample / data.method_.samp_rate + 0.5 ) & 0x1f;
+    uint32_t nDelay = uint32_t( data.method_.digitizer_delay_to_first_sample * data.method_.samp_rate ) & ~0x1f;
     
-    data.meta_.actualAverages = segDesc.actualTriggersInSeg; // number of triggers for average
-    data.meta_.actualPoints = data.d_.size();
+    data.meta_.actualAverages = segDesc.actualTriggersInSeg;  // number of triggers for average
+    data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; //data.d_.size();
     data.meta_.actualRecords = 0; // ??
     data.meta_.flags = segDesc.flags; // markers
-    data.meta_.initialXOffset = dataDesc.sampTime * nStartDelay ;
+    data.meta_.initialXOffset = dataDesc.sampTime * nDelay ;
     data.meta_.initialXTimeSeconds = elapsed;
-    data.meta_.scaleFactor = 1.0;
-    data.meta_.scaleOffset = 0;
-    data.meta_.xIncrement = 0.5e-9;
+    data.meta_.scaleFactor = dataDesc.vGain;
+    data.meta_.scaleOffset = dataDesc.vOffset;
+    data.meta_.xIncrement = dataDesc.sampTime;
+        
+    // avgr.sampInterval = static_cast<unsigned long>( scale_to_pico( desc.dataDesc.sampTime ) + 0.5 );
+    // avgr.uptime = ( static_cast< unsigned long long>( segDesc.timeStampHi ) << 32 | segDesc.timeStampLo ) / 1000000LL; // us
     
-        // avgr.sampInterval = static_cast<unsigned long>( scale_to_pico( desc.dataDesc.sampTime ) + 0.5 );
-        // avgr.uptime = ( static_cast< unsigned long long>( segDesc.timeStampHi ) << 32 | segDesc.timeStampLo ) / 1000000LL; // us
-
-        // avgr.nSamplingDelay = nStartDelay_;
-        // avgr.avgrType = infitofinterface::Averager_AP240;
-        // avgr.npos = data_serial_number_;
-        // avgr.timeSinceInject = uint32_t( avgr.uptime - averager_inject_usec_ );
-        // avgr.nbrSamples = nbrSamples_;
-        // avgr.nbrAverage = uint32_t(nbrWaveforms_);
-
-        // // 0:P1, 1:P2, 2:A, 3:B
-        // avgr.wellKnownEvents = segDesc.flags & 0x0f;
-        // if ( segDesc.flags & 02 ) {
-        //     avgr.wellKnownEvents |= SignalObserver::wkEvent_INJECT;
-        //     TOFTask::instance()->handle_event_in( avgr.wellKnownEvents );
-        // }
+    // avgr.nSamplingDelay = nStartDelay_;
+    // avgr.avgrType = infitofinterface::Averager_AP240;
+    // avgr.npos = data_serial_number_;
+    // avgr.timeSinceInject = uint32_t( avgr.uptime - averager_inject_usec_ );
+    // avgr.nbrSamples = nbrSamples_;
+    // avgr.nbrAverage = uint32_t(nbrWaveforms_);
+    
+    // // 0:P1, 1:P2, 2:A, 3:B
+    // avgr.wellKnownEvents = segDesc.flags & 0x0f;
+    // if ( segDesc.flags & 02 ) {
+    //     avgr.wellKnownEvents |= SignalObserver::wkEvent_INJECT;
+    //     TOFTask::instance()->handle_event_in( avgr.wellKnownEvents );
+    // }
     
     // data.meta_.actualAverages = actualAverages;
     // data.meta_.flags = saFlags.data()[ 0 ];
