@@ -61,7 +61,7 @@ namespace ap240 {
     namespace detail {
 
         struct device_ap240 {
-            static bool initial_setup( task&, const method& );
+            static bool initial_setup( task&, method& );
             static bool setup( task&, const method& );
             static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
@@ -69,7 +69,7 @@ namespace ap240 {
         };
 
         struct device_simulator {
-            static bool initial_setup( task&, const method& );
+            static bool initial_setup( task&, method& );
             static bool setup( task&, const method& );
             static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
@@ -124,7 +124,6 @@ namespace ap240 {
                 if ( arg )
                     std::cerr << " #" << arg;
                 std::cerr << std::endl;
-                //return true;
                 return false;
             }
 
@@ -332,7 +331,7 @@ waveform::trim( metadata& meta, uint32_t& nSamples ) const
     meta = meta_;
 
     size_t offset = 0;
-
+#if 0
     if ( method_.digitizer_delay_to_first_sample < method_.delay_to_first_sample_ )
         offset = size_t( ( ( method_.delay_to_first_sample_ - method_.digitizer_delay_to_first_sample ) / meta.xIncrement ) + 0.5 );
     
@@ -344,6 +343,8 @@ waveform::trim( metadata& meta, uint32_t& nSamples ) const
     meta.actualPoints = nSamples;
 
     return d_.data() + offset;
+#endif
+    return 0;
 }
 
 
@@ -391,13 +392,13 @@ task::prepare_for_run( const ap240::method& m )
 {
     ADTRACE() << "ap240::task::prepare_for_run";
     ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
-        << "\text_trigger_level: " << m.ext_trigger_level
-        << "\tsamp_rate: " << m.samp_rate
-        << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire_ << "; " << m.digitizer_nbr_of_s_to_acquire
-        << "\tnbr_of_average: " << m.nbr_of_averages
-        << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
-        << "\tinvert_signal: " << m.invert_signal
-        << "\tnsa: " << m.nsa;
+              << "\text_trigger_level: " << m.ext_trigger_level
+              << "\tsamp_rate: " << m.samp_rate
+              << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire
+              << "\tnbr_of_average: " << m.nbr_of_averages
+              << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.delay_to_first_sample )
+              << "\tinvert_signal: " << m.invert_signal
+              << "\tnsa: " << m.nsa;
     
     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
     
@@ -450,8 +451,8 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
     bool success = false;
 
     method_.samp_rate = 1.0/0.5e-9; // 2GS/s
-    method_.digitizer_nbr_of_s_to_acquire = nSamples;  // number of samples per waveform
-    method_.delay_to_first_sample_ = double( nDelay ) / method_.samp_rate;
+    method_.nbr_of_s_to_acquire = nSamples;  // number of samples per waveform
+    method_.delay_to_first_sample = double( nDelay ) / method_.samp_rate;
     method_.nbr_of_averages = nAverage;
 
     ViStatus status;
@@ -526,9 +527,9 @@ task::handle_prepare_for_run( const ap240::method m )
 {
     method_ = m;
     if ( simulated_ )
-        device_simulator::initial_setup( *this, m );
+        device_simulator::initial_setup( *this, method_ );
     else
-        device_ap240::initial_setup( *this, m );
+        device_ap240::initial_setup( *this, method_ );
     return true;
 }
 
@@ -682,67 +683,63 @@ identify::identify( const identify& t ) : Identifier( t.Identifier )
 }
 
 bool
-device_ap240::initial_setup( task& task, const method& m )
+device_ap240::initial_setup( task& task, method& m )
 {
     ViStatus status;
     ViStatus * pStatus = &status;
 
-    int nDelay =  static_cast<int>(m.delay_to_first_sample_ * m.samp_rate) & ~0x1f; // fold of 32
-    int nSamples = m.nbr_of_s_to_acquire_;
-    int nAverage = m.nbr_of_averages;
-
-    if ( pStatus == 0 )
-        pStatus = &status;
-	
-    //                            ch = 1, fs=1.0V, offset = 0.0v, coupling = DC 50ohm, bw = 700MHz
-    status = AcqrsD1_configVertical( task.inst()
-                                     , 1  // ch1
-                                     , m.front_end_range  // 2.0V
-                                     , m.front_end_offset // 0.0
-                                     , 3 // DC 50ohm
-                                     , m.ch1_bandwidth );
-    if ( task::checkError( task.inst(), status, "configVertical", __LINE__ ) )
-        return false;
-
-    // External trig. input
-    //status = AcqrsD1_configVertical( task.inst(), -1, 5.0, 0.0, 3 /*DC 50ohm*/, 0 /* no bw */);
-    status = AcqrsD1_configVertical( task.inst()
-                                     , -1 // ext trigger
-                                     , m.ext_trigger_range   // default 1.0V
-                                     , m.ext_trigger_offset  // 0.0V
-                                     , 3 /*DC 50ohm*/
-                                     , m.ext_trigger_bandwidth );
-    
-    if ( task::checkError( task.inst(), status, "configVertical (2)", __LINE__ ) )
-        return false;
-    
-    status = AcqrsD1_configMemory( task.inst(), nSamples, 1 );
-    if ( task::checkError( task.inst(), status, "configMemory", __LINE__ ) )
-        ; //return false;
+    m.digitizer_ndelay_ =  static_cast<int>(m.delay_to_first_sample * m.samp_rate) & ~0x1f; // fold of 32
+    //int nSamples = m.nbr_of_s_to_acquire_;
+    //int nAverage = m.nbr_of_averages;
 
     status = AcqrsD1_configTrigClass( task.inst(), 0, 0x80000000, 0, 0, 0, 0 );
     if ( task::checkError( task.inst(), status, "AcqrsD1_configTrigClass", __LINE__  ) )
         return false;
-	
-    //status = AcqrsD1_configTrigSource( task.inst(), -1, 0, 0, 500, 0 );
+
     status = AcqrsD1_configTrigSource( task.inst()
                                        , -1 // external trigger
                                        , 0  // DC
                                        , m.ext_trigger_slope // 0:Positive, 1:Negative
                                        , m.ext_trigger_level // 0.5V
                                        , 0 );
-    
     if ( task::checkError( task.inst(), status, "AcqrsD1_configTrigSource", __LINE__  ) )
         return false;
 	
+    status = AcqrsD1_configVertical( task.inst()
+                                     , -1 // ext trigger
+                                     , m.ext_trigger_range   // default 1.0V
+                                     , m.ext_trigger_offset  // 0.0V
+                                     , 3 /*DC 50ohm*/
+                                     , m.ext_trigger_bandwidth );
+    if ( task::checkError( task.inst(), status, "configVertical (ext.trigger)", __LINE__ ) )
+        return false;
+
+    //                            ch = 1, fs=1.0V, offset = 0.0v, coupling = DC 50ohm, bw = 700MHz
+    status = AcqrsD1_configVertical( task.inst()
+                                     , 1  // ch1
+                                     , m.front_end_range  // 2.0V
+                                     , m.front_end_offset // 0.0
+                                     , 3 // DC 50ohm
+                                     , m.bandwidth[0] );
+    if ( task::checkError( task.inst(), status, "configVertical (ch1)", __LINE__ ) )
+        return false;
+
+    std::cout << "configMemory: " << m.nbr_of_s_to_acquire << std::endl;
+    status = AcqrsD1_configMemory( task.inst(), m.nbr_of_s_to_acquire, 1 );
+    if ( task::checkError( task.inst(), status, "configMemory", __LINE__ ) )
+        return false;
+
+    std::cout << "configMode: " << m.average_mode << std::endl;    
     status = AcqrsD1_configMode( task.inst(), 2, 0, 0 ); // 2 := averaging mode, 0 := normal data acq.
     if ( task::checkError( task.inst(), status, "AcqrsD1_configMode", __LINE__  ) )
         return false;
-	
+
+    std::cout << "configMultiInput: " << "1, 0" << std::endl;        
     status = AcqrsD1_configMultiInput( task.inst(), 1, 0 );
     if ( task::checkError( task.inst(), status, "AcqrsD1_configMultiInput", __LINE__  ) )
         return false;
 
+    std::cout << "configChannelCombination: " << "2, 1" << std::endl;            
     status = AcqrsD1_configChannelCombination( task.inst(), 2, 1 );
     if ( task::checkError( task.inst(), status, "AcqrsD1_configChannelCombination", __LINE__  ) )
         return false;
@@ -761,16 +758,15 @@ device_ap240::initial_setup( task& task, const method& m )
     // Configure the front panel trigger out (TR.)
     // The appropriate offset is 1,610 mV.
     status = AcqrsD1_configControlIO( task.inst(), 9, 1610 / 2, 0, 0 );
-    //status = AcqrsD1_configControlIO( task.inst(), 9, 0, 0, 0 );
     if ( task::checkError( task.inst(), status, "AcqrsD1_configControlIO (2)", __LINE__  ) )
         return false;
 
-    if ( ! task::instance()->nbrSamples( nSamples ) ) //	if ( ! nbrSamples( 73728 ) )
+    if ( ! task::instance()->nbrSamples( m.nbr_of_s_to_acquire ) ) //	if ( ! nbrSamples( 73728 ) )
         return false;
 
     ViInt32 int32Arg;
 	
-    if ( ! task::instance()->nStartDelay( nDelay ) )  //34048
+    if ( ! task::instance()->nStartDelay( m.digitizer_ndelay_ ) )  //34048
         return false;
 
     // "P2Control" set to average(out) --> disable for debug
@@ -795,7 +791,7 @@ device_ap240::initial_setup( task& task, const method& m )
     if ( task::checkError( task.inst(), status, "AcqrsD1_configAvgConfig (NbrSegments)", __LINE__  ) )
         return false;
 
-    if ( ! task.nbrWaveforms( nAverage ) )
+    if ( ! task.nbrWaveforms( m.nbr_of_averages ) )
         return false;
 
     int32Arg = 0;
@@ -886,12 +882,12 @@ device_ap240::readData( task& task, waveform& data )
     memset(&dataDesc, 0, sizeof(dataDesc));
     memset(&segDesc, 0, sizeof(segDesc));
 
-    data.d_.resize( task.method().digitizer_nbr_of_s_to_acquire + 32 );
+    data.d_.resize( task.method().nbr_of_s_to_acquire + 32 );
 
     readPar.dataType = ReadInt32;
     readPar.readMode = ReadModeAvgW;
     readPar.nbrSegments = 1;
-    readPar.nbrSamplesInSeg = task.method().digitizer_nbr_of_s_to_acquire; // nbrSamples
+    readPar.nbrSamplesInSeg = task.method().nbr_of_s_to_acquire; // nbrSamples
     readPar.dataArraySize = data.d_.size() * sizeof( long );               // (nbrSamples + 32) * sizeof(ong)
     readPar.segDescArraySize = sizeof( AqSegmentDescriptorAvg );
     const int channel = 1;
@@ -916,17 +912,17 @@ device_ap240::readData( task& task, waveform& data )
     std::cout << "actualTriggersInSeg: " << segDesc.actualTriggersInSeg
               << "\tsize: " << data.d_.size()
               << "\tindexFirstPoint: " << dataDesc.indexFirstPoint
-              << "\tdelay: " << data.method_.digitizer_delay_to_first_sample
+              << "\tdelay: " << data.method_.delay_to_first_sample
               << "\tX: " << elapsed
               << std::endl;
 
-    uint32_t nDelay = uint32_t( data.method_.digitizer_delay_to_first_sample * data.method_.samp_rate ) & ~0x1f;
+    //uint32_t nDelay = uint32_t( data.method_.digitizer_delay_to_first_sample * data.method_.samp_rate ) & ~0x1f;
     
     data.meta_.actualAverages = segDesc.actualTriggersInSeg;  // number of triggers for average
     data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; //data.d_.size();
     data.meta_.actualRecords = 0; // ??
     data.meta_.flags = segDesc.flags; // markers
-    data.meta_.initialXOffset = dataDesc.sampTime * nDelay ;
+    data.meta_.initialXOffset = dataDesc.sampTime * data.method_.digitizer_ndelay_ / data.method_.samp_rate;
     data.meta_.initialXTimeSeconds = elapsed;
     data.meta_.scaleFactor = dataDesc.vGain;
     data.meta_.scaleOffset = dataDesc.vOffset;
@@ -959,7 +955,7 @@ device_ap240::readData( task& task, waveform& data )
 
 
 bool
-device_simulator::initial_setup( task& task, const method& m )
+device_simulator::initial_setup( task& task, method& m )
 {
 	return true;
 }

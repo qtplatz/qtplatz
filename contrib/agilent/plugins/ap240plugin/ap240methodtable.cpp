@@ -145,7 +145,7 @@ ap240MethodTable::onInitialUpdate()
     model.setData( model.index( row, 2 ), "external trigger threshold" );
     ++row;
     model.setData( model.index( row, 0 ), "number of samples" );
-    model.setData( model.index( row, 1 ), uint32_t( m.nbr_of_s_to_acquire_ ) );
+    model.setData( model.index( row, 1 ), uint32_t( m.nbr_of_s_to_acquire ) );
     model.setData( model.index( row, 2 ), "number of sample points in a spectrum" );
     ++row;
     model.setData( model.index( row, 0 ), "number of average" );
@@ -153,7 +153,7 @@ ap240MethodTable::onInitialUpdate()
     model.setData( model.index( row, 2 ), "number of averages ninus one." );
     ++row;
     model.setData( model.index( row, 0 ), "delay to first sample" );
-    model.setData( model.index( row, 1 ), m.delay_to_first_sample_ );
+    model.setData( model.index( row, 1 ), m.delay_to_first_sample );
     model.setData( model.index( row, 2 ), "delay to first sample" );
     ++row;
     model.setData( model.index( row, 0 ), "invert signal" );
@@ -181,7 +181,7 @@ ap240MethodTable::onInitialUpdate()
     model.setData( model.index( row, 2 ), "Ext. trigger bandwidth (0:None, 1:20MHz, 2:700MHz" );
     ++row;
     model.setData( model.index( row, 0 ), "ch1. band width" );
-    model.setData( model.index( row, 1 ), m.ch1_bandwidth );
+    model.setData( model.index( row, 1 ), m.bandwidth[0] );
     model.setData( model.index( row, 2 ), "Ch1. bandwidth (0:None, 1:20MHz, 2:700MHz" );    
 
     resizeColumnsToContents();
@@ -213,11 +213,11 @@ ap240MethodTable::setContents( const ap240::method& m )
     ++row;
     model.setData( model.index( row, 1 ), m.ext_trigger_level );
     ++row;
-    model.setData( model.index( row, 1 ), m.nbr_of_s_to_acquire_ );
+    model.setData( model.index( row, 1 ), m.nbr_of_s_to_acquire );
     ++row;
     model.setData( model.index( row, 1 ), m.nbr_of_averages );
     ++row;
-    model.setData( model.index( row, 1 ), m.delay_to_first_sample_ * 1.0e6 ); // s -> us
+    model.setData( model.index( row, 1 ), m.delay_to_first_sample * 1.0e6 ); // s -> us
     ++row;
     model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
     ++row;
@@ -227,7 +227,7 @@ ap240MethodTable::setContents( const ap240::method& m )
     model.setData( model.index( r_ext_trigger_range, 1 ), m.ext_trigger_range );
     model.setData( model.index( r_ext_trigger_offset, 1 ), m.ext_trigger_offset );
     model.setData( model.index( r_ext_trigger_bandwidth, 1 ), m.ext_trigger_bandwidth );
-    model.setData( model.index( r_ch1_bandwidth, 1 ), m.ch1_bandwidth );
+    model.setData( model.index( r_ch1_bandwidth, 1 ), m.bandwidth[0] );
 
     in_progress_ = false;
 	
@@ -248,11 +248,11 @@ ap240MethodTable::getContents( ap240::method& m )
 	++row;
 	m.ext_trigger_level = model.index( row, 1 ).data().toDouble();
     ++row;
-	m.nbr_of_s_to_acquire_ = model.index( row, 1 ).data().toInt();
+	m.nbr_of_s_to_acquire = model.index( row, 1 ).data().toInt();
     ++row;
 	m.nbr_of_averages = model.index( row, 1 ).data().toInt();
     ++row;
-    m.delay_to_first_sample_ = model.index( row, 1 ).data().toDouble() * 1.0e-6; // us -> s
+    m.delay_to_first_sample = model.index( row, 1 ).data().toDouble() * 1.0e-6; // us -> s
     ++row;
     m.invert_signal = model.index( row, 1 ).data().toBool() ? 1 : 0;
     ++row;
@@ -262,7 +262,8 @@ ap240MethodTable::getContents( ap240::method& m )
     m.ext_trigger_range = model.index( r_ext_trigger_range, 1 ).data().toDouble();
     m.ext_trigger_offset = model.index( r_ext_trigger_offset, 1 ).data().toDouble();
     m.ext_trigger_bandwidth = model.index( r_ext_trigger_bandwidth, 1 ).data().toInt();
-    m.ch1_bandwidth = model.index( r_ch1_bandwidth, 1 ).data().toInt();            
+    m.bandwidth[0] = model.index( r_ch1_bandwidth, 1 ).data().toInt();
+    m.bandwidth[1] = model.index( r_ch1_bandwidth, 1 ).data().toInt();                
 
     in_progress_ = true;
     for ( int row = 0; row < model.rowCount(); ++row )

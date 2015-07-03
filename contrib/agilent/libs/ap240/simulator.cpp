@@ -129,36 +129,6 @@ simulator::waitForEndOfAcquisition()
 bool
 simulator::readData( waveform& data )
 {
-    std::shared_ptr< adinterface::waveform_generator > ptr;
-
-    do {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        if ( !waveforms_.empty() ) {
-            ptr = waveforms_.front();
-            waveforms_.erase( waveforms_.begin() );
-        }
-    } while(0);
-
-    if ( ptr ) {
-        data.d_.resize( ptr->nbrSamples() );
-        std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), data.d_.begin() );
-        data.method_ = *method_;
-        data.method_.digitizer_delay_to_first_sample = startDelay_;
-        data.method_.nbr_of_averages = int32_t( nbrWaveforms_ );
-        data.method_.digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
-
-        data.meta_.initialXTimeSeconds = ptr->timestamp();
-        data.serialnumber_ = ptr->serialNumber();
-        data.wellKnownEvents_ = 0;
-        data.meta_.actualPoints = data.d_.size();
-        data.meta_.xIncrement = sampInterval_;
-        data.meta_.initialXOffset = startDelay_;
-        data.meta_.actualAverages = int32_t( nbrWaveforms_ );
-        data.meta_.scaleFactor = 1.0;
-        data.meta_.scaleOffset = 0.0;
-
-        return true;
-    }
     return false;
 }
 
@@ -174,8 +144,4 @@ void
 simulator::setup( const method& m )
 {
     *method_ = m;
-    sampInterval_ = 1.0 / m.samp_rate;
-    startDelay_ = m.digitizer_delay_to_first_sample;
-    nbrSamples_ = m.digitizer_nbr_of_s_to_acquire;
-    nbrWaveforms_ = m.nbr_of_averages;
 }
