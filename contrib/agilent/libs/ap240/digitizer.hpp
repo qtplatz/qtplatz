@@ -103,7 +103,6 @@ namespace ap240 {
             { }
         double front_end_range;
         double front_end_offset;
-        double ext_trigger_level;
         double samp_rate; // HZ
         int32_t nbr_of_s_to_acquire;
         int32_t nbr_of_averages;
@@ -112,10 +111,10 @@ namespace ap240 {
         int32_t nsa;
         // double digitizer_delay_to_first_sample; // actual delay set to ap240
         // uint32_t digitizer_nbr_of_s_to_acquire; // actual number of samples per waveform
-        uint32_t ext_trigger_polarity; // 0(pos)|1(neg)
+        double ext_trigger_level;
         double ext_trigger_range;
         double ext_trigger_offset;
-        uint32_t ext_trigger_slope;
+        uint32_t ext_trigger_slope; // 0(pos)|1(neg)
         uint32_t ext_trigger_bandwidth;
         uint32_t bandwidth[2];
         uint32_t average_mode;
@@ -127,16 +126,13 @@ namespace ap240 {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( front_end_range );
             ar & BOOST_SERIALIZATION_NVP( front_end_offset );
-            ar & BOOST_SERIALIZATION_NVP( ext_trigger_level );
             ar & BOOST_SERIALIZATION_NVP( samp_rate );
             ar & BOOST_SERIALIZATION_NVP( nbr_of_s_to_acquire );
             ar & BOOST_SERIALIZATION_NVP( nbr_of_averages );
             ar & BOOST_SERIALIZATION_NVP( delay_to_first_sample );
             ar & BOOST_SERIALIZATION_NVP( invert_signal );
             ar & BOOST_SERIALIZATION_NVP( nsa );
-            //ar & BOOST_SERIALIZATION_NVP( digitizer_delay_to_first_sample );
-            //ar & BOOST_SERIALIZATION_NVP( digitizer_nbr_of_s_to_acquire );
-            ar & BOOST_SERIALIZATION_NVP( ext_trigger_polarity );
+            ar & BOOST_SERIALIZATION_NVP( ext_trigger_level );
             ar & BOOST_SERIALIZATION_NVP( ext_trigger_range );
             ar & BOOST_SERIALIZATION_NVP( ext_trigger_offset );
             ar & BOOST_SERIALIZATION_NVP( ext_trigger_slope );
