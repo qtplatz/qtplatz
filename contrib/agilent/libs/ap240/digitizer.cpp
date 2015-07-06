@@ -46,17 +46,7 @@
 #include <chrono>
 #include <atomic>
 
-#ifdef ERR
-# undef ERR
-#endif
-
-#ifdef TERR
-# undef TERR
-#endif
-
 namespace ap240 {
-
-    class simulator;
 
     namespace detail {
 
@@ -68,14 +58,6 @@ namespace ap240 {
             static bool readData( task&, waveform& );
         };
 
-        struct device_simulator {
-            static bool initial_setup( task&, method& );
-            static bool setup( task&, const method& );
-            static bool acquire( task& );
-            static bool waitForEndOfAcquisition( task&, int timeout );
-            static bool readData( task&, waveform& );
-        };
-        
         class task {
             task();
             ~task();
@@ -98,7 +80,6 @@ namespace ap240 {
             void disconnect( digitizer::waveform_reply_type f );
             void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr );
 
-            inline ap240::simulator * simulator() { return simulator_; }
             inline const ap240::method& method() const { return method_; }
             inline const identify& ident() const { return *ident_; }
 
@@ -151,7 +132,6 @@ namespace ap240 {
             boost::asio::io_service::strand strand_;
             bool simulated_;
             ap240::method method_;
-            ap240::simulator * simulator_;
             std::atomic<int> acquire_post_count_;
             uint64_t inject_timepoint_;
             uint32_t data_serialnumber_;
@@ -330,7 +310,6 @@ waveform::trim( metadata& meta, uint32_t& nSamples ) const
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , simulated_( false )
-             , simulator_( 0 )
              , data_serialnumber_( 0 )
              , serial_number_( 0 )
              , acquire_post_count_( 0 )
@@ -342,7 +321,6 @@ task::task() : work_( io_service_ )
 
 task::~task()
 {
-    delete simulator_;
 }
 
 task *
@@ -474,20 +452,14 @@ bool
 task::handle_prepare_for_run( const ap240::method m )
 {
     method_ = m;
-    if ( simulated_ )
-        device_simulator::initial_setup( *this, method_ );
-    else
-        device_ap240::initial_setup( *this, method_ );
+    device_ap240::initial_setup( *this, method_ );
     return true;
 }
 
 bool
 task::handle_protocol( const ap240::method m )
 {
-    if ( simulated_ )
-        device_simulator::setup( *this, m );
-    else
-        device_ap240::setup( *this, m );
+    device_ap240::setup( *this, m );
     method_ = m;
     return true;
 }
@@ -528,29 +500,20 @@ task::handle_acquire()
 bool
 task::acquire()
 {
-    if ( simulated_ )
-        return device_simulator::acquire( *this );
-    else
-        return device_ap240::acquire( *this );
+    return device_ap240::acquire( *this );
 }
 
 bool
 task::waitForEndOfAcquisition( int timeout )
 {
-    if ( simulated_ )
-        return device_simulator::waitForEndOfAcquisition( *this, timeout );
-    else
-        return device_ap240::waitForEndOfAcquisition( *this, timeout );
+    return device_ap240::waitForEndOfAcquisition( *this, timeout );
 }
 
 bool
 task::readData( waveform& data )
 {
     data.serialnumber_ = data_serialnumber_++;
-    if ( simulated_ )
-        return device_simulator::readData( *this, data );
-    else
-        return device_ap240::readData( *this, data );
+    return device_ap240::readData( *this, data );
 }
 
 void
@@ -880,34 +843,4 @@ device_ap240::readData( task& task, waveform& data )
     return true;
 }
 
-
-bool
-device_simulator::initial_setup( task& task, method& m )
-{
-	return true;
-}
-
-bool
-device_simulator::setup( task& task, const method& m )
-{
-    return true; // device_simulator::initial_setup( task, m );
-}
-
-bool
-device_simulator::acquire( task& task )
-{
-    return false;
-}
-
-bool
-device_simulator::waitForEndOfAcquisition( task& task, int /* timeout */)
-{
-    return false;
-}
-
-bool
-device_simulator::readData( task& task, waveform& data )
-{
-    return false;
-}
 
