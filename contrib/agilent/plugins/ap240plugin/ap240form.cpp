@@ -24,7 +24,6 @@
 
 #include "ap240form.hpp"
 #include "ui_ap240form.h"
-#include "ap240methodwidget.hpp"
 #include <adinterface/controlserver.hpp>
 
 using namespace ap240;

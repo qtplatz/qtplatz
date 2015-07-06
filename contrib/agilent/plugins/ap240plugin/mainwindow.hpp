@@ -99,7 +99,6 @@ namespace ap240 {
 	private:
         QAction * actionConnect_;
         static MainWindow * instance_;
-        adwidgets::ControlMethodWidget * editor_;
 
         void setToolBarDockWidget( QDockWidget * dock );
         void createDockWidgets();

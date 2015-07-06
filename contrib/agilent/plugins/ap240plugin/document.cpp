@@ -240,9 +240,9 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     adcontrols::MSProperty::SamplingInfo info( 0
                                                , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
                                                , uint32_t( waveform.d_.size() )
-                                               , waveform.method_.nbr_of_averages + 1
+                                               , waveform.method_.hor_.nbrAvgWaveforms
                                                , 0 );
-    info.fSampInterval( 1.0 / waveform.method_.samp_rate );
+    info.fSampInterval( waveform.meta_.xIncrement );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
@@ -318,7 +318,7 @@ document::initialSetup()
     Core::DocumentManager::setProjectsDirectory( path );
     Core::DocumentManager::setUseProjectsDirectory( true );
 
-    boost::filesystem::path mfile( dir / "default.cmth" );
+    boost::filesystem::path mfile( dir / "ap240.cmth" );
     adcontrols::ControlMethod cm;
     if ( load( QString::fromStdWString( mfile.wstring() ), cm ) ) {
         setControlMethod( cm, QString() ); // don't save default name

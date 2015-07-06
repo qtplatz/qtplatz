@@ -50,7 +50,7 @@ ap240form::ap240form(QWidget *parent) :
         layout->setSpacing( 0 );
         layout->addWidget( new ap240HorizontalForm );
     }
-    for ( auto& w: { ui->groupBox_2, ui->groupBox_3 } ) {
+    for ( auto& w: { ui->groupBox_2, ui->groupBox_3, ui->groupBox_5 } ) {
         auto layout = new QVBoxLayout( w );
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
@@ -167,3 +167,7 @@ ap240form::onStatus( int )
 {
 }
 
+void
+ap240form::load( std::shared_ptr< adcontrols::ControlMethod > ptr )
+{
+}

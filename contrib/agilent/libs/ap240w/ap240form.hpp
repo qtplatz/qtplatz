@@ -28,10 +28,13 @@
 #include <QWidget>
 #include <adplugin/lifecycle.hpp>
 #include "ap240w_global.hpp"
+#include <memory>
 
 namespace Ui {
     class ap240form;
 }
+
+namespace adcontrols { class ControlMethod; }
 
 class AP240WSHARED_EXPORT ap240form : public QWidget
                                     , public adplugin::LifeCycle {
@@ -51,6 +54,7 @@ public:
     
     void onInitialUpdate();
     void onStatus( int );
+    void load( std::shared_ptr< adcontrols::ControlMethod > );
     
 private:
     Ui::ap240form *ui;

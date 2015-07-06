@@ -56,18 +56,7 @@ namespace ap240 {
         template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( Identifier );
-            ar & BOOST_SERIALIZATION_NVP( Revision );
-            ar & BOOST_SERIALIZATION_NVP( Vendor );
-            ar & BOOST_SERIALIZATION_NVP( Description );
-            ar & BOOST_SERIALIZATION_NVP( InstrumentModel );
-            ar & BOOST_SERIALIZATION_NVP( FirmwareRevision );
-            if ( version >= 1 ) {
-                ar & BOOST_SERIALIZATION_NVP( SerialNumber );
-                ar & BOOST_SERIALIZATION_NVP( Options );
-                ar & BOOST_SERIALIZATION_NVP( IOVersion );
-                ar & BOOST_SERIALIZATION_NVP( NbrADCBits );                
-            }
+            ar & BOOST_SERIALIZATION_NVP( serial_number_ );
         }
     };
 

@@ -60,8 +60,6 @@ add_library(
   document.cpp
   waveformwnd.cpp
   ap240form.cpp
-  ap240methodtable.cpp
-  ap240methodwidget.cpp
   isequenceimpl.cpp
   ap240plugin.hpp
   ap240_global.hpp
@@ -71,8 +69,6 @@ add_library(
   document.hpp
   waveformwnd.hpp
   ap240form.hpp
-  ap240methodtable.hpp
-  ap240methodwidget.hpp
   isequenceimpl.cpp
   ${ap240_Resources}
   )

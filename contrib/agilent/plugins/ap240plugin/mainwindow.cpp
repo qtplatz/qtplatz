@@ -27,7 +27,6 @@
 #include "document.hpp"
 #include "isequenceimpl.hpp"
 #include "ap240_constants.hpp"
-#include "ap240methodwidget.hpp"
 #include <ap240w/ap240form.hpp>
 #include <ap240/digitizer.hpp>
 #include <qtwrapper/trackingenabled.hpp>
@@ -104,7 +103,6 @@ using namespace ap240;
 MainWindow * MainWindow::instance_ = 0;
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
-                                        , editor_(0)
 {
     instance_ = this;
 }
@@ -122,20 +120,6 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    editor_ = new adwidgets::ControlMethodWidget;
-    
-    iEditorFactoryT<ap240MethodWidget> factory( *this, "AP240" );
-    if ( auto widget = factory.createEditor(0) ) {
-        widget->setObjectName( factory.title() );
-        createDockWidget( widget, factory.title(), "ControlMethod" );
-        editor_->addEditor( widget );
-    }
-    auto ptr = document::instance()->controlMethod();
-    editor_->getControlMethod( *ptr ); // initialize with defailt initial-condition
-    // createDockWidget( new QTextEdit(), "Log", "Log" );
-    connect( editor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
-    createDockWidget( editor_, "Control Method", "ControlMethodWidget" );
-
     auto widget = new ap240form();
     createDockWidget( widget, "AP240", "AP240" );
 
@@ -144,9 +128,11 @@ MainWindow::createDockWidgets()
 void
 MainWindow::OnInitialUpdate()
 {
-    editor_->OnInitialUpdate();
-    auto ptr = document::instance()->controlMethod();
-    editor_->setControlMethod( *document::instance()->controlMethod() );
+    if ( auto form = findChild< ap240form *>() ) {
+        form->OnInitialUpdate();
+        boost::any ptr( document::instance()->controlMethod() );
+        form->getContents( ptr );
+    }
 
     setSimpleDockWidgetArrangement();
 
@@ -517,15 +503,13 @@ MainWindow::handle_status( int status )
             action->setEnabled( true );
         actions_[ idActConnect ]->setEnabled( false );
         actInitRun();
-        if ( auto mw = findChild< ap240MethodWidget * >() )
-            mw->onStatus( status );
+        //mw->onStatus( status );
     }
 }
 
 bool
 MainWindow::editor_factories( iSequenceImpl& impl )
 {
-    impl << iEditorFactoryPtr( new iEditorFactoryT<ap240MethodWidget>( *this, "AP240" ) );
     return true;        
 }
 
@@ -533,13 +517,13 @@ MainWindow::editor_factories( iSequenceImpl& impl )
 void
 MainWindow::setControlMethod( const adcontrols::ControlMethod& m )
 {
-    editor_->setControlMethod( m );
+    //editor_->setControlMethod( m );
 }
 
 void
 MainWindow::getControlMethod( adcontrols::ControlMethod& m )
 {
-    editor_->getControlMethod( m );
+    //editor_->getControlMethod( m );
 }
 
 void
