@@ -152,7 +152,7 @@ namespace ap240 {
             std::shared_ptr< identify > ident_;
             std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
 
-            bool handle_initial_setup( int nDelay, int nSamples, int nAverage );
+            bool handle_initial_setup();
             bool handle_terminating();
             bool handle_acquire();
             bool handle_prepare_for_run( const ap240::method );
@@ -338,7 +338,7 @@ bool
 task::initialize()
 {
     ADTRACE() << "ap240 digitizer initializing...";
-    io_service_.post( strand_.wrap( [&] { handle_initial_setup( 32, 16000, 8 ); } ) );
+    io_service_.post( strand_.wrap( [&] { handle_initial_setup(); } ) );
     return true;
 }
 
@@ -390,9 +390,8 @@ task::terminate()
 }
 
 bool
-task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
+task::handle_initial_setup()
 {
-    simulated_ = false;
     bool success = false;
 
     ViStatus status;

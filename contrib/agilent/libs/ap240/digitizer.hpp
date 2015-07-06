@@ -278,7 +278,7 @@ namespace ap240 {
         void disconnect_waveform( waveform_reply_type );
         //-------
         bool findDevice();
-        bool initial_setup( int nDelay, int nSamples, int nAverage );
+        bool initial_setup();
         bool acquire();
         bool stop();
         enum result_code { success, error_timeout, error_overload, error_io_read, error_stopped };

@@ -40,6 +40,8 @@
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -64,52 +66,11 @@ namespace ap240 {
         }
     };
 
-    namespace detail {
-        struct remover {
-            ~remover() {
-                if ( document::instance_ ) {
-                    std::lock_guard< std::mutex > lock( document::mutex_ );
-                    if ( document::instance_ )
-                        delete document::instance_;
-                }
-            };
-            static remover _remover;
-        };
-    }
-
-    class document::exec {
-    public:
-        std::chrono::system_clock::time_point tp_start_;
-        uint64_t inject_time_point_;
-        ap240::method ap240_;
-        std::shared_ptr< adcontrols::ControlMethod > ctrlm_;
-        adcontrols::ControlMethod::const_iterator nextIt_;
-
-        exec() : tp_start_( std::chrono::system_clock::now() )
-               , inject_time_point_(0) {
-        }
-
-        bool prepare_for_run( const adcontrols::ControlMethod& m ) {
-            using adcontrols::controlmethod::MethodItem;
-            ctrlm_ = std::make_shared< adcontrols::ControlMethod >( m );
-            ctrlm_->sort();
-            nextIt_ = std::find_if( ctrlm_->begin(), ctrlm_->end(), [] ( const MethodItem& mi ){
-                    return mi.modelname() == "ap240";
-                });
-            if ( nextIt_ != ctrlm_->end() ) {
-                adportable::serializer< ap240::method >::deserialize( ap240_, nextIt_->data(), nextIt_->size() );
-                return true;
-            }
-            return false;
-        }
-    };
-
 }
     
 document::document() : digitizer_( new ap240::digitizer )
-                     , exec_( new exec() )
                      , device_status_( 0 )
-                     , cm_( std::make_shared< adcontrols::ControlMethod >() )
+                     , method_( std::make_shared< ap240::method >() )
                      , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                  , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                  , QLatin1String( "ap240" ) ) )
@@ -145,14 +106,9 @@ document::prepare_for_run()
 {
     using adcontrols::controlmethod::MethodItem;
 
-    MainWindow::instance()->getControlMethod( *cm_ );
-
-    if ( exec_->prepare_for_run( *cm_ ) ) {
-        digitizer_->peripheral_prepare_for_run( *exec_->ctrlm_ );
-        // while .. if other item on initial condition exists.
-    }
-    else
-        QMessageBox::information( 0, "ap240::document", QString( "Preparing for run withouth method " ) );
+    ap240::method m;
+    MainWindow::instance()->getControlMethod( m );
+    digitizer_->peripheral_prepare_for_run( m );
 }
 
 void
@@ -209,24 +165,8 @@ document::findWaveform( uint32_t serialnumber )
     if ( que_.empty() )
         return 0;
 	std::shared_ptr< const waveform > ptr = que_.back();
-    //ADTRACE() << "findWaveform: " << ptr->serialnumber_;
-    //if ( serialnumber == (-1) )
     return ptr;
-	/*
-	auto it = std::find_if( que_.begin(), que_.end(), [=]( std::shared_ptr< const waveform >& p ){ return p->serialnumber_ == serialnumber; });
-    if ( it != que_.end() )
-        return *it;
-    */
-	return 0;
 }
-
-#if 0
-const ap240::method&
-document::method() const
-{
-    return *method_;
-}
-#endif
 
 // static
 bool
@@ -318,11 +258,10 @@ document::initialSetup()
     Core::DocumentManager::setProjectsDirectory( path );
     Core::DocumentManager::setUseProjectsDirectory( true );
 
-    boost::filesystem::path mfile( dir / "ap240.cmth" );
-    adcontrols::ControlMethod cm;
-    if ( load( QString::fromStdWString( mfile.wstring() ), cm ) ) {
-        setControlMethod( cm, QString() ); // don't save default name
-    }
+    boost::filesystem::path mfile( dir / "ap240.xml" );
+    ap240::method m;
+    if ( load( QString::fromStdWString( mfile.wstring() ), m ) )
+        setControlMethod( m, QString() ); // don't save default name
 }
 
 void
@@ -336,9 +275,10 @@ document::finalClose()
             return;
         }
     }
-    MainWindow::instance()->getControlMethod( *cm_ );
-    boost::filesystem::path fname( dir / "default.cmth" );
-    save( QString::fromStdWString( fname.wstring() ), *cm_ );
+    ap240::method m;
+    MainWindow::instance()->getControlMethod( m );
+    boost::filesystem::path fname( dir / "ap240.xmth" );
+    save( QString::fromStdWString( fname.wstring() ), m );
 }
 
 void
@@ -372,87 +312,38 @@ document::recentFile( const char * group, bool dir_on_fail )
 }
 
 bool
-document::load( const QString& filename, adcontrols::ControlMethod& m )
+document::load( const QString& filename, ap240::method& m )
 {
-    QFileInfo fi( filename );
+    std::wifstream inf( filename.toStdString() );
+    boost::archive::xml_wiarchive ar( inf );
 
-    if ( fi.exists() ) {
-        adfs::filesystem fs;
-        if ( fs.mount( filename.toStdWString().c_str() ) ) {
-            adfs::folder folder = fs.findFolder( L"/ControlMethod" );
-        
-            auto files = folder.files();
-            if ( !files.empty() ) {
-                auto file = files.back();
-                try {
-                    file.fetch( m );
-                }
-                catch ( std::exception& ex ) {
-                    QMessageBox::information( 0, "acquire -- Open default process method"
-                                              , (boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
-                                                 % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
-                    return false;
-                }
-                return true;
-            }
-        }
-    }
+    ar >> boost::serialization::make_nvp( "ap240_method", m );
     return false;
 }
 
 bool
-document::save( const QString& filename, const adcontrols::ControlMethod& m )
+document::save( const QString& filename, const ap240::method& m )
 {
-    adfs::filesystem file;
+    std::wofstream outf( filename.toStdString() );
 
-    if ( !file.create( filename.toStdWString().c_str() ) ) {
-        ADTRACE() << "Error: \"" << filename.toStdString() << "\" can't be created";
-        return false;
-    }
-    
-    adfs::folder folder = file.addFolder( L"/ControlMethod" );
-    adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
-    try {
-        adfile.dataClass( adcontrols::ControlMethod::dataClass() );
-        adfile.save( m );
-    } catch ( std::exception& ex ) {
-        ADTRACE() << "Exception: " << boost::diagnostic_information( ex );
-        return false;
-    }
-    adfile.commit();
-
-#if 0 // adcontrols can't archive into xml format
-    QFileInfo xmlfile( filename + ".xml" );
-    if ( xmlfile.exists() )
-        QFile::remove( xmlfile.absoluteFilePath() );
-
-    std::wstringstream o;
-    try {
-        adcontrols::ControlMethod::xml_archive( o, m );
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << boost::diagnostic_information( ex );
-    }
-    pugi::xml_document doc;
-    doc.load( o );
-    doc.save_file( xmlfile.absoluteFilePath().toStdString().c_str() );
-#endif
-
+    boost::archive::xml_woarchive ar( outf );
+    ar << boost::serialization::make_nvp( "ap240_method", m );
     return true;
 }
 
-std::shared_ptr< adcontrols::ControlMethod >
+std::shared_ptr< ap240::method >
 document::controlMethod() const
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    return cm_;
+    return method_;
 }
 
 void
-document::setControlMethod( const adcontrols::ControlMethod& m, const QString& filename )
+document::setControlMethod( const ap240::method& m, const QString& filename )
 {
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
-        cm_ = std::make_shared< adcontrols::ControlMethod >( m );
+        method_ = std::make_shared< ap240::method >( m );
     } while(0);
 
     if ( ! filename.isEmpty() ) {

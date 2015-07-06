@@ -43,6 +43,7 @@ namespace Utils { class StyledBar; }
 
 namespace ap240 {
 
+    class method;
     class iSequenceImpl;
 
     namespace Internal { class ap240Plugin; }
@@ -70,8 +71,8 @@ namespace ap240 {
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::Trace&, const std::wstring& traceId );
 		bool editor_factories( iSequenceImpl& );
-        void setControlMethod( const adcontrols::ControlMethod& );
-        void getControlMethod( adcontrols::ControlMethod& m );
+        void setControlMethod( const ap240::method& );
+        void getControlMethod( ap240::method& m );
         void editor_commit();
 
     private:

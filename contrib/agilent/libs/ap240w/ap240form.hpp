@@ -56,7 +56,7 @@ public:
     
     void onInitialUpdate();
     void onStatus( int );
-    
+
     void get( ap240::method& ) const;
     void set( const ap240::method& );
 

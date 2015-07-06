@@ -66,23 +66,20 @@ namespace ap240 {
         QSettings * settings() { return settings_.get(); }
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
-        std::shared_ptr< adcontrols::ControlMethod > controlMethod() const;
-        void setControlMethod( const adcontrols::ControlMethod& m, const QString& filename );
+        std::shared_ptr< ap240::method> controlMethod() const;
+        void setControlMethod( const ap240::method& m, const QString& filename );
 
-        static bool load( const QString& filename, adcontrols::ControlMethod& );
-        static bool save( const QString& filename, const adcontrols::ControlMethod& );
+        static bool load( const QString& filename, ap240::method& );
+        static bool save( const QString& filename, const ap240::method& );
         
     private:
-        friend struct detail::remover;
-        class exec;
-
         static std::mutex mutex_;
         static document * instance_;
 
         ap240::digitizer * digitizer_;
         std::deque< std::shared_ptr< const waveform > > que_;
-        std::shared_ptr< adcontrols::ControlMethod > cm_;
-        std::unique_ptr< exec > exec_;
+        
+        std::shared_ptr< ap240::method > method_;
 
         int32_t device_status_;
         std::shared_ptr< QSettings > settings_;  // user scope settings

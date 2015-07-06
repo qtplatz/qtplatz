@@ -515,15 +515,19 @@ MainWindow::editor_factories( iSequenceImpl& impl )
 
 
 void
-MainWindow::setControlMethod( const adcontrols::ControlMethod& m )
+MainWindow::setControlMethod( const ap240::method& m )
 {
-    //editor_->setControlMethod( m );
+    if ( auto form = findChild< ap240form * >() ) {
+        form->set( m );
+    }
 }
 
 void
-MainWindow::getControlMethod( adcontrols::ControlMethod& m )
+MainWindow::getControlMethod( ap240::method& m )
 {
-    //editor_->getControlMethod( m );
+    if ( auto form = findChild< ap240form * >() ) {
+        form->get( m );
+    }
 }
 
 void
