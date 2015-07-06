@@ -33,6 +33,7 @@
 #include <adportable/serializer.hpp>
 #include <QVBoxLayout>
 #include <QMessageBox>
+#include <QSignalBlocker>
 #include <boost/exception/all.hpp>
 
 ap240form::ap240form(QWidget *parent) :
@@ -43,19 +44,36 @@ ap240form::ap240form(QWidget *parent) :
     if ( auto layout = new QVBoxLayout( ui->groupBox ) ) {
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
-        layout->addWidget( new ap240TriggerForm );
+        auto w = new ap240TriggerForm();
+        layout->addWidget( w );
+        connect( w, &ap240TriggerForm::valueChanged, [this] ( ap240TriggerForm::idItem id, const QVariant& d ) {
+            emit valueChanged( idTrigger, id, 0, d );
+        } );
     }
+
     if ( auto layout = new QVBoxLayout( ui->groupBox_4 ) ) {
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
-        layout->addWidget( new ap240HorizontalForm );
+        auto w = new ap240HorizontalForm();
+        layout->addWidget( w );
+        connect( w, &ap240HorizontalForm::valueChanged, [this] ( ap240HorizontalForm::idItem id, const QVariant& d ) {
+            emit valueChanged( idHorizontal, id, 0, d );
+        } );
+
     }
-    for ( auto& w: { ui->groupBox_2, ui->groupBox_3, ui->groupBox_5 } ) {
-        auto layout = new QVBoxLayout( w );
+
+    for ( auto& g : { std::make_pair( 1, ui->groupBox_2 ), std::make_pair( 2, ui->groupBox_3 ), std::make_pair( -1, ui->groupBox_5 ) } ) {
+        auto layout = new QVBoxLayout( g.second );
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
-        layout->addWidget( new ap240VerticalForm );
+        auto w = new ap240VerticalForm();
+        w->setChannel( g.first );
+        layout->addWidget( w );
+        connect( w, &ap240VerticalForm::valueChanged, [this] ( ap240VerticalForm::idItem id, int channel, const QVariant& d ) {
+            emit valueChanged( idVertical, id, channel, d );
+        } );
     }
+    set( ap240::method() );
 }
 
 ap240form::~ap240form()
@@ -168,6 +186,48 @@ ap240form::onStatus( int )
 }
 
 void
-ap240form::load( std::shared_ptr< adcontrols::ControlMethod > ptr )
+ap240form::set( const ap240::method& m )
 {
+    const QSignalBlocker blocker( this );
+
+    ui->groupBox_2->setChecked( m.channels_ & 0x01 );
+    ui->groupBox_3->setChecked( m.channels_ & 0x02 );
+    ui->groupBox_5->setChecked( m.trig_.trigPattern & 0x80000000 );
+
+    if ( auto form = findChild< ap240HorizontalForm *>() ) {
+        form->set( m );
+    }
+    
+    if ( auto form = findChild< ap240TriggerForm *>() ) {
+        form->set( m );        
+    }
+    
+    for ( auto form : findChildren< ap240VerticalForm * >() ) {
+        form->set( m );        
+    }
+}
+
+void
+ap240form::get( ap240::method& m ) const
+{
+    uint32_t channels( 0 );
+
+    if ( ui->groupBox_2->isChecked() )
+        channels |= 1;
+    if ( ui->groupBox_3->isChecked() )
+        channels |= 2;
+
+    m.channels_ = channels;
+ 
+    if ( auto form = findChild< ap240HorizontalForm *>() ) {
+        form->get( m );
+    }
+    
+    if ( auto form = findChild< ap240TriggerForm *>() ) {
+        form->get( m );        
+    }
+    
+    for ( auto form : findChildren< ap240VerticalForm * >() ) {
+        form->get( m );        
+    }
 }

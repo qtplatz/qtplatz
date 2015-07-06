@@ -31,6 +31,8 @@ namespace Ui {
 class ap240HorizontalForm;
 }
 
+namespace ap240 { class method; }
+
 class ap240HorizontalForm : public QWidget
 {
     Q_OBJECT
@@ -38,6 +40,14 @@ class ap240HorizontalForm : public QWidget
 public:
     explicit ap240HorizontalForm(QWidget *parent = 0);
     ~ap240HorizontalForm();
+
+    enum idItem { idDelay, idWidth, idSampInterval, idMode, idAvgWaveforms };
+
+    void set( const ap240::method& );
+    void get( ap240::method& ) const;
+
+signals:
+    void valueChanged( idItem, const QVariant& );
 
 private:
     Ui::ap240HorizontalForm *ui;

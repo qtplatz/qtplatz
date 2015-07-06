@@ -31,6 +31,8 @@ namespace Ui {
 class ap240verticalform;
 }
 
+namespace ap240 { class method; }
+
 class ap240VerticalForm : public QWidget
 {
     Q_OBJECT
@@ -39,8 +41,20 @@ public:
     explicit ap240VerticalForm(QWidget *parent = 0);
     ~ap240VerticalForm();
 
+    enum idItem { idFullScale, idOffset, idCoupling, idBandWidth, idInvertData };
+
+    void setChannel( int );
+    int channel() const;
+
+    void set( const ap240::method& );
+    void get( ap240::method& ) const;
+
+signals:
+    void valueChanged( idItem, int channel, const QVariant& );
+
 private:
     Ui::ap240verticalform *ui;
+    int channel_;
 };
 
 #endif // AP240VERTICALFORM_HPP

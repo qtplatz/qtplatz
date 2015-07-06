@@ -24,15 +24,69 @@
 
 #include "ap240triggerform.hpp"
 #include "ui_ap240triggerform.h"
+#include <ap240/digitizer.hpp>
+#include <QSignalBlocker>
 
 ap240TriggerForm::ap240TriggerForm(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ap240TriggerForm)
 {
     ui->setupUi(this);
+
+    connect( ui->comboBox_2, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
+            if ( index == 0 )
+                emit valueChanged( idTrigPattern, QVariant( 0x80000000 ) );
+            else 
+                emit valueChanged( idTrigPattern, QVariant( index & 03 ) );
+        });
+
+    connect( ui->comboBox_3, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
+            emit valueChanged( idTrigCoupling, QVariant( index  ) );
+        });
+
+    connect( ui->comboBox_4, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
+            emit valueChanged( idTrigSlope, QVariant( index  ) );
+        });    
+
+    connect( ui->doubleSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this](double d){
+            emit valueChanged( idTrigLevel1, QVariant( d ) );
+        });
+
+    connect( ui->doubleSpinBox_2, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this](double d){
+            emit valueChanged( idTrigLevel2, QVariant( d ) );
+        });    
 }
 
 ap240TriggerForm::~ap240TriggerForm()
 {
     delete ui;
+}
+
+void
+ap240TriggerForm::set( const ap240::method& m )
+{
+    const QSignalBlocker blocker( this );
+
+    if ( m.trig_.trigPattern & 0x80000000 )
+        ui->comboBox_2->setCurrentIndex( 0 );
+    else 
+        ui->comboBox_2->setCurrentIndex( m.trig_.trigPattern & 03 );
+
+    ui->comboBox_3->setCurrentIndex( m.trig_.trigClass );
+    ui->comboBox_4->setCurrentIndex( m.trig_.trigSlope );
+    ui->doubleSpinBox->setValue( m.trig_.trigLevel1 );
+    ui->doubleSpinBox_2->setValue( m.trig_.trigLevel2 );
+}
+
+void
+ap240TriggerForm::get( ap240::method& m ) const
+{
+    if ( ui->comboBox_2->currentIndex() == 0 )
+        m.trig_.trigPattern = 0x80000000;
+    else
+        m.trig_.trigPattern = ui->comboBox_2->currentIndex();
+    m.trig_.trigClass = ui->comboBox_3->currentIndex();
+    m.trig_.trigSlope = ui->comboBox_4->currentIndex();
+    m.trig_.trigLevel1 = ui->doubleSpinBox->value();
+    m.trig_.trigLevel2 = ui->doubleSpinBox_2->value();
 }

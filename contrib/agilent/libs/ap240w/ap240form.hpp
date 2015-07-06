@@ -35,6 +35,7 @@ namespace Ui {
 }
 
 namespace adcontrols { class ControlMethod; }
+namespace ap240 { class method; }
 
 class AP240WSHARED_EXPORT ap240form : public QWidget
                                     , public adplugin::LifeCycle {
@@ -44,6 +45,7 @@ class AP240WSHARED_EXPORT ap240form : public QWidget
 public:
     explicit ap240form(QWidget *parent = 0);
     ~ap240form();
+    enum idCategory { idHorizontal, idVertical, idTrigger };
 
     // LifeCycle
     void OnCreate( const adportable::Configuration& ) override;
@@ -54,7 +56,12 @@ public:
     
     void onInitialUpdate();
     void onStatus( int );
-    void load( std::shared_ptr< adcontrols::ControlMethod > );
+    
+    void get( ap240::method& ) const;
+    void set( const ap240::method& );
+
+signals:
+    void valueChanged( idCategory cat, int id, int ch, const QVariant& );
     
 private:
     Ui::ap240form *ui;

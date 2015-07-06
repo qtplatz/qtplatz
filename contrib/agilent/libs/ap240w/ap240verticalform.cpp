@@ -24,15 +24,73 @@
 
 #include "ap240verticalform.hpp"
 #include "ui_ap240verticalform.h"
+#include <ap240/digitizer.hpp>
+#include <QSignalBlocker>
 
-ap240VerticalForm::ap240VerticalForm(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::ap240verticalform)
+ap240VerticalForm::ap240VerticalForm(QWidget *parent) :  QWidget(parent)
+                                                      , ui(new Ui::ap240verticalform)
+                                                      , channel_( 0 )
 {
     ui->setupUi(this);
+
+    connect( ui->doubleSpinBox_2, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this](double d){
+            emit valueChanged( idFullScale, channel_, QVariant(d) );
+        });
+    connect( ui->doubleSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this](double d){
+            emit valueChanged( idOffset, channel_, QVariant(d) );
+        });
+    connect( ui->comboBox_2, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
+            emit valueChanged( idCoupling, channel_, QVariant(index) );
+        });    
+    connect( ui->comboBox, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
+            emit valueChanged( idBandWidth, channel_, QVariant(index) );
+        } );
+    connect( ui->checkBox, &QCheckBox::stateChanged, [this] ( int state ) {
+            emit valueChanged( idInvertData, channel_, QVariant( state == Qt::Checked ) );
+        });    
 }
 
 ap240VerticalForm::~ap240VerticalForm()
 {
     delete ui;
+}
+
+void
+ap240VerticalForm::setChannel( int ch )
+{
+    channel_ = ch;
+    if ( channel_ == ( -1 ) )
+        ui->checkBox->setVisible( false );
+}
+
+int
+ap240VerticalForm::channel() const
+{
+    return channel_;
+}
+
+void
+ap240VerticalForm::set( const ap240::method& m )
+{
+    const QSignalBlocker blocker( this );
+
+    const ap240::method::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
+
+    ui->doubleSpinBox_2->setValue( t.fullScale );
+    ui->doubleSpinBox->setValue( t.offset );
+    ui->comboBox_2->setCurrentIndex( t.coupling );
+    ui->comboBox->setCurrentIndex( t.bandwidth );
+    ui->checkBox->setChecked( t.invertData );
+}
+
+void
+ap240VerticalForm::get( ap240::method& m ) const
+{
+    ap240::method::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
+
+    t.fullScale = ui->doubleSpinBox_2->value();
+    t.offset = ui->doubleSpinBox->value();
+    t.coupling = ui->comboBox_2->currentIndex();
+    t.bandwidth = ui->comboBox->currentIndex();
+    t.invertData = ui->checkBox->isChecked();
 }
