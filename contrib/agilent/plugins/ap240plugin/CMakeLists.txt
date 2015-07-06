@@ -95,6 +95,7 @@ target_link_libraries(
   Core
   ap240
   ap240spectrometer
+  ap240w
   ${ACE+TAO_LIBRARIES}
   ${Boost_LIBRARIES}
   )

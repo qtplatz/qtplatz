@@ -37,12 +37,15 @@ add_library( ap240 SHARED
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
-  ${IVIROOTDIR}/Include
-  ${IVIROOTDIR}/Bin
-  ${VXIPNPPATH}/WinNT/include
-  ${VXIPNPPATH}/WinNT/agvisa/include
-  ${VXIPNPPATH}/VisaCom64
   )
+
+if ( WIN32 )
+  include_directories( "C:/Program Files (x86)/Agilent/Acqiris/include" )
+  link_directories( "C:/Program Files (x86)/Agilent/Acqiris/lib" )
+  add_library( AqDrv4 SHARED IMPORTED )
+  set_target_properties( AqDrv4 PROPERTIES
+    IMPORTED_IMPLIB "C:/Program Files (x86)/Agilent/Acqiris/lib/AqDrv4_x64.lib" )
+endif()
 
 target_link_libraries( ap240 PUBLIC
   adlog

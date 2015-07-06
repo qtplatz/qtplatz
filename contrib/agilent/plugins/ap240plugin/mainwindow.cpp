@@ -28,6 +28,7 @@
 #include "isequenceimpl.hpp"
 #include "ap240_constants.hpp"
 #include "ap240methodwidget.hpp"
+#include <ap240w/ap240form.hpp>
 #include <ap240/digitizer.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
@@ -134,6 +135,10 @@ MainWindow::createDockWidgets()
     // createDockWidget( new QTextEdit(), "Log", "Log" );
     connect( editor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
     createDockWidget( editor_, "Control Method", "ControlMethodWidget" );
+
+    auto widget = new ap240form();
+    createDockWidget( widget, "AP240", "AP240" );
+
 }
 
 void
