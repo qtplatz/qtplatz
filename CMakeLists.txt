@@ -136,7 +136,9 @@ else()
   endif()
 endif()
 
-set(CMAKE_DEBUG_POSTFIX "d")
+if ( WIN32 )
+  set(CMAKE_DEBUG_POSTFIX "d")
+endif()
 
 if ( WIN32 )
   set( CPACK_GENERATOR "WIX" )

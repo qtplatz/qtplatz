@@ -51,6 +51,7 @@
 #include <QMessageBox>
 #include <chrono>
 #include <string>
+#include <fstream>
 
 using namespace ap240;
 
@@ -314,10 +315,14 @@ document::recentFile( const char * group, bool dir_on_fail )
 bool
 document::load( const QString& filename, ap240::method& m )
 {
-    std::wifstream inf( filename.toStdString() );
-    boost::archive::xml_wiarchive ar( inf );
-
-    ar >> boost::serialization::make_nvp( "ap240_method", m );
+    try {
+        std::wifstream inf( filename.toStdString() );
+        boost::archive::xml_wiarchive ar( inf );
+        
+        ar >> boost::serialization::make_nvp( "ap240_method", m );
+    } catch( ... ) {
+        std::cout << "ap240::method load failed" << std::endl;
+    }
     return false;
 }
 
