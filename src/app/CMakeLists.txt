@@ -46,7 +46,7 @@ if ( WIN32 )
     qtplatz.rc
     )
 else()
-  add_executable( qtplatz WIN32
+  add_executable( qtplatz
     ${SOURCES}  
     ${lockedfile_SOURCES}
     ${${PROJECT_NAME}_Resources}

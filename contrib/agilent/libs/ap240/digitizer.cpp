@@ -50,12 +50,17 @@ namespace ap240 {
 
     namespace detail {
 
+        constexpr ViInt32 nbrSegments = 1;
+
         struct device_ap240 {
             static bool initial_setup( task&, method& );
-            static bool setup( task&, const method& );
+            static bool protocol_setup( task&, method& );
             static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
             static bool readData( task&, waveform& );
+        private:
+            static bool averager_setup( task&, const method& );
+            static bool digitizer_setup( task&, const method& );
         };
 
         class task {
@@ -82,13 +87,14 @@ namespace ap240 {
 
             inline const ap240::method& method() const { return method_; }
             inline const identify& ident() const { return *ident_; }
-
-            static std::string error_msg( int status, const char * ident ) {
+            
+            static std::string error_msg( int status, const char * ident, ViSession instId = VI_NULL ) {
                 std::ostringstream o;
-                ViChar errorMessage[ 512 ];
-        
-                if ( Acqrs_errorMessage( VI_NULL, status, errorMessage, sizeof( errorMessage ) ) == VI_SUCCESS ) {
-                    o << errorMessage << " 0x" << std::hex << status << " at " << ident;
+                std::array< ViChar, 1024 > msg;
+                std::fill( msg.begin(), msg.end(), 0 );
+                
+                if ( AcqrsD1_errorMessageEx( instId, status, msg.data(), ViInt32( msg.size() ) ) == VI_SUCCESS ) {
+                    o << msg.data() << " 0x" << std::hex << status << " at " << ident;
                 } else {
                     o << "ERROR: code =0x" << std::hex << status << " at " << ident;
                 }
@@ -98,10 +104,7 @@ namespace ap240 {
             static bool checkError( ViSession instId, ViStatus st, const char * text, ViInt32 arg = 0 ) {
                 if ( st == VI_SUCCESS )
                     return false;
-                std::array< ViChar, 1024 > msg;
-                std::fill( msg.begin(), msg.end(), 0 );
-                AcqrsD1_errorMessageEx( instId, st, msg.data(), ViInt32( msg.size() ) );
-                std::cerr << boost::format( "%s (0x%x): %s" ) % text % int(st) % msg.data();
+                std::cerr << error_msg( st, text, instId );
                 if ( arg )
                     std::cerr << " #" << arg;
                 std::cerr << std::endl;
@@ -109,17 +112,10 @@ namespace ap240 {
             }
 
             inline ViSession inst() const { return inst_; }
-            
 
-            bool nbrWaveforms( size_t nbrWaveforms ) {
-                ViInt32 int32Arg( static_cast<ViInt32>(nbrWaveforms) );
-                ViStatus res = AcqrsD1_configAvgConfig( inst_, 0, "NbrWaveforms", &int32Arg );
-                if ( checkError( inst_, res, "AcqrsD1_configAvgConfig NbrWaveforms ", int32Arg ) )
-                    return false;
-        
-                nbrWaveforms_ = ViInt32( nbrWaveforms );
-        
-                return true;
+            void reply( const std::string& key, const std::string& value ) {
+                for ( auto& handler: reply_handlers_ )
+                    handler( key, value );
             }
 
         private:
@@ -146,7 +142,6 @@ namespace ap240 {
             ViInt32 nStartDelay_;
             ViInt32 nbrWaveforms_;
 
-            std::deque< std::shared_ptr< ap240::SampleProcessor > > queue_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< identify > ident_;
@@ -169,8 +164,9 @@ namespace ap240 {
                     std::cerr << error_msg(st, "Acqiris::getInstrumentData") << std::endl;
                 } else {
                     model_name_ = buf;
-                    std::cout << boost::format( "Model '%1%', S/N:%2%, bus:slot=%3%:%4%" )
-                        % model_name_ % serial_number_ % bus_number_ % slot_number_;
+                    reply( "InstrumentData",
+                           ( boost::format( "Model '%1%', S/N:%2%, bus:slot=%3%:%4%" ) 
+                             % model_name_ % serial_number_ % bus_number_ % slot_number_ ).str() );
                 }
                 return st == VI_SUCCESS;
             }
@@ -201,24 +197,24 @@ digitizer::peripheral_terminate()
     return true;
 }
 
-bool
-digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod& m )
-{
-    using adcontrols::controlmethod::MethodItem;
+// bool
+// digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod& m )
+// {
+//     using adcontrols::controlmethod::MethodItem;
 
-    std::cout << "digitizer::prepare_for_run" << std::endl;
+//     std::cout << "digitizer::prepare_for_run" << std::endl;
     
-    adcontrols::ControlMethod cm( m );
-    cm.sort();
-    auto it = std::find_if( cm.begin(), cm.end(), [] ( const MethodItem& mi ){ return mi.modelname() == "ap240"; } );
-    if ( it != cm.end() ) {
-        ap240::method m;
-        if ( adportable::serializer< ap240::method >::deserialize( m, it->data(), it->size() ) ) {
-            return task::instance()->prepare_for_run( m );
-        }
-    }
-    return false;
-}
+//     adcontrols::ControlMethod cm( m );
+//     cm.sort();
+//     auto it = std::find_if( cm.begin(), cm.end(), [] ( const MethodItem& mi ){ return mi.modelname() == "ap240"; } );
+//     if ( it != cm.end() ) {
+//         ap240::method m;
+//         if ( adportable::serializer< ap240::method >::deserialize( m, it->data(), it->size() ) ) {
+//             return task::instance()->prepare_for_run( m );
+//         }
+//     }
+//     return false;
+// }
 
 bool
 digitizer::peripheral_prepare_for_run( const ap240::method& m )
@@ -282,31 +278,6 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
 
 //////////////
 
-const int32_t *
-waveform::trim( metadata& meta, uint32_t& nSamples ) const
-{
-    meta = meta_;
-
-    size_t offset = 0;
-#if 0
-    if ( method_.digitizer_delay_to_first_sample < method_.delay_to_first_sample_ )
-        offset = size_t( ( ( method_.delay_to_first_sample_ - method_.digitizer_delay_to_first_sample ) / meta.xIncrement ) + 0.5 );
-    
-    nSamples = method_.nbr_of_s_to_acquire_;
-    if ( nSamples + offset > method_.digitizer_nbr_of_s_to_acquire )
-        nSamples = uint32_t( method_.digitizer_nbr_of_s_to_acquire - offset );
-    
-    meta.initialXOffset = method_.delay_to_first_sample_;
-    meta.actualPoints = nSamples;
-
-    return d_.data() + offset;
-#endif
-    return 0;
-}
-
-
-////////////////////
-
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , simulated_( false )
@@ -358,13 +329,6 @@ task::prepare_for_run( const ap240::method& m )
 bool
 task::run()
 {
-    // std::lock_guard< std::mutex > lock( mutex_ );
-	if ( queue_.empty() ) {
-        queue_.push_back( std::make_shared< SampleProcessor >( io_service_ ) );
-        queue_.back()->prepare_storage( 0 );
-    }
-	// status_current_ = ControlServer::ePreparingForRun;
-	// status_being_ = ControlServer::eReadyForRun;
     return true;
 }
 
@@ -395,19 +359,17 @@ task::handle_initial_setup()
     bool success = false;
 
     ViStatus status;
-    ViStatus * pStatus = &status;
-
-    if ( pStatus == 0 )
-        pStatus = &status;
 
     if ( getenv("AcqirisDxDir") == 0 ) {
-        ADTRACE() << L"AcqirisDxDir environment variable not set.";
+        ADTRACE() << "AcqirisDxDir environment variable not set.";
+        reply( "ap240::digitizer::task::handle_initial_setup", "AcqirisDxDir environment variable not set." );
     }
     
 #ifdef _LINUX
     struct stat st;
     if ( stat( "/dev/acqrsPCI", &st ) != 0 ) {
         ADTRACE() << "/dev/acqrsPID does not exists";
+        reply( "ap240::digitizer::task::handle_initial_setup", "/dev/acqrsPID does ot exists" );
         return false;
     }
 #endif
@@ -458,41 +420,44 @@ task::handle_prepare_for_run( const ap240::method m )
 bool
 task::handle_protocol( const ap240::method m )
 {
-    device_ap240::setup( *this, m );
     method_ = m;
+    device_ap240::protocol_setup( *this, method_ );
     return true;
 }
-
 
 bool
 task::handle_acquire()
 {
-    static int counter_;
-
-    ++acquire_post_count_;
-    io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );    // scedule for next acquire
-
     --acquire_post_count_;
     if ( acquire() ) {
         int retry = 3;
         do {
             if ( waitForEndOfAcquisition( 3000 ) ) {
+
                 auto avgr = std::make_shared< waveform >( ident_ );
                 if ( readData( *avgr ) ) {
-                    ap240::method m;
                     for ( auto& reply: waveform_handlers_ ) {
+                        ap240::method m;
                         if ( reply( avgr.get(), m ) )
                             handle_protocol( m );
                     }
                 }
+
+                ++acquire_post_count_;
+                io_service_.post( strand_.wrap( [=] { handle_acquire(); } ) );    // scedule for next acquire
+
                 return true;            
+
             } else {
-                ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
+                reply( "acquire", "timed out" );
             }
         } while ( retry-- );
-
+        reply( "acquire", "timed out, stop acquisition" );
         AcqrsD1_stopAcquisition( inst_ );
     }
+
+    ++acquire_post_count_;
+    io_service_.post( strand_.wrap( [=] { handle_acquire(); } ) );    // scedule for next acquire    
     return false;
 }
 
@@ -583,10 +548,21 @@ device_ap240::initial_setup( task& task, method& m )
     ViStatus * pStatus = &status;
 
     auto inst_ = task.inst();
-    
+
+    if ( m.hor_.mode == 0 ) {
+        m.hor_.nbrSamples = uint32_t( m.hor_.width / m.hor_.sampInterval + 0.5 );
+        m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval ); // nominal -- not in use
+    } else {
+        m.hor_.nbrSamples = uint32_t( m.hor_.width / m.hor_.sampInterval + 0.5 ) + 32 & ~0x1f; // fold of 32, can't be zero
+        m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval + 0.5 ) & ~0x1f; // fold of 32, can be zero
+    }
+
+    std::cout << " delay: " << m.hor_.nStartDelay << ", width: " << m.hor_.nbrSamples << std::endl;
+
     // trigger setup
     status = AcqrsD1_configTrigClass( inst_, m.trig_.trigClass, m.trig_.trigPattern, 0, 0, 0, 0 );
     task::checkError( inst_, status, "AcqrsD1_configTrigClass", __LINE__  );
+    
     ViInt32 trigChannel = m.trig_.trigPattern & 0x80000000 ? (-1) : m.trig_.trigPattern & 0x3;
     
     status = AcqrsD1_configTrigSource( inst_
@@ -599,6 +575,7 @@ device_ap240::initial_setup( task& task, method& m )
 
     typedef std::pair< ViInt32, const method::vertical_method& > channel_method;
 
+    // vertical setup
     for ( auto& ch: { channel_method( -1, m.ext_ ), channel_method( 1, m.ch1_ ), channel_method( 2, m.ch2_ ) } ) {
         
         status = AcqrsD1_configVertical( inst_
@@ -610,143 +587,154 @@ device_ap240::initial_setup( task& task, method& m )
         task::checkError( inst_, status, "configVertical", __LINE__ );
     }
 
-    status = AcqrsD1_configMode( inst_, m.hor_.mode, 0, m.hor_.flags ); // 2 := averaging mode, 0 := normal data acq.    
-    task::checkError( inst_, status, "AcqrsD1_configMode", __LINE__  );
+    // channels configuration
+    if ( m.channels_ == 03 ) { // 2ch simultaneous acquisition
 
-    status = AcqrsD1_configMultiInput( inst_, 1, 0 ); // channel 1 --> A
-    task::checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
-    
-    status = AcqrsD1_configMultiInput( inst_, 2, 1 ); // channel 2 --> B
-    task::checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
+        if ( m.hor_.sampInterval < 0.51e-9 )
+            m.hor_.sampInterval = 1.0e-9;
 
-    if ( m.channels_ == 3 ) { // 2ch simultaneous acquisition
         status = AcqrsD1_configChannelCombination( inst_, 1, m.channels_ ); // all channels use 1 converter each
         task::checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  );
+
     } else {
+
         status = AcqrsD1_configChannelCombination( inst_, 2, m.channels_ ); // half of the channels use 2 converters each
         task::checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  );
-    }
-    
-    // status = AcqrsD1_configChannelCombination( inst_, 2, 1 );
-    
-    if ( m.hor_.mode == 0 ) {
-        // digitizer mode
 
-        ViInt32 nbrSamples( ViInt32( m.hor_.width / m.hor_.sampInterval + 0.5 ) + 32 & 0x1f );        
-
-        status = AcqrsD1_configHorizontal( inst_, m.hor_.sampInterval, m.hor_.delay );
-        task::checkError( inst_, status, "AcqrsD1_configHorizontal", __LINE__  );
-
-        status = AcqrsD1_configMemory( inst_, nbrSamples, 1 );
-        task::checkError( inst_, status, "configMemory", __LINE__ );
-
-    } else {
-        // averager mode
-        m.hor_.nbrSamples = uint32_t( m.hor_.width / m.hor_.sampInterval + 0.5 ) + 32 & 0x1f; // fold of 32, can't be zero
-        m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval + 0.5 ) & 0x1f; // fold of 32, can be zero
-        
-        ViInt32 int32Arg = ViInt32( m.hor_.nbrSamples );
-        status = AcqrsD1_configAvgConfig( inst_, 0, "NbrSamples", &int32Arg );
-        task::checkError( inst_, status, "AcqirisD1_configAvgConfig, NbrSamples", __LINE__ );
-
-        int32Arg = ViInt32( m.hor_.nStartDelay );
-        status = AcqrsD1_configAvgConfig( inst_, 0, "StartDelay", &int32Arg );
-        task::checkError( inst_, status, "AcqrsD1_configAvgConfig StartDelay ", __LINE__ );
-
-        int32Arg = 0;
-        status = AcqrsD1_configAvgConfig( inst_, 0, "StopDelay", &int32Arg );
-        task::checkError( inst_, status, "AcqrsD1_configAvgConfig (StopDelay)", __LINE__  );
-
-        int32Arg = m.hor_.nbrAvgWaveforms;
-        status = AcqrsD1_configAvgConfig( inst_, 0, "NbrWaveforms", &int32Arg );
-        task::checkError( inst_, status, "AcqrsD1_configAvgConfig NbrWaveforms ", __LINE__ );
-        
-        int32Arg = 0;
-        status = AcqrsD1_configAvgConfig( inst_, 0, "TrigAlways", &int32Arg );
-        task::checkError( inst_, status, "AcqrsD1_configAvgConfig (TrigAlways)", __LINE__  );
-        
-        int32Arg = 0;
-        status = AcqrsD1_configAvgConfig( inst_, 0, "TrigResync", &int32Arg );
-        task::checkError( inst_, status, "AcqrsD1_configAvgConfig (TrigResync)", __LINE__  );
-        
-        int32Arg = 0;
-        status = AcqrsD1_configAvgConfig( inst_, 0, "ThresholdEnable", &int32Arg );
-        task::checkError( inst_, status, "AcqrsD1_configAvgConfig (ThresholdEnable)", __LINE__  );
-        
-        int32Arg = 0;
-        status = AcqrsD1_configAvgConfig( inst_, 0, "TriggerTimeout", &int32Arg );
-        task::checkError( inst_, status, "AcqrsD1_configAvgConfig (TriggerTimeut)", __LINE__  );
-        
-        //-----------------------
-        do {
-            int32Arg = 1;
-            status = AcqrsD1_configAvgConfig( inst_, 0, "TimestampClock", &int32Arg);
-            task::checkError( inst_, status, "AcqrsD1_configAvgConfig (TimestampClock)", __LINE__  );
-        } while (0);
-        
-        do {
-            int32Arg = 1;  // Always on first trigger
-            status = AcqrsD1_configAvgConfig( inst_, 0, "MarkerLatchMode", &int32Arg); 
-            task::checkError( inst_, status, "AcqrsD1_configAvgConfig (MarkerLatchMode)", __LINE__  );
-        } while (0);
-        
-        do {
-            int32Arg = 1; // invert data for mass spectrum;
-            status = AcqrsD1_configAvgConfig( inst_, 0, "InvertData", &int32Arg); 
-            task::checkError( inst_, status, "AcqrsD1_configAvgConfig (InvertData)", __LINE__  );
-        } while (0);
     }
 
-#if 0
-    // config "IO A" -- it seems not working for input level
-    status = AcqrsD1_configControlIO( inst_, 1, 1, 0, 0 );
-    if ( task::checkError( inst_, status, "AcqrsD1_configControlIO(A)" ) )
-         return false;
-#endif
-    // config "IO B" for Acquisition is active (21)
-    status = AcqrsD1_configControlIO( inst_, 2, 21, 0, 0 );
-    if ( task::checkError( inst_, status, "AcqrsD1_configControlIO(B)", __LINE__  ) )
-        return false;
+    if ( m.channels_ & 01 ) {
+        status = AcqrsD1_configMultiInput( inst_, 1, 0 ); // channel 1 --> A
+        task::checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
+    }
+    if ( m.channels_ & 02 ) {
+        status = AcqrsD1_configMultiInput( inst_, 2, 1 ); // channel 2 --> B
+        task::checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
+    }
+    
+    if ( m.hor_.mode == 0 )
+        return digitizer_setup( task, m );
+    else if ( m.hor_.mode == 2 )
+        return averager_setup( task, m );
+}
 
-    // Configure the front panel trigger out (TR.)
-    // The appropriate offset is 1,610 mV.
-    status = AcqrsD1_configControlIO( inst_, 9, 1610 / 2, 0, 0 );
-    if ( task::checkError( inst_, status, "AcqrsD1_configControlIO (2)", __LINE__  ) )
-        return false;
+bool
+device_ap240::digitizer_setup( task& task, const method& m )
+{
+    assert( m.hor_.mode == 0 );
+    
+    auto inst = task.inst();
+    
+    std::cerr << boost::format("AcqrsD1_configMode( %1%, mode=%2%, flags=%3% )") % inst % m.hor_.mode % m.hor_.flags << std::endl;
+    ViStatus status = AcqrsD1_configMode( inst, m.hor_.mode, 0, m.hor_.flags ); // 2 := averaging mode, 0 := normal data acq.
+    task::checkError( inst, status, "AcqrsD1_configMode", __LINE__  );
 
-    ViInt32 int32Arg;
-	
-    // "P2Control" set to average(out) --> disable for debug
-    int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "P1Control", &int32Arg );
-    task::checkError( inst_, status, "AcqrsD1_configAvgConfig (P1Control)", __LINE__  );
+    status = AcqrsD1_configHorizontal( inst, m.hor_.sampInterval, m.hor_.delay );
+    task::checkError( inst, status, "AcqrsD1_configHorizontal", __LINE__  );
 
-    // "P2Control" to disable
-	int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "P2Control", &int32Arg );
-    task::checkError( inst_, status, "AcqrsD1_configAvgConfig (P2Control)", __LINE__  );
-
-    int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "DitherRange", &int32Arg );
-    task::checkError( inst_, status, "AcqrsD1_configAvgConfig (DitherRange)", __LINE__  );
-	
-    int32Arg = 1;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "NbrSegments", &int32Arg );
-    task::checkError( inst_, status, "AcqrsD1_configAvgConfig (NbrSegments)", __LINE__  );
+    std::cerr << boost::format("AcqrsD1_configMemory( %1%, nbrSamples=%2% )") % inst % m.hor_.nbrSamples << std::endl;
+    status = AcqrsD1_configMemory( inst, m.hor_.nbrSamples, nbrSegments );
+    task::checkError( inst, status, "configMemory", __LINE__ );
 
     return true;
 }
 
 bool
-device_ap240::setup( task& task, const method& m )
+device_ap240::averager_setup( task& task, const method& m )
 {
-    return true; //device_ap240::initial_setup( task, m );
+    // averager mode
+    assert( m.hor_.mode == 2 );
+    
+    auto inst = task.inst();
+        
+    ViInt32 int32Arg = ViInt32( m.hor_.nbrSamples );
+    
+    ViStatus status = AcqrsD1_configAvgConfig( inst, 0, "NbrSamples", &int32Arg );
+    task::checkError( inst, status, "AcqirisD1_configAvgConfig, NbrSamples", __LINE__ );
+
+    int32Arg = ViInt32( m.hor_.nStartDelay );
+    status = AcqrsD1_configAvgConfig( inst, 0, "StartDelay", &int32Arg );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig StartDelay ", __LINE__ );
+
+    int32Arg = 0;
+    status = AcqrsD1_configAvgConfig( inst, 0, "StopDelay", &int32Arg );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (StopDelay)", __LINE__  );
+
+    int32Arg = m.hor_.nbrAvgWaveforms;
+    status = AcqrsD1_configAvgConfig( inst, 0, "NbrWaveforms", &int32Arg );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig NbrWaveforms ", __LINE__ );
+        
+    int32Arg = 0;
+    for ( auto& cmd: { "TrigAlways", "TrigResync", "ThresholdEnable", "TriggerTimeout" } ) {
+        status = AcqrsD1_configAvgConfig( inst, 0, cmd, &int32Arg );
+        task::checkError( inst, status, cmd, __LINE__  );
+    }
+        
+    //-----------------------
+    int32Arg = 1;
+    for ( auto& cmd: { "TimestampClock", "MarkerLatchMode" } ) {
+        status = AcqrsD1_configAvgConfig( inst, 0, cmd, &int32Arg);
+        task::checkError( inst, status, cmd, __LINE__  );
+    }
+        
+    do {
+        int32Arg = m.ch1_.invertData ? 1 : 0; // invert data for mass spectrum;
+        status = AcqrsD1_configAvgConfig( inst, 0, "InvertData", &int32Arg); 
+        task::checkError( inst, status, "AcqrsD1_configAvgConfig (InvertData)", __LINE__  );
+    } while (0);
+
+
+#if 0
+    // config "IO A" -- it seems not working for input level
+    status = AcqrsD1_configControlIO( inst, 1, 1, 0, 0 );
+    if ( task::checkError( inst, status, "AcqrsD1_configControlIO(A)" ) )
+        return false;
+#endif
+    // config "IO B" for Acquisition is active (21)
+    status = AcqrsD1_configControlIO( inst, 2, 21, 0, 0 );
+    if ( task::checkError( inst, status, "AcqrsD1_configControlIO(B)", __LINE__  ) )
+        return false;
+
+    // Configure the front panel trigger out (TR.)
+    // The appropriate offset is 1,610 mV.
+    status = AcqrsD1_configControlIO( inst, 9, 1610 / 2, 0, 0 );
+    if ( task::checkError( inst, status, "AcqrsD1_configControlIO (2)", __LINE__  ) )
+        return false;
+
+    // "P2Control" set to average(out) --> disable for debug
+    int32Arg = 0;
+    status = AcqrsD1_configAvgConfig( inst, 0, "P1Control", &int32Arg );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (P1Control)", __LINE__  );
+
+    // "P2Control" to disable
+    int32Arg = 0;
+    status = AcqrsD1_configAvgConfig( inst, 0, "P2Control", &int32Arg );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (P2Control)", __LINE__  );
+
+    int32Arg = 0;
+    status = AcqrsD1_configAvgConfig( inst, 0, "DitherRange", &int32Arg );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (DitherRange)", __LINE__  );
+	
+    int32Arg = nbrSegments;
+    status = AcqrsD1_configAvgConfig( inst, 0, "NbrSegments", &int32Arg );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (NbrSegments)", __LINE__  );
+
+    return true;
+}
+
+bool
+device_ap240::protocol_setup( task& task, method& m )
+{
+    return device_ap240::initial_setup( task, m );
 }
 
 bool
 device_ap240::acquire( task& task )
 {
-    return AcqrsD1_acquire( task.inst() ) == VI_SUCCESS;
+    auto rcode = AcqrsD1_acquire( task.inst() );
+    if ( rcode != VI_SUCCESS )
+        task::checkError( task.inst(), rcode, "device_ap240::acquire", __LINE__ );
+    return rcode == VI_SUCCESS;
 }
 
 bool

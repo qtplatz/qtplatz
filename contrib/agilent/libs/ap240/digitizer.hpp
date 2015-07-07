@@ -73,7 +73,7 @@ namespace ap240 {
                              , trigPattern( 0x80000000 ) // Ext 1
                              , trigCoupling( 0 ) // DC
                              , trigSlope( 0 ) // positive
-                             , trigLevel1( 1400.0 ) // mV for Ext, %FS for CHn
+                             , trigLevel1( 1000.0 ) // mV for Ext, %FS for CHn
                              , trigLevel2( 0.0 )    // only if window for trigSlope (3)
                 {}
         private:
@@ -103,7 +103,7 @@ namespace ap240 {
                                 , delay( 0.0e-6 )
                                 , width( 10.0e-6 )
                                 , mode( 0 )
-                                , flags( 1 )
+                                , flags( 0 )
                                 , nbrAvgWaveforms( 1 )
                                 , nStartDelay( 0 )
                                 , nbrSamples( 0 ) // filled when apply to device
@@ -123,6 +123,7 @@ namespace ap240 {
                 ar & BOOST_SERIALIZATION_NVP( nbrSamples );
             }
         };        
+
         struct vertical_method {
             double fullScale;
             double offset;
@@ -181,14 +182,15 @@ namespace ap240 {
     class /* AP240SHARED_EXPORT */ metadata {
     public:
         metadata() : initialXTimeSeconds( 0 )
-			, actualPoints( 0 )
-            , flags( 0 )
-            , actualAverages( 0 )
-            , actualRecords( 0 )
-            , initialXOffset( 0 )
-            , scaleFactor( 0 )
-            , scaleOffset(0) {
-        }
+                   , actualPoints( 0 )
+                   , flags( 0 )
+                   , actualAverages( 0 )
+                   , actualRecords( 0 )
+                   , initialXOffset( 0 )
+                   , scaleFactor( 0 )
+                   , scaleOffset(0)
+                   , horPos(0)
+            { }
         double initialXTimeSeconds; 
         int64_t actualPoints;
         int32_t flags;
@@ -198,6 +200,7 @@ namespace ap240 {
         double xIncrement;
         double scaleFactor;
         double scaleOffset;
+        double horPos;
     private:
         friend class boost::serialization::access;
         template<class Archive>
@@ -217,6 +220,7 @@ namespace ap240 {
             ar & BOOST_SERIALIZATION_NVP( xIncrement );
             ar & BOOST_SERIALIZATION_NVP( scaleFactor );
             ar & BOOST_SERIALIZATION_NVP( scaleOffset );
+            ar & BOOST_SERIALIZATION_NVP( horPos );            
         }
     };
     
@@ -226,8 +230,6 @@ namespace ap240 {
 	public:
         waveform( std::shared_ptr< identify >& id ) : ident_( id ), wellKnownEvents_( 0 ), serialnumber_( 0 ) {
         }
-        
-        const int32_t * trim( metadata&, uint32_t& ) const;
         
         method method_;
         metadata meta_;
@@ -260,7 +262,6 @@ namespace ap240 {
         ~digitizer();
 
         bool peripheral_initialize();
-        bool peripheral_prepare_for_run( const adcontrols::ControlMethod& );
         bool peripheral_prepare_for_run( const ap240::method& );
         bool peripheral_run();
         bool peripheral_stop();
@@ -277,10 +278,10 @@ namespace ap240 {
         void connect_waveform( waveform_reply_type );
         void disconnect_waveform( waveform_reply_type );
         //-------
-        bool findDevice();
-        bool initial_setup();
-        bool acquire();
-        bool stop();
+        // bool findDevice();
+        // bool initial_setup();
+        // bool acquire();
+        // bool stop();
         enum result_code { success, error_timeout, error_overload, error_io_read, error_stopped };
         result_code waitForEndOfAcquisition( size_t timeout );
     };

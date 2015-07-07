@@ -64,8 +64,8 @@ ap240HorizontalForm::set( const ap240::method& m )
 {
     const QSignalBlocker blocker( this );
     
-    ui->doubleSpinBox->setValue( m.hor_.delay );
-    ui->doubleSpinBox_2->setValue( m.hor_.width );
+    ui->doubleSpinBox->setValue( m.hor_.delay * 1.0e6 );   // us in ui
+    ui->doubleSpinBox_2->setValue( m.hor_.width * 1.0e6 ); // us in ui
 
     if ( m.hor_.sampInterval < 0.51e-9 )
         ui->comboBox->setCurrentIndex( 0 );
@@ -81,8 +81,8 @@ ap240HorizontalForm::set( const ap240::method& m )
 void
 ap240HorizontalForm::get( ap240::method& m ) const
 {
-    m.hor_.delay = ui->doubleSpinBox->value();
-    m.hor_.width = ui->doubleSpinBox_2->value();
+    m.hor_.delay = ui->doubleSpinBox->value() * 1.0e-6; // us -> s
+    m.hor_.width = ui->doubleSpinBox_2->value() * 1.0e-6; // us -> s
     switch ( ui->comboBox->currentIndex() ) {
     case 0: 
         m.hor_.sampInterval = 0.5e-9;

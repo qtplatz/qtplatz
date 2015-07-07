@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 
 project( ap240 )
 
-find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem wserialization serialization)
+find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem wserialization serialization program_options)
 
 add_definitions(-DAP240_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
 
@@ -17,16 +17,12 @@ endif()
 
 set( ap240_SOURCES
   digitizer.cpp
-  simulator.cpp
-  sampleprocessor.cpp
   )
 
 set( ap240_HEADERS
   ap240_global.hpp
   digitizer.hpp
   safearray.hpp
-  simulator.hpp
-  sampleprocessor.hpp
   )
 
 add_library( ap240 SHARED
@@ -57,3 +53,12 @@ target_link_libraries( ap240 PUBLIC
   ${Boost_LIBRARIES}
   ${platform_libs}
   )
+
+add_executable( test_digitizer main.cpp )
+
+target_link_libraries( test_digitizer LINK_PUBLIC
+  ap240
+  ${Boost_LIBRARIES}
+  ${platform_libs}
+)  
+  

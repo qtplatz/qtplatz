@@ -23,8 +23,7 @@
 **************************************************************************/
 
 #include "sampleprocessor.hpp"
-//#include "logging.hpp"
-//#include <adinterface/signalobserverC.h>
+
 #include <adinterface/signalobserver.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
@@ -39,7 +38,6 @@
 #include <adfs/folder.hpp>
 #include <boost/date_time.hpp>
 #include <boost/format.hpp>
-//#include <regex>
 
 using namespace ap240;
 
