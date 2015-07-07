@@ -40,9 +40,18 @@ main(int argc, char* argv[])
         po::options_description desc("options");
         desc.add_options()
             ( "help,h", "print help message" )
-            ( "delay", po::value<double>()->default_value(0.0), "start delay in microseconds" )
-            ( "width", po::value<double>()->default_value(10.0), "duration (width) in microseconds" )
-            ( "mode", po::value<int>()->default_value(0), "config mode (0 = digitizer, 2 = averager)" )
+            ( "delay",    po::value<double>()->default_value(0.0),  "start delay in microseconds" )
+            ( "width",    po::value<double>()->default_value(10.0), "duration (width) in microseconds" )
+            ( "mode",     po::value<int>()->default_value(0),       "config mode (0 = digitizer, 2 = averager)" )
+            ( "channels", po::value<int>()->default_value(1),       "channels (1, 2 or 3 (both))" )
+            ( "ch1.fs",     po::value<double>()->default_value(5.0),     "ch1 full scale (V)" )
+            ( "ch1.offset", po::value<double>()->default_value(0.0),     "ch1 offset (V)" )
+            ( "ch2.fs",     po::value<double>()->default_value(5.0),     "ch2 full scale (V)" )
+            ( "ch2.offset", po::value<double>()->default_value(0.0),     "ch2 offset (V)" )
+            ( "ext.fs",     po::value<double>()->default_value(5.0),     "ch2 full scale (V)" )
+            ( "ext.offset", po::value<double>()->default_value(0.0),     "ch2 offset (V)" )
+            ( "trig.slope", po::value<int>()->default_value(0),          "trigger slope (0 = positive, 1 = negative" )
+            ( "trig.level", po::value<double>()->default_value(1000.0),  "trigger level(mV)" )            
             ;
 
         po::store( po::command_line_parser( argc, argv ).options( desc ).run(), vm );
@@ -56,6 +65,15 @@ main(int argc, char* argv[])
         m.hor_.delay = vm["delay"].as<double>() * 1.0e-6;
         m.hor_.width = vm["width"].as<double>() * 1.0e-6;
         m.hor_.mode = vm["mode"].as<int>();
+        m.channels_ = vm["channels"].as<int>() & 03;
+        m.ch1_.fullScale = vm[ "ch1.fs" ].as<double>();
+        m.ch1_.offset    = vm[ "ch1.offset" ].as<double>();
+        m.ch2_.fullScale = vm[ "ch2.fs" ].as<double>();
+        m.ch2_.offset    = vm[ "ch2.offset" ].as<double>();
+        m.ext_.fullScale = vm[ "ext.fs" ].as<double>();
+        m.ext_.offset    = vm[ "ext.offset" ].as<double>();
+        m.trig_.trigSlope = vm[ "trig.slope" ].as<int>();
+        m.trig_.trigLevel1 = vm[ "trig.level" ].as<double>(); // mV | %fs
 
         ap240::digitizer aqrs;
 
@@ -65,15 +83,20 @@ main(int argc, char* argv[])
 
         aqrs.connect_waveform( []( const ap240::waveform * wform, ap240::method& proto ){
                 auto self( wform->shared_from_this() );
-                std::cout << "wform: " << wform->serialnumber_ << " size: " << wform->size() << "/" << wform->d_.size();
-                std::cout << "\thorPos: " << wform->meta_.horPos
+                std::cout << "ch" << wform->meta_.channel << " " << wform->serialnumber_ << " size: " << wform->size()
+                          << "\thorPos: " << wform->meta_.horPos
                           << "\tindexFirst: " << wform->meta_.indexFirstPoint
-                          << "\ttime: " << wform->meta_.initialXTimeSeconds
-                          << std::endl;
-                auto p = wform->begin<int8_t>();
-                for ( int i = 0; i < 10; ++i )
-                    std::cout << int(*p++) << ", ";
-                std::cout << std::endl;
+                          << "\ttime: " << wform->meta_.initialXTimeSeconds * 1000
+                          << "\t";
+                // auto p = wform->begin<int8_t>();
+                // for ( int i = 0; i < 10; ++i )
+                //     std::cout << int(*p++) << ", ";
+                
+                for ( int i = 0; i < 5; ++i ) {
+                    auto pair = (*wform)[i];
+                    std::cout << "{" << ( pair.first * 1.0e6 ) << "," << pair.second << "}, ";
+                }
+                std::cout << std::endl;                
                 return false;
             });
 
