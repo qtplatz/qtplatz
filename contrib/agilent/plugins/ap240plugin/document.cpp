@@ -34,9 +34,11 @@
 #include <adinterface/controlserver.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
+#include <adportable/asio/thread.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/serializer.hpp>
+#include <adportable/semaphore.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
@@ -50,8 +52,9 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <chrono>
-#include <string>
 #include <fstream>
+#include <string>
+#include <thread>
 
 using namespace ap240;
 
@@ -67,9 +70,51 @@ namespace ap240 {
         }
     };
 
+    class document::impl {
+    public:
+        impl() : worker_stop_( false ) {
+        }
+        
+        ~impl() {
+            stop();
+        }
+        
+        adportable::semaphore sema_;
+        bool worker_stop_;
+        std::chrono::steady_clock::time_point time_handled_;
+        std::vector< std::thread > threads_;
+
+        void run() {
+            if ( threads_.empty() )
+                threads_.push_back( adportable::asio::thread( [this]{ worker(); } ) );
+        }
+        
+        void stop() {
+            worker_stop_ = true;
+            sema_.signal();
+            for ( auto& t: threads_ )
+                t.join();
+        }
+        
+        void worker() {
+            while( true ) {
+                sema_.wait();
+                if ( worker_stop_ )
+                    return;
+                auto tp = std::chrono::steady_clock::now();
+                if ( std::chrono::duration_cast::milliseconds>( tp - time_handled_ ).count() > 100 ) {
+                    time_handled_ = tp;
+                    emit document::instance()->on_waveform_received();
+                }
+                
+            }
+        }
+    };
+
 }
     
-document::document() : digitizer_( new ap240::digitizer )
+document::document() : impl_( new impl() )
+                     , digitizer_( new ap240::digitizer )
                      , device_status_( 0 )
                      , method_( std::make_shared< ap240::method >() )
                      , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
@@ -80,6 +125,7 @@ document::document() : digitizer_( new ap240::digitizer )
 
 document::~document()
 {
+    delete impl_;
     delete digitizer_;
 }
 
@@ -100,6 +146,7 @@ document::ap240_connect()
     digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
     digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2 ) );
     digitizer_->peripheral_initialize();
+    impl_->run();
 }
 
 void
@@ -149,12 +196,13 @@ document::reply_handler( const std::string& method, const std::string& reply )
 bool
 document::waveform_handler( const waveform * p, ap240::method& )
 {
-    auto ptr = p->shared_from_this();
+    auto ptr( p->shared_from_this() );
     std::lock_guard< std::mutex > lock( mutex_ );
-    while ( que_.size() >= 32 )
+    while ( que_.size() >= 256 )
         que_.pop_front();
 	que_.push_back( ptr );
-    emit on_waveform_received();
+    // emit on_waveform_received();
+    impl_->sema_.post();
     return false;
 }
 

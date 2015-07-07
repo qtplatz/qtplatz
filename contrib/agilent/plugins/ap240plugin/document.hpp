@@ -73,9 +73,11 @@ namespace ap240 {
         static bool save( const QString& filename, const ap240::method& );
         
     private:
+        class impl;
+        impl * impl_;
+        
         static std::mutex mutex_;
         static document * instance_;
-
         ap240::digitizer * digitizer_;
         std::deque< std::shared_ptr< const waveform > > que_;
         
