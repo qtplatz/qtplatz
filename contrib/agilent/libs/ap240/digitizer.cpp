@@ -51,17 +51,7 @@ namespace ap240 {
     namespace detail {
 
         constexpr ViInt32 nbrSegments = 1;
-
-        struct device_ap240 {
-            static bool initial_setup( task&, method& );
-            static bool protocol_setup( task&, method& );
-            static bool acquire( task& );
-            static bool waitForEndOfAcquisition( task&, int timeout );
-            static bool readData( task&, waveform& );
-        private:
-            static bool averager_setup( task&, const method& );
-            static bool digitizer_setup( task&, const method& );
-        };
+        enum { pin_A = 1, pin_B = 2, pin_C = 3, pin_TR = 9 };
 
         class task {
             task();
@@ -171,6 +161,48 @@ namespace ap240 {
                 return st == VI_SUCCESS;
             }
     
+        };
+
+        struct device_ap240 {
+            static bool initial_setup( task&, method& );
+            static bool protocol_setup( task&, method& );
+            static bool acquire( task& );
+            static bool waitForEndOfAcquisition( task&, int timeout );
+            static bool readData( task&, waveform&, const method& );
+        private:
+            static bool averager_setup( task&, const method& );
+            static bool digitizer_setup( task&, const method& );
+
+            template<typename T, typename SegmentDescriptor> static bool
+            readData( ViSession inst, const method& m, int channel
+                      , AqDataDescriptor& dataDesc, SegmentDescriptor& segDesc, waveform& d ) {
+
+                memset(&dataDesc, 0, sizeof(dataDesc));
+                memset(&segDesc, 0, sizeof(segDesc));
+
+                AqReadParameters readPar;
+                readPar.dataType = sizeof(T) == 1 ? ReadInt8 : sizeof(T) == 2 ? ReadInt16 : ReadInt32;
+                readPar.readMode = m.hor_.mode == 0 ? ReadModeStdW : ReadModeAvgW;
+                readPar.firstSegment = 0;
+                readPar.nbrSegments = 1;
+                readPar.firstSampleInSeg = 0;
+                readPar.nbrSamplesInSeg = m.hor_.nbrSamples;
+                readPar.segmentOffset = 0;
+                readPar.dataArraySize = ( (m.hor_.nbrSamples + 32) * sizeof(T) + sizeof(int32_t) ) & ~3;
+                readPar.segDescArraySize = sizeof(AqSegmentDescriptor);
+                readPar.flags = 0;
+                readPar.reserved = 0;
+                readPar.reserved2 = 0;
+                readPar.reserved3 = 0;
+                d.d_.resize( readPar.dataArraySize / sizeof(int32_t) );
+                ViStatus rcode;
+                if ( ( rcode = AcqrsD1_readData( inst, channel, &readPar, d.d_.data(), &dataDesc, &segDesc ) ) == VI_SUCCESS ) {
+                    d.method_ = m;                    
+                    return true;
+                }
+                task::checkError( inst, rcode, "readData", __LINE__ );
+                return false;
+            }
         };
 
     }
@@ -477,7 +509,7 @@ bool
 task::readData( waveform& data )
 {
     data.serialnumber_ = data_serialnumber_++;
-    return device_ap240::readData( *this, data );
+    return device_ap240::readData( *this, data, method_ );
 }
 
 void
@@ -557,8 +589,6 @@ device_ap240::initial_setup( task& task, method& m )
         m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval + 0.5 ) & ~0x1f; // fold of 32, can be zero
     }
 
-    std::cout << " delay: " << m.hor_.nStartDelay << ", width: " << m.hor_.nbrSamples << std::endl;
-
     // trigger setup
     status = AcqrsD1_configTrigClass( inst_, m.trig_.trigClass, m.trig_.trigPattern, 0, 0, 0, 0 );
     task::checkError( inst_, status, "AcqrsD1_configTrigClass", __LINE__  );
@@ -624,8 +654,50 @@ device_ap240::digitizer_setup( task& task, const method& m )
     assert( m.hor_.mode == 0 );
     
     auto inst = task.inst();
+
+    do {
+        auto inst_ = task.inst();
+        ViStatus status = AcqrsD1_configMultiInput( inst_, 1, 0 );
+        task::checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
+
+        status = AcqrsD1_configChannelCombination( inst_, 2, 1 );
+        task::checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  );
     
-    std::cerr << boost::format("AcqrsD1_configMode( %1%, mode=%2%, flags=%3% )") % inst % m.hor_.mode % m.hor_.flags << std::endl;
+        //status = AcqrsD1_configHorizontal( inst_, 0.5e-9, 0 );
+        status = AcqrsD1_configHorizontal( inst_, 1.0e-8, 0 );
+        task::checkError( inst_, status, "AcqrsD1_configHorizontal", __LINE__  );
+
+        status = AcqrsD1_configMemory(inst_, m.hor_.nbrSamples, nbrSegments);
+        task::checkError( inst_, status, "configMemory", __LINE__ );
+    
+        status = AcqrsD1_configMode( inst_, 0, 0, 0 ); // 2 := averaging mode, 0 := normal data acq.
+        task::checkError( inst_, status, "AcqrsD1_configMode", __LINE__  );
+
+        status = AcqrsD1_configVertical( inst_, 1, 1.0, 0.0, 3, 2 );
+        task::checkError( inst_, status, "configVertical", __LINE__ );
+
+        // External trig. input
+        status = AcqrsD1_configVertical( inst_, -1, 5.0, 0.0, 3 /*DC 50ohm*/, 2 /* no bw */);
+        task::checkError( inst_, status, "configVertical (2)", __LINE__ );
+
+        status = AcqrsD1_configTrigClass( inst_, 0, 0x80000000, 0, 0, 0, 0 );
+        task::checkError( inst_, status, "AcqrsD1_configTrigClass", __LINE__  );
+	
+        status = AcqrsD1_configTrigSource( inst_, -1, 0, 0, 1000, 0 );
+        task::checkError( inst_, status, "AcqrsD1_configTrigSource", __LINE__  );
+	
+        // "IO B" for Acquisition is active
+        status = AcqrsD1_configControlIO( inst_, pin_B, 21, 0, 0 );
+        task::checkError( inst_, status, "AcqrsD1_configControlIO(B)", __LINE__  );
+
+        // config trigger out
+        status = AcqrsD1_configControlIO( inst_, pin_TR, 1610 / 2, 0, 0 );
+        task::checkError( inst_, status, "AcqrsD1_configControlIO(TR)", __LINE__  );
+
+        return true;
+        
+    } while(0);
+    
     ViStatus status = AcqrsD1_configMode( inst, m.hor_.mode, 0, m.hor_.flags ); // 2 := averaging mode, 0 := normal data acq.
     task::checkError( inst, status, "AcqrsD1_configMode", __LINE__  );
 
@@ -749,85 +821,114 @@ device_ap240::waitForEndOfAcquisition( task& task, int timeout )
 }
 
 bool
-device_ap240::readData( task& task, waveform& data )
+device_ap240::readData( task& task, waveform& data, const method& m )
 {
-    data.method_ = task.method();
-    AqReadParameters readPar;
+    data.method_ = m;
+
     AqDataDescriptor dataDesc;
-    AqSegmentDescriptorAvg segDesc;
-    memset(&readPar, 0, sizeof(readPar));
-    memset(&dataDesc, 0, sizeof(dataDesc));
-    memset(&segDesc, 0, sizeof(segDesc));
 
-    data.d_.resize( task.method().hor_.nbrSamples + 32 );
-
-    readPar.dataType = ReadInt32;
-    readPar.readMode = ReadModeAvgW;
-    readPar.nbrSegments = 1;
-    readPar.nbrSamplesInSeg = task.method().hor_.nbrSamples;
-    readPar.dataArraySize = ViInt32( data.d_.size() * sizeof( long ) );               // (nbrSamples + 32) * sizeof(ong)
-    readPar.segDescArraySize = sizeof( AqSegmentDescriptorAvg );
-    const int channel = 1;
-
-    ViStatus st = AcqrsD1_readData( task.inst()
-                                    , channel
-                                    , &readPar
-                                    , data.d_.data()
-                                    , &dataDesc
-                                    , &segDesc );
-    
-    task::checkError( task.inst(), st, "AcqrsD1_readData", __LINE__ );
-    if ( dataDesc.indexFirstPoint > 0 )
-        std::copy( data.d_.begin() + dataDesc.indexFirstPoint, data.d_.end() - 32, data.d_.begin() );
-    
-    data.d_.resize( data.d_.size() - 32 );
-
-    std::cout << "## device_ap240::readData ##" << std::endl;
-
-    double elapsed = double( static_cast<uint64_t>( segDesc.timeStampHi ) << 32 | segDesc.timeStampLo ) * 1.0e-12; // ps -> s
-
-    std::cout << "actualTriggersInSeg: " << segDesc.actualTriggersInSeg
-              << "\tsize: " << data.d_.size()
-              << "\tindexFirstPoint: " << dataDesc.indexFirstPoint
-              << "\tdelay: " << data.method_.hor_.delay
-              << "\tX: " << elapsed
-              << std::endl;
-
-    //uint32_t nDelay = uint32_t( data.method_.digitizer_delay_to_first_sample * data.method_.samp_rate ) & ~0x1f;
-    
-    data.meta_.actualAverages = segDesc.actualTriggersInSeg;  // number of triggers for average
-    data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; //data.d_.size();
-    data.meta_.actualRecords = 0; // ??
-    data.meta_.flags = segDesc.flags; // markers
-    data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.nStartDelay;
-    data.meta_.initialXTimeSeconds = elapsed;
-    data.meta_.scaleFactor = dataDesc.vGain;
-    data.meta_.scaleOffset = dataDesc.vOffset;
-    data.meta_.xIncrement = dataDesc.sampTime;
-        
-    // avgr.sampInterval = static_cast<unsigned long>( scale_to_pico( desc.dataDesc.sampTime ) + 0.5 );
-    // avgr.uptime = ( static_cast< unsigned long long>( segDesc.timeStampHi ) << 32 | segDesc.timeStampLo ) / 1000000LL; // us
-    
-    // avgr.nSamplingDelay = nStartDelay_;
-    // avgr.avgrType = infitofinterface::Averager_AP240;
-    // avgr.npos = data_serial_number_;
-    // avgr.timeSinceInject = uint32_t( avgr.uptime - averager_inject_usec_ );
-    // avgr.nbrSamples = nbrSamples_;
-    // avgr.nbrAverage = uint32_t(nbrWaveforms_);
-    
-    // // 0:P1, 1:P2, 2:A, 3:B
-    // avgr.wellKnownEvents = segDesc.flags & 0x0f;
-    // if ( segDesc.flags & 02 ) {
-    //     avgr.wellKnownEvents |= SignalObserver::wkEvent_INJECT;
-    //     TOFTask::instance()->handle_event_in( avgr.wellKnownEvents );
-    // }
-    
-    // data.meta_.actualAverages = actualAverages;
-    // data.meta_.flags = saFlags.data()[ 0 ];
-    // data.meta_.initialXTimeSeconds = saInitialXTimeSeconds.data()[ 0 ] + saInitialXTimeFraction.data()[ 0 ];
-    // data.d_.resize( numPointsPerRecord );
-    // std::copy( sa.data() + firstValidPoint, sa.data() + numPointsPerRecord, data.d_.begin() );
+    std::cout << "## device_ap240::readData ##" << std::endl;    
+    if ( m.hor_.mode == 0 ) {
+        AqSegmentDescriptor segDesc;
+        if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, 1, dataDesc, segDesc, data ) ) {
+            data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
+            data.meta_.actualAverages = 0;
+            data.meta_.actualPoints   = dataDesc.returnedSamplesPerSeg; //data.d_.size();
+            data.meta_.flags = 0;         // segDesc.flags; // markers not in digitizer
+            data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.nStartDelay;
+            data.meta_.initialXTimeSeconds = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) * 1.0e-12;
+            std::cout << segDesc.timeStampHi << ":" << segDesc.timeStampLo << "\t" << data.meta_.initialXTimeSeconds << std::endl;
+            data.meta_.scaleFactor = dataDesc.vGain;
+            data.meta_.scaleOffset = dataDesc.vOffset;
+            data.meta_.xIncrement = dataDesc.sampTime;
+            data.meta_.horPos = segDesc.horPos;
+        }
+    } else {
+        AqSegmentDescriptorAvg segDesc;
+        if ( readData<int32_t, AqSegmentDescriptorAvg>( task.inst(), m, 1, dataDesc, segDesc, data ) ) {
+            data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
+            data.meta_.actualAverages = segDesc.actualTriggersInSeg;  // number of triggers for average
+            data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; //data.d_.size();
+            data.meta_.flags = segDesc.flags; // markers
+            data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.nStartDelay;
+            data.meta_.initialXTimeSeconds = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) * 1.0e-12;
+            data.meta_.scaleFactor = dataDesc.vGain;
+            data.meta_.scaleOffset = dataDesc.vOffset;
+            data.meta_.xIncrement = dataDesc.sampTime;
+            data.meta_.horPos = segDesc.horPos;
+        }        
+    }
     return true;
 }
 
+size_t
+waveform::size() const
+{
+    return method_.hor_.nbrSamples;
+}
 
+template<> const int8_t *
+waveform::begin() const
+{
+    if ( meta_.dataType != sizeof(int8_t) )
+        throw std::bad_cast();
+    return reinterpret_cast< const int8_t* >( d_.data() ) + meta_.indexFirstPoint;
+}
+
+template<> const int8_t *
+waveform::end() const
+{
+    if ( meta_.dataType != sizeof(int8_t) )
+        throw std::bad_cast();    
+    return reinterpret_cast< const int8_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
+}
+
+template<> const int16_t *
+waveform::begin() const
+{
+    if ( meta_.dataType != sizeof(int16_t) )
+        throw std::bad_cast();        
+    return reinterpret_cast< const int16_t* >( d_.data() ) + meta_.indexFirstPoint;
+}
+
+template<> const int16_t *
+waveform::end() const
+{
+    if ( meta_.dataType != sizeof(int16_t) )
+        throw std::bad_cast();            
+    return reinterpret_cast< const int16_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
+}
+
+template<> const int32_t *
+waveform::begin() const
+{
+    if ( meta_.dataType != sizeof(int32_t) )
+        throw std::bad_cast();                
+    return reinterpret_cast< const int32_t* >( d_.data() ) + meta_.indexFirstPoint;
+}
+
+template<> const int32_t *
+waveform::end() const
+{
+    if ( meta_.dataType != sizeof(int32_t) )
+        throw std::bad_cast();                    
+    return reinterpret_cast< const int32_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
+}
+
+std::pair<double, int>
+waveform::operator [] ( size_t idx ) const
+{
+    double time = idx * meta_.xIncrement + meta_.horPos;
+
+    if ( method_.hor_.mode == 0 )
+        time += method_.hor_.delay;
+    else
+        time += method_.hor_.nStartDelay * meta_.xIncrement;
+    
+    switch( meta_.dataType ) {
+    case 1: return std::make_pair( time, *(begin<int8_t>()  + idx) );
+    case 2: return std::make_pair( time, *(begin<int16_t>() + idx) );
+    case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
+    }
+    throw std::exception();
+}

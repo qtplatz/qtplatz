@@ -185,17 +185,21 @@ namespace ap240 {
                    , actualPoints( 0 )
                    , flags( 0 )
                    , actualAverages( 0 )
-                   , actualRecords( 0 )
                    , initialXOffset( 0 )
                    , scaleFactor( 0 )
                    , scaleOffset(0)
-                   , horPos(0)
+                   , horPos( 0 )
+                   , indexFirstPoint(0)
+                   , channel( 1 )
+                   , dataType( 1 )
             { }
-        double initialXTimeSeconds; 
         int64_t actualPoints;
-        int32_t flags;
-        int32_t actualAverages;
-        int64_t actualRecords;
+        int32_t flags;           // IO pin states
+        int32_t actualAverages;  // 0 = digitizer data, 1..n averaged data
+        int32_t indexFirstPoint; // firstValidPoint in U5303A
+        int16_t channel;         // 1|2
+        int16_t dataType;        // 1, 2, 4 := int8_t, int16_t, int32_t
+        double initialXTimeSeconds; 
         double initialXOffset;
         double xIncrement;
         double scaleFactor;
@@ -206,21 +210,18 @@ namespace ap240 {
         template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( initialXTimeSeconds );
             ar & BOOST_SERIALIZATION_NVP( actualPoints );
-            if ( version == 0 ) {
-                int64_t firstValidPoint;
-                ar & BOOST_SERIALIZATION_NVP( firstValidPoint );
-            } else {
-                ar & BOOST_SERIALIZATION_NVP( flags );
-            }
+            ar & BOOST_SERIALIZATION_NVP( flags );            
             ar & BOOST_SERIALIZATION_NVP( actualAverages );
-            ar & BOOST_SERIALIZATION_NVP( actualRecords );
+            ar & BOOST_SERIALIZATION_NVP( indexFirstPoint );
+            ar & BOOST_SERIALIZATION_NVP( channel );
+            ar & BOOST_SERIALIZATION_NVP( dataType );
+            ar & BOOST_SERIALIZATION_NVP( initialXTimeSeconds );
             ar & BOOST_SERIALIZATION_NVP( initialXOffset );
             ar & BOOST_SERIALIZATION_NVP( xIncrement );
             ar & BOOST_SERIALIZATION_NVP( scaleFactor );
             ar & BOOST_SERIALIZATION_NVP( scaleOffset );
-            ar & BOOST_SERIALIZATION_NVP( horPos );            
+            ar & BOOST_SERIALIZATION_NVP( horPos );
         }
     };
     
@@ -230,6 +231,12 @@ namespace ap240 {
 	public:
         waveform( std::shared_ptr< identify >& id ) : ident_( id ), wellKnownEvents_( 0 ), serialnumber_( 0 ) {
         }
+
+        size_t size() const;
+        template<typename T> const T* begin() const;
+        template<typename T> const T* end() const;
+
+        std::pair<double,int> operator [] ( size_t ) const;
         
         method method_;
         metadata meta_;
@@ -240,6 +247,13 @@ namespace ap240 {
     private:
         
     };
+    
+    template<> AP240SHARED_EXPORT const int8_t * waveform::begin() const;
+    template<> AP240SHARED_EXPORT const int8_t * waveform::end() const;    
+    template<> AP240SHARED_EXPORT const int16_t * waveform::begin() const;
+    template<> AP240SHARED_EXPORT const int16_t * waveform::end() const;    
+    template<> AP240SHARED_EXPORT const int32_t * waveform::begin() const;
+    template<> AP240SHARED_EXPORT const int32_t * waveform::end() const;    
 
 	class AP240SHARED_EXPORT device_data {
     public:

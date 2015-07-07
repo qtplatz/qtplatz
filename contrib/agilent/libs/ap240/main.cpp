@@ -65,8 +65,15 @@ main(int argc, char* argv[])
 
         aqrs.connect_waveform( []( const ap240::waveform * wform, ap240::method& proto ){
                 auto self( wform->shared_from_this() );
-                std::cout << "wform: " << wform->serialnumber_ << " size: " << wform->d_.size();
-                std::cout << "\thorPos: " << wform->meta_.horPos << std::endl;
+                std::cout << "wform: " << wform->serialnumber_ << " size: " << wform->size() << "/" << wform->d_.size();
+                std::cout << "\thorPos: " << wform->meta_.horPos
+                          << "\tindexFirst: " << wform->meta_.indexFirstPoint
+                          << "\ttime: " << wform->meta_.initialXTimeSeconds
+                          << std::endl;
+                auto p = wform->begin<int8_t>();
+                for ( int i = 0; i < 10; ++i )
+                    std::cout << int(*p++) << ", ";
+                std::cout << std::endl;
                 return false;
             });
 
