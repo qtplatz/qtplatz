@@ -590,7 +590,7 @@ device_ap240::initial_setup( task& task, method& m )
 
     if ( m.channels_ == 03 && m.hor_.sampInterval < 0.51e-9 ) { // if 2ch acquisition, 
         m.hor_.sampInterval = 1.0e-9;
-        std::cout << "### sampInterval adjusted to: " << m.hor_.sampInterval << std::endl;
+        // std::cout << "### sampInterval adjusted to: " << m.hor_.sampInterval << std::endl;
     }
 
     if ( m.hor_.mode == 0 ) {
@@ -803,7 +803,7 @@ device_ap240::readData( task& task, waveform& data, const method& m, int channel
 
     AqDataDescriptor dataDesc;
 
-    std::cout << "## device_ap240::readData ##" << std::endl;    
+    // std::cout << "## device_ap240::readData ##" << std::endl;    
     if ( m.hor_.mode == 0 ) {
         AqSegmentDescriptor segDesc;
         if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) ) {
