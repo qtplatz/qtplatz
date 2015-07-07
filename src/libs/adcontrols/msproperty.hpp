@@ -98,8 +98,12 @@ namespace adcontrols {
             void fSampInterval( double );
             double fSampInterval() const;
 			double fSampDelay() const;
+            void horPos( double );
+            double horPos() const;
+
         private:
             double fsampInterval; // seconds
+            double horPos_; // seconds
 
         private:
             friend class boost::serialization::access;
@@ -114,6 +118,10 @@ namespace adcontrols {
                 if ( version >= 4 ) {
                     ar & BOOST_SERIALIZATION_NVP(padding)
                         & BOOST_SERIALIZATION_NVP(fsampInterval)
+                        ;
+                }
+                if ( version >= 5 ) {
+                    ar & BOOST_SERIALIZATION_NVP(horPos_)
                         ;
                 }
             };
@@ -189,5 +197,5 @@ namespace adcontrols {
 }
 
 BOOST_CLASS_VERSION(adcontrols::MSProperty, 7)
-BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 4)
+BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 5)
 

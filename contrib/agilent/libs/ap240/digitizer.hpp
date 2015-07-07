@@ -42,7 +42,7 @@ namespace adportable { class TimeSquaredScanLaw; }
 
 namespace ap240 {
 
-    namespace detail { class task; }
+    namespace detail { class task; struct device_ap240; }
 
     class AP240SHARED_EXPORT identify {
     public:
@@ -242,10 +242,10 @@ namespace ap240 {
         metadata meta_;
         uint32_t serialnumber_;
         uint32_t wellKnownEvents_;
-        std::vector< int32_t > d_;
         std::shared_ptr< identify > ident_;
     private:
-        
+        std::vector< int32_t > d_;
+        friend struct detail::device_ap240;
     };
     
     template<> AP240SHARED_EXPORT const int8_t * waveform::begin() const;

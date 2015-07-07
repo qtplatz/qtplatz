@@ -102,7 +102,7 @@ namespace ap240 {
                 if ( worker_stop_ )
                     return;
                 auto tp = std::chrono::steady_clock::now();
-                if ( std::chrono::duration_cast::milliseconds>( tp - time_handled_ ).count() > 100 ) {
+                if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ).count() > 100 ) {
                     time_handled_ = tp;
                     emit document::instance()->on_waveform_received();
                 }
@@ -202,7 +202,7 @@ document::waveform_handler( const waveform * p, ap240::method& )
         que_.pop_front();
 	que_.push_back( ptr );
     // emit on_waveform_received();
-    impl_->sema_.post();
+    impl_->sema_.signal();
     return false;
 }
 
@@ -228,7 +228,7 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     adcontrols::MSProperty prop = sp.getMSProperty();
     adcontrols::MSProperty::SamplingInfo info( 0
                                                , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
-                                               , uint32_t( waveform.d_.size() )
+                                               , uint32_t( waveform.size() )
                                                , waveform.method_.hor_.nbrAvgWaveforms
                                                , 0 );
     info.fSampInterval( waveform.meta_.xIncrement );
@@ -247,10 +247,12 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
 
     // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );
-    sp.resize( waveform.d_.size() );
+    sp.resize( waveform.size() );
 	int idx = 0;
-    for ( auto y: waveform.d_ )
-        sp.setIntensity( idx++, y );
+    if ( waveform.meta_.dataType == 1 ) {
+        for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
+            sp.setIntensity( idx++, *y );
+    }
     // mass array tba
 	return true;
 }

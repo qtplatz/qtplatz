@@ -110,11 +110,10 @@ MSProperty::mode() const
     return samplingData_.mode;
 }
 
-
 double
 MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
 {
-	return double( samplingData_.nSamplingDelay + pos ) * samplingData_.fSampInterval(); // seconds
+	return double( samplingData_.nSamplingDelay + pos ) * samplingData_.fSampInterval() + samplingData_.horPos(); // seconds
 }
 
 std::pair<double, double>
@@ -203,7 +202,8 @@ MSProperty::SamplingInfo::SamplingInfo( uint32_t interval
     , nAverage( navgr )
     , mode( _mode )
     , padding(0)
-    , fsampInterval(0)
+    , fsampInterval( 0.0 )
+    , horPos_( 0.0 )
 {
 }
 
@@ -213,7 +213,8 @@ MSProperty::SamplingInfo::SamplingInfo() : sampInterval( 0 )
                                          , nAverage( 0 )
                                          , mode( 0 )
                                          , padding( 0 )
-                                         , fsampInterval( 0 )
+                                         , fsampInterval( 0.0 )
+                                         , horPos_( 0.0 )
 {
 }
 
@@ -232,6 +233,18 @@ MSProperty::SamplingInfo::fSampInterval() const
     return fsampInterval;
 }
 
+void
+MSProperty::SamplingInfo::horPos( double v )
+{
+    horPos_ = v;
+}
+
+double
+MSProperty::SamplingInfo::horPos() const
+{
+    return horPos_;
+}
+
 double
 MSProperty::SamplingInfo::fSampDelay() const
 {
@@ -245,7 +258,7 @@ MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
     if ( info.sampInterval )
         return ( info.nSamplingDelay + idx ) * info.sampInterval * 1e-12;
     else
-        return ( info.nSamplingDelay + idx ) * info.fSampInterval();
+        return ( info.nSamplingDelay + idx ) * info.fSampInterval() + info.horPos();
 }
 
 size_t
