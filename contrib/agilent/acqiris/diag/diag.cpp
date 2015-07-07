@@ -32,6 +32,8 @@
 #include <memory>
 #include <sstream>
 #include <sys/stat.h>
+#include <thread>
+#include <chrono>
 
 class acqiris {
 public:
@@ -499,11 +501,19 @@ main (int argc, char *argv[])
                         AqDataDescriptor dataDesc;
                         AqSegmentDescriptor segDesc;
                         std::vector< int8_t > data;
-
+                        
+                        std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
                         if ( aqrs.readData( 1, dataDesc, segDesc, data ) ) {
+
+                            double hi = double( uint64_t( segDesc.timeStampHi ) << 32 );
+                            double lo = segDesc.timeStampLo;
+                            double t = ( hi + lo ) * 1.0e-12;
                             std::cout << "acquire complete with success" << std::endl;                            
                             std::cout << "# Samples acquired: " << dataDesc.returnedSamplesPerSeg;
-                            std::cout << " Time: " << segDesc.timeStampHi << ":" << segDesc.timeStampLo << std::endl;
+                            std::cout << " Time: "
+                                      << boost::format( "%08x:%08x" ) % segDesc.timeStampHi % segDesc.timeStampLo
+                                      << boost::format( "\t%lf(s)") % t
+                                      << std::endl;
                             std::cout << "horPos: " << segDesc.horPos;
 
                         }

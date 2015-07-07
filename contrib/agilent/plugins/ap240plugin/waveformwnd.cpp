@@ -68,6 +68,7 @@ WaveformWnd::init()
         splitter->setOrientation( Qt::Vertical );
     } while(0);
 
+    spw_->setAxisTitle( QwtPlot::yLeft, tr( "mV" ) );
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
 
@@ -101,7 +102,7 @@ WaveformWnd::handle_waveform()
         if ( waveform->meta_.dataType == 1 ) {
             size_t idx = 0;
             for ( auto it = waveform->begin<int8_t>(); it != waveform->end<int8_t>(); ++it )
-                sp_->setIntensity( idx++, *it );
+                sp_->setIntensity( idx++, waveform->toVolts( *it ) * 1000.0 ); // mV
         }
 
         adcontrols::MSProperty prop = sp_->getMSProperty();

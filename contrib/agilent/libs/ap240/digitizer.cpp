@@ -80,6 +80,11 @@ namespace ap240 {
 
             inline const ap240::method& method() const { return method_; }
             inline const identify& ident() const { return *ident_; }
+
+            inline double timestamp() const {
+                return 
+                    std::chrono::duration<double>( std::chrono::steady_clock::now() - uptime_ ).count();
+            }
             
             static std::string error_msg( int status, const char * ident, ViSession instId = VI_NULL ) {
                 std::ostringstream o;
@@ -122,6 +127,7 @@ namespace ap240 {
             bool simulated_;
             ap240::method method_;
             std::atomic<int> acquire_post_count_;
+            std::chrono::steady_clock::time_point uptime_;
             uint64_t inject_timepoint_;
             uint32_t data_serialnumber_;
             ViSession inst_;
@@ -191,8 +197,8 @@ namespace ap240 {
                 readPar.firstSampleInSeg = 0;
                 readPar.nbrSamplesInSeg = m.hor_.nbrSamples;
                 readPar.segmentOffset = 0;
-                readPar.dataArraySize = ( (m.hor_.nbrSamples + 32) * sizeof(T) + sizeof(int32_t) ) & ~3;
-                readPar.segDescArraySize = sizeof(AqSegmentDescriptor);
+                readPar.dataArraySize = ( (m.hor_.nbrSamples + 32) * sizeof(T) + sizeof(int32_t) ) & ~3; // octets
+                readPar.segDescArraySize = sizeof(segDesc);
                 readPar.flags = 0;
                 readPar.reserved = 0;
                 readPar.reserved2 = 0;
@@ -321,6 +327,7 @@ task::task() : work_( io_service_ )
              , acquire_post_count_( 0 )
              , inst_( -1 )
              , numInstruments_( 0 )
+             , uptime_( std::chrono::steady_clock::now() )
 {
     threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 }
@@ -683,6 +690,12 @@ device_ap240::digitizer_setup( task& task, const method& m )
     
     status = AcqrsD1_configMode( inst, m.hor_.mode, 0, m.hor_.flags ); // 2 := averaging mode, 0 := normal data acq.
     task::checkError( inst, status, "AcqrsD1_configMode", __LINE__  );
+
+    ViStatus int32Arg( 1 );
+    for ( auto& cmd: { "TimestampClock", "MarkerLatchMode" } ) {
+        status = AcqrsD1_configAvgConfig( inst, 0, cmd, &int32Arg);
+        task::checkError( inst, status, cmd, __LINE__  );
+    }
     
     return true;
 }
@@ -692,12 +705,17 @@ device_ap240::averager_setup( task& task, const method& m )
 {
     // averager mode
     assert( m.hor_.mode == 2 );
+
+    std::cout << "###### setup for averager #######" << std::endl;
     
     auto inst = task.inst();
+    ViStatus status;
+
+    status = AcqrsD1_configMode( inst, 2, 0, 0 ); // 2 := averaging mode
+    task::checkError( inst, status, "AcqrsD1_configMode", __LINE__  );
         
     ViInt32 int32Arg = ViInt32( m.hor_.nbrSamples );
-    
-    ViStatus status = AcqrsD1_configAvgConfig( inst, 0, "NbrSamples", &int32Arg );
+    status = AcqrsD1_configAvgConfig( inst, 0, "NbrSamples", &int32Arg );
     task::checkError( inst, status, "AcqirisD1_configAvgConfig, NbrSamples", __LINE__ );
 
     int32Arg = ViInt32( m.hor_.nStartDelay );
@@ -807,15 +825,21 @@ device_ap240::readData( task& task, waveform& data, const method& m, int channel
     if ( m.hor_.mode == 0 ) {
         AqSegmentDescriptor segDesc;
         if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) ) {
+
+            std::cout << boost::format( "Time: [%x][%x]" ) % segDesc.timeStampHi % segDesc.timeStampLo << std::endl;
+            
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
             data.meta_.channel = channel;
             data.meta_.actualAverages = 0;
             data.meta_.actualPoints   = dataDesc.returnedSamplesPerSeg; //data.d_.size();
             data.meta_.flags = 0;         // segDesc.flags; // markers not in digitizer
             data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.nStartDelay;
-            data.meta_.initialXTimeSeconds = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) * 1.0e-12;
-            std::cout << segDesc.timeStampHi << ":" << segDesc.timeStampLo << "\t" << data.meta_.initialXTimeSeconds << std::endl;
-            data.meta_.scaleFactor = dataDesc.vGain;
+            uint64_t tstamp = uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo;
+            // this looks like a time since acquire command
+            //data.meta_.initialXTimeSeconds = double( tstamp ) * 1.0e-12;
+            data.meta_.initialXTimeSeconds = task::instance()->timestamp();
+            
+            data.meta_.scaleFactor = dataDesc.vGain;     // V = vGain * data - vOffset
             data.meta_.scaleOffset = dataDesc.vOffset;
             data.meta_.xIncrement = dataDesc.sampTime;
             data.meta_.horPos = segDesc.horPos;
@@ -829,7 +853,8 @@ device_ap240::readData( task& task, waveform& data, const method& m, int channel
             data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; //data.d_.size();
             data.meta_.flags = segDesc.flags; // markers
             data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.nStartDelay;
-            data.meta_.initialXTimeSeconds = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) * 1.0e-12;
+            uint64_t tstamp = uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo;
+            data.meta_.initialXTimeSeconds = double( tstamp )* 1.0e-12;
             data.meta_.scaleFactor = dataDesc.vGain;
             data.meta_.scaleOffset = dataDesc.vOffset;
             data.meta_.xIncrement = dataDesc.sampTime;
@@ -909,4 +934,10 @@ waveform::operator [] ( size_t idx ) const
     case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
     }
     throw std::exception();
+}
+
+double
+waveform::toVolts( int d ) const
+{
+    return meta_.scaleFactor * d - meta_.scaleOffset;
 }

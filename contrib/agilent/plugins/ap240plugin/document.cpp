@@ -201,7 +201,7 @@ document::waveform_handler( const waveform * p, ap240::method& )
     while ( que_.size() >= 256 )
         que_.pop_front();
 	que_.push_back( ptr );
-    // emit on_waveform_received();
+    
     impl_->sema_.signal();
     return false;
 }

@@ -237,6 +237,7 @@ namespace ap240 {
         template<typename T> const T* end() const;
 
         std::pair<double,int> operator [] ( size_t ) const;
+        double toVolts( int ) const;
         
         method method_;
         metadata meta_;

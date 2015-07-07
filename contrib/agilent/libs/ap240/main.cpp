@@ -74,6 +74,8 @@ main(int argc, char* argv[])
         m.ext_.offset    = vm[ "ext.offset" ].as<double>();
         m.trig_.trigSlope = vm[ "trig.slope" ].as<int>();
         m.trig_.trigLevel1 = vm[ "trig.level" ].as<double>(); // mV | %fs
+        if ( m.hor_.mode == 2 )
+            m.hor_.nbrAvgWaveforms = 8;
 
         ap240::digitizer aqrs;
 
@@ -84,7 +86,7 @@ main(int argc, char* argv[])
         aqrs.connect_waveform( []( const ap240::waveform * wform, ap240::method& proto ){
                 auto self( wform->shared_from_this() );
                 std::cout << "ch" << wform->meta_.channel << " " << wform->serialnumber_ << " size: " << wform->size()
-                          << "\thorPos: " << wform->meta_.horPos
+                          << "\thorPos: " << wform->meta_.horPos * 1.0e12 << "ps"
                           << "\tindexFirst: " << wform->meta_.indexFirstPoint
                           << "\ttime: " << wform->meta_.initialXTimeSeconds * 1000
                           << "\t";
