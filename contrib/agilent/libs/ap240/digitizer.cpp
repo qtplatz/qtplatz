@@ -49,8 +49,11 @@
 namespace ap240 {
 
     namespace detail {
-
+#if _MSC_VER
+        const ViInt32 nbrSegments = 1;
+#else
         constexpr ViInt32 nbrSegments = 1;
+#endif
         enum { pin_A = 1, pin_B = 2, pin_C = 3, pin_TR = 9 };
 
         class task {
@@ -660,6 +663,8 @@ device_ap240::initial_setup( task& task, method& m )
         return digitizer_setup( task, m );
     else if ( m.hor_.mode == 2 )
         return averager_setup( task, m );
+
+    return false; // unknown mode
 }
 
 bool
