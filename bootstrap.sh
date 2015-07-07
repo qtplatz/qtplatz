@@ -6,13 +6,13 @@ if [ -z $cross_target ]; then
     cross_target=$arch
 fi
 
-build_eclipse=
+build_debug=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
 	eclipse)
 	    echo "*********** building eclipse project"
-	    build_eclipse='true'
+	    build_debug=true
 	    shift
 	    ;;
 	*)
@@ -23,7 +23,7 @@ done
     
 echo "creating build environment for qtplatz for target: $cross_target"
 
-if [ build_eclipse='true' ]; then
+if [ $build_debug = true ]; then
     mkdir ../build-qtplatz-$cross_target
     cd ../build-qtplatz-$cross_target
 else
@@ -44,7 +44,7 @@ case $cross_target in
 	cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc ..
 	;;	
     x86_64)
-	if [ build_eclipse='true' ]; then
+	if [ $build_debug = true ]; then
 	    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc_64 ../qtplatz
 	else
 	    cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc_64 ..
