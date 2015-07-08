@@ -86,7 +86,7 @@ namespace adcontrols {
 
         class ADCONTROLSSHARED_EXPORT SamplingInfo {
         public:
-            uint32_t sampInterval; // ps
+            uint32_t sampInterval;  // ps
             uint32_t nSamplingDelay;
             uint32_t nSamples;
             uint32_t nAverage;
@@ -100,10 +100,13 @@ namespace adcontrols {
 			double fSampDelay() const;
             void horPos( double );
             double horPos() const;
+            void setDelayTime( double );
+            double delayTime() const;
 
         private:
             double fsampInterval; // seconds
-            double horPos_; // seconds
+            double horPos_;       // seconds
+            double delayTime_;    // digitizer delay time (seconds), this can be negative!
 
         private:
             friend class boost::serialization::access;
@@ -121,8 +124,8 @@ namespace adcontrols {
                         ;
                 }
                 if ( version >= 5 ) {
-                    ar & BOOST_SERIALIZATION_NVP(horPos_)
-                        ;
+                    ar & BOOST_SERIALIZATION_NVP( horPos_ );
+                    ar & BOOST_SERIALIZATION_NVP( delayTime_ );
                 }
             };
         };

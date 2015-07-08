@@ -204,6 +204,7 @@ MSProperty::SamplingInfo::SamplingInfo( uint32_t interval
     , padding(0)
     , fsampInterval( 0.0 )
     , horPos_( 0.0 )
+    , delayTime_( 0.0 )
 {
 }
 
@@ -215,6 +216,7 @@ MSProperty::SamplingInfo::SamplingInfo() : sampInterval( 0 )
                                          , padding( 0 )
                                          , fsampInterval( 0.0 )
                                          , horPos_( 0.0 )
+                                         , delayTime_( 0.0 )
 {
 }
 
@@ -243,6 +245,18 @@ double
 MSProperty::SamplingInfo::horPos() const
 {
     return horPos_;
+}
+
+void 
+MSProperty::SamplingInfo::setDelayTime( double v )
+{
+    delayTime_ = v;
+}
+
+double
+MSProperty::SamplingInfo::delayTime() const
+{
+    return delayTime_;
 }
 
 double

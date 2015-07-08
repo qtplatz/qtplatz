@@ -26,6 +26,7 @@
 #define WAVEFORMWND_HPP
 
 #include <QWidget>
+#include <array>
 #include <memory>
 
 namespace adplot { class ChromatogramWidget; class TraceWidget; class SpectrumWidget; }
