@@ -81,11 +81,11 @@ ap240VerticalForm::set( const ap240::method& m )
 
     const ap240::method::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
 
-    auto it = std::lower_bound( fullScaleList.begin(), fullScaleList.end(), t.fullScale
-                                , [](double a, double b){ return b < a;} ); // reverse order
-    auto index = std::distance( fullScaleList.begin(), it );
-
-    ui->comboBox_3->setCurrentIndex( int( index ) );
+    auto it = std::lower_bound( fullScaleList.begin(), fullScaleList.end(), t.fullScale, [] ( double a, double b ) { return a > b; } );
+    if ( it != fullScaleList.end() ) {
+        auto index = std::distance( fullScaleList.begin(), it );
+        ui->comboBox_3->setCurrentIndex( int( index ) );
+    }
     ui->doubleSpinBox->setValue( t.offset );
     ui->comboBox_2->setCurrentIndex( t.coupling );
     ui->comboBox->setCurrentIndex( t.bandwidth );
@@ -97,7 +97,9 @@ ap240VerticalForm::get( ap240::method& m ) const
 {
     ap240::method::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
 
-    t.fullScale = fullScaleList.at( ui->comboBox_3->currentIndex() );
+    auto index = ui->comboBox_3->currentIndex();
+    if ( index >= 0 && index < fullScaleList.size() )
+        t.fullScale = fullScaleList[ index ];
     t.offset = ui->doubleSpinBox->value();
     t.coupling = ui->comboBox_2->currentIndex();
     t.bandwidth = ui->comboBox->currentIndex();

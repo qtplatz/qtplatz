@@ -260,7 +260,7 @@ digitizer::peripheral_terminate()
 bool
 digitizer::peripheral_prepare_for_run( const ap240::method& m )
 {
-    if ( task::instance()->inst() > 0 )
+    if ( task::instance()->inst() != ViSession( -1 ) )
         return task::instance()->prepare_for_run( m );
     return false;
 }
@@ -360,7 +360,7 @@ task::initialize()
 bool
 task::prepare_for_run( const ap240::method& m )
 {
-    if ( inst_ < 0 )
+    if ( inst_ == ViSession( -1 ) )
         return false;
     
     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
