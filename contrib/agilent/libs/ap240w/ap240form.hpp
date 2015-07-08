@@ -45,7 +45,7 @@ class AP240WSHARED_EXPORT ap240form : public QWidget
 public:
     explicit ap240form(QWidget *parent = 0);
     ~ap240form();
-    enum idCategory { idHorizontal, idVertical, idTrigger, idChannels };
+    enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idThreshold };
 
     // LifeCycle
     void OnCreate( const adportable::Configuration& ) override;

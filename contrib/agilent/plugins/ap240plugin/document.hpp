@@ -71,6 +71,9 @@ namespace ap240 {
         std::shared_ptr< ap240::method> controlMethod() const;
         void setControlMethod( const ap240::method& m, const QString& filename );
 
+        void setThreshold( int ch, double );
+        double threshold( int ch ) const;
+
         static bool load( const QString& filename, ap240::method& );
         static bool save( const QString& filename, const ap240::method& );
         

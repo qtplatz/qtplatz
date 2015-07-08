@@ -26,6 +26,7 @@
 #include "ap240horizontalform.hpp"
 #include "ap240verticalform.hpp"
 #include "ap240triggerform.hpp"
+#include "findslopeform.hpp"
 #include "ui_ap240form.h"
 #include <ap240/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -41,6 +42,19 @@ ap240form::ap240form(QWidget *parent) :
     ui(new Ui::ap240form)
 {
     ui->setupUi(this);
+
+    if ( auto layout = new QVBoxLayout() ) {
+        ui->horizontalLayout_2->insertLayout( 0, layout );
+        int idx = 0;
+        for ( auto& title: { tr("CH1"), tr("CH2") } ) {
+            auto ch = new findSlopeForm();
+            ch->setTitle( idx++, title );
+            layout->addWidget( ch );
+            connect( ch, &findSlopeForm::valueChanged, [this]( int ch, bool check, double value ){
+                    emit valueChanged( idThreshold, 0, ch, value );
+                });
+        }
+    }
 
     if ( auto layout = new QVBoxLayout( ui->groupBox ) ) {
         layout->setMargin( 0 );

@@ -25,14 +25,65 @@
 #include "findslopeform.hpp"
 #include "ui_findslopeform.h"
 
-findSlopeForm::findSlopeForm(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::findSlopeForm)
+findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
+                                              , ui(new Ui::findSlopeForm)
+                                              , channel_(0)
+    
 {
     ui->setupUi(this);
+
+    connect( ui->checkBox, &QCheckBox::toggled
+             , [this] ( bool on ) {
+            emit valueChanged( channel_, on, ui->doubleSpinBox->value() );
+        } );
+
+    connect( ui->doubleSpinBox, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
+             , [this]( double value ) { 
+                 emit valueChanged( channel_, ui->checkBox->isChecked(), ui->doubleSpinBox->value() );
+             } );
 }
 
 findSlopeForm::~findSlopeForm()
 {
     delete ui;
 }
+
+void
+findSlopeForm::set( int id, bool on, double th )
+{
+    if ( id == 0 ) {
+        ui->checkBox->setChecked( on );
+        ui->doubleSpinBox->setValue( th );
+    }
+}
+
+bool
+findSlopeForm::get( int id, bool& on, double& th ) const
+{
+    if ( id == 0 ) {
+        on = ui->checkBox->isChecked();
+        th = ui->doubleSpinBox->value();
+        return true;
+    }
+    return false;
+}
+
+void
+findSlopeForm::setTitle( int ch, const QString& title )
+{
+    channel_ = ch;
+    ui->groupBox->setTitle( title );
+}
+
+bool
+findSlopeForm::isChecked() const
+{
+    return ui->groupBox->isChecked();
+}
+
+void
+findSlopeForm::setChecked( bool on )
+{
+    ui->groupBox->setChecked( on );
+}
+

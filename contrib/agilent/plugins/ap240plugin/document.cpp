@@ -88,6 +88,8 @@ namespace ap240 {
                         std::shared_ptr< const waveform >
                         , std::shared_ptr< const waveform >
                         > > que_;
+        
+        std::array< double, 2 > thresholds_;
 
         void run() {
             if ( threads_.empty() )
@@ -422,3 +424,17 @@ document::setControlMethod( const ap240::method& m, const QString& filename )
     emit onControlMethodChanged( filename );
 }
 
+void
+document::setThreshold( int ch, double value )
+{
+    if ( ch < impl_->thresholds_.size() )
+        impl_->thresholds_[ ch ] = value;
+}
+
+double
+document::threshold( int ch ) const
+{
+    if ( ch < impl_->thresholds_.size() )
+        return impl_->thresholds_[ ch ];
+    return -9999.999;
+}

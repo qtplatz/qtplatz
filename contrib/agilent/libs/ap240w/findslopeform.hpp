@@ -39,8 +39,19 @@ public:
     explicit findSlopeForm(QWidget *parent = 0);
     ~findSlopeForm();
 
+    void setTitle( int ch, const QString& );
+
+    void set( int id, bool, double );
+    bool get( int id, bool&, double& ) const;
+    bool isChecked() const;
+    void setChecked( bool );
+
+signals:
+    void valueChanged( int id, bool, double );
+
 private:
     Ui::findSlopeForm *ui;
+    int channel_;
 };
 
 #endif // FINDSLOPEFORM_HPP

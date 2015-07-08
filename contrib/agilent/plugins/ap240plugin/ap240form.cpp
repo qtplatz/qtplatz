@@ -32,6 +32,7 @@ ap240Form::ap240Form(QWidget *parent) :  QWidget(parent)
                                         , ui(new Ui::ap240Form)
 {
     ui->setupUi(this);
+
 }
 
 ap240Form::~ap240Form()
