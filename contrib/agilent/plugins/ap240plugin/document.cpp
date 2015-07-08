@@ -52,6 +52,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <chrono>
+#include <deque>
 #include <fstream>
 #include <string>
 #include <thread>
@@ -83,6 +84,10 @@ namespace ap240 {
         bool worker_stop_;
         std::chrono::steady_clock::time_point time_handled_;
         std::vector< std::thread > threads_;
+        std::deque< std::pair<
+                        std::shared_ptr< const waveform >
+                        , std::shared_ptr< const waveform >
+                        > > que_;
 
         void run() {
             if ( threads_.empty() )
@@ -99,8 +104,10 @@ namespace ap240 {
         void worker() {
             while( true ) {
                 sema_.wait();
+
                 if ( worker_stop_ )
                     return;
+
                 auto tp = std::chrono::steady_clock::now();
                 if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ).count() > 100 ) {
                     time_handled_ = tp;
@@ -144,7 +151,7 @@ void
 document::ap240_connect()
 {
     digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
-    digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2 ) );
+    digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2, _3 ) );
     digitizer_->peripheral_initialize();
     impl_->run();
 }
@@ -194,27 +201,27 @@ document::reply_handler( const std::string& method, const std::string& reply )
 }
 
 bool
-document::waveform_handler( const waveform * p, ap240::method& )
+document::waveform_handler( const waveform * ch1, const waveform * ch2, ap240::method& )
 {
-    auto ptr( p->shared_from_this() );
-    std::lock_guard< std::mutex > lock( mutex_ );
-    while ( que_.size() >= 256 )
-        que_.pop_front();
-	que_.push_back( ptr );
-    
+    auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
+
+    std::lock_guard< std::mutex > lock( mutex_ );    
+    impl_->que_.push_back( pair );
     impl_->sema_.signal();
-    return false;
+
+    return false; // no protocol-acquisition handled.
 }
 
-std::shared_ptr< const waveform >
+document::waveforms_t
 document::findWaveform( uint32_t serialnumber )
 {
     (void)serialnumber;
+
     std::lock_guard< std::mutex > lock( mutex_ );
-    if ( que_.empty() )
-        return 0;
-	std::shared_ptr< const waveform > ptr = que_.back();
-    return ptr;
+    if ( impl_->que_.empty() )
+        return waveforms_t( 0, 0 );
+
+	return impl_->que_.back();
 }
 
 // static

@@ -41,6 +41,7 @@ ap240form::ap240form(QWidget *parent) :
     ui(new Ui::ap240form)
 {
     ui->setupUi(this);
+
     if ( auto layout = new QVBoxLayout( ui->groupBox ) ) {
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
@@ -62,16 +63,25 @@ ap240form::ap240form(QWidget *parent) :
 
     }
 
-    for ( auto& g : { std::make_pair( 1, ui->groupBox_2 ), std::make_pair( 2, ui->groupBox_3 ), std::make_pair( -1, ui->groupBox_5 ) } ) {
+    for ( auto& g : { std::make_pair( 1, ui->groupBox_2 )
+                    , std::make_pair( 2, ui->groupBox_3 )
+                    , std::make_pair( -1, ui->groupBox_5 ) } ) {
+
         auto layout = new QVBoxLayout( g.second );
+
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
         auto w = new ap240VerticalForm();
         w->setChannel( g.first );
         layout->addWidget( w );
+
         connect( w, &ap240VerticalForm::valueChanged, [this] ( ap240VerticalForm::idItem id, int channel, const QVariant& d ) {
-            emit valueChanged( idVertical, id, channel, d );
+                emit valueChanged( idVertical, id, channel, d );
         } );
+        
+        connect( g.second, &QGroupBox::toggled, [this]( bool on ){
+                emit valueChanged( idChannels, 0, 0, QVariant( on ) );
+            });
     }
     set( ap240::method() );
 }

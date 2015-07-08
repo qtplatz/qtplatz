@@ -152,8 +152,8 @@ namespace ap240 {
         method() : channels_( 0x01 )
         { }
         method( const method& t ) : channels_( t.channels_ )
-                                  , trig_( t.trig_ )
                                   , hor_( t.hor_ )
+                                  , trig_( t.trig_ )
                                   , ext_( t.ext_ )
                                   , ch1_( t.ch1_ )
                                   , ch2_( t.ch2_ )
@@ -285,7 +285,7 @@ namespace ap240 {
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef std::function< void( const std::string, const std::string ) > command_reply_type;
-        typedef std::function< bool( const waveform *, ap240::method& ) > waveform_reply_type;
+        typedef std::function< bool( const waveform *, const waveform *, ap240::method& ) > waveform_reply_type;
 
         void connect_reply( command_reply_type ); // method,reply
         void disconnect_reply( command_reply_type );

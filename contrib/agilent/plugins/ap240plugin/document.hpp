@@ -28,7 +28,6 @@
 #include <QObject>
 #include <mutex>
 #include <memory>
-#include <deque>
 
 class QSettings;
 
@@ -57,7 +56,10 @@ namespace ap240 {
         void ap240_stop();
         void ap240_trigger_inject();
         void prepare_for_run();
-        std::shared_ptr< const waveform > findWaveform( uint32_t serialnumber = (-1) );
+
+        typedef std::pair<std::shared_ptr< const waveform >, std::shared_ptr< const waveform > > waveforms_t;
+
+        waveforms_t findWaveform( uint32_t serialnumber = (-1) );
         int32_t device_status() const;
 
         static bool toMassSpectrum( adcontrols::MassSpectrum&, const waveform& );
@@ -79,7 +81,6 @@ namespace ap240 {
         static std::mutex mutex_;
         static document * instance_;
         ap240::digitizer * digitizer_;
-        std::deque< std::shared_ptr< const waveform > > que_;
         
         std::shared_ptr< ap240::method > method_;
 
@@ -88,7 +89,7 @@ namespace ap240 {
         QString ctrlmethod_filename_;
 
         void reply_handler( const std::string&, const std::string& );
-        bool waveform_handler( const waveform *, ap240::method& );
+        bool waveform_handler( const waveform *, const waveform *, ap240::method& );
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();

@@ -109,6 +109,20 @@ namespace ap240 {
                 return false;
             }
 
+            static void print( std::ostream& o, const ap240::method& m, const char * heading ) {
+                o << "-------- " << heading << "---------->" << std::endl;
+                o << boost::format( "\ttrig:\tClass: %x,\tPattern: %x,\tCoupling: %x,\tSlope: %x,\tLevel %g, %g" )
+                    % m.trig_.trigClass % m.trig_.trigPattern % m.trig_.trigCoupling % m.trig_.trigSlope
+                    % m.trig_.trigLevel1 % m.trig_.trigLevel2 << std::endl;
+                o << boost::format( "\thoriz:\tsampInterval: %g,\tdelay: %g,\twidth: %g,\tmode: %x,\tflags: %x" )
+                    % m.hor_.sampInterval % m.hor_.delay % m.hor_.width % m.hor_.mode % m.hor_.flags << std::endl;
+                for ( auto& ch: { m.ext_, m.ch1_, m.ch2_ } ) {
+                    o << boost::format( "\tvert: fullScale: %g,\toffset: %g,\tcoupling: %x\t bandwidth: %x" )
+                        % ch.fullScale % ch.offset % ch.coupling % ch.bandwidth << std::endl;
+                }
+                o << "<------- " << heading << "------------" << std::endl;    
+            }
+
             inline ViSession inst() const { return inst_; }
 
             void reply( const std::string& key, const std::string& value ) {
@@ -362,12 +376,17 @@ task::prepare_for_run( const ap240::method& m )
 {
     if ( inst_ == ViSession( -1 ) )
         return false;
+
+    if ( method_.hor_.mode == 0 && acquire_post_count_ ) // digitizer mode
+        stop();
     
-    io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
+    io_service_.post( strand_.wrap( [this,m] { handle_prepare_for_run(m); } ) );
     
     if ( acquire_post_count_ == 0 ) {
+        // here is the race condition, which if acquie_post_count_ going to zero after it has been tested
+        // no 'handle_acquire' will be posted.  Although, it can be recovered by user operation
         acquire_post_count_++;
-        io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );
+        io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
 	}
     return true;
 }
@@ -382,6 +401,7 @@ task::run()
 bool
 task::stop()
 {
+    AcqrsD1_stopAcquisition( inst_ );    
     return true;
 }
 
@@ -459,8 +479,12 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const ap240::method m )
 {
+    print( std::cout, m, "task::hanel_prepare_for_run begen" );
     method_ = m;
+
     device_ap240::initial_setup( *this, method_ );
+
+    print( std::cout, method_, "task::handle_prepare_for_run (copy&fixed)" );    
     return true;
 }
 
@@ -481,28 +505,28 @@ task::handle_acquire()
         do {
             if ( waitForEndOfAcquisition( 3000 ) ) {
 
+                std::shared_ptr< waveform > ch1, ch2;
+
+                auto serialnumber = data_serialnumber_++;
+
                 if ( method_.channels_ & 0x01 ) {
-                    auto avgr = std::make_shared< waveform >( ident_ );
-                    if ( readData( *avgr, 1 ) ) {
-                        for ( auto& reply: waveform_handlers_ ) {
-                            ap240::method m;
-                            if ( reply( avgr.get(), m ) )
-                                handle_protocol( m );
-                        }
-                    }
+                    ch1 = std::make_shared< waveform >( ident_ );
+                    ch1->serialnumber_ = serialnumber;
+                    readData( *ch1, 1 );
                 }
 
                 if ( method_.channels_ & 0x02 ) {
-                    auto avgr = std::make_shared< waveform >( ident_ );
-                    if ( readData( *avgr, 2 ) ) {
-                        for ( auto& reply: waveform_handlers_ ) {
-                            ap240::method m;
-                            if ( reply( avgr.get(), m ) )
-                                handle_protocol( m );
-                        }
-                    }
+                    ch2 = std::make_shared< waveform >( ident_ );
+                    ch2->serialnumber_ = serialnumber;
+                    readData( *ch2, 2 );
                 }
 
+                for ( auto& reply: waveform_handlers_ ) {
+                    ap240::method m;
+                    if ( reply( ch1.get(), ch2.get(), m ) )
+                        handle_protocol( m );
+                }
+                
                 ++acquire_post_count_;
                 io_service_.post( strand_.wrap( [=] { handle_acquire(); } ) );    // scedule for next acquire
 
@@ -539,7 +563,7 @@ task::waitForEndOfAcquisition( int timeout )
 bool
 task::readData( waveform& data, int channel )
 {
-    data.serialnumber_ = data_serialnumber_++;
+    //data.serialnumber_ = data_serialnumber_++;
     return device_ap240::readData( *this, data, method_, channel );
 }
 
@@ -617,7 +641,15 @@ device_ap240::initial_setup( task& task, method& m )
     }
 
     // trigger setup
-    status = AcqrsD1_configTrigClass( inst_, m.trig_.trigClass, m.trig_.trigPattern, 0, 0, 0, 0 );
+    if ( ( status = AcqrsD1_configTrigClass( inst_
+                                             , m.trig_.trigClass, m.trig_.trigPattern, 0, 0, 0, 0 ) )
+         == ACQIRIS_WARN_SETUP_ADAPTED ) {
+        ViInt32 trigClass, trigPattern, a, b; ViReal64 c, d;
+        if ( AcqrsD1_getTrigClass( inst_, &trigClass, &trigPattern, &a, &b, &c, &d ) == VI_SUCCESS ) {
+            std::cerr << boost::format( "trigClass: %x <- %x, trigPattern: %x <- %x")
+                % trigClass % m.trig_.trigClass % trigPattern % m.trig_.trigPattern << std::endl;
+        }
+    }
     task::checkError( inst_, status, "AcqrsD1_configTrigClass", __LINE__  );
     
     ViInt32 trigChannel = m.trig_.trigPattern & 0x80000000 ? (-1) : m.trig_.trigPattern & 0x3;
@@ -630,24 +662,23 @@ device_ap240::initial_setup( task& task, method& m )
                                        , m.trig_.trigLevel2 );
     task::checkError( inst_, status, "AcqrsD1_configTrigSource", __LINE__  );
 
-    typedef std::pair< ViInt32, method::vertical_method& > channel_method;
-
     // vertical setup
-    for ( auto& ch: { channel_method( -1, m.ext_ ), channel_method( 1, m.ch1_ ), channel_method( 2, m.ch2_ ) } ) {
-        
+    const int chlist [] = { -1, 1, 2 };
+    int idx = 0;
+    for ( auto& v: { m.ext_, m.ch1_, m.ch2_ } ) {
+        int channel = chlist[ idx++ ];
         status = AcqrsD1_configVertical( inst_
-                                         , ch.first
-                                         , ch.second.fullScale // ..ext_trigger_range // 0.5
-                                         , ch.second.offset // m.ext_trigger_offset // 0.0 
-                                         , ch.second.coupling   // DC 50ohm
-                                         , ch.second.bandwidth ); // ext_trigger_bandwidth /* 700MHz */);
+                                         , channel
+                                         , v.fullScale  
+                                         , v.offset     
+                                         , v.coupling   
+                                         , v.bandwidth );
+        std::cerr << "\tch(" << channel << ") offset: " << v.offset << " fs: " << v.fullScale << std::endl;        
         if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
             ViReal64 fullScale, offset; ViInt32 coupling, bandwidth;
-            if ( AcqrsD1_getVertical( inst_, ch.first, &fullScale, &offset, &coupling, &bandwidth ) == VI_SUCCESS ) {
-                ch.second.fullScale = fullScale;
-                ch.second.offset = offset;
-                std::cerr << "fullscale: " << fullScale << " <= " << ch.second.fullScale << std::endl;
-                std::cerr << "offset:    " << offset << " <= " << ch.second.offset << std::endl;
+            if ( AcqrsD1_getVertical( inst_, channel, &fullScale, &offset, &coupling, &bandwidth ) == VI_SUCCESS ) {
+                std::cerr << boost::format( "\tfullscale,offset): (%g,%g) <- (%g,%g)" )
+                    % fullScale % offset % v.fullScale % v.offset << std::endl;
             }
         } else
             task::checkError( inst_, status, "configVertical", __LINE__ );
@@ -664,6 +695,13 @@ device_ap240::initial_setup( task& task, method& m )
         status = AcqrsD1_configChannelCombination( inst_, 2, m.channels_ ); // half of the channels use 2 converters each
         task::checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  );
 
+    }
+    if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
+        ViInt32 nbrConvertersPerChannel, usedChannels;
+        if ( AcqrsD1_getChannelCombination( inst_, &nbrConvertersPerChannel, &usedChannels ) == VI_SUCCESS ) {
+            std::cerr << boost::format("ChannelCombination( %x, %x ) <- (%x)" )
+                % nbrConvertersPerChannel % &usedChannels % m.channels_ << std::endl;
+        }
     }
 
     if ( m.channels_ & 01 ) {
@@ -699,20 +737,24 @@ device_ap240::digitizer_setup( task& task, method& m )
     auto inst = task.inst();
     ViStatus status;
 
-    status = AcqrsD1_configHorizontal( inst, m.hor_.sampInterval, m.hor_.delay );
+    if ( ( status = AcqrsD1_configHorizontal( inst, m.hor_.sampInterval, m.hor_.delay ) ) == ACQIRIS_WARN_SETUP_ADAPTED ) {
+        ViReal64 sampInterval, delay;
+        if ( AcqrsD1_getHorizontal( inst, &sampInterval, &delay ) == VI_SUCCESS ) {
+            std::cerr << boost::format( "sampInterval: %e <= %e, delay: %e <= %e\n" )
+                % sampInterval % m.hor_.sampInterval
+                % delay % m.hor_.delay;
+        }
+    }
     task::checkError( inst, status, "AcqrsD1_configHorizontal", __LINE__  );
 
-    status = AcqrsD1_configMemory( inst, m.hor_.nbrSamples, nbrSegments );
-    if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
-        task::checkError( inst, status, "configMemory", __LINE__ );
+    if ( (status = AcqrsD1_configMemory( inst, m.hor_.nbrSamples, nbrSegments )) == ACQIRIS_WARN_SETUP_ADAPTED ) {
         ViInt32 nbrSamples, nSegments;
-        if ( AcqrsD1_getMemory( inst, &nbrSamples, &nSegments ) == VI_SUCCESS ) {
+        if ( AcqrsD1_getMemory( inst, &nbrSamples, &nSegments ) == VI_SUCCESS )
             m.hor_.nbrSamples = nbrSamples;
-        }
     } else 
         task::checkError( inst, status, "configMemory", __LINE__ );
     
-    status = AcqrsD1_configMode( inst, m.hor_.mode, 0, m.hor_.flags ); // 2 := averaging mode, 0 := normal data acq.
+    status = AcqrsD1_configMode( inst, 0, 0, 0 ); // 2 := averaging mode, 0 := normal data acq.
     task::checkError( inst, status, "AcqrsD1_configMode", __LINE__  );
 
     ViStatus int32Arg( 1 );
@@ -850,7 +892,7 @@ device_ap240::readData( task& task, waveform& data, const method& m, int channel
         AqSegmentDescriptor segDesc;
         if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) ) {
 
-            std::cout << boost::format( "Time: [%x][%x]" ) % segDesc.timeStampHi % segDesc.timeStampLo << std::endl;
+            // std::cout << boost::format( "Time: [%x][%x]" ) % segDesc.timeStampHi % segDesc.timeStampLo << std::endl;
             
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
             data.meta_.channel = channel;

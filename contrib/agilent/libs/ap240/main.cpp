@@ -83,22 +83,29 @@ main(int argc, char* argv[])
                 std::cout << key << "\t" << value << std::endl;
             });
 
-        aqrs.connect_waveform( []( const ap240::waveform * wform, ap240::method& proto ){
-                auto self( wform->shared_from_this() );
-                std::cout << "ch" << wform->meta_.channel << " " << wform->serialnumber_ << " size: " << wform->size()
-                          << "\thorPos: " << wform->meta_.horPos * 1.0e12 << "ps"
-                          << "\tindexFirst: " << wform->meta_.indexFirstPoint
-                          << "\ttime: " << wform->meta_.initialXTimeSeconds * 1000
-                          << "\t";
-                // auto p = wform->begin<int8_t>();
-                // for ( int i = 0; i < 10; ++i )
-                //     std::cout << int(*p++) << ", ";
-                
-                for ( int i = 0; i < 5; ++i ) {
-                    auto pair = (*wform)[i];
-                    std::cout << "{" << ( pair.first * 1.0e6 ) << "," << pair.second << "}, ";
+        aqrs.connect_waveform( []( const ap240::waveform * ch1, const ap240::waveform *ch2, ap240::method& proto ){
+
+                auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
+
+                for ( auto wform: { pair.first, pair.second } ) {
+                    if ( wform ) {
+                        std::cout << "ch" << wform->meta_.channel << " " << wform->serialnumber_ << " size: " << wform->size()
+                                  << "\thorPos: " << wform->meta_.horPos * 1.0e12 << "ps"
+                                  << "\tindexFirst: " << wform->meta_.indexFirstPoint
+                                  << "\ttime: " << wform->meta_.initialXTimeSeconds * 1000
+                                  << "\t";
+
+                        // auto p = wform->begin<int8_t>();
+                        // for ( int i = 0; i < 10; ++i )
+                        //     std::cout << int(*p++) << ", ";
+                        
+                        for ( int i = 0; i < 5; ++i ) {
+                            auto pair = (*wform)[i];
+                            std::cout << "{" << ( pair.first * 1.0e6 ) << "," << pair.second << "}, ";
+                        }
+                        std::cout << std::endl;
+                    }
                 }
-                std::cout << std::endl;                
                 return false;
             });
 

@@ -142,16 +142,9 @@ MainWindow::OnInitialUpdate()
 
     setSimpleDockWidgetArrangement();
 
-    // QList< QDockWidget *> widgets = dockWidgets();
-    // for ( auto w: widgets ) {
-    //     if ( auto t = w->findChild< ap240MethodWidget * >() )
-    //         t->onInitialUpdate();
-    // }
-
     connect( document::instance(), SIGNAL( on_reply(const QString&, const QString&) )
              , this, SLOT( handle_reply( const QString&, const QString& ) ) );
-
-    // connect( document::instance(), SIGNAL( on_waveform_received() ), this, SLOT( handle_waveform() ) );
+    
     connect( document::instance(), SIGNAL( on_status(int) ), this, SLOT( handle_status(int) ) );
     for ( auto action: actions_ )
         action->setEnabled( false );
@@ -456,24 +449,29 @@ MainWindow::actStop()
 void
 MainWindow::actSnapshot()
 {
-    if ( auto waveform = document::instance()->findWaveform() ) {
-        adcontrols::MassSpectrum ms;
-        if ( document::toMassSpectrum( ms, *waveform ) ) {
-
-            boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
-            path /= "data";
-            path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
-            if ( ! boost::filesystem::exists( path ) ) {
-                boost::system::error_code ec;
-                boost::filesystem::create_directories( path, ec );
-            }
-            path /= "ap240.adfs";
-            std::wstring title = ( boost::wformat( L"Spectrum %1%" ) % waveform->serialnumber_ ).str();
-            std::wstring folderId;
-			if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
-                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
-                for ( auto handler: vec )
-                    handler->folium_added( path.string().c_str(), "/Processed/Spectra", QString::fromStdWString( folderId ) );
+    auto waveforms = document::instance()->findWaveform();
+    adcontrols::MassSpectrum ms;
+    for ( auto waveform: { waveforms.first, waveforms.second } ) {
+        
+        if ( waveform ) {
+            
+            if ( document::toMassSpectrum( ms, *waveform ) ) {
+                
+                boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
+                path /= "data";
+                path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+                if ( ! boost::filesystem::exists( path ) ) {
+                    boost::system::error_code ec;
+                    boost::filesystem::create_directories( path, ec );
+                }
+                path /= "ap240.adfs";
+                std::wstring title = ( boost::wformat( L"Spectrum %1%" ) % waveform->serialnumber_ ).str();
+                std::wstring folderId;
+                if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
+                    auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+                    for ( auto handler: vec )
+                        handler->folium_added( path.string().c_str(), "/Processed/Spectra", QString::fromStdWString( folderId ) );
+                }
             }
         }
     }

@@ -44,8 +44,9 @@ using namespace ap240;
 WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
                                              , spw_( new adplot::SpectrumWidget )
                                              , tpw_( new adplot::ChromatogramWidget )
-                                             , tp_( std::make_shared< adcontrols::Trace >() )
 {
+    for ( auto& tp: tp_ )
+        tp = std::make_shared< adcontrols::Trace >();
     init();
 }
 
@@ -69,8 +70,15 @@ WaveformWnd::init()
     } while(0);
 
     spw_->setAxisTitle( QwtPlot::yLeft, tr( "mV" ) );
+    spw_->enableAxis( QwtPlot::yRight, true );
+    spw_->setAxisTitle( QwtPlot::yRight, tr( "mV" ) );
+    
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
+
+    tpw_->setAxisTitle( QwtPlot::yLeft, tr( "mV" ) );
+    tpw_->setAxisTitle( QwtPlot::yRight, tr( "mV" ) );
+    spw_->enableAxis( QwtPlot::yRight, true );
 
     QBoxLayout * layout = new QVBoxLayout( this );
     layout->setMargin( 0 );
@@ -92,45 +100,54 @@ WaveformWnd::onInitialUpdate()
 void
 WaveformWnd::handle_waveform()
 {
-    if ( auto waveform = document::instance()->findWaveform() ) {
-        double dbase(0), rms(0);
-        double timestamp = waveform->meta_.initialXTimeSeconds;
+    auto pair = document::instance()->findWaveform();
 
-        sp_ = std::make_shared< adcontrols::MassSpectrum >();
-		sp_->setCentroid( adcontrols::CentroidNone );
-        sp_->resize( waveform->size() );
-        if ( waveform->meta_.dataType == 1 ) {
-            size_t idx = 0;
-            for ( auto it = waveform->begin<int8_t>(); it != waveform->end<int8_t>(); ++it )
-                sp_->setIntensity( idx++, waveform->toVolts( *it ) * 1000.0 ); // mV
+    for ( auto waveform: { pair.first, pair.second } ) {
+        if ( waveform ) {
+            
+            double dbase(0), rms(0);
+            double timestamp = waveform->meta_.initialXTimeSeconds;
+            int channel = waveform->meta_.channel - 1;
+            if ( channel > 2 )
+                continue; // this should not be happend.
+            
+            sp_[ channel ] = std::make_shared< adcontrols::MassSpectrum >();
+            auto sp = sp_[ channel ];
+            auto tp = tp_[ channel ];
+            
+            sp->setCentroid( adcontrols::CentroidNone );
+            sp->resize( waveform->size() );
+            if ( waveform->meta_.dataType == 1 ) {
+                size_t idx = 0;
+                for ( auto it = waveform->begin<int8_t>(); it != waveform->end<int8_t>(); ++it )
+                    sp->setIntensity( idx++, waveform->toVolts( *it ) * 1000.0 ); // mV
+            }
+            
+            adcontrols::MSProperty prop = sp->getMSProperty();
+            adcontrols::MSProperty::SamplingInfo info( 0
+                                                       , uint32_t( waveform->meta_.initialXOffset / waveform->meta_.xIncrement + 0.5 )
+                                                       , uint32_t( waveform->size() )
+                                                       , waveform->meta_.actualAverages
+                                                       , 0 );
+            info.fSampInterval( waveform->meta_.xIncrement );
+            info.horPos( waveform->meta_.horPos );
+            
+            prop.acceleratorVoltage( 3000 );
+            prop.setSamplingInfo( info );
+            using namespace adcontrols::metric;
+            prop.setTimeSinceInjection( timestamp ); // seconds
+            prop.setDataInterpreterClsid( "ap240" );
+            sp->setMSProperty( prop );
+            
+            double tic = adportable::spectrum_processor::tic( sp->size(), sp->getIntensityArray(), dbase, rms );
+            tp->push_back( waveform->serialnumber_, timestamp, tic );
+            tpw_->setData( *tp, channel, channel );
+            
+            // prop.setDeviceData(); TBA
+            spw_->setData( sp, channel, channel );
+            spw_->setKeepZoomed( true );
+            spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f %gmV" )
+                              % waveform->meta_.initialXTimeSeconds % rms % tic ).str() );
         }
-
-        adcontrols::MSProperty prop = sp_->getMSProperty();
-		adcontrols::MSProperty::SamplingInfo info( 0
-                                                   , uint32_t( waveform->meta_.initialXOffset / waveform->meta_.xIncrement + 0.5 )
-                                                   , uint32_t( waveform->size() )
-                                                   , waveform->meta_.actualAverages
-                                                   , 0 );
-        info.fSampInterval( waveform->meta_.xIncrement );
-        info.horPos( waveform->meta_.horPos );
-
-        prop.acceleratorVoltage( 3000 );
-		prop.setSamplingInfo( info );
-        using namespace adcontrols::metric;
-        prop.setTimeSinceInjection( timestamp ); // seconds
-        prop.setDataInterpreterClsid( "ap240" );
-        sp_->setMSProperty( prop );
-
-        do {
-            double tic = adportable::spectrum_processor::tic( sp_->size(), sp_->getIntensityArray(), dbase, rms );
-
-			tp_->push_back( waveform->serialnumber_, timestamp, tic );
-            tpw_->setData( *tp_ );
-        } while(0);
-        
-        // prop.setDeviceData(); TBA
-        spw_->setData( sp_, waveform->meta_.channel - 1 );
-        spw_->setKeepZoomed( true );
-        spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f" ) % waveform->meta_.initialXTimeSeconds % rms ).str() );
     }
 }
