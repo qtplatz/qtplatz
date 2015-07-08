@@ -131,6 +131,24 @@ WaveformWnd::handle_waveform()
                                                        , 0 );
             info.fSampInterval( waveform->meta_.xIncrement );
             info.horPos( waveform->meta_.horPos );
+
+            double level = document::instance()->threshold( channel ) * 1000; // mV
+            const double * p = sp->getIntensityArray();
+            bool flag = level < (*p);
+            int stage = 0;
+            std::array< size_t, 2 > th = { 0, 0 };
+            for ( auto it = p; it != p + sp->size(); ++it ) {
+                if ( ( level < *it ) != flag ) {
+                    flag = !flag;
+                    th[ stage++ ] = it - p;
+                    if ( stage >= th.size() )
+                        break;
+                }
+            }
+
+            double t0 = sp->getTime( th[0] ) * 1.0e6;
+            double t1 = sp->getTime( th[1] ) * 1.0e6;
+            std::cout << boost::format( "cross section[%.1f]: %.7f, %.7f" ) % level % t0 % t1 << std::endl;
             
             prop.acceleratorVoltage( 3000 );
             prop.setSamplingInfo( info );
@@ -146,8 +164,8 @@ WaveformWnd::handle_waveform()
             // prop.setDeviceData(); TBA
             spw_->setData( sp, channel, channel );
             spw_->setKeepZoomed( true );
-            spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f %gmV" )
-                              % waveform->meta_.initialXTimeSeconds % rms % tic ).str() );
+            spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f %5.1fmV   level: %.1f=[%d],[%d]" )
+                              % waveform->meta_.initialXTimeSeconds % rms % tic % level % th[0] % th[1]).str() );
         }
     }
 }
