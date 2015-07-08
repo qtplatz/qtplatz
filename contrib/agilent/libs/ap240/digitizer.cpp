@@ -179,8 +179,8 @@ namespace ap240 {
             static bool waitForEndOfAcquisition( task&, int timeout );
             static bool readData( task&, waveform&, const method&, int channel );
         private:
-            static bool averager_setup( task&, const method& );
-            static bool digitizer_setup( task&, const method& );
+            static bool averager_setup( task&, method& );
+            static bool digitizer_setup( task&, method& );
 
             template<typename T, typename SegmentDescriptor> static bool
             readData( ViSession inst, const method& m, int channel
@@ -260,7 +260,9 @@ digitizer::peripheral_terminate()
 bool
 digitizer::peripheral_prepare_for_run( const ap240::method& m )
 {
-    return task::instance()->prepare_for_run( m );
+    if ( task::instance()->inst() > 0 )
+        return task::instance()->prepare_for_run( m );
+    return false;
 }
 
 bool
@@ -358,6 +360,9 @@ task::initialize()
 bool
 task::prepare_for_run( const ap240::method& m )
 {
+    if ( inst_ < 0 )
+        return false;
+    
     io_service_.post( strand_.wrap( [&] { handle_prepare_for_run(m); } ) );
     
     if ( acquire_post_count_ == 0 ) {
@@ -486,6 +491,7 @@ task::handle_acquire()
                         }
                     }
                 }
+
                 if ( method_.channels_ & 0x02 ) {
                     auto avgr = std::make_shared< waveform >( ident_ );
                     if ( readData( *avgr, 2 ) ) {
@@ -505,13 +511,16 @@ task::handle_acquire()
             } else {
                 reply( "acquire", "timed out" );
             }
+            
+            ++acquire_post_count_;
+            io_service_.post( strand_.wrap( [=] { handle_acquire(); } ) );    // scedule for next acquire    
+
         } while ( retry-- );
+        
         reply( "acquire", "timed out, stop acquisition" );
         AcqrsD1_stopAcquisition( inst_ );
     }
 
-    ++acquire_post_count_;
-    io_service_.post( strand_.wrap( [=] { handle_acquire(); } ) );    // scedule for next acquire    
     return false;
 }
 
@@ -595,9 +604,8 @@ device_ap240::initial_setup( task& task, method& m )
 
     auto inst_ = task.inst();
 
-    if ( m.channels_ == 03 && m.hor_.sampInterval < 0.51e-9 ) { // if 2ch acquisition, 
+    if ( ( ( m.channels_ & 03 ) == 03 ) && ( m.hor_.sampInterval < 0.51e-9 ) ) { // if 2ch acquisition, 
         m.hor_.sampInterval = 1.0e-9;
-        // std::cout << "### sampInterval adjusted to: " << m.hor_.sampInterval << std::endl;
     }
 
     if ( m.hor_.mode == 0 ) {
@@ -622,7 +630,7 @@ device_ap240::initial_setup( task& task, method& m )
                                        , m.trig_.trigLevel2 );
     task::checkError( inst_, status, "AcqrsD1_configTrigSource", __LINE__  );
 
-    typedef std::pair< ViInt32, const method::vertical_method& > channel_method;
+    typedef std::pair< ViInt32, method::vertical_method& > channel_method;
 
     // vertical setup
     for ( auto& ch: { channel_method( -1, m.ext_ ), channel_method( 1, m.ch1_ ), channel_method( 2, m.ch2_ ) } ) {
@@ -633,7 +641,16 @@ device_ap240::initial_setup( task& task, method& m )
                                          , ch.second.offset // m.ext_trigger_offset // 0.0 
                                          , ch.second.coupling   // DC 50ohm
                                          , ch.second.bandwidth ); // ext_trigger_bandwidth /* 700MHz */);
-        task::checkError( inst_, status, "configVertical", __LINE__ );
+        if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
+            ViReal64 fullScale, offset; ViInt32 coupling, bandwidth;
+            if ( AcqrsD1_getVertical( inst_, ch.first, &fullScale, &offset, &coupling, &bandwidth ) == VI_SUCCESS ) {
+                ch.second.fullScale = fullScale;
+                ch.second.offset = offset;
+                std::cerr << "fullscale: " << fullScale << " <= " << ch.second.fullScale << std::endl;
+                std::cerr << "offset:    " << offset << " <= " << ch.second.offset << std::endl;
+            }
+        } else
+            task::checkError( inst_, status, "configVertical", __LINE__ );
     }
 
     // channels configuration
@@ -675,7 +692,7 @@ device_ap240::initial_setup( task& task, method& m )
 }
 
 bool
-device_ap240::digitizer_setup( task& task, const method& m )
+device_ap240::digitizer_setup( task& task, method& m )
 {
     assert( m.hor_.mode == 0 );
     
@@ -686,7 +703,14 @@ device_ap240::digitizer_setup( task& task, const method& m )
     task::checkError( inst, status, "AcqrsD1_configHorizontal", __LINE__  );
 
     status = AcqrsD1_configMemory( inst, m.hor_.nbrSamples, nbrSegments );
-    task::checkError( inst, status, "configMemory", __LINE__ );
+    if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
+        task::checkError( inst, status, "configMemory", __LINE__ );
+        ViInt32 nbrSamples, nSegments;
+        if ( AcqrsD1_getMemory( inst, &nbrSamples, &nSegments ) == VI_SUCCESS ) {
+            m.hor_.nbrSamples = nbrSamples;
+        }
+    } else 
+        task::checkError( inst, status, "configMemory", __LINE__ );
     
     status = AcqrsD1_configMode( inst, m.hor_.mode, 0, m.hor_.flags ); // 2 := averaging mode, 0 := normal data acq.
     task::checkError( inst, status, "AcqrsD1_configMode", __LINE__  );
@@ -701,7 +725,7 @@ device_ap240::digitizer_setup( task& task, const method& m )
 }
 
 bool
-device_ap240::averager_setup( task& task, const method& m )
+device_ap240::averager_setup( task& task, method& m )
 {
     // averager mode
     assert( m.hor_.mode == 2 );

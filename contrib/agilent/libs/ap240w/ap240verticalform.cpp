@@ -27,18 +27,23 @@
 #include <ap240/digitizer.hpp>
 #include <QSignalBlocker>
 
+static const std::vector< double > fullScaleList = { 5.0, 2.0, 1.0, 0.5, 0.2, 0.1, 0.05 };
+
 ap240VerticalForm::ap240VerticalForm(QWidget *parent) :  QWidget(parent)
                                                       , ui(new Ui::ap240verticalform)
                                                       , channel_( 0 )
 {
     ui->setupUi(this);
 
-    connect( ui->doubleSpinBox_2, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this](double d){
-            emit valueChanged( idFullScale, channel_, QVariant(d) );
-        });
     connect( ui->doubleSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this](double d){
             emit valueChanged( idOffset, channel_, QVariant(d) );
         });
+
+    connect( ui->comboBox_3, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
+            if ( index < fullScaleList.size() )
+                emit valueChanged( idFullScale, channel_, QVariant( fullScaleList[ index ] ) );
+        });    
+    
     connect( ui->comboBox_2, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
             emit valueChanged( idCoupling, channel_, QVariant(index) );
         });    
@@ -76,7 +81,11 @@ ap240VerticalForm::set( const ap240::method& m )
 
     const ap240::method::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
 
-    ui->doubleSpinBox_2->setValue( t.fullScale );
+    auto it = std::lower_bound( fullScaleList.begin(), fullScaleList.end(), t.fullScale
+                                , [](double a, double b){ return b < a;} ); // reverse order
+    auto index = std::distance( fullScaleList.begin(), it );
+
+    ui->comboBox_3->setCurrentIndex( int( index ) );
     ui->doubleSpinBox->setValue( t.offset );
     ui->comboBox_2->setCurrentIndex( t.coupling );
     ui->comboBox->setCurrentIndex( t.bandwidth );
@@ -88,7 +97,7 @@ ap240VerticalForm::get( ap240::method& m ) const
 {
     ap240::method::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
 
-    t.fullScale = ui->doubleSpinBox_2->value();
+    t.fullScale = fullScaleList.at( ui->comboBox_3->currentIndex() );
     t.offset = ui->doubleSpinBox->value();
     t.coupling = ui->comboBox_2->currentIndex();
     t.bandwidth = ui->comboBox->currentIndex();

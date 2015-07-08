@@ -122,7 +122,13 @@ MainWindow::createDockWidgets()
 {
     auto widget = new ap240form();
     createDockWidget( widget, "AP240", "AP240" );
-
+    connect( widget, &ap240form::valueChanged, [this]( ap240form::idCategory, int, int, const QVariant& ){
+            if ( auto form = findChild< ap240form * >() ) {
+                ap240::method m;
+                form->get( m );
+                document::instance()->setControlMethod( m, QString() );
+            }
+        });
 }
 
 void

@@ -399,6 +399,7 @@ document::setControlMethod( const ap240::method& m, const QString& filename )
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
         method_ = std::make_shared< ap240::method >( m );
+        digitizer_->peripheral_prepare_for_run( m );
     } while(0);
 
     if ( ! filename.isEmpty() ) {
