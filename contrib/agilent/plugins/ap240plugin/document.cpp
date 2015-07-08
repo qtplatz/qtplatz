@@ -91,7 +91,7 @@ namespace ap240 {
 
         void run() {
             if ( threads_.empty() )
-                threads_.push_back( adportable::asio::thread( [this]{ worker(); } ) );
+                threads_.push_back( adportable::asio::thread( [this] { worker(); } ) );
         }
         
         void stop() {
@@ -103,6 +103,7 @@ namespace ap240 {
         
         void worker() {
             while( true ) {
+
                 sema_.wait();
 
                 if ( worker_stop_ )
@@ -205,7 +206,11 @@ document::waveform_handler( const waveform * ch1, const waveform * ch2, ap240::m
 {
     auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
 
-    std::lock_guard< std::mutex > lock( mutex_ );    
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    while ( impl_->que_.size() > 512 )
+        impl_->que_.pop_front();
+
     impl_->que_.push_back( pair );
     impl_->sema_.signal();
 

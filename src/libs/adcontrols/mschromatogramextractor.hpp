@@ -43,8 +43,10 @@ namespace adcontrols {
     class ProcessMethod;
 
     class ADCONTROLSSHARED_EXPORT MSChromatogramExtractor {
+
         MSChromatogramExtractor( const MSChromatogramExtractor& ) = delete;
         MSChromatogramExtractor& operator = ( const MSChromatogramExtractor& ) = delete;
+
     public:
         ~MSChromatogramExtractor();
         MSChromatogramExtractor( const adcontrols::LCMSDataset * );

@@ -32,7 +32,9 @@ set( ${PROJECT_NAME}_SOURCES
   ap240triggerform.cpp
   ap240triggerform.hpp
   ap240verticalform.cpp
-  ap240verticalform.cpp
+  ap240verticalform.hpp
+  findslopeform.cpp
+  findslopeform.hpp
 )
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )
