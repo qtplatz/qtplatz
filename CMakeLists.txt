@@ -16,8 +16,9 @@ else()
   set( CMAKE_INSTALL_PREFIX "/usr/local/qtplatz" )  
 endif()
 
-set(QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
-set(QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
+set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
+set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
+set( CMAKE_BUILD_TYPE Release )
 
 # cofigure boost & compiler
 include (qtplatz.cmake)

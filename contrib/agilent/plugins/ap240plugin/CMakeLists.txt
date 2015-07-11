@@ -6,7 +6,7 @@ project( ap240plugin )
 set( PROVIDER MS-Cheminformatics )
 
 #QT += core svg printsupport widgets
-find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Script Network PrintSupport )
+find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
 find_package( qwt )
 find_package( ace+tao )
 find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization )

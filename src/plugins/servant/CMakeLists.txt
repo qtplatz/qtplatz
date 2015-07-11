@@ -5,7 +5,7 @@ project( servant )
 
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets Network Script Sql PrintSupport )
+find_package( Qt5 CONFIG REQUIRED Core Widgets Network Sql PrintSupport )
 
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/MS-Chrminformatics ) #plugins
 

@@ -25,7 +25,7 @@ execute_process( COMMAND xmlpatterns -no-format
   ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
   )
 
-find_package( Qt5 CONFIG REQUIRED PrintSupport Network Script Sql Widgets Gui Core )
+find_package( Qt5 CONFIG REQUIRED PrintSupport Network Sql Widgets Gui Core )
 
 add_definitions(  -DCORE_LIBRARY )
 
