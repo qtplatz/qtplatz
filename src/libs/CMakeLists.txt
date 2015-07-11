@@ -40,6 +40,6 @@ if ( Qt5_FOUND )
 
 endif()
 
-if ( rdkit_DIR )
+if ( RDKIT_FOUND )
   add_subdirectory (adchem)
 endif()

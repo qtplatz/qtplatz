@@ -24,9 +24,9 @@ while [ $# -gt 0 ]; do
 done
 
 if [ $build_debug = true ]; then
-    build_dir=$build_root/build-qtplatz-$cross_target-debug
+    build_dir=$build_root/build-qtplatz-$cross_target.debug
 else
-    build_dir=build
+    build_dir=$build_root/build-qtplatz-$cross_target.release
 fi
 
 mkdir -p $build_dir

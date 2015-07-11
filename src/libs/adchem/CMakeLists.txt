@@ -6,9 +6,9 @@ cmake_policy( SET CMP0022 NEW )
 add_definitions( -DADCHEM_LIBRARY )
 
 find_package( Boost REQUIRED COMPONENTS system )
+find_package( rdkit )
 
-include_directories( ${RDKit_INCLUDE_DIRS} )
-link_directories( ${rdkit_DIR} )
+include_directories( ${RDKIT_INCLUDE_DIRS} )
 
 add_library( adchem SHARED
   adchem.cpp
@@ -16,19 +16,12 @@ add_library( adchem SHARED
   molfile.cpp
   drawing.cpp
   molecule.cpp
-)
+  )
 
-target_link_libraries( adchem LINK_PUBLIC 
-  FileParsers
-  GraphMol
-  SmilesParse
-  RDGeneral
-  RDGeometryLib
-  SubstructMatch
-  Depictor
-  Descriptors
-  adportable
-  ${Boost_LIBRARIES} )
+target_link_libraries( adchem LINK_PUBLIC
+  ${RDKIT_LIBRARIES}
+  ${Boost_LIBRARIES}
+  )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

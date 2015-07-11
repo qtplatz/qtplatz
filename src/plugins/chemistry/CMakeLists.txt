@@ -38,7 +38,7 @@ add_definitions(
 
 include_directories(
   ${QWT_INCLUDE_DIRS}
-  ${RDKit_INCLUDE_DIRS}
+  ${RDKIT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${Qt5Core_INCLUDE_DIRS}
   ${Qt5Svg_INCLUDE_DIRS}  

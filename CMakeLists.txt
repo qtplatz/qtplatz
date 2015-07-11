@@ -107,35 +107,13 @@ if ( Qt5_FOUND )
 endif()
 
 find_package( rdkit QUIET )
-if ( rdkit_FOUND )
+if ( RDKIT_FOUND )
   message( "#### RDKit Found #####" )        
 endif()
 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
-if ( NOT WIN32 )
-  if ( Linux )
-    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
-  endif()
-endif()
-
 add_definitions(-DUNICODE -D_UNICODE)
-
-if (MSVC)
-  add_definitions( -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS )
-  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has native C++11 support.")
-else()
-  include(CheckCXXCompilerFlag)
-  CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-  
-  if(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  elseif(COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  else()
-    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-  endif()
-endif()
 
 if ( WIN32 )
   set(CMAKE_DEBUG_POSTFIX "d")
@@ -146,9 +124,11 @@ if ( WIN32 )
 endif()
 
 if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+
   set( CPACK_GENERATOR "DEB" )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
   set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/postinst" )  
+
   if ( RTC_ARCH_ARM )
     set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
   endif()
