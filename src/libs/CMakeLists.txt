@@ -26,15 +26,9 @@ if ( Qt5_FOUND )
   if ( NOT QTPLATZ_CORELIB_ONLY )
 
     add_subdirectory (adextension)
-    
-    find_package( Qt5 COMPONENTS Script QUIET )
-    
-    if ( Qt5Script_FOUND )
-      add_subdirectory (extensionsystem)
-      add_subdirectory (utils)
-    endif()
-    
-    add_subdirectory (aggregation)
+    add_subdirectory (aggregation)    
+    add_subdirectory (extensionsystem)
+    add_subdirectory (utils)
     
     find_package( Qt5 COMPONENTS XmlPatterns QUIET )
     

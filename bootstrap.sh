@@ -26,7 +26,7 @@ done
 if [ $build_debug = true ]; then
     build_dir=$build_root/build-qtplatz-$cross_target-debug
 else
-    build_dir=$build_root/build-qtplatz-$cross_target-release
+    build_dir=build
 fi
 
 mkdir -p $build_dir

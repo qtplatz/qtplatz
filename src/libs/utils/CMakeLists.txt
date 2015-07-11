@@ -11,12 +11,14 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 #find_package( Qt5 REQUIRED Widgets Gui Network Core Script PrintSupport )
-find_package( Qt5 REQUIRED Widgets Gui Network Core Script PrintSupport )
+find_package( Qt5 REQUIRED Widgets Gui Network Core PrintSupport )
+
 include_directories(
   ${Qt5Network_INCLUDE_DIRS}
   ${Qt5Script_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   )
+
 add_definitions(-DQTCREATOR_UTILS_LIB)
 
 if (WIN32)
@@ -99,7 +101,7 @@ set( utils_SOURCES
      networkaccessmanager.cpp
      persistentsettings.cpp
      completingtextedit.cpp
-     json.cpp
+#     json.cpp
      portlist.cpp
 #     tcpportsgatherer.cpp
      appmainwindow.cpp
@@ -127,7 +129,6 @@ add_library(
 
 target_link_libraries(
   utils LINK_PUBLIC
-  Qt5::Script
   Qt5::Widgets
   Qt5::Network
   Qt5::PrintSupport

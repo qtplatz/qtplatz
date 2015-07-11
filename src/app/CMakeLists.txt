@@ -15,6 +15,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/shared/qtsingleapplication
   ${CMAKE_SOURCE_DIR}/src/shared/qtlockedfile
   ${CMAKE_SOURCE_DIR}/src
+  ${Qt5Widgets_INCLUDE_DIRS}  
   ${Qt5Network_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
   )
