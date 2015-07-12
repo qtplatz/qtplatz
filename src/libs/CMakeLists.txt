@@ -20,11 +20,10 @@ if ( Qt5_FOUND )
   
   add_subdirectory (qtwrapper)
   add_subdirectory (adwidgets)
-  add_subdirectory (adplot)
   add_subdirectory (adplugin_manager)
   
-  if ( NOT QTPLATZ_CORELIB_ONLY )
-
+  if ( NOT QTPLATZ_CORELIB_ONLY )  
+    add_subdirectory (adplot)  # this raize gcc internal compiler error at qwt header
     add_subdirectory (adextension)
     add_subdirectory (aggregation)    
     add_subdirectory (extensionsystem)

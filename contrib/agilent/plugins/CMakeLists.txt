@@ -1,6 +1,9 @@
 
-if ( WIN32 )
-  add_subdirectory( u5303aplugin )
-endif()
+if ( NOT QTPLATZ_CORELIB_ONLY )
 
-add_subdirectory( ap240plugin )
+  if ( WIN32 )
+    add_subdirectory( u5303aplugin )
+  endif()
+  add_subdirectory( ap240plugin )
+
+endif()

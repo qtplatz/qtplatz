@@ -99,11 +99,9 @@ include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs 
 
 find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
 if ( Qt5_FOUND )
-  message( "## Qt5 Found @ " ${Qt5_DIR} " #####" )      
-  find_package( qwt QUIET )
-  if ( qwt_FOUND )
-    message( "#### QWT Found #####" )      
-  endif()
+  message( STATUS "## Qt5 Found @ " ${Qt5_DIR} " #####" )      
+  find_package( qwt )
+  message( STATUS "## QWT: " ${qwt_DIR} )
 endif()
 
 find_package( rdkit QUIET )
