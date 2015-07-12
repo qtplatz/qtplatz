@@ -1,14 +1,13 @@
 #!/bin/sh
 
 arch=`arch`
+source_dir=`pwd`
+build_debug=false
+build_root=..
+
 if [ -z $cross_target ]; then
     cross_target=$arch
 fi
-
-source_dir=`pwd`
-
-build_debug=false
-build_root=..
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -24,9 +23,9 @@ while [ $# -gt 0 ]; do
 done
 
 if [ $build_debug = true ]; then
-    build_dir=$build_root/build-qtplatz-$cross_target.debug
+    build_dir=$build_root/build/qtplatz-$cross_target.debug
 else
-    build_dir=$build_root/build-qtplatz-$cross_target.release
+    build_dir=$build_root/build/qtplatz-$cross_target.release
 fi
 
 mkdir -p $build_dir

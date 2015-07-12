@@ -8,8 +8,6 @@ set( PROVIDER MS-Cheminformatics )
 find_package( Qt5 CONFIG REQUIRED Core Network Widgets Svg Sql PrintSupport )
 find_package( rdkit )
 
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/MS-Chrminformatics ) #plugins
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
