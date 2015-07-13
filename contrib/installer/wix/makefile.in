@@ -12,10 +12,11 @@ TOP    	= ..
 BUILD = release_build
 MSIFILE = @MSIFILE@
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
-QTPLATZ_BINARY_DIR = @QTPLATZ_SOURCE_DIR@\$(BUILD)
+QTPLATZ_BINARY_DIR = @QTPLATZ_BINARY_DIR@
 
 INFITOF_SOURCE_DIR = @INFITOF_SOURCE_DIR@
-INFITOF_BINARY_DIR = @INFITOF_SOURCE_DIR@\$(BUILD)
+INFITOF_BINARY_DIR = @INFITOF_BINARY_DIR@
+
 STAGEDIR = @STAGEDIR@
 
 CANDLE = "$(WIX)bin\Candle.exe"
@@ -66,14 +67,14 @@ veryclean: clean
 qtplatz:
 	-@$(MD) $(QTPLATZ_BINARY_DIR)
 	cd $(QTPLATZ_BINARY_DIR)
-	cmake -G "Visual Studio 12 Win64" ..
+	cmake -G "Visual Studio 12 Win64" $(QTPLATZ_SOURCE_DIR)
 	cd $(MAKEDIR)
 	msbuild $(QTPLATZ_BINARY_DIR)\qtplatz.sln /m /t:Build /p:Configuration=Release
 
 infitof:
 	-@$(MD) $(INFITOF_BINARY_DIR)
 	cd $(INFITOF_BINARY_DIR)
-	cmake -G "Visual Studio 12 Win64" -DDESTDIR:STRING=$(QTPLATZ_BINARY_DIR) ..
+	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_BUILD_DIR=$(QTPLATZ_BINARY_DIR) $(INFITOF_SOURCE_DIR)
 	cd $(MAKEDIR)
 	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
 

@@ -3,14 +3,14 @@ cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
 set( eventtool_SOURCES 
-	    document.cpp
-	    document.hpp
-	    main.cpp
-	    mainwindow.cpp
-	    mainwindow.hpp
-	    eventform.cpp
-	    eventform.hpp
-	    )
+  document.cpp
+  document.hpp
+  main.cpp
+  mainwindow.cpp
+  mainwindow.hpp
+  eventform.cpp
+  eventform.hpp
+  )
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -30,8 +30,9 @@ find_package(Boost COMPONENTS system )
 
 if ( WIN32 )
   add_executable( eventtool WIN32 ${eventtool_SOURCES} ${Resources} )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4800" )
 else()
-  add_executable( eventtool ${eventtool_SOURCES} ${Resources} )  
+  add_executable( eventtool ${eventtool_SOURCES} ${Resources} )
 endif()
 
 target_link_libraries( eventtool LINK_PUBLIC

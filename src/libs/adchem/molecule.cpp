@@ -24,6 +24,9 @@
 
 #include "molecule.hpp"
 
+#if defined _MSC_VER
+# pragma warning( disable:4267 4244 )
+#endif
 // #include <RDGeneral/Invariant.h>
 // #include <GraphMol/RDKitBase.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>

@@ -7,6 +7,7 @@ set( PROVIDER MS-Cheminformatics )
 
 find_package( Qt5 CONFIG REQUIRED Core Network Widgets Svg Sql PrintSupport )
 find_package( rdkit )
+find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -27,16 +28,17 @@ execute_process( COMMAND xmlpatterns -no-format
   ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
   )
 
-find_package( qwt )
+add_definitions( -DDATAPROC_LIBRARY  )
 
-add_definitions(
-  -DDATAPROC_LIBRARY
-  -D_SCL_SECURE_NO_WARNINGS
-  )
+if ( MSVC )
+  add_definitions(
+    -D_SCL_SECURE_NO_WARNINGS
+    ) 
+endif()
 
 include_directories(
   ${QWT_INCLUDE_DIRS}
-  ${RDKIT_INCLUDE_DIRS}
+  ${RDKit_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${Qt5Core_INCLUDE_DIRS}
   ${Qt5Svg_INCLUDE_DIRS}  
@@ -89,15 +91,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adplugin
   qtwrapper
   adprot
-  FileParsers
-  GraphMol
-  SmilesParse
-  RDGeneral
-  RDGeometryLib
-  SubstructMatch
-  Depictor
-  Descriptors
   Core
+  ${RDKIT_LIBRARIES}
   Qt5::Core
   Qt5::Svg
   ${Boost_LIBRARIES}

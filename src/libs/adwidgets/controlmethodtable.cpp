@@ -22,7 +22,6 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_dll_interface.h>
 #include "controlmethodtable.hpp"
 #include "controlmethodwidget.hpp"
 #include <adcontrols/controlmethod.hpp>

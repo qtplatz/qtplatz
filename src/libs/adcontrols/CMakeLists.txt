@@ -6,7 +6,10 @@ project( adcontrols )
 
 find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
 
-add_definitions(-DADCONTROLS_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
+add_definitions(-DADCONTROLS_LIBRARY)
+if ( MSVC )
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS)  
+endif()
 
 add_library( adcontrols SHARED
   acceptor.cpp 

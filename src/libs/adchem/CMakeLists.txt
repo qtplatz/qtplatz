@@ -4,11 +4,14 @@ project( adchem )
 cmake_policy( SET CMP0022 NEW )
 
 add_definitions( -DADCHEM_LIBRARY )
+if ( MSVC )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996" )
+endif()
 
 find_package( Boost REQUIRED COMPONENTS system )
 find_package( rdkit )
 
-include_directories( ${RDKIT_INCLUDE_DIRS} )
+include_directories( ${RDKit_INCLUDE_DIRS} )
 
 add_library( adchem SHARED
   adchem.cpp
@@ -19,6 +22,7 @@ add_library( adchem SHARED
   )
 
 target_link_libraries( adchem LINK_PUBLIC
+  adportable
   ${RDKIT_LIBRARIES}
   ${Boost_LIBRARIES}
   )

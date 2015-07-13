@@ -16,6 +16,10 @@ add_subdirectory (adorbmgr)
 add_subdirectory (adinterface)
 add_subdirectory (adplugin)
 
+if ( rdkit_FOUND )
+  add_subdirectory (adchem)
+endif()
+
 if ( Qt5_FOUND )
   
   add_subdirectory (qtwrapper)
@@ -39,6 +43,3 @@ if ( Qt5_FOUND )
 
 endif()
 
-if ( RDKIT_FOUND )
-  add_subdirectory (adchem)
-endif()

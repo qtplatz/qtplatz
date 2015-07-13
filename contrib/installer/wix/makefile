@@ -2,7 +2,7 @@
 ##################################################
 # Makefile for QtPlatz
 #
-# Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+# Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
 # Author: Toshinobu Hondo
 #
 ######################################
@@ -10,15 +10,14 @@ SH	= CMD.EXE
 TOP    	= ..
 
 BUILD = release_build
+MSIFILE = qtplatz-v3.1.4-472-gfd0cc13.msi
+QTPLATZ_SOURCE_DIR = C:\Users\Toshi\src\qtplatz
+QTPLATZ_BINARY_DIR = C:\Users\Toshi\src\build\qtplatz-x86_64.package\..\qtplatz-x86_64.package
 
-QTPLATZ_SOURCE_DIR = ..\..\..
-QTPLATZ_BINARY_DIR = $(QTPLATZ_SOURCE_DIR)\$(BUILD)
+INFITOF_SOURCE_DIR = C:\Users\Toshi\src\infitof
+INFITOF_BINARY_DIR = C:\Users\Toshi\src\build\qtplatz-x86_64.package\..\infitof-x86_64.package
 
-INFITOF_SOURCE_DIR = $(QTPLATZ_SOURCE_DIR)\..\infitof
-INFITOF_BINARY_DIR = $(INFITOF_SOURCE_DIR)\$(BUILD)
-
-MALPIX_SOURCE_DIR = $(QTPLATZ_SOURCE_DIR)\..\malpix
-MALPIX_BINARY_DIR = $(MALPIX_SOURCE_DIR)\$(BUILD)
+STAGEDIR = C:\Users\Toshi\src\build\qtplatz-x86_64.package\contrib\installer\wix\stage
 
 CANDLE = "$(WIX)bin\Candle.exe"
 LIGHT = "$(WIX)\bin\Light.exe"
@@ -34,31 +33,28 @@ PYRO = "$(WIX)\bin\Pyro.exe"
 RM	= $(SH) /c del
 CP	= $(SH) /c copy
 MD      = $(SH) /c mkdir
-STAGEDIR = .\stage
 
 OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj bruker.wixobj qtplatz_translations.wixobj \
 	qtplatz_xslt.wixobj qtplatz_plugins.wixobj qtplatz_bin.wixobj
 
-all: qtplatz.msi
+all: $(MSIFILE)
 
-infitof-world: qtplatz-cmake infitof-cmake qtplatz.msi
-malpix-world: qtplatz-cmake malpix qtplatz.msi
-world: qtplatz-cmake infitof-cmake malpix qtplatz.msi
+world: qtplatz infitof $(MSIFILE)
 
 help:
 	@echo "*	make world	will do full rebuild qtplatz, and generate .MSI setup"
 	@echo "*	make harvest	make translations; make qt; and make plugins' for update .wxi files from scratch"
 	@echo "*	make all	make .msi from existing binary"
 	@echo "*	make clean	cleans up current dir"
-	@echo "*	make veryclean	CAUTION this cleans all files according to git repository. == This makes a state just run git clone."
+	@echo "*	make veryclean	CAUTION this cleans all fules according to git repository. == This makes a state right after clean git clone."
 
 clean:
-	$(RM) /S /F /Q $(STAGEDIR)
-	$(RM) *.msi *.wixobj *.wixpdb version.wxi *.zip *.bat *.exe *.obj *~
+	$(RM) /S /F /Q
+	$(RM) *.msi *.wixobj *.wixpdb *.zip *.bat *.exe *.obj *~
 
 destclean:
-	-@$(RM) $(QTPLATZ_BINARY_DIR)
-	-@$(RM) $(INFITOF_BINARY_DIR)
+	-@rm -rf $(QTPLATZ_BINARY_DIR)
+	-@rm -rf $(INFITOF_BINARY_DIR)
 
 veryclean: clean
 	cd $(QTPLATZ_SOURCE_DIR)
@@ -67,50 +63,28 @@ veryclean: clean
 	cd $(INFITOF_SOURCE_DIR)
 	git clean -d -x -f
 	cd $(MAKEDIR)
-	cd $(MALPIX_SOURCE_DIR)
-	git clean -d -x -f
-	cd $(MAKEDIR)
 
-qtplatz-cmake:
-	-@$(RM) version.wxi
+qtplatz:
 	-@$(MD) $(QTPLATZ_BINARY_DIR)
 	cd $(QTPLATZ_BINARY_DIR)
-	cmake -G "Visual Studio 12 Win64" ..
+	cmake -G "Visual Studio 12 Win64" $(QTPLATZ_SOURCE_DIR)
 	cd $(MAKEDIR)
 	msbuild $(QTPLATZ_BINARY_DIR)\qtplatz.sln /m /t:Build /p:Configuration=Release
 
-infitof-cmake:
+infitof:
 	-@$(MD) $(INFITOF_BINARY_DIR)
 	cd $(INFITOF_BINARY_DIR)
-	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_BUILD_DIR=../qtplatz/$(BUILD) ..
+	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_BUILD_DIR=$(QTPLATZ_BINARY_DIR) $(INFITOF_SOURCE_DIR)
 	cd $(MAKEDIR)
 	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
 
-malpix:
-	cd $(MALPIX_SOURCE_DIR)
-	bootstrap $(BUILD)
-	cd $(MAKEDIR)
-	msbuild $(MALPIX_BINARY_DIR)\malpix.sln /m /t:Build /p:Configuration=Release
-
-version.exe: version.c
-	cl version.c
-
-version.wxi: version.exe ../../../.git
-	git describe | version > version.wxi
-
-rename.bat: version.exe
-	git describe | version -b > rename.bat
-
-qtplatz.msi: version.wxi $(OBJS)
-	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll $(OBJS) -o qtplatz.msi
-	rename.bat
-
-#signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
+$(MSIFILE): version.wxi $(OBJS)
+	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll $(OBJS) -o $@
 
 sign:
-	signtool sign /t http://timestamp.digicert.com /a qtplatz.msi
+	signtool sign /t http://timestamp.digicert.com /a $(MSIFILE)
 
-qtplatz.wixobj: version.wxi rename.bat qtplatz.wxs
+qtplatz.wixobj: version.wxi qtplatz.wxs
 	$(CANDLE) -dInfiTOFDir=$(INFITOF_SOURCE_DIR) -dTOP=$(QTPLATZ_SOURCE_DIR) qtplatz.wxs
 
 qtplatz_plugins.wixobj: qtplatz_plugins.wxi
@@ -140,7 +114,7 @@ vc120.wixobj: vc120.wxi
 bruker.wixobj: bruker.wxi 
 	$(CANDLE) -dSourceDir="$(QTPLATZ_SOURCE_DIR)\..\Bruker Daltonik\3.1.2" bruker.wxi
 
-harvest: copy_stage_files qt plugins translations qtplatz_translations bruker
+#harvest: qt plugins translations qtplatz_translations bruker
 
 qtplatz_plugins.wxi: makefile
 	$(HEAT) dir $(QTPLATZ_BINARY_DIR)\lib\qtplatz\plugins \
@@ -157,58 +131,32 @@ qtplatz_xslt.wxi: makefile
 	-dr XSLT -cg QtPlatzXSLT -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t xslt.xslt -o $@
 
-qtplatz_translations:
+qtplatz_translations.wxi: makefile
 	$(HEAT) dir $(QTPLATZ_BINARY_DIR)\share\qtplatz\translations \
 	-dr TRANSLATIONS -cg QtPlatzTranslations -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t qm.xslt -o qtplatz_translations.wxi
 
-translations:
+translations.wxi: makefile
 	$(HEAT) dir $(QTDIR)\translations \
 	-dr TRANSLATIONS -cg QtTranslations -sfrag -gg -g1 -sf -srd -var "var.QtTranslationsDir" \
 	-t x64transform.xslt -o translations.wxi
 
-plugins:
+plugins.wxi: makefile
 	$(HEAT) dir $(STAGEDIR)\plugins \
 	-dr PLUGINS -cg QtPluginsComponents -sfrag -gg -g1 -sf -srd -var "var.QtPluginsDir" \
 	-t x64transform.xslt -o plugins.wxi
 
-#qt:
-#	$(HEAT) dir $(STAGEDIR)\bin \
-#	-dr BIN -cg QtComponents -sfrag -gg -g1 -sf -srd -var "var.QtBinDir" \
-#	-t x64transform.xslt -o qt.wxi
-
-qt:
+qt.wxi: makefile
 	$(HEAT) dir $(QTDIR)\bin \
 	-dr BIN -cg QtComponents -sfrag -gg -g1 -sf -srd -var "var.QtBinDir" -t qt.xslt -o qt.wxi
 
-vc120:
+vc120.wxi: makefile
 	$(HEAT) dir "$(VCINSTALLDIR)redist\x64\Microsoft.VC120.CRT" \
 	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o vc120.wxi
 
-bruker:
+bruker.wxi: makefile
 	$(HEAT) dir "C:\Program Files (x86)\Bruker Daltonik\3.1.2" \
 	-dr LIB_BRUKER -cg BrukerComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o bruker.wxi
 
-copy_stage_files:
-	rm -rf $(STAGEDIR)
-	-@$(MD) $(STAGEDIR)\bin
-	-@$(MD) $(STAGEDIR)\plugins
-	-@$(MD) $(STAGEDIR)\plugins\imageformats
-	-@$(MD)	$(STAGEDIR)\plugins\platforms
-	-@$(MD)	$(STAGEDIR)\plugins\sqldrivers
-	$(CP) $(QTDIR)\plugins\imageformats\qdds.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qgif.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qicns.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qico.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qjp2.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qjpeg.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qmng.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qsvg.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qtga.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qtiff.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qwbmp.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\imageformats\qwebp.dll	$(STAGEDIR)\plugins\imageformats
-	$(CP) $(QTDIR)\plugins\platforms\qwindows.dll	$(STAGEDIR)\plugins\platforms
-	$(CP) $(QTDIR)\plugins\sqldrivers\qsqlite.dll	$(STAGEDIR)\plugins\sqldrivers

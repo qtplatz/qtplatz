@@ -2,20 +2,36 @@
 cmake_minimum_required(VERSION 2.8.11)
 project( wix_installer )
 
-find_path( INFITOF_SOURCE_DIR NAMES "infitof-config.cmake" HINTS ${QTPLATZ_SOURCE_DIR}/../infitof )
+set( QTPLATZ_BINARY_DIR "${CMAKE_BINARY_DIR}/../qtplatz-${arch_FOUND}.package" )
+
+find_path( INFITOF_SOURCE_DIR NAMES "infitof-config.cmake" HINTS ${CMAKE_SOURCE_DIR}/../infitof )
+if ( INFITOF_SOURCE_DIR )
+  set( INFITOF_BINARY_DIR "${CMAKE_BINARY_DIR}/../infitof-${arch_FOUND}.package" )
+endif()
 
 include( qtplatz-version )
 
 set( MSIFILE qtplatz-${git_describe}.msi )
 set( STAGEDIR ${PROJECT_BINARY_DIR}/stage )
 
-string( REGEX REPLACE "/" "\\\\" QTPLATZ_SOURCE_DIR ${QTPLATZ_SOURCE_DIR} )
+string( REGEX REPLACE "/" "\\\\" QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
+string( REGEX REPLACE "/" "\\\\" QTPLATZ_BINARY_DIR ${QTPLATZ_BINARY_DIR} )
+
 string( REGEX REPLACE "/" "\\\\" INFITOF_SOURCE_DIR ${INFITOF_SOURCE_DIR} )
+string( REGEX REPLACE "/" "\\\\" INFITOF_BINARY_DIR ${INFITOF_BINARY_DIR} )
+
 string( REGEX REPLACE "/" "\\\\" STAGEDIR ${STAGEDIR} )
   
 configure_file(
   "${PROJECT_SOURCE_DIR}/makefile.in"
   "${PROJECT_BINARY_DIR}/makefile"
+  @ONLY
+  )
+
+# for backward compatibility, makefile also generate in source dir
+configure_file(
+  "${PROJECT_SOURCE_DIR}/makefile.in"
+  "${PROJECT_SOURCE_DIR}/makefile"
   @ONLY
   )
 
@@ -49,8 +65,10 @@ configure_file(
   @ONLY
   )
 
-file( GLOB XSLTFILES ${PROJECT_SOURCE_DIR}/*.xsl )
+file( GLOB XSLTFILES ${PROJECT_SOURCE_DIR}/*.xslt )
 file( COPY ${XSLTFILES} DESTINATION ${PROJECT_BINARY_DIR} )
+
+find_package( Qt5 REQUIRED Gui Svg Sql )
 
 foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )
   get_target_property( _loc ${plugin} LOCATION )

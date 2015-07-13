@@ -15,15 +15,25 @@ if ( qwt_DIR )
   set( QWT_INCLUDE_DIR ${qwt_DIR}/include )
   set( QWT_INCLUDE_DIRS ${QWT_INCLUDE_DIR} )
 
-  find_library( QWT_LIBRARIES NAMES qwt HINTS ${qwt_DIR}/lib )
+  find_library( _release NAMES qwt HINTS ${qwt_DIR}/lib )
+  find_library( _debug NAMES qwtd HINTS ${qwt_DIR}/lib )  
 
-  if ( QWT_LIBRARIES )
-  
+  if ( _release AND _debug )
+    
+    set( QWT_LIBRARIES
+      debug ${_debug}
+      optimized ${_release} )
     set( qwt_FOUND 1 )
-    message( STATUS "qwt_DIR : " ${qwt_DIR} )
-    message( STATUS "QWT_LIBRARIES : " ${QWT_LIBRARIES} )
+
+  elseif( _release )
+
+    set( QWT_LIBRARIES ${_release} )
+    set( qwt_FOUND 1 )
 
   endif()
+
+  message( STATUS "qwt_DIR : " ${qwt_DIR} )
+  message( STATUS "QWT_LIBRARIES : " ${QWT_LIBRARIES} )
 
 else()
 
