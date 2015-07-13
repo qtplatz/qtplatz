@@ -49,8 +49,8 @@ help:
 	@echo "*	make veryclean	CAUTION this cleans all fules according to git repository. == This makes a state right after clean git clone."
 
 clean:
-	$(RM) /S /F /Q
-	$(RM) *.msi *.wixobj *.wixpdb *.zip *.bat *.exe *.obj *~
+	-@$(RM) /S /F /Q
+	-@$(RM) *.msi *.wixobj *.wixpdb *.zip *.bat *.exe *.obj *~
 
 destclean:
 	-@rm -rf $(QTPLATZ_BINARY_DIR)
@@ -58,10 +58,10 @@ destclean:
 
 veryclean: clean
 	cd $(QTPLATZ_SOURCE_DIR)
-	git clean -d -x -f
+	-@git clean -d -x -f
 	cd $(MAKEDIR)
 	cd $(INFITOF_SOURCE_DIR)
-	git clean -d -x -f
+	-@git clean -d -x -f
 	cd $(MAKEDIR)
 
 qtplatz:
