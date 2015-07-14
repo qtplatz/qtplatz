@@ -70,6 +70,7 @@ SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
     , stop_triggered_( false )
     , sampleRun_( run )
     , ctrl_method_( cmth )
+    , ts_inject_trigger_( 0 )
 {
 }
 
@@ -148,10 +149,12 @@ SampleProcessor::handle_data( unsigned long objId, long pos
                               , const SignalObserver::DataReadBuffer& rdBuf )
 {
     if ( rdBuf.events & SignalObserver::wkEvent_INJECT ) {
+        ts_inject_trigger_ = rdBuf.uptime;
         tp_inject_trigger_ = std::chrono::steady_clock::now(); // CAUTION: this has some unknown delay from exact trigger.
         if ( ! inProgress_ )
             Logging( L"Sample '%1%' got an INJECTION", EventLog::pri_INFO ) % storage_name_.wstring();
 		inProgress_ = true;
+        iTask::instance()->notify_inject( this, objId, pos, rdBuf.uptime );
     }
 
 	if ( ! inProgress_ ) 
@@ -180,11 +183,12 @@ SampleProcessor::handle_data( unsigned long objId, long pos
             Logging( L"Sample '%1%' %2% data behind.", EventLog::pri_INFO ) % storage_name_.stem() % nBehind;
     }
 
+    auto elapsed_count = rdBuf.uptime - ts_inject_trigger_;
     auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
     if ( objId == 1 )
         Logging( L"Elapsed time: %1%", EventLog::pri_INFO ) % double( elapsed_time.count() / 60.0 );
 
-    if ( elapsed_time.count() >= sampleRun_->methodTime() ) {
+    if ( elapsed_time.count() >= sampleRun_->methodTime() || double( elapsed_count ) * 1.0e-6 >= sampleRun_->methodTime() ) {
         inProgress_ = false;
         iTask::instance()->post_stop_run();
     }

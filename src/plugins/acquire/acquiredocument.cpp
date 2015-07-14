@@ -46,14 +46,102 @@
 #include <QFileInfo>
 #include <QSettings>
 #include <QMessageBox>
+#include <boost/date_time.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/date_time.hpp>
+#include <boost/msm/back/state_machine.hpp>
+#include <boost/msm/front/state_machine_def.hpp>
+#include <boost/msm/front/functor_row.hpp>
+#include <boost/msm/front/euml/common.hpp>
+#include <boost/msm/front/euml/operator.hpp>
+#include <boost/msm/front/euml/state_grammar.hpp>
 #include <atomic>
 
 namespace acquire {
+
+    namespace fsm {
+        // events
+        namespace msm = boost::msm;
+        namespace mpl = boost::mpl;
+        using boost::msm::front::Row;
+        using boost::msm::front::none;
+        
+        struct prepare {};
+        struct start_run {};
+        struct stop {};
+        struct inject {};
+
+        // front-end
+        struct acquire_ : public msm::front::state_machine_def< acquire_ > {
+            template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: peripheral"; }
+            template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: peripheral"; }
+
+            struct Empty : public msm::front::state<> {
+                // Empty method and sample
+                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: Empty"; }
+                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: Empty"; }
+            };
+            struct Preparing : public msm::front::state<> {
+                // Preparing state; we have a method and sample data to be processed.  Equilibrating instrument(s) for the method
+                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: Preparing"; }
+                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: Preparing"; }
+            };
+            struct Waiting : public msm::front::state<> {
+                // Instrument is waiting for inject trigger; This is actually a part of running state
+                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: WaitForContactClosure"; }
+                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: WaitForContactClosure"; }
+            };
+            struct Running : public msm::front::state<> {
+                // Method and sample is in progress
+                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: Running"; }
+                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: Running"; }
+            };
+            struct Dormant : public msm::front::state<> {
+                // Method and sample has been completed.  Keep instrument running at the last step of method
+                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: Dormant"; }
+                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: Dormant"; }
+            };
+
+            void action( prepare const& ) {}
+            void action( start_run const& ) {}
+            void action( stop const& ) {}
+            void action( inject const& ) {}
+
+            typedef acquire_ p;
+            // Transition table
+            struct transition_table : mpl::vector<
+                //    Start          Event         Next      Action				 Guard
+                //  +---------+-------------+---------+---------------------+----------------------+
+                // 0 = Empty
+                a_row < Empty,       prepare,   Preparing, &p::action >
+                // 1 = Preparing
+                , a_row < Preparing, start_run, Waiting,   &p::action >
+                , a_row < Preparing, stop,      Dormant,   &p::action >
+                , a_row < Preparing, inject,    Running,   &p::action >
+                // 2 = WaitingForContactClosure
+                , a_row < Waiting,   inject,    Running,   &p::action >
+                , a_row < Waiting,   stop,      Dormant,   &p::action >
+                // 3 = Running
+                , a_row < Running,   stop,      Dormant,   &p::action >
+                // 4 = Dormant
+                , a_row < Dormant,   stop,      Empty,     &p::action >
+                , a_row < Dormant,   prepare,   Preparing, &p::action >
+                , a_row < Dormant,   start_run, Waiting,   &p::action >
+                > {};
+            template<class FSM, class Event>
+            void no_transition( Event const& e, FSM&, int state ) {
+                ADDEBUG() << "no transition from state " << state << " on event " << typeid( e ).name();
+            }
+            typedef Empty initial_state;
+            internal::MainWindow * mainWindow_;
+        };
+        
+        // back-end
+        typedef msm::back::state_machine< acquire_ > acquire;
+        
+    } // namespace fsm
 
     struct user_preference {
         static boost::filesystem::path path( QSettings * settings ) {
@@ -62,53 +150,24 @@ namespace acquire {
         }
     };
 
-    class document::fsm : public adinterface::fsm::handler {
+    class document::impl {
     public:
-        adinterface::fsm::controller automaton_;
-        adinterface::instrument::eInstStatus instStatus_;
-
-        fsm() : automaton_( this )
-            , instStatus_( adinterface::instrument::eOff ) {
+        impl() {
+            fsm_.mainWindow_ = 0;
         }
 
-        // finite automaton handler
-        void handle_state( bool entering, adinterface::instrument::eInstStatus stat ) override {
-            if ( entering ) {
-                instStatus_ = stat;
-                emit document::instance()->instStateChanged( stat );
-            }
+        ~impl() {
         }
 
-        void action_on( const adinterface::fsm::onoff& ) override {
-            automaton_.process_event( adinterface::fsm::prepare( std::string() ) );
-            ADDEBUG() << "fsm action_on";
-        }
+        inline fsm::acquire& fsm() { return fsm_; }
 
-        void action_prepare_for_run( const adinterface::fsm::prepare& ) override {
-            ADDEBUG() << "fsm action_prepare_for_run";
+        void setMainWindow( internal::MainWindow * w ) {
+            fsm_.mainWindow_ = w;
         }
-
-        void action_start_run( const adinterface::fsm::run& ) override {
-            ADDEBUG() << "fsm action_start_run";
-        }
-
-        void action_stop_run( const adinterface::fsm::stop& ) override {
-            // stop current run
-            ADDEBUG() << "fsm action_stop_run";
-        }
-
-        void action_off( const adinterface::fsm::onoff& ) override {
-            ADDEBUG() << "fsm action_off";
-        }
-
-        void action_diagnostic( const adinterface::fsm::onoff& ) override {
-            ADDEBUG() << "fsm action_diagnostic";
-        }
-
-        void action_error_detected( const adinterface::fsm::error_detected& ) override {
-            ADDEBUG() << "fsm action_error_detected";
-        }
+    private:
+        fsm::acquire fsm_;
     };
+
 }
 
 using namespace acquire;
@@ -118,6 +177,7 @@ std::mutex document::mutex_;
 
 document::~document()
 {
+    delete impl_;
 }
 
 document::document(QObject *parent) : QObject(parent)
@@ -126,7 +186,7 @@ document::document(QObject *parent) : QObject(parent)
                                                                                 , QLatin1String( "acquire" ) ) )
                                     , cm_( std::make_shared< adcontrols::ControlMethod >() )
                                     , sampleRun_( std::make_shared< adcontrols::SampleRun >() )
-                                    , fsm_( new fsm() )
+                                    , impl_( new impl() )
 {
 }
 
@@ -257,7 +317,7 @@ document::setSampleRun( const adcontrols::SampleRun& m, const QString& filename 
         samplerun_filename_ = filename;
         qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_SEQUENCE_FILES, constants::KEY_FILES, filename );
     }
-    emit onSampleRunChanged( filename, QString::fromWCharArray( sampleRun_->dataDirectory() ) );
+    emit onSampleRunChanged( QString::fromWCharArray( sampleRun_->filePrefix() ), QString::fromWCharArray( sampleRun_->dataDirectory() ) );
 }
 
 QString
@@ -401,27 +461,50 @@ document::save( const QString& filename, const adcontrols::SampleRun& m )
 }
 
 void
-document::handleOnOff()
+document::fsmStart()
 {
-    //fsm_->automaton_.process_event( adinterface::fsm::onoff() );
+    impl_->fsm().start();
 }
 
 void
-document::handlePrepareForRun()
+document::fsmStop()
 {
-    //fsm_->automaton_.process_event( adinterface::fsm::prepare( std::string() ) );
+    impl_->fsm().start();
 }
 
 void
-document::handleRun()
+document::fsmSetMainWindow( internal::MainWindow * w )
 {
-    //fsm_->automaton_.process_event( adinterface::fsm::run() );
+    impl_->setMainWindow( w );
 }
 
 void
-document::handleStop()
+document::fsmActPrepareForRun()
 {
-    //fsm_->automaton_.process_event( adinterface::fsm::stop() );
+    adcontrols::SampleRun run;
+
+    if ( impl_->fsm().mainWindow_ && impl_->fsm().mainWindow_->getSampleRun( run ) )
+        setSampleRun( run, QString() );
+
+    impl_->fsm().process_event( fsm::prepare() );
+}
+
+void
+document::fsmActRun()
+{
+    impl_->fsm().process_event( fsm::start_run() );
+}
+
+void
+document::fsmActInject()
+{
+    impl_->fsm().process_event( fsm::inject() );
+}
+
+void
+document::fsmActStop()
+{
+    impl_->fsm().process_event( fsm::stop() );
 }
 
 // See also AcquirePlugin::handle_controller_message

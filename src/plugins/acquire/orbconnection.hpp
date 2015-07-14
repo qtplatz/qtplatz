@@ -29,11 +29,6 @@
 #include <deque>
 #include <map>
 
-// #include <adinterface/controlserverC.h>
-// #include <adinterface/signalobserverC.h>
-// #include <adinterface/receiverC.h>
-// #include <adplugin/orbservant.hpp>
-
 #include <workaround/boost/asio.hpp>
 
 #include <thread>

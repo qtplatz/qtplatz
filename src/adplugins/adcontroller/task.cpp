@@ -564,6 +564,12 @@ iTask::handle_event_out( unsigned long value )
 }
 
 void
+iTask::notify_inject( const SampleProcessor *, unsigned long objId, long pos, uint64_t usec )
+{
+    io_service_.post( [=] () { notify_message( Receiver::INJECT_IN, objId ); } );
+}
+
+void
 iTask::notify_message( unsigned long msgid, unsigned long value )
 {
     std::lock_guard< std::mutex > lock( mutex_ );    

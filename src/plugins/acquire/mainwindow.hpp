@@ -61,7 +61,7 @@ namespace acquire {  namespace internal {
             void eventLog( const QString& );
             void getControlMethod( adcontrols::ControlMethod& );
             void setControlMethod( const adcontrols::ControlMethod& );
-            void getSampleRun( adcontrols::SampleRun& );
+            bool getSampleRun( adcontrols::SampleRun& );
             void setSampleRun( const adcontrols::SampleRun& );
             //
         signals:

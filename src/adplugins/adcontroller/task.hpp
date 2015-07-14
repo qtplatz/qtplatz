@@ -117,6 +117,7 @@ namespace adcontroller {
         void handle_event_out( unsigned long value );
         void post_stop_run(); // <-- from sampleprocessor
         std::shared_ptr< const SampleProcessor > getCurrentSampleProcessor() const;
+        void notify_inject( const SampleProcessor *, unsigned long objId, long pos, uint64_t usec );
 	// 
     public:
         typedef std::shared_ptr< iProxy > iproxy_ptr;

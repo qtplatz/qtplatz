@@ -219,10 +219,11 @@ MainWindow::setSampleRun( const adcontrols::SampleRun& m )
     runEditor_->setSampleRun( m );
 }
 
-void
+bool
 MainWindow::getSampleRun( adcontrols::SampleRun& m )
 {
     runEditor_->getSampleRun( m );
+    return true;
 }
 
 

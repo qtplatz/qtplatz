@@ -301,8 +301,6 @@ AcquirePlugin::initialize_actions()
         cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, globalcontext );
         (void)cmd;
     }
-
-    connect( document::instance(), &document::requestCommitMethods, this, &AcquirePlugin::handleCommitMethods );
 }
 
 bool
@@ -352,6 +350,8 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     mainWindow_->setSimpleDockWidgetArrangement();
     addAutoReleasedObject(mode);
+
+    document::instance()->fsmSetMainWindow( mainWindow_ );
 
   return true;
 }
@@ -415,7 +415,7 @@ AcquirePlugin::actionConnect()
 
     if ( CORBA::is_nil( session_.in() ) ) { //&& !orbServants_.empty() ) {
 
-        Broker::Manager_var broker = OrbConnection::instance()->brokerManager(); // Broker::Manager::_narrow( orbServants_[ 0 ]->_this() );
+        Broker::Manager_var broker = OrbConnection::instance()->brokerManager();
         if ( ! CORBA::is_nil( broker ) ) {
             using namespace acewrapper::constants;
             CORBA::Object_var obj = broker->find_object( adcontroller::manager::_name() );
@@ -423,29 +423,27 @@ AcquirePlugin::actionConnect()
             if ( !CORBA::is_nil( manager ) ) {
                 session_ = manager->getSession( "acquire" );
                 if ( !CORBA::is_nil( session_.in() ) ) {
-                    
+
                     receiver_i_.reset( new receiver_i );
 
                     receiver_i_->assign_message( [this] ( ::Receiver::eINSTEVENT code, uint32_t value ){
-                            // this->handle_receiver_message( code, value ); } );
                             emit onReceiverMessage( static_cast<unsigned long>(code), value );                            
                         });
 
+                    receiver_i_->assign_log( [this] ( const ::EventLog::LogMessage& log ){ this->handle_receiver_log( log ); } );
 
-                    receiver_i_->assign_log( [=] ( const ::EventLog::LogMessage& log ){
-                        this->handle_receiver_log( log ); } );
+                    receiver_i_->assign_shutdown( [this](){ this->handle_receiver_shutdown(); } );
 
-                    receiver_i_->assign_shutdown( [=](){
-                        this->handle_receiver_shutdown(); } );
-
-                    receiver_i_->assign_debug_print( [=]( int32_t pri, int32_t cat, std::string text ){ 
-                        this->handle_receiver_debug_print( pri, cat, text ); } );
+                    receiver_i_->assign_debug_print( [this]( int32_t pri, int32_t cat, std::string text ){ 
+                            this->handle_receiver_debug_print( pri, cat, text ); } );
 
                     connect( this, &AcquirePlugin::onReceiverMessage, this, &AcquirePlugin::handle_controller_message );
                         
                     if ( session_->connect( receiver_i_->_this(), "acquire" ) )
                         actionConnect_->setEnabled( false );
-                        
+                    
+                    document::instance()->fsmStart(); // FSM start
+
                     if ( session_->status() <= ControlServer::eConfigured )
                         session_->initialize();
 
@@ -502,7 +500,7 @@ AcquirePlugin::actionConnect()
         actionRun_->setEnabled( true );
         ADTRACE() << "adcontroller status: " << session_->status();
 
-        document::instance()->handleOnOff(); // FSM
+        
     }
 }
 
@@ -538,7 +536,7 @@ AcquirePlugin::actionDisconnect()
         session_->disconnect( receiver_i_.get()->_this() );
         adorbmgr::orbmgr::deactivate( receiver_i_->_this() );
 
-        document::instance()->handleOnOff(); // FSM
+        document::instance()->fsmStop(); // FSM
     }
 }
     
@@ -549,7 +547,7 @@ AcquirePlugin::actionInitRun()
 
     if ( ! CORBA::is_nil( session_ ) ) {
 
-        document::instance()->handlePrepareForRun(); // FSM
+        document::instance()->fsmActPrepareForRun(); // FSM, update 'sampleRun' on document
         
         std::wostringstream os;
         adcontrols::SampleRun::xml_archive( os, *document::instance()->sampleRun() );
@@ -558,8 +556,6 @@ AcquirePlugin::actionInitRun()
         adinterface::ControlMethodHelper::copy( m, *document::instance()->controlMethod() );
 
         session_->prepare_for_run( m, adportable::utf::to_utf8( os.str() ).c_str() );
-
-        ADTRACE() << "adcontroller status: " << session_->status();
     }
 }
 
@@ -568,8 +564,8 @@ AcquirePlugin::actionRun()
 {
     actionInitRun();
     if ( ! CORBA::is_nil( session_ ) ) {
+        document::instance()->fsmActRun(); // FSM
         session_->start_run();
-        document::instance()->handleRun(); // FSM
     }
 }
 
@@ -578,7 +574,7 @@ AcquirePlugin::actionStop()
 {
     if ( ! CORBA::is_nil( session_ ) ) {
         session_->stop_run();
-        document::instance()->handleStop(); // FSM
+        document::instance()->fsmActStop(); // FSM
     }
 }
 
@@ -696,6 +692,7 @@ AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
             ms = fifo_ms_.back();
         fifo_ms_.clear();
     } while(0);
+    
     if ( ms ) {
         std::wostringstream o;
         pImpl_->spectrumPlot_->setData( ms, 0 );
@@ -713,6 +710,7 @@ AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
         std::lock_guard< std::mutex > lock( mutex_ );
         if ( trace_accessors_.find( objId ) == trace_accessors_.end() )
             return;
+
         adcontrols::TraceAccessor& accessor = *trace_accessors_[ objId ];
         for ( int fcn = 0; fcn < static_cast<int>(accessor.nfcn()); ++fcn ) {
             if ( pImpl_->traces_.find( fcn ) == pImpl_->traces_.end() )
@@ -878,7 +876,12 @@ AcquirePlugin::handle_controller_message( unsigned long /* Receiver::eINSTEVENT 
                 actionStop_->setEnabled( false );
                 actionRun_->setEnabled( true );
 
+                if ( auto xml = session_->running_sample() )
+                    document::instance()->notify_ready_for_run( xml );
+
             } else if ( status == eRunning ) {
+
+                document::instance()->fsmActInject();
 
                 actionStop_->setEnabled( true );
                 actionInject_->setEnabled( false );
@@ -1094,20 +1097,25 @@ AcquirePlugin::createContents( Core::IMode * mode )
                 edit->setReadOnly( true );
                 infoLayout->addWidget( edit );
                 infoLayout->setStretchFactor( edit, 2 );
-                connect( acquire::document::instance(), &acquire::document::onSampleRunChanged, [edit] ( const QString& name, const QString& dir ) {edit->setText( name ); } );
+                connect( acquire::document::instance(), &acquire::document::onSampleRunChanged,
+                         [edit] ( const QString& name, const QString& dir ) { edit->setText( name ); } );
             }
+            
             if ( auto label = new QLabel( "" ) ) {
                 infoLayout->addWidget( label );
                 infoLayout->setStretchFactor( label, 1 );
-                connect( acquire::document::instance(), &acquire::document::onSampleRunLength, [label] ( const QString& text ) {label->setText( text ); } );
+                connect( acquire::document::instance(), &acquire::document::onSampleRunLength,
+                         [label] ( const QString& text ) { label->setText( text ); } );
             }
+            
             infoLayout->addWidget( new Utils::StyledSeparator );
             if ( auto edit = new QLineEdit() ) {
                 infoLayout->addWidget( new QLabel( tr( "Data save in:" ) ) );
                 edit->setReadOnly( true );
                 infoLayout->addWidget( edit );
                 infoLayout->setStretchFactor( edit, 3 );
-                connect( acquire::document::instance(), &acquire::document::onSampleRunChanged, [edit] ( const QString& name, const QString& dir ) {edit->setText( dir ); } );
+                connect( acquire::document::instance(), &acquire::document::onSampleRunChanged,
+                         [edit] ( const QString& name, const QString& dir ) { edit->setText( dir ); } );
             }
             toolBarLayout->addLayout( infoLayout );
             toolBarLayout->addSpacerItem( new QSpacerItem( 32, 0, QSizePolicy::Expanding ) );

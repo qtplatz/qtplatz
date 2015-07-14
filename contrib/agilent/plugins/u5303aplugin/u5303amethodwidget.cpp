@@ -32,6 +32,9 @@
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
 #include <u5303a/digitizer.hpp>
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
 #include <QSplitter>
 #include <QBoxLayout>
 #include <QMessagebox>

@@ -903,7 +903,6 @@ device<Simulate>::setup( task& task, const method& m )
     //try { task.spDriver()->Acquisition->PutSampleRate( sample_rate ); } catch ( _com_error& e ) { TERR( e, "SampleRate" ); }
     //try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
 
-    ADTRACE() << "Apply setup...";
     try { task.spDriver()->Acquisition->ApplySetup(); } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
 
     //std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
