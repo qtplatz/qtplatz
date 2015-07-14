@@ -26,6 +26,9 @@
 #include "controlmethodwidget.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <qtwrapper/font.hpp>
+#if defnined _MSC_VER
+# pragma warning( disable:4251 )
+#endif
 #include <QHeaderView>
 #include <QMenu>
 #include <QPainter>

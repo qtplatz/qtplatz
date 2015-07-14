@@ -393,7 +393,9 @@ iTask::handle_observer_update_data( unsigned long parentId, unsigned long objId,
 
         for ( auto q: queue_ ) {
             q->pos_front( pos, objId );
-            q->strand().post( std::bind(&SampleProcessor::handle_data, q, objId, pos, rp ) ); // iTask::io_service
+            //q->strand().post( std::bind(&SampleProcessor::handle_data, q, objId, pos, rp ) ); // iTask::io_service
+            const SignalObserver::DataReadBuffer& x = *rp;
+            q->strand().post( [=] { q->handle_data( objId, pos, x ); } );
         }
 
     }
@@ -618,6 +620,7 @@ iTask::handle_eventlog( EventLog::LogMessage log )
 std::shared_ptr< const SampleProcessor >
 iTask::getCurrentSampleProcessor() const
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
     if ( !queue_.empty() )
         return queue_.front();
     return 0;

@@ -199,7 +199,7 @@ namespace acquire {
                 for ( auto handler: vec )
                     handler->portfolio_created( qtwrapper::qstring( token ) );
             }
-
+            
             void handle_folium_added( const std::wstring& token, const std::wstring& path, const std::wstring& id ) {
                 auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
                 for ( auto handler: vec )
@@ -351,8 +351,6 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     mainWindow_->setSimpleDockWidgetArrangement();
     addAutoReleasedObject(mode);
 
-    document::instance()->fsmSetMainWindow( mainWindow_ );
-
   return true;
 }
 
@@ -423,12 +421,13 @@ AcquirePlugin::actionConnect()
             if ( !CORBA::is_nil( manager ) ) {
                 session_ = manager->getSession( "acquire" );
                 if ( !CORBA::is_nil( session_.in() ) ) {
-
+                    
                     receiver_i_.reset( new receiver_i );
 
                     receiver_i_->assign_message( [this] ( ::Receiver::eINSTEVENT code, uint32_t value ){
                             emit onReceiverMessage( static_cast<unsigned long>(code), value );                            
                         });
+
 
                     receiver_i_->assign_log( [this] ( const ::EventLog::LogMessage& log ){ this->handle_receiver_log( log ); } );
 
@@ -441,9 +440,7 @@ AcquirePlugin::actionConnect()
                         
                     if ( session_->connect( receiver_i_->_this(), "acquire" ) )
                         actionConnect_->setEnabled( false );
-                    
-                    document::instance()->fsmStart(); // FSM start
-
+                        
                     if ( session_->status() <= ControlServer::eConfigured )
                         session_->initialize();
 
@@ -498,9 +495,7 @@ AcquirePlugin::actionConnect()
     if ( ! CORBA::is_nil( session_ ) ) {
         actionInitRun_->setEnabled( true );
         actionRun_->setEnabled( true );
-        ADTRACE() << "adcontroller status: " << session_->status();
-
-        
+        document::instance()->fsmStop();
     }
 }
 
@@ -547,7 +542,7 @@ AcquirePlugin::actionInitRun()
 
     if ( ! CORBA::is_nil( session_ ) ) {
 
-        document::instance()->fsmActPrepareForRun(); // FSM, update 'sampleRun' on document
+        document::instance()->fsmActPrepareForRun(); // FSM
         
         std::wostringstream os;
         adcontrols::SampleRun::xml_archive( os, *document::instance()->sampleRun() );
@@ -556,6 +551,8 @@ AcquirePlugin::actionInitRun()
         adinterface::ControlMethodHelper::copy( m, *document::instance()->controlMethod() );
 
         session_->prepare_for_run( m, adportable::utf::to_utf8( os.str() ).c_str() );
+
+        ADTRACE() << "adcontroller status: " << session_->status();
     }
 }
 
@@ -564,8 +561,8 @@ AcquirePlugin::actionRun()
 {
     actionInitRun();
     if ( ! CORBA::is_nil( session_ ) ) {
-        document::instance()->fsmActRun(); // FSM
         session_->start_run();
+        document::instance()->fsmActRun(); // FSM
     }
 }
 
@@ -876,12 +873,7 @@ AcquirePlugin::handle_controller_message( unsigned long /* Receiver::eINSTEVENT 
                 actionStop_->setEnabled( false );
                 actionRun_->setEnabled( true );
 
-                if ( auto xml = session_->running_sample() )
-                    document::instance()->notify_ready_for_run( xml );
-
             } else if ( status == eRunning ) {
-
-                document::instance()->fsmActInject();
 
                 actionStop_->setEnabled( true );
                 actionInject_->setEnabled( false );

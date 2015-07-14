@@ -30,6 +30,7 @@
 #include <adfs/file.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/date_string.hpp>
+#include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
 #include <adutils/mscalibio.hpp>
@@ -48,9 +49,7 @@ static size_t __nid__;
 SampleProcessor::~SampleProcessor()
 {
     fs_->close();
-    //Logging( L"Sample %1% closed in file '%2%'.", EventLog::pri_INFO ) % storage_name_.stem() % storage_name_.wstring();
-
-    ADTRACE() << "SampleProcessor:: -- DTOR -- ";
+    ADDEBUG() << boost::format( "[id:%1$ Sample %2% closed in file '%3%'." ) % myId_ % storage_name_.stem().string() % storage_name_.string();
 }
 
 SampleProcessor::SampleProcessor( boost::asio::io_service& io_service ) : fs_( new adfs::filesystem )

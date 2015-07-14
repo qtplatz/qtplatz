@@ -22,24 +22,23 @@
 **
 **************************************************************************/
 
+#include "manager_i.hpp"
+#include "task.hpp"
+
 #include <compiler/disable_4267.h>
 #include "adcontroller.hpp"
+#include <acewrapper/orbservant.hpp>
+#include <acewrapper/constants.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/visitor.hpp>
 #include <adplugin/orbfactory.hpp>
 #include <adplugin/orbservant.hpp>
-
-#include <signal.h>
-#include <acewrapper/orbservant.hpp>
-
-#include <iostream>
+#include <adportable/debug_core.hpp>
+#include <adlog/logging_handler.hpp>
 #include <fstream>
-
-#include <acewrapper/constants.hpp>
-#include "manager_i.hpp"
-#include "task.hpp"
+#include <iostream>
 #include <mutex>
-
+#include <signal.h>
 
 using namespace acewrapper;
 
@@ -47,21 +46,21 @@ using namespace acewrapper;
 static bool __aborted = false;
 std::string __ior_session;
 
-
 //--------------------
 class adcontroller_plugin : public adplugin::plugin 
                           , public adplugin::orbFactory {
     static adcontroller_plugin * instance_;
 	static std::mutex mutex_;
 public:
-    static inline adcontroller_plugin *instance() { 
-        if ( instance_ == 0 ) {
-            std::lock_guard< std::mutex > lock( mutex_ );
-            if ( instance_ == 0 )
-                instance_ = new adcontroller_plugin();
-        }
+    static inline adcontroller_plugin *instance() {
+        static std::once_flag flag;
+        std::call_once( flag, []{
+                adcontroller_plugin::instance_ = new adcontroller_plugin();
+                adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
+            });
         return instance_;
     }
+    
     // adplugin::plugin
     virtual const char * iid() const;
     virtual void accept( adplugin::visitor&, const char * );

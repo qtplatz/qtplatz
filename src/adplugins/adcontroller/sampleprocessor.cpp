@@ -32,10 +32,11 @@
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
 #include <adfs/sqlite.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
-#include <adlog/logger.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/split_filename.hpp>
 #include <adportable/utf.hpp>
 #include <adutils/mscalibio.hpp>
 #include <adutils/acquiredconf.hpp>
@@ -45,6 +46,7 @@
 #include <boost/date_time.hpp>
 #include <boost/format.hpp>
 #include <regex>
+#include <string>
 
 using namespace adcontroller;
 
@@ -53,9 +55,15 @@ static size_t __nid__;
 SampleProcessor::~SampleProcessor()
 {
     fs_->close();
-	Logging( L"Sample %1% closed in file '%2%'.", EventLog::pri_INFO )
-        % storage_name_.stem() % storage_name_.wstring();
-    ADTRACE() << "SampleProcessor:: -- DTOR -- ";
+    boost::filesystem::path progress_name( storage_name_ );
+    storage_name_.replace_extension( ".adfs" );
+
+    boost::system::error_code ec;
+    boost::filesystem::rename( progress_name, storage_name_, ec );
+    if ( ec )
+        ADERROR() << boost::format( "Sample %1% close failed: " ) % storage_name_.stem().string() % ec.message();
+    else
+        ADTRACE() << boost::format( "Sample %1% closed." ) % storage_name_.stem().string();
 }
 
 SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
@@ -77,38 +85,28 @@ SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
 void
 SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 {
-    // boost::filesystem::path path( adportable::profile::user_data_dir< char >() );
-	// path /= "data";
-	// path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
     boost::filesystem::path path( sampleRun_->dataDirectory() );
 
 	if ( ! boost::filesystem::exists( path ) )
 		boost::filesystem::create_directories( path );
 
-    size_t runno = 0;
+    boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( sampleRun_->filePrefix() );
+
+    int runno = 0;
 	if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
         using boost::filesystem::directory_iterator;
 		for ( directory_iterator it( path ); it != directory_iterator(); ++it ) {
             boost::filesystem::path fname = (*it);
 			if ( fname.extension().string() == ".adfs" ) {
-				std::string name = fname.stem().string();
-				if ( ( name.size() == 8 ) 
-                     && ( name[0] == 'R' || name[0] == 'r' )
-                     && ( name[1] == 'U' || name[0] == 'u' )
-                     && ( name[2] == 'N' || name[0] == 'n' )
-                     && ( name[3] == '_' ) ) {
-                    size_t no = atoi( name.substr( 4 ).c_str() );
-                    if ( no > runno )
-                        runno = no;
-                }
+                runno = std::max( runno, adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
             }
         }
-	}
-
-	std::ostringstream o;
-	o << "RUN_" << std::setw(4) << std::setfill( '0' ) << runno + 1;
+    }
+    std::wostringstream o;
+    o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << (runno + 1);
+    
 	boost::filesystem::path filename = path / o.str();
-	filename.replace_extension( ".adfs" );
+	filename.replace_extension( ".adfs~" );
 
 	storage_name_ = filename.normalize();
 
