@@ -39,7 +39,7 @@ QueryMode::QueryMode(QObject *parent) : Core::IMode(parent)
     setContext( Core::Context( Constants::C_QUERY_MODE ) );
     setDisplayName( tr( "Query" ) );
     setIcon(QIcon(":/query/images/Sqlite-square-icon.svg"));
-    setPriority( 50 );
+    setPriority( 30 );
     
     connect( dynamic_cast<const Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &QueryMode::grabEditorManager );
 }

@@ -42,7 +42,7 @@ PeptideMode::PeptideMode(QObject *parent) :  Core::IMode(parent)
     setDisplayName( tr( "Peptide" ) );
     // setUniqueModeName( peptide::Constants::C_PEPTIDE_MODE );
     setIcon(QIcon(":/peptide/images/fingerprint.png"));
-    setPriority( 50 );
+    setPriority( 40 );
 }
 
 

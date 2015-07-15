@@ -44,5 +44,5 @@ AcquireMode::AcquireMode(QObject *parent) : Core::IMode(parent)
     setContext( Core::Context( constants::C_MODE_ACQUIRE ) );
 
     setIcon(QIcon(":/acquire/images/RunControl.png"));
-    setPriority( 90 );
+    setPriority( 100 );
 }
