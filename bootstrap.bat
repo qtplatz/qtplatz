@@ -24,6 +24,7 @@ if %build_type%==release (
 ) else if %build_type%==package (
   cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Release %source_dir%
   cd contrib\installer\wix
+  nmake help
 ) else (
   cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Debug %source_dir%
 )
@@ -35,5 +36,3 @@ if %build_tests%==true (
    cmake -G "Visual Studio 12 Win64" %source_dir%\tests
    cd ..
 )
-
-

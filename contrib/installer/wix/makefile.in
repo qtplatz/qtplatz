@@ -11,11 +11,17 @@ TOP    	= ..
 
 BUILD = release_build
 MSIFILE = @MSIFILE@
+
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 QTPLATZ_BINARY_DIR = @QTPLATZ_BINARY_DIR@
 
+INFITOF_TARGET = @INFITOF_TARGET@
 INFITOF_SOURCE_DIR = @INFITOF_SOURCE_DIR@
 INFITOF_BINARY_DIR = @INFITOF_BINARY_DIR@
+
+MALPIX_TARGET = @MALPIX_TARGET@
+MALPIX_SOURCE_DIR = @MALPIX_SOURCE_DIR@
+MALPIX_BINARY_DIR = @MALPIX_BINARY_DIR@
 
 STAGEDIR = @STAGEDIR@
 
@@ -39,14 +45,15 @@ OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj 
 
 all: $(MSIFILE)
 
-world: qtplatz infitof $(MSIFILE)
+world: qtplatz $(INFITOF_TARGET) $(MALPIX_TARGET) $(MSIFILE)
 
 help:
-	@echo "*	make world	will do full rebuild qtplatz, and generate .MSI setup"
-	@echo "*	make harvest	make translations; make qt; and make plugins' for update .wxi files from scratch"
-	@echo "*	make all	make .msi from existing binary"
-	@echo "*	make clean	cleans up current dir"
-	@echo "*	make veryclean	CAUTION this cleans all fules according to git repository. == This makes a state right after clean git clone."
+	@echo "*	nmake help	;show this message"
+	@echo "*	nmake world	;will rebuild qtplatz @INFITOF_TARGET@ @MALPIX_TARGET@ and .MSI setup"
+	@echo "*	nmake harvest	;make translations; make qt; and make plugins' for update .wxi files from scratch"
+	@echo "*	nmake all	;make .msi from existing binary"
+	@echo "*	nmake clean	;cleans up current dir"
+	@echo "*	nmake veryclean	;CAUTION this cleans all files according to git repository."
 
 clean:
 	-@$(RM) /S /F /Q
@@ -77,6 +84,13 @@ infitof:
 	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_BUILD_DIR=$(QTPLATZ_BINARY_DIR) $(INFITOF_SOURCE_DIR)
 	cd $(MAKEDIR)
 	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
+
+malpix:
+	-@$(MD) $(MALPIX_BINARY_DIR)
+	cd $(MALPIX_BINARY_DIR)
+	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_BUILD_DIR=$(QTPLATZ_BINARY_DIR) $(MALPIX_SOURCE_DIR)
+	cd $(MAKEDIR)
+	msbuild $(MALPIX_BINARY_DIR)\malpix.sln /m /t:Build /p:Configuration=Release
 
 $(MSIFILE): version.wxi $(OBJS)
 	$(LIGHT) -cultures:en-US -ext WixUIExtension.dll $(OBJS) -o $@
@@ -159,4 +173,3 @@ bruker.wxi: makefile
 	$(HEAT) dir "C:\Program Files (x86)\Bruker Daltonik\3.1.2" \
 	-dr LIB_BRUKER -cg BrukerComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o bruker.wxi
-
