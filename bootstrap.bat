@@ -10,9 +10,9 @@ for %%i in (%*) do (
        set build_type=release
     ) else if %%i==package (
        set build_type=package
-    ) else if %%i==tests {
-      set build_tests=true
-    }
+    ) else if %%i==tests (
+       set build_tests=true
+    )
 )
 
 set build_dir=%build_root%\qtplatz-x86_64.%build_type%
@@ -29,9 +29,11 @@ if %build_type%==release (
 )
 
 if %build_tests%==true (
-   set cwd=%cd%
+   echo "Build tests directory on %cd%"
    mkdir tests
    cd tests
    cmake -G "Visual Studio 12 Win64" %source_dir%\tests
-   cd %cwd%
+   cd ..
 )
+
+
