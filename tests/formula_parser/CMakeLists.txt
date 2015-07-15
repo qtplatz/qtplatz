@@ -18,7 +18,7 @@ find_package( Boost REQUIRED )
 
 include_directories(
   ${Boost_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/../../src/libs
+  ${QTPLATZ_SOURCE_DIR}/src/libs
   )
 
 add_executable( formula_parser  formula_parser.cpp )
