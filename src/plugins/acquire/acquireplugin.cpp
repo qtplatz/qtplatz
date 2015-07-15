@@ -287,7 +287,7 @@ AcquirePlugin::initialize_actions()
   
     //const AcquireManagerActions& actions = mainWindow_->acquireManagerActions();
     //Core::Context context( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
-    Core::Context context( ( Core::Id( "Acquire.MainView" ) ) );
+    Core::Context context( ( Core::Id( "Acquire.MainView" ), Core::Id( Core::Constants::C_GLOBAL ) ) );
 
     if ( auto am = Core::ActionManager::instance() ) {
         Core::Command * cmd = 0;
