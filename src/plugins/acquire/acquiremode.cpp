@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,6 +26,9 @@
 #include "acquiremode.hpp"
 #include "constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/id.h>
+#include <coreplugin/modemanager.h>
 
 using namespace acquire;
 using namespace acquire::internal;
@@ -38,11 +41,18 @@ AcquireMode::~AcquireMode()
 AcquireMode::AcquireMode(QObject *parent) : Core::IMode(parent)
 {
     setDisplayName( tr( "Acquire" ) );
-    // setUniqueModeName( "Acquire.Mode" );
 
     setId( constants::C_MODE_ACQUIRE );
     setContext( Core::Context( constants::C_MODE_ACQUIRE ) );
 
     setIcon(QIcon(":/acquire/images/RunControl.png"));
     setPriority( 100 );
+
+    // connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance())
+    //          , &Core::ModeManager::currentModeChanged, [this]( Core::IMode * mode ){
+    //              if ( mode == this ) {
+    //                  if ( auto editor = Core::EditorManager::instance()->currentEditor() )
+    //                      editor->widget()->setFocus();
+    //              }
+    //          });
 }

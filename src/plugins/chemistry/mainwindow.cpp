@@ -206,12 +206,6 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
 		dockWidget->setWindowTitle( title );
 
 	addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
-#if 0
-	QAction * toggleViewAction = dockWidget->toggleViewAction();
-	QList<int> globalContext;
-	globalContext << Core::Constants::C_GLOBAL_ID;
-	// Core::Command * cmd = Core::ActionManager::registerAction( toggleViewAction, "Chemistry." + widget->objectName(), globalContext );
-#endif
 
 	return dockWidget;
 }

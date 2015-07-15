@@ -244,48 +244,49 @@ MainWindow::createStyledBarTop()
         toolBarLayout->setSpacing( 0 );
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
-            Core::Context globalcontext( (Core::Id( Core::Constants::C_GLOBAL )) );
+            //Core::Context globalcontext( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
+            Core::Context context( ( Core::Id( "dataproc.MainView" ) ) );
 
             if ( auto p = selPages_[ idSelMSProcess ] = new QAction( tr("MS Process"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSProcess ); } );
-                am->registerAction( p, "dataproc.selMSProcess", globalcontext );
+                am->registerAction( p, "dataproc.selMSProcess", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
             if ( auto p = selPages_[ idSelElementalComp] = new QAction( tr("Elemental Comp"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelElementalComp ); } );
-                am->registerAction( p, "dataproc.selElementalComp", globalcontext );
+                am->registerAction( p, "dataproc.selElementalComp", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
             if ( auto p = selPages_[ idSelMSCalibration ] = new QAction( tr("MS Calibration"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibration ); } );
-                am->registerAction( p, "dataproc.selMSCalibration", globalcontext );
+                am->registerAction( p, "dataproc.selMSCalibration", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
             if ( auto p = selPages_[ idSelMSCalibSpectra ] = new QAction( tr("MS Calib. Spectra"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibSpectra ); } );
-                am->registerAction( p, "dataproc.selMSCalibSpectra", globalcontext );
+                am->registerAction( p, "dataproc.selMSCalibSpectra", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
             if ( auto p = selPages_[ idSelChromatogram ] = new QAction( tr("Chromatogram"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelChromatogram ); } );
-                am->registerAction( p, "dataproc.selChromatogram", globalcontext );
+                am->registerAction( p, "dataproc.selChromatogram", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
             if ( auto p = selPages_[ idSelMSPeaks ] = new QAction( tr("TOF Plots"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSPeaks ); } );
-                am->registerAction( p, "dataproc.selTOFPlots", globalcontext );
+                am->registerAction( p, "dataproc.selTOFPlots", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
 
             if ( auto p = selPages_[ idSelSpectrogram ] = new QAction( tr("Spectrogram"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
-                am->registerAction( p, "dataproc.selSpectrogram", globalcontext );
+                am->registerAction( p, "dataproc.selSpectrogram", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
 
             if ( auto p = selPages_[ idSelSpectra ] = new QAction( tr("Spectra"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectra ); } );
-                am->registerAction( p, "dataproc.selSpectra", globalcontext );
+                am->registerAction( p, "dataproc.selSpectra", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
         }

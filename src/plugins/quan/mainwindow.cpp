@@ -278,6 +278,8 @@ MainWindow::createActions()
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("Quan") );
 
+        Core::Context context( Core::Id( "Quan.MainView" ) );
+
         if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan Result..." ), this ) ) {
             am->registerAction( p, Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools->Quan->Open
             connect( p, &QAction::triggered, this, &MainWindow::handleOpenQuanResult );

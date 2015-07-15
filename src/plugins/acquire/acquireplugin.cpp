@@ -99,13 +99,13 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/id.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/minisplitter.h>
-#include <coreplugin/outputpane.h>
-#include <coreplugin/navigationwidget.h>
-#include <coreplugin/rightpane.h>
-#include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/modemanager.h>
+#include <coreplugin/navigationwidget.h>
+#include <coreplugin/outputpane.h>
+#include <coreplugin/rightpane.h>
 #include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
 
@@ -286,19 +286,20 @@ AcquirePlugin::initialize_actions()
     actionSnapshot_->setEnabled( true );
   
     //const AcquireManagerActions& actions = mainWindow_->acquireManagerActions();
-    Core::Context globalcontext( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
+    //Core::Context context( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
+    Core::Context context( ( Core::Id( "Acquire.MainView" ) ) );
 
     if ( auto am = Core::ActionManager::instance() ) {
         Core::Command * cmd = 0;
-        cmd = am->registerAction( actionConnect_, constants::CONNECT, globalcontext );
+        cmd = am->registerAction( actionConnect_, constants::CONNECT, context );
 
-        cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, globalcontext );
-        cmd = am->registerAction( actionRun_, constants::RUN, globalcontext );
-        cmd = am->registerAction( actionStop_, constants::STOP, globalcontext );
-        cmd = am->registerAction( actionInject_, constants::ACQUISITION, globalcontext );
-        cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, globalcontext );
-        cmd = am->registerAction( actMethodOpen_, constants::METHODOPEN, globalcontext );
-        cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, globalcontext );
+        cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, context );
+        cmd = am->registerAction( actionRun_, constants::RUN, context );
+        cmd = am->registerAction( actionStop_, constants::STOP, context );
+        cmd = am->registerAction( actionInject_, constants::ACQUISITION, context );
+        cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, context );
+        cmd = am->registerAction( actMethodOpen_, constants::METHODOPEN, context );
+        cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, context );
         (void)cmd;
     }
 }
