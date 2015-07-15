@@ -44524,7 +44524,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location line="+1"/>
         <source>&lt;i&gt;m/z&lt;/i&gt;</source>
-        <translation></translation>
+        <translation>&lt;i&gt;m/z&lt;/i&gt;</translation>
     </message>
     <message>
         <location line="+1"/>

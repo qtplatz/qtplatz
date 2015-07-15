@@ -6,7 +6,7 @@ if ( NOT Qt5LinguistTools_FOUND )
   return()
 endif()
 
-set( UPDATE_TRANSLATIONS OFF )
+set( UPDATE_TRANSLATIONS CACHE BOOL OFF )
 
 set( LANGUAGES cs de fr it ja pl ru sl uk zh_CN zh_TW )
 
@@ -18,9 +18,10 @@ endforeach()
 
 if ( UPDATE_TRANSLATIONS )
   file( GLOB_RECURSE files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/../../../src/*.cpp
-    ${CMAKE_SOURCE_DIR}/../../../src/*.hpp
-    ${CMAKE_SOURCE_DIR}/../../../src/*.ui )
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/*.ui
+    )
   
   foreach( a ${files} )
     get_filename_component( file ${a} ABSOLUTE )
