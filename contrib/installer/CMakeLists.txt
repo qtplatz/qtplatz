@@ -10,6 +10,10 @@ if (WIN32)
 
   add_subdirectory( wix )
 
+elseif( APPLE )
+
+  add_subdirectory( mac )  
+
 else()
 
   message(STATUS "On Linux(debian), independent .deb package for qt5, ace+tao and boost should be created" )
