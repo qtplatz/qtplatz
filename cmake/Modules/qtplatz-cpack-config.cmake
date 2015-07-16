@@ -18,8 +18,10 @@ cpack_add_component( runtime_libraries DISPLAY_NAME "Runtime libraries" DESCRIPT
 cpack_add_component( plugins           DISPLAY_NAME "Plugins" GROUP Runtime )
 cpack_add_component( libraries         DISPLAY_NAME "Development libraries"
   DESCRIPTION "Static and import libraries" GROUP Development )
-cpack_add_component( headers           DISPLAY_NAME "C++ Headers"
-  DESCRIPTION "C++ header files for use with QtPlatz Toolkit" GROUP Development )
+if ( NOT APPLE )
+  cpack_add_component( headers           DISPLAY_NAME "C++ Headers"
+    DESCRIPTION "C++ header files for use with QtPlatz Toolkit" GROUP Development )
+endif()
 
 cpack_add_component_group( Runtime )
 cpack_add_component_group( Development )

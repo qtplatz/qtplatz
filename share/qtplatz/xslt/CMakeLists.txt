@@ -1,6 +1,6 @@
 project( xslt )
 
-set( XSLFILES quan-html.xsl quan2-html.xsl quan-xhtml.xsl )
+set( XSLFILES quan-html.xsl quan-infusion-html.xsl quan-xhtml.xsl )
 
 file( GLOB files ${CMAKE_CURRENT_SOURCE_DIR}/*.xsl )
 file( COPY ${files} DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )

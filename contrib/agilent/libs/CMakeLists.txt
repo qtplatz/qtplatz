@@ -3,7 +3,7 @@ if ( WIN32 )
   add_subdirectory( u5303a ) # Using COM
 endif()
 
-if ( NOT CMAKE_CROSSCOMPILING )
+if ( NOT CMAKE_CROSSCOMPILING AND NOT APPLE )
   add_subdirectory( ap240 )
   add_subdirectory( ap240w )
 endif()
