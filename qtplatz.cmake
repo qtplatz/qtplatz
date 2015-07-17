@@ -29,10 +29,10 @@ else()
   if ( RTC_ARCH_ARM )
     # do nothing -- expect boost on /usr/local/include and /usr/local/lib
   else()
-    find_package(Boost REQUIRED)
-    if ( NOT ${Boost_FIND} )
+    find_path( _boost NAMES include/boost PATHS "/usr/local/${BOOST_VERSION}/include")
+    if ( _boost )
       set(Boost_INCLUDE_DIR "/usr/local/${BOOST_VERSION}/include")
-      set(Boost_LIBRARY_DIR "/usr/local/${BOOST_VERSION}/lib")
+      set(Boost_LIBRARY_DIR "/usr/local/${BOOST_VERSION}/lib")      
     endif()
   endif()
 
