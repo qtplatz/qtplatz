@@ -118,10 +118,15 @@ if ( WIN32 )
 endif()
 
 if ( WIN32 )
-  set( CPACK_GENERATOR "WIX" )
-endif()
 
-if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+  set( FATALERROR "CPACK_GENERATOR for Windows platform not supported." )
+
+elseif( APPLE )
+
+  SET(MACOSX_BUNDLE_STARTUP_COMMAND qtplatz)
+  set(CPACK_BINARY_DRAGNDROP ON)
+  
+elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 
   set( CPACK_GENERATOR "DEB" )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
