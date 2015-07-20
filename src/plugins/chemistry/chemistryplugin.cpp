@@ -88,8 +88,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 
     mainWindow_->activateWindow();
     mainWindow_->createActions();
-    Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
-    mode_->setContext( gc );
+
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
     addObject( mode_.get() );
@@ -140,4 +139,3 @@ ChemistryPlugin::triggerAction()
 }
 
 Q_EXPORT_PLUGIN2(Chemistry, ChemistryPlugin)
-

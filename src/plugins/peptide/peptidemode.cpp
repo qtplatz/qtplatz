@@ -40,7 +40,10 @@ PeptideMode::~PeptideMode()
 PeptideMode::PeptideMode(QObject *parent) :  Core::IMode(parent)
 {
     setDisplayName( tr( "Peptide" ) );
-    // setUniqueModeName( peptide::Constants::C_PEPTIDE_MODE );
+
+    setId( peptide::Constants::C_PEPTIDE_MODE );
+    setContext( Core::Context( "Peptide.MainView" ) );
+
     setIcon(QIcon(":/peptide/images/fingerprint.png"));
     setPriority( 40 );
 }
@@ -51,8 +54,7 @@ PeptideMode::grabEditorManager(Core::IMode *mode)
 {
     if (mode != this)
         return;
-
-    if ( Core::EditorManager::instance()->currentEditor() )
-        Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
+    // if ( Core::EditorManager::instance()->currentEditor() )
+    //     Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
 }
 

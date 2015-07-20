@@ -35,34 +35,15 @@ using namespace chemistry;
 ChemistryMode::ChemistryMode( QObject * /* parent */ )
 {
 	setDisplayName( tr("Chemistry") );
-    // setUniqueModeName( Constants::C_CHEM_MODE );
+
     setIcon( QIcon( ":/chemistry/images/applications-science-3.png" ) );
 	setPriority( 40 );
 	
-    Core::Context contexts(
-        (Core::Id( chemistry::Constants::C_CHEM_MODE ))
-        , (Core::Id( Core::Constants::C_EDITORMANAGER ))
-        , (Core::Id( Core::Constants::C_NAVIGATION_PANE )) );
-
-    setContext( contexts );
-
-    //Core::ModeManager *modeManager = Core::ModeManager::instance();
-    //connect( modeManager, SIGNAL( currentModeChanged( Core::IMode* ) ), this, SLOT( grabEditorManager( Core::IMode* ) ) );
-
+    setId( chemistry::Constants::C_CHEM_MODE );
+    setContext( Core::Context( "Chemistry.MainView" ) );
 }
 
 ChemistryMode::~ChemistryMode()
 {
 }
 
-void
-ChemistryMode::grabEditorManager(Core::IMode *mode)
-{
-    if (mode != this)
-        return;
-
-    Core::EditorManager * em = Core::EditorManager::instance();
-    
-    if ( em->currentEditor() )
-        em->currentEditor()->widget()->setFocus();
-}
