@@ -62,8 +62,8 @@ if ( NOT WIN32 )
     message( FATAL_ERROR "*** libxslt NOT FOUND ***")  
   endif()
 
-  message( "######### libxML2 ##########" ${libxml2_INCLUDE_DIR} ", " ${libxml2_LIBRARY} )
-  message( "######### libxslt ##########" ${libxslt_INCLUDE_DIR} ", " ${libxslt_LIBRARY} )
+#  message( STATUS "Found libxml2 include: " ${libxml2_INCLUDE_DIR} "; library: " ${libxml2_LIBRARY} )
+#  message( STATUS "Found libxslt include: " ${libxslt_INCLUDE_DIR} "; library: " ${libxslt_LIBRARY} )
 
   include_directories( ${libxml2_INCLUDE_DIRS} )
   include_directories( ${libxslt_INCLUDE_DIRS} )  

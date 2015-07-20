@@ -1,45 +1,24 @@
 
-if ( WIN32 )
-  set( SO "dll")
-elseif( APPLE )
-  set( SO "dylib" )
-else()
-  set( SO "so" )
-endif()
+message( STATUS "##### qt5-cpack.cmake<qtplatz> #####" )
 
+include( "soname" )
 
-find_package( Qt5 REQUIRED Core Gui Multimedia Network OpenGL PrintSupport Script Sql Svg Widgets Xml XmlPatterns )
-
-if ( NOT CMAKE_CROSSCOMPILING )
-  find_package( Qt5 REQUIRED Help )
-endif()
-  
-foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )
-  get_target_property( _loc ${plugin} LOCATION )
-  file( RELATIVE_PATH _rname $ENV{QTDIR}/plugins ${_loc} )
-  get_filename_component(_rpath ${_rname} DIRECTORY )
-  install( FILES ${_loc} DESTINATION plugins/${_rpath} COMPONENT runtime_libraries )
-endforeach()
+find_package( Qt5 REQUIRED Core Gui Network OpenGL PrintSupport Script Sql Svg Widgets Xml XmlPatterns )
 
 get_target_property( _loc Qt5::Core LOCATION )
-
 get_filename_component( _dir ${_loc} DIRECTORY )
 
-install( FILES ${_dir}/qt.conf DESTINATION bin COMPONENT runtime_libraries )
-
 if ( WIN32 )
-  install( FILES
-    ${_dir}/icudt53.${SO}
-    ${_dir}/icuin53.${SO}
-    ${_dir}/icuuc53.${SO}
-    ${_dir}/Qt5CLucene.${SO}
-    DESTINATION bin COMPONENT runtime_libraries )
+  file( GLOB files "${_dir}/icu*.${SO}" "${_dir}/Qt5CLucene.${SO}" )
+  install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )  
+else()
+  file( GLOB files "${_dir}/libicu*.${SO}.*" "${_dir}/libQt5CLucene.${SO}.*" )
+  install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )
 endif()
 
 foreach( lib
     Qt5::Core
     Qt5::Gui
-    Qt5::Multimedia
     Qt5::Network
     Qt5::OpenGL
     Qt5::PrintSupport
@@ -51,11 +30,33 @@ foreach( lib
     Qt5::XmlPatterns )
   
   get_target_property( _loc ${lib} LOCATION )
-  install( FILES ${_loc} DESTINATION bin COMPONENT runtime_libraries )
+  message( STATUS "## qt5-cpack install " ${_loc} " --> runtime_libraries" )
+  
+  if ( WIN32 )
+    install( FILES ${_loc} DESTINATION ${dest} COMPONENT runtime_libraries )
+  else()
+    get_filename_component( name ${_loc} NAME_WE )
+    get_filename_component( path ${_loc} DIRECTORY )
+    file( GLOB files "${path}/${name}.${SO}.*" )
+    install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )
+  endif()
   
 endforeach()
 
-if ( NOT CMAKE_CROSSCOMPILING )
-  get_target_property( _loc Qt5::Help LOCATION )
-  install( FILES ${_loc} DESTINATION bin COMPONENT runtime_libraries )
+find_path( plugins_dir NAMES platforms PATHS ${QTDIR}/plugins ${_dir}/qt5/plugins )
+
+if ( plugins_dir )
+  file( GLOB _plugins RELATIVE ${plugins_dir} "${plugins_dir}/*" )
+  list( REMOVE_ITEM _plugins audio bearer designer qml1tooling qmltooling xchglintegrations )
+else()
+  message( FATAL_ERROR "plugins: " ${plugins_dir} )
 endif()
+
+foreach( plugin ${_plugins} )
+  install( DIRECTORY ${plugins_dir}/${plugin} USE_SOURCE_PERMISSIONS DESTINATION plugins )
+endforeach()
+
+#find_path( qt_conf NAMES qt.conf PATHS ${QTDIR}/bin ${plugin_dir} ${plugin_dir}/bin )
+#if ( qt_conf )
+#  install( FILES ${qt_conf}/qt.conf DESTINATION bin )
+#endif()

@@ -1,7 +1,6 @@
 # qtplatz.cmake
 
 set( BOOST_VERSION boost-1_58 )
-set( CMAKE_PREFIX_PATH $ENV{QTDIR} )
 
 list( APPEND CMAKE_MODULE_PATH ${QTPLATZ_SOURCE_DIR}/cmake/Modules )
 
@@ -36,6 +35,20 @@ else()
     endif()
   endif()
 
+endif()
+
+#####################
+# Qt5 setup
+#
+
+#set( CMAKE_PREFIX_PATH $ENV{QTDIR} )
+
+if ( NOT CMAKE_CROSSCOMPILING )
+  execute_process( COMMAND qmake -query QT_INSTALL_PREFIX
+    OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+  if ( QTDIR )
+    set ( CMAKE_PREFIX_PATH ${QTDIR} ${CMAKE_PREFIX_PATH} )
+  endif()
 endif()
 
 #####################

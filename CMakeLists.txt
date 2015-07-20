@@ -72,7 +72,7 @@ elseif ( APPLE )
   set( CPACK_INSTALL_PREFIX "/opt/qtplatz.app" )
   set( CPACK_SET_DESTDIR ON )  
 else() # Linux
-  set( CPACK_INSTALL_PREFIX "/usr/local" )
+  set( CPACK_INSTALL_PREFIX "/opt/qtplatz" )
   set( CPACK_SET_DESTDIR ON )
 endif()
 
@@ -92,21 +92,19 @@ endif()
 
 install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION lib COMPONENT libraries )
 
-#set( ACE_ROOT $ENV{ACE_ROOT} )
-
 find_package( Boost REQUIRED )
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
 find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
 if ( Qt5_FOUND )
-  message( STATUS "## Qt5 Found @ " ${Qt5_DIR} " #####" )      
+  message( STATUS "Found the Qt5 libraries at " ${Qt5_DIR} )      
   find_package( qwt )
-  message( STATUS "## QWT: " ${qwt_DIR} )
+  message( STATUS "Found the QWT library at " ${qwt_DIR} )
 endif()
 
 find_package( rdkit QUIET )
-if ( RDKIT_FOUND )
-  message( "#### RDKit Found #####" )        
+if ( rdkit_FOUND )
+  message( STATUS "Found the RDKit libraries at " ${RDKit_DIR} )
 endif()
 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
@@ -147,11 +145,16 @@ if ( Qt5_FOUND )
 endif()
 
 include( qtplatz-cpack-config )
-if ( WIN32 )
-  include( ace+tao-cpack )
+include( boost-cpack )
+
+if ( Qt5_FOUND )
   include( qt5-cpack )
-else()
-  message( STATUS "Require separate qt5 and tao installer" )
+endif()
+
+include( ace+tao-cpack )
+
+if ( rdkit_FOUND )
+  include( rdkit-cpack )
 endif()
 
 include( CPack )

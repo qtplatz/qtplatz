@@ -32,9 +32,6 @@ if ( qwt_DIR )
 
   endif()
 
-  message( STATUS "qwt_DIR : " ${qwt_DIR} )
-  message( STATUS "QWT_LIBRARIES : " ${QWT_LIBRARIES} )
-
 else()
 
   message( STATUS "QWT NOT Found" )

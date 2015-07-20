@@ -4,6 +4,7 @@ arch=`arch`
 source_dir=`pwd`
 build_debug=false
 build_clean=false
+build_package=false
 build_root=..
 
 if [ -z $cross_target ]; then
@@ -62,10 +63,10 @@ case $cross_target in
 	;;	
     x86_64)
 	if [ $build_debug = true ]; then
-	    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc_64 $source_dir
+	    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug $source_dir
 	else
 	    echo `pwd`
-	    cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc_64 -DCMAKE_BUILD_TYPE=Release $source_dir
+	    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
 	fi
 	;;
     *)
