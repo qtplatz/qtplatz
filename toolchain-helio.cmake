@@ -7,12 +7,12 @@ SET(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
 
 # where is the target environment
 get_filename_component (_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-SET(CMAKE_FIND_ROOT_PATH  /usr/local/arm-linux-gnueabihf ${_dir} ${_dir}/.. )
+get_filename_component (_parent "${_dir}" PATH)
+SET(CMAKE_FIND_ROOT_PATH  /usr/local/arm-linux-gnueabihf ${_dir} ${_parent}/build ${_parent} )
 
 # search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 
 # for libraries and headers in the target directories
-SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
 SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-
