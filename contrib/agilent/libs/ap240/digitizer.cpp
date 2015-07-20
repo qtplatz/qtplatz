@@ -177,6 +177,9 @@ namespace ap240 {
                     std::cerr << error_msg(st, "Acqiris::getInstrumentData") << std::endl;
                 } else {
                     model_name_ = buf;
+                    ident_->bus_number_ = bus_number_;
+                    ident_->slot_number_ = slot_number_;
+                    ident_->serial_number_ = serial_number_;
                     reply( "InstrumentData",
                            ( boost::format( "Model '%1%', S/N:%2%, bus:slot=%3%:%4%" ) 
                              % model_name_ % serial_number_ % bus_number_ % slot_number_ ).str() );
@@ -344,8 +347,13 @@ task::task() : work_( io_service_ )
              , inst_( -1 )
              , numInstruments_( 0 )
              , uptime_( std::chrono::steady_clock::now() )
+             , ident_( std::make_shared< identify >() )
 {
     threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+#if defined WIN32
+    for ( auto& t: threads_ )
+        SetThreadPriority( t.native_handle(), THREAD_PRIORITY_BELOW_NORMAL );
+#endif
 }
 
 task::~task()
@@ -444,21 +452,32 @@ task::handle_initial_setup()
         ADTRACE() << error_msg( status, "Acqiris::findDevice()" );
     } else {
         ADTRACE() << boost::format( "find %1% acqiris devices." ) % numInstruments_;
+        if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS ) {
+                simulated_ = true;
+                numInstruments_ = 1;
+        }
     }
     
     if ( numInstruments_ == 0 )
         return false;
-    
-    for ( int i = 0; i < numInstruments_; ++i ) {
-        device_name_ = ( boost::format( "PCI::INSTR%1%" ) % i ).str();
-        inst_ = (-1);
-        status = Acqrs_init( const_cast< char *>(device_name_.c_str()), VI_FALSE, VI_FALSE, &inst_);
-        if ( inst_ != ViSession(-1) && getInstrumentData() ) {
-            ADTRACE() << "\tfound device on: " << device_name_;
+
+    if ( simulated_ ) {
+        if ( Acqrs_InitWithOptions( "PCI::DC271", VI_FALSE, VI_FALSE, "simulate=TRUE", &inst_ ) == VI_SUCCESS ) {
             success = true;
-            break;
-        } else {
-            ADTRACE() << error_msg( status, "Acqiris::findDevice" );
+        }
+    } else {
+
+        for ( int i = 0; i < numInstruments_; ++i ) {
+            device_name_ = ( boost::format( "PCI::INSTR%1%" ) % i ).str();
+            inst_ = ( -1 );
+            status = Acqrs_init( const_cast<char *>( device_name_.c_str() ), VI_FALSE, VI_FALSE, &inst_ );
+            if ( inst_ != ViSession( -1 ) && getInstrumentData() ) {
+                ADTRACE() << "\tfound device on: " << device_name_;
+                success = true;
+                break;
+            } else {
+                ADTRACE() << error_msg( status, "Acqiris::findDevice" );
+            }
         }
     }
     
@@ -563,7 +582,6 @@ task::waitForEndOfAcquisition( int timeout )
 bool
 task::readData( waveform& data, int channel )
 {
-    //data.serialnumber_ = data_serialnumber_++;
     return device_ap240::readData( *this, data, method_, channel );
 }
 
@@ -577,11 +595,6 @@ task::connect( digitizer::command_reply_type f )
 void
 task::disconnect( digitizer::command_reply_type f )
 {
-    std::lock_guard< std::mutex > lock( mutex_ );    
-//	auto it = std::remove_if( reply_handlers_.begin(), reply_handlers_.end(), [=]( const digitizer::command_reply_type& t ){
-//            return t == f;
-//        });
-//    reply_handlers_.erase( it, reply_handlers_.end() );
 }
 
 void

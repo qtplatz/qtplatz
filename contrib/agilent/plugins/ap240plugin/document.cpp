@@ -112,7 +112,7 @@ namespace ap240 {
                     return;
 
                 auto tp = std::chrono::steady_clock::now();
-                if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ).count() > 100 ) {
+                if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ).count() > 200 ) {
                     time_handled_ = tp;
                     emit document::instance()->on_waveform_received();
                 }

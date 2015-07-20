@@ -453,6 +453,7 @@ MainWindow::actSnapshot()
 {
     auto waveforms = document::instance()->findWaveform();
     adcontrols::MassSpectrum ms;
+    int ch = 1;
     for ( auto waveform: { waveforms.first, waveforms.second } ) {
         
         if ( waveform ) {
@@ -467,7 +468,7 @@ MainWindow::actSnapshot()
                     boost::filesystem::create_directories( path, ec );
                 }
                 path /= "ap240.adfs";
-                std::wstring title = ( boost::wformat( L"Spectrum %1%" ) % waveform->serialnumber_ ).str();
+                std::wstring title = ( boost::wformat( L"Spectrum %1% CH-%2%" ) % waveform->serialnumber_ % ch ).str();
                 std::wstring folderId;
                 if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
                     auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
@@ -476,6 +477,7 @@ MainWindow::actSnapshot()
                 }
             }
         }
+        ++ch;
     }
 }
 
