@@ -3,6 +3,7 @@
 arch=`arch`
 source_dir=`pwd`
 build_debug=false
+build_clean=false
 build_root=..
 
 if [ -z $cross_target ]; then
@@ -16,6 +17,10 @@ while [ $# -gt 0 ]; do
 	    build_debug=true
 	    shift
 	    ;;
+	clean)
+	    build_clean=true
+	    shift
+	    ;;
 	*)
 	    break
 	    ;;
@@ -26,6 +31,11 @@ if [ $build_debug = true ]; then
     build_dir=$build_root/build/qtplatz-$cross_target.debug
 else
     build_dir=$build_root/build/qtplatz-$cross_target.release
+fi
+
+if [ $build_clean = true ]; then
+    echo "rm -rf $build_dir"; rm -rf $build_dir
+    exit
 fi
 
 mkdir -p $build_dir
