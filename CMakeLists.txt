@@ -67,9 +67,10 @@ else()
 endif()
 
 if( WIN32 )
-  set( CPACK_INSTALL_PREFIX "C:/qtplatz" )
+  set( CPACK_INSTALL_PREFIX "C:/QtPlatz" )
+  set( CPACK_SET_DESTDIR ON )  
 elseif ( APPLE )
-  set( CPACK_INSTALL_PREFIX "/opt/qtplatz.app" )
+  set( CPACK_INSTALL_PREFIX "/opt/QtPlatz.app" )
   set( CPACK_SET_DESTDIR ON )  
 else() # Linux
   set( CPACK_INSTALL_PREFIX "/opt/qtplatz" )
