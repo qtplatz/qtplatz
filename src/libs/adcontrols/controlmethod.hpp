@@ -82,9 +82,6 @@ namespace adcontrols {
             void setDescription( const char * );
 
         private:
-#if defined _MSC_VER
-# pragma warning(disable:4251)
-#endif
             std::string modelname_;
             uint32_t unitnumber_;
             bool isInitialCondition_;
@@ -93,9 +90,6 @@ namespace adcontrols {
             std::string label_;
             std::string data_;             // serialized data
             std::string description_;      // utf8
-#if defined _MSC_VER
-# pragma warning(default:4251)
-#endif
         private:
             friend class boost::serialization::access;
             template<class Archive>
@@ -156,13 +150,7 @@ namespace adcontrols {
 
     private:
         class impl;
-#if defined _MSC_VER
-# pragma warning(disable:4251)
-#endif
         std::unique_ptr< impl > impl_;
-#if defined _MSC_VER
-# pragma warning(default:4251)
-#endif
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int );
     };

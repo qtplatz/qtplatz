@@ -34,8 +34,6 @@ namespace chemistry {
 	public:
 		explicit ChemistryMode( QObject * parent = 0 );
 		~ChemistryMode();
-	private slots:
-		void grabEditorManager(Core::IMode *mode);
 
 	private:
 

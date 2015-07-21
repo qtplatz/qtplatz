@@ -17,7 +17,6 @@ get_filename_component( _dir ${_loc} DIRECTORY )
 
 foreach( _lib "icu*" Qt5CLucene Qt5XcbQpa )
   if ( WIN32 )
-    #file( GLOB files "${_dir}/icu*.${SO}" "${_dir}/Qt5CLucene.${SO}" "${_dir}/Qt5XcbQpa.${SO} )
     file( GLOB files "${_dir}/${_lib}.${SO}" )
     install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )  
   else()
@@ -62,17 +61,16 @@ foreach( lib
   
 endforeach()
 
-find_path( plugins_dir NAMES platforms PATHS ${QTDIR}/plugins ${_dir}/qt5/plugins )
-
-if ( plugins_dir )
-  file( GLOB _plugins RELATIVE ${plugins_dir} "${plugins_dir}/*" )
+if ( QTPLUGINS_DIR )
+  file( GLOB _plugins RELATIVE ${QTPLUGINS_DIR} "${QTPLUGINS_DIR}/*" )
   list( REMOVE_ITEM _plugins audio bearer designer qml1tooling qmltooling xchglintegrations )
 else()
-  message( FATAL_ERROR "plugins: " ${plugins_dir} )
+  message( FATAL_ERROR "plugins: " ${QTPLUGINS_DIR} )
 endif()
 
+message( STATUS "##### plugins: " ${QTPLUGINS_DIR} )
 foreach( plugin ${_plugins} )
-  install( DIRECTORY ${plugins_dir}/${plugin} USE_SOURCE_PERMISSIONS DESTINATION plugins )
+  install( DIRECTORY "${QTPLUGINS_DIR}/${plugin}" USE_SOURCE_PERMISSIONS DESTINATION plugins )
 endforeach()
 
 file( WRITE ${CMAKE_BINARY_DIR}/qt.conf "[Paths]\nPrefix=..\n" )

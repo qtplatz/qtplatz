@@ -18,6 +18,9 @@ include_directories(
   )
 		     
 add_definitions(-DADPLOT_LIBRARY)
+if ( MSVC )
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS -wd4996 )
+endif()
 
 set( adplot_SOURCES 
   annotation.cpp 

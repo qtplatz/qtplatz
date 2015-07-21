@@ -9,7 +9,7 @@ set( QMAKE_LAYOUT CACHE BOOL 0 )
 set( QTPLATZ_CORELIB_ONLY CACHE BOOL 0 )
 
 if ( WIN32 )
-  set( CMAKE_INSTALL_PREFIX "C:/qtplatz" )
+  set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
 elseif( APPLE )
   set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 else()
@@ -122,14 +122,37 @@ if ( Qt5_FOUND )
 endif()
 
 ########### CPack ########
+
+set( CPACK_PACKAGE_NAME "qtplatz" )
+
+include( qtplatz-cpack-config )
+
 if ( WIN32 )
 
-  set( FATALERROR "CPACK_GENERATOR for Windows platform not supported." )
+  set( CPACK_GENERATOR "WIX" )
+  set( CPACK_WIX_UPGRADE_GUID "F8077E17-B0F6-4DDB-A7D9-CD7578199E82" )
+  set( CPACK_WIX_PROGRAM_MENU_FOLDER "QtPlatz Mass Spectrometry" )
+  set( CPACK_WIX_CMAKE_PACKAGE_REGISTRY "QtPlatz" )
+
+  install( FILES
+    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcp120.dll
+    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcr120.dll
+    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/vccorlib120.dll
+    DESTINATION bin COMPONENT runtime_libraries )
+    )
+  include( boost-cpack )
+  include( ace+tao-cpack )
+  include( qt5-cpack )
 
 elseif( APPLE )
 
-  SET(MACOSX_BUNDLE_STARTUP_COMMAND qtplatz)
-  set(CPACK_BINARY_DRAGNDROP ON)
+  SET( MACOSX_BUNDLE_STARTUP_COMMAND qtplatz)
+  set( CPACK_BINARY_DRAGNDROP ON )
+  include( qtplatz-cpack-config )
+  include( boost-cpack )
+  include( ace+tao-cpack )
+  include( qt5-cpack )
+  include( rdkit-cpack )
   
 elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 
@@ -145,18 +168,12 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/postinst.in ${CMAKE_CURRENT_BINARY_DIR}/postinst @ONLY )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/prerm.in ${CMAKE_CURRENT_BINARY_DIR}/prerm @ONLY )  
   
-endif()
-
-include( qtplatz-cpack-config )
-
-include( boost-cpack )
-include( ace+tao-cpack )
-
-if ( Qt5_FOUND )
-  include( qt5-cpack )
-endif()
-
-if ( rdkit_FOUND )
+  include( qtplatz-cpack-config )
+  include( boost-cpack )
+  include( ace+tao-cpack )
+  if ( Qt5_FOUND )
+    include( qt5-cpack )
+  endif()
   include( rdkit-cpack )
 endif()
 

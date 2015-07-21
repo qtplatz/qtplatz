@@ -41,14 +41,23 @@ endif()
 # Qt5 setup
 #
 
-#set( CMAKE_PREFIX_PATH $ENV{QTDIR} )
-
 if ( NOT CMAKE_CROSSCOMPILING )
-  execute_process( COMMAND qmake -query QT_INSTALL_PREFIX
-    OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
-  if ( QTDIR )
-    set ( CMAKE_PREFIX_PATH ${QTDIR} ${CMAKE_PREFIX_PATH} )
+
+  if ( WIN32 )
+    find_program( QMAKE NAMES qmake PATHS $ENV{QTDIR}
+      "C:/Qt/5.5/msvc2013_64/bin" "C:/Qt/5.4/msvc2013_64/bin" )
+  else()
+    find_program( QMAKE NAMES qmake PATHS $ENV{QTDIR} )
   endif()
+
+  if ( QMAKE )
+    execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
+      OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+    execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PLUGINS
+      OUTPUT_VARIABLE QTPLUGINS_DIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+  endif()
+
+  find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )
 endif()
 
 #####################

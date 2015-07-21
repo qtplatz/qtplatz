@@ -12,10 +12,13 @@ if ( WIN32 )
     set( w32out_dir "build_x86_64_120" )
   endif()
 
-  find_package( rdkit CONFIG PATHS  
+  find_package( rdkit CONFIG PATHS
+    $ENV{RDBASE}/lib
+    $ENV{HOME}/src/rdkit/lib
+    ${CMAKE_SOURCE_DIR}/../rdkit/lib
     $ENV{RDBASE}/${w32out_dir}
     $ENV{HOME}/src/rdkit/${w32out_dir}
-    $ENV{USERPROFILE}/src/rdkit/${w32out_dir}
+    ${CMAKE_SOURCE_DIR}/../rdkit/${w32out_dir}
     )
 
 else()

@@ -23,6 +23,9 @@
 **
 **************************************************************************/
 
+#if defined _MSC_VER
+# pragma warning(disable:4996 )
+#endif
 #include "baseline.hpp"
 #include "plot.hpp"
 #include <qwt_plot_curve.h>
