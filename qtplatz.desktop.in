@@ -1,0 +1,6 @@
+[Desktop Entry]
+Version=1.0
+Name=QtPlatz
+Exec=/opt/qtplatz/bin/qtplatz
+Icon=
+Categories=Development;

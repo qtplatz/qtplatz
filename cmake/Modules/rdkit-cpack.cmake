@@ -1,22 +1,28 @@
 
-message( STATUS "##### rdkit-cpack.cmake<qtplatz> #####" )
+#message( STATUS "##### rdkit-cpack.cmake<qtplatz> #####" )
 
 include( "soname" )
 
-if ( RDKIT_FOUND )
+if ( rdkit_FOUND )
 
   foreach( lib
+      DataStructs
       Depictor
       Descriptors       
       FileParsers
       GraphMol
+      PartialCharges
       RDGeneral
       RDGeometryLib
       SmilesParse
+      Subgraphs
       SubstructMatch )
 
     get_target_property( _loc ${lib} LOCATION )
-    message( STATUS "## rdkit-cpack install " ${_loc} " --> runtime_libraries" )
+    # message( STATUS "## rdkit-cpack install " ${_loc} " --> runtime_libraries" )
+    if ( NOT _lock )
+      message( FATAL_ERROR "## rdkit-cpack install: " ${lib} " --> " ${_loc} )
+    endif()
   
     if ( WIN32 )
       install( FILES ${_loc} DESTINATION ${dest} COMPONENT runtime_libraries )

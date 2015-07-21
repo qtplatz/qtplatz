@@ -136,6 +136,7 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 
   set( INSTALL_DIRECTORY ${CPACK_INSTALL_PREFIX}/lib )  
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/postinst.in ${CMAKE_CURRENT_BINARY_DIR}/postinst @ONLY )
+  
 endif()
 
 add_subdirectory (src)

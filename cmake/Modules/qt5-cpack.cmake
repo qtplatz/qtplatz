@@ -1,9 +1,13 @@
 
-message( STATUS "##### qt5-cpack.cmake<qtplatz> #####" )
+#message( STATUS "##### qt5-cpack.cmake<qtplatz> #####" )
 
 include( "soname" )
 
-find_package( Qt5 REQUIRED Core Gui Network OpenGL PrintSupport Script Sql Svg Widgets Xml XmlPatterns )
+find_package( Qt5
+  REQUIRED
+  Core DBus Gui Network OpenGL PrintSupport Script Sensors Sql Svg
+  Positioning Quick Qml WebChannel
+  WebKit WebKitWidgets Widgets Xml XmlPatterns )
 
 get_target_property( _loc Qt5::Core LOCATION )
 get_filename_component( _dir ${_loc} DIRECTORY )
@@ -18,19 +22,30 @@ endif()
 
 foreach( lib
     Qt5::Core
+    Qt5::DBus
     Qt5::Gui
     Qt5::Network
     Qt5::OpenGL
     Qt5::PrintSupport
     Qt5::Script
+    Qt5::Sensors
     Qt5::Sql
     Qt5::Svg
+    Qt5::Positioning
+    Qt5::Quick
+    Qt5::Qml
+    Qt5::WebChannel
+    Qt5::WebKit
+    Qt5::WebKitWidgets
     Qt5::Widgets
     Qt5::Xml
     Qt5::XmlPatterns )
   
   get_target_property( _loc ${lib} LOCATION )
-  message( STATUS "## qt5-cpack install " ${_loc} " --> runtime_libraries" )
+  #message( STATUS "## qt5-cpack install " ${_loc} " --> runtime_libraries" )
+  if ( NOT _lock )
+    message( FATAL_ERROR "## qt5-cpack install: " ${lib} " --> " ${_loc} )
+  endif()
   
   if ( WIN32 )
     install( FILES ${_loc} DESTINATION ${dest} COMPONENT runtime_libraries )
@@ -56,7 +71,5 @@ foreach( plugin ${_plugins} )
   install( DIRECTORY ${plugins_dir}/${plugin} USE_SOURCE_PERMISSIONS DESTINATION plugins )
 endforeach()
 
-#find_path( qt_conf NAMES qt.conf PATHS ${QTDIR}/bin ${plugin_dir} ${plugin_dir}/bin )
-#if ( qt_conf )
-#  install( FILES ${qt_conf}/qt.conf DESTINATION bin )
-#endif()
+file( WRITE ${CMAKE_BINARY_DIR}/qt.conf "[Paths]\nPrefix=..\n" )
+install( FILES ${CMAKE_BINARY_DIR}/qt.conf DESTINATION bin )

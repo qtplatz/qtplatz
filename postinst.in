@@ -7,5 +7,13 @@ if [ "$1" = "configure" ]; then
     echo "@INSTALL_DIRECTORY@" > /etc/ld.so.conf.d/qtplatz.conf
     echo "@INSTALL_DIRECTORY@/qtplatz" >> /etc/ld.so.conf.d/qtplatz.conf    
     ldconfig
+    cat << EOF > /usr/share/applications/qtplatz.desktop
+[Desktop Entry]
+Version=1.0
+Name=QtPlatz
+Exec=@CPACK_INSTALL_PREFIX@/bin/qtplatz
+Icon=
+Categories=Development;
+EOF
 fi
 

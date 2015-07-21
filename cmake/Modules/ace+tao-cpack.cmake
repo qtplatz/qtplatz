@@ -5,7 +5,7 @@ include( "soname" )
 
 if ( ace+tao_FOUND )
 
-  set ( libs ACE TAO TAO_Utils TAO_PI TAO_PortableServer TAO_AnyTypeCode )
+  set ( libs ACE TAO TAO_Utils TAO_PI TAO_PortableServer TAO_AnyTypeCode TAO_CodecFactory )
 
   foreach( lib ${libs} )
     file( GLOB _libs ${ace+tao_DIR}/lib/lib${lib}.${SO}* )
