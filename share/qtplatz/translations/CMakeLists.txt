@@ -32,16 +32,14 @@ else()
   QT5_ADD_TRANSLATION( qm_files ${ts_files} )
 endif()
 
-foreach( qm_file ${qm_files} )
-  message( "qm_file: " ${qm_file} )
-endforeach()
+#foreach( qm_file ${qm_files} )
+#  message( "qm_file: " ${qm_file} )
+#endforeach()
 
 file( WRITE phony.c "int main() { return 0; }" )
 
-#add_custom_target( translations_target DEPENDS ${qm_files} )
 add_executable( translations phony.c ${qm_files} )
 
-#install( FILES ${qm_files} DESTINATION ${CMAKE_SOURCE_DIR}/translations )
 install( FILES ${qm_files} DESTINATION share/qtplatz/translations COMPONENT translations )
 set_directory_properties( PROPERTIES CLEAN_NO_CUSTOM true )
 

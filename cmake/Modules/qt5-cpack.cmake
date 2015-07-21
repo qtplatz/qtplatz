@@ -7,18 +7,25 @@ find_package( Qt5
   REQUIRED
   Core DBus Gui Network OpenGL PrintSupport Script Sensors Sql Svg
   Positioning Quick Qml WebChannel
-  WebKit WebKitWidgets Widgets Xml XmlPatterns )
+  WebKit WebKitWidgets Widgets
+  Xml XmlPatterns )
+
+message( STATUS "Qt5 Version: " ${Qt5_VERSION} "\t" ${Qt5_VERSION_MAJOR}.${Qt5_VERSION_MINOR})
 
 get_target_property( _loc Qt5::Core LOCATION )
 get_filename_component( _dir ${_loc} DIRECTORY )
 
-if ( WIN32 )
-  file( GLOB files "${_dir}/icu*.${SO}" "${_dir}/Qt5CLucene.${SO}" )
-  install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )  
-else()
-  file( GLOB files "${_dir}/libicu*.${SO}.*" "${_dir}/libQt5CLucene.${SO}.*" )
-  install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )
-endif()
+foreach( _lib "icu*" Qt5CLucene Qt5XcbQpa )
+  if ( WIN32 )
+    #file( GLOB files "${_dir}/icu*.${SO}" "${_dir}/Qt5CLucene.${SO}" "${_dir}/Qt5XcbQpa.${SO} )
+    file( GLOB files "${_dir}/${_lib}.${SO}" )
+    install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )  
+  else()
+    #file( GLOB files "${_dir}/libicu*.${SO}.*" "${_dir}/libQt5CLucene.${SO}.*" )
+    file( GLOB files "${_dir}/lib${_lib}.${SO}.*" )
+    install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )
+  endif()
+endforeach()
 
 foreach( lib
     Qt5::Core
@@ -42,10 +49,7 @@ foreach( lib
     Qt5::XmlPatterns )
   
   get_target_property( _loc ${lib} LOCATION )
-  #message( STATUS "## qt5-cpack install " ${_loc} " --> runtime_libraries" )
-  if ( NOT _lock )
-    message( FATAL_ERROR "## qt5-cpack install: " ${lib} " --> " ${_loc} )
-  endif()
+  #message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} )
   
   if ( WIN32 )
     install( FILES ${_loc} DESTINATION ${dest} COMPONENT runtime_libraries )

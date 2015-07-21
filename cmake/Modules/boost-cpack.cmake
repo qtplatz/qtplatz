@@ -5,7 +5,7 @@ include( "soname" )
 
 if ( Boost_FOUND )
 
-  set ( libs bzip2 date_time filesystem iostreams regex serialization system thread timer wserialization )
+  set ( libs bzip2 date_time filesystem iostreams program_options regex serialization system thread timer wserialization )
 
   foreach ( lib ${libs} )
     file( GLOB _libs ${Boost_LIBRARY_DIR}/libboost_${lib}.${SO}* )

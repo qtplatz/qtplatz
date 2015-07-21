@@ -115,6 +115,13 @@ if ( WIN32 )
   set(CMAKE_DEBUG_POSTFIX "d")
 endif()
 
+add_subdirectory (src)
+add_subdirectory (contrib)
+if ( Qt5_FOUND )
+  add_subdirectory (share)
+endif()
+
+########### CPack ########
 if ( WIN32 )
 
   set( FATALERROR "CPACK_GENERATOR for Windows platform not supported." )
@@ -128,7 +135,7 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 
   set( CPACK_GENERATOR "DEB" )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
-  set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/postinst" )  
+  set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/postinst;${CMAKE_CURRENT_BINARY_DIR}/prerm" )  
 
   if ( RTC_ARCH_ARM )
     set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
@@ -136,26 +143,23 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 
   set( INSTALL_DIRECTORY ${CPACK_INSTALL_PREFIX}/lib )  
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/postinst.in ${CMAKE_CURRENT_BINARY_DIR}/postinst @ONLY )
+  configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/prerm.in ${CMAKE_CURRENT_BINARY_DIR}/prerm @ONLY )  
   
 endif()
 
-add_subdirectory (src)
-add_subdirectory (contrib)
-if ( Qt5_FOUND )
-  add_subdirectory (share)
-endif()
-
 include( qtplatz-cpack-config )
+
 include( boost-cpack )
+include( ace+tao-cpack )
 
 if ( Qt5_FOUND )
   include( qt5-cpack )
 endif()
 
-include( ace+tao-cpack )
-
 if ( rdkit_FOUND )
   include( rdkit-cpack )
 endif()
+
+set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 
 include( CPack )

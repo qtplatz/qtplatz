@@ -1,0 +1,5 @@
+#!/bin/sh
+if [ "$1" = "upgrade" -o "$1" = "remove" ]; then
+    echo removing...
+    rm -f /usr/share/applications/qtplatz.desktop
+fi

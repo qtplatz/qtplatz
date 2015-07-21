@@ -19,10 +19,7 @@ if ( rdkit_FOUND )
       SubstructMatch )
 
     get_target_property( _loc ${lib} LOCATION )
-    # message( STATUS "## rdkit-cpack install " ${_loc} " --> runtime_libraries" )
-    if ( NOT _lock )
-      message( FATAL_ERROR "## rdkit-cpack install: " ${lib} " --> " ${_loc} )
-    endif()
+    #message( STATUS "## rdkit-cpack install " ${_loc} " --> runtime_libraries" )
   
     if ( WIN32 )
       install( FILES ${_loc} DESTINATION ${dest} COMPONENT runtime_libraries )
