@@ -61,16 +61,16 @@ foreach( lib
   
 endforeach()
 
-if ( QTPLUGINS_DIR )
-  file( GLOB _plugins RELATIVE ${QTPLUGINS_DIR} "${QTPLUGINS_DIR}/*" )
+if ( QT_INSTALL_PLUGINS )
+  file( GLOB _plugins RELATIVE ${QT_INSTALL_PLUGINS} "${QT_INSTALL_PLUGINS}/*" )
   list( REMOVE_ITEM _plugins audio bearer designer qml1tooling qmltooling xchglintegrations )
 else()
-  message( FATAL_ERROR "plugins: " ${QTPLUGINS_DIR} )
+  message( FATAL_ERROR "plugins: " ${QT_INSTALL_PLUGINS} )
 endif()
 
-message( STATUS "##### plugins: " ${QTPLUGINS_DIR} )
+message( STATUS "##### plugins: " ${QT_INSTALL_PLUGINS} )
 foreach( plugin ${_plugins} )
-  install( DIRECTORY "${QTPLUGINS_DIR}/${plugin}" USE_SOURCE_PERMISSIONS DESTINATION plugins )
+  install( DIRECTORY "${QT_INSTALL_PLUGINS}/${plugin}" USE_SOURCE_PERMISSIONS DESTINATION plugins )
 endforeach()
 
 file( WRITE ${CMAKE_BINARY_DIR}/qt.conf "[Paths]\nPrefix=..\n" )

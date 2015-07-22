@@ -10,7 +10,9 @@ find_package( arch )
 # boost setup
 #
 if( WIN32 )
+  
   set( BOOST_ROOT "C:/Boost/include/${BOOST_VERSION}" )
+  set( Boost_INCLUDE_DIR ${BOOST_ROOT} )
   set( Boost_USE_STATIC_LIBS ON )
 
   if ( RTC_ARCH_X64 )
@@ -44,17 +46,20 @@ endif()
 if ( NOT CMAKE_CROSSCOMPILING )
 
   if ( WIN32 )
-    find_program( QMAKE NAMES qmake PATHS $ENV{QTDIR}
+    find_program( QMAKE NAMES qmake HINTS $ENV{QTDIR}
       "C:/Qt/5.5/msvc2013_64/bin" "C:/Qt/5.4/msvc2013_64/bin" )
   else()
-    find_program( QMAKE NAMES qmake PATHS $ENV{QTDIR} )
+    find_program( QMAKE NAMES qmake HINTS $ENV{QTDIR} )
   endif()
 
   if ( QMAKE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
       OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PLUGINS
-      OUTPUT_VARIABLE QTPLUGINS_DIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+      OUTPUT_VARIABLE QT_INSTALL_PLUGINS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+    execute_process( COMMAND ${QMAKE} -query QT_INSTALL_LIBEXECS
+      OUTPUT_VARIABLE QT_INSTALL_LIBEXECS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+    find_program( XMLPATTERNS NAMES xmlpatterns PATHS ${QT_INSTALL_LIBEXECS} )
   endif()
 
   find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )

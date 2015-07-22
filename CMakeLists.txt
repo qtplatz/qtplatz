@@ -5,8 +5,7 @@ cmake_minimum_required (VERSION 2.8.9)
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW )
 
-set( QMAKE_LAYOUT CACHE BOOL 0 )
-set( QTPLATZ_CORELIB_ONLY CACHE BOOL 0 )
+set( QTPLATZ_CORELIB_ONLY CACHE BOOL OFF )
 
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
@@ -135,12 +134,12 @@ if ( WIN32 )
   set( CPACK_WIX_PROGRAM_MENU_FOLDER "QtPlatz Mass Spectrometry" )
   set( CPACK_WIX_CMAKE_PACKAGE_REGISTRY "QtPlatz" )
 
-  install( FILES
-    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcp120.dll
-    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcr120.dll
-    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/vccorlib120.dll
-    DESTINATION bin COMPONENT runtime_libraries )
-    )
+#  install( FILES
+#    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcp120.dll
+#    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcr120.dll
+#    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/vccorlib120.dll
+#    DESTINATION bin COMPONENT runtime_libraries )
+#    )
   include( boost-cpack )
   include( ace+tao-cpack )
   include( qt5-cpack )
