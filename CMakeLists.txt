@@ -178,5 +178,6 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 endif()
 
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
+set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 
 include( CPack )

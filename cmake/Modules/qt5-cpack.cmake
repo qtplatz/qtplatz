@@ -53,7 +53,7 @@ foreach( lib
     Qt5::XmlPatterns )
   
   get_target_property( _loc ${lib} LOCATION )
-  message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} )
+  #message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} )
   
   if ( WIN32 )
     install( FILES ${_loc} DESTINATION ${dest} COMPONENT runtime_libraries )
