@@ -41,13 +41,6 @@ configure_file(
   @ONLY
   )
 
-# for backward compatibility, makefile also generate in source dir
-configure_file(
-  "${PROJECT_SOURCE_DIR}/makefile.in"
-  "${PROJECT_SOURCE_DIR}/makefile"
-  @ONLY
-  )
-
 configure_file(
   "${PROJECT_SOURCE_DIR}/version.wxi.in"
   "${PROJECT_BINARY_DIR}/version.wxi"
@@ -55,8 +48,8 @@ configure_file(
   )
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/qtplatz.wxs"
-  "${PROJECT_BINARY_DIR}/qtplatz.wxs"
+  "${PROJECT_SOURCE_DIR}/qtplatz.wxs.in"
+  "${PROJECT_BINARY_DIR}/qtpaltz.wxs"
   @ONLY
   )
 

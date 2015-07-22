@@ -77,9 +77,9 @@
     <!-- <?define InfiTOFDir   = "$(var.TOP)/../infitof" ?> -->
     <?define EZUSBDir     = "$(var.InfiTOFDir)/libusb-win32/usbdriver" ?>
     <?define InMSCheminfo = "$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics" ?>
-    <?define InQt         = "$(env.QTDIR)" ?>
-    <?define InTAOLib     = "$(env.ACE_ROOT)/lib" ?>
-    <?define InTAOBin     = "$(env.ACE_ROOT)/bin" ?>
+    <?define InQt         = "@QTDIR@" ?>
+    <?define InTAOLib     = "@ACE_ROOT@/lib" ?>
+    <?define InTAOBin     = "@ACE_ROOT@/bin" ?>
     <Fragment>
         <ComponentGroup Id="LicenseComponents" Directory="INSTALLFOLDER">
             <Component Id="license.txt" Guid="85B42502-7D63-4FCF-9737-3660138FA88B" Win64="yes">

@@ -29,6 +29,7 @@ set ( QTPLATZ_CORELIB_ONLY       @QTPLATZ_CORELIB_ONLY@ )
 if ( APPLE )
   set ( CMAKE_MACOSX_RPATH @CMAKE_MACOSX_RPATH@ )
 endif()
+
 if ( WIN32 )
   add_definitions(-DUNICODE -D_UNICODE)
 endif()

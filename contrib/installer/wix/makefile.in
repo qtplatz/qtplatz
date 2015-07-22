@@ -11,7 +11,7 @@ TOP    	= ..
 
 BUILD = release_build
 MSIFILE = @MSIFILE@
-
+QTDIR   = @QTDIR@
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 QTPLATZ_BINARY_DIR = @QTPLATZ_BINARY_DIR@
 
@@ -48,6 +48,7 @@ all: $(MSIFILE)
 world: qtplatz $(INFITOF_TARGET) $(MALPIX_TARGET) $(MSIFILE)
 
 help:
+	@echo "* QTDIR=" $(QTDIR)
 	@echo "*	nmake help	;show this message"
 	@echo "*	nmake world	;will rebuild qtplatz @INFITOF_TARGET@ @MALPIX_TARGET@ and .MSI setup"
 	@echo "*	nmake harvest	;make translations; make qt; and make plugins' for update .wxi files from scratch"

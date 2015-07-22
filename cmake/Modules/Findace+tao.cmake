@@ -27,8 +27,8 @@ endif()
 
 if ( ace+tao_DIR )
 
-  find_program( TAO_IDL NAMES tao_idl HINTS ${ace+tao_DIR}/bin )
-  
+  set( ACE_ROOT ${ace+tao_DIR} )
+  find_program( TAO_IDL NAMES tao_idl HINTS ${ACE_ROOT}/bin )
   find_path( ACE_INCLUDE_DIR NAMES ace/ACE.h HINTS ${ace+tao_DIR} ${ace+tao_DIR}/include )
   find_path( TAO_INCLUDE_DIR NAMES tao/corba.h HINTS ${ace+tao_DIR}/TAO ${ace+tao_DIR} ${ace+tao_DIR}/include )
 
