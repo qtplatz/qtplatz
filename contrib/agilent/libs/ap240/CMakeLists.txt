@@ -61,4 +61,9 @@ target_link_libraries( test_digitizer LINK_PUBLIC
   ${Boost_LIBRARIES}
   ${platform_libs}
 )  
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT modules
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
   

@@ -5,7 +5,10 @@ include( "soname" )
 
 find_package( Qt5
   REQUIRED
-  Core DBus Gui Network OpenGL PrintSupport Script Sensors Sql Svg
+  Core DBus Gui
+  Multimedia
+  MultimediaWidgets
+  Network OpenGL PrintSupport Script Sensors Sql Svg
   Positioning Quick Qml WebChannel
   WebKit WebKitWidgets Widgets
   Xml XmlPatterns )
@@ -30,6 +33,8 @@ foreach( lib
     Qt5::Core
     Qt5::DBus
     Qt5::Gui
+    Qt5::Multimedia
+    Qt5::MultimediaWidgets
     Qt5::Network
     Qt5::OpenGL
     Qt5::PrintSupport
@@ -48,7 +53,7 @@ foreach( lib
     Qt5::XmlPatterns )
   
   get_target_property( _loc ${lib} LOCATION )
-  #message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} )
+  message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} )
   
   if ( WIN32 )
     install( FILES ${_loc} DESTINATION ${dest} COMPONENT runtime_libraries )
