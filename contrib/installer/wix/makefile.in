@@ -48,10 +48,11 @@ all: $(MSIFILE)
 world: qtplatz $(INFITOF_TARGET) $(MALPIX_TARGET) $(MSIFILE)
 
 help:
-	@echo "* QTDIR=" $(QTDIR)
+	@echo "* QTDIR=       " $(QTDIR)
+	@echo "* VCINSTALLDIR=" $(VCINSTALLDIR)
 	@echo "*	nmake help	;show this message"
+	@echo "*	nmake cmake	;regenerate make and project files"
 	@echo "*	nmake world	;will rebuild qtplatz @INFITOF_TARGET@ @MALPIX_TARGET@ and .MSI setup"
-	@echo "*	nmake harvest	;make translations; make qt; and make plugins' for update .wxi files from scratch"
 	@echo "*	nmake all	;make .msi from existing binary"
 	@echo "*	nmake clean	;cleans up current dir"
 	@echo "*	nmake veryclean	;CAUTION this cleans all files according to git repository."
@@ -72,10 +73,12 @@ veryclean: clean
 	-@git clean -d -x -f
 	cd $(MAKEDIR)
 
-qtplatz:
+cmake:
 	-@$(MD) $(QTPLATZ_BINARY_DIR)
 	cd $(QTPLATZ_BINARY_DIR)
 	cmake -G "Visual Studio 12 Win64" $(QTPLATZ_SOURCE_DIR)
+
+qtplatz:
 	cd $(MAKEDIR)
 	msbuild $(QTPLATZ_BINARY_DIR)\qtplatz.sln /m /t:Build /p:Configuration=Release
 
@@ -120,7 +123,7 @@ qtplatz_xslt.wixobj: qtplatz_xslt.wxi
 plugins.wixobj: plugins.wxi
 	$(CANDLE) -dQtPluginsDir=$(QTDIR)\plugins plugins.wxi
 
-qt.wixobj: qt.wxi 
+qt.wixobj: qt.wxi
 	$(CANDLE) -dQtBinDir=$(QTDIR)\bin qt.wxi
 
 vc120.wixobj: vc120.wxi 

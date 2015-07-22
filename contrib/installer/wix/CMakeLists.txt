@@ -4,6 +4,8 @@ project( wix_installer )
 
 set( QTPLATZ_BINARY_DIR "${CMAKE_BINARY_DIR}/../qtplatz-${arch_FOUND}.package" )
 
+find_package( ace+tao )
+
 set( INFITOF_TARGET "" )
 set( MALPIX_TARGET "" )
 
@@ -34,6 +36,10 @@ string( REGEX REPLACE "/" "\\\\" MALPIX_SOURCE_DIR ${MALPIX_SOURCE_DIR} )
 string( REGEX REPLACE "/" "\\\\" MALPIX_BINARY_DIR ${MALPIX_BINARY_DIR} )
 
 string( REGEX REPLACE "/" "\\\\" STAGEDIR ${STAGEDIR} )
+
+string( REGEX REPLACE "/" "\\\\" QTDIR ${QTDIR} )
+
+string( REGEX REPLACE "/" "\\\\" ACE_ROOT ${ace+tao_DIR} )
   
 configure_file(
   "${PROJECT_SOURCE_DIR}/makefile.in"
@@ -49,19 +55,13 @@ configure_file(
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/qtplatz.wxs.in"
-  "${PROJECT_BINARY_DIR}/qtpaltz.wxs"
+  "${PROJECT_BINARY_DIR}/qtplatz.wxs"
   @ONLY
   )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/rdkit_components.wxi"
   "${PROJECT_BINARY_DIR}/rdkit_components.wxi"
-  @ONLY
-  )
-
-configure_file(
-  "${PROJECT_SOURCE_DIR}/tao_components.wxi"
-  "${PROJECT_BINARY_DIR}/tao_components.wxi"
   @ONLY
   )
 
@@ -78,7 +78,7 @@ find_package( Qt5 REQUIRED Gui Svg Sql )
 
 foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )
   get_target_property( _loc ${plugin} LOCATION )
-  file( RELATIVE_PATH _rname $ENV{QTDIR}/plugins ${_loc} )
+  file( RELATIVE_PATH _rname ${QTDIR}/plugins ${_loc} )
   get_filename_component(_rpath ${_rname} DIRECTORY )
   file( COPY ${_loc} DESTINATION ${STAGEDIR}/plugins/${_rpath} )
 endforeach()

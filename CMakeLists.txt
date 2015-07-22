@@ -67,7 +67,7 @@ endif()
 
 if( WIN32 )
   set( CPACK_INSTALL_PREFIX "C:/QtPlatz" )
-  set( CPACK_SET_DESTDIR ON )  
+  set( CPACK_SET_DESTDIR OFF )  # WiX does not support this, and raise an error
 elseif ( APPLE )
   set( CPACK_INSTALL_PREFIX "/opt/QtPlatz.app" )
   set( CPACK_SET_DESTDIR ON )  
@@ -90,7 +90,7 @@ if ( WIN32 )
 #  set( CMAKE_CXX_FLAGS_RELEASE "/MD /Zi /O2 /Ob2 /D NDEBUG" )
 endif()
 
-install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION lib COMPONENT libraries )
+install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION / COMPONENT libraries )
 
 find_package( Boost REQUIRED )
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )

@@ -70,8 +70,8 @@ endif()
 
 message( STATUS "##### plugins: " ${QT_INSTALL_PLUGINS} )
 foreach( plugin ${_plugins} )
-  install( DIRECTORY "${QT_INSTALL_PLUGINS}/${plugin}" USE_SOURCE_PERMISSIONS DESTINATION plugins )
+  install( DIRECTORY "${QT_INSTALL_PLUGINS}/${plugin}" USE_SOURCE_PERMISSIONS DESTINATION plugins COMPONENT plugins )
 endforeach()
 
 file( WRITE ${CMAKE_BINARY_DIR}/qt.conf "[Paths]\nPrefix=..\n" )
-install( FILES ${CMAKE_BINARY_DIR}/qt.conf DESTINATION bin )
+install( FILES ${CMAKE_BINARY_DIR}/qt.conf DESTINATION bin COMPONENT runtime_libraries )
