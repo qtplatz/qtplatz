@@ -43,6 +43,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/datainterpreter.hpp>
+#include "dialog.hpp"
 
 using namespace adportable;
 using namespace adcontrols;
@@ -109,19 +110,48 @@ TXTSpectrum::load( const std::wstring& name )
         }
     } while( ! in.eof() );
 
-    std::vector<MSProperty::SamplingInfo> segments;
-    if ( analyze_segments( segments, timeArray, compiled_.get() ) )
-        validate_segments( segments, timeArray );
+    Dialog dlg;
+    dlg.show();
+    
+    if ( dlg.exec() ) {
+        // InfiTOF data
+        std::vector<MSProperty::SamplingInfo> segments;
+        if ( analyze_segments( segments, timeArray, compiled_.get() ) )
+            validate_segments( segments, timeArray );
 
-    size_t idx = 0;
-    size_t fcn = 0;
-    for ( auto s: segments ) {
+        size_t idx = 0;
+        size_t fcn = 0;
+        for ( auto s: segments ) {
+            std::shared_ptr< adcontrols::MassSpectrum > ptr( new adcontrols::MassSpectrum );
+            if ( massArray.empty() )
+                ptr->setAcquisitionMassRange( 100, 1000 );
+            else
+                ptr->setAcquisitionMassRange( massArray.front(), massArray.back() );
+            idx += create_spectrum( *ptr, idx, s, timeArray, massArray, intensArray, fcn++ );
+            spectra_.push_back( ptr );
+        }
+    } else {
+        double x = timeArray[1] - timeArray[0];
+        adcontrols::MSProperty::SamplingInfo info;
+        info.fSampInterval( x * 1.0e-6 ); // us -> s
+        info.setDelayTime( timeArray[0] * 1.0e-6 );
+        info.sampInterval = 0;
+        info.nSamplingDelay = ( timeArray[0] * 1.0e-6 ) / info.fSampInterval();
+        info.nSamples = timeArray.size();
+        info.nAverage = 1;
+        info.mode = 0;
         std::shared_ptr< adcontrols::MassSpectrum > ptr( new adcontrols::MassSpectrum );
-		if ( massArray.empty() )
-			ptr->setAcquisitionMassRange( 100, 1000 );
-		else
-			ptr->setAcquisitionMassRange( massArray.front(), massArray.back() );
-        idx += create_spectrum( *ptr, idx, s, timeArray, massArray, intensArray, fcn++ );
+        if ( massArray.empty() )
+            ptr->setAcquisitionMassRange( timeArray.front(), timeArray.back() );
+        else
+            ptr->setAcquisitionMassRange( massArray.front(), massArray.back() );
+ 
+        std::transform( intensArray.begin(), intensArray.end(), intensArray.begin(), []( double i ){ return -i * 1000000; } );
+        
+        std::transform( timeArray.begin(), timeArray.end(), timeArray.begin(), []( double t ){ return t * 1.0e-6; } );
+        
+        create_spectrum( *ptr, 0, info, timeArray, massArray, intensArray, 0 );
+        
         spectra_.push_back( ptr );
     }
     return true;
@@ -241,10 +271,13 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
         for ( size_t i = 0; i < info.nSamples; ++i )
             ms.setIntensity( i, intens[i] - base );
     }
+    
 
     if ( ! massArray.empty() ) {
         ms.setMassArray( massArray.data() + idx );
     } else {
+        ms.setMassArray( timeArray.data() + idx );
+
         // todo: add UI dialog box to ask those values
         double t1 = timeArray.front();
         double t2 = timeArray.back();
@@ -262,12 +295,12 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
         calib.coeffs( coeffs );
         
 		// massArray.resize( size );
-        std::pair< double, double > error;
-        for ( size_t i = 0; i < ms.size(); ++i ) {
-            double m_sqrt = adcontrols::MSCalibration::compute( calib.coeffs(), ms.getTime( i ) );
-            double mz = m_sqrt * m_sqrt;
-            ms.setMass( i, mz );
-        }
+        // std::pair< double, double > error;
+        // for ( size_t i = 0; i < ms.size(); ++i ) {
+        //     double m_sqrt = adcontrols::MSCalibration::compute( calib.coeffs(), ms.getTime( i ) );
+        //     double mz = m_sqrt * m_sqrt;
+        //     ms.setMass( i, mz );
+        // }
         ms.setCalibration( coeffs );
     }
     return ms.size();

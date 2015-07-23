@@ -4,7 +4,15 @@ cmake_policy( SET CMP0028 NEW )
 project( adtextfile )
 set( PROVIDER MS-Cheminformatics )
 
-#find_package( Qt5 CONFIG REQUIRED Core Widgets )
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
+file(GLOB UIs *.ui)
+file(GLOB Resources *.qrc)
+
+find_package( Qt5 CONFIG REQUIRED Core Widgets )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
@@ -12,6 +20,9 @@ configure_file(
   )
 
 #include_directories( ${Qt5Core_INCLUDE_DIRS}  )
+include_directories(
+  ${Qt5Widgets_INCLUDE_DIRS}
+  )
 
 add_definitions(-DADTXTFACTORY_LIBRARY)
 
@@ -26,6 +37,8 @@ add_library( adtextfile MODULE
   datafile_factory.hpp
   txtspectrum.hpp
   txtchromatogram.hpp
+  dialog.cpp
+  dialog.hpp
   )
 
 target_link_libraries( adtextfile LINK_PUBLIC
@@ -36,6 +49,8 @@ target_link_libraries( adtextfile LINK_PUBLIC
   xmlparser
   portfolio
   adplugin
+  Qt5::Core
+  Qt5::Widgets
   )
 
 set_target_properties( ${PROJECT_NAME}
