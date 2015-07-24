@@ -451,11 +451,13 @@ task::handle_initial_setup()
     if ( ( status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ ) ) != VI_SUCCESS ) {
         ADTRACE() << error_msg( status, "Acqiris::findDevice()" );
     } else {
+#if 0
         ADTRACE() << boost::format( "find %1% acqiris devices." ) % numInstruments_;
         if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS ) {
                 simulated_ = true;
                 numInstruments_ = 1;
         }
+#endif
     }
     
     if ( numInstruments_ == 0 )
