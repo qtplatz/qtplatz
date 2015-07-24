@@ -517,7 +517,8 @@ namespace dataproc {
 		static bool write( std::ostream& o, const adcontrols::Chromatogram& c ) {
             for ( size_t n = 0; n < c.size(); ++n ) {
                 o << std::scientific << std::setprecision( 15 ) << c.time( n )
-                  << std::fixed << std::setprecision( 13 ) << c.intensity( n ) << std::endl;
+                    << "\t"
+                    << std::fixed << std::setprecision( 13 ) << c.intensity( n ) << std::endl;
             }
 			return true;
 		}
