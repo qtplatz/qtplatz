@@ -250,6 +250,7 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     prop.setSamplingInfo( info );
     
     prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
+    prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ );
     prop.setDataInterpreterClsid( "ap240" );
 
     ap240::device_data data;

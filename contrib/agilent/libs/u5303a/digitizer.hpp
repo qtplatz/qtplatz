@@ -171,7 +171,8 @@ namespace u5303a {
 		waveform( const waveform& ); // = delete;
 		void operator = ( const waveform& ); // = delete;
 	public:
-        waveform( std::shared_ptr< identify >& id ) : ident_( id ), wellKnownEvents_( 0 ), serialnumber_( 0 ) {
+        waveform( std::shared_ptr< identify >& id ) : serialnumber_( 0 ), wellKnownEvents_( 0 ), timeSinceEpoch_( 0 )
+                                                    , ident_( id ) {
         }
         
         const int32_t * trim( metadata&, uint32_t& ) const;
@@ -180,6 +181,7 @@ namespace u5303a {
         metadata meta_;
         uint32_t serialnumber_;
         uint32_t wellKnownEvents_;
+        uint64_t timeSinceEpoch_;
         std::vector< int32_t > d_;
         std::shared_ptr< identify > ident_;
     private:

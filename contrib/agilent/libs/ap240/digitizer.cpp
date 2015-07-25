@@ -907,6 +907,8 @@ device_ap240::readData( task& task, waveform& data, const method& m, int channel
         AqSegmentDescriptor segDesc;
         if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) ) {
 
+            data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+
             // std::cout << boost::format( "Time: [%x][%x]" ) % segDesc.timeStampHi % segDesc.timeStampLo << std::endl;
             
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;

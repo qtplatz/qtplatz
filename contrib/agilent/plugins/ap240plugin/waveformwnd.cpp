@@ -153,7 +153,8 @@ WaveformWnd::handle_waveform()
             prop.acceleratorVoltage( 3000 );
             prop.setSamplingInfo( info );
             using namespace adcontrols::metric;
-            prop.setTimeSinceInjection( timestamp ); // seconds
+            prop.setTimeSinceInjection( timestamp * 1.0e6 ); // microseconds
+            prop.setTimeSinceEpoch( waveform->timeSinceEpoch_ );
             prop.setDataInterpreterClsid( "ap240" );
             sp->setMSProperty( prop );
             

@@ -827,6 +827,8 @@ device<UserFDK>::readData( task& task, waveform& data )
                                                             , &data.meta_.scaleOffset
                                                             , &flags );
 
+        data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+
         data.method_ = task.method();
 
         data.meta_.actualAverages = actualAverages;
@@ -932,6 +934,7 @@ device<Simulate>::readData( task& task, waveform& data )
     data.method_ = task.method();
     if ( simulator * simulator = task.simulator() ) {
         simulator->readData( data );
+        data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
         return true;
     }
     return false;

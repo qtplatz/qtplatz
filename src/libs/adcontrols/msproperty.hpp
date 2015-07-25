@@ -59,7 +59,10 @@ namespace adcontrols {
         double time( size_t pos ); // return flight time for data[pos] in seconds
 
         double timeSinceInjection() const;
-        void setTimeSinceInjection( uint32_t /* microseconds */);
+        void setTimeSinceInjection( int64_t /* microseconds */);
+
+        uint64_t timeSinceEpoch() const;
+        void setTimeSinceEpoch( uint64_t );
 
         const SamplingInfo& getSamplingInfo() const;
         void setSamplingInfo( const SamplingInfo& );
@@ -134,7 +137,8 @@ namespace adcontrols {
         static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix pfx );
 
     private:
-        uint32_t time_since_injection_; // usec
+        uint64_t time_since_injection_; // usec
+        uint64_t time_since_epoch_;     // ns
         double instAccelVoltage_;       // for scan law
         double instTDelay_;             // for scan law
         uint32_t deprecated_instNumAvrg_;               // use sampleData
@@ -156,7 +160,14 @@ namespace adcontrols {
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version ) {
             if ( version >= 6 ) {
-                ar & BOOST_SERIALIZATION_NVP( time_since_injection_);
+                if ( version >= 8 ) {
+                    ar & BOOST_SERIALIZATION_NVP( time_since_injection_ );
+                    ar & BOOST_SERIALIZATION_NVP( time_since_epoch_ );
+                } else {                    
+                    uint32_t time_since_injection;
+                    ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
+                    time_since_injection_ = time_since_injection;
+                }
                 ar & BOOST_SERIALIZATION_NVP( instAccelVoltage_);
                 ar & BOOST_SERIALIZATION_NVP( instTDelay_ );
                 ar & BOOST_SERIALIZATION_NVP( instMassRange_.first );
@@ -168,11 +179,13 @@ namespace adcontrols {
                     ar & boost::serialization::make_nvp( "deviceData_", data );  // for xml (u8 codecvt) safety
                 }  else {
                     ar & BOOST_SERIALIZATION_NVP( deviceData_ );
-                    if ( version >= 7 ) // v6 data has no encoded
+                    if ( version >= 7 ) // v6 data has no encoded data
                         deviceData_ = decode( deviceData_ );
                 }
             } else {
-                ar & BOOST_SERIALIZATION_NVP(time_since_injection_);
+                uint32_t time_since_injection;
+                ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
+                time_since_injection_ = time_since_injection;
                 ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
                 ar & BOOST_SERIALIZATION_NVP(deprecated_instNumAvrg_);            // same data is in sampleData_ below
                 ar & BOOST_SERIALIZATION_NVP(deprecated_instSamplingStartDelay_); // same data is in sampleData_ below
@@ -199,6 +212,6 @@ namespace adcontrols {
     };
 }
 
-BOOST_CLASS_VERSION(adcontrols::MSProperty, 7)
+BOOST_CLASS_VERSION(adcontrols::MSProperty, 8)
 BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 5)
 

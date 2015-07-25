@@ -247,6 +247,7 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     prop.setSamplingInfo( info );
     
     prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
+    prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ );
     prop.setDataInterpreterClsid( "u5303a" );
 
     u5303a::device_data data;

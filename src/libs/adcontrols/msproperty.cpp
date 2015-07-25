@@ -33,6 +33,7 @@
 using namespace adcontrols;
 
 MSProperty::MSProperty() : time_since_injection_( 0 )
+                         , time_since_epoch_( 0 )
                          , instAccelVoltage_( 0 )
                          , instTDelay_( 0 )
 {
@@ -40,6 +41,7 @@ MSProperty::MSProperty() : time_since_injection_( 0 )
 
 MSProperty::MSProperty( const MSProperty& t )
     : time_since_injection_( t.time_since_injection_ )
+    , time_since_epoch_( t.time_since_epoch_ )
     , instAccelVoltage_( t.instAccelVoltage_ )
     , instTDelay_( t.instTDelay_ )
     , dataInterpreterClsid_( t.dataInterpreterClsid_ )
@@ -158,13 +160,25 @@ MSProperty::setfSamplingInterval( double v ) // seconds
 double
 MSProperty::timeSinceInjection() const
 {
-    return metric::scale_to_base<double>( time_since_injection_, metric::micro );
+    return metric::scale_to_base<double>( double( time_since_injection_ ), metric::micro );
 }
 
 void
-MSProperty::setTimeSinceInjection( uint32_t value )
+MSProperty::setTimeSinceInjection( int64_t value )
 {
     time_since_injection_ = value;
+}
+
+uint64_t
+MSProperty::timeSinceEpoch() const
+{
+    return time_since_epoch_;
+}
+
+void
+MSProperty::setTimeSinceEpoch( uint64_t value )
+{
+    time_since_epoch_ = value;
 }
 
 void
