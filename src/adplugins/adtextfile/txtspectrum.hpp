@@ -33,12 +33,14 @@
 
 namespace adtextfile {
 
+    class Dialog;
+
     class TXTSpectrum {
     public:
         TXTSpectrum();
     public:
 
-        bool load( const std::wstring& );
+        bool load( const std::wstring&, const Dialog& );
         double minValue_;
         double maxValue_;
 
@@ -57,6 +59,7 @@ namespace adtextfile {
                                 , const std::vector<double>&
                                 , const std::vector<double>&
                                 , size_t fcn );
+
         int find_mode( size_t idx ) const;
     };
 

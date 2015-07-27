@@ -42,6 +42,9 @@ namespace adcontrols {
 
 namespace adtextfile {
 
+    class TXTSpectrum;
+    class TXTChromatogram;
+
     class datafile : public adcontrols::datafile
                    , public adcontrols::LCMSDataset { 
     public:
@@ -65,15 +68,17 @@ namespace adtextfile {
 		virtual size_t posFromTime( double ) const;
 		double timeFromPos( size_t ) const;
 		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
-			                         , std::vector< adcontrols::Chromatogram >&
-									 , std::function< bool (long curr, long total ) > progress
-									 , int /* begPos */
-									 , int /* endPos */ ) const override { return false; }
-
+                               , std::vector< adcontrols::Chromatogram >&
+                               , std::function< bool (long curr, long total ) > progress
+                               , int /* begPos */
+                               , int /* endPos */ ) const override { return false; }
+        
     private:
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
         std::map< std::wstring, adcontrols::MassSpectrumPtr > data_;
         std::map< std::wstring, adcontrols::ChromatogramPtr > chro_;
+        bool prepare_portfolio( const TXTSpectrum&, const std::wstring&, portfolio::Portfolio& );
+        bool prepare_portfolio( const TXTChromatogram&, const std::wstring&, portfolio::Portfolio& );
     };
 }
 

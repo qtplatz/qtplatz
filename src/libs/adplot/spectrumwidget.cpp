@@ -389,6 +389,7 @@ SpectrumWidget::setAxis( HorizontalAxis haxis, bool replot )
     setAxisTitle(QwtPlot::xBottom, QwtText( impl_->haxis_ == HorizontalAxisMass ? "<i>m/z</i>" : "Time[&mu;s]", QwtText::RichText) );
     if ( replot ) {
         redraw_all();
+        zoomer()->setZoomBase();
     } else
         clear();
 }
@@ -672,8 +673,8 @@ std::pair< double, double >
 TraceData::y_range( double left, double right ) const
 {
     namespace metric = adcontrols::metric;
-    double top = 20;
-    double bottom = -10;
+    double top = std::numeric_limits<double>::lowest();
+    double bottom = 0;
     double xleft = isTimeAxis_ ? metric::scale_to_base( left, metric::micro ) : left;
     double xright = isTimeAxis_ ? metric::scale_to_base( right, metric::micro ) : right;
 
@@ -733,7 +734,7 @@ TraceData::y_range( double left, double right ) const
                 double max = *minmax.second;
 
                 top = std::max( top, max );
-                if ( ! isCentroid ) {
+                if ( !isCentroid ) {
                     bottom = min - (max - min) / 25;
                 } else {
                     bottom = -( max - min ) / 25;

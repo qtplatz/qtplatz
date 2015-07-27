@@ -32,20 +32,55 @@
 #endif
 
 #include "datafile.hpp"
+#include "dialog.hpp"
 #include "txtspectrum.hpp"
 #include "txtchromatogram.hpp"
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datapublisher.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/processeddataset.hpp>
+#include <adportable/textfile.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <adlog/logger.hpp>
+#include <QApplication>
+#include <QMessageBox>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/tokenizer.hpp>
+
+namespace adtextfile {
+    
+    struct text_parser {
+
+        static bool find_spectrum( const std::wstring& filename, TXTSpectrum& txt, const Dialog& dlg ) {
+            boost::filesystem::path path( filename );
+            boost::filesystem::ifstream in( path );
+            if ( in.fail() ) {
+                QMessageBox::information(0, "Text file provider", QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
+                return false;
+            }
+            
+            auto ms = std::make_shared< adcontrols::MassSpectrum >();
+            for ( auto& model: adcontrols::MassSpectrometer::get_model_names() ) {
+                if ( auto spectrometer = adcontrols::MassSpectrometer::find( model.c_str() ) ) {
+                    const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
+                    if ( interpreter.compile_header( *ms, in ) ) {
+                        return txt.load( filename, dlg );
+                    }
+                }
+            }
+            return false;
+        }
+    };
+
+}
 
 using namespace adtextfile;
 
@@ -72,73 +107,61 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 bool
 datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
-    do {
-        adtextfile::TXTChromatogram txt;
-        if ( txt.load( filename ) ) {
+    portfolio::Portfolio portfolio;
+    portfolio.create_with_fullpath( filename );
 
-            boost::filesystem::path path( filename );
-            portfolio::Portfolio portfolio;
-            portfolio.create_with_fullpath( filename );
-            portfolio::Folder chromatograms = portfolio.addFolder( L"Chromatograms" );
-
-            int idx = 0;
-            for ( auto it: txt.chromatograms_ ) {
-                std::wstring name( (boost::wformat( L"%1%(%2%)" ) % path.stem().wstring() % idx++).str() );
-                portfolio::Folium folium = chromatograms.addFolium( name );
-                folium.setAttribute( L"dataType", adcontrols::Chromatogram::dataClass() );
-                chro_[ folium.id() ] = it;
-            }
-
-            processedDataset_.reset( new adcontrols::ProcessedDataset );
-            processedDataset_->xml( portfolio.xml() );
-
-            return true;
-        }
-    } while(0);
-
-    TXTSpectrum txt;
-    if ( ! txt.load( filename ) ) {
-        ADERROR() 
-            << "datafile '" << filename << "' open failed -- check file access permission";
+    Dialog dlg;
+    dlg.setDataType( Dialog::data_spectrum );
+    QStringList models;
+    for ( auto& model: adcontrols::MassSpectrometer::get_model_names() )
+        models << QString::fromStdWString( model );
+    dlg.setDataInterpreterClsids( models );    
+    
+    boost::filesystem::path path( filename );
+    boost::filesystem::ifstream in( path );
+    if ( in.fail() ) {
+        QMessageBox::information(0, "Text file provider", QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
         return false;
     }
-
-    boost::filesystem::path path( filename );
-
-    portfolio::Portfolio portfolio;
-
-    portfolio.create_with_fullpath( filename );
-    portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
-
-    int idx = 0;
-    for ( auto it: txt.spectra_ ) {
-        std::wstring name( (boost::wformat( L"%1%(%2%)" ) % path.stem().wstring() % idx++).str() );
-        portfolio::Folium folium = spectra.addFolium( name );
-        folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );
-		data_[ folium.id() ] = it;
+    typedef boost::char_separator<char> separator;
+    typedef boost::tokenizer< separator > tokenizer;
+    separator sep( ", \t", "", boost::drop_empty_tokens );
+    std::string line;
+    size_t nlines = 3;
+    while ( nlines-- && adportable::textfile::getline( in, line ) ) {
+        tokenizer tokens( line, sep );
+        QStringList list;
+        for ( tokenizer::iterator it = tokens.begin(); it != tokens.end(); ++it )
+            list << QString::fromStdString( *it );
+        dlg.appendLine( list );
     }
 
-    if ( txt.spectra_.size() > 1 ) {
-        do {
-            auto it = txt.spectra_.begin();
-            adcontrols::MassSpectrumPtr ptr( new adcontrols::MassSpectrum( *it->get() ) );
-
-            std::for_each( it + 1, txt.spectra_.end(), [&ptr]( adcontrols::MassSpectrumPtr& sub ){
-                    ptr->addSegment( *sub );
-                });
-
-			std::wstring name = path.stem().wstring();
-            portfolio::Folium folium = spectra.addFolium( name );
-            folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );        
-            data_[ folium.id() ] = ptr;
-            
-        } while(0);
-    }
+    QApplication::changeOverrideCursor( Qt::ArrowCursor );
+    dlg.show();
     
-    processedDataset_.reset( new adcontrols::ProcessedDataset );
-    processedDataset_->xml( portfolio.xml() );
-
-    return true;
+    if ( dlg.exec() ) {
+        
+        QApplication::changeOverrideCursor( Qt::WaitCursor );
+        
+        if ( dlg.dataType() == Dialog::data_chromatogram ) {
+            adtextfile::TXTChromatogram txt;
+            portfolio::Portfolio portfolio;
+            if ( txt.load( filename ) && prepare_portfolio( txt, filename, portfolio ) ) {
+                processedDataset_.reset( new adcontrols::ProcessedDataset );
+                processedDataset_->xml( portfolio.xml() );
+                return true;                
+            }
+            
+        } else if ( dlg.dataType() == Dialog::data_spectrum ) {
+            TXTSpectrum txt;
+            if ( txt.load( filename, dlg ) && prepare_portfolio( txt, filename, portfolio ) ) {
+                processedDataset_.reset( new adcontrols::ProcessedDataset );
+                processedDataset_->xml( portfolio.xml() );
+                return true;                
+            }
+        }
+    }
+    return false;
 }
 
 boost::any
@@ -201,3 +224,54 @@ datafile::timeFromPos( size_t ) const
 {
 	return 0;
 }
+
+bool
+datafile::prepare_portfolio( const TXTSpectrum& txt, const std::wstring& filename, portfolio::Portfolio& portfolio )
+{
+    portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
+    boost::filesystem::path path( filename );
+    
+    int idx = 0;
+    for ( auto it: txt.spectra_ ) {
+        std::wstring name( (boost::wformat( L"%1%(%2%)" ) % path.stem().wstring() % idx++).str() );
+        portfolio::Folium folium = spectra.addFolium( name );
+        folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );
+        data_[ folium.id() ] = it;
+    }
+    
+    if ( txt.spectra_.size() > 1 ) {
+        do {
+            auto it = txt.spectra_.begin();
+            auto ptr = std::make_shared< adcontrols::MassSpectrum >( *it->get() );
+            
+            std::for_each( it + 1, txt.spectra_.end()
+                           , [&ptr] ( std::shared_ptr< adcontrols::MassSpectrum > sub ) { ptr->addSegment( *sub ); } );
+            
+            std::wstring name = path.stem().wstring();
+            portfolio::Folium folium = spectra.addFolium( name );
+            folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );        
+            data_[ folium.id() ] = ptr;
+            
+        } while(0);
+    }
+
+    return true;
+}
+
+bool
+datafile::prepare_portfolio( const TXTChromatogram& txt, const std::wstring& filename, portfolio::Portfolio& portfolio )
+{
+    portfolio::Folder chromatograms = portfolio.addFolder( L"Chromatograms" );
+    boost::filesystem::path path( filename );
+    
+    int idx = 0;
+    for ( auto it: txt.chromatograms_ ) {
+        std::wstring name( (boost::wformat( L"%1%(%2%)" ) % path.stem().wstring() % idx++).str() );
+        portfolio::Folium folium = chromatograms.addFolium( name );
+        folium.setAttribute( L"dataType", adcontrols::Chromatogram::dataClass() );
+        chro_[ folium.id() ] = it;
+    }
+
+    return true;
+}
+

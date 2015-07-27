@@ -26,10 +26,13 @@
 #define DIALOG_HPP
 
 #include <QDialog>
+#include <adcontrols/metric/prefix.hpp>
 
 namespace Ui {
 class Dialog;
 }
+
+class QStringList;
 
 namespace adtextfile {
 
@@ -39,6 +42,36 @@ namespace adtextfile {
     public:
         explicit Dialog(QWidget *parent = 0);
         ~Dialog();
+        enum data_type { data_chromatogram, data_spectrum };
+        enum scan_type { time_squared_scan_law, linear_scan_law };
+        
+        void setDataType( data_type t );
+        data_type dataType() const;
+
+        void setAcceleratorVoltage( double );
+        void setLength( double );
+
+        double acceleratorVoltage() const;
+        double length() const;
+
+        void setHasDataInterpreer( bool );
+        bool hasDataInterpreter() const;
+
+        void setDataInterpreterClsids( const QStringList& );
+        QString dataInterpreterClsid() const;
+
+        bool invertSignal() const;
+        bool correctBaseline() const;
+        adcontrols::metric::prefix dataPrefix() const;
+
+        void appendLine( const QStringList& );
+
+        void setIsCentroid( bool );
+        bool isCentroid() const;
+
+        bool isMassIntensity() const;
+        bool isTimeIntensity() const;
+        size_t columnCount() const;
 
     private:
         Ui::Dialog *ui;
