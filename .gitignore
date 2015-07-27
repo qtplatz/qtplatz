@@ -175,6 +175,12 @@ tests/test_serializer/QuanSequence.bin
 tests/test_serializer/QuanSequence.xml
 tests/test_serializer/descriptions.xml
 tests/test_serializer/idAudit.xml
+.acqiris*
+.tmp_versions
+*.ko
+*.mod.c
+modules.order
+Module.symvers
 
 # CMake
 CMakeCache.txt

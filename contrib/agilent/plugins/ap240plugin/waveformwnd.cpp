@@ -38,6 +38,7 @@
 #include <QBoxLayout>
 #include <boost/format.hpp>
 #include <chrono>
+#include <sstream>
 
 using namespace ap240;
 
@@ -102,10 +103,17 @@ WaveformWnd::handle_waveform()
 {
     auto pair = document::instance()->findWaveform();
 
+    std::array< double, 2 > levels = { document::instance()->threshold( 0 ) * 1000
+                                       , document::instance()->threshold( 1 ) * 1000 }; // mV
+
+    std::ostringstream o;
+
+    uint64_t duration(0);
+    
     for ( auto waveform: { pair.first, pair.second } ) {
+
         if ( waveform ) {
-            
-            double dbase(0), rms(0);
+            double dbase(0), rms(0), tic(0);
             double timestamp = waveform->meta_.initialXTimeSeconds;
             int channel = waveform->meta_.channel - 1;
             if ( channel > 2 )
@@ -114,13 +122,24 @@ WaveformWnd::handle_waveform()
             sp_[ channel ] = std::make_shared< adcontrols::MassSpectrum >();
             auto sp = sp_[ channel ];
             auto tp = tp_[ channel ];
+
+            auto tp0 = std::chrono::steady_clock::now();
             
             sp->setCentroid( adcontrols::CentroidNone );
             sp->resize( waveform->size() );
+
             if ( waveform->meta_.dataType == 1 ) {
                 size_t idx = 0;
                 for ( auto it = waveform->begin<int8_t>(); it != waveform->end<int8_t>(); ++it )
                     sp->setIntensity( idx++, waveform->toVolts( *it ) * 1000.0 ); // mV
+            } else if ( waveform->meta_.dataType == 2 ) {
+                size_t idx = 0;                
+                for ( auto it = waveform->begin<int16_t>(); it != waveform->end<int16_t>(); ++it )
+                    sp->setIntensity( idx++, *it );
+            } else if ( waveform->meta_.dataType == 4 ) {
+                size_t idx = 0;                
+                for ( auto it = waveform->begin<int32_t>(); it != waveform->end<int32_t>(); ++it )
+                    sp->setIntensity( idx++, *it );
             }
             
             adcontrols::MSProperty prop = sp->getMSProperty();
@@ -129,16 +148,25 @@ WaveformWnd::handle_waveform()
                                                        , uint32_t( waveform->size() )
                                                        , waveform->meta_.actualAverages
                                                        , 0 );
+            
             info.fSampInterval( waveform->meta_.xIncrement );
             info.horPos( waveform->meta_.horPos );
+            
+            prop.setSamplingInfo( info );
+            prop.acceleratorVoltage( 3000 );
 
-            double level = document::instance()->threshold( channel ) * 1000; // mV
+            using namespace adcontrols::metric;
+            prop.setTimeSinceInjection( timestamp * 1.0e6 ); // microseconds
+            prop.setTimeSinceEpoch( waveform->timeSinceEpoch_ );
+            prop.setDataInterpreterClsid( "ap240" );
+            sp->setMSProperty( prop );
+
             const double * p = sp->getIntensityArray();
-            bool flag = level < (*p);
+            bool flag = levels[ channel ] < (*p);
             int stage = 0;
             std::array< size_t, 2 > th = { 0, 0 };
             for ( auto it = p; it != p + sp->size(); ++it ) {
-                if ( ( level < *it ) != flag ) {
+                if ( ( levels[ channel ] < *it ) != flag ) {
                     flag = !flag;
                     th[ stage++ ] = it - p;
                     if ( stage >= th.size() )
@@ -148,25 +176,25 @@ WaveformWnd::handle_waveform()
 
             double t0 = sp->getTime( th[0] ) * 1.0e6;
             double t1 = sp->getTime( th[1] ) * 1.0e6;
-            std::cout << boost::format( "cross section[%.1f]: %.7f, %.7f" ) % level % t0 % t1 << std::endl;
+
+            duration += std::chrono::nanoseconds( std::chrono::steady_clock::now() - tp0 ).count();
             
-            prop.acceleratorVoltage( 3000 );
-            prop.setSamplingInfo( info );
-            using namespace adcontrols::metric;
-            prop.setTimeSinceInjection( timestamp * 1.0e6 ); // microseconds
-            prop.setTimeSinceEpoch( waveform->timeSinceEpoch_ );
-            prop.setDataInterpreterClsid( "ap240" );
-            sp->setMSProperty( prop );
+            if ( o.str().empty() )
+                o << boost::format( "Time: %.3lf" ) % waveform->meta_.initialXTimeSeconds;
             
-            double tic = adportable::spectrum_processor::tic( sp->size(), sp->getIntensityArray(), dbase, rms );
+            o << boost::format( " CH%d RMS: %.3f %5.1fmV level: [%.0fmV]=(%.4f:%4f)(us); " )
+                % ( channel + 1 ) % rms % tic % levels[ channel ] % t0 % t1;
+
+            tic = adportable::spectrum_processor::tic( sp->size(), sp->getIntensityArray(), dbase, rms );
             tp->push_back( waveform->serialnumber_, timestamp, tic );
             tpw_->setData( *tp, channel, channel );
             
             // prop.setDeviceData(); TBA
             spw_->setData( sp, channel, channel );
             spw_->setKeepZoomed( true );
-            spw_->setTitle( ( boost::format( "Time: %.3f RMS: %.3f %5.1fmV   level: %.1f=[%d],[%d]" )
-                              % waveform->meta_.initialXTimeSeconds % rms % tic % level % th[0] % th[1]).str() );
         }
+        std::cout << "duration: " << double(duration) / 1000.0 << "(us)" << std::endl;
+
+        spw_->setTitle( o.str() );
     }
 }
