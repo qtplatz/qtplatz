@@ -2,9 +2,11 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (adinterface)
 
+find_package( "ace+tao" REQUIRED )
+
 include( TaoIDL )
 
-set(TAO_IDL tao_idl)
+#set(TAO_IDL tao_idl)
 set(IDL_INCLUDES "-I${QTPLATZ_SOURCE_DIR}/src/libs")
 set(IDL_FLAGS "-Wb,pre_include=workaround/ace/pre.h -Wb,post_include=workaround/ace/post.h")
 

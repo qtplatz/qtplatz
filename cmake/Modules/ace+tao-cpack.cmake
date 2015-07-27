@@ -16,7 +16,7 @@ if ( ace+tao_FOUND )
     endif()
     
     install( PROGRAMS ${_libs} DESTINATION ${dest} COMPONENT runtime_libraries )
-    message( STATUS "## ace+tao_cpack: lib " ${_libs} " --> " ${dest} )    
+    # message( STATUS "## ace+tao_cpack: lib " ${_libs} " --> " ${dest} )    
 
   endforeach()
   
