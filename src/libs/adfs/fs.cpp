@@ -81,7 +81,7 @@ fs::format_superblock( adfs::sqlite& db, const std::wstring& filename )
     sql.prepare( "INSERT INTO superblock VALUES(:creator, :name, :magic, :ctime, :create_user)" );
     sql.bind( 1 ) = std::string("adfs::filesystem version(1.3)"); // creator
     sql.bind( 2 ) = filename;  // unicode
-    sql.bind( 3 ) = 0x2011031111301100LL + fs::format_version; // 2011.03.11-01 (+3, at 20140726 for foreign key constraings)
+    sql.bind( 3 ) = uint64_t( 0x2011031111301100LL + fs::format_version ); // 2011.03.11-01 (+3, at 20140726 for foreign key constraings)
                                                                // +4, at 20150603 add attr_id, display_name and dataclass
     sql.bind( 4 ) = date; // create_date;
     sql.bind( 5 ) = impl::get_login_name<char>(); // mbcs

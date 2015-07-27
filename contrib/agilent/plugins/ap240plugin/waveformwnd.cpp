@@ -193,7 +193,7 @@ WaveformWnd::handle_waveform()
             spw_->setData( sp, channel, channel );
             spw_->setKeepZoomed( true );
         }
-        std::cout << "duration: " << double(duration) / 1000.0 << "(us)" << std::endl;
+        // std::cout << "duration: " << double(duration) / 1000.0 << "(us)" << std::endl;
 
         spw_->setTitle( o.str() );
     }

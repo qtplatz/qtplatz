@@ -350,21 +350,34 @@ namespace adfs {
     template<> bool
     stmt::bind_item::operator = ( const long & v )
     {
-        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
+#if _MSC_VER
+        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;        
+#else
+        return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;        
+#endif
     }
     
     template<> bool 
     stmt::bind_item::operator = ( const unsigned long & v )
     {
+#if _MSC_VER        
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
+#else
+        return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
+#endif
     }
 
 #if (defined __x86_64__ && defined __linux__ )    
-    // int64_t and long is identical on gcc x86_64
+    // int64_t, long and long long on linux gcc x86_64 is identical (8 byte int)
     template<> bool 
     stmt::bind_item::operator = ( const long long & v )
     {
-        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
+        return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
+    }
+    template<> bool 
+    stmt::bind_item::operator = ( const unsigned long long & v )
+    {
+        return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
 #else
     template<> bool
@@ -372,14 +385,12 @@ namespace adfs {
     {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
-
     template<> bool
     stmt::bind_item::operator = ( const uint64_t& v )
     {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
 #endif
-
     template<> bool
     stmt::bind_item::operator = ( const double& v )
     {

@@ -451,11 +451,12 @@ MainWindow::actStop()
 void
 MainWindow::actSnapshot()
 {
+    
     auto waveforms = document::instance()->findWaveform();
     adcontrols::MassSpectrum ms;
     int ch = 1;
     for ( auto waveform: { waveforms.first, waveforms.second } ) {
-        
+
         if ( waveform ) {
             
             if ( document::toMassSpectrum( ms, *waveform ) ) {

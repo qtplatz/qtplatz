@@ -279,7 +279,10 @@ document::appendOnFile( const std::wstring& path
                         , const adcontrols::MassSpectrum& ms, std::wstring& id )
 {
     adfs::filesystem fs;
-	
+
+    std::wcout << L"########## document::appendOnFile(" << path << L", " << title << L") id=" << id << std::endl;
+    std::cout << "ms size: " << ms.size() << std::endl;
+    
 	if ( ! boost::filesystem::exists( path ) ) {
 		if ( ! fs.create( path.c_str() ) )
 			return false;

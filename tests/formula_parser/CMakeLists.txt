@@ -4,17 +4,9 @@ cmake_policy( SET CMP0042 NEW )
 
 project( formula_parser )
 
-set( Boost_USE_STATIC_LIBS ON )
-set( BOOST_VERSION boost-1_57 )
-if( WIN32 )
-  set( BOOST_ROOT "C:/Boost/include/${BOOST_VERSION}" )
-  set( Boost_LIBRARY_DIR "C:/Boost/x86_64/lib" )
-else()
-  set(Boost_INCLUDE_DIR "/usr/local/${BOOST_VERSION}/include")
-  set(Boost_LIBRARY_DIR "/usr/local/${BOOST_VERSION}/lib")
-endif()
+include( "../../qtplatz.cmake" )
 
-find_package( Boost REQUIRED )
+find_package( Boost REQUIRED system )
 
 include_directories(
   ${Boost_INCLUDE_DIRS}

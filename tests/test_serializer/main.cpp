@@ -34,7 +34,12 @@
 namespace test {
 
     template<class T> struct target {
-        target( const char * name, bool has_binary_archiver, bool has_binary_restore, bool has_xml_archiver, bool has_xml_restore, bool exported_serializers = false )
+        target( const char * name
+                , bool has_binary_archiver
+                , bool has_binary_restore
+                , bool has_xml_archiver
+                , bool has_xml_restore
+                , bool exported_serializers = false )
             : name_( name )
             , has_binary_archiver_( has_binary_archiver )
             , has_binary_restore_( has_binary_restore )
@@ -109,6 +114,7 @@ namespace test {
         }
         return false;
     }
+
     //
     template<class T, class A> bool read( T& r, const char * name ) {
         boost::filesystem::path path( name );
