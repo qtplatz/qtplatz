@@ -432,12 +432,17 @@ bool
 task::handle_initial_setup()
 {
     bool success = false;
-
+    bool simulation = false;
     ViStatus status;
 
     if ( getenv("AcqirisDxDir") == 0 ) {
         ADTRACE() << "AcqirisDxDir environment variable not set.";
         reply( "ap240::digitizer::task::handle_initial_setup", "AcqirisDxDir environment variable not set." );
+    }
+
+    if ( auto p = getenv( "AcqirisOption" ) ) {
+        if ( strcmp( p, "simulate" ) == 0 )
+            simulation = true;
     }
     
 #ifdef _LINUX
@@ -450,33 +455,29 @@ task::handle_initial_setup()
 #endif
     status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ );
     ADTRACE() << error_msg( status, "Acqiris::findDevice()" );
-    
-    if ( numInstruments_ == 0 ) {
-        if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS ) {
-            simulated_ = true;
+
+    if ( numInstruments_ == 0 && simulation ) {
+        if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS )
             numInstruments_ = 1;
-        }
-        return false;
-    }
-
-    if ( simulated_ ) {
-
-        if ( Acqrs_InitWithOptions( "PCI::DC271", VI_FALSE, VI_FALSE, "simulate=TRUE", &inst_ ) == VI_SUCCESS )
+        if ( Acqrs_InitWithOptions( "PCI::DC271", VI_FALSE, VI_FALSE, "simulate=TRUE", &inst_ ) == VI_SUCCESS ) {
             success = true;
+            simulated_ = true;
+        }
+    }
+    
+    if ( numInstruments_ == 0 )
+        return false;
 
-    } else {
-
-        for ( int i = 0; i < numInstruments_; ++i ) {
-            device_name_ = ( boost::format( "PCI::INSTR%1%" ) % i ).str();
-            inst_ = ( -1 );
-            status = Acqrs_init( const_cast<char *>( device_name_.c_str() ), VI_FALSE, VI_FALSE, &inst_ );
-            if ( inst_ != ViSession( -1 ) && getInstrumentData() ) {
-                ADTRACE() << "\tfound device on: " << device_name_;
-                success = true;
-                break;
-            } else {
-                ADTRACE() << error_msg( status, "Acqiris::findDevice" );
-            }
+    for ( int i = 0; i < numInstruments_; ++i ) {
+        device_name_ = ( boost::format( "PCI::INSTR%1%" ) % i ).str();
+        inst_ = ( -1 );
+        status = Acqrs_init( const_cast<char *>( device_name_.c_str() ), VI_FALSE, VI_FALSE, &inst_ );
+        if ( inst_ != ViSession( -1 ) && getInstrumentData() ) {
+            ADTRACE() << "\tfound device on: " << device_name_;
+            success = true;
+            break;
+        } else {
+            ADTRACE() << error_msg( status, "Acqiris::findDevice" );
         }
     }
     
