@@ -448,25 +448,22 @@ task::handle_initial_setup()
         return false;
     }
 #endif
-    if ( ( status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ ) ) != VI_SUCCESS ) {
-        ADTRACE() << error_msg( status, "Acqiris::findDevice()" );
-    } else {
-#if 0
-        ADTRACE() << boost::format( "find %1% acqiris devices." ) % numInstruments_;
-        if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS ) {
-                simulated_ = true;
-                numInstruments_ = 1;
-        }
-#endif
-    }
+    status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ );
+    ADTRACE() << error_msg( status, "Acqiris::findDevice()" );
     
-    if ( numInstruments_ == 0 )
+    if ( numInstruments_ == 0 ) {
+        if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS ) {
+            simulated_ = true;
+            numInstruments_ = 1;
+        }
         return false;
+    }
 
     if ( simulated_ ) {
-        if ( Acqrs_InitWithOptions( "PCI::DC271", VI_FALSE, VI_FALSE, "simulate=TRUE", &inst_ ) == VI_SUCCESS ) {
+
+        if ( Acqrs_InitWithOptions( "PCI::DC271", VI_FALSE, VI_FALSE, "simulate=TRUE", &inst_ ) == VI_SUCCESS )
             success = true;
-        }
+
     } else {
 
         for ( int i = 0; i < numInstruments_; ++i ) {
