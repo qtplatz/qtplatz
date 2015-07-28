@@ -42,10 +42,14 @@ endif()
 if ( NOT CMAKE_CROSSCOMPILING )
 
   if ( WIN32 )
-    find_program( QMAKE NAMES qmake HINTS $ENV{QTDIR}
-      "C:/Qt/5.5/msvc2013_64/bin" "C:/Qt/5.4/msvc2013_64/bin" )
+    find_program( QMAKE NAMES qmake
+      HINTS
+      $ENV{QTDIR} "C:/Qt/5.5/msvc2013_64/bin" "C:/Qt/5.4/msvc2013_64/bin" )
   else()
-    find_program( QMAKE NAMES qmake HINTS $ENV{QTDIR} )
+    find_program( QMAKE NAMES qmake
+      HINTS
+      $ENV{QTDIR} "/opt/Qt/5.5/gcc_64/bin"
+      )
   endif()
 
   if ( QMAKE )

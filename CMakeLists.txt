@@ -98,6 +98,8 @@ if ( NOT QTPLATZ_CORELIB_ONLY )
     message( STATUS "Found the Qt5 libraries at " ${Qt5_DIR} )      
     find_package( qwt )
     message( STATUS "Found the QWT library at " ${qwt_DIR} )
+  else()
+    message( STATUS "Qt5 NOT Found" )
   endif()
 endif()
 

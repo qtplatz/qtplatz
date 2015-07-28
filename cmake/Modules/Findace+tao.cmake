@@ -17,7 +17,9 @@ elseif( RTC_ARCH_ARM AND CMAKE_CROSSCOMPILING )
 
 else()
 
-  find_path( ace+tao_DIR NAMES ace/ACE.h include/ace/ACE.h HINTS $ENV{ACE_ROOT}
+  find_path( ace+tao_DIR NAMES ace/ACE.h include/ace/ACE.h
+    HINTS
+    $ENV{ACE_ROOT}
     /usr/local/ace+tao/6.3.2
     /usr/local/ace+tao/6.3.1
     /usr/local/ace+tao/6.3.0
