@@ -25,14 +25,14 @@ else()
 
   find_package( rdkit CONFIG PATHS
     /usr/local/lib
-    ${CMAKE_SOURCE_DIR}/../rdkit/build
-    ${CMAKE_BINARY_DIR}/../rdkit
-    $ENV{RDBASE}/build
-    $ENV{HOME}/src/rdkit/build )
+    ${CMAKE_BINARY_DIR}/rdkit
+    $ENV{RDBASE}
+    $ENV{RDBASE}/build )
 
 endif()
 
-if ( rdkit_FOUND )
+if ( rdkit )
+  set( rdkit_FOUND TRUE )
   message( "#### rdkit_config_DIR: " ${rdkit_config_DIR} )
   message( "#### rdkit_include_dirs: " ${RDKit_INCLUDE_DIRS} )
   return()
@@ -57,7 +57,10 @@ if ( _include_dir )
   endif()
   if ( ${rdbase} MATCHES "/usr/local/include" )
     set( rdbase "/usr/local" )
-  endif()  
+  endif()
+else()
+  set( rdkit_FOUND FALSE )
+  return()
 endif()
 
 find_library( _fileparsers_lib NAMES FileParsers PATHS
@@ -72,7 +75,7 @@ endif()
 
 if ( _include_dir AND _libdir )
   
-  set ( rdkit_FOUND 1 )
+  set ( rdkit_FOUND TRUE )
   set ( RDKit_INCLUDE_DIRS ${_include_dir} )
 
   find_library(SMILESPARSE_LIB   NAMES SmilesParse   HINTS ${_libdir})

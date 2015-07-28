@@ -30,7 +30,7 @@ if ( ace+tao_DIR )
   set( ACE_ROOT ${ace+tao_DIR} )
   find_program( TAO_IDL NAMES tao_idl HINTS ${ACE_ROOT}/bin )
 
-  message( STATUS "#### TAO_IDL : " ${TAO_IDL} )
+  message( STATUS "TAO_IDL : " ${TAO_IDL} )
   
   find_path( ACE_INCLUDE_DIR NAMES ace/ACE.h HINTS ${ace+tao_DIR} ${ace+tao_DIR}/include )
   find_path( TAO_INCLUDE_DIR NAMES tao/corba.h HINTS ${ace+tao_DIR}/TAO ${ace+tao_DIR} ${ace+tao_DIR}/include )
@@ -48,8 +48,6 @@ if ( ace+tao_DIR )
   file( STRINGS ${TAO_INCLUDE_DIR}/tao/Version.h tao_version REGEX "^#define[ \t]+TAO_VERSION" )
   string( REGEX REPLACE "#define[ \t]*TAO_VERSION[ \t]+\"(.*)\"" "\\1" TAO_VERSION ${tao_version} )
 
-  set( ace+tao_FOUND 1 )
-
   set( ACE+TAO_LIBRARY_DIR  ${ace+tao_DIR}/lib )
   set( ACE+TAO_LIBRARY_DIRS ${ACE+TAO_LIBRARY_DIR} )
   
@@ -64,12 +62,12 @@ if ( ace+tao_DIR )
     CORBA::ACE )
 
   if ( ACE_INCLUDE_DIR AND TAO_INCLUDE_DIR )
-    set( ace+tao_FOUND 1 )
+    set( ace+tao_FOUND TRUE )
     set( ACE+TAO_INCLUDE_DIRS ${ACE_INCLUDE_DIR} ${TAO_INCLUDE_DIR} )
   endif()
   message( STATUS "Found ACE VERSION " ${ACE_VERSION} " TAO VERSION " ${TAO_VERSION} " in " ${ace+tao_DIR} )
 else()
-  message( STATUS "ACE+TAO NOT Found" )
+  set( ace+tao_FOUND FALSE )
 endif()
 
 

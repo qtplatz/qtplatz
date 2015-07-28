@@ -6,6 +6,8 @@ add_library( CORBA::TAO_PI SHARED IMPORTED )
 add_library( CORBA::TAO_PortableServer SHARED IMPORTED )
 add_library( CORBA::TAO_AnyTypeCode SHARED IMPORTED )
 
+include( soname )
+
 if (WIN32)
 
   set_target_properties( CORBA::ACE PROPERTIES
@@ -33,12 +35,6 @@ if (WIN32)
     IMPORTED_IMPLIB_DEBUG ${ACE+TAO_LIBRARY_DIR}/TAO_AnyTypeCoded.lib )
 
 else()
-
-  if ( APPLE )
-    set( SO "dylib" )
-  else()
-    set( SO "so" )
-  endif()
 
   set_target_properties( CORBA::ACE PROPERTIES
     IMPORTED_LOCATION       ${ACE+TAO_LIBRARY_DIR}/libACE.${SO} )

@@ -27,14 +27,10 @@ if( WIN32 )
 
 else()
 
-  if ( RTC_ARCH_ARM )
-    # do nothing -- expect boost on /usr/local/include and /usr/local/lib
-  else()
-    find_path( _boost NAMES include/boost PATHS "/usr/local/${BOOST_VERSION}" )
-    if ( _boost )
-      set(Boost_INCLUDE_DIR "${_boost}/include")
-      set(Boost_LIBRARY_DIR "${_boost}/lib")      
-    endif()
+  find_path( _boost NAMES include/boost PATHS "/usr/local" "/usr/local/${BOOST_VERSION}" )
+  if ( _boost )
+    set(Boost_INCLUDE_DIR "${_boost}/include")
+    set(Boost_LIBRARY_DIR "${_boost}/lib")      
   endif()
 
 endif()
@@ -62,7 +58,8 @@ if ( NOT CMAKE_CROSSCOMPILING )
     find_program( XMLPATTERNS NAMES xmlpatterns PATHS ${QT_INSTALL_LIBEXECS} )
   endif()
 
-  find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )
+  find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )  
+
 endif()
 
 #####################

@@ -23,10 +23,6 @@ set( CMAKE_BUILD_TYPE Release )
 include (qtplatz.cmake)
 include (qtplatz-version)
 
-#
-# Output directories layout, which is equivalent to original QTC layout
-#
-
 if ( APPLE )
 
   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib) # static libs, dll's import lib/exp
@@ -92,20 +88,33 @@ endif()
 
 install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION / COMPONENT libraries )
 
+message( STATUS "---------------------------------" )
 find_package( Boost REQUIRED )
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
-find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
-if ( Qt5_FOUND )
-  message( STATUS "Found the Qt5 libraries at " ${Qt5_DIR} )      
-  find_package( qwt )
-  message( STATUS "Found the QWT library at " ${qwt_DIR} )
+if ( NOT QTPLATZ_CORELIB_ONLY )
+  find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
+  if ( Qt5_FOUND )
+    message( STATUS "Found the Qt5 libraries at " ${Qt5_DIR} )      
+    find_package( qwt )
+    message( STATUS "Found the QWT library at " ${qwt_DIR} )
+  endif()
 endif()
 
 find_package( rdkit QUIET )
 if ( rdkit_FOUND )
-  message( STATUS "Found the RDKit libraries at " ${RDKit_DIR} )
+  message( STATUS "Found the RDKit libraries at: " ${RDKit_DIR} )
+else()
+  message( STATUS "No RDKit found" )
 endif()
+
+find_package( ace+tao QUIET )
+if ( ace+tao_FOUND )
+  message( STATUS "Found the ACE+TAO libraries at: " ${ace+tao_DIR} )
+else()
+  message( STATUS "No ACE+TAO found" )
+endif()
+message( STATUS "---------------------------------" )
 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
@@ -171,10 +180,12 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   include( qtplatz-cpack-config )
   include( boost-cpack )
   include( ace+tao-cpack )
-  if ( Qt5_FOUND )
-    include( qt5-cpack )
+  if ( NOT QTPLATZ_CORELIB_ONLY )
+    if ( Qt5_FOUND )
+      include( qt5-cpack )
+    endif()
+    include( rdkit-cpack )
   endif()
-  include( rdkit-cpack )
 endif()
 
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
