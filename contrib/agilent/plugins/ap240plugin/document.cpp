@@ -435,7 +435,6 @@ document::set_threshold_method( int ch, const ap240::threshold_method& m )
 {
     if ( ch < impl_->thresholds_.size() )
         impl_->thresholds_[ ch ] = m;
-    throw std::runtime_error(0);    
 }
 
 const ap240::threshold_method&
