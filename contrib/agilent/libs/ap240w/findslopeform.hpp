@@ -31,6 +31,8 @@ namespace Ui {
 class findSlopeForm;
 }
 
+namespace ap240 { class threshold_method; }
+
 class findSlopeForm : public QWidget
 {
     Q_OBJECT
@@ -40,11 +42,15 @@ public:
     ~findSlopeForm();
 
     void setTitle( int ch, const QString& );
-
+    int channel() const;
+    
     void set( int id, bool, double );
     bool get( int id, bool&, double& ) const;
     bool isChecked() const;
     void setChecked( bool );
+
+    void set( const ap240::threshold_method& );
+    void get( ap240::threshold_method& ) const;
 
 signals:
     void thresholdChanged( int id, double value );    

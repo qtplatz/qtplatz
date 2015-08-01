@@ -97,3 +97,19 @@ findSlopeForm::setChecked( bool on )
     ui->groupBox->setChecked( on );
 }
 
+void
+findSlopeForm::set( const ap240::threshold_method& m )
+{
+}
+
+void
+findSlopeForm::get( ap240::threshold_method& m ) const
+{
+}
+
+int
+findSlopeForm::channel() const
+{
+    return channel_;
+}
+

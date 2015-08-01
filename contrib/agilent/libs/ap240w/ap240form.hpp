@@ -59,8 +59,8 @@ public:
 
     void get( ap240::method& ) const;
     void set( const ap240::method& );
-    void get( ap240::threshold_method& ) const;    
-    void set( const ap240::threshold_method& );    
+    void get( int ch, ap240::threshold_method& ) const;    
+    void set( int ch, const ap240::threshold_method& );    
 
 signals:
     void valueChanged( idCategory cat, int id, int ch, const QVariant& );

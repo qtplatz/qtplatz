@@ -258,3 +258,20 @@ ap240form::get( ap240::method& m ) const
         form->get( m );        
     }
 }
+
+void
+ap240form::get( int ch, ap240::threshold_method& ) const
+{
+}
+
+void
+ap240form::set( int ch, const ap240::threshold_method& m )
+{
+    const QString names[] = { "CH1", "CH2" };
+
+    if ( auto form = findChild< findSlopeForm * >( names[ ch ] ) ) {
+        std::cout << "ap240::set threshold_meethod" << std::endl;
+        form->set( m );
+    }
+}
+

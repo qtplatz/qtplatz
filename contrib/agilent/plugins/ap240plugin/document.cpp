@@ -111,7 +111,8 @@ namespace ap240 {
                 if ( worker_stop_ )
                     return;
 
-                std::cout << "sema count: " << sema_.count() << std::endl;
+                if ( sema_.count() )
+                    std::cout << "sema count: " << sema_.count() << std::endl;
 
                 auto tp = std::chrono::steady_clock::now();
                 if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ).count() > 200 ) {
@@ -433,6 +434,7 @@ document::setControlMethod( const ap240::method& m, const QString& filename )
 void
 document::set_threshold_method( int ch, const ap240::threshold_method& m )
 {
+    std::cout << "set_threshold_method(" << ch << ", " << m.threshold << std::endl;
     if ( ch < impl_->thresholds_.size() )
         impl_->thresholds_[ ch ] = m;
 }

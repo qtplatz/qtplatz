@@ -121,27 +121,33 @@ void
 MainWindow::createDockWidgets()
 {
     auto widget = new ap240form();
+    widget->set( 0, document::instance()->threshold_method( 0 ) );
+    widget->set( 1, document::instance()->threshold_method( 1 ) );
+    
     createDockWidget( widget, "AP240", "AP240" );
+    
     connect( widget, &ap240form::valueChanged, [this]( ap240form::idCategory cat, int, int ch, const QVariant& v ){
 
-            if ( ap240form::idFindThreshold ) {
+            if ( cat == ap240form::idFindThreshold )  {
                 auto m = document::instance()->threshold_method( ch );
                 m.enable = v.toBool();
                 document::instance()->set_threshold_method( ch, m );
-            } else if ( ap240form::idThreshold ) {
+            } else if ( cat == ap240form::idThreshold ) {
                 auto m = document::instance()->threshold_method( ch );
                 m.threshold = v.toDouble();
-                document::instance()->set_threshold_method( ch, m );                
-            } else if ( ap240form::idSGFilter ) {
+                document::instance()->set_threshold_method( ch, m );
+            } else if ( cat == ap240form::idSGFilter ) {
                 auto m = document::instance()->threshold_method( ch );
                 int value = v.toInt();
                 m.sgFilter = ( value <= 0 ) ? false : true;
                 m.sgPoints = ( value <= 0 ) ? -value : value;
-                document::instance()->set_threshold_method( ch, m );                                
-            } else if ( auto form = findChild< ap240form * >() ) {
-                ap240::method m;
-                form->get( m );
-                document::instance()->setControlMethod( m, QString() );
+                document::instance()->set_threshold_method( ch, m );
+            } else {
+                if ( auto form = findChild< ap240form * >() ) {
+                    ap240::method m;
+                    form->get( m );
+                    document::instance()->setControlMethod( m, QString() );
+                }
             }
         });
 }
