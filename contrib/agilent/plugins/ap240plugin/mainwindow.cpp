@@ -123,8 +123,21 @@ MainWindow::createDockWidgets()
     auto widget = new ap240form();
     createDockWidget( widget, "AP240", "AP240" );
     connect( widget, &ap240form::valueChanged, [this]( ap240form::idCategory cat, int, int ch, const QVariant& v ){
-            if ( cat == ap240form::idThreshold ) {
-                document::instance()->setThreshold( ch, v.toDouble() );
+
+            if ( ap240form::idFindThreshold ) {
+                auto m = document::instance()->threshold_method( ch );
+                m.enable = v.toBool();
+                document::instance()->set_threshold_method( ch, m );
+            } else if ( ap240form::idThreshold ) {
+                auto m = document::instance()->threshold_method( ch );
+                m.threshold = v.toDouble();
+                document::instance()->set_threshold_method( ch, m );                
+            } else if ( ap240form::idSGFilter ) {
+                auto m = document::instance()->threshold_method( ch );
+                int value = v.toInt();
+                m.sgFilter = ( value <= 0 ) ? false : true;
+                m.sgPoints = ( value <= 0 ) ? -value : value;
+                document::instance()->set_threshold_method( ch, m );                                
             } else if ( auto form = findChild< ap240form * >() ) {
                 ap240::method m;
                 form->get( m );

@@ -35,7 +35,7 @@ namespace Ui {
 }
 
 namespace adcontrols { class ControlMethod; }
-namespace ap240 { class method; }
+namespace ap240 { class method; class threshold_method; }
 
 class AP240WSHARED_EXPORT ap240form : public QWidget
                                     , public adplugin::LifeCycle {
@@ -45,7 +45,7 @@ class AP240WSHARED_EXPORT ap240form : public QWidget
 public:
     explicit ap240form(QWidget *parent = 0);
     ~ap240form();
-    enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idThreshold };
+    enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idFindThreshold, idThreshold, idSGFilter };
 
     // LifeCycle
     void OnCreate( const adportable::Configuration& ) override;
@@ -59,6 +59,8 @@ public:
 
     void get( ap240::method& ) const;
     void set( const ap240::method& );
+    void get( ap240::threshold_method& ) const;    
+    void set( const ap240::threshold_method& );    
 
 signals:
     void valueChanged( idCategory cat, int id, int ch, const QVariant& );

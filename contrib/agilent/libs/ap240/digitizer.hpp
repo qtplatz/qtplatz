@@ -60,6 +60,16 @@ namespace ap240 {
         }
     };
 
+	class /* AP240SHARED_EXPORT */ threshold_method {
+    public:
+        bool enable;
+        double threshold; // mV
+        bool sgFilter;
+        int sgPoints;
+        threshold_method() : enable( false ), threshold( 100 ), sgFilter( false ), sgPoints( 5 ) {
+        }
+    };
+
 	class /* AP240SHARED_EXPORT */ method {
     public:
         struct trigger_method {

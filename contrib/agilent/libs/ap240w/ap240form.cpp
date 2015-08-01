@@ -35,6 +35,7 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QSignalBlocker>
+#include <QPair>
 #include <boost/exception/all.hpp>
 
 ap240form::ap240form(QWidget *parent) :
@@ -50,9 +51,18 @@ ap240form::ap240form(QWidget *parent) :
             auto ch = new findSlopeForm();
             ch->setTitle( idx++, title );
             layout->addWidget( ch );
-            connect( ch, &findSlopeForm::valueChanged, [this]( int ch, bool check, double value ){
+            // enable|disable
+            connect( ch, &findSlopeForm::toggled, [this]( int ch, bool enable ){
+                    emit valueChanged( idFindThreshold, 0, ch, enable );
+                });
+            // threshold (mV)
+            connect( ch, &findSlopeForm::thresholdChanged, [this]( int ch, double value ){
                     emit valueChanged( idThreshold, 0, ch, value );
                 });
+            // SG-Filter
+            connect( ch, &findSlopeForm::sgFilterChanged, [this]( int ch, bool enable, int value ){
+                    emit valueChanged( idSGFilter, 0, ch, ( enable ? value : -value ) );
+                });            
         }
     }
 

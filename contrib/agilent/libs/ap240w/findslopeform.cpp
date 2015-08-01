@@ -32,15 +32,25 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
 {
     ui->setupUi(this);
 
-    connect( ui->checkBox, &QCheckBox::toggled
-             , [this] ( bool on ) {
-            emit valueChanged( channel_, on, ui->doubleSpinBox->value() );
-        } );
+    connect( ui->groupBox, &QGroupBox::toggled, [this] ( bool on ) { emit toggled( channel_, on ); });
 
+    // Threshold (mV)
     connect( ui->doubleSpinBox, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
              , [this]( double value ) { 
-                 emit valueChanged( channel_, ui->checkBox->isChecked(), ui->doubleSpinBox->value() );
+                 emit thresholdChanged( channel_, ui->doubleSpinBox->value() );
+             } );    
+
+    // SG-Filter
+    connect( ui->checkBox, &QCheckBox::toggled
+             , [this] ( bool on ) {
+                 emit sgFilterChanged( channel_, on, ui->spinBox->value() );
              } );
+    
+    connect( ui->spinBox, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged )
+             , [this] ( int value ) {
+                 emit sgFilterChanged( channel_, bool( ui->checkBox->isChecked()), value );
+             } );
+
 }
 
 findSlopeForm::~findSlopeForm()

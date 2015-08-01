@@ -34,6 +34,7 @@
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <coreplugin/minisplitter.h>
+#include <qwt_plot_marker.h>
 #include <QSplitter>
 #include <QBoxLayout>
 #include <boost/format.hpp>
@@ -48,7 +49,16 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
 {
     for ( auto& tp: tp_ )
         tp = std::make_shared< adcontrols::Trace >();
+
     init();
+    
+    for ( size_t i = 0; i < threshold_markers_.size(); ++i ) {
+        threshold_markers_[ i ] = new QwtPlotMarker();
+        threshold_markers_[ i ]->setLineStyle( QwtPlotMarker::HLine );
+        threshold_markers_[ i ]->setLinePen( QColor( 0x00, 0x00, 0xff, 0x40 ), 0, Qt::DotLine );
+        threshold_markers_[ i ]->attach( spw_ );
+    }
+    
 }
 
 WaveformWnd::~WaveformWnd()
@@ -103,12 +113,17 @@ WaveformWnd::handle_waveform()
 {
     auto pair = document::instance()->findWaveform();
 
-    std::array< double, 2 > levels = { document::instance()->threshold( 0 ) * 1000
-                                       , document::instance()->threshold( 1 ) * 1000 }; // mV
-
     std::ostringstream o;
 
     uint64_t duration(0);
+
+    for ( size_t i = 0; i < threshold_markers_.size(); ++i ) {
+
+        auto& method = document::instance()->threshold_method( i );
+        
+        threshold_markers_[ i ]->setYValue( method.threshold );
+        threshold_markers_[ i ]->setVisible( method.enable );
+    }
     
     for ( auto waveform: { pair.first, pair.second } ) {
 
@@ -161,6 +176,7 @@ WaveformWnd::handle_waveform()
             prop.setDataInterpreterClsid( "ap240" );
             sp->setMSProperty( prop );
 
+#if 0
             const double * p = sp->getIntensityArray();
             bool flag = levels[ channel ] < (*p);
             int stage = 0;
@@ -173,17 +189,16 @@ WaveformWnd::handle_waveform()
                         break;
                 }
             }
-
             double t0 = sp->getTime( th[0] ) * 1.0e6;
             double t1 = sp->getTime( th[1] ) * 1.0e6;
-
+#endif
             duration += std::chrono::nanoseconds( std::chrono::steady_clock::now() - tp0 ).count();
-            
+
             if ( o.str().empty() )
                 o << boost::format( "Time: %.3lf" ) % waveform->meta_.initialXTimeSeconds;
             
-            o << boost::format( " CH%d RMS: %.3f %5.1fmV level: [%.0fmV]=(%.4f:%4f)(us); " )
-                % ( channel + 1 ) % rms % tic % levels[ channel ] % t0 % t1;
+            // o << boost::format( " CH%d RMS: %.3f %5.1fmV level: [%.0fmV]=(%.4f:%4f)(us); " )
+            //     % ( channel + 1 ) % rms % tic % levels[ channel ] % t0 % t1;
 
             tic = adportable::spectrum_processor::tic( sp->size(), sp->getIntensityArray(), dbase, rms );
             tp->push_back( waveform->serialnumber_, timestamp, tic );

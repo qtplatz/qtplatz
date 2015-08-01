@@ -47,7 +47,9 @@ public:
     void setChecked( bool );
 
 signals:
-    void valueChanged( int id, bool, double );
+    void thresholdChanged( int id, double value );    
+    void sgFilterChanged( int id, bool, int value );
+    void toggled( int id, bool );
 
 private:
     Ui::findSlopeForm *ui;

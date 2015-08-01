@@ -88,8 +88,8 @@ namespace ap240 {
                         std::shared_ptr< const waveform >
                         , std::shared_ptr< const waveform >
                         > > que_;
-        
-        std::array< double, 2 > thresholds_;
+
+        std::array< ap240::threshold_method, 2 > thresholds_;
 
         void run() {
             if ( threads_.empty() )
@@ -110,6 +110,8 @@ namespace ap240 {
 
                 if ( worker_stop_ )
                     return;
+
+                std::cout << "sema count: " << sema_.count() << std::endl;
 
                 auto tp = std::chrono::steady_clock::now();
                 if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ).count() > 200 ) {
@@ -429,16 +431,19 @@ document::setControlMethod( const ap240::method& m, const QString& filename )
 }
 
 void
-document::setThreshold( int ch, double value )
+document::set_threshold_method( int ch, const ap240::threshold_method& m )
 {
     if ( ch < impl_->thresholds_.size() )
-        impl_->thresholds_[ ch ] = value;
+        impl_->thresholds_[ ch ] = m;
+    throw std::runtime_error(0);    
 }
 
-double
-document::threshold( int ch ) const
+const ap240::threshold_method&
+document::threshold_method( int ch ) const
 {
     if ( ch < impl_->thresholds_.size() )
         return impl_->thresholds_[ ch ];
-    return -9999.999;
+    throw std::runtime_error(0);
 }
+
+

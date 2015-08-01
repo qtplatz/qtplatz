@@ -29,6 +29,8 @@
 #include <array>
 #include <memory>
 
+class QwtPlotMarker;
+
 namespace adplot { class ChromatogramWidget; class TraceWidget; class SpectrumWidget; }
 namespace adcontrols { class MassSpectrum; class Trace; }
 
@@ -55,6 +57,8 @@ namespace ap240 {
         adplot::SpectrumWidget * spw_;
         std::array< std::shared_ptr< adcontrols::MassSpectrum >, 2 > sp_;
         std::array< std::shared_ptr< adcontrols::Trace>, 2 > tp_;
+        std::array< std::pair<bool, double>, 2 > thresholds_;
+        std::array< QwtPlotMarker *, 2 > threshold_markers_;
     };
 
 }
