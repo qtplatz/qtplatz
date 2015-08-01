@@ -49,6 +49,8 @@ namespace ap240 {
 
     public slots:
         void handle_waveform();
+        void handle_threshold_method( int ch );
+        void handle_method( const QString& );
 
     private:
         void init();

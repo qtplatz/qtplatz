@@ -44,8 +44,6 @@ public:
     void setTitle( int ch, const QString& );
     int channel() const;
     
-    void set( int id, bool, double );
-    bool get( int id, bool&, double& ) const;
     bool isChecked() const;
     void setChecked( bool );
 

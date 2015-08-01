@@ -123,7 +123,6 @@ MainWindow::createDockWidgets()
     auto widget = new ap240form();
     widget->set( 0, document::instance()->threshold_method( 0 ) );
     widget->set( 1, document::instance()->threshold_method( 1 ) );
-    
     createDockWidget( widget, "AP240", "AP240" );
     
     connect( widget, &ap240form::valueChanged, [this]( ap240form::idCategory cat, int, int ch, const QVariant& v ){
@@ -210,7 +209,11 @@ MainWindow::createContents( Core::IMode * mode )
         editorWidget->setLayout( editorHolderLayout );
 
         editorHolderLayout->addWidget( createTopStyledToolbar() );
-        editorHolderLayout->addWidget( new WaveformWnd() );
+        if ( auto wnd = new WaveformWnd() ) {
+            editorHolderLayout->addWidget( wnd );
+            connect( document::instance(), &document::on_threshold_method_changed, wnd, &WaveformWnd::handle_threshold_method );
+            connect( document::instance(), &document::onControlMethodChanged, wnd, &WaveformWnd::handle_method );
+        }
         
         //---------- central widget ------------
         if ( QWidget * centralWidget = new QWidget ) {

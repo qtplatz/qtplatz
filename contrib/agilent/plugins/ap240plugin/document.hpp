@@ -102,6 +102,7 @@ namespace ap240 {
         void on_waveform_received();
         void on_status( int );
         void onControlMethodChanged( const QString& );
+        void on_threshold_method_changed( int ch );
     };
 
 }

@@ -50,6 +50,7 @@ ap240form::ap240form(QWidget *parent) :
         for ( auto& title: { tr("CH1"), tr("CH2") } ) {
             auto ch = new findSlopeForm();
             ch->setTitle( idx++, title );
+            ch->setObjectName( title );
             layout->addWidget( ch );
             // enable|disable
             connect( ch, &findSlopeForm::toggled, [this]( int ch, bool enable ){

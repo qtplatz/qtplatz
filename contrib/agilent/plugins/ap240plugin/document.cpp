@@ -434,9 +434,10 @@ document::setControlMethod( const ap240::method& m, const QString& filename )
 void
 document::set_threshold_method( int ch, const ap240::threshold_method& m )
 {
-    std::cout << "set_threshold_method(" << ch << ", " << m.threshold << std::endl;
-    if ( ch < impl_->thresholds_.size() )
+    if ( ch < impl_->thresholds_.size() ) {
         impl_->thresholds_[ ch ] = m;
+        emit on_threshold_method_changed( ch );
+    }
 }
 
 const ap240::threshold_method&

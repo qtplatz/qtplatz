@@ -51,14 +51,6 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
         tp = std::make_shared< adcontrols::Trace >();
 
     init();
-    
-    for ( size_t i = 0; i < threshold_markers_.size(); ++i ) {
-        threshold_markers_[ i ] = new QwtPlotMarker();
-        threshold_markers_[ i ]->setLineStyle( QwtPlotMarker::HLine );
-        threshold_markers_[ i ]->setLinePen( QColor( 0x00, 0x00, 0xff, 0x40 ), 0, Qt::DotLine );
-        threshold_markers_[ i ]->attach( spw_ );
-    }
-    
 }
 
 WaveformWnd::~WaveformWnd()
@@ -80,21 +72,32 @@ WaveformWnd::init()
         splitter->setOrientation( Qt::Vertical );
     } while(0);
 
-    spw_->setAxisTitle( QwtPlot::yLeft, tr( "mV" ) );
+    spw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
+    spw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
     spw_->enableAxis( QwtPlot::yRight, true );
-    spw_->setAxisTitle( QwtPlot::yRight, tr( "mV" ) );
     
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
 
-    tpw_->setAxisTitle( QwtPlot::yLeft, tr( "mV" ) );
-    tpw_->setAxisTitle( QwtPlot::yRight, tr( "mV" ) );
-    spw_->enableAxis( QwtPlot::yRight, true );
+    tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
+    tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
+    tpw_->enableAxis( QwtPlot::yRight, true );
 
     QBoxLayout * layout = new QVBoxLayout( this );
     layout->setMargin( 0 );
     layout->setSpacing( 2 );
     layout->addWidget( splitter );
+
+    const QColor colors[] = { QColor( 0x00, 0x00, 0xff, 0x80 ), QColor( 0xff, 0x00, 0x00, 0x80 ) };
+    for ( size_t i = 0; i < threshold_markers_.size(); ++i ) {
+        threshold_markers_[ i ] = new QwtPlotMarker();
+        threshold_markers_[ i ]->setLineStyle( QwtPlotMarker::HLine );
+        threshold_markers_[ i ]->setLinePen( colors[ i ], 0, Qt::DotLine );
+        threshold_markers_[ i ]->setYAxis( ( i == 1 ) ? QwtPlot::yRight : QwtPlot::yLeft );
+        threshold_markers_[ i ]->setYValue( ( i + 1 ) * 100 );
+        threshold_markers_[ i ]->attach( spw_ );
+    }
+
 }
 
 void
@@ -109,6 +112,41 @@ WaveformWnd::onInitialUpdate()
 }
 
 void
+WaveformWnd::handle_threshold_method( int ch )
+{
+    auto& method = document::instance()->threshold_method( ch );
+
+    bool replot( false );
+    if ( !adportable::compare<double>::approximatelyEqual( threshold_markers_[ ch ]->yValue(), method.threshold ) ) {
+        threshold_markers_[ ch ]->setYValue( method.threshold );
+        replot = true;
+    }
+    if ( method.enable != threshold_markers_[ ch ]->isVisible() ) {
+        threshold_markers_[ ch ]->setVisible( method.enable );
+        replot = true;
+    }
+    if ( replot )
+        spw_->replot();
+}
+
+void
+WaveformWnd::handle_method( const QString& )
+{
+    if ( auto ptr = document::instance()->controlMethod() ) {
+        if ( ( ptr->channels_ & 0x01 ) == 0 && sp_[ 0 ] ) {
+            sp_[ 0 ]->resize( 0 );
+            spw_->setData( sp_[ 0 ], 0, false );
+        }
+        if ( ( ptr->channels_ & 0x02 ) == 0 && sp_[ 1 ] ) {
+            sp_[ 1 ]->resize( 0 );
+            spw_->setData( sp_[ 1 ], 1, true );
+        }
+        spw_->setAxisAutoScale( QwtPlot::yLeft, ptr->ch1_.autoScale );
+        spw_->setAxisAutoScale( QwtPlot::yRight, ptr->ch2_.autoScale );
+    }
+}
+
+void
 WaveformWnd::handle_waveform()
 {
     auto pair = document::instance()->findWaveform();
@@ -117,14 +155,6 @@ WaveformWnd::handle_waveform()
 
     uint64_t duration(0);
 
-    for ( size_t i = 0; i < threshold_markers_.size(); ++i ) {
-
-        auto& method = document::instance()->threshold_method( i );
-        
-        threshold_markers_[ i ]->setYValue( method.threshold );
-        threshold_markers_[ i ]->setVisible( method.enable );
-    }
-    
     for ( auto waveform: { pair.first, pair.second } ) {
 
         if ( waveform ) {

@@ -140,11 +140,13 @@ namespace ap240 {
             uint32_t coupling;
             uint32_t bandwidth;
             bool invertData;
+            bool autoScale;
             vertical_method() : fullScale( 5.0 )
                               , offset( 0.0 )
                               , coupling( 3 )
                               , bandwidth( 2 )
                               , invertData( false )
+                              , autoScale( true )
                 {}
         private:
             friend class boost::serialization::access;
@@ -156,6 +158,7 @@ namespace ap240 {
                 ar & BOOST_SERIALIZATION_NVP( coupling );
                 ar & BOOST_SERIALIZATION_NVP( bandwidth );
                 ar & BOOST_SERIALIZATION_NVP( invertData );
+                ar & BOOST_SERIALIZATION_NVP( autoScale );
             }
         };        
         

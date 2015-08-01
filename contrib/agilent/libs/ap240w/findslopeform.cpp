@@ -24,6 +24,8 @@
 
 #include "findslopeform.hpp"
 #include "ui_findslopeform.h"
+#include <ap240/digitizer.hpp>
+#include <QSignalBlocker>
 
 findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
                                               , ui(new Ui::findSlopeForm)
@@ -59,28 +61,10 @@ findSlopeForm::~findSlopeForm()
 }
 
 void
-findSlopeForm::set( int id, bool on, double th )
-{
-    if ( id == 0 ) {
-        ui->checkBox->setChecked( on );
-        ui->doubleSpinBox->setValue( th );
-    }
-}
-
-bool
-findSlopeForm::get( int id, bool& on, double& th ) const
-{
-    if ( id == 0 ) {
-        on = ui->checkBox->isChecked();
-        th = ui->doubleSpinBox->value();
-        return true;
-    }
-    return false;
-}
-
-void
 findSlopeForm::setTitle( int ch, const QString& title )
 {
+    const QSignalBlocker blocker( this );
+
     channel_ = ch;
     ui->groupBox->setTitle( title );
 }
@@ -94,17 +78,28 @@ findSlopeForm::isChecked() const
 void
 findSlopeForm::setChecked( bool on )
 {
+    const QSignalBlocker blocker( this );
     ui->groupBox->setChecked( on );
 }
 
 void
 findSlopeForm::set( const ap240::threshold_method& m )
 {
+    const QSignalBlocker blocker( this );
+
+    ui->groupBox->setChecked( m.enable );
+    ui->doubleSpinBox->setValue( m.threshold );
+    ui->checkBox->setChecked( m.sgFilter );
+    ui->spinBox->setValue( m.sgPoints );
 }
 
 void
 findSlopeForm::get( ap240::threshold_method& m ) const
 {
+    m.enable = ui->groupBox->isChecked();
+    m.threshold = ui->doubleSpinBox->value();
+    m.sgFilter = ui->checkBox->isChecked();
+    m.sgPoints = ui->spinBox->value();
 }
 
 int
