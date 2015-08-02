@@ -290,12 +290,10 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
     pProfileSpectrum_ = std::make_pair( guid, ptr );
 
     if ( axis_ == AxisMZ ) {
-        if ( size_t size = ptr->size() ) {
-            std::pair < double, double > range = std::make_pair( ptr->getMass( 0 ), ptr->getMass( size - 1 ) );
-            if ( adportable::compare<double>::approximatelyEqual( range.first, range.second ) ) {
+        if ( ptr->size() > 0
+             && adportable::compare<double>::approximatelyEqual( ptr->getMass( ptr->size() - 1 ), ptr->getMass( 0 ) ) ) {
                 // Spectrum has no mass assigned
-                handleAxisChanged( AxisTime );
-            }
+                MainWindow::instance()->setSpectrumAxisChoice( AxisTime );
         }
     }
 

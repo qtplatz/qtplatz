@@ -191,9 +191,8 @@ namespace dataproc {
         QComboBox * sender_;
         axis_changed_connector( QObject * p, QComboBox * choice ) : this_(p), sender_(choice) {}
         template< class T > bool operator () ( T* receiver ) const {
-            return
-                this_->connect( sender_, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged)
-                                , receiver, [=] ( int idx ){ receiver->handleAxisChanged( idx ); } );
+            return this_->connect( sender_, static_cast<void ( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), receiver, [=] ( int idx ) {
+                receiver->handleAxisChanged( idx ); } );
         }
     };
     // following 4 classes has no axis change handler
@@ -303,6 +302,13 @@ MainWindow::createStyledBarTop()
         toolBarLayout->addWidget( new QLineEdit );
     }
     return toolBar;
+}
+
+void
+MainWindow::setSpectrumAxisChoice( int sel )
+{
+    if ( axisChoice_ )
+        axisChoice_->setCurrentIndex( sel );
 }
 
 void

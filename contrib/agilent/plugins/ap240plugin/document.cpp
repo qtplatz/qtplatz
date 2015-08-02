@@ -190,8 +190,8 @@ namespace ap240 {
             sema_.signal();
         }
         
-            void worker() {
-            while( true ) {
+        void worker() {
+            while ( true ) {
 
                 sema_.wait();
 
@@ -425,7 +425,7 @@ document::initialSetup()
         boost::archive::xml_wiarchive ar( inf );
         ar >> boost::serialization::make_nvp( "threshold_methods", x );
         for ( size_t i = 0; i < x.size(); ++i )
-            set_threshold_method( i, x[ i ] );
+            set_threshold_method( int( i ), x[ i ] );
         std::cout << "############ ap240::threshold_method load success" << std::endl;        
     } catch( ... ) {
         std::cout << "############ ap240::threshold_method load failed" << std::endl;

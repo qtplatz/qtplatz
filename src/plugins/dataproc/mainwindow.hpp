@@ -80,8 +80,6 @@ namespace dataproc {
         void applyCalibration( const adcontrols::MSAssignedMasses& );
         void applyCalibration( const adcontrols::MSAssignedMasses&, portfolio::Folium& );
         
-        //void processMethodSaved( const QString& );
-        //void processMethodLoaded( const QString&, const adcontrols::ProcessMethod& );
         int currentProcessView( std::string& ) const;
         void printCurrentView( const QString& ) const;
 
@@ -91,6 +89,7 @@ namespace dataproc {
         void zoomedOnSpectrum( const QRectF& );
 
         void proteinSelected( const adprot::digestedPeptides& );
+        void setSpectrumAxisChoice( int );
 
         static QString makePrintFilename( const std::wstring& id, const std::wstring& insertor = L"__", const char * extension = ".svg" );
         static QString makeDisplayName( const std::wstring& id, const char * insertor = "::", int nbsp = 0 );
@@ -116,7 +115,6 @@ namespace dataproc {
     public slots:
         void handleSessionAdded( Dataprocessor * );
         void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
-        // void onMethodApply( adcontrols::ProcessMethod& );
         void actionApply();
         void handle_add_mspeaks( const adcontrols::MSPeaks& );
         void actCreateSpectrogram();
@@ -146,7 +144,6 @@ namespace dataproc {
         QStackedWidget * stack_;
         AboutDlg * aboutDlg_;
 
-        // std::unique_ptr< QLineEdit > processMethodNameEdit_;
         enum ProcessType currentFeature_;
 
         void setToolBarDockWidget( QDockWidget * dock );
