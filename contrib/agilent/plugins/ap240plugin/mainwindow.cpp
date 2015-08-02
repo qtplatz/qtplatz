@@ -175,6 +175,11 @@ MainWindow::OnInitialUpdate()
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
     }
 
+    if ( auto widget = findChild< ap240form * >() ) {
+        widget->set( 0, document::instance()->threshold_method( 0 ) );
+        widget->set( 1, document::instance()->threshold_method( 1 ) );
+        widget->set( *document::instance()->controlMethod() );
+    }
 }
 
 void
@@ -481,7 +486,7 @@ MainWindow::actSnapshot()
 
         if ( waveform ) {
             
-            if ( document::toMassSpectrum( ms, *waveform ) ) {
+            if ( document::toMassSpectrum( ms, *waveform->data ) ) {
                 
                 boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
                 path /= "data";
@@ -491,7 +496,7 @@ MainWindow::actSnapshot()
                     boost::filesystem::create_directories( path, ec );
                 }
                 path /= "ap240.adfs";
-                std::wstring title = ( boost::wformat( L"Spectrum %1% CH-%2%" ) % waveform->serialnumber_ % ch ).str();
+                std::wstring title = ( boost::wformat( L"Spectrum %1% CH-%2%" ) % waveform->data->serialnumber_ % ch ).str();
                 std::wstring folderId;
                 if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
                     auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();

@@ -154,11 +154,13 @@ WaveformWnd::handle_waveform()
     std::ostringstream o;
 
     uint64_t duration(0);
+    double levels[] = { document::instance()->threshold_method(0).threshold, document::instance()->threshold_method(1).threshold };
 
-    for ( auto waveform: { pair.first, pair.second } ) {
+    for ( auto result: { pair.first, pair.second } ) {
 
-        if ( waveform ) {
-            double dbase(0), rms(0), tic(0);
+        if ( result ) {
+            auto waveform = result->data;
+
             double timestamp = waveform->meta_.initialXTimeSeconds;
             int channel = waveform->meta_.channel - 1;
             if ( channel > 2 )
@@ -206,7 +208,7 @@ WaveformWnd::handle_waveform()
             prop.setDataInterpreterClsid( "ap240" );
             sp->setMSProperty( prop );
 
-#if 0
+#if 0            
             const double * p = sp->getIntensityArray();
             bool flag = levels[ channel ] < (*p);
             int stage = 0;
@@ -226,10 +228,16 @@ WaveformWnd::handle_waveform()
 
             if ( o.str().empty() )
                 o << boost::format( "Time: %.3lf" ) % waveform->meta_.initialXTimeSeconds;
-            
-            // o << boost::format( " CH%d RMS: %.3f %5.1fmV level: [%.0fmV]=(%.4f:%4f)(us); " )
-            //     % ( channel + 1 ) % rms % tic % levels[ channel ] % t0 % t1;
 
+            if ( !result->index.empty() ) {
+                o << boost::format( " CH%d level: [%.0fmV]= " )  % ( channel + 1 ) % levels[ channel ];
+                for ( int i = 0; i < 5 && i < result->index.size(); ++i ) {
+                    double t0 = sp->getTime( result->index[i] ) * 1.0e6;
+                    o << boost::format( "(%.4lf)" )  % t0;
+                }
+            }
+
+            double dbase(0), rms(0), tic(0);            
             tic = adportable::spectrum_processor::tic( sp->size(), sp->getIntensityArray(), dbase, rms );
             tp->push_back( waveform->serialnumber_, timestamp, tic );
             tpw_->setData( *tp, channel, channel );

@@ -42,6 +42,16 @@ namespace ap240 {
 
     namespace detail { struct remover; }
 
+    struct threshold_result {  // bin# where data across threshold level
+        std::vector< uint32_t > index;
+        std::shared_ptr< const waveform > data;
+        threshold_result() {}
+        threshold_result( std::shared_ptr< const waveform > d ) : data( d ) {
+        }
+        threshold_result( const threshold_result& t ) : index( t.index ), data( t.data ) {
+        }
+    };
+
     class document : public QObject {
         Q_OBJECT
         document();
@@ -58,9 +68,10 @@ namespace ap240 {
         void ap240_trigger_inject();
         void prepare_for_run();
 
-        typedef std::pair<std::shared_ptr< const waveform >, std::shared_ptr< const waveform > > waveforms_t;
+        typedef std::pair<std::shared_ptr< const threshold_result >, std::shared_ptr< const threshold_result > > waveforms_t;
 
         waveforms_t findWaveform( uint32_t serialnumber = (-1) );
+        
         int32_t device_status() const;
 
         static bool toMassSpectrum( adcontrols::MassSpectrum&, const waveform& );

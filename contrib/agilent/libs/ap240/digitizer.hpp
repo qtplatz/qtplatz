@@ -68,6 +68,15 @@ namespace ap240 {
         int sgPoints;
         threshold_method() : enable( false ), threshold( 100 ), sgFilter( false ), sgPoints( 5 ) {
         }
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize( Archive& ar, const unsigned int version ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( enable );
+            ar & BOOST_SERIALIZATION_NVP( threshold );
+            ar & BOOST_SERIALIZATION_NVP( sgFilter );
+            ar & BOOST_SERIALIZATION_NVP( sgPoints );
+        }
     };
 
 	class /* AP240SHARED_EXPORT */ method {

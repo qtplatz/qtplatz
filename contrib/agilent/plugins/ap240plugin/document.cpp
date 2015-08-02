@@ -39,11 +39,13 @@
 #include <adportable/binary_serializer.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/semaphore.hpp>
+#include <adportable/waveform_processor.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -72,13 +74,22 @@ namespace ap240 {
     };
 
     class document::impl {
+
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        std::string time_datafile_;
+
     public:
-        impl() : worker_stop_( false ) {
+        impl() : worker_stop_( false )
+               , work_( io_service_ ) {
+            time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
         }
         
         ~impl() {
             stop();
         }
+
+        inline boost::asio::io_service& io_service() { return io_service_; }
         
         adportable::semaphore sema_;
         bool worker_stop_;
@@ -89,18 +100,93 @@ namespace ap240 {
                         , std::shared_ptr< const waveform >
                         > > que_;
 
+        std::deque< std::pair< std::shared_ptr< threshold_result>
+                               , std::shared_ptr< threshold_result > > > que2_;
+
         std::array< ap240::threshold_method, 2 > thresholds_;
 
         void run() {
-            if ( threads_.empty() )
+            if ( threads_.empty() ) {
+                unsigned ncores = std::thread::hardware_concurrency();
+                if ( ncores == 0 )
+                    ncores = 4;
+                while( ncores-- )
+                    threads_.push_back( adportable::asio::thread( [this] { io_service_.run(); } ) );
                 threads_.push_back( adportable::asio::thread( [this] { worker(); } ) );
+            }
         }
         
         void stop() {
+            io_service_.stop();
             worker_stop_ = true;
             sema_.signal();
             for ( auto& t: threads_ )
                 t.join();
+        }
+
+        void find_threshold_elements( const waveform& data, const ap240::threshold_method& method, std::vector< uint32_t >& elements ) {
+
+            bool flag;
+            double level = ( ( method.threshold / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+            size_t nfilter = method.sgFilter ? method.sgPoints : 0;
+            
+            if ( data.meta_.dataType == 1 ) { // ReadInt8
+                typedef int8_t T;
+                auto it = data.begin<T>();
+                while ( it != data.end<T>() ) {
+                    if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
+                        elements.push_back( std::distance( data.begin<T>(), it ) );
+                        std::advance( it, nfilter );
+                    }
+                }
+                
+            } else if ( data.meta_.dataType == 3 ) { // ReadInt32
+                typedef int32_t T;
+                auto it = data.begin<T>();
+                while ( it != data.end<T>() ) {
+                    if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
+                        elements.push_back( std::distance( data.begin<T>(), it ) );
+                        std::advance( it, nfilter );                        
+                    }
+                }
+            }
+        }
+
+        void handle_waveform( std::pair<std::shared_ptr< const waveform >, std::shared_ptr< const waveform > > pair ) {
+
+            std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > results;
+
+            if ( pair.first && thresholds_[0].enable ) {
+                results.first = std::make_shared< threshold_result >( pair.first );
+                find_threshold_elements( *pair.first, thresholds_[ 0 ], results.first->index );
+                auto& w = *pair.first;
+
+                std::lock_guard< std::mutex > lock( document::mutex_ );
+                
+                std::ofstream of( time_datafile_ );
+                of << boost::format("\n%d, %.8f, ") % w.serialnumber_ % w.meta_.initialXTimeSeconds
+                   << w.timeSinceEpoch_
+                   << boost::format(", %.8e" ) % w.meta_.initialXOffset
+                   << boost::format(", %.14e\t")  % w.meta_.horPos;
+
+                for ( auto& t: results.first->index )
+                    of << std::setprecision(15) << std::scientific << ( w.meta_.initialXOffset + ( w.meta_.xIncrement * t ) + w.meta_.horPos );
+
+            }
+            
+            if ( pair.second && thresholds_[1].enable ) {
+                results.second = std::make_shared< threshold_result >( pair.second );                
+                find_threshold_elements( *pair.second, thresholds_[ 1 ], results.second->index );
+            }
+
+            do {
+                std::lock_guard< std::mutex > lock( document::mutex_ );
+                while( que2_.size() > 1024 )
+                    que2_.pop_front();
+                que2_.push_back( results );
+            } while( 0 );
+
+            sema_.signal();
         }
         
         void worker() {
@@ -110,9 +196,6 @@ namespace ap240 {
 
                 if ( worker_stop_ )
                     return;
-
-                if ( sema_.count() )
-                    std::cout << "sema count: " << sema_.count() << std::endl;
 
                 auto tp = std::chrono::steady_clock::now();
                 if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ).count() > 200 ) {
@@ -211,13 +294,12 @@ document::waveform_handler( const waveform * ch1, const waveform * ch2, ap240::m
 {
     auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
 
+    impl_->io_service().post( [this,pair](){ impl_->handle_waveform( pair ); } );
+
     std::lock_guard< std::mutex > lock( mutex_ );
-
-    while ( impl_->que_.size() > 512 )
+    while ( impl_->que_.size() > 128 )
         impl_->que_.pop_front();
-
     impl_->que_.push_back( pair );
-    impl_->sema_.signal();
 
     return false; // no protocol-acquisition handled.
 }
@@ -228,10 +310,10 @@ document::findWaveform( uint32_t serialnumber )
     (void)serialnumber;
 
     std::lock_guard< std::mutex > lock( mutex_ );
-    if ( impl_->que_.empty() )
+    if ( impl_->que2_.empty() )
         return waveforms_t( 0, 0 );
 
-	return impl_->que_.back();
+	return impl_->que2_.back();
 }
 
 // static
@@ -309,6 +391,7 @@ document::appendOnFile( const std::wstring& path
 }
 
 void
+
 document::initialSetup()
 {
     boost::filesystem::path dir = user_preference::path( settings_.get() );
@@ -334,6 +417,18 @@ document::initialSetup()
     ap240::method m;
     if ( load( QString::fromStdWString( mfile.wstring() ), m ) )
         setControlMethod( m, QString() ); // don't save default name
+    
+    try {
+        std::vector< ap240::threshold_method > x;
+        std::wifstream inf( boost::filesystem::path( dir / "ap240_threshold_methods.xml" ).string() );
+        boost::archive::xml_wiarchive ar( inf );
+        ar >> boost::serialization::make_nvp( "threshold_methods", x );
+        for ( size_t i = 0; i < x.size(); ++i )
+            set_threshold_method( i, x[ i ] );
+        std::cout << "############ ap240::threshold_method load success" << std::endl;        
+    } catch( ... ) {
+        std::cout << "############ ap240::threshold_method load failed" << std::endl;
+    }
 }
 
 void
@@ -349,8 +444,14 @@ document::finalClose()
     }
     ap240::method m;
     MainWindow::instance()->getControlMethod( m );
-    boost::filesystem::path fname( dir / "ap240.xmth" );
+    boost::filesystem::path fname( dir / "ap240.xml" );
     save( QString::fromStdWString( fname.wstring() ), m );
+
+    std::vector< ap240::threshold_method > x{ impl_->thresholds_[0], impl_->thresholds_[1] };
+    std::wofstream outf( boost::filesystem::path( dir / "ap240_threshold_methods.xml" ).string() );
+    boost::archive::xml_woarchive ar( outf );
+    ar << boost::serialization::make_nvp( "threshold_methods", x );
+    
 }
 
 void
@@ -392,7 +493,7 @@ document::load( const QString& filename, ap240::method& m )
         
         ar >> boost::serialization::make_nvp( "ap240_method", m );
     } catch( ... ) {
-        std::cout << "ap240::method load failed" << std::endl;
+        std::cout << "############# ap240::method load failed" << std::endl;
     }
     return false;
 }
