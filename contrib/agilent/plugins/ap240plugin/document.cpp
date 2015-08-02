@@ -130,7 +130,7 @@ namespace ap240 {
             double level = ( ( method.threshold / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
             size_t nfilter = method.sgFilter ? method.sgPoints : 0;
             
-            if ( data.meta_.dataType == 1 ) { // ReadInt8
+            if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
                 typedef int8_t T;
                 auto it = data.begin<T>();
                 while ( it != data.end<T>() ) {
@@ -140,7 +140,7 @@ namespace ap240 {
                     }
                 }
                 
-            } else if ( data.meta_.dataType == 3 ) { // ReadInt32
+            } else if ( data.meta_.dataType == 4 ) { // sizeof(int32_t)
                 typedef int32_t T;
                 auto it = data.begin<T>();
                 while ( it != data.end<T>() ) {
@@ -163,22 +163,23 @@ namespace ap240 {
 
                 std::lock_guard< std::mutex > lock( document::mutex_ );
                 
-                std::ofstream of( time_datafile_ );
-                of << boost::format("\n%d, %.8f, ") % w.serialnumber_ % w.meta_.initialXTimeSeconds
+                std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
+                of << boost::format("\n%d, %.8lf, ") % w.serialnumber_ % w.meta_.initialXTimeSeconds
                    << w.timeSinceEpoch_
-                   << boost::format(", %.8e" ) % w.meta_.initialXOffset
-                   << boost::format(", %.14e\t")  % w.meta_.horPos;
-
-                for ( auto& t: results.first->index )
-                    of << std::setprecision(15) << std::scientific << ( w.meta_.initialXOffset + ( w.meta_.xIncrement * t ) + w.meta_.horPos );
-
+                   << boost::format(", %.8e, %.8e" ) % w.meta_.scaleFactor % w.meta_.scaleOffset
+                   << boost::format(", %.8e" ) % w.meta_.initialXOffset;
+                    
+                for ( auto& idx: results.first->index ) {
+                    auto v = w[ idx ];
+                    of << boost::format(", %.14le, %d" ) % v.first % v.second;
+                }
             }
-            
+                
             if ( pair.second && thresholds_[1].enable ) {
                 results.second = std::make_shared< threshold_result >( pair.second );                
                 find_threshold_elements( *pair.second, thresholds_[ 1 ], results.second->index );
             }
-
+            
             do {
                 std::lock_guard< std::mutex > lock( document::mutex_ );
                 while( que2_.size() > 1024 )
@@ -189,7 +190,7 @@ namespace ap240 {
             sema_.signal();
         }
         
-        void worker() {
+            void worker() {
             while( true ) {
 
                 sema_.wait();

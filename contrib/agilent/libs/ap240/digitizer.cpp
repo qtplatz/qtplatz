@@ -908,7 +908,7 @@ device_ap240::readData( task& task, waveform& data, const method& m, int channel
             data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
 
             // std::cout << boost::format( "Time: [%x][%x]" ) % segDesc.timeStampHi % segDesc.timeStampLo << std::endl;
-            
+            data.meta_.dataType = sizeof( int8_t );
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
             data.meta_.channel = channel;
             data.meta_.actualAverages = 0;
@@ -916,8 +916,8 @@ device_ap240::readData( task& task, waveform& data, const method& m, int channel
             data.meta_.flags = 0;         // segDesc.flags; // markers not in digitizer
             data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.nStartDelay;
             uint64_t tstamp = uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo;
-            // this looks like a time since acquire command
-            //data.meta_.initialXTimeSeconds = double( tstamp ) * 1.0e-12;
+
+            //data.meta_.initialXTimeSeconds = double( tstamp ) * 1.0e-12; // this is time since 'acquire' issued that not what we wont
             data.meta_.initialXTimeSeconds = task::instance()->timestamp();
             
             data.meta_.scaleFactor = dataDesc.vGain;     // V = vGain * data - vOffset
@@ -928,6 +928,8 @@ device_ap240::readData( task& task, waveform& data, const method& m, int channel
     } else {
         AqSegmentDescriptorAvg segDesc;
         if ( readData<int32_t, AqSegmentDescriptorAvg>( task.inst(), m, channel, dataDesc, segDesc, data ) ) {
+
+            data.meta_.dataType = sizeof( int32_t );
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
             data.meta_.channel = channel;            
             data.meta_.actualAverages = segDesc.actualTriggersInSeg;  // number of triggers for average
