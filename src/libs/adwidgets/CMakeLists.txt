@@ -111,7 +111,7 @@ set( ${PROJECT_NAME}_HEADERS
   samplerunwidget.hpp
   consolewidget.hpp
   outputwidget.hpp
-  scanlawdialog.hpp  
+  scanlawdialog.hpp
 )
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )

@@ -105,6 +105,7 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
     model_->setHeaderData( col++, Qt::Horizontal, "Structure" );
     model_->setHeaderData( col++, Qt::Horizontal, "Formula" );
     model_->setHeaderData( col++, Qt::Horizontal, "Mass" );
+    model_->setHeaderData( col++, Qt::Horizontal, "Name" );    
     for ( auto tag: tags )
         model_->setHeaderData( col++, Qt::Horizontal, tag );        
 
@@ -125,10 +126,49 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
             std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
             model_->setData( model_->index( 0, 2 ), formula.c_str() );
             model_->setData( model_->index( 0, 3 ), cformula.getMonoIsotopicMass( formula ) );
+            model_->setData( model_->index( 0, 4 ), "PFTBA" );
         } while(0);
         delete mol;
     } while (0);    // end of PFTBA
 
+    if ( RDKit::RWMol * mol = RDKit::SmilesToMol( "[Cl-].[S+]1C2C=C(C=CC=2N=C2C=CC(=CC=12)N(C)C)N(C)C" ) ) {
+        int row = model_->rowCount();
+        model_->setRowCount( row + 1 );
+        
+        model_->setData( model_->index( row, 0 ), QString::fromStdString( RDKit::MolToSmiles( *mol ) ) );
+        do { // SVG
+            std::string svg = adchem::drawing::toSVG( *mol );
+            model_->setData( model_->index( row, 1 ), QByteArray( svg.data(), static_cast<int>(svg.size()) ) );
+            model_->item( row, 1 )->setEditable( false );
+        } while(0);
+        do { // formula
+            std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
+            model_->setData( model_->index( row, 2 ), formula.c_str() );
+            model_->setData( model_->index( row, 3 ), cformula.getMonoIsotopicMass( formula ) );
+            model_->setData( model_->index( row, 4 ), "Methylene blue" );
+        } while(0);
+        delete mol;
+    }
+
+    if ( RDKit::RWMol * mol = RDKit::SmilesToMol( "CCN(CC)c1ccc2c(c1)oc-3cc(=[N+](CC)CC)ccc3c2c4ccccc4C(=O)O.[Cl-]" ) ) {
+        int row = model_->rowCount();
+        model_->setRowCount( row + 1 );
+
+        model_->setData( model_->index( row, 0 ), QString::fromStdString( RDKit::MolToSmiles( *mol ) ) );
+        do { // SVG
+            std::string svg = adchem::drawing::toSVG( *mol );
+            model_->setData( model_->index( row, 1 ), QByteArray( svg.data(), static_cast<int>( svg.size() ) ) );
+            model_->item( 0, 1 )->setEditable( false );
+        } while ( 0 );
+        do { // formula
+            std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
+            model_->setData( model_->index( row, 2 ), formula.c_str() );
+            model_->setData( model_->index( row, 3 ), cformula.getMonoIsotopicMass( formula ) );
+            model_->setData( model_->index( row, 4 ), "Rhodamine B" );
+        } while ( 0 );
+        delete mol;
+    }
+    
     do {
         int row = model_->rowCount();
         model_->setRowCount( model_->rowCount() + static_cast<int>(adprot::AminoAcid::size()) );
@@ -230,7 +270,7 @@ MolTableView::dragEnterEvent( QDragEnterEvent * event )
 		QList<QUrl> urlList = mimeData->urls();
         for ( auto& url: urlList ) {
             boost::filesystem::path path( url.toLocalFile().toStdWString() );
-            if ( path.extension() == L".sdf" ) {
+            if ( path.extension() == L".sdf" || path.extension() == L".mol" ) {
                 event->accept();
                 return;
             }

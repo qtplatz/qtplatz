@@ -1055,7 +1055,10 @@ MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
         if ( dlg.exec() != QDialog::Accepted )
             return false;
 
-        dataproc_document::instance()->saveScanLaw( QString::fromStdWString( model_name ), dlg.fLength(), dlg.acceleratorVoltage(), dlg.tDelay()
+        dataproc_document::instance()->saveScanLaw( QString::fromStdWString( model_name )
+                                                    , dlg.fLength()
+                                                    , dlg.acceleratorVoltage()
+                                                    , dlg.tDelay()
                                                     , dlg.mass(), dlg.formula() );
 
         auto& law = dlg.scanLaw();
