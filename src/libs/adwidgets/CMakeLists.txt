@@ -18,14 +18,6 @@ include_directories(
   ${Qt5Widgets_INCLUDE_DIRS}
   )
 
-#if (Qt5_POSITION_INDEPENDENT_CODE)
-#  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-#endif()
-
-#if ( NOT WIN32 )
-#  set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
-#endif()
-
 add_definitions(-DADWIDGETS_LIBRARY)
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
@@ -76,6 +68,7 @@ set( ${PROJECT_NAME}_SOURCES
   samplerunwidget.cpp
   consolewidget.cpp
   outputwidget.cpp
+  scanlawdialog.cpp
   ${_sources}
 )
 
@@ -118,6 +111,7 @@ set( ${PROJECT_NAME}_HEADERS
   samplerunwidget.hpp
   consolewidget.hpp
   outputwidget.hpp
+  scanlawdialog.hpp  
 )
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )

@@ -67,6 +67,9 @@ namespace dataproc {
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
 
+        void saveScanLaw( const QString& model_name, double flength, double accv, double tdelay, double mass, const QString& );
+        bool findScanLaw( const QString& model_name, double& flength, double& accv, double& tdelay, double& mass, QString& );        
+
         static bool load( const QString& filename, adcontrols::ProcessMethod& );
         static bool save( const QString& filename, const adcontrols::ProcessMethod& );
 

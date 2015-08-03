@@ -30,6 +30,7 @@
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adportable/float.hpp>
 #include <adutils/processeddata.hpp>
 #include <portfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
@@ -138,16 +139,32 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
 
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
 
-    portfolio::Folio attachments = folium.attachments();
-    if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
-                return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+    if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
+
+        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+            if ( ptr->size() > 0
+                 && adportable::compare<double>::approximatelyEqual( ptr->getMass( ptr->size() - 1 ), ptr->getMass( 0 ) ) ) {
+                // no mass assigned
+                pImpl_->processedSpectrum_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime, false );
+            } else {
+                pImpl_->processedSpectrum_->setAxis( adplot::SpectrumWidget::HorizontalAxisMass, false );
+            }
+            pImpl_->processedSpectrum_->enableAxis( QwtPlot::yRight, true );
+            pImpl_->processedSpectrum_->setData( ptr, 1, true );
+            pImpl_->processedSpectrum_->setAlpha( 1, 0x20 );
+        }
+
+        portfolio::Folio attachments = folium.attachments();
+        if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
+                    return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
         
-        if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
-            if ( centroid->isCentroid() ) {
-                draw2( centroid );
-                // pProcessedSpectrum_ = centroid;
+            if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
+                if ( centroid->isCentroid() ) {
+                    pImpl_->processedSpectrum_->setData( centroid, 0, false );
+                }
             }
         }
+
     }
 }
 

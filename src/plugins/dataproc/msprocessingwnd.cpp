@@ -62,6 +62,7 @@
 #include <adportable/float.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwidgets/filedialog.hpp>
+#include <adwidgets/scanlawdialog.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
@@ -1036,9 +1037,30 @@ MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
 {
     try {
         const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.c_str() );
-        const adcontrols::ScanLaw& law = model.getScanLaw();
-        ADTRACE() << model_name;
 
+        adwidgets::ScanLawDialog dlg;
+        dlg.setScanLaw( model.getScanLaw() );        
+
+        do {
+            double fLength, accVoltage, tDelay, mass;
+            QString formula;
+            if ( dataproc_document::instance()->findScanLaw( QString::fromStdWString( model_name ), fLength, accVoltage, tDelay, mass, formula ) ) {
+                dlg.setValues( fLength, accVoltage, tDelay );
+                dlg.setMass( mass );
+                if ( !formula.isEmpty() )
+                    dlg.setFormula( formula );
+            }
+        } while(0);
+        
+        if ( dlg.exec() != QDialog::Accepted )
+            return false;
+
+        dataproc_document::instance()->saveScanLaw( QString::fromStdWString( model_name ), dlg.fLength(), dlg.acceleratorVoltage(), dlg.tDelay()
+                                                    , dlg.mass(), dlg.formula() );
+
+        auto& law = dlg.scanLaw();
+
+        
         std::pair< double, double > mass_range;
 
         if ( auto x = this->pProfileSpectrum_.second.lock() ) {

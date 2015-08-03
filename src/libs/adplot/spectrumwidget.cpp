@@ -131,12 +131,13 @@ namespace adplot {
                                  , yRight_( false )  {
             }
             TraceData( const TraceData& t ) : idx_( t.idx_ )
-                , focusedFcn_( t.focusedFcn_ )
-                , rect_( t.rect_ )
-                , yRight_( t.yRight_ )
-                , curves_( t.curves_ )
-                , pSpectrum_( t.pSpectrum_ )
-                , isTimeAxis_( t.isTimeAxis_ ) {
+                                            , focusedFcn_( t.focusedFcn_ )
+                                            , alpha_( 0xff )
+                                            , rect_( t.rect_ )
+                                            , yRight_( t.yRight_ )
+                                            , curves_( t.curves_ )
+                                            , pSpectrum_( t.pSpectrum_ )
+                                            , isTimeAxis_( t.isTimeAxis_ ) {
             }
             ~TraceData();
             void setData( plot& plot
@@ -146,6 +147,7 @@ namespace adplot {
             void setFocusedFcn( int fcn );
             std::pair<double, double> y_range( double left, double right ) const;
             bool yRight() const { return yRight_; }
+            void setAlpha( int alpha );
 
         private:
             void setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, bool yRight );
@@ -154,6 +156,7 @@ namespace adplot {
 
             int idx_;
             int focusedFcn_;
+            int alpha_;
             QRectF rect_;
             bool yRight_;
         public:
@@ -426,6 +429,15 @@ SpectrumWidget::redraw_all()
 }
 
 void
+SpectrumWidget::setAlpha( int idx, int alpha )
+{
+    if ( impl_->traces_.size() > idx ) {
+        spectrumwidget::TraceData& trace = impl_->traces_[ idx ];
+        trace.setAlpha( alpha < 0 ? 0xff : alpha );
+    }
+}
+
+void
 SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr, int idx, bool yRight )
 {
     using spectrumwidget::TraceData;
@@ -668,6 +680,20 @@ TraceData::setFocusedFcn( int fcn )
     }
 }
 
+void
+TraceData::setAlpha( int alpha )
+{
+    if ( alpha != alpha_ ) {
+        alpha_ = alpha;
+        int fcn = 0;
+        for ( auto& curve: curves_ ) {
+            QColor color( color_table[ idx_ ] );
+            color.setAlpha( alpha );
+            curve->setPen( color );
+            ++fcn;
+        }
+    }
+}    
 
 std::pair< double, double >
 TraceData::y_range( double left, double right ) const

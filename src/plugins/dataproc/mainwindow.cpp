@@ -251,7 +251,7 @@ MainWindow::createStyledBarTop()
                 am->registerAction( p, "dataproc.selMSProcess", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
-            if ( auto p = selPages_[ idSelElementalComp] = new QAction( tr("Elemental Comp"), this ) ) {
+            if ( auto p = selPages_[ idSelElementalComp] = new QAction( tr("Simulation"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelElementalComp ); } );
                 am->registerAction( p, "dataproc.selElementalComp", context );
                 toolBarLayout->addWidget( toolButton( p ) );
@@ -551,7 +551,7 @@ MainWindow::createDockWidgets()
         , { tr( "MS Calibration" ), "MSCalibrateWidget", [] () { return new adwidgets::MSCalibrateWidget; } }
         , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramWidget; } }
         , { tr( "Targeting" ), "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
-        , { tr( "Peptide" ), "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
+     // , { tr( "Peptide" ), "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
         , { tr( "Peak Find" ), "PeakFindMethod", [] (){ return new adwidgets::PeakMethodForm; } }
         , { tr( "Data property" ), "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
         , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }

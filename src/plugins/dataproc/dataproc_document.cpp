@@ -317,3 +317,42 @@ dataproc_document::save( const QString& filename, const adcontrols::ProcessMetho
     doc.save_file( xmlfile.absoluteFilePath().toStdString().c_str() );
     return true;
 }
+
+void
+dataproc_document::saveScanLaw( const QString& model, double flength, double accv, double tdelay, double mass, const QString& formula )
+{
+    if ( settings_ ) {
+        settings_->beginGroup( "ScanLaws" );
+        settings_->setValue( model + "/fLength", flength );
+        settings_->setValue( model + "/acceleratorVoltage", accv );
+        settings_->setValue( model + "/tDelay", tdelay );
+        settings_->setValue( model + "/mass", mass );
+        settings_->setValue( model + "/formula", formula );        
+        settings_->endGroup();
+    }
+}
+
+bool
+dataproc_document::findScanLaw( const QString& model, double& flength, double& accv, double& tdelay, double& mass, QString& formula )
+{
+    bool result( false );
+
+    if ( settings_ ) {
+        settings_->beginGroup( "ScanLaws" );
+        QVariant vLength = settings_->value( model + "/fLength", flength );
+        if ( vLength.isValid() ) {
+            QVariant vAcc = settings_->value( model + "/acceleratorVoltage", accv );
+            if ( vAcc.isValid() ) {
+                QVariant vDelay = settings_->value( model + "/tDelay" );
+                flength = vLength.toDouble();
+                accv = vAcc.toDouble();
+                tdelay = vDelay.toDouble();
+                mass = settings_->value( model + "/mass" ).toDouble();
+                formula = settings_->value( model + "/formula" ).toString();
+                result = true;
+            }
+        }
+        settings_->endGroup();
+    }
+    return result;
+}
