@@ -58,7 +58,7 @@ add_library( adcontrols SHARED
   msproperty.cpp 
   msreference.cpp 
   msreferencedefns.cpp 
-  msreferences.cpp 
+  msreferences.cpp
   msident.cpp 
   msquant.cpp 
   peak.cpp 
@@ -92,6 +92,8 @@ add_library( adcontrols SHARED
   msqpeaks.cpp
   mschromatogramextractor.cpp     
   mschromatogrammethod.cpp
+  mssimulatormethod.cpp
+  moltable.cpp
   spectrogram.cpp 
   targeting.cpp 
   logging_hook.cpp 
@@ -200,7 +202,9 @@ install( FILES
   msqpeak.hpp 
   msqpeaks.hpp
   mschromatogramextractor.hpp
-  mschromatogrammethod.hpp 
+  mschromatogrammethod.hpp
+  mssimulatormethod.hpp
+  moltable.hpp
   spectrogram.hpp 
   targeting.hpp 
   logging_hook.hpp 

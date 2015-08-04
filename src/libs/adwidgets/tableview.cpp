@@ -142,7 +142,7 @@ TableView::handleDeleteSelection()
 	for ( auto range = ranges.rbegin(); range != ranges.rend(); ++range )
 		model()->removeRows( range->first, range->second - range->first + 1 );
 
-    //emit selectedRowsDeleted();
+    emit rowsDeleted();
 }
 
 void

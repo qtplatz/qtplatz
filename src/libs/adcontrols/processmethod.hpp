@@ -34,6 +34,7 @@
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/mschromatogrammethod.hpp>
+#include <adcontrols/mssimulatormethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/idaudit.hpp>
@@ -67,6 +68,7 @@ namespace adcontrols {
                                 , QuanCompounds                 // 7
                                 , QuanMethod                    // 8
                                 , TargetingMethod               // 9
+                                , MSSimulatorMethod             // 10
                                 > value_type;
         
         typedef std::vector< value_type > vector_type;

@@ -47,6 +47,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/mssimulatormethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adextension/idataproc.hpp>
@@ -70,6 +71,7 @@
 #include <adwidgets/mschromatogramwidget.hpp>
 #include <adwidgets/peakmethodform.hpp>
 #include <adwidgets/mspeakwidget.hpp>
+#include <adwidgets/mssimulatorwidget.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/portfolio.hpp>
@@ -546,12 +548,12 @@ MainWindow::createDockWidgets()
     };
 
     std::vector< widget > widgets = {
-          { tr( "Centroid" ), "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
+        { tr( "Centroid" ), "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
         , { tr( "MS Calibration" ), "MSCalibrateWidget", [] () { return new adwidgets::MSCalibrateWidget; } }
         , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramWidget; } }
         , { tr( "Targeting" ), "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
-     // , { tr( "Peptide" ), "PeptideMethod", [] (){ return new adwidgets::PeptideWidget; } }
+        , { tr( "MS Simulator" ), "MSSimulatorMethod", [] (){ return new adwidgets::MSSimulatorWidget; } }
         , { tr( "Peak Find" ), "PeakFindMethod", [] (){ return new adwidgets::PeakMethodForm; } }
         , { tr( "Data property" ), "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
         , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }

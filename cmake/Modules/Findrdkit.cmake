@@ -4,6 +4,8 @@ if ( rdkit_FOUND )
   return()
 endif()
 
+set( rdkit_FOUND FALSE )
+
 if ( WIN32 )
 
   if ( RTC_ARCH_X86 )
@@ -12,6 +14,7 @@ if ( WIN32 )
     set( w32out_dir "build_x86_64_120" )
   endif()
 
+  # when run INSTALL.vcxproj, .libs are copied into RDKit's ${CMAKE_SOURCE_DIR}/rdkit/lib
   find_package( rdkit CONFIG PATHS
     $ENV{RDBASE}/lib
     $ENV{HOME}/src/rdkit/lib
@@ -32,16 +35,20 @@ else()
 endif()
 
 if ( rdkit )
-  set( rdkit_FOUND TRUE )
-  message( "#### rdkit_config_DIR: " ${rdkit_config_DIR} )
-  message( "#### rdkit_include_dirs: " ${RDKit_INCLUDE_DIRS} )
-  return()
-endif()
+  
+  set (RDKit_LIBRARIES
+    FileParsers
+    SmilesParse
+    Depictor
+    GraphMol
+    RDGeometryLib
+    RDGeneral
+    SubstructMatch )  
 
-#if ( APPLE )
-#  get_filename_component (_prefix "${rdkit_config_DIR}/.." ABSOLUTE)
-#  set (RDKIT_INCLUDE_DIR "${_prefix}/Code")
-#endif()
+  set( rdkit_FOUND TRUE )
+  return()
+  
+endif()
 
 find_path( _include_dir  GraphMol/RDKitBase.h PATHS
   $ENV{RDBASE}/Code
@@ -59,11 +66,11 @@ if ( _include_dir )
     set( rdbase "/usr/local" )
   endif()
 else()
-  set( rdkit_FOUND FALSE )
   return()
 endif()
 
 find_library( _fileparsers_lib NAMES FileParsers PATHS
+  $ENV{RDBASE}/lib
   $ENV{RDBASE}/build/lib
   /usr/local/lib
   /usr/lib )
@@ -83,16 +90,27 @@ if ( _include_dir AND _libdir )
   find_library(GRAPHMOL_LIB      NAMES GraphMol      HINTS ${_libdir})
   find_library(RDGEOMETRYLIB_LIB NAMES RDGeometryLib HINTS ${_libdir})
   find_library(RDGENERAL_LIB     NAMES RDGeneral     HINTS ${_libdir})
-  find_library(SUBSTRUCTMATCH_LIB NAMES SubstructMatch HINTS ${_libdir})  
+  find_library(SUBSTRUCTMATCH_LIB NAMES SubstructMatch HINTS ${_libdir})
 
-  set (RDKIT_LIBRARIES
-    ${_fileparsers_lib}
-    ${SMILESPARSE_LIB}
-    ${DEPICTOR_LIB}
-    ${GRAPHMOL_LIB}
-    ${RDGEOMETRYLIB_LIB}
-    ${RDGENERAL_LIB}
-    ${SUBSTRUCTMATCH_LIB}
-    )  
+  set (RDKit_LIBRARIES
+    FileParsers
+    SmilesParse
+    Depictor
+    Descriptors
+    GraphMol
+    RDGeometryLib
+    RDGeneral
+    SubstructMatch
+    )
+  
+#  set (RDKit_LIBRARIES
+#    ${_fileparsers_lib}
+#    ${SMILESPARSE_LIB}
+#    ${DEPICTOR_LIB}
+#    ${GRAPHMOL_LIB}
+#    ${RDGEOMETRYLIB_LIB}
+#    ${RDGENERAL_LIB}
+#    ${SUBSTRUCTMATCH_LIB}
+#    )  
   
 endif()

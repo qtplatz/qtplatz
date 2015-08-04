@@ -92,7 +92,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   qtwrapper
   adprot
   Core
-  ${RDKIT_LIBRARIES}
+  ${RDKit_LIBRARIES}
   Qt5::Core
   Qt5::Svg
   ${Boost_LIBRARIES}

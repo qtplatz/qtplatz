@@ -22,46 +22,53 @@
 **
 **************************************************************************/
 
-#ifndef TABLEVIEW_HPP
-#define TABLEVIEW_HPP
+#ifndef MOLTABLE_HPP
+#define MOLTABLE_HPP
 
-#include "adwidgets_global.hpp"
-#include <QTableView>
+#include "tableview.hpp"
+
+class QStandardItemModel;
+class QMenu;
+
+namespace adcontrols { class moltable; }
 
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT TableView : public QTableView
-    {
+    class MolTable : public TableView  {
         Q_OBJECT
     public:
-        explicit TableView(QWidget *parent = 0);
+        explicit MolTable(QWidget *parent = 0);
+        ~MolTable();
 
-    protected:
-        // reimplement QTableView
-        void keyPressEvent( QKeyEvent * event ) override;
-        void mouseReleaseEvent( QMouseEvent * event ) override;
+        void onInitialUpdate();
+        //void setEditable( fields, bool );
 
-        bool allowDelete() { return allowDelete_; }
-        void setAllowDelete( bool f ) { allowDelete_ = f; }
+        void setContents( const adcontrols::moltable& );
+        void getContents( adcontrols::moltable& );
 
-        virtual void handleDeleteSelection();
-        virtual void handleCopyToClipboard();
-        // virtual void showContextMenu( const QPoint& );
-        virtual void addActionsToMenu( QMenu&, const QPoint& );
-
-        void contextMenuEvent( QContextMenuEvent * ) override;
+        QStandardItemModel& model();
 
     private:
-        bool allowDelete_;
-        
+        QStandardItemModel * model_;
+        bool mass_editable_;
+
+        void handleValueChanged( const QModelIndex& );
+        void handleContextMenu( const QPoint& );
+        void enable_all( bool );
+
+        void dragEnterEvent( QDragEnterEvent * ) override;
+        void dragMoveEvent( QDragMoveEvent * ) override;
+        void dragLeaveEvent( QDragLeaveEvent * ) override;
+        void dropEvent( QDropEvent * ) override;
+
     signals:
-        void rowsDeleted();
-
+        void onContextMenu( QMenu&, const QPoint& );
+        void onValueChanged();
+                                           
     public slots:
-        void copy();
-
+    
     };
 
 }
 
-#endif // TABLEVIEW_HPP
+#endif // MOLTABLE_HPP

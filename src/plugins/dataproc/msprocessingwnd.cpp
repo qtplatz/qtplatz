@@ -327,10 +327,13 @@ MSProcessingWnd::draw1()
 void
 MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
+    int idx = int( drawIdx2_++ );
     if ( ptr->isCentroid() )
-        pImpl_->processedSpectrum_->setData( ptr, static_cast<int>(drawIdx2_++) );
-    else
-        pImpl_->processedSpectrum_->setData( ptr, static_cast<int>(drawIdx2_++), true );        
+        pImpl_->processedSpectrum_->setData( ptr, idx, false );
+    else {
+        pImpl_->processedSpectrum_->setData( ptr, idx, true );
+        pImpl_->processedSpectrum_->setAlpha( idx, 0x20 );
+    }
 }
 
 void
@@ -544,14 +547,22 @@ MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& )
 void
 MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
 {
-    pImpl_->focusedFcn( fcn );
+    
 
     if ( auto pkinfo = pkinfo_.second.lock() ) {
+
+        if ( pkinfo->numSegments() > 1 )
+            pImpl_->focusedFcn( fcn );
+
         adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > fpks( *pkinfo );
         auto pk = fpks[ fcn ].begin() + idx;
         pImpl_->currentChanged( *pk );
-    }
-    else if ( auto ms = pProcessedSpectrum_.second.lock() ) {
+
+    } else if ( auto ms = pProcessedSpectrum_.second.lock() ) {
+
+        if ( ms->numSegments() > 1 )
+            pImpl_->focusedFcn( fcn );
+
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
         if ( segs.size() > unsigned( fcn ) ) {
             pImpl_->currentChanged( segs[ fcn ], idx );

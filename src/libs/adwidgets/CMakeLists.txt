@@ -10,13 +10,19 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
+find_package( Qt5 CONFIG REQUIRED Core Widgets Svg PrintSupport )
 
 include_directories(
   ${QWT_INCLUDE_DIR}
   ${Qt5PrintSupport_INCLUDE_DIRS}
+  ${Qt5Svg_INCLUDE_DIRS}  
   ${Qt5Widgets_INCLUDE_DIRS}
   )
+
+if ( rdkit_FOUND )
+  include_directories( ${RDKit_INCLUDE_DIRS} )
+  message( "##### RDKit_LIBRARIES: " ${RDKit_LIBRARIES} )
+endif()
 
 add_definitions(-DADWIDGETS_LIBRARY)
 if ( MSVC )
@@ -45,6 +51,7 @@ set( ${PROJECT_NAME}_SOURCES
   controlmethodtable.cpp
   controlmethodwidget.cpp
   centroidform.cpp
+  moltable.cpp
   mspeaktable.cpp
   msquantable.cpp
   mscalibrateform.cpp
@@ -64,6 +71,8 @@ set( ${PROJECT_NAME}_SOURCES
   peakmethodform.cpp
   mspeaksummary.cpp
   mspeakwidget.cpp
+  mssimulatorform.cpp
+  mssimulatorwidget.cpp
   toftable.cpp        
   samplerunwidget.cpp
   consolewidget.cpp
@@ -87,6 +96,7 @@ set( ${PROJECT_NAME}_HEADERS
   controlmethodtable.hpp
   controlmethodwidget.hpp
   centroidform.hpp
+  moltable.hpp  
   mspeaktable.hpp
   msquantable.hpp
   mscalibrateform.hpp
@@ -107,6 +117,8 @@ set( ${PROJECT_NAME}_HEADERS
   peakmethodform.hpp
   mspeaksummary.hpp
   mspeakwidget.hpp
+  mssimulatorform.hpp
+  mssimulatorwidget.hpp  
   toftable.hpp
   samplerunwidget.hpp
   consolewidget.hpp
@@ -127,8 +139,10 @@ target_link_libraries( adwidgets LINK_PUBLIC
   ${QWT_LIBRARIES}
   Qt5::Core
   Qt5::Widgets
+  Qt5::Svg
   Qt5::PrintSupport
   ${Boost_LIBRARIES}
+  ${RDKit_LIBRARIES}
   )
 
 install( TARGETS ${PROJECT_NAME}
