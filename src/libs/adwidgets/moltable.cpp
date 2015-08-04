@@ -264,12 +264,13 @@ MolTable::getContents( adcontrols::moltable& m )
 
         mol.formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
         if ( !mol.formula.empty() ) {
+            
             mol.enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
             mol.description = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
             mol.mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
             mol.abandance = model.index( row, c_abandance ).data( Qt::EditRole ).toDouble();
             mol.synonym = model.index( row, c_synonym ).data( Qt::EditRole ).toString().toStdString();
-            mol.smiles = model.index( row, c_smiles ).data( Qt::CheckStateRole ).toString().toStdString();
+            mol.smiles = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
 
             m << mol;
         }
@@ -403,6 +404,8 @@ MolTable::dropEvent( QDropEvent * event )
 
 #if defined HAVE_RDKit && HAVE_RDKit
             std::string filename = url.toLocalFile().toStdString();
+            std::cout << "dropEvent: " << filename << std::endl;
+            
             if ( auto supplier = std::make_shared< RDKit::SDMolSupplier >( filename, false, false, false ) ) {
                 
                 model_->insertRows( row, supplier->length() );
