@@ -36,6 +36,7 @@ namespace portfolio {
 namespace adcontrols {
     class MassSpectrum;
 	class ProcessMethod;
+    class MSSimulatorMethod;
 }
 
 namespace dataproc {
@@ -52,6 +53,7 @@ namespace dataproc {
         void init();
         void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
+        void simulate( const adcontrols::MSSimulatorMethod& );
       
     signals:
       
@@ -60,6 +62,7 @@ namespace dataproc {
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
+        void handleAxisChanged( int );        
       
     private:
         ElementalCompWndImpl * pImpl_;

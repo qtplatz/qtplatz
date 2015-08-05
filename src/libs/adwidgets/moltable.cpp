@@ -28,8 +28,10 @@
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
 #include <adcontrols/chemicalformula.hpp>
-#include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/moltable.hpp>
+#include <adcontrols/molecule.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
 #include <QByteArray>
 #include <QDoubleSpinBox>
@@ -154,29 +156,18 @@ namespace adwidgets {
         ~impl() {}
         bool mass_editable_;
 
-        static std::vector<double> adductsToMasses( const QString& adducts ) {
-            std::vector< double > m;
-            QRegExp rx( "(\\ |\\,|\\;|\\t)" );
-            for ( auto& adduct: adducts.split( rx, QString::SkipEmptyParts ) ) {
-                if ( !adduct.isEmpty() ) {
-                    bool lose = adduct.at( 0 ) == '-' ? true : false;
-                    if ( adduct.at(0) == '+' || adduct.at(0) == '-' )
-                        adduct.remove( 0, 1 );
-                    double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( adduct.toStdString() );
-                    if ( mass > 0.9 )
-                        m.push_back( lose ? -mass : mass );
+        static double computeMass( const QString& formula, const QString& adducts, QString& stdFormula ) {
+            if ( !formula.isEmpty() ) {
+                if ( !adducts.isEmpty() ) {
+                    auto sformula = adcontrols::ChemicalFormula::standardFormulae( formula.toStdString(), adducts.toStdString() );
+                    if ( !sformula.empty() ) {
+                        for ( auto& s : sformula )
+                            stdFormula += QString::fromStdString( s ) + "; ";
+                        return adcontrols::ChemicalFormula().getMonoIsotopicMass( sformula[ 0 ] );
+                    }
+                } else {
+                    return adcontrols::ChemicalFormula().getMonoIsotopicMass( formula.toStdString() );
                 }
-            }
-            return m;
-        }
-
-        static double computeMass( const QString& formula, const QString& adducts ) {
-            double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula.toStdString() );
-            if ( mass > 0.9 ) {
-                auto masses = adductsToMasses( adducts );
-                if ( !masses.empty() )
-                    mass += masses[ 0 ];
-                return mass;
             }
             return 0;
         }
@@ -206,8 +197,9 @@ namespace adwidgets {
 #endif                
             }
 
+            QString stdFormula;
             if ( mass < 0.9 && !formula.isEmpty() )
-                mass = impl::computeMass( formula, adducts );
+                mass = impl::computeMass( formula, adducts, stdFormula );
             
             model.setData( model.index( row, c_smiles ), smiles );
             model.setData( model.index( row, c_formula ), formula );
@@ -352,6 +344,8 @@ MolTable::getContents( adcontrols::moltable& m )
 void
 MolTable::handleValueChanged( const QModelIndex& index )
 {
+    QString stdFormula;
+
     if ( index.column() == c_formula ) {
 
         auto formula = model_->index( index.row(), c_formula ).data( Qt::EditRole ).toString();
@@ -361,15 +355,16 @@ MolTable::handleValueChanged( const QModelIndex& index )
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
         }
         model_->setData( index, formula.isEmpty() ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole );
-        model_->setData( model_->index( index.row(), c_mass ), impl::computeMass( formula, adducts ) );
+        model_->setData( model_->index( index.row(), c_mass ), impl::computeMass( formula, adducts, stdFormula ) );
     }
 
     if ( index.column() == c_adducts ) {
         auto formula = model_->index( index.row(), c_formula ).data( Qt::EditRole ).toString();
         auto adducts = model_->index( index.row(), c_adducts ).data( Qt::EditRole ).toString();
-        if ( !formula.isEmpty() )
-            model_->setData( model_->index( index.row(), c_mass ), impl::computeMass( formula, adducts ) );
+        model_->setData( model_->index( index.row(), c_mass ), impl::computeMass( formula, adducts, stdFormula ) );
     }
+    if ( !stdFormula.isEmpty() )
+        model_->setData( model_->index( index.row(), c_description ), stdFormula );
 
     if ( index.column() == c_smiles ) {
 #if HAVE_RDKit

@@ -487,4 +487,76 @@ ChemicalFormulaImpl::ChemicalFormulaImpl()
 {
 }
 
+//static
+std::vector< std::pair<std::string, char > >
+ChemicalFormula::splitAdducts( const std::string& adducts )
+{
+    typedef char char_type;
+    typedef boost::tokenizer< boost::char_separator< char_type >
+                              , typename std::basic_string< char_type >::const_iterator
+                              , typename std::basic_string< char_type > > tokenizer_t;
 
+    boost::char_separator< char_type > separator( ",; \t", "", boost::drop_empty_tokens );
+    tokenizer_t tokens( adducts, separator );
+
+    std::vector< std::pair<std::string, char> > list;
+
+    for( auto it = tokens.begin(); it != tokens.end(); ++it ) {
+        if ( it->length() > 0 ) {
+            if ( ( *it )[ 0 ] == '+' || ( *it )[ 0 ] == '-' ) {
+                char sign = ( *it )[ 0 ];
+                std::string tok = *it;
+                list.push_back( std::make_pair( tok.substr( 1 ), sign ) );
+            } else {
+                list.push_back( std::make_pair( *it, '+' ) );
+            }
+        }
+    }
+    return list;
+}
+
+std::vector< std::string >
+ChemicalFormula::standardFormulae( const std::string& formula, const std::string& adducts, std::vector< std::string >& adductlist )
+{
+    auto vec = splitAdducts( adducts );
+    std::vector< std::string > formulae;
+    for ( auto& adduct : vec ) {
+        if ( adduct.second == '+' ) {
+            auto sformula = standardFormula( formula + adduct.first );
+            formulae.push_back( sformula );
+            adductlist.push_back( "+" + adduct.first );            
+        } else {
+            std::vector< mol::element > mol, loses;
+            getComposition( mol, formula );
+            if ( getComposition( loses, adduct.first ) ) {
+                for ( auto& lose : loses ) {
+                    auto it = std::find_if( mol.begin(), mol.end(), [lose] ( const mol::element& a ) {
+                                                 return a.atomicNumber() == lose.atomicNumber();
+                                            } );
+                    if ( it != mol.end() )
+                        it->count( it->count() - lose.count() );
+                }
+
+                std::ostringstream o;
+                for ( auto& a : mol ) {
+                    if ( a.count() > 0 ) {
+                        o << a.symbol();
+                        if ( a.count() > 1 )
+                            o << a.count();
+                    }
+                }
+                formulae.push_back( o.str() );
+                adductlist.push_back( "-" + adduct.first );
+            }
+        }
+    }
+
+    return formulae;
+}
+
+std::vector< std::string >
+ChemicalFormula::standardFormulae( const std::string& formula, const std::string& adducts )
+{
+    std::vector< std::string > list;
+    return standardFormulae( formula, adducts, list );
+}

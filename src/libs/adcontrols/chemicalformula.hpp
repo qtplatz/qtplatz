@@ -66,6 +66,14 @@ namespace adcontrols {
         static std::string formatFormulae( const std::string& formula, const char * delims = "+-", bool richText = true );
         static std::wstring formatFormulae( const std::wstring& formula, const wchar_t * delims = L"+-", bool richText = true );
 
+        /**
+         * makeFormulae synthesize standard formulae from formula and commna (or semicolon) separated list of adducts/lose
+         * expecting addcuts ex: +H,+CH3CN,-COOH,...
+         */
+        static std::vector< std::pair< std::string, char > > splitAdducts( const std::string& adducts );
+        static std::vector< std::string > standardFormulae( const std::string& formula, const std::string& adducts );
+        static std::vector< std::string > standardFormulae( const std::string& formula, const std::string& adducts, std::vector< std::string >& adductlist );
+
         // <formula, <+adduct, -lose> >
         static std::string splitFormula( std::pair< std::string, std::string >& adducts, const std::string& formula, bool bStandardFormula );
         static std::wstring splitFormula( std::pair< std::wstring, std::wstring >& adducts, const std::wstring& formula, bool bStandardFormula );

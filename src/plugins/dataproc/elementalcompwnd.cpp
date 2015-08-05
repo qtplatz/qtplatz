@@ -25,12 +25,17 @@
 
 #include "elementalcompwnd.hpp"
 #include "dataprocessor.hpp"
+#include <adcontrols/annotations.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/timeutil.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/molecule.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adportable/float.hpp>
+#include <adportable/timesquaredscanlaw.hpp>
 #include <adutils/processeddata.hpp>
 #include <portfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
@@ -122,6 +127,14 @@ ElementalCompWnd::draw2( adutils::MassSpectrumPtr& ptr )
 }
 
 void
+ElementalCompWnd::handleAxisChanged( int axis )
+{
+    using adplot::SpectrumWidget;
+    pImpl_->referenceSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+    pImpl_->processedSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+}
+
+void
 ElementalCompWnd::handleSessionAdded( Dataprocessor * )
 {
 }
@@ -149,6 +162,7 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
             } else {
                 pImpl_->processedSpectrum_->setAxis( adplot::SpectrumWidget::HorizontalAxisMass, false );
             }
+            pImpl_->referenceSpectrum_->enableAxis( QwtPlot::yRight, true );            
             pImpl_->processedSpectrum_->enableAxis( QwtPlot::yRight, true );
             pImpl_->processedSpectrum_->setData( ptr, 1, true );
             pImpl_->processedSpectrum_->setAlpha( 1, 0x20 );
@@ -187,4 +201,67 @@ ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 	}
 */
     
+}
+
+void
+ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
+{
+    auto ms = std::make_shared< adcontrols::MassSpectrum >();
+
+    std::vector< std::tuple< std::string, std::string, double > > formulae;
+    for ( auto& m : m.molecules().data() ) {
+        if ( !m.adducts.empty() ) {
+            std::vector< std::string > alist;
+            auto v = adcontrols::ChemicalFormula::standardFormulae( m.formula, m.adducts, alist );
+            for ( size_t i = 0; i < v.size(); ++i )
+                formulae.push_back( std::make_tuple( v[ i ], m.formula + alist[ i ], m.abandance ) );
+        } else
+            formulae.push_back( std::make_tuple( m.formula, m.formula, m.abandance ) );
+    }
+
+    adcontrols::isotopeCluster isocalc;
+    adcontrols::annotations annots;
+    // annotation( const std::string&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat f = dataText );
+
+    for ( auto& formula: formulae ) {
+        adcontrols::mol::molecule mol;
+        if ( adcontrols::ChemicalFormula::getComposition( mol.elements, std::get<0>( formula ) ) ) { // standard formula
+            isocalc( mol );
+            auto it = std::max_element( mol.cluster.begin(), mol.cluster.end()
+                                            , [](const adcontrols::mol::isotope& a, const adcontrols::mol::isotope& b){
+                                                  return a.abundance < b.abundance; } );
+            double pmax = it->abundance;
+            auto last = std::remove_if( mol.cluster.begin(), mol.cluster.end()
+                                        , [=]( const adcontrols::mol::isotope& i ){
+                                            return i.abundance / pmax < 0.001;}); // delete less than 0.1% base peak
+
+            for ( auto pi = mol.cluster.begin(); pi != last; ++pi )
+                *( ms ) << std::make_pair( pi->mass, pi->abundance / pmax * 10000 * std::get<2>( formula ) );
+        }
+    }
+    adportable::TimeSquaredScanLaw scanlaw( m.accelerator_voltage(), m.tDelay(), m.length() );
+    for ( size_t i = 0; i < ms->size(); ++i )
+        ms->setTime( i, scanlaw.getTime( ms->getMass( i ), 0 ) );
+
+    for ( auto& f: formulae ) {
+        double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( std::get<0>(f) );
+        auto pos = ms->lower_bound( mass );
+        if ( pos != adcontrols::MassSpectrum::npos ) {
+            if ( pos != 0 ) {
+                if ( std::abs( ms->getMass( pos ) - mass ) > std::abs( ms->getMass( pos - 1 ) - mass ) )
+                    --pos;
+            }
+            annots << adcontrols::annotation( std::get<1>( f ) // formatted formula
+                                              , mass, std::get<2>( f ) * 10000, int( pos ), 0, adcontrols::annotation::dataFormula );
+        }
+    }
+
+    ms->setCentroid( adcontrols::CentroidNative );
+    ms->set_annotations( annots );
+	double lMass = ms->getMass( 0 );
+	double hMass = ms->getMass( ms->size() - 1 );
+    lMass = m.lower_limit() > 0 ? m.lower_limit() : double( int( lMass / 10 ) * 10 );
+    hMass = m.upper_limit() > 0 ? m.upper_limit() : double( int( ( hMass + 10 ) / 10 ) * 10 );
+    ms->setAcquisitionMassRange( lMass, hMass );
+    draw1( ms );
 }

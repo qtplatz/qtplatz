@@ -50,6 +50,7 @@ namespace adwidgets {
 
     signals:
         void onValueChanged();
+        void onProcess();
 
     private:
         Ui::MSSimulatorForm *ui;

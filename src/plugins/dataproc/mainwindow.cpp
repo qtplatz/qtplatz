@@ -197,8 +197,8 @@ namespace dataproc {
                 receiver->handleAxisChanged( idx ); } );
         }
     };
-    // following 4 classes has no axis change handler
-    template<> bool axis_changed_connector::operator()( ElementalCompWnd * ) const { return false; }
+    // following 3 classes has no axis change handler
+    //template<> bool axis_changed_connector::operator()( ElementalCompWnd * ) const { return false; }
     template<> bool axis_changed_connector::operator()( ChromatogramWnd * ) const { return false; }
     template<> bool axis_changed_connector::operator()( MSPeaksWnd * ) const { return false; }
     template<> bool axis_changed_connector::operator()( SpectrogramWnd * ) const { return false; }
@@ -550,12 +550,12 @@ MainWindow::createDockWidgets()
     std::vector< widget > widgets = {
         { tr( "Centroid" ), "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
-        , { tr( "MS Calibration" ), "MSCalibrateWidget", [] () { return new adwidgets::MSCalibrateWidget; } }
+        , { tr( "MS Simulator" ), "MSSimulatorMethod", [] () { return new adwidgets::MSSimulatorWidget; } }
+        , { tr( "Targeting" ), "TargetingMethod", [] () { return new adwidgets::TargetingWidget; } }
+        , { tr( "Peak Find" ), "PeakFindMethod", [] () { return new adwidgets::PeakMethodForm; } }
         , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramWidget; } }
-        , { tr( "Targeting" ), "TargetingMethod", [] (){ return new adwidgets::TargetingWidget; } }
-        , { tr( "MS Simulator" ), "MSSimulatorMethod", [] (){ return new adwidgets::MSSimulatorWidget; } }
-        , { tr( "Peak Find" ), "PeakFindMethod", [] (){ return new adwidgets::PeakMethodForm; } }
-        , { tr( "Data property" ), "DataProperty", [] (){ return new dataproc::MSPropertyForm; } }
+        , { tr( "MS Calibration" ), "MSCalibrateWidget", [] () { return new adwidgets::MSCalibrateWidget; } }
+        , { tr( "Data property" ), "DataProperty", [] () { return new dataproc::MSPropertyForm; } }
         , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }
     };
 
@@ -737,6 +737,15 @@ MainWindow::handleProcess( const QString& origin )
                 if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
                     DataprocessWorker::instance()->createChromatograms( processor, pm, origin );
 
+            }
+        }
+    }
+    if ( origin == "MSSimulatorWidget" ) {
+        auto pm = std::make_shared< adcontrols::ProcessMethod >();
+        getProcessMethod( *pm );
+        if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
+            if ( auto wnd = findChild< ElementalCompWnd * >() ) {
+                wnd->simulate( *m );
             }
         }
     }

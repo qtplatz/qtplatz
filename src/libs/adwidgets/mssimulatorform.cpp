@@ -44,6 +44,7 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
     connect( ui->doubleSpinBox_4, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
     connect( ui->checkBox, &QCheckBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->groupBox, &QGroupBox::toggled, [this](bool) { emit onValueChanged(); } );    
+    connect( ui->pushButton, &QPushButton::pressed, [this] () { emit onProcess(); } );
 }
 
 MSSimulatorForm::~MSSimulatorForm()
@@ -72,7 +73,7 @@ MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
     m.set_is_tof( ui->groupBox->isChecked() );
     m.set_length( ui->doubleSpinBox_3->value() );
     m.set_accelerator_voltage( ui->doubleSpinBox_4->value() );
-    m.set_tDelay( ui->doubleSpinBox_5->value() );
+    m.set_tDelay( ui->doubleSpinBox_5->value() * 1.0e-6 );
     
     return true;
 }
@@ -101,7 +102,7 @@ MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
     ui->groupBox->setChecked ( m.is_tof() );
     ui->doubleSpinBox_3->setValue( m.length() );
     ui->doubleSpinBox_4->setValue( m.accelerator_voltage() );
-    ui->doubleSpinBox_5->setValue( m.tDelay() );
+    ui->doubleSpinBox_5->setValue( m.tDelay() * 1.0e6 );
     
     return true;
 }

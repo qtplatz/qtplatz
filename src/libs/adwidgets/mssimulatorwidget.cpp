@@ -50,6 +50,8 @@ MSSimulatorWidget::MSSimulatorWidget(QWidget *parent) : QWidget(parent)
             layout->addWidget( splitter );
         }
     }
+    if ( auto form = findChild< MSSimulatorForm * >() )
+        connect( form, &MSSimulatorForm::onProcess, [this] { run(); } );
 }
 
 MSSimulatorWidget::~MSSimulatorWidget()
