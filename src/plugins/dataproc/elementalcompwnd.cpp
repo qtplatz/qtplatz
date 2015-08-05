@@ -121,12 +121,14 @@ ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
 void
 ElementalCompWnd::estimateScanLaw( adutils::MassSpectrumPtr& ptr )
 {
+    std::cout << "estimateScanLaw" ;
     auto annots = ptr->get_annotations();
     std::vector< std::pair< int, std::string >  > ids;
     std::for_each( annots.begin(), annots.end(), [&ids] ( const adcontrols::annotation& a ) {
-        if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 )
-            ids.push_back( std::make_pair( a.index(), a.text() ) );
-    } );
+            if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 )
+                ids.push_back( std::make_pair( a.index(), a.text() ) );
+        });
+    
     std::vector< std::pair< double, double > > time_mass_v;
     for ( auto& id : ids ) {
         double time = ptr->getTime( id.first );
@@ -215,22 +217,6 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
 void
 ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 {
-	using adcontrols::IsotopeMethod;
-	//using adcontrols::IsotopeCluster;
-	using adcontrols::MassSpectrum;
-
-//	const IsotopeMethod * p = m.find< IsotopeMethod >();
-/*
-	if ( p ) {
-		for ( IsotopeMethod::vector_type::const_iterator it = p->begin(); it != p->end(); ++it ) {
-			auto ms = std::make_shared< MassSpectrum >();
-			ms->setAcquisitionMassRange( 50, 500 );
-			if ( IsotopeCluster::isotopeDistribution( *ms, it->formula ) ) 
-				pImpl_->processedSpectrum_->setData( ms, pImpl_->drawIdx_++ );
-		}
-	}
-*/
-    
 }
 
 void
@@ -239,19 +225,18 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
 
     std::vector< std::tuple< std::string, std::string, double > > formulae;
-    for ( auto& m : m.molecules().data() ) {
-        if ( !m.adducts.empty() ) {
+    for ( auto& mol : m.molecules().data() ) {
+        if ( !mol.adducts.empty() ) {
             std::vector< std::string > alist;
-            auto v = adcontrols::ChemicalFormula::standardFormulae( m.formula, m.adducts, alist );
+            auto v = adcontrols::ChemicalFormula::standardFormulae( mol.formula, mol.adducts, alist );
             for ( size_t i = 0; i < v.size(); ++i )
-                formulae.push_back( std::make_tuple( v[ i ], m.formula + alist[ i ], m.abandance ) );
+                formulae.push_back( std::make_tuple( v[ i ], mol.formula + alist[ i ], mol.abandance ) );
         } else
-            formulae.push_back( std::make_tuple( m.formula, m.formula, m.abandance ) );
+            formulae.push_back( std::make_tuple( mol.formula, mol.formula, mol.abandance ) );
     }
 
     adcontrols::isotopeCluster isocalc;
     adcontrols::annotations annots;
-    // annotation( const std::string&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat f = dataText );
 
     for ( auto& formula: formulae ) {
         adcontrols::mol::molecule mol;
@@ -269,6 +254,7 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
                 *( ms ) << std::make_pair( pi->mass, pi->abundance / pmax * 10000 * std::get<2>( formula ) );
         }
     }
+
     adportable::TimeSquaredScanLaw scanlaw( m.accelerator_voltage(), m.tDelay(), m.length() );
     for ( size_t i = 0; i < ms->size(); ++i )
         ms->setTime( i, scanlaw.getTime( ms->getMass( i ), 0 ) );
