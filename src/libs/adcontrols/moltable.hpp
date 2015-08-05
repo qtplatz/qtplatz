@@ -46,6 +46,7 @@ namespace adcontrols {
             double mass;
             double abandance;
             std::string formula;
+            std::string adducts;
             std::string synonym;
             std::string smiles;
             std::wstring description;
@@ -56,6 +57,7 @@ namespace adcontrols {
                 , mass( t.mass )
                 , abandance( t.abandance )
                 , formula( t.formula )
+                , adducts( t.adducts )
                 , synonym( t.synonym )
                 , smiles( t.smiles )
                 , description( t.description ) {
@@ -75,6 +77,7 @@ namespace adcontrols {
         bool empty() const;
         
     private:
+        class delegate;        
         class impl;
         impl * impl_;
 

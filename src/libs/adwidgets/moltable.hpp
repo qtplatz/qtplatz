@@ -40,8 +40,20 @@ namespace adwidgets {
         explicit MolTable(QWidget *parent = 0);
         ~MolTable();
 
+        enum fields {
+            c_formula
+            , c_adducts
+            , c_mass
+            , c_abandance
+            , c_synonym
+            , c_description
+            , c_svg
+            , c_smiles
+            , nbrColums
+        };
+
         void onInitialUpdate();
-        //void setEditable( fields, bool );
+        // void setEditable( fields, bool );
 
         void setContents( const adcontrols::moltable& );
         void getContents( adcontrols::moltable& );
@@ -49,12 +61,15 @@ namespace adwidgets {
         QStandardItemModel& model();
 
     private:
+        class delegate;
+        class impl;
+        impl * impl_;
         QStandardItemModel * model_;
-        bool mass_editable_;
 
         void handleValueChanged( const QModelIndex& );
         void handleContextMenu( const QPoint& );
         void enable_all( bool );
+        void setData( int row, const QString& formula, const QString& smiles, const QByteArray& svg );
 
         void dragEnterEvent( QDragEnterEvent * ) override;
         void dragMoveEvent( QDragMoveEvent * ) override;

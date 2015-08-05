@@ -44,6 +44,7 @@ namespace boost {
             ar & BOOST_SERIALIZATION_NVP( p.mass );
             ar & BOOST_SERIALIZATION_NVP( p.abandance );
             ar & BOOST_SERIALIZATION_NVP( p.formula );
+            ar & BOOST_SERIALIZATION_NVP( p.adducts );
             ar & BOOST_SERIALIZATION_NVP( p.synonym );
             ar & BOOST_SERIALIZATION_NVP( p.smiles );
             ar & BOOST_SERIALIZATION_NVP( p.description );
