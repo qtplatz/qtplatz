@@ -746,6 +746,7 @@ MainWindow::handleProcess( const QString& origin )
         if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
             if ( auto wnd = findChild< ElementalCompWnd * >() ) {
                 wnd->simulate( *m );
+                stack_->setCurrentIndex( idSelElementalComp );                
             }
         }
     }

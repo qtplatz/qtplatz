@@ -34,11 +34,14 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/moltable.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
+#include <adportable/polfit.hpp>
 #include <adutils/processeddata.hpp>
 #include <portfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
+#include <qwt_scale_widget.h>
 #include <QBoxLayout>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
@@ -64,18 +67,6 @@ namespace dataproc {
         int drawIdx_;
     };
 
-    // //---------------------------------------------------------
-    // template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
-    //     Wnd& wnd_;
-    //     selProcessed( Wnd& wnd ) : wnd_(wnd) {}
-
-    //     template<typename T> void operator ()( T& ) const { }
-
-    //     void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-    //         wnd_.draw2( ptr );
-    //     }
-    // };
-
 }
 
 ElementalCompWnd::~ElementalCompWnd()
@@ -100,6 +91,13 @@ ElementalCompWnd::init()
         if ( ( pImpl_->referenceSpectrum_ = new adplot::SpectrumWidget(this) ) )
             splitter->addWidget( pImpl_->referenceSpectrum_ );
 
+        pImpl_->processedSpectrum_->setMinimumHeight( 80 );
+        pImpl_->referenceSpectrum_->setMinimumHeight( 80 );        
+		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
+		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
+		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
+		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );        
+
         pImpl_->processedSpectrum_->link( pImpl_->referenceSpectrum_ );
         pImpl_->referenceSpectrum_->link( pImpl_->processedSpectrum_ );
 
@@ -121,9 +119,39 @@ ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
 }
 
 void
-ElementalCompWnd::draw2( adutils::MassSpectrumPtr& ptr )
+ElementalCompWnd::estimateScanLaw( adutils::MassSpectrumPtr& ptr )
 {
-    pImpl_->processedSpectrum_->setData( ptr, pImpl_->drawIdx_++ );
+    auto annots = ptr->get_annotations();
+    std::vector< std::pair< int, std::string >  > ids;
+    std::for_each( annots.begin(), annots.end(), [&ids] ( const adcontrols::annotation& a ) {
+        if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 )
+            ids.push_back( std::make_pair( a.index(), a.text() ) );
+    } );
+    std::vector< std::pair< double, double > > time_mass_v;
+    for ( auto& id : ids ) {
+        double time = ptr->getTime( id.first );
+        std::pair<std::string, std::string> adduct;
+        auto formula = adcontrols::ChemicalFormula::splitFormula( adduct, id.second, false );
+        double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula, adduct );
+        time_mass_v.push_back( std::make_pair( time, exactMass ) );
+    }
+    if ( time_mass_v.empty() )
+        return;
+    if ( time_mass_v.size() == 1 ) {
+        double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( time_mass_v[0].first, time_mass_v[0].second, 0.5, 0 );
+        ADTRACE() << "Estimated scanLaw: Vacc=" << va;
+    } else {
+        std::vector<double> x, y, coeffs;
+        for ( auto& xy: time_mass_v ) {
+            x.push_back( std::sqrt( xy.second ) * 0.5 );
+            y.push_back( xy.first );
+        }
+        if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ) ) {
+            double t0 = coeffs[ 0 ];
+            double t1 = adportable::polfit::estimate_y( coeffs, 1.0 );
+            double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( 1.0, t1, 1.0, t0 );
+        }
+    }
 }
 
 void
@@ -166,6 +194,8 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
             pImpl_->processedSpectrum_->enableAxis( QwtPlot::yRight, true );
             pImpl_->processedSpectrum_->setData( ptr, 1, true );
             pImpl_->processedSpectrum_->setAlpha( 1, 0x20 );
+
+            estimateScanLaw( ptr );
         }
 
         portfolio::Folio attachments = folium.attachments();

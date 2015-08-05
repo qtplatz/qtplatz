@@ -52,8 +52,9 @@ namespace dataproc {
         ~ElementalCompWnd();
         void init();
         void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
+        // void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
         void simulate( const adcontrols::MSSimulatorMethod& );
+        void estimateScanLaw( std::shared_ptr< adcontrols::MassSpectrum >& );
       
     signals:
       
