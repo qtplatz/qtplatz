@@ -770,93 +770,94 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         }
 
 	} else {
+
+        QMenu menu;
+        std::array< QAction *, 4 > fixedActions;
+
+        fixedActions[ 0 ] = menu.addAction( "Correct baseline" );
+        fixedActions[ 1 ] = menu.addAction( "Copy to Clipboard" );
+        fixedActions[ 2 ] = menu.addAction( "Frequency analysis" );
+        fixedActions[ 3 ] = menu.addAction( "Save Image File..." );
+
 		std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
         using adportable::utf;
 
-        if ( ! models.empty() ) {
-            QMenu menu;
-
-            std::array< QAction *, 4 > fixedActions;
-            fixedActions[ 0 ] = menu.addAction( "Correct baseline" );
-            fixedActions[ 1 ] = menu.addAction( "Copy to Clipboard" );
-            fixedActions[ 2 ] = menu.addAction( "Frequency analysis" );
-            fixedActions[ 3 ] = menu.addAction( "Save Image File..." );
-
-            std::vector< QAction * > actions;
-            for ( auto model: models ) {
-                actions.push_back( menu.addAction( 
+        std::vector< QAction * > actions; // additional 
+        if ( !models.empty() ) {
+            for ( auto model : models ) {
+                actions.push_back( menu.addAction(
                                        ( boost::format( "Re-assign masses using %1% scan law" ) % utf::to_utf8( model ) ).str().c_str() ) );
             }
+        }
 
-            QAction * selectedItem = menu.exec( QCursor::pos() );
-            if ( fixedActions[ 0 ] == selectedItem ) {
-                correct_baseline();
-                draw1();
-                return;
-            } else if ( fixedActions[ 1 ] == selectedItem ) {
-                adplot::plot::copyToClipboard( pImpl_->profileSpectrum_ );
-                return;
-            } else if ( fixedActions[ 2 ] == selectedItem ) {
-                if ( auto ms = pProfileSpectrum_.second.lock() ) {
-                    auto range = std::make_pair( size_t(0), ms->size() - 1 );
-                    std::vector< double > freq, power;
-                    double y_dc(0), y_nyquist(0);
-                    if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
-
-                        std::ostringstream o;
-                        o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist;
-                        QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ )
-                                                                                       , QString::fromStdString( o.str() ) );
-
-                        pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
-                        pImpl_->pwplot_->setTitle( title );
-                    }
+        QAction * selectedItem = menu.exec( QCursor::pos() );
+        
+        if ( fixedActions[ 0 ] == selectedItem ) {
+            correct_baseline();
+            draw1();
+            return;
+        } else if ( fixedActions[ 1 ] == selectedItem ) {
+            adplot::plot::copyToClipboard( pImpl_->profileSpectrum_ );
+            return;
+        } else if ( fixedActions[ 2 ] == selectedItem ) {
+            if ( auto ms = pProfileSpectrum_.second.lock() ) {
+                auto range = std::make_pair( size_t( 0 ), ms->size() - 1 );
+                std::vector< double > freq, power;
+                double y_dc( 0 ), y_nyquist( 0 );
+                if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
+                    
+                    std::ostringstream o;
+                    o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % ( freq.size() * 2 ) % y_dc % y_nyquist;
+                    QString title = QString( "[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2" ).arg( MainWindow::makeDisplayName( idSpectrumFolium_ )
+                                                                                     , QString::fromStdString( o.str() ) );
+                    
+                    pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
+                    pImpl_->pwplot_->setTitle( title );
                 }
-                return;
-            } else if ( fixedActions[ 3 ] == selectedItem ) {
-
-                auto settings = dataproc_document::instance()->settings();
-                using namespace dataproc::Constants;
+            }
+            return;
+        } else if ( fixedActions[ 3 ] == selectedItem ) {
+            
+            auto settings = dataproc_document::instance()->settings();
+            using namespace dataproc::Constants;
+            settings->beginGroup( GRP_SPECTRUM_IMAGE );
+            QString fmt = settings->value( KEY_IMAGEE_FORMAT, "svg" ).toString();
+            bool compress = settings->value( KEY_COMPRESS, true ).toBool();
+            int dpi = settings->value( KEY_DPI, 300 ).toInt();
+            settings->endGroup();
+            
+            std::string dfmt = "." + fmt.toStdString();
+            
+            adwidgets::FileDialog dlg( MainWindow::instance()
+                                       , tr( "Save Image File" )
+                                       , MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_", dfmt.c_str() ) );
+            
+            dlg.setVectorCompression( tr( "Compress vector graphics" ), compress, fmt, dpi );
+            
+            if ( dlg.exec() == QDialog::Accepted ) {
+                auto result = dlg.selectedFiles();
+                boost::filesystem::path path( result.at( 0 ).toStdWString() );
+                const char * format = "svg";
+                if ( path.extension() == ".pdf" )
+                    format = "pdf";
+                
                 settings->beginGroup( GRP_SPECTRUM_IMAGE );
-                QString fmt = settings->value( KEY_IMAGEE_FORMAT, "svg" ).toString();
-                bool compress = settings->value( KEY_COMPRESS, true ).toBool();
-                int dpi = settings->value( KEY_DPI, 300 ).toInt();
+                settings->setValue( KEY_IMAGEE_FORMAT, format );
+                settings->setValue( KEY_COMPRESS, dlg.vectorCompression() );
+                settings->setValue( KEY_DPI, dlg.dpi() );
                 settings->endGroup();
-
-                std::string dfmt = "." + fmt.toStdString();
-
-                adwidgets::FileDialog dlg( MainWindow::instance()
-                                           , tr( "Save Image File" )
-                                           , MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_", dfmt.c_str() ) );
-
-                dlg.setVectorCompression( tr( "Compress vector graphics" ), compress, fmt, dpi );
-
-                if ( dlg.exec() == QDialog::Accepted ) {
-                    auto result = dlg.selectedFiles();
-                    boost::filesystem::path path( result.at( 0 ).toStdWString() );
-                    const char * format = "svg";
-                    if ( path.extension() == ".pdf" )
-                        format = "pdf";
-
-                    settings->beginGroup( GRP_SPECTRUM_IMAGE );
-                    settings->setValue( KEY_IMAGEE_FORMAT, format );
-                    settings->setValue( KEY_COMPRESS, dlg.vectorCompression() );
-                    settings->setValue( KEY_DPI, dlg.dpi() );
-                    settings->endGroup();
-
-                    adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format, dlg.vectorCompression(), dlg.dpi() );
-                }
+                
+                adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format, dlg.vectorCompression(), dlg.dpi() );
             }
-
-            auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
-                    return item == selectedItem; }
-                );
-
-            if ( it != actions.end() ) {
-                const std::wstring& model_name = models[ std::distance( actions.begin(), it ) ];
-                assign_masses_to_profile( model_name );
-                pImpl_->profileSpectrum_->replot();
-            }
+        }
+        
+        auto it = std::find_if( actions.begin(), actions.end(), [selectedItem] ( const QAction *item ) {
+                return item == selectedItem; } );
+        
+        if ( it != actions.end() ) {
+            const std::wstring& model_name = models[ std::distance( actions.begin(), it ) ];
+            assign_masses_to_profile( model_name );
+            pImpl_->profileSpectrum_->replot();
         }
     }
 }
@@ -1046,12 +1047,15 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 bool
 MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
 {
+    adwidgets::ScanLawDialog dlg;
+
     try {
-        const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.c_str() );
-
-        adwidgets::ScanLawDialog dlg;
-        dlg.setScanLaw( model.getScanLaw() );        
-
+        if ( model_name.empty() ) {
+            dlg.setValues( 0.5, 3000.0, 0.0 );
+        } else {
+            const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.c_str() );
+            dlg.setScanLaw( model.getScanLaw() );
+        }
         do {
             double fLength, accVoltage, tDelay, mass;
             QString formula;
@@ -1066,7 +1070,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
         if ( dlg.exec() != QDialog::Accepted )
             return false;
 
-        dataproc_document::instance()->saveScanLaw( QString::fromStdWString( model_name )
+        dataproc_document::instance()->saveScanLaw( QString::fromStdWString( ( model_name.empty() ? L"Generic-TOF" : model_name ) )
                                                     , dlg.fLength()
                                                     , dlg.acceleratorVoltage()
                                                     , dlg.tDelay()
