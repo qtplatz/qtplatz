@@ -39,6 +39,7 @@
 #include <adportable/binary_serializer.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/semaphore.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
@@ -328,7 +329,7 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     using namespace adcontrols::metric;
 
     sp.setCentroid( adcontrols::CentroidNone );
-
+    
     adcontrols::MSProperty prop = sp.getMSProperty();
     adcontrols::MSProperty::SamplingInfo info( 0
                                                , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
@@ -357,6 +358,13 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     if ( waveform.meta_.dataType == 1 ) {
         for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
             sp.setIntensity( idx++, *y );
+    } else {
+        double dbase, rms;
+        double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
+        
+        for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
+            sp.setIntensity( idx++, *y - dbase );
+        
     }
     // mass array tba
 	return true;

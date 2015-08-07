@@ -632,7 +632,10 @@ device_ap240::initial_setup( task& task, ap240::method& m )
         m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval ); // nominal -- not in use
     } else {
         m.hor_.nbrSamples = uint32_t( m.hor_.width / m.hor_.sampInterval + 0.5 ) + 32 & ~0x1f; // fold of 32, can't be zero
-        m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval + 0.5 ) & ~0x1f; // fold of 32, can be zero
+        if ( m.hor_.mode == 0 )
+            m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval + 0.5 ) & ~0x1f; // fold of 32, can be zero
+        else 
+            m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval + 0.5 ) + 32 & ~0x1f; // fold of 32, cannt be zero for average mode
     }
 
     // trigger setup
@@ -913,6 +916,7 @@ device_ap240::readData( task& task, waveform& data, const method& m, int channel
 
             data.meta_.dataType = sizeof( int32_t );
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
+
             data.meta_.channel = channel;            
             data.meta_.actualAverages = segDesc.actualTriggersInSeg;  // number of triggers for average
             data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; //data.d_.size();
@@ -963,7 +967,7 @@ template<> const int16_t *
 waveform::end() const
 {
     if ( meta_.dataType != sizeof(int16_t) )
-        throw std::bad_cast();            
+        throw std::bad_cast();
     return reinterpret_cast< const int16_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
 }
 

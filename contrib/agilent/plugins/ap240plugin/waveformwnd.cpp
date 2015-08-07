@@ -184,9 +184,13 @@ WaveformWnd::handle_waveform()
                 for ( auto it = waveform->begin<int16_t>(); it != waveform->end<int16_t>(); ++it )
                     sp->setIntensity( idx++, *it );
             } else if ( waveform->meta_.dataType == 4 ) {
+                double dbase, rms;
+                double tic = adportable::spectrum_processor::tic( waveform->size(), waveform->begin<int32_t>(), dbase, rms );
+                
                 size_t idx = 0;                
-                for ( auto it = waveform->begin<int32_t>(); it != waveform->end<int32_t>(); ++it )
-                    sp->setIntensity( idx++, *it );
+                for ( auto it = waveform->begin<int32_t>(); it != waveform->end<int32_t>(); ++it ) {
+                    sp->setIntensity( idx++, *it - dbase );
+                }
             }
             
             adcontrols::MSProperty prop = sp->getMSProperty();
