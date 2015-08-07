@@ -260,6 +260,7 @@ namespace ap240 {
 
         std::pair<double,int> operator [] ( size_t ) const;
         double toVolts( int ) const;
+        double toVolts( double ) const;        
         
         method method_;
         metadata meta_;

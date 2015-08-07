@@ -189,7 +189,7 @@ WaveformWnd::handle_waveform()
                 
                 size_t idx = 0;                
                 for ( auto it = waveform->begin<int32_t>(); it != waveform->end<int32_t>(); ++it ) {
-                    sp->setIntensity( idx++, *it - dbase );
+                    sp->setIntensity( idx++, waveform->toVolts( *it - dbase ) * 1000 );
                 }
             }
             

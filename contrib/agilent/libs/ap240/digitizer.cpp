@@ -1008,5 +1008,14 @@ waveform::operator [] ( size_t idx ) const
 double
 waveform::toVolts( int d ) const
 {
-    return meta_.scaleFactor * d - meta_.scaleOffset;
+    if ( meta_.actualAverages == 0 )
+        return meta_.scaleFactor * d - meta_.scaleOffset;
+    else
+        return double( meta_.scaleFactor * d ) / meta_.actualAverages - ( meta_.scaleOffset * meta_.actualAverages );
+}
+
+double
+waveform::toVolts( double d ) const
+{
+    return d * meta_.scaleFactor /  meta_.actualAverages;
 }
