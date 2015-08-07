@@ -156,28 +156,32 @@ namespace ap240 {
 
             std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > results;
 
-            if ( pair.first && thresholds_[0].enable ) {
+            // if ( pair.first && thresholds_[0].enable ) {
+            if ( pair.first ) { // && thresholds_[0].enable ) {
                 results.first = std::make_shared< threshold_result >( pair.first );
-                find_threshold_elements( *pair.first, thresholds_[ 0 ], results.first->index );
-                auto& w = *pair.first;
-
-                std::lock_guard< std::mutex > lock( document::mutex_ );
-                
-                std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
-                of << boost::format("\n%d, %.8lf, ") % w.serialnumber_ % w.meta_.initialXTimeSeconds
-                   << w.timeSinceEpoch_
-                   << boost::format(", %.8e, %.8e" ) % w.meta_.scaleFactor % w.meta_.scaleOffset
-                   << boost::format(", %.8e" ) % w.meta_.initialXOffset;
+                if ( thresholds_[0].enable ) {
+                    find_threshold_elements( *pair.first, thresholds_[ 0 ], results.first->index );
+                    auto& w = *pair.first;
                     
-                for ( auto& idx: results.first->index ) {
-                    auto v = w[ idx ];
-                    of << boost::format(", %.14le, %d" ) % v.first % v.second;
+                    std::lock_guard< std::mutex > lock( document::mutex_ );
+                    
+                    std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
+                    of << boost::format("\n%d, %.8lf, ") % w.serialnumber_ % w.meta_.initialXTimeSeconds
+                       << w.timeSinceEpoch_
+                       << boost::format(", %.8e, %.8e" ) % w.meta_.scaleFactor % w.meta_.scaleOffset
+                       << boost::format(", %.8e" ) % w.meta_.initialXOffset;
+                    
+                    for ( auto& idx: results.first->index ) {
+                        auto v = w[ idx ];
+                        of << boost::format(", %.14le, %d" ) % v.first % v.second;
+                    }
                 }
             }
                 
-            if ( pair.second && thresholds_[1].enable ) {
-                results.second = std::make_shared< threshold_result >( pair.second );                
-                find_threshold_elements( *pair.second, thresholds_[ 1 ], results.second->index );
+            if ( pair.second ) { //&& thresholds_[1].enable ) {
+                results.second = std::make_shared< threshold_result >( pair.second );
+                if ( thresholds_[1].enable )
+                    find_threshold_elements( *pair.second, thresholds_[ 1 ], results.second->index );
             }
             
             do {

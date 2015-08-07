@@ -255,28 +255,10 @@ digitizer::peripheral_terminate()
     return true;
 }
 
-// bool
-// digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod& m )
-// {
-//     using adcontrols::controlmethod::MethodItem;
-
-//     std::cout << "digitizer::prepare_for_run" << std::endl;
-    
-//     adcontrols::ControlMethod cm( m );
-//     cm.sort();
-//     auto it = std::find_if( cm.begin(), cm.end(), [] ( const MethodItem& mi ){ return mi.modelname() == "ap240"; } );
-//     if ( it != cm.end() ) {
-//         ap240::method m;
-//         if ( adportable::serializer< ap240::method >::deserialize( m, it->data(), it->size() ) ) {
-//             return task::instance()->prepare_for_run( m );
-//         }
-//     }
-//     return false;
-// }
-
 bool
 digitizer::peripheral_prepare_for_run( const ap240::method& m )
 {
+    std::cout << "prepare_for_run channels = " << m.channels_;
     if ( task::instance()->inst() != ViSession( -1 ) )
         return task::instance()->prepare_for_run( m );
     return false;
@@ -634,7 +616,7 @@ identify::identify( const identify& t ) : bus_number_(t.bus_number_)
 }
 
 bool
-device_ap240::initial_setup( task& task, method& m )
+device_ap240::initial_setup( task& task, ap240::method& m )
 {
     ViStatus status;
     ViStatus * pStatus = &status;
