@@ -87,6 +87,8 @@ namespace adcontrols {
 		static const MassSpectrometer& get( const char * dataInterpreterClsid );
         static std::vector< std::wstring > get_model_names();
 
+        static void register_default_spectrometers();
+
     protected:
 
         const MassSpectrometer * proxy_instance_;

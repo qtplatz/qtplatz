@@ -31,6 +31,7 @@
 #include "adcontrols.hpp"
 #include "mscalibrateresult.hpp"
 #include "mscalibration.hpp"
+#include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/utf.hpp>
 #include <boost/exception/all.hpp>
 #include <string>
@@ -82,8 +83,42 @@ namespace adcontrols {
 
         };
 
+        class GenericTofSpectrometer : public adcontrols::MassSpectrometer
+                                     , public adcontrols::ScanLaw
+                                     , public adcontrols::massspectrometer_factory {
+
+            adportable::TimeSquaredScanLaw law_;
+            DataInterpreter interpreter_;
+        public:
+            GenericTofSpectrometer() {}
+            GenericTofSpectrometer( const GenericTofSpectrometer& t ) : law_( t.law_ ) {}
+
+            // adcontrols::ScanLaw
+            double getMass( double t, int mode ) const override { return law_.getMass( t, mode );  }
+            double getTime( double m, int mode ) const override { return law_.getTime( m, mode );  }
+            double getMass( double t, double fLength ) const override { return law_.getMass( t, fLength ); }
+            double getTime( double m, double fLength ) const override { return law_.getTime( m, fLength ); }
+            double fLength( int type ) const override { return law_.fLength( type ); }            
+
+            // MassSpectrometer
+            const adcontrols::ScanLaw& getScanLaw() const override { return *this; }
+            std::shared_ptr< adcontrols::ScanLaw > scanLaw( const adcontrols::MSProperty& ) const override {
+                return std::make_shared< GenericTofSpectrometer >(*this);
+            }
+            const adcontrols::DataInterpreter& getDataInterpreter() const override { return interpreter_; }
+
+            // massspectrometer_factory
+            const wchar_t * name() const override { return L"Generic-TOF"; }
+            adcontrols::MassSpectrometer * get( const wchar_t * modelname ) override { return this; } // depricated
+            std::shared_ptr< MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * file ) const override {
+                return std::make_shared< GenericTofSpectrometer >();
+            }
+        };
+
     }
 }
+
+
 
 ///////////////////////////////////////////////
 MassSpectrometer::MassSpectrometer() : proxy_instance_( 0 )
@@ -234,6 +269,13 @@ std::vector< std::wstring >
 MassSpectrometer::get_model_names()
 {
     return massSpectrometerBroker::names();
+}
+
+void
+MassSpectrometer::register_default_spectrometers()
+{
+    static adcontrols::internal::GenericTofSpectrometer * tof = new adcontrols::internal::GenericTofSpectrometer();
+    massSpectrometerBroker::register_factory( tof, tof->name() );
 }
 
 //////////////////////////////////////////////////////////////

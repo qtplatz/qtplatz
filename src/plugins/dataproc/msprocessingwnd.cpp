@@ -853,7 +853,6 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         
         auto it = std::find_if( actions.begin(), actions.end(), [selectedItem] ( const QAction *item ) {
                 return item == selectedItem; } );
-        
         if ( it != actions.end() ) {
             const std::wstring& model_name = models[ std::distance( actions.begin(), it ) ];
             assign_masses_to_profile( model_name );
@@ -1048,18 +1047,16 @@ bool
 MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
 {
     adwidgets::ScanLawDialog dlg;
-
+    QString name = QString::fromStdWString( model_name );
+ 
     try {
-        if ( model_name.empty() ) {
-            dlg.setValues( 0.5, 3000.0, 0.0 );
-        } else {
-            const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.c_str() );
-            dlg.setScanLaw( model.getScanLaw() );
-        }
+        const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.c_str() );
+        dlg.setScanLaw( model.getScanLaw() );
+
         do {
             double fLength, accVoltage, tDelay, mass;
             QString formula;
-            if ( dataproc_document::instance()->findScanLaw( QString::fromStdWString( model_name ), fLength, accVoltage, tDelay, mass, formula ) ) {
+            if ( dataproc_document::instance()->findScanLaw( name, fLength, accVoltage, tDelay, mass, formula ) ) {
                 dlg.setValues( fLength, accVoltage, tDelay );
                 dlg.setMass( mass );
                 if ( !formula.isEmpty() )
@@ -1070,7 +1067,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
         if ( dlg.exec() != QDialog::Accepted )
             return false;
 
-        dataproc_document::instance()->saveScanLaw( QString::fromStdWString( ( model_name.empty() ? L"Generic-TOF" : model_name ) )
+        dataproc_document::instance()->saveScanLaw( name
                                                     , dlg.fLength()
                                                     , dlg.acceleratorVoltage()
                                                     , dlg.tDelay()

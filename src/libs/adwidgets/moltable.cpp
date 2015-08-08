@@ -138,7 +138,8 @@ namespace adwidgets {
             if ( index.column() == MolTable::c_svg && !index.data( Qt::EditRole ).toByteArray().isEmpty() ) {
                 return QSize( 80, 80 );
             } else if ( index.column() == MolTable::c_formula ) {
-                return DelegateHelper::html_size_hint( option, index );
+                QSize sz = DelegateHelper::html_size_hint( option, index );
+                return QSize( sz.width() + 8, sz.height() );  // add for checkbox
             } else {
                 return QStyledItemDelegate::sizeHint( option, index );
             }

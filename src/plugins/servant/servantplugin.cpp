@@ -34,7 +34,7 @@
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
 #include <extensionsystem/pluginmanager.h>
-
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adlog/logging_handler.hpp>
@@ -140,6 +140,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 ServantPlugin::extensionsInitialized()
 {
+    adcontrols::MassSpectrometer::register_default_spectrometers();
     ADINFO() << "ServantPlugin::extensionsInitialized.";
 }
 

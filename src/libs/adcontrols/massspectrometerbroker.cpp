@@ -80,7 +80,7 @@ MassSpectrometerBrokerImpl::instance()
 {
 	if ( instance_ == 0 ) {
         std::lock_guard< std::mutex > lock( adcontrols::global_mutex::mutex() );
-        if ( instance_ == 0 ) 
+        if ( instance_ == 0 )
 			instance_ = new MassSpectrometerBrokerImpl;
 	}
 	return instance_;

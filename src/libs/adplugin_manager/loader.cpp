@@ -24,6 +24,7 @@
 
 #include "loader.hpp"
 #include "manager.hpp"
+#include <adportable/debug.hpp>
 #include <adplugin/constants.hpp>
 #include <boost/filesystem.hpp>
 #include <adlog/logger.hpp>
@@ -56,6 +57,8 @@ loader::populate( const wchar_t * directory )
 				boost::filesystem::path name( it->path() );
 				name.replace_extension();
 
+                ADDEBUG() << "############## populate: " << name;
+                
 #if defined DEBUG || defined _DEBUG
 				std::string dlibname = name.generic_string() + DEBUG_LIB_TRAIL;
 				QLibrary dlib( dlibname.c_str() );
