@@ -30,43 +30,48 @@
 #include "ap240w_global.hpp"
 #include <memory>
 
-namespace Ui {
-    class ap240form;
-}
-
 namespace adcontrols { class ControlMethod; }
 namespace ap240 { class method; class threshold_method; }
 
-class AP240WSHARED_EXPORT ap240form : public QWidget
-                                    , public adplugin::LifeCycle {
-
-    Q_OBJECT
-
-public:
-    explicit ap240form(QWidget *parent = 0);
-    ~ap240form();
-    enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idFindThreshold, idThreshold, idSGFilter };
-
-    // LifeCycle
-    void OnCreate( const adportable::Configuration& ) override;
-    void OnInitialUpdate() override;
-    void OnFinalClose() override;
-    bool getContents( boost::any& ) const override;
-    bool setContents( boost::any& ) override;
+namespace ap240w {
     
-    void onInitialUpdate();
-    void onStatus( int );
+    namespace Ui {
+        class ap240form;
+    }
 
-    void get( ap240::method& ) const;
-    void set( const ap240::method& );
-    void get( int ch, ap240::threshold_method& ) const;    
-    void set( int ch, const ap240::threshold_method& );    
 
-signals:
-    void valueChanged( idCategory cat, int id, int ch, const QVariant& );
+
+    class AP240WSHARED_EXPORT ap240form : public QWidget
+                                        , public adplugin::LifeCycle {
+
+        Q_OBJECT
+
+    public:
+        explicit ap240form(QWidget *parent = 0);
+        ~ap240form();
+        enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idFindThreshold, idThreshold, idSGFilter };
+
+        // LifeCycle
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void OnFinalClose() override;
+        bool getContents( boost::any& ) const override;
+        bool setContents( boost::any& ) override;
     
-private:
-    Ui::ap240form *ui;
-};
+        void onInitialUpdate();
+        void onStatus( int );
+
+        void get( ap240::method& ) const;
+        void set( const ap240::method& );
+        void get( int ch, ap240::threshold_method& ) const;    
+        void set( int ch, const ap240::threshold_method& );    
+
+    signals:
+        void valueChanged( idCategory cat, int id, int ch, const QVariant& );
+    
+    private:
+        Ui::ap240form *ui;
+    };
+}
 
 #endif // AP240FORM_HPP

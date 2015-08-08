@@ -27,6 +27,8 @@
 #include <ap240/digitizer.hpp>
 #include <QSignalBlocker>
 
+using namespace ap240w;
+
 findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
                                               , ui(new Ui::findSlopeForm)
                                               , channel_(0)

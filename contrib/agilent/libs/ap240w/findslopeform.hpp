@@ -27,37 +27,40 @@
 
 #include <QWidget>
 
-namespace Ui {
-class findSlopeForm;
-}
-
 namespace ap240 { class threshold_method; }
 
-class findSlopeForm : public QWidget
-{
-    Q_OBJECT
+namespace ap240w {
 
-public:
-    explicit findSlopeForm(QWidget *parent = 0);
-    ~findSlopeForm();
-
-    void setTitle( int ch, const QString& );
-    int channel() const;
+    namespace Ui {
+        class findSlopeForm;
+    }
     
-    bool isChecked() const;
-    void setChecked( bool );
+    
+    class findSlopeForm : public QWidget   {
+        Q_OBJECT
 
-    void set( const ap240::threshold_method& );
-    void get( ap240::threshold_method& ) const;
+    public:
+        explicit findSlopeForm(QWidget *parent = 0);
+        ~findSlopeForm();
 
-signals:
-    void thresholdChanged( int id, double value );    
-    void sgFilterChanged( int id, bool, int value );
-    void toggled( int id, bool );
+        void setTitle( int ch, const QString& );
+        int channel() const;
+    
+        bool isChecked() const;
+        void setChecked( bool );
 
-private:
-    Ui::findSlopeForm *ui;
-    int channel_;
-};
+        void set( const ap240::threshold_method& );
+        void get( ap240::threshold_method& ) const;
+
+    signals:
+        void thresholdChanged( int id, double value );    
+        void sgFilterChanged( int id, bool, int value );
+        void toggled( int id, bool );
+
+    private:
+        Ui::findSlopeForm *ui;
+        int channel_;
+    };
+}
 
 #endif // FINDSLOPEFORM_HPP
