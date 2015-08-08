@@ -40,45 +40,37 @@ using namespace adplugin;
 # else
 #  define DEBUG_LIB_TRAIL ""        // xyz.so 
 # endif
+#else
+# define DEBUG_LIB_TRAIL ""
 #endif
 
 void
 loader::populate( const wchar_t * directory )
 {
-	boost::filesystem::path dir( directory );
+    boost::filesystem::path appdir( directory );
+    boost::filesystem::path modules( appdir / pluginDirectory );
+    boost::filesystem::path sharedlibs( appdir / sharedDirectory );
+    
+    boost::filesystem::recursive_directory_iterator it( directory );
 
-	if ( boost::filesystem::exists( dir ) && boost::filesystem::is_directory( dir ) ) {
-		for ( boost::filesystem::directory_iterator it( dir ); it != boost::filesystem::directory_iterator(); ++it ) {
+    while ( it != boost::filesystem::recursive_directory_iterator() ) {
 
-			if ( ! boost::filesystem::is_regular_file( it->status() ) )
-				continue;
+        if ( boost::filesystem::is_regular_file( it->status() ) ) {
+            if ( it->path().extension() == L".adplugin" ) {
+                auto stem = it->path().stem();
+                auto branch = it->path().branch_path();
 
-			if ( it->path().extension() == L".adplugin" ) {
-				boost::filesystem::path name( it->path() );
-				name.replace_extension();
-
-                ADDEBUG() << "############## populate: " << name;
-                
-#if defined DEBUG || defined _DEBUG
-				std::string dlibname = name.generic_string() + DEBUG_LIB_TRAIL;
-				QLibrary dlib( dlibname.c_str() );
-				if ( dlib.load() ) {
-					if ( ! manager::instance()->install( dlib, it->path().generic_string() ) )
-						dlib.unload();
-					continue;
-				}
-#else
-				std::string libname = name.generic_string();
-				QLibrary lib( libname.c_str() );
-				if ( lib.load() ) {
-					if ( ! manager::instance()->install( lib, it->path().generic_string() ) )
-						lib.unload();
-				}
-#endif
-			}
-		}
-	}
-
+                for ( auto& dir : { branch, sharedlibs } ) {
+                    QString libname = QString::fromStdString( ( dir / stem ).string() + DEBUG_LIB_TRAIL );
+                    QLibrary lib( libname );
+                    if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) )
+                        break;
+                    lib.unload();
+                }
+            }
+        }
+        ++it;
+    }
 	manager::instance()->populated();
 }
 

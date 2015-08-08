@@ -2,6 +2,7 @@ cmake_policy( SET CMP0028 NEW )
 cmake_policy( SET CMP0020 NEW )
 
 project( ap240spectrometer )
+set( PROVIDER MS-Cheminformatics )
 
 add_definitions(-DAP240SPECTROMETER_LIBRARY)
 if ( MSVC )

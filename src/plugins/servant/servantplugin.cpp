@@ -116,14 +116,17 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     context.add( Core::Id( Core::Constants::C_NAVIGATION_PANE ) );
     
 	boost::filesystem::path plugindir;
+    std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
     do {
-        std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
 		std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/does-not-exist.adplugin" );
-		plugindir = boost::filesystem::path( configFile ).branch_path();
+		plugindir = boost::filesystem::path( configFile ).branch_path();  // qtplatz/lib/qtplatz/plugins/MS-Cheminformatics
+                                                                          // qtpaltz.app/Contents/PlugIns/MS-Cheminformatics
     } while(0);
 
-	// populate .adplugin files under given folder.
-	adplugin::loader::populate( plugindir.generic_wstring().c_str() );
+    adplugin::loader::populate( apppath.c_str() );
+    
+	//populate .adplugin files under given folder.
+    //adplugin::loader::populate( plugindir.generic_wstring().c_str() );
 
 	std::vector< adplugin::plugin_ptr > spectrometers;
 	if ( adplugin::loader::select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {

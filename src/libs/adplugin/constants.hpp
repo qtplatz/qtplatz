@@ -26,16 +26,14 @@
 
 #pragma once
 
-//#define iid_iMonitor               L"adplugin::ui::iMonitor"
-//#define iid_iControlMethodEditor   L"adplugin::ui::iControlMethodEditor"
-//#define iid_iLog                   L"adplugin::ui::iLog"
-//#define iid_iSequence              L"adplugin::ui::iSequence"
-//#define iid_iSequencesForm         L"adplugin::ui::iSequencesForm"
-
 #if defined __APPLE__
-#  define adpluginDirectory        "PlugIns/MS-Cheminformatics"
 #  define pluginDirectory          "PlugIns"
+#  define sharedDirectory          "PlugIns"
 #else
-#  define adpluginDirectory        "lib/qtplatz/plugins/MS-Cheminformatics"
 #  define pluginDirectory          "lib/qtplatz/plugins"
+# if defined WIN32
+#  define sharedDirectory          "bin"
+# else
+#  define sharedDirectory          "lib/qtplatz"
+# endif
 #endif
