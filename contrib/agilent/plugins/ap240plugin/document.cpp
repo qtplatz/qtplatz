@@ -82,6 +82,11 @@ namespace ap240 {
     public:
         histogram() : trigger_count_(0) {}
 
+        void clear() {
+            std::lock_guard< std::mutex > lock( mutex_ );
+            meta_.actualPoints = 0;
+        }
+
         void append( const threshold_result& result ) {
 
             std::lock_guard< std::mutex > lock( mutex_ );
@@ -95,6 +100,7 @@ namespace ap240 {
                 
                 data_.resize( meta_.actualPoints );
                 std::fill( data_.begin(), data_.end(), 0 );
+                std::cout << "histogramo clear" << std::endl;
             }
             std::for_each( result.index.begin(), result.index.end(), [this]( uint32_t idx ){
                     data_[ idx ] ++; });
@@ -157,6 +163,15 @@ namespace ap240 {
                         std::shared_ptr< const waveform >
                         , std::shared_ptr< const waveform >
                         > > que_;
+
+        inline void clearHistogram() {
+            histogram_->clear();
+        }
+
+        inline size_t getHistogram( std::vector< std::pair< double, uint32_t > >& data, ap240::metadata& meta ) {
+            return histogram_->getHistogram( data, meta );
+        }
+        
     private:
         std::mutex que2_mutex_;        
         std::deque< std::pair< std::shared_ptr< threshold_result>
@@ -195,26 +210,34 @@ namespace ap240 {
 
         void find_threshold_timepoints( const waveform& data, const ap240::threshold_method& method, std::vector< uint32_t >& elements ) {
 
+            bool findUp = method.slope == ap240::threshold_method::CrossUp;
             bool flag;
-            double level = ( ( method.threshold_level / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
             size_t nfilter = size_t( method.response_time / data.meta_.xIncrement );
             
             if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
+                double level = ( ( method.threshold_level / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+                
                 typedef int8_t T;
                 auto it = data.begin<T>();
                 while ( it != data.end<T>() ) {
                     if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
-                        elements.push_back( std::distance( data.begin<T>(), it ) );
+                        if ( flag == findUp )
+                            elements.push_back( std::distance( data.begin<T>(), it ) );
                         std::advance( it, nfilter );
                     }
                 }
                 
             } else if ( data.meta_.dataType == 4 ) { // sizeof(int32_t)
+                // scaleFactor = Volts/LSB  (1.0V FS = 0.00390625)
+                double level_per_trigger = ( ( method.threshold_level / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+                double level = level_per_trigger * data.meta_.actualAverages;
+                
                 typedef int32_t T;
                 auto it = data.begin<T>();
                 while ( it != data.end<T>() ) {
                     if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
-                        elements.push_back( std::distance( data.begin<T>(), it ) );
+                        if ( flag == findUp )                        
+                            elements.push_back( std::distance( data.begin<T>(), it ) );
                         std::advance( it, nfilter );                        
                     }
                 }
@@ -621,7 +644,9 @@ document::set_threshold_method( int ch, const ap240::threshold_method& m )
 {
     if ( ch < impl_->thresholds_.size() ) {
         impl_->thresholds_[ ch ] = m;
+        impl_->clearHistogram();
         emit on_threshold_method_changed( ch );
+        
     }
 }
 
@@ -640,17 +665,17 @@ document::getHistogram() const
     ap240::metadata meta;
     std::vector< std::pair< double, uint32_t > > hist;
 
-    size_t trigCount = impl_->getHistogram( data, meta );
+    size_t trigCount = impl_->getHistogram( hist, meta );
     auto sp = std::make_shared< adcontrols::MassSpectrum >();
 
     using namespace adcontrols::metric;
 
-    sp.setCentroid( adcontrols::CentroidNative );
+    sp->setCentroid( adcontrols::CentroidNative );
     
-    adcontrols::MSProperty prop = sp.getMSProperty();
+    adcontrols::MSProperty prop = sp->getMSProperty();
     adcontrols::MSProperty::SamplingInfo info( 0
                                                , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
-                                               , uint32_t( hist.size() )
+                                               , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
                                                , trigCount
                                                , 0 );
     info.fSampInterval( meta.xIncrement );
@@ -669,12 +694,13 @@ document::getHistogram() const
     // prop.setDeviceData( ar.data(), ar.size() );
 
     // prop.setDeviceData(); TBA
-    sp.setMSProperty( prop );
-    sp.resize( hist.size() );
+    sp->setMSProperty( prop );
+    sp->resize( hist.size() );
     size_t idx = 0;
     for ( const auto& d: hist ) {
-        sp.setTime( idx, d.first );
-        sp.setIntensity( idx, d.second );        
+        sp->setTime( idx, d.first );
+        sp->setIntensity( idx, d.second );
+        ++idx;
     }
-	return true;
+	return sp;
 }

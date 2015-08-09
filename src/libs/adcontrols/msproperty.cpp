@@ -193,8 +193,15 @@ MSProperty::instMassRange() const
     return instMassRange_;
 }
 
+// depacreated -- use samplingInfo()
 const MSProperty::SamplingInfo&
 MSProperty::getSamplingInfo() const
+{
+    return samplingData_;
+}
+
+const MSProperty::SamplingInfo&
+MSProperty::samplingInfo() const
 {
     return samplingData_;
 }
@@ -277,6 +284,12 @@ double
 MSProperty::SamplingInfo::fSampDelay() const
 {
 	return nSamplingDelay * fSampInterval();
+}
+
+size_t
+MSProperty::SamplingInfo::numberOfTriggers() const
+{
+    return nAverage;
 }
 
 //static

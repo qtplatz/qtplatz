@@ -64,7 +64,8 @@ namespace adcontrols {
         uint64_t timeSinceEpoch() const;
         void setTimeSinceEpoch( uint64_t );
 
-        const SamplingInfo& getSamplingInfo() const;
+        const SamplingInfo& getSamplingInfo() const; // depacrate
+        const SamplingInfo& samplingInfo() const;        
         void setSamplingInfo( const SamplingInfo& );
 
         // acquisition mass range, usually it is from user parameter based on theoretical calibration
@@ -105,6 +106,7 @@ namespace adcontrols {
             double horPos() const;
             void setDelayTime( double );
             double delayTime() const;
+            size_t numberOfTriggers() const;
 
         private:
             double fsampInterval; // seconds

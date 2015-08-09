@@ -35,6 +35,7 @@
 #include <adportable/spectrum_processor.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_plot_marker.h>
+#include <qwt_scale_widget.h>
 #include <QSplitter>
 #include <QBoxLayout>
 #include <boost/format.hpp>
@@ -45,7 +46,7 @@ using namespace ap240;
 
 WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
                                              , spw_( new adplot::SpectrumWidget )
-                                             , histogram_( new adplot::SpectrumWidget )
+                                             , hpw_( new adplot::SpectrumWidget )
                                              , tpw_( new adplot::ChromatogramWidget )
 {
     for ( auto& tp: tp_ )
@@ -67,7 +68,7 @@ WaveformWnd::init()
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     do {
         splitter->addWidget( tpw_ );
-        splitter->addWidget( histogram_ );
+        splitter->addWidget( hpw_ );
         splitter->addWidget( spw_ );
         splitter->setStretchFactor( 0, 1 );
         splitter->setStretchFactor( 1, 3 );
@@ -76,7 +77,9 @@ WaveformWnd::init()
 
     tpw_->setMinimumHeight( 80 );
     spw_->setMinimumHeight( 80 );
-    histogram_->setMinimumHeight( 80 );
+    hpw_->setMinimumHeight( 80 );
+    spw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
+    hpw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );    
 
     spw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     spw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
@@ -85,12 +88,14 @@ WaveformWnd::init()
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
 
-    histogram_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
-    histogram_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
-    histogram_->enableAxis( QwtPlot::yRight, true );
+    hpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>Counts</i>" ) );
+    hpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
+    hpw_->enableAxis( QwtPlot::yRight, true );
     
-    histogram_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
-    histogram_->setKeepZoomed( false );
+    hpw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
+    hpw_->setKeepZoomed( false );
+    spw_->link( hpw_ );
+    hpw_->link( spw_ );
     
     tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
@@ -164,11 +169,14 @@ WaveformWnd::handle_waveform()
 {
     auto pair = document::instance()->findWaveform();
 
-    auto histogram = document::instance()->getHistogram();
+    if ( auto ms = document::instance()->getHistogram() ) {
+        hpw_->setData( ms, 0 );
+        const auto& info = ms->getMSProperty().getSamplingInfo();
+        hpw_->setTitle( ( boost::format( "triggers: %1%" ) % info.numberOfTriggers() ).str() );
+    }
 
     std::ostringstream o;
 
-    uint64_t duration(0);
     double levels[] = { document::instance()->threshold_method(0).threshold_level, document::instance()->threshold_method(1).threshold_level };
 
     for ( auto result: { pair.first, pair.second } ) {
@@ -185,8 +193,6 @@ WaveformWnd::handle_waveform()
             auto sp = sp_[ channel ];
             auto tp = tp_[ channel ];
 
-            auto tp0 = std::chrono::steady_clock::now();
-            
             sp->setCentroid( adcontrols::CentroidNone );
             sp->resize( waveform->size() );
 
@@ -227,8 +233,6 @@ WaveformWnd::handle_waveform()
             prop.setDataInterpreterClsid( "ap240" );
             sp->setMSProperty( prop );
 
-            duration += std::chrono::nanoseconds( std::chrono::steady_clock::now() - tp0 ).count();
-
             if ( o.str().empty() )
                 o << boost::format( "Time: %.3lf" ) % waveform->meta_.initialXTimeSeconds;
 
@@ -249,7 +253,6 @@ WaveformWnd::handle_waveform()
             spw_->setData( sp, channel, channel );
             spw_->setKeepZoomed( true );
         }
-        // std::cout << "duration: " << double(duration) / 1000.0 << "(us)" << std::endl;
 
         spw_->setTitle( o.str() );
     }
