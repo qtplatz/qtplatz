@@ -111,15 +111,15 @@ namespace ap240 {
 
         size_t trigger_count() const { return trigger_count_; }
 
-        size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histgram, ap240::metadata& meta ) {
+        size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram, ap240::metadata& meta ) {
             std::lock_guard< std::mutex > lock( mutex_ );
             meta = meta_;
-            histgram.clear();
+            histogram.clear();
             double t0 = meta_.initialXOffset;
             for ( auto it = data_.begin(); it < data_.end(); ++it ) {
                 if ( *it ) {
                     double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
-                    histgram.push_back( std::make_pair( t, *it ) );
+                    histogram.push_back( std::make_pair( t, *it ) );
                 }
             }
             return trigger_count_;
@@ -145,7 +145,7 @@ namespace ap240 {
                , histogram_( std::make_shared< histogram >() ) {
             
             time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
-            hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histgram.txt" ).string();
+            hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histogram.txt" ).string();
             
         }
         
@@ -742,7 +742,7 @@ document::getHistogram() const
 }
 
 void
-document::save_histgram( size_t tickCount, const adcontrols::MassSpectrum& hist )
+document::save_histogram( size_t tickCount, const adcontrols::MassSpectrum& hist )
 {
     std::ofstream of( impl_->hist_datafile(), std::ios_base::out | std::ios_base::app );
 

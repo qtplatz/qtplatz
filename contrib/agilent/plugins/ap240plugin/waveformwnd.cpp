@@ -175,7 +175,7 @@ WaveformWnd::handle_waveform()
         const auto& info = ms->getMSProperty().getSamplingInfo();
         hpw_->setTitle( ( boost::format( "triggers: %1%" ) % info.numberOfTriggers() ).str() );
         if ( ( tickCount_++ % 5 ) == 0 )
-            document::instance()->save_histgram( tickCount_, *ms );
+            document::instance()->save_histogram( tickCount_, *ms );
     }
 
     std::ostringstream o;
