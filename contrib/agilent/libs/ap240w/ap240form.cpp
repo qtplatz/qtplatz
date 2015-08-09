@@ -46,10 +46,10 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
 {
     ui->setupUi(this);
 
-    if ( auto layout = new QVBoxLayout() ) {
-        ui->horizontalLayout_2->insertLayout( 0, layout );
+    // Software TDC (Slope Time Converter) UI
+    if ( auto layout = new QVBoxLayout( ui->groupBox_2 ) ) {    
+        //ui->horizontalLayout_2->insertLayout( 0, layout );
         if ( auto tab = new QTabWidget() ) {
-            //tab->setStyleSheet( this->styleSheet() );
             layout->addWidget( tab );
             int idx = 0;
             for ( auto& title : { tr( "CH1" ), tr( "CH2" ) } ) {
@@ -63,6 +63,34 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
         }
     }
 
+    // Vertical configuration
+    if ( auto layout = new QVBoxLayout( ui->groupBox_3 ) ) {
+        // ui->horizontalLayout_2->insertLayout( 2, layout );
+        if ( auto tab = new QTabWidget() ) {
+            layout->addWidget( tab );
+            for ( auto& channel :
+                { std::make_pair( 1, tr( "CH-1" ) ), std::make_pair( 2, tr( "CH-2" ) ), std::make_pair( -1, tr( "Ext") ) } )
+                if ( auto gbox = new QGroupBox( channel.second, this ) ) {
+                    gbox->setObjectName( channel.second );
+                    gbox->setCheckable( true );
+                    gbox->setTitle( channel.second );
+                    
+                    auto layout = new QVBoxLayout( gbox );
+                    layout->setMargin( 0 );
+                    layout->setSpacing( 0 );
+
+                    auto w = new ap240VerticalForm();
+                    w->setChannel( channel.first );
+                    layout->addWidget( w );
+                    tab->addTab( gbox, channel.second );
+
+                    connect( w, &ap240VerticalForm::valueChanged, [this] ( ap240VerticalForm::idItem id, int channel, const QVariant& ) {
+                            emit valueChanged( idVertical, channel ); } );
+                    connect( gbox, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( idChannels, -1 ); } );
+                }
+        }
+    }
+    
     if ( auto layout = new QVBoxLayout( ui->groupBox ) ) {
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
@@ -83,7 +111,7 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
             } );
 
     }
-
+#if 0
     for ( auto& g : { std::make_pair( 1, ui->groupBox_2 )
                     , std::make_pair( 2, ui->groupBox_3 )
                     , std::make_pair( -1, ui->groupBox_5 ) } ) {
@@ -102,6 +130,7 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
         
         connect( g.second, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( idChannels, -1 ); } );
     }
+#endif
     set( ap240::method() );
 }
 
@@ -210,21 +239,31 @@ ap240form::onStatus( int )
 void
 ap240form::set( const ap240::method& m )
 {
-    const QSignalBlocker blocker( this );
-
-    ui->groupBox_2->setChecked( m.channels_ & 0x01 );
-    ui->groupBox_3->setChecked( m.channels_ & 0x02 );
-    ui->groupBox_5->setChecked( m.trig_.trigPattern & 0x80000000 );
+    if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
+        QSignalBlocker block( gbox );
+        gbox->setChecked( m.channels_ & 0x01 );
+    }
+    if ( auto gbox = findChild< QGroupBox * >( "CH-2" ) ) {
+        QSignalBlocker block( gbox );
+        gbox->setChecked( m.channels_ & 0x02 );
+    }
+    if ( auto gbox = findChild< QGroupBox * >( "Ext" ) ) {
+        QSignalBlocker block( gbox );
+        gbox->setChecked( m.trig_.trigPattern & 0x80000000 );
+    }
 
     if ( auto form = findChild< ap240HorizontalForm *>() ) {
+        QSignalBlocker block( form );
         form->set( m );
     }
     
     if ( auto form = findChild< ap240TriggerForm *>() ) {
+        QSignalBlocker block( form );
         form->set( m );        
     }
     
     for ( auto form : findChildren< ap240VerticalForm * >() ) {
+        QSignalBlocker block( form );
         form->set( m );        
     }
 }
@@ -234,11 +273,14 @@ ap240form::get( ap240::method& m ) const
 {
     uint32_t channels( 0 );
 
-    if ( ui->groupBox_2->isChecked() )
-        channels |= 1;
-    if ( ui->groupBox_3->isChecked() )
-        channels |= 2;
-
+    if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
+        if ( gbox->isChecked() )
+            channels |= 1;             
+    }
+    if ( auto gbox = findChild< QGroupBox * >( "CH-2" ) ) {
+        if ( gbox->isChecked() )
+            channels |= 2;
+    }    
     m.channels_ = channels;
  
     if ( auto form = findChild< ap240HorizontalForm *>() ) {

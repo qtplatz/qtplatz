@@ -15,43 +15,23 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
-    <widget class="QGroupBox" name="groupBox_4">
+    <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Horizontal</string>
+      <string>Slope Time</string>
      </property>
-     <zorder>groupBox_2</zorder>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="groupBox_4">
      <property name="title">
-      <string>CH1</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
+      <string>Horizontal</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>CH2</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_5">
-     <property name="title">
-      <string>Ext</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
+      <string>Verticals</string>
      </property>
     </widget>
    </item>

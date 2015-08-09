@@ -44,22 +44,23 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
              , [this] ( double value ) { emit valueChanged( channel_ ); } );
 
     // Time resolution (ns)
-    connect( ui->doubleSpinBox_2, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
+    connect( ui->doubleSpinBox_resolution, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
+             , [this] ( double value ) { emit valueChanged( channel_ ); } );
+
+    // Response time (us)
+    connect( ui->doubleSpinBox_resp, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
              , [this] ( double value ) { emit valueChanged( channel_ ); } );
 
     // Slope
-    connect( ui->radioButton_3, &QRadioButton::toggled, [this] (bool) { emit valueChanged( channel_ ); } ); // NEG
-    connect( ui->radioButton_4, &QRadioButton::toggled, [this] (bool) { emit valueChanged( channel_ ); } ); // POS
+    connect( ui->radioButton_pos, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // POS
+    connect( ui->radioButton_neg, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // NEG
 
     // Filter enable|disable
-    connect( ui->groupBox_2, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } );
-    connect( ui->radioButton, &QRadioButton::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } ); // SG
-    connect( ui->radioButton_2, &QRadioButton::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } ); // DFT
-    connect( ui->radioButton_5, &QRadioButton::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } ); // IGN
+    connect( ui->groupBox_filter, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } );
+    connect( ui->radioButton_dft, &QRadioButton::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } ); // DFT
     
-    connect( ui->spinBox, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged( channel_ ); } ); // IGN
-    connect( ui->spinBox_2, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged( channel_ ); } ); // SG
-    connect( ui->spinBox_3, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged( channel_ ); } ); // DFT
+    connect( ui->spinBox_sg, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged( channel_ ); } ); // SG
+    connect( ui->spinBox_dft, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged( channel_ ); } ); // DFT
 }
 
 findSlopeForm::~findSlopeForm()
@@ -94,31 +95,29 @@ findSlopeForm::set( const ap240::threshold_method& m )
 {
     const QSignalBlocker bloks [] = {
         QSignalBlocker( ui->groupBox ), QSignalBlocker( ui->groupBox_2 )
-        , QSignalBlocker( ui->doubleSpinBox ), QSignalBlocker( ui->doubleSpinBox_2 )
-        , QSignalBlocker( ui->spinBox ), QSignalBlocker( ui->spinBox_2 ), QSignalBlocker( ui->spinBox_3 )
-        , QSignalBlocker( ui->radioButton ), QSignalBlocker( ui->radioButton_2 ), QSignalBlocker( ui->radioButton_3 ), QSignalBlocker( ui->radioButton_4 )
-        , QSignalBlocker( ui->radioButton_5 )
+        , QSignalBlocker( ui->doubleSpinBox ), QSignalBlocker( ui->doubleSpinBox_resolution ), QSignalBlocker( ui->doubleSpinBox_resp )
+        , QSignalBlocker( ui->spinBox_sg ), QSignalBlocker( ui->spinBox_dft )
+        , QSignalBlocker( ui->radioButton_pos ), QSignalBlocker( ui->radioButton_neg ), QSignalBlocker( ui->radioButton_sg ), QSignalBlocker( ui->radioButton_dft )
     };
 
 
     ui->groupBox->setChecked( m.enable );
     ui->doubleSpinBox->setValue( m.threshold_level );
-    ui->doubleSpinBox_2->setValue( m.time_resolution * 1.0e9 );    // --> ns
+    ui->doubleSpinBox_resolution->setValue( m.time_resolution * 1.0e9 );    // --> ns
+    ui->doubleSpinBox_resp->setValue( m.response_time * 1.0e9 );    // --> ns
 
     // Slope
-    ui->radioButton_3->setChecked( m.slope == ap240::threshold_method::CrossDown ); // NEG
-    ui->radioButton_4->setChecked( m.slope == ap240::threshold_method::CrossUp );   // POS
+    ui->radioButton_neg->setChecked( m.slope == ap240::threshold_method::CrossDown ); // NEG
+    ui->radioButton_pos->setChecked( m.slope == ap240::threshold_method::CrossUp );   // POS
 
     // Filter
     ui->groupBox->setChecked( m.use_filter );
     switch( m.filter ) {
-    case ap240::threshold_method::DFT_Filter:   ui->radioButton_2->setChecked( true ); break;
-    case ap240::threshold_method::IGN_Filter:   ui->radioButton_2->setChecked( true ); break;
-    case ap240::threshold_method::SG_Filter:    ui->radioButton->setChecked( true );   break;
+    case ap240::threshold_method::DFT_Filter:   ui->radioButton_dft->setChecked( true ); break;
+    case ap240::threshold_method::SG_Filter:    ui->radioButton_sg->setChecked( true );   break;
     }
-    ui->spinBox->setValue( m.igPoints );
-    ui->spinBox_2->setValue( m.sgPoints );
-    ui->spinBox_3->setValue( m.cutOffMHz );
+    ui->spinBox_sg->setValue( m.sgPoints );
+    ui->spinBox_dft->setValue( m.cutOffMHz );
 }
 
 void
@@ -126,18 +125,16 @@ findSlopeForm::get( ap240::threshold_method& m ) const
 {
     m.enable = ui->groupBox->isChecked();
     m.threshold_level = ui->doubleSpinBox->value();
-    m.time_resolution = ui->doubleSpinBox_2->value() * 1.0e-9; // ns -> seconds
-    m.slope = ui->radioButton_3->isChecked() ? ap240::threshold_method::CrossDown : ap240::threshold_method::CrossUp;
+    m.time_resolution = ui->doubleSpinBox_resolution->value() * 1.0e-9; // ns -> seconds
+    m.response_time = ui->doubleSpinBox_resp->value() * 1.0e-9; // ns -> seconds
+    m.slope = ui->radioButton_neg->isChecked() ? ap240::threshold_method::CrossDown : ap240::threshold_method::CrossUp;
     m.use_filter = ui->groupBox_2->isChecked();
-    if ( ui->radioButton->isChecked() )
+    if ( ui->radioButton_sg->isChecked() )
         m.filter = ap240::threshold_method::SG_Filter;
-    else if ( ui->radioButton_2->isChecked() )
+    else 
         m.filter = ap240::threshold_method::DFT_Filter;
-    else
-        m.filter = ap240::threshold_method::IGN_Filter;
-    m.igPoints = ui->spinBox->value();
-    m.sgPoints = ui->spinBox_2->value();
-    m.cutOffMHz = ui->spinBox_3->value();
+    m.sgPoints = ui->spinBox_sg->value();
+    m.cutOffMHz = ui->spinBox_dft->value();
 }
 
 int

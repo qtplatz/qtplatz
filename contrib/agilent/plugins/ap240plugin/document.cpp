@@ -125,11 +125,11 @@ namespace ap240 {
                 t.join();
         }
 
-        void find_threshold_elements( const waveform& data, const ap240::threshold_method& method, std::vector< uint32_t >& elements ) {
+        void find_threshold_timepoints( const waveform& data, const ap240::threshold_method& method, std::vector< uint32_t >& elements ) {
 
             bool flag;
             double level = ( ( method.threshold_level / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-            size_t nfilter = method.igPoints;
+            size_t nfilter = size_t( method.response_time / data.meta_.xIncrement );
             
             if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
                 typedef int8_t T;
@@ -161,7 +161,7 @@ namespace ap240 {
             if ( pair.first ) { // && thresholds_[0].enable ) {
                 results.first = std::make_shared< threshold_result >( pair.first );
                 if ( thresholds_[0].enable ) {
-                    find_threshold_elements( *pair.first, thresholds_[ 0 ], results.first->index );
+                    find_threshold_timepoints( *pair.first, thresholds_[ 0 ], results.first->index );
                     auto& w = *pair.first;
                     
                     std::lock_guard< std::mutex > lock( document::mutex_ );
@@ -182,7 +182,7 @@ namespace ap240 {
             if ( pair.second ) { //&& thresholds_[1].enable ) {
                 results.second = std::make_shared< threshold_result >( pair.second );
                 if ( thresholds_[1].enable )
-                    find_threshold_elements( *pair.second, thresholds_[ 1 ], results.second->index );
+                    find_threshold_timepoints( *pair.second, thresholds_[ 1 ], results.second->index );
             }
             
             do {
@@ -501,10 +501,14 @@ bool
 document::load( const QString& filename, ap240::method& m )
 {
     try {
+
         std::wifstream inf( filename.toStdString() );
         boost::archive::xml_wiarchive ar( inf );
         
         ar >> boost::serialization::make_nvp( "ap240_method", m );
+
+        return true;
+
     } catch( ... ) {
         std::cout << "############# ap240::method load failed" << std::endl;
     }

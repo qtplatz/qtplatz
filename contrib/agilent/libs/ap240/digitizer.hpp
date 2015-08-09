@@ -63,25 +63,26 @@ namespace ap240 {
     // Method for 'Slope Time Converter'
 	class /* AP240SHARED_EXPORT */ threshold_method {
     public:
-        enum FilterAlgo { SG_Filter, DFT_Filter, IGN_Filter };
+        enum FilterAlgo { SG_Filter, DFT_Filter };
         enum Slope { CrossUp, CrossDown };
         bool enable;
         double threshold_level;   // mV
         double time_resolution;   // seconds
+        double response_time;     // seconds
         Slope slope;       // POS(CrossUp) | NEG(CrossDown)
         bool use_filter;
         FilterAlgo filter;
         int32_t sgPoints;      // SG-smooth points
-        int32_t igPoints;      // ignr points
         int32_t cutOffMHz;     // DFT
         
         threshold_method() : enable( false )
                            , threshold_level( 100.0 )
                            , time_resolution( 0.5e-9 ) // 0.5ns
+                           , response_time( 0.0 )
                            , slope( CrossDown )
                            , use_filter( false )
                            , filter( SG_Filter )
-                           , sgPoints( 5 ), igPoints( 5 ), cutOffMHz( 200 ) {
+                           , sgPoints( 5 ), cutOffMHz( 200 ) {
         }
         friend class boost::serialization::access;
         template<class Archive>
@@ -95,11 +96,11 @@ namespace ap240 {
                 ar & BOOST_SERIALIZATION_NVP( sgPoints );
             } else {
                 ar & BOOST_SERIALIZATION_NVP( time_resolution );
+                ar & BOOST_SERIALIZATION_NVP( response_time );
                 ar & BOOST_SERIALIZATION_NVP( slope );
                 ar & BOOST_SERIALIZATION_NVP( use_filter );
                 ar & BOOST_SERIALIZATION_NVP( filter );                
                 ar & BOOST_SERIALIZATION_NVP( sgPoints );
-                ar & BOOST_SERIALIZATION_NVP( igPoints );
                 ar & BOOST_SERIALIZATION_NVP( cutOffMHz );
             }
         }
