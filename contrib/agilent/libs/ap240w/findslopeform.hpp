@@ -53,9 +53,7 @@ namespace ap240w {
         void get( ap240::threshold_method& ) const;
 
     signals:
-        void thresholdChanged( int id, double value );    
-        void sgFilterChanged( int id, bool, int value );
-        void toggled( int id, bool );
+        void valueChanged( int ch );
 
     private:
         Ui::findSlopeForm *ui;

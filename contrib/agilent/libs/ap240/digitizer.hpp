@@ -60,22 +60,48 @@ namespace ap240 {
         }
     };
 
+    // Method for 'Slope Time Converter'
 	class /* AP240SHARED_EXPORT */ threshold_method {
     public:
+        enum FilterAlgo { SG_Filter, DFT_Filter, IGN_Filter };
+        enum Slope { CrossUp, CrossDown };
         bool enable;
-        double threshold; // mV
-        bool sgFilter;
-        int sgPoints;
-        threshold_method() : enable( false ), threshold( 100 ), sgFilter( false ), sgPoints( 5 ) {
+        double threshold_level;   // mV
+        double time_resolution;   // seconds
+        Slope slope;       // POS(CrossUp) | NEG(CrossDown)
+        bool use_filter;
+        FilterAlgo filter;
+        int32_t sgPoints;      // SG-smooth points
+        int32_t igPoints;      // ignr points
+        int32_t cutOffMHz;     // DFT
+        
+        threshold_method() : enable( false )
+                           , threshold_level( 100.0 )
+                           , time_resolution( 0.5e-9 ) // 0.5ns
+                           , slope( CrossDown )
+                           , use_filter( false )
+                           , filter( SG_Filter )
+                           , sgPoints( 5 ), igPoints( 5 ), cutOffMHz( 200 ) {
         }
         friend class boost::serialization::access;
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( enable );
-            ar & BOOST_SERIALIZATION_NVP( threshold );
-            ar & BOOST_SERIALIZATION_NVP( sgFilter );
-            ar & BOOST_SERIALIZATION_NVP( sgPoints );
+            ar & BOOST_SERIALIZATION_NVP( threshold_level );
+            if ( version < 1 ) {
+                bool sgFilter;
+                ar & BOOST_SERIALIZATION_NVP( sgFilter );
+                ar & BOOST_SERIALIZATION_NVP( sgPoints );
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( time_resolution );
+                ar & BOOST_SERIALIZATION_NVP( slope );
+                ar & BOOST_SERIALIZATION_NVP( use_filter );
+                ar & BOOST_SERIALIZATION_NVP( filter );                
+                ar & BOOST_SERIALIZATION_NVP( sgPoints );
+                ar & BOOST_SERIALIZATION_NVP( igPoints );
+                ar & BOOST_SERIALIZATION_NVP( cutOffMHz );
+            }
         }
     };
 
@@ -328,6 +354,7 @@ namespace ap240 {
 }
 
 BOOST_CLASS_VERSION( ap240::method, 1 )
+BOOST_CLASS_VERSION( ap240::threshold_method, 1 )
 BOOST_CLASS_VERSION( ap240::metadata, 1 )
 BOOST_CLASS_VERSION( ap240::identify, 1 )
 

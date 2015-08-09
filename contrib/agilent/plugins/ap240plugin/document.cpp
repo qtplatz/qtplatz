@@ -128,8 +128,8 @@ namespace ap240 {
         void find_threshold_elements( const waveform& data, const ap240::threshold_method& method, std::vector< uint32_t >& elements ) {
 
             bool flag;
-            double level = ( ( method.threshold / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-            size_t nfilter = method.sgFilter ? method.sgPoints : 0;
+            double level = ( ( method.threshold_level / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+            size_t nfilter = method.igPoints;
             
             if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
                 typedef int8_t T;

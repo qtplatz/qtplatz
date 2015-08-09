@@ -32,38 +32,34 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
+#include <QTabWidget>
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QSignalBlocker>
 #include <QPair>
 #include <boost/exception/all.hpp>
 
-ap240form::ap240form(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::ap240form)
+using namespace ap240w;
+
+ap240form::ap240form(QWidget *parent) : QWidget(parent)
+                                      , ui( new Ui::ap240form )
 {
     ui->setupUi(this);
 
     if ( auto layout = new QVBoxLayout() ) {
         ui->horizontalLayout_2->insertLayout( 0, layout );
-        int idx = 0;
-        for ( auto& title: { tr("CH1"), tr("CH2") } ) {
-            auto ch = new findSlopeForm();
-            ch->setTitle( idx++, title );
-            ch->setObjectName( title );
-            layout->addWidget( ch );
-            // enable|disable
-            connect( ch, &findSlopeForm::toggled, [this]( int ch, bool enable ){
-                    emit valueChanged( idFindThreshold, 0, ch, enable );
-                });
-            // threshold (mV)
-            connect( ch, &findSlopeForm::thresholdChanged, [this]( int ch, double value ){
-                    emit valueChanged( idThreshold, 0, ch, value );
-                });
-            // SG-Filter
-            connect( ch, &findSlopeForm::sgFilterChanged, [this]( int ch, bool enable, int value ){
-                    emit valueChanged( idSGFilter, 0, ch, ( enable ? value : -value ) );
-                });            
+        if ( auto tab = new QTabWidget() ) {
+            //tab->setStyleSheet( this->styleSheet() );
+            layout->addWidget( tab );
+            int idx = 0;
+            for ( auto& title : { tr( "CH1" ), tr( "CH2" ) } ) {
+                auto ch = new findSlopeForm();
+                ch->setTitle( idx++, title );
+                ch->setObjectName( title );
+                tab->addTab( ch, title );
+                // enable|disable
+                connect( ch, &findSlopeForm::valueChanged, [this] ( int ch ) { emit valueChanged( idSlopeTimeConverter, ch ); } );
+            }
         }
     }
 
@@ -73,8 +69,8 @@ ap240form::ap240form(QWidget *parent) :
         auto w = new ap240TriggerForm();
         layout->addWidget( w );
         connect( w, &ap240TriggerForm::valueChanged, [this] ( ap240TriggerForm::idItem id, const QVariant& d ) {
-            emit valueChanged( idTrigger, id, 0, d );
-        } );
+                emit valueChanged( idTrigger, -1 );
+            } );
     }
 
     if ( auto layout = new QVBoxLayout( ui->groupBox_4 ) ) {
@@ -83,8 +79,8 @@ ap240form::ap240form(QWidget *parent) :
         auto w = new ap240HorizontalForm();
         layout->addWidget( w );
         connect( w, &ap240HorizontalForm::valueChanged, [this] ( ap240HorizontalForm::idItem id, const QVariant& d ) {
-            emit valueChanged( idHorizontal, id, 0, d );
-        } );
+                emit valueChanged( idHorizontal, -1 );
+            } );
 
     }
 
@@ -100,13 +96,11 @@ ap240form::ap240form(QWidget *parent) :
         w->setChannel( g.first );
         layout->addWidget( w );
 
-        connect( w, &ap240VerticalForm::valueChanged, [this] ( ap240VerticalForm::idItem id, int channel, const QVariant& d ) {
-                emit valueChanged( idVertical, id, channel, d );
+        connect( w, &ap240VerticalForm::valueChanged, [this] ( ap240VerticalForm::idItem id, int channel, const QVariant& ) {
+                emit valueChanged( idVertical, channel );
         } );
         
-        connect( g.second, &QGroupBox::toggled, [this]( bool on ){
-                emit valueChanged( idChannels, 0, 0, QVariant( on ) );
-            });
+        connect( g.second, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( idChannels, -1 ); } );
     }
     set( ap240::method() );
 }
