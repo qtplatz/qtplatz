@@ -130,8 +130,8 @@ WaveformWnd::handle_threshold_method( int ch )
     auto& method = document::instance()->threshold_method( ch );
 
     bool replot( false );
-    if ( !adportable::compare<double>::approximatelyEqual( threshold_markers_[ ch ]->yValue(), method.threshold ) ) {
-        threshold_markers_[ ch ]->setYValue( method.threshold );
+    if ( !adportable::compare<double>::approximatelyEqual( threshold_markers_[ ch ]->yValue(), method.threshold_level ) ) {
+        threshold_markers_[ ch ]->setYValue( method.threshold_level );
         replot = true;
     }
     if ( method.enable != threshold_markers_[ ch ]->isVisible() ) {
@@ -167,7 +167,7 @@ WaveformWnd::handle_waveform()
     std::ostringstream o;
 
     uint64_t duration(0);
-    double levels[] = { document::instance()->threshold_method(0).threshold, document::instance()->threshold_method(1).threshold };
+    double levels[] = { document::instance()->threshold_method(0).threshold_level, document::instance()->threshold_method(1).threshold_level };
 
     for ( auto result: { pair.first, pair.second } ) {
 

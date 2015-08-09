@@ -39,8 +39,6 @@ namespace ap240w {
         class ap240form;
     }
 
-
-
     class AP240WSHARED_EXPORT ap240form : public QWidget
                                         , public adplugin::LifeCycle {
 
@@ -49,7 +47,7 @@ namespace ap240w {
     public:
         explicit ap240form(QWidget *parent = 0);
         ~ap240form();
-        enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idFindThreshold, idThreshold, idSGFilter };
+        enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idSlopeTimeConverter }; //, idFindThreshold, idThreshold, idSGFilter };
 
         // LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
@@ -67,7 +65,7 @@ namespace ap240w {
         void set( int ch, const ap240::threshold_method& );    
 
     signals:
-        void valueChanged( idCategory cat, int id, int ch, const QVariant& );
+        void valueChanged( idCategory cat, int ch );
     
     private:
         Ui::ap240form *ui;

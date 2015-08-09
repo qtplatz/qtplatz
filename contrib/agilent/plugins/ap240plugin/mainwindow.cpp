@@ -120,41 +120,31 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    auto widget = new ap240form();
+    auto widget = new ap240w::ap240form();
     widget->set( 0, document::instance()->threshold_method( 0 ) );
     widget->set( 1, document::instance()->threshold_method( 1 ) );
     createDockWidget( widget, "AP240", "AP240" );
     
-    connect( widget, &ap240form::valueChanged, [this]( ap240form::idCategory cat, int, int ch, const QVariant& v ){
-
-            if ( cat == ap240form::idFindThreshold )  {
-                auto m = document::instance()->threshold_method( ch );
-                m.enable = v.toBool();
-                document::instance()->set_threshold_method( ch, m );
-            } else if ( cat == ap240form::idThreshold ) {
-                auto m = document::instance()->threshold_method( ch );
-                m.threshold = v.toDouble();
-                document::instance()->set_threshold_method( ch, m );
-            } else if ( cat == ap240form::idSGFilter ) {
-                auto m = document::instance()->threshold_method( ch );
-                int value = v.toInt();
-                m.sgFilter = ( value <= 0 ) ? false : true;
-                m.sgPoints = ( value <= 0 ) ? -value : value;
-                document::instance()->set_threshold_method( ch, m );
+    connect( widget, &ap240w::ap240form::valueChanged, [this] ( ap240w::ap240form::idCategory cat, int ch ) {
+        if ( auto form = findChild< ap240w::ap240form * >() ) {
+            if ( cat == ap240w::ap240form::idSlopeTimeConverter ) {
+                ap240::threshold_method tm = document::instance()->threshold_method( ch );
+                form->get( ch, tm );
+                document::instance()->set_threshold_method( ch, tm );
             } else {
-                if ( auto form = findChild< ap240form * >() ) {
-                    ap240::method m;
-                    form->get( m );
-                    document::instance()->setControlMethod( m, QString() );
-                }
+                ap240::method m;
+                form->get( m );
+                document::instance()->setControlMethod( m, QString() );
             }
-        });
+        }
+    } );
+    
 }
 
 void
 MainWindow::OnInitialUpdate()
 {
-    if ( auto form = findChild< ap240form *>() ) {
+    if ( auto form = findChild< ap240w::ap240form *>() ) {
         form->OnInitialUpdate();
         boost::any ptr( document::instance()->controlMethod() );
         form->getContents( ptr );
@@ -175,7 +165,7 @@ MainWindow::OnInitialUpdate()
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
     }
 
-    if ( auto widget = findChild< ap240form * >() ) {
+    if ( auto widget = findChild< ap240w::ap240form * >() ) {
         widget->set( 0, document::instance()->threshold_method( 0 ) );
         widget->set( 1, document::instance()->threshold_method( 1 ) );
         widget->set( *document::instance()->controlMethod() );
@@ -553,7 +543,7 @@ MainWindow::editor_factories( iSequenceImpl& impl )
 void
 MainWindow::setControlMethod( const ap240::method& m )
 {
-    if ( auto form = findChild< ap240form * >() ) {
+    if ( auto form = findChild< ap240w::ap240form * >() ) {
         form->set( m );
     }
 }
@@ -561,7 +551,7 @@ MainWindow::setControlMethod( const ap240::method& m )
 void
 MainWindow::getControlMethod( ap240::method& m )
 {
-    if ( auto form = findChild< ap240form * >() ) {
+    if ( auto form = findChild< ap240w::ap240form * >() ) {
         form->get( m );
     }
 }
