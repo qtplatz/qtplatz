@@ -45,7 +45,7 @@ using namespace ap240;
 
 WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
                                              , spw_( new adplot::SpectrumWidget )
-                                             , histgram_( new adplot::SpectrumWidget )
+                                             , histogram_( new adplot::SpectrumWidget )
                                              , tpw_( new adplot::ChromatogramWidget )
 {
     for ( auto& tp: tp_ )
@@ -67,7 +67,7 @@ WaveformWnd::init()
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     do {
         splitter->addWidget( tpw_ );
-        splitter->addWidget( histgram_ );
+        splitter->addWidget( histogram_ );
         splitter->addWidget( spw_ );
         splitter->setStretchFactor( 0, 1 );
         splitter->setStretchFactor( 1, 3 );
@@ -76,7 +76,7 @@ WaveformWnd::init()
 
     tpw_->setMinimumHeight( 80 );
     spw_->setMinimumHeight( 80 );
-    histgram_->setMinimumHeight( 80 );
+    histogram_->setMinimumHeight( 80 );
 
     spw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     spw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );

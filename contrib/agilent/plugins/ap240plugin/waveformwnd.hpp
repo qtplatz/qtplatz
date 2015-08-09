@@ -57,7 +57,7 @@ namespace ap240 {
         void fini();
         adplot::ChromatogramWidget * tpw_;
         adplot::SpectrumWidget * spw_;
-        adplot::SpectrumWidget * histgram_;
+        adplot::SpectrumWidget * histogram_;
 
         std::array< std::shared_ptr< adcontrols::MassSpectrum >, 2 > sp_;
 
