@@ -81,3 +81,42 @@ waveform::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 	return true;
 }
 
+bool
+waveform::fft::lowpass_filter( std::vector<double>& intens, double sampInterval, double freq )
+{
+    if ( intens.size() < 32 )
+        return false;
+
+    size_t totalSize = intens.size();
+	(void)totalSize;
+	size_t N = 32;
+    while ( N < intens.size() )
+		N *= 2;
+	const size_t NN = intens.size();
+    const double T = N * sampInterval;  // time full scale in seconds.  Freq = n/T (Hz)
+    // power spectrum has N/2 points and is n/T Hz horizontal axis  := data[N/2] = (N/2)/T Hz
+    size_t cutoff = size_t( T * freq );
+
+	// adportable::array_wrapper<const double> pIntens( ms.getIntensityArray(), N );
+
+	std::vector< std::complex<double> > spc( N );
+	std::vector< std::complex<double> > fft( N );
+	size_t n;
+	for ( n = 0; n < N && n < NN; ++n )
+		spc[ n ] = std::complex<double>( intens[ n ] );
+	while ( n < N )
+		spc[ n++ ] = intens[ NN - 1 ];
+
+	adportable::fft::fourier_transform( fft, spc, false );
+    // appodization
+    for ( size_t i = cutoff; i < N - cutoff; ++i )
+        fft[ i ] = 0;
+    //adportable::fft::apodization( N/2 - N/16, N / 16, fft );
+	adportable::fft::fourier_transform( spc, fft, true );
+
+	for ( size_t i = 0; i < NN; ++i )
+		intens[ i ] = spc[i].real();
+
+	return true;
+}
+

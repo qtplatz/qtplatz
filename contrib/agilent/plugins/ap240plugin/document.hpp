@@ -45,10 +45,11 @@ namespace ap240 {
     struct threshold_result {  // bin# where data across threshold level
         std::vector< uint32_t > index;
         std::shared_ptr< const waveform > data;
+        std::vector< double > processed;
         threshold_result() {}
         threshold_result( std::shared_ptr< const waveform > d ) : data( d ) {
         }
-        threshold_result( const threshold_result& t ) : index( t.index ), data( t.data ) {
+        threshold_result( const threshold_result& t ) : index( t.index ), data( t.data ), processed( t.processed ) {
         }
     };
 

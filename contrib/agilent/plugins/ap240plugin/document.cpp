@@ -31,6 +31,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/waveform.hpp>
 #include <adinterface/controlserver.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
@@ -210,26 +211,43 @@ namespace ap240 {
                 t.join();
         }
 
-        void find_threshold_timepoints( const waveform& data, const ap240::threshold_method& method, std::vector< uint32_t >& elements ) {
+        void find_threshold_timepoints( const waveform& data, const ap240::threshold_method& method
+                                        , std::vector< uint32_t >& elements, std::vector<double>& processed ) {
 
             bool findUp = method.slope == ap240::threshold_method::CrossUp;
             bool flag;
             size_t nfilter = size_t( method.response_time / data.meta_.xIncrement );
 
             if ( method.use_filter ) {
-                std::vector<double> d( data.size() );
-                
-                for ( size_t i = 0; i < data.size(); ++i )
-                    d[ i ] = data.toVolts( *(data.begin() + i) );
+
+                processed.resize( data.size() );
+
+                if ( data.meta_.dataType == 1 ) {
+                    for ( size_t i = 0; i < data.size(); ++i )
+                        processed[ i ] = data.toVolts( *(data.begin<int8_t>() + i) );
+                } else if ( data.meta_.dataType == 4 ) {
+                    for ( size_t i = 0; i < data.size(); ++i )
+                        processed[ i ] = data.toVolts( *(data.begin<int32_t>() + i) );
+                }
 
                 if ( method.filter == ap240::threshold_method::SG_Filter ) {
                     adportable::SGFilter filter( method.sgPoints & 01 ); // make odd
                     for ( size_t i = method.sgPoints / 2 + 1; i < data.size() - method.sgPoints / 2 - 1; ++i )
-                        d[ i ] = filter( &d[i] );
+                        processed[ i ] = filter( &processed[i] );
                     
                 } else if ( method.filter == ap240::threshold_method::DFT_Filter ) {
-                    
+                    adcontrols::waveform::fft::lowpass_filter( processed, data.meta_.xIncrement, method.cutOffMHz * 1.0e6 );
                 }
+                double level = ( method.threshold_level / 1000.0 );
+                auto it = processed.begin();
+                while ( it != processed.end() ) {
+                    if ( ( it = adportable::waveform_processor().find_threshold_element( it, processed.end(), level, flag ) ) != processed.end() ) {
+                        if ( flag == findUp )
+                            elements.push_back( std::distance( processed.begin(), it ) );
+                        std::advance( it, nfilter );
+                    }
+                }
+                return;
             }
             
             if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
@@ -272,7 +290,7 @@ namespace ap240 {
 
                 if ( thresholds_[0].enable ) {
 
-                    find_threshold_timepoints( *pair.first, thresholds_[ 0 ], results.first->index );
+                    find_threshold_timepoints( *pair.first, thresholds_[ 0 ], results.first->index, results.first->processed );
                     histogram_->append( *results.first );
 
                     auto& w = *pair.first;
@@ -295,7 +313,7 @@ namespace ap240 {
             if ( pair.second ) { //&& thresholds_[1].enable ) {
                 results.second = std::make_shared< threshold_result >( pair.second );
                 if ( thresholds_[1].enable )
-                    find_threshold_timepoints( *pair.second, thresholds_[ 1 ], results.second->index );
+                    find_threshold_timepoints( *pair.second, thresholds_[ 1 ], results.second->index, results.second->processed );
             }
             
             do {

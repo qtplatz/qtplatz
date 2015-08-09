@@ -235,6 +235,7 @@ namespace ap240 {
                    , flags( 0 )
                    , actualAverages( 0 )
                    , initialXOffset( 0 )
+                   , xIncrement( 0 )
                    , scaleFactor( 0 )
                    , scaleOffset(0)
                    , horPos( 0 )

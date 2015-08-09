@@ -199,7 +199,11 @@ WaveformWnd::handle_waveform()
             sp->setCentroid( adcontrols::CentroidNone );
             sp->resize( waveform->size() );
 
-            if ( waveform->meta_.dataType == 1 ) {
+            if ( result->processed.size() == waveform->size() ) {
+                size_t idx = 0;
+                for ( auto it = result->processed.begin(); it != result->processed.end(); ++it )
+                    sp->setIntensity( idx++, *it * 1000 ); // V
+            } else  if ( waveform->meta_.dataType == 1 ) {
                 size_t idx = 0;
                 for ( auto it = waveform->begin<int8_t>(); it != waveform->end<int8_t>(); ++it )
                     sp->setIntensity( idx++, waveform->toVolts( *it ) * 1000.0 ); // mV
