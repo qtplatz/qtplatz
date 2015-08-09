@@ -86,9 +86,7 @@ namespace ap240 {
 
         const ap240::threshold_method& threshold_method( int ch ) const;
         void set_threshold_method( int ch, const ap240::threshold_method& );
-
-        // void setThreshold( int ch, double );
-        // double threshold( int ch ) const;
+        void save_histgram( size_t tick, const adcontrols::MassSpectrum& );
 
         static bool load( const QString& filename, ap240::method& );
         static bool save( const QString& filename, const ap240::method& );

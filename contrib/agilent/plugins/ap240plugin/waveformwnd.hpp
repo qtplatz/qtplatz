@@ -58,6 +58,7 @@ namespace ap240 {
         adplot::ChromatogramWidget * tpw_;
         adplot::SpectrumWidget * spw_;
         adplot::SpectrumWidget * hpw_;
+        size_t tickCount_;
 
         std::array< std::shared_ptr< adcontrols::MassSpectrum >, 2 > sp_;
 

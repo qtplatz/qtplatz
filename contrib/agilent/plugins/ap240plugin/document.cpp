@@ -152,6 +152,7 @@ namespace ap240 {
         }
         
         inline boost::asio::io_service& io_service() { return io_service_; }
+        inline const std::string& hist_datafile() const { return hist_datafile_; };
         
         adportable::semaphore sema_;
         bool worker_stop_;
@@ -703,4 +704,19 @@ document::getHistogram() const
         ++idx;
     }
 	return sp;
+}
+
+void
+document::save_histgram( size_t tickCount, const adcontrols::MassSpectrum& hist )
+{
+    std::ofstream of( impl_->hist_datafile(), std::ios_base::out | std::ios_base::app );
+
+    const double * times = hist.getTimeArray();
+    const double * intens = hist.getIntensityArray();
+    const adcontrols::MSProperty& prop = hist.getMSProperty();
+
+    of << boost::format("\n%d, %.8lf, %.14le") % tickCount % prop.timeSinceInjection() % prop.instTimeRange().first;
+    for ( size_t i = 0; i < hist.size(); ++i )
+        of << boost::format(", %.14le, %d" ) % times[ i ] % uint32_t( intens[ i ] );
+
 }
