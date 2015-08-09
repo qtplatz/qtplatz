@@ -35,8 +35,9 @@
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adportable/asio/thread.hpp>
-#include <adportable/profile.hpp>
 #include <adportable/binary_serializer.hpp>
+#include <adportable/float.hpp>
+#include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/semaphore.hpp>
 #include <adportable/spectrum_processor.hpp>
@@ -74,37 +75,104 @@ namespace ap240 {
         }
     };
 
+    class histogram {
+        histogram( const histogram & ) = delete;
+        histogram& operator = ( const histogram& ) = delete;
+        std::mutex mutex_;
+    public:
+        histogram() : trigger_count_(0) {}
+
+        void append( const threshold_result& result ) {
+
+            std::lock_guard< std::mutex > lock( mutex_ );
+
+            if ( meta_.actualPoints != result.data->meta_.actualPoints ||
+                 !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data->meta_.initialXOffset ) ||
+                 !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data->meta_.xIncrement ) ) {
+                
+                trigger_count_ = 0;
+                meta_ = result.data->meta_;
+                
+                data_.resize( meta_.actualPoints );
+                std::fill( data_.begin(), data_.end(), 0 );
+            }
+            std::for_each( result.index.begin(), result.index.end(), [this]( uint32_t idx ){
+                    data_[ idx ] ++; });
+            ++trigger_count_;
+        }
+
+        size_t trigger_count() const { return trigger_count_; }
+
+        size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histgram, ap240::metadata& meta ) {
+            std::lock_guard< std::mutex > lock( mutex_ );
+            meta = meta_;
+            histgram.clear();
+            double t0 = meta_.initialXOffset;
+            for ( auto it = data_.begin(); it < data_.end(); ++it ) {
+                if ( *it ) {
+                    double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
+                    histgram.push_back( std::make_pair( t, *it ) );
+                }
+            }
+            return trigger_count_;
+        }
+        
+    private:
+        // keep metadata
+        ap240::metadata meta_;
+        std::atomic< size_t > trigger_count_;
+        std::vector< uint32_t > data_;
+    };
+
     class document::impl {
 
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
         std::string time_datafile_;
+        std::string hist_datafile_;        
 
     public:
         impl() : worker_stop_( false )
-               , work_( io_service_ ) {
+               , work_( io_service_ )
+               , histogram_( std::make_shared< histogram >() ) {
+            
             time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
+            hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histgram.txt" ).string();
+            
         }
         
         ~impl() {
             stop();
         }
-
+        
         inline boost::asio::io_service& io_service() { return io_service_; }
         
         adportable::semaphore sema_;
         bool worker_stop_;
         std::chrono::steady_clock::time_point time_handled_;
         std::vector< std::thread > threads_;
+        std::mutex que_mutex_;
+        
         std::deque< std::pair<
                         std::shared_ptr< const waveform >
                         , std::shared_ptr< const waveform >
                         > > que_;
-
+    private:
+        std::mutex que2_mutex_;        
         std::deque< std::pair< std::shared_ptr< threshold_result>
                                , std::shared_ptr< threshold_result > > > que2_;
+        std::shared_ptr< histogram > histogram_;
+
+    public:
 
         std::array< ap240::threshold_method, 2 > thresholds_;
+
+        inline document::waveforms_t findWaveform() {
+            std::lock_guard< std::mutex > lock( que2_mutex_ );
+            if ( que2_.empty() )
+                return waveforms_t( 0, 0 );
+            return que2_.back();
+        }
 
         void run() {
             if ( threads_.empty() ) {
@@ -157,11 +225,15 @@ namespace ap240 {
 
             std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > results;
 
-            // if ( pair.first && thresholds_[0].enable ) {
-            if ( pair.first ) { // && thresholds_[0].enable ) {
+            if ( pair.first ) {
+                
                 results.first = std::make_shared< threshold_result >( pair.first );
+
                 if ( thresholds_[0].enable ) {
+
                     find_threshold_timepoints( *pair.first, thresholds_[ 0 ], results.first->index );
+                    histogram_->append( *results.first );
+
                     auto& w = *pair.first;
                     
                     std::lock_guard< std::mutex > lock( document::mutex_ );
@@ -186,9 +258,9 @@ namespace ap240 {
             }
             
             do {
-                std::lock_guard< std::mutex > lock( document::mutex_ );
-                while( que2_.size() > 1024 )
-                    que2_.pop_front();
+                std::lock_guard< std::mutex > lock( que2_mutex_ );
+                if ( que2_.size() > 1536 )
+                    que2_.erase( que2_.begin(), que2_.begin() + 512 );
                 que2_.push_back( results );
             } while( 0 );
 
@@ -302,9 +374,9 @@ document::waveform_handler( const waveform * ch1, const waveform * ch2, ap240::m
 
     impl_->io_service().post( [this,pair](){ impl_->handle_waveform( pair ); } );
 
-    std::lock_guard< std::mutex > lock( mutex_ );
-    while ( impl_->que_.size() > 128 )
-        impl_->que_.pop_front();
+    std::lock_guard< std::mutex > lock( impl_->que_mutex_ );
+    if ( impl_->que_.size() > 1500 )
+        impl_->que_.erase( impl_->que_.begin(), impl_->que_.begin() + 500 );
     impl_->que_.push_back( pair );
 
     return false; // no protocol-acquisition handled.
@@ -314,12 +386,7 @@ document::waveforms_t
 document::findWaveform( uint32_t serialnumber )
 {
     (void)serialnumber;
-
-    std::lock_guard< std::mutex > lock( mutex_ );
-    if ( impl_->que2_.empty() )
-        return waveforms_t( 0, 0 );
-
-	return impl_->que2_.back();
+    return impl_->findWaveform(); // for GUI display purpose
 }
 
 // static
@@ -567,3 +634,47 @@ document::threshold_method( int ch ) const
 }
 
 
+std::shared_ptr< adcontrols::MassSpectrum >
+document::getHistogram() const
+{
+    ap240::metadata meta;
+    std::vector< std::pair< double, uint32_t > > hist;
+
+    size_t trigCount = impl_->getHistogram( data, meta );
+    auto sp = std::make_shared< adcontrols::MassSpectrum >();
+
+    using namespace adcontrols::metric;
+
+    sp.setCentroid( adcontrols::CentroidNative );
+    
+    adcontrols::MSProperty prop = sp.getMSProperty();
+    adcontrols::MSProperty::SamplingInfo info( 0
+                                               , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
+                                               , uint32_t( hist.size() )
+                                               , trigCount
+                                               , 0 );
+    info.fSampInterval( meta.xIncrement );
+    prop.acceleratorVoltage( 3000 );
+    prop.setSamplingInfo( info );
+    
+    prop.setTimeSinceInjection( meta.initialXTimeSeconds );
+    prop.setTimeSinceEpoch( 0 );
+    prop.setDataInterpreterClsid( "ap240" );
+
+    // ap240::device_data data;
+    // // data.ident = *waveform.ident_;
+    // data.meta = waveform.meta_;
+    // std::string ar;
+    // adportable::binary::serialize<>()( data, ar );
+    // prop.setDeviceData( ar.data(), ar.size() );
+
+    // prop.setDeviceData(); TBA
+    sp.setMSProperty( prop );
+    sp.resize( hist.size() );
+    size_t idx = 0;
+    for ( const auto& d: hist ) {
+        sp.setTime( idx, d.first );
+        sp.setIntensity( idx, d.second );        
+    }
+	return true;
+}

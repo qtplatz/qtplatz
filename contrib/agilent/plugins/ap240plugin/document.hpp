@@ -71,6 +71,7 @@ namespace ap240 {
         typedef std::pair<std::shared_ptr< const threshold_result >, std::shared_ptr< const threshold_result > > waveforms_t;
 
         waveforms_t findWaveform( uint32_t serialnumber = (-1) );
+        std::shared_ptr< adcontrols::MassSpectrum > getHistogram() const;
         
         int32_t device_status() const;
 

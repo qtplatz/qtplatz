@@ -164,6 +164,8 @@ WaveformWnd::handle_waveform()
 {
     auto pair = document::instance()->findWaveform();
 
+    auto histogram = document::instance()->getHistogram();
+
     std::ostringstream o;
 
     uint64_t duration(0);
@@ -225,22 +227,6 @@ WaveformWnd::handle_waveform()
             prop.setDataInterpreterClsid( "ap240" );
             sp->setMSProperty( prop );
 
-#if 0            
-            const double * p = sp->getIntensityArray();
-            bool flag = levels[ channel ] < (*p);
-            int stage = 0;
-            std::array< size_t, 2 > th = { 0, 0 };
-            for ( auto it = p; it != p + sp->size(); ++it ) {
-                if ( ( levels[ channel ] < *it ) != flag ) {
-                    flag = !flag;
-                    th[ stage++ ] = it - p;
-                    if ( stage >= th.size() )
-                        break;
-                }
-            }
-            double t0 = sp->getTime( th[0] ) * 1.0e6;
-            double t1 = sp->getTime( th[1] ) * 1.0e6;
-#endif
             duration += std::chrono::nanoseconds( std::chrono::steady_clock::now() - tp0 ).count();
 
             if ( o.str().empty() )
