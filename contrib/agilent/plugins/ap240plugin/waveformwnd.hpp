@@ -57,7 +57,10 @@ namespace ap240 {
         void fini();
         adplot::ChromatogramWidget * tpw_;
         adplot::SpectrumWidget * spw_;
+        adplot::SpectrumWidget * histgram_;
+
         std::array< std::shared_ptr< adcontrols::MassSpectrum >, 2 > sp_;
+
         std::array< std::shared_ptr< adcontrols::Trace>, 2 > tp_;
         std::array< std::pair<bool, double>, 2 > thresholds_;
         std::array< QwtPlotMarker *, 2 > threshold_markers_;

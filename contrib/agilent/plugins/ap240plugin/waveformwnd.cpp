@@ -45,6 +45,7 @@ using namespace ap240;
 
 WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
                                              , spw_( new adplot::SpectrumWidget )
+                                             , histgram_( new adplot::SpectrumWidget )
                                              , tpw_( new adplot::ChromatogramWidget )
 {
     for ( auto& tp: tp_ )
@@ -66,11 +67,16 @@ WaveformWnd::init()
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     do {
         splitter->addWidget( tpw_ );
+        splitter->addWidget( histgram_ );
         splitter->addWidget( spw_ );
         splitter->setStretchFactor( 0, 1 );
         splitter->setStretchFactor( 1, 3 );
         splitter->setOrientation( Qt::Vertical );
     } while(0);
+
+    tpw_->setMinimumHeight( 80 );
+    spw_->setMinimumHeight( 80 );
+    histgram_->setMinimumHeight( 80 );
 
     spw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     spw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
@@ -79,6 +85,13 @@ WaveformWnd::init()
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
 
+    histogram_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
+    histogram_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
+    histogram_->enableAxis( QwtPlot::yRight, true );
+    
+    histogram_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
+    histogram_->setKeepZoomed( false );
+    
     tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
     tpw_->enableAxis( QwtPlot::yRight, true );
