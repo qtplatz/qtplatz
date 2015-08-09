@@ -94,7 +94,7 @@ void
 findSlopeForm::set( const ap240::threshold_method& m )
 {
     const QSignalBlocker bloks [] = {
-        QSignalBlocker( ui->groupBox ), QSignalBlocker( ui->groupBox_2 )
+        QSignalBlocker( ui->groupBox ), QSignalBlocker( ui->groupBox_filter )
         , QSignalBlocker( ui->doubleSpinBox ), QSignalBlocker( ui->doubleSpinBox_resolution ), QSignalBlocker( ui->doubleSpinBox_resp )
         , QSignalBlocker( ui->spinBox_sg ), QSignalBlocker( ui->spinBox_dft )
         , QSignalBlocker( ui->radioButton_pos ), QSignalBlocker( ui->radioButton_neg ), QSignalBlocker( ui->radioButton_sg ), QSignalBlocker( ui->radioButton_dft )
@@ -111,7 +111,7 @@ findSlopeForm::set( const ap240::threshold_method& m )
     ui->radioButton_pos->setChecked( m.slope == ap240::threshold_method::CrossUp );   // POS
 
     // Filter
-    ui->groupBox->setChecked( m.use_filter );
+    ui->groupBox_filter->setChecked( m.use_filter );
     switch( m.filter ) {
     case ap240::threshold_method::DFT_Filter:   ui->radioButton_dft->setChecked( true ); break;
     case ap240::threshold_method::SG_Filter:    ui->radioButton_sg->setChecked( true );   break;
@@ -128,7 +128,7 @@ findSlopeForm::get( ap240::threshold_method& m ) const
     m.time_resolution = ui->doubleSpinBox_resolution->value() * 1.0e-9; // ns -> seconds
     m.response_time = ui->doubleSpinBox_resp->value() * 1.0e-9; // ns -> seconds
     m.slope = ui->radioButton_neg->isChecked() ? ap240::threshold_method::CrossDown : ap240::threshold_method::CrossUp;
-    m.use_filter = ui->groupBox_2->isChecked();
+    m.use_filter = ui->groupBox_filter->isChecked();
     if ( ui->radioButton_sg->isChecked() )
         m.filter = ap240::threshold_method::SG_Filter;
     else 

@@ -433,7 +433,7 @@ document::initialSetup()
     
     try {
         std::vector< ap240::threshold_method > x;
-        std::wifstream inf( boost::filesystem::path( dir / "ap240_threshold_methods.xml" ).string() );
+        std::wifstream inf( boost::filesystem::path( dir / "ap240_slope_time_method.xml" ).string() );
         boost::archive::xml_wiarchive ar( inf );
         ar >> boost::serialization::make_nvp( "threshold_methods", x );
         for ( size_t i = 0; i < x.size(); ++i )
@@ -461,7 +461,7 @@ document::finalClose()
     save( QString::fromStdWString( fname.wstring() ), m );
 
     std::vector< ap240::threshold_method > x{ impl_->thresholds_[0], impl_->thresholds_[1] };
-    std::wofstream outf( boost::filesystem::path( dir / "ap240_threshold_methods.xml" ).string() );
+    std::wofstream outf( boost::filesystem::path( dir / "ap240_slope_time_method.xml" ).string() );
     boost::archive::xml_woarchive ar( outf );
     ar << boost::serialization::make_nvp( "threshold_methods", x );
     
