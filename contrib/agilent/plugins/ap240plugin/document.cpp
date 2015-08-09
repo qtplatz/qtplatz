@@ -40,6 +40,7 @@
 #include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/semaphore.hpp>
+#include <adportable/sgfilter.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <qtwrapper/settings.hpp>
@@ -214,6 +215,22 @@ namespace ap240 {
             bool findUp = method.slope == ap240::threshold_method::CrossUp;
             bool flag;
             size_t nfilter = size_t( method.response_time / data.meta_.xIncrement );
+
+            if ( method.use_filter ) {
+                std::vector<double> d( data.size() );
+                
+                for ( size_t i = 0; i < data.size(); ++i )
+                    d[ i ] = data.toVolts( *(data.begin() + i) );
+
+                if ( method.filter == ap240::threshold_method::SG_Filter ) {
+                    adportable::SGFilter filter( method.sgPoints & 01 ); // make odd
+                    for ( size_t i = method.sgPoints / 2 + 1; i < data.size() - method.sgPoints / 2 - 1; ++i )
+                        d[ i ] = filter( &d[i] );
+                    
+                } else if ( method.filter == ap240::threshold_method::DFT_Filter ) {
+                    
+                }
+            }
             
             if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
                 double level = ( ( method.threshold_level / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
