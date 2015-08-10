@@ -480,12 +480,12 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const ap240::method m )
 {
-    print( std::cout, m, "task::hanel_prepare_for_run begen" );
+    // print( std::cout, m, "task::hanel_prepare_for_run begen" );
     method_ = m;
 
     device_ap240::initial_setup( *this, method_ );
 
-    print( std::cout, method_, "task::handle_prepare_for_run (copy&fixed)" );    
+    // print( std::cout, method_, "task::handle_prepare_for_run (copy&fixed)" );    
     return true;
 }
 
@@ -671,7 +671,7 @@ device_ap240::initial_setup( task& task, ap240::method& m )
                                          , v.offset     
                                          , v.coupling   
                                          , v.bandwidth );
-        std::cerr << "\tch(" << channel << ") offset: " << v.offset << " fs: " << v.fullScale << std::endl;        
+        // std::cerr << "\tch(" << channel << ") offset: " << v.offset << " fs: " << v.fullScale << std::endl;        
         if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
             ViReal64 fullScale, offset; ViInt32 coupling, bandwidth;
             if ( AcqrsD1_getVertical( inst_, channel, &fullScale, &offset, &coupling, &bandwidth ) == VI_SUCCESS ) {
@@ -755,12 +755,6 @@ device_ap240::digitizer_setup( task& task, method& m )
     status = AcqrsD1_configMode( inst, 0, 0, 0 ); // 2 := averaging mode, 0 := normal data acq.
     task::checkError( inst, status, "AcqrsD1_configMode", __LINE__  );
 
-    ViStatus int32Arg( 1 );
-    for ( auto& cmd: { "TimestampClock", "MarkerLatchMode" } ) {
-        status = AcqrsD1_configAvgConfig( inst, 0, cmd, &int32Arg);
-        task::checkError( inst, status, cmd, __LINE__  );
-    }
-    
     return true;
 }
 
@@ -770,7 +764,7 @@ device_ap240::averager_setup( task& task, method& m )
     // averager mode
     assert( m.hor_.mode == 2 );
 
-    std::cout << "###### setup for averager #######" << std::endl;
+    // std::cout << "###### setup for averager #######" << std::endl;
     
     auto inst = task.inst();
     ViStatus status;
