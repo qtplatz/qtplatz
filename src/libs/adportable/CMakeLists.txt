@@ -32,6 +32,7 @@ add_library( adportable
   timesquaredscanlaw.cpp
   utf.cpp
   uuid.cpp
+  fft4g_h.c
   )
 
 target_include_directories( adportable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

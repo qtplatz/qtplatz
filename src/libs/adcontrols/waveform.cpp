@@ -32,6 +32,12 @@
 
 using namespace adcontrols;
 
+extern "C" {
+    // Takuya OOURA's package, built on adportable static library
+    void cdft( int, int isgn, double * );
+    void rdft( int, int isgn, double * );    
+}
+
 waveform::waveform()
 {
 }
@@ -124,6 +130,37 @@ waveform::fft::lowpass_filter( std::vector<double>& intens, double sampInterval,
 		*it = src->real();
         ++src;
     }
+
+	return true;
+}
+
+bool
+waveform::fft4g::lowpass_filter( std::vector<double>& intens, double sampInterval, double freq )
+{
+    if ( intens.size() < 32 )
+        return false;
+
+    
+	size_t N = 32;
+    while ( N < intens.size() )
+		N *= 2;
+
+    size_t cutoff = size_t( ( N * sampInterval ) * freq );
+    std::vector< double > a( N );
+    
+    std::copy( intens.begin(), intens.end(), a.begin() );
+    std::fill( a.begin() + intens.size(), a.end(), intens.back() );
+    
+    rdft( N, 1, a.data() );
+    
+    // appodization
+    std::fill( a.begin() + cutoff, a.begin() + ( N - cutoff ), 0 );
+    
+    rdft( N, -1, a.data() );
+
+    auto src = a.begin();
+    for ( auto it = intens.begin(); it != intens.end(); ++it, ++src )
+		*it = *src * 2.0 / N;
 
 	return true;
 }
