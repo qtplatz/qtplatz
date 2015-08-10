@@ -95,6 +95,8 @@ WaveformWnd::init()
     
     hpw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     hpw_->setKeepZoomed( false );
+    hpw_->setAutoAnnotation( false );
+    
     spw_->link( hpw_ );
     hpw_->link( spw_ );
     
