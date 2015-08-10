@@ -265,4 +265,5 @@ WaveformWnd::handle_waveform()
 
         spw_->setTitle( o.str() );
     }
+    document::instance()->waveform_handled();
 }

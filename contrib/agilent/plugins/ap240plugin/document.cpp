@@ -136,12 +136,15 @@ namespace ap240 {
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
         std::string time_datafile_;
-        std::string hist_datafile_;        
+        std::string hist_datafile_;     
+        std::atomic<int> postCount_;
 
     public:
         impl() : worker_stop_( false )
                , work_( io_service_ )
-               , histogram_( std::make_shared< histogram >() ) {
+               , histogram_( std::make_shared< histogram >() )
+               , postCount_( 0 )
+               , round_trip_( 0 ) {
             
             time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
             hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histogram.txt" ).string();
@@ -157,6 +160,7 @@ namespace ap240 {
         
         adportable::semaphore sema_;
         bool worker_stop_;
+        std::chrono::microseconds round_trip_;
         std::chrono::steady_clock::time_point time_handled_;
         std::vector< std::thread > threads_;
         std::mutex que_mutex_;
@@ -172,6 +176,13 @@ namespace ap240 {
 
         inline size_t getHistogram( std::vector< std::pair< double, uint32_t > >& data, ap240::metadata& meta ) {
             return histogram_->getHistogram( data, meta );
+        }
+
+        inline void waveform_handled() {
+            if ( postCount_ ) {
+                --postCount_;
+                round_trip_ = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - time_handled_ );
+            }
         }
         
     private:
@@ -326,6 +337,9 @@ namespace ap240 {
         }
         
         void worker() {
+
+            std::chrono::milliseconds cycleTime( 200 );
+
             while ( true ) {
 
                 sema_.wait();
@@ -334,11 +348,19 @@ namespace ap240 {
                     return;
 
                 auto tp = std::chrono::steady_clock::now();
-                if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ).count() > 200 ) {
+                if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ) > cycleTime && postCount_ == 0 ) {
+
+                    if ( cycleTime < round_trip_ ) {
+                        cycleTime += std::chrono::milliseconds( 50 );
+                        ADTRACE() << "update cycle time: " << double( cycleTime.count() ) << " ms";
+                    }
+
+                    ADTRACE() << "round_trip: " << double( round_trip_.count() ) / 1000 << " ms";
                     time_handled_ = tp;
+                    ++postCount_;
+
                     emit document::instance()->on_waveform_received();
                 }
-                
             }
         }
     };
@@ -711,7 +733,7 @@ document::getHistogram() const
     adcontrols::MSProperty::SamplingInfo info( 0
                                                , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
                                                , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
-                                               , trigCount
+                                               , uint32_t( trigCount )
                                                , 0 );
     info.fSampInterval( meta.xIncrement );
     prop.acceleratorVoltage( 3000 );
@@ -753,4 +775,10 @@ document::save_histogram( size_t tickCount, const adcontrols::MassSpectrum& hist
     for ( size_t i = 0; i < hist.size(); ++i )
         of << boost::format(", %.14le, %d" ) % times[ i ] % uint32_t( intens[ i ] );
 
+}
+
+void
+document::waveform_handled()
+{
+    impl_->waveform_handled();
 }
