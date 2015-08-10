@@ -175,7 +175,10 @@ WaveformWnd::handle_waveform()
     if ( auto ms = document::instance()->getHistogram() ) {
         hpw_->setData( ms, 0 );
         const auto& info = ms->getMSProperty().getSamplingInfo();
-        hpw_->setTitle( ( boost::format( "triggers: %1%" ) % info.numberOfTriggers() ).str() );
+        hpw_->setTitle( ( boost::format( "triggers: %1%; %2% triggers remain; rate = %3% trig/s" )
+                          % info.numberOfTriggers()
+                          % document::instance()->unprocessed_trigger_counts()
+                          % document::instance()->triggers_per_second()).str() );
         if ( ( tickCount_++ % 5 ) == 0 )
             document::instance()->save_histogram( tickCount_, *ms );
     }
@@ -185,10 +188,10 @@ WaveformWnd::handle_waveform()
     double levels[] = { document::instance()->threshold_method(0).threshold_level, document::instance()->threshold_method(1).threshold_level };
 
     for ( auto result: { pair.first, pair.second } ) {
-
+        
         if ( result ) {
             auto waveform = result->data;
-
+            
             double timestamp = waveform->meta_.initialXTimeSeconds;
             int channel = waveform->meta_.channel - 1;
             if ( channel > 2 )
@@ -265,5 +268,5 @@ WaveformWnd::handle_waveform()
 
         spw_->setTitle( o.str() );
     }
-    document::instance()->waveform_handled();
+    document::instance()->waveform_drawn();
 }

@@ -81,12 +81,16 @@ namespace ap240 {
         histogram( const histogram & ) = delete;
         histogram& operator = ( const histogram& ) = delete;
         std::mutex mutex_;
+        std::chrono::steady_clock::time_point tp_;
     public:
-        histogram() : trigger_count_(0) {}
+        histogram() : trigger_count_(0)
+                    , tp_( std::chrono::steady_clock::now() ) {
+        }
 
         void clear() {
             std::lock_guard< std::mutex > lock( mutex_ );
             meta_.actualPoints = 0;
+            tp_ = std::chrono::steady_clock::now();
         }
 
         void append( const threshold_result& result ) {
@@ -109,6 +113,7 @@ namespace ap240 {
         }
 
         size_t trigger_count() const { return trigger_count_; }
+        double triggers_per_sec() const { return trigger_count_ / std::chrono::duration<double>(std::chrono::steady_clock::now() - tp_).count(); }
 
         size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram, ap240::metadata& meta ) {
             std::lock_guard< std::mutex > lock( mutex_ );
@@ -138,13 +143,17 @@ namespace ap240 {
         std::string time_datafile_;
         std::string hist_datafile_;     
         std::atomic<int> postCount_;
+        std::atomic<size_t> waveform_proc_count_;        
+        std::atomic<size_t> waveform_post_count_;
 
     public:
         impl() : worker_stop_( false )
                , work_( io_service_ )
                , histogram_( std::make_shared< histogram >() )
                , postCount_( 0 )
-               , round_trip_( 0 ) {
+               , round_trip_( 0 )
+               , waveform_post_count_(0)
+               , waveform_proc_count_(0) {
             
             time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
             hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histogram.txt" ).string();
@@ -157,6 +166,9 @@ namespace ap240 {
         
         inline boost::asio::io_service& io_service() { return io_service_; }
         inline const std::string& hist_datafile() const { return hist_datafile_; };
+
+        inline std::atomic<size_t>& waveform_post_count() { return waveform_post_count_; }
+        inline std::atomic<size_t>& waveform_proc_count() { return waveform_proc_count_; }
         
         adportable::semaphore sema_;
         bool worker_stop_;
@@ -178,12 +190,18 @@ namespace ap240 {
             return histogram_->getHistogram( data, meta );
         }
 
-        inline void waveform_handled() {
+        inline double triggers_per_sec() const {
+            return histogram_->triggers_per_sec();
+        }
+
+        inline void waveform_drawn() {
             if ( postCount_ ) {
                 --postCount_;
                 round_trip_ = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - time_handled_ );
             }
         }
+
+        inline size_t unprocessed_trigger_counts() const { return waveform_post_count_ - waveform_proc_count_; }
         
     private:
         std::mutex que2_mutex_;        
@@ -333,6 +351,7 @@ namespace ap240 {
                 que2_.push_back( results );
             } while( 0 );
 
+            waveform_proc_count_++;
             sema_.signal();
         }
         
@@ -348,17 +367,16 @@ namespace ap240 {
                     return;
 
                 auto tp = std::chrono::steady_clock::now();
+
                 if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ) > cycleTime && postCount_ == 0 ) {
 
                     if ( cycleTime < round_trip_ ) {
-                        cycleTime += std::chrono::milliseconds( 50 );
-                        ADTRACE() << "update cycle time: " << double( cycleTime.count() ) << " ms";
+                        ADTRACE() << "Computer is too slow for update spectrum view: round-trip=" << round_trip_.count() << " ms";
+                        cycleTime += std::chrono::milliseconds( 100 );
                     }
 
-                    ADTRACE() << "round_trip: " << double( round_trip_.count() ) / 1000 << " ms";
                     time_handled_ = tp;
                     ++postCount_;
-
                     emit document::instance()->on_waveform_received();
                 }
             }
@@ -450,6 +468,8 @@ document::reply_handler( const std::string& method, const std::string& reply )
 bool
 document::waveform_handler( const waveform * ch1, const waveform * ch2, ap240::method& )
 {
+    impl_->waveform_post_count()++;
+    
     auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
 
     impl_->io_service().post( [this,pair](){ impl_->handle_waveform( pair ); } );
@@ -585,9 +605,8 @@ document::initialSetup()
         ar >> boost::serialization::make_nvp( "threshold_methods", x );
         for ( size_t i = 0; i < x.size(); ++i )
             set_threshold_method( int( i ), x[ i ] );
-        std::cout << "############ ap240::threshold_method load success" << std::endl;        
     } catch( ... ) {
-        std::cout << "############ ap240::threshold_method load failed" << std::endl;
+        ADERROR() << "############ ap240::threshold_method load failed";
     }
 }
 
@@ -778,7 +797,19 @@ document::save_histogram( size_t tickCount, const adcontrols::MassSpectrum& hist
 }
 
 void
-document::waveform_handled()
+document::waveform_drawn()
 {
-    impl_->waveform_handled();
+    impl_->waveform_drawn();
+}
+
+double
+document::triggers_per_second() const
+{
+    return impl_->triggers_per_sec();
+}
+
+size_t
+document::unprocessed_trigger_counts() const
+{
+    return impl_->unprocessed_trigger_counts();
 }

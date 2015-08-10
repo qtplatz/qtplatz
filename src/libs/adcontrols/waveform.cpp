@@ -42,16 +42,18 @@ waveform::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
     if ( ms.isCentroid() || ms.size() < 32 )
         return false;
 
-    size_t totalSize = ms.size();
-	(void)totalSize;
 	size_t N = 32;
     while ( N < ms.size() )
 		N *= 2;
+
 	const size_t NN = ms.size();
+
 	double sampInterval = ms.getMSProperty().getSamplingInfo().fSampInterval(); // seconds
     if ( sampInterval == 0 )
         sampInterval = ( ms.getTime( ms.size() - 1 ) - ms.getTime( 0 ) ) / ms.size();
+
     const double T = N * sampInterval;  // time full scale in seconds.  Freq = n/T (Hz)
+
     // power spectrum has N/2 points and is n/T Hz horizontal axis  := data[N/2] = (N/2)/T Hz
     size_t cutoff = size_t( T * freq );
 
@@ -93,23 +95,21 @@ waveform::fft::lowpass_filter( std::vector<double>& intens, double sampInterval,
     while ( N < intens.size() )
 		N *= 2;
 
-	const size_t NN = intens.size();
+    // N shoule be larger than intens.size();
+
     const double T = N * sampInterval;  // time full scale in seconds.  Freq = n/T (Hz)
 
     // power spectrum has N/2 points and is n/T Hz horizontal axis  := data[N/2] = (N/2)/T Hz
+
     size_t cutoff = size_t( T * freq );
 
 	std::vector< std::complex<double> > spc( N );
+
 	std::vector< std::complex<double> > fft( N );
+    
+    std::copy( intens.begin(), intens.begin() + intens.size(), spc.begin() );
 
-	// size_t n;
-	// for ( n = 0; n < N && n < NN; ++n )
-	// 	spc[ n ] = std::complex<double>( intens[ n ] );
-    std::copy( intens.begin(), intens.begin() + std::min( N, NN ), spc.begin() );
-
-	// while ( n < N )
-	// 	spc[ n++ ] = intens[ NN - 1 ];
-    std::fill( spc.begin() + std::min( N, NN ), spc.end(), intens.back() );
+    std::fill( spc.begin() + intens.size(), spc.end(), intens.back() );
 
 	adportable::fft::fourier_transform( fft, spc, false );
 
@@ -118,8 +118,12 @@ waveform::fft::lowpass_filter( std::vector<double>& intens, double sampInterval,
 
 	adportable::fft::fourier_transform( spc, fft, true );
 
-	for ( size_t i = 0; i < NN; ++i )
-		intens[ i ] = spc[i].real();
+    auto src = spc.begin();
+    
+    for ( auto it = intens.begin(); it != intens.end(); ++it ) {
+		*it = src->real();
+        ++src;
+    }
 
 	return true;
 }

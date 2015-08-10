@@ -88,7 +88,10 @@ namespace ap240 {
         const ap240::threshold_method& threshold_method( int ch ) const;
         void set_threshold_method( int ch, const ap240::threshold_method& );
         void save_histogram( size_t tick, const adcontrols::MassSpectrum& );
-        void waveform_handled();
+        void waveform_drawn(); // <<-- GUI round trip mesurement purpose
+
+        double triggers_per_second() const;
+        size_t unprocessed_trigger_counts() const;
 
         static bool load( const QString& filename, ap240::method& );
         static bool save( const QString& filename, const ap240::method& );
