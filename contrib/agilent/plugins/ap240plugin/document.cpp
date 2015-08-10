@@ -102,7 +102,6 @@ namespace ap240 {
                 
                 data_.resize( meta_.actualPoints );
                 std::fill( data_.begin(), data_.end(), 0 );
-                std::cout << "histogramo clear" << std::endl;
             }
             std::for_each( result.index.begin(), result.index.end(), [this]( uint32_t idx ){
                     data_[ idx ] ++; });

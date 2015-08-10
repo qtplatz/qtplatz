@@ -128,11 +128,7 @@ Translated from Lattice C to STL/C++
 #include	<math.h>
 
 #if !defined M_PI
-//# if defined _PI
-//#    define	M_PI	_PI
-//# else
 #    define	M_PI	3.14159265358979323846
-//# endif
 #endif
 
 using namespace std;
@@ -141,56 +137,54 @@ bool
 fft::fourier_transform( std::vector< std::complex<double> > & Y, 
 					   std::vector< std::complex<double> > & X, bool ist)
 {
-  // int
-  // FFT(double xr[], double xi[], double yr[], double yi[], int n, int ist)
-  long IL, NS;
-  long N2, IS, IS2, J, JA, JB, KA, KB, KS;
-  long i;
-  double WARG;
-  const long n = static_cast<long>(X.size());
+    long IL, NS;
+    long N2, IS, IS2, J, JA, JB, KA, KB, KS;
+    long i;
+    double WARG;
+    const long n = static_cast<long>(X.size());
 
-  Y.clear();
-  for (NS = n, IL = 0; (NS /= 2) > 0; ++IL)
-    ;
-  for (i = 2; i < n; i *= 2)
-    ;
-  if (n != i)
-    return false;
+    Y.clear();
+    for (NS = n, IL = 0; (NS /= 2) > 0; ++IL)
+        ;
+    for (i = 2; i < n; i *= 2)
+        ;
+    if (n != i)
+        return false;
 
-  Y.resize(n);
-  WARG = -2.0 * M_PI / (double)n;
-  if (ist == 1)
-    WARG = (-WARG);
+    Y.resize(n);
+    WARG = -2.0 * M_PI / double(n);
+    if ( ist == true ) // backword transform
+        WARG = (-WARG);
   
-  N2 = n / 2;
-  KS = N2;
-  IS = 1;
-  for (long l = 0; l < IL; ++l) {
-    IS2 = IS * 2;
-    JA = 0;
-    for (i = 0; i < n; i += IS2)
-      for (J = 1; J <= IS; ++J) {
-        double WS = WARG * (double)((J - 1) * KS);
-        std::complex<double> W(cos(WS), sin(WS));
-        ++JA;
-        JB = JA + N2;
-        KA = i + J;
-        KB = KA + IS;
-        Y[KA - 1] = X[JA - 1] + X[JB - 1] * W;     /* Y[KA]=X[JA]+X[JB]*W */
-        Y[KB - 1] = X[JA - 1] - X[JB - 1] * W;     /* Y[KB]=X[JA]-X[JB]*W */
-      }
-      IS = IS2;
-      KS = KS / 2;
-      for (i = 0; i < n; ++i)
-        X[i] = Y[i];
-  }
-  if (ist == false) { // forward transform
-    std::complex<double> R(1.0 / n);
+    N2 = n / 2;
+    KS = N2;
+    IS = 1;
+    for (long l = 0; l < IL; ++l) {
+        IS2 = IS * 2;
+        JA = 0;
+        for (i = 0; i < n; i += IS2) {
+            for (J = 1; J <= IS; ++J) {
+                double WS = WARG * double((J - 1) * KS);
+                std::complex<double> W(cos(WS), sin(WS));
+                ++JA;
+                JB = JA + N2;
+                KA = i + J;
+                KB = KA + IS;
+                Y[KA - 1] = X[JA - 1] + X[JB - 1] * W;     /* Y[KA]=X[JA]+X[JB]*W */
+                Y[KB - 1] = X[JA - 1] - X[JB - 1] * W;     /* Y[KB]=X[JA]-X[JB]*W */
+            }
+        }
+        IS = IS2;
+        KS = KS / 2;
+        for (i = 0; i < n; ++i)
+            X[i] = Y[i];
+    }
+    if (ist == false) { // forward transform
+        std::complex<double> R(1.0 / n);
+        for (i = 0; i < n; ++i)
+            X[i] *= R;
+    }
     for (i = 0; i < n; ++i)
-      X[i] *= R;
-  }
-  for (i = 0; i < n; ++i)
-    Y[i] = X[i];
-  return true;
+        Y[i] = X[i];
+    return true;
 }
-
