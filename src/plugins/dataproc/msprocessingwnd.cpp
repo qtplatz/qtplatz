@@ -255,8 +255,12 @@ MSProcessingWnd::init()
 		pImpl_->profileSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
 		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
 
+        pImpl_->profileSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
+		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
+
         pImpl_->pwplot_->setMinimumHeight( 80 );
-		pImpl_->pwplot_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
+        pImpl_->pwplot_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
+        pImpl_->pwplot_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
         pImpl_->pwplot_->xBottomTitle( "Frequency (MHz)" );
         pImpl_->pwplot_->yLeftTitle( "Power" );
         connect( pImpl_->pwplot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnPowerPlot( const QRectF& ) ) );
@@ -333,6 +337,9 @@ MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
     else {
         pImpl_->processedSpectrum_->setData( ptr, idx, true );
         pImpl_->processedSpectrum_->setAlpha( idx, 0x20 );
+
+        pImpl_->processedSpectrum_->enableAxis( QwtPlot::yRight, true );
+        pImpl_->profileSpectrum_->enableAxis( QwtPlot::yRight, true );
     }
 }
 

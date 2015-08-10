@@ -41,7 +41,13 @@ namespace adcontrols {
 		};
 
 		struct ADCONTROLSSHARED_EXPORT fft4g {
+            static bool lowpass_filter( MassSpectrum&, double freq = 100.0e6 /* 100MHz */ );
             static bool lowpass_filter( std::vector<double>&, double sampInterval /* seconds */, double freq = 100.0e6 /* 100MHz */ );
+		};
+
+		struct ADCONTROLSSHARED_EXPORT fft4c {
+            static bool lowpass_filter( MassSpectrum&, double freq = 100.0e6 /* 100MHz */ );
+            static bool lowpass_filter( size_t, double *, double sampInterval /* seconds */, double freq = 100.0e6 /* 100MHz */ );
 		};
         
         struct savitzky_golay {

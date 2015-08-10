@@ -27,8 +27,10 @@
 #include "msproperty.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/fft.hpp>
+#include <adportable/float.hpp>
 #include <vector>
 #include <complex>
+#include <algorithm>
 
 using namespace adcontrols;
 
@@ -101,13 +103,9 @@ waveform::fft::lowpass_filter( std::vector<double>& intens, double sampInterval,
     while ( N < intens.size() )
 		N *= 2;
 
-    // N shoule be larger than intens.size();
-
     const double T = N * sampInterval;  // time full scale in seconds.  Freq = n/T (Hz)
 
-    // power spectrum has N/2 points and is n/T Hz horizontal axis  := data[N/2] = (N/2)/T Hz
-
-    size_t cutoff = size_t( T * freq );
+    const size_t cutoff = size_t( T * freq );
 
 	std::vector< std::complex<double> > spc( N );
 
@@ -135,13 +133,46 @@ waveform::fft::lowpass_filter( std::vector<double>& intens, double sampInterval,
 }
 
 bool
+waveform::fft4g::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
+{
+    if ( ms.isCentroid() || ms.size() < 32 )
+        return false;
+
+    int N = 32;
+    while ( N < ms.size() )
+		N *= 2;
+
+    double sampInterval = ms.getMSProperty().samplingInfo().fSampInterval(); // seconds
+    if ( adportable::compare<double>::approximatelyEqual( sampInterval, 0 ) )
+        sampInterval = ( ms.getTime( ms.size() - 1 ) - ms.getTime( 0 ) ) / ms.size();
+
+    const size_t cutoff = size_t( ( N * sampInterval ) * freq );
+
+    std::vector< double > a( N );
+    
+    std::copy( ms.getIntensityArray(), ms.getIntensityArray() + ms.size(), a.begin() );
+    std::fill( a.begin() + ms.size(), a.end(), ms.getIntensity( ms.size() - 1 ) );
+    
+    rdft( N, 1, a.data() );
+    
+    // appodization
+    std::fill( a.begin() + cutoff, a.begin() + ( N - cutoff ), 0 );
+    
+    rdft( N, -1, a.data() );
+
+    std::transform( a.begin(), a.begin() + ms.size(), a.begin(), [N] ( double a ) { return a * 2.0 / N; } );
+    ms.setIntensityArray( a.data() );
+
+    return true;
+}
+
+bool
 waveform::fft4g::lowpass_filter( std::vector<double>& intens, double sampInterval, double freq )
 {
     if ( intens.size() < 32 )
         return false;
 
-    
-	size_t N = 32;
+    int N = 32;
     while ( N < intens.size() )
 		N *= 2;
 
@@ -165,3 +196,67 @@ waveform::fft4g::lowpass_filter( std::vector<double>& intens, double sampInterva
 	return true;
 }
 
+//////////////////////
+bool
+waveform::fft4c::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
+{
+    if ( ms.isCentroid() || ms.size() < 32 )
+        return false;
+
+    int N = 32;
+    while ( N < ms.size() )
+		N *= 2;
+
+    double sampInterval = ms.getMSProperty().samplingInfo().fSampInterval(); // seconds
+    if ( adportable::compare<double>::approximatelyEqual( sampInterval, 0 ) )
+        sampInterval = ( ms.getTime( ms.size() - 1 ) - ms.getTime( 0 ) ) / ms.size();
+
+    const size_t cutoff = size_t( ( N * sampInterval ) * freq );
+
+	std::vector< std::complex<double> > a( N );
+    
+    std::copy( ms.getIntensityArray(), ms.getIntensityArray() + ms.size(), a.begin() );
+    std::fill( a.begin() + ms.size(), a.end(), ms.getIntensity( ms.size() - 1 ) );
+    
+    cdft( N * 2, 1, reinterpret_cast<double *>( a.data() ) );
+
+    // appodization
+    std::fill( a.begin() + cutoff, a.begin() + ( N - cutoff ), 0 );
+    
+    cdft( N * 2, -1, reinterpret_cast<double *>( a.data() ) );
+
+    for ( size_t i = 0; i < ms.size(); ++i )
+        ms.setIntensity( i, a[ i ].real() * 2.0 / N );
+
+    return true;
+}
+
+bool
+waveform::fft4c::lowpass_filter( size_t size, double * data, double sampInterval, double freq )
+{
+    if ( size < 32 )
+        return false;
+
+    int N = 32;
+    while ( N < size )
+		N *= 2;
+
+    const size_t cutoff = size_t( ( N * sampInterval ) * freq );
+	std::vector< std::complex<double> > a( N );
+    
+    std::copy( data, data + size, a.begin() );
+    std::fill( a.begin() + size, a.end(), data[ size - 1 ] );
+
+    cdft( N * 2, 1, reinterpret_cast<double *>( a.data() ) );    
+    
+    // appodization
+    std::fill( a.begin() + cutoff, a.begin() + ( N - cutoff ), 0 );
+
+    cdft( N * 2, -1, reinterpret_cast<double *>( a.data() ) );        
+
+    auto src = a.begin();
+    for ( double * it = data; it != data + size; ++it, ++src )
+        *it = src->real() * 2.0 / N;
+
+	return true;
+}
