@@ -74,8 +74,9 @@ namespace ap240 {
         std::shared_ptr< ap240::method> controlMethod() const;
         void setControlMethod( const ap240::method& m, const QString& filename );
 
-        const ap240::threshold_method& threshold_method( int ch ) const;
+        std::shared_ptr< const ap240::threshold_method> threshold_method( int ch ) const;
         void set_threshold_method( int ch, const ap240::threshold_method& );
+        
         void save_histogram( size_t tick, const adcontrols::MassSpectrum& );
         void waveform_drawn(); // <<-- GUI round trip mesurement purpose
 

@@ -122,14 +122,19 @@ void
 MainWindow::createDockWidgets()
 {
     auto widget = new ap240w::ap240form();
-    widget->set( 0, document::instance()->threshold_method( 0 ) );
-    widget->set( 1, document::instance()->threshold_method( 1 ) );
+
+    if ( auto tm = document::instance()->threshold_method( 0 ) )
+        widget->set( 0, *tm );
+
+    if ( auto tm = document::instance()->threshold_method( 1 ) )    
+        widget->set( 1, *tm );
+
     createDockWidget( widget, "AP240", "AP240" );
     
     connect( widget, &ap240w::ap240form::valueChanged, [this] ( ap240w::ap240form::idCategory cat, int ch ) {
         if ( auto form = findChild< ap240w::ap240form * >() ) {
             if ( cat == ap240w::ap240form::idSlopeTimeConverter ) {
-                ap240::threshold_method tm = document::instance()->threshold_method( ch );
+                ap240::threshold_method tm;
                 form->get( ch, tm );
                 document::instance()->set_threshold_method( ch, tm );
             } else {
@@ -167,8 +172,10 @@ MainWindow::OnInitialUpdate()
     }
 
     if ( auto widget = findChild< ap240w::ap240form * >() ) {
-        widget->set( 0, document::instance()->threshold_method( 0 ) );
-        widget->set( 1, document::instance()->threshold_method( 1 ) );
+        if ( auto tm = document::instance()->threshold_method( 0 ) )
+            widget->set( 0, *tm );
+        if ( auto tm = document::instance()->threshold_method( 1 ) )
+            widget->set( 1, *tm );
         widget->set( *document::instance()->controlMethod() );
     }
 }

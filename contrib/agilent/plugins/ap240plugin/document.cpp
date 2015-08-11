@@ -156,9 +156,24 @@ namespace ap240 {
         std::mutex que2_mutex_;
         std::vector< threshold_result_pair_t > que2_;
         std::shared_ptr< histogram > histogram_;
-
+        std::array< std::shared_ptr< ap240::threshold_method >, 2 > threshold_methods_;
+        
     public:
-        std::array< ap240::threshold_method, 2 > thresholds_;
+
+        inline bool set_threshold_method( int ch, const ap240::threshold_method& m ) {
+            if ( ch < threshold_methods_.size() ) {
+                threshold_methods_[ ch ] = std::make_shared< ap240::threshold_method >( m );
+                histogram_->clear();
+                return true;
+            }
+            return false;
+        }
+
+        inline std::shared_ptr< const ap240::threshold_method> threshold_method( int ch ) const {
+            if ( ch < threshold_methods_.size() )
+                return threshold_methods_[ ch ];
+            return 0;
+        }
 
         inline document::waveforms_t findWaveform() {
             std::lock_guard< std::mutex > lock( que2_mutex_ );
@@ -189,9 +204,10 @@ namespace ap240 {
         void find_threshold_timepoints( const waveform& data, const ap240::threshold_method& method
                                         , std::vector< uint32_t >& elements, std::vector<double>& processed ) {
 
-            bool findUp = method.slope == ap240::threshold_method::CrossUp;
+            const bool findUp = method.slope == ap240::threshold_method::CrossUp;
+            const size_t nfilter = size_t( method.response_time / data.meta_.xIncrement );
+
             bool flag;
-            size_t nfilter = size_t( method.response_time / data.meta_.xIncrement );
 
             if ( method.use_filter ) {
 
@@ -261,23 +277,26 @@ namespace ap240 {
                 return;
 
             threshold_result_pair_t results;
+            auto methods( threshold_methods_ );
 
             if ( pair.first ) {
                 
                 results.first = std::make_shared< threshold_result >( pair.first );
 
-                if ( thresholds_[0].enable ) {
+                if ( methods[0]->enable ) {
                     
-                    find_threshold_timepoints( *pair.first, thresholds_[ 0 ], results.first->indecies_, results.first->processed_ );
+                    find_threshold_timepoints( *pair.first, *methods[0], results.first->indecies_, results.first->processed_ );
                     histogram_->append( *results.first );
 
                 }
             }
                 
             if ( pair.second ) {
+
                 results.second = std::make_shared< threshold_result >( pair.second );
-                if ( thresholds_[1].enable )
-                    find_threshold_timepoints( *pair.second, thresholds_[ 1 ], results.second->indecies_, results.second->processed_ );
+                
+                if ( methods[1]->enable )
+                    find_threshold_timepoints( *pair.second, *methods[0], results.second->indecies_, results.second->processed_ );
             }
             
             do {
@@ -597,7 +616,7 @@ document::finalClose()
     boost::filesystem::path fname( dir / "ap240.xml" );
     save( QString::fromStdWString( fname.wstring() ), m );
 
-    std::vector< ap240::threshold_method > x{ impl_->thresholds_[0], impl_->thresholds_[1] };
+    std::vector< ap240::threshold_method > x{ *impl_->threshold_method(0), *impl_->threshold_method(1) };
     std::wofstream outf( boost::filesystem::path( dir / "ap240_slope_time_method.xml" ).string() );
     boost::archive::xml_woarchive ar( outf );
     ar << boost::serialization::make_nvp( "threshold_methods", x );
@@ -689,20 +708,14 @@ document::setControlMethod( const ap240::method& m, const QString& filename )
 void
 document::set_threshold_method( int ch, const ap240::threshold_method& m )
 {
-    if ( ch < impl_->thresholds_.size() ) {
-        impl_->thresholds_[ ch ] = m;
-        impl_->clearHistogram();
+    if ( impl_->set_threshold_method( ch, m ) )
         emit on_threshold_method_changed( ch );
-        
-    }
 }
 
-const ap240::threshold_method&
+std::shared_ptr< const ap240::threshold_method >
 document::threshold_method( int ch ) const
 {
-    if ( ch < impl_->thresholds_.size() )
-        return impl_->thresholds_[ ch ];
-    throw std::runtime_error(0);
+    return impl_->threshold_method( ch );
 }
 
 
