@@ -167,20 +167,21 @@ waveform::fft4g::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 }
 
 bool
-waveform::fft4g::lowpass_filter( std::vector<double>& intens, double sampInterval, double freq )
+waveform::fft4g::lowpass_filter( size_t size, double * data, double sampInterval, double freq )
 {
-    if ( intens.size() < 32 )
+    if ( size < 32 )
         return false;
 
     int N = 32;
-    while ( N < intens.size() )
+    while ( N < size )
 		N *= 2;
 
-    size_t cutoff = size_t( ( N * sampInterval ) * freq );
+    const size_t cutoff = size_t( ( N * sampInterval ) * freq ) * 2.0;
+
     std::vector< double > a( N );
     
-    std::copy( intens.begin(), intens.end(), a.begin() );
-    std::fill( a.begin() + intens.size(), a.end(), intens.back() );
+    std::copy( data, data + size, a.begin() );
+    std::fill( a.begin() + size, a.end(), data[ size - 1 ] );
     
     rdft( N, 1, a.data() );
     
@@ -190,8 +191,8 @@ waveform::fft4g::lowpass_filter( std::vector<double>& intens, double sampInterva
     rdft( N, -1, a.data() );
 
     auto src = a.begin();
-    for ( auto it = intens.begin(); it != intens.end(); ++it, ++src )
-		*it = *src * 2.0 / N;
+    for ( double * it = data; it != data + size; ++it, ++src )
+        *it = *src * 2.0 / N;
 
 	return true;
 }
@@ -226,7 +227,7 @@ waveform::fft4c::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
     cdft( N * 2, -1, reinterpret_cast<double *>( a.data() ) );
 
     for ( size_t i = 0; i < ms.size(); ++i )
-        ms.setIntensity( i, a[ i ].real() * 2.0 / N );
+        ms.setIntensity( i, a[ i ].real() * 2.0 / ( N * 2 ) );
 
     return true;
 }
@@ -256,7 +257,7 @@ waveform::fft4c::lowpass_filter( size_t size, double * data, double sampInterval
 
     auto src = a.begin();
     for ( double * it = data; it != data + size; ++it, ++src )
-        *it = src->real() * 2.0 / N;
+        *it = src->real() * 2.0 / ( N * 2 );
 
 	return true;
 }
