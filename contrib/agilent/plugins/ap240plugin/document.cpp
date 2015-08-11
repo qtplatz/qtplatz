@@ -344,8 +344,8 @@ namespace ap240 {
                     } while( 0 );
 
                     if ( !list.empty() ) {
-                        std::cout << "list count: " << list.size() << " from: "
-                                  << list.front().first->data_->serialnumber_ << ", " << list.back().first->data_->serialnumber_ << std::endl;
+                        // std::cout << "list count: " << list.size() << " from: "
+                        //           << list.front().first->data_->serialnumber_ << ", " << list.back().first->data_->serialnumber_ << std::endl;
 
                         std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
                         if ( !of.fail() ) {
