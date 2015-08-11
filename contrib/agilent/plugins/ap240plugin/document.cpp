@@ -22,9 +22,11 @@
 **
 **************************************************************************/
 
-#include "document.hpp"
-#include "mainwindow.hpp"
 #include "ap240_constants.hpp"
+#include "document.hpp"
+#include "histogram.hpp"
+#include "mainwindow.hpp"
+#include "threshold_result.hpp"
 #include <ap240/digitizer.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -60,6 +62,7 @@
 #include <chrono>
 #include <deque>
 #include <fstream>
+#include <list>
 #include <string>
 #include <thread>
 
@@ -77,65 +80,6 @@ namespace ap240 {
         }
     };
 
-    class histogram {
-        histogram( const histogram & ) = delete;
-        histogram& operator = ( const histogram& ) = delete;
-        std::mutex mutex_;
-        std::chrono::steady_clock::time_point tp_;
-    public:
-        histogram() : trigger_count_(0)
-                    , tp_( std::chrono::steady_clock::now() ) {
-        }
-
-        void clear() {
-            std::lock_guard< std::mutex > lock( mutex_ );
-            meta_.actualPoints = 0;
-            tp_ = std::chrono::steady_clock::now();
-        }
-
-        void append( const threshold_result& result ) {
-
-            std::lock_guard< std::mutex > lock( mutex_ );
-
-            if ( meta_.actualPoints != result.data->meta_.actualPoints ||
-                 !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data->meta_.initialXOffset ) ||
-                 !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data->meta_.xIncrement ) ) {
-                
-                trigger_count_ = 0;
-                meta_ = result.data->meta_;
-                
-                data_.resize( meta_.actualPoints );
-                std::fill( data_.begin(), data_.end(), 0 );
-            }
-            std::for_each( result.index.begin(), result.index.end(), [this]( uint32_t idx ){
-                    data_[ idx ] ++; });
-            ++trigger_count_;
-        }
-
-        size_t trigger_count() const { return trigger_count_; }
-        double triggers_per_sec() const { return trigger_count_ / std::chrono::duration<double>(std::chrono::steady_clock::now() - tp_).count(); }
-
-        size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram, ap240::metadata& meta ) {
-            std::lock_guard< std::mutex > lock( mutex_ );
-            meta = meta_;
-            histogram.clear();
-            double t0 = meta_.initialXOffset;
-            for ( auto it = data_.begin(); it < data_.end(); ++it ) {
-                if ( *it ) {
-                    double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
-                    histogram.push_back( std::make_pair( t, *it ) );
-                }
-            }
-            return trigger_count_;
-        }
-        
-    private:
-        // keep metadata
-        ap240::metadata meta_;
-        std::atomic< size_t > trigger_count_;
-        std::vector< uint32_t > data_;
-    };
-
     class document::impl {
 
         boost::asio::io_service io_service_;
@@ -145,6 +89,7 @@ namespace ap240 {
         std::atomic<int> postCount_;
         std::atomic<size_t> waveform_proc_count_;        
         std::atomic<size_t> waveform_post_count_;
+        std::atomic<uint32_t> worker_data_serialnumber_;
 
     public:
         impl() : worker_stop_( false )
@@ -152,8 +97,9 @@ namespace ap240 {
                , histogram_( std::make_shared< histogram >() )
                , postCount_( 0 )
                , round_trip_( 0 )
-               , waveform_post_count_(0)
-               , waveform_proc_count_(0) {
+               , waveform_post_count_( 0 )
+               , waveform_proc_count_( 0 )
+               , worker_data_serialnumber_( 0 ) {
             
             time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
             hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histogram.txt" ).string();
@@ -177,7 +123,7 @@ namespace ap240 {
         std::vector< std::thread > threads_;
         std::mutex que_mutex_;
         
-        std::deque< std::pair<
+        std::list< std::pair<
                         std::shared_ptr< const waveform >
                         , std::shared_ptr< const waveform >
                         > > que_;
@@ -204,13 +150,13 @@ namespace ap240 {
         inline size_t unprocessed_trigger_counts() const { return waveform_post_count_ - waveform_proc_count_; }
         
     private:
-        std::mutex que2_mutex_;        
-        std::deque< std::pair< std::shared_ptr< threshold_result>
-                               , std::shared_ptr< threshold_result > > > que2_;
+        typedef std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > threshold_result_pair_t;
+        
+        std::mutex que2_mutex_;
+        std::list< threshold_result_pair_t > que2_;
         std::shared_ptr< histogram > histogram_;
 
     public:
-
         std::array< ap240::threshold_method, 2 > thresholds_;
 
         inline document::waveforms_t findWaveform() {
@@ -310,7 +256,10 @@ namespace ap240 {
 
         void handle_waveform( std::pair<std::shared_ptr< const waveform >, std::shared_ptr< const waveform > > pair ) {
 
-            std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > results;
+            if ( !pair.first && !pair.second ) // empty
+                return;
+
+            threshold_result_pair_t results;
 
             if ( pair.first ) {
                 
@@ -338,7 +287,7 @@ namespace ap240 {
                 }
             }
                 
-            if ( pair.second ) { //&& thresholds_[1].enable ) {
+            if ( pair.second ) {
                 results.second = std::make_shared< threshold_result >( pair.second );
                 if ( thresholds_[1].enable )
                     find_threshold_timepoints( *pair.second, thresholds_[ 1 ], results.second->index, results.second->processed );
@@ -346,9 +295,14 @@ namespace ap240 {
             
             do {
                 std::lock_guard< std::mutex > lock( que2_mutex_ );
-                if ( que2_.size() > 1536 )
-                    que2_.erase( que2_.begin(), que2_.begin() + 512 );
-                que2_.push_back( results );
+
+                auto it = std::lower_bound( que2_.begin(), que2_.end(), pair.first->serialnumber_
+                                            , [] ( const threshold_result_pair_t& a, uint32_t b ) {
+                                                return a.first ? (a.first->data->serialnumber_ < b) : (a.second->data->serialnumber_ < b);
+                                            } );
+                
+                que2_.insert( it, results );
+
             } while( 0 );
 
             waveform_proc_count_++;
@@ -362,9 +316,20 @@ namespace ap240 {
             while ( true ) {
 
                 sema_.wait();
-
                 if ( worker_stop_ )
                     return;
+
+                // std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > results;
+                // do {
+                //     std::lock_guard< std::mutex > lock( que2_mutex_ );
+                //     auto it = std::lower_bound( que2_.begin(), que2_.end(), worker_data_serialnumber_
+                //                                 , [] ( const threshold_result_pair_t& a, uint32_t b ) {
+                //                                     return a.first ? (a.first->data->serialnumber_ < b)
+                //                                     : (a.second->data->serialnumber_ < b);
+                //                                 } );
+                //     if ( it != que2_.end() )
+                //         results = *it;
+                // } while ( 0 );
 
                 auto tp = std::chrono::steady_clock::now();
 
@@ -474,9 +439,13 @@ document::waveform_handler( const waveform * ch1, const waveform * ch2, ap240::m
 
     impl_->io_service().post( [this,pair](){ impl_->handle_waveform( pair ); } );
 
+    // Cache one second of data when 1kHz trigger rate
     std::lock_guard< std::mutex > lock( impl_->que_mutex_ );
-    if ( impl_->que_.size() > 1500 )
-        impl_->que_.erase( impl_->que_.begin(), impl_->que_.begin() + 500 );
+    if ( impl_->que_.size() > 1500 ) {
+        auto tail = impl_->que_.begin();
+        std::advance( tail, 500 );
+        impl_->que_.erase( impl_->que_.begin(), tail );
+    }
     impl_->que_.push_back( pair );
 
     return false; // no protocol-acquisition handled.

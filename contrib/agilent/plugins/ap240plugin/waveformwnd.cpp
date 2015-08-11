@@ -24,6 +24,7 @@
 
 #include "waveformwnd.hpp"
 #include "document.hpp"
+#include "threshold_result.hpp"
 #include <ap240/digitizer.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/chromatogramwidget.hpp>

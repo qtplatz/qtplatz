@@ -23,10 +23,11 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
-#include "waveformwnd.hpp"
+#include "ap240_constants.hpp"
 #include "document.hpp"
 #include "isequenceimpl.hpp"
-#include "ap240_constants.hpp"
+#include "threshold_result.hpp"
+#include "waveformwnd.hpp"
 #include <ap240w/ap240form.hpp>
 #include <ap240/digitizer.hpp>
 #include <qtwrapper/trackingenabled.hpp>
