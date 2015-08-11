@@ -324,15 +324,17 @@ namespace ap240 {
                         }
                     } while( 0 );
 
-                    std::cout << "list count: " << list.size() << " from: "
-                              << list.front().first->data_->serialnumber_ << ", " << list.back().first->data_->serialnumber_ << std::endl;
+                    if ( !list.empty() ) {
+                        std::cout << "list count: " << list.size() << " from: "
+                                  << list.front().first->data_->serialnumber_ << ", " << list.back().first->data_->serialnumber_ << std::endl;
 
-                    std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
-                    if ( !of.fail() ) {
-                        std::for_each( list.begin(), list.end(), [&of]( const threshold_result_pair_t& p ){
-                                if ( p.first )
-                                    of << *p.first;
-                            });
+                        std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
+                        if ( !of.fail() ) {
+                            std::for_each( list.begin(), list.end(), [&of]( const threshold_result_pair_t& p ){
+                                    if ( p.first )
+                                        of << *p.first;
+                                });
+                        }
                     }
                 }
             }
