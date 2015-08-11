@@ -31,13 +31,13 @@ threshold_result::threshold_result()
 {
 }
 
-threshold_result::threshold_result( std::shared_ptr< const waveform > d ) : data( d )
+threshold_result::threshold_result( std::shared_ptr< const waveform > d ) : data_( d )
 {
 }
 
-threshold_result::threshold_result( const threshold_result& t ) : index( t.index )
-                                                                , data( t.data )
-                                                                , processed( t.processed )
+threshold_result::threshold_result( const threshold_result& t ) : indecies_( t.indecies_ )
+                                                                , data_( t.data_ )
+                                                                , processed_( t.processed_ )
 {
 }
 

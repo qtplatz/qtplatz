@@ -267,7 +267,7 @@ namespace ap240 {
 
                 if ( thresholds_[0].enable ) {
 
-                    find_threshold_timepoints( *pair.first, thresholds_[ 0 ], results.first->index, results.first->processed );
+                    find_threshold_timepoints( *pair.first, thresholds_[ 0 ], results.first->indecies_, results.first->processed_ );
                     histogram_->append( *results.first );
 
                     auto& w = *pair.first;
@@ -280,7 +280,7 @@ namespace ap240 {
                        << boost::format(", %.8e, %.8e" ) % w.meta_.scaleFactor % w.meta_.scaleOffset
                        << boost::format(", %.8e" ) % w.meta_.initialXOffset;
                     
-                    for ( auto& idx: results.first->index ) {
+                    for ( auto& idx : results.first->indecies_ ) {
                         auto v = w[ idx ];
                         of << boost::format(", %.14le, %d" ) % v.first % v.second;
                     }
@@ -290,7 +290,7 @@ namespace ap240 {
             if ( pair.second ) {
                 results.second = std::make_shared< threshold_result >( pair.second );
                 if ( thresholds_[1].enable )
-                    find_threshold_timepoints( *pair.second, thresholds_[ 1 ], results.second->index, results.second->processed );
+                    find_threshold_timepoints( *pair.second, thresholds_[ 1 ], results.second->indecies_, results.second->processed_ );
             }
             
             do {
@@ -298,7 +298,7 @@ namespace ap240 {
 
                 auto it = std::lower_bound( que2_.begin(), que2_.end(), pair.first->serialnumber_
                                             , [] ( const threshold_result_pair_t& a, uint32_t b ) {
-                                                return a.first ? (a.first->data->serialnumber_ < b) : (a.second->data->serialnumber_ < b);
+                                                return a.first ? (a.first->data_->serialnumber_ < b) : (a.second->data_->serialnumber_ < b);
                                             } );
                 
                 que2_.insert( it, results );

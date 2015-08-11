@@ -477,7 +477,7 @@ MainWindow::actSnapshot()
 
         if ( waveform ) {
             
-            if ( document::toMassSpectrum( ms, *waveform->data ) ) {
+            if ( document::toMassSpectrum( ms, *waveform->data_ ) ) {
                 
                 boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
                 path /= "data";
@@ -487,7 +487,7 @@ MainWindow::actSnapshot()
                     boost::filesystem::create_directories( path, ec );
                 }
                 path /= "ap240.adfs";
-                std::wstring title = ( boost::wformat( L"Spectrum %1% CH-%2%" ) % waveform->data->serialnumber_ % ch ).str();
+                std::wstring title = ( boost::wformat( L"Spectrum %1% CH-%2%" ) % waveform->data_->serialnumber_ % ch ).str();
                 std::wstring folderId;
                 if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
                     auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();

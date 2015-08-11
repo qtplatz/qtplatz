@@ -47,17 +47,17 @@ histogram::append( const threshold_result& result )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     
-    if ( meta_.actualPoints != result.data->meta_.actualPoints ||
-         !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data->meta_.initialXOffset ) ||
-         !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data->meta_.xIncrement ) ) {
+    if ( meta_.actualPoints != result.data_->meta_.actualPoints ||
+         !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data_->meta_.initialXOffset ) ||
+         !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data_->meta_.xIncrement ) ) {
         
         trigger_count_ = 0;
-        meta_ = result.data->meta_;
+        meta_ = result.data_->meta_;
         
         data_.resize( meta_.actualPoints );
         std::fill( data_.begin(), data_.end(), 0 );
     }
-    std::for_each( result.index.begin(), result.index.end(), [this]( uint32_t idx ){
+    std::for_each( result.indecies_.begin(), result.indecies_.end(), [this]( uint32_t idx ){
             data_[ idx ] ++; });
     ++trigger_count_;
 }

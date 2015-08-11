@@ -191,7 +191,7 @@ WaveformWnd::handle_waveform()
     for ( auto result: { pair.first, pair.second } ) {
         
         if ( result ) {
-            auto waveform = result->data;
+            auto waveform = result->data_;
             
             double timestamp = waveform->meta_.initialXTimeSeconds;
             int channel = waveform->meta_.channel - 1;
@@ -205,9 +205,9 @@ WaveformWnd::handle_waveform()
             sp->setCentroid( adcontrols::CentroidNone );
             sp->resize( waveform->size() );
 
-            if ( result->processed.size() == waveform->size() ) {
+            if ( result->processed_.size() == waveform->size() ) {
                 size_t idx = 0;
-                for ( auto it = result->processed.begin(); it != result->processed.end(); ++it )
+                for ( auto it = result->processed_.begin(); it != result->processed_.end(); ++it )
                     sp->setIntensity( idx++, *it * 1000 ); // V
             } else  if ( waveform->meta_.dataType == 1 ) {
                 size_t idx = 0;
@@ -249,10 +249,10 @@ WaveformWnd::handle_waveform()
             if ( o.str().empty() )
                 o << boost::format( "Time: %.3lf" ) % waveform->meta_.initialXTimeSeconds;
 
-            if ( !result->index.empty() ) {
+            if ( !result->indecies_.empty() ) {
                 o << boost::format( " CH%d level: [%.0fmV]= " )  % ( channel + 1 ) % levels[ channel ];
-                for ( int i = 0; i < 5 && i < result->index.size(); ++i ) {
-                    double t0 = sp->getTime( result->index[i] ) * 1.0e6;
+                for ( int i = 0; i < 5 && i < result->indecies_.size(); ++i ) {
+                    double t0 = sp->getTime( result->indecies_[i] ) * 1.0e6;
                     o << boost::format( "(%.4lf)" )  % t0;
                 }
             }

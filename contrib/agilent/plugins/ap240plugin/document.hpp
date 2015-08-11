@@ -39,7 +39,7 @@ namespace ap240 {
 	class method;
 	class waveform;
     class threshold_method;
-    struct threshold_result;
+    class threshold_result;
 
     namespace detail { struct remover; }
 

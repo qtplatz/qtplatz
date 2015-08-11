@@ -26,15 +26,17 @@
 
 #include <memory>
 #include <vector>
+#include <cstdint>
 
 namespace ap240 {
 
     class waveform;
 
-    struct threshold_result {
-        std::vector< uint32_t > index;
-        std::shared_ptr< const waveform > data;
-        std::vector< double > processed;
+    class threshold_result {
+    public:
+        std::vector< uint32_t > indecies_;
+        std::shared_ptr< const waveform > data_;
+        std::vector< double > processed_;
 
         threshold_result();
         threshold_result( std::shared_ptr< const waveform > d );
