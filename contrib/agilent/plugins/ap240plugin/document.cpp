@@ -264,7 +264,7 @@ namespace ap240 {
                         processed[ i ] = filter( &processed[i] );
                     
                 } else if ( method.filter == ap240::threshold_method::DFT_Filter ) {
-                    adcontrols::waveform::fft4g::lowpass_filter( processed, data.meta_.xIncrement, method.cutOffMHz * 1.0e6 );
+                    adcontrols::waveform::fft4c::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutOffMHz * 1.0e6 );
                 }
                 double level = ( method.threshold_level / 1000.0 );
                 auto it = processed.begin();

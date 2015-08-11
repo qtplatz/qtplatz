@@ -280,7 +280,7 @@ QuanChromatogramProcessor::doCentroid( const adcontrols::MassSpectrum& profile
             filtered->clone( profile, true );
 
             for ( auto& ms : adcontrols::segment_wrapper<>( *filtered ) ) {
-                adcontrols::waveform::fft4g::lowpass_filter( ms, pCentroidMethod->cutoffFreqHz() );
+                adcontrols::waveform::fft4c::lowpass_filter( ms, pCentroidMethod->cutoffFreqHz() );
             }
 
             filtered->addDescription( adcontrols::description( L"process", dataproc::Constants::F_DFT_FILTERD ) );
