@@ -59,17 +59,15 @@
 #include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <atomic>
 #include <chrono>
 #include <deque>
 #include <fstream>
-#include <list>
+//#include <list>
 #include <string>
 #include <thread>
 
 using namespace ap240;
-
-document * document::instance_ = 0;
-std::mutex document::mutex_;
 
 namespace ap240 {
 
@@ -90,6 +88,9 @@ namespace ap240 {
         std::atomic<size_t> waveform_proc_count_;        
         std::atomic<size_t> waveform_post_count_;
         std::atomic<uint32_t> worker_data_serialnumber_;
+    public:
+        static std::atomic< document * > instance_;
+        static std::mutex mutex_;
 
     public:
         impl() : worker_stop_( false )
@@ -123,7 +124,7 @@ namespace ap240 {
         std::vector< std::thread > threads_;
         std::mutex que_mutex_;
         
-        std::list< std::pair<
+        std::vector< std::pair<
                         std::shared_ptr< const waveform >
                         , std::shared_ptr< const waveform >
                         > > que_;
@@ -153,7 +154,7 @@ namespace ap240 {
         typedef std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > threshold_result_pair_t;
         
         std::mutex que2_mutex_;
-        std::list< threshold_result_pair_t > que2_;
+        std::vector< threshold_result_pair_t > que2_;
         std::shared_ptr< histogram > histogram_;
 
     public:
@@ -266,24 +267,10 @@ namespace ap240 {
                 results.first = std::make_shared< threshold_result >( pair.first );
 
                 if ( thresholds_[0].enable ) {
-
+                    
                     find_threshold_timepoints( *pair.first, thresholds_[ 0 ], results.first->indecies_, results.first->processed_ );
                     histogram_->append( *results.first );
 
-                    auto& w = *pair.first;
-                    
-                    std::lock_guard< std::mutex > lock( document::mutex_ );
-                    
-                    std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
-                    of << boost::format("\n%d, %.8lf, ") % w.serialnumber_ % w.meta_.initialXTimeSeconds
-                       << w.timeSinceEpoch_
-                       << boost::format(", %.8e, %.8e" ) % w.meta_.scaleFactor % w.meta_.scaleOffset
-                       << boost::format(", %.8e" ) % w.meta_.initialXOffset;
-                    
-                    for ( auto& idx : results.first->indecies_ ) {
-                        auto v = w[ idx ];
-                        of << boost::format(", %.14le, %d" ) % v.first % v.second;
-                    }
                 }
             }
                 
@@ -295,14 +282,7 @@ namespace ap240 {
             
             do {
                 std::lock_guard< std::mutex > lock( que2_mutex_ );
-
-                auto it = std::lower_bound( que2_.begin(), que2_.end(), pair.first->serialnumber_
-                                            , [] ( const threshold_result_pair_t& a, uint32_t b ) {
-                                                return a.first ? (a.first->data_->serialnumber_ < b) : (a.second->data_->serialnumber_ < b);
-                                            } );
-                
-                que2_.insert( it, results );
-
+                que2_.push_back( results );
             } while( 0 );
 
             waveform_proc_count_++;
@@ -319,37 +299,51 @@ namespace ap240 {
                 if ( worker_stop_ )
                     return;
 
-                // std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > results;
-                // do {
-                //     std::lock_guard< std::mutex > lock( que2_mutex_ );
-                //     auto it = std::lower_bound( que2_.begin(), que2_.end(), worker_data_serialnumber_
-                //                                 , [] ( const threshold_result_pair_t& a, uint32_t b ) {
-                //                                     return a.first ? (a.first->data->serialnumber_ < b)
-                //                                     : (a.second->data->serialnumber_ < b);
-                //                                 } );
-                //     if ( it != que2_.end() )
-                //         results = *it;
-                // } while ( 0 );
-
                 auto tp = std::chrono::steady_clock::now();
 
-                if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ) > cycleTime && postCount_ == 0 ) {
+                if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ) > cycleTime ) {
 
-                    if ( cycleTime < round_trip_ ) {
-                        ADTRACE() << "Computer is too slow for update spectrum view: round-trip=" << round_trip_.count() << " ms";
-                        cycleTime += std::chrono::milliseconds( 100 );
+                    if ( postCount_ == 0 ) {
+                        if ( cycleTime < round_trip_ ) {
+                            ADTRACE() << "Computer is too slow for update spectrum view: round-trip=" << round_trip_.count() << " ms";
+                            cycleTime += std::chrono::milliseconds( 100 );
+                        }
+                        
+                        time_handled_ = tp;
+                        ++postCount_;
+                        emit document::instance()->on_waveform_received();
                     }
+                    
+                    std::vector< threshold_result_pair_t > list;
+                    do {
+                        std::lock_guard< std::mutex > lock( que2_mutex_ );
+                        if ( que2_.size() > 3 ) {
+                            list.resize( que2_.size() - 2 );
+                            std::copy( que2_.begin(), que2_.begin() + list.size(), list.begin() );
+                            que2_.erase( que2_.begin(), que2_.begin() + list.size() );
+                        }
+                    } while( 0 );
 
-                    time_handled_ = tp;
-                    ++postCount_;
-                    emit document::instance()->on_waveform_received();
+                    std::cout << "list count: " << list.size() << " from: "
+                              << list.front().first->data_->serialnumber_ << ", " << list.back().first->data_->serialnumber_ << std::endl;
+
+                    std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
+                    if ( !of.fail() ) {
+                        std::for_each( list.begin(), list.end(), [&of]( const threshold_result_pair_t& p ){
+                                if ( p.first )
+                                    of << *p.first;
+                            });
+                    }
                 }
             }
         }
     };
 
 }
-    
+
+std::atomic< document * > document::impl::instance_( 0 );
+std::mutex document::impl::mutex_;
+
 document::document() : impl_( new impl() )
                      , digitizer_( new ap240::digitizer )
                      , device_status_( 0 )
@@ -369,12 +363,18 @@ document::~document()
 document *
 document::instance()
 {
-    if ( instance_ == 0 ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        if ( instance_ == 0 )
-            instance_ = new document;
+    document * tmp = impl::instance_.load( std::memory_order_relaxed );
+    std::atomic_thread_fence( std::memory_order_acquire );
+    if ( tmp == nullptr ) {
+        std::lock_guard< std::mutex > lock( impl::mutex_ );
+        tmp = impl::instance_.load( std::memory_order_relaxed );
+        if ( tmp == nullptr ) {
+            tmp = new document();
+            std::atomic_thread_fence( std::memory_order_release );
+            impl::instance_.store( tmp, std::memory_order_relaxed );
+        }
     }
-    return instance_;
+    return tmp;
 }
 
 void
@@ -663,7 +663,7 @@ document::save( const QString& filename, const ap240::method& m )
 std::shared_ptr< ap240::method >
 document::controlMethod() const
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
+    std::lock_guard< std::mutex > lock( impl::mutex_ );
     return method_;
 }
 
@@ -671,7 +671,7 @@ void
 document::setControlMethod( const ap240::method& m, const QString& filename )
 {
     do {
-        std::lock_guard< std::mutex > lock( mutex_ );
+        std::lock_guard< std::mutex > lock( impl::mutex_ );
         method_ = std::make_shared< ap240::method >( m );
         digitizer_->peripheral_prepare_for_run( m );
     } while(0);

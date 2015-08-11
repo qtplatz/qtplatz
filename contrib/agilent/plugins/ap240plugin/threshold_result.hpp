@@ -27,6 +27,7 @@
 #include <memory>
 #include <vector>
 #include <cstdint>
+#include <ostream>
 
 namespace ap240 {
 
@@ -42,5 +43,6 @@ namespace ap240 {
         threshold_result( std::shared_ptr< const waveform > d );
         threshold_result( const threshold_result& t );
     };
-
+    
+    std::ostream& operator << (std::ostream&, const threshold_result& );
 }

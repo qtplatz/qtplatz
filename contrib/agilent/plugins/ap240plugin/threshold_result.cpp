@@ -24,6 +24,7 @@
 
 #include "threshold_result.hpp"
 #include <ap240/digitizer.hpp>
+#include <boost/format.hpp>
 
 using namespace ap240;
 
@@ -41,3 +42,20 @@ threshold_result::threshold_result( const threshold_result& t ) : indecies_( t.i
 {
 }
 
+namespace ap240 {
+    
+    std::ostream& operator << ( std::ostream& os, const threshold_result& t ) {
+
+        os << boost::format("\n%d, %.8lf, ") % t.data_->serialnumber_ % t.data_->meta_.initialXTimeSeconds
+           << t.data_->timeSinceEpoch_
+           << boost::format(", %.8e, %.8e" ) % t.data_->meta_.scaleFactor % t.data_->meta_.scaleOffset
+           << boost::format(", %.8e" ) % t.data_->meta_.initialXOffset;
+        
+        for ( auto& idx : t.indecies_ ) {
+            auto v = (*t.data_)[ idx ];
+            os << boost::format(", %.14le, %d" ) % v.first % v.second;
+        }
+        
+        return os;
+    }
+}

@@ -26,7 +26,6 @@
 #define DOCUMENT_HPP
 
 #include <QObject>
-#include <mutex>
 #include <memory>
 
 class QSettings;
@@ -90,8 +89,7 @@ namespace ap240 {
         class impl;
         impl * impl_;
         
-        static std::mutex mutex_;
-        static document * instance_;
+        // static std::atomic< document * > instance_;
         ap240::digitizer * digitizer_;
         
         std::shared_ptr< ap240::method > method_;
