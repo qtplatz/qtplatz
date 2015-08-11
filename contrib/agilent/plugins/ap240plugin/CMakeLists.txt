@@ -54,20 +54,24 @@ include_directories(
 
 add_library(
   ap240plugin MODULE
-  ap240plugin.cpp
-  mainwindow.cpp
-  ap240mode.cpp
-  document.cpp
-  waveformwnd.cpp
-  isequenceimpl.cpp
-  ap240plugin.hpp
-  ap240_global.hpp
   ap240_constants.hpp
-  mainwindow.hpp
+  ap240_global.hpp  
+  ap240plugin.cpp
+  ap240plugin.hpp  
+  ap240mode.cpp
   ap240mode.hpp
-  document.hpp
-  waveformwnd.hpp
+  document.cpp
+  document.hpp  
+  histogram.cpp
+  histogram.hpp
   isequenceimpl.cpp
+  isequenceimpl.cpp
+  threshold_result.cpp
+  threshold_result.hpp
+  mainwindow.cpp
+  mainwindow.hpp  
+  waveformwnd.cpp
+  waveformwnd.hpp
   ${ap240_Resources}
   )
 
