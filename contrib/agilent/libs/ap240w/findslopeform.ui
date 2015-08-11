@@ -224,13 +224,6 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QRadioButton" name="radioButton_dft">
-               <property name="text">
-                <string>DFT (MHz)</string>
-               </property>
-              </widget>
-             </item>
              <item row="1" column="1">
               <widget class="QSpinBox" name="spinBox_dft">
                <property name="minimum">
@@ -257,6 +250,23 @@
                </property>
                <property name="value">
                 <number>5</number>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QRadioButton" name="radioButton_dft">
+               <property name="text">
+                <string>DFT (MHz)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QCheckBox" name="checkBox">
+               <property name="text">
+                <string>Complex</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>

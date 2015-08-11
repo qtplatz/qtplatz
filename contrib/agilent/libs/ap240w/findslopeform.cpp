@@ -61,6 +61,8 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
     
     connect( ui->spinBox_sg, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged( channel_ ); } ); // SG
     connect( ui->spinBox_dft, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged( channel_ ); } ); // DFT
+    // complex or real
+    connect( ui->checkBox, &QCheckBox::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } );
 }
 
 findSlopeForm::~findSlopeForm()
@@ -118,6 +120,7 @@ findSlopeForm::set( const ap240::threshold_method& m )
     }
     ui->spinBox_sg->setValue( m.sgPoints );
     ui->spinBox_dft->setValue( m.cutOffMHz );
+    ui->checkBox->setChecked( m.complex_ );
 }
 
 void
@@ -135,6 +138,7 @@ findSlopeForm::get( ap240::threshold_method& m ) const
         m.filter = ap240::threshold_method::DFT_Filter;
     m.sgPoints = ui->spinBox_sg->value();
     m.cutOffMHz = ui->spinBox_dft->value();
+    m.complex_ = ui->checkBox->isChecked();
 }
 
 int
