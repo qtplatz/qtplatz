@@ -182,7 +182,9 @@ WaveformWnd::handle_waveform()
 
     if ( auto ms = document::instance()->getHistogram( resolution ) ) {
 
-        hpw_->setData( ms, 0 );
+        if ( ms->size() > 0 )
+            hpw_->setData( ms, 0 );
+
         const auto& info = ms->getMSProperty().getSamplingInfo();
         hpw_->setTitle( ( boost::format( "triggers: %1%;&nbsp;&nbsp;%2% triggers in que; &nbsp; rate = %3% trig/s" )
                           % info.numberOfTriggers()
