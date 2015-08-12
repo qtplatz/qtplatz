@@ -109,6 +109,7 @@ namespace ap240 {
         
         ~impl() {
             stop();
+            std::cout << "########### document::impl DTOR ##############" << std::endl;
         }
         
         inline boost::asio::io_service& io_service() { return io_service_; }
@@ -164,21 +165,32 @@ namespace ap240 {
         inline bool set_threshold_method( int ch, const ap240::threshold_method& m ) {
 
             if ( ch < threshold_methods_.size() ) {
-                if ( auto prev = threshold_methods_[ ch ] ) {
+                if ( auto prev = threshold_method( ch ) ) { //threshold_methods_[ ch ] ) {
                     namespace ap = adportable;
+
                     if ( prev->enable != m.enable ||
                          (!ap::compare<double>::approximatelyEqual( prev->threshold_level, m.threshold_level )) ||
                          (!ap::compare<double>::approximatelyEqual( prev->response_time, m.response_time )) ||
                          prev->slope != m.slope ||
-                         prev->use_filter != m.use_filter ||
-                         prev->filter != m.filter ||
-                         (!ap::compare<double>::approximatelyEqual( prev->sgwidth, m.sgwidth )) ||
-                         (!ap::compare<double>::approximatelyEqual( prev->cutoffHz, m.cutoffHz )) ||
-                         prev->complex_ != m.complex_ ) {
+                         prev->use_filter != m.use_filter ) {
+                        
                         // clear histogram except for time_resolution change, which is for histogram calculation resolution
                         histogram_->clear();
                     }
+
+                    if ( m.use_filter ) {
+                        if ( ( prev->filter != m.filter ) ||
+                             ( ( m.filter == threshold_method::SG_Filter ) && 
+                               ( !ap::compare<double>::approximatelyEqual( prev->sgwidth, m.sgwidth ) ) ) ||
+                             ( ( m.filter == threshold_method::DFT_Filter ) && 
+                               ( ( !ap::compare<double>::approximatelyEqual( prev->cutoffHz, m.cutoffHz ) ) ||
+                                 ( m.complex_ != prev->complex_ ) ) ) ) {
+                            // clear histogram except for time_resolution change, which is for histogram calculation resolution
+                            histogram_->clear();                                 
+                        }
+                    }
                 }
+                std::lock_guard< std::mutex > lock( mutex_ );                
                 threshold_methods_[ ch ] = std::make_shared< ap240::threshold_method >( m );
                 return true;
             }
@@ -186,8 +198,10 @@ namespace ap240 {
         }
 
         inline std::shared_ptr< const ap240::threshold_method> threshold_method( int ch ) const {
-            if ( ch < threshold_methods_.size() )
+            if ( ch < threshold_methods_.size() ) {
+                std::lock_guard< std::mutex > lock( mutex_ );
                 return threshold_methods_[ ch ];
+            }
             return 0;
         }
 
@@ -296,7 +310,12 @@ namespace ap240 {
                 return;
 
             threshold_result_pair_t results;
-            auto methods( threshold_methods_ );
+            std::array< std::shared_ptr< ap240::threshold_method >, 2 > methods;
+            do {
+                std::lock_guard< std::mutex > lock( mutex_ );
+                methods[0] = threshold_methods_[ 0 ];
+                methods[1] = threshold_methods_[ 1 ];                
+            } while ( 0 );
 
             if ( pair.first ) {
                 
@@ -615,7 +634,6 @@ document::initialSetup()
         for ( size_t i = 0; i < x.size(); ++i )
             set_threshold_method( int( i ), x[ i ] );
     } catch( ... ) {
-        ADERROR() << "############ ap240::threshold_method load failed";
         set_threshold_method( 0, ap240::threshold_method() );
         set_threshold_method( 1, ap240::threshold_method() );
     }
@@ -624,6 +642,10 @@ document::initialSetup()
 void
 document::finalClose()
 {
+    std::cout << "########### document::finalClose ##############" << std::endl;
+    impl_->stop();
+    std::cout << "########### document::finalClose (stop) ##############" << std::endl;
+    
     boost::filesystem::path dir = user_preference::path( settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
