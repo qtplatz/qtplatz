@@ -600,6 +600,8 @@ document::initialSetup()
             set_threshold_method( int( i ), x[ i ] );
     } catch( ... ) {
         ADERROR() << "############ ap240::threshold_method load failed";
+        set_threshold_method( 0, ap240::threshold_method() );
+        set_threshold_method( 1, ap240::threshold_method() );
     }
 }
 

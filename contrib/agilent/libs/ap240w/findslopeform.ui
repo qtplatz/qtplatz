@@ -217,7 +217,7 @@
              <item row="0" column="0">
               <widget class="QRadioButton" name="radioButton_sg">
                <property name="text">
-                <string>SG Filter (#pts)</string>
+                <string>SG Filter (ns)</string>
                </property>
                <property name="checked">
                 <bool>true</bool>

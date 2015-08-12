@@ -177,7 +177,7 @@ waveform::fft4g::lowpass_filter( size_t size, double * data, double sampInterval
     while ( N < size )
 		N *= 2;
 
-    const size_t cutoff = size_t( ( N * sampInterval ) * freq ) * 2.0;
+    const size_t cutoff = size_t( N * sampInterval * freq * 2.0 + 0.5 );
 
     std::vector< double > a( N );
     
@@ -276,7 +276,7 @@ waveform::sg::lowpass_filter( adcontrols::MassSpectrum& ms, double width )
 
     using adportable::SGFilter;
 
-    SGFilter smoother( npts, SGFilter::Smoothing, SGFilter::Cubic );
+    SGFilter smoother( int( npts ), SGFilter::Smoothing, SGFilter::Cubic );
     
     std::vector< double > data( ms.size() );
     const double * pi = ms.getIntensityArray();
@@ -299,7 +299,7 @@ waveform::sg::lowpass_filter( size_t size, double * data, double sampInterval, d
 
     using adportable::SGFilter;
 
-    SGFilter smoother( npts, SGFilter::Smoothing, SGFilter::Cubic );
+    SGFilter smoother( int( npts ), SGFilter::Smoothing, SGFilter::Cubic );
 
     std::vector< double > sdata( size );
 

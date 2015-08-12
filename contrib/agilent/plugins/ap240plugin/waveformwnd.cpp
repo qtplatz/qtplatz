@@ -139,9 +139,10 @@ WaveformWnd::handle_threshold_method( int ch )
     if ( auto method = document::instance()->threshold_method( ch ) ) {
 
         bool replot( false );
-        
-        if ( !adportable::compare<double>::approximatelyEqual( threshold_markers_[ ch ]->yValue(), method->threshold_level ) ) {
-            threshold_markers_[ ch ]->setYValue( method->threshold_level );
+        double level_mV = method->threshold_level * 1.0e3;
+
+        if ( !adportable::compare<double>::approximatelyEqual( threshold_markers_[ ch ]->yValue(), level_mV ) ) {
+            threshold_markers_[ ch ]->setYValue( level_mV );
             replot = true;
         }
         if ( method->enable != threshold_markers_[ ch ]->isVisible() ) {
@@ -200,8 +201,8 @@ WaveformWnd::handle_waveform()
 
     std::ostringstream o;
 
-    double levels[] = { document::instance()->threshold_method(0)->threshold_level
-                        , document::instance()->threshold_method(1)->threshold_level };
+    double levels_mV[] = { document::instance()->threshold_method(0)->threshold_level * 1000.0
+                         , document::instance()->threshold_method( 1 )->threshold_level * 1000.0 };
 
     for ( auto result: { pair.first, pair.second } ) {
         
@@ -265,7 +266,7 @@ WaveformWnd::handle_waveform()
                 o << boost::format( "Time: %.3lf" ) % waveform->meta_.initialXTimeSeconds;
 
             if ( !result->indecies_.empty() ) {
-                o << boost::format( " CH%d level: [%.0fmV]= " )  % ( channel + 1 ) % levels[ channel ];
+                o << boost::format( " CH%d level: [%.0fmV]= " )  % ( channel + 1 ) % levels_mV[ channel ];
                 for ( int i = 0; i < 5 && i < result->indecies_.size(); ++i ) {
                     double t0 = sp->getTime( result->indecies_[i] ) * 1.0e6;
                     o << boost::format( "(%.4lf)" )  % t0;
