@@ -44,15 +44,20 @@ namespace ap240 {
         void append( const threshold_result& result );
         size_t trigger_count() const;
         double triggers_per_sec() const;
-        size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram, ap240::metadata& meta );
+        size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
+                             , ap240::metadata& meta
+                             , uint32_t& serialnumber
+                             , uint64_t& timeSinceEpoch );
 
         static bool average( const std::vector< std::pair< double, uint32_t > >&
                              , double resolution, std::vector< double >& times, std::vector< double >& intens );
 
     private:
         // metadata for initial trigger in this histogram
-        ap240::metadata meta_;  
-        std::atomic< size_t > trigger_count_;
+        ap240::metadata meta_;
+        uint32_t serialnumber_;               // first waveform trigger#
+        uint64_t timeSinceEpoch_;             // first waveform acquired time
+        std::atomic< size_t > trigger_count_; // number of triggers
         std::vector< uint32_t > data_;
     };
 

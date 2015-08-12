@@ -30,7 +30,9 @@
 
 using namespace ap240;
 
-histogram::histogram() : trigger_count_(0)
+histogram::histogram() : serialnumber_( 0 )
+                       , timeSinceEpoch_( 0 )
+                       , trigger_count_( 0 )
                        , tp_( std::chrono::steady_clock::now() )
 {
 }
@@ -54,12 +56,15 @@ histogram::append( const threshold_result& result )
         
         trigger_count_ = 0;
         meta_ = result.data_->meta_;
+        serialnumber_ = result.data_->serialnumber_;
+        timeSinceEpoch_ = result.data_->timeSinceEpoch_;
         
         data_.resize( meta_.actualPoints );
         std::fill( data_.begin(), data_.end(), 0 );
     }
     std::for_each( result.indecies_.begin(), result.indecies_.end(), [this]( uint32_t idx ){
             data_[ idx ] ++; });
+
     ++trigger_count_;
 }
 
@@ -76,12 +81,17 @@ histogram::triggers_per_sec() const
 }
 
 size_t
-histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& histogram, ap240::metadata& meta )
+histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
+                         , ap240::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch )
 {
+    histogram.clear();
+    
     std::lock_guard< std::mutex > lock( mutex_ );
 
     meta = meta_;
-    histogram.clear();
+    serialnumber = serialnumber_;
+    timeSinceEpoch = timeSinceEpoch_;
+
     double t0 = meta_.initialXOffset;
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {

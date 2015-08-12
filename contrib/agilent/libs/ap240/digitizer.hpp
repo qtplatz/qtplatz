@@ -67,7 +67,7 @@ namespace ap240 {
         enum Slope { CrossUp, CrossDown };
         bool enable;
         double threshold_level;   // V
-        double time_resolution;   // seconds
+        double time_resolution;   // seconds --> for histogram (does not affect for acquiring waveforms)
         double response_time;     // seconds
         Slope slope;              // POS(CrossUp) | NEG(CrossDown)
         bool use_filter;

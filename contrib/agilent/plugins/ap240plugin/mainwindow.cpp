@@ -33,9 +33,11 @@
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adextension/isnapshothandler.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adinterface/controlserver.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
 #include <adplugin/lifecycle.hpp>
@@ -476,24 +478,34 @@ MainWindow::actStop()
 void
 MainWindow::actSnapshot()
 {
-    
+    boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
+    path /= "data";
+    path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+    if ( ! boost::filesystem::exists( path ) ) {
+        boost::system::error_code ec;
+        boost::filesystem::create_directories( path, ec );
+    }
+    path /= "ap240.adfs";
+
+    // get histogram
+    double resolution = 0.0;
+    if ( auto tm = document::instance()->threshold_method( 0 ) )
+        resolution = tm->time_resolution;
+
+    auto histogram = document::instance()->getHistogram( resolution );
+
+    uint32_t serialnumber(0);
+
+    // get waveform(s)
     auto waveforms = document::instance()->findWaveform();
     adcontrols::MassSpectrum ms;
     int ch = 1;
     for ( auto waveform: { waveforms.first, waveforms.second } ) {
-
+        
         if ( waveform ) {
             
             if ( document::toMassSpectrum( ms, *waveform->data_ ) ) {
-                
-                boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
-                path /= "data";
-                path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
-                if ( ! boost::filesystem::exists( path ) ) {
-                    boost::system::error_code ec;
-                    boost::filesystem::create_directories( path, ec );
-                }
-                path /= "ap240.adfs";
+                serialnumber = waveform->data_->serialnumber_;
                 std::wstring title = ( boost::wformat( L"Spectrum %1% CH-%2%" ) % waveform->data_->serialnumber_ % ch ).str();
                 std::wstring folderId;
                 if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
@@ -504,6 +516,18 @@ MainWindow::actSnapshot()
             }
         }
         ++ch;
+    }
+
+    // save histogram
+    ch = 1;
+    if ( histogram ) {
+        std::wstring title = ( boost::wformat( L"Histgram %1% CH-%2%" ) % serialnumber % ch ).str();
+        std::wstring folderId;
+        if ( document::appendOnFile( path.wstring(), title, *histogram, folderId ) ) {
+            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+            for ( auto handler: vec )
+                handler->folium_added( path.string().c_str(), "/Processed/Spectra", QString::fromStdWString( folderId ) );
+        }
     }
 }
 

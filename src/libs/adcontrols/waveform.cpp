@@ -293,9 +293,9 @@ waveform::sg::lowpass_filter( adcontrols::MassSpectrum& ms, double width )
 bool
 waveform::sg::lowpass_filter( size_t size, double * data, double sampInterval, double width )
 {
-    size_t npts = unsigned ( width / sampInterval ) & 01;
-    if ( npts < 3 )
-        return false;
+    size_t npts = unsigned ( width / sampInterval ) | 01;
+    if ( npts < 5 )
+        npts = 5;
 
     using adportable::SGFilter;
 

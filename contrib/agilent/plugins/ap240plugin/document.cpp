@@ -133,8 +133,9 @@ namespace ap240 {
             histogram_->clear();
         }
 
-        inline size_t getHistogram( std::vector< std::pair< double, uint32_t > >& data, ap240::metadata& meta ) {
-            return histogram_->getHistogram( data, meta );
+        inline size_t getHistogram( std::vector< std::pair< double, uint32_t > >& data
+                                    , ap240::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch ) {
+            return histogram_->getHistogram( data, meta, serialnumber, timeSinceEpoch );
         }
 
         inline double triggers_per_sec() const {
@@ -161,9 +162,24 @@ namespace ap240 {
     public:
 
         inline bool set_threshold_method( int ch, const ap240::threshold_method& m ) {
+
             if ( ch < threshold_methods_.size() ) {
+                if ( auto prev = threshold_methods_[ ch ] ) {
+                    namespace ap = adportable;
+                    if ( prev->enable != m.enable ||
+                         (!ap::compare<double>::approximatelyEqual( prev->threshold_level, m.threshold_level )) ||
+                         (!ap::compare<double>::approximatelyEqual( prev->response_time, m.response_time )) ||
+                         prev->slope != m.slope ||
+                         prev->use_filter != m.use_filter ||
+                         prev->filter != m.filter ||
+                         (!ap::compare<double>::approximatelyEqual( prev->sgwidth, m.sgwidth )) ||
+                         (!ap::compare<double>::approximatelyEqual( prev->cutoffHz, m.cutoffHz )) ||
+                         prev->complex_ != m.complex_ ) {
+                        // clear histogram except for time_resolution change, which is for histogram calculation resolution
+                        histogram_->clear();
+                    }
+                }
                 threshold_methods_[ ch ] = std::make_shared< ap240::threshold_method >( m );
-                histogram_->clear();
                 return true;
             }
             return false;
@@ -731,8 +747,10 @@ document::getHistogram( double resolution ) const
     std::vector< std::pair< double, uint32_t > > hist;
 
     auto sp = std::make_shared< adcontrols::MassSpectrum >();    
+    uint32_t serialnumber;
+    uint64_t timeSinceEpoch;
 
-    if ( size_t trigCount = impl_->getHistogram( hist, meta ) ) {
+    if ( size_t trigCount = impl_->getHistogram( hist, meta, serialnumber, timeSinceEpoch ) ) {
         
         using namespace adcontrols::metric;
         
@@ -749,7 +767,7 @@ document::getHistogram( double resolution ) const
         prop.setSamplingInfo( info );
         
         prop.setTimeSinceInjection( meta.initialXTimeSeconds );
-        prop.setTimeSinceEpoch( 0 );
+        prop.setTimeSinceEpoch( timeSinceEpoch );
         prop.setDataInterpreterClsid( "ap240" );
         
         {
