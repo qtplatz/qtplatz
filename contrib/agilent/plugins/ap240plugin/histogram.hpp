@@ -45,6 +45,10 @@ namespace ap240 {
         size_t trigger_count() const;
         double triggers_per_sec() const;
         size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram, ap240::metadata& meta );
+
+        static bool average( const std::vector< std::pair< double, uint32_t > >&
+                             , double resolution, std::vector< double >& times, std::vector< double >& intens );
+
     private:
         // metadata for initial trigger in this histogram
         ap240::metadata meta_;  

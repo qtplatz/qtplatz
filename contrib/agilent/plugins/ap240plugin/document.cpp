@@ -222,17 +222,17 @@ namespace ap240 {
                 }
 
                 if ( method.filter == ap240::threshold_method::SG_Filter ) {
-                    adportable::SGFilter filter( method.sgPoints & 01 ); // make odd
-                    for ( size_t i = method.sgPoints / 2 + 1; i < data.size() - method.sgPoints / 2 - 1; ++i )
-                        processed[ i ] = filter( &processed[i] );
-                    
+
+                    adcontrols::waveform::sg::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.sgwidth );
+
                 } else if ( method.filter == ap240::threshold_method::DFT_Filter ) {
                     if ( method.complex_ )
-                        adcontrols::waveform::fft4c::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutOffMHz * 1.0e6 );
+                        adcontrols::waveform::fft4c::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
                     else
-                        adcontrols::waveform::fft4g::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutOffMHz * 1.0e6 );
+                        adcontrols::waveform::fft4g::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
                 }
-                double level = ( method.threshold_level / 1000.0 );
+
+                double level = method.threshold_level;
                 auto it = processed.begin();
                 while ( it != processed.end() ) {
                     if ( ( it = adportable::waveform_processor().find_threshold_element( it, processed.end(), level, flag ) ) != processed.end() ) {
@@ -241,34 +241,34 @@ namespace ap240 {
                         std::advance( it, nfilter );
                     }
                 }
-                return;
-            }
+            } else {
             
-            if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
-                double level = ( ( method.threshold_level / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-                
-                typedef int8_t T;
-                auto it = data.begin<T>();
-                while ( it != data.end<T>() ) {
-                    if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
-                        if ( flag == findUp )
-                            elements.push_back( std::distance( data.begin<T>(), it ) );
-                        std::advance( it, nfilter );
+                if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
+                    double level = ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+                    
+                    typedef int8_t T;
+                    auto it = data.begin<T>();
+                    while ( it != data.end<T>() ) {
+                        if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
+                            if ( flag == findUp )
+                                elements.push_back( std::distance( data.begin<T>(), it ) );
+                            std::advance( it, nfilter );
+                        }
                     }
-                }
-                
-            } else if ( data.meta_.dataType == 4 ) { // sizeof(int32_t)
-                // scaleFactor = Volts/LSB  (1.0V FS = 0.00390625)
-                double level_per_trigger = ( ( method.threshold_level / 1000.0 ) + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-                double level = level_per_trigger * data.meta_.actualAverages;
-                
-                typedef int32_t T;
-                auto it = data.begin<T>();
-                while ( it != data.end<T>() ) {
-                    if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
-                        if ( flag == findUp )                        
-                            elements.push_back( std::distance( data.begin<T>(), it ) );
-                        std::advance( it, nfilter );                        
+                    
+                } else if ( data.meta_.dataType == 4 ) { // sizeof(int32_t)
+                    // scaleFactor = Volts/LSB  (1.0V FS = 0.00390625)
+                    double level_per_trigger = ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+                    double level = level_per_trigger * data.meta_.actualAverages;
+                    
+                    typedef int32_t T;
+                    auto it = data.begin<T>();
+                    while ( it != data.end<T>() ) {
+                        if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
+                            if ( flag == findUp )                        
+                                elements.push_back( std::distance( data.begin<T>(), it ) );
+                            std::advance( it, nfilter );                        
+                        }
                     }
                 }
             }
@@ -299,7 +299,7 @@ namespace ap240 {
                 results.second = std::make_shared< threshold_result >( pair.second );
                 
                 if ( methods[1]->enable )
-                    find_threshold_timepoints( *pair.second, *methods[0], results.second->indecies_, results.second->processed_ );
+                    find_threshold_timepoints( *pair.second, *methods[1], results.second->indecies_, results.second->processed_ );
             }
             
             do {
@@ -723,49 +723,59 @@ document::threshold_method( int ch ) const
 
 
 std::shared_ptr< adcontrols::MassSpectrum >
-document::getHistogram() const
+document::getHistogram( double resolution ) const
 {
     ap240::metadata meta;
     std::vector< std::pair< double, uint32_t > > hist;
 
-    size_t trigCount = impl_->getHistogram( hist, meta );
-    auto sp = std::make_shared< adcontrols::MassSpectrum >();
+    auto sp = std::make_shared< adcontrols::MassSpectrum >();    
 
-    using namespace adcontrols::metric;
+    if ( size_t trigCount = impl_->getHistogram( hist, meta ) ) {
+        
+        using namespace adcontrols::metric;
+        
+        sp->setCentroid( adcontrols::CentroidNative );
+        
+        adcontrols::MSProperty prop = sp->getMSProperty();
+        adcontrols::MSProperty::SamplingInfo info( 0
+                                                   , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
+                                                   , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
+                                                   , uint32_t( trigCount )
+                                                   , 0 );
+        info.fSampInterval( meta.xIncrement );
+        prop.acceleratorVoltage( 3000 );
+        prop.setSamplingInfo( info );
+        
+        prop.setTimeSinceInjection( meta.initialXTimeSeconds );
+        prop.setTimeSinceEpoch( 0 );
+        prop.setDataInterpreterClsid( "ap240" );
+        
+        {
+            ap240::device_data data;
+            data.meta = meta;
+            std::string ar;
+            adportable::binary::serialize<>()( data, ar );
+            prop.setDeviceData( ar.data(), ar.size() );
+        }
+        
+        sp->setMSProperty( prop );
 
-    sp->setCentroid( adcontrols::CentroidNative );
-    
-    adcontrols::MSProperty prop = sp->getMSProperty();
-    adcontrols::MSProperty::SamplingInfo info( 0
-                                               , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
-                                               , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
-                                               , uint32_t( trigCount )
-                                               , 0 );
-    info.fSampInterval( meta.xIncrement );
-    prop.acceleratorVoltage( 3000 );
-    prop.setSamplingInfo( info );
-    
-    prop.setTimeSinceInjection( meta.initialXTimeSeconds );
-    prop.setTimeSinceEpoch( 0 );
-    prop.setDataInterpreterClsid( "ap240" );
+        if ( resolution > meta.xIncrement ) {
 
-    // ap240::device_data data;
-    // // data.ident = *waveform.ident_;
-    // data.meta = waveform.meta_;
-    // std::string ar;
-    // adportable::binary::serialize<>()( data, ar );
-    // prop.setDeviceData( ar.data(), ar.size() );
-
-    // prop.setDeviceData(); TBA
-    sp->setMSProperty( prop );
-    sp->resize( hist.size() );
-    size_t idx = 0;
-    for ( const auto& d: hist ) {
-        sp->setTime( idx, d.first );
-        sp->setIntensity( idx, d.second );
-        ++idx;
+            std::vector< double > times, intens;
+            histogram::average( hist, resolution, times, intens );
+            sp->resize( times.size() );
+            sp->setTimeArray( times.data() );
+            sp->setIntensityArray( intens.data() );
+        } else {
+            sp->resize( hist.size() );            
+            for ( size_t idx = 0; idx < hist.size(); ++idx ) {
+                sp->setTime( idx, hist[idx].first );
+                sp->setIntensity( idx, hist[idx].second );
+            }
+        }
     }
-	return sp;
+    return sp;
 }
 
 void

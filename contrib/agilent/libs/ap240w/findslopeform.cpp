@@ -104,9 +104,9 @@ findSlopeForm::set( const ap240::threshold_method& m )
 
 
     ui->groupBox->setChecked( m.enable );
-    ui->doubleSpinBox->setValue( m.threshold_level );
-    ui->doubleSpinBox_resolution->setValue( m.time_resolution * 1.0e9 );    // --> ns
-    ui->doubleSpinBox_resp->setValue( m.response_time * 1.0e9 );    // --> ns
+    ui->doubleSpinBox->setValue( m.threshold_level * 1.0e-3 );           // --> mV
+    ui->doubleSpinBox_resolution->setValue( m.time_resolution * 1.0e9 ); // --> ns
+    ui->doubleSpinBox_resp->setValue( m.response_time * 1.0e9 );         // --> ns
 
     // Slope
     ui->radioButton_neg->setChecked( m.slope == ap240::threshold_method::CrossDown ); // NEG
@@ -118,8 +118,8 @@ findSlopeForm::set( const ap240::threshold_method& m )
     case ap240::threshold_method::DFT_Filter:   ui->radioButton_dft->setChecked( true ); break;
     case ap240::threshold_method::SG_Filter:    ui->radioButton_sg->setChecked( true );   break;
     }
-    ui->spinBox_sg->setValue( m.sgPoints );
-    ui->spinBox_dft->setValue( m.cutOffMHz );
+    ui->spinBox_sg->setValue( m.sgwidth * 1.0e9 );    // s --> ns
+    ui->spinBox_dft->setValue( m.cutoffHz * 1.0e-6 ); // Hz --> MHz
     ui->checkBox->setChecked( m.complex_ );
 }
 
@@ -127,7 +127,7 @@ void
 findSlopeForm::get( ap240::threshold_method& m ) const
 {
     m.enable = ui->groupBox->isChecked();
-    m.threshold_level = ui->doubleSpinBox->value();
+    m.threshold_level = ui->doubleSpinBox->value() * 1.0e-3; // mV -> V
     m.time_resolution = ui->doubleSpinBox_resolution->value() * 1.0e-9; // ns -> seconds
     m.response_time = ui->doubleSpinBox_resp->value() * 1.0e-9; // ns -> seconds
     m.slope = ui->radioButton_neg->isChecked() ? ap240::threshold_method::CrossDown : ap240::threshold_method::CrossUp;
@@ -136,8 +136,8 @@ findSlopeForm::get( ap240::threshold_method& m ) const
         m.filter = ap240::threshold_method::SG_Filter;
     else 
         m.filter = ap240::threshold_method::DFT_Filter;
-    m.sgPoints = ui->spinBox_sg->value();
-    m.cutOffMHz = ui->spinBox_dft->value();
+    m.sgwidth = ui->spinBox_sg->value() * 1.0e-9;           // ns -> s
+    m.cutoffHz = ui->spinBox_dft->value() * 1.0e6;          // MHz -> Hz
     m.complex_ = ui->checkBox->isChecked();
 }
 

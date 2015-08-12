@@ -175,16 +175,28 @@ WaveformWnd::handle_waveform()
 {
     auto pair = document::instance()->findWaveform();
 
-    if ( auto ms = document::instance()->getHistogram() ) {
+    double resolution = 0.0;
+    if ( auto tm = document::instance()->threshold_method( 0 ) )
+        resolution = tm->time_resolution;
+
+    if ( auto ms = document::instance()->getHistogram( resolution ) ) {
+
         hpw_->setData( ms, 0 );
         const auto& info = ms->getMSProperty().getSamplingInfo();
-        hpw_->setTitle( ( boost::format( "triggers: %1%; %2% triggers remain; rate = %3% trig/s" )
+        hpw_->setTitle( ( boost::format( "triggers: %1%;&nbsp;&nbsp;%2% triggers in que; &nbsp; rate = %3% trig/s" )
                           % info.numberOfTriggers()
                           % document::instance()->unprocessed_trigger_counts()
                           % document::instance()->triggers_per_second()).str() );
         if ( ( tickCount_++ % 5 ) == 0 )
             document::instance()->save_histogram( tickCount_, *ms );
     }
+
+#if defined DEBUG || defined _DEBUG && 0
+    if ( auto ms = document::instance()->getHistogram( 0.0 ) ) {
+        hpw_->setData( ms, 1 );
+        hpw_->setAlpha( 1, 0x20 );
+    }
+#endif
 
     std::ostringstream o;
 

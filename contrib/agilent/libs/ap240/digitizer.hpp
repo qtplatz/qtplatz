@@ -66,25 +66,25 @@ namespace ap240 {
         enum FilterAlgo { SG_Filter, DFT_Filter };
         enum Slope { CrossUp, CrossDown };
         bool enable;
-        double threshold_level;   // mV
+        double threshold_level;   // V
         double time_resolution;   // seconds
         double response_time;     // seconds
-        Slope slope;       // POS(CrossUp) | NEG(CrossDown)
+        Slope slope;              // POS(CrossUp) | NEG(CrossDown)
         bool use_filter;
         FilterAlgo filter;
-        int32_t sgPoints;      // SG-smooth points
-        int32_t cutOffMHz;     // DFT
+        double sgwidth;           // SG-smooth width
+        double cutoffHz;          // DFT
         bool complex_;
         
         threshold_method() : enable( false )
-                           , threshold_level( 100.0 )
+                           , threshold_level( 0.100 )  // 100mV
                            , time_resolution( 0.5e-9 ) // 0.5ns
                            , response_time( 0.0 )
                            , slope( CrossDown )
                            , use_filter( false )
                            , filter( SG_Filter )
-                           , sgPoints( 5 )
-                           , cutOffMHz( 200 )
+                           , sgwidth( 5.0e-9 )         // 5ns
+                           , cutoffHz( 200e6 )         // 200MHz
                            , complex_( true ) {
         }
 
@@ -99,11 +99,9 @@ namespace ap240 {
             ar & BOOST_SERIALIZATION_NVP( slope );
             ar & BOOST_SERIALIZATION_NVP( use_filter );
             ar & BOOST_SERIALIZATION_NVP( filter );
-            ar & BOOST_SERIALIZATION_NVP( sgPoints );
-            ar & BOOST_SERIALIZATION_NVP( cutOffMHz );
-            if ( version >= 2 ) {
-                ar & BOOST_SERIALIZATION_NVP( complex_ );
-            }
+            ar & BOOST_SERIALIZATION_NVP( sgwidth );
+            ar & BOOST_SERIALIZATION_NVP( cutoffHz );
+            ar & BOOST_SERIALIZATION_NVP( complex_ );
         }
     };
 

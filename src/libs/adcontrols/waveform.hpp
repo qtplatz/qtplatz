@@ -50,8 +50,9 @@ namespace adcontrols {
             static bool lowpass_filter( size_t, double *, double sampInterval /* seconds */, double freq = 100.0e6 /* 100MHz */ );
 		};
         
-        struct savitzky_golay {
-            static bool lowpass_filter( MassSpectrum& );
+        struct sg {
+            static bool lowpass_filter( MassSpectrum&, double width = 5.0e-9 /* 5ns */);
+            static bool lowpass_filter( size_t, double *, double sampInterval /* seconds */, double width = 5.0e-9 /* 5ns */ );
 		};
 	};
 

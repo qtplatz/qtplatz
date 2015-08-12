@@ -28,6 +28,7 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/fft.hpp>
 #include <adportable/float.hpp>
+#include <adportable/sgfilter.hpp>
 #include <vector>
 #include <complex>
 #include <algorithm>
@@ -261,3 +262,52 @@ waveform::fft4c::lowpass_filter( size_t size, double * data, double sampInterval
 
 	return true;
 }
+
+/////////////////////
+
+bool
+waveform::sg::lowpass_filter( adcontrols::MassSpectrum& ms, double width )
+{
+    double sampInterval = ms.getMSProperty().samplingInfo().fSampInterval(); // seconds
+    size_t npts = uint32_t( width / sampInterval ) & 01;
+
+    if ( npts < 3 || ms.isCentroid() )
+        return false;
+
+    using adportable::SGFilter;
+
+    SGFilter smoother( npts, SGFilter::Smoothing, SGFilter::Cubic );
+    
+    std::vector< double > data( ms.size() );
+    const double * pi = ms.getIntensityArray();
+    
+    for ( size_t i = npts / 2; i < ms.size() - ( npts / 2 ); ++i )
+        data[i] = smoother( pi + i );
+
+    for ( size_t i = npts / 2; i < ms.size() - ( npts / 2 ); ++i )
+        ms.setIntensity( i, data[i] );
+
+    return false;
+}
+
+bool
+waveform::sg::lowpass_filter( size_t size, double * data, double sampInterval, double width )
+{
+    size_t npts = unsigned ( width / sampInterval ) & 01;
+    if ( npts < 3 )
+        return false;
+
+    using adportable::SGFilter;
+
+    SGFilter smoother( npts, SGFilter::Smoothing, SGFilter::Cubic );
+
+    std::vector< double > sdata( size );
+
+    for ( size_t i = npts / 2; i < size - ( npts / 2 ); ++i )
+        sdata[i] = smoother( data + i );
+
+    std::copy( sdata.begin() + npts / 2, sdata.begin() + size - ( npts / 2 ), data + npts / 2 );
+
+    return true;
+}
+

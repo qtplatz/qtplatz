@@ -26,6 +26,7 @@
 #include "threshold_result.hpp"
 #include <adportable/float.hpp>
 #include <algorithm>
+#include <numeric>
 
 using namespace ap240;
 
@@ -90,6 +91,38 @@ histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& histogram, 
     }
 
     return trigger_count_;
+}
+
+
+//static
+bool
+histogram::average( const std::vector< std::pair< double, uint32_t > >& hist
+                    , double resolution
+                    , std::vector< double >& times
+                    , std::vector< double >& intens )
+{
+    auto it = hist.begin();
+    
+    while ( it != hist.end() ) {
+
+        auto tail = it + 1;
+
+        while ( tail != hist.end() && std::abs( tail->first - it->first ) < resolution )
+            ++tail;
+
+        std::pair< double, double > sum
+            = std::accumulate( it, tail, std::make_pair( 0.0, 0.0 )
+                               , []( const std::pair<double, double>& a, const std::pair<double, uint32_t>& b ) {
+                                   return std::make_pair( a.first + (b.first * b.second), double(a.second + b.second) );
+                               });
+        
+        times.push_back( sum.first / sum.second );
+        intens.push_back( sum.second );
+
+        it = tail;
+    }
+    
+    return true;
 }
 
 
