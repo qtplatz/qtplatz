@@ -72,10 +72,12 @@ isotopeCluster::operator()( mol::molecule& mol ) const
                     mol::isotope mi( p.mass + i.mass, p.abundance * i.abundance );
 
                     // make an array of order of mass
-                    auto it = std::lower_bound( cluster.begin(), cluster.end(), mi.mass, []( const mol::isotope& mi, const double& mass ){
-                            return mi.mass < mass; });
+                    auto it = std::lower_bound( cluster.begin(), cluster.end(), mi.mass
+                                                , []( const mol::isotope& mi, const double& mass ){
+                                                    return mi.mass < mass;
+                                                });
 
-                    if ( it == cluster.end() || !marge( *it, mi ) )
+                    if ( it == cluster.end() || !merge( *it, mi ) )
                         cluster.insert( it, mi );
                 }
             }
@@ -87,14 +89,18 @@ isotopeCluster::operator()( mol::molecule& mol ) const
 }
 
 bool
-isotopeCluster::marge( mol::isotope& it, const mol::isotope& mi ) const
+isotopeCluster::merge( mol::isotope& it, const mol::isotope& mi ) const
 {
     if ( mi.abundance <= threshold_abundance_ )
         return true; // throw it away
 
     if ( ( it.mass - mi.mass ) < threshold_daltons_ ) {
         it.abundance += mi.abundance;
-        // don't change mass (or take average?)
+
+        // weighting average for mass -- this may affected when other independent molecule is co-exist
+        double m = ( it.mass * it.abundance + mi.mass * mi.abundance ) / ( it.abundance + mi.abundance );
+        assert( std::abs( it.mass - m ) < 2.0e-7 );
+        it.mass = m;
         return true;
     }
     return false;

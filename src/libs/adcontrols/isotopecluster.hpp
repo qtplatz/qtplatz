@@ -40,7 +40,7 @@ namespace adcontrols {
         double threshold_daltons() const;
         void threshold_daltons( double d );
     private:
-        bool marge( mol::isotope&, const mol::isotope& ) const;
+        bool merge( mol::isotope&, const mol::isotope& ) const;
         double threshold_daltons_;
         double threshold_abundance_;
     };
