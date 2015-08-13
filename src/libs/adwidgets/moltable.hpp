@@ -44,7 +44,7 @@ namespace adwidgets {
             c_formula
             , c_adducts
             , c_mass
-            , c_abandance
+            , c_abundance
             , c_synonym
             , c_description
             , c_svg

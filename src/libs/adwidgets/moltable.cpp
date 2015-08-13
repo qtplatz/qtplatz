@@ -82,9 +82,19 @@ namespace adwidgets {
             opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
             if ( index.column() == MolTable::c_formula ) {
-                    
+
                 std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                 DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
+
+            } else if ( index.column() == MolTable::c_abundance ) {
+
+                if ( index.data().toDouble() <= 0.002 ) {
+                    painter->save();
+                    painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
+                    QStyledItemDelegate::paint( painter, opt, index );
+                    painter->restore();
+                }
+                QStyledItemDelegate::paint( painter, opt, index );
 
             } else if ( index.column() == MolTable::c_mass ) {
                     
@@ -139,7 +149,7 @@ namespace adwidgets {
                 return QSize( 80, 80 );
             } else if ( index.column() == MolTable::c_formula ) {
                 QSize sz = DelegateHelper::html_size_hint( option, index );
-                return QSize( sz.width() + 8, sz.height() );  // add for checkbox
+                return sz;// +QSize( 8, 0 );  // for checkbox
             } else {
                 return QStyledItemDelegate::sizeHint( option, index );
             }
@@ -181,7 +191,7 @@ namespace adwidgets {
                               , const QByteArray& svg
                               , const QString& synonym = QString()
                               , const QString& description = QString()
-                              , double mass = 0.0, double abandance = 1.0, bool enable = true ) {
+                              , double mass = 0.0, double abundance = 1.0, bool enable = true ) {
 
             auto& model = table.model();
 
@@ -206,7 +216,7 @@ namespace adwidgets {
             model.setData( model.index( row, c_formula ), formula );
             model.setData( model.index( row, c_adducts ), adducts );
             model.setData( model.index( row, c_synonym ), synonym );
-            model.setData( model.index( row, c_abandance ), abandance );
+            model.setData( model.index( row, c_abundance ), abundance );
             model.setData( model.index( row, c_mass ), mass );
 
             if ( auto item = model.item( row, c_formula ) ) {
@@ -252,9 +262,6 @@ MolTable::MolTable(QWidget *parent) : TableView(parent)
     model_->setColumnCount( nbrColums );
     model_->setRowCount( 1 );
     //setColumnHidden( c_smiles, true );
-
-    // for ( int col = 3; col < model_->columnCount(); ++col )
-    //     resizeColumnToContents( col );
 }
 
 MolTable::~MolTable()
@@ -273,14 +280,14 @@ MolTable::onInitialUpdate()
 {
     QStandardItemModel& model = *model_;
 
-    horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Stretch );
+    horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Interactive );
     horizontalHeader()->setStretchLastSection( true );
 
     model.setColumnCount( nbrColums );
     model.setHeaderData( c_formula, Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_adducts, Qt::Horizontal, QObject::tr( "adduct/lose" ) );
     model.setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "mass" ) );
-    model.setHeaderData( c_abandance, Qt::Horizontal, QObject::tr( "R. A. " ) );
+    model.setHeaderData( c_abundance, Qt::Horizontal, QObject::tr( "R. A. " ) );
     model.setHeaderData( c_synonym, Qt::Horizontal, QObject::tr( "synonym" ) );
     model.setHeaderData( c_svg, Qt::Horizontal, QObject::tr( "structure" ) );
     model.setHeaderData( c_smiles, Qt::Horizontal, QObject::tr( "similes" ) );    
@@ -308,7 +315,7 @@ MolTable::setContents( const adcontrols::moltable& mols )
                        , QString::fromStdString( mol.synonym )
                        , QString::fromStdWString( mol.description )
                        , mol.mass
-                       , mol.abandance
+                       , mol.abundance
                        , mol.enable );
         ++row;
     }
@@ -333,7 +340,7 @@ MolTable::getContents( adcontrols::moltable& m )
             mol.adducts = model.index( row, c_adducts ).data( Qt::EditRole ).toString().toStdString();
             mol.description = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
             mol.mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
-            mol.abandance = model.index( row, c_abandance ).data( Qt::EditRole ).toDouble();
+            mol.abundance = model.index( row, c_abundance ).data( Qt::EditRole ).toDouble();
             mol.synonym = model.index( row, c_synonym ).data( Qt::EditRole ).toString().toStdString();
             mol.smiles = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
 

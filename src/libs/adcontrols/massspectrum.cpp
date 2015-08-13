@@ -333,6 +333,14 @@ MassSpectrum::operator << ( const std::pair< double, double >& d )
 {
     std::vector<double>& m = pImpl_->massArray_;
     size_t pos = std::distance( m.begin(), std::lower_bound( m.begin(), m.end(), d.first ) );
+    
+    if ( pImpl_->isCentroid() ) {
+        // preserve indexed annotation
+        for ( auto& a: pImpl_->annotations_ ) {
+            if ( a.index() != (-1) && a.index() >= int( pos ) )
+                a.index( a.index() + 1 );
+        }
+    }
 
     pImpl_->massArray_.insert( pImpl_->massArray_.begin() + pos, d.first );
     pImpl_->intsArray_.insert( pImpl_->intsArray_.begin() + pos, d.second );
@@ -794,6 +802,24 @@ MassSpectrum::lower_bound( double mass ) const
     if ( it != vec.end() )
         return std::distance( vec.begin(), it );
     return npos; // size_t(-1)
+}
+
+size_t
+MassSpectrum::find( double mass, double tolerance ) const
+{
+    size_t pos = lower_bound( mass );
+
+    if ( pos != npos ) {
+        if ( pos != 0 ) {}
+            if ( std::abs( getMass( pos ) - mass ) > std::abs( getMass( pos - 1 ) - mass ) )
+                --pos;
+
+            double error = getMass( pos ) - mass;
+
+            if ( std::abs( error ) > tolerance )
+                return npos;
+    }
+    return pos;
 }
 
 /////////////////////////////////////////////////////////////////////////////

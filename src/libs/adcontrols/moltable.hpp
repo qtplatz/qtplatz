@@ -44,18 +44,18 @@ namespace adcontrols {
         struct ADCONTROLSSHARED_EXPORT value_type {
             bool enable;
             double mass;
-            double abandance;
+            double abundance;
             std::string formula;
             std::string adducts;
             std::string synonym;
             std::string smiles;
             std::wstring description;
             
-            value_type() : enable( true ), mass( 0 ), abandance( 1.0 ) {}
+            value_type() : enable( true ), mass( 0 ), abundance( 1.0 ) {}
             
             value_type( const value_type& t ) : enable( t.enable )
                 , mass( t.mass )
-                , abandance( t.abandance )
+                , abundance( t.abundance )
                 , formula( t.formula )
                 , adducts( t.adducts )
                 , synonym( t.synonym )

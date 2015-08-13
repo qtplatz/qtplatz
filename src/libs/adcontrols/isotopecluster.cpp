@@ -24,12 +24,13 @@
 **************************************************************************/
 
 #include <compiler/disable_unused_parameter.h>
-#include "isotopecluster.hpp"
-#include "tableofelement.hpp"
-#include "molecule.hpp"
-#include "isotopes.hpp"
+#include "chemicalformula.hpp"
 #include "element.hpp"
-
+#include "isotopecluster.hpp"
+#include "isotopes.hpp"
+#include "massspectrum.hpp"
+#include "molecule.hpp"
+#include "tableofelement.hpp"
 #include <algorithm>
 #include <cmath>
 #include <numeric>
@@ -101,6 +102,101 @@ isotopeCluster::merge( mol::isotope& it, const mol::isotope& mi ) const
         double m = ( it.mass * it.abundance + mi.mass * mi.abundance ) / ( it.abundance + mi.abundance );
         assert( std::abs( it.mass - m ) < 2.0e-7 );
         it.mass = m;
+        return true;
+    }
+    return false;
+}
+
+void
+isotopeCluster::merge_peaks( std::vector< isopeak >& peaks, double resolving_power )
+{
+    std::vector< isopeak > merged;
+    
+    auto it = peaks.begin();
+
+    while ( it != peaks.end() ) {
+
+        auto tail = it + 1;
+        double width = it->mass / resolving_power;
+
+        while ( tail != peaks.end() && std::abs( tail->mass - it->mass ) < width )
+            ++tail;
+
+        isopeak pk = std::accumulate( it, tail, isopeak(), []( const isopeak& a, const isopeak& b ){
+                return isopeak( a.mass + ( b.mass * b.abundance ), a.abundance + b.abundance ); });
+
+        pk.mass /= pk.abundance;
+        
+        merged.push_back( pk );
+        
+        it = tail;
+    }
+
+    peaks = merged;
+}
+
+bool
+isotopeCluster::operator()( std::vector< isopeak >& mi
+                          , const std::string& formula, double relative_abundance, int idx ) const
+{
+    if ( formula.empty() || relative_abundance <= 0.0 )
+        return false;
+    
+    mol::molecule mol;
+    ChemicalFormula::getComposition( mol.elements, formula );
+
+    (*this)( mol );
+
+    auto maxIt = std::max_element( mol.cluster.begin(), mol.cluster.end()
+                                   , [] ( const mol::isotope& a, const mol::isotope& b ) { return a.abundance < b.abundance; } );
+    double pmax = maxIt->abundance;
+    auto tail = std::remove_if( mol.cluster.begin(), mol.cluster.end()
+                                , [pmax]( const mol::isotope& i ) { return i.abundance / pmax < 0.001; } );
+
+    std::for_each( mol.cluster.begin(), tail, [&]( const mol::isotope& i ){
+        auto it = std::lower_bound( mi.begin(), mi.end(), i.mass, [idx] ( const isopeak& a, double m ) { return a.mass < m; } );
+            mi.insert( it, isopeak( i.mass, i.abundance, idx ) );
+        });
+    
+    return true;
+}
+
+bool
+isotopeCluster::operator()( MassSpectrum& ms, const std::string& formula
+                            , double relative_abundance, double resolving_power ) const
+{
+    std::vector< isopeak > peaks;
+
+    if ( ( *this )( peaks, formula, relative_abundance ) ) {
+
+        merge_peaks( peaks, resolving_power );
+        ms.resize( peaks.size() );
+
+        for ( auto& i: peaks )
+            ms << std::make_pair( i.mass, i.abundance * 100.0 );
+
+        return true;
+    }
+    return false;
+}
+
+bool
+isotopeCluster::operator()( MassSpectrum& ms
+                            , const std::vector< std::pair<std::string, double > >& formula_abundances
+                            , double resolving_power ) const
+{
+    std::vector< isopeak > peaks;
+
+    for ( auto& formula_abundance: formula_abundances )
+        ( *this )( peaks, formula_abundance.first, formula_abundance.second );
+
+    if ( ! peaks.empty() ) {
+
+        merge_peaks( peaks, resolving_power );
+
+        for ( auto& i: peaks )
+            ms << std::make_pair( i.mass, i.abundance  * 100.0 );
+
         return true;
     }
     return false;

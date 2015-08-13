@@ -107,9 +107,7 @@ ElementalCompWnd::init()
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
-    //toolBarAddingLayout->addWidget( toolBar );
     toolBarAddingLayout->addWidget( splitter );
-    //toolBarAddingLayout->addWidget( toolBar2 );
 }
 
 void
@@ -122,6 +120,7 @@ void
 ElementalCompWnd::estimateScanLaw( adutils::MassSpectrumPtr& ptr )
 {
     std::cout << "estimateScanLaw" ;
+
     auto annots = ptr->get_annotations();
     std::vector< std::pair< int, std::string >  > ids;
     std::for_each( annots.begin(), annots.end(), [&ids] ( const adcontrols::annotation& a ) {
@@ -222,90 +221,40 @@ ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
 {
-    
-
-    std::vector< std::tuple< std::string, std::string, double > > formulae;
-    enum { stdformula, annotation, abundance };
+    std::vector< std::string > display_formulae; // will expand from molecule + adduct combination
+    std::vector< std::pair< std::string, double > > formula_abundances;
 
     for ( auto& mol : m.molecules().data() ) {
-        if ( !mol.adducts.empty() ) {
-            std::vector< std::string > alist;
-            auto v = adcontrols::ChemicalFormula::standardFormulae( mol.formula, mol.adducts, alist );
-            for ( size_t i = 0; i < v.size(); ++i )
-                formulae.push_back( std::make_tuple( v[ i ], mol.formula + alist[ i ], mol.abandance ) );
-        } else
-            formulae.push_back( std::make_tuple( mol.formula, mol.formula, mol.abandance ) );
-    }
-
-    // adcontrols::isotopeCluster isocalc;
-    std::vector< std::pair<double, double > > miVec;
-    // iterate each molecule
-    for ( auto& formula: formulae ) {
-        adcontrols::mol::molecule mol;
-        if ( adcontrols::ChemicalFormula::getComposition( mol.elements, std::get<stdformula>( formula ) ) ) { // standard formula
-    
-            adcontrols::isotopeCluster()( mol );
-            auto it = std::max_element( mol.cluster.begin(), mol.cluster.end()
-                                            , [](const adcontrols::mol::isotope& a, const adcontrols::mol::isotope& b){
-                                                  return a.abundance < b.abundance; } );
-            double pmax = it->abundance;
-            auto last = std::remove_if( mol.cluster.begin(), mol.cluster.end()
-                                        , [=]( const adcontrols::mol::isotope& i ){
-                                            return i.abundance / pmax < 0.001;}); // delete less than 0.1% base peak
-
-            // add to MassSpectrum
-            for ( auto pi = mol.cluster.begin(); pi != last; ++pi )
-                miVec.push_back( std::make_pair( pi->mass, pi->abundance / pmax * 10000 * std::get<abundance>( formula ) ) );  // mass,intensity
-            //for ( auto pi = mol.cluster.begin(); pi != last; ++pi )
-            //    *( ms ) << std::make_pair( pi->mass, pi->abundance / pmax * 10000 * std::get<abundance>( formula ) );
-        }
-    }
-
-    // merge peaks according to resolving power
-    double rp = m.resolving_power();
-    auto ms = std::make_shared< adcontrols::MassSpectrum >();
-
-    do {
-        auto it = miVec.begin();
-        while ( it != miVec.end() ) {
-            auto tail = it + 1;
-            double width = it->first / rp;
-            while ( tail != miVec.end() && std::abs( tail->first - it->first ) < width )
-                ++tail;
-            std::pair< double, double > merged =
-                std::accumulate( it, tail, std::make_pair( 0.0, 0.0 ), [] ( const std::pair<double, double>&a, const std::pair<double, double>&b ) {
-                        return std::make_pair( a.first + ( b.first * b.second ), a.second + b.second );
-                } );
-
-            // add to spectrum
-            ( *ms ) << std::make_pair( merged.first / merged.second, merged.second );
-
-            it = tail;
-        }
-    } while ( 0 );
-
-    // tof (time) assign
-    adportable::TimeSquaredScanLaw scanlaw( m.accelerator_voltage(), m.tDelay(), m.length() );
-    for ( size_t i = 0; i < ms->size(); ++i )
-        ms->setTime( i, scanlaw.getTime( ms->getMass( i ), 0 ) );
-
-    adcontrols::annotations annots;
-    // annotation
-    for ( auto& f: formulae ) {
-        double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( std::get<stdformula>( f ) );
-        auto pos = ms->lower_bound( mass );
-        if ( pos != adcontrols::MassSpectrum::npos ) {
-            if ( pos != 0 ) {
-                if ( std::abs( ms->getMass( pos ) - mass ) > std::abs( ms->getMass( pos - 1 ) - mass ) )
-                    --pos;
+        if ( mol.enable ) {
+            if ( !mol.adducts.empty() ) {
+                std::vector< std::string > alist;
+                auto v = adcontrols::ChemicalFormula::standardFormulae( mol.formula, mol.adducts, alist );
+                for ( size_t i = 0; i < v.size(); ++i ) {
+                    formula_abundances.push_back( std::make_pair( v[ i ], mol.abundance ) );
+                    display_formulae.push_back( mol.formula + alist[ i ] );
+                }
+            } else {
+                formula_abundances.push_back( std::make_pair( mol.formula, mol.abundance ) );
+                display_formulae.push_back( mol.formula );
             }
-            annots << adcontrols::annotation( std::get<annotation>( f ) // formatted formula
-                                              , mass, std::get<abundance>( f ) * 10000, int( pos ), 0, adcontrols::annotation::dataFormula );
         }
     }
 
+    auto ms = std::make_shared< adcontrols::MassSpectrum >();
     ms->setCentroid( adcontrols::CentroidNative );
-    ms->set_annotations( annots );
+
+    adcontrols::isotopeCluster()( *ms, formula_abundances, m.resolving_power() );
+
+    // annotation
+    for ( size_t i = 0; i < formula_abundances.size(); ++i ) {
+        double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula_abundances[ i ].first );
+        auto pos = ms->find( mass, mass / m.resolving_power() );
+        if ( pos != adcontrols::MassSpectrum::npos ) {
+            auto& annots = ms->get_annotations();
+            annots << adcontrols::annotation( display_formulae[ i ], mass, ms->getIntensity( pos ), int( pos ), 0, adcontrols::annotation::dataFormula );
+        }
+    }
+
 	double lMass = ms->getMass( 0 );
 	double hMass = ms->getMass( ms->size() - 1 );
     lMass = m.lower_limit() > 0 ? m.lower_limit() : double( int( lMass / 10 ) * 10 );

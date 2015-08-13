@@ -87,7 +87,8 @@ namespace adcontrols {
         // algorithm
         const static size_t npos = size_t(-1);
         size_t lower_bound( double mass ) const;
-
+        size_t find( double mass, double tolerance ) const;
+        
         // methods
         void clone( const MassSpectrum&, bool deep = false );
         static const wchar_t * dataClass() { return L"MassSpectrum"; }

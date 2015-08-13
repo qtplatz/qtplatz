@@ -32,14 +32,35 @@
 namespace adcontrols {
 
 	namespace mol { struct molecule; struct isotope; }
+    class MassSpectrum;
 
     class ADCONTROLSSHARED_EXPORT isotopeCluster {
     public:
         isotopeCluster();
+        
+        struct ADCONTROLSSHARED_EXPORT isopeak {
+            double mass;
+            double abundance;
+            int index;
+            isopeak( double m = 0, double a = 0, int i = (-1) ) : mass( m ), abundance( a ), index(i) {}
+        };
+
+        bool operator()( adcontrols::MassSpectrum& ms, const std::string& formula
+                         , double relative_abundance = 1.0, double resolving_power = 1000000.0 ) const;
+
+        bool operator()( adcontrols::MassSpectrum& ms
+                         , const std::vector< std::pair<std::string, double > >& formula_abundance
+                         , double resolving_power = 1000000.0 ) const;
+
+        bool operator()( std::vector< isopeak >&, const std::string& formula, double relative_abundance = 1.0, int index = ( -1 ) ) const;
+
         bool operator()( mol::molecule& ) const;
+
         double threshold_daltons() const;
         void threshold_daltons( double d );
     private:
+        static void merge_peaks( std::vector<isopeak>&, double resolving_power );
+
         bool merge( mol::isotope&, const mol::isotope& ) const;
         double threshold_daltons_;
         double threshold_abundance_;

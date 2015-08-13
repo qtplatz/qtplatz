@@ -42,7 +42,7 @@ namespace boost {
         void serialize( Archive& ar, moltable::value_type& p, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( p.enable );
             ar & BOOST_SERIALIZATION_NVP( p.mass );
-            ar & BOOST_SERIALIZATION_NVP( p.abandance );
+            ar & BOOST_SERIALIZATION_NVP( p.abundance );
             ar & BOOST_SERIALIZATION_NVP( p.formula );
             ar & BOOST_SERIALIZATION_NVP( p.adducts );
             ar & BOOST_SERIALIZATION_NVP( p.synonym );
