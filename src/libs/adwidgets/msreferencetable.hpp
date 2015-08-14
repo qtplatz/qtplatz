@@ -39,6 +39,15 @@ namespace adwidgets {
         explicit MSReferenceTable(QWidget *parent = 0);
         ~MSReferenceTable();
 
+        enum colume_define {
+            c_formula
+            , c_exact_mass
+            , c_enable
+            , c_description
+            , c_charge
+            , c_num_columns
+        };
+
         void onInitialUpdate();
         void getContents( adcontrols::MSCalibrateMethod& );
         void setContents( const adcontrols::MSCalibrateMethod& );
@@ -47,6 +56,8 @@ namespace adwidgets {
 
     private:
         QStandardItemModel * model_;
+        class delegate;
+        class impl;
 
         void addReference( const adcontrols::MSReference&, int row );
         void handleValueChanged( const QModelIndex& );
@@ -55,8 +66,8 @@ namespace adwidgets {
     signals:
         void selectedRowsDeleted();
             
-    public slots:
-
+    private slots:
+        void handlePaste() override;
     };
 
 }

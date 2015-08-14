@@ -143,6 +143,27 @@ MSReference::MSReference( const wchar_t * formula
         impl_->compute_mass();
 }
 
+MSReference::MSReference( const char * formula
+             , bool polarityPositive
+             , const char * adduct_or_loss
+             , bool enable
+             , double exactMass
+             , uint32_t charge
+             , const wchar_t * description ) : impl_( new impl )
+{
+    impl_->enable_ = enable;
+    impl_->exactMass_ = exactMass;
+    impl_->polarityPositive_ = polarityPositive;
+    impl_->chargeCount_ = charge;
+    impl_->formula_ = adportable::utf::to_wstring( formula );
+    impl_->adduct_or_loss_ = adportable::utf::to_wstring( adduct_or_loss );
+    impl_->description_ = description;
+
+    if ( exactMass <= std::numeric_limits<double>::epsilon() )
+        impl_->compute_mass();
+}
+
+
 MSReference&
 MSReference::operator = ( const MSReference& t )
 {
@@ -155,17 +176,10 @@ MSReference::impl::compute_mass()
 {
     ChemicalFormula formula;
     exactMass_ = formula.getMonoIsotopicMass( formula_ );
+
     if ( ! adduct_or_loss_.empty() ) {
-        std::wstring::size_type sign = adduct_or_loss_.find_first_of( L"+-" );
-        if ( sign != std::wstring::npos && adduct_or_loss_[ sign ] == L'-' ) {
-            double lose = formula.getMonoIsotopicMass( adduct_or_loss_.substr( sign ) );
-            exactMass_ -= lose;
-        } else {
-            double adduct = formula.getMonoIsotopicMass( adduct_or_loss_ );
-            exactMass_ += adduct;
-        }
-        // handle electron mass
-        // if ( polarityPositive_ ) subtract electron
+        auto adductlist = adcontrols::ChemicalFormula::split( adportable::utf::to_utf8( adduct_or_loss_ ) );
+        exactMass_ += adcontrols::ChemicalFormula().getMonoIsotopicMass( adductlist );
     }
 }
 

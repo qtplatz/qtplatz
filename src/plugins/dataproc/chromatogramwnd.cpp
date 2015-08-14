@@ -126,7 +126,7 @@ namespace dataproc {
         adcontrols::PeakResultPtr peakResult_;
     public slots:
         void copy() {
-            peakTable_->copy();
+            peakTable_->handleCopyToClipboard();
         }
     };
 

@@ -177,76 +177,65 @@ namespace adcontrols {
 
         template< typename char_type > struct splitter {
 
-            typename std::basic_string<char_type>::size_type operator()( /*typename*/ const std::basic_string<char_type>& formula
+            typename std::basic_string<char_type>::size_type operator()( const std::basic_string<char_type>& formula
                                                                          , typename std::basic_string<char_type>::size_type pos = 0 ) {
-                return formula.find_first_of( delimitors<char_type>()(), pos );
+                return formula.find_first_of( delimitors<char_type>()( ), pos );
             }
+
             //<-------------------------------------------
-            static void split( std::basic_string<char_type>& M
-                               , std::pair< std::basic_string< char_type >, std::basic_string< char_type > >& adducts
-                               , const std::basic_string< char_type >& formula ) {
+            static std::basic_string<char_type> split( std::vector< std::pair< std::basic_string< char_type >, char_type > >& adducts
+                                                       , const std::basic_string< char_type >& formula ) {
                 
                 splitter< char_type > splitter;
                 typename std::basic_string<char_type>::size_type pos;
-
+                
                 if ( (pos = splitter( formula )) != std::basic_string<char_type>::npos ) {
-                    M = formula.substr( 0, pos );
-
+                    auto molformula = formula.substr( 0, pos );
+                    
                     while ( pos != std::basic_string<char_type>::npos ) {
                         typename std::basic_string< char_type >::size_type next = splitter( formula, pos + 1 );
                         if ( formula.at( pos ) == char_type( '+' ) )
-                            adducts.first += formula.substr( pos + 1, next - pos - 1 ); // skip (+) sign
+                            adducts.push_back( std::make_pair( formula.substr( pos + 1, next - pos - 1 ), char_type('+') ) );
                         else if ( formula.at( pos ) == char_type( '-' ) )
-                            adducts.second += formula.substr( pos + 1, next - pos - 1 ); // skip (-) sign
+                            adducts.push_back( std::make_pair( formula.substr( pos + 1, next - pos - 1 ), char_type('-') ) );
                         else
                             throw std::logic_error( "bug" );
                         pos = next;
                     }
+                    return molformula;
                 } else {
-                    M = formula; // no adduct/lose specified
+                    return formula; // no adduct/lose specified
                 }
             }
         };
 
-
-        template<typename char_type> std::basic_string<char_type> make_adduct_string( const std::pair < std::basic_string<char_type>
-                                                                                      , std::basic_string<char_type> >& adduct
-                                                                                      , bool leading_plus ) {
+        template<typename char_type> std::basic_string<char_type>
+        make_adduct_string( const std::vector< std::pair < std::basic_string<char_type>, char_type > >& vec ) {
             std::basic_string<char_type> result;
-            if ( !adduct.first.empty() ) {
-                if ( leading_plus )
-                    result += char_type( '+' );
-                std::for_each( adduct.first.begin(), adduct.first.end(), [&] ( const char_type& c ){ if ( c != char_type( '+' ) ) result += c; } );
-            }
-            if ( !adduct.second.empty() ) {
-                result += char_type( '-' );
-                std::for_each( adduct.second.begin(), adduct.second.end(), [&] ( const char_type& c ){ if ( c != char_type( '-' ) ) result += c; } );
+            for ( auto formula: vec ) {
+                if ( formula.second == char_type( '+' ) || formula.second == char_type( '-' ) ) {
+                    result += formula.second;
+                    result += formula.first;
+                }
             }
             return result;
         }
+        
+        template<typename char_type> std::basic_string<char_type>
+        formatFormulae( const std::basic_string<char_type>& formula, bool richText ) {
 
-        template<typename char_type> std::basic_string<char_type> formatFormulae( const std::basic_string<char_type>& formula
-                                                                                  , const char_type * dropped_delims
-                                                                                  , const char_type * kept_delims
-                                                                                  , bool richText ) {
-            typedef boost::tokenizer< boost::char_separator< char_type >
-                                      , typename std::basic_string< char_type >::const_iterator
-                                      , typename std::basic_string< char_type > > tokenizer_t;
-    
-            boost::char_separator< char_type > separator( dropped_delims, kept_delims, boost::drop_empty_tokens );
-            tokenizer_t tokens( formula, separator );
-            std::basic_string< char_type > kept( kept_delims );
-
+            std::vector< std::pair< std::basic_string<char_type>, char_type > > list;
+            auto molformula = internal::splitter<char_type>::split( list, formula );
+            
             std::basic_ostringstream<char_type> o;
-
-            for( auto it = tokens.begin(); it != tokens.end(); ++it ) {
-                if ( it->length() == 1 && kept.find( (*it) ) != std::basic_string< char_type >::npos )
-                    o << *it;
-                else
-                    o << adcontrols::ChemicalFormula::formatFormula( *it, richText );
+            o << ChemicalFormula::formatFormula( molformula, richText );
+            for ( auto& a: list ) {
+                if ( !a.first.empty() && a.second ) {
+                    o << char_type( ' ' ) << a.second;  // +|-
+                    o << adcontrols::ChemicalFormula::formatFormula( a.first, richText );
+                }
             }
             return o.str();
-            
         }
     }
 
@@ -297,6 +286,19 @@ ChemicalFormula::getMonoIsotopicMass( const std::string& formula, const std::pai
         mass += internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.first );
     if ( !adducts.second.empty() )
         mass -= internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.second );
+    return mass;
+}
+
+double
+ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae ) const
+{
+    double mass = 0;
+    for ( auto& formula: formulae ) {
+        if ( formula.second == '-' )
+            mass -= internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula.first );
+        else
+            mass += internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula.first );
+    }
     return mass;
 }
 
@@ -407,78 +409,34 @@ ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::str
     return !el.empty();
 }
 
-bool
-ChemicalFormula::split( const std::string& formula, std::vector< std::string >& results, const char * dropped_delims, const char * kept_delims )
+//static
+std::vector< std::pair<std::string, char > >
+ChemicalFormula::split( const std::string& formula )
 {
-    typedef char char_type;
-
-    typedef boost::tokenizer< boost::char_separator< char_type >
-                              , std::basic_string< char_type >::const_iterator
-                              , std::basic_string< char_type > > tokenizer_t;
-    
-    boost::char_separator< char > separator( dropped_delims, kept_delims, boost::keep_empty_tokens );
-
-    tokenizer_t tokens( formula, separator );
-    std::for_each( tokens.begin(), tokens.end(), [&] ( const tokenizer_t::value_type& it ){
-        if ( !it.empty() )
-            results.push_back( it );
-    } );
-    return !results.empty();
+    std::vector< std::pair< std::string, char > > list;
+    std::string molformula = internal::splitter<char>::split( list, formula );
+    list.insert( list.begin(), std::make_pair( molformula, '\0' ) );
+    return list;
 }
 
 std::string
-ChemicalFormula::splitFormula( std::pair< std::string, std::string >& adducts, const std::string& formula, bool bStandardFormat )
+ChemicalFormula::formatFormulae( const std::string& formula, bool richText )
 {
-    std::string M;
-    internal::splitter<char>::split( M, adducts, formula );
-    if ( bStandardFormat ) {
-        M = standardFormula( M );
-        if ( !adducts.first.empty() )
-            adducts.first = standardFormula( adducts.first );
-        if ( !adducts.second.empty() )
-            adducts.second = standardFormula( adducts.second );
-    }
-    return M;
+    return internal::formatFormulae<char>( formula, richText );
 }
 
 std::wstring
-ChemicalFormula::splitFormula( std::pair< std::wstring, std::wstring >& adducts, const std::wstring& formula, bool bStandardFormat )
+ChemicalFormula::formatFormulae( const std::wstring& formula, bool richText )
 {
-    std::wstring M;
-    internal::splitter<wchar_t>::split( M, adducts, formula );
-    if ( bStandardFormat ) {
-        M = standardFormula( M );
-        if ( !adducts.first.empty() )
-            adducts.first = standardFormula( adducts.first );
-        if ( !adducts.second.empty() )
-            adducts.second = standardFormula( adducts.second );
-    }
-    return M;
+    return internal::formatFormulae<wchar_t>( formula, richText );
 }
 
 std::string
-ChemicalFormula::formatFormulae( const std::string& formula, const char * delims, bool richText )
+ChemicalFormula::make_adduct_string( const std::vector< std::pair< std::string, char > >& adduct )
 {
-    return internal::formatFormulae<char>( formula, "", delims, richText );
+    return internal::make_adduct_string( adduct );
 }
 
-std::wstring
-ChemicalFormula::formatFormulae( const std::wstring& formula, const wchar_t * delims, bool richText )
-{
-    return internal::formatFormulae<wchar_t>( formula, L"", delims, richText );
-}
-
-std::string
-ChemicalFormula::make_adduct_string( const std::pair< std::string, std::string >& adduct, bool leading_plus )
-{
-    return internal::make_adduct_string( adduct, leading_plus );
-}
-
-std::wstring
-ChemicalFormula::make_adduct_string( const std::pair< std::wstring, std::wstring >& adduct, bool leading_plus )
-{
-    return internal::make_adduct_string( adduct, leading_plus );
-}
 
 ///////////////
 using namespace adcontrols::internal;

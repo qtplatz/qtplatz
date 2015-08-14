@@ -48,6 +48,7 @@ namespace adcontrols {
 		double getMonoIsotopicMass( const std::string& formula ) const;
         double getMonoIsotopicMass( const std::wstring& formula, const std::pair< std::wstring, std::wstring >& ) const;
         double getMonoIsotopicMass( const std::string& formula, const std::pair< std::string, std::string >& ) const;
+        double getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae ) const;        
 
         double getChemicalMass( const std::wstring& formula ) const;
 		double getChemicalMass( const std::string& formula ) const;
@@ -59,12 +60,28 @@ namespace adcontrols {
         static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
         static std::string formatFormula( const std::string& formula, bool richText = true );
         
-        static bool split( const std::string& formula
-                           , std::vector< std::string >&
-                           , const char * dropped_delims = "", const char * kept_delims = "+-" );
+        /*
+         * split formula followed by a list of adducts/losses, 
+         * ex. 'CH3(C2H4)5OH +H +Na +NH3 -C2H4' will return pair(' ', "CH3(C2H4)50H"), pair('+' "Na"), pair('+' "NH3"), pair( '-' "C2H4")
+         */
+        typedef std::pair< std::string, char > formula_adduct_t;
+        static std::vector< formula_adduct_t > split( const std::string& adducts );
 
-        static std::string formatFormulae( const std::string& formula, const char * delims = "+-", bool richText = true );
-        static std::wstring formatFormulae( const std::wstring& formula, const wchar_t * delims = L"+-", bool richText = true );
+#if defined _MSC_VER
+        static const char sign_formula = '\0';
+        static const char sign_adduct = '+';
+        static const char sign_loss = '-';
+#else
+        static constexpr char sign_formula = '\0';
+        static constexpr char sign_adduct = '+';
+        static constexpr char sign_loss = '-';
+#endif
+        static bool is_molformula( formula_adduct_t t ) { return t.second == sign_formula; }
+        static bool is_adduct( formula_adduct_t t ) { return t.second == sign_adduct; }
+        static bool is_loss( formula_adduct_t t ) { return t.second == sign_loss; }
+
+        static std::string formatFormulae( const std::string& formula, bool richText = true );
+        static std::wstring formatFormulae( const std::wstring& formula, bool richText = true );
 
         /**
          * makeFormulae synthesize standard formulae from formula and commna (or semicolon) separated list of adducts/lose
@@ -74,10 +91,6 @@ namespace adcontrols {
         static std::vector< std::string > standardFormulae( const std::string& formula, const std::string& adducts );
         static std::vector< std::string > standardFormulae( const std::string& formula, const std::string& adducts, std::vector< std::string >& adductlist );
 
-        // <formula, <+adduct, -lose> >
-        static std::string splitFormula( std::pair< std::string, std::string >& adducts, const std::string& formula, bool bStandardFormula );
-        static std::wstring splitFormula( std::pair< std::wstring, std::wstring >& adducts, const std::wstring& formula, bool bStandardFormula );
-        static std::string make_adduct_string( const std::pair< std::string, std::string >& adducts, bool leading_plus = false );
-        static std::wstring make_adduct_string( const std::pair< std::wstring, std::wstring >& adducts, bool leading_plus = false );
+        static std::string make_adduct_string( const std::vector< std::pair< std::string, char > >& );
     };
 }

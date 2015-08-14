@@ -214,7 +214,7 @@ Targeting::setup_adducts( const TargetingMethod& m, bool positive, std::vector< 
         if ( a.first ) { // if (enable)
             std::string addformula;
             std::string loseformula;
-
+#if 0
             std::vector< std::string > formulae;
             if ( formula_parser.split( a.second, formulae ) ) {
                 bool addlose( true );
@@ -229,7 +229,7 @@ Targeting::setup_adducts( const TargetingMethod& m, bool positive, std::vector< 
                     }                        
                 }
             }
-
+#endif
             std::pair< double, double > addlose( 0, 0 );
             //std::string formula;
             if ( !addformula.empty() ) {

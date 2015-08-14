@@ -130,11 +130,11 @@ ElementalCompWnd::estimateScanLaw( adutils::MassSpectrumPtr& ptr )
     
     std::vector< std::pair< double, double > > time_mass_v;
     for ( auto& id : ids ) {
-        double time = ptr->getTime( id.first );
-        std::pair<std::string, std::string> adduct;
-        auto formula = adcontrols::ChemicalFormula::splitFormula( adduct, id.second, false );
-        double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula, adduct );
-        time_mass_v.push_back( std::make_pair( time, exactMass ) );
+        //double time = ptr->getTime( id.first );
+        //std::pair<std::string, std::string> adduct;
+        //auto formula = adcontrols::ChemicalFormula::splitFormula( adduct, id.second, false );
+        //double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula, adduct );
+        //time_mass_v.push_back( std::make_pair( time, exactMass ) );
     }
     if ( time_mass_v.empty() )
         return;

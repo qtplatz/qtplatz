@@ -46,8 +46,9 @@ TableView::keyPressEvent( QKeyEvent * event )
 {
 	if ( event->matches( QKeySequence::Copy ) ) {
         handleCopyToClipboard();
-    }
-    else if ( event->matches( QKeySequence::Delete ) && allowDelete_ ) {
+    } else if ( event->matches( QKeySequence::Paste ) ) {
+        handlePaste();
+    } else if ( event->matches( QKeySequence::Delete ) && allowDelete_ ) {
 		handleDeleteSelection();
 	} else
 		QTableView::keyPressEvent( event );
@@ -69,10 +70,9 @@ TableView::mouseReleaseEvent( QMouseEvent * event )
     }
 }
 
-void
-TableView::copy()
+void 
+TableView::handlePaste()
 {
-    handleCopyToClipboard();
 }
 
 void
@@ -148,7 +148,7 @@ TableView::handleDeleteSelection()
 void
 TableView::addActionsToMenu( QMenu& menu, const QPoint& )
 {
-    menu.addAction( tr( "Copy to clipboard" ), this, SLOT( copy() ) );
+    menu.addAction( tr( "Copy to clipboard" ), this, SLOT( handleCopyToClipboard() ) );
 }
 
 void
