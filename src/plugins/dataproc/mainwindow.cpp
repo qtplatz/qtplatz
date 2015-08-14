@@ -739,8 +739,7 @@ MainWindow::handleProcess( const QString& origin )
 
             }
         }
-    }
-    if ( origin == "MSSimulatorWidget" ) {
+    } else if ( origin == "MSSimulatorWidget" ) {
         auto pm = std::make_shared< adcontrols::ProcessMethod >();
         getProcessMethod( *pm );
         if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
@@ -749,6 +748,13 @@ MainWindow::handleProcess( const QString& origin )
                 stack_->setCurrentIndex( idSelElementalComp );                
             }
         }
+    } else if ( origin == "MSCalibrateWidget" ) {
+        // peak identification, and then compute calibration equation
+        auto pm = std::make_shared< adcontrols::ProcessMethod >();
+        getProcessMethod( *pm );
+        dataproc_document::instance()->setProcessMethod( *pm );
+        if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
+            processor->applyCalibration( *pm );
     }
 }
 

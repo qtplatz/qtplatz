@@ -54,6 +54,7 @@ MSCalibrateWidget::MSCalibrateWidget(QWidget *parent) :  QWidget(parent)
             layout->addWidget( splitter );
         }
     }
+    connect( form_, &MSCalibrateForm::onProcess, [this] { emit onProcess( "MSCalibrateWidget" ); } );
 }
 
 void

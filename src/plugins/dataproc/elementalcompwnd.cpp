@@ -25,6 +25,7 @@
 
 #include "elementalcompwnd.hpp"
 #include "dataprocessor.hpp"
+#include "dataproc_document.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/timeutil.hpp>
@@ -32,6 +33,7 @@
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/moltable.hpp>
 #include <adlog/logger.hpp>
@@ -42,11 +44,13 @@
 #include <portfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
-#include <QBoxLayout>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
+#include <adwidgets/scanlawdialog.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
+#include <QBoxLayout>
+#include <QMenu>
 
 using namespace dataproc;
 
@@ -65,6 +69,7 @@ namespace dataproc {
         adplot::SpectrumWidget * referenceSpectrum_;
         adplot::SpectrumWidget * processedSpectrum_;
         int drawIdx_;
+        std::weak_ptr< adcontrols::MassSpectrum > centroid_;
     };
 
 }
@@ -86,8 +91,11 @@ ElementalCompWnd::init()
     pImpl_ = new ElementalCompWndImpl;
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( ( pImpl_->processedSpectrum_ = new adplot::SpectrumWidget(this) ) )
+        if ( ( pImpl_->processedSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
             splitter->addWidget( pImpl_->processedSpectrum_ );
+            connect( pImpl_->processedSpectrum_, &adplot::SpectrumWidget::onSelected, this, &ElementalCompWnd::selectedOnProcessed );
+        }
+
         if ( ( pImpl_->referenceSpectrum_ = new adplot::SpectrumWidget(this) ) )
             splitter->addWidget( pImpl_->referenceSpectrum_ );
 
@@ -117,10 +125,8 @@ ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
 }
 
 void
-ElementalCompWnd::estimateScanLaw( adutils::MassSpectrumPtr& ptr )
+ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpectrumPtr& ptr )
 {
-    std::cout << "estimateScanLaw" ;
-
     auto annots = ptr->get_annotations();
     std::vector< std::pair< int, std::string >  > ids;
     std::for_each( annots.begin(), annots.end(), [&ids] ( const adcontrols::annotation& a ) {
@@ -128,31 +134,41 @@ ElementalCompWnd::estimateScanLaw( adutils::MassSpectrumPtr& ptr )
                 ids.push_back( std::make_pair( a.index(), a.text() ) );
         });
     
-    std::vector< std::pair< double, double > > time_mass_v;
+    std::vector< std::pair< double, double > > time_mass_array;
     for ( auto& id : ids ) {
-        //double time = ptr->getTime( id.first );
-        //std::pair<std::string, std::string> adduct;
-        //auto formula = adcontrols::ChemicalFormula::splitFormula( adduct, id.second, false );
-        //double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula, adduct );
-        //time_mass_v.push_back( std::make_pair( time, exactMass ) );
+        double time = ptr->getTime( id.first );
+        auto sformula = adcontrols::ChemicalFormula::split( id.second );
+        double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( sformula );
+        time_mass_array.push_back( std::make_pair( time, exactMass ) );
     }
-    if ( time_mass_v.empty() )
+
+    if ( time_mass_array.empty() )
         return;
-    if ( time_mass_v.size() == 1 ) {
-        double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( time_mass_v[0].first, time_mass_v[0].second, 0.5, 0 );
-        ADTRACE() << "Estimated scanLaw: Vacc=" << va;
-    } else {
-        std::vector<double> x, y, coeffs;
-        for ( auto& xy: time_mass_v ) {
-            x.push_back( std::sqrt( xy.second ) * 0.5 );
-            y.push_back( xy.first );
+
+    adwidgets::ScanLawDialog dlg;
+    const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.toStdWString().c_str() );
+    dlg.setScanLaw( model.getScanLaw() );
+    do {
+        double fLength, accVoltage, tDelay, mass;
+        QString formula;
+        if ( dataproc_document::instance()->findScanLaw( model_name, fLength, accVoltage, tDelay, mass, formula ) ) {
+            dlg.setValues( fLength, accVoltage, tDelay );
+            dlg.setMass( mass );
+            if ( !formula.isEmpty() )
+                dlg.setFormula( formula );
         }
-        if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ) ) {
-            double t0 = coeffs[ 0 ];
-            double t1 = adportable::polfit::estimate_y( coeffs, 1.0 );
-            double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( 1.0, t1, 1.0, t0 );
-        }
-    }
+    } while(0);
+
+    dlg.setData( time_mass_array );
+
+    if ( dlg.exec() != QDialog::Accepted )
+        return;
+
+    dataproc_document::instance()->saveScanLaw( model_name
+                                                , dlg.fLength()
+                                                , dlg.acceleratorVoltage()
+                                                , dlg.tDelay()
+                                                , dlg.mass(), dlg.formula() );
 }
 
 void
@@ -195,8 +211,6 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
             pImpl_->processedSpectrum_->enableAxis( QwtPlot::yRight, true );
             pImpl_->processedSpectrum_->setData( ptr, 1, true );
             pImpl_->processedSpectrum_->setAlpha( 1, 0x20 );
-
-            estimateScanLaw( ptr );
         }
 
         portfolio::Folio attachments = folium.attachments();
@@ -206,6 +220,7 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
             if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
                 if ( centroid->isCentroid() ) {
                     pImpl_->processedSpectrum_->setData( centroid, 0, false );
+                    pImpl_->centroid_ = centroid;
                 }
             }
         }
@@ -262,3 +277,30 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
     ms->setAcquisitionMassRange( lMass, hMass );
     draw1( ms );
 }
+
+//////////////////////////////////////////
+void
+ElementalCompWnd::selectedOnProcessed( const QRectF& rc )
+{
+    QMenu menu;
+
+    std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
+    
+    std::vector< QAction * > actions; // additional 
+    if ( !models.empty() ) {
+        for ( auto model : models )
+            actions.push_back( menu.addAction( QString( "Estimate scan law based on %1" ).arg( QString::fromStdWString( model ) ) ) );
+        if ( !pImpl_->centroid_.lock() )
+            std::for_each( actions.begin(), actions.end(), []( QAction * a ){ a->setEnabled( false );  } );
+    }
+    
+    auto selected = menu.exec( QCursor::pos() );
+    if ( selected ) {
+        auto it = std::find( actions.begin(), actions.end(), selected );
+        if ( it != actions.end() ) {
+            if ( auto centroid = pImpl_->centroid_.lock() )
+                estimateScanLaw( QString::fromStdWString( models[ std::distance( actions.begin(), it ) ] ), centroid );
+        }
+    }
+}
+

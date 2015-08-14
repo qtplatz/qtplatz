@@ -110,7 +110,9 @@ MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent)
                                                   , dlg_( 0 )
 {
     ui->setupUi(this);
+
     connect( ui->pushButton, &QPushButton::clicked, this, &MSCalibrateForm::handleReferenceDlg );
+    connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit onProcess(); } );
 
     font_property()(ui->groupBox);
 

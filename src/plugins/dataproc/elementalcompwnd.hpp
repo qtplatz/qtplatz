@@ -54,7 +54,7 @@ namespace dataproc {
         void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
         // void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
         void simulate( const adcontrols::MSSimulatorMethod& );
-        void estimateScanLaw( std::shared_ptr< adcontrols::MassSpectrum >& );
+        void estimateScanLaw( const QString&, std::shared_ptr< adcontrols::MassSpectrum >& );
       
     signals:
       
@@ -67,7 +67,9 @@ namespace dataproc {
       
     private:
         ElementalCompWndImpl * pImpl_;
-      
+
+    private slots:
+        void selectedOnProcessed( const QRectF& );
     };
     
 }

@@ -220,6 +220,14 @@ namespace adcontrols {
             }
             return result;
         }
+
+        template<typename char_type> std::basic_string<char_type>
+        make_formula_string( const std::vector< std::pair < std::basic_string<char_type>, char_type > >& vec ) {
+            return
+                std::accumulate( vec.begin(), vec.end(), std::basic_string<char_type>()
+                                , []( const std::basic_string< char_type >& a, const std::pair < std::basic_string<char_type>, char_type >& b ) {
+                                      return b.second == char_type('\0') ? ( a + b.first ) : a;  });
+        }
         
         template<typename char_type> std::basic_string<char_type>
         formatFormulae( const std::basic_string<char_type>& formula, bool richText ) {
@@ -432,9 +440,15 @@ ChemicalFormula::formatFormulae( const std::wstring& formula, bool richText )
 }
 
 std::string
-ChemicalFormula::make_adduct_string( const std::vector< std::pair< std::string, char > >& adduct )
+ChemicalFormula::make_adduct_string( const std::vector< std::pair< std::string, char > >& list )
 {
-    return internal::make_adduct_string( adduct );
+    return internal::make_adduct_string( list );
+}
+
+std::string
+ChemicalFormula::make_formula_string( const std::vector< std::pair< std::string, char > >& list )
+{
+    return internal::make_formula_string( list );
 }
 
 

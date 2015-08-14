@@ -350,7 +350,7 @@ SpectrumWidget::moved( const QPointF& pos )
 void
 SpectrumWidget::selected( const QPointF& pos )
 {
-	emit onSelected( pos );
+    emit onSelected( QRectF( pos, pos ) );
 }
 
 void

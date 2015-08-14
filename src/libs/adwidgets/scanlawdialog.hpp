@@ -56,11 +56,14 @@ namespace adwidgets {
         void setMass( double );
         double mass() const;
 
+        void setData( const std::vector< std::pair<double, double> >& time_mass_array );
+
     private:
         Ui::ScanLawDialog *ui;
         class impl;
         impl * impl_;
         void setCalculator();
+        void estimate();
     };
 
 }

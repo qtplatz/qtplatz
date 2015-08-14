@@ -230,8 +230,7 @@ MSProcessingWnd::init()
         if ( ( pImpl_->profileSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
             using adplot::SpectrumWidget;
-            connect( pImpl_->profileSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected)
-                     , this, &MSProcessingWnd::selectedOnProfile );
+            connect( pImpl_->profileSpectrum_, &SpectrumWidget::onSelected, this, &MSProcessingWnd::selectedOnProfile );
             pImpl_->profile_marker_ = std::make_shared< adplot::PeakMarker >();
             pImpl_->profile_marker_->attach( pImpl_->profileSpectrum_ );
             pImpl_->profile_marker_->visible( true );

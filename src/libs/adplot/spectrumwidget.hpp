@@ -67,7 +67,6 @@ namespace adplot {
 
     signals:
         void onMoved( const QPointF& );
-		void onSelected( const QPointF& );
 		void onSelected( const QRectF& );
         
     public slots:

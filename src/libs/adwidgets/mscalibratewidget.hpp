@@ -59,6 +59,7 @@ namespace adwidgets {
         MSReferenceTable * table_;
 
     signals:
+        void onProcess( const QString& );
 
     public slots:
 

@@ -24,6 +24,7 @@
 
 #include "scanlawdialog.hpp"
 #include "ui_scanlawdialog.h"
+#include <adportable/polfit.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/scanlaw.hpp>
@@ -64,6 +65,8 @@ namespace adwidgets {
         double fLength( int mode ) const override {
             return law_->fLength( mode );
         }
+
+        std::vector< std::pair< double, double > > time_mass_array_;
     };
 }
 
@@ -80,6 +83,7 @@ ScanLawDialog::ScanLawDialog(QWidget *parent) : QDialog(parent)
     connect( ui->doubleSpinBox, static_cast< void(QDoubleSpinBox::*)(double) >(&QDoubleSpinBox::valueChanged)
              , [this] ( double flength ) {
                  setCalculator();
+                 estimate();
              });
     // vacc
     connect( ui->doubleSpinBox_2, static_cast< void(QDoubleSpinBox::*)(double) >(&QDoubleSpinBox::valueChanged)
@@ -197,6 +201,8 @@ ScanLawDialog::setValues( double fLength, double accVoltage, double tDelay )
     ui->doubleSpinBox_3->setValue( tDelay * 1.0e6 );
     ui->doubleSpinBox_6->setValue( accVoltage );
 
+    impl_->law_.reset( new adportable::TimeSquaredScanLaw( accVoltage, tDelay, fLength ) );
+
     setCalculator();
 }
 
@@ -227,3 +233,41 @@ ScanLawDialog::setFormula( const QString& formula )
     setMass( adcontrols::ChemicalFormula().getMonoIsotopicMass( formula.toStdString() ) );
 }
 
+void
+ScanLawDialog::setData( const std::vector< std::pair<double, double> >& time_mass_array )
+{
+    impl_->time_mass_array_ = time_mass_array;
+    estimate();
+}
+
+void
+ScanLawDialog::estimate()
+{
+    if ( impl_->time_mass_array_.empty() ) {
+        return;
+
+    } else if ( impl_->time_mass_array_.size() == 1 ) {
+
+        double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( impl_->time_mass_array_[ 0 ].second, impl_->time_mass_array_[ 0 ].first, impl_->fLength( 0 ), 0 );
+        ui->doubleSpinBox_2->setValue( va );    
+        ui->doubleSpinBox_3->setValue( 0 );
+
+    } else {
+        std::vector<double> x, y, coeffs;
+        for ( auto& xy : impl_->time_mass_array_ ) {
+            double mass = xy.second;
+            double time = xy.first;
+            x.push_back( std::sqrt( mass ) * impl_->fLength( 0 ) );
+            y.push_back( time );
+        }
+        if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ) ) {
+            double t0 = coeffs[ 0 ];
+            double t1 = adportable::polfit::estimate_y( coeffs, 1.0 );
+            double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( 1.0, t1, 1.0, t0 );
+
+            ui->doubleSpinBox_2->setValue( va );
+            ui->doubleSpinBox_3->setValue( t0 * 1.0e6 );
+        }
+    }
+}
+        

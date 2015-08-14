@@ -216,17 +216,7 @@ MSReference::formula() const
 const wchar_t *
 MSReference::display_formula() const
 {
-	std::wostringstream wo;
-	wo << impl_->formula_;
-    if ( !impl_->adduct_or_loss_.empty() ) {
-        std::wstring::size_type sign = impl_->adduct_or_loss_.find_first_of( L"+-" );
-        if ( sign == std::wstring::npos ) // if no '+' or '-' specified, assume adduct
-            wo << '+' << impl_->adduct_or_loss_;
-        else
-            wo << impl_->adduct_or_loss_.substr( sign );
-    }
-    impl_->display_formula_ = wo.str();
-    
+    impl_->display_formula_ = impl_->formula_ + impl_->adduct_or_loss_;
     return impl_->display_formula_.c_str();
 }
 

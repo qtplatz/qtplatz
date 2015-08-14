@@ -91,6 +91,7 @@ namespace adcontrols {
         static std::vector< std::string > standardFormulae( const std::string& formula, const std::string& adducts );
         static std::vector< std::string > standardFormulae( const std::string& formula, const std::string& adducts, std::vector< std::string >& adductlist );
 
-        static std::string make_adduct_string( const std::vector< std::pair< std::string, char > >& );
+        static std::string make_adduct_string( const std::vector< std::pair< std::string, char > >& );  // collect adducts/losses
+        static std::string make_formula_string( const std::vector< std::pair< std::string, char > >& ); // exclude adducts/losses
     };
 }

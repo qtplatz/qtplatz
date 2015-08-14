@@ -161,13 +161,8 @@ MSReferenceTable::getContents( adcontrols::MSCalibrateMethod& m )
     for ( int row = 0; row < nRows; ++row ) {
 
         auto formulae = adcontrols::ChemicalFormula::split( model.data( model.index( row, c_formula ), Qt::EditRole ).toString().toStdString() );
-        std::string formula, adducts;
-        for ( auto& f : formulae ) {
-            if ( f.second == '\0' )
-                formula += f.first;
-            else
-                adducts += f.first;
-        }
+        auto adducts = adcontrols::ChemicalFormula::make_adduct_string( formulae );
+        auto formula = adcontrols::ChemicalFormula::make_formula_string( formulae );
 
         if ( !formula.empty() ) {
 
