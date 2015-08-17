@@ -99,24 +99,6 @@ namespace adcontrols {
     private:
         class impl;
         impl * impl_;
-        
-        idTarget idTarget_;
-        idToleranceMethod toleranceMethod_;
-        double tolerancePpm_;
-        double toleranceDaltons_;
-        uint32_t chargeStateMin_;
-        uint32_t chargeStateMax_;
-        bool isLowMassLimitEnabled_;
-        bool isHighMassLimitEnabled_;
-        double lowMassLimit_;
-        double highMassLimit_;
-        double tolerance_;
-
-        std::vector< std::pair< bool, std::string > > pos_adducts_; // if start with '-' means lose instead of add
-        std::vector< std::pair< bool, std::string > > neg_adducts_;
-
-        std::vector< formula_type > formulae_;
-        std::vector< peptide_type > peptides_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version );
