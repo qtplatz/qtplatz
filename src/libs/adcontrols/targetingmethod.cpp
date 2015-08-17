@@ -48,9 +48,12 @@ namespace adcontrols {
             , tolerance_( 10.0 ) { // deplicated
             // reference,
             // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
+            // "(CH3)2SO+H" // DMSO+H
+            // "C3H8O+H"    // IPA+H
+            // "C3H8O+Na"   // IPA+Na
+
             for ( auto adduct : { "H", "Na", "NH4", "K", "CH3CN+H" "CH3CN+Na", "CH3OH+H", "(CH3)2SO+H", "C3H8O+H", "C3H8O+Na" } )
                 pos_adducts_.push_back( std::make_pair( false, adduct ) );
-
 
             for ( auto adduct : { "-H", "-H2O-H", "Na-H2", "Cl", "K-H2", "COOH-H" } )
                 neg_adducts_.push_back( std::make_pair( false, adduct ) );
@@ -136,9 +139,10 @@ namespace adcontrols {
     };
     ////////// PORTABLE BINARY ARCHIVE //////////
     template<> void
-    TargetingMethod::serialize( portable_binary_oarchive& ar, const unsigned int )
+    TargetingMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-        ar & *impl_;
+        impl_->serialize( ar, version );
+        //ar & *impl_;
     }
 
     template<> void
@@ -149,9 +153,10 @@ namespace adcontrols {
 
     ///////// XML archive ////////
     template<> void
-    TargetingMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+    TargetingMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
-        ar & boost::serialization::make_nvp("impl", *impl_);
+        impl_->serialize( ar, version );
+        // ar & boost::serialization::make_nvp("impl", *impl_);
     }
 
     template<> void
@@ -165,198 +170,152 @@ namespace adcontrols {
 using namespace adcontrols;
 
 TargetingMethod::TargetingMethod( idTarget id ) : impl_( new impl( id ) )
-                                                , idTarget_( id )
-                                                , toleranceMethod_( idToleranceDaltons )
-                                                , tolerancePpm_( 10.0 )
-                                                , toleranceDaltons_( 0.010 ) // 10mDa
-                                                , chargeStateMin_( 1 )
-                                                , chargeStateMax_( 3 )
-                                                , isLowMassLimitEnabled_( false ) // auto
-                                                , isHighMassLimitEnabled_( false )
-                                                , lowMassLimit_( 1 )
-                                                , highMassLimit_( 1000 )
-                                                , tolerance_( 10.0 ) // deplicated
 {
-    // reference, 
-    // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
-    
-    pos_adducts_.push_back( std::make_pair( false, "H" ) );
-    pos_adducts_.push_back( std::make_pair( false, "Na" ) );
-    pos_adducts_.push_back( std::make_pair( false, "NH4" ) );
-    pos_adducts_.push_back( std::make_pair( false, "K" ) );
-    pos_adducts_.push_back( std::make_pair( false, "CH3CN+H" ) );
-    pos_adducts_.push_back( std::make_pair( false, "CH3CN+Na" ) );
-    pos_adducts_.push_back( std::make_pair( false, "CH3OH+H" ) );
-    pos_adducts_.push_back( std::make_pair( false, "(CH3)2SO+H" ) ); // DMSO+H
-    pos_adducts_.push_back( std::make_pair( false, "C3H8O+H" ) );    // IPA+H
-    pos_adducts_.push_back( std::make_pair( false, "C3H8O+Na" ) );   // IPA+Na
-
-    neg_adducts_.push_back( std::make_pair( false, "-H" ) );
-    neg_adducts_.push_back( std::make_pair( false, "-H2O-H" ) );
-    neg_adducts_.push_back( std::make_pair( false, "Na-H2" ) );
-    neg_adducts_.push_back( std::make_pair( false, "Cl" ) );
-    neg_adducts_.push_back( std::make_pair( false, "K-H2" ) );
-    neg_adducts_.push_back( std::make_pair( false, "COOH-H" ) );
 }
 
-TargetingMethod::TargetingMethod( const TargetingMethod& t )
+TargetingMethod::TargetingMethod( const TargetingMethod& t ) : impl_( new impl( *t.impl_ ) )
 {
-    operator = ( t );
 }
 
 TargetingMethod&
 TargetingMethod::operator = ( const TargetingMethod& rhs )
 {
-    idTarget_ = rhs.idTarget_;
-
-    toleranceMethod_        = rhs.toleranceMethod_;
-    tolerancePpm_           = rhs.tolerancePpm_;
-    toleranceDaltons_       = rhs.toleranceDaltons_;
-    chargeStateMin_         = rhs.chargeStateMin_;
-    chargeStateMax_         = rhs.chargeStateMax_;
-    isLowMassLimitEnabled_  = rhs.isLowMassLimitEnabled_;
-    isHighMassLimitEnabled_ = rhs.isHighMassLimitEnabled_;
-    lowMassLimit_           = rhs.lowMassLimit_;
-    highMassLimit_          = rhs.highMassLimit_;
-    tolerance_              = rhs.tolerance_;
-
-    formulae_               = rhs.formulae_;
-    peptides_               = rhs.peptides_;
-    pos_adducts_            = rhs.pos_adducts_;
-    neg_adducts_            = rhs.neg_adducts_;
-
+    if ( impl_ != rhs.impl_ ) {
+        delete impl_;
+        impl_ = new impl( *rhs.impl_ );
+    }
 	return *this;
 }
 
 void
 TargetingMethod::targetId( TargetingMethod::idTarget target )
 {
-    idTarget_ = target;
+    impl_->idTarget_ = target;
 }
 
 TargetingMethod::idTarget
 TargetingMethod::targetId() const
 {
-    return idTarget_;
+    return impl_->idTarget_;
 }
 
 std::vector< std::pair< bool, std::string > >&
 TargetingMethod::adducts( bool positive )
 {
-    return positive ? pos_adducts_ : neg_adducts_;
+    return positive ? impl_->pos_adducts_ : impl_->neg_adducts_;
 }
 
 const std::vector< std::pair< bool, std::string > >&
 TargetingMethod::adducts( bool positive ) const
 {
-    return positive ? pos_adducts_ : neg_adducts_;
+    return positive ? impl_->pos_adducts_ : impl_->neg_adducts_;
 }
 
 std::pair< uint32_t, uint32_t >
 TargetingMethod::chargeState() const
 {
-    return std::pair< uint32_t, uint32_t >( chargeStateMin_, chargeStateMax_ );
+    return std::pair< uint32_t, uint32_t >( impl_->chargeStateMin_, impl_->chargeStateMax_ );
 }
 
 void
 TargetingMethod::chargeState( uint32_t min, uint32_t max )
 {
-    chargeStateMin_ = min;
-    chargeStateMax_ = max;
+    impl_->chargeStateMin_ = min;
+    impl_->chargeStateMax_ = max;
 }
 
 std::vector< TargetingMethod::formula_type >&
 TargetingMethod::formulae()
 {
-    return formulae_;
+    return impl_->formulae_;
 }
 
 const std::vector< TargetingMethod::formula_type >&
 TargetingMethod::formulae() const
 {
-    return formulae_;
+    return impl_->formulae_;
 }
 
 std::vector< TargetingMethod::peptide_type >&
 TargetingMethod::peptides()
 {
-    return peptides_;
+    return impl_->peptides_;
 }
 
 const std::vector< TargetingMethod::peptide_type >&
 TargetingMethod::peptides() const
 {
-    return peptides_;
+    return impl_->peptides_;
 }
 
 idToleranceMethod
 TargetingMethod::toleranceMethod() const
 {
-    return toleranceMethod_;
+    return impl_->toleranceMethod_;
 }
 
 void
 TargetingMethod::setToleranceMethod( idToleranceMethod value )
 {
-    toleranceMethod_ = value;
+    impl_->toleranceMethod_ = value;
 }
 
 double
 TargetingMethod::tolerance( idToleranceMethod id ) const
 {
-    return id == idTolerancePpm ? tolerancePpm_ : toleranceDaltons_;
+    return id == idTolerancePpm ? impl_->tolerancePpm_ : impl_->toleranceDaltons_;
 }
 
 void
 TargetingMethod::setTolerance( idToleranceMethod id, double value )
 {
     if ( id == idTolerancePpm )
-        tolerancePpm_ = value;
+        impl_->tolerancePpm_ = value;
     else
-        toleranceDaltons_ = value;
+        impl_->toleranceDaltons_ = value;
 }
 
 
 std::pair< bool, bool >
 TargetingMethod::isMassLimitsEnabled() const
 {
-    return std::pair<bool, bool>( isLowMassLimitEnabled_, isHighMassLimitEnabled_ );
+    return std::pair<bool, bool>( impl_->isLowMassLimitEnabled_, impl_->isHighMassLimitEnabled_ );
 }
 
 void
 TargetingMethod::isLowMassLimitEnabled( bool value )
 {
-    isLowMassLimitEnabled_ = value;
+    impl_->isLowMassLimitEnabled_ = value;
 }
 
 void
 TargetingMethod::isHighMassLimitEnabled( bool value )
 {
-    isHighMassLimitEnabled_ = value;
+    impl_->isHighMassLimitEnabled_ = value;
 }
         
 double
 TargetingMethod::lowMassLimit() const
 {
-    return lowMassLimit_;
+    return impl_->lowMassLimit_;
 }
 
 void
 TargetingMethod::lowMassLimit( double value )
 {
-    lowMassLimit_ = value;
+    impl_->lowMassLimit_ = value;
 }
 
 double
 TargetingMethod::highMassLimit() const
 {
-    return highMassLimit_;
+    return impl_->highMassLimit_;
 }
 
 void
 TargetingMethod::highMassLimit( double value )
 {
-    highMassLimit_ = value;
+    impl_->highMassLimit_ = value;
 }
 
 #if 0
