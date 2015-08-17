@@ -106,12 +106,11 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( formulae );
                 ar & BOOST_SERIALIZATION_NVP( adducts ); // pos
                 ar & BOOST_SERIALIZATION_NVP( adducts ); // neg
-            } else {
-                ar & BOOST_SERIALIZATION_NVP( idTarget_ )
-                    ;
-                if ( version < 4 )
+            } else if ( version <= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( idTarget_ );
+                if ( version <= 3 )
                     ar & BOOST_SERIALIZATION_NVP( is_use_resolving_power );
-                else if ( version >= 4 )
+                else if ( version == 4 )
                     ar & BOOST_SERIALIZATION_NVP( toleranceMethod_ );
                 ar & BOOST_SERIALIZATION_NVP( tolerancePpm_ )
                     & BOOST_SERIALIZATION_NVP( toleranceDaltons_ )
@@ -125,49 +124,79 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP( pos_adducts_ )
                     & BOOST_SERIALIZATION_NVP( neg_adducts_ )
                     ;
-                if ( version < 3 ) {
+
+                if ( version <= 3 ) {
+                    
                     std::vector< std::pair< bool, std::string > > formulae;
                     std::vector< std::pair< bool, std::pair< std::string, std::string > > > peptides;
-                    ar & BOOST_SERIALIZATION_NVP( formulae )
-                        & BOOST_SERIALIZATION_NVP( peptides )
-                        ;
+                    ar & BOOST_SERIALIZATION_NVP( formulae ) & BOOST_SERIALIZATION_NVP( peptides );
+
                 } else {
-                    ar & BOOST_SERIALIZATION_NVP( formulae_ )
-                        & BOOST_SERIALIZATION_NVP( peptides_ )
-                        ;
+                    std::vector< formula_type > formulae;
+                    std::vector< peptide_type > peptides;
+                    ar & BOOST_SERIALIZATION_NVP( formulae_ ) & BOOST_SERIALIZATION_NVP( peptides_ );
+                    for ( auto& f: formulae ) {
+                        moltable::value_type mol;
+                        mol.formula = f.first;
+                        mol.enable = f.second.first;
+                        mol.description = f.second.second;
+                        *molecules_ << mol;
+                    }
                 }
+                
+            } else if ( version <= 5 ) {
+                
+                ar & BOOST_SERIALIZATION_NVP( idTarget_ );
+                ar & BOOST_SERIALIZATION_NVP( toleranceMethod_ );
+                ar & BOOST_SERIALIZATION_NVP( tolerancePpm_ );
+                ar & BOOST_SERIALIZATION_NVP( toleranceDaltons_ );
+                ar & BOOST_SERIALIZATION_NVP( chargeStateMin_ );
+                ar & BOOST_SERIALIZATION_NVP( chargeStateMax_ );
+                ar & BOOST_SERIALIZATION_NVP( isLowMassLimitEnabled_ );
+                ar & BOOST_SERIALIZATION_NVP( isHighMassLimitEnabled_ );
+                ar & BOOST_SERIALIZATION_NVP( lowMassLimit_ );
+                ar & BOOST_SERIALIZATION_NVP( highMassLimit_ );
+                ar & BOOST_SERIALIZATION_NVP( tolerance_ );
+                ar & BOOST_SERIALIZATION_NVP( pos_adducts_ );
+                ar & BOOST_SERIALIZATION_NVP( neg_adducts_ );
+                ar & BOOST_SERIALIZATION_NVP( molecules_ );
             }
         }
     };
     ////////// PORTABLE BINARY ARCHIVE //////////
     template<> void
-    TargetingMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    TargetingMethod::serialize( portable_binary_oarchive& ar, const unsigned int )
     {
-        impl_->serialize( ar, version );
-        //ar & *impl_;
+        ar & boost::serialization::make_nvp( "impl", *impl_ );
     }
 
     template<> void
     TargetingMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-        impl_->serialize( ar, version );
+        if ( version <= 4 )        
+            impl_->serialize( ar, version );
+        else
+            ar & boost::serialization::make_nvp("impl", *impl_);        
     }
 
     ///////// XML archive ////////
     template<> void
-    TargetingMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    TargetingMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
     {
-        impl_->serialize( ar, version );
-        // ar & boost::serialization::make_nvp("impl", *impl_);
+        ar & boost::serialization::make_nvp( "impl", *impl_ );
     }
 
     template<> void
     TargetingMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        impl_->serialize( ar, version );
+        if ( version <= 4 )
+            impl_->serialize( ar, version );
+        else
+            ar & boost::serialization::make_nvp("impl", *impl_);
     }
 }
 
+BOOST_CLASS_VERSION( adcontrols::TargetingMethod::impl, 5 )
 
 using namespace adcontrols;
 
