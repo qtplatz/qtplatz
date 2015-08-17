@@ -60,9 +60,10 @@ namespace adwidgets {
 
     private:
         TargetingForm * form_;
-        TargetingTable * table_;
+        //TargetingTable * table_;
         
     signals:
+        void onProcess( const QString& );
 
     public slots:
 

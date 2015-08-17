@@ -27,6 +27,7 @@
 #include "chemicalformula.hpp"
 #include "massspectrum.hpp"
 #include "msproperty.hpp"
+#include <adcontrols/moltable.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/combination.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
@@ -175,10 +176,11 @@ Targeting::setup( const TargetingMethod& m )
     ChemicalFormula formula_parser;
 
     active_formula_.clear();
-    for ( auto& f: m.formulae() ) {
-        if ( TargetingMethod::formula_data::enable( f ) ) {
-            const std::string formula = TargetingMethod::formula_data::formula( f );
-            active_formula_.push_back( std::make_pair( formula, formula_parser.getMonoIsotopicMass( formula ) ) );
+
+    for ( auto& m : m.molecules().data() ) {
+        if ( m.enable ) {
+            const std::string formula = m.formula;// TargetingMethod::formula_data::formula( f );
+            active_formula_.push_back( std::make_pair( formula, formula_parser.getMonoIsotopicMass( m.formula ) ) );
         }
     }
     setup_adducts( m, true, pos_adducts_ );

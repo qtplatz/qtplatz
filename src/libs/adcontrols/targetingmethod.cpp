@@ -75,10 +75,8 @@ namespace adcontrols {
         std::vector< std::pair< bool, std::string > > pos_adducts_; // if start with '-' means lose instead of add
         std::vector< std::pair< bool, std::string > > neg_adducts_;
 
-        std::vector< formula_type > formulae_;
-        std::vector< peptide_type > peptides_;
-
         moltable molecules_;
+
         //----------
         
         friend class boost::serialization::access;
@@ -134,18 +132,17 @@ namespace adcontrols {
                 } else {
                     std::vector< formula_type > formulae;
                     std::vector< peptide_type > peptides;
-                    ar & BOOST_SERIALIZATION_NVP( formulae_ ) & BOOST_SERIALIZATION_NVP( peptides_ );
+                    ar & BOOST_SERIALIZATION_NVP( formulae ) & BOOST_SERIALIZATION_NVP( peptides );
+
                     for ( auto& f: formulae ) {
                         moltable::value_type mol;
                         mol.formula = f.first;
                         mol.enable = f.second.first;
                         mol.description = f.second.second;
-                        *molecules_ << mol;
+                        molecules_ << mol;
                     }
                 }
-                
             } else if ( version <= 5 ) {
-                
                 ar & BOOST_SERIALIZATION_NVP( idTarget_ );
                 ar & BOOST_SERIALIZATION_NVP( toleranceMethod_ );
                 ar & BOOST_SERIALIZATION_NVP( tolerancePpm_ );
@@ -253,30 +250,6 @@ TargetingMethod::chargeState( uint32_t min, uint32_t max )
 {
     impl_->chargeStateMin_ = min;
     impl_->chargeStateMax_ = max;
-}
-
-std::vector< TargetingMethod::formula_type >&
-TargetingMethod::formulae()
-{
-    return impl_->formulae_;
-}
-
-const std::vector< TargetingMethod::formula_type >&
-TargetingMethod::formulae() const
-{
-    return impl_->formulae_;
-}
-
-std::vector< TargetingMethod::peptide_type >&
-TargetingMethod::peptides()
-{
-    return impl_->peptides_;
-}
-
-const std::vector< TargetingMethod::peptide_type >&
-TargetingMethod::peptides() const
-{
-    return impl_->peptides_;
 }
 
 idToleranceMethod

@@ -29,6 +29,7 @@
 #include <adprot/peptide.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/mschromatogrammethod.hpp>
 #include <adportable/float.hpp>
 #include <QDoubleSpinBox>
@@ -195,22 +196,20 @@ TargetingTable::setContents( const adcontrols::TargetingMethod& method )
     using namespace adwidgets::detail;
     adcontrols::ChemicalFormula cformula;
 
-    model.setRowCount( int( method.formulae().size() + 1 ) ); // add one free line for add formula
+    model.setRowCount( int( method.molecules().size() + 1 ) ); // add one free line for add formula
 
     int row = 0;
-    for ( auto& formula: method.formulae() ) {
+    for ( auto& formula : method.molecules().data() ) {
 
-        typedef adcontrols::TargetingMethod::formula_data formula_data;
-
-        model.setData( model.index( row, c_formula ), QString::fromStdString( formula_data::formula( formula ) ) );
+        model.setData( model.index( row, c_formula ), QString::fromStdString( formula.formula ) );
         if ( auto item = model.item( row, c_formula ) ) {
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             item->setEditable( true );
-            model.setData( model.index( row, c_formula ), formula_data::enable( formula ) ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            model.setData( model.index( row, c_formula ), formula.enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
-        model.setData( model.index( row, c_description ), QString::fromStdWString( formula_data::description( formula ) ) );
+        model.setData( model.index( row, c_description ), QString::fromStdWString( formula.description ) );
 
-        double exactMass = cformula.getMonoIsotopicMass( formula_data::formula( formula ) );
+        double exactMass = cformula.getMonoIsotopicMass( formula.formula );
         model_->setData( model_->index( row, c_mass ), exactMass );
         ++row;
     }
@@ -225,18 +224,17 @@ TargetingTable::getContents( adcontrols::TargetingMethod& method )
     QStandardItemModel& model = *model_;
     using namespace adwidgets::detail;
 
-    method.formulae().clear();
+    method.molecules().data().clear();
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
 
-        std::string formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
-        bool enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-        std::wstring memo = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
+        adcontrols::moltable::value_type value;
+        value.formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
+        value.enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
+        value.description = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
 
-        if ( !formula.empty() ) {
-            method.formulae().push_back( adcontrols::TargetingMethod::formula_data( enable, formula, memo ) );
-        }
-
+        if ( !value.formula.empty() )
+            method.molecules() << value;
     }
 }
 

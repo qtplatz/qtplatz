@@ -24,7 +24,8 @@
 
 #include "targetingwidget.hpp"
 #include "targetingform.hpp"
-#include "targetingtable.hpp"
+//#include "targetingtable.hpp"
+#include "moltable.hpp"
 #include "targetingadducts.hpp"
 #include <adportable/is_type.hpp>
 #include <adprot/digestedpeptides.hpp>
@@ -37,7 +38,6 @@ using namespace adwidgets;
 
 TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
                                                   , form_(0)
-                                                  , table_(0)
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
@@ -46,7 +46,8 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
         
         if ( QSplitter * splitter = new QSplitter ) {
             splitter->addWidget( ( form_ = new TargetingForm ) ); 
-            splitter->addWidget( ( table_ = new TargetingTable ) ); 
+            //splitter->addWidget( ( table_ = new TargetingTable ) );
+            splitter->addWidget( new MolTable ); 
             splitter->addWidget( (new TargetingAdducts) );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 3 );
@@ -61,7 +62,6 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
 
 TargetingWidget::~TargetingWidget()
 {
-    delete table_;
     delete form_;
 }
 
@@ -79,11 +79,14 @@ TargetingWidget::OnCreate( const adportable::Configuration& )
 void
 TargetingWidget::OnInitialUpdate()
 {
-    table_->onInitialUpdate();
-
     adcontrols::TargetingMethod m; // default
+
+    if ( auto table = findChild< MolTable *>() ) {
+        table->onInitialUpdate();
+        table->setContents( m.molecules() );
+    }
+
     form_->setContents( m );
-    table_->setContents( m );
         
     if ( auto tree = findChild< TargetingAdducts * >() ) {
         tree->OnInitialUpdate();
@@ -112,8 +115,10 @@ TargetingWidget::getContents( boost::any& a ) const
 
             form_->getContents( method );
 
-            if ( auto table = findChild< TargetingTable * >() )
-                table->getContents( method );
+            //if ( auto table = findChild< TargetingTable * >() )
+            // table->getContents( method );
+            if ( auto table = findChild< MolTable *>() )
+                table->getContents( method.molecules() );
 
             if ( auto tree = findChild< TargetingAdducts * >() )
                 tree->getContents( method );
@@ -131,17 +136,20 @@ TargetingWidget::setContents( boost::any& a )
 {
 	if ( adportable::a_type< adprot::digestedPeptides >::is_a( a ) ) {
 
-        auto digested = boost::any_cast< adprot::digestedPeptides >( a );
-		table_->setContents( digested );
-        return true;
+        //auto digested = boost::any_cast< adprot::digestedPeptides >( a );
+        //table_->setContents( digested );
+        return false;
 
     } else if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
 
         const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( a );
 
         if ( const adcontrols::TargetingMethod * t = pm.find< adcontrols::TargetingMethod >() ) {
+
             form_->setContents( *t );
-            table_->setContents( *t );
+
+            if ( auto table = findChild< MolTable *>() )
+                table->setContents( t->molecules() );
         
             if ( auto tree = findChild< TargetingAdducts * >() )
             tree->setContents( *t );
