@@ -46,12 +46,13 @@ namespace adcontrols {
             , lowMassLimit_( 1 )
             , highMassLimit_( 1000 )
             , tolerance_( 10.0 ) { // deplicated
+
             // reference,
             // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
+
             // "(CH3)2SO+H" // DMSO+H
             // "C3H8O+H"    // IPA+H
             // "C3H8O+Na"   // IPA+Na
-
             for ( auto adduct : { "H", "Na", "NH4", "K", "CH3CN+H" "CH3CN+Na", "CH3OH+H", "(CH3)2SO+H", "C3H8O+H", "C3H8O+Na" } )
                 pos_adducts_.push_back( std::make_pair( false, adduct ) );
 
@@ -76,6 +77,7 @@ namespace adcontrols {
 
         std::vector< formula_type > formulae_;
         std::vector< peptide_type > peptides_;
+
         moltable molecules_;
         //----------
         
@@ -318,16 +320,21 @@ TargetingMethod::highMassLimit( double value )
     impl_->highMassLimit_ = value;
 }
 
-#if 0
-double
-TargetingMethod::tolerance() const
+const moltable&
+TargetingMethod::molecules() const
 {
-    return tolerance_;
+    return impl_->molecules_;
+}
+
+moltable&
+TargetingMethod::molecules()
+{
+    return impl_->molecules_;
 }
 
 void
-TargetingMethod::tolerance( double value )
+TargetingMethod::set_molecules( const moltable& t )
 {
-    tolerance_ = value;
+    impl_->molecules_ = t;
 }
-#endif
+
