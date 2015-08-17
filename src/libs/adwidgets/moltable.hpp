@@ -80,8 +80,9 @@ namespace adwidgets {
         void onContextMenu( QMenu&, const QPoint& );
         void onValueChanged();
                                            
-    public slots:
-    
+    private slots:
+        void handleCopyToClipboard() override;
+        void handlePaste() override;
     };
 
 }

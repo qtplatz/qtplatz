@@ -92,20 +92,24 @@ TableView::handleCopyToClipboard()
     for( int i = 0; i < indecies.size(); ++i ) {
         QModelIndex index = indecies.at( i );
 
-        if ( !isRowHidden( prev.row() ) && !isColumnHidden( prev.column() ) ) {
+        if ( !isRowHidden( prev.row() ) ) {
+
+            auto t = prev.data( Qt::EditRole ).type();
+            if ( !isColumnHidden( prev.column() ) ) {
+
+                QString text = prev.data( Qt::EditRole ).toString();
+                selected_text.append( text );
+
+                if ( index.row() == prev.row() )
+                    selected_text.append( '\t' );
+            }
             
-            QString text = prev.data( Qt::EditRole ).toString(); 
-
-            selected_text.append( text );
-
             if ( index.row() != prev.row() )
                 selected_text.append( '\n' );
-            else
-                selected_text.append( '\t' );
-
         }
         prev = index;
     }
+
     if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
         selected_text.append( last.data( Qt::EditRole ).toString() );
 

@@ -33,7 +33,9 @@
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
+#include <QApplication>
 #include <QByteArray>
+#include <QClipboard>
 #include <QDoubleSpinBox>
 #include <QDragEnterEvent>
 #include <QFileInfo>
@@ -66,6 +68,8 @@
 #endif
 
 #include <boost/format.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
 #include <qtwrapper/font.hpp>
 #include <functional>
 
@@ -506,3 +510,119 @@ MolTable::dropEvent( QDropEvent * event )
 	}
 }
 
+void
+MolTable::handleCopyToClipboard()
+{
+	QModelIndexList indecies = selectionModel()->selectedIndexes();
+
+    qSort( indecies );
+    if ( indecies.size() < 1 )
+        return;
+
+    adcontrols::moltable molecules;
+    
+    QString selected_text;
+    QModelIndex prev = indecies.first();
+    QModelIndex last = indecies.last();
+
+    indecies.removeFirst();
+
+    adcontrols::moltable::value_type mol;
+
+    for( int i = 0; i < indecies.size(); ++i ) {
+        
+        QModelIndex index = indecies.at( i );
+
+        if ( !isRowHidden( prev.row() ) ) {
+
+            auto t = prev.data( Qt::EditRole ).type();
+            if ( !isColumnHidden( prev.column() ) && ( prev.column() != MolTable::c_svg ) ) {
+
+                QString text = prev.data( Qt::EditRole ).toString();
+                selected_text.append( text );
+
+                if ( index.row() == prev.row() )
+                    selected_text.append( '\t' );
+            }
+
+            switch( prev.column() ) {
+            case MolTable::c_formula: mol.formula = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_adducts: mol.adducts = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_mass: mol.mass = prev.data( Qt::EditRole ).toDouble(); break;
+            case MolTable::c_abundance: mol.abundance = prev.data( Qt::EditRole ).toDouble(); break;                
+            case MolTable::c_synonym: mol.synonym = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_description: mol.description = prev.data( Qt::EditRole ).toString().toStdWString(); break;
+            case MolTable::c_smiles: mol.smiles = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            }
+            
+            if ( index.row() != prev.row() ) {
+                selected_text.append( '\n' );
+                molecules << mol;
+                mol = adcontrols::moltable::value_type();
+            }
+        }
+        prev = index;
+    }
+
+    if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
+        selected_text.append( last.data( Qt::EditRole ).toString() );
+
+    QApplication::clipboard()->setText( selected_text );
+    
+    std::wostringstream o;
+    try {
+        if ( adcontrols::moltable::xml_archive( o, molecules ) ) {
+            QString xml( QString::fromStdWString( o.str() ) );
+            QMimeData * md = new QMimeData();
+            md->setData( QLatin1String( "application/moltable-xml" ), xml.toUtf8() );
+            md->setText( selected_text );
+            QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
+        }
+    } catch ( ... ) {
+    }
+}
+
+void
+MolTable::handlePaste()
+{
+    int row = model_->rowCount() - 1;
+
+    auto md = QApplication::clipboard()->mimeData();
+    auto data = md->data( "application/moltable-xml" );
+    if ( !data.isEmpty() ) {
+        QString utf8( QString::fromUtf8( data ) );
+        std::wistringstream is( utf8.toStdWString() );
+
+        adcontrols::moltable molecules;
+        if ( adcontrols::moltable::xml_restore( is, molecules ) ) {
+
+            model_->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
+
+            for ( auto& mol : molecules.data() ) {
+
+                impl::setData( *this, row
+                               , QString::fromStdString( mol.formula )
+                               , QString::fromStdString( mol.adducts )
+                               , QString::fromStdString( mol.smiles )
+                               , QByteArray()
+                               , QString::fromStdString( mol.synonym )
+                               , QString::fromStdWString( mol.description )
+                               , mol.mass
+                               , mol.abundance
+                               , mol.enable );
+                ++row;
+            }
+            resizeRowsToContents();
+            resizeColumnsToContents();
+        }
+    } else {
+        QString pasted = QApplication::clipboard()->text();
+        QStringList lines = pasted.split( "\n" );
+        for ( auto line : lines ) {
+            QStringList texts = line.split( "\t" );
+            for ( auto& test : texts ) {
+                // TODO...
+            }
+        }
+    }
+}

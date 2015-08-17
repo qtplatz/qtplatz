@@ -153,3 +153,17 @@ moltable::size() const
 {
     return impl_->data_.size();
 }
+
+//static
+bool
+moltable::xml_archive( std::wostream& os, const moltable& t )
+{
+    return internal::xmlSerializer("moltable").archive( os, t );
+}
+
+//static
+bool
+moltable::xml_restore( std::wistream& is, moltable& t )
+{
+    return internal::xmlSerializer("moltable").restore( is, t );
+}

@@ -75,6 +75,9 @@ namespace adcontrols {
         moltable& operator << ( const value_type& );
         size_t size() const;
         bool empty() const;
+
+        static bool xml_archive( std::wostream&, const moltable& );
+        static bool xml_restore( std::wistream&, moltable& );
         
     private:
         class delegate;        

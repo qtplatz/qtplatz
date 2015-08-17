@@ -126,6 +126,13 @@
      </item>
     </layout>
    </item>
+   <item row="2" column="0">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Apply</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>
