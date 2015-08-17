@@ -46,8 +46,8 @@ namespace adcontrols {
 
         double getMonoIsotopicMass( const std::wstring& formula ) const;
 		double getMonoIsotopicMass( const std::string& formula ) const;
-        double getMonoIsotopicMass( const std::wstring& formula, const std::pair< std::wstring, std::wstring >& ) const;
-        double getMonoIsotopicMass( const std::string& formula, const std::pair< std::string, std::string >& ) const;
+        // double getMonoIsotopicMass( const std::wstring& formula, const std::pair< std::wstring, std::wstring >& ) const;
+        // double getMonoIsotopicMass( const std::string& formula, const std::pair< std::string, std::string >& ) const;
         double getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae ) const;        
 
         double getChemicalMass( const std::wstring& formula ) const;
@@ -56,6 +56,7 @@ namespace adcontrols {
         
 		static std::wstring standardFormula( const std::wstring& formula );
 		static std::string standardFormula( const std::string& formula );
+		static std::string standardFormula( const std::vector< std::pair< std::string, char > >& formulae );
         static bool getComposition( std::vector< mol::element >&, const std::string& formula );
         static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
         static std::string formatFormula( const std::string& formula, bool richText = true );

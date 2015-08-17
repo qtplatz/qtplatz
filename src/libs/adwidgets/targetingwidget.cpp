@@ -55,9 +55,10 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
             splitter->setOrientation ( Qt::Horizontal );
 
             layout->addWidget( splitter );
+
         }
     }
-
+    connect( form_, &TargetingForm::onProcess, [this] { emit onProcess( "TargetingWidget" ); } );
 }
 
 TargetingWidget::~TargetingWidget()

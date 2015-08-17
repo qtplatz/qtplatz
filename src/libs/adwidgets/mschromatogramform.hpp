@@ -59,6 +59,7 @@ namespace adwidgets {
 
     signals:
         void onEnableLockMass( bool );
+        void onProcess();
 
     private:
         Ui::MSChromatogramForm *ui;

@@ -53,6 +53,8 @@ namespace adwidgets {
 
     private:
         ::Ui::TargetingForm *ui;
+    signals:
+        void onProcess();
     };
 
 }

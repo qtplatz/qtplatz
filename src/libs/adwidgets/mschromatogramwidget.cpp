@@ -55,6 +55,8 @@ MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QWidget(parent)
     if ( auto form = findChild< MSChromatogramForm * >() ) {
         if ( auto table = findChild< TargetingTable *>() )
             connect( form, &MSChromatogramForm::onEnableLockMass, table, [table] ( bool enable ) { table->enableLockMass( enable ); } );
+
+        connect( form, &MSChromatogramForm::onProcess, [this] { run(); } );
     }
 }
 

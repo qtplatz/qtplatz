@@ -755,6 +755,12 @@ MainWindow::handleProcess( const QString& origin )
         dataproc_document::instance()->setProcessMethod( *pm );
         if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
             processor->applyCalibration( *pm );
+    } else if ( origin == "TargetingWidget" ) {
+        auto pm = std::make_shared< adcontrols::ProcessMethod >();
+        getProcessMethod( *pm );
+        dataproc_document::instance()->setProcessMethod( *pm );
+        if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
+            processor->applyProcess( *pm, TargetingProcess );
     }
 }
 

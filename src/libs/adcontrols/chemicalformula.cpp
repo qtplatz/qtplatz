@@ -276,28 +276,6 @@ ChemicalFormula::getMonoIsotopicMass( const std::string& formula ) const
 }
 
 double
-ChemicalFormula::getMonoIsotopicMass( const std::wstring& formula, const std::pair< std::wstring, std::wstring >& adducts ) const
-{
-    double mass = internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
-    if ( !adducts.first.empty() )
-        mass += internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.first );
-    if ( !adducts.second.empty() )
-        mass -= internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.second );
-    return mass;
-}
-
-double
-ChemicalFormula::getMonoIsotopicMass( const std::string& formula, const std::pair< std::string, std::string >& adducts ) const
-{
-    double mass = internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
-    if ( !adducts.first.empty() )
-        mass += internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.first );
-    if ( !adducts.second.empty() )
-        mass -= internal::ChemicalFormulaImpl::getMonoIsotopicMass( adducts.second );
-    return mass;
-}
-
-double
 ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae ) const
 {
     double mass = 0;
@@ -485,6 +463,42 @@ ChemicalFormula::splitAdducts( const std::string& adducts )
         }
     }
     return list;
+}
+
+std::string
+ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, char > >& formulae )
+{
+    std::string mformula, lformula;
+
+    for ( auto& formula: formulae ) {
+        if ( formula.second == '-' )
+            lformula += formula.first;
+        else
+            mformula += formula.first;
+    }
+    
+    std::vector< mol::element > mol, loses;
+    getComposition( mol, mformula );
+    if ( getComposition( loses, lformula ) ) {
+        for ( auto& lose : loses ) {
+            auto it = std::find_if( mol.begin(), mol.end(), [lose] ( const mol::element& a ) {
+                    return a.atomicNumber() == lose.atomicNumber();
+                } );
+            if ( it != mol.end() )
+                it->count( it->count() - lose.count() );
+        }
+    }
+    std::sort( mol.begin(), mol.end(), [] ( const mol::element& a, const mol::element& b ) { return std::strcmp( a.symbol(), b.symbol() ) < 0; } );
+
+    std::ostringstream o;
+    for ( auto& a : mol ) {
+        if ( a.count() > 0 ) {
+            o << a.symbol();
+            if ( a.count() > 1 )
+                o << a.count();
+        }
+    }
+    return o.str();
 }
 
 std::vector< std::string >
