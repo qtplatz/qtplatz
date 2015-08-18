@@ -38,41 +38,6 @@
 #include <set>
 #include <map>
 
-namespace adcontrols {
-    namespace detail {
-
-        template<typename It> struct target_finder {
-            It beg_;
-            It end_;
-            double tolerance_;
-            std::pair< double, size_t > pos_;  // delta-mass, index
-            target_finder( It beg, It end, double tolerance ) : beg_( beg ), end_( end ), tolerance_( tolerance ) {
-            }
-            bool operator()( double target_mass ) {
-
-                if ( target_mass < *beg_ || target_mass > *(end_ - 1) )
-                    return false;
-
-                auto itLower = std::lower_bound( beg_, end_, target_mass - tolerance_ );
-
-                if ( itLower != end_ ) {
-
-                    auto itUpper = std::lower_bound( itLower, end_, target_mass + tolerance_ );
-
-                    auto closest = std::min_element( itLower, itUpper, [target_mass] ( const decltype( *It )& a, const decltype( *It )& b ) {
-                        return std::abs( a - target_mass ) < std::abs( b - target_mass ); } );
-
-                    pos_ = std::make_pair( *closest, std::distance( beg_, closest ) );
-
-                    return true;
-                }
-                return false;
-            }
-        };
-
-    }
-}
-
 using namespace adcontrols;
 
 Targeting::Targeting() : method_( std::make_shared< TargetingMethod >() )
@@ -219,31 +184,11 @@ Targeting::setup_adducts( const TargetingMethod& m, bool positive, std::vector< 
         if ( a.first ) { // if (enable)
             std::string addformula;
             std::string loseformula;
-#if 0
-            std::vector< std::string > formulae;
-            if ( formula_parser.split( a.second, formulae ) ) {
-                bool addlose( true );
-                for ( auto& tok: formulae ) {
-                    if ( tok == "+" ) {
-                        addlose = true;
-                    } else if ( tok == "-" ) {
-                        addlose = false;
-                    } else {
-                        std::string& t = addlose ? addformula : loseformula;
-                        t += tok;
-                    }                        
-                }
-            }
-#endif
             std::pair< double, double > addlose( 0, 0 );
-            //std::string formula;
             if ( !addformula.empty() ) {
-                // formula = formula_parser.standardFormula( addformula );
                 addlose.first = formula_parser.getMonoIsotopicMass( addformula );
             }
             if ( !loseformula.empty() ) {
-                //formula += "-";
-                //formula += formula_parser.standardFormula( loseformula );
                 addlose.second = -formula_parser.getMonoIsotopicMass( loseformula );
             }
             adducts.push_back( std::make_pair( addlose.first + addlose.second, a.second ) );
@@ -262,36 +207,6 @@ Targeting::make_combination( uint32_t charge
     typedef size_t formula_number;
     typedef size_t formula_count;
     std::set< std::map< formula_number, formula_count > > combination_with_repetition;
-#if 0
-    {
-        // this is too slow when n >= 10 with r >= 3
-        /////////////////////
-        // Compute a combination with repetation as chemical formula as adduct/lose of mass spectrum
-        //
-        // The algorithm for combination (without repetition) was inspired from StackOverflow thread:
-        // http://stackoverflow.com/questions/9430568/generating-combinations-in-c
-        // posted by mitchnull, 24 Feb, 2012
-        //
-        // 9 July 2014, Toshinobu Hondo
-        //
-        adportable::scoped_debug<> scope(__FILE__, __LINE__); scope << "making combination(1):";
-        std::vector< bool > selector( adducts.size() * charge );
-        std::fill( selector.begin() + charge, selector.end(), true );  // nCr, where n is number of adducts x charge, r is the number of charge
-
-        do {
-            std::map< formula_number, formula_count > formulae;
-
-            size_t i = 0;
-            for ( auto it = selector.begin(); it != selector.end(); ++it, ++i )
-                if ( !(*it) )
-                    formulae[ i / charge ]++; // add or increment number of atom|formula (e.g. for triply charged: 3H, 2HNa ...)
-
-            combination_with_repetition.insert( formulae );
-
-        } while ( std::next_permutation( selector.begin(), selector.end() ) );
-    }
-    combination_with_repetition.clear();
-#endif
     {
         // adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "making combination(2):";
         std::vector< uint32_t > selector( adducts.size() * charge );

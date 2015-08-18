@@ -30,6 +30,7 @@
 #include <adcontrols/scanlaw.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <QSignalBlocker>
+#include <cmath>
 
 namespace adwidgets {
 
