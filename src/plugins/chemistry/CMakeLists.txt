@@ -89,6 +89,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adchem
   adcontrols
   adplugin
+  adwidgets
   qtwrapper
   adprot
   Core

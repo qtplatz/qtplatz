@@ -25,6 +25,7 @@
 #ifndef MOLTABLEVIEW_HPP
 #define MOLTABLEVIEW_HPP
 
+#include <adwidgets/tableview.hpp>
 #include <QTableView>
 #include <QUrl>
 #include <memory>
@@ -38,7 +39,7 @@ namespace chemistry {
 
     class MolTableDelegate;
 
-    class MolTableView : public QTableView {
+    class MolTableView : public adwidgets::TableView {
         Q_OBJECT
     public:
         explicit MolTableView(QWidget *parent = 0);
@@ -52,6 +53,8 @@ namespace chemistry {
     public slots:
 
     private:
+        void handleContextMenu( const QPoint& );
+        
         void dragEnterEvent( QDragEnterEvent * ) override;
         void dragMoveEvent( QDragMoveEvent * ) override;
         void dragLeaveEvent( QDragLeaveEvent * ) override;
@@ -59,6 +62,10 @@ namespace chemistry {
 
         MolTableDelegate * delegate_;
         QStandardItemModel * model_;
+
+    private slots:
+        void handleCopyToClipboard();
+        void handlePaste();
     };
 
 }
