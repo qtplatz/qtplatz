@@ -41,6 +41,7 @@ namespace boost {
         template <class Archive >
         void serialize( Archive& ar, moltable::value_type& p, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( p.enable );
+            ar & BOOST_SERIALIZATION_NVP( p.flags );
             ar & BOOST_SERIALIZATION_NVP( p.mass );
             ar & BOOST_SERIALIZATION_NVP( p.abundance );
             ar & BOOST_SERIALIZATION_NVP( p.formula );
@@ -102,6 +103,20 @@ namespace adcontrols {
 BOOST_CLASS_VERSION( adcontrols::moltable::impl, 1 )
 
 using namespace adcontrols;
+
+bool
+moltable::value_type::isMSRef() const
+{
+    return ( flags & moltable::isMSRef ) == moltable::isMSRef;
+}
+
+void
+moltable::value_type::setIsMSRef( bool on )
+{
+    //flags = on ? flags & moltable::isMSRef : flags & ~moltable::isMSRef;
+    flags = on ? moltable::isMSRef : 0;
+}
+
 
 moltable::~moltable()
 {

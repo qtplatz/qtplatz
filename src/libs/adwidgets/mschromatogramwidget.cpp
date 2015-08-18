@@ -24,12 +24,14 @@
 
 #include "mschromatogramwidget.hpp"
 #include "mschromatogramform.hpp"
-#include "targetingtable.hpp"
+//#include "targetingtable.hpp"
+#include "moltable.hpp"
 #include "targetingadducts.hpp"
 #include <adportable/is_type.hpp>
 #include <adprot/digestedpeptides.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/mschromatogrammethod.hpp>
+#include <adcontrols/moltable.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
 #include <QMenu>
@@ -45,16 +47,21 @@ MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QWidget(parent)
         
         if ( QSplitter * splitter = new QSplitter ) {
             splitter->addWidget( ( new MSChromatogramForm ) ); 
-            splitter->addWidget( ( new TargetingTable ) );
+            //splitter->addWidget( ( new TargetingTable ) );
+            splitter->addWidget( ( new MolTable ) );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 3 );
             splitter->setOrientation ( Qt::Horizontal );
             layout->addWidget( splitter );
         }
     }
+
     if ( auto form = findChild< MSChromatogramForm * >() ) {
-        if ( auto table = findChild< TargetingTable *>() )
-            connect( form, &MSChromatogramForm::onEnableLockMass, table, [table] ( bool enable ) { table->enableLockMass( enable ); } );
+        //if ( auto table = findChild< TargetingTable *>() ) {
+        if ( auto table = findChild< MolTable *>() ) {
+            table->setColumnHidden( MolTable::c_abundance, true );
+            connect( form, &MSChromatogramForm::onEnableLockMass, [table]( bool enable ) { table->setColumnHidden( MolTable::c_msref, !enable ); } );
+        }
 
         connect( form, &MSChromatogramForm::onProcess, [this] { run(); } );
     }
@@ -81,9 +88,10 @@ MSChromatogramWidget::OnInitialUpdate()
     if ( auto form = findChild< MSChromatogramForm * >() ) 
         form->OnInitialUpdate();
 
-    if ( auto table = findChild< TargetingTable *>() ) {
+    //if ( auto table = findChild< TargetingTable *>() ) {
+    if ( auto table = findChild< MolTable *>() ) {
         table->onInitialUpdate();
-        connect( table, &TargetingTable::onContextMenu, this, &MSChromatogramWidget::handleContextMenu );
+        //connect( table, &TargetingTable::onContextMenu, this, &MSChromatogramWidget::handleContextMenu );
     }
 }
 
@@ -107,8 +115,8 @@ MSChromatogramWidget::getContents( boost::any& a ) const
 
                 if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
 
-                    if ( auto table = findChild< TargetingTable * >() ) {
-                        table->getContents( *cm );
+                    if ( auto table = findChild< MolTable * >() ) {
+                        table->getContents( cm->molecules() );
                         return true;
                     }
                 }
@@ -130,8 +138,8 @@ MSChromatogramWidget::setContents( boost::any& a )
         const adcontrols::ProcessMethod& pm = boost::any_cast<adcontrols::ProcessMethod&>( a );
         
         if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
-            if ( auto table = findChild< TargetingTable *>() ) {
-                table->setContents( *cm );
+            if ( auto table = findChild< MolTable *>() ) {
+                table->setContents( cm->molecules() );
                 return true;
             }
         }

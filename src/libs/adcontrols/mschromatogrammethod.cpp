@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mschromatogrammethod.hpp"
+#include "moltable.hpp"
 #include "serializer.hpp"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -33,13 +34,31 @@
 #include <array>
 #include <adportable/float.hpp>
 
+
+namespace adcontrols {
+    namespace depricated {
+        // for loading old file
+        struct value_type {
+             bool enable;
+             bool msref;
+             double mass;
+             std::string formula;
+             std::wstring memo;
+             value_type() : enable( true ), msref( false ), mass( 0 ) {}
+             value_type( const value_type& t ) : enable( t.enable ), msref( t.msref ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
+             }
+        };
+        
+    }
+}
+
 namespace boost {
     namespace serialization {
 
         using namespace adcontrols;
 
         template <class Archive >
-        void serialize( Archive& ar, MSChromatogramMethod::value_type& p, const unsigned int ) {
+        void serialize( Archive& ar, adcontrols::depricated::value_type& p, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( p.enable );
             ar & BOOST_SERIALIZATION_NVP( p.msref );            
             ar & BOOST_SERIALIZATION_NVP( p.mass );
@@ -49,15 +68,17 @@ namespace boost {
     }
 }
 
+
 namespace adcontrols {
 
     class MSChromatogramMethod::impl {
     public:
         DataSource dataSource_;
         WidthMethod widthMethod_;
-        std::array< double, 2 > width_;
+        std::vector< double > width_;
         std::pair< double, double > mass_limits_; // lower, upper
-        std::vector< MSChromatogramMethod::value_type > formulae_;
+
+        moltable molecules_;
         bool enable_lockmass_;
         double tolerance_;
         
@@ -66,13 +87,24 @@ namespace adcontrols {
         void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
 
-            ar & BOOST_SERIALIZATION_NVP( dataSource_ );
-            ar & BOOST_SERIALIZATION_NVP( widthMethod_ );
-            ar & boost::serialization::make_nvp( "width0", width_[ 0 ] );
-            ar & boost::serialization::make_nvp( "width1", width_[ 1 ] );
-            ar & BOOST_SERIALIZATION_NVP( mass_limits_ );
-            if ( version >= 4 ) {
-                ar & BOOST_SERIALIZATION_NVP( formulae_ );
+            if ( version <= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( dataSource_ );
+                ar & BOOST_SERIALIZATION_NVP( widthMethod_ );
+                ar & boost::serialization::make_nvp( "width0", width_[ 0 ] );
+                ar & boost::serialization::make_nvp( "width1", width_[ 1 ] );
+                ar & BOOST_SERIALIZATION_NVP( mass_limits_ );
+                if ( version == 4 ) {
+                    std::vector< depricated::value_type > formulae;
+                    ar & BOOST_SERIALIZATION_NVP( formulae );
+                    ar & BOOST_SERIALIZATION_NVP( enable_lockmass_ );
+                    ar & BOOST_SERIALIZATION_NVP( tolerance_ );
+                }
+            } else if ( version >= 5 ) {
+                ar & BOOST_SERIALIZATION_NVP( dataSource_ );
+                ar & BOOST_SERIALIZATION_NVP( widthMethod_ );
+                ar & BOOST_SERIALIZATION_NVP( width_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_limits_ );
+                ar & BOOST_SERIALIZATION_NVP( molecules_ );
                 ar & BOOST_SERIALIZATION_NVP( enable_lockmass_ );
                 ar & BOOST_SERIALIZATION_NVP( tolerance_ );
             }
@@ -80,25 +112,28 @@ namespace adcontrols {
         
         impl() : dataSource_( Profile )
                , widthMethod_( widthInDa )
+               , width_( 2 )
                , mass_limits_( -1, -1 )
                , enable_lockmass_( false )
                , tolerance_( 0.020 ) {
+            
             width_[ widthInDa ] = 0.002;
             width_[ widthInRP ] = 100000;
+
         }
 
         impl( const impl& t ) : dataSource_( t.dataSource_ )
                               , widthMethod_( t.widthMethod_ )
                               , width_( t.width_)
                               , mass_limits_( t.mass_limits_ )
-                              , formulae_( t.formulae_ )
+                              , molecules_( t.molecules_ )
                               , enable_lockmass_( t.enable_lockmass_ )
                               , tolerance_( t.tolerance_ ) {
         }
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod::impl, 4 )
+BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod::impl, 5 )
 
 namespace adcontrols {
 
@@ -153,7 +188,10 @@ MSChromatogramMethod::MSChromatogramMethod( const MSChromatogramMethod& t ) : im
 MSChromatogramMethod&
 MSChromatogramMethod::operator = ( const MSChromatogramMethod& t )
 {
-    impl_.reset( new impl( *t.impl_ ) );
+    if ( impl_ != t.impl_ ) {  // can't copy self
+        delete impl_;
+        impl_ = new impl( *t.impl_ );
+    }
     return *this;
 }
 
@@ -245,6 +283,7 @@ MSChromatogramMethod::width_at_mass( double mass ) const
         return impl_->width_[ impl_->widthMethod_ ];
 }
 
+#if 0
 const std::vector< MSChromatogramMethod::value_type >&
 MSChromatogramMethod::targets() const
 {
@@ -256,6 +295,7 @@ MSChromatogramMethod::targets( const std::vector< value_type >& f )
 {
     impl_->formulae_ = f;
 }
+#endif
 
 bool
 MSChromatogramMethod::lockmass() const
@@ -281,3 +321,20 @@ MSChromatogramMethod::tolerance( double value )
     impl_->tolerance_ = value;
 }
 
+const moltable&
+MSChromatogramMethod::molecules() const
+{
+    return impl_->molecules_;
+}
+
+moltable&
+MSChromatogramMethod::molecules()
+{
+    return impl_->molecules_;
+}
+
+void
+MSChromatogramMethod::setMolecules( const moltable& t )
+{
+    impl_->molecules_ = t;
+}

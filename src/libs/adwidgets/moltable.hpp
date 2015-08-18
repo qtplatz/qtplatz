@@ -44,6 +44,7 @@ namespace adwidgets {
             c_formula
             , c_adducts
             , c_mass
+            , c_msref
             , c_abundance
             , c_synonym
             , c_description
@@ -53,10 +54,12 @@ namespace adwidgets {
         };
 
         void onInitialUpdate();
-        // void setEditable( fields, bool );
 
         void setContents( const adcontrols::moltable& );
         void getContents( adcontrols::moltable& );
+
+        void setColumnEditable( int column, bool );
+        bool isColumnEditable( int column ) const;
 
         QStandardItemModel& model();
 

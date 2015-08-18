@@ -40,9 +40,12 @@ template class __declspec( dllexport ) std::basic_string < wchar_t > ;
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT moltable {
-    public:    
+    public:
+        enum molflags { isMSRef = 0x80000000 };
+
         struct ADCONTROLSSHARED_EXPORT value_type {
             bool enable;
+            uint32_t flags;
             double mass;
             double abundance;
             std::string formula;
@@ -51,9 +54,10 @@ namespace adcontrols {
             std::string smiles;
             std::wstring description;
             
-            value_type() : enable( true ), mass( 0 ), abundance( 1.0 ) {}
+            value_type() : enable( true ), flags(0), mass( 0 ), abundance( 1.0 ) {}
             
             value_type( const value_type& t ) : enable( t.enable )
+                , flags( t.flags )
                 , mass( t.mass )
                 , abundance( t.abundance )
                 , formula( t.formula )
@@ -62,6 +66,8 @@ namespace adcontrols {
                 , smiles( t.smiles )
                 , description( t.description ) {
             }
+            bool isMSRef() const;
+            void setIsMSRef( bool on );
         };
 
         ~moltable();        

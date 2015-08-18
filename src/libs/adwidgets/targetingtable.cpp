@@ -105,18 +105,6 @@ namespace adwidgets {
                     return QStyledItemDelegate::createEditor( parent, option, index );
                 }
             }
-            
-            // QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            //     auto sz = QStyledItemDelegate::sizeHint( option, index );
-            //     if ( index.column() == c_formula ) {
-            //         sz.wisth() * 2;
-            //     }
-            //     if ( index.column() == 1 ) {
-            //         return DelegateHelper::html_size_hint( option, index );
-            //     } else {
-            //         return 
-            //     }
-            // }
         public:
             void register_handler( std::function< void( const QModelIndex& ) > f ) {
                 valueChanged_ = f;
@@ -248,10 +236,10 @@ TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
     mass_editable_ = true;
     enableLockMass( m.lockmass() );
     
-    model.setRowCount( int( m.targets().size() + 1 ) ); // add one free line for add formula
+    model.setRowCount( int( m.molecules().size() + 1 ) ); // add one free line for add formula
 
     int row = 0;
-    for ( auto& value: m.targets() ) {
+    for ( auto& value : m.molecules().data() ) {
 
         model.setData( model.index( row, c_formula ), QString::fromStdString( value.formula ) );
         if ( auto item = model.item( row, c_formula ) ) {
@@ -267,14 +255,14 @@ TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
 
         model.item( row, c_mass )->setEditable( true );
 
-        model.setData( model.index( row, c_msref ), value.msref );
+        model.setData( model.index( row, c_msref ), value.isMSRef() );
         if ( auto cbx = model.item( row, c_msref ) ) {
             cbx->setEditable( false );
             cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
-            model.setData( model.index( row, c_msref ), value.msref ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            model.setData( model.index( row, c_msref ), value.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
         
-        model.setData( model.index( row, c_description ), QString::fromStdWString( value.memo ) );
+        model.setData( model.index( row, c_description ), QString::fromStdWString( value.description ) );
         model.item( row, c_description )->setEditable( true );
 
         ++row;
@@ -288,21 +276,22 @@ TargetingTable::getContents( adcontrols::MSChromatogramMethod& m )
     QStandardItemModel& model = *model_;
     using namespace adwidgets::detail;
 
-    std::vector< adcontrols::MSChromatogramMethod::value_type > vec;
+    //std::vector< adcontrols::MSChromatogramMethod::value_type > vec;
+    adcontrols::moltable molecules;
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        adcontrols::MSChromatogramMethod::value_type value;
+        adcontrols::moltable::value_type mol;
 
-        value.formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
-        value.enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-        value.memo = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
-        value.mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
-        value.msref = model.index( row, c_msref ).data( Qt::CheckStateRole ).toBool();
+        mol.formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
+        mol.enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
+        mol.description = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
+        mol.mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+        mol.setIsMSRef( model.index( row, c_msref ).data( Qt::CheckStateRole ).toBool() );
 
-        if ( !value.formula.empty() )
-            vec.push_back( value );
+        if ( !mol.formula.empty() )
+            molecules << mol;
     }
-    m.targets( vec );
+    m.setMolecules( molecules );
 }
 
 void

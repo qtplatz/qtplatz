@@ -28,7 +28,6 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <compiler/disable_dll_interface.h>
 #include <boost/serialization/version.hpp>
 #include <memory>
 #include <string>
@@ -37,6 +36,8 @@
 namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
+
+    class moltable;
 
     class ADCONTROLSSHARED_EXPORT MSChromatogramMethod {
     public:
@@ -72,24 +73,28 @@ namespace adcontrols {
         
         bool operator == ( const MSChromatogramMethod& ) const;
 
-        struct ADCONTROLSSHARED_EXPORT value_type {
-            bool enable;
-            bool msref;
-            double mass;
-            std::string formula;
-            std::wstring memo;
-            value_type() : enable( true ), msref( false ), mass( 0 ) {}
-            value_type( const value_type& t ) : enable( t.enable ), msref( t.msref ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
-            }
-        };
+        const moltable& molecules() const;
+        moltable& molecules();
+        void setMolecules( const moltable& );
 
-        const std::vector< value_type >& targets() const;
-        void targets( const std::vector< value_type >& );
+        // struct ADCONTROLSSHARED_EXPORT value_type {
+        //     bool enable;
+        //     bool msref;
+        //     double mass;
+        //     std::string formula;
+        //     std::wstring memo;
+        //     value_type() : enable( true ), msref( false ), mass( 0 ) {}
+        //     value_type( const value_type& t ) : enable( t.enable ), msref( t.msref ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
+        //     }
+        // };
+
+        // const std::vector< value_type >& targets() const;
+        // void targets( const std::vector< value_type >& );
         
     private:
 
         class impl;
-        std::unique_ptr< impl > impl_;
+        impl * impl_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
@@ -97,9 +102,9 @@ namespace adcontrols {
     
 }
 
-#if defined _MSC_VER
-    template class ADCONTROLSSHARED_EXPORT std::vector < adcontrols::MSChromatogramMethod::value_type > ;
-#endif
+//#if defined _MSC_VER
+//    template class ADCONTROLSSHARED_EXPORT std::vector < adcontrols::MSChromatogramMethod::value_type > ;
+//#endif
 
 BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod, 3 )
 

@@ -45,6 +45,7 @@
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/mssimulatormethod.hpp>
@@ -556,8 +557,8 @@ MainWindow::createDockWidgets()
         , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
         , { tr( "MS Simulator" ), "MSSimulatorMethod", [] () { return new adwidgets::MSSimulatorWidget; } }
         , { tr( "Targeting" ), "TargetingMethod", [] () { return new adwidgets::TargetingWidget; } }
-        , { tr( "Peak Find" ), "PeakFindMethod", [] () { return new adwidgets::PeakMethodForm; } }
         , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramWidget; } }
+        , { tr( "Peak Find" ), "PeakFindMethod", [] () { return new adwidgets::PeakMethodForm; } }
         , { tr( "MS Calibration" ), "MSCalibrateWidget", [] () { return new adwidgets::MSCalibrateWidget; } }
         , { tr( "Data property" ), "DataProperty", [] () { return new dataproc::MSPropertyForm; } }
         , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }
@@ -735,12 +736,9 @@ MainWindow::handleProcess( const QString& origin )
         auto pm = std::make_shared< adcontrols::ProcessMethod >();
         getProcessMethod( *pm );
         if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
-            auto& targets = cm->targets();
-            if ( !targets.empty() ) {
-                
+            if ( ! cm->molecules().data().empty() ) {
                 if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
                     DataprocessWorker::instance()->createChromatograms( processor, pm, origin );
-
             }
         }
     } else if ( origin == "MSSimulatorWidget" ) {

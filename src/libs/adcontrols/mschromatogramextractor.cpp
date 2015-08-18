@@ -32,6 +32,7 @@
 #include "lcmsdataset.hpp"
 #include "lockmass.hpp"
 #include "massspectrum.hpp"
+#include "moltable.hpp"
 #include "mschromatogrammethod.hpp"
 #include "msfinder.hpp"
 #include "mslockmethod.hpp"
@@ -84,7 +85,7 @@ namespace adcontrols {
             xChromatogram( const xChromatogram& ) = delete;
             xChromatogram& operator = ( const xChromatogram& ) = delete;
         public:
-            xChromatogram( const MSChromatogramMethod::value_type& target
+            xChromatogram( const moltable::value_type& target
                            , double width
                            , uint32_t fcn
                            , uint32_t target_index ) : fcn_( fcn )
@@ -143,7 +144,7 @@ namespace adcontrols {
             uint32_t target_index_;
             uint32_t pos_; // last pos
             uint32_t count_; // data count
-            MSChromatogramMethod::value_type target_;
+            moltable::value_type target_;
             std::shared_ptr< adcontrols::Chromatogram > pchr_;
         };
     }
@@ -351,7 +352,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontr
 
         uint32_t target_index = 0; //  index to the cm.targets();
 
-        for ( auto& m : cm.targets() ) {
+        for ( auto& m : cm.molecules().data() ) {
 
             if ( ! m.enable )
                 continue;
@@ -468,8 +469,8 @@ MSChromatogramExtractor::impl::prepare_mslock( const adcontrols::MSChromatogramM
     msrefs_.clear();
     
     if ( cm.lockmass() ) {
-        for ( auto& target: cm.targets() ) {
-            if ( target.msref ) {
+        for ( auto& target : cm.molecules().data() ) {
+            if ( target.flags ) {
                 double exactmass = adcontrols::ChemicalFormula().getMonoIsotopicMass( target.formula );
                 msrefs_.push_back( std::make_pair( target.formula, exactmass ) );
             }
