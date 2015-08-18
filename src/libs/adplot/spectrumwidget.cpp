@@ -741,9 +741,11 @@ TraceData::y_range( double left, double right ) const
                 idleft = index( seg.getMSProperty().getSamplingInfo() )( xleft );
                 idright = index( seg.getMSProperty().getSamplingInfo() )( xright );
             } else {
-                const double * x = isTimeAxis_ ? seg.getTimeArray() : seg.getMassArray();
-                idleft = std::distance( x, std::lower_bound( x, x + seg.size(), xleft ) );
-                idright = std::distance( x, std::lower_bound( x, x + seg.size(), xright ) );
+                if ( const double * x = isTimeAxis_ ? seg.getTimeArray() : seg.getMassArray() ) {
+                    idleft = std::distance( x, std::lower_bound( x, x + seg.size(), xleft ) );
+                    idright = std::distance( x, std::lower_bound( x, x + seg.size(), xright ) );
+                } else
+                    continue;
             }
 
             if ( idleft >= seg.size() )

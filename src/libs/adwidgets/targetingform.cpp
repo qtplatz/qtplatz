@@ -85,6 +85,11 @@ TargetingForm::getContents( adcontrols::TargetingMethod& m )
 
 	m.lowMassLimit( ui->doubleSpinBoxLowMassLimit->value() );
 	m.highMassLimit( ui->doubleSpinBoxHighMassLimit->value() );
+
+    if ( ui->checkBox->isChecked() )
+        m.setFindAlgorithm( adcontrols::idFindClosest );
+    else
+        m.setFindAlgorithm( adcontrols::idFindLargest );
 }
 
 void
@@ -104,4 +109,6 @@ TargetingForm::setContents( const adcontrols::TargetingMethod& m )
 
 	ui->doubleSpinBoxLowMassLimit->setValue( m.lowMassLimit() );
 	ui->doubleSpinBoxHighMassLimit->setValue( m.highMassLimit() );
+
+    ui->checkBox->setChecked( m.findAlgorithm() == adcontrols::idFindClosest );
 }

@@ -224,7 +224,7 @@ MSSimulatorMethod::molecules()
 }
 
 void
-MSSimulatorMethod::set_molecules( const moltable& value )
+MSSimulatorMethod::setMolecules( const moltable& value )
 {
     impl_->molecules_ = value;
 }

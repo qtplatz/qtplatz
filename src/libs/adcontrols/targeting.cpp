@@ -54,18 +54,15 @@ namespace adcontrols {
                     return false;
 
                 auto itLower = std::lower_bound( beg_, end_, target_mass - tolerance_ );
+
                 if ( itLower != end_ ) {
 
-                    pos_ = std::make_pair( std::abs( *itLower - target_mass ), std::distance( beg_, itLower ) );
-                    if ( pos_.first > tolerance_ )
-                        return false;
-
                     auto itUpper = std::lower_bound( itLower, end_, target_mass + tolerance_ );
-                    for ( auto it = itLower; it <= itUpper && it != end_; ++it ) {
-                        double d = std::abs( *it - target_mass );
-                        if ( d < pos_.first )
-                            pos_ = std::make_pair( d, std::distance( beg_, it ) );
-                    }
+
+                    auto closest = std::min_element( itLower, itUpper, [target_mass] ( const decltype( *It )& a, const decltype( *It )& b ) {
+                        return std::abs( a - target_mass ) < std::abs( b - target_mass ); } );
+
+                    pos_ = std::make_pair( *closest, std::distance( beg_, closest ) );
 
                     return true;
                 }
@@ -126,22 +123,28 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positi
     if ( ms.size() == 0 )
         return false;
 
-    double tolerance = (method_) ? method_->tolerance( method_->toleranceMethod() ) : 0.010;
-
-    detail::target_finder< const double * > finder( ms.getMassArray(), ms.getMassArray() + ms.size(), tolerance );
+    adcontrols::MSFinder finder( method_->tolerance( method_->toleranceMethod() ), method_->findAlgorithm(), method_->toleranceMethod() );
 
     for ( auto& formula : active_formula_ ) {
         double target_mass = formula.second; // search 'M'
-        if ( finder( target_mass ) )
-            candidates_.push_back( Candidate( uint32_t( finder.pos_.second /*idx*/), fcn, 1/*charge*/, finder.pos_.first /*error*/, formula.first /*formula*/ ) );
+
+        size_t pos = finder( ms, target_mass );
+        if ( pos != MassSpectrum::npos ) {
+            double error = ms.getMass( pos ) - target_mass;
+            candidates_.push_back( Candidate( uint32_t( pos /*idx*/ ), fcn, 1/*charge*/, error, formula.first /*formula*/ ) );
+        }
     }
 
     (void)polarity_positive; // this will be necessary for account an electron mass, todo
     for ( auto& adduct : list ) {
         for ( auto& formula : active_formula_ ) {
-            double target_mass = (formula.second /* M */ + std::get<0>( adduct /*mass*/ )) / std::get<2>( adduct /*charge*/ );
-            if ( finder( target_mass ) )
-                candidates_.push_back( Candidate( uint32_t( finder.pos_.second ), fcn, std::get<2>( adduct ), finder.pos_.first, formula.first + "+" + std::get<1>( adduct ) ) );
+            double target_mass = ( formula.second /* M */ + std::get<0>( adduct /*mass*/ ) ) / std::get<2>( adduct /*charge*/ );
+
+            size_t pos = finder( ms, target_mass );
+            if ( pos != MassSpectrum::npos ) {
+                double error = ms.getMass( pos ) - target_mass;
+                candidates_.push_back( Candidate( uint32_t( pos ), fcn, std::get<2>( adduct ), error, formula.first + "+" + std::get<1>( adduct ) ) );
+            }
         }
     }
     return true;
@@ -179,8 +182,8 @@ Targeting::setup( const TargetingMethod& m )
 
     for ( auto& m : m.molecules().data() ) {
         if ( m.enable ) {
-            const std::string formula = m.formula;// TargetingMethod::formula_data::formula( f );
-            active_formula_.push_back( std::make_pair( formula, formula_parser.getMonoIsotopicMass( m.formula ) ) );
+            auto formula = m.formula + m.adducts;
+            active_formula_.push_back( std::make_pair( formula, formula_parser.getMonoIsotopicMass( ChemicalFormula::split( formula ) ) ) );
         }
     }
     setup_adducts( m, true, pos_adducts_ );

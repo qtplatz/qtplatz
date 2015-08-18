@@ -75,7 +75,7 @@ namespace adcontrols {
 
         const moltable& molecules() const;
         moltable& molecules();
-        void set_molecules( const moltable& );
+        void setMolecules( const moltable& );
         
     private:
         class impl;

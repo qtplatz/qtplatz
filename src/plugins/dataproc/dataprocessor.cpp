@@ -459,18 +459,23 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
 
         methodselector selector( m );
 
-        if ( procType == CentroidProcess || procType == TargetingProcess ) {
+        if ( procType == CentroidProcess ) {
             selector.append< adcontrols::CentroidMethod >( method );
-            selector.append< adcontrols::TargetingMethod >( method );
+            selector.append< adcontrols::TargetingMethod >( method ); // always does 'targeting' when centroid
         }
         else if ( procType == TargetingProcess ) {
-            selector.append< adcontrols::TargetingMethod >( method );
+            if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& f ) {
+                        return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
+                selector.append< adcontrols::TargetingMethod >( method );
+            } else {
+                selector.append< adcontrols::CentroidMethod >( method );
+                selector.append< adcontrols::TargetingMethod >( method );
+            }
         }
         else if ( procType == CalibrationProcess ) {
             // should not be here
         }
         else if ( procType == PeakFindProcess ) {
-            // ADTRACE() << "============== select PeakFindProcess";
             selector.append< adcontrols::PeakMethod >( method );
         }
 

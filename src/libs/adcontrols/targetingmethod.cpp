@@ -36,17 +36,16 @@ namespace adcontrols {
     class TargetingMethod::impl {
     public:
         impl( idTarget id ) : idTarget_( id )
-            , toleranceMethod_( idToleranceDaltons )
-            , tolerancePpm_( 10.0 )
-            , toleranceDaltons_( 0.010 ) // 10mDa
-            , chargeStateMin_( 1 )
-            , chargeStateMax_( 3 )
-            , isLowMassLimitEnabled_( false ) // auto
-            , isHighMassLimitEnabled_( false )
-            , lowMassLimit_( 1 )
-            , highMassLimit_( 1000 )
-            , tolerance_( 10.0 ) { // deplicated
-
+                            , toleranceMethod_( idToleranceDaltons )
+                            , findAlgorithm_( idFindClosest )
+                            , tolerancePpm_( 10.0 )
+                            , toleranceDaltons_( 0.010 ) // 10mDa
+                            , chargeStateMin_( 1 )
+                            , chargeStateMax_( 1 )
+                            , isLowMassLimitEnabled_( false ) // auto
+                            , isHighMassLimitEnabled_( false )
+                            , lowMassLimit_( 1 )
+                            , highMassLimit_( 1000 ) {
             // reference,
             // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
 
@@ -62,6 +61,7 @@ namespace adcontrols {
         
         idTarget idTarget_;
         idToleranceMethod toleranceMethod_;
+        idFindAlgorithm findAlgorithm_;
         double tolerancePpm_;
         double toleranceDaltons_;
         uint32_t chargeStateMin_;
@@ -130,6 +130,9 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( formulae ) & BOOST_SERIALIZATION_NVP( peptides );
 
                 } else {
+                    typedef std::pair< std::string, std::pair< bool, std::wstring > > formula_type;
+                    typedef std::pair< bool, std::pair< std::string, std::string > > peptide_type;
+                    
                     std::vector< formula_type > formulae;
                     std::vector< peptide_type > peptides;
                     ar & BOOST_SERIALIZATION_NVP( formulae ) & BOOST_SERIALIZATION_NVP( peptides );
@@ -142,8 +145,9 @@ namespace adcontrols {
                         molecules_ << mol;
                     }
                 }
-            } else if ( version <= 5 ) {
+            } else if ( version >= 5 ) {
                 ar & BOOST_SERIALIZATION_NVP( idTarget_ );
+                ar & BOOST_SERIALIZATION_NVP( findAlgorithm_ );
                 ar & BOOST_SERIALIZATION_NVP( toleranceMethod_ );
                 ar & BOOST_SERIALIZATION_NVP( tolerancePpm_ );
                 ar & BOOST_SERIALIZATION_NVP( toleranceDaltons_ );
@@ -264,6 +268,18 @@ TargetingMethod::setToleranceMethod( idToleranceMethod value )
     impl_->toleranceMethod_ = value;
 }
 
+idFindAlgorithm
+TargetingMethod::findAlgorithm() const
+{
+    return impl_->findAlgorithm_;
+}
+
+void
+TargetingMethod::setFindAlgorithm( idFindAlgorithm algo )
+{
+    impl_->findAlgorithm_ = algo;
+}
+
 double
 TargetingMethod::tolerance( idToleranceMethod id ) const
 {
@@ -335,7 +351,7 @@ TargetingMethod::molecules()
 }
 
 void
-TargetingMethod::set_molecules( const moltable& t )
+TargetingMethod::setMolecules( const moltable& t )
 {
     impl_->molecules_ = t;
 }

@@ -808,17 +808,19 @@ size_t
 MassSpectrum::find( double mass, double tolerance ) const
 {
     size_t pos = lower_bound( mass );
-
+    
     if ( pos != npos ) {
-        if ( pos != 0 ) {}
+        if ( pos != 0 ) {
             if ( std::abs( getMass( pos ) - mass ) > std::abs( getMass( pos - 1 ) - mass ) )
                 --pos;
-
-            double error = getMass( pos ) - mass;
-
-            if ( std::abs( error ) > tolerance )
-                return npos;
+        }
+        
+        double error = getMass( pos ) - mass;
+        
+        if ( std::abs( error ) > tolerance )
+            return npos;
     }
+
     return pos;
 }
 

@@ -56,17 +56,12 @@ namespace adcontrols {
 
 		std::pair< unsigned int, unsigned int > chargeState() const;
 		void chargeState( unsigned int, unsigned int );
-        typedef std::pair< std::string, std::pair< bool, std::wstring > > formula_type;
-        typedef std::pair< bool, std::pair< std::string, std::string > > peptide_type;
-
-		// std::vector< formula_type >& formulae();
-		// const std::vector< formula_type >& formulae() const;
-        
-		// std::vector< peptide_type  >& peptides();
-		// const std::vector< peptide_type >& peptides() const;
 
         idToleranceMethod toleranceMethod() const;
         void setToleranceMethod( idToleranceMethod );
+
+        idFindAlgorithm findAlgorithm() const;
+        void setFindAlgorithm( idFindAlgorithm );
 
         double tolerance( idToleranceMethod ) const;
         void setTolerance( idToleranceMethod, double );
@@ -83,18 +78,7 @@ namespace adcontrols {
 
         const moltable& molecules() const;
         moltable& molecules();
-        void set_molecules( const moltable& );
-
-        // struct ADCONTROLSSHARED_EXPORT formula_data {
-        //     TargetingMethod::formula_type f_;
-        //     formula_data( bool enable, const std::string& formula, const std::wstring& desc ) {
-        //         f_ = std::make_pair( formula, std::make_pair( enable, desc ) );
-        //     }
-        //     operator const TargetingMethod::formula_type& () { return f_; }
-        //     static bool enable( const TargetingMethod::formula_type& f ) { return f.second.first; }
-        //     static const std::string& formula( const TargetingMethod::formula_type& f ) { return f.first; }
-        //     static const std::wstring& description( const TargetingMethod::formula_type& f ) { return f.second.second; }
-        // };
+        void setMolecules( const moltable& );
 
     private:
         class impl;
