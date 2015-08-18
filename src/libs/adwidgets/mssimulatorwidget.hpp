@@ -32,12 +32,7 @@
 
 class QMenu;
 
-namespace adcontrols { class MSChromatogramMethod; }
-
 namespace adwidgets {
-
-    class MSChromatogramForm;
-    class TargetingTable;
 
     class ADWIDGETSSHARED_EXPORT MSSimulatorWidget : public QWidget
                                                    , public adplugin::LifeCycle {
@@ -59,6 +54,8 @@ namespace adwidgets {
         bool setContents( boost::any& ) override;   
         
         //
+        void setTimeSquaredScanLaw( double flength, double acceleratorVoltage, double tdelay );
+
     private:
         void handleContextMenu( QMenu&, const QPoint& );
         

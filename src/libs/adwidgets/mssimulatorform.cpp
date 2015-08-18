@@ -45,6 +45,9 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
     connect( ui->checkBox, &QCheckBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->groupBox, &QGroupBox::toggled, [this](bool) { emit onValueChanged(); } );    
     connect( ui->pushButton, &QPushButton::pressed, [this] () { emit onProcess(); } );
+
+    ui->doubleSpinBox_5->setMinimum( -1000.0 ); // us
+    ui->doubleSpinBox_5->setMaximum( 1000.0 ); // us
 }
 
 MSSimulatorForm::~MSSimulatorForm()
@@ -65,15 +68,15 @@ MSSimulatorForm::OnFinalClose()
 bool
 MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
 {
-    m.set_resolving_power( ui->spinBox->value() );
-    m.set_lower_limit( ui->checkBox->isChecked() ? ui->doubleSpinBox->value() : -ui->doubleSpinBox->value() );
-    m.set_upper_limit( ui->checkBox_2->isChecked() ? ui->doubleSpinBox_2->value() : -ui->doubleSpinBox_2->value() );
-    m.set_charge_state_min( ui->spinBox_2->value() );
-    m.set_charge_state_max( ui->spinBox_3->value() );
-    m.set_is_tof( ui->groupBox->isChecked() );
-    m.set_length( ui->doubleSpinBox_3->value() );
-    m.set_accelerator_voltage( ui->doubleSpinBox_4->value() );
-    m.set_tDelay( ui->doubleSpinBox_5->value() * 1.0e-6 );
+    m.setResolvingPower( ui->spinBox->value() );
+    m.setLMassLimit( ui->checkBox->isChecked() ? ui->doubleSpinBox->value() : -ui->doubleSpinBox->value() );
+    m.setUMassLimit( ui->checkBox_2->isChecked() ? ui->doubleSpinBox_2->value() : -ui->doubleSpinBox_2->value() );
+    m.setChargeStateMin( ui->spinBox_2->value() );
+    m.setChargeStateMax( ui->spinBox_3->value() );
+    m.setIsTof( ui->groupBox->isChecked() );
+    m.setLength( ui->doubleSpinBox_3->value() );
+    m.setAcceleratorVoltage( ui->doubleSpinBox_4->value() );
+    m.setTDelay( ui->doubleSpinBox_5->value() * 1.0e-6 );
     
     return true;
 }
@@ -92,16 +95,16 @@ MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
                                 , QSignalBlocker( ui->doubleSpinBox_4 )
                                 , QSignalBlocker( ui->doubleSpinBox_5 ) };
 
-    ui->spinBox->setValue( m.resolving_power() );
-    ui->checkBox->setChecked( m.lower_limit() > 0 );    
-    ui->doubleSpinBox->setValue( m.lower_limit() > 0 ? m.lower_limit() : -m.lower_limit() );
-    ui->doubleSpinBox_2->setValue( m.upper_limit() > 0 ? m.upper_limit() : -m.upper_limit() );    
+    ui->spinBox->setValue( m.resolvingPower() );
+    ui->checkBox->setChecked( m.lMassLimit() > 0 );    
+    ui->doubleSpinBox->setValue( m.lMassLimit() > 0 ? m.lMassLimit() : -m.lMassLimit() );
+    ui->doubleSpinBox_2->setValue( m.uMassLimit() > 0 ? m.uMassLimit() : -m.uMassLimit() );
     
-    ui->spinBox_2->setValue(  m.charge_state_min() );
-    ui->spinBox_3->setValue( m.charge_state_max() );
-    ui->groupBox->setChecked ( m.is_tof() );
+    ui->spinBox_2->setValue(  m.chargeStateMin() );
+    ui->spinBox_3->setValue( m.chargeStateMax() );
+    ui->groupBox->setChecked ( m.isTof() );
     ui->doubleSpinBox_3->setValue( m.length() );
-    ui->doubleSpinBox_4->setValue( m.accelerator_voltage() );
+    ui->doubleSpinBox_4->setValue( m.acceleratorVoltage() );
     ui->doubleSpinBox_5->setValue( m.tDelay() * 1.0e6 );
     
     return true;

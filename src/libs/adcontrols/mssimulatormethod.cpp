@@ -139,74 +139,74 @@ MSSimulatorMethod::operator = ( const MSSimulatorMethod& t )
 }
 
 double
-MSSimulatorMethod::lower_limit() const
+MSSimulatorMethod::lMassLimit() const
 {
     return impl_->mass_limits_.first;
 }
 
 double
-MSSimulatorMethod::upper_limit() const
+MSSimulatorMethod::uMassLimit() const
 {
     return impl_->mass_limits_.second;
 }
 
 void
-MSSimulatorMethod::set_lower_limit( double v )
+MSSimulatorMethod::setLMassLimit( double v )
 {
     impl_->mass_limits_.first = v;
 }
 
 void
-MSSimulatorMethod::set_upper_limit( double v )
+MSSimulatorMethod::setUMassLimit( double v )
 {
     impl_->mass_limits_.second = v;
 }
 
 uint32_t
-MSSimulatorMethod::charge_state_min() const
+MSSimulatorMethod::chargeStateMin() const
 {
     return impl_->charge_state_.first;
 }
 
 uint32_t
-MSSimulatorMethod::charge_state_max() const
+MSSimulatorMethod::chargeStateMax() const
 {
     return impl_->charge_state_.second;
 }
 
 void
-MSSimulatorMethod::set_charge_state_min( uint32_t value )
+MSSimulatorMethod::setChargeStateMin( uint32_t value )
 {
     impl_->charge_state_.first = value;
 }
 
 void
-MSSimulatorMethod::set_charge_state_max( uint32_t value )
+MSSimulatorMethod::setChargeStateMax( uint32_t value )
 {
     impl_->charge_state_.second = value;    
 }
         
 void
-MSSimulatorMethod::set_resolving_power( double value )
+MSSimulatorMethod::setResolvingPower( double value )
 {
     impl_->resolving_power_ = value;
 }
 
 double
-MSSimulatorMethod::resolving_power() const
+MSSimulatorMethod::resolvingPower() const
 {
     return impl_->resolving_power_;
 }
 
 
 bool
-MSSimulatorMethod::is_positive_polarity() const
+MSSimulatorMethod::isPositivePolarity() const
 {
     return impl_->is_polarity_positive_;
 }
 
 void
-MSSimulatorMethod::set_is_positive_polarity( bool value )
+MSSimulatorMethod::setIsPositivePolarity( bool value )
 {
     impl_->is_polarity_positive_ = value;
 }
@@ -230,13 +230,13 @@ MSSimulatorMethod::setMolecules( const moltable& value )
 }
 
 bool
-MSSimulatorMethod::is_tof() const
+MSSimulatorMethod::isTof() const
 {
     return impl_->is_tof_;
 }
 
 void
-MSSimulatorMethod::set_is_tof( bool value )
+MSSimulatorMethod::setIsTof( bool value )
 {
     impl_->is_tof_ = value;    
 }
@@ -248,19 +248,19 @@ MSSimulatorMethod::length() const
 }
 
 void
-MSSimulatorMethod::set_length( double value )
+MSSimulatorMethod::setLength( double value )
 {
     impl_->tof_length_ = value;
 }
 
 double
-MSSimulatorMethod::accelerator_voltage() const
+MSSimulatorMethod::acceleratorVoltage() const
 {
     return impl_->tof_accelerator_voltage_;
 }
 
 void
-MSSimulatorMethod::set_accelerator_voltage( double value )
+MSSimulatorMethod::setAcceleratorVoltage( double value )
 {
     impl_->tof_accelerator_voltage_ = value;
 }
@@ -272,7 +272,7 @@ MSSimulatorMethod::tDelay() const
 }
 
 void
-MSSimulatorMethod::set_tDelay( double value )
+MSSimulatorMethod::setTDelay( double value )
 {
     impl_->tof_tDelay_ = value;
 }

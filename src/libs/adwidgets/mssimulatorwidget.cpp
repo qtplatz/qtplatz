@@ -138,6 +138,19 @@ MSSimulatorWidget::setContents( boost::any& a )
 }
 
 void
+MSSimulatorWidget::setTimeSquaredScanLaw( double flength, double acceleratorVoltage, double tdelay )
+{
+    if ( auto form = findChild< MSSimulatorForm * >() ) {
+        adcontrols::MSSimulatorMethod m;
+        form->getContents( m );
+        m.setLength( flength );
+        m.setAcceleratorVoltage( acceleratorVoltage );
+        m.setTDelay( tdelay );
+        form->setContents( m );
+    }
+}
+
+void
 MSSimulatorWidget::handleContextMenu( QMenu& menu, const QPoint& pt )
 {
     menu.addAction( "Simulate MS Spectrum", this, SLOT( run() ) );

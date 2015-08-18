@@ -198,7 +198,6 @@ namespace dataproc {
         }
     };
     // following 3 classes has no axis change handler
-    //template<> bool axis_changed_connector::operator()( ElementalCompWnd * ) const { return false; }
     template<> bool axis_changed_connector::operator()( ChromatogramWnd * ) const { return false; }
     template<> bool axis_changed_connector::operator()( MSPeaksWnd * ) const { return false; }
     template<> bool axis_changed_connector::operator()( SpectrogramWnd * ) const { return false; }
@@ -451,6 +450,11 @@ MainWindow::createContents( Core::IMode * mode )
     // This is significantly important for child widget has right QRectF for each QwtPlot.
     connect( SessionManager::instance(), &SessionManager::signalSelectionChanged, this, &MainWindow::handleSelectionChanged );
 
+    connect( dataproc_document::instance(), &dataproc_document::scanLawChanged, [this] ( double length, double vaccl, double tdelay ) {
+        if ( auto w = findChild< adwidgets::MSSimulatorWidget * >() ) {
+            w->setTimeSquaredScanLaw( length, vaccl, tdelay );
+        }
+    } );
 
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
         boost::apply_visitor( session_added_connector(this), it );

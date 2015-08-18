@@ -46,32 +46,32 @@ namespace adcontrols {
         
         static const wchar_t * dataClass() { return L"adcontrols::MSSimulatorMethod"; }
 
-        double lower_limit() const;
-        double upper_limit() const;
+        double lMassLimit() const;
+        double uMassLimit() const;
         
-        void set_lower_limit( double );
-        void set_upper_limit( double );
+        void setLMassLimit( double );
+        void setUMassLimit( double );
 
-        uint32_t charge_state_min() const;
-        uint32_t charge_state_max() const;
+        uint32_t chargeStateMin() const;
+        uint32_t chargeStateMax() const;
         
-        void set_charge_state_min( uint32_t );
-        void set_charge_state_max( uint32_t );        
+        void setChargeStateMin( uint32_t );
+        void setChargeStateMax( uint32_t );        
 
-        void set_resolving_power( double );
-        double resolving_power() const;
+        void setResolvingPower( double );
+        double resolvingPower() const;
 
-        bool is_positive_polarity() const;
-        void set_is_positive_polarity( bool );
+        bool isPositivePolarity() const;
+        void setIsPositivePolarity( bool );
 
-        bool is_tof() const;
-        void set_is_tof( bool );
+        bool isTof() const;
+        void setIsTof( bool );
         double length() const;
-        void set_length( double );
-        double accelerator_voltage() const;
-        void set_accelerator_voltage( double );        
+        void setLength( double );
+        double acceleratorVoltage() const;
+        void setAcceleratorVoltage( double );        
         double tDelay() const;
-        void set_tDelay( double );        
+        void setTDelay( double );
 
         const moltable& molecules() const;
         moltable& molecules();

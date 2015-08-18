@@ -330,6 +330,7 @@ dataproc_document::saveScanLaw( const QString& model, double flength, double acc
         settings_->setValue( model + "/formula", formula );        
         settings_->endGroup();
     }
+    emit scanLawChanged( flength, accv, tdelay );
 }
 
 bool

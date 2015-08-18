@@ -258,12 +258,17 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
     ms->setCentroid( adcontrols::CentroidNative );
 
-    adcontrols::isotopeCluster()( *ms, formula_abundances, m.resolving_power() );
+    adcontrols::isotopeCluster()( *ms, formula_abundances, m.resolvingPower() );
+    if ( m.isTof() ) {
+        adportable::TimeSquaredScanLaw scanLaw( m.acceleratorVoltage(), m.tDelay(), m.length() );
+        for ( size_t i = 0; i < ms->size(); ++i )
+            ms->setTime( i, scanLaw.getTime( ms->getMass( i ), 0 ) );
+    }
 
     // annotation
     for ( size_t i = 0; i < formula_abundances.size(); ++i ) {
         double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula_abundances[ i ].first );
-        auto pos = ms->find( mass, mass / m.resolving_power() );
+        auto pos = ms->find( mass, mass / m.resolvingPower() );
         if ( pos != adcontrols::MassSpectrum::npos ) {
             auto& annots = ms->get_annotations();
             annots << adcontrols::annotation( display_formulae[ i ], mass, ms->getIntensity( pos ), int( pos ), 0, adcontrols::annotation::dataFormula );
@@ -272,8 +277,8 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
 
 	double lMass = ms->getMass( 0 );
 	double hMass = ms->getMass( ms->size() - 1 );
-    lMass = m.lower_limit() > 0 ? m.lower_limit() : double( int( lMass / 10 ) * 10 );
-    hMass = m.upper_limit() > 0 ? m.upper_limit() : double( int( ( hMass + 10 ) / 10 ) * 10 );
+    lMass = m.lMassLimit() > 0 ? m.lMassLimit() : double( int( lMass / 10 ) * 10 );
+    hMass = m.uMassLimit() > 0 ? m.uMassLimit() : double( int( ( hMass + 10 ) / 10 ) * 10 );
     ms->setAcquisitionMassRange( lMass, hMass );
     draw1( ms );
 }

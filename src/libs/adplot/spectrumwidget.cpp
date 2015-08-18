@@ -808,15 +808,17 @@ SpectrumWidget::impl::update_annotations( plot& plot
             const adcontrols::MassSpectrum& ms = segments[ fcn ];
             const unsigned char * colors = ms.getColorArray();
 
-            size_t beg, end;
+            size_t beg( 0 ), end( 0 );
             if ( isTimeAxis_ ) {
-                array_wrapper< const double > times( ms.getTimeArray(), ms.size() );
-                beg = std::distance( times.begin(), std::lower_bound( times.begin(), times.end(), scale_to_base( range.first, micro ) ) );
-                end = std::distance( times.begin(), std::lower_bound( times.begin(), times.end(), scale_to_base( range.second, micro) ) );
+                if ( const double * times = ms.getTimeArray() ) {
+                    beg = std::distance( times, std::lower_bound( times, times + ms.size(), scale_to_base( range.first, micro ) ) );
+                    end = std::distance( times, std::lower_bound( times, times + ms.size(), scale_to_base( range.second, micro ) ) );
+                }
             } else {
-                array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
-                beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
-                end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
+                if ( const double * masses = ms.getMassArray() ) {
+                    beg = std::distance( masses, std::lower_bound( masses, masses + ms.size(), range.first ) );
+                    end = std::distance( masses, std::lower_bound( masses, masses + ms.size(), range.second ) );
+                }
             }
             
             if ( beg < end ) {

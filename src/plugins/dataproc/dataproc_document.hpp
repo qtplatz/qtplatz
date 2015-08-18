@@ -84,6 +84,7 @@ namespace dataproc {
 
     signals:
         void onProcessMethodChanged( const QString& );
+        void scanLawChanged( double length, double accV, double tdelay );
 
     public slots:
 
