@@ -98,7 +98,7 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
   endif()
 
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wdeprecated-register")
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-register")
 
 endif()
 

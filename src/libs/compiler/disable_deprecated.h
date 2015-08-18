@@ -26,6 +26,7 @@
 # pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 # if defined __APPLE__
 #  pragma GCC diagnostic ignored "-Wdeprecated-register"
+#  pragma clang diagnostic ignored "-Wdeprecated-register"
 # endif
 #endif
 

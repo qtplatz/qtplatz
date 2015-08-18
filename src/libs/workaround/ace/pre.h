@@ -29,14 +29,16 @@
 # pragma nopackwarning
 #endif
 
-#include <compiler/disable_unused_parameter.h>
+# if defined __APPLE__
+#  pragma clang diagnostic ignored "-Wdeprecated-register"
+#  pragma clang diagnostic ignored "-Wextern-c-compat"
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+# endif
 
 #if defined __GNUC__ 
-# if defined __APPLE__
 #  pragma GCC diagnostic ignored "-Wdeprecated-register"
 #  pragma GCC diagnostic ignored "-Wextern-c-compat"
 #  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-# endif
 #  pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 
