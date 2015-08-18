@@ -88,10 +88,8 @@ MSChromatogramWidget::OnInitialUpdate()
     if ( auto form = findChild< MSChromatogramForm * >() ) 
         form->OnInitialUpdate();
 
-    //if ( auto table = findChild< TargetingTable *>() ) {
     if ( auto table = findChild< MolTable *>() ) {
         table->onInitialUpdate();
-        //connect( table, &TargetingTable::onContextMenu, this, &MSChromatogramWidget::handleContextMenu );
     }
 }
 

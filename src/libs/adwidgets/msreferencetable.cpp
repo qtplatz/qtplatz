@@ -25,6 +25,7 @@
 #include "msreferencetable.hpp"
 #include "delegatehelper.hpp"
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
@@ -32,11 +33,13 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QHeaderView>
+#include <QMimeData>
+#include <QMenu>
 #include <QPainter>
 #include <QStyledItemDelegate>
 #include <QStandardItemModel>
-#include <QMenu>
 #include <functional>
+#include <sstream>
 
 namespace adwidgets {
 
@@ -252,6 +255,8 @@ MSReferenceTable::handleContextMenu(const QPoint &pt)
 {
     QMenu menu;
 
+    addActionsToMenu( menu, pt );
+    
     struct action_type { QAction * first; std::function<void()> second; };
         
     action_type actions [] = {
@@ -291,13 +296,35 @@ MSReferenceTable::handlePaste()
 
     int row = model_->rowCount() - 1;
 
-    for ( auto text : texts ) {
-        auto formulae = adcontrols::ChemicalFormula::split( text.toStdString() );
-        if ( !formulae.empty() && !formulae[ 0 ].first.empty() ) {
-            adcontrols::MSReference ref( formulae[ 0 ].first.c_str(), true, adcontrols::ChemicalFormula::make_adduct_string( formulae ).c_str() );
-            model_->insertRow( row );
-            addReference( ref, row );
-            ++row;
+    auto md = QApplication::clipboard()->mimeData();
+    auto data = md->data( "application/moltable-xml" );
+    if ( !data.isEmpty() ) {
+        QString utf8( QString::fromUtf8( data ) );
+        std::wistringstream is( utf8.toStdWString() );
+
+        adcontrols::moltable molecules;
+        if ( adcontrols::moltable::xml_restore( is, molecules ) ) {
+
+            model_->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
+
+            for ( auto& mol : molecules.data() ) {
+                adcontrols::MSReference ref( mol.formula.c_str(), true, mol.adducts.c_str(), mol.enable, 0.0, 1, mol.description.c_str() );
+                addReference( ref, row++ );
+            }
         }
+    } else {
+        
+        for ( auto text : texts ) {
+            auto formulae = adcontrols::ChemicalFormula::split( text.toStdString() );
+            if ( !formulae.empty() && !formulae[ 0 ].first.empty() ) {
+                adcontrols::MSReference ref( formulae[ 0 ].first.c_str(), true, adcontrols::ChemicalFormula::make_adduct_string( formulae ).c_str() );
+                model_->insertRow( row );
+                addReference( ref, row );
+                ++row;
+            }
+        }
+        
     }
+    resizeRowsToContents();
+    resizeColumnsToContents();
 }

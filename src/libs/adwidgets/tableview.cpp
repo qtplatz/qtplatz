@@ -30,6 +30,7 @@
 #include <QKeyEvent>
 #include <QList>
 #include <QMenu>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <set>
 
@@ -113,7 +114,9 @@ TableView::handleCopyToClipboard()
     if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
         selected_text.append( last.data( Qt::EditRole ).toString() );
 
-    QApplication::clipboard()->setText( selected_text );
+    QMimeData * md = new QMimeData();
+    md->setText( selected_text );
+    QApplication::clipboard()->setMimeData( md );
 }
 
 void
@@ -152,7 +155,8 @@ TableView::handleDeleteSelection()
 void
 TableView::addActionsToMenu( QMenu& menu, const QPoint& )
 {
-    menu.addAction( tr( "Copy to clipboard" ), this, SLOT( handleCopyToClipboard() ) );
+    menu.addAction( tr( "Copy" ), this, SLOT( handleCopyToClipboard() ) );
+    menu.addAction( tr( "Paste" ), this, SLOT( handlePaste() ) );
 }
 
 void
