@@ -31,6 +31,8 @@
 #include <vector>
 #include <mutex>
 
+namespace boost { namespace filesystem { class path; } }
+
 namespace adfs {
 
     class sqlite;
@@ -46,6 +48,7 @@ namespace adfs {
         filesystem();
 		filesystem( const filesystem& );
 
+        bool create( const boost::filesystem::path&, size_t alloc = 0, size_t page_size = 8192 );
         bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
         bool mount( const wchar_t * filename );
         bool close();

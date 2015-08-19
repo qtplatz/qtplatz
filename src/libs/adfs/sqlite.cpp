@@ -23,6 +23,9 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_4996.h>
+#include <compiler/disable_unused_variable.h>
+
 #include "sqlite.hpp"
 #include "sqlite3.h"
 #include "adfs.hpp"
@@ -30,8 +33,6 @@
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
 #include <iostream>
-
-#include <compiler/disable_unused_variable.h>
 #include <boost/exception/all.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/filesystem.hpp>
@@ -521,12 +522,10 @@ namespace adfs {
             return boost::lexical_cast<boost::uuids::uuid>( text );
             
         } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_BLOB ) {
-
             boost::uuids::uuid uuid;
             auto pBlob = sqlite3_column_blob( stmt_, nCol );
             int octets = std::min( sqlite3_column_bytes( stmt_, nCol ), int( uuid.size() ) );
-            std::copy( static_cast<const char *>(pBlob), static_cast<const char *>(pBlob)+octets, reinterpret_cast<char *>(uuid.begin()) );
-
+            std::copy( static_cast<const char *>( pBlob ), static_cast<const char *>(pBlob)+octets, reinterpret_cast<char *>( uuid.begin() ) );
             return uuid;
         } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_NULL )
             return boost::uuids::uuid();

@@ -40,7 +40,7 @@ MolTableDelegate::MolTableDelegate(QObject *parent) :  QItemDelegate(parent)
 void
 MolTableDelegate::paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
-	if ( index.column() == 1 ) {
+    if ( index.data().type() == QVariant::ByteArray ) {
         render_svg( painter, option.rect, option.palette, index.data().toByteArray() );
     } else {
 		QItemDelegate::paint( painter, option, index );

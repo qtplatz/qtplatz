@@ -128,6 +128,7 @@ ExtensionSystem::IPlugin::ShutdownFlag
 ChemistryPlugin::aboutToShutdown()
 { 
 	return SynchronousShutdown;
+	mainWindow_->OnClose();
 }
 
 void

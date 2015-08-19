@@ -57,8 +57,12 @@ filesystem::close()
 bool
 filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
 {
-    boost::filesystem::path filepath( filename );
+    return create( boost::filesystem::path( filename ), alloc, page_size );
+}
 
+bool
+filesystem::create( const boost::filesystem::path& filepath, size_t alloc, size_t page_size )
+{
     if ( boost::filesystem::exists( filepath ) ) {
         boost::system::error_code ec;
         if ( ! boost::filesystem::remove( filepath, ec ) ) {
@@ -81,7 +85,7 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
         if ( alloc )
             internal::fs::prealloc( *db_, alloc );
 
-        if ( internal::fs::format( *db_, filename, format_version_ ) ) {
+        if ( internal::fs::format( *db_, filepath.wstring(), format_version_ ) ) {
 
             db_->set_fs_format_version( format_version_ );
 

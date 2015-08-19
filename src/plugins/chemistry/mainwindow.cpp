@@ -23,13 +23,17 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "chemconnection.hpp"
+#include "chemdocument.hpp"
+#include "chemistryconstants.hpp"
+#include "chemquery.hpp"
+#include "massdefectform.hpp"
 #include "moltabledelegate.hpp"
 #include "moltableview.hpp"
-#include <adchem/sdfile.hpp>
-#include "massdefectform.hpp"
-#include "chemistryconstants.hpp"
 #include <adportable/profile.hpp>
+#include <adchem/sdfile.hpp>
 #include <qtwrapper/trackingenabled.hpp>
+#include <qtwrapper/waitcursor.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -88,7 +92,16 @@ MainWindow::MainWindow( QWidget * parent ) : Utils::FancyMainWindow( parent )
 void
 MainWindow::OnInitialUpdate()
 {
+    connect( ChemDocument::instance(), &ChemDocument::onConnectionChanged, [this]{ handleConnectionChanged(); } );
+    
 	setSimpleDockWidgetArrangement();
+    ChemDocument::instance()->initialSetup();
+}
+
+void
+MainWindow::OnClose()
+{
+    ChemDocument::instance()->finalClose();
 }
 
 void
@@ -318,15 +331,49 @@ MainWindow::actSDFileOpen()
 
     QString name
         = QFileDialog::getOpenFileName( this
-                                        , tr("Open SDFile" )
+                                        , tr("Open Chemistry database" )
 										, datapath.string().c_str()
-                                        , tr("Structure Data files(*.sdf)") );
+                                        , tr("Structure Data files(*.sdf);;MDL MOL files(*.mol);;QtPlatz Chem DB(*.adfs)") );
     if ( ! name.isEmpty() ) {
 
-        topLineEdit_->setText( name );
-        adchem::SDFile file( name.toStdString() );
-        tableView_->setMol( file, *progressBar_ );
+        qtwrapper::waitCursor wait;
+        QFileInfo finfo( name );
 
+        if ( finfo.suffix() == "sdf" || finfo.suffix() == "mol" ) {
+
+            topLineEdit_->setText( name );
+            adchem::SDFile file( name.toStdString() );
+            tableView_->setMol( file, *progressBar_ );
+
+        } else if ( finfo.suffix() == "adfs" ) {
+
+            if ( auto connection = std::make_shared< ChemConnection >() ) {
+                
+                if ( connection->connect( name.toStdWString() ) )
+                    ChemDocument::instance()->setConnection( connection.get() );
+
+            }
+            
+        }
 	}
+}
+
+void
+MainWindow::handleConnectionChanged()
+{
+    auto self( ChemDocument::instance()->connection()->shared_from_this() );
+    auto query = std::make_shared< ChemQuery >( self->db() );
+
+    query->prepare( "SELECT * FROM mols" );
+    ChemDocument::instance()->setQuery( query.get() );
+    
+    if ( auto table = findChild< MolTableView * >() ) {
+        table->prepare( *query );
+        while ( query->step() == adfs::sqlite_row ) {
+            table->addRecord( *query );
+        }
+
+    }
+
 }
 

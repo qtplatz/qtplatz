@@ -58,6 +58,7 @@ namespace chemistry {
 		void createActions();
 
 		void OnInitialUpdate();
+        void OnClose();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
@@ -73,6 +74,7 @@ namespace chemistry {
 
     private slots:
         void handleDropped( const QList< QUrl >& );
+        void handleConnectionChanged();
 
 	private:
         std::unique_ptr< MolTableView > tableView_;

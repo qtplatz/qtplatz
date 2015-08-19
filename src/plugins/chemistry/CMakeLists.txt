@@ -53,8 +53,12 @@ link_directories(
 set( chemistry_SOURCES
   chemistryplugin.cpp
   chemistrymode.cpp
+  chemconnection.cpp
+  chemquery.cpp
+  chemschema.cpp
   moltabledelegate.cpp
   chemfile.cpp
+  chemdocument.cpp
   mainwindow.cpp
   massdefectform.cpp
   massdefectdelegate.cpp
@@ -65,10 +69,14 @@ set( chemistry_SOURCES
 set( chemistry_HEADERS
   chemistryplugin.hpp
   chemistry_global.hpp
+  chemconnection.hpp
+  chemquery.hpp
+  chemschema.hpp
   moltabledelegate.hpp
   chemistryconstants.hpp
   chemistrymode.hpp
   chemfile.hpp
+  chemdocument.hpp
   mainwindow.hpp
   massdefectform.hpp
   massdefectdelegate.hpp
@@ -83,6 +91,7 @@ add_library( ${PROJECT_NAME} MODULE
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adfs
   adutils
   adportable
   adlog
@@ -90,8 +99,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
   adplugin
   adwidgets
-  qtwrapper
   adprot
+  qtwrapper
   Core
   ${RDKit_LIBRARIES}
   Qt5::Core

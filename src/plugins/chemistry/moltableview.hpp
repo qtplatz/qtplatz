@@ -29,6 +29,7 @@
 #include <QTableView>
 #include <QUrl>
 #include <memory>
+#include <set>
 
 class QStandardItemModel;
 class QProgressBar;
@@ -38,17 +39,24 @@ namespace adchem { class SDFile; }
 namespace chemistry {
 
     class MolTableDelegate;
+    class ChemQuery;
 
     class MolTableView : public adwidgets::TableView {
         Q_OBJECT
     public:
         explicit MolTableView(QWidget *parent = 0);
         ~MolTableView();
+        
+        void prepare( const ChemQuery& );
+        void addRecord( const ChemQuery& );
 
         void setMol( adchem::SDFile&, QProgressBar& );
+        
+        QStandardItemModel& model() { return *model_; }
 
     signals:
         void dropped( const QList< QUrl >& );
+        void onCurrentChanged( const QModelIndex& );
 
     public slots:
 
@@ -59,9 +67,11 @@ namespace chemistry {
         void dragMoveEvent( QDragMoveEvent * ) override;
         void dragLeaveEvent( QDragLeaveEvent * ) override;
         void dropEvent( QDropEvent * ) override;
+        void currentChanged( const QModelIndex&, const QModelIndex& ) override;
 
         MolTableDelegate * delegate_;
         QStandardItemModel * model_;
+        std::set< std::string > hideColumns_;
 
     private slots:
         void handleCopyToClipboard();
