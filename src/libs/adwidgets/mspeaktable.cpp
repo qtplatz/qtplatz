@@ -660,6 +660,9 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         QAction * action_lock_mass(0);
         QAction * action_copy_assigned(0);
         QMenu menu;
+
+        menu.addAction( "Hide not assigned rows", this, SLOT( hideRows() ) );
+        menu.addAction( "Show all rows", this, SLOT( showRows() ) );
         
         QModelIndexList list = selectionModel()->selectedIndexes();
         if ( list.size() < 1 )
@@ -675,7 +678,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         QVector< QPair<int, int> > refs;
 
         for ( int row: rows ) {
-
+            
             QString formula = model.data( model.index( row, c_mspeaktable_formula ) ).toString();
 
             if ( ! formula.isEmpty() ) {
@@ -689,7 +692,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
                 refs.push_back( QPair<int,int>( idx, fcn ) );
             }
         }
-        
+
         action_lock_mass = menu.addAction( o.str().c_str() );
         action_copy_assigned = menu.addAction( tr("Copy assigned peaks to clipboard"), this, SLOT( handleCopyAssignedPeaks() ) );
         addActionsToMenu( menu, pt );
@@ -911,4 +914,25 @@ MSPeakTable::handleCopyAssignedPeaks()
 
     QApplication::clipboard()->setText( selected_text );
 
+}
+
+void
+MSPeakTable::hideRows()
+{
+    QStandardItemModel& model = *impl_->model_;
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        if ( model.data( model.index( row, c_mspeaktable_formula ) ).toString().isEmpty() )
+            setRowHidden( row, true );
+    }
+
+}
+
+void
+MSPeakTable::showRows()
+{
+    QStandardItemModel& model = *impl_->model_;
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        if ( isRowHidden( row ) )
+            setRowHidden( row, false );
+    }
 }
