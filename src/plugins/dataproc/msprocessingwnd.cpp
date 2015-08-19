@@ -553,8 +553,6 @@ MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& )
 void
 MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
 {
-    
-
     if ( auto pkinfo = pkinfo_.second.lock() ) {
 
         if ( pkinfo->numSegments() > 1 )
@@ -904,7 +902,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                 return;
 
             auto pkinfo = pkinfo_.second.lock();
-
+            
             adcontrols::ProcessMethod pm;
             MainWindow::instance()->getProcessMethod( pm );
             if ( const auto mchro = pm.find< adcontrols::MSChromatogramMethod >() ) {

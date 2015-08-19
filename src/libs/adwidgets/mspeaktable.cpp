@@ -561,7 +561,12 @@ MSPeakTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
     (void)prev;
 
     scrollTo( index, QAbstractItemView::EnsureVisible );
+    
 	int row = index.row();
+
+    if ( isRowHidden( row ) )
+        setRowHidden( row, false );
+    
     int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
     int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
 
@@ -572,6 +577,7 @@ MSPeakTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
         model.setData( model.index( r, c_mspeaktable_delta_mass ), int( d + 0.7 ) );
     }
     setUpdatesEnabled( true );
+
     emit currentChanged( idx, fcn );
 }
 
