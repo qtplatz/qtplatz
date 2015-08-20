@@ -379,6 +379,8 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
             model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->formula ) );
             model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass_error );
             model.setData( model.index( row, c_mspeaktable_description ), tr( "Target candidate" ) );
+
+            setRowHidden( row, false );
         }
     }
     if ( impl_->data_source_.which() == 1 ) {
@@ -425,6 +427,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
                 model.setData( model.index( row, c_mspeaktable_mass_error ), pk.mass() - exactMass( pk.formula() ) );
             }
 			model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdWString( pk.annotation() ) );
+
+            setRowHidden( row, false );
 
             ++row;
         }
@@ -667,8 +671,8 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         QAction * action_copy_assigned(0);
         QMenu menu;
 
-        menu.addAction( "Hide not assigned rows", this, SLOT( hideRows() ) );
-        menu.addAction( "Show all rows", this, SLOT( showRows() ) );
+        menu.addAction( "Hide", this, SLOT( hideRows() ) );
+        menu.addAction( "Show all", this, SLOT( showRows() ) );
         
         QModelIndexList list = selectionModel()->selectedIndexes();
         if ( list.size() < 1 )
@@ -927,8 +931,8 @@ MSPeakTable::hideRows()
 {
     QStandardItemModel& model = *impl_->model_;
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        if ( model.data( model.index( row, c_mspeaktable_formula ) ).toString().isEmpty() )
-            setRowHidden( row, true );
+        bool hide = model.data( model.index( row, c_mspeaktable_formula ) ).toString().isEmpty();
+        setRowHidden( row, hide );
     }
 
 }

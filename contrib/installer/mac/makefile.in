@@ -4,6 +4,8 @@ DEPLOYQT = ${QTDIR}/bin/macdeployqt
 FRAMEWORKS = ./qtplatz.app/Contents/Frameworks
 PLUGINS   = ./qtplatz.app/Contents/PlugIns
 
+TARGET = qtplatz-@QTPLATZ_VERSION@.dmg
+
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 RDKit_VERSION = 2015.03.1pre
 
@@ -24,7 +26,6 @@ BOOST_RPATH       = @executable_path/../Frameworks
 ACE+TAO_STAGE_DIR = ${FRAMEWORKS}
 ACE+TAO_RPATH     = @executable_path/../Frameworks
 
-RDKit_VERSION = 2015.03.1pre
 RDKIT_STAGE_DIR   = ${FRAMEWORKS}
 RDKIT_RPATH       = @executable_path/../Frameworks
 
@@ -161,10 +162,10 @@ rdkit: rdkit_copy
 	done
 
 clean:
-	rm -rf qtplatz.app qtplatz-`git describe`.dmg
+	rm -rf qtplatz.app ${TARGET}
 
-#translations:
-#	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
+translations:
+	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
 
 thank:
 	sh ./thankslasconic.sh ./qtplatz.app/Contents/MacOS/qtplatz
@@ -175,7 +176,7 @@ deployqt:
 ace_tao: copy_ace_tao fix_ace_tao
 
 dmg: qtplatz.app translations
-	hdiutil create -size 200m qtplatz-`git describe`.dmg -srcfolder ./qtplatz.app
+	hdiutil create -size 200m ${TARGET} -srcfolder ./qtplatz.app
 
 mount:
 	open ./qtplatz.dmg
