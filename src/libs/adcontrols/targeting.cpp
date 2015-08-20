@@ -145,9 +145,9 @@ Targeting::setup( const TargetingMethod& m )
 
     active_formula_.clear();
 
-    for ( auto& m : m.molecules().data() ) {
-        if ( m.enable ) {
-            auto formula = m.formula + m.adducts;
+    for ( auto& x : m.molecules().data() ) {
+        if ( x.enable ) {
+            auto formula = x.formula + x.adducts;
             active_formula_.push_back( std::make_pair( formula, formula_parser.getMonoIsotopicMass( ChemicalFormula::split( formula ) ) ) );
         }
     }

@@ -170,7 +170,8 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 
   set( CPACK_GENERATOR "DEB" )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
-  set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/postinst;${CMAKE_CURRENT_BINARY_DIR}/prerm" )  
+  set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/postinst;${CMAKE_CURRENT_BINARY_DIR}/prerm" )
+  set( CPACK_DEBIAN_PACKAGE_DESCRIPTION "QtPlatz -- Mass spectrometry data system desktop application" )
 
   if ( RTC_ARCH_ARM )
     set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
