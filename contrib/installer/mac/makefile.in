@@ -108,15 +108,12 @@ default:
 	@echo "make dmg"
 	@echo
 
-pkg:
+world: 
 	make app
-	make deployqt
-	make ace_tao
+	make boost
+	make ace+tao
 	make rdkit
 	make dmg
-
-world: 
-	make pkg
 
 # all: qtplatz.app
 app:
@@ -172,8 +169,6 @@ thank:
 
 deployqt:
 	${DEPLOYQT} ./qtplatz.app -verbose=2
-
-ace_tao: copy_ace_tao fix_ace_tao
 
 dmg: qtplatz.app translations
 	hdiutil create -size 200m ${TARGET} -srcfolder ./qtplatz.app
