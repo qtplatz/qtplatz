@@ -25,6 +25,7 @@
 //  See http://www.boost.org for updates, documentation, and revision history.
 
 #include <ostream>
+#include <boost/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <boost/archive/basic_binary_oprimitive.hpp>
@@ -138,6 +139,10 @@ protected:
     // extra stuff to get it passed borland compilers
     typedef boost::archive::detail::common_oarchive<portable_binary_oarchive> 
         detail_common_oarchive;
+
+#if ! defined BOOST_VERSION
+# !error
+#endif
 
 #if BOOST_VERSION >= 105900
     template<class T>

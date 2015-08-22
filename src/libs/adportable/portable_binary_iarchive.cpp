@@ -11,6 +11,7 @@
 #include <istream>
 #include <string>
 #include <compiler/disable_unused_parameter.h>
+#include <boost/version.hpp>
 #include <boost/detail/endian.hpp>
 #include <boost/serialization/throw_exception.hpp>
 #include <boost/archive/archive_exception.hpp>

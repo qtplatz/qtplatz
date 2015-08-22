@@ -23,6 +23,7 @@
 //  See http://www.boost.org for updates, documentation, and revision history.
 
 #include <istream>
+#include <boost/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/item_version_type.hpp>
 #include <boost/archive/archive_exception.hpp>
