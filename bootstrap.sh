@@ -2,13 +2,20 @@
 
 arch=`arch`
 source_dir=`pwd`
+host_system=`uname`
 build_debug=false
 build_clean=false
 build_package=false
 build_root=..
 
+echo "platform=" $host_system
+
 if [ -z $cross_target ]; then
-    cross_target=$arch
+    if [ "$host_system" = 'Linux' ]; then
+	cross_target=$arch
+    elif [ "$host_system" = 'Darwin' ]; then
+	cross_target='darwin'
+    fi
 fi
 
 while [ $# -gt 0 ]; do
@@ -62,6 +69,14 @@ case $cross_target in
 	cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc $source_dir
 	;;	
     x86_64)
+	if [ $build_debug = true ]; then
+	    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug $source_dir
+	else
+	    echo `pwd`
+	    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
+	fi
+	;;
+    darwin)
 	if [ $build_debug = true ]; then
 	    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug $source_dir
 	else
