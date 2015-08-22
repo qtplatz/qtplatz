@@ -264,8 +264,10 @@ Dataprocessor::create(const QString& filename )
 }
 
 bool
-Dataprocessor::open(const QString &filename )
+Dataprocessor::open(const QString &filename, QString& emsg )
 {
+    emsg.clear();
+
     try {
         if ( adcontrols::datafile * file = adcontrols::datafile::open( filename.toStdWString(), false ) ) {
             file_.reset( file );
@@ -275,11 +277,14 @@ Dataprocessor::open(const QString &filename )
                 setFilePath( filename );
                 return true;
             } catch ( boost::exception& ex ) {
+                emsg = QString::fromStdString( boost::diagnostic_information( ex ) );
                 ADERROR() << boost::diagnostic_information( ex );
             } catch ( std::exception& ex ) {
+                emsg = QString::fromStdString( ex.what() );
                 ADERROR() << ex.what();
             } catch ( ... ) {
-                ADERROR() << "got an exception '...'";
+                emsg = QString::fromStdString( "Unidentified exception" );
+                ADERROR() << "Unidentified exception received.";
             }
         }
     } catch ( boost::exception& ex ) {

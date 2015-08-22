@@ -19,7 +19,9 @@ add_library( adportable
   mslockref.hpp
   polfit.cpp
   portable_binary_oarchive.cpp
+  portable_binary_oarchive.hpp
   portable_binary_iarchive.cpp
+  portable_binary_iarchive.hpp
   posix_path.cpp
   profile.cpp
   semaphore.hpp
