@@ -33,7 +33,7 @@
 #include <compiler/diagnostic_pop.h>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
-
+#include <boost/exception/all.hpp>
 #include "sqlite.hpp"
 
 using namespace adfs;
@@ -117,8 +117,17 @@ attributes::archive( std::ostream& os, const attributes& impl )
 bool
 attributes::restore( std::istream& is, attributes& impl ) // binary
 {
-    portable_binary_iarchive ar( is );
-    ar >> impl;
+    try {
+        portable_binary_iarchive ar( is );
+        ar >> impl;
+    } catch ( boost::archive::archive_exception& ex ) {
+        if ( ex.code == boost::archive::archive_exception::unsupported_version )
+            throw std::runtime_error( "Serializer unsupported version" );
+        else
+            BOOST_THROW_EXCEPTION( ex );
+    } catch ( std::exception& ex ) {
+        BOOST_THROW_EXCEPTION( ex );
+    }
     return true;
 }
 
@@ -131,7 +140,7 @@ attributes::fetch()
         if ( blob.size() ) {
 			std::unique_ptr< boost::int8_t [] > p( new boost::int8_t [ blob.size() ] );
             if ( blob.read( p.get(), blob.size() ) ) {
-                if ( adfs::cpio::deserialize( *this, reinterpret_cast< const char *>(p.get()), blob.size() ) )
+                if ( adfs::cpio::deserialize( *this, reinterpret_cast<const char *>( p.get() ), blob.size() ) )
                     dirty_ = false;
             }
         }

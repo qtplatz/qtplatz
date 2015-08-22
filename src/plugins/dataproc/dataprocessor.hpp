@@ -86,7 +86,7 @@ namespace dataproc {
         // Dataprocessor
         void setModified( bool );
         bool create( const QString& token );
-        bool open( const QString& );
+        bool open( const QString&, QString& errmsg );
         // Core::IDocument * ifile();
 
         void exportXML() const;

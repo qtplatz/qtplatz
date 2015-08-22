@@ -77,7 +77,8 @@ DataprocEditor::open( QString* errorMessage, const QString &filename, const QStr
 {
 	qtwrapper::waitCursor wait;
 
-    if ( processor_ && processor_->open( filename ) ) {
+    QString emsg;
+    if ( processor_ && processor_->open( filename,  emsg) ) {
         SessionManager::instance()->addDataprocessor( processor_, this );
 
         Core::DocumentManager::addDocument( processor_->document() );
@@ -86,7 +87,7 @@ DataprocEditor::open( QString* errorMessage, const QString &filename, const QStr
 
         return true;
     }
-    *errorMessage = QString("DataprocEditor: file %1 could not be opend.").arg(filename);
+    *errorMessage = QString( "DataprocEditor:\nfile %1 could not be opend.\nReason: %2." ).arg( filename, emsg );
 
     return false;
 }

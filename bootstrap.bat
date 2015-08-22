@@ -1,7 +1,7 @@
 :#!cmd.exe
 @echo off
 set source_dir=%cd%
-set build_root=..\build-x86_64
+set build_root=..\build-x86_64.1
 set build_type=debug
 set build_tests=false
 set build_clean=false
