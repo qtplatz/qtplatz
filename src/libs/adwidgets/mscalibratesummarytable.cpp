@@ -295,6 +295,8 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
         model.setData( model.index( row, c_is_enable ), it->enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
 
+    setRowHidden( row, false );
+
     return true;
 }
 
@@ -425,34 +427,19 @@ MSCalibrateSummaryTable::setData( const adcontrols::MSCalibrateResult& res, cons
 void
 MSCalibrateSummaryTable::showContextMenu( const QPoint& pt )
 {
-    std::vector< QAction * > actions;
     QMenu menu;
+
+    menu.addAction( tr( "Hide" ), this, SLOT( hideRows() ) );
+    menu.addAction( tr( "Show" ), this, SLOT( showRows() ) );
     
-    actions.push_back( menu.addAction( tr( "Re-calc polynomials" ) ) );
-    actions.push_back( menu.addAction( tr( "Assign mass on spectrum" ) ) );
-    actions.push_back( menu.addAction( tr( "Apply calibration to the dataset (change all spectra in the dataset)" ) ) );
-    //actions.push_back( menu.addAction( tr( "Apply calibration to all spectra in the dataset" ) ) );
-    actions.push_back( menu.addAction( tr( "Save as default calibration" ) ) );
-    actions.push_back( menu.addAction( tr( "Copy summary to clipboard" ) ) );
-    actions.push_back( menu.addAction( tr( "Add to peak table" ) ) );
+    menu.addAction( tr( "Re-calc polynomials" ), this, SLOT( recalicPolynomials() ) );
+    menu.addAction( tr( "Assign mass on spectrum" ), this, SLOT( assignMassOnSpectrum() ) );
+    menu.addAction( tr( "Apply calibration to the dataset (change all spectra in the dataset)" ), this, SLOT( applyCalibrationToDataset() ) );
+    menu.addAction( tr( "Save as default calibration" ), this, SLOT( saveAsDefaultCalibration() ) );
+    menu.addAction( tr( "Copy summary to clipboard" ), this, SLOT( copySummaryToClipboard() ) );
+    menu.addAction( tr( "Add to peak table" ), this, SLOT( addSelectionToPeakTable() ) );
 
-    QAction * selected = menu.exec( this->mapToGlobal( pt ) );
-
-    if ( selected == actions[ 0 ] ) {
-        emit valueChanged();
-    } else if ( selected == actions[ 1 ] ) {
-        emit on_reassign_mass_requested();      // change source mass spectrum m/z array (both profile and centroid)
-    } else if ( selected == actions[ 2 ] ) {
-        emit on_apply_calibration_to_dataset(); // change whole calibration for current dataset
-    //} else if ( selected == actions[ 3 ] ) {
-        //emit on_apply_calibration_to_all();     // change whole calibration for current dataset
-    } else if ( selected == actions[ 3 ] ) {
-        emit on_apply_calibration_to_default(); // save calibration as system default
-    } else if ( selected == actions[ 4 ] ) {
-        copySummaryToClipboard();
-    } else if ( selected == actions[ 5 ] ) {
-        addSelectionToPeakTable();
-    }
+    menu.exec( this->mapToGlobal( pt ) );
 }
 
 void
@@ -568,6 +555,30 @@ MSCalibrateSummaryTable::currentChanged( const QModelIndex& index, const QModelI
         double d = std::abs( model.index( r, c_mass ).data( Qt::EditRole ).toDouble() - mass );
         model.setData( model.index( r, c_delta_mass ), int( d + 0.7 ) );
     }
+}
+
+void
+MSCalibrateSummaryTable::recalcPolynomials()
+{
+    emit valueChanged();
+}
+
+void
+MSCalibrateSummaryTable::assignMassOnSpectrum()
+{
+    emit on_reassign_mass_requested();      // change source mass spectrum m/z array (both profile and centroid)
+}
+
+void
+MSCalibrateSummaryTable::applyCalibrationToDataset()
+{
+    emit on_apply_calibration_to_dataset(); // change whole calibration for current dataset    
+}
+
+void
+MSCalibrateSummaryTable::saveAsDefaultCalibration()
+{
+    emit on_apply_calibration_to_default(); // save calibration as system default    
 }
 
 void
@@ -710,6 +721,27 @@ MSCalibrateSummaryTable::keyPressEvent( QKeyEvent * event )
         handlePasteFromClipboard();
     } else {
         QTableView::keyPressEvent( event );
+    }
+}
+
+void
+MSCalibrateSummaryTable::hideRows()
+{
+    QStandardItemModel& model = *pModel_;
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        bool hide = model.data( model.index( row, c_formula ) ).toString().isEmpty();
+        setRowHidden( row, hide );
+    }
+
+}
+
+void
+MSCalibrateSummaryTable::showRows()
+{
+    QStandardItemModel& model = *pModel_;    
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        if ( isRowHidden( row ) )
+            setRowHidden( row, false );
     }
 }
 
@@ -960,3 +992,4 @@ print_text::to_print_text( std::string& text, const QModelIndex &index )
         text = index.data( Qt::DisplayRole ).toString().toStdString();
     }
 }
+

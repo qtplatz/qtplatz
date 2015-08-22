@@ -85,6 +85,8 @@ namespace adwidgets {
         void handle_zoomed( const QRectF& );   // zoomer zoomed
         void handle_selected( const QRectF& ); // picker selected
         void handlePrint( QPrinter&, QPainter& );
+        void hideRows();
+        void showRows();
 
    private slots:
         void handleEraseFormula();
@@ -92,6 +94,13 @@ namespace adwidgets {
         void handlePasteFromClipboard();
         void handleValueChanged( const QModelIndex& );
 
+        void recalcPolynomials();
+        void assignMassOnSpectrum();
+        void applyCalibrationToDataset();
+        void saveAsDefaultCalibration();
+        void copySummaryToClipboard();
+        void addSelectionToPeakTable();
+        
     private:
         bool inProgress_;
         std::unique_ptr< QStandardItemModel > pModel_;
@@ -105,8 +114,6 @@ namespace adwidgets {
         bool setAssignedData( int row, int fcn, int idx, const adcontrols::MSAssignedMasses& );
         void setEditable( int row, bool enable = false );
         void formulaChanged( const QModelIndex& );
-        void copySummaryToClipboard();
-        void addSelectionToPeakTable();
     };
 
 }

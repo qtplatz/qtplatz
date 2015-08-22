@@ -1,7 +1,5 @@
 # qtplatz.cmake
 
-set( BOOST_VERSION boost-1_58 )
-
 list( APPEND CMAKE_MODULE_PATH ${QTPLATZ_SOURCE_DIR}/cmake/Modules )
 
 find_package( arch )
@@ -10,24 +8,25 @@ find_package( arch )
 # boost setup
 #
 if( WIN32 )
-  
-  set( BOOST_ROOT "C:/Boost/include/${BOOST_VERSION}" )
-  set( Boost_INCLUDE_DIR ${BOOST_ROOT} )
+
+  find_path( _boost NAMES boost PATHS
+    "C:/Boost/include/boost-1_59" "C:/Boost/include/boost-1_58" "C:/Boost/include/boost-1_57" )
+
+  set( BOOST_ROOT ${_boost} )
+  set( Boost_INCLUDE_DIR ${_boost} )
   set( Boost_USE_STATIC_LIBS ON )
 
   if ( RTC_ARCH_X64 )
-    
     set( Boost_LIBRARY_DIR "C:/Boost/x86_64/lib" )
-    
   else()
-
     set( Boost_LIBRARY_DIR "C:/Boost/lib" )    
-    
   endif()
 
 else()
 
-  find_path( _boost NAMES include/boost PATHS "/usr/local" "/usr/local/${BOOST_VERSION}" )
+  find_path( _boost NAMES include/boost PATHS
+    "/usr/local" "/usr/local/boost-1_58" "/usr/local/boost-1_57" )
+
   if ( _boost )
     set(Boost_INCLUDE_DIR "${_boost}/include")
     set(Boost_LIBRARY_DIR "${_boost}/lib")      
