@@ -474,6 +474,9 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     if ( ptr->isCentroid() ) {
         impl_->centroid_ = ptr;
         update_annotation( false );
+    } else {
+        impl_->clear_annotations();
+        replot();
     }
 }
 
