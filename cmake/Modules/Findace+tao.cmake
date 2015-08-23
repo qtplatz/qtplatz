@@ -23,7 +23,8 @@ else()
     /usr/local/ace+tao/6.3.2
     /usr/local/ace+tao/6.3.1
     /usr/local/ace+tao/6.3.0
-    /usr/local/ace+tao/6.2.8 )
+    /usr/local/ace+tao/6.2.8
+    )
 
 endif()
 

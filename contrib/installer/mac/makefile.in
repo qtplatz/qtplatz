@@ -9,17 +9,17 @@ TARGET = qtplatz-@QTPLATZ_VERSION@.dmg
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 
 BOOST_LIBRARY_DIR = @Boost_LIBRARY_DIR@
-BOOST_STAGE_DIR   = ${FRAMEWORKS}/boost
+BOOST_STAGE_DIR   = ${FRAMEWORKS}
 BOOST_RPATH       = @executable_path/../Frameworks/boost
 
-RDKit_VERSION     = @RDKit_VERSION@
+RDKit_VERSION     = @RDKit_PACKAGE_VERSION@
 RDKIT_LIBRARIES   = @RDKIT_LIBRARIES@
-RDKIT_STAGE_DIR   = ${FRAMEWORKS}/rdkit
+RDKIT_STAGE_DIR   = ${FRAMEWORKS}
 RDKIT_RPATH       = @executable_path/../Frameworks/rdkit
 
 ACE+TAO_LIBRARY_DIR = @ace+tao_DIR@
-ACE+TAO_STAGE_DIR = ${FRAMEWORKS}/ace+tao
-ACE+TAO_RPATH     = @executable_path/../Frameworks/ace+tao
+ACE+TAO_STAGE_DIR = ${FRAMEWORKS}
+ACE+TAO_RPATH     = @executable_path/../Frameworks/
 
 BOOST_LIBS = \
 	libboost_bzip2 \
@@ -90,14 +90,15 @@ default:
 	@echo "make dmg"
 	@echo
 
-world: stage
-	PATH=${FRAMEWORKS}:${FRAMEWORKS}/boost:${FRAMEWORKS}/rdkit:${FRAMEWORKS}/ace+tao:${PATH} make deployqt
+world:
+	make app
+	make ace+tao
+	make deployqt
 	make dmg
 
 stage:
 	make app
 	make boost
-	make ace+tao
 	make rdkit
 
 # all: qtplatz.app
@@ -111,7 +112,6 @@ boost_copy:
 	done
 
 boost: boost_copy
-
 
 ace+tao_copy:
 	-mkdir -p ${ACE+TAO_STAGE_DIR}

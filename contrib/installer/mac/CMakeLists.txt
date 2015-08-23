@@ -7,6 +7,7 @@ include( qtplatz-version )
 set( QTPLATZ_VERSION ${git_describe} )
 set( RDKIT_LIBRARY_DIR ${RDKit_LIBRARY_DIRS} )
 set( RDKIT_LIBRARIES )
+
 foreach( _rdlib ${RDKit_LIBRARIES} )
   set( RDKIT_LIBRARIES "${RDKIT_LIBRARIES} ${_rdlib}" )
 endforeach( _rdlib )
