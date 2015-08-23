@@ -6,14 +6,60 @@ endif()
 
 set( rdkit_FOUND FALSE )
 
-find_path( _include_dir  GraphMol/RDKitBase.h HINTS
+if ( WIN32 )
+
+  if ( RTC_ARCH_X86 )
+    set( w32out_dir "build_x86_120" )
+  else()
+    set( w32out_dir "build_x86_64_120" )
+  endif()
+
+  # when run INSTALL.vcxproj, .libs are copied into RDKit's ${CMAKE_SOURCE_DIR}/rdkit/lib
+  find_package( rdkit CONFIG PATHS
+    $ENV{RDBASE}/lib
+    $ENV{HOME}/src/rdkit/lib
+    ${CMAKE_SOURCE_DIR}/../rdkit/lib
+    $ENV{RDBASE}/${w32out_dir}
+    $ENV{HOME}/src/rdkit/${w32out_dir}
+    ${CMAKE_SOURCE_DIR}/../rdkit/${w32out_dir}
+    )
+
+  message( STATUS "### Find rdkit-config.cmake: " ${rdkit} )
+
+else()
+
+  find_package( rdkit CONFIG PATHS
+    /usr/local/lib
+    ${CMAKE_BINARY_DIR}/rdkit
+    $ENV{RDBASE}
+    $ENV{RDBASE}/build )
+
+endif()
+
+if ( rdkit )
+  
+  set (RDKit_LIBRARIES
+    FileParsers
+    SmilesParse
+    Depictor
+    GraphMol
+    RDGeometryLib
+    RDGeneral
+    SubstructMatch )  
+
+  set( rdkit_FOUND TRUE )
+  return()
+  
+endif()
+
+find_path( _include_dir  GraphMol/RDKitBase.h PATHS
   $ENV{RDBASE}/Code
-  ${CMAKE_SOURCE_DIR}/../rdkit/Code
   /usr/local/include/rdkit
   /usr/include/rdkit
   )
 
 if ( _include_dir )
+  set ( RDKit_INCLUDE_DIRS ${_include_dir} )
   get_filename_component ( rdbase ${_include_dir} PATH )
   if ( ${rdbase} MATCHES "/usr/include" )
     set( rdbase "/usr" )
@@ -22,24 +68,24 @@ if ( _include_dir )
     set( rdbase "/usr/local" )
   endif()
 else()
-  message( STATUS "Findrdkit: rdkit not found" )
   return()
 endif()
 
-find_library( _fileparsers_lib NAMES FileParsers HINTS
-  ${_include_dir}/../lib
+find_library( _fileparsers_lib NAMES FileParsers PATHS
+  $ENV{RDBASE}/lib
+  $ENV{RDBASE}/build/lib
   /usr/local/lib
   /usr/lib )
 
 if ( _fileparsers_lib )
   get_filename_component ( _libdir ${_fileparsers_lib} PATH )
+  message( STATUS "Found rdkit libraries at ${_libdir}" )
 endif()
 
 if ( _include_dir AND _libdir )
   
   set ( rdkit_FOUND TRUE )
   set ( RDKit_INCLUDE_DIRS ${_include_dir} )
-  set ( RDKit_LIBRARY_DIRS ${_libdir} )
 
   find_library(SMILESPARSE_LIB   NAMES SmilesParse   HINTS ${_libdir})
   find_library(DEPICTOR_LIB      NAMES Depictor      HINTS ${_libdir})
@@ -49,20 +95,24 @@ if ( _include_dir AND _libdir )
   find_library(SUBSTRUCTMATCH_LIB NAMES SubstructMatch HINTS ${_libdir})
 
   set (RDKit_LIBRARIES
-    ${_fileparsers_lib}
-    ${SMILESPARSE_LIB}
-    ${DEPICTOR_LIB}
-    ${GRAPHMOL_LIB}
-    ${RDGEOMETRYLIB_LIB}
-    ${RDGENERAL_LIB}
-    ${SUBSTRUCTMATCH_LIB}
+    FileParsers
+    SmilesParse
+    Depictor
+    Descriptors
+    GraphMol
+    RDGeometryLib
+    RDGeneral
+    SubstructMatch
     )
-
-  find_file( version_cmake NAMES rdkit-config-version.cmake PATHS ${_libdir} NO_DEFAULT_PATH )
-
-  if ( version_cmake )
-    include( ${version_cmake} )
-    set( RDKit_PACKAGE_VERSION ${PACKAGE_VERSION} )
-  endif()
+  
+#  set (RDKit_LIBRARIES
+#    ${_fileparsers_lib}
+#    ${SMILESPARSE_LIB}
+#    ${DEPICTOR_LIB}
+#    ${GRAPHMOL_LIB}
+#    ${RDGEOMETRYLIB_LIB}
+#    ${RDGENERAL_LIB}
+#    ${SUBSTRUCTMATCH_LIB}
+#    )  
   
 endif()

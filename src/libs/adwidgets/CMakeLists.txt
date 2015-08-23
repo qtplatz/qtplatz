@@ -21,7 +21,6 @@ include_directories(
 
 if ( rdkit_FOUND )
   include_directories( ${RDKit_INCLUDE_DIRS} )
-  message( "##### RDKit_LIBRARIES: " ${RDKit_LIBRARIES} )
 endif()
 
 add_definitions(-DADWIDGETS_LIBRARY)
