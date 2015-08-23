@@ -6,53 +6,6 @@ endif()
 
 set( rdkit_FOUND FALSE )
 
-if ( WIN32 )
-
-  if ( RTC_ARCH_X86 )
-    set( w32out_dir "build_x86_120" )
-  else()
-    set( w32out_dir "build_x86_64_120" )
-  endif()
-
-  # when run INSTALL.vcxproj, .libs are copied into RDKit's ${CMAKE_SOURCE_DIR}/rdkit/lib
-  find_package( rdkit CONFIG PATHS
-    $ENV{RDBASE}/lib
-    $ENV{HOME}/src/rdkit/lib
-    ${CMAKE_SOURCE_DIR}/../rdkit/lib
-    $ENV{RDBASE}/${w32out_dir}
-    $ENV{HOME}/src/rdkit/${w32out_dir}
-    ${CMAKE_SOURCE_DIR}/../rdkit/${w32out_dir}
-    )
-
-else()
-
-  # It seems that following way did not work...
-  find_package( rdkit CONFIG HINTS
-    ${CMAKE_SOURCE_DIR}/../rdkit/lib
-    ${CMAKE_BINARY_DIR}/../rdkit
-    $ENV{RDBASE}
-    $ENV{RDBASE}/build
-    /usr/local/lib
-    )
-
-endif()
-
-if ( rdkit )
-  # this does not work at least on mac
-  set (RDKit_LIBRARIES
-    FileParsers
-    SmilesParse
-    Depictor
-    GraphMol
-    RDGeometryLib
-    RDGeneral
-    SubstructMatch )  
-
-  set( rdkit_FOUND TRUE )
-  return()
-  
-endif()
-
 find_path( _include_dir  GraphMol/RDKitBase.h HINTS
   $ENV{RDBASE}/Code
   ${CMAKE_SOURCE_DIR}/../rdkit/Code
