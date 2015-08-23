@@ -105,7 +105,7 @@ endif()
 
 find_package( rdkit QUIET )
 if ( rdkit_FOUND )
-  message( STATUS "Found the RDKit libraries at: " ${RDKit_INCLUDE_DIRS} "  libs: "  ${RDKit_LIBRARIES})
+  message( STATUS "Found the RDKit VERSION: " ${RDKit_PACKAGE_VERSION} " at " ${RDKit_INCLUDE_DIRS} " libs: "  ${RDKit_LIBRARY_DIRS} )
   add_definitions(-DHAVE_RDKit=1)
 else()
   message( STATUS "No RDKit found" )
@@ -196,3 +196,4 @@ set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 
 include( CPack )
+

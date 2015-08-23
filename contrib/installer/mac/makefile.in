@@ -7,39 +7,23 @@ PLUGINS   = ./qtplatz.app/Contents/PlugIns
 TARGET = qtplatz-@QTPLATZ_VERSION@.dmg
 
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
-RDKit_VERSION = 2015.03.1pre
 
-BOOST_LIBRARY_DIR = /usr/local/boost-1_58/lib
+BOOST_LIBRARY_DIR = @Boost_LIBRARY_DIR@
+BOOST_STAGE_DIR   = ${FRAMEWORKS}/boost
+BOOST_RPATH       = @executable_path/../Frameworks/boost
 
-$(worning $(RDBASE) $(origin RDBASE)
-$(warning $(ACE_ROOT) $(origin ACE_ROOT))
+RDKit_VERSION     = @RDKit_VERSION@
+RDKIT_LIBRARIES   = @RDKIT_LIBRARIES@
+RDKIT_STAGE_DIR   = ${FRAMEWORKS}/rdkit
+RDKIT_RPATH       = @executable_path/../Frameworks/rdkit
 
-ifeq ($(RDBASE),)
-RDBASE=~/src/rdkit
-endif
-
-QTPLATZ_SOURCE_DIR = /Users/toshi/src/qtplatz
-
-BOOST_STAGE_DIR   = ${FRAMEWORKS}
-BOOST_RPATH       = @executable_path/../Frameworks
-
-ACE+TAO_STAGE_DIR = ${FRAMEWORKS}
-ACE+TAO_RPATH     = @executable_path/../Frameworks
-
-RDKIT_STAGE_DIR   = ${FRAMEWORKS}
-RDKIT_RPATH       = @executable_path/../Frameworks
-
-$(worning $(RDBASE) $(origin RDBASE)
-$(warning $(ACE_ROOT) $(origin ACE_ROOT))
-
-ifeq ($(RDBASE),)
-RDBASE=~/src/rdkit
-endif
-
-LIBDIR_ACETAO    = $(ACE_ROOT)/lib
+ACE+TAO_LIBRARY_DIR = @ace+tao_DIR@
+ACE+TAO_STAGE_DIR = ${FRAMEWORKS}/ace+tao
+ACE+TAO_RPATH     = @executable_path/../Frameworks/ace+tao
 
 BOOST_LIBS = \
 	libboost_bzip2 \
+	libboost_chrono \
 	libboost_date_time \
 	libboost_filesystem \
 	libboost_regex \
@@ -93,8 +77,6 @@ RDKit_LIBS = \
 
 default:
 	@echo "################################################"
-	@echo "ACE_ROOT is: " $(ACE_ROOT)
-	@echo "LIBDIR_ACETAO is: " $(LIBDIR_ACETAO)
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
 	@echo "RDBASE is: " $(RDBASE)
 	@echo "################################################"
@@ -108,12 +90,15 @@ default:
 	@echo "make dmg"
 	@echo
 
-world: 
+world: stage
+	PATH=${FRAMEWORKS}:${FRAMEWORKS}/boost:${FRAMEWORKS}/rdkit:${FRAMEWORKS}/ace+tao:${PATH} make deployqt
+	make dmg
+
+stage:
 	make app
 	make boost
 	make ace+tao
 	make rdkit
-	make dmg
 
 # all: qtplatz.app
 app:
@@ -127,10 +112,11 @@ boost_copy:
 
 boost: boost_copy
 
+
 ace+tao_copy:
 	-mkdir -p ${ACE+TAO_STAGE_DIR}
 	for i in $(TAO_LIBS) ; do \
-	  cp -p $(ACE_ROOT)/lib/$$i.dylib $(ACE+TAO_STAGE_DIR) ; \
+	  cp -p $(ACE+TAO_LIBRARY_DIR)/lib/$$i.dylib $(ACE+TAO_STAGE_DIR) ; \
 	done
 
 ace+tao: ace+tao_copy
@@ -142,7 +128,7 @@ ace+tao: ace+tao_copy
 
 rdkit_copy:
 	-mkdir -p ${RDKIT_STAGE_DIR}
-	for i in $(RDKit_LIBS) ; do \
+	for i in $(RDKit_LIBRARIES) ; do \
 	  install $(RDBASE)/lib/$$i.$(RDKit_VERSION).dylib $(RDKIT_STAGE_DIR) ; \
 	done
 	( cd $(RDKIT_STAGE_DIR); \
@@ -171,7 +157,7 @@ deployqt:
 	${DEPLOYQT} ./qtplatz.app -verbose=2
 
 dmg: qtplatz.app translations
-	hdiutil create -size 200m ${TARGET} -srcfolder ./qtplatz.app
+	hdiutil create -size 250m ${TARGET} -srcfolder ./qtplatz.app
 
 mount:
 	open ./qtplatz.dmg

@@ -25,7 +25,7 @@ if( WIN32 )
 else()
 
   find_path( _boost NAMES include/boost PATHS
-    "/usr/local" "/usr/local/boost-1_58" "/usr/local/boost-1_57" )
+    "/usr/local" "/usr/local/boost-1_59" "/usr/local/boost-1_58" "/usr/local/boost-1_57" )
 
   if ( _boost )
     set(Boost_INCLUDE_DIR "${_boost}/include")
