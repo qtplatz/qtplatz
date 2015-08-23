@@ -113,7 +113,7 @@ ChemQuery::column_value( size_t idx ) const
             if ( sql_.column_name( int( idx ) ) == "svg" ) {
                 auto blob = sql_.get_column_value < adfs::blob >( int( idx ) );
                 return QByteArray( reinterpret_cast<const char *>( blob.data() ), int( blob.size() ) );
-            } else if ( sql_.column_name( idx ) == "uuid" ) {
+            } else if ( sql_.column_name( int( idx ) ) == "uuid" ) {
                 auto uuid = sql_.get_column_value< boost::uuids::uuid >( int( idx ) );
                 return QVariant( QString( boost::lexical_cast<std::string>( uuid ).c_str() ) );
             }

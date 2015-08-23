@@ -49,14 +49,13 @@ if ( _include_dir AND _libdir )
   find_library(SUBSTRUCTMATCH_LIB NAMES SubstructMatch HINTS ${_libdir})
 
   set (RDKit_LIBRARIES
-    FileParsers
-    SmilesParse
-    Depictor
-    Descriptors
-    GraphMol
-    RDGeometryLib
-    RDGeneral
-    SubstructMatch
+    ${_fileparsers_lib}
+    ${SMILESPARSE_LIB}
+    ${DEPICTOR_LIB}
+    ${GRAPHMOL_LIB}
+    ${RDGEOMETRYLIB_LIB}
+    ${RDGENERAL_LIB}
+    ${SUBSTRUCTMATCH_LIB}
     )
 
   find_file( version_cmake NAMES rdkit-config-version.cmake PATHS ${_libdir} NO_DEFAULT_PATH )
