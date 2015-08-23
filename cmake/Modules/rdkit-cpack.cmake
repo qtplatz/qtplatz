@@ -1,5 +1,6 @@
 
 #message( STATUS "##### rdkit-cpack.cmake<qtplatz> #####" )
+cmake_policy( SET CMP0045 NEW )
 
 include( "soname" )
 

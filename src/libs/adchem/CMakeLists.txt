@@ -23,14 +23,7 @@ add_library( adchem SHARED
 
 target_link_libraries( adchem LINK_PUBLIC
   adportable
-  FileParsers
-  SmilesParse
-  Depictor
-  Descriptors
-  GraphMol
-  RDGeometryLib
-  RDGeneral
-  SubstructMatch
+  ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
   )
 

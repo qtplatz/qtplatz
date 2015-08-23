@@ -13,6 +13,8 @@
 
 #include <boost/config.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/version.hpp>
+
 #if BOOST_VERSION <= 105800
 # include <boost/serialization/pfto.hpp>
 #endif
