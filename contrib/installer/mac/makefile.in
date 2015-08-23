@@ -8,30 +8,18 @@ TARGET = qtplatz-@QTPLATZ_VERSION@.dmg
 
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 
-BOOST_LIBRARY_DIR = @Boost_LIBRARY_DIR@
-BOOST_STAGE_DIR   = ${FRAMEWORKS}
-BOOST_RPATH       = @executable_path/../Frameworks/boost
+#BOOST_LIBRARY_DIR = @Boost_LIBRARY_DIR@
+#BOOST_STAGE_DIR   = ${FRAMEWORKS}
+#BOOST_RPATH       = @executable_path/../Frameworks/boost
 
-RDKit_VERSION     = @RDKit_PACKAGE_VERSION@
-RDKIT_LIBRARIES   = @RDKIT_LIBRARIES@
-RDKIT_STAGE_DIR   = ${FRAMEWORKS}
-RDKIT_RPATH       = @executable_path/../Frameworks/rdkit
+#RDKit_VERSION     = @RDKit_PACKAGE_VERSION@
+#RDKIT_LIBRARIES   = @RDKIT_LIBRARIES@
+#RDKIT_STAGE_DIR   = ${FRAMEWORKS}
+#RDKIT_RPATH       = @executable_path/../Frameworks/rdkit
 
 ACE+TAO_LIBRARY_DIR = @ace+tao_DIR@
 ACE+TAO_STAGE_DIR = ${FRAMEWORKS}
 ACE+TAO_RPATH     = @executable_path/../Frameworks/
-
-BOOST_LIBS = \
-	libboost_bzip2 \
-	libboost_chrono \
-	libboost_date_time \
-	libboost_filesystem \
-	libboost_regex \
-	libboost_serialization \
-	libboost_system \
-	libboost_thread \
-	libboost_wserialization \
-	libboost_thread
 
 TAO_LIBS = \
 	libACE \
@@ -42,39 +30,6 @@ TAO_LIBS = \
 	libTAO_AnyTypeCode \
 	libTAO_CodecFactory
 
-RDKit_LIBS = \
-	libAlignment \
-	libCatalogs \
-	libChemReactions \
-	libChemTransforms \
-	libChemicalFeatures \
-	libDataStructs \
-	libDepictor \
-	libDescriptors \
-	libDistGeomHelpers \
-	libDistGeometry \
-	libEigenSolvers \
-	libFileParsers \
-	libFingerprints \
-	libForceField \
-	libForceFieldHelpers \
-	libFragCatalog \
-	libGraphMol \
-	libMolAlign \
-	libMolCatalog \
-	libMolChemicalFeatures \
-	libMolTransforms \
-	libOptimizer \
-	libPartialCharges \
-	libRDGeneral \
-	libRDGeometryLib \
-	libShapeHelpers \
-	libSimDivPickers \
-	libSmilesParse \
-	libSubgraphs \
-	libSubstructMatch \
-	libhc
-
 default:
 	@echo "################################################"
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
@@ -83,9 +38,7 @@ default:
 	@echo " -- do following procedure -- or make world -- "
 	@echo "################################################"
 	@echo "make app"
-	@echo "make boost"
 	@echo "make ace+tao"
-	@echo "make rdkit"
 	@echo "make deployqt"
 	@echo "make dmg"
 	@echo
@@ -98,20 +51,14 @@ world:
 
 stage:
 	make app
-	make boost
-	make rdkit
+	make ace+tao
 
 # all: qtplatz.app
 app:
 	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c . | tar xvf -
 
-boost_copy:
-	-mkdir -p ${BOOST_STAGE_DIR}
-	for i in $(BOOST_LIBS) ; do \
-	  cp -p $(BOOST_LIBRARY_DIR)/$$i.dylib $(BOOST_STAGE_DIR); \
-	done
-
-boost: boost_copy
+clean:
+	rm -rf qtplatz.app ${TARGET}
 
 ace+tao_copy:
 	-mkdir -p ${ACE+TAO_STAGE_DIR}
@@ -126,32 +73,8 @@ ace+tao: ace+tao_copy
 	  done; \
 	done
 
-rdkit_copy:
-	-mkdir -p ${RDKIT_STAGE_DIR}
-	for i in $(RDKit_LIBRARIES) ; do \
-	  install $(RDBASE)/lib/$$i.$(RDKit_VERSION).dylib $(RDKIT_STAGE_DIR) ; \
-	done
-	( cd $(RDKIT_STAGE_DIR); \
-	  for i in $(RDKit_LIBS); do \
-	    ln -s $$i.$(RDKit_VERSION).dylib $$i.1.dylib ; \
-	    ln -s $$i.1.dylib $$i.dylib ; \
-	  done )
-
-rdkit: rdkit_copy
-	for i in $(RDKit_LIBS) ; do \
-	  for j in $(RDKit_LIBS); do \
-		install_name_tool -change $$j.1.dylib $(RDKIT_RPATH)/$$j.1.dylib $(RDKIT_STAGE_DIR)/$$i.$(RDKit_VERSION).dylib ; \
-	  done; \
-	done
-
-clean:
-	rm -rf qtplatz.app ${TARGET}
-
 translations:
 	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
-
-thank:
-	sh ./thankslasconic.sh ./qtplatz.app/Contents/MacOS/qtplatz
 
 deployqt:
 	${DEPLOYQT} ./qtplatz.app -verbose=2
@@ -159,8 +82,7 @@ deployqt:
 dmg: qtplatz.app translations
 	hdiutil create -size 250m ${TARGET} -srcfolder ./qtplatz.app
 
-mount:
-	open ./qtplatz.dmg
+# ---- debug helpers ----------
 
 otool:
 	otool -L qtplatz.app/Contents/MacOS/qtplatz

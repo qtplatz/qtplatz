@@ -1,19 +1,21 @@
 # adchem
-project( adchem )
-
+cmake_policy( SET CMP0028 NEW )
 cmake_policy( SET CMP0022 NEW )
 
-add_definitions( -DADCHEM_LIBRARY )
-if ( MSVC )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996" )
-endif()
+project( adchem )
 
 find_package( Boost REQUIRED COMPONENTS system )
 find_package( rdkit )
 
+add_definitions( -DADCHEM_LIBRARY )
+
+if ( MSVC )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996" )
+endif()
+
 include_directories( ${RDKit_INCLUDE_DIRS} )
 
-add_library( adchem SHARED
+add_library( adchem 
   adchem.cpp
   sdfile.cpp
   molfile.cpp
