@@ -24,12 +24,12 @@
 
 #pragma once
 
-#include "ieditor_factory.hpp"
+#include "ieditorfactory.hpp"
 
 namespace adextension {
 
-    template<typename Editor, typename Factory>
-    class iEditorFactoryT : public Factory {
+    template< typename Editor>
+    class iEditorFactoryT : public iEditorFactory {
 
         QString title_;
         iEditorFactory::METHOD_TYPE mtype_;
@@ -44,11 +44,11 @@ namespace adextension {
 		~iEditorFactoryT() {
         }
 
-        QWidget * createEditor( QWidget * pearent = 0 ) const {
+        QWidget * createEditor( QWidget * parent = 0 ) const override {
             return new Editor( parent );
         }
 
-        QString title() {
+        QString title() const override {
             return title_;
         }
         
@@ -60,4 +60,4 @@ namespace adextension {
 
 }
 
-#endif // IEDITORFACTORY_HPP
+
