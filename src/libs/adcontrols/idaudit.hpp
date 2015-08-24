@@ -38,6 +38,11 @@
 
 namespace adcontrols {
 
+#if defined _MSC_VER
+    template class __declspec( dllexport ) std::basic_string < char > ;
+    template class __declspec( dllexport ) std::basic_string < wchar_t > ;
+#endif
+
     class ADCONTROLSSHARED_EXPORT idAudit  {
     public:
         idAudit();

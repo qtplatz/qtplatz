@@ -37,7 +37,7 @@ namespace adextension {
         enum METHOD_TYPE { PROCESS_METHOD, CONTROL_METHOD };
 		iEditorFactory();
 		virtual ~iEditorFactory();
-        virtual QWidget * createEditor( QWidget * pearent = 0 ) = 0;
+        virtual QWidget * createEditor( QWidget * pearent = 0 ) const = 0;
         virtual QString title() const = 0;
         virtual METHOD_TYPE method_type() const { return PROCESS_METHOD; }
     };

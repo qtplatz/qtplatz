@@ -86,7 +86,7 @@ namespace u5303a {
                                                   , title_( title ) {
         }
 
-        QWidget * createEditor( QWidget * parent ) {
+        QWidget * createEditor( QWidget * parent ) const {
 			return new T( parent );
 		}
 

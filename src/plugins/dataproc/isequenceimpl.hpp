@@ -45,7 +45,7 @@ namespace dataproc {
             iEditorFactoryImpl( std::function< QWidget *(QWidget * parent)> f, METHOD_TYPE mtype, const QString& title )
                 : d_( std::make_tuple( f, mtype, title ) ) {
             }
-            QWidget * createEditor( QWidget * parent ) override {
+            QWidget * createEditor( QWidget * parent ) const override {
                 return std::get<0>( d_ ) ? std::get<0>( d_ )(parent) : 0;
             }
             METHOD_TYPE method_type() const override { return std::get<1>(d_); }
@@ -57,8 +57,8 @@ namespace dataproc {
     public:
         iSequenceImpl();
 
-        virtual size_t size() const;
-        virtual reference operator [] ( size_t idx );
+        size_t size() const override;
+        const_reference operator [] ( size_t idx ) const override;
 
         iSequenceImpl& operator << ( detail::iEditorFactoryImpl );
 

@@ -1,8 +1,8 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC
 *
-** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
+** Contact: info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
@@ -22,29 +22,42 @@
 **
 **************************************************************************/
 
-#include "isequenceimpl.hpp"
+#pragma once
 
-using namespace u5303a;
+#include "ieditor_factory.hpp"
 
-iSequenceImpl::iSequenceImpl()
-{
+namespace adextension {
+
+    template<typename Editor, typename Factory>
+    class iEditorFactoryT : public Factory {
+
+        QString title_;
+        iEditorFactory::METHOD_TYPE mtype_;
+
+    public:
+        
+		iEditorFactoryT( const QString& title
+                         , iEditorFactory::METHOD_TYPE type ) : title_( title )
+                                                              , mtype_( type ) {
+        }
+
+		~iEditorFactoryT() {
+        }
+
+        QWidget * createEditor( QWidget * pearent = 0 ) const {
+            return new Editor( parent );
+        }
+
+        QString title() {
+            return title_;
+        }
+        
+        iEditorFactory::METHOD_TYPE method_type() const {
+            return mtype_;
+        }
+        
+    };
+
 }
 
-size_t
-iSequenceImpl::size() const
-{
-    return v_.size();
-}
-
-adextension::iSequence::const_reference
-iSequenceImpl::operator [] ( size_t idx ) const
-{
-	return *(v_[ idx ].get());
-}
-
-iSequenceImpl&
-iSequenceImpl::operator << ( const iEditorFactoryPtr ptr )
-{
-    v_.push_back( ptr );
-    return *this;
-}
+#endif // IEDITORFACTORY_HPP

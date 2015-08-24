@@ -36,8 +36,8 @@ iSequenceImpl::size() const
     return v_.size();
 }
 
-adextension::iEditorFactory&
-iSequenceImpl::operator [] ( size_t idx )
+const adextension::iSequence::const_reference
+iSequenceImpl::operator [] ( size_t idx ) const
 {
 	return v_[ idx ];
 }

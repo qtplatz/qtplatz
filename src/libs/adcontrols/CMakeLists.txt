@@ -85,7 +85,8 @@ add_library( adcontrols SHARED
   waveform.cpp 
   annotation.cpp 
   annotations.cpp 
-  mspeakinfo.cpp 
+  mspeakinfo.cpp
+  mspeakinfo.hpp   
   mspeak.cpp 
   mspeaks.cpp 
   msqpeak.cpp 
@@ -94,10 +95,15 @@ add_library( adcontrols SHARED
   mschromatogrammethod.cpp
   mssimulatormethod.cpp
   moltable.cpp
-  spectrogram.cpp 
-  targeting.cpp 
-  logging_hook.cpp 
-  profile_time_array.cpp 
+  moltable.hpp
+  spectrogram.cpp
+  spectrogram.hpp   
+  targeting.cpp
+  targeting.hpp  
+  logging_hook.cpp
+  logging_hook.hpp   
+  profile_time_array.cpp
+  profile_time_array.hpp  
   quanmethod.cpp 
   quancompounds.cpp 
   quancompound.cpp 

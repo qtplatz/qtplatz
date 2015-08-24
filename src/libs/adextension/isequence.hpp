@@ -36,9 +36,10 @@ namespace adextension {
     public:
         typedef iEditorFactory* iterator;
         typedef iEditorFactory& reference;
+        typedef const iEditorFactory& const_reference;
 
         virtual size_t size() const = 0;
-        virtual reference operator [] ( size_t idx ) = 0;
+        virtual const_reference operator [] ( size_t idx ) const = 0;
     };
 
 }

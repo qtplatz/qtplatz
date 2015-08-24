@@ -36,8 +36,8 @@ namespace u5303a {
     public:
         iSequenceImpl();
 
-        virtual size_t size() const;
-        virtual reference operator [] ( size_t idx );
+        size_t size() const override;
+        const_reference operator [] ( size_t idx ) const override;
 
         iSequenceImpl& operator << ( iEditorFactoryPtr );
 

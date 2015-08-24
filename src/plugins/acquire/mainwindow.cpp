@@ -92,7 +92,7 @@ MainWindow::OnInitialUpdate()
 
         for ( size_t i = 0; i < v->size(); ++i ) {
 
-            adextension::iEditorFactory& factory = (*v)[ i ];
+            const adextension::iEditorFactory& factory = ( *v )[ i ];
             if ( factory.method_type() == adextension::iEditorFactory::CONTROL_METHOD ) {
 
                 if ( auto widget = factory.createEditor( 0 ) ) {
