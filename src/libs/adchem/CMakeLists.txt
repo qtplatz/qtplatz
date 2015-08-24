@@ -15,13 +15,20 @@ endif()
 
 include_directories( ${RDKit_INCLUDE_DIRS} )
 
-add_library( adchem 
+set( adchem_SOURCES
   adchem.cpp
   sdfile.cpp
   molfile.cpp
   drawing.cpp
   molecule.cpp
   )
+
+if ( WIN32 )
+  add_library( adchem SHARED ${adchem_SOURCES} )
+else()
+  # workaround -- I couldn't fix an issue 'shared lib image not find' on mac even play with install_name change.
+  add_library( adchem ${adchem_SOURCES} )  
+endif()
 
 target_link_libraries( adchem LINK_PUBLIC
   adportable
