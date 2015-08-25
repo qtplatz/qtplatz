@@ -25,7 +25,6 @@
 #include "mainwindow.hpp"
 #include "ap240_constants.hpp"
 #include "document.hpp"
-#include "isequenceimpl.hpp"
 #include "threshold_result.hpp"
 #include "waveformwnd.hpp"
 #include <ap240w/ap240form.hpp>
@@ -35,7 +34,8 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adextension/isnapshothandler.hpp>
-#include <adextension/ieditorfactory.hpp>
+#include <adextension/ieditorfactory_t.hpp>
+#include <adextension/isequenceimpl.hpp>
 #include <adinterface/controlserver.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/date_string.hpp>
@@ -74,32 +74,6 @@
 #include <QLabel>
 #include <QIcon>
 #include <qdebug.h>
-
-namespace ap240 {
-
-    template<class T> class iEditorFactoryT : public adextension::iEditorFactory {
-
-        MainWindow& mainWindow_;
-        QString title_;
-        QString itemname_;
-
-	public:
-        iEditorFactoryT( MainWindow& w
-                         , const QString& title ) : mainWindow_( w )
-                                                  , title_( title ) {
-        }
-
-        QWidget * createEditor( QWidget * parent ) {
-			return new T( parent );
-		}
-
-        QString title() const { return title_; }
-		
-        adextension::iEditorFactory::METHOD_TYPE method_type() const {
-			return adextension::iEditorFactory::CONTROL_METHOD;
-		}
-    };
-}
 
 using namespace ap240;
 
@@ -566,8 +540,12 @@ MainWindow::handle_status( int status )
 }
 
 bool
-MainWindow::editor_factories( iSequenceImpl& impl )
+MainWindow::editor_factories( adextension::iSequenceImpl& impl )
 {
+    if ( std::shared_ptr< const adextension::iEditorFactory > ptr =
+         std::make_shared< adextension::iEditorFactoryT< ap240w::ap240form > >( "AP240", adextension::iEditorFactory::CONTROL_METHOD ) ) {
+        impl << ptr;
+    }
     return true;        
 }
 

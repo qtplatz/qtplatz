@@ -31,6 +31,7 @@
 class QSettings;
 
 namespace adcontrols { class MassSpectrum; class ControlMethod; }
+namespace adextension { class iSequenceImpl; }
 
 namespace ap240 {
 
@@ -83,6 +84,9 @@ namespace ap240 {
         double triggers_per_second() const;
         size_t unprocessed_trigger_counts() const;
 
+        adextension::iSequenceImpl * iSequence();
+        //iControllerImpl * iController();
+
         static bool load( const QString& filename, ap240::method& );
         static bool save( const QString& filename, const ap240::method& );
         
@@ -90,7 +94,6 @@ namespace ap240 {
         class impl;
         impl * impl_;
         
-        // static std::atomic< document * > instance_;
         ap240::digitizer * digitizer_;
         
         std::shared_ptr< ap240::method > method_;

@@ -27,13 +27,14 @@
 #include "ap240_constants.hpp"
 #include "ap240mode.hpp"
 #include "mainwindow.hpp"
-#include "isequenceimpl.hpp"
 #include "document.hpp"
+#include <ap240spectrometer/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adextension/isequenceimpl.hpp>
 #include <adportable/debug_core.hpp>
 #include <adlog/logging_handler.hpp>
-#include <ap240spectrometer/massspectrometer.hpp>
+
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -54,7 +55,6 @@ using namespace ap240;
 
 ap240Plugin::ap240Plugin() : mainWindow_( new MainWindow() )
                            , mode_( std::make_shared< ap240Mode >(this) )
-                           , iSequenceImpl_( new iSequenceImpl )
 {
     // Create your members
 }
@@ -66,8 +66,8 @@ ap240Plugin::~ap240Plugin()
     if ( mode_ )
         removeObject( mode_.get() );
 
-	if ( iSequenceImpl_ )
-		removeObject( iSequenceImpl_.get() );
+    if ( auto iExtension = document::instance()->iSequence() )
+        removeObject( iExtension );
 }
 
 bool
@@ -88,8 +88,10 @@ ap240Plugin::initialize( const QStringList &arguments, QString *errorString )
         mode_->setWidget( widget );
     addObject( mode_.get() );
 
-    if ( iSequenceImpl_ && mainWindow_->editor_factories( *iSequenceImpl_ ) )
-        addObject( iSequenceImpl_.get() );
+    if ( auto iExtension = document::instance()->iSequence() ) {
+        mainWindow_->editor_factories( *iExtension );
+        addObject( iExtension );
+    }
 
     QAction *action = new QAction(tr("ap240 action"), this);
 

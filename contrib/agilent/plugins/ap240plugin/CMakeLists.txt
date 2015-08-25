@@ -64,8 +64,6 @@ add_library(
   document.hpp  
   histogram.cpp
   histogram.hpp
-  isequenceimpl.cpp
-  isequenceimpl.cpp
   threshold_result.cpp
   threshold_result.hpp
   mainwindow.cpp

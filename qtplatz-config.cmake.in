@@ -53,17 +53,12 @@ add_library( QTC::Core SHARED IMPORTED )
 add_library( QTC::ExtensionSystem SHARED IMPORTED )
 add_library( QTC::Utils SHARED IMPORTED )
 
-add_library( acewrapper STATIC IMPORTED )
 add_library( adchem SHARED IMPORTED )
 add_library( adcontrols SHARED IMPORTED )
 add_library( adextension SHARED IMPORTED )
-add_library( adfs STATIC IMPORTED )
-add_library( adinterface STATIC IMPORTED )
 add_library( adlog SHARED IMPORTED )
 add_library( adplugin SHARED IMPORTED )
 add_library( adplugin_manager SHARED IMPORTED )
-add_library( adportable STATIC IMPORTED )
-add_library( adutils STATIC IMPORTED )
 add_library( adorbmgr SHARED IMPORTED )
 add_library( adsequence SHARED IMPORTED )
 add_library( adplot SHARED IMPORTED )
@@ -71,8 +66,15 @@ add_library( adprot SHARED IMPORTED )
 add_library( adwidgets SHARED IMPORTED )
 add_library( chromatogr SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
-add_library( qtwrapper STATIC IMPORTED )
 add_library( u5303a SHARED IMPORTED )
+
+add_library( acewrapper STATIC IMPORTED )
+add_library( adfs STATIC IMPORTED )
+add_library( adinterface STATIC IMPORTED )
+add_library( adportable STATIC IMPORTED )
+add_library( adutils STATIC IMPORTED )
+add_library( qtwrapper STATIC IMPORTED )
+add_library( xmlparser STATIC IMPORTED )
 
 if (WIN32)
   set_target_properties( QTC::Core PROPERTIES
@@ -281,6 +283,10 @@ if (WIN32)
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/qtwrapper.lib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/qtwrapperd.lib )
 
+  set_target_properties( xmlparser PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/xmlparser.lib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/xmlparserd.lib )
+
 else()
 
   set_target_properties( adfs PROPERTIES
@@ -300,5 +306,8 @@ else()
 
   set_target_properties( qtwrapper PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libqtwrapper.a )
+
+  set_target_properties( xmlparser PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libxmlparser.a )
 
 endif()

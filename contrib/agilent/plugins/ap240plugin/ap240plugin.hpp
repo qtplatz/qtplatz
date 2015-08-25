@@ -5,6 +5,7 @@
 #include <extensionsystem/iplugin.h>
 #include <memory>
 
+namespace adextension { class iSequenceImpl; }
 
 namespace ap240 {
 
@@ -28,7 +29,7 @@ namespace ap240 {
         ShutdownFlag aboutToShutdown();
     private:
         std::shared_ptr< ap240Mode > mode_;
-        std::unique_ptr< iSequenceImpl > iSequenceImpl_;
+        std::unique_ptr< adextension::iSequenceImpl > iSequenceImpl_;
         MainWindow * mainWindow_;
 
     private slots:

@@ -36,6 +36,7 @@ class QToolButton;
 class QAction;
 
 namespace adcontrols { class MassSpectrum; class Trace; class ControlMethod; }
+namespace adextension { class iSequenceImpl; }
 namespace adwidgets { class ControlMethodWidget; }
 
 namespace Core { class IMode; }
@@ -44,7 +45,6 @@ namespace Utils { class StyledBar; }
 namespace ap240 {
 
     class method;
-    class iSequenceImpl;
 
     namespace Internal { class ap240Plugin; }
 
@@ -70,7 +70,7 @@ namespace ap240 {
 
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::Trace&, const std::wstring& traceId );
-		bool editor_factories( iSequenceImpl& );
+        bool editor_factories( adextension::iSequenceImpl& );
         void setControlMethod( const ap240::method& );
         void getControlMethod( ap240::method& m );
         void editor_commit();

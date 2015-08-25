@@ -14,6 +14,7 @@ set( adextension_SOURCES
   adextension.hpp
   isequence.cpp
   isequence.hpp
+  isequenceimpl.hpp
   ieditorfactory.cpp
   ieditorfactory.hpp
   ieditorfactory_t.hpp    

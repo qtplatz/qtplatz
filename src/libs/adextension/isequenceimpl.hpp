@@ -28,25 +28,28 @@
 #include <vector>
 #include <memory>
 
-namespace ap240 {
+namespace adextension {
 
-    typedef std::shared_ptr< adextension::iEditorFactory > iEditorFactoryPtr;
-    
     class iSequenceImpl : public adextension::iSequence {
     public:
-        iSequenceImpl();
+        iSequenceImpl() { }
+        
+        size_t size() const override { return v_.size(); }
 
-        size_t size() const override;
-        const_reference operator [] ( size_t idx ) const override;
+        const_reference operator [] ( size_t idx ) const override {
+            if ( idx >= v_.size() )
+                throw std::runtime_error( "subscript out-of-range" );
+            return * ( v_[ idx ].get() );
+        }
 
-        iSequenceImpl& operator << ( iEditorFactoryPtr );
-
+        iSequenceImpl& operator << ( std::shared_ptr< const adextension::iEditorFactory > ptr ) {
+            v_.push_back( ptr );
+            return *this;
+        }
+        
     private:
-
-        std::vector< iEditorFactoryPtr > v_;
-
+        std::vector< std::shared_ptr< const adextension::iEditorFactory > > v_;
     };
 
 }
-
 

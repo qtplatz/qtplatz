@@ -34,6 +34,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/waveform.hpp>
+#include <adextension/isequenceimpl.hpp>
 #include <adinterface/controlserver.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
@@ -88,6 +89,7 @@ namespace ap240 {
         std::atomic<size_t> waveform_proc_count_;        
         std::atomic<size_t> waveform_post_count_;
         std::atomic<uint32_t> worker_data_serialnumber_;
+        std::unique_ptr< adextension::iSequenceImpl > iSequenceImpl_;
     public:
         static std::atomic< document * > instance_;
         static std::mutex mutex_;
@@ -100,7 +102,8 @@ namespace ap240 {
                , round_trip_( 0 )
                , waveform_post_count_( 0 )
                , waveform_proc_count_( 0 )
-               , worker_data_serialnumber_( 0 ) {
+               , worker_data_serialnumber_( 0 )
+               , iSequenceImpl_( new adextension::iSequenceImpl() ) {
             
             time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
             hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histogram.txt" ).string();
@@ -152,6 +155,7 @@ namespace ap240 {
 
         inline size_t unprocessed_trigger_counts() const { return waveform_post_count_ - waveform_proc_count_; }
         
+        inline adextension::iSequenceImpl * iSequence() { return iSequenceImpl_.get(); }
     private:
         typedef std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > threshold_result_pair_t;
         
@@ -852,3 +856,10 @@ document::unprocessed_trigger_counts() const
 {
     return impl_->unprocessed_trigger_counts();
 }
+
+adextension::iSequenceImpl *
+document::iSequence()
+{
+    return impl_->iSequence();
+}
+
