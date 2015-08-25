@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>307</width>
+    <width>326</width>
     <height>160</height>
    </rect>
   </property>
@@ -28,17 +28,7 @@
    </property>
    <item row="0" column="1">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Offset (V)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
         <string>Band width</string>
@@ -48,7 +38,17 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="2">
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Offset (V)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
       <widget class="QComboBox" name="comboBox">
        <property name="currentIndex">
         <number>2</number>
@@ -85,7 +85,17 @@
        </item>
       </widget>
      </item>
-     <item row="1" column="2">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Full Scale (V)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
       <widget class="QDoubleSpinBox" name="doubleSpinBox">
        <property name="minimum">
         <double>-5.000000000000000</double>
@@ -98,7 +108,7 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="2">
+     <item row="3" column="2">
       <widget class="QComboBox" name="comboBox_2">
        <property name="currentIndex">
         <number>3</number>
@@ -130,17 +140,7 @@
        </item>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Full Scale (V)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="label_5">
        <property name="text">
         <string>Coupling</string>
@@ -189,7 +189,7 @@
        </item>
       </widget>
      </item>
-     <item row="0" column="3">
+     <item row="1" column="2">
       <widget class="QCheckBox" name="checkBox">
        <property name="text">
         <string>Invert signal</string>

@@ -23,8 +23,7 @@
 **
 **************************************************************************/
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#pragma once
 
 namespace acquire {
 
@@ -64,4 +63,4 @@ namespace acquire {
 
 }
 
-#endif // CONSTANTS_H
+

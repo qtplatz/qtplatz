@@ -43,7 +43,7 @@ namespace adextension {
         
     signals:
         void onControlMethodChanged();
-    
+        void connected();
 
     public slots:
 
