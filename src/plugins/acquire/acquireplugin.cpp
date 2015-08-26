@@ -407,8 +407,11 @@ AcquirePlugin::actionConnect()
 {
     // using adinterface::EventLog::LogMessageHelper;
     auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
+
     if ( !iControllers.isEmpty() ) {
-        for ( auto& iController : iControllers ) 
+        for ( auto& iController : iControllers )
+            iController->connect();
+        for ( auto& iController : iControllers )
             iController->wait_for_connection_ready();
     }
 
