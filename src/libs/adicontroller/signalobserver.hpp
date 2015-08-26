@@ -93,17 +93,36 @@ namespace adicontroler {
         };
 
         struct ADICONTROLLERSHARED_EXPORT Description {
+
+            enum axis { axisX, axisY };
+
             Description();
             Description( const Description& );
 
-            eTRACE_METHOD trace_method;
-            eSPECTROMETER spectrometer;
-            std::string trace_id;  // unique name for the trace, can be used as 'data storage name'
-            std::string trace_display_name;
-            std::string axis_x_label;
-            std::string axis_y_label;
-            int32_t axis_x_decimals;
-            int32_t axis_y_decimals;
+            eTRACE_METHOD trace_method() const;
+            void set_trace_method( eTRACE_METHOD );
+
+            eSPECTROMETER spectrometer() const;
+            void set_spectrometer( eSPECTROMETER );
+
+            const char * trace_id() const;
+            void set_trace_id( const std::string& );
+
+            const char * axis_label( axis ) const;
+            void set_axis_label( axis, const std::string& );
+
+            int32_t axis_decimals( axis ) const;
+            void set_axis_decimals( axis, int32_t );
+
+        private:
+            eTRACE_METHOD trace_method_;
+            eSPECTROMETER spectrometer_;
+            std::string trace_id_;  // unique name for the trace, can be used as 'data storage name'
+            std::string trace_display_name_;
+            std::string axis_x_label_;
+            std::string axis_y_label_;
+            int32_t axis_x_decimals_;
+            int32_t axis_y_decimals_;
         };
 
         struct ADICONTROLLERSHARED_EXPORT DataReadBuffer : public std::enable_shared_from_this< DataReadBuffer > {

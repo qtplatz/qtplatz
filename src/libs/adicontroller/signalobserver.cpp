@@ -28,22 +28,86 @@ namespace adicontroler {
 
     namespace SignalObserver {
 
-        Description::Description() : trace_method( eTRACE_TRACE )
-                                   , spectrometer( eUnknownSpectrometer )
-                                   , axis_x_decimals( 2 )
-                                   , axis_y_decimals( 0 )
+        Description::Description() : trace_method_( eTRACE_TRACE )
+                                   , spectrometer_( eUnknownSpectrometer )
+                                   , axis_x_decimals_( 2 )
+                                   , axis_y_decimals_( 0 )
         {
         }
 
-        Description::Description( const Description& t ) : trace_method( t.trace_method )
-                                                         , spectrometer( t.spectrometer )
-                                                         , trace_id(t.trace_id)
-                                                         , trace_display_name(t.trace_display_name)
-                                                         , axis_x_label(t.axis_x_label)
-                                                         , axis_y_label(t.axis_y_label )
-                                                         , axis_x_decimals(t.axis_x_decimals)
-                                                         , axis_y_decimals(t.axis_y_decimals)
+        Description::Description( const Description& t ) : trace_method_( t.trace_method_ )
+                                                         , spectrometer_( t.spectrometer_ )
+                                                         , trace_id_( t.trace_id_ )
+                                                         , trace_display_name_( t.trace_display_name_ )
+                                                         , axis_x_label_( t.axis_x_label_ )
+                                                         , axis_y_label_( t.axis_y_label_ )
+                                                         , axis_x_decimals_( t.axis_x_decimals_ )
+                                                         , axis_y_decimals_( t.axis_y_decimals_ )
         {
+        }
+
+        eTRACE_METHOD
+        Description::trace_method() const
+        {
+            return trace_method_;
+        }
+
+        void
+        Description::set_trace_method( eTRACE_METHOD v )
+        {
+            trace_method_ = v;
+        }
+        
+        eSPECTROMETER
+        Description::spectrometer() const
+        {
+            return spectrometer_;
+        }
+
+        void
+        Description::set_spectrometer( eSPECTROMETER v )
+        {
+            spectrometer_ = v;
+        }
+        
+        const char *
+        Description::trace_id() const
+        {
+            return trace_id_.c_str();
+        }
+
+        void
+        Description::set_trace_id( const std::string& v )
+        {
+            trace_id_ = v;
+        }
+        
+        const char *
+        Description::axis_label( axis id ) const {
+            if ( id == axisX )
+                return axis_x_label_.c_str();
+            else
+                return axis_y_label_.c_str();
+        }
+
+        void
+        Description::set_axis_label( axis id, const std::string& v ) {
+            if ( id == axisX )
+                axis_x_label_ = v;
+            else
+                axis_y_label_ = v;
+        }
+        
+        int32_t
+        Description::axis_decimals( axis id ) const
+        {
+            return id == axisX ? axis_x_decimals_ : axis_y_decimals_;
+        }
+
+        void
+        Description::set_axis_decimals( axis id, int32_t v )
+        {
+            if ( id == axisX ) axis_x_decimals_ = v; else axis_y_decimals_ = v;
         }
 
         ///////
