@@ -34,14 +34,8 @@
 #include <workaround/boost/uuid/uuid_io.hpp>
 #include <workaround/boost/uuid/uuid_serialize.hpp>
 #include <string>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
-
-#if defined _MSC_VER
-    template class __declspec( dllexport ) std::basic_string < char > ;
-    template class __declspec( dllexport ) std::basic_string < wchar_t > ;
-#endif
 
     class ADCONTROLSSHARED_EXPORT idAudit  {
     public:
@@ -65,13 +59,19 @@ namespace adcontrols {
         static bool xml_restore( std::wistream&, idAudit& );
 
     private:
+# if defined _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable:4251)
+# endif
         boost::uuids::uuid uuid_;
         std::string digest_;
         std::string dateCreated_;
         std::wstring idComputer_;
         std::wstring idCreatedBy_;
         std::wstring nameCreatedBy_;
-
+# if defined _MSC_VER
+#  pragma warning(pop)
+# endif
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int ) {

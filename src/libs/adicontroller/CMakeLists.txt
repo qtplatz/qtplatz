@@ -18,6 +18,8 @@ add_library( ${PROJECT_NAME} SHARED
   controlmethod.cpp
   instrument.hpp
   instrument.cpp
+  manager.hpp
+  manager.cpp
   signalobserver.hpp
   signalobserver.cpp
   )

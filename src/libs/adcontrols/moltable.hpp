@@ -31,13 +31,12 @@
 
 namespace boost { namespace serialization { class access; } }
 
-#if defined _MSC_VER
-//template class __declspec(dllexport) std::allocator<int>;
-template class __declspec( dllexport ) std::basic_string < char > ;
-template class __declspec( dllexport ) std::basic_string < wchar_t > ;
-#endif
-
 namespace adcontrols {
+
+#if defined _MSC_VER
+    // ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::basic_string < char > ;
+    // ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::basic_string < wchar_t > ;
+#endif
 
     class ADCONTROLSSHARED_EXPORT moltable {
     public:
@@ -93,10 +92,12 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
-    
-}
 
 #if defined _MSC_VER
-template class ADCONTROLSSHARED_EXPORT std::vector < adcontrols::moltable::value_type > ;
-#endif
+    ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < adcontrols::moltable::value_type > ;
+#endif    
+
+}
+
+
 

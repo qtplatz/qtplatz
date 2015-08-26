@@ -36,9 +36,6 @@ namespace adicontroller {
         struct MethodLine;
 
 #if defined _MSC_VER
-        ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::allocator < char > ;
-        ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::allocator < int8_t > ;
-        ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::basic_string < char > ;
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::vector < MethodLine > ;
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::vector < int8_t > ;
 #endif
@@ -74,6 +71,11 @@ namespace adicontroller {
             octet_array& xdata();
 
         private:
+
+#if defined _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
+#endif
             std::string   modelname_;
             std::string   description_;
             uint32_t      unitnumber_;           // uint32_t
@@ -82,6 +84,9 @@ namespace adicontroller {
             uint32_t      funcid_;               // uint32_t device dependent
             std::string   itemlabel_;         // short description for funcid
             octet_array   xdata_;             // device dependent serialized data
+#if defined _MSC_VER
+# pragma warning(pop)
+#endif
         };
         
         
@@ -100,10 +105,19 @@ namespace adicontroller {
             method_sequence& lines();
 
         private:
+#if defined _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
+#endif
             std::string subject_;
             std::string description_;
+
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
             method_sequence lines_;
         };
         
     }
 }
+
