@@ -38,8 +38,20 @@ namespace adextension {
         Q_OBJECT
     public:
         explicit iController(QObject *parent = 0);
+
+        virtual bool connect() = 0;
         virtual bool wait_for_connection_ready() = 0;
         virtual bool preparing_for_run( adcontrols::ControlMethod& ) = 0;
+
+        /* module_name identify the instrument/peripheral model name
+         * which match up with the name on control method item filed
+         */
+        virtual QString module_name() const = 0;
+
+        /* module_number identify instrument where same instruments are configured
+         * such as two UV-ditectors, multiple 6-way valves etc.
+         */
+        virtual int module_number() const = 0;        
         
     signals:
         void onControlMethodChanged();
