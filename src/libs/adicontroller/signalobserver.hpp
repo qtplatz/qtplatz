@@ -38,9 +38,6 @@ namespace adicontroler {
         class Observer;
 
 #if defined _MSC_VER
-        // ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::allocator < char > ;
-        // ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::allocator < int8_t > ;
-        // ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::basic_string < char > ;
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::vector < int8_t > ;
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < DataReadBuffer > ;
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < Observer > ;
@@ -117,10 +114,17 @@ namespace adicontroler {
         private:
             eTRACE_METHOD trace_method_;
             eSPECTROMETER spectrometer_;
+#if defined _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4251 )
+#endif            
             std::string trace_id_;  // unique name for the trace, can be used as 'data storage name'
             std::string trace_display_name_;
             std::string axis_x_label_;
             std::string axis_y_label_;
+#if defined _MSC_VER
+# pragma warning( pop )
+#endif            
             int32_t axis_x_decimals_;
             int32_t axis_y_decimals_;
         };

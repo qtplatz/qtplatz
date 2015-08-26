@@ -24,6 +24,7 @@
 
 #include "controlmethod.hpp"
 #include "adicontroller_global.hpp"
+#include <memory>
 
 namespace adicontroller {
     
@@ -46,14 +47,27 @@ namespace adicontroller {
             , eRunning                  //= 0x00000008,  // method is in progress
             , eStop                     //= 0x00000009,  // stop := detector is not monitoring, pump is off
         };
-        
-        class ADICONTROLLERSHARED_EXPORT Session {
-        public:
-            // exception
-            struct CannotAdd { std::string reason_; };
 
+#if defined _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
+        //class Session;
+        //ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < Session > ;
+#endif
+        
+        class ADICONTROLLERSHARED_EXPORT Session : protected std::enable_shared_from_this < Session > {
+
+#if defined _MSC_VER
+# pragma warning(pop)
+#endif
+
+        public:
+
+            Session();
             virtual ~Session();
-      
+
+            virtual std::shared_ptr< Session > pThis() { return shared_from_this(); }
+
             virtual std::string software_revision() const = 0;  // ex. L"1.216"
 
             virtual bool setConfiguration( const std::string& xml ) = 0 ;
@@ -72,7 +86,6 @@ namespace adicontroller {
             virtual bool shell( const std::string& cmdline ) = 0;
             virtual ControlMethod::Method getControlMethod() = 0;
             virtual bool prepare_for_run( const ControlMethod::Method& m ) = 0;
-            // virtual bool push_back( in SampleBroker::SampleSequence s ) = 0;
     
             virtual bool event_out( uint32_t event ) = 0;
             virtual bool start_run() = 0;
@@ -80,6 +93,7 @@ namespace adicontroller {
             virtual bool resume_run() = 0;
             virtual bool stop_run() = 0;
         };
+
 
     };
     

@@ -28,6 +28,10 @@ namespace adicontroller {
     
     namespace Instrument {
 
+        Session::Session()
+        {
+        }
+        
         Session::~Session()
         {
         }

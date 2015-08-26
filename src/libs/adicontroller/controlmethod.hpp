@@ -84,6 +84,7 @@ namespace adicontroller {
             uint32_t      funcid_;               // uint32_t device dependent
             std::string   itemlabel_;         // short description for funcid
             octet_array   xdata_;             // device dependent serialized data
+
 #if defined _MSC_VER
 # pragma warning(pop)
 #endif
