@@ -55,7 +55,7 @@ namespace adicontroller {
         //ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < Session > ;
 #endif
         
-        class ADICONTROLLERSHARED_EXPORT Session : protected std::enable_shared_from_this < Session > {
+        class ADICONTROLLERSHARED_EXPORT Session : public std::enable_shared_from_this < Session > {
 
 #if defined _MSC_VER
 # pragma warning(pop)
