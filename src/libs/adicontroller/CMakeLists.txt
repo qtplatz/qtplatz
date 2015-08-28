@@ -16,10 +16,14 @@ add_library( ${PROJECT_NAME} SHARED
   adicontroller_global.hpp
   controlmethod.hpp
   controlmethod.cpp
+  eventlog.hpp
+  eventlog.cpp
   instrument.hpp
   instrument.cpp
   manager.hpp
   manager.cpp
+  receiver.hpp
+  receiver.cpp
   signalobserver.hpp
   signalobserver.cpp
   )
