@@ -25,11 +25,13 @@
 #ifndef ACQUIREDCONF_HPP
 #define ACQUIREDCONF_HPP
 
+#include <boost/uuid/uuid.hpp>
 #include <cstdint>
 #include <string>
 #include <vector>
 
 namespace adfs { class sqlite; }
+
 
 namespace adutils {
 
@@ -42,6 +44,7 @@ namespace adutils {
             data( const data& );
             uint64_t objid;
             uint64_t pobjid;
+            boost::uuids::uuid uuid;
             uint64_t trace_method;  // SignalObserver::eTRACE_METHOD
             uint64_t spectrometer;  // SignalObserver::eSPECTROMETER
             std::wstring dataInterpreterClsid;
@@ -65,6 +68,21 @@ namespace adutils {
                             , const std::wstring& axis_y_label
                             , uint64_t axis_x_decimals
                             , uint64_t axis_y_decimale );
+        
+        static bool insert( adfs::sqlite& dbf
+                            , uint32_t objid
+                            , uint32_t pobjid
+                            , const boost::uuids::uuid& uuid
+                            , const std::string& dataInterpreterClsid
+                            , uint32_t trace_method
+                            , uint32_t spectrometer_type
+                            , const char * trace_id
+                            , const char * trace_display_name
+                            , const char * axis_x_label
+                            , const char * axis_y_label
+                            , uint32_t axis_x_decimals
+                            , uint32_t axis_y_decimale );
+        
 
         static bool insert( adfs::sqlite& dbf, const data& );
 

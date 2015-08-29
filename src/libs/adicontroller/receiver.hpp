@@ -30,10 +30,17 @@
 
 namespace adicontroller {
 
+    class Receiver;
+
+#if defined _MSC_VER
+    ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < Receiver > ;
+#endif
+
     class ADICONTROLLERSHARED_EXPORT Receiver : public std::enable_shared_from_this< Receiver > {
     public:
 
         virtual ~Receiver();
+        Receiver();
         
         enum eMSGPRIORITY {
             pri_DEBUG

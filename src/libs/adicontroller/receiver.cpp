@@ -26,6 +26,10 @@
 
 using namespace adicontroller;
 
+Receiver::Receiver()
+{
+}
+
 Receiver::~Receiver()
 {
 }

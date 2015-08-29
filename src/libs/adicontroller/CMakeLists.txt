@@ -22,6 +22,8 @@ add_library( ${PROJECT_NAME} SHARED
   instrument.cpp
   manager.hpp
   manager.cpp
+  octet_array.hpp
+  octet_array.cpp
   receiver.hpp
   receiver.cpp
   signalobserver.hpp
