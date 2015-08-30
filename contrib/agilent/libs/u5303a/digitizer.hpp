@@ -33,7 +33,7 @@
 #include <vector>
 #include <memory>
 
-namespace adcontrols { class ControlMethod; }
+namespace adcontrols { namespace ControlMethod { class Method; } }
 namespace adportable { class TimeSquaredScanLaw; }
 
 #if defined _MSC_VER
@@ -209,7 +209,7 @@ namespace u5303a {
         ~digitizer();
 
         bool peripheral_initialize();
-        bool peripheral_prepare_for_run( const adcontrols::ControlMethod& );
+        bool peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& );
         bool peripheral_prepare_for_run( const u5303a::method& );
         bool peripheral_run();
         bool peripheral_stop();

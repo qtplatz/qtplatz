@@ -33,8 +33,7 @@
 class QTabWidget;
 
 namespace adcontrols { 
-    class ControlMethod;
-    namespace controlmethod { class MethodItem; }
+    namespace ControlMethod { class Method; class MethodItem; }
 }
 
 namespace adwidgets {
@@ -59,8 +58,8 @@ namespace adwidgets {
         void addWidget( QWidget *, const QIcon&, const QString& );
 
         void addEditor( QWidget * );
-        bool getControlMethod( adcontrols::ControlMethod& );
-        void setControlMethod( const adcontrols::ControlMethod& );
+        bool getControlMethod( adcontrols::ControlMethod::Method& );
+        void setControlMethod( const adcontrols::ControlMethod::Method& );
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& );
@@ -69,8 +68,8 @@ namespace adwidgets {
         bool getContents( boost::any& ) const;
         bool setContents( boost::any& );
         // end LifeCycle
-        bool getMethod( adcontrols::controlmethod::MethodItem& mi );
-        bool setMethod( const adcontrols::controlmethod::MethodItem& mi );
+        bool getMethod( adcontrols::ControlMethod::MethodItem& mi );
+        bool setMethod( const adcontrols::ControlMethod::MethodItem& mi );
     private:
         class impl;
         std::unique_ptr< impl > impl_;

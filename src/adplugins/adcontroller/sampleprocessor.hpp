@@ -32,7 +32,7 @@
 #include <chrono>
 
 namespace adfs { class filesystem; class file; }
-namespace adcontrols { class SampleRun; class ControlMethod; }
+namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
 namespace SignalObserver { struct DataReadBuffer; class Observer; }
 
 namespace adcontroller {
@@ -42,7 +42,7 @@ namespace adcontroller {
         ~SampleProcessor();
         SampleProcessor( boost::asio::io_service&
                          , std::shared_ptr< adcontrols::SampleRun >
-                         , std::shared_ptr< adcontrols::ControlMethod> );
+                         , std::shared_ptr< adcontrols::ControlMethod::Method> );
 
         void prepare_storage( SignalObserver::Observer * );
         void handle_data( unsigned long objId, long pos, const SignalObserver::DataReadBuffer& );
@@ -65,7 +65,7 @@ namespace adcontroller {
         std::atomic<unsigned int> pos_front_;
         std::atomic< bool > stop_triggered_;
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
-        std::shared_ptr< adcontrols::ControlMethod > ctrl_method_;
+        std::shared_ptr< adcontrols::ControlMethod::Method > ctrl_method_;
         std::chrono::steady_clock::time_point tp_inject_trigger_;
         uint64_t ts_inject_trigger_;
     };

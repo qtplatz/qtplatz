@@ -459,7 +459,7 @@ iTask::handle_echo( std::string s )
 }
 
 void
-iTask::handle_prepare_for_run( std::shared_ptr< adcontrols::ControlMethod > m
+iTask::handle_prepare_for_run( std::shared_ptr< adcontrols::ControlMethod::Method > m
                              , std::shared_ptr< adcontrols::SampleRun > run )
 {
     ::ControlMethod::Method xm;

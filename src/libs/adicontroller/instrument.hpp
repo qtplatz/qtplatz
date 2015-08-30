@@ -28,7 +28,7 @@
 #include "adicontroller_global.hpp"
 #include <memory>
 
-namespace adcontrols { class ControlMethod; }
+namespace adcontrols { namespace ControlMethod { class Method; } }
 
 namespace adicontroller {
     
@@ -93,8 +93,8 @@ namespace adicontroller {
             virtual bool echo( const std::string& msg ) = 0;
             virtual bool shell( const std::string& cmdline ) = 0;
 
-            virtual std::shared_ptr< const adcontrols::ControlMethod > getControlMethod() = 0;
-            virtual bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod > m ) = 0;
+            virtual std::shared_ptr< const adcontrols::ControlMethod::Method > getControlMethod() = 0;
+            virtual bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m ) = 0;
     
             virtual bool event_out( uint32_t event ) = 0;
             virtual bool start_run() = 0;

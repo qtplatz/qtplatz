@@ -107,7 +107,7 @@ iControllerImpl::wait_for_connection_ready()
 }
 
 bool
-iControllerImpl::preparing_for_run( adcontrols::ControlMethod& cm )
+iControllerImpl::preparing_for_run( adcontrols::ControlMethod::Method& cm )
 {
     return false;
 }

@@ -130,7 +130,7 @@ u5303AMethodWidget::getContents( boost::any& a ) const
         std::string device;
         adportable::serializer< u5303a::method >::serialize( m, device );
 
-        adcontrols::controlmethod::MethodItem item;
+        adcontrols::ControlMethod::MethodItem item;
         item.setModelname( "u5303a" );
         item.isInitialCondition( true );
         item.setItemLabel( "u5303a" );
@@ -140,9 +140,9 @@ u5303AMethodWidget::getContents( boost::any& a ) const
         ptr->insert( item );
         return true;        
     }
-    else if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_pointer( a ) ) {
+    else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
 
-        auto pi = boost::any_cast<adcontrols::controlmethod::MethodItem * >( a );                
+        auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem * >( a );                
 
         u5303a::method m;
         if ( auto table = findChild< u5303AMethodTable * >() ) {
@@ -165,11 +165,11 @@ u5303AMethodWidget::getContents( boost::any& a ) const
 bool
 u5303AMethodWidget::setContents( boost::any& a )
 {
-    const adcontrols::controlmethod::MethodItem * pi(0);
-    if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_pointer( a ) ) {
-        pi = boost::any_cast<const adcontrols::controlmethod::MethodItem * >( a );             
-    } else if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_a( a ) ) {   
-        pi = &boost::any_cast<const adcontrols::controlmethod::MethodItem& >( a );
+    const adcontrols::ControlMethod::MethodItem * pi(0);
+    if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
+        pi = boost::any_cast<const adcontrols::ControlMethod::MethodItem * >( a );             
+    } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_a( a ) ) {   
+        pi = &boost::any_cast<const adcontrols::ControlMethod::MethodItem& >( a );
     }
 	if (pi) {
 		u5303a::method m;

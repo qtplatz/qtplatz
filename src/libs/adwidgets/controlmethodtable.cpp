@@ -60,11 +60,11 @@ namespace adwidgets {
                 QStyledItemDelegate::setModelData( editor, model, index );
 
                 auto v = model->index( index.row(), 0 ).data( Qt::UserRole );
-                if ( v.canConvert< adcontrols::controlmethod::MethodItem >() ) {
-                    auto mi = v.value< adcontrols::controlmethod::MethodItem >();
+                if ( v.canConvert< adcontrols::ControlMethod::MethodItem >() ) {
+                    auto mi = v.value< adcontrols::ControlMethod::MethodItem >();
                     if ( index.column() == 0 && !mi.isInitialCondition() )
                         mi.time( index.data().toDouble() * 60.0 );  // seconds is the internal format
-                    model->setData( model->index( index.row(), 0 ), qVariantFromValue<adcontrols::controlmethod::MethodItem>( mi ), Qt::UserRole );
+                    model->setData( model->index( index.row(), 0 ), qVariantFromValue<adcontrols::ControlMethod::MethodItem>( mi ), Qt::UserRole );
                 }
             }
 
@@ -125,14 +125,14 @@ ControlMethodTable::onInitialUpdate()
 }
 
 void
-ControlMethodTable::setSharedPointer( std::shared_ptr< adcontrols::ControlMethod > ptr )
+ControlMethodTable::setSharedPointer( std::shared_ptr< adcontrols::ControlMethod::Method > ptr )
 {
     method_ = ptr;
     setContents( *method_ );
 }
 
 bool 
-ControlMethodTable::setContents( const adcontrols::ControlMethod& m )
+ControlMethodTable::setContents( const adcontrols::ControlMethod::Method& m )
 {
     QStandardItemModel& model = *model_;
     model.setRowCount( int( m.size() ) );
@@ -235,7 +235,7 @@ ControlMethodTable::showContextMenu( const QPoint& pt )
 }
 
 bool
-ControlMethodTable::append( const adcontrols::controlmethod::MethodItem& mi )
+ControlMethodTable::append( const adcontrols::ControlMethod::MethodItem& mi )
 {
     QStandardItemModel& model = *model_;
 
@@ -249,7 +249,7 @@ ControlMethodTable::append( const adcontrols::controlmethod::MethodItem& mi )
 }
 
 void
-ControlMethodTable::setData( const adcontrols::controlmethod::MethodItem& mi, int row )
+ControlMethodTable::setData( const adcontrols::ControlMethod::MethodItem& mi, int row )
 {
     QStandardItemModel& model = *model_;
 
@@ -265,7 +265,7 @@ ControlMethodTable::setData( const adcontrols::controlmethod::MethodItem& mi, in
     }
 
     auto item = model.itemFromIndex( model.index( row, 0 ) );
-    item->setData( qVariantFromValue<adcontrols::controlmethod::MethodItem>( mi ), Qt::UserRole );
+    item->setData( qVariantFromValue<adcontrols::ControlMethod::MethodItem>( mi ), Qt::UserRole );
 
     model.setData( model.index( row, 1 ), QString::fromStdString( mi.modelname() ) );
     model.setData( model.index( row, 2 ), mi.funcid() );
@@ -278,13 +278,13 @@ ControlMethodTable::setData( const adcontrols::controlmethod::MethodItem& mi, in
     model.item( row, 4 )->setEditable( true );
 }
 
-adcontrols::controlmethod::MethodItem
+adcontrols::ControlMethod::MethodItem
 ControlMethodTable::data( int row ) const
 {
     if ( auto item = model_->item( row, 0 ) ) {
         auto v = item->data( Qt::UserRole );
-        if ( v.canConvert< adcontrols::controlmethod::MethodItem >() ) {
-            auto mi = v.value< adcontrols::controlmethod::MethodItem >();
+        if ( v.canConvert< adcontrols::ControlMethod::MethodItem >() ) {
+            auto mi = v.value< adcontrols::ControlMethod::MethodItem >();
             
             // time
             double seconds = model_->data( model_->index( row, 0 ) ).toDouble() * 60.0;
@@ -300,7 +300,7 @@ ControlMethodTable::data( int row ) const
             return mi;
         }
     }
-    return adcontrols::controlmethod::MethodItem();
+    return adcontrols::ControlMethod::MethodItem();
 }
 
-Q_DECLARE_METATYPE( adcontrols::controlmethod::MethodItem )
+Q_DECLARE_METATYPE( adcontrols::ControlMethod::MethodItem )

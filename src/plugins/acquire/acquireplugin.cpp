@@ -613,7 +613,7 @@ AcquirePlugin::actMethodOpen()
                                         , tr("Open control method")
                                         , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
                                         , tr( "Control method files(*.cmth)" ) );
-    adcontrols::ControlMethod m;
+    adcontrols::ControlMethod::Method m;
     if ( document::load( name, m ) ) {
         document::instance()->setControlMethod( m, name );
         mainWindow_->setControlMethod( m );
@@ -629,7 +629,7 @@ AcquirePlugin::actMethodSave()
                                         , tr("Save control method")
                                         , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
                                         , tr( "Control method files(*.cmth)" ) );
-    adcontrols::ControlMethod m;
+    adcontrols::ControlMethod::Method m;
     mainWindow_->getControlMethod( m );
     document::instance()->setControlMethod( m );
     if ( document::save( name, m ) ) {
@@ -1175,7 +1175,7 @@ void
 AcquirePlugin::handleCommitMethods()
 {
     // Update ControlMethod by UI data with individual initial conditions
-    adcontrols::ControlMethod cm;
+    adcontrols::ControlMethod::Method cm;
     mainWindow_->getControlMethod( cm );
 
     auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();

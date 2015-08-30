@@ -31,7 +31,11 @@
 #include <adinterface/receiverC.h>
 #include <utils/fancymainwindow.h>
 
-namespace adcontrols { class ControlMethod; class SampleRun; }
+namespace adcontrols {
+    namespace ControlMethod { class Method; }
+    class SampleRun;
+}
+
 namespace adportable { class Configuration; }
 namespace adextension { class iMonitorFactory; }
 namespace adwidgets { class ControlMethodWidget; class SampleRunWidget; }
@@ -59,8 +63,8 @@ namespace acquire {  namespace internal {
             void OnFinalClose();
             // 
             void eventLog( const QString& );
-            void getControlMethod( adcontrols::ControlMethod& );
-            void setControlMethod( const adcontrols::ControlMethod& );
+            void getControlMethod( adcontrols::ControlMethod::Method& );
+            void setControlMethod( const adcontrols::ControlMethod::Method& );
             bool getSampleRun( adcontrols::SampleRun& );
             void setSampleRun( const adcontrols::SampleRun& );
             //

@@ -184,7 +184,7 @@ document::document(QObject *parent) : QObject(parent)
                                     , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                                 , QLatin1String( "acquire" ) ) )
-                                    , cm_( std::make_shared< adcontrols::ControlMethod >() )
+                                    , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
                                     , sampleRun_( std::make_shared< adcontrols::SampleRun >() )
                                     , impl_( new impl() )
 {
@@ -238,7 +238,7 @@ document::initialSetup()
     Core::DocumentManager::setUseProjectsDirectory( true );
 
     boost::filesystem::path mfile( dir / "default.cmth" );
-    adcontrols::ControlMethod cm;
+    adcontrols::ControlMethod::Method cm;
     if ( load( QString::fromStdWString( mfile.wstring() ), cm ) )
         setControlMethod( cm, QString() ); // don't save default name
 
@@ -275,7 +275,7 @@ document::finalClose( internal::MainWindow * mainwindow )
     save( QString::fromStdWString( sname.wstring() ), *sampleRun_ );
 }
 
-std::shared_ptr< adcontrols::ControlMethod >
+std::shared_ptr< adcontrols::ControlMethod::Method >
 document::controlMethod() const
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -290,11 +290,11 @@ document::sampleRun() const
 }
 
 void
-document::setControlMethod( const adcontrols::ControlMethod& m, const QString& filename )
+document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename )
 {
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
-        cm_ = std::make_shared< adcontrols::ControlMethod >( m );
+        cm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
         for ( auto& item : m ) {
             ADDEBUG() << item.modelname() << ", " << item.itemLabel() << " initial: " << item.isInitialCondition() << " time: " << item.time();
         }
@@ -345,7 +345,7 @@ document::recentFile( const char * group, bool dir_on_fail )
 }
 
 bool
-document::load( const QString& filename, adcontrols::ControlMethod& m )
+document::load( const QString& filename, adcontrols::ControlMethod::Method& m )
 {
     QFileInfo fi( filename );
 
@@ -374,7 +374,7 @@ document::load( const QString& filename, adcontrols::ControlMethod& m )
 }
 
 bool
-document::save( const QString& filename, const adcontrols::ControlMethod& m )
+document::save( const QString& filename, const adcontrols::ControlMethod::Method& m )
 {
     adfs::filesystem file;
 
@@ -386,7 +386,7 @@ document::save( const QString& filename, const adcontrols::ControlMethod& m )
     adfs::folder folder = file.addFolder( L"/ControlMethod" );
     adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
     try {
-        adfile.dataClass( adcontrols::ControlMethod::dataClass() );
+        adfile.dataClass( adcontrols::ControlMethod::Method::dataClass() );
         adfile.save( m );
     } catch ( std::exception& ex ) {
         ADTRACE() << "Exception: " << boost::diagnostic_information( ex );
@@ -439,7 +439,7 @@ document::save( const QString& filename, const adcontrols::SampleRun& m )
     adfs::folder folder = file.addFolder( L"/SampleRun" );
     adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
     try {
-        adfile.dataClass( adcontrols::ControlMethod::dataClass() );
+        adfile.dataClass( adcontrols::ControlMethod::Method::dataClass() );
         adfile.save( m );
     } catch ( std::exception& ex ) {
         ADTRACE() << "Exception: " << boost::diagnostic_information( ex );

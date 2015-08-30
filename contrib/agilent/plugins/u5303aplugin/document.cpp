@@ -82,16 +82,16 @@ namespace u5303a {
         std::chrono::system_clock::time_point tp_start_;
         uint64_t inject_time_point_;
         u5303a::method u5303a_;
-        std::shared_ptr< adcontrols::ControlMethod > ctrlm_;
-        adcontrols::ControlMethod::const_iterator nextIt_;
+        std::shared_ptr< adcontrols::ControlMethod::Method > ctrlm_;
+        adcontrols::ControlMethod::Method::const_iterator nextIt_;
 
         exec() : tp_start_( std::chrono::system_clock::now() )
                , inject_time_point_(0) {
         }
 
-        bool prepare_for_run( const adcontrols::ControlMethod& m ) {
-            using adcontrols::controlmethod::MethodItem;
-            ctrlm_ = std::make_shared< adcontrols::ControlMethod >( m );
+        bool prepare_for_run( const adcontrols::ControlMethod::Method& m ) {
+            using adcontrols::ControlMethod::MethodItem;
+            ctrlm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
             ctrlm_->sort();
             nextIt_ = std::find_if( ctrlm_->begin(), ctrlm_->end(), [] ( const MethodItem& mi ){
                     return mi.modelname() == "u5303a";
@@ -109,7 +109,7 @@ namespace u5303a {
 document::document() : digitizer_( new u5303a::digitizer )
                      , exec_( new exec() )
                      , device_status_( 0 )
-                     , cm_( std::make_shared< adcontrols::ControlMethod >() )
+                     , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
                      , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                  , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                  , QLatin1String( "u5303a" ) ) )
@@ -143,7 +143,7 @@ document::u5303a_connect()
 void
 document::prepare_for_run()
 {
-    using adcontrols::controlmethod::MethodItem;
+    using adcontrols::ControlMethod::MethodItem;
 
     MainWindow::instance()->getControlMethod( *cm_ );
 
@@ -320,7 +320,7 @@ document::initialSetup()
     Core::DocumentManager::setUseProjectsDirectory( true );
 
     boost::filesystem::path mfile( dir / "default.cmth" );
-    adcontrols::ControlMethod cm;
+    adcontrols::ControlMethod::Method cm;
     if ( load( QString::fromStdWString( mfile.wstring() ), cm ) ) {
         setControlMethod( cm, QString() ); // don't save default name
     }
@@ -373,7 +373,7 @@ document::recentFile( const char * group, bool dir_on_fail )
 }
 
 bool
-document::load( const QString& filename, adcontrols::ControlMethod& m )
+document::load( const QString& filename, adcontrols::ControlMethod::Method& m )
 {
     QFileInfo fi( filename );
 
@@ -402,7 +402,7 @@ document::load( const QString& filename, adcontrols::ControlMethod& m )
 }
 
 bool
-document::save( const QString& filename, const adcontrols::ControlMethod& m )
+document::save( const QString& filename, const adcontrols::ControlMethod::Method& m )
 {
     adfs::filesystem file;
 
@@ -414,7 +414,7 @@ document::save( const QString& filename, const adcontrols::ControlMethod& m )
     adfs::folder folder = file.addFolder( L"/ControlMethod" );
     adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
     try {
-        adfile.dataClass( adcontrols::ControlMethod::dataClass() );
+        adfile.dataClass( adcontrols::ControlMethod::Method::dataClass() );
         adfile.save( m );
     } catch ( std::exception& ex ) {
         ADTRACE() << "Exception: " << boost::diagnostic_information( ex );
@@ -441,7 +441,7 @@ document::save( const QString& filename, const adcontrols::ControlMethod& m )
     return true;
 }
 
-std::shared_ptr< adcontrols::ControlMethod >
+std::shared_ptr< adcontrols::ControlMethod::Method >
 document::controlMethod() const
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -449,11 +449,11 @@ document::controlMethod() const
 }
 
 void
-document::setControlMethod( const adcontrols::ControlMethod& m, const QString& filename )
+document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename )
 {
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
-        cm_ = std::make_shared< adcontrols::ControlMethod >( m );
+        cm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
     } while(0);
 
     if ( ! filename.isEmpty() ) {

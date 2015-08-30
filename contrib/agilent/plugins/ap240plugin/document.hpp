@@ -30,7 +30,11 @@
 
 class QSettings;
 
-namespace adcontrols { class MassSpectrum; class ControlMethod; }
+namespace adcontrols {
+    class MassSpectrum;
+    namespace ControlMethod { class Method; }
+}
+
 namespace adextension { class iSequenceImpl; }
 
 namespace ap240 {

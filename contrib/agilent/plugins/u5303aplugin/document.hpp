@@ -32,7 +32,7 @@
 
 class QSettings;
 
-namespace adcontrols { class MassSpectrum; class ControlMethod; }
+namespace adcontrols { class MassSpectrum; namespace ControlMethod { class Method; } }
 
 namespace u5303a {
 
@@ -66,11 +66,11 @@ namespace u5303a {
         QSettings * settings() { return settings_.get(); }
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
-        std::shared_ptr< adcontrols::ControlMethod > controlMethod() const;
-        void setControlMethod( const adcontrols::ControlMethod& m, const QString& filename );
+        std::shared_ptr< adcontrols::ControlMethod::Method > controlMethod() const;
+        void setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename );
 
-        static bool load( const QString& filename, adcontrols::ControlMethod& );
-        static bool save( const QString& filename, const adcontrols::ControlMethod& );
+        static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
+        static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
         
     private:
         friend struct detail::remover;
@@ -81,7 +81,7 @@ namespace u5303a {
 
         u5303a::digitizer * digitizer_;
         std::deque< std::shared_ptr< const waveform > > que_;
-        std::shared_ptr< adcontrols::ControlMethod > cm_;
+        std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
         std::unique_ptr< exec > exec_;
 
         int32_t device_status_;

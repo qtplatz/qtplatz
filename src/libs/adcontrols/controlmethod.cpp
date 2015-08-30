@@ -37,132 +37,135 @@
 #include <boost/archive/xml_woarchive.hpp>
 
 namespace adcontrols {
-    
-    class ControlMethod::impl {
-    public:
-        impl() {}
-        impl( const impl& t ) : subject_( t.subject_ )
-                              , description_( t.description_ )
-                              , items_( t.items_ ) {
-        }
-        std::string subject_;
-        std::string description_;
-        std::vector< controlmethod::MethodItem > items_;
-        idAudit ident_;
 
-    private:
-        friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
-            ar & BOOST_SERIALIZATION_NVP( subject_ );
-            ar & BOOST_SERIALIZATION_NVP( description_ );
-            ar & BOOST_SERIALIZATION_NVP( items_ );
-            if ( version >= 2 )
-                ar & BOOST_SERIALIZATION_NVP( ident_ );
-        }
-        
-    };
+    namespace ControlMethod {
 
+        class Method::impl {
+        public:
+            impl() {}
+            impl( const impl& t ) : subject_( t.subject_ )
+                , description_( t.description_ )
+                , items_( t.items_ ) {
+            }
+            std::string subject_;
+            std::string description_;
+            std::vector< MethodItem > items_;
+            idAudit ident_;
+
+        private:
+            friend class boost::serialization::access;
+            template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
+                ar & BOOST_SERIALIZATION_NVP( subject_ );
+                ar & BOOST_SERIALIZATION_NVP( description_ );
+                ar & BOOST_SERIALIZATION_NVP( items_ );
+                if ( version >= 2 )
+                    ar & BOOST_SERIALIZATION_NVP( ident_ );
+            }
+
+        };
+    }
 }
 
-BOOST_CLASS_VERSION( adcontrols::ControlMethod::impl, 2 )
+BOOST_CLASS_VERSION( adcontrols::ControlMethod::Method::impl, 2 )
 
 namespace adcontrols {
 
-    ////////// PORTABLE BINARY ARCHIVE //////////
-    template<> void
-    ControlMethod::serialize( portable_binary_oarchive& ar, const unsigned int )
-    {
-        ar & *impl_;
-    }
+    namespace ControlMethod {
 
-    template<> void
-    ControlMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
-    {
-        if ( version <= 1 )  {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( impl_->subject_ );
-            ar & BOOST_SERIALIZATION_NVP( impl_->description_ );
-            ar & BOOST_SERIALIZATION_NVP( impl_->items_ );
-        } else
+        ////////// PORTABLE BINARY ARCHIVE //////////
+        template<> void
+        Method::serialize( portable_binary_oarchive& ar, const unsigned int )
+        {
             ar & *impl_;
-    }
+        }
 
-    ///////// XML archive ////////
-    template<> ADCONTROLSSHARED_EXPORT void
-    ControlMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
-    {
-        ar & boost::serialization::make_nvp("impl", *impl_);
-    }
+        template<> void
+        Method::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        {
+            if ( version <= 1 ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP( impl_->subject_ );
+                ar & BOOST_SERIALIZATION_NVP( impl_->description_ );
+                ar & BOOST_SERIALIZATION_NVP( impl_->items_ );
+            } else
+                ar & *impl_;
+        }
 
-    template<> ADCONTROLSSHARED_EXPORT void
-    ControlMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
-    {
-        ar & boost::serialization::make_nvp( "impl", *impl_ );
+        ///////// XML archive ////////
+        template<> ADCONTROLSSHARED_EXPORT void
+        Method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+        {
+            ar & boost::serialization::make_nvp( "impl", *impl_ );
+        }
+
+        template<> ADCONTROLSSHARED_EXPORT void
+        Method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+        {
+            ar & boost::serialization::make_nvp( "impl", *impl_ );
+        }
     }
 }
 
-using namespace adcontrols;
+using namespace adcontrols::ControlMethod;
 
-ControlMethod::~ControlMethod()
+Method::~Method()
 {
 }
 
-ControlMethod::ControlMethod() : impl_( new impl() )
+Method::Method() : impl_( new impl() )
 {
 }
 
-ControlMethod::ControlMethod( const ControlMethod& t ) : impl_( new impl( *t.impl_ ) ) 
+Method::Method( const Method& t ) : impl_( new impl( *t.impl_ ) ) 
 {
 }
 
-ControlMethod&
-ControlMethod::operator = ( const ControlMethod & t )
+Method&
+Method::operator = ( const Method & t )
 {
     impl_.reset( new impl( *t.impl_ ) );
     return *this;
 }
 
-ControlMethod::iterator
-ControlMethod::begin()
+Method::iterator
+Method::begin()
 {
     return impl_->items_.begin();
 }
 
-ControlMethod::iterator
-ControlMethod::end()
+Method::iterator
+Method::end()
 {
     return impl_->items_.end();
 }
 
-ControlMethod::const_iterator
-ControlMethod::begin() const
+Method::const_iterator
+Method::begin() const
 {
     return impl_->items_.begin();
 }
 
-ControlMethod::const_iterator
-ControlMethod::end() const
+Method::const_iterator
+Method::end() const
 {
     return impl_->items_.end();
 }
 
-ControlMethod::iterator
-ControlMethod::erase( iterator pos )
+Method::iterator
+Method::erase( iterator pos )
 {
     return impl_->items_.erase( pos );
 }
 
-ControlMethod::iterator
-ControlMethod::erase( iterator first, iterator last )
+Method::iterator
+Method::erase( iterator first, iterator last )
 {
     return impl_->items_.erase( first, last );
 }
 
-ControlMethod::iterator
-ControlMethod::insert( const controlmethod::MethodItem& item )
+Method::iterator
+Method::insert( const MethodItem& item )
 {
-    using adcontrols::controlmethod::MethodItem;
-
     auto it = std::lower_bound( impl_->items_.begin(), impl_->items_.end(), item, []( const MethodItem& a, const MethodItem& b ){
             if ( adportable::compare<double>::essentiallyEqual( a.time(), b.time() ) ) {
                 if ( a.modelname() == b.modelname() )
@@ -175,16 +178,14 @@ ControlMethod::insert( const controlmethod::MethodItem& item )
 }
 
 void
-ControlMethod::push_back( const controlmethod::MethodItem& item )
+Method::push_back( const MethodItem& item )
 {
     impl_->items_.push_back( item );
 }
 
 void
-ControlMethod::sort()
+Method::sort()
 {
-    using adcontrols::controlmethod::MethodItem;
-
     std::sort( impl_->items_.begin(), impl_->items_.end(), []( const MethodItem& a, const MethodItem& b ){
             if ( adportable::compare<double>::essentiallyEqual( a.time(), b.time() ) ) {
                 if ( a.modelname() == b.modelname() )
@@ -196,42 +197,40 @@ ControlMethod::sort()
 }
 
 void
-ControlMethod::clear()
+Method::clear()
 {
     impl_->items_.clear();
 }
 
 size_t
-ControlMethod::size() const 
+Method::size() const 
 {
     return impl_->items_.size();
 }
 
 const char * 
-ControlMethod::description() const
+Method::description() const
 {
     return impl_->description_.c_str();
 }
 
 void
-ControlMethod::setDescription( const char * t )
+Method::setDescription( const char * t )
 {
     impl_->description_ = t ? t : "";
 }
 
 const char *
-ControlMethod::subject() const
+Method::subject() const
 {
     return impl_->subject_.c_str();
 }
 
 void
-ControlMethod::setSubject( const char * t )
+Method::setSubject( const char * t )
 {
     impl_->subject_ = t ? t : "";
 }
-
-using namespace adcontrols::controlmethod;
 
 MethodItem::MethodItem() : unitnumber_( 0 )
                          , isInitialCondition_( true )
@@ -368,7 +367,7 @@ MethodItem::size() const
 
 
 bool
-ControlMethod::archive( std::ostream& os, const ControlMethod& t )
+Method::archive( std::ostream& os, const Method& t )
 {
     portable_binary_oarchive ar( os );
     ar << t;
@@ -376,7 +375,7 @@ ControlMethod::archive( std::ostream& os, const ControlMethod& t )
 }
 
 bool
-ControlMethod::restore( std::istream& is, ControlMethod& t )
+Method::restore( std::istream& is, Method& t )
 {
     portable_binary_iarchive ar( is );
     ar >> t;
@@ -384,36 +383,36 @@ ControlMethod::restore( std::istream& is, ControlMethod& t )
 }
 
 bool
-ControlMethod::xml_archive( std::wostream& os, const ControlMethod& t )
+Method::xml_archive( std::wostream& os, const Method& t )
 {
-    return internal::xmlSerializer("ControlMethod").archive( os, t );
+    return internal::xmlSerializer("Method").archive( os, t );
 }
 
 bool
-ControlMethod::xml_restore( std::wistream& is, ControlMethod& t )
+Method::xml_restore( std::wistream& is, Method& t )
 {
-    return internal::xmlSerializer("ControlMethod").restore( is, t );
+    return internal::xmlSerializer("Method").restore( is, t );
 }
 
-ControlMethod::iterator
-ControlMethod::find( iterator first, iterator last, const char * modelname, int unitnumber )
+Method::iterator
+Method::find( iterator first, iterator last, const char * modelname, int unitnumber )
 {
     if ( unitnumber <= 0 ) {
-        return std::find_if( first, last, [=]( const controlmethod::MethodItem& a ){ return a.modelname() == modelname; });
+        return std::find_if( first, last, [=]( const MethodItem& a ){ return a.modelname() == modelname; });
     } else {
-        return std::find_if( first, last, [=]( const controlmethod::MethodItem& a ){
+        return std::find_if( first, last, [=]( const MethodItem& a ){
                 return a.modelname() == modelname && a.unitnumber() == unitnumber;
             });
     }
 }
 
-ControlMethod::const_iterator
-ControlMethod::find( const_iterator first, const_iterator last, const char * modelname, int unitnumber ) const
+Method::const_iterator
+Method::find( const_iterator first, const_iterator last, const char * modelname, int unitnumber ) const
 {
     if ( unitnumber <= 0 ) {
-        return std::find_if( first, last, [=]( const controlmethod::MethodItem& a ){ return a.modelname() == modelname; });
+        return std::find_if( first, last, [=]( const MethodItem& a ){ return a.modelname() == modelname; });
     } else {
-        return std::find_if( first, last, [=]( const controlmethod::MethodItem& a ){
+        return std::find_if( first, last, [=]( const MethodItem& a ){
                 return a.modelname() == modelname && a.unitnumber() == unitnumber;
             });
     }

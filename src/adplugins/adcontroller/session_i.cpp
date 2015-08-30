@@ -126,7 +126,7 @@ CORBA::Boolean
 session_i::prepare_for_run( const ControlMethod::Method& m, const CORBA::Char * sampleXml )
 {
     auto sr = std::make_shared< adcontrols::SampleRun >();
-    auto cm = std::make_shared< adcontrols::ControlMethod >();
+    auto cm = std::make_shared< adcontrols::ControlMethod::Method >();
 
     std::wstring xml( adportable::utf::to_wstring( sampleXml ) );
     std::wistringstream is( xml );

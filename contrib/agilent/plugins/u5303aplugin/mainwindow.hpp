@@ -35,7 +35,7 @@ class QWidget;
 class QToolButton;
 class QAction;
 
-namespace adcontrols { class MassSpectrum; class Trace; class ControlMethod; }
+namespace adcontrols { class MassSpectrum; class Trace; namespace ControlMethod { class Method; } }
 namespace adwidgets { class ControlMethodWidget; }
 
 namespace Core { class IMode; }
@@ -70,8 +70,8 @@ namespace u5303a {
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::Trace&, const std::wstring& traceId );
 		bool editor_factories( iSequenceImpl& );
-        void setControlMethod( const adcontrols::ControlMethod& );
-        void getControlMethod( adcontrols::ControlMethod& m );
+        void setControlMethod( const adcontrols::ControlMethod::Method& );
+        void getControlMethod( adcontrols::ControlMethod::Method& m );
         void editor_commit();
 
     private:

@@ -38,7 +38,7 @@ namespace ap240 {
         ~iControllerImpl();
         bool connect() override;
         bool wait_for_connection_ready() override;
-        bool preparing_for_run( adcontrols::ControlMethod& ) override;
+        bool preparing_for_run( adcontrols::ControlMethod::Method& ) override;
         QString module_name() const override { return "ap240"; }
         int module_number() const override { return 1; }            
         

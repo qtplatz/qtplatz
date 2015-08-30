@@ -31,7 +31,7 @@
 class QSettings;
 
 namespace adcontrols {
-    class ControlMethod;
+    namespace ControlMethod { class Method; }
     class SampleRun;
 }
 
@@ -54,14 +54,14 @@ namespace acquire {
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
 
-        std::shared_ptr< adcontrols::ControlMethod > controlMethod() const;
-        void setControlMethod( const adcontrols::ControlMethod&, const QString& filename = QString() );
+        std::shared_ptr< adcontrols::ControlMethod::Method > controlMethod() const;
+        void setControlMethod( const adcontrols::ControlMethod::Method&, const QString& filename = QString() );
 
         std::shared_ptr< adcontrols::SampleRun > sampleRun() const;
         void setSampleRun( const adcontrols::SampleRun&, const QString& filename = QString() );
 
-        static bool load( const QString& filename, adcontrols::ControlMethod& );
-        static bool save( const QString& filename, const adcontrols::ControlMethod& );
+        static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
+        static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
         static bool load( const QString& filename, adcontrols::SampleRun& );
         static bool save( const QString& filename, const adcontrols::SampleRun& );
 
@@ -76,7 +76,7 @@ namespace acquire {
         void notify_ready_for_run( const char * xml );
     private:
         std::shared_ptr< QSettings > settings_;  // user scope settings
-        std::shared_ptr< adcontrols::ControlMethod > cm_;
+        std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
         QString ctrlmethod_filename_;
         QString samplerun_filename_;

@@ -34,7 +34,7 @@
 
 class QStandardItemModel;
 
-namespace adcontrols { class ControlMethod; namespace controlmethod { class MethodItem; } }
+namespace adcontrols { namespace ControlMethod { class Method; class MethodItem; } }
 
 namespace adwidgets {
 
@@ -47,29 +47,29 @@ namespace adwidgets {
 
         void onInitialUpdate();
 
-        void setSharedPointer( std::shared_ptr< adcontrols::ControlMethod > );
-        bool getContents( adcontrols::ControlMethod& );
-        const adcontrols::controlmethod::MethodItem& operator []( int row ) const;
+        void setSharedPointer( std::shared_ptr< adcontrols::ControlMethod::Method > );
+        bool getContents( adcontrols::ControlMethod::Method& );
+        const adcontrols::ControlMethod::MethodItem& operator []( int row ) const;
         QStandardItemModel& model();
 
         void addItem( const QString& );
-        bool append( const adcontrols::controlmethod::MethodItem& );
+        bool append( const adcontrols::ControlMethod::MethodItem& );
         void commit();
 
         void showContextMenu( const QPoint& );
 
     private:
-        bool setContents( const adcontrols::ControlMethod& );
+        bool setContents( const adcontrols::ControlMethod::Method& );
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;
         void insertMethod( const QString& model, const QModelIndex& );
         void sort();
         void delLine( int row );
-        void setData( const adcontrols::controlmethod::MethodItem&, int row );
-        adcontrols::controlmethod::MethodItem data( int row ) const;
+        void setData( const adcontrols::ControlMethod::MethodItem&, int row );
+        adcontrols::ControlMethod::MethodItem data( int row ) const;
 
         ControlMethodWidget * parent_;
         QStandardItemModel * model_;
-        std::shared_ptr< adcontrols::ControlMethod > method_;
+        std::shared_ptr< adcontrols::ControlMethod::Method > method_;
         QList< QString > items_;
 
     signals:

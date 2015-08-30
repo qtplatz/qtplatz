@@ -40,13 +40,13 @@ namespace adwidgets {
     public:
         ControlMethodTable * table_;
         QTabWidget * tab_;
-        std::shared_ptr< adcontrols::ControlMethod > method_;
+        std::shared_ptr< adcontrols::ControlMethod::Method > method_;
         std::vector< std::pair< adplugin::LifeCycle *, QWidget * > > editors_;
         ControlMethodWidget * this_;
 
         impl( ControlMethodWidget * pThis ) : table_( new ControlMethodTable( pThis ) )
                                             , tab_( new QTabWidget )
-                                            , method_( std::make_shared< adcontrols::ControlMethod >() )
+                                            , method_( std::make_shared< adcontrols::ControlMethod::Method >() )
                                             , this_( pThis ){
         }
 
@@ -56,7 +56,7 @@ namespace adwidgets {
                 } );
             if ( it != editors_.end() ) {
                 if ( auto editor = it->first ) {
-                    adcontrols::controlmethod::MethodItem mi;
+                    adcontrols::ControlMethod::MethodItem mi;
                     boost::any a( &mi );
                     editor->getContents( a );
                     mi.isInitialCondition( false );
@@ -66,7 +66,7 @@ namespace adwidgets {
             }
         }
 
-        bool getMatchedMethod( adcontrols::controlmethod::MethodItem& mi, const adcontrols::controlmethod::MethodItem& curr ) {
+        bool getMatchedMethod( adcontrols::ControlMethod::MethodItem& mi, const adcontrols::ControlMethod::MethodItem& curr ) {
             boost::any a( &mi );
             for ( auto editor : editors_ ) {
                 if ( editor.first->getContents( a ) ) {
@@ -77,8 +77,8 @@ namespace adwidgets {
             return false;
         }
 
-        bool setMatchedMethod( const adcontrols::controlmethod::MethodItem& curr ) {
-            adcontrols::controlmethod::MethodItem mi( curr );
+        bool setMatchedMethod( const adcontrols::ControlMethod::MethodItem& curr ) {
+            adcontrols::ControlMethod::MethodItem mi( curr );
             boost::any a( &mi );
             for ( auto editor : editors_ ) {
                 if ( editor.first->getContents( a ) ) {
@@ -167,9 +167,9 @@ ControlMethodWidget::addEditor( QWidget * widget )
 }
 
 bool
-ControlMethodWidget::getMethod( adcontrols::controlmethod::MethodItem& mi )
+ControlMethodWidget::getMethod( adcontrols::ControlMethod::MethodItem& mi )
 {
-    adcontrols::controlmethod::MethodItem temp( mi );
+    adcontrols::ControlMethod::MethodItem temp( mi );
     if ( impl_->getMatchedMethod( temp, mi ) ) {
         mi = temp;
         return true;
@@ -178,9 +178,9 @@ ControlMethodWidget::getMethod( adcontrols::controlmethod::MethodItem& mi )
 }
 
 bool
-ControlMethodWidget::setMethod( const adcontrols::controlmethod::MethodItem& mi )
+ControlMethodWidget::setMethod( const adcontrols::ControlMethod::MethodItem& mi )
 {
-    adcontrols::controlmethod::MethodItem temp( mi );
+    adcontrols::ControlMethod::MethodItem temp( mi );
     if ( impl_->setMatchedMethod( mi ) ) {
         return true;
     }
@@ -189,14 +189,14 @@ ControlMethodWidget::setMethod( const adcontrols::controlmethod::MethodItem& mi 
 }
 
 void
-ControlMethodWidget::setControlMethod( const adcontrols::ControlMethod& m )
+ControlMethodWidget::setControlMethod( const adcontrols::ControlMethod::Method& m )
 {
-    impl_->method_ = std::make_shared< adcontrols::ControlMethod >( m );
+    impl_->method_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
     impl_->table_->setSharedPointer( impl_->method_ );
 }
 
 bool
-ControlMethodWidget::getControlMethod( adcontrols::ControlMethod& m )
+ControlMethodWidget::getControlMethod( adcontrols::ControlMethod::Method& m )
 {
     impl_->table_->commit();
     m = *(impl_->method_);

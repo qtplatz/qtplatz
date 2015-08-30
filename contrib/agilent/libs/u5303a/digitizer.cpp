@@ -160,11 +160,11 @@ digitizer::peripheral_terminate()
 }
 
 bool
-digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod& m )
+digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& m )
 {
-    using adcontrols::controlmethod::MethodItem;
+    using adcontrols::ControlMethod::MethodItem;
 
-    adcontrols::ControlMethod cm( m );
+    adcontrols::ControlMethod::Method cm( m );
     cm.sort();
     auto it = std::find_if( cm.begin(), cm.end(), [] ( const MethodItem& mi ){ return mi.modelname() == "u5303a"; } );
     if ( it != cm.end() ) {

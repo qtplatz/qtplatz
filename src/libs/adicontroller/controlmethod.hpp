@@ -51,7 +51,7 @@ namespace adicontroller {
             , device_detector              // LC/GC detectors including MS
         };
 
-        // corresponding to adcontrols::controlmethod::MethodItem
+        // corresponding to adcontrols::ControlMethod::MethodItem
 
         struct ADICONTROLLERSHARED_EXPORT MethodLine {
 

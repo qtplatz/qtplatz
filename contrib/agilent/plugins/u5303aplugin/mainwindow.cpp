@@ -526,13 +526,13 @@ MainWindow::editor_factories( iSequenceImpl& impl )
 
 
 void
-MainWindow::setControlMethod( const adcontrols::ControlMethod& m )
+MainWindow::setControlMethod( const adcontrols::ControlMethod::Method& m )
 {
     editor_->setControlMethod( m );
 }
 
 void
-MainWindow::getControlMethod( adcontrols::ControlMethod& m )
+MainWindow::getControlMethod( adcontrols::ControlMethod::Method& m )
 {
     editor_->getControlMethod( m );
 }

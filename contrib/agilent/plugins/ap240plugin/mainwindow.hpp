@@ -35,7 +35,7 @@ class QWidget;
 class QToolButton;
 class QAction;
 
-namespace adcontrols { class MassSpectrum; class Trace; class ControlMethod; }
+namespace adcontrols { class MassSpectrum; class Trace; namespace ControlMethod { class Method; } }
 namespace adextension { class iSequenceImpl; }
 namespace adwidgets { class ControlMethodWidget; }
 

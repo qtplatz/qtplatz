@@ -30,7 +30,7 @@
 #include "ap240w_global.hpp"
 #include <memory>
 
-namespace adcontrols { class ControlMethod; }
+namespace adcontrols { namespace ControlMethod { class Method; } }
 namespace ap240 { class method; class threshold_method; }
 
 namespace ap240w {

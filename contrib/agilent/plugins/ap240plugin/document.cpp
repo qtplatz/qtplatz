@@ -458,7 +458,7 @@ document::ap240_connect()
 void
 document::prepare_for_run()
 {
-    using adcontrols::controlmethod::MethodItem;
+    using adcontrols::ControlMethod::MethodItem;
 
     ap240::method m;
     MainWindow::instance()->getControlMethod( m );

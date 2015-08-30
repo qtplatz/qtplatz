@@ -33,7 +33,7 @@
 #include <vector>
 #include <memory>
 
-namespace adcontrols { class ControlMethod; }
+namespace adcontrols { namespace ControlMethod { class Method; } }
 namespace adportable { class TimeSquaredScanLaw; }
 
 #if defined _MSC_VER

@@ -27,7 +27,9 @@
 
 #include <adinterface/controlmethodC.h>
 
-namespace adcontrols { class ControlMethod; namespace controlmethod { class MethodItem; } }
+namespace adcontrols {
+    namespace ControlMethod { class Method; class MethodItem; }
+}
 
 namespace adinterface {
 
@@ -67,9 +69,9 @@ namespace adinterface {
                                                         , const char * itemname
                                                         , uint32_t unitNumber = 1 );
 
-        static void copy( ::ControlMethod::Method&, const adcontrols::ControlMethod& );
+        static void copy( ::ControlMethod::Method&, const adcontrols::ControlMethod::Method& );
 
-        static void copy( adcontrols::ControlMethod&, const ::ControlMethod::Method& );
+        static void copy( adcontrols::ControlMethod::Method&, const ::ControlMethod::Method& );
 
     private:
         static void append( ::ControlMethod::Method& m

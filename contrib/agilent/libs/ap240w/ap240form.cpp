@@ -169,7 +169,7 @@ ap240form::getContents( boost::any& a ) const
         std::string device;
         adportable::serializer< ap240::method >::serialize( m, device );
         
-        adcontrols::controlmethod::MethodItem item;
+        adcontrols::ControlMethod::MethodItem item;
         item.setModelname( "ap240" );
         item.isInitialCondition( true );
         item.setItemLabel( "ap240" );
@@ -180,9 +180,9 @@ ap240form::getContents( boost::any& a ) const
         
         return true;
         
-    } else if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_pointer( a ) ) {
+    } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
         
-        auto pi = boost::any_cast<adcontrols::controlmethod::MethodItem * >( a );                
+        auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem * >( a );                
         ap240::method m;
         get( m );
         std::string device;
@@ -201,15 +201,15 @@ ap240form::getContents( boost::any& a ) const
 bool
 ap240form::setContents( boost::any& a )
 {
-    const adcontrols::controlmethod::MethodItem * pi(0);
+    const adcontrols::ControlMethod::MethodItem * pi(0);
 
-    if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_pointer( a ) ) {
+    if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
 
-        pi = boost::any_cast<const adcontrols::controlmethod::MethodItem * >( a );             
+        pi = boost::any_cast<const adcontrols::ControlMethod::MethodItem * >( a );             
 
-    } else if ( adportable::a_type< adcontrols::controlmethod::MethodItem >::is_a( a ) ) {   
+    } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_a( a ) ) {   
 
-        pi = &boost::any_cast<const adcontrols::controlmethod::MethodItem& >( a );
+        pi = &boost::any_cast<const adcontrols::ControlMethod::MethodItem& >( a );
     }
 
     if ( pi ) {

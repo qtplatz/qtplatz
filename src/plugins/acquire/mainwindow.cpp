@@ -202,13 +202,13 @@ MainWindow::eventLog( const QString& text )
 }
 
 void
-MainWindow::setControlMethod( const adcontrols::ControlMethod& m )
+MainWindow::setControlMethod( const adcontrols::ControlMethod::Method& m )
 {
     cmEditor_->setControlMethod( m );
 }
 
 void
-MainWindow::getControlMethod( adcontrols::ControlMethod& m )
+MainWindow::getControlMethod( adcontrols::ControlMethod::Method& m )
 {
     cmEditor_->getControlMethod( m );
 }

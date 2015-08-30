@@ -45,7 +45,7 @@ namespace adcontrols {
 
     class idAudit;
 
-    namespace controlmethod {
+    namespace ControlMethod {
 
         class ADCONTROLSSHARED_EXPORT MethodItem {
         public:
@@ -134,70 +134,67 @@ namespace adcontrols {
             }
         };
 
-    };
+        ////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////
-
-    class ADCONTROLSSHARED_EXPORT ControlMethod {
-    public:
-        ~ControlMethod();
-        ControlMethod();
-        ControlMethod( const ControlMethod& );
-        ControlMethod& operator = ( const ControlMethod& );
-
-        static const wchar_t * dataClass() { return L"adcontrols::ControlMethod"; }
-        typedef size_t size_type;
-        typedef std::vector< controlmethod::MethodItem >::iterator iterator;
-        typedef std::vector< controlmethod::MethodItem >::const_iterator const_iterator;
+        class ADCONTROLSSHARED_EXPORT Method {
+        public:
+            ~Method();
+            Method();
+            Method( const Method& );
+            Method& operator = ( const Method& );
+            
+            static const wchar_t * dataClass() { return L"adcontrols::ControlMethod"; }
+            typedef size_t size_type;
+            typedef std::vector< MethodItem >::iterator iterator;
+            typedef std::vector< MethodItem >::const_iterator const_iterator;
         
-        const char * description() const;
-        void setDescription( const char * );
+            const char * description() const;
+            void setDescription( const char * );
 
-        const char * subject() const;
-        void setSubject( const char * );
+            const char * subject() const;
+            void setSubject( const char * );
 
-        size_type size() const;
-        iterator begin();
-        iterator end();
-        const_iterator begin() const;
-        const_iterator end() const;
-        iterator erase( iterator pos );
-        iterator erase( iterator first, iterator last );
-        iterator insert( const controlmethod::MethodItem& );
-        void push_back( const controlmethod::MethodItem& );
-        const idAudit& ident() const;
-        void sort();
-        void clear();
+            size_type size() const;
+            iterator begin();
+            iterator end();
+            const_iterator begin() const;
+            const_iterator end() const;
+            iterator erase( iterator pos );
+            iterator erase( iterator first, iterator last );
+            iterator insert( const MethodItem& );
+            void push_back( const MethodItem& );
+            const idAudit& ident() const;
+            void sort();
+            void clear();
 
-        /*
-        * find first item of specified modelname,unitnumer.  Ignore unitnumber if -1 was provided
-        */
-        iterator find( iterator first, iterator last, const char * modelname, int unitnumber = ( -1 ) );
-        const_iterator find( const_iterator first, const_iterator last, const char * modelname, int unitnumber = ( -1 ) ) const;
+            /*
+             * find first item of specified modelname,unitnumer.  Ignore unitnumber if -1 was provided
+             */
+            iterator find( iterator first, iterator last, const char * modelname, int unitnumber = ( -1 ) );
+            const_iterator find( const_iterator first, const_iterator last, const char * modelname, int unitnumber = ( -1 ) ) const;
 
-        static bool archive( std::ostream&, const ControlMethod& );
-        static bool restore( std::istream&, ControlMethod& );
-        static bool xml_archive( std::wostream&, const ControlMethod& );
-        static bool xml_restore( std::wistream&, ControlMethod& );
+            static bool archive( std::ostream&, const Method& );
+            static bool restore( std::istream&, Method& );
+            static bool xml_archive( std::wostream&, const Method& );
+            static bool xml_restore( std::wistream&, Method& );
 
-    private:
-        class impl;
+        private:
+            class impl;
 #if defined _MSC_VER
 # pragma warning( push )
 # pragma warning( disable: 4251 )
 #endif
-        std::unique_ptr< impl > impl_;
+            std::unique_ptr< impl > impl_;
 #if defined _MSC_VER
 # pragma warning( pop )
 #endif
-        friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int );
-    };
-
-    typedef std::shared_ptr<ControlMethod> ControlMethodPtr;
-
+            friend class boost::serialization::access;
+            template<class Archive> void serialize( Archive& ar, const unsigned int );
+        };
+    }
+    typedef std::shared_ptr<ControlMethod::Method> ControlMethodPtr;
 }
 
-BOOST_CLASS_VERSION( adcontrols::ControlMethod, 2 )
-BOOST_CLASS_VERSION( adcontrols::controlmethod::MethodItem, 2 )
+BOOST_CLASS_VERSION( adcontrols::ControlMethod::Method, 2 )
+BOOST_CLASS_VERSION( adcontrols::ControlMethod::MethodItem, 2 )
 

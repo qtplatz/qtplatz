@@ -113,7 +113,7 @@ ControlMethodHelper::find( ::ControlMethod::Method& m
 
 //static
 void
-ControlMethodHelper::copy( ::ControlMethod::Method& d, const adcontrols::ControlMethod& s )
+ControlMethodHelper::copy( ::ControlMethod::Method& d, const adcontrols::ControlMethod::Method& s )
 {
     d.subject = CORBA::string_dup( s.subject() );
     d.description = CORBA::string_dup( s.description() );
@@ -136,7 +136,7 @@ ControlMethodHelper::copy( ::ControlMethod::Method& d, const adcontrols::Control
 
 //static
 void
-ControlMethodHelper::copy( adcontrols::ControlMethod& d, const ::ControlMethod::Method& s )
+ControlMethodHelper::copy( adcontrols::ControlMethod::Method& d, const ::ControlMethod::Method& s )
 {
     d.setSubject( s.subject.in() );
     d.setDescription( s.description.in() );
@@ -144,7 +144,7 @@ ControlMethodHelper::copy( adcontrols::ControlMethod& d, const ::ControlMethod::
     size_t nLines = s.lines.length();
     for ( size_t i = 0; i < nLines; ++i ) {
         auto& line = s.lines[ CORBA::ULong( i ) ];
-        adcontrols::controlmethod::MethodItem item;
+        adcontrols::ControlMethod::MethodItem item;
         item.setModelname( line.modelname );
         item.setDescription( line.description );
         item.unitnumber( line.unitnumber );

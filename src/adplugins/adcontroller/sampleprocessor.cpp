@@ -68,7 +68,7 @@ SampleProcessor::~SampleProcessor()
 
 SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
                                   , std::shared_ptr< adcontrols::SampleRun > run
-                                  , std::shared_ptr< adcontrols::ControlMethod > cmth )
+                                  , std::shared_ptr< adcontrols::ControlMethod::Method > cmth )
     : fs_( new adfs::filesystem )
     , inProgress_( false )
     , myId_( __nid__++ )
