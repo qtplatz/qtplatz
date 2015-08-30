@@ -64,6 +64,8 @@ add_library(
   document.hpp  
   histogram.cpp
   histogram.hpp
+  icontrollerimpl.cpp
+  icontrollerimpl.hpp
   threshold_result.cpp
   threshold_result.hpp
   mainwindow.cpp
@@ -78,7 +80,7 @@ target_link_libraries(
   adfs
   adutils
   adcontrols
-  adinterface
+  adicontroller
   adplot
   adwidgets
   acewrapper

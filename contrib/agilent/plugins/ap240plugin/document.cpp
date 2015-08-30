@@ -25,6 +25,7 @@
 #include "ap240_constants.hpp"
 #include "document.hpp"
 #include "histogram.hpp"
+#include "icontrollerimpl.hpp"
 #include "mainwindow.hpp"
 #include "threshold_result.hpp"
 #include <ap240/digitizer.hpp>
@@ -90,6 +91,8 @@ namespace ap240 {
         std::atomic<size_t> waveform_post_count_;
         std::atomic<uint32_t> worker_data_serialnumber_;
         std::unique_ptr< adextension::iSequenceImpl > iSequenceImpl_;
+        std::unique_ptr< ap240::iControllerImpl > iControllerImpl_;
+        
     public:
         static std::atomic< document * > instance_;
         static std::mutex mutex_;
@@ -103,7 +106,8 @@ namespace ap240 {
                , waveform_post_count_( 0 )
                , waveform_proc_count_( 0 )
                , worker_data_serialnumber_( 0 )
-               , iSequenceImpl_( new adextension::iSequenceImpl() ) {
+               , iSequenceImpl_( new adextension::iSequenceImpl() )
+               , iControllerImpl_( new ap240::iControllerImpl() ) {
             
             time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
             hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histogram.txt" ).string();
@@ -156,6 +160,8 @@ namespace ap240 {
         inline size_t unprocessed_trigger_counts() const { return waveform_post_count_ - waveform_proc_count_; }
         
         inline adextension::iSequenceImpl * iSequence() { return iSequenceImpl_.get(); }
+        inline ap240::iControllerImpl * iController() { return iControllerImpl_.get(); }
+        
     private:
         typedef std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > threshold_result_pair_t;
         
@@ -861,5 +867,11 @@ adextension::iSequenceImpl *
 document::iSequence()
 {
     return impl_->iSequence();
+}
+
+ap240::iControllerImpl *
+document::iController()
+{
+    return impl_->iController();
 }
 

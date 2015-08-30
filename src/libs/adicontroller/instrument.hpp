@@ -22,9 +22,13 @@
 **
 **************************************************************************/
 
+#pragma once
+
 #include "controlmethod.hpp"
 #include "adicontroller_global.hpp"
 #include <memory>
+
+namespace adcontrols { class ControlMethod; }
 
 namespace adicontroller {
     
@@ -49,17 +53,13 @@ namespace adicontroller {
         };
 
 #if defined _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4251)
-        //class Session;
-        //ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < Session > ;
+        class Session;
+        ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < Session > ;
 #endif
         
         class ADICONTROLLERSHARED_EXPORT Session : public std::enable_shared_from_this < Session > {
 
-#if defined _MSC_VER
-# pragma warning(pop)
-#endif
+            virtual void * _narrow_workaround( const char * type_name ) { return 0; }
 
         public:
 
@@ -67,6 +67,14 @@ namespace adicontroller {
             virtual ~Session();
 
             virtual std::shared_ptr< Session > pThis() { return shared_from_this(); }
+
+            template<typename T> T* _narrow() {
+                T* p( 0 );
+                try { p = dynamic_cast<T*>( this ); } catch ( ... ) { /* ignore */ }
+                if ( !p )
+                    p = reinterpret_cast <T*>( _narrow_workaround( typeid( T ).name() ) );
+                return p;
+            }
 
             virtual std::string software_revision() const = 0;  // ex. L"1.216"
 
@@ -84,8 +92,9 @@ namespace adicontroller {
             virtual bool shutdown() = 0;  // shutdown server
             virtual bool echo( const std::string& msg ) = 0;
             virtual bool shell( const std::string& cmdline ) = 0;
-            virtual ControlMethod::Method getControlMethod() = 0;
-            virtual bool prepare_for_run( const ControlMethod::Method& m ) = 0;
+
+            virtual std::shared_ptr< const adcontrols::ControlMethod > getControlMethod() = 0;
+            virtual bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod > m ) = 0;
     
             virtual bool event_out( uint32_t event ) = 0;
             virtual bool start_run() = 0;

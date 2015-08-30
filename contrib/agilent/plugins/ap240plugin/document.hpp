@@ -36,6 +36,7 @@ namespace adextension { class iSequenceImpl; }
 namespace ap240 {
 
     class digitizer;
+    class iControllerImpl;
 	class method;
 	class waveform;
     class threshold_method;
@@ -85,7 +86,7 @@ namespace ap240 {
         size_t unprocessed_trigger_counts() const;
 
         adextension::iSequenceImpl * iSequence();
-        //iControllerImpl * iController();
+        ap240::iControllerImpl * iController();
 
         static bool load( const QString& filename, ap240::method& );
         static bool save( const QString& filename, const ap240::method& );

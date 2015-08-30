@@ -28,6 +28,7 @@
 #include "ap240mode.hpp"
 #include "mainwindow.hpp"
 #include "document.hpp"
+#include "icontrollerimpl.hpp"
 #include <ap240spectrometer/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -68,6 +69,9 @@ ap240Plugin::~ap240Plugin()
 
     if ( auto iExtension = document::instance()->iSequence() )
         removeObject( iExtension );
+
+    if ( auto iExtension = document::instance()->iController() )
+        removeObject( iExtension );
 }
 
 bool
@@ -90,6 +94,10 @@ ap240Plugin::initialize( const QStringList &arguments, QString *errorString )
 
     if ( auto iExtension = document::instance()->iSequence() ) {
         mainWindow_->editor_factories( *iExtension );
+        addObject( iExtension );
+    }
+    
+    if ( auto iExtension = document::instance()->iController() ) {
         addObject( iExtension );
     }
 
