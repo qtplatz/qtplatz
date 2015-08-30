@@ -51,12 +51,12 @@ namespace adcontrols {
         public:
             MethodItem();
             MethodItem( const MethodItem& );
-            MethodItem( const std::string& model, uint32_t unitnumber = 0, uint32_t funcid = 0 );
+            MethodItem( const std::string& model, uint32_t unitnumber = 1, uint32_t funcid = 0 );
             
             // An analytical instrument is consisted from serveral independent modules
             // such as autosampler, solvent delivery system, 2 units of (same models of) UV detector
             // and so on.  Each module can be indentified by a pair of modelname and unitnumber that 
-            // is counted from zero (zero is default number).
+            // is counted from one (zero is reserved for internal use).
 
             const std::string& modelname() const;
             void setModelname( const char * );
@@ -168,6 +168,12 @@ namespace adcontrols {
         const idAudit& ident() const;
         void sort();
         void clear();
+
+        /*
+        * find first item of specified modelname,unitnumer.  Ignore unitnumber if -1 was provided
+        */
+        iterator find( iterator first, iterator last, const char * modelname, int unitnumber = ( -1 ) );
+        const_iterator find( const_iterator first, const_iterator last, const char * modelname, int unitnumber = ( -1 ) ) const;
 
         static bool archive( std::ostream&, const ControlMethod& );
         static bool restore( std::istream&, ControlMethod& );
