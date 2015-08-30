@@ -35,7 +35,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <compiler/disable_dll_interface.h>
+#include <functional>
 
 namespace boost { namespace serialization { class access; } }
 
@@ -49,7 +49,7 @@ namespace adcontrols {
         public:
             MethodItem();
             MethodItem( const MethodItem& );
-            MethodItem( const std::string& model, uint32_t unitnumber, uint32_t funcid = 0 );
+            MethodItem( const std::string& model, uint32_t unitnumber = 0, uint32_t funcid = 0 );
             
             // An analytical instrument is consisted from serveral independent modules
             // such as autosampler, solvent delivery system, 2 units of (same models of) UV detector
@@ -81,7 +81,28 @@ namespace adcontrols {
             const std::string& description() const;
             void setDescription( const char * );
 
+            template< typename T > static bool set( MethodItem& mi, const T& t
+                                                    , std::function<bool( std::ostream&, const T& )> serialize = T::archive) {
+                std::ostringstream o;
+                if ( serialize( o, t ) ) {
+                    mi.data( o.str().data(), o.str().size() );
+                    return true;
+                }
+                return false;
+            }
+
+            template< typename T > static bool get( const MethodItem& mi, T& t
+                                                    , std::function<bool( std::istream&, T& )> deserialize = T::restore ) {
+                std::istringstream i( std::string( mi.data(), mi.size() ) );
+                return deserialize( i, t );
+            }
+            
         private:
+
+#if defined _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4251 )
+#endif
             std::string modelname_;
             uint32_t unitnumber_;
             bool isInitialCondition_;
@@ -90,6 +111,9 @@ namespace adcontrols {
             std::string label_;
             std::string data_;             // serialized data
             std::string description_;      // utf8
+#if defined _MSC_VER
+# pragma warning( pop )
+#endif            
         private:
             friend class boost::serialization::access;
             template<class Archive>
@@ -150,7 +174,14 @@ namespace adcontrols {
 
     private:
         class impl;
+#if defined _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4251 )
+#endif
         std::unique_ptr< impl > impl_;
+#if defined _MSC_VER
+# pragma warning( pop )
+#endif
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int );
     };

@@ -27,7 +27,10 @@
 #include <atlbase.h>
 #include <atlcom.h>
 #include <comdef.h>
+#pragma warning(push)
+#pragma warning(disable:4192)
 #import <msxml6.dll> named_guids
+#pragma warning(pop)
 #include <fstream>
 #include <QCoreApplication>
 #include <QMessageBox>

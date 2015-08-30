@@ -361,8 +361,8 @@ document::load( const QString& filename, adcontrols::ControlMethod& m )
                     file.fetch( m );
                 }
                 catch ( std::exception& ex ) {
-                    QMessageBox::information( 0, "acquire -- Open default process method"
-                                              , (boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
+                    QMessageBox::information( 0, "acquire -- Open default control method"
+                                              , (boost::format( "Failed to open file: %1% by reason of %2% @ %3% #%4%" )
                                                  % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
                     return false;
                 }

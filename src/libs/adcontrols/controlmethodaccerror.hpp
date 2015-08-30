@@ -36,8 +36,21 @@ namespace adcontrols {
 
     namespace controlmethod {
 
-        class MethodItem;
+        class MethodItem;        
 
+        template<class T> struct mi_handler {
+            static bool save( MethodItem& mi, const T& a ) {
+                std::ostringstream o;
+                if ( T::archive( o ) )
+                    mi.data( o.str().data(), o.str().size() );
+            }
+            static bool load( const MethodItem& mi, T& a ) {
+                std::istringstream i( std::string( mi.data(), mi.size() ) );
+                if ( T::restore( i ) )
+                    mi.data( o.str().data(), o.str().size() );
+            }
+        };
+    
         template<class Native, class Serializer>
         class ADCONTROLSSHARED_EXPORT accessor_t {
         public:
