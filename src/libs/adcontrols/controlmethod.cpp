@@ -395,3 +395,26 @@ ControlMethod::xml_restore( std::wistream& is, ControlMethod& t )
     return internal::xmlSerializer("ControlMethod").restore( is, t );
 }
 
+ControlMethod::iterator
+ControlMethod::find( iterator first, iterator last, const char * modelname, int unitnumber )
+{
+    if ( unitnumber <= 0 ) {
+        return std::find_if( first, last, [=]( const controlmethod::MethodItem& a ){ return a.modelname() == modelname; });
+    } else {
+        return std::find_if( first, last, [=]( const controlmethod::MethodItem& a ){
+                return a.modelname() == modelname && a.unitnumber() == unitnumber;
+            });
+    }
+}
+
+ControlMethod::const_iterator
+ControlMethod::find( const_iterator first, const_iterator last, const char * modelname, int unitnumber ) const
+{
+    if ( unitnumber <= 0 ) {
+        return std::find_if( first, last, [=]( const controlmethod::MethodItem& a ){ return a.modelname() == modelname; });
+    } else {
+        return std::find_if( first, last, [=]( const controlmethod::MethodItem& a ){
+                return a.modelname() == modelname && a.unitnumber() == unitnumber;
+            });
+    }
+}
