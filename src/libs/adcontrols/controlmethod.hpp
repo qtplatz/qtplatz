@@ -32,10 +32,12 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
+#include <functional>
 #include <memory>
 #include <string>
+#include <sstream>
 #include <vector>
-#include <functional>
+
 
 namespace boost { namespace serialization { class access; } }
 
