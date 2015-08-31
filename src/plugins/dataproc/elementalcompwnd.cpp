@@ -240,17 +240,17 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
     std::vector< std::pair< std::string, double > > formula_abundances;
 
     for ( auto& mol : m.molecules().data() ) {
-        if ( mol.enable ) {
-            if ( !mol.adducts.empty() ) {
+        if ( mol.enable() ) {
+            if ( !std::string( mol.adducts() ).empty() ) {
                 std::vector< std::string > alist;
-                auto v = adcontrols::ChemicalFormula::standardFormulae( mol.formula, mol.adducts, alist );
+                auto v = adcontrols::ChemicalFormula::standardFormulae( mol.formula(), mol.adducts(), alist );
                 for ( size_t i = 0; i < v.size(); ++i ) {
-                    formula_abundances.push_back( std::make_pair( v[ i ], mol.abundance ) );
-                    display_formulae.push_back( mol.formula + alist[ i ] );
+                    formula_abundances.push_back( std::make_pair( v[ i ], mol.abundance() ) );
+                    display_formulae.push_back( mol.formula() + alist[ i ] );
                 }
             } else {
-                formula_abundances.push_back( std::make_pair( mol.formula, mol.abundance ) );
-                display_formulae.push_back( mol.formula );
+                formula_abundances.push_back( std::make_pair( mol.formula(), mol.abundance() ) );
+                display_formulae.push_back( mol.formula() );
             }
         }
     }

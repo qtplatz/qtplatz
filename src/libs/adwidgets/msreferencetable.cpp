@@ -308,7 +308,7 @@ MSReferenceTable::handlePaste()
             model_->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
 
             for ( auto& mol : molecules.data() ) {
-                adcontrols::MSReference ref( mol.formula.c_str(), true, mol.adducts.c_str(), mol.enable, 0.0, 1, mol.description.c_str() );
+                adcontrols::MSReference ref( mol.formula().c_str(), true, mol.adducts().c_str(), mol.enable(), 0.0, 1, mol.description().c_str() );
                 addReference( ref, row++ );
             }
         }

@@ -96,8 +96,8 @@ namespace adcontrols {
                 pchr_->addDescription(
                     adcontrols::description( L"Create"
                                                  , ( boost::wformat( L"%s %.4f (W:%.4gmDa) #%d" )
-                                                 % adportable::utf::to_wstring( target.formula )
-                                                 % target.mass
+                                                 % adportable::utf::to_wstring( target.formula() )
+                                                 % target.mass()
                                                  % ( width * 1000 )
                                                  % fcn_
                                                  ).str() ) );
@@ -354,12 +354,12 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontr
 
         for ( auto& m : cm.molecules().data() ) {
 
-            if ( ! m.enable )
+            if ( ! m.enable() )
                 continue;
 
-            double width = cm.width_at_mass( m.mass ); // cm.width( cm.widthMethod() );
-            double lMass = m.mass - width / 2;
-            double uMass = m.mass + width / 2;
+            double width = cm.width_at_mass( m.mass() ); // cm.width( cm.widthMethod() );
+            double lMass = m.mass() - width / 2;
+            double uMass = m.mass() + width / 2;
 
             if ( fms.getMass( 0 ) <= lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
                 double y( 0 );
@@ -470,9 +470,9 @@ MSChromatogramExtractor::impl::prepare_mslock( const adcontrols::MSChromatogramM
     
     if ( cm.lockmass() ) {
         for ( auto& target : cm.molecules().data() ) {
-            if ( target.flags ) {
-                double exactmass = adcontrols::ChemicalFormula().getMonoIsotopicMass( target.formula );
-                msrefs_.push_back( std::make_pair( target.formula, exactmass ) );
+            if ( target.flags() ) {
+                double exactmass = adcontrols::ChemicalFormula().getMonoIsotopicMass( target.formula() );
+                msrefs_.push_back( std::make_pair( target.formula(), exactmass ) );
             }
         }
 

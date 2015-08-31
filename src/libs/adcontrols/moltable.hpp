@@ -33,37 +33,59 @@ namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
-#if defined _MSC_VER
-    // ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::basic_string < char > ;
-    // ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::basic_string < wchar_t > ;
-#endif
-
     class ADCONTROLSSHARED_EXPORT moltable {
     public:
         enum molflags { isMSRef = 0x80000000 };
 
-        struct ADCONTROLSSHARED_EXPORT value_type {
-            bool enable;
-            uint32_t flags;
-            double mass;
-            double abundance;
-            std::string formula;
-            std::string adducts;
-            std::string synonym;
-            std::string smiles;
-            std::wstring description;
+        class ADCONTROLSSHARED_EXPORT value_type {
+            bool enable_;
+            uint32_t flags_;
+            double mass_;
+            double abundance_;
+#if defined _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
+            std::string formula_;
+            std::string adducts_;
+            std::string synonym_;
+            std::string smiles_;
+            std::wstring description_;
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
+        public:
+            bool& enable() { return enable_; }
+            uint32_t& flags() { return flags_; }
+            double& mass() { return mass_; }
+            double& abundance() { return abundance_; }
+            std::string& formula() { return formula_; }
+            std::string& adducts() { return adducts_; }
+            std::string& synonym() { return synonym_; }
+            std::string& smiles() { return smiles_; }
+            std::wstring& description() { return description_; }
+            bool enable() const { return enable_; }
+            uint32_t flags() const { return flags_; }
+            double mass() const { return mass_; }
+            double abundance() const { return abundance_; }
+            const char * formula() const { return formula_.c_str(); }
+            const char * adducts() const { return adducts_.c_str(); }
+            const char * synonym() const { return synonym_.c_str(); }
+            const char * smiles() const { return smiles_.c_str(); }
+            const wchar_t * description() const { return description_.c_str(); }
+
             
-            value_type() : enable( true ), flags(0), mass( 0 ), abundance( 1.0 ) {}
+            value_type() : enable_( true ), flags_(0), mass_( 0 ), abundance_( 1.0 ) {}
             
-            value_type( const value_type& t ) : enable( t.enable )
-                , flags( t.flags )
-                , mass( t.mass )
-                , abundance( t.abundance )
-                , formula( t.formula )
-                , adducts( t.adducts )
-                , synonym( t.synonym )
-                , smiles( t.smiles )
-                , description( t.description ) {
+            value_type( const value_type& t ) : enable_( t.enable_ )
+                , flags_( t.flags_ )
+                , mass_( t.mass_ )
+                , abundance_( t.abundance_ )
+                , formula_( t.formula_ )
+                , adducts_( t.adducts_ )
+                , synonym_( t.synonym_ )
+                , smiles_( t.smiles_ )
+                , description_( t.description_ ) {
             }
             bool isMSRef() const;
             void setIsMSRef( bool on );

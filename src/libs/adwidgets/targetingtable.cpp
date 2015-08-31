@@ -189,15 +189,15 @@ TargetingTable::setContents( const adcontrols::TargetingMethod& method )
     int row = 0;
     for ( auto& formula : method.molecules().data() ) {
 
-        model.setData( model.index( row, c_formula ), QString::fromStdString( formula.formula ) );
+        model.setData( model.index( row, c_formula ), QString::fromStdString( formula.formula() ) );
         if ( auto item = model.item( row, c_formula ) ) {
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             item->setEditable( true );
-            model.setData( model.index( row, c_formula ), formula.enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            model.setData( model.index( row, c_formula ), formula.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
-        model.setData( model.index( row, c_description ), QString::fromStdWString( formula.description ) );
+        model.setData( model.index( row, c_description ), QString::fromStdWString( formula.description() ) );
 
-        double exactMass = cformula.getMonoIsotopicMass( formula.formula );
+        double exactMass = cformula.getMonoIsotopicMass( formula.formula() );
         model_->setData( model_->index( row, c_mass ), exactMass );
         ++row;
     }
@@ -217,11 +217,11 @@ TargetingTable::getContents( adcontrols::TargetingMethod& method )
     for ( int row = 0; row < model.rowCount(); ++row ) {
 
         adcontrols::moltable::value_type value;
-        value.formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
-        value.enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-        value.description = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
+        value.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
+        value.enable() = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
+        value.description() = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
 
-        if ( !value.formula.empty() )
+        if ( !value.formula().empty() )
             method.molecules() << value;
     }
 }
@@ -241,17 +241,17 @@ TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
     int row = 0;
     for ( auto& value : m.molecules().data() ) {
 
-        model.setData( model.index( row, c_formula ), QString::fromStdString( value.formula ) );
+        model.setData( model.index( row, c_formula ), QString::fromStdString( value.formula() ) );
         if ( auto item = model.item( row, c_formula ) ) {
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             item->setEditable( true );
-            model.setData( model.index( row, c_formula ), value.enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            model.setData( model.index( row, c_formula ), value.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
 
-        if ( value.mass < 0.7 )
-            model.setData( model.index( row, c_mass ), cformula.getMonoIsotopicMass( value.formula ) );
+        if ( value.mass() < 0.7 )
+            model.setData( model.index( row, c_mass ), cformula.getMonoIsotopicMass( value.formula() ) );
         else
-            model.setData( model.index( row, c_mass ), value.mass );
+            model.setData( model.index( row, c_mass ), value.mass() );
 
         model.item( row, c_mass )->setEditable( true );
 
@@ -262,7 +262,7 @@ TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
             model.setData( model.index( row, c_msref ), value.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
         
-        model.setData( model.index( row, c_description ), QString::fromStdWString( value.description ) );
+        model.setData( model.index( row, c_description ), QString::fromStdWString( value.description() ) );
         model.item( row, c_description )->setEditable( true );
 
         ++row;
@@ -282,13 +282,13 @@ TargetingTable::getContents( adcontrols::MSChromatogramMethod& m )
     for ( int row = 0; row < model.rowCount(); ++row ) {
         adcontrols::moltable::value_type mol;
 
-        mol.formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
-        mol.enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-        mol.description = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
-        mol.mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+        mol.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
+        mol.enable() = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
+        mol.description() = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
+        mol.mass() = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
         mol.setIsMSRef( model.index( row, c_msref ).data( Qt::CheckStateRole ).toBool() );
 
-        if ( !mol.formula.empty() )
+        if ( !mol.formula().empty() )
             molecules << mol;
     }
     m.setMolecules( molecules );

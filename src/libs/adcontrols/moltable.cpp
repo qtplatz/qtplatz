@@ -40,15 +40,15 @@ namespace boost {
 
         template <class Archive >
         void serialize( Archive& ar, moltable::value_type& p, const unsigned int ) {
-            ar & BOOST_SERIALIZATION_NVP( p.enable );
-            ar & BOOST_SERIALIZATION_NVP( p.flags );
-            ar & BOOST_SERIALIZATION_NVP( p.mass );
-            ar & BOOST_SERIALIZATION_NVP( p.abundance );
-            ar & BOOST_SERIALIZATION_NVP( p.formula );
-            ar & BOOST_SERIALIZATION_NVP( p.adducts );
-            ar & BOOST_SERIALIZATION_NVP( p.synonym );
-            ar & BOOST_SERIALIZATION_NVP( p.smiles );
-            ar & BOOST_SERIALIZATION_NVP( p.description );
+            ar & BOOST_SERIALIZATION_NVP( p.enable() );
+            ar & BOOST_SERIALIZATION_NVP( p.flags() );
+            ar & BOOST_SERIALIZATION_NVP( p.mass() );
+            ar & BOOST_SERIALIZATION_NVP( p.abundance() );
+            ar & BOOST_SERIALIZATION_NVP( p.formula() );
+            ar & BOOST_SERIALIZATION_NVP( p.adducts() );
+            ar & BOOST_SERIALIZATION_NVP( p.synonym() );
+            ar & BOOST_SERIALIZATION_NVP( p.smiles() );
+            ar & BOOST_SERIALIZATION_NVP( p.description() );
         }
     }
 }
@@ -107,14 +107,14 @@ using namespace adcontrols;
 bool
 moltable::value_type::isMSRef() const
 {
-    return ( flags & moltable::isMSRef ) == moltable::isMSRef;
+    return ( flags_ & moltable::isMSRef ) == moltable::isMSRef;
 }
 
 void
 moltable::value_type::setIsMSRef( bool on )
 {
     //flags = on ? flags & moltable::isMSRef : flags & ~moltable::isMSRef;
-    flags = on ? moltable::isMSRef : 0;
+    flags_ = on ? moltable::isMSRef : 0;
 }
 
 

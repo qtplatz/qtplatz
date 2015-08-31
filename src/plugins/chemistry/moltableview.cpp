@@ -246,13 +246,13 @@ MolTableView::handleCopyToClipboard()
                 int col = prev.column();
                 auto cname = query->column_name( col );
                 if ( cname == "formula" ) {
-                    mol.formula = prev.data( Qt::EditRole ).toString().toStdString();
+                    mol.formula() = prev.data( Qt::EditRole ).toString().toStdString();
                 } else if ( cname == "synonym" ) {
-                    mol.synonym = prev.data( Qt::EditRole ).toString().toStdString();
+                    mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString();
                 } else if ( cname == "smiles" ) {
-                    mol.smiles = prev.data( Qt::EditRole ).toString().toStdString();
+                    mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString();
                 } else if ( cname == "mass" ) {
-                    mol.mass = prev.data( Qt::EditRole ).toDouble();
+                    mol.mass() = prev.data( Qt::EditRole ).toDouble();
                 }
             }
             

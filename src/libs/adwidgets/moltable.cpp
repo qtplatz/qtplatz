@@ -330,15 +330,15 @@ MolTable::setContents( const adcontrols::moltable& mols )
     for ( auto& mol : mols.data() ) {
         
         impl_->setData( *this, row
-                        , QString::fromStdString( mol.formula )
-                        , QString::fromStdString( mol.adducts )                       
-                        , QString::fromStdString( mol.smiles )
+                        , QString::fromStdString( mol.formula() )
+                        , QString::fromStdString( mol.adducts() )                       
+                        , QString::fromStdString( mol.smiles() )
                         , QByteArray()
-                        , QString::fromStdString( mol.synonym )
-                        , QString::fromStdWString( mol.description )
-                        , mol.mass
-                        , mol.abundance
-                        , mol.enable
+                        , QString::fromStdString( mol.synonym() )
+                        , QString::fromStdWString( mol.description() )
+                        , mol.mass()
+                        , mol.abundance()
+                        , mol.enable()
                         , mol.isMSRef() );
         ++row;
     }
@@ -356,17 +356,17 @@ MolTable::getContents( adcontrols::moltable& m )
     for ( int row = 0; row < model.rowCount(); ++row ) {
         adcontrols::moltable::value_type mol;
 
-        mol.formula = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
+        mol.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
 
-        if ( !mol.formula.empty() ) {
+        if ( !mol.formula().empty() ) {
             
-            mol.enable = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-            mol.adducts = model.index( row, c_adducts ).data( Qt::EditRole ).toString().toStdString();
-            mol.description = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
-            mol.mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
-            mol.abundance = model.index( row, c_abundance ).data( Qt::EditRole ).toDouble();
-            mol.synonym = model.index( row, c_synonym ).data( Qt::EditRole ).toString().toStdString();
-            mol.smiles = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
+            mol.enable() = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
+            mol.adducts() = model.index( row, c_adducts ).data( Qt::EditRole ).toString().toStdString();
+            mol.description() = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
+            mol.mass() = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+            mol.abundance() = model.index( row, c_abundance ).data( Qt::EditRole ).toDouble();
+            mol.synonym() = model.index( row, c_synonym ).data( Qt::EditRole ).toString().toStdString();
+            mol.smiles() = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
             mol.setIsMSRef( model.index( row, c_msref ).data( Qt::CheckStateRole ).toBool() );
 
             m << mol;
@@ -589,13 +589,13 @@ MolTable::handleCopyToClipboard()
             }
 
             switch( prev.column() ) {
-            case MolTable::c_formula: mol.formula = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_adducts: mol.adducts = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_mass: mol.mass = prev.data( Qt::EditRole ).toDouble(); break;
-            case MolTable::c_abundance: mol.abundance = prev.data( Qt::EditRole ).toDouble(); break;                
-            case MolTable::c_synonym: mol.synonym = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_description: mol.description = prev.data( Qt::EditRole ).toString().toStdWString(); break;
-            case MolTable::c_smiles: mol.smiles = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_formula: mol.formula() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_adducts: mol.adducts() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_mass: mol.mass() = prev.data( Qt::EditRole ).toDouble(); break;
+            case MolTable::c_abundance: mol.abundance() = prev.data( Qt::EditRole ).toDouble(); break;                
+            case MolTable::c_synonym: mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_description: mol.description() = prev.data( Qt::EditRole ).toString().toStdWString(); break;
+            case MolTable::c_smiles: mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString(); break;
             }
             
             if ( index.row() != prev.row() ) {
@@ -644,15 +644,15 @@ MolTable::handlePaste()
             for ( auto& mol : molecules.data() ) {
 
                 impl_->setData( *this, row
-                               , QString::fromStdString( mol.formula )
-                               , QString::fromStdString( mol.adducts )
-                               , QString::fromStdString( mol.smiles )
+                               , QString::fromStdString( mol.formula() )
+                               , QString::fromStdString( mol.adducts() )
+                               , QString::fromStdString( mol.smiles() )
                                , QByteArray()
-                               , QString::fromStdString( mol.synonym )
-                               , QString::fromStdWString( mol.description )
-                               , mol.mass
-                               , mol.abundance
-                               , mol.enable );
+                               , QString::fromStdString( mol.synonym() )
+                               , QString::fromStdWString( mol.description() )
+                               , mol.mass()
+                               , mol.abundance()
+                               , mol.enable() );
                 ++row;
             }
             resizeRowsToContents();

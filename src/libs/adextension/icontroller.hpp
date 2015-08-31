@@ -55,7 +55,7 @@ namespace adextension {
         
     signals:
         void onControlMethodChanged();
-        void connected();
+        void connected( iController * self );
 
     public slots:
 

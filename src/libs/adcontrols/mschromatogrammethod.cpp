@@ -100,10 +100,10 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( tolerance_ );
                     for ( auto& f: formulae ) {
                         moltable::value_type mol;
-                        mol.enable = f.enable;
+                        mol.enable() = f.enable;
                         mol.setIsMSRef( f.msref );
-                        mol.formula = f.formula;
-                        mol.description = f.memo;
+                        mol.formula() = f.formula;
+                        mol.description() = f.memo;
                         molecules_ << mol;
                     }
                         
