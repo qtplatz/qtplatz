@@ -295,6 +295,27 @@ namespace adicontroller {
             return 0;
         }
 
+        Observer *
+        Observer::findObserver( const boost::uuids::uuid& uuid, bool recursive )
+        {
+            std::lock_guard< std::mutex > lock( impl_->mutex_ );            
+
+            auto it = std::find_if( impl_->siblings_.begin(), impl_->siblings_.end(), [uuid]( const std::shared_ptr< Observer >& p ){
+                    return p->uuid() == uuid; });
+
+            if ( it != impl_->siblings_.end() )
+                return it->get();
+
+            if ( recursive ) {
+                for ( auto& sibling: impl_->siblings_ ) {
+                    if ( auto p = sibling->findObserver( uuid, recursive ) )
+                        return p;
+                }
+            }
+            
+            return 0;
+        }
+
         bool
         Observer::readCalibration( int32_t idx, octet_array& serialized, std::string& dataClass ) const
         {
@@ -317,8 +338,8 @@ namespace adicontroller {
         boost::uuids::uuid&
         Observer::base_uuid()
         {
-            static boost::uuids::uuid uuidx;
-            return uuidx; // boost::uuids::string_generator()( "{6AE63365-1A4D-4504-B0CD-38AE86309F83}" );
+            static boost::uuids::uuid uuidx = boost::uuids::string_generator()( "{6AE63365-1A4D-4504-B0CD-38AE86309F83}" );
+            return uuidx; // 
         }
         
     };

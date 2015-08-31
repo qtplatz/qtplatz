@@ -29,6 +29,8 @@
 #include <mutex>
 #include <condition_variable>
 
+namespace adicontroller { namespace Instrument { class Session; } }
+
 namespace ap240 {
 
     class iControllerImpl : public adextension::iController {
@@ -39,6 +41,8 @@ namespace ap240 {
         bool connect() override;
         bool wait_for_connection_ready() override;
         bool preparing_for_run( adcontrols::ControlMethod::Method& ) override;
+        adicontroller::Instrument::Session * getInstrumentSession() override;
+
         QString module_name() const override { return "ap240"; }
         int module_number() const override { return 1; }            
         

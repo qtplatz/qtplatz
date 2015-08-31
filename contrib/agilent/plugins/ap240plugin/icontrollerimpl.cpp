@@ -111,3 +111,9 @@ iControllerImpl::preparing_for_run( adcontrols::ControlMethod::Method& cm )
 {
     return false;
 }
+
+adicontroller::Instrument::Session *
+iControllerImpl::getInstrumentSession()
+{
+    return 0;
+}

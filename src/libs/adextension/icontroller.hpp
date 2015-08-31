@@ -32,6 +32,8 @@ namespace adcontrols {
     namespace ControlMethod { class Method; }
 }
 
+namespace adicontroller { namespace Instrument { class Session; } }
+
 namespace adextension {
 
     class ADEXTENSIONSHARED_EXPORT iController : public QObject {
@@ -42,6 +44,7 @@ namespace adextension {
         virtual bool connect() = 0;
         virtual bool wait_for_connection_ready() = 0;
         virtual bool preparing_for_run( adcontrols::ControlMethod::Method& ) = 0;
+        virtual adicontroller::Instrument::Session * getInstrumentSession() = 0; // can be nullptr
 
         /* module_name identify the instrument/peripheral model name
          * which match up with the name on control method item filed

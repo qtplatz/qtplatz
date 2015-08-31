@@ -39,10 +39,12 @@ namespace adicontroller {
 
         class DataReadBuffer;
         class Observer;
+        class ObserverEvents;
 
 #if defined _MSC_VER
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < DataReadBuffer > ;
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < Observer > ;
+        ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < ObserverEvents > ;
 #endif
         // typedef std::vector < uint8_t > octet_array;
 
@@ -174,7 +176,7 @@ namespace adicontroller {
             octet_array xmeta_;
         };
     
-        class ADICONTROLLERSHARED_EXPORT ObserverEvents {
+        class ADICONTROLLERSHARED_EXPORT ObserverEvents : public std::enable_shared_from_this< ObserverEvents > {
         public:
             // Master observer tells you if new device is up or down
             void OnConfigChanged( uint32_t objId, eConfigStatus status );
@@ -187,16 +189,19 @@ namespace adicontroller {
 
             // well known event at data number 'pos'
             void OnEvent( uint32_t objId, uint32_t event, long pos );
+
+            // new c++ based interface, equivalent to OnUpdateData
+            virtual void onDataChanged( Observer *, uint32_t pos ) = 0;
         };
 
         class ADICONTROLLERSHARED_EXPORT Observer : public std::enable_shared_from_this< Observer > {
             class impl;
             impl * impl_;
+        protected:
+            std::mutex& mutex();
         public:
             virtual ~Observer();
             Observer();
-
-            std::mutex& mutex();
 
             static boost::uuids::uuid& base_uuid();
             
@@ -229,6 +234,7 @@ namespace adicontroller {
              */
             virtual bool addSibling( Observer * observer );
             virtual Observer * findObserver( uint32_t objId, bool recursive );
+            virtual Observer * findObserver( const boost::uuids::uuid&, bool recursive );
 
             /** uptime returns micro seconds since start moniring, 
              * this number never reset to zero while running
@@ -259,6 +265,7 @@ namespace adicontroller {
             /** \brief get the process method as serialzied octet stream which stroed in the observer object
              */
             virtual bool processMethod( const std::string& dataClass, octet_array& serialized );
+
         };
     
     };

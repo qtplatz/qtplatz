@@ -66,6 +66,7 @@ namespace adicontroller {
             , SETPTS_UPDATED
             , ACTUAL_UPDATED
             , PROTOCOL_OVERRIDE_ENABLED // it is in tuning mode
+            , CLIENT_ATTACHED
         };
 
         virtual void message( eINSTEVENT msg, uint32_t value ) = 0; // send message to client
