@@ -165,12 +165,9 @@ ap240form::getContents( boost::any& a ) const
         
         ap240::method m;
         get( m );
-        //std::string device;
-        //adportable::serializer< ap240::method >::serialize( m, device );
-        
         adcontrols::ControlMethod::MethodItem item( "ap240" );
         item.setItemLabel( "ap240" );
-        item.set<>( item, m ); // .data( device.data(), device.size() );
+        item.set<>( item, m ); // serialize
         ptr->insert( item );
         
         return true;
@@ -180,13 +177,11 @@ ap240form::getContents( boost::any& a ) const
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
         ap240::method m;
         get( m );
-        //std::string device;
-        //adportable::serializer< ap240::method >::serialize( m, device );
         pi->setModelname( "ap240" );
         pi->setItemLabel( "ap240" );
         pi->unitnumber( 1 );
         pi->funcid( 1 );
-        pi->set<>( *pi, m ); // data( device.data(), device.size() );
+        pi->set<>( *pi, m ); // serialize
         return true;
     }
     return false;
@@ -197,10 +192,10 @@ ap240form::setContents( boost::any& a )
 {
     const adcontrols::ControlMethod::MethodItem * pi(0);
 
-    if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
+    if ( adportable::a_type < std::shared_ptr< const adcontrols::ControlMethod::Method > >::is_a( a ) ) {
         // adcontrols::ControlMethod::Method
         // find first one
-        if ( adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>( a ) ) {
+        if ( auto ptr = boost::any_cast<std::shared_ptr< const adcontrols::ControlMethod::Method>>( a ) ) {
             auto it = ptr->find( ptr->begin(), ptr->end(), "ap240" );
             if ( it != ptr->end() )
                 pi = &( *it );
@@ -219,7 +214,6 @@ ap240form::setContents( boost::any& a )
         ap240::method m;
 		try {
             pi->get<>( *pi, m );
-            // adportable::serializer< ap240::method >::deserialize( m, pi->data(), pi->size() );
             set( m );
 		} catch (boost::exception& ex) {
 			QMessageBox::warning(this, "AP240 Method", QString::fromStdString(boost::diagnostic_information(ex)));
@@ -271,13 +265,17 @@ ap240form::set( const ap240::method& m )
         QSignalBlocker block( form );
         form->set( m );        
     }
+    if ( m.slopes_.size() >= 2 ) {
+        set( 0, m.slopes_[0] );
+        set( 1, m.slopes_[1] );        
+    }
 }
 
 void
 ap240form::get( ap240::method& m ) const
 {
     uint32_t channels( 0 );
-
+    
     if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
         if ( gbox->isChecked() )
             channels |= 1;             
@@ -299,6 +297,11 @@ ap240form::get( ap240::method& m ) const
     for ( auto form : findChildren< ap240VerticalForm * >() ) {
         form->get( m );        
     }
+
+    if ( m.slopes_.size() < 2 )
+        m.slopes_.resize( 2 );
+    get( 0, m.slopes_[ 0 ] );
+    get( 1, m.slopes_[ 1 ] );    
 }
 
 void

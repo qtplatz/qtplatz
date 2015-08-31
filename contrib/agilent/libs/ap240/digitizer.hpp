@@ -199,6 +199,7 @@ namespace ap240 {
         };        
         
         method() : channels_( 0x01 )
+                 , slopes_( 2 )
         { }
         method( const method& t ) : channels_( t.channels_ )
                                   , hor_( t.hor_ )
@@ -206,6 +207,7 @@ namespace ap240 {
                                   , ext_( t.ext_ )
                                   , ch1_( t.ch1_ )
                                   , ch2_( t.ch2_ )
+                                  , slopes_( t.slopes_ )
             { }
         uint32_t channels_;
         horizontal_method hor_;
@@ -213,6 +215,7 @@ namespace ap240 {
         vertical_method ext_;
         vertical_method ch1_;
         vertical_method ch2_;
+        std::vector< threshold_method > slopes_;
 
         static bool archive( std::ostream&, const method& );
         static bool restore( std::istream&, method& );
@@ -230,6 +233,8 @@ namespace ap240 {
             ar & BOOST_SERIALIZATION_NVP( ext_ );
             ar & BOOST_SERIALIZATION_NVP( ch1_ );
             ar & BOOST_SERIALIZATION_NVP( ch2_ );
+            if ( version >= 2 )
+                ar & BOOST_SERIALIZATION_NVP( slopes_ );
         }
     };
 
@@ -360,7 +365,7 @@ namespace ap240 {
 
 }
 
-BOOST_CLASS_VERSION( ap240::method, 1 )
+BOOST_CLASS_VERSION( ap240::method, 2 )
 BOOST_CLASS_VERSION( ap240::threshold_method, 2 )
 BOOST_CLASS_VERSION( ap240::metadata, 1 )
 BOOST_CLASS_VERSION( ap240::identify, 1 )

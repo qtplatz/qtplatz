@@ -104,7 +104,7 @@ findSlopeForm::set( const ap240::threshold_method& m )
 
 
     ui->groupBox->setChecked( m.enable );
-    ui->doubleSpinBox->setValue( m.threshold_level * 1.0e-3 );           // --> mV
+    ui->doubleSpinBox->setValue( m.threshold_level * 1.0e3 );           // --> mV
     ui->doubleSpinBox_resolution->setValue( m.time_resolution * 1.0e9 ); // --> ns
     ui->doubleSpinBox_resp->setValue( m.response_time * 1.0e9 );         // --> ns
 
