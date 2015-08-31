@@ -30,6 +30,7 @@
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <functional>
+#include <iostream>
 #include <vector>
 #include <memory>
 
@@ -105,7 +106,7 @@ namespace ap240 {
         }
     };
 
-	class /* AP240SHARED_EXPORT */ method {
+    class AP240SHARED_EXPORT method {
     public:
         struct trigger_method {
             uint32_t trigClass;
@@ -212,6 +213,11 @@ namespace ap240 {
         vertical_method ext_;
         vertical_method ch1_;
         vertical_method ch2_;
+
+        static bool archive( std::ostream&, const method& );
+        static bool restore( std::istream&, method& );
+        static bool xml_archive( std::wostream&, const method& );
+        static bool xml_restore( std::wistream&, method& );
         
     private:
         friend class boost::serialization::access;

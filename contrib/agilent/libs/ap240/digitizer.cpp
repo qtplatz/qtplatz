@@ -33,9 +33,13 @@
 #include <adportable/serializer.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <workaround/boost/asio.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
 #include <boost/bind.hpp>
@@ -1012,4 +1016,56 @@ double
 waveform::toVolts( double d ) const
 {
     return d * meta_.scaleFactor /  meta_.actualAverages;
+}
+
+namespace ap240 {
+
+    bool method::archive( std::ostream& os, const method& t )
+    {
+        try {
+            portable_binary_oarchive ar( os );
+            ar & t;
+            return true;
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( ex );
+        }
+        return false;
+    }
+
+    bool method::restore( std::istream& is, method& t )
+    {
+        try {
+            portable_binary_iarchive ar( is );
+            ar & t;
+            return true;
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( ex );
+        }
+        return false;
+    }
+
+    bool method::xml_archive( std::wostream& os, const method& t )
+    {
+        try {
+            boost::archive::xml_woarchive ar( os );
+            ar & boost::serialization::make_nvp( "ap240_method", t );
+            return true;
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( ex );
+        }
+        return false;
+    }
+
+    bool method::xml_restore( std::wistream& is, method& t )
+    {
+        try {
+            boost::archive::xml_wiarchive ar( is );
+            ar & boost::serialization::make_nvp( "ap240_method", t );
+            return true;
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( ex );
+        }
+        return false;
+
+    }
 }

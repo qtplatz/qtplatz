@@ -165,34 +165,28 @@ ap240form::getContents( boost::any& a ) const
         
         ap240::method m;
         get( m );
+        //std::string device;
+        //adportable::serializer< ap240::method >::serialize( m, device );
         
-        std::string device;
-        adportable::serializer< ap240::method >::serialize( m, device );
-        
-        adcontrols::ControlMethod::MethodItem item;
-        item.setModelname( "ap240" );
-        item.isInitialCondition( true );
+        adcontrols::ControlMethod::MethodItem item( "ap240" );
         item.setItemLabel( "ap240" );
-        item.unitnumber( 1 );
-        item.funcid( 1 );
-        item.data( device.data(), device.size() );
+        item.set<>( item, m ); // .data( device.data(), device.size() );
         ptr->insert( item );
         
         return true;
         
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
         
-        auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem * >( a );                
+        auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
         ap240::method m;
         get( m );
-        std::string device;
-        adportable::serializer< ap240::method >::serialize( m, device );
-        
+        //std::string device;
+        //adportable::serializer< ap240::method >::serialize( m, device );
         pi->setModelname( "ap240" );
         pi->setItemLabel( "ap240" );
         pi->unitnumber( 1 );
         pi->funcid( 1 );
-        pi->data( device.data(), device.size() );
+        pi->set<>( *pi, m ); // data( device.data(), device.size() );
         return true;
     }
     return false;
@@ -203,7 +197,16 @@ ap240form::setContents( boost::any& a )
 {
     const adcontrols::ControlMethod::MethodItem * pi(0);
 
-    if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
+    if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
+        // adcontrols::ControlMethod::Method
+        // find first one
+        if ( adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>( a ) ) {
+            auto it = ptr->find( ptr->begin(), ptr->end(), "ap240" );
+            if ( it != ptr->end() )
+                pi = &( *it );
+        }
+
+    } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
 
         pi = boost::any_cast<const adcontrols::ControlMethod::MethodItem * >( a );             
 
@@ -215,7 +218,8 @@ ap240form::setContents( boost::any& a )
     if ( pi ) {
         ap240::method m;
 		try {
-            adportable::serializer< ap240::method >::deserialize( m, pi->data(), pi->size() );
+            pi->get<>( *pi, m );
+            // adportable::serializer< ap240::method >::deserialize( m, pi->data(), pi->size() );
             set( m );
 		} catch (boost::exception& ex) {
 			QMessageBox::warning(this, "AP240 Method", QString::fromStdString(boost::diagnostic_information(ex)));
