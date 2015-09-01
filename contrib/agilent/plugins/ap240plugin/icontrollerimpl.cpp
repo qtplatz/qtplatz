@@ -28,11 +28,24 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adicontroller/instrument.hpp>
 #include <adicontroller/receiver.hpp>
+#include <adicontroller/signalobserver.hpp>
 #include <adportable/scoped_debug.hpp>
 #include <adportable/serializer.hpp>
 #include <adicontroller/manager.hpp>
 #include <QLibrary>
 #include <memory>
+
+#if defined _DEBUG || defined DEBUG
+# if defined WIN32
+#  define DEBUG_LIB_TRAIL "d" // xyzd.dll
+# elif defined __MACH__
+#  define DEBUG_LIB_TRAIL "_debug" // xyz_debug.dylib
+# else
+#  define DEBUG_LIB_TRAIL ""        // xyz.so 
+# endif
+#else
+# define DEBUG_LIB_TRAIL ""
+#endif
 
 namespace ap240 {
 
@@ -55,11 +68,32 @@ namespace ap240 {
         }
     };
 
+    class ObserverEventsImpl : public adicontroller::SignalObserver::ObserverEvents {
+    public:
+            
+    protected:
+        // ObserverEvents
+        void OnConfigChanged( uint32_t objId, adicontroller::SignalObserver::eConfigStatus status ) {} // depricated
+
+        void OnUpdateData( uint32_t objId, long pos ) {}                   // depricated
+
+        void OnMethodChanged( uint32_t objId, long pos ) {}                // depricated
+
+        void OnEvent( uint32_t objId, uint32_t event, long pos ) {}        // depricated
+
+        void onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos ) {
+            // task::instance()->onDataChanged( so, pos );
+        }
+    };
+
     class iControllerImpl::impl {
     public:
         std::shared_ptr< adicontroller::Instrument::Session > session_;
         std::shared_ptr< adicontroller::Receiver > receiver_;
+        std::shared_ptr< adicontroller::SignalObserver::Observer > observer_;
+        std::shared_ptr< ObserverEventsImpl > observerEvents_;
     };
+
 }
 
 using namespace ap240;
@@ -85,16 +119,47 @@ iControllerImpl::setInitialized( bool v )
 bool
 iControllerImpl::connect()
 {
-    setInitialized( true );
-    // if ( ( impl_->session_ = session->pThis() ) ) {
-    //     QString xml;
-    //     if ( document::instance()->getMethodXml( xml ) )
-    //         impl_->session_->setConfiguration( xml.toUtf8().toStdString() );
+    typedef adplugin::plugin * ( *factory )( );
+
+    QLibrary lib( QString("ap240controller") + DEBUG_LIB_TRAIL );
+
+    if ( ! lib.isLoaded() )
+        lib.load();
+    
+    if ( lib.isLoaded() ) {
         
-    //     if ( ( impl_->receiver_ = std::make_shared< ReceiverImpl >() ) )
-    //         impl_->session_->connect( impl_->receiver_.get(), "token" );
-    // }
+        if ( factory f = reinterpret_cast<factory>( lib.resolve( "adplugin_plugin_instance" ) ) ) {
+            
+            adplugin::plugin * plugin = f();
+            if ( auto manager = plugin->query_interface< adicontroller::manager >() ) {
+                if ( auto session = manager->session( "ap240::icontrollerimpl" ) ) {
+                    
+                    if ( ( impl_->session_ = session->pThis() ) ) {
+
+                        setInitialized( true );
+
+                        if ( ( impl_->receiver_ = std::make_shared< ReceiverImpl >() ) ) {
+                            
+                            // document::instance()->task_initialize();
+                            
+                            if ( impl_->session_->connect( impl_->receiver_.get(), "ap240::iControllerImpl" ) ) {
+                                emit connected( this );
+                                if ( auto observer = impl_->session_->getObserver() ) {
+                                    if ( impl_->observer_ = observer->shared_from_this() ) {
+                                        impl_->observerEvents_ = std::make_shared< ObserverEventsImpl >();
+                                        impl_->observer_->connect( impl_->observerEvents_.get(), adicontroller::SignalObserver::Realtime, "malpixacquire" );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     return true;
+
 }
 
 bool
