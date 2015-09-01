@@ -130,7 +130,7 @@ CentroidForm::update_data( const adcontrols::CentroidMethod& method )
 		ui->doubleSpinBox_mz->setDisabled( false );
 	}
 
-	ui->doubleSpinBox_baselinewidth->setValue( method.baselineWidth() );
+	//ui->doubleSpinBox_baselinewidth->setValue( method.baselineWidth() );
 
     if ( method.centroidAreaIntensity() )
 		ui->radioButton_area->setChecked( true );
@@ -138,7 +138,7 @@ CentroidForm::update_data( const adcontrols::CentroidMethod& method )
 		ui->radioButton_height->setChecked( true );
 
 	ui->doubleSpinBox_centroidfraction->setValue( method.peakCentroidFraction() * 100 );
-	ui->doubleSpinBox_baselinewidth->setValue( method.baselineWidth() );
+	//ui->doubleSpinBox_baselinewidth->setValue( method.baselineWidth() );
 	using adcontrols::CentroidMethod;
 
 	ui->noiseFilterMethod->setCheckState( method.noiseFilterMethod() == CentroidMethod::eNoFilter ? Qt::Unchecked : Qt::Checked );
@@ -165,7 +165,7 @@ CentroidForm::update_data()
 	else if ( ui->radioButton_tof->isChecked() )
 		method.peakWidthMethod( adcontrols::CentroidMethod::ePeakWidthTOF );
 
-    method.baselineWidth( ui->doubleSpinBox_baselinewidth->value() );
+    //method.baselineWidth( ui->doubleSpinBox_baselinewidth->value() );
 	method.centroidAreaIntensity( ui->radioButton_area->isChecked() );
 	method.peakCentroidFraction( ui->doubleSpinBox_centroidfraction->value() / 100.0 );
 	

@@ -586,16 +586,19 @@ MainWindow::createDockWidgets()
                 }
             }
 
-            // all MSPeakTable variants
-            if ( auto wnd = findChild< MSProcessingWnd *>() ) {
-                connect( pWidget, SIGNAL( currentChanged(int, int) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
-                connect( pWidget, SIGNAL( formulaChanged(int, int) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
-                connect( pWidget, SIGNAL( foliumDataChanged( const QString& ) ), wnd, SLOT( handleFoliumDataChanged( const QString& ) ) );
-                connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int>>& ) ), wnd, SLOT( handleLockMass( const QVector<QPair<int, int>>& ) ) );
+            if ( widget.pageName != "CentroidMethod" ) {
+                // all MSPeakTable variants
 
+                if ( auto wnd = findChild< MSProcessingWnd *>() ) {
+                    connect( pWidget, SIGNAL( currentChanged(int, int) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
+                    connect( pWidget, SIGNAL( formulaChanged(int, int) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
+                    connect( pWidget, SIGNAL( foliumDataChanged( const QString& ) ), wnd, SLOT( handleFoliumDataChanged( const QString& ) ) );
+                    connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int>>& ) ), wnd, SLOT( handleLockMass( const QVector<QPair<int, int>>& ) ) );
+                }
+                connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
+                connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) ), pWidget, SLOT( handleZoomedOnChromatogram( const QRectF& ) ) );
             }
-            connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
-            connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) ), pWidget, SLOT( handleZoomedOnChromatogram( const QRectF& ) ) );
+
             connect( pWidget, SIGNAL( onProcess( const QString& ) ), this, SLOT( handleProcess( const QString& ) ) );
 
             if ( auto p = dynamic_cast< adwidgets::PeptideWidget *>( pWidget ) ) {
