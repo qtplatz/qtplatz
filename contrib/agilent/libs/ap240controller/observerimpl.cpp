@@ -22,49 +22,57 @@
 **
 **************************************************************************/
 
-#include "observer.hpp"
+#include "observerimpl.hpp"
+
+#if defined _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4996)
+#endif
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
 #include <algorithm>
 
 using namespace ap240controller;
     
-apObserver::apObserver() : uuid_( boost::uuids::name_generator( base_uuid() )( "1.ap240.ms-cheminfo.com" ) )
+ObserverImpl::ObserverImpl() : uuid_( boost::uuids::name_generator( base_uuid() )( "1.ap240.ms-cheminfo.com" ) )
 {
     so::Description desc;
     desc.set_trace_method( so::eTRACE_IMAGE_TDC );
     desc.set_spectrometer( so::eMassSpectrometer );
-    desc.set_trace_id( "MALPIX4.TDC" );  // unique name for the trace, can be used as 'data storage name'
-    desc.set_trace_display_name( "MALPIX4 Spectra" );
-    desc.set_axis_label( so::Description::axisX, "X-Pixcels" );
-    desc.set_axis_label( so::Description::axisY, "Y-Pixcels" );
-    desc.set_axis_decimals( so::Description::axisX, 0 );
-    desc.set_axis_decimals( so::Description::axisY, 0 );
+    desc.set_trace_id( "AP240.WAVEFORM" );  // unique name for the trace, can be used as 'data storage name'
+    desc.set_trace_display_name( "AP240 Waveforms" );
+    desc.set_axis_label( so::Description::axisX, "Time" );
+    desc.set_axis_label( so::Description::axisY, "mV" );
+    desc.set_axis_decimals( so::Description::axisX, 3 );
+    desc.set_axis_decimals( so::Description::axisY, 3 );
     setDescription( desc );
 }
 
-apObserver::~apObserver()
+ObserverImpl::~ObserverImpl()
 {
 }
 
 const boost::uuids::uuid&
-apObserver::uuid() const
+ObserverImpl::uuid() const
 {
     return uuid_;
 }
 
 uint64_t 
-apObserver::uptime() const 
+ObserverImpl::uptime() const 
 {
     return 0;
 }
 
 void 
-apObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const 
+ObserverImpl::uptime_range( uint64_t& oldest, uint64_t& newest ) const 
 {
     oldest = newest = 0;
     
-    std::lock_guard< std::mutex > lock( const_cast<apObserver *>( this )->mutex() );
+    std::lock_guard< std::mutex > lock( const_cast<ObserverImpl *>( this )->mutex() );
 
     if ( ! que_.empty() ) {
         oldest = que_.front()->pos();
@@ -74,7 +82,7 @@ apObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const
 }
 
 std::shared_ptr< so::DataReadBuffer >
-apObserver::readData( uint32_t pos )
+ObserverImpl::readData( uint32_t pos )
 {
     std::lock_guard< std::mutex > lock( mutex() );
     
@@ -93,9 +101,9 @@ apObserver::readData( uint32_t pos )
 }
 
 int32_t
-apObserver::posFromTime( uint64_t usec ) const 
+ObserverImpl::posFromTime( uint64_t usec ) const 
 {
-    std::lock_guard< std::mutex > lock( const_cast< apObserver *>(this)->mutex() );
+    std::lock_guard< std::mutex > lock( const_cast< ObserverImpl *>(this)->mutex() );
     
     if ( que_.empty() )
         return false;
@@ -110,7 +118,7 @@ apObserver::posFromTime( uint64_t usec ) const
 
 //
 void
-apObserver::operator << ( std::shared_ptr< so::DataReadBuffer >& t )
+ObserverImpl::operator << ( std::shared_ptr< so::DataReadBuffer >& t )
 {
     std::lock_guard< std::mutex > lock( mutex() );
 

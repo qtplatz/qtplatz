@@ -25,18 +25,18 @@
 #pragma once
 
 #include <adicontroller/signalobserver.hpp>
-#include <boost/uuid/uuid.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include <deque>
 
 namespace ap240controller {
 
     namespace so = adicontroller::SignalObserver;
     
-    class apObserver : public so::Observer {
-        apObserver( const apObserver& ) = delete;
+    class ObserverImpl : public so::Observer {
+        ObserverImpl( const ObserverImpl& ) = delete;
     public:
-        apObserver();
-        virtual ~apObserver();
+        ObserverImpl();
+        virtual ~ObserverImpl();
 
         const boost::uuids::uuid& uuid() const;
         
@@ -48,7 +48,7 @@ namespace ap240controller {
         const char * dataInterpreterClsid() const override { return "ap240.digi"; }
         int32_t posFromTime( uint64_t usec ) const override;
         
-        // apObserver
+        // ObserverImpl
         void operator << ( std::shared_ptr< so::DataReadBuffer >& );
 
     private:

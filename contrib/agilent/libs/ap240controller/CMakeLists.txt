@@ -17,8 +17,8 @@ include_directories(
 
 set( _sources
   ap240controller.cpp
-  apobserver.hpp
-  apobserver.cpp
+  observerimpl.hpp
+  observerimpl.cpp
   masterobserver.hpp
   masterobserver.cpp
   session.hpp
