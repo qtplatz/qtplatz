@@ -27,6 +27,7 @@
 #include "adicontroller_global.hpp"
 #include "constants.hpp"
 #include <memory>
+#include <string>
 
 namespace adcontrols { namespace ControlMethod { class Method; } }
 
