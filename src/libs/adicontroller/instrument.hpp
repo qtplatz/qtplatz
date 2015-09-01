@@ -39,7 +39,7 @@ namespace adicontroller {
     
     namespace Instrument {
         
-        enum eInstStatus {
+        enum eInstStatus : unsigned uint32_t {
             eNothing
             , eNotConnected             //= 0x00000001,  // no instrument := no driver software loaded
             , eOff                      //= 0x00000002,  // software driver can be controled, but hardware is currently off
