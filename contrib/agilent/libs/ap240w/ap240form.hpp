@@ -65,8 +65,8 @@ namespace ap240w {
         void set( int ch, const ap240::threshold_method& );    
 
     signals:
-        void valueChanged( idCategory cat, int ch );
-        void valueChanged( int, const QVariant& );
+        void valueChanged( ap240w::idCategory cat, int ch );
+        // void valueChanged( int, const QVariant& );
     
     private:
         Ui::ap240form *ui;
