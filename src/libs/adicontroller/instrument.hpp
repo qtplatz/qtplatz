@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "controlmethod.hpp"
 #include "adicontroller_global.hpp"
+#include "constants.hpp"
 #include <memory>
 
 namespace adcontrols { namespace ControlMethod { class Method; } }
@@ -39,19 +39,6 @@ namespace adicontroller {
     
     namespace Instrument {
         
-        enum eInstStatus : unsigned uint32_t {
-            eNothing
-            , eNotConnected             //= 0x00000001,  // no instrument := no driver software loaded
-            , eOff                      //= 0x00000002,  // software driver can be controled, but hardware is currently off
-            , eInitializing             //= 0x00000003,  // startup initializing (only at the begining after startup)
-            , eStandBy                  //= 0x00000004,  // instrument is stand by state
-            , ePreparingForRun          //= 0x00000005,  // preparing for next method (parameters being be set value)
-            , eReadyForRun              //= 0x00000006,  // method is in initial state, ready to run (INIT RUN, MS HTV is ready)
-            , eWaitingForContactClosure //= 0x00000007,  //
-            , eRunning                  //= 0x00000008,  // method is in progress
-            , eStop                     //= 0x00000009,  // stop := detector is not monitoring, pump is off
-        };
-
 #if defined _MSC_VER
         class Session;
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < Session > ;

@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include "octet_array.hpp"
+#include "constants.hpp"
 #include "adicontroller_global.hpp"
 
 namespace boost { namespace uuids { struct uuid; } }
@@ -47,55 +48,6 @@ namespace adicontroller {
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < ObserverEvents > ;
 #endif
         // typedef std::vector < uint8_t > octet_array;
-
-        enum wkEvent {
-            wkEvent_Error           = 0x80000000
-            , wkEvent_Warning         = 0x40000000  // instrument is warning state
-            , wkEvent_Marker          = 0x20000000  // wireing to 'marker trigger in'
-            , wkEvent_INJECT          = 0x10000000  // wireing to 'inject trigger in'
-            , wkEvent_MethodStart     = 0x08000000  // wireing to 'method start in'
-            , wkEvent_DataWarning     = 0x04000000  // data waring such as input over range.
-            , wkEvent_DarkInProgress  = 0x02000000  // dark signal acquiring
-            , wkEvent_AcqInProgress   = 0x01000000  // Data storing, INJ trigger disarmed
-            , wkEvent_UserEventsMask  = 0x00ffffff  // wiring to 'event in/out' terminal box
-        };
-
-        enum eTRACE_METHOD {
-            eTRACE_TRACE
-            , eTRACE_SPECTRA
-            , eDIAGNOSTIC  // events, LC flow/pressure profile, column oven temp profile etc.
-            , eTRACE_IMAGE_TDC       // Series of 2-D image frames, in time domain (raw data from TDC array, such as MALPIX)
-            , eTRACE_IMAGE_SPECTRA   // Serial of 2-D (surface giometric) imaging spectra
-            , eTRACE_IMAGE_INTENSITY // Serias of 2-D image frames, in intensity domain, such as total ion count image map
-        };
-
-        enum eSPECTROMETER {
-            eUnknownSpectrometer
-            , eMassSpectrometer
-            , eUVSpectrometer
-            , eCDSpectrometer
-            , eIRSpectrometer
-            , eRamanSpectrometer
-            , eFluorescenceSpectrometer 
-        };
-
-        enum eUpdateFrequency {
-            Realtime
-            , Frequent
-            , Sometimes
-            , HalfFull
-            , WellKnownEventsOnly
-        };
-
-        enum eConfigStatus {
-            Offline
-            , Online
-        };
-
-        struct timeval {
-            uint64_t sec;
-            uint32_t usec;
-        };
 
         struct ADICONTROLLERSHARED_EXPORT Description {
 

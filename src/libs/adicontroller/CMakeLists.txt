@@ -14,8 +14,6 @@ add_definitions(-DADICONTROLLER_LIBRARY)
 add_library( ${PROJECT_NAME} SHARED
   adicontroller.cpp
   adicontroller_global.hpp
-  controlmethod.hpp
-  controlmethod.cpp
   eventlog.hpp
   eventlog.cpp
   instrument.hpp
