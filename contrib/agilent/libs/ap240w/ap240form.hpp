@@ -28,6 +28,7 @@
 #include <QWidget>
 #include <adplugin/lifecycle.hpp>
 #include "ap240w_global.hpp"
+#include "constants.hpp"
 #include <memory>
 
 namespace adcontrols { namespace ControlMethod { class Method; } }
@@ -47,7 +48,6 @@ namespace ap240w {
     public:
         explicit ap240form(QWidget *parent = 0);
         ~ap240form();
-        enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idSlopeTimeConverter };
 
         // LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
@@ -66,6 +66,7 @@ namespace ap240w {
 
     signals:
         void valueChanged( idCategory cat, int ch );
+        void valueChanged( int, const QVariant& );
     
     private:
         Ui::ap240form *ui;

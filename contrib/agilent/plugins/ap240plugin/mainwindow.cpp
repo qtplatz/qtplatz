@@ -107,9 +107,9 @@ MainWindow::createDockWidgets()
 
     createDockWidget( widget, "AP240", "AP240" );
     
-    connect( widget, &ap240w::ap240form::valueChanged, [this] ( ap240w::ap240form::idCategory cat, int ch ) {
+    connect( widget, &ap240w::ap240form::valueChanged, [this] ( ap240w::idCategory cat, int ch ) {
         if ( auto form = findChild< ap240w::ap240form * >() ) {
-            if ( cat == ap240w::ap240form::idSlopeTimeConverter ) {
+            if ( cat == ap240w::idSlopeTimeConverter ) {
                 ap240::threshold_method tm;
                 form->get( ch, tm );
                 document::instance()->set_threshold_method( ch, tm );
