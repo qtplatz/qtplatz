@@ -262,7 +262,6 @@ digitizer::peripheral_terminate()
 bool
 digitizer::peripheral_prepare_for_run( const ap240::method& m )
 {
-    std::cout << "prepare_for_run channels = " << m.channels_;
     if ( task::instance()->inst() != ViSession( -1 ) )
         return task::instance()->prepare_for_run( m );
     return false;

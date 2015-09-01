@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>326</width>
+    <width>301</width>
     <height>160</height>
    </rect>
   </property>
@@ -28,6 +28,9 @@
    </property>
    <item row="0" column="1">
     <layout class="QGridLayout" name="gridLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
      <item row="4" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
@@ -51,36 +54,36 @@
      <item row="4" column="2">
       <widget class="QComboBox" name="comboBox">
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <item>
         <property name="text">
-         <string>0: no bandwidth limit</string>
+         <string>0: no limit</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>1: bandwidth limit at 25MHz</string>
+         <string>1: 25MHz</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>2: bandwidth limit at 700MHz</string>
+         <string>2: 700MHz</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>3: bandwidth limit at 200MHz</string>
+         <string>3: 200MHz</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>4: bandwidth limit at 20MHz</string>
+         <string>4: 20MHz</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>5: bandwidth limit at 35MHz</string>
+         <string>5: 35MHz</string>
         </property>
        </item>
       </widget>

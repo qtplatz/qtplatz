@@ -41,6 +41,7 @@
 #include <adfs/cpio.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/binary_serializer.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
@@ -65,7 +66,6 @@
 #include <chrono>
 #include <deque>
 #include <fstream>
-//#include <list>
 #include <string>
 #include <thread>
 
@@ -583,8 +583,8 @@ document::appendOnFile( const std::wstring& path
 {
     adfs::filesystem fs;
 
-    std::wcout << L"########## document::appendOnFile(" << path << L", " << title << L") id=" << id << std::endl;
-    std::cout << "ms size: " << ms.size() << std::endl;
+    // std::wcout << L"########## document::appendOnFile(" << path << L", " << title << L") id=" << id << std::endl;
+    // std::cout << "ms size: " << ms.size() << std::endl;
     
 	if ( ! boost::filesystem::exists( path ) ) {
 		if ( ! fs.create( path.c_str() ) )
@@ -652,9 +652,8 @@ document::initialSetup()
 void
 document::finalClose()
 {
-    std::cout << "########### document::finalClose ##############" << std::endl;
+    ADDEBUG() << "########### document::finalClose ##############";
     impl_->stop();
-    std::cout << "########### document::finalClose (stop) ##############" << std::endl;
     
     boost::filesystem::path dir = user_preference::path( settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {

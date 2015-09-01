@@ -47,7 +47,7 @@ namespace ap240w {
     public:
         explicit ap240form(QWidget *parent = 0);
         ~ap240form();
-        enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idSlopeTimeConverter }; //, idFindThreshold, idThreshold, idSGFilter };
+        enum idCategory { idHorizontal, idVertical, idTrigger, idChannels, idSlopeTimeConverter };
 
         // LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
