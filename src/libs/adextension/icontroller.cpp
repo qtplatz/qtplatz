@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "icontroller.hpp"
+#include <adicontroller/signalobserver.hpp>
 
 using namespace adextension;
 
@@ -30,3 +31,4 @@ iController::iController(QObject *parent) : QObject(parent)
 {
 }
 
+Q_DECLARE_METATYPE( adicontroller::SignalObserver::Observer * );

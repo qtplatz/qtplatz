@@ -47,73 +47,14 @@
 # define DEBUG_LIB_TRAIL ""
 #endif
 
-namespace ap240 {
-
-    class ReceiverImpl : public adicontroller::Receiver {
-    public:
-            
-        ~ReceiverImpl() {
-        }
-            
-        void message( eINSTEVENT msg, uint32_t value ) override {
-        }
-            
-        void log( const adicontroller::EventLog::LogMessage& log ) override {
-        }
-            
-        void shutdown() override {
-        }
-            
-        void debug_print( uint32_t priority, uint32_t category, const std::string& text ) override {
-        }
-    };
-
-    class ObserverEventsImpl : public adicontroller::SignalObserver::ObserverEvents {
-    public:
-            
-    protected:
-        // ObserverEvents
-        void OnConfigChanged( uint32_t objId, adicontroller::SignalObserver::eConfigStatus status ) {} // depricated
-
-        void OnUpdateData( uint32_t objId, long pos ) {}                   // depricated
-
-        void OnMethodChanged( uint32_t objId, long pos ) {}                // depricated
-
-        void OnEvent( uint32_t objId, uint32_t event, long pos ) {}        // depricated
-
-        void onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos ) {
-            // task::instance()->onDataChanged( so, pos );
-        }
-    };
-
-    class iControllerImpl::impl {
-    public:
-        std::shared_ptr< adicontroller::Instrument::Session > session_;
-        std::shared_ptr< adicontroller::Receiver > receiver_;
-        std::shared_ptr< adicontroller::SignalObserver::Observer > observer_;
-        std::shared_ptr< ObserverEventsImpl > observerEvents_;
-    };
-
-}
-
 using namespace ap240;
 
-iControllerImpl::iControllerImpl() : isInitialized_( false )
-                                   , impl_( new impl() )
+iControllerImpl::iControllerImpl() : adextension::iControllerImpl("ap240")
 {
 }
 
 iControllerImpl::~iControllerImpl()
 {
-    delete impl_;
-}
-
-void
-iControllerImpl::setInitialized( bool v )
-{
-    std::lock_guard< std::mutex > lock( mutex_ );
-    isInitialized_ = v;
-    cv_.notify_all();
 }
 
 bool
@@ -133,52 +74,12 @@ iControllerImpl::connect()
             adplugin::plugin * plugin = f();
             if ( auto manager = plugin->query_interface< adicontroller::manager >() ) {
                 if ( auto session = manager->session( "ap240::icontrollerimpl" ) ) {
-                    
-                    if ( ( impl_->session_ = session->pThis() ) ) {
-
-                        setInitialized( true );
-
-                        if ( ( impl_->receiver_ = std::make_shared< ReceiverImpl >() ) ) {
-                            
-                            // document::instance()->task_initialize();
-                            
-                            if ( impl_->session_->connect( impl_->receiver_.get(), "ap240::iControllerImpl" ) ) {
-                                emit connected( this );
-                                if ( auto observer = impl_->session_->getObserver() ) {
-                                    if ( impl_->observer_ = observer->shared_from_this() ) {
-                                        impl_->observerEvents_ = std::make_shared< ObserverEventsImpl >();
-                                        impl_->observer_->connect( impl_->observerEvents_.get(), adicontroller::SignalObserver::Realtime, "malpixacquire" );
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    adextension::iControllerImpl::connect( session, "ap240::iControllerImpl" );
+                    return true;
                 }
             }
         }
     }
-    
-    return true;
-
-}
-
-bool
-iControllerImpl::wait_for_connection_ready()
-{
-    std::unique_lock< std::mutex > lock( mutex_ );
-    while ( !isInitialized_ )
-        cv_.wait( lock );
-    return isInitialized_;
-}
-
-bool
-iControllerImpl::preparing_for_run( adcontrols::ControlMethod::Method& cm )
-{
     return false;
 }
 
-adicontroller::Instrument::Session *
-iControllerImpl::getInstrumentSession()
-{
-    return 0;
-}

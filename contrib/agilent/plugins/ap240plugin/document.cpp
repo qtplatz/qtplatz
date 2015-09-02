@@ -91,7 +91,7 @@ namespace ap240 {
         std::atomic<size_t> waveform_post_count_;
         std::atomic<uint32_t> worker_data_serialnumber_;
         std::unique_ptr< adextension::iSequenceImpl > iSequenceImpl_;
-        std::unique_ptr< ap240::iControllerImpl > iControllerImpl_;
+        std::shared_ptr< ap240::iControllerImpl > iControllerImpl_;
         
     public:
         static std::atomic< document * > instance_;
@@ -107,7 +107,7 @@ namespace ap240 {
                , waveform_proc_count_( 0 )
                , worker_data_serialnumber_( 0 )
                , iSequenceImpl_( new adextension::iSequenceImpl() )
-               , iControllerImpl_( new ap240::iControllerImpl() ) {
+               , iControllerImpl_( std::make_shared< ap240::iControllerImpl >() ) {
             
             time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
             hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histogram.txt" ).string();

@@ -27,23 +27,34 @@
 #include <QObject>
 #include "adextension_global.hpp"
 #include <functional>
+#include <memory>
 
 namespace adcontrols {
     namespace ControlMethod { class Method; }
 }
 
-namespace adicontroller { namespace Instrument { class Session; } }
+namespace adicontroller {
+    namespace Instrument { class Session; }
+    namespace SignalObserver { class Observer; }
+}
 
 namespace adextension {
-
-    class ADEXTENSIONSHARED_EXPORT iController : public QObject {
+    
+    class ADEXTENSIONSHARED_EXPORT iController : public QObject
+                                               , private std::enable_shared_from_this< iController > {
         Q_OBJECT
     public:
         explicit iController(QObject *parent = 0);
+        std::shared_ptr< iController > pThis() { return shared_from_this(); }
+        std::shared_ptr< const iController > pThis() const { return shared_from_this(); }        
 
         virtual bool connect() = 0;
         virtual bool wait_for_connection_ready() = 0;
-        virtual bool preparing_for_run( adcontrols::ControlMethod::Method& ) = 0;
+        virtual bool preparing_for_run( adcontrols::ControlMethod::Method& ) { return false; } // for backword compat.
+
+        /*
+         * api below is newly defined pure c++ instrument controller interface
+         */
         virtual adicontroller::Instrument::Session * getInstrumentSession() = 0; // can be nullptr
 
         /* module_name identify the instrument/peripheral model name
@@ -59,6 +70,12 @@ namespace adextension {
     signals:
         void onControlMethodChanged();
         void connected( iController * self );
+        void message( iController * self, unsigned int code, unsigned int value );
+        void log( iController * self, const QString& );
+
+        // SignalObserverEvents
+        void dataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
+        void dataChanged( adicontroller::SignalObserver::Observer *, unsigned int pos );
 
     public slots:
 
