@@ -42,17 +42,53 @@ threshold_result::threshold_result( const threshold_result& t ) : indecies_( t.i
 {
 }
 
+std::shared_ptr< const waveform >&
+threshold_result::data()
+{
+    return data_;
+}
+
+std::vector< uint32_t >&
+threshold_result::indecies()
+{
+    return indecies_;
+}
+
+std::vector< double >&
+threshold_result::processed()
+{
+    return processed_;
+}
+
+std::shared_ptr< const waveform >
+threshold_result::data() const
+{
+    return data_;
+}
+
+const std::vector< uint32_t >&
+threshold_result::indecies() const
+{
+    return indecies_;
+}
+
+const std::vector< double >&
+threshold_result::processed() const
+{
+    return processed_;
+}
+
 namespace ap240 {
     
     std::ostream& operator << ( std::ostream& os, const threshold_result& t ) {
 
-        os << boost::format("\n%d, %.8lf, ") % t.data_->serialnumber_ % t.data_->meta_.initialXTimeSeconds
-           << t.data_->timeSinceEpoch_
-           << boost::format(", %.8e, %.8e" ) % t.data_->meta_.scaleFactor % t.data_->meta_.scaleOffset
-           << boost::format(", %.8e" ) % t.data_->meta_.initialXOffset;
+        os << boost::format("\n%d, %.8lf, ") % t.data()->serialnumber_ % t.data()->meta_.initialXTimeSeconds
+            << t.data()->timeSinceEpoch_
+            << boost::format( ", %.8e, %.8e" ) % t.data()->meta_.scaleFactor % t.data()->meta_.scaleOffset
+            << boost::format( ", %.8e" ) % t.data()->meta_.initialXOffset;
         
-        for ( auto& idx : t.indecies_ ) {
-            auto v = (*t.data_)[ idx ];
+        for ( auto& idx : t.indecies() ) {
+            auto v = ( *t.data() )[ idx ];
             os << boost::format(", %.14le, %d" ) % v.first % v.second;
         }
         

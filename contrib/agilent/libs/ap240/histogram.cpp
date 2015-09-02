@@ -50,19 +50,19 @@ histogram::append( const threshold_result& result )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     
-    if ( meta_.actualPoints != result.data_->meta_.actualPoints ||
-         !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data_->meta_.initialXOffset ) ||
-         !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data_->meta_.xIncrement ) ) {
+    if ( meta_.actualPoints != result.data()->meta_.actualPoints ||
+         !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data()->meta_.initialXOffset ) ||
+         !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data()->meta_.xIncrement ) ) {
         
         trigger_count_ = 0;
-        meta_ = result.data_->meta_;
-        serialnumber_ = result.data_->serialnumber_;
-        timeSinceEpoch_ = result.data_->timeSinceEpoch_;
+        meta_ = result.data()->meta_;
+        serialnumber_ = result.data()->serialnumber_;
+        timeSinceEpoch_ = result.data()->timeSinceEpoch_;
         
         data_.resize( meta_.actualPoints );
         std::fill( data_.begin(), data_.end(), 0 );
     }
-    std::for_each( result.indecies_.begin(), result.indecies_.end(), [this]( uint32_t idx ){
+    std::for_each( result.indecies().begin(), result.indecies().end(), [this] ( uint32_t idx ) {
             data_[ idx ] ++; });
 
     ++trigger_count_;

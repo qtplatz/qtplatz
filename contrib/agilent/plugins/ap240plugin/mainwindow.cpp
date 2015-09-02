@@ -478,9 +478,9 @@ MainWindow::actSnapshot()
         
         if ( waveform ) {
             
-            if ( document::toMassSpectrum( ms, *waveform->data_ ) ) {
-                serialnumber = waveform->data_->serialnumber_;
-                std::wstring title = ( boost::wformat( L"Spectrum %1% CH-%2%" ) % waveform->data_->serialnumber_ % ch ).str();
+            if ( document::toMassSpectrum( ms, *waveform->data() ) ) {
+                serialnumber = waveform->data()->serialnumber_;
+                std::wstring title = ( boost::wformat( L"Spectrum %1% CH-%2%" ) % waveform->data()->serialnumber_ % ch ).str();
                 std::wstring folderId;
                 if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
                     auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();

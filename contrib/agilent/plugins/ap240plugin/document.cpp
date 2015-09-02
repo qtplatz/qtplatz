@@ -333,7 +333,7 @@ namespace ap240 {
 
                 if ( methods[0]->enable ) {
                     
-                    find_threshold_timepoints( *pair.first, *methods[0], results.first->indecies_, results.first->processed_ );
+                    find_threshold_timepoints( *pair.first, *methods[0], results.first->indecies(), results.first->processed() );
                     histogram_->append( *results.first );
 
                 }
@@ -344,7 +344,7 @@ namespace ap240 {
                 results.second = std::make_shared< threshold_result >( pair.second );
                 
                 if ( methods[1]->enable )
-                    find_threshold_timepoints( *pair.second, *methods[1], results.second->indecies_, results.second->processed_ );
+                    find_threshold_timepoints( *pair.second, *methods[1], results.second->indecies(), results.second->processed() );
             }
             
             do {
