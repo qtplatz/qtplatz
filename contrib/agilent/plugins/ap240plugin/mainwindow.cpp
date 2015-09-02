@@ -25,10 +25,10 @@
 #include "mainwindow.hpp"
 #include "ap240_constants.hpp"
 #include "document.hpp"
-#include "threshold_result.hpp"
 #include "waveformwnd.hpp"
 #include <ap240w/ap240form.hpp>
 #include <ap240/digitizer.hpp>
+#include <ap240/threshold_result.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/massspectrum.hpp>

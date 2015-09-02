@@ -444,7 +444,8 @@ task::handle_initial_setup()
     if ( numInstruments_ == 0 && simulation ) {
         if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS )
             numInstruments_ = 1;
-        if ( Acqrs_InitWithOptions( "PCI::DC271", VI_FALSE, VI_FALSE, const_cast<char *>("simulate=TRUE"), &inst_ ) == VI_SUCCESS ) {
+        if ( Acqrs_InitWithOptions( const_cast<char*>("PCI::DC271")
+                                    , VI_FALSE, VI_FALSE, const_cast<char *>("simulate=TRUE"), &inst_ ) == VI_SUCCESS ) {
             success = true;
             simulated_ = true;
         }

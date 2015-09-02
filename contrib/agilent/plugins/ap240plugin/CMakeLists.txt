@@ -62,12 +62,8 @@ add_library(
   ap240mode.hpp
   document.cpp
   document.hpp  
-  histogram.cpp
-  histogram.hpp
   icontrollerimpl.cpp
   icontrollerimpl.hpp
-  threshold_result.cpp
-  threshold_result.hpp
   mainwindow.cpp
   mainwindow.hpp  
   waveformwnd.cpp

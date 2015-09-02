@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "ap240_global.hpp"
 #include <ap240/digitizer.hpp>
 #include <adportable/float.hpp>  
 #include <atomic>
@@ -33,7 +34,7 @@ namespace ap240 {
 
     class threshold_result;
 
-    class histogram {
+    class AP240SHARED_EXPORT histogram {
         histogram( const histogram & ) = delete;
         histogram& operator = ( const histogram& ) = delete;
         std::mutex mutex_;

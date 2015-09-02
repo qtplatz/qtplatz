@@ -16,19 +16,16 @@ if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 endif()
 
 set( ap240_SOURCES
-  digitizer.cpp
-  )
-
-set( ap240_HEADERS
   ap240_global.hpp
+  digitizer.cpp
   digitizer.hpp
   safearray.hpp
+  histogram.cpp
+  threshold_result.cpp
+  threshold_result.hpp
   )
 
-add_library( ap240 SHARED
-  ${ap240_SOURCES}
-  ${ap240_HEADERS}
-  )
+add_library( ap240 SHARED  ${ap240_SOURCES}  )
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 

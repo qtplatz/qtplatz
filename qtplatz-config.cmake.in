@@ -68,6 +68,8 @@ add_library( adwidgets SHARED IMPORTED )
 add_library( chromatogr SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
 add_library( u5303a SHARED IMPORTED )
+add_library( ap240 SHARED IMPORTED )
+add_library( ap240w SHARED IMPORTED )
 
 add_library( acewrapper STATIC IMPORTED )
 add_library( adfs STATIC IMPORTED )
@@ -155,6 +157,14 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/u5303a.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/u5303ad.lib )
 
+  # ap240 is available on Windows and Mac
+  set_target_properties( ap240 PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/ap240.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/ap240.lib )
+  set_target_properties( ap240 PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/ap240w.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/ap240w.lib )  
+  
 elseif ( APPLE )
 
   set_target_properties( QTC::Core PROPERTIES
@@ -211,6 +221,9 @@ elseif ( APPLE )
   set_target_properties( portfolio PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libportfolio.dylib )
 
+  set_target_properties( ap240w PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240w.dylib )
+  
 else()  #Linux
 
   set_target_properties( QTC::Core PROPERTIES
@@ -266,6 +279,12 @@ else()  #Linux
   
   set_target_properties( portfolio PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libportfolio.so )
+
+  set_target_properties( ap240 PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240.so )
+
+  set_target_properties( ap240w PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240w.so )  
 
 endif()
 

@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "ap240_global.hpp"
 #include <memory>
 #include <vector>
 #include <cstdint>
@@ -31,9 +32,9 @@
 
 namespace ap240 {
 
-    class waveform;
+    class waveform; // digitizer.hpp (waveform data from ap240)
 
-    class threshold_result {
+    class AP240SHARED_EXPORT threshold_result {
     public:
         std::vector< uint32_t > indecies_;
         std::shared_ptr< const waveform > data_;

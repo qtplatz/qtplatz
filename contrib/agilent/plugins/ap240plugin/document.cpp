@@ -24,11 +24,11 @@
 
 #include "ap240_constants.hpp"
 #include "document.hpp"
-#include "histogram.hpp"
 #include "icontrollerimpl.hpp"
 #include "mainwindow.hpp"
-#include "threshold_result.hpp"
 #include <ap240/digitizer.hpp>
+#include <ap240/histogram.hpp>
+#include <ap240/threshold_result.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
