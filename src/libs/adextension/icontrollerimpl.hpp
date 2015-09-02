@@ -45,7 +45,7 @@ namespace adextension {
             
             void message( eINSTEVENT msg, uint32_t value ) override {
                 if ( auto p = controller_.lock() )
-                    emit p->message( p.get(), unsigned int( msg ), unsigned int( value ) );
+                    emit p->message( p.get(), unsigned( msg ), unsigned( value ) );
             }
             
             void log( const adicontroller::EventLog::LogMessage& log ) override {

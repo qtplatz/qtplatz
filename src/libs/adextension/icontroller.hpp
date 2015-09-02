@@ -41,7 +41,7 @@ namespace adicontroller {
 namespace adextension {
     
     class ADEXTENSIONSHARED_EXPORT iController : public QObject
-                                               , private std::enable_shared_from_this< iController > {
+                                               , public std::enable_shared_from_this< iController > {
         Q_OBJECT
     public:
         explicit iController(QObject *parent = 0);
