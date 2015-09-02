@@ -29,6 +29,7 @@
 #include <adicontroller/instrument.hpp>
 #include <adicontroller/receiver.hpp>
 #include <adicontroller/signalobserver.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/scoped_debug.hpp>
 #include <adportable/serializer.hpp>
 #include <adicontroller/manager.hpp>
@@ -68,6 +69,8 @@ iControllerImpl::connect()
         lib.load();
     
     if ( lib.isLoaded() ) {
+
+        ADDEBUG() << "########## AP240 iControllerImpl::connect ################";
         
         if ( factory f = reinterpret_cast<factory>( lib.resolve( "adplugin_plugin_instance" ) ) ) {
             
