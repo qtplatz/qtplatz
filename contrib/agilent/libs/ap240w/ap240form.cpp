@@ -183,6 +183,12 @@ ap240form::getContents( boost::any& a ) const
         pi->funcid( 1 );
         pi->set<>( *pi, m ); // serialize
         return true;
+    } else if ( adportable::a_type< ap240::method >::is_pointer( a ) ) {
+
+        auto pm = boost::any_cast<ap240::method *>( a );
+        get( *pm );
+        return true;
+
     }
     return false;
 }

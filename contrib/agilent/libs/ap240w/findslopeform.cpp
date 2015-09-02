@@ -41,7 +41,9 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
 
     // Threshold (mV)
     connect( ui->doubleSpinBox, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
-             , [this] ( double value ) { emit valueChanged( channel_ ); } );
+             , [this] ( double value ) {
+        emit valueChanged( channel_ ); } );
+    ui->doubleSpinBox->setAccelerated( true );
 
     // Time resolution (ns)
     connect( ui->doubleSpinBox_resolution, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
@@ -59,10 +61,15 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
     connect( ui->groupBox_filter, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } );
     connect( ui->radioButton_dft, &QRadioButton::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } ); // DFT
     
-    connect( ui->spinBox_sg, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged( channel_ ); } ); // SG
-    connect( ui->spinBox_dft, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged( channel_ ); } ); // DFT
+    connect( ui->spinBox_sg, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { 
+            emit valueChanged( channel_ ); } ); // SG
+
+    connect( ui->spinBox_dft, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) {
+            emit valueChanged( channel_ ); } ); // DFT
+
     // complex or real
-    connect( ui->checkBox, &QCheckBox::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } );
+    connect( ui->checkBox, &QCheckBox::toggled, [this] ( bool ) {
+            emit valueChanged( channel_ ); } );
 }
 
 findSlopeForm::~findSlopeForm()
@@ -102,6 +109,7 @@ findSlopeForm::set( const ap240::threshold_method& m )
         , QSignalBlocker( ui->radioButton_pos ), QSignalBlocker( ui->radioButton_neg ), QSignalBlocker( ui->radioButton_sg ), QSignalBlocker( ui->radioButton_dft )
     };
 
+    QSignalBlocker block( this );
 
     ui->groupBox->setChecked( m.enable );
     ui->doubleSpinBox->setValue( m.threshold_level * 1.0e3 );           // --> mV
