@@ -41,12 +41,14 @@ bool
 iControllerImpl::connect()
 {
     if ( adplugin::plugin * plugin = adplugin::loader::loadLibrary( "ap240controller", QStringList() ) ) {
+
         if ( auto manager = plugin->query_interface< adicontroller::manager >() ) {
             if ( auto session = manager->session( "ap240::icontrollerimpl" ) ) {
                 adextension::iControllerImpl::connect( session, "ap240::iControllerImpl" );
                 return true;
             }
         }
+
     }
     
     return false;

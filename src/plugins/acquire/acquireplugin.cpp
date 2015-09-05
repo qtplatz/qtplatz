@@ -132,9 +132,10 @@
 #include <boost/exception/all.hpp>
 #include <algorithm>
 #include <cmath>
-#include <map>
 #include <fstream>
 #include <functional>
+#include <future>
+#include <map>
 
 using namespace acquire;
 using namespace acquire::internal;
@@ -408,12 +409,21 @@ AcquirePlugin::actionConnect()
     // using adinterface::EventLog::LogMessageHelper;
     auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
 
+    std::vector< std::future<bool> > futures;
+    for ( auto& iController : iControllers ) {
+        futures.push_back( std::async( [iController] () { return iController->connect() && iController->wait_for_connection_ready(); } ) );
+    }
+
+    for ( auto& future : futures )
+        future.get();
+#if 0
     if ( !iControllers.isEmpty() ) {
         for ( auto& iController : iControllers )
             iController->connect();
         for ( auto& iController : iControllers )
             iController->wait_for_connection_ready();
     }
+#endif
 
     if ( CORBA::is_nil( session_.in() ) ) { //&& !orbServants_.empty() ) {
 

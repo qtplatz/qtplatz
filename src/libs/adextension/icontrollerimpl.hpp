@@ -28,6 +28,7 @@
 #include <adicontroller/instrument.hpp>
 #include <adicontroller/receiver.hpp>
 #include <adicontroller/signalobserver.hpp>
+#include <chrono>
 #include <condition_variable>
 #include <vector>
 #include <memory>
@@ -133,9 +134,7 @@ namespace adextension {
 
         bool wait_for_connection_ready() override {
             std::unique_lock< std::mutex > lock( mutex_ );
-            while ( !isInitialized_ )
-                cv_.wait( lock );
-            return isInitialized_;
+            return cv_.wait_for( lock, std::chrono::seconds( 3 ), [this](){ return isInitialized_; }  );
         }
 
         adicontroller::Instrument::Session * getInstrumentSession() override {

@@ -30,6 +30,7 @@ set( adextension_SOURCES
   ibroker.hpp
   icontroller.cpp
   icontroller.hpp
+  icontrollerimpl.hpp
   idataproc.cpp
   idataproc.hpp
   iwidgetfactory.cpp
