@@ -54,7 +54,7 @@ namespace adplugin {
         static std::wstring config_fullpath( const std::wstring& apppath, const std::wstring& config_filename );
 
         //
-        static bool loadLibrary( QLibrary&, const QString& libname, const QStringList& paths );
+        static adplugin::plugin * loadLibrary( const QString& libname, const QStringList& paths );
     };
 
 }

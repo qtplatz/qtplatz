@@ -23,30 +23,9 @@
 **************************************************************************/
 
 #include "icontrollerimpl.hpp"
-#include "document.hpp"
 #include <adplugin/plugin.hpp>
-#include <adcontrols/controlmethod.hpp>
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/receiver.hpp>
-#include <adicontroller/signalobserver.hpp>
-#include <adportable/debug.hpp>
-#include <adportable/scoped_debug.hpp>
-#include <adportable/serializer.hpp>
+#include <adplugin_manager/loader.hpp>
 #include <adicontroller/manager.hpp>
-#include <QLibrary>
-#include <memory>
-
-#if defined _DEBUG || defined DEBUG
-# if defined WIN32
-#  define DEBUG_LIB_TRAIL "d" // xyzd.dll
-# elif defined __MACH__
-#  define DEBUG_LIB_TRAIL "_debug" // xyz_debug.dylib
-# else
-#  define DEBUG_LIB_TRAIL ""        // xyz.so 
-# endif
-#else
-# define DEBUG_LIB_TRAIL ""
-#endif
 
 using namespace ap240;
 
@@ -61,28 +40,15 @@ iControllerImpl::~iControllerImpl()
 bool
 iControllerImpl::connect()
 {
-    typedef adplugin::plugin * ( *factory )( );
-
-    QLibrary lib( QString("ap240controller") + DEBUG_LIB_TRAIL );
-
-    if ( ! lib.isLoaded() )
-        lib.load();
-    
-    if ( lib.isLoaded() ) {
-
-        ADDEBUG() << "########## AP240 iControllerImpl::connect ################";
-        
-        if ( factory f = reinterpret_cast<factory>( lib.resolve( "adplugin_plugin_instance" ) ) ) {
-            
-            adplugin::plugin * plugin = f();
-            if ( auto manager = plugin->query_interface< adicontroller::manager >() ) {
-                if ( auto session = manager->session( "ap240::icontrollerimpl" ) ) {
-                    adextension::iControllerImpl::connect( session, "ap240::iControllerImpl" );
-                    return true;
-                }
+    if ( adplugin::plugin * plugin = adplugin::loader::loadLibrary( "ap240controller", QStringList() ) ) {
+        if ( auto manager = plugin->query_interface< adicontroller::manager >() ) {
+            if ( auto session = manager->session( "ap240::icontrollerimpl" ) ) {
+                adextension::iControllerImpl::connect( session, "ap240::iControllerImpl" );
+                return true;
             }
         }
     }
+    
     return false;
 }
 
