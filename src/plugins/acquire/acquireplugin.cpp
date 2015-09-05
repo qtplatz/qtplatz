@@ -413,19 +413,10 @@ AcquirePlugin::actionConnect()
     for ( auto& iController : iControllers ) {
         futures.push_back( std::async( [iController] () { return iController->connect() && iController->wait_for_connection_ready(); } ) );
     }
-
     for ( auto& future : futures )
         future.get();
-#if 0
-    if ( !iControllers.isEmpty() ) {
-        for ( auto& iController : iControllers )
-            iController->connect();
-        for ( auto& iController : iControllers )
-            iController->wait_for_connection_ready();
-    }
-#endif
 
-    if ( CORBA::is_nil( session_.in() ) ) { //&& !orbServants_.empty() ) {
+    if ( CORBA::is_nil( session_.in() ) ) {
 
         Broker::Manager_var broker = OrbConnection::instance()->brokerManager();
         if ( ! CORBA::is_nil( broker ) ) {
