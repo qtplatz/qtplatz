@@ -30,6 +30,10 @@
 #include <vector>
 #include <string>
 
+class QLibrary;
+class QString; 
+class QStringList;
+
 namespace adplugin {
 
     class plugin;
@@ -48,6 +52,9 @@ namespace adplugin {
         static bool load_config( const wchar_t * directory, const wchar_t * config_filename );
 
         static std::wstring config_fullpath( const std::wstring& apppath, const std::wstring& config_filename );
+
+        //
+        static bool loadLibrary( QLibrary&, const QString& libname, const QStringList& paths );
     };
 
 }

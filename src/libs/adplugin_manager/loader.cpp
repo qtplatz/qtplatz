@@ -28,7 +28,11 @@
 #include <adplugin/constants.hpp>
 #include <boost/filesystem.hpp>
 #include <adlog/logger.hpp>
+#include <QCoreApplication>
+#include <QFileInfo>
 #include <QLibrary>
+#include <QString>
+#include <QStringList>
 
 using namespace adplugin;
 
@@ -126,4 +130,47 @@ loader::config_fullpath( const std::wstring& apppath, const std::wstring& librar
 	boost::filesystem::path path = boost::filesystem::path( apppath ) / pluginDirectory;
 	boost::filesystem::path fullpath = path / library_filename; 
 	return fullpath.generic_wstring();
+}
+
+bool
+loader::loadLibrary( QLibrary& lib, const QString& libname, const QStringList& paths )
+{
+    auto appdir = QCoreApplication::applicationDirPath();
+    boost::filesystem::path apath( appdir.toStdWString() );
+    boost::filesystem::path ldname( ( libname + DEBUG_LIB_TRAIL ).toStdWString() );
+
+    for ( auto& path : paths ) {
+        boost::filesystem::path p( path.toStdWString() );
+        if ( p.is_absolute() )
+            lib.setFileName( QString::fromStdWString( ( p / ldname ).wstring() ) );
+        else
+            lib.setFileName( QString::fromStdWString( ( apath / p / ldname ).wstring() ) );
+        if ( lib.load() || lib.isLoaded() )
+            return true;
+    }
+
+    boost::filesystem::path sharedpath( apath / sharedDirectory );
+    lib.setFileName( QString::fromStdWString( ( sharedpath / ldname ).wstring() ) );
+    if ( lib.load() || lib.isLoaded() )
+        return true;
+
+
+    boost::filesystem::path modulepath( apath / pluginDirectory );
+    lib.setFileName( QString::fromStdWString( ( sharedpath / ldname ).wstring() ) );
+    if ( lib.load() || lib.isLoaded() )
+        return true;
+
+    boost::filesystem::recursive_directory_iterator it( apath / pluginDirectory );
+
+    while ( it != boost::filesystem::recursive_directory_iterator() ) {
+        if ( boost::filesystem::is_directory( it->status() ) ) {
+            lib.setFileName( QString::fromStdWString( ( it->path() / ldname ).wstring() ) );
+            if ( lib.load() || lib.isLoaded() )
+                return true;
+        }
+        ++it;
+    }
+
+    lib.setFileName( QString::fromStdWString( ldname.wstring() ) );
+    return lib.load() || lib.isLoaded();
 }

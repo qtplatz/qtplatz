@@ -61,14 +61,6 @@ Session::configComplete()
 bool
 Session::connect( adicontroller::Receiver * receiver, const std::string& token )
 {
-    // if ( ini_ ) {
-    //     if ( !hasSession_ ) {
-    //         ADDEBUG() << "##### connect -- creating session";
-    //         hasSession_ = malpix4::instance()->create_session( ini_->host(), ini_->tcp_port(), ini_->udp_port() );
-    //     }
-    //     if ( hasSession_ )
-    //         return malpix4::instance()->clientConnect( receiver, token );
-    // } 
     return false;
 }
 
@@ -87,7 +79,7 @@ Session::get_status()
 adicontroller::SignalObserver::Observer *
 Session::getObserver()
 {
-    return 0; // malpix4::instance()->masterObserver();
+    return 0;
 }
       
 bool
