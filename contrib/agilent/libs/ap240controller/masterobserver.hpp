@@ -27,7 +27,7 @@
 #include <adicontroller/signalobserver.hpp>
 #include <string>
 
-namespace mpxcontroller {
+namespace ap240controller {
 
     namespace so = adicontroller::SignalObserver;
 

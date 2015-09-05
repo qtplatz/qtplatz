@@ -17,8 +17,8 @@ include_directories(
 
 set( _sources
   ap240controller.cpp
-  observerimpl.hpp
-  observerimpl.cpp
+  waveformobserver.hpp
+  waveformobserver.cpp
   masterobserver.hpp
   masterobserver.cpp
   session.hpp

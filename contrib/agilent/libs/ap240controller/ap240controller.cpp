@@ -41,9 +41,8 @@ namespace ap240controller {
     class factory : public adplugin::plugin
                   , public adicontroller::manager {
 
-        static std::once_flag flag, flag2;
+        static std::once_flag flag;
         static std::atomic<factory * > instance_;
-        std::shared_ptr< adicontroller::Instrument::Session > session_;
 
     public:
 
@@ -54,8 +53,9 @@ namespace ap240controller {
 
         // adicontroller::manager impl
         adicontroller::Instrument::Session * session( const char * token ) override {
-            std::call_once( flag2, [this] () { session_ = std::make_shared< ap240controller::Instrument::Session >(); } );
-            return session_.get();
+            return ap240controller::Instrument::Session::instance();
+            // std::call_once( flag2, [this] () { session_ = std::make_shared< ap240controller::Instrument::Session >(); } );
+            // return session_.get();
         }
 
         // adplugin impl
@@ -76,7 +76,6 @@ namespace ap240controller {
 
     std::atomic<factory *> factory::instance_( 0 );
     std::once_flag factory::flag;
-    std::once_flag factory::flag2;
 };
 
 adplugin::plugin *

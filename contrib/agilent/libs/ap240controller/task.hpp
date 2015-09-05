@@ -24,35 +24,17 @@
 
 #pragma once
 
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/signalobserver.hpp>
-
-//namespace mpxcontrols { class ControlMethod; }
-namespace ap240 { class method; class digitizer; }
-
 namespace ap240controller {
     
     namespace Instrument {
 
-        // Session class define here is psude singletion by a manager class
-        // which is only the class make Session instance.
-        
-        class Session : public adicontroller::Instrument::Session {
-            Session( const Session& ) = delete;
-            Session& operator = ( const Session& ) = delete;
-            struct impl;
-            impl * impl_;
+        class task {
+            task();
+            ~task();
+            task( const task& ) = delete;
+            task& operator = ( const task& ) = delete;
         public:
-            // exception
-            struct CannotAdd { std::string reason_; };
-
-            static Session * instance();
-
-            Session();
-            ~Session();
-
-            std::string software_revision() const override;  // ex. L"1.216"
-
+            
             bool setConfiguration( const std::string& xml ) override;
             bool configComplete() override;
             
@@ -75,6 +57,9 @@ namespace ap240controller {
             bool suspend_run() override;
             bool resume_run() override;
             bool stop_run() override;
+        private:
+            class impl;
+            impl * impl_;
         };
 
     };

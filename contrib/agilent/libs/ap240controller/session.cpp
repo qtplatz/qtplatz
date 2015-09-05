@@ -23,21 +23,86 @@
 **************************************************************************/
 
 #include "session.hpp"
+#include "masterobserver.hpp"
+#include "waveformobserver.hpp"
 #include <ap240/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adicontroller/receiver.hpp>
+#include <adportable/asio/thread.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/semaphore.hpp>
+#include <boost/asio.hpp>
+#include <atomic>
+#include <future>
 #include <memory>
 #include <sstream>
 
+namespace ap240controller { namespace Instrument {
+
+        struct Session::impl {
+
+            impl() : work_( io_service_ ) {
+            }
+            
+            static std::once_flag flag_, flag2_, flag3_;
+            static std::shared_ptr< Session > instance_;
+            static std::mutex mutex_;
+
+            boost::asio::io_service io_service_;
+            boost::asio::io_service::work work_;
+            std::vector< std::thread > threads_;
+
+            typedef std::pair< std::shared_ptr< adicontroller::Receiver >, std::string > client_pair_t;
+            std::vector< client_pair_t > clients_;
+            inline std::mutex& mutex() { return mutex_; }
+
+            std::shared_ptr< ap240::digitizer > digitizer_;
+            std::shared_ptr< MasterObserver > masterObserver_;
+            std::shared_ptr< WaveformObserver > waveformObserver_;
+            
+            void reply_message( adicontroller::Receiver::eINSTEVENT msg, uint32_t value ) {
+                std::lock_guard< std::mutex > lock( mutex_ );
+                for ( auto& r: clients_ )
+                    r.first->message( msg, value );
+            }
+
+            void reply_handler( const std::string& method, const std::string& reply) {
+                ADDEBUG() << "===== ap240 reply ===== " << method << " reply: " << reply;
+            }
+            
+            bool waveform_handler( const ap240::waveform * ch1, const ap240::waveform * ch2, ap240::method& next ) {
+                ADDEBUG() << "waveform+" ;
+                return false;
+            }
+        };
+
+        std::once_flag Session::impl::flag_;
+        std::once_flag Session::impl::flag2_;
+        std::once_flag Session::impl::flag3_;
+        std::mutex Session::impl::mutex_;
+        std::shared_ptr< Session > Session::impl::instance_;
+        
+    }
+}
+
 using namespace ap240controller::Instrument;
 
-Session::Session() : hasSession_( false )
+Session *
+Session::instance()
 {
+    std::call_once( impl::flag_, [&] () { impl::instance_ = std::make_shared< Session >(); } );
+    return impl::instance_.get();
+}
+
+Session::Session() : impl_( new impl() )
+{
+    ADDEBUG() << "##### Session ctor #####";
 }
 
 Session::~Session()
 {
+    delete impl_;
 }
 
 std::string
@@ -49,25 +114,57 @@ Session::software_revision() const
 bool
 Session::setConfiguration( const std::string& xml )
 {
+    ADDEBUG() << "##### Session::setConfiguration #####";
     return true;
 }
 
 bool
 Session::configComplete()
 {
+    ADDEBUG() << "##### Session::configComplete #####";    
     return true;    
 }
             
 bool
 Session::connect( adicontroller::Receiver * receiver, const std::string& token )
 {
+    ADDEBUG() << "##### Session::connect token=" << token << " ######";
+    
+    auto ptr( receiver->shared_from_this() );
+    if ( ptr ) {
+        std::call_once( impl::flag2_, [&] () {
+                impl_->threads_.push_back( adportable::asio::thread( [=]() { impl_->io_service_.run(); } ) );
+            });
+        
+        do {
+            std::lock_guard< std::mutex > lock( impl_->mutex() );
+            impl_->clients_.push_back( std::make_pair( ptr, token ) );
+        } while ( 0 );
+
+        impl_->io_service_.post( [this](){ impl_->reply_message( adicontroller::Receiver::CLIENT_ATTACHED, impl_->clients_.size() ); } );
+
+        return true;
+    }
     return false;
 }
 
 bool
 Session::disconnect( adicontroller::Receiver * receiver )
 {
-    return false; //malpix4::instance()->clientDisconnect( receiver );    
+    ADDEBUG() << "##### Session::disconnect #####";
+    
+    auto self( receiver->shared_from_this() );
+    
+    std::lock_guard< std::mutex > lock( impl_->mutex() );
+    auto it = std::find_if( impl_->clients_.begin(), impl_->clients_.end(), [self]( const impl::client_pair_t& a ){
+            return a.first == self; });
+
+    if ( it != impl_->clients_.end() ) {
+        impl_->clients_.erase( it );
+        return true;
+    }
+    
+    return false;
 }
       
 uint32_t
@@ -79,19 +176,33 @@ Session::get_status()
 adicontroller::SignalObserver::Observer *
 Session::getObserver()
 {
-    return 0;
+    ADDEBUG() << "##### Session::getObserver #####";
+    return impl_->masterObserver_.get();
 }
       
 bool
 Session::initialize()
 {
-    return true;
+    ADDEBUG() << "##### Session::initialize #####";    
+    std::call_once( impl::flag3_, [&] () {
+            std::lock_guard< std::mutex > lock( impl::mutex_ );
+            impl_->masterObserver_ = std::make_shared< MasterObserver >();
+            impl_->waveformObserver_ = std::make_shared< WaveformObserver >();
+            impl_->masterObserver_->addSibling( impl_->waveformObserver_.get() );
+
+            impl_->digitizer_ = std::make_shared< ap240::digitizer >();
+            using namespace std::placeholders;
+            impl_->digitizer_->connect_reply( std::bind( &impl::reply_handler, impl_, _1, _2 ) );
+            impl_->digitizer_->connect_waveform( std::bind( &impl::waveform_handler, impl_, _1, _2, _3 ) );
+        } );
+    return impl_->digitizer_->peripheral_initialize();
 }
 
 bool
 Session::shutdown()
 {
-    return true;    
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    return impl_->digitizer_ && impl_->digitizer_->peripheral_terminate();
 }
 
 bool
@@ -106,7 +217,7 @@ Session::shell( const std::string& cmdline )
     return false;    
 }
 
-std::shared_ptr< const adcontrols::ControlMethod::Method>
+std::shared_ptr< const adcontrols::ControlMethod::Method >
 Session::getControlMethod()
 {
     return 0; // adicontroller::ControlMethod::Method();
@@ -115,6 +226,7 @@ Session::getControlMethod()
 bool
 Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
 {
+    ADDEBUG() << "##### Session::prepare_for_run #####";
     return false;
 }
     

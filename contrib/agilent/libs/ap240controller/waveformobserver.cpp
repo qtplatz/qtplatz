@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "observerimpl.hpp"
+#include "waveformobserver.hpp"
 
 #if defined _MSC_VER
 #pragma warning(push)
@@ -37,7 +37,7 @@
 
 using namespace ap240controller;
     
-ObserverImpl::ObserverImpl() : uuid_( boost::uuids::name_generator( base_uuid() )( "1.ap240.ms-cheminfo.com" ) )
+WaveformObserver::WaveformObserver() : uuid_( boost::uuids::name_generator( base_uuid() )( "1.ap240.ms-cheminfo.com" ) )
 {
     so::Description desc;
     desc.set_trace_method( so::eTRACE_IMAGE_TDC );
@@ -51,28 +51,28 @@ ObserverImpl::ObserverImpl() : uuid_( boost::uuids::name_generator( base_uuid() 
     setDescription( desc );
 }
 
-ObserverImpl::~ObserverImpl()
+WaveformObserver::~WaveformObserver()
 {
 }
 
 const boost::uuids::uuid&
-ObserverImpl::uuid() const
+WaveformObserver::uuid() const
 {
     return uuid_;
 }
 
 uint64_t 
-ObserverImpl::uptime() const 
+WaveformObserver::uptime() const 
 {
     return 0;
 }
 
 void 
-ObserverImpl::uptime_range( uint64_t& oldest, uint64_t& newest ) const 
+WaveformObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const 
 {
     oldest = newest = 0;
     
-    std::lock_guard< std::mutex > lock( const_cast<ObserverImpl *>( this )->mutex() );
+    std::lock_guard< std::mutex > lock( const_cast<WaveformObserver *>( this )->mutex() );
 
     if ( ! que_.empty() ) {
         oldest = que_.front()->pos();
@@ -82,7 +82,7 @@ ObserverImpl::uptime_range( uint64_t& oldest, uint64_t& newest ) const
 }
 
 std::shared_ptr< so::DataReadBuffer >
-ObserverImpl::readData( uint32_t pos )
+WaveformObserver::readData( uint32_t pos )
 {
     std::lock_guard< std::mutex > lock( mutex() );
     
@@ -101,9 +101,9 @@ ObserverImpl::readData( uint32_t pos )
 }
 
 int32_t
-ObserverImpl::posFromTime( uint64_t usec ) const 
+WaveformObserver::posFromTime( uint64_t usec ) const 
 {
-    std::lock_guard< std::mutex > lock( const_cast< ObserverImpl *>(this)->mutex() );
+    std::lock_guard< std::mutex > lock( const_cast< WaveformObserver *>(this)->mutex() );
     
     if ( que_.empty() )
         return false;
@@ -118,7 +118,7 @@ ObserverImpl::posFromTime( uint64_t usec ) const
 
 //
 void
-ObserverImpl::operator << ( std::shared_ptr< so::DataReadBuffer >& t )
+WaveformObserver::operator << ( std::shared_ptr< so::DataReadBuffer >& t )
 {
     std::lock_guard< std::mutex > lock( mutex() );
 

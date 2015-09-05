@@ -27,7 +27,7 @@
 #include <tuple>
 #include <mutex>
 
-namespace mpxcontroller {
+namespace ap240controller {
 
     class MasterObserver::impl {
     public:
@@ -81,8 +81,8 @@ namespace mpxcontroller {
         if ( so ) {
             std::lock_guard< std::mutex > lock( impl_->mutex_ );
             std::for_each( impl_->clients_.begin(), impl_->clients_.end(), [so,pos] ( const impl::client_type& a ) {
-                std::get<0>( a )->onDataChanged( so, pos );
-                } );
+                    std::get<0>( a )->onDataChanged( so, pos );
+                });
         }
     }
 
