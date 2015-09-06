@@ -289,7 +289,7 @@ namespace ap240 {
 		waveform( const waveform& ); // = delete;
 		void operator = ( const waveform& ); // = delete;
 	public:
-        waveform( std::shared_ptr< identify >& id ) : ident_( id ), wellKnownEvents_( 0 ), serialnumber_( 0 ), timeSinceEpoch_( 0 ) {
+        waveform( std::shared_ptr< identify >& id ) : ident_( *id ), wellKnownEvents_( 0 ), serialnumber_( 0 ), timeSinceEpoch_( 0 ) {
         }
 
         size_t size() const;
@@ -305,12 +305,12 @@ namespace ap240 {
         uint32_t serialnumber_;
         uint32_t wellKnownEvents_;
         uint64_t timeSinceEpoch_;
-        std::shared_ptr< identify > ident_;
+        identify ident_;
     private:
         std::vector< int32_t > d_;
         friend struct detail::device_ap240;
     };
-    
+
     template<> AP240SHARED_EXPORT const int8_t * waveform::begin() const;
     template<> AP240SHARED_EXPORT const int8_t * waveform::end() const;    
     template<> AP240SHARED_EXPORT const int16_t * waveform::begin() const;

@@ -28,6 +28,8 @@
 #include <workaround/boost/uuid/uuid.hpp>
 #include <deque>
 
+namespace ap240 { class waveform; }
+
 namespace ap240controller {
 
     namespace so = adicontroller::SignalObserver;
@@ -49,10 +51,13 @@ namespace ap240controller {
         int32_t posFromTime( uint64_t usec ) const override;
         
         // WaveformObserver
-        void operator << ( std::shared_ptr< so::DataReadBuffer >& );
-
+        typedef std::pair< std::shared_ptr< ap240::waveform >, std::shared_ptr< ap240::waveform > > waveform_pair_t;
+        typedef std::pair< std::shared_ptr< const ap240::waveform >, std::shared_ptr< const ap240::waveform > > const_waveform_pair_t;
+        uint32_t operator << ( const_waveform_pair_t& );
     private:
-        std::deque< std::shared_ptr< so::DataReadBuffer > > que_;
+        
+        void serialize( so::DataReadBuffer&, std::pair< std::shared_ptr< const ap240::waveform >, std::shared_ptr< const ap240::waveform > >& );
+        std::vector< std::shared_ptr< so::DataReadBuffer > > que_;
         const boost::uuids::uuid uuid_;
     };
 }

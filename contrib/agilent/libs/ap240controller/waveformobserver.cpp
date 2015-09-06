@@ -22,12 +22,12 @@
 **
 **************************************************************************/
 
-#include "waveformobserver.hpp"
-
 #if defined _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
 #endif
+#include "waveformobserver.hpp"
+#include <ap240/digitizer.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #if defined _MSC_VER
@@ -74,10 +74,10 @@ WaveformObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const
     
     std::lock_guard< std::mutex > lock( const_cast<WaveformObserver *>( this )->mutex() );
 
-    if ( ! que_.empty() ) {
-        oldest = que_.front()->pos();
-        newest = que_.back()->pos();
-    }
+    //if ( !que_.empty() ) {
+    //    oldest = que_.front()->pos();
+    //    newest = que_.back()->pos();
+    //}
     
 }
 
@@ -88,7 +88,7 @@ WaveformObserver::readData( uint32_t pos )
     
     if ( que_.empty() )
         return 0;
-    
+
     if ( pos == std::numeric_limits<uint32_t>::max() ) {
         return que_.back();
     }
@@ -116,14 +116,36 @@ WaveformObserver::posFromTime( uint64_t usec ) const
     return 0;
 }
 
-//
-void
-WaveformObserver::operator << ( std::shared_ptr< so::DataReadBuffer >& t )
+uint32_t
+WaveformObserver::operator << ( const_waveform_pair_t& pair )
 {
+    auto rb = std::make_shared< so::DataReadBuffer >();
+    serialize( *rb, pair );
+    
     std::lock_guard< std::mutex > lock( mutex() );
+    if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz
+        auto tail = que_.begin();
+        std::advance( tail, 500 );
+        que_.erase( que_.begin(), tail );
+    }
+    que_.push_back( rb );
+    return rb->pos();
+}
 
-    que_.push_back( t );
+void
+WaveformObserver::serialize( so::DataReadBuffer& rb
+                             , std::pair< std::shared_ptr< const ap240::waveform >, std::shared_ptr< const ap240::waveform > >& pair )
+{
+    rb.ndata() = 0;
+    if ( pair.first )
+        rb.ndata()++;
+    if ( pair.second )
+        rb.ndata()++;
+    
+    const ap240::waveform& waveform = pair.first ? *pair.first : *pair.second;
+    rb.pos() = waveform.serialnumber_;
+    rb.timepoint() = waveform.timeSinceEpoch_;
 
-    if ( que_.size() > 4096 )
-        que_.erase( que_.begin(), que_.begin() + 1024 );
+
+    
 }

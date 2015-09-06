@@ -38,11 +38,18 @@
 #include <memory>
 #include <sstream>
 
+namespace adi = adicontroller;
+
 namespace ap240controller { namespace Instrument {
 
         struct Session::impl {
 
-            impl() : work_( io_service_ ) {
+            impl() : work_( io_service_ )
+                   , masterObserver_( std::make_shared< MasterObserver >() )
+                   , waveformObserver_( std::make_shared< WaveformObserver >() ) {
+
+                masterObserver_->addSibling( waveformObserver_.get() );
+
             }
             
             static std::once_flag flag_, flag2_, flag3_;
@@ -53,7 +60,7 @@ namespace ap240controller { namespace Instrument {
             boost::asio::io_service::work work_;
             std::vector< std::thread > threads_;
 
-            typedef std::pair< std::shared_ptr< adicontroller::Receiver >, std::string > client_pair_t;
+            typedef std::pair< std::shared_ptr< adi::Receiver >, std::string > client_pair_t;
             std::vector< client_pair_t > clients_;
             inline std::mutex& mutex() { return mutex_; }
 
@@ -61,18 +68,26 @@ namespace ap240controller { namespace Instrument {
             std::shared_ptr< MasterObserver > masterObserver_;
             std::shared_ptr< WaveformObserver > waveformObserver_;
             
-            void reply_message( adicontroller::Receiver::eINSTEVENT msg, uint32_t value ) {
+            void reply_message( adi::Receiver::eINSTEVENT msg, uint32_t value ) {
                 std::lock_guard< std::mutex > lock( mutex_ );
                 for ( auto& r: clients_ )
                     r.first->message( msg, value );
             }
 
             void reply_handler( const std::string& method, const std::string& reply) {
+                if ( method == "InitialSetup" )
+                    reply_message( adi::Receiver::STATE_CHANGED, ( reply == "success" ) ? adi::Instrument::eStandBy : adi::Instrument::eOff );
                 ADDEBUG() << "===== ap240 reply ===== " << method << " reply: " << reply;
             }
             
             bool waveform_handler( const ap240::waveform * ch1, const ap240::waveform * ch2, ap240::method& next ) {
-                ADDEBUG() << "waveform+" ;
+                if ( masterObserver_ && waveformObserver_ ) {
+                    if ( ch1 || ch2 ) {
+                        auto pos = (*waveformObserver_) << std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
+                        masterObserver_->dataChanged( waveformObserver_.get(), pos );
+                        return true;
+                    }
+                }
                 return false;
             }
         };
@@ -126,7 +141,7 @@ Session::configComplete()
 }
             
 bool
-Session::connect( adicontroller::Receiver * receiver, const std::string& token )
+Session::connect( adi::Receiver * receiver, const std::string& token )
 {
     ADDEBUG() << "##### Session::connect token=" << token << " ######";
     
@@ -141,7 +156,7 @@ Session::connect( adicontroller::Receiver * receiver, const std::string& token )
             impl_->clients_.push_back( std::make_pair( ptr, token ) );
         } while ( 0 );
 
-        impl_->io_service_.post( [this](){ impl_->reply_message( adicontroller::Receiver::CLIENT_ATTACHED, impl_->clients_.size() ); } );
+        impl_->io_service_.post( [this] () { impl_->reply_message( adi::Receiver::CLIENT_ATTACHED, uint32_t( impl_->clients_.size() ) ); } );
 
         return true;
     }
@@ -186,10 +201,6 @@ Session::initialize()
     ADDEBUG() << "##### Session::initialize #####";    
     std::call_once( impl::flag3_, [&] () {
             std::lock_guard< std::mutex > lock( impl::mutex_ );
-            impl_->masterObserver_ = std::make_shared< MasterObserver >();
-            impl_->waveformObserver_ = std::make_shared< WaveformObserver >();
-            impl_->masterObserver_->addSibling( impl_->waveformObserver_.get() );
-
             impl_->digitizer_ = std::make_shared< ap240::digitizer >();
             using namespace std::placeholders;
             impl_->digitizer_->connect_reply( std::bind( &impl::reply_handler, impl_, _1, _2 ) );
@@ -227,6 +238,14 @@ bool
 Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
 {
     ADDEBUG() << "##### Session::prepare_for_run #####";
+    if ( m ) {
+        auto it = m->find( m->begin(), m->end(), "ap240" );
+        if ( it != m->end() ) {
+            ap240::method method;
+            if ( it->get<>( *it, method ) )
+                return impl_->digitizer_->peripheral_prepare_for_run( method );
+        }
+    }
     return false;
 }
     

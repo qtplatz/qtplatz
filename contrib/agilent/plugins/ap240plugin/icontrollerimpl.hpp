@@ -38,10 +38,11 @@ namespace ap240 {
     public:
         iControllerImpl();
         ~iControllerImpl();
-        bool connect() override;
 
+        bool connect() override;
+        
         QString module_name() const override { return "ap240"; }
-        int module_number() const override { return 1; }            
+        int module_number() const override { return 1; }
         
     signals:
             

@@ -484,12 +484,10 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const ap240::method m )
 {
-    // print( std::cout, m, "task::hanel_prepare_for_run begen" );
     method_ = m;
 
     device_ap240::initial_setup( *this, method_ );
 
-    // print( std::cout, method_, "task::handle_prepare_for_run (copy&fixed)" );    
     return true;
 }
 
@@ -607,15 +605,15 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 }
 
 ///
-identify::identify() : bus_number_(0)
-                     , slot_number_(0)
-                     , serial_number_(0)
+identify::identify() : bus_number_( 0 )
+                     , slot_number_( 0 )
+                     , serial_number_( 0 )
 {
 }
 
-identify::identify( const identify& t ) : bus_number_(t.bus_number_)
-                                        , slot_number_(t.slot_number_)
-                                        , serial_number_(t.serial_number_)
+identify::identify( const identify& t ) : bus_number_( t.bus_number_ )
+                                        , slot_number_( t.slot_number_ )
+                                        , serial_number_( t.serial_number_ )
 {
 }
 

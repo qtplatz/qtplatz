@@ -550,7 +550,7 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     prop.setDataInterpreterClsid( "ap240" );
 
     ap240::device_data data;
-    data.ident = *waveform.ident_;
+    data.ident = waveform.ident_;
     data.meta = waveform.meta_;
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
