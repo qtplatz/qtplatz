@@ -137,15 +137,20 @@ WaveformObserver::serialize( so::DataReadBuffer& rb
                              , std::pair< std::shared_ptr< const ap240::waveform >, std::shared_ptr< const ap240::waveform > >& pair )
 {
     rb.ndata() = 0;
-    if ( pair.first )
-        rb.ndata()++;
-    if ( pair.second )
-        rb.ndata()++;
-    
     const ap240::waveform& waveform = pair.first ? *pair.first : *pair.second;
+
     rb.pos() = waveform.serialnumber_;
     rb.timepoint() = waveform.timeSinceEpoch_;
-
-
     
+    ap240::metadata_archive xmeta( waveform.ident_ );
+    
+    if ( pair.first ) {
+        rb.ndata()++;
+        xmeta.meta_.push_back( pair.first->meta_ );
+    }
+    if ( pair.second ) {
+        rb.ndata()++;
+        xmeta.meta_.push_back( pair.second->meta_ );
+    }
+
 }

@@ -331,7 +331,22 @@ namespace ap240 {
             ar & BOOST_SERIALIZATION_NVP( meta );           
         }
     };
-    
+
+	class AP240SHARED_EXPORT metadata_archive {
+    public:
+        metadata_archive( const identify& id ) {
+        }
+        identify ident_;
+        std::vector< metadata > meta_;
+    private:        
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize( Archive& ar, const unsigned int ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( ident_ );
+            ar & BOOST_SERIALIZATION_NVP( meta_ );           
+        }
+    };
 
     class AP240SHARED_EXPORT digitizer {
     public:
