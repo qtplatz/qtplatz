@@ -83,7 +83,8 @@ namespace ap240controller { namespace Instrument {
             bool waveform_handler( const ap240::waveform * ch1, const ap240::waveform * ch2, ap240::method& next ) {
                 if ( masterObserver_ && waveformObserver_ ) {
                     if ( ch1 || ch2 ) {
-                        auto pos = (*waveformObserver_) << std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
+                        auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
+                        auto pos = (*waveformObserver_) << pair;
                         masterObserver_->dataChanged( waveformObserver_.get(), pos );
                         return true;
                     }
