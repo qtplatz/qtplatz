@@ -23,10 +23,10 @@
 **************************************************************************/
 
 #include "threshold_result.hpp"
-#include <ap240/digitizer.hpp>
+#include "waveform.hpp"
 #include <boost/format.hpp>
 
-using namespace ap240;
+using namespace ap240spectrometer::ap240;
 
 threshold_result::threshold_result()
 {
@@ -78,20 +78,22 @@ threshold_result::processed() const
     return processed_;
 }
 
-namespace ap240 {
-    
-    std::ostream& operator << ( std::ostream& os, const threshold_result& t ) {
+namespace ap240spectrometer {
+    namespace ap240 {
 
-        os << boost::format("\n%d, %.8lf, ") % t.data()->serialnumber_ % t.data()->meta_.initialXTimeSeconds
-            << t.data()->timeSinceEpoch_
-            << boost::format( ", %.8e, %.8e" ) % t.data()->meta_.scaleFactor % t.data()->meta_.scaleOffset
-            << boost::format( ", %.8e" ) % t.data()->meta_.initialXOffset;
-        
-        for ( auto& idx : t.indecies() ) {
-            auto v = ( *t.data() )[ idx ];
-            os << boost::format(", %.14le, %d" ) % v.first % v.second;
+        std::ostream& operator << ( std::ostream& os, const threshold_result& t ) {
+
+            os << boost::format( "\n%d, %.8lf, " ) % t.data()->serialnumber_ % t.data()->meta_.initialXTimeSeconds
+                << t.data()->timeSinceEpoch_
+                << boost::format( ", %.8e, %.8e" ) % t.data()->meta_.scaleFactor % t.data()->meta_.scaleOffset
+                << boost::format( ", %.8e" ) % t.data()->meta_.initialXOffset;
+
+            for ( auto& idx : t.indecies() ) {
+                auto v = ( *t.data() )[ idx ];
+                os << boost::format( ", %.14le, %d" ) % v.first % v.second;
+            }
+
+            return os;
         }
-        
-        return os;
     }
 }

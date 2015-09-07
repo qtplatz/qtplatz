@@ -100,7 +100,7 @@ findSlopeForm::setChecked( bool on )
 }
 
 void
-findSlopeForm::set( const ap240::threshold_method& m )
+findSlopeForm::set( const adcontrols::threshold_method& m )
 {
     const QSignalBlocker bloks [] = {
         QSignalBlocker( ui->groupBox ), QSignalBlocker( ui->groupBox_filter )
@@ -117,14 +117,14 @@ findSlopeForm::set( const ap240::threshold_method& m )
     ui->doubleSpinBox_resp->setValue( m.response_time * 1.0e9 );         // --> ns
 
     // Slope
-    ui->radioButton_neg->setChecked( m.slope == ap240::threshold_method::CrossDown ); // NEG
-    ui->radioButton_pos->setChecked( m.slope == ap240::threshold_method::CrossUp );   // POS
+    ui->radioButton_neg->setChecked( m.slope == adcontrols::threshold_method::CrossDown ); // NEG
+    ui->radioButton_pos->setChecked( m.slope == adcontrols::threshold_method::CrossUp );   // POS
 
     // Filter
     ui->groupBox_filter->setChecked( m.use_filter );
     switch( m.filter ) {
-    case ap240::threshold_method::DFT_Filter:   ui->radioButton_dft->setChecked( true ); break;
-    case ap240::threshold_method::SG_Filter:    ui->radioButton_sg->setChecked( true );   break;
+    case adcontrols::threshold_method::DFT_Filter:   ui->radioButton_dft->setChecked( true ); break;
+    case adcontrols::threshold_method::SG_Filter:    ui->radioButton_sg->setChecked( true );   break;
     }
     ui->spinBox_sg->setValue( m.sgwidth * 1.0e9 );    // s --> ns
     ui->spinBox_dft->setValue( m.cutoffHz * 1.0e-6 ); // Hz --> MHz
@@ -132,18 +132,18 @@ findSlopeForm::set( const ap240::threshold_method& m )
 }
 
 void
-findSlopeForm::get( ap240::threshold_method& m ) const
+findSlopeForm::get( adcontrols::threshold_method& m ) const
 {
     m.enable = ui->groupBox->isChecked();
     m.threshold_level = ui->doubleSpinBox->value() * 1.0e-3; // mV -> V
     m.time_resolution = ui->doubleSpinBox_resolution->value() * 1.0e-9; // ns -> seconds
     m.response_time = ui->doubleSpinBox_resp->value() * 1.0e-9; // ns -> seconds
-    m.slope = ui->radioButton_neg->isChecked() ? ap240::threshold_method::CrossDown : ap240::threshold_method::CrossUp;
+    m.slope = ui->radioButton_neg->isChecked() ? adcontrols::threshold_method::CrossDown : adcontrols::threshold_method::CrossUp;
     m.use_filter = ui->groupBox_filter->isChecked();
     if ( ui->radioButton_sg->isChecked() )
-        m.filter = ap240::threshold_method::SG_Filter;
+        m.filter = adcontrols::threshold_method::SG_Filter;
     else 
-        m.filter = ap240::threshold_method::DFT_Filter;
+        m.filter = adcontrols::threshold_method::DFT_Filter;
     m.sgwidth = ui->spinBox_sg->value() * 1.0e-9;           // ns -> s
     m.cutoffHz = ui->spinBox_dft->value() * 1.0e6;          // MHz -> Hz
     m.complex_ = ui->checkBox->isChecked();

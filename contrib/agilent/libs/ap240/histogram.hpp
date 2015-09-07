@@ -30,9 +30,8 @@
 #include <atomic>
 #include <mutex>
 
+namespace ap240spectrometer { namespace ap240 { class threshold_result; } }
 namespace ap240 {
-
-    class threshold_result;
 
     class AP240SHARED_EXPORT histogram {
         histogram( const histogram & ) = delete;
@@ -42,11 +41,11 @@ namespace ap240 {
     public:
         histogram();
         void clear();
-        void append( const threshold_result& result );
+        void append( const ap240spectrometer::ap240::threshold_result& result );
         size_t trigger_count() const;
         double triggers_per_sec() const;
         size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
-                             , ap240::metadata& meta
+                             , ap240x::metadata& meta
                              , uint32_t& serialnumber
                              , uint64_t& timeSinceEpoch );
 
@@ -55,7 +54,7 @@ namespace ap240 {
 
     private:
         // metadata for initial trigger in this histogram
-        ap240::metadata meta_;
+        ap240x::metadata meta_;
         uint32_t serialnumber_;               // first waveform trigger#
         uint64_t timeSinceEpoch_;             // first waveform acquired time
         std::atomic< size_t > trigger_count_; // number of triggers

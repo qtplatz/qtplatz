@@ -28,15 +28,14 @@
 #include <atomic>
 #include <memory>
 #include <vector>
+#include <ap240spectrometer/waveform.hpp>
+#include <ap240spectrometer/method.hpp>
 
 namespace boost { namespace asio { class io_service; } }
 namespace adinterface { class waveform_generator;  }
 
 namespace ap240 {
     
-    class waveform;
-    class method;
-
     class simulator  {
     public:
         ~simulator();
@@ -44,8 +43,8 @@ namespace ap240 {
 
         bool acquire( boost::asio::io_service& );
         bool waitForEndOfAcquisition();
-        bool readData( waveform& );
-        void setup( const method& );
+        bool readData( ap240x::waveform& );
+        void setup( const ap240x::method& );
 
         void protocol_handler( double, double );
 
@@ -63,7 +62,7 @@ namespace ap240 {
         uint32_t nbrSamples_;
         uint32_t nbrWaveforms_;
         double exitDelay_;
-        std::shared_ptr< ap240::method > method_;
+        std::shared_ptr< ap240x::method > method_;
         static simulator * instance_;
 
         void post( adinterface::waveform_generator * );

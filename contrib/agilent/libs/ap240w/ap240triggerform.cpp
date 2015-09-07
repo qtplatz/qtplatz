@@ -63,7 +63,7 @@ ap240TriggerForm::~ap240TriggerForm()
 }
 
 void
-ap240TriggerForm::set( const ap240::method& m )
+ap240TriggerForm::set( const ap240x::method& m )
 {
     const QSignalBlocker blocker( this );
 
@@ -79,7 +79,7 @@ ap240TriggerForm::set( const ap240::method& m )
 }
 
 void
-ap240TriggerForm::get( ap240::method& m ) const
+ap240TriggerForm::get( ap240x::method& m ) const
 {
     if ( ui->comboBox_2->currentIndex() == 0 )
         m.trig_.trigPattern = 0x80000000;

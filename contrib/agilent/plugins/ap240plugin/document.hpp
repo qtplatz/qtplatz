@@ -32,19 +32,17 @@ class QSettings;
 
 namespace adcontrols {
     class MassSpectrum;
+    class threshold_method;
     namespace ControlMethod { class Method; }
 }
 
 namespace adextension { class iSequenceImpl; }
+namespace ap240spectrometer { namespace ap240 { class method; class waveform; class threshold_result; } }
+namespace ap240x = ap240spectrometer::ap240;
 
 namespace ap240 {
-
     class digitizer;
     class iControllerImpl;
-	class method;
-	class waveform;
-    class threshold_method;
-    class threshold_result;
 
     namespace detail { struct remover; }
 
@@ -64,24 +62,24 @@ namespace ap240 {
         void ap240_trigger_inject();
         void prepare_for_run();
 
-        typedef std::pair<std::shared_ptr< const threshold_result >, std::shared_ptr< const threshold_result > > waveforms_t;
+        typedef std::pair<std::shared_ptr< const ap240x::threshold_result >, std::shared_ptr< const ap240x::threshold_result > > waveforms_t;
 
         waveforms_t findWaveform( uint32_t serialnumber = (-1) );
         std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
         
         int32_t device_status() const;
 
-        static bool toMassSpectrum( adcontrols::MassSpectrum&, const waveform& );
+        static bool toMassSpectrum( adcontrols::MassSpectrum&, const ap240x::waveform& );
         static bool appendOnFile( const std::wstring& path, const std::wstring& title, const adcontrols::MassSpectrum&, std::wstring& id );
 
         QSettings * settings() { return settings_.get(); }
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
-        std::shared_ptr< ap240::method> controlMethod() const;
-        void setControlMethod( const ap240::method& m, const QString& filename );
+        std::shared_ptr< ap240x::method> controlMethod() const;
+        void setControlMethod( const ap240x::method& m, const QString& filename );
 
-        std::shared_ptr< const ap240::threshold_method> threshold_method( int ch ) const;
-        void set_threshold_method( int ch, const ap240::threshold_method& );
+        std::shared_ptr< const adcontrols::threshold_method> threshold_method( int ch ) const;
+        void set_threshold_method( int ch, const adcontrols::threshold_method& );
         
         void save_histogram( size_t tick, const adcontrols::MassSpectrum& );
         void waveform_drawn(); // <<-- GUI round trip mesurement purpose
@@ -92,8 +90,8 @@ namespace ap240 {
         adextension::iSequenceImpl * iSequence();
         ap240::iControllerImpl * iController();
 
-        static bool load( const QString& filename, ap240::method& );
-        static bool save( const QString& filename, const ap240::method& );
+        static bool load( const QString& filename, ap240x::method& );
+        static bool save( const QString& filename, const ap240x::method& );
         
     private:
         class impl;
@@ -101,14 +99,14 @@ namespace ap240 {
         
         ap240::digitizer * digitizer_;
         
-        std::shared_ptr< ap240::method > method_;
+        std::shared_ptr< ap240x::method > method_;
 
         int32_t device_status_;
         std::shared_ptr< QSettings > settings_;  // user scope settings
         QString ctrlmethod_filename_;
 
         void reply_handler( const std::string&, const std::string& );
-        bool waveform_handler( const waveform *, const waveform *, ap240::method& );
+        bool waveform_handler( const ap240x::waveform *, const ap240x::waveform *, ap240x::method& );
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();

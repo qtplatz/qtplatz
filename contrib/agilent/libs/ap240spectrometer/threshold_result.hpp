@@ -24,39 +24,45 @@
 
 #pragma once
 
-#include "ap240_global.hpp"
+#include "ap240spectrometer_global.hpp"
 #include <memory>
 #include <vector>
 #include <cstdint>
 #include <ostream>
 
-namespace ap240 {
 
-    class waveform; // digitizer.hpp (waveform data from ap240)
+namespace ap240spectrometer {
+    namespace ap240 {
 
-    class AP240SHARED_EXPORT threshold_result {
+        namespace ap240x = ::ap240spectrometer::ap240;
+
+        class waveform; // digitizer.hpp (waveform data from ap240)
+
+        class AP240SPECTROMETERSHARED_EXPORT threshold_result {
 #if defined _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4251)
 #endif
-        std::shared_ptr< const waveform > data_;
-        std::vector< uint32_t > indecies_;
-        std::vector< double > processed_;
+            std::shared_ptr< const ap240x::waveform > data_;
+            std::vector< uint32_t > indecies_;
+            std::vector< double > processed_;
 #if defined _MSC_VER
 #pragma warning(pop)
 #endif
-    public:
-        std::shared_ptr< const waveform >& data();
-        std::vector< uint32_t >& indecies();
-        std::vector< double >& processed();
-        std::shared_ptr< const waveform > data() const;
-        const std::vector< uint32_t >& indecies() const;
-        const std::vector< double >& processed() const;
+        public:
+            std::shared_ptr< const waveform >& data();
+            std::vector< uint32_t >& indecies();
+            std::vector< double >& processed();
+            std::shared_ptr< const waveform > data() const;
+            const std::vector< uint32_t >& indecies() const;
+            const std::vector< double >& processed() const;
         
-        threshold_result();
-        threshold_result( std::shared_ptr< const waveform > d );
-        threshold_result( const threshold_result& t );
-    };
+            threshold_result();
+            threshold_result( std::shared_ptr< const waveform > d );
+            threshold_result( const threshold_result& t );
+        };
     
-    AP240SHARED_EXPORT std::ostream& operator << (std::ostream&, const threshold_result& );
+        AP240SPECTROMETERSHARED_EXPORT std::ostream& operator << (std::ostream&, const threshold_result& );
+
+    }
 }

@@ -28,7 +28,7 @@
 #include "waveformwnd.hpp"
 #include <ap240w/ap240form.hpp>
 #include <ap240/digitizer.hpp>
-#include <ap240/threshold_result.hpp>
+#include <ap240spectrometer/threshold_result.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -110,11 +110,11 @@ MainWindow::createDockWidgets()
     connect( widget, &ap240w::ap240form::valueChanged, [this] ( ap240w::idCategory cat, int ch ) {
         if ( auto form = findChild< ap240w::ap240form * >() ) {
             if ( cat == ap240w::idSlopeTimeConverter ) {
-                ap240::threshold_method tm;
+                adcontrols::threshold_method tm;
                 form->get( ch, tm );
                 document::instance()->set_threshold_method( ch, tm );
             } else {
-                ap240::method m;
+                ap240x::method m;
                 form->get( m );
                 document::instance()->setControlMethod( m, QString() );
             }
@@ -551,7 +551,7 @@ MainWindow::editor_factories( adextension::iSequenceImpl& impl )
 
 
 void
-MainWindow::setControlMethod( const ap240::method& m )
+MainWindow::setControlMethod( const ap240x::method& m )
 {
     if ( auto form = findChild< ap240w::ap240form * >() ) {
         form->set( m );
@@ -559,7 +559,7 @@ MainWindow::setControlMethod( const ap240::method& m )
 }
 
 void
-MainWindow::getControlMethod( ap240::method& m )
+MainWindow::getControlMethod( ap240x::method& m )
 {
     if ( auto form = findChild< ap240w::ap240form * >() ) {
         form->get( m );

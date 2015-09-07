@@ -27,7 +27,7 @@
 
 #include <QWidget>
 
-namespace ap240 { class threshold_method; }
+namespace adcontrols { class threshold_method; }
 
 namespace ap240w {
 
@@ -49,8 +49,8 @@ namespace ap240w {
         bool isChecked() const;
         void setChecked( bool );
 
-        void set( const ap240::threshold_method& );
-        void get( ap240::threshold_method& ) const;
+        void set( const adcontrols::threshold_method& );
+        void get( adcontrols::threshold_method& ) const;
 
     signals:
         void valueChanged( int ch );

@@ -27,6 +27,8 @@ add_library( ap240spectrometer SHARED
   waveform.cpp
   method.hpp
   method.cpp
+  threshold_result.hpp
+  threshold_result.cpp
   )
 
 target_link_libraries( ap240spectrometer LINK_PUBLIC

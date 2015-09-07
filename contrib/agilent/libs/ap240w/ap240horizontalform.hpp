@@ -26,12 +26,13 @@
 #define AP240HORIZONTALFORM_HPP
 
 #include <QWidget>
+#include <ap240spectrometer/method.hpp>
 
 namespace Ui {
 class ap240HorizontalForm;
 }
 
-namespace ap240 { class method; }
+
 
 class ap240HorizontalForm : public QWidget
 {
@@ -43,8 +44,8 @@ public:
 
     enum idItem { idDelay, idWidth, idSampInterval, idMode, idAvgWaveforms };
 
-    void set( const ap240::method& );
-    void get( ap240::method& ) const;
+    void set( const ap240x::method& );
+    void get( ap240x::method& ) const;
 
 signals:
     void valueChanged( idItem, const QVariant& );

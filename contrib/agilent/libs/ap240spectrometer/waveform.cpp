@@ -38,7 +38,7 @@
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
 
-using namespace ap240spectrometer;
+using namespace ap240spectrometer::ap240;
 
 identify::identify() : bus_number_( 0 )
                      , slot_number_( 0 )
@@ -145,29 +145,29 @@ namespace ap240spectrometer {
         identify & _;
     public:
         impl( identify& t ) : _( t ) {};
-
+        
         template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( _.serial_number_ );
         }
     };
 
-    template<> void identify::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+    template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
     {
         ar & BOOST_SERIALIZATION_NVP( impl(*this) );
     }
 
-    template<> void identify::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+    template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
     {
         ar & BOOST_SERIALIZATION_NVP( impl(*this) );        
     }
 
-    template<> void identify::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         ar << impl(*this);        
     }
 
-    template<> void identify::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         ar >> impl(*this);
     }

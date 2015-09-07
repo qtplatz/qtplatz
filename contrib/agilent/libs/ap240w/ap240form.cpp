@@ -28,7 +28,7 @@
 #include "ap240triggerform.hpp"
 #include "findslopeform.hpp"
 #include "ui_ap240form.h"
-#include <ap240/digitizer.hpp>
+#include <ap240spectrometer/method.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
@@ -132,7 +132,7 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
         connect( g.second, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( idChannels, -1 ); } );
     }
 #endif
-    set( ap240::method() );
+    set( ap240x::method() );
 }
 
 ap240form::~ap240form()
@@ -163,7 +163,7 @@ ap240form::getContents( boost::any& a ) const
 
         adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
         
-        ap240::method m;
+        ap240x::method m;
         get( m );
         adcontrols::ControlMethod::MethodItem item( "ap240" );
         item.setItemLabel( "ap240" );
@@ -175,7 +175,7 @@ ap240form::getContents( boost::any& a ) const
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
         
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
-        ap240::method m;
+        ap240x::method m;
         get( m );
         pi->setModelname( "ap240" );
         pi->setItemLabel( "ap240" );
@@ -183,9 +183,9 @@ ap240form::getContents( boost::any& a ) const
         pi->funcid( 1 );
         pi->set<>( *pi, m ); // serialize
         return true;
-    } else if ( adportable::a_type< ap240::method >::is_pointer( a ) ) {
+    } else if ( adportable::a_type< ap240x::method >::is_pointer( a ) ) {
 
-        auto pm = boost::any_cast<ap240::method *>( a );
+        auto pm = boost::any_cast<ap240x::method *>( a );
         get( *pm );
         return true;
 
@@ -217,7 +217,7 @@ ap240form::setContents( boost::any& a )
     }
 
     if ( pi ) {
-        ap240::method m;
+        ap240x::method m;
 		try {
             pi->get<>( *pi, m );
             set( m );
@@ -242,7 +242,7 @@ ap240form::onStatus( int )
 }
 
 void
-ap240form::set( const ap240::method& m )
+ap240form::set( const ap240x::method& m )
 {
     if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
         QSignalBlocker block( gbox );
@@ -271,14 +271,12 @@ ap240form::set( const ap240::method& m )
         QSignalBlocker block( form );
         form->set( m );        
     }
-    if ( m.slopes_.size() >= 2 ) {
-        set( 0, m.slopes_[0] );
-        set( 1, m.slopes_[1] );        
-    }
+    set( 0, m.slope1_ );
+    set( 1, m.slope2_ );
 }
 
 void
-ap240form::get( ap240::method& m ) const
+ap240form::get( ap240x::method& m ) const
 {
     uint32_t channels( 0 );
     
@@ -304,14 +302,12 @@ ap240form::get( ap240::method& m ) const
         form->get( m );        
     }
 
-    if ( m.slopes_.size() < 2 )
-        m.slopes_.resize( 2 );
-    get( 0, m.slopes_[ 0 ] );
-    get( 1, m.slopes_[ 1 ] );    
+    get( 0, m.slope1_ );
+    get( 1, m.slope2_ );
 }
 
 void
-ap240form::get( int ch, ap240::threshold_method& m ) const
+ap240form::get( int ch, adcontrols::threshold_method& m ) const
 {
     const QString names[] = { "CH1", "CH2" };
 
@@ -321,7 +317,7 @@ ap240form::get( int ch, ap240::threshold_method& m ) const
 }
 
 void
-ap240form::set( int ch, const ap240::threshold_method& m )
+ap240form::set( int ch, const adcontrols::threshold_method& m )
 {
     const QString names[] = { "CH1", "CH2" };
 

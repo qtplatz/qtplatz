@@ -31,7 +31,7 @@ namespace Ui {
 class ap240TriggerForm;
 }
 
-namespace ap240 { class method; }
+namespace ap240spectrometer { namespace ap240 { class method; } }
 
 class ap240TriggerForm : public QWidget
 {
@@ -43,8 +43,8 @@ public:
 
     enum idItem { idTrigClass, idTrigPattern, idTrigCoupling, idTrigSlope, idTrigLevel1, idTrigLevel2 };
 
-    void set( const ap240::method& );
-    void get( ap240::method& ) const;
+    void set( const ap240spectrometer::ap240::method& );
+    void get( ap240spectrometer::ap240::method& ) const;
 
 signals:
     void valueChanged( idItem, const QVariant& );

@@ -75,11 +75,11 @@ ap240VerticalForm::channel() const
 }
 
 void
-ap240VerticalForm::set( const ap240::method& m )
+ap240VerticalForm::set( const ap240x::method& m )
 {
     const QSignalBlocker blocker( this );
 
-    const ap240::method::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
+    const ap240x::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
 
     auto it = std::lower_bound( fullScaleList.begin(), fullScaleList.end(), t.fullScale, [] ( double a, double b ) { return a > b; } );
     if ( it != fullScaleList.end() ) {
@@ -93,9 +93,9 @@ ap240VerticalForm::set( const ap240::method& m )
 }
 
 void
-ap240VerticalForm::get( ap240::method& m ) const
+ap240VerticalForm::get( ap240x::method& m ) const
 {
-    ap240::method::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
+    ap240x::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
 
     auto index = ui->comboBox_3->currentIndex();
     if ( index >= 0 && index < fullScaleList.size() )

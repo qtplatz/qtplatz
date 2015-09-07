@@ -28,7 +28,7 @@
 #include "mainwindow.hpp"
 #include <ap240/digitizer.hpp>
 #include <ap240/histogram.hpp>
-#include <ap240/threshold_result.hpp>
+#include <ap240spectrometer/threshold_result.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -133,8 +133,8 @@ namespace ap240 {
         std::mutex que_mutex_;
         
         std::vector< std::pair<
-                        std::shared_ptr< const waveform >
-                        , std::shared_ptr< const waveform >
+                        std::shared_ptr< const ap240x::waveform >
+                        , std::shared_ptr< const ap240x::waveform >
                         > > que_;
 
         inline void clearHistogram() {
@@ -142,7 +142,7 @@ namespace ap240 {
         }
 
         inline size_t getHistogram( std::vector< std::pair< double, uint32_t > >& data
-                                    , ap240::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch ) {
+                                    , ap240x::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch ) {
             return histogram_->getHistogram( data, meta, serialnumber, timeSinceEpoch );
         }
 
@@ -163,16 +163,16 @@ namespace ap240 {
         inline ap240::iControllerImpl * iController() { return iControllerImpl_.get(); }
         
     private:
-        typedef std::pair< std::shared_ptr< threshold_result >, std::shared_ptr< threshold_result > > threshold_result_pair_t;
+        typedef std::pair< std::shared_ptr< ap240x::threshold_result >, std::shared_ptr< ap240x::threshold_result > > threshold_result_pair_t;
         
         std::mutex que2_mutex_;
         std::vector< threshold_result_pair_t > que2_;
         std::shared_ptr< histogram > histogram_;
-        std::array< std::shared_ptr< ap240::threshold_method >, 2 > threshold_methods_;
+        std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
         
     public:
 
-        inline bool set_threshold_method( int ch, const ap240::threshold_method& m ) {
+        inline bool set_threshold_method( int ch, const adcontrols::threshold_method& m ) {
 
             if ( ch < threshold_methods_.size() ) {
                 if ( auto prev = threshold_method( ch ) ) { //threshold_methods_[ ch ] ) {
@@ -190,9 +190,9 @@ namespace ap240 {
 
                     if ( m.use_filter ) {
                         if ( ( prev->filter != m.filter ) ||
-                             ( ( m.filter == threshold_method::SG_Filter ) && 
+                             ( ( m.filter == adcontrols::threshold_method::SG_Filter ) && 
                                ( !ap::compare<double>::approximatelyEqual( prev->sgwidth, m.sgwidth ) ) ) ||
-                             ( ( m.filter == threshold_method::DFT_Filter ) && 
+                             ( ( m.filter == adcontrols::threshold_method::DFT_Filter ) && 
                                ( ( !ap::compare<double>::approximatelyEqual( prev->cutoffHz, m.cutoffHz ) ) ||
                                  ( m.complex_ != prev->complex_ ) ) ) ) {
                             // clear histogram except for time_resolution change, which is for histogram calculation resolution
@@ -201,13 +201,13 @@ namespace ap240 {
                     }
                 }
                 std::lock_guard< std::mutex > lock( mutex_ );                
-                threshold_methods_[ ch ] = std::make_shared< ap240::threshold_method >( m );
+                threshold_methods_[ ch ] = std::make_shared< adcontrols::threshold_method >( m );
                 return true;
             }
             return false;
         }
 
-        inline std::shared_ptr< const ap240::threshold_method> threshold_method( int ch ) const {
+        inline std::shared_ptr< const adcontrols::threshold_method> threshold_method( int ch ) const {
             if ( ch < threshold_methods_.size() ) {
                 std::lock_guard< std::mutex > lock( mutex_ );
                 return threshold_methods_[ ch ];
@@ -241,10 +241,10 @@ namespace ap240 {
                 t.join();
         }
 
-        void find_threshold_timepoints( const waveform& data, const ap240::threshold_method& method
+        void find_threshold_timepoints( const ap240x::waveform& data, const adcontrols::threshold_method& method
                                         , std::vector< uint32_t >& elements, std::vector<double>& processed ) {
 
-            const bool findUp = method.slope == ap240::threshold_method::CrossUp;
+            const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
             const size_t nfilter = size_t( method.response_time / data.meta_.xIncrement );
 
             bool flag;
@@ -261,11 +261,11 @@ namespace ap240 {
                         processed[ i ] = data.toVolts( *(data.begin<int32_t>() + i) );
                 }
 
-                if ( method.filter == ap240::threshold_method::SG_Filter ) {
+                if ( method.filter == adcontrols::threshold_method::SG_Filter ) {
 
                     adcontrols::waveform::sg::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.sgwidth );
 
-                } else if ( method.filter == ap240::threshold_method::DFT_Filter ) {
+                } else if ( method.filter == adcontrols::threshold_method::DFT_Filter ) {
                     if ( method.complex_ )
                         adcontrols::waveform::fft4c::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
                     else
@@ -314,13 +314,13 @@ namespace ap240 {
             }
         }
 
-        void handle_waveform( std::pair<std::shared_ptr< const waveform >, std::shared_ptr< const waveform > > pair ) {
+        void handle_waveform( std::pair<std::shared_ptr< const ap240x::waveform >, std::shared_ptr< const ap240x::waveform > > pair ) {
 
             if ( !pair.first && !pair.second ) // empty
                 return;
 
             threshold_result_pair_t results;
-            std::array< std::shared_ptr< ap240::threshold_method >, 2 > methods;
+            std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods;
             do {
                 std::lock_guard< std::mutex > lock( mutex_ );
                 methods[0] = threshold_methods_[ 0 ];
@@ -329,7 +329,7 @@ namespace ap240 {
 
             if ( pair.first ) {
                 
-                results.first = std::make_shared< threshold_result >( pair.first );
+                results.first = std::make_shared< ap240x::threshold_result >( pair.first );
 
                 if ( methods[0]->enable ) {
                     
@@ -341,7 +341,7 @@ namespace ap240 {
                 
             if ( pair.second ) {
 
-                results.second = std::make_shared< threshold_result >( pair.second );
+                results.second = std::make_shared< ap240x::threshold_result >( pair.second );
                 
                 if ( methods[1]->enable )
                     find_threshold_timepoints( *pair.second, *methods[1], results.second->indecies(), results.second->processed() );
@@ -416,7 +416,7 @@ std::mutex document::impl::mutex_;
 document::document() : impl_( new impl() )
                      , digitizer_( new ap240::digitizer )
                      , device_status_( 0 )
-                     , method_( std::make_shared< ap240::method >() )
+                     , method_( std::make_shared< ap240x::method >() )
                      , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                  , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                  , QLatin1String( "ap240" ) ) )
@@ -460,7 +460,7 @@ document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
 
-    ap240::method m;
+    ap240x::method m;
     MainWindow::instance()->getControlMethod( m );
     digitizer_->peripheral_prepare_for_run( m );
 }
@@ -500,7 +500,7 @@ document::reply_handler( const std::string& method, const std::string& reply )
 }
 
 bool
-document::waveform_handler( const waveform * ch1, const waveform * ch2, ap240::method& )
+document::waveform_handler( const ap240x::waveform * ch1, const ap240x::waveform * ch2, ap240x::method& )
 {
     impl_->waveform_post_count()++;
     
@@ -529,7 +529,7 @@ document::findWaveform( uint32_t serialnumber )
 
 // static
 bool
-document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform )
+document::toMassSpectrum( adcontrols::MassSpectrum& sp, const ap240x::waveform& waveform )
 {
     using namespace adcontrols::metric;
 
@@ -632,20 +632,20 @@ document::initialSetup()
     Core::DocumentManager::setUseProjectsDirectory( true );
 
     boost::filesystem::path mfile( dir / "ap240.xml" );
-    ap240::method m;
+    ap240x::method m;
     if ( load( QString::fromStdWString( mfile.wstring() ), m ) )
         setControlMethod( m, QString() ); // don't save default name
     
     try {
-        std::vector< ap240::threshold_method > x;
+        std::vector< adcontrols::threshold_method > x;
         std::wifstream inf( boost::filesystem::path( dir / "ap240_slope_time_method.xml" ).string() );
         boost::archive::xml_wiarchive ar( inf );
         ar >> boost::serialization::make_nvp( "threshold_methods", x );
         for ( size_t i = 0; i < x.size(); ++i )
             set_threshold_method( int( i ), x[ i ] );
     } catch( ... ) {
-        set_threshold_method( 0, ap240::threshold_method() );
-        set_threshold_method( 1, ap240::threshold_method() );
+        set_threshold_method( 0, adcontrols::threshold_method() );
+        set_threshold_method( 1, adcontrols::threshold_method() );
     }
 }
 
@@ -663,12 +663,12 @@ document::finalClose()
             return;
         }
     }
-    ap240::method m;
+    ap240x::method m;
     MainWindow::instance()->getControlMethod( m );
     boost::filesystem::path fname( dir / "ap240.xml" );
     save( QString::fromStdWString( fname.wstring() ), m );
 
-    std::vector< ap240::threshold_method > x{ *impl_->threshold_method(0), *impl_->threshold_method(1) };
+    std::vector< adcontrols::threshold_method > x{ *impl_->threshold_method(0), *impl_->threshold_method(1) };
     std::wofstream outf( boost::filesystem::path( dir / "ap240_slope_time_method.xml" ).string() );
     boost::archive::xml_woarchive ar( outf );
     ar << boost::serialization::make_nvp( "threshold_methods", x );
@@ -706,7 +706,7 @@ document::recentFile( const char * group, bool dir_on_fail )
 }
 
 bool
-document::load( const QString& filename, ap240::method& m )
+document::load( const QString& filename, ap240x::method& m )
 {
     try {
 
@@ -724,7 +724,7 @@ document::load( const QString& filename, ap240::method& m )
 }
 
 bool
-document::save( const QString& filename, const ap240::method& m )
+document::save( const QString& filename, const ap240x::method& m )
 {
     std::wofstream outf( filename.toStdString() );
 
@@ -733,7 +733,7 @@ document::save( const QString& filename, const ap240::method& m )
     return true;
 }
 
-std::shared_ptr< ap240::method >
+std::shared_ptr< ap240x::method >
 document::controlMethod() const
 {
     std::lock_guard< std::mutex > lock( impl::mutex_ );
@@ -741,11 +741,11 @@ document::controlMethod() const
 }
 
 void
-document::setControlMethod( const ap240::method& m, const QString& filename )
+document::setControlMethod( const ap240x::method& m, const QString& filename )
 {
     do {
         std::lock_guard< std::mutex > lock( impl::mutex_ );
-        method_ = std::make_shared< ap240::method >( m );
+        method_ = std::make_shared< ap240x::method >( m );
         digitizer_->peripheral_prepare_for_run( m );
     } while(0);
 
@@ -758,13 +758,13 @@ document::setControlMethod( const ap240::method& m, const QString& filename )
 }
 
 void
-document::set_threshold_method( int ch, const ap240::threshold_method& m )
+document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
 {
     if ( impl_->set_threshold_method( ch, m ) )
         emit on_threshold_method_changed( ch );
 }
 
-std::shared_ptr< const ap240::threshold_method >
+std::shared_ptr< const adcontrols::threshold_method >
 document::threshold_method( int ch ) const
 {
     return impl_->threshold_method( ch );
@@ -774,7 +774,7 @@ document::threshold_method( int ch ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 document::getHistogram( double resolution ) const
 {
-    ap240::metadata meta;
+    ap240x::metadata meta;
     std::vector< std::pair< double, uint32_t > > hist;
 
     auto sp = std::make_shared< adcontrols::MassSpectrum >();    

@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "histogram.hpp"
-#include "threshold_result.hpp"
+#include <ap240spectrometer/threshold_result.hpp>
 #include <adportable/float.hpp>
 #include <algorithm>
 #include <numeric>
@@ -46,7 +46,7 @@ histogram::clear()
 }
 
 void
-histogram::append( const threshold_result& result )
+histogram::append( const ap240x::threshold_result& result )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     
@@ -82,7 +82,7 @@ histogram::triggers_per_sec() const
 
 size_t
 histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
-                         , ap240::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch )
+                         , ap240x::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch )
 {
     histogram.clear();
     

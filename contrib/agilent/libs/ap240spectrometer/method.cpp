@@ -50,6 +50,7 @@ method::method( const method& t ) : channels_( t.channels_ )
 
 
 namespace ap240spectrometer {
+
     namespace ap240 {
 
         class trigger_method::impl {
@@ -190,12 +191,12 @@ namespace ap240spectrometer {
             
         };
 
-        template<> void method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+        template<> AP240SPECTROMETERSHARED_EXPORT void method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
         {
             ar & BOOST_SERIALIZATION_NVP( impl(*this) );
         }
 
-        template<> void method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+        template<> AP240SPECTROMETERSHARED_EXPORT void method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
         {
             ar & BOOST_SERIALIZATION_NVP( impl(*this) );        
         }

@@ -21,8 +21,6 @@ set( ap240_SOURCES
   digitizer.hpp
   safearray.hpp
   histogram.cpp
-  threshold_result.cpp
-  threshold_result.hpp
   )
 
 add_library( ap240 SHARED  ${ap240_SOURCES}  )
@@ -45,7 +43,8 @@ target_link_libraries( ap240 PUBLIC
   adfs
   adutils
   adportable
-  adcontrols 
+  adcontrols
+  ap240spectrometer
   AqDrv4
   ${Boost_LIBRARIES}
   ${platform_libs}

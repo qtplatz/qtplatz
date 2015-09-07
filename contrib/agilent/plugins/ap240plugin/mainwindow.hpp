@@ -38,13 +38,12 @@ class QAction;
 namespace adcontrols { class MassSpectrum; class Trace; namespace ControlMethod { class Method; } }
 namespace adextension { class iSequenceImpl; }
 namespace adwidgets { class ControlMethodWidget; }
-
+namespace ap240spectrometer { namespace ap240 { class method; } }
+namespace ap240x = ap240spectrometer::ap240;
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
 
 namespace ap240 {
-
-    class method;
 
     namespace Internal { class ap240Plugin; }
 
@@ -71,8 +70,8 @@ namespace ap240 {
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::Trace&, const std::wstring& traceId );
         bool editor_factories( adextension::iSequenceImpl& );
-        void setControlMethod( const ap240::method& );
-        void getControlMethod( ap240::method& m );
+        void setControlMethod( const ap240x::method& );
+        void getControlMethod( ap240x::method& m );
         void editor_commit();
 
     private:

@@ -31,8 +31,9 @@
 #include "constants.hpp"
 #include <memory>
 
-namespace adcontrols { namespace ControlMethod { class Method; } }
-namespace ap240 { class method; class threshold_method; }
+namespace adcontrols { namespace ControlMethod { class Method; } class threshold_method; }
+namespace ap240spectrometer { namespace ap240 { class method; } }
+namespace ap240x = ap240spectrometer::ap240;
 
 namespace ap240w {
     
@@ -59,10 +60,10 @@ namespace ap240w {
         void onInitialUpdate();
         void onStatus( int );
 
-        void get( ap240::method& ) const;
-        void set( const ap240::method& );
-        void get( int ch, ap240::threshold_method& ) const;    
-        void set( int ch, const ap240::threshold_method& );    
+        void get( ap240x::method& ) const;
+        void set( const ap240x::method& );
+        void get( int ch, adcontrols::threshold_method& ) const;    
+        void set( int ch, const adcontrols::threshold_method& );    
 
     signals:
         void valueChanged( ap240w::idCategory cat, int ch );

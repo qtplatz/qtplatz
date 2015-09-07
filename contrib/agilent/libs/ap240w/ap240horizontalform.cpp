@@ -60,7 +60,7 @@ ap240HorizontalForm::~ap240HorizontalForm()
 }
 
 void
-ap240HorizontalForm::set( const ap240::method& m )
+ap240HorizontalForm::set( const ap240x::method& m )
 {
     const QSignalBlocker blocker( this );
     
@@ -79,7 +79,7 @@ ap240HorizontalForm::set( const ap240::method& m )
 }
 
 void
-ap240HorizontalForm::get( ap240::method& m ) const
+ap240HorizontalForm::get( ap240x::method& m ) const
 {
     m.hor_.delay = ui->doubleSpinBox->value() * 1.0e-6; // us -> s
     m.hor_.width = ui->doubleSpinBox_2->value() * 1.0e-6; // us -> s
