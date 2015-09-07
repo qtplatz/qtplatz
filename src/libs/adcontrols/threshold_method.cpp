@@ -72,22 +72,22 @@ namespace adcontrols {
         }
     };
 
-    template<> void threshold_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+    template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
     {
         ar & BOOST_SERIALIZATION_NVP( impl(*this) );
     }
 
-    template<> void threshold_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+    template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
     {
         ar & BOOST_SERIALIZATION_NVP( impl(*this) );        
     }
 
-    template<> void threshold_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         ar << impl(*this);        
     }
 
-    template<> void threshold_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         ar >> impl(*this);
     }

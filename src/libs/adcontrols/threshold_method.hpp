@@ -49,9 +49,8 @@ namespace adcontrols {
         bool complex_;
         
         threshold_method();
-
-        class impl;
-        friend class impl;
+    private:
+        class impl;  friend class impl;
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
