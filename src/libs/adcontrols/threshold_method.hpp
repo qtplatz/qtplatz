@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
@@ -24,21 +24,36 @@
 
 #pragma once
 
-#include "ap240spectrometer_global.hpp"
-#include "threshold_method.hpp"
+#include "adcontrols_global.h"
 
-using namespace ap240spectrometer::algo;
+namespace boost { namespace serialization { class access; } }
 
-threshold_method::threshold_method() : enable( false )
-                                     , threshold_level( 0.100 )  // 100mV
-                                     , time_resolution( 0.5e-9 ) // 0.5ns
-                                     , response_time( 0.0 )
-                                     , slope( CrossDown )
-                                     , use_filter( false )
-                                     , filter( SG_Filter )
-                                     , sgwidth( 5.0e-9 )         // 5ns
-                                     , cutoffHz( 200e6 )         // 200MHz
-                                     , complex_( true )
-{
+namespace adcontrols {
+
+    // Method for 'Slope Time Converter'
+    
+    class ADCONTROLSSHARED_EXPORT threshold_method {
+    public:
+        enum FilterAlgo { SG_Filter, DFT_Filter };
+        enum Slope { CrossUp, CrossDown };
+
+        bool enable;
+        double threshold_level;   // V
+        double time_resolution;   // seconds --> for histogram (does not affect for acquiring waveforms)
+        double response_time;     // seconds
+        Slope slope;              // POS(CrossUp) | NEG(CrossDown)
+        bool use_filter;
+        FilterAlgo filter;
+        double sgwidth;           // SG-smooth width
+        double cutoffHz;          // DFT
+        bool complex_;
+        
+        threshold_method();
+
+        class impl;
+        friend class impl;
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int version );
+    };
 }
 

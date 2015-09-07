@@ -74,7 +74,8 @@ add_library( adcontrols SHARED
   scanlaw.hpp
   tableofelement.cpp 
   targetingmethod.cpp
-  theoreticalplate.cpp 
+  theoreticalplate.cpp
+  threshold_method.cpp
   timeutil.cpp 
   trace.cpp 
   traceaccessor.cpp 
@@ -191,7 +192,8 @@ install( FILES
   scanlaw.hpp
   tableofelement.hpp 
   targetingmethod.hpp
-  theoreticalplate.hpp 
+  theoreticalplate.hpp
+  threshold_method.hpp
   timeutil.hpp 
   trace.hpp 
   traceaccessor.hpp 

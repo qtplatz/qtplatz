@@ -25,8 +25,6 @@ add_library( ap240spectrometer SHARED
   datainterpreter.hpp
   waveform.hpp
   waveform.cpp
-  threshold_method.hpp
-  threshold_method.cpp
   method.hpp
   method.cpp
   )

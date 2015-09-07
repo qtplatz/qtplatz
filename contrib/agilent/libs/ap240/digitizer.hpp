@@ -306,6 +306,9 @@ namespace ap240 {
         uint32_t wellKnownEvents_;
         uint64_t timeSinceEpoch_;
         identify ident_;
+        typedef int32_t value_type;
+        const value_type * data() const { return d_.data(); }
+        value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
     private:
         std::vector< int32_t > d_;
         friend struct detail::device_ap240;
@@ -338,7 +341,7 @@ namespace ap240 {
         }
         identify ident_;
         std::vector< metadata > meta_;
-        ap240::method method_;
+        std::shared_ptr< ap240::method > method_;
     private:        
         friend class boost::serialization::access;
         template<class Archive>
