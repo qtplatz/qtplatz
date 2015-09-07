@@ -338,6 +338,7 @@ namespace ap240 {
         }
         identify ident_;
         std::vector< metadata > meta_;
+        ap240::method method_;
     private:        
         friend class boost::serialization::access;
         template<class Archive>

@@ -5,6 +5,7 @@ project( ap240spectrometer )
 set( PROVIDER MS-Cheminformatics )
 
 add_definitions(-DAP240SPECTROMETER_LIBRARY)
+
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS -wd4996 )
 endif()
@@ -22,6 +23,12 @@ add_library( ap240spectrometer SHARED
   ap240spectrometer_global.hpp
   massspectrometer.hpp
   datainterpreter.hpp
+  waveform.hpp
+  waveform.cpp
+  threshold_method.hpp
+  threshold_method.cpp
+  method.hpp
+  method.cpp
   )
 
 target_link_libraries( ap240spectrometer LINK_PUBLIC

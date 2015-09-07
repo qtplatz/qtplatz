@@ -33,7 +33,13 @@
 #if defined _MSC_VER
 #pragma warning(pop)
 #endif
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+
 #include <algorithm>
+#include <sstream>
 
 using namespace ap240controller;
     
@@ -74,10 +80,10 @@ WaveformObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const
     
     std::lock_guard< std::mutex > lock( const_cast<WaveformObserver *>( this )->mutex() );
 
-    //if ( !que_.empty() ) {
-    //    oldest = que_.front()->pos();
-    //    newest = que_.back()->pos();
-    //}
+    if ( !que_.empty() ) {
+        oldest = que_.front()->pos();
+        newest = que_.back()->pos();
+    }
     
 }
 
@@ -143,14 +149,43 @@ WaveformObserver::serialize( so::DataReadBuffer& rb
     rb.timepoint() = waveform.timeSinceEpoch_;
     
     ap240::metadata_archive xmeta( waveform.ident_ );
+    xmeta.method_ = std::make_shared< ap240::method >( waveform.method_ );
+
+    size_t data_length( 4 * sizeof( uint32_t ) );
     
     if ( pair.first ) {
         rb.ndata()++;
         xmeta.meta_.push_back( pair.first->meta_ );
+        data_length += pair.first->size() * sizeof( ap240::waveform::value_type );
     }
+
     if ( pair.second ) {
         rb.ndata()++;
         xmeta.meta_.push_back( pair.second->meta_ );
+        data_length += pair.second->size() * sizeof( ap240::waveform::value_type );
     }
+    
+    std::ostringstream o;
+    portable_binary_oarchive ar( o );
+    ar << xmeta;
+    rb.xmeta().resize( o.str().size() );
+    const std::string& device = o.str();
 
+    std::copy( device.data(), device.data() + device.size(), rb.xmeta().data() );
+
+    rb.xdata().resize( data_length );
+    ap240::waveform::value_type * dest_p = reinterpret_cast<ap240::waveform::value_type *>( rb.xdata().data() );
+
+    for ( auto& ptr : { pair.first, pair.second } ) {
+
+        uint32_t * size_p = reinterpret_cast<uint32_t *>( dest_p );
+        *size_p++ = 0x7ffe0001; // separater & endian marker
+        *size_p++ = ptr ? uint32_t( ptr->size() ) : 0;
+        dest_p = reinterpret_cast<ap240::waveform::value_type *>( size_p );
+
+        if ( ptr ) {
+            std::copy( ptr->data(), ptr->data() + ptr->size(), dest_p );
+            dest_p += ptr->size();
+        }
+    }
 }

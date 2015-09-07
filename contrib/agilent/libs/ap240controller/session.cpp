@@ -86,7 +86,7 @@ namespace ap240controller { namespace Instrument {
                         auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
                         auto pos = (*waveformObserver_) << pair;
                         masterObserver_->dataChanged( waveformObserver_.get(), pos );
-                        return true;
+                        return false; // no next method changed.
                     }
                 }
                 return false;

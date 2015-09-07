@@ -22,17 +22,23 @@
 **
 **************************************************************************/
 
-#ifndef AP240SPECTROMETER_GLOBAL_HPP
-#define AP240SPECTROMETER_GLOBAL_HPP
+#pragma once
 
-#include <compiler/decl_export.h>
+#include "ap240spectrometer_global.hpp"
+#include "threshold_method.hpp"
 
-#if defined(AP240SPECTROMETER_LIBRARY)
-#  define AP240SPECTROMETERSHARED_EXPORT DECL_EXPORT
-#  define AP240SPECTROMETERSHARED_TEMPLATE_EXPORT
-#else
-#  define AP240SPECTROMETERSHARED_EXPORT DECL_IMPORT
-#  define AP240SPECTROMETERSHARED_TEMPLATE_EXPORT extern
-#endif
+using namespace ap240spectrometer::algo;
 
-#endif // AP240SPECTROMETER_GLOBAL_HPP
+threshold_method::threshold_method() : enable( false )
+                                     , threshold_level( 0.100 )  // 100mV
+                                     , time_resolution( 0.5e-9 ) // 0.5ns
+                                     , response_time( 0.0 )
+                                     , slope( CrossDown )
+                                     , use_filter( false )
+                                     , filter( SG_Filter )
+                                     , sgwidth( 5.0e-9 )         // 5ns
+                                     , cutoffHz( 200e6 )         // 200MHz
+                                     , complex_( true )
+{
+}
+
