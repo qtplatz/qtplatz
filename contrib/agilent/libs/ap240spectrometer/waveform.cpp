@@ -139,38 +139,82 @@ waveform::toVolts( double d ) const
     return d * meta_.scaleFactor /  meta_.actualAverages;
 }
 
-namespace ap240spectrometer {
+namespace ap240spectrometer { namespace ap240 {
+    
+    
+        template<typename T=identify>
+        class identify_archive {
+        public:
+            template<class Archive> void serialize( Archive& ar, T& _, const unsigned int version ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP( _.serial_number_ );
+            }
+        };
 
-    class identify::impl {
-        identify & _;
-    public:
-        impl( identify& t ) : _( t ) {};
-        
-        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( _.serial_number_ );
+        template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
+        {
+            identify_archive<>().serialize( ar, *this, version );
         }
-    };
 
-    template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
-    {
-        ar & BOOST_SERIALIZATION_NVP( impl(*this) );
-    }
+        template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
+        {
+            identify_archive<>().serialize( ar, *this, version );        
+        }
 
-    template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
-    {
-        ar & BOOST_SERIALIZATION_NVP( impl(*this) );        
-    }
+        template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( portable_binary_oarchive& ar, unsigned int version )
+        {
+            identify_archive<>().serialize( ar, *this, version );                
+        }
 
-    template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( portable_binary_oarchive& ar, const unsigned int version )
-    {
-        ar << impl(*this);        
-    }
+        template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( portable_binary_iarchive& ar, unsigned int version )
+        {
+            identify_archive<>().serialize( ar, *this, version );                        
+        }
 
-    template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( portable_binary_iarchive& ar, const unsigned int version )
-    {
-        ar >> impl(*this);
-    }
-    
-    
+        ///////////////////////
+
+        template<typename T=metadata>
+        class metadata_archive {
+        public:
+            template<class Archive>
+            void serialize( Archive& ar, T& _, const unsigned int version ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP( _.actualPoints );
+                ar & BOOST_SERIALIZATION_NVP( _.flags );
+                ar & BOOST_SERIALIZATION_NVP( _.actualAverages );
+                ar & BOOST_SERIALIZATION_NVP( _.indexFirstPoint );
+                ar & BOOST_SERIALIZATION_NVP( _.channel );
+                ar & BOOST_SERIALIZATION_NVP( _.dataType );
+                ar & BOOST_SERIALIZATION_NVP( _.initialXTimeSeconds );
+                ar & BOOST_SERIALIZATION_NVP( _.initialXOffset );
+                ar & BOOST_SERIALIZATION_NVP( _.xIncrement );
+                ar & BOOST_SERIALIZATION_NVP( _.scaleFactor );
+                ar & BOOST_SERIALIZATION_NVP( _.scaleOffset );
+                ar & BOOST_SERIALIZATION_NVP( _.horPos );
+            }
+        };
+        
+        template<> AP240SPECTROMETERSHARED_EXPORT void metadata::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
+        {
+            metadata_archive<>().serialize( ar, *this, version );
+        }
+
+        template<> AP240SPECTROMETERSHARED_EXPORT void metadata::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
+        {
+            metadata_archive<>().serialize( ar, *this, version );        
+        }
+
+        template<> AP240SPECTROMETERSHARED_EXPORT void metadata::serialize( portable_binary_oarchive& ar, unsigned int version )
+        {
+            metadata_archive<>().serialize( ar, *this, version );                
+        }
+        
+        template<> AP240SPECTROMETERSHARED_EXPORT void metadata::serialize( portable_binary_iarchive& ar, unsigned int version )
+        {
+            metadata_archive<>().serialize( ar, *this, version );                        
+        }
+
+
+        
+    } // namespace ap240
 }

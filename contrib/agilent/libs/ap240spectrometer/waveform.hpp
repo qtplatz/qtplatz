@@ -50,8 +50,6 @@ namespace ap240spectrometer {
             uint32_t serial_number_;
 
         private:
-            class impl;
-            friend class impl;
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
@@ -85,22 +83,7 @@ namespace ap240spectrometer {
             double horPos;
         private:
             friend class boost::serialization::access;
-            template<class Archive>
-            void serialize( Archive& ar, const unsigned int version ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( actualPoints );
-                ar & BOOST_SERIALIZATION_NVP( flags );
-                ar & BOOST_SERIALIZATION_NVP( actualAverages );
-                ar & BOOST_SERIALIZATION_NVP( indexFirstPoint );
-                ar & BOOST_SERIALIZATION_NVP( channel );
-                ar & BOOST_SERIALIZATION_NVP( dataType );
-                ar & BOOST_SERIALIZATION_NVP( initialXTimeSeconds );
-                ar & BOOST_SERIALIZATION_NVP( initialXOffset );
-                ar & BOOST_SERIALIZATION_NVP( xIncrement );
-                ar & BOOST_SERIALIZATION_NVP( scaleFactor );
-                ar & BOOST_SERIALIZATION_NVP( scaleOffset );
-                ar & BOOST_SERIALIZATION_NVP( horPos );
-            }
+            template<class Archive>  void serialize( Archive& ar, const unsigned int version );
         };
 
 #if defined _MSC_VER

@@ -49,19 +49,13 @@ method::method( const method& t ) : channels_( t.channels_ )
 }
 
 
-namespace ap240spectrometer {
-
-    namespace ap240 {
-
-        class trigger_method::impl {
-            trigger_method& _;
+namespace ap240spectrometer {   namespace ap240 {
+        
+        template<typename T=trigger_method>
+        class trigger_method_archive {
         public:
-            impl( trigger_method& t ) : _(t) {}
-        private:
-            class impl; friend class impl;
-            friend class boost::serialization::access;
             template<class Archive>
-            void serialize( Archive& ar, const unsigned int version ) {
+            void serialize( Archive& ar, T& _, const unsigned int version ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP( _.trigClass );
                 ar & BOOST_SERIALIZATION_NVP( _.trigPattern );
@@ -71,34 +65,32 @@ namespace ap240spectrometer {
                 ar & BOOST_SERIALIZATION_NVP( _.trigLevel2 );
             }
         };
-        template<> void trigger_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+        
+        template<> void trigger_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
         {
-            ar & BOOST_SERIALIZATION_NVP( impl(*this) );
+            trigger_method_archive<>().serialize( ar, *this, version );
         }
 
-        template<> void trigger_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+        template<> void trigger_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
         {
-            ar & BOOST_SERIALIZATION_NVP( impl(*this) );        
+            trigger_method_archive<>().serialize( ar, *this, version );            
         }
 
         template<> void trigger_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
-            ar << impl(*this);        
+            trigger_method_archive<>().serialize( ar, *this, version );
         }
 
         template<> void trigger_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
-            ar >> impl(*this);
+            trigger_method_archive<>().serialize( ar, *this, version );
         }
 
-        class horizontal_method::impl {
-            horizontal_method& _;
+        template<typename T=horizontal_method>
+        class horizontal_method_archive {
         public:
-            impl( horizontal_method& t ) : _(t) {}
-        private:
-            friend class boost::serialization::access;
             template<class Archive>
-                void serialize( Archive& ar, const unsigned int version ) {
+            void serialize( Archive& ar, T& _, const unsigned int version ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP( _.sampInterval );
                 ar & BOOST_SERIALIZATION_NVP( _.delay );
@@ -110,34 +102,32 @@ namespace ap240spectrometer {
                 ar & BOOST_SERIALIZATION_NVP( _.nbrSamples );
             }
         };
-        template<> void horizontal_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+        template<> void horizontal_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
         {
-            ar & BOOST_SERIALIZATION_NVP( impl(*this) );
+            horizontal_method_archive<>().serialize( ar, *this, version );
         }
 
-        template<> void horizontal_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+        template<> void horizontal_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
         {
-            ar & BOOST_SERIALIZATION_NVP( impl(*this) );        
+            horizontal_method_archive<>().serialize( ar, *this, version );
         }
 
         template<> void horizontal_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
-            ar << impl(*this);        
+            horizontal_method_archive<>().serialize( ar, *this, version );
         }
 
         template<> void horizontal_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
-            ar >> impl(*this);
+            horizontal_method_archive<>().serialize( ar, *this, version );
         }
         
-        
-        class vertical_method::impl {
-            vertical_method& _;
-        public:
-            impl( vertical_method& t ) : _(t) {}
 
+        template<typename T=vertical_method>
+        class vertical_method_archive {
+        public:
             template<class Archive>
-            void serialize( Archive& ar, const unsigned int version ) {
+            void serialize( Archive& ar, T& _, const unsigned int version ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP( _.fullScale );
                 ar & BOOST_SERIALIZATION_NVP( _.offset );
@@ -147,37 +137,35 @@ namespace ap240spectrometer {
                 ar & BOOST_SERIALIZATION_NVP( _.autoScale );
             }
         };
-        template<> void vertical_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+        template<> void vertical_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
         {
-            ar & BOOST_SERIALIZATION_NVP( impl(*this) );
+            vertical_method_archive<>().serialize(ar, *this, version);
         }
 
-        template<> void vertical_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+        template<> void vertical_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
         {
-            ar & BOOST_SERIALIZATION_NVP( impl(*this) );        
+            vertical_method_archive<>().serialize( ar, *this, version );
         }
 
         template<> void vertical_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
-            ar << impl(*this);        
+            vertical_method_archive<>().serialize( ar, *this, version );
         }
 
         template<> void vertical_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
-            ar >> impl(*this);
+            vertical_method_archive<>().serialize( ar, *this, version );
         }
         
         
         
         ///////////////////////////////////////
-        
-        class method::impl {
-            method& _;
-        public:
-            impl( method& t ) : _(t) {}
 
+        template<typename T=method>
+        class method_archive {
+        public:
             template<class Archive>
-            void serialize( Archive& ar, const unsigned int version ) {
+            void serialize( Archive& ar, T& _, const unsigned int version ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP( _.channels_ );            
                 ar & BOOST_SERIALIZATION_NVP( _.trig_ );
@@ -191,31 +179,31 @@ namespace ap240spectrometer {
             
         };
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+        template<> AP240SPECTROMETERSHARED_EXPORT void method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
         {
-            ar & BOOST_SERIALIZATION_NVP( impl(*this) );
+            method_archive<>().serialize( ar, *this, version );
         }
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+        template<> AP240SPECTROMETERSHARED_EXPORT void method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
         {
-            ar & BOOST_SERIALIZATION_NVP( impl(*this) );        
+            method_archive<>().serialize( ar, *this, version );
         }
 
         template<> void method::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
-            ar << impl(*this);        
+            method_archive<>().serialize( ar, *this, version );
         }
 
         template<> void method::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
-            ar >> impl(*this);
+            method_archive<>().serialize( ar, *this, version );
         }
 
         bool method::archive( std::ostream& os, const method& t )
         {
             try {
                 portable_binary_oarchive ar( os );
-                ar & impl(const_cast<method&>(t));
+                ar & boost::serialization::make_nvp( "m", t );
                 return true;
             } catch ( std::exception& ex ) {
                 BOOST_THROW_EXCEPTION( ex );
@@ -227,7 +215,7 @@ namespace ap240spectrometer {
         {
             try {
                 portable_binary_iarchive ar( is );
-                ar & impl(t);
+                ar & boost::serialization::make_nvp( "m", t );                
                 return true;
             } catch ( std::exception& ex ) {
                 BOOST_THROW_EXCEPTION( ex );
@@ -239,7 +227,7 @@ namespace ap240spectrometer {
         {
             try {
                 boost::archive::xml_woarchive ar( os );
-                ar & boost::serialization::make_nvp( "ap240_method", impl(const_cast<method&>(t)) );
+                ar & boost::serialization::make_nvp( "m", t );
                 return true;
             } catch ( std::exception& ex ) {
                 BOOST_THROW_EXCEPTION( ex );
@@ -251,7 +239,7 @@ namespace ap240spectrometer {
         {
             try {
                 boost::archive::xml_wiarchive ar( is );
-                ar & boost::serialization::make_nvp( "ap240_method", impl(t) );
+                ar & boost::serialization::make_nvp( "m", t );
                 return true;
             } catch ( std::exception& ex ) {
                 BOOST_THROW_EXCEPTION( ex );

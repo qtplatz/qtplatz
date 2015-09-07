@@ -50,7 +50,6 @@ namespace adcontrols {
         
         threshold_method();
     private:
-        class impl;  friend class impl;
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };

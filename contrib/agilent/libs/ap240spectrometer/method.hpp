@@ -53,7 +53,6 @@ namespace ap240spectrometer {
                 , trigLevel2( 0.0 )    // only if window for trigSlope (3)
             {}
         private:
-            class impl; friend class impl;
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
@@ -77,7 +76,6 @@ namespace ap240spectrometer {
                 , nbrSamples( 0 ) // filled when apply to device
             {}
         private:
-            class impl; friend class impl;            
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
@@ -97,7 +95,6 @@ namespace ap240spectrometer {
                 , autoScale( true )
             {}
         private:
-            class impl; friend class impl;            
             friend class boost::serialization::access;
             template<class Archive>  void serialize( Archive& ar, const unsigned int version );
         };        
@@ -122,7 +119,6 @@ namespace ap240spectrometer {
             static bool xml_restore( std::wistream&, method& );
         
         private:
-            class impl; friend class impl;
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };

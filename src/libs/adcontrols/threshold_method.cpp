@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "threshold_method.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
@@ -50,14 +48,12 @@ threshold_method::threshold_method() : enable( false )
 
 namespace adcontrols {
 
-    class threshold_method::impl {
-        threshold_method& _;
+    template<typename T=threshold_method>
+    class threshold_method_archive {
     public:
-        impl( threshold_method& t ) : _( t ) {}
 
-        friend class boost::serialization::access;
         template<class Archive>
-        void serialize( Archive& ar, const unsigned int version ) {
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( _.enable );
             ar & BOOST_SERIALIZATION_NVP( _.threshold_level );
@@ -72,24 +68,24 @@ namespace adcontrols {
         }
     };
 
-    template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+    template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
-        ar & BOOST_SERIALIZATION_NVP( impl(*this) );
+        threshold_method_archive<>().serialize( ar, *this, version );
     }
 
-    template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
+    template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        ar & BOOST_SERIALIZATION_NVP( impl(*this) );        
+        threshold_method_archive<>().serialize( ar, *this, version );        
     }
 
     template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-        ar << impl(*this);        
+        threshold_method_archive<>().serialize( ar, *this, version );
     }
 
     template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-        ar >> impl(*this);
+        threshold_method_archive<>().serialize( ar, *this, version );        
     }
 
 }
