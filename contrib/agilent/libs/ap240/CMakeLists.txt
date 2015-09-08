@@ -43,7 +43,7 @@ target_link_libraries( ap240 PUBLIC
   adutils
   adportable
   adcontrols
-  ap240spectrometer
+  ap240controls
   AqDrv4
   ${Boost_LIBRARIES}
   ${platform_libs}

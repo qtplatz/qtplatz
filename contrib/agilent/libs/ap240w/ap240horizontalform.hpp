@@ -26,7 +26,7 @@
 #define AP240HORIZONTALFORM_HPP
 
 #include <QWidget>
-#include <ap240spectrometer/method.hpp>
+#include <ap240controls/method.hpp>
 
 namespace Ui {
 class ap240HorizontalForm;

@@ -28,8 +28,8 @@
 #include <atomic>
 #include <memory>
 #include <vector>
-#include <ap240spectrometer/waveform.hpp>
-#include <ap240spectrometer/method.hpp>
+#include <ap240controls/waveform.hpp>
+#include <ap240controls/method.hpp>
 
 namespace boost { namespace asio { class io_service; } }
 namespace adinterface { class waveform_generator;  }

@@ -24,7 +24,7 @@
 
 #include "waveformwnd.hpp"
 #include "document.hpp"
-#include <ap240spectrometer/threshold_result.hpp>
+#include <ap240controls/threshold_result.hpp>
 #include <ap240/digitizer.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/chromatogramwidget.hpp>

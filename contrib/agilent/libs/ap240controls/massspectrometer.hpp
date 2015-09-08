@@ -30,14 +30,14 @@
 #include <memory>
 #include <atomic>
 #include <mutex>
-#include "ap240spectrometer_global.hpp"
+#include "ap240controls_global.hpp"
 
 namespace ap240spectrometer {
 
     class ScanLaw;
     class DataInterpreter;
 
-    class AP240SPECTROMETERSHARED_EXPORT MassSpectrometer : public adcontrols::MassSpectrometer
+    class AP240CONTROLSSHARED_EXPORT MassSpectrometer : public adcontrols::MassSpectrometer
                                                           , public adcontrols::massspectrometer_factory
                                                           , public adplugin::plugin {
 

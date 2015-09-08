@@ -28,7 +28,7 @@
 #include "ap240triggerform.hpp"
 #include "findslopeform.hpp"
 #include "ui_ap240form.h"
-#include <ap240spectrometer/method.hpp>
+#include <ap240controls/method.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>

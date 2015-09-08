@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "ap240spectrometer_global.hpp"
+#include "ap240controls_global.hpp"
 #include "waveform.hpp"
 #include <adportable/float.hpp>  
 #include <atomic>
@@ -38,7 +38,7 @@ namespace ap240spectrometer { namespace ap240 {
 
         class threshold_result;
         
-        class AP240SPECTROMETERSHARED_EXPORT histogram {
+        class AP240CONTROLSSHARED_EXPORT histogram {
             histogram( const histogram & ) = delete;
             histogram& operator = ( const histogram& ) = delete;
             

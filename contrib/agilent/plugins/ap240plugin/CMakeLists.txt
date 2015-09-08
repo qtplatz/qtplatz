@@ -88,7 +88,7 @@ target_link_libraries(
   xmlparser
   Core
   ap240
-  ap240spectrometer
+  ap240controls
   ap240w
   ${ACE+TAO_LIBRARIES}
   ${Boost_LIBRARIES}

@@ -27,8 +27,8 @@
 
 #include "ap240_global.hpp"
 #include <adcontrols/threshold_method.hpp>
-#include <ap240spectrometer/method.hpp>
-#include <ap240spectrometer/waveform.hpp>
+#include <ap240controls/method.hpp>
+#include <ap240controls/waveform.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>

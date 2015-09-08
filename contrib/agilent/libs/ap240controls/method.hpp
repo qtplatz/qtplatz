@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "ap240spectrometer_global.hpp"
+#include "ap240controls_global.hpp"
 #include <adcontrols/threshold_method.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -38,7 +38,7 @@ namespace ap240spectrometer {
     
     namespace ap240 {
 
-        struct AP240SPECTROMETERSHARED_EXPORT trigger_method {
+        struct AP240CONTROLSSHARED_EXPORT trigger_method {
             uint32_t trigClass;
             uint32_t trigPattern;
             uint32_t trigCoupling;
@@ -57,7 +57,7 @@ namespace ap240spectrometer {
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
 
-        struct AP240SPECTROMETERSHARED_EXPORT horizontal_method {
+        struct AP240CONTROLSSHARED_EXPORT horizontal_method {
             double sampInterval;
             double delay;
             double width;
@@ -80,7 +80,7 @@ namespace ap240spectrometer {
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
 
-        struct AP240SPECTROMETERSHARED_EXPORT vertical_method {
+        struct AP240CONTROLSSHARED_EXPORT vertical_method {
             double fullScale;
             double offset;
             uint32_t coupling;
@@ -100,7 +100,7 @@ namespace ap240spectrometer {
         };        
         
         
-        class AP240SPECTROMETERSHARED_EXPORT method {
+        class AP240CONTROLSSHARED_EXPORT method {
         public:
             method();
             method( const method& t );

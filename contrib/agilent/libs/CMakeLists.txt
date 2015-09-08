@@ -10,4 +10,4 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT APPLE )
 endif()
 
 add_subdirectory( u5303aspectrometer )
-add_subdirectory( ap240spectrometer )
+add_subdirectory( ap240controls )

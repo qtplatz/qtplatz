@@ -1,10 +1,10 @@
 cmake_policy( SET CMP0028 NEW )
 cmake_policy( SET CMP0020 NEW )
 
-project( ap240spectrometer )
+project( ap240controls )
 set( PROVIDER MS-Cheminformatics )
 
-add_definitions(-DAP240SPECTROMETER_LIBRARY)
+add_definitions(-DAP240CONTROLS_LIBRARY)
 
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS -wd4996 )
@@ -15,12 +15,12 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   )
 
-add_library( ap240spectrometer SHARED
+add_library( ${PROJECT_NAME} SHARED
   ap240spectrometer.cpp
   massspectrometer.cpp 
   datainterpreter.cpp
   ap240spectrometer.hpp
-  ap240spectrometer_global.hpp
+  ap240controls_global.hpp
   massspectrometer.hpp
   datainterpreter.hpp
   waveform.hpp
@@ -33,7 +33,7 @@ add_library( ap240spectrometer SHARED
   histogram.cpp
   )
 
-target_link_libraries( ap240spectrometer LINK_PUBLIC
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adicontroller
   adplugin
   adportable

@@ -70,7 +70,7 @@ add_library( portfolio SHARED IMPORTED )
 add_library( u5303a SHARED IMPORTED )
 add_library( ap240 SHARED IMPORTED )
 add_library( ap240w SHARED IMPORTED )
-add_library( ap240spectrometer SHARED IMPORTED )
+add_library( ap240controls SHARED IMPORTED )
 
 add_library( acewrapper STATIC IMPORTED )
 add_library( adfs STATIC IMPORTED )
@@ -165,9 +165,9 @@ if (WIN32)
   set_target_properties( ap240w PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/ap240w.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/ap240wd.lib )  
-  set_target_properties( ap240spectrometer PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/ap240spectrometer.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/ap240spectrometerd.lib )  
+  set_target_properties( ap240controls PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/ap240controls.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/ap240controlsd.lib )  
   
 elseif ( APPLE )
 
@@ -228,8 +228,8 @@ elseif ( APPLE )
   set_target_properties( ap240w PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240w.dylib )
 
-  set_target_properties( ap240spectrometer PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240spectrometer.dylib )
+  set_target_properties( ap240controls PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240controls.dylib )
   
 else()  #Linux
 
@@ -293,8 +293,8 @@ else()  #Linux
   set_target_properties( ap240w PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240w.so )  
 
-  set_target_properties( ap240spectrometer PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240spectrometer.so )  
+  set_target_properties( ap240controls PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240controls.so )  
 
 endif()
 

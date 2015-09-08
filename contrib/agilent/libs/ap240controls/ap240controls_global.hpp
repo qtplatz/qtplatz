@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
@@ -24,11 +24,14 @@
 
 #pragma once
 
-#include "ap240spectrometer_global.hpp"
-#include <adcontrols/massspectrometer.hpp>
-#include <adplugin/plugin.hpp>
+#include <compiler/decl_export.h>
 
-extern "C" {
-    AP240SPECTROMETERSHARED_EXPORT adcontrols::MassSpectrometer * getMassSpectrometer();
-    AP240SPECTROMETERSHARED_EXPORT adplugin::plugin * adplugin_plugin_instance();
-}
+#if defined(AP240CONTROLS_LIBRARY)
+#  define AP240CONTROLSSHARED_EXPORT DECL_EXPORT
+#  define AP240CONTROLSSHARED_TEMPLATE_EXPORT
+#else
+#  define AP240CONTROLSSHARED_EXPORT DECL_IMPORT
+#  define AP240CONTROLSSHARED_TEMPLATE_EXPORT extern
+#endif
+
+

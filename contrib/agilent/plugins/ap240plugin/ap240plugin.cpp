@@ -29,7 +29,7 @@
 #include "mainwindow.hpp"
 #include "document.hpp"
 #include "icontrollerimpl.hpp"
-#include <ap240spectrometer/massspectrometer.hpp>
+#include <ap240controls/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adextension/isequenceimpl.hpp>

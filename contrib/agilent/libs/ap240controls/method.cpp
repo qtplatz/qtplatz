@@ -179,12 +179,12 @@ namespace ap240spectrometer {   namespace ap240 {
             
         };
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
         {
             method_archive<>().serialize( ar, *this, version );
         }
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
         {
             method_archive<>().serialize( ar, *this, version );
         }

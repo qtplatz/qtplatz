@@ -155,22 +155,22 @@ namespace ap240spectrometer { namespace ap240 {
             }
         };
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
         {
             identify_archive<>().serialize( ar, *this, version );
         }
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
         {
             identify_archive<>().serialize( ar, *this, version );        
         }
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( portable_binary_oarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( portable_binary_oarchive& ar, unsigned int version )
         {
             identify_archive<>().serialize( ar, *this, version );                
         }
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void identify::serialize( portable_binary_iarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( portable_binary_iarchive& ar, unsigned int version )
         {
             identify_archive<>().serialize( ar, *this, version );                        
         }
@@ -198,22 +198,22 @@ namespace ap240spectrometer { namespace ap240 {
             }
         };
         
-        template<> AP240SPECTROMETERSHARED_EXPORT void metadata::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
         {
             metadata_archive<>().serialize( ar, *this, version );
         }
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void metadata::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
         {
             metadata_archive<>().serialize( ar, *this, version );        
         }
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void metadata::serialize( portable_binary_oarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( portable_binary_oarchive& ar, unsigned int version )
         {
             metadata_archive<>().serialize( ar, *this, version );                
         }
         
-        template<> AP240SPECTROMETERSHARED_EXPORT void metadata::serialize( portable_binary_iarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( portable_binary_iarchive& ar, unsigned int version )
         {
             metadata_archive<>().serialize( ar, *this, version );                        
         }
@@ -230,22 +230,22 @@ namespace ap240spectrometer { namespace ap240 {
             }
         };
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void device_data::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
         {
             device_data_archive<>().serialize( ar, *this, version );
         }
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void device_data::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
         {
             device_data_archive<>().serialize( ar, *this, version );
         }
 
-        template<> AP240SPECTROMETERSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int version )
         {
             device_data_archive<>().serialize( ar, *this, version );
         }
         
-        template<> AP240SPECTROMETERSHARED_EXPORT void device_data::serialize( portable_binary_iarchive& ar, unsigned int version )
+        template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_iarchive& ar, unsigned int version )
         {
             device_data_archive<>().serialize( ar, *this, version );
         }

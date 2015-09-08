@@ -27,8 +27,8 @@
 #include <adicontroller/signalobserver.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
 #include <deque>
-#include <ap240spectrometer/waveform.hpp>
-#include <ap240spectrometer/method.hpp>
+#include <ap240controls/waveform.hpp>
+#include <ap240controls/method.hpp>
 
 namespace ap240spectrometer { namespace ap240 { class waveform; } }
 namespace ap240x = ap240spectrometer::ap240;

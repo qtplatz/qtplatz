@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "ap240spectrometer_global.hpp"
+#include "ap240controls_global.hpp"
 #include <memory>
 #include <vector>
 #include <cstdint>
@@ -38,7 +38,7 @@ namespace ap240spectrometer {
 
         class waveform; // digitizer.hpp (waveform data from ap240)
 
-        class AP240SPECTROMETERSHARED_EXPORT threshold_result {
+        class AP240CONTROLSSHARED_EXPORT threshold_result {
 
 #if defined _MSC_VER
 #pragma warning(push)
@@ -64,7 +64,7 @@ namespace ap240spectrometer {
             threshold_result( const threshold_result& t );
         };
     
-        AP240SPECTROMETERSHARED_EXPORT std::ostream& operator << (std::ostream&, const threshold_result& );
+        AP240CONTROLSSHARED_EXPORT std::ostream& operator << (std::ostream&, const threshold_result& );
 
     }
 }

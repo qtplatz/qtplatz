@@ -38,7 +38,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adicontroller
   adplugin
   ap240
-  ap240spectrometer
+  ap240controls
   adportable
   adutils
   adfs

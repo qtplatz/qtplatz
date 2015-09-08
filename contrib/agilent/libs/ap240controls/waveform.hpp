@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "ap240spectrometer_global.hpp"
+#include "ap240controls_global.hpp"
 #include "method.hpp"
 #include <boost/serialization/version.hpp>
 #include <array>
@@ -43,7 +43,7 @@ namespace ap240spectrometer {
 
     namespace ap240 {
 
-        class AP240SPECTROMETERSHARED_EXPORT identify {
+        class AP240CONTROLSSHARED_EXPORT identify {
         public:
             identify();
             identify( const identify& );
@@ -56,7 +56,7 @@ namespace ap240spectrometer {
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
 
-        class AP240SPECTROMETERSHARED_EXPORT metadata {
+        class AP240CONTROLSSHARED_EXPORT metadata {
         public:
             metadata() : initialXTimeSeconds( 0 )
                 , actualPoints( 0 )
@@ -88,7 +88,7 @@ namespace ap240spectrometer {
             template<class Archive>  void serialize( Archive& ar, const unsigned int version );
         };
 
-        class AP240SPECTROMETERSHARED_EXPORT device_data {
+        class AP240CONTROLSSHARED_EXPORT device_data {
         public:
             identify ident_;
             metadata meta_;
@@ -101,10 +101,10 @@ namespace ap240spectrometer {
 
 #if defined _MSC_VER
         class waveform;
-        AP240SPECTROMETERSHARED_TEMPLATE_EXPORT template class AP240SPECTROMETERSHARED_EXPORT std::weak_ptr < waveform > ;
+        AP240CONTROLSSHARED_TEMPLATE_EXPORT template class AP240CONTROLSSHARED_EXPORT std::weak_ptr < waveform > ;
 #endif
 
-        class AP240SPECTROMETERSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
+        class AP240CONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
             waveform( const waveform& ); // = delete;
             void operator = ( const waveform& ); // = delete;
         public:
@@ -157,12 +157,12 @@ namespace ap240spectrometer {
             friend struct ::ap240::detail::device_ap240;
         };
 
-        template<> AP240SPECTROMETERSHARED_EXPORT const int8_t * waveform::begin() const;
-        template<> AP240SPECTROMETERSHARED_EXPORT const int8_t * waveform::end() const;
-        template<> AP240SPECTROMETERSHARED_EXPORT const int16_t * waveform::begin() const;
-        template<> AP240SPECTROMETERSHARED_EXPORT const int16_t * waveform::end() const;
-        template<> AP240SPECTROMETERSHARED_EXPORT const int32_t * waveform::begin() const;
-        template<> AP240SPECTROMETERSHARED_EXPORT const int32_t * waveform::end() const;
+        template<> AP240CONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;
+        template<> AP240CONTROLSSHARED_EXPORT const int8_t * waveform::end() const;
+        template<> AP240CONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
+        template<> AP240CONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
+        template<> AP240CONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
+        template<> AP240CONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
 
 
     } // namespace ap240

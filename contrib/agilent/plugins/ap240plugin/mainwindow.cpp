@@ -28,7 +28,7 @@
 #include "waveformwnd.hpp"
 #include <ap240w/ap240form.hpp>
 #include <ap240/digitizer.hpp>
-#include <ap240spectrometer/threshold_result.hpp>
+#include <ap240controls/threshold_result.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/massspectrum.hpp>

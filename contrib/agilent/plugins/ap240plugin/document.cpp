@@ -27,8 +27,8 @@
 #include "icontrollerimpl.hpp"
 #include "mainwindow.hpp"
 #include <ap240/digitizer.hpp>
-#include <ap240spectrometer/histogram.hpp>
-#include <ap240spectrometer/threshold_result.hpp>
+#include <ap240controls/histogram.hpp>
+#include <ap240controls/threshold_result.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
