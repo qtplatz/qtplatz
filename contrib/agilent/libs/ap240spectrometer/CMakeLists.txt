@@ -29,6 +29,8 @@ add_library( ap240spectrometer SHARED
   method.cpp
   threshold_result.hpp
   threshold_result.cpp
+  histogram.hpp
+  histogram.cpp
   )
 
 target_link_libraries( ap240spectrometer LINK_PUBLIC

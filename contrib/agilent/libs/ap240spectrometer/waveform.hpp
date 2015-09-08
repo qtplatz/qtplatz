@@ -141,7 +141,7 @@ namespace ap240spectrometer {
             static bool
                 serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
 
-            static bool translate( adcontrols::MassSpectrum&, const waveform&, bool inVolts = true );
+            static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
             
         private:
 

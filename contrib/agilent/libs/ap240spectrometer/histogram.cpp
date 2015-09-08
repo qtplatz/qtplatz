@@ -23,12 +23,12 @@
 **************************************************************************/
 
 #include "histogram.hpp"
-#include <ap240spectrometer/threshold_result.hpp>
+#include "threshold_result.hpp"
 #include <adportable/float.hpp>
 #include <algorithm>
 #include <numeric>
 
-using namespace ap240;
+using namespace ap240spectrometer::ap240;
 
 histogram::histogram() : serialnumber_( 0 )
                        , timeSinceEpoch_( 0 )

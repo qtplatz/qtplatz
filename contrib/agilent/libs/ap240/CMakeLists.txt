@@ -20,7 +20,6 @@ set( ap240_SOURCES
   digitizer.cpp
   digitizer.hpp
   safearray.hpp
-  histogram.cpp
   )
 
 add_library( ap240 SHARED  ${ap240_SOURCES}  )

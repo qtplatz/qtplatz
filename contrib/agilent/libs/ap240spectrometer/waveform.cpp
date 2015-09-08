@@ -377,7 +377,7 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
 
 //static
 bool
-waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, bool inVolts )
+waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int scale )
 {
     using namespace adcontrols::metric;
 
@@ -408,9 +408,9 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, boo
 	int idx = 0;
 
     if ( waveform.meta_.dataType == 1 ) {
-        if ( inVolts )
+        if ( scale )
             for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y ) );
+                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );
         else
             for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
                 sp.setIntensity( idx++, *y );                
@@ -418,9 +418,9 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, boo
         double dbase, rms;
         double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
 
-        if ( inVolts )
+        if ( scale )
             for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) );
+                sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) * scale );
         else
             for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
                 sp.setIntensity( idx++, *y - dbase );

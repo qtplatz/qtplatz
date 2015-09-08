@@ -27,7 +27,7 @@
 #include "icontrollerimpl.hpp"
 #include "mainwindow.hpp"
 #include <ap240/digitizer.hpp>
-#include <ap240/histogram.hpp>
+#include <ap240spectrometer/histogram.hpp>
 #include <ap240spectrometer/threshold_result.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -100,7 +100,7 @@ namespace ap240 {
     public:
         impl() : worker_stop_( false )
                , work_( io_service_ )
-               , histogram_( std::make_shared< histogram >() )
+               , histogram_( std::make_shared< ap240x::histogram >() )
                , postCount_( 0 )
                , round_trip_( 0 )
                , waveform_post_count_( 0 )
@@ -167,7 +167,7 @@ namespace ap240 {
         
         std::mutex que2_mutex_;
         std::vector< threshold_result_pair_t > que2_;
-        std::shared_ptr< histogram > histogram_;
+        std::shared_ptr< ap240x::histogram > histogram_;
         std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
         
     public:
@@ -814,7 +814,7 @@ document::getHistogram( double resolution ) const
         if ( resolution > meta.xIncrement ) {
 
             std::vector< double > times, intens;
-            histogram::average( hist, resolution, times, intens );
+            ap240x::histogram::average( hist, resolution, times, intens );
             sp->resize( times.size() );
             sp->setTimeArray( times.data() );
             sp->setIntensityArray( intens.data() );
