@@ -32,7 +32,7 @@ add_library( ap240spectrometer SHARED
   )
 
 target_link_libraries( ap240spectrometer LINK_PUBLIC
-  adinterface
+  adicontroller
   adplugin
   adportable
   adcontrols

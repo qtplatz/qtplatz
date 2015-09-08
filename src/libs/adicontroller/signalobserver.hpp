@@ -96,8 +96,6 @@ namespace adicontroller {
 
             DataReadBuffer( const DataReadBuffer& ) = delete;
             void operator = ( const DataReadBuffer& ) = delete;
-            class impl;
-            impl * impl_;
             
         public:
             ~DataReadBuffer();

@@ -35,7 +35,7 @@ namespace adcontrols {
 
 namespace adicontroller {
     namespace Instrument { class Session; }
-    namespace SignalObserver { class Observer; }
+    namespace SignalObserver { class Observer; class ObserverEvents; }
 }
 
 namespace adextension {
@@ -67,20 +67,24 @@ namespace adextension {
         /* module_number identify instrument where same instruments are configured
          * such as two UV-ditectors, multiple 6-way valves etc.
          */
-        virtual int module_number() const = 0;        
+        virtual int module_number() const = 0;
+
+        virtual void dataChangedHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > ) = 0;
+
+        virtual void dataEventHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos ) > ) = 0;
+
+        /* call backs */
+        virtual void invokeDataChanged( adicontroller::SignalObserver::Observer * o, unsigned int pos ) { emit dataChanged( o, pos ); }
         
+        virtual void invokeDataEvent( adicontroller::SignalObserver::Observer * o, unsigned int events, unsigned int pos ) { emit dataEvent( o, events, pos ); }
+
     signals:
         void onControlMethodChanged();
         void connected( iController * self );
         void message( iController * self, unsigned int code, unsigned int value );
         void log( iController * self, const QString& );
-
-        // SignalObserverEvents
-        void dataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
         void dataChanged( adicontroller::SignalObserver::Observer *, unsigned int pos );
-
-    public slots:
-
+        void dataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
     };
 
 }

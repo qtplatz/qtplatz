@@ -26,14 +26,16 @@
 
 #include "ap240spectrometer_global.hpp"
 #include "method.hpp"
-#include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <iostream>
 #include <vector>
 #include <memory>
 
+namespace adcontrols { class MassSpectrum; }
+namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
 namespace ap240 { namespace detail { struct device_ap240; } }
 namespace ap240spectrometer { namespace ap240 { class method; } }
 
@@ -86,6 +88,17 @@ namespace ap240spectrometer {
             template<class Archive>  void serialize( Archive& ar, const unsigned int version );
         };
 
+        class AP240SPECTROMETERSHARED_EXPORT device_data {
+        public:
+            identify ident_;
+            metadata meta_;
+            device_data( const identify& ident, const metadata& meta ) : ident_( ident ), meta_( meta ) {
+            }
+        private:
+            friend class boost::serialization::access;
+            template<class Archive> void serialize( Archive& ar, const unsigned int );
+        };
+
 #if defined _MSC_VER
         class waveform;
         AP240SPECTROMETERSHARED_TEMPLATE_EXPORT template class AP240SPECTROMETERSHARED_EXPORT std::weak_ptr < waveform > ;
@@ -95,10 +108,14 @@ namespace ap240spectrometer {
             waveform( const waveform& ); // = delete;
             void operator = ( const waveform& ); // = delete;
         public:
-            waveform( std::shared_ptr< identify >& id ) : ident_( *id ), wellKnownEvents_( 0 ), serialnumber_( 0 ), timeSinceEpoch_( 0 ) {
+            waveform( const identify& id
+                      , uint32_t events = 0
+                      , uint32_t pos = 0
+                      , uint64_t tp = 0 ) : ident_( id ), wellKnownEvents_( events ), serialnumber_( pos ), timeSinceEpoch_( tp ) {
             }
 
-            size_t size() const;
+            size_t size() const; // number of samples (octet size is depend on meta_.dataType)
+            
             template<typename T> const T* begin() const;
             template<typename T> const T* end() const;
 
@@ -112,9 +129,20 @@ namespace ap240spectrometer {
             uint32_t wellKnownEvents_;
             uint64_t timeSinceEpoch_;
             identify ident_;
+
             typedef int32_t value_type; // referenced from archiver in WaveformObserver
             const value_type * data() const { return d_.data(); }
             value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
+            size_t data_size() const { return d_.size(); }  // internal data count
+            
+            static std::array< std::shared_ptr< const waveform >, 2 >
+                deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
+
+            static bool
+                serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
+
+            static bool translate( adcontrols::MassSpectrum&, const waveform&, bool inVolts = true );
+            
         private:
 
 #if defined _MSC_VER
@@ -135,5 +163,7 @@ namespace ap240spectrometer {
         template<> AP240SPECTROMETERSHARED_EXPORT const int16_t * waveform::end() const;
         template<> AP240SPECTROMETERSHARED_EXPORT const int32_t * waveform::begin() const;
         template<> AP240SPECTROMETERSHARED_EXPORT const int32_t * waveform::end() const;
-    }
-}
+
+
+    } // namespace ap240
+} // namespace ap240spectrometer

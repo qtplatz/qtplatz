@@ -33,6 +33,7 @@
 #if defined _MSC_VER
 #pragma warning(pop)
 #endif
+#include <ap240spectrometer/waveform.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -126,7 +127,8 @@ uint32_t
 WaveformObserver::operator << ( const_waveform_pair_t& pair )
 {
     auto rb = std::make_shared< so::DataReadBuffer >();
-    serialize( *rb, pair );
+
+    ap240x::waveform::serialize( *rb, pair.first, pair.second );
     
     std::lock_guard< std::mutex > lock( mutex() );
     if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz
@@ -138,54 +140,3 @@ WaveformObserver::operator << ( const_waveform_pair_t& pair )
     return rb->pos();
 }
 
-void
-WaveformObserver::serialize( so::DataReadBuffer& rb
-                             , std::pair< std::shared_ptr< const ap240x::waveform >, std::shared_ptr< const ap240x::waveform > >& pair )
-{
-    rb.ndata() = 0;
-    const ap240x::waveform& waveform = pair.first ? *pair.first : *pair.second;
-
-    rb.pos() = waveform.serialnumber_;
-    rb.timepoint() = waveform.timeSinceEpoch_;
-    
-    ap240::metadata_archive xmeta( waveform.ident_ );
-    xmeta.method_ = std::make_shared< ap240x::method >( waveform.method_ );
-
-    size_t data_length( 4 * sizeof( uint32_t ) );
-    
-    if ( pair.first ) {
-        rb.ndata()++;
-        xmeta.meta_.push_back( pair.first->meta_ );
-        data_length += pair.first->size() * sizeof( ap240x::waveform::value_type );
-    }
-
-    if ( pair.second ) {
-        rb.ndata()++;
-        xmeta.meta_.push_back( pair.second->meta_ );
-        data_length += pair.second->size() * sizeof( ap240x::waveform::value_type );
-    }
-    
-    std::ostringstream o;
-    portable_binary_oarchive ar( o );
-    ar << xmeta;
-    rb.xmeta().resize( o.str().size() );
-    const std::string& device = o.str();
-
-    std::copy( device.data(), device.data() + device.size(), rb.xmeta().data() );
-
-    rb.xdata().resize( data_length );
-    ap240x::waveform::value_type * dest_p = reinterpret_cast<ap240x::waveform::value_type *>( rb.xdata().data() );
-
-    for ( auto& ptr : { pair.first, pair.second } ) {
-
-        uint32_t * size_p = reinterpret_cast<uint32_t *>( dest_p );
-        *size_p++ = 0x7ffe0001; // separater & endian marker
-        *size_p++ = ptr ? uint32_t( ptr->size() ) : 0;
-        dest_p = reinterpret_cast<ap240x::waveform::value_type *>( size_p );
-
-        if ( ptr ) {
-            std::copy( ptr->data(), ptr->data() + ptr->size(), dest_p );
-            dest_p += ptr->size();
-        }
-    }
-}

@@ -35,55 +35,60 @@
 
 namespace adextension {
 
+    /*
+     *  Receiver -- implementation helper
+     */
+    class ReceiverImpl : public adicontroller::Receiver {
+        std::weak_ptr< iController > controller_;
+    public:
+        ~ReceiverImpl() {}
+        ReceiverImpl( iController * p ) : controller_( p->pThis() ) {}
+            
+        void message( eINSTEVENT msg, uint32_t value ) override {
+            if ( auto p = controller_.lock() )
+                emit p->message( p.get(), unsigned( msg ), unsigned( value ) );
+        }
+            
+        void log( const adicontroller::EventLog::LogMessage& log ) override {
+        }
+            
+        void shutdown() override {
+        }
+            
+        void debug_print( uint32_t priority, uint32_t category, const std::string& text ) override {
+        }
+    };
+    
+    /*
+     *  ObserverEvents -- implementation helper
+     */
+    class ObserverEventsImpl : public adicontroller::SignalObserver::ObserverEvents {
+        // ObserverEvents
+        std::weak_ptr< iController > controller_;
+    public:
+        ObserverEventsImpl( iController * p ) : controller_( p->pThis() ) {}
+            
+        void OnConfigChanged( uint32_t objId, adicontroller::SignalObserver::eConfigStatus status ) { }
+            
+        void OnUpdateData( uint32_t objId, long pos ) { }
+            
+        void OnMethodChanged( uint32_t objId, long pos ) { }
+            
+        void OnEvent( uint32_t objId, uint32_t event, long pos ) {
+        }
+            
+        void onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos ) override {
+            if ( auto p = controller_.lock() )
+                p->invokeDataChanged( so, pos );
+        }
+
+    };
+
+    /*
+     *  iControllerImpl -- implementation helper
+     */    
     class iControllerImpl : public adextension::iController {
     public:
-
-        class ReceiverImpl : public adicontroller::Receiver {
-            std::weak_ptr< iController > controller_;
-        public:
-            ~ReceiverImpl() {}
-            ReceiverImpl( iController * p ) : controller_( p->pThis() ) {}
-            
-            void message( eINSTEVENT msg, uint32_t value ) override {
-                if ( auto p = controller_.lock() )
-                    emit p->message( p.get(), unsigned( msg ), unsigned( value ) );
-            }
-            
-            void log( const adicontroller::EventLog::LogMessage& log ) override {
-            }
-            
-            void shutdown() override {
-            }
-            
-            void debug_print( uint32_t priority, uint32_t category, const std::string& text ) override {
-            }
-        };
-
-        /*
-         *  ObserverEvents -- implementation helper
-        */
-        class ObserverEventsImpl : public adicontroller::SignalObserver::ObserverEvents {
-            // ObserverEvents
-            std::weak_ptr< iController > controller_;
-        public:
-            ObserverEventsImpl( iController * p ) : controller_( p->pThis() ) {}
-            
-            void OnConfigChanged( uint32_t objId, adicontroller::SignalObserver::eConfigStatus status ) { }
-            
-            void OnUpdateData( uint32_t objId, long pos ) { }
-            
-            void OnMethodChanged( uint32_t objId, long pos ) { }
-            
-            void OnEvent( uint32_t objId, uint32_t event, long pos ) { }
-            
-            void onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos ) override {
-                if ( auto p = controller_.lock() ) {
-                    auto self( so->shared_from_this() );
-                    emit p->dataChanged( so, pos );
-                }
-            }
-        };
-
     private:
         iControllerImpl( const iControllerImpl& ) = delete;
         iControllerImpl& operator = (const iControllerImpl& ) = delete;
@@ -142,7 +147,29 @@ namespace adextension {
         }
 
         QString module_name() const override { return module_name_; }
+
         int module_number() const override { return module_number_; }
+
+        void dataChangedHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > f ) override {
+            dataChangedHandler_ = f;
+        }
+        void dataEventHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > f ) override {
+            dataEventHandler_ = f;
+        }
+
+        void invokeDataChanged( adicontroller::SignalObserver::Observer * o, unsigned int pos ) override {
+            if ( dataChangedHandler_ )
+                dataChangedHandler_( o, pos );
+            else
+                iController::invokeDataChanged( o, pos );
+        }
+
+        void invokeDataEvent( adicontroller::SignalObserver::Observer * o, unsigned int events, unsigned int pos ) override {
+            if ( dataEventHandler_ )
+                dataEventHandler_( o, events, pos );
+            else
+                iController::invokeDataEvent( o, events, pos );
+        }
 
     protected:
         bool isInitialized_;
@@ -153,6 +180,8 @@ namespace adextension {
         std::shared_ptr< ObserverEventsImpl > observerEvents_;
         QString module_name_;
         int module_number_;
+        std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > dataChangedHandler_;
+        std::function< void( adicontroller::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > dataEventHandler_;
     };
 
 }

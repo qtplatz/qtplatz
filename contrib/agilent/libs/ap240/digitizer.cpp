@@ -502,26 +502,40 @@ task::handle_protocol( const ap240x::method m )
 bool
 task::handle_acquire()
 {
+#if defined _MSC_VER
+    const static auto epoch = std::chrono::steady_clock::from_time_t( 0 );
+#else
+    constexpr auto epoch = std::chrono::steady_clock::from_time_t( 0 );
+#endif
+
     --acquire_post_count_;
     if ( acquire() ) {
         int retry = 3;
         do {
             if ( waitForEndOfAcquisition( 3000 ) ) {
+                auto tp = std::chrono::steady_clock::now();
 
                 std::shared_ptr< ap240x::waveform > ch1, ch2;
 
                 auto serialnumber = data_serialnumber_++;
-
+                
+                uint32_t events = 0;
                 if ( method_.channels_ & 0x01 ) {
-                    ch1 = std::make_shared< ap240x::waveform >( ident_ );
+                    ch1 = std::make_shared< ap240x::waveform >( *ident_, events, serialnumber );
                     ch1->serialnumber_ = serialnumber;
                     readData( *ch1, 1 );
+
+                    // On windows 8.1 (x86_64), time_since_epoch() return exactly same value as following
+                    // though c++ standard does not specify epoch.
+                    ch1->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
+                    // uint64_t epoch_time = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
                 }
 
                 if ( method_.channels_ & 0x02 ) {
-                    ch2 = std::make_shared< ap240x::waveform >( ident_ );
+                    ch2 = std::make_shared< ap240x::waveform >( *ident_, events, serialnumber );
                     ch2->serialnumber_ = serialnumber;
                     readData( *ch2, 2 );
+                    ch2->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
                 }
 
                 for ( auto& reply: waveform_handlers_ ) {
@@ -884,10 +898,8 @@ device_ap240::readData( task& task, ap240x::waveform& data, const ap240x::method
             data.meta_.actualPoints   = dataDesc.returnedSamplesPerSeg; //data.d_.size();
             data.meta_.flags = 0;         // segDesc.flags; // markers not in digitizer
             data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.nStartDelay;
-            uint64_t tstamp = uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo;
-
-            //data.meta_.initialXTimeSeconds = double( tstamp ) * 1.0e-12; // this is time since 'acquire' issued that not what we wont
-            data.meta_.initialXTimeSeconds = task::instance()->timestamp();
+            double acquire_time = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) * 1.0e-12;  // time since 'acquire' issued
+            data.meta_.initialXTimeSeconds = task::instance()->timestamp(); // computer's uptime
             
             data.meta_.scaleFactor = dataDesc.vGain;     // V = vGain * data - vOffset
             data.meta_.scaleOffset = dataDesc.vOffset;

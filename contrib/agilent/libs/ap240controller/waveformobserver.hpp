@@ -57,10 +57,10 @@ namespace ap240controller {
         typedef std::pair< std::shared_ptr< ap240x::waveform >, std::shared_ptr< ap240x::waveform > > waveform_pair_t;
         typedef std::pair< std::shared_ptr< const ap240x::waveform >, std::shared_ptr< const ap240x::waveform > > const_waveform_pair_t;
         uint32_t operator << ( const_waveform_pair_t& );
+
     private:
-        
-        void serialize( so::DataReadBuffer&, std::pair< std::shared_ptr< const ap240x::waveform >, std::shared_ptr< const ap240x::waveform > >& );
         std::vector< std::shared_ptr< so::DataReadBuffer > > que_;
         const boost::uuids::uuid uuid_;
+
     };
 }

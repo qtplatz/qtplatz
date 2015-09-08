@@ -61,7 +61,7 @@ namespace ap240 {
             ar & BOOST_SERIALIZATION_NVP( meta );           
         }
     };
-
+#if 0
 	class AP240SHARED_EXPORT metadata_archive {
     public:
         metadata_archive( const ap240x::identify& id ) {
@@ -78,7 +78,7 @@ namespace ap240 {
             ar & BOOST_SERIALIZATION_NVP( meta_ );           
         }
     };
-
+#endif
     class AP240SHARED_EXPORT digitizer {
     public:
         digitizer();

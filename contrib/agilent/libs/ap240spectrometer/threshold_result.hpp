@@ -39,6 +39,7 @@ namespace ap240spectrometer {
         class waveform; // digitizer.hpp (waveform data from ap240)
 
         class AP240SPECTROMETERSHARED_EXPORT threshold_result {
+
 #if defined _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4251)
@@ -46,6 +47,7 @@ namespace ap240spectrometer {
             std::shared_ptr< const ap240x::waveform > data_;
             std::vector< uint32_t > indecies_;
             std::vector< double > processed_;
+
 #if defined _MSC_VER
 #pragma warning(pop)
 #endif

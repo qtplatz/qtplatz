@@ -135,6 +135,7 @@ namespace adicontroller {
         }
 
         ///////
+#if 0
         class DataReadBuffer::impl {
         public:
             impl() : timepoint_( 0 )
@@ -151,31 +152,36 @@ namespace adicontroller {
             octet_array xdata_;
             octet_array xmeta_;
         };
+#endif
         
-        DataReadBuffer::DataReadBuffer() : impl_( new impl() )
+        DataReadBuffer::DataReadBuffer() : timepoint_( 0 ) //: impl_( new impl() )
+                                         , pos_( 0 )
+                                         , fcn_( 0 )
+                                         , ndata_( 0 )
+                                         , events_( 0 )
         {
         }
 
         DataReadBuffer::~DataReadBuffer()
         {
-            delete impl_;
+            //delete impl_;
         }
         
-        uint64_t& DataReadBuffer::timepoint()  { return impl_->timepoint_; }
-        uint32_t& DataReadBuffer::pos()        { return impl_->pos_; }
-        uint32_t& DataReadBuffer::fcn()        { return impl_->fcn_; }
-        uint32_t& DataReadBuffer::ndata()      { return impl_->ndata_; }
-        uint32_t& DataReadBuffer::events()     { return impl_->events_; }
-        octet_array& DataReadBuffer::xdata()   { return impl_->xdata_; }
-        octet_array& DataReadBuffer::xmeta()   { return impl_->xmeta_; }     
+        uint64_t& DataReadBuffer::timepoint()  { return /*impl_->*/timepoint_; }
+        uint32_t& DataReadBuffer::pos()        { return /*impl_->*/pos_; }
+        uint32_t& DataReadBuffer::fcn()        { return /*impl_->*/fcn_; }
+        uint32_t& DataReadBuffer::ndata()      { return /*impl_->*/ndata_; }
+        uint32_t& DataReadBuffer::events()     { return /*impl_->*/events_; }
+        octet_array& DataReadBuffer::xdata()   { return /*impl_->*/xdata_; }
+        octet_array& DataReadBuffer::xmeta()   { return /*impl_->*/xmeta_; }     
 
-        uint64_t DataReadBuffer::timepoint() const       { return impl_->timepoint_; } 
-        uint32_t DataReadBuffer::pos() const             { return impl_->pos_; }       
-        uint32_t DataReadBuffer::fcn() const             { return impl_->fcn_; }       
-        uint32_t DataReadBuffer::ndata() const           { return impl_->ndata_; }     
-        uint32_t DataReadBuffer::events() const          { return impl_->events_; }    
-        const octet_array& DataReadBuffer::xdata() const { return impl_->xdata_; }     
-        const octet_array& DataReadBuffer::xmeta() const { return impl_->xmeta_; }     
+        uint64_t DataReadBuffer::timepoint() const       { return /*impl_->*/timepoint_; } 
+        uint32_t DataReadBuffer::pos() const             { return /*impl_->*/pos_; }       
+        uint32_t DataReadBuffer::fcn() const             { return /*impl_->*/fcn_; }       
+        uint32_t DataReadBuffer::ndata() const           { return /*impl_->*/ndata_; }     
+        uint32_t DataReadBuffer::events() const          { return /*impl_->*/events_; }    
+        const octet_array& DataReadBuffer::xdata() const { return /*impl_->*/xdata_; }     
+        const octet_array& DataReadBuffer::xmeta() const { return /*impl_->*/xmeta_; }     
 
         ///////
         class Observer::impl {
