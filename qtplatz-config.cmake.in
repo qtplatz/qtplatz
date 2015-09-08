@@ -228,7 +228,7 @@ elseif ( APPLE )
   set_target_properties( ap240w PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240w.dylib )
 
-  set_target_properties( ap240w PROPERTIES
+  set_target_properties( ap240spectrometer PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240spectrometer.dylib )
   
 else()  #Linux
@@ -293,7 +293,7 @@ else()  #Linux
   set_target_properties( ap240w PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240w.so )  
 
-  set_target_properties( ap240w PROPERTIES
+  set_target_properties( ap240spectrometer PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240spectrometer.so )  
 
 endif()

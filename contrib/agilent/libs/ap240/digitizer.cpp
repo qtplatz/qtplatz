@@ -502,18 +502,15 @@ task::handle_protocol( const ap240x::method m )
 bool
 task::handle_acquire()
 {
-#if defined _MSC_VER
-    const static auto epoch = std::chrono::steady_clock::from_time_t( 0 );
-#else
-    constexpr auto epoch = std::chrono::steady_clock::from_time_t( 0 );
-#endif
+    const static auto epoch = std::chrono::system_clock::from_time_t( 0 );
 
     --acquire_post_count_;
+
     if ( acquire() ) {
         int retry = 3;
         do {
             if ( waitForEndOfAcquisition( 3000 ) ) {
-                auto tp = std::chrono::steady_clock::now();
+                auto tp = std::chrono::system_clock::now();
 
                 std::shared_ptr< ap240x::waveform > ch1, ch2;
 
