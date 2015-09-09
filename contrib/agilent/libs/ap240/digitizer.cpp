@@ -540,6 +540,10 @@ task::handle_acquire()
                     if ( reply( ch1.get(), ch2.get(), m ) )
                         handle_protocol( m );
                 }
+
+                if ( simulated_ ) {
+                    std::this_thread::sleep_until( tp + std::chrono::microseconds( 2000 ) );
+                }
                 
                 ++acquire_post_count_;
                 io_service_.post( strand_.wrap( [=] { handle_acquire(); } ) );    // scedule for next acquire
