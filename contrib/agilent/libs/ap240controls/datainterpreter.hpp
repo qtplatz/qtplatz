@@ -31,7 +31,7 @@ namespace adcontrols {
     class TraceAccessor;
 }
 
-namespace ap240spectrometer {
+namespace ap240controls {
 
     class DataInterpreter : public adcontrols::DataInterpreter {
     public:

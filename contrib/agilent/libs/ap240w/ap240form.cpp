@@ -132,7 +132,7 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
         connect( g.second, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( idChannels, -1 ); } );
     }
 #endif
-    set( ap240x::method() );
+    set( ap240controls::method() );
 }
 
 ap240form::~ap240form()
@@ -163,7 +163,7 @@ ap240form::getContents( boost::any& a ) const
 
         adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
         
-        ap240x::method m;
+        ap240controls::method m;
         get( m );
         adcontrols::ControlMethod::MethodItem item( "ap240" );
         item.setItemLabel( "ap240" );
@@ -175,7 +175,7 @@ ap240form::getContents( boost::any& a ) const
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
         
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
-        ap240x::method m;
+        ap240controls::method m;
         get( m );
         pi->setModelname( "ap240" );
         pi->setItemLabel( "ap240" );
@@ -183,9 +183,9 @@ ap240form::getContents( boost::any& a ) const
         pi->funcid( 1 );
         pi->set<>( *pi, m ); // serialize
         return true;
-    } else if ( adportable::a_type< ap240x::method >::is_pointer( a ) ) {
+    } else if ( adportable::a_type< ap240controls::method >::is_pointer( a ) ) {
 
-        auto pm = boost::any_cast<ap240x::method *>( a );
+        auto pm = boost::any_cast<ap240controls::method *>( a );
         get( *pm );
         return true;
 
@@ -217,7 +217,7 @@ ap240form::setContents( boost::any& a )
     }
 
     if ( pi ) {
-        ap240x::method m;
+        ap240controls::method m;
 		try {
             pi->get<>( *pi, m );
             set( m );
@@ -242,7 +242,7 @@ ap240form::onStatus( int )
 }
 
 void
-ap240form::set( const ap240x::method& m )
+ap240form::set( const ap240controls::method& m )
 {
     if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
         QSignalBlocker block( gbox );
@@ -276,7 +276,7 @@ ap240form::set( const ap240x::method& m )
 }
 
 void
-ap240form::get( ap240x::method& m ) const
+ap240form::get( ap240controls::method& m ) const
 {
     uint32_t channels( 0 );
     

@@ -31,8 +31,8 @@ namespace Ui {
 class ap240verticalform;
 }
 
-namespace ap240spectrometer { namespace ap240 { class method; } }
-namespace ap240x = ap240spectrometer::ap240;
+namespace ap240controls { class method; }
+namespace ap240x = ap240controls;
 
 class ap240VerticalForm : public QWidget
 {
@@ -47,8 +47,8 @@ public:
     void setChannel( int );
     int channel() const;
 
-    void set( const ap240x::method& );
-    void get( ap240x::method& ) const;
+    void set( const ap240controls::method& );
+    void get( ap240controls::method& ) const;
 
 signals:
     void valueChanged( idItem, int channel, const QVariant& );

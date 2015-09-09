@@ -122,7 +122,7 @@ ap240Plugin::initialize( const QStringList &arguments, QString *errorString )
 void
 ap240Plugin::extensionsInitialized()
 {
-    auto factory = ap240spectrometer::MassSpectrometer::instance();
+    auto factory = ap240controls::MassSpectrometer::instance();
 	adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
     document::instance()->initialSetup(); // load default control method
 	mainWindow_->OnInitialUpdate();

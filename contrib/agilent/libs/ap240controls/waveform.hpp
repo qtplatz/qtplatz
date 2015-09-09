@@ -37,133 +37,132 @@
 namespace adcontrols { class MassSpectrum; }
 namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
 namespace ap240 { namespace detail { struct device_ap240; } }
-namespace ap240spectrometer { namespace ap240 { class method; } }
+namespace ap240controls { class method; }
 
-namespace ap240spectrometer {
+namespace ap240controls {
 
-    namespace ap240 {
+    namespace ap240x = ap240controls;
 
-        class AP240CONTROLSSHARED_EXPORT identify {
-        public:
-            identify();
-            identify( const identify& );
-            uint32_t bus_number_;
-            uint32_t slot_number_;
-            uint32_t serial_number_;
+    class AP240CONTROLSSHARED_EXPORT identify {
+    public:
+        identify();
+        identify( const identify& );
+        uint32_t bus_number_;
+        uint32_t slot_number_;
+        uint32_t serial_number_;
 
-        private:
-            friend class boost::serialization::access;
-            template<class Archive> void serialize( Archive& ar, const unsigned int version );
-        };
+    private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int version );
+    };
 
-        class AP240CONTROLSSHARED_EXPORT metadata {
-        public:
-            metadata() : initialXTimeSeconds( 0 )
-                , actualPoints( 0 )
-                , flags( 0 )
-                , actualAverages( 0 )
-                , initialXOffset( 0 )
-                , xIncrement( 0 )
-                , scaleFactor( 0 )
-                , scaleOffset( 0 )
-                , horPos( 0 )
-                , indexFirstPoint( 0 )
-                , channel( 1 )
-                , dataType( 1 )
-            { }
-            int64_t actualPoints;
-            int32_t flags;           // IO pin states
-            int32_t actualAverages;  // 0 = digitizer data, 1..n averaged data
-            int32_t indexFirstPoint; // firstValidPoint in U5303A
-            int16_t channel;         // 1|2
-            int16_t dataType;        // 1, 2, 4 := int8_t, int16_t, int32_t
-            double initialXTimeSeconds;
-            double initialXOffset;
-            double xIncrement;
-            double scaleFactor;
-            double scaleOffset;
-            double horPos;
-        private:
-            friend class boost::serialization::access;
-            template<class Archive>  void serialize( Archive& ar, const unsigned int version );
-        };
+    class AP240CONTROLSSHARED_EXPORT metadata {
+    public:
+        metadata() : initialXTimeSeconds( 0 )
+            , actualPoints( 0 )
+            , flags( 0 )
+            , actualAverages( 0 )
+            , initialXOffset( 0 )
+            , xIncrement( 0 )
+            , scaleFactor( 0 )
+            , scaleOffset( 0 )
+            , horPos( 0 )
+            , indexFirstPoint( 0 )
+            , channel( 1 )
+            , dataType( 1 )
+        { }
+        int64_t actualPoints;
+        int32_t flags;           // IO pin states
+        int32_t actualAverages;  // 0 = digitizer data, 1..n averaged data
+        int32_t indexFirstPoint; // firstValidPoint in U5303A
+        int16_t channel;         // 1|2
+        int16_t dataType;        // 1, 2, 4 := int8_t, int16_t, int32_t
+        double initialXTimeSeconds;
+        double initialXOffset;
+        double xIncrement;
+        double scaleFactor;
+        double scaleOffset;
+        double horPos;
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>  void serialize( Archive& ar, const unsigned int version );
+    };
 
-        class AP240CONTROLSSHARED_EXPORT device_data {
-        public:
-            identify ident_;
-            metadata meta_;
-            device_data( const identify& ident, const metadata& meta ) : ident_( ident ), meta_( meta ) {
-            }
-        private:
-            friend class boost::serialization::access;
-            template<class Archive> void serialize( Archive& ar, const unsigned int );
-        };
+    class AP240CONTROLSSHARED_EXPORT device_data {
+    public:
+        identify ident_;
+        metadata meta_;
+        device_data( const identify& ident, const metadata& meta ) : ident_( ident ), meta_( meta ) {
+        }
+    private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int );
+    };
 
 #if defined _MSC_VER
-        class waveform;
-        AP240CONTROLSSHARED_TEMPLATE_EXPORT template class AP240CONTROLSSHARED_EXPORT std::weak_ptr < waveform > ;
+    class waveform;
+    AP240CONTROLSSHARED_TEMPLATE_EXPORT template class AP240CONTROLSSHARED_EXPORT std::weak_ptr < waveform > ;
 #endif
 
-        class AP240CONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
-            waveform( const waveform& ); // = delete;
-            void operator = ( const waveform& ); // = delete;
-        public:
-            waveform( const identify& id
-                      , uint32_t events = 0
-                      , uint32_t pos = 0
-                      , uint64_t tp = 0 ) : ident_( id ), wellKnownEvents_( events ), serialnumber_( pos ), timeSinceEpoch_( tp ) {
-            }
+    class AP240CONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
+        waveform( const waveform& ); // = delete;
+        void operator = ( const waveform& ); // = delete;
+    public:
+        waveform( const identify& id
+                  , uint32_t events = 0
+                  , uint32_t pos = 0
+                  , uint64_t tp = 0 ) : ident_( id ), wellKnownEvents_( events ), serialnumber_( pos ), timeSinceEpoch_( tp ) {
+        }
 
-            size_t size() const; // number of samples (octet size is depend on meta_.dataType)
-            
-            template<typename T> const T* begin() const;
-            template<typename T> const T* end() const;
+        size_t size() const; // number of samples (octet size is depend on meta_.dataType)
 
-            std::pair<double, int> operator [] ( size_t ) const;
-            double toVolts( int ) const;
-            double toVolts( double ) const;
+        template<typename T> const T* begin() const;
+        template<typename T> const T* end() const;
 
-            ap240x::method method_;
-            metadata meta_;
-            uint32_t serialnumber_;
-            uint32_t wellKnownEvents_;
-            uint64_t timeSinceEpoch_;
-            identify ident_;
+        std::pair<double, int> operator [] ( size_t ) const;
+        double toVolts( int ) const;
+        double toVolts( double ) const;
 
-            typedef int32_t value_type; // referenced from archiver in WaveformObserver
-            const value_type * data() const { return d_.data(); }
-            value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
-            size_t data_size() const { return d_.size(); }  // internal data count
-            
-            static std::array< std::shared_ptr< const waveform >, 2 >
-                deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
+        ap240controls::method method_;
+        metadata meta_;
+        uint32_t serialnumber_;
+        uint32_t wellKnownEvents_;
+        uint64_t timeSinceEpoch_;
+        identify ident_;
 
-            static bool
-                serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
+        typedef int32_t value_type; // referenced from archiver in WaveformObserver
+        const value_type * data() const { return d_.data(); }
+        value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
+        size_t data_size() const { return d_.size(); }  // internal data count
 
-            static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
-            
-        private:
+        static std::array< std::shared_ptr< const waveform >, 2 >
+            deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
+
+        static bool
+            serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
+
+        static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+
+    private:
 
 #if defined _MSC_VER
 # pragma warning(push)
 # pragma warning(disable:4251)
 #endif
-            std::vector< value_type > d_;
+        std::vector< value_type > d_;
 
 #if defined _MSC_VER
 # pragma warning( pop )
 #endif
-            friend struct ::ap240::detail::device_ap240;
-        };
+        friend struct ::ap240::detail::device_ap240;
+    };
 
-        template<> AP240CONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;
-        template<> AP240CONTROLSSHARED_EXPORT const int8_t * waveform::end() const;
-        template<> AP240CONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
-        template<> AP240CONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
-        template<> AP240CONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
-        template<> AP240CONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
+    template<> AP240CONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;
+    template<> AP240CONTROLSSHARED_EXPORT const int8_t * waveform::end() const;
+    template<> AP240CONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
+    template<> AP240CONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
+    template<> AP240CONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
+    template<> AP240CONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
 
 
-    } // namespace ap240
-} // namespace ap240spectrometer
+}

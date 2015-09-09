@@ -114,7 +114,7 @@ MainWindow::createDockWidgets()
                 form->get( ch, tm );
                 document::instance()->set_threshold_method( ch, tm );
             } else {
-                ap240x::method m;
+                ap240controls::method m;
                 form->get( m );
                 document::instance()->setControlMethod( m, QString() );
             }
@@ -551,7 +551,7 @@ MainWindow::editor_factories( adextension::iSequenceImpl& impl )
 
 
 void
-MainWindow::setControlMethod( const ap240x::method& m )
+MainWindow::setControlMethod( const ap240controls::method& m )
 {
     if ( auto form = findChild< ap240w::ap240form * >() ) {
         form->set( m );
@@ -559,7 +559,7 @@ MainWindow::setControlMethod( const ap240x::method& m )
 }
 
 void
-MainWindow::getControlMethod( ap240x::method& m )
+MainWindow::getControlMethod( ap240controls::method& m )
 {
     if ( auto form = findChild< ap240w::ap240form * >() ) {
         form->get( m );

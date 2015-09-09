@@ -128,7 +128,7 @@ WaveformObserver::operator << ( const_waveform_pair_t& pair )
 {
     auto rb = std::make_shared< so::DataReadBuffer >();
 
-    ap240x::waveform::serialize( *rb, pair.first, pair.second );
+    ap240controls::waveform::serialize( *rb, pair.first, pair.second );
     
     std::lock_guard< std::mutex > lock( mutex() );
     if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz

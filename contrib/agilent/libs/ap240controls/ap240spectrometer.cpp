@@ -28,12 +28,12 @@
 adcontrols::MassSpectrometer *
 getMassSpectrometer()
 {
-    return ap240spectrometer::MassSpectrometer::instance();
+    return ap240controls::MassSpectrometer::instance();
 }
 
 adplugin::plugin *
 adplugin_plugin_instance()
 {
-	return ap240spectrometer::MassSpectrometer::instance();
+	return ap240controls::MassSpectrometer::instance();
 }
 

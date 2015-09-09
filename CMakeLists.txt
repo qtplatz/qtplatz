@@ -81,9 +81,11 @@ if ( WIN32 )
   configure_file(
     ${QTPLATZ_SOURCE_DIR}/makefile.nmake.in
     ${CMAKE_BINARY_DIR}/makefile @ONLY )
-#  set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "/DEBUG" )
-#  set( CMAKE_MODULE_LINKER_FLAGS_RELEASE "/DEBUG" )
-#  set( CMAKE_CXX_FLAGS_RELEASE "/MD /Zi /O2 /Ob2 /D NDEBUG" )
+######
+  set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "/DEBUG" )
+  set( CMAKE_MODULE_LINKER_FLAGS_RELEASE "/DEBUG" )
+  set( CMAKE_CXX_FLAGS_RELEASE "/MD /Zi /O2 /Ob2 /D NDEBUG" )
+#####
 endif()
 
 install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION / COMPONENT libraries )

@@ -44,8 +44,8 @@ public:
 
     enum idItem { idDelay, idWidth, idSampInterval, idMode, idAvgWaveforms };
 
-    void set( const ap240x::method& );
-    void get( ap240x::method& ) const;
+    void set( const ap240controls::method& );
+    void get( ap240controls::method& ) const;
 
 signals:
     void valueChanged( idItem, const QVariant& );

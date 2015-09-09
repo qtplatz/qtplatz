@@ -75,7 +75,7 @@ ap240VerticalForm::channel() const
 }
 
 void
-ap240VerticalForm::set( const ap240x::method& m )
+ap240VerticalForm::set( const ap240controls::method& m )
 {
     const QSignalBlocker blocker( this );
 
@@ -93,7 +93,7 @@ ap240VerticalForm::set( const ap240x::method& m )
 }
 
 void
-ap240VerticalForm::get( ap240x::method& m ) const
+ap240VerticalForm::get( ap240controls::method& m ) const
 {
     ap240x::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
 

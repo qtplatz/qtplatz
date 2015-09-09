@@ -50,8 +50,8 @@ namespace ap240 {
 
 	class AP240SHARED_EXPORT device_data {
     public:
-        ap240x::identify ident;
-        ap240x::metadata meta;
+        ap240controls::identify ident;
+        ap240controls::metadata meta;
     private:
         friend class boost::serialization::access;
         template<class Archive>
@@ -68,7 +68,7 @@ namespace ap240 {
         }
         ap240x::identify ident_;
         std::vector< ap240x::metadata > meta_;
-        std::shared_ptr< ap240x::method > method_;
+        std::shared_ptr< ap240controls::method > method_;
     private:        
         friend class boost::serialization::access;
         template<class Archive>
@@ -85,7 +85,7 @@ namespace ap240 {
         ~digitizer();
 
         bool peripheral_initialize();
-        bool peripheral_prepare_for_run( const ap240x::method& );
+        bool peripheral_prepare_for_run( const ap240controls::method& );
         bool peripheral_run();
         bool peripheral_stop();
         bool peripheral_trigger_inject();
@@ -93,7 +93,7 @@ namespace ap240 {
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef std::function< void( const std::string, const std::string ) > command_reply_type;
-        typedef std::function< bool( const ap240x::waveform *, const ap240x::waveform *, ap240x::method& ) > waveform_reply_type;
+        typedef std::function< bool( const ap240controls::waveform *, const ap240controls::waveform *, ap240controls::method& ) > waveform_reply_type;
 
         void connect_reply( command_reply_type ); // method,reply
         void disconnect_reply( command_reply_type );

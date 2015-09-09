@@ -24,7 +24,7 @@
 
 #include "datainterpreter.hpp"
 
-using namespace ap240spectrometer;
+using namespace ap240controls;
 
 DataInterpreter::~DataInterpreter()
 {

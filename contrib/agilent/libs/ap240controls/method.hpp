@@ -34,96 +34,95 @@
 #include <vector>
 #include <memory>
 
-namespace ap240spectrometer {
-    
-    namespace ap240 {
+namespace ap240controls {
 
-        struct AP240CONTROLSSHARED_EXPORT trigger_method {
-            uint32_t trigClass;
-            uint32_t trigPattern;
-            uint32_t trigCoupling;
-            uint32_t trigSlope;
-            double trigLevel1;
-            double trigLevel2;
-            trigger_method() : trigClass( 0 ) // edge trigger
-                , trigPattern( 0x80000000 ) // Ext 1
-                , trigCoupling( 0 ) // DC
-                , trigSlope( 0 ) // positive
-                , trigLevel1( 1000.0 ) // mV for Ext, %FS for CHn
-                , trigLevel2( 0.0 )    // only if window for trigSlope (3)
-            {}
-        private:
-            friend class boost::serialization::access;
-            template<class Archive> void serialize( Archive& ar, const unsigned int version );
-        };
+    namespace ap240x = ap240controls;
 
-        struct AP240CONTROLSSHARED_EXPORT horizontal_method {
-            double sampInterval;
-            double delay;
-            double width;
-            uint32_t mode;  // configMode, 0: normal, 2: averaging
-            uint32_t flags; // configMode, if mode == 0, 0: normal, 1: start on trigger
-            uint32_t nbrAvgWaveforms;
-            uint32_t nStartDelay;
-            uint32_t nbrSamples;
-            horizontal_method() : sampInterval( 0.5e-9 )
-                , delay( 0.0e-6 )
-                , width( 10.0e-6 )
-                , mode( 0 )
-                , flags( 0 )
-                , nbrAvgWaveforms( 1 )
-                , nStartDelay( 0 )
-                , nbrSamples( 0 ) // filled when apply to device
-            {}
-        private:
-            friend class boost::serialization::access;
-            template<class Archive> void serialize( Archive& ar, const unsigned int version );
-        };
+    struct AP240CONTROLSSHARED_EXPORT trigger_method {
+        uint32_t trigClass;
+        uint32_t trigPattern;
+        uint32_t trigCoupling;
+        uint32_t trigSlope;
+        double trigLevel1;
+        double trigLevel2;
+        trigger_method() : trigClass( 0 ) // edge trigger
+            , trigPattern( 0x80000000 ) // Ext 1
+            , trigCoupling( 0 ) // DC
+            , trigSlope( 0 ) // positive
+            , trigLevel1( 1000.0 ) // mV for Ext, %FS for CHn
+            , trigLevel2( 0.0 )    // only if window for trigSlope (3)
+        {}
+    private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int version );
+    };
 
-        struct AP240CONTROLSSHARED_EXPORT vertical_method {
-            double fullScale;
-            double offset;
-            uint32_t coupling;
-            uint32_t bandwidth;
-            bool invertData;
-            bool autoScale;
-            vertical_method() : fullScale( 5.0 )
-                , offset( 0.0 )
-                , coupling( 3 )
-                , bandwidth( 2 )
-                , invertData( false )
-                , autoScale( true )
-            {}
-        private:
-            friend class boost::serialization::access;
-            template<class Archive>  void serialize( Archive& ar, const unsigned int version );
-        };        
-        
-        
-        class AP240CONTROLSSHARED_EXPORT method {
-        public:
-            method();
-            method( const method& t );
-            uint32_t channels_;
-            horizontal_method hor_;
-            trigger_method trig_;
-            vertical_method ext_;
-            vertical_method ch1_;
-            vertical_method ch2_;
-            adcontrols::threshold_method slope1_;
-            adcontrols::threshold_method slope2_;
+    struct AP240CONTROLSSHARED_EXPORT horizontal_method {
+        double sampInterval;
+        double delay;
+        double width;
+        uint32_t mode;  // configMode, 0: normal, 2: averaging
+        uint32_t flags; // configMode, if mode == 0, 0: normal, 1: start on trigger
+        uint32_t nbrAvgWaveforms;
+        uint32_t nStartDelay;
+        uint32_t nbrSamples;
+        horizontal_method() : sampInterval( 0.5e-9 )
+            , delay( 0.0e-6 )
+            , width( 10.0e-6 )
+            , mode( 0 )
+            , flags( 0 )
+            , nbrAvgWaveforms( 1 )
+            , nStartDelay( 0 )
+            , nbrSamples( 0 ) // filled when apply to device
+        {}
+    private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int version );
+    };
 
-            static bool archive( std::ostream&, const method& );
-            static bool restore( std::istream&, method& );
-            static bool xml_archive( std::wostream&, const method& );
-            static bool xml_restore( std::wistream&, method& );
-        
-        private:
-            friend class boost::serialization::access;
-            template<class Archive> void serialize( Archive& ar, const unsigned int version );
-        };
+    struct AP240CONTROLSSHARED_EXPORT vertical_method {
+        double fullScale;
+        double offset;
+        uint32_t coupling;
+        uint32_t bandwidth;
+        bool invertData;
+        bool autoScale;
+        vertical_method() : fullScale( 5.0 )
+            , offset( 0.0 )
+            , coupling( 3 )
+            , bandwidth( 2 )
+            , invertData( false )
+            , autoScale( true )
+        {}
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>  void serialize( Archive& ar, const unsigned int version );
+    };
 
-    } // ap240
-} // ap240spectrometer
 
-namespace ap240x = ap240spectrometer::ap240;
+    class AP240CONTROLSSHARED_EXPORT method {
+    public:
+        method();
+        method( const method& t );
+        uint32_t channels_;
+        horizontal_method hor_;
+        trigger_method trig_;
+        vertical_method ext_;
+        vertical_method ch1_;
+        vertical_method ch2_;
+        adcontrols::threshold_method slope1_;
+        adcontrols::threshold_method slope2_;
+
+        static bool archive( std::ostream&, const method& );
+        static bool restore( std::istream&, method& );
+        static bool xml_archive( std::wostream&, const method& );
+        static bool xml_restore( std::wistream&, method& );
+
+    private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int version );
+    };
+
+}
+
+

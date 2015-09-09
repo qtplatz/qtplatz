@@ -61,7 +61,7 @@ main(int argc, char* argv[])
             std::cout << desc;
             return 0;
         }
-        ap240x::method m;
+        ap240controls::method m;
         m.hor_.delay = vm["delay"].as<double>() * 1.0e-6;
         m.hor_.width = vm["width"].as<double>() * 1.0e-6;
         m.hor_.mode = vm["mode"].as<int>();
@@ -83,7 +83,7 @@ main(int argc, char* argv[])
                 std::cout << key << "\t" << value << std::endl;
             });
 
-        aqrs.connect_waveform( []( const ap240x::waveform * ch1, const ap240x::waveform *ch2, ap240x::method& proto ){
+        aqrs.connect_waveform( []( const ap240controls::waveform * ch1, const ap240controls::waveform *ch2, ap240controls::method& proto ){
 
                 auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
 

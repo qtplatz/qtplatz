@@ -42,7 +42,7 @@
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
 
-using namespace ap240spectrometer::ap240;
+using namespace ap240controls;
 
 identify::identify() : bus_number_( 0 )
                      , slot_number_( 0 )
@@ -143,133 +143,131 @@ waveform::toVolts( double d ) const
     return d * meta_.scaleFactor /  meta_.actualAverages;
 }
 
-namespace ap240spectrometer { namespace ap240 {
-    
-    
-        template<typename T=identify>
-        class identify_archive {
-        public:
-            template<class Archive> void serialize( Archive& ar, T& _, const unsigned int version ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( _.serial_number_ );
-            }
-        };
+namespace ap240controls {
 
-        template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
-        {
-            identify_archive<>().serialize( ar, *this, version );
+    template<typename T = identify>
+    class identify_archive {
+    public:
+        template<class Archive> void serialize( Archive& ar, T& _, const unsigned int version ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( _.serial_number_ );
         }
+    };
 
-        template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
-        {
-            identify_archive<>().serialize( ar, *this, version );        
+    template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
+    {
+        identify_archive<>().serialize( ar, *this, version );
+    }
+
+    template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
+    {
+        identify_archive<>().serialize( ar, *this, version );
+    }
+
+    template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( portable_binary_oarchive& ar, unsigned int version )
+    {
+        identify_archive<>().serialize( ar, *this, version );
+    }
+
+    template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( portable_binary_iarchive& ar, unsigned int version )
+    {
+        identify_archive<>().serialize( ar, *this, version );
+    }
+
+    ///////////////////////
+
+    template<typename T = metadata>
+    class metadata_archive {
+    public:
+        template<class Archive>
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( _.actualPoints );
+            ar & BOOST_SERIALIZATION_NVP( _.flags );
+            ar & BOOST_SERIALIZATION_NVP( _.actualAverages );
+            ar & BOOST_SERIALIZATION_NVP( _.indexFirstPoint );
+            ar & BOOST_SERIALIZATION_NVP( _.channel );
+            ar & BOOST_SERIALIZATION_NVP( _.dataType );
+            ar & BOOST_SERIALIZATION_NVP( _.initialXTimeSeconds );
+            ar & BOOST_SERIALIZATION_NVP( _.initialXOffset );
+            ar & BOOST_SERIALIZATION_NVP( _.xIncrement );
+            ar & BOOST_SERIALIZATION_NVP( _.scaleFactor );
+            ar & BOOST_SERIALIZATION_NVP( _.scaleOffset );
+            ar & BOOST_SERIALIZATION_NVP( _.horPos );
         }
+    };
 
-        template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( portable_binary_oarchive& ar, unsigned int version )
-        {
-            identify_archive<>().serialize( ar, *this, version );                
+    template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
+    {
+        metadata_archive<>().serialize( ar, *this, version );
+    }
+
+    template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
+    {
+        metadata_archive<>().serialize( ar, *this, version );
+    }
+
+    template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( portable_binary_oarchive& ar, unsigned int version )
+    {
+        metadata_archive<>().serialize( ar, *this, version );
+    }
+
+    template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( portable_binary_iarchive& ar, unsigned int version )
+    {
+        metadata_archive<>().serialize( ar, *this, version );
+    }
+
+    ////////////////////
+    template<typename T = device_data>
+    class device_data_archive {
+    public:
+        template<class Archive>
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( _.ident_ );
+            ar & BOOST_SERIALIZATION_NVP( _.meta_ );
         }
+    };
 
-        template<> AP240CONTROLSSHARED_EXPORT void identify::serialize( portable_binary_iarchive& ar, unsigned int version )
-        {
-            identify_archive<>().serialize( ar, *this, version );                        
+    template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
+    {
+        device_data_archive<>().serialize( ar, *this, version );
+    }
+
+    template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
+    {
+        device_data_archive<>().serialize( ar, *this, version );
+    }
+
+    template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int version )
+    {
+        device_data_archive<>().serialize( ar, *this, version );
+    }
+
+    template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_iarchive& ar, unsigned int version )
+    {
+        device_data_archive<>().serialize( ar, *this, version );
+    }
+
+    ////////////////////
+
+    class waveform_xmeta_archive {
+    public:
+        identify ident_;
+        std::vector< metadata > meta_;
+        std::shared_ptr< ap240controls::method > method_;
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize( Archive& ar, const unsigned int ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( ident_ );
+            ar & BOOST_SERIALIZATION_NVP( meta_ );
+            ar & BOOST_SERIALIZATION_NVP( method_ );
         }
+    };
 
-        ///////////////////////
-
-        template<typename T=metadata>
-        class metadata_archive {
-        public:
-            template<class Archive>
-            void serialize( Archive& ar, T& _, const unsigned int version ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( _.actualPoints );
-                ar & BOOST_SERIALIZATION_NVP( _.flags );
-                ar & BOOST_SERIALIZATION_NVP( _.actualAverages );
-                ar & BOOST_SERIALIZATION_NVP( _.indexFirstPoint );
-                ar & BOOST_SERIALIZATION_NVP( _.channel );
-                ar & BOOST_SERIALIZATION_NVP( _.dataType );
-                ar & BOOST_SERIALIZATION_NVP( _.initialXTimeSeconds );
-                ar & BOOST_SERIALIZATION_NVP( _.initialXOffset );
-                ar & BOOST_SERIALIZATION_NVP( _.xIncrement );
-                ar & BOOST_SERIALIZATION_NVP( _.scaleFactor );
-                ar & BOOST_SERIALIZATION_NVP( _.scaleOffset );
-                ar & BOOST_SERIALIZATION_NVP( _.horPos );
-            }
-        };
-        
-        template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
-        {
-            metadata_archive<>().serialize( ar, *this, version );
-        }
-
-        template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
-        {
-            metadata_archive<>().serialize( ar, *this, version );        
-        }
-
-        template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( portable_binary_oarchive& ar, unsigned int version )
-        {
-            metadata_archive<>().serialize( ar, *this, version );                
-        }
-        
-        template<> AP240CONTROLSSHARED_EXPORT void metadata::serialize( portable_binary_iarchive& ar, unsigned int version )
-        {
-            metadata_archive<>().serialize( ar, *this, version );                        
-        }
-
-        ////////////////////
-        template<typename T=device_data>
-        class device_data_archive {
-        public:
-            template<class Archive>
-            void serialize( Archive& ar, T& _, const unsigned int version ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( _.ident_ );
-                ar & BOOST_SERIALIZATION_NVP( _.meta_ );
-            }
-        };
-
-        template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
-        {
-            device_data_archive<>().serialize( ar, *this, version );
-        }
-
-        template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
-        {
-            device_data_archive<>().serialize( ar, *this, version );
-        }
-
-        template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int version )
-        {
-            device_data_archive<>().serialize( ar, *this, version );
-        }
-        
-        template<> AP240CONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_iarchive& ar, unsigned int version )
-        {
-            device_data_archive<>().serialize( ar, *this, version );
-        }
-            
-        ////////////////////
-
-        class waveform_xmeta_archive {
-        public:
-            identify ident_;
-            std::vector< metadata > meta_;
-            std::shared_ptr< ap240x::method > method_;
-        private:
-            friend class boost::serialization::access;
-            template<class Archive>
-            void serialize( Archive& ar, const unsigned int ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( ident_ );
-                ar & BOOST_SERIALIZATION_NVP( meta_ );
-                ar & BOOST_SERIALIZATION_NVP( method_ );                
-            }
-        };
-        
-    } // namespace ap240
-}
+} // namespace
 
 //static
 std::array< std::shared_ptr< const waveform >, 2 >
@@ -289,7 +287,7 @@ waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb 
             
             for ( const auto& meta : x.meta_ ) {
                 if ( meta.channel == 1 || meta.channel == 2 ) {
-                    waveforms[ meta.channel - 1 ] = std::make_shared< ap240x::waveform >( x.ident_, rb->pos(), rb->events(), rb->timepoint() );
+                    waveforms[ meta.channel - 1 ] = std::make_shared< waveform >( x.ident_, rb->pos(), rb->events(), rb->timepoint() );
                     waveforms[ meta.channel - 1 ]->meta_ = meta;
                     if ( x.method_ )
                         waveforms[ meta.channel - 1 ]->method_ = *x.method_;
@@ -302,7 +300,7 @@ waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb 
                     ++pdata;
                     uint32_t size = *pdata++;
                     if ( size && waveform ) {
-                        const ap240::waveform::value_type * data_p = reinterpret_cast<const ap240::waveform::value_type *>( pdata );
+                        const ap240controls::waveform::value_type * data_p = reinterpret_cast<const ap240controls::waveform::value_type *>( pdata );
                         std::copy( data_p, data_p + size, waveform->data( size ) );
                         pdata = reinterpret_cast<const uint32_t *>( data_p + size );
                     }
@@ -322,7 +320,7 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
 {
     rb.ndata() = 0;
     if ( ch1 || ch2 ) {
-        const ap240x::waveform& waveform = ch1 ? *ch1 : *ch2;
+        const waveform& waveform = ch1 ? *ch1 : *ch2;
 
         rb.pos() = waveform.serialnumber_;
         rb.timepoint() = waveform.timeSinceEpoch_;
@@ -334,18 +332,18 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
         if ( ch1 ) {
             rb.ndata()++;
             x.meta_.push_back( ch1->meta_ );
-            data_octets += ch1->size() * sizeof( ap240x::waveform::value_type );
+            data_octets += ch1->size() * sizeof( waveform::value_type );
         }
         
         if ( ch2 ) {
             rb.ndata()++;
             x.meta_.push_back( ch2->meta_ );
-            data_octets += ch2->size() * sizeof( ap240x::waveform::value_type );
+            data_octets += ch2->size() * sizeof( waveform::value_type );
         }
 
         { // serialize xmeta
             x.ident_ = waveform.ident_;
-            x.method_ = std::make_shared< ap240x::method >( waveform.method_ );
+            x.method_ = std::make_shared< ap240controls::method >( waveform.method_ );
             std::ostringstream o;
             portable_binary_oarchive ar( o );
             ar << x;
@@ -355,14 +353,14 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
         }
         
         rb.xdata().resize( data_octets );
-        ap240x::waveform::value_type * dest_p = reinterpret_cast<ap240x::waveform::value_type *>( rb.xdata().data() );
+        waveform::value_type * dest_p = reinterpret_cast<waveform::value_type *>( rb.xdata().data() );
         
         for ( auto& ptr : { ch1, ch2 } ) {
             
             uint32_t * size_p = reinterpret_cast<uint32_t *>( dest_p );
             size_p[ 0 ] = 0x7ffe0001; // separater & endian marker
             size_p[ 1 ] = ptr ? uint32_t( ptr->size() ) : 0;
-            dest_p = reinterpret_cast<ap240x::waveform::value_type *>( &size_p[ 2 ] );
+            dest_p = reinterpret_cast<waveform::value_type *>( &size_p[ 2 ] );
             
             if ( ptr ) {
                 std::copy( ptr->data(), ptr->data() + ptr->data_size(), dest_p );
@@ -397,7 +395,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "ap240" );
 
-    const ap240x::device_data data( waveform.ident_, waveform.meta_ );
+    const device_data data( waveform.ident_, waveform.meta_ );
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );

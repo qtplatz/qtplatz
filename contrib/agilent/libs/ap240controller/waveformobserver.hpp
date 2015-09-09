@@ -30,8 +30,8 @@
 #include <ap240controls/waveform.hpp>
 #include <ap240controls/method.hpp>
 
-namespace ap240spectrometer { namespace ap240 { class waveform; } }
-namespace ap240x = ap240spectrometer::ap240;
+namespace ap240controls { class waveform; }
+namespace ap240x = ap240controls;
 
 namespace ap240controller {
 
@@ -54,8 +54,8 @@ namespace ap240controller {
         int32_t posFromTime( uint64_t usec ) const override;
         
         // WaveformObserver
-        typedef std::pair< std::shared_ptr< ap240x::waveform >, std::shared_ptr< ap240x::waveform > > waveform_pair_t;
-        typedef std::pair< std::shared_ptr< const ap240x::waveform >, std::shared_ptr< const ap240x::waveform > > const_waveform_pair_t;
+        typedef std::pair< std::shared_ptr< ap240controls::waveform >, std::shared_ptr< ap240controls::waveform > > waveform_pair_t;
+        typedef std::pair< std::shared_ptr< const ap240controls::waveform >, std::shared_ptr< const ap240controls::waveform > > const_waveform_pair_t;
         uint32_t operator << ( const_waveform_pair_t& );
 
     private:

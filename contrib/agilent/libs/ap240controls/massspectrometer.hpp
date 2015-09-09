@@ -32,7 +32,7 @@
 #include <mutex>
 #include "ap240controls_global.hpp"
 
-namespace ap240spectrometer {
+namespace ap240controls {
 
     class ScanLaw;
     class DataInterpreter;

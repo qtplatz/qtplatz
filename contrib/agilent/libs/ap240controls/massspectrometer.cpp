@@ -29,7 +29,7 @@
 #include <adplugin/visitor.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 
-namespace ap240spectrometer {
+namespace ap240controls {
 
     // base class in adcontrols/massspectrometer.hpp
 
@@ -62,7 +62,7 @@ namespace ap240spectrometer {
 
 }
 
-using namespace ap240spectrometer;
+using namespace ap240controls;
 
 std::atomic< MassSpectrometer * > MassSpectrometer::instance_( 0 );
 std::mutex MassSpectrometer::mutex_;

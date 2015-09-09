@@ -71,7 +71,7 @@ namespace ap240 {
             void terminate();
             bool initialize();
 
-            bool prepare_for_run( const ap240x::method& );
+            bool prepare_for_run( const ap240controls::method& );
             bool run();
             bool stop();
             bool trigger_inject_out();
@@ -82,8 +82,8 @@ namespace ap240 {
             void disconnect( digitizer::waveform_reply_type f );
             void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr );
 
-            inline const ap240x::method& method() const { return method_; }
-            inline const ap240x::identify& ident() const { return *ident_; }
+            inline const ap240controls::method& method() const { return method_; }
+            inline const ap240controls::identify& ident() const { return *ident_; }
 
             inline double timestamp() const {
                 return 
@@ -113,7 +113,7 @@ namespace ap240 {
                 return false;
             }
 
-            static void print( std::ostream& o, const ap240x::method& m, const char * heading ) {
+            static void print( std::ostream& o, const ap240controls::method& m, const char * heading ) {
                 o << "-------- " << heading << "---------->" << std::endl;
                 o << boost::format( "\ttrig:\tClass: %x,\tPattern: %x,\tCoupling: %x,\tSlope: %x,\tLevel %g, %g" )
                     % m.trig_.trigClass % m.trig_.trigPattern % m.trig_.trigCoupling % m.trig_.trigSlope
@@ -143,7 +143,7 @@ namespace ap240 {
             boost::asio::io_service::work work_;
             boost::asio::io_service::strand strand_;
             bool simulated_;
-            ap240x::method method_;
+            ap240controls::method method_;
             std::atomic<int> acquire_post_count_;
             std::chrono::steady_clock::time_point uptime_;
             uint64_t inject_timepoint_;
@@ -161,17 +161,17 @@ namespace ap240 {
 
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
-            std::shared_ptr< ap240x::identify > ident_;
+            std::shared_ptr< ap240controls::identify > ident_;
             std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
 
             bool handle_initial_setup();
             bool handle_terminating();
             bool handle_acquire();
-            bool handle_prepare_for_run( const ap240x::method );
-            bool handle_protocol( const ap240x::method );            
+            bool handle_prepare_for_run( const ap240controls::method );
+            bool handle_protocol( const ap240controls::method );            
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
-            bool readData( ap240x::waveform&, int channel );
+            bool readData( ap240controls::waveform&, int channel );
 
             bool getInstrumentData() {
 
@@ -194,18 +194,18 @@ namespace ap240 {
         };
 
         struct device_ap240 {
-            static bool initial_setup( task&, ap240x::method& );
-            static bool protocol_setup( task&, ap240x::method& );
+            static bool initial_setup( task&, ap240controls::method& );
+            static bool protocol_setup( task&, ap240controls::method& );
             static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
-            static bool readData( task&, ap240x::waveform&, const ap240x::method&, int channel );
+            static bool readData( task&, ap240controls::waveform&, const ap240controls::method&, int channel );
         private:
-            static bool averager_setup( task&, ap240x::method& );
-            static bool digitizer_setup( task&, ap240x::method& );
+            static bool averager_setup( task&, ap240controls::method& );
+            static bool digitizer_setup( task&, ap240controls::method& );
 
             template<typename T, typename SegmentDescriptor> static bool
-            readData( ViSession inst, const ap240x::method& m, int channel
-                      , AqDataDescriptor& dataDesc, SegmentDescriptor& segDesc, ap240x::waveform& d ) {
+            readData( ViSession inst, const ap240controls::method& m, int channel
+                      , AqDataDescriptor& dataDesc, SegmentDescriptor& segDesc, ap240controls::waveform& d ) {
 
                 memset(&dataDesc, 0, sizeof(dataDesc));
                 memset(&segDesc, 0, sizeof(segDesc));
@@ -260,7 +260,7 @@ digitizer::peripheral_terminate()
 }
 
 bool
-digitizer::peripheral_prepare_for_run( const ap240x::method& m )
+digitizer::peripheral_prepare_for_run( const ap240controls::method& m )
 {
     if ( task::instance()->inst() != ViSession( -1 ) )
         return task::instance()->prepare_for_run( m );
@@ -332,7 +332,7 @@ task::task() : work_( io_service_ )
              , inst_( -1 )
              , numInstruments_( 0 )
              , uptime_( std::chrono::steady_clock::now() )
-             , ident_( std::make_shared< ap240x::identify >() )
+             , ident_( std::make_shared< ap240controls::identify >() )
 {
     threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 #if defined WIN32
@@ -365,7 +365,7 @@ task::initialize()
 }
 
 bool
-task::prepare_for_run( const ap240x::method& m )
+task::prepare_for_run( const ap240controls::method& m )
 {
     if ( inst_ == ViSession( -1 ) )
         return false;
@@ -482,7 +482,7 @@ task::handle_terminating()
 }
 
 bool
-task::handle_prepare_for_run( const ap240x::method m )
+task::handle_prepare_for_run( const ap240controls::method m )
 {
     method_ = m;
 
@@ -492,7 +492,7 @@ task::handle_prepare_for_run( const ap240x::method m )
 }
 
 bool
-task::handle_protocol( const ap240x::method m )
+task::handle_protocol( const ap240controls::method m )
 {
     method_ = m;
     device_ap240::protocol_setup( *this, method_ );
@@ -512,13 +512,13 @@ task::handle_acquire()
             if ( waitForEndOfAcquisition( 3000 ) ) {
                 auto tp = std::chrono::system_clock::now();
 
-                std::shared_ptr< ap240x::waveform > ch1, ch2;
+                std::shared_ptr< ap240controls::waveform > ch1, ch2;
 
                 auto serialnumber = data_serialnumber_++;
                 
                 uint32_t events = 0;
                 if ( method_.channels_ & 0x01 ) {
-                    ch1 = std::make_shared< ap240x::waveform >( *ident_, events, serialnumber );
+                    ch1 = std::make_shared< ap240controls::waveform >( *ident_, events, serialnumber );
                     ch1->serialnumber_ = serialnumber;
                     readData( *ch1, 1 );
 
@@ -529,14 +529,14 @@ task::handle_acquire()
                 }
 
                 if ( method_.channels_ & 0x02 ) {
-                    ch2 = std::make_shared< ap240x::waveform >( *ident_, events, serialnumber );
+                    ch2 = std::make_shared< ap240controls::waveform >( *ident_, events, serialnumber );
                     ch2->serialnumber_ = serialnumber;
                     readData( *ch2, 2 );
                     ch2->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
                 }
 
                 for ( auto& reply: waveform_handlers_ ) {
-                    ap240x::method m;
+                    ap240controls::method m;
                     if ( reply( ch1.get(), ch2.get(), m ) )
                         handle_protocol( m );
                 }
@@ -575,7 +575,7 @@ task::waitForEndOfAcquisition( int timeout )
 }
 
 bool
-task::readData( ap240x::waveform& data, int channel )
+task::readData( ap240controls::waveform& data, int channel )
 {
     return device_ap240::readData( *this, data, method_, channel );
 }
@@ -617,7 +617,7 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 
 
 bool
-device_ap240::initial_setup( task& task, ap240x::method& m )
+device_ap240::initial_setup( task& task, ap240controls::method& m )
 {
     ViStatus status;
     ViStatus * pStatus = &status;
@@ -729,7 +729,7 @@ device_ap240::initial_setup( task& task, ap240x::method& m )
 }
 
 bool
-device_ap240::digitizer_setup( task& task, ap240x::method& m )
+device_ap240::digitizer_setup( task& task, ap240controls::method& m )
 {
     assert( m.hor_.mode == 0 );
     
@@ -760,7 +760,7 @@ device_ap240::digitizer_setup( task& task, ap240x::method& m )
 }
 
 bool
-device_ap240::averager_setup( task& task, ap240x::method& m )
+device_ap240::averager_setup( task& task, ap240controls::method& m )
 {
     // averager mode
     assert( m.hor_.mode == 2 );
@@ -848,7 +848,7 @@ device_ap240::averager_setup( task& task, ap240x::method& m )
 }
 
 bool
-device_ap240::protocol_setup( task& task, ap240x::method& m )
+device_ap240::protocol_setup( task& task, ap240controls::method& m )
 {
     return device_ap240::initial_setup( task, m );
 }
@@ -874,7 +874,7 @@ device_ap240::waitForEndOfAcquisition( task& task, int timeout )
 }
 
 bool
-device_ap240::readData( task& task, ap240x::waveform& data, const ap240x::method& m, int channel )
+device_ap240::readData( task& task, ap240controls::waveform& data, const ap240controls::method& m, int channel )
 {
     data.method_ = m;
 

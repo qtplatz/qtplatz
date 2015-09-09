@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <numeric>
 
-using namespace ap240spectrometer::ap240;
+using namespace ap240controls;
 
 histogram::histogram() : serialnumber_( 0 )
                        , timeSinceEpoch_( 0 )
@@ -82,7 +82,7 @@ histogram::triggers_per_sec() const
 
 size_t
 histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
-                         , ap240x::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch )
+                         , ap240controls::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch )
 {
     histogram.clear();
     

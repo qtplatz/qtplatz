@@ -43,8 +43,8 @@ namespace ap240 {
 
         bool acquire( boost::asio::io_service& );
         bool waitForEndOfAcquisition();
-        bool readData( ap240x::waveform& );
-        void setup( const ap240x::method& );
+        bool readData( ap240controls::waveform& );
+        void setup( const ap240controls::method& );
 
         void protocol_handler( double, double );
 
@@ -62,7 +62,7 @@ namespace ap240 {
         uint32_t nbrSamples_;
         uint32_t nbrWaveforms_;
         double exitDelay_;
-        std::shared_ptr< ap240x::method > method_;
+        std::shared_ptr< ap240controls::method > method_;
         static simulator * instance_;
 
         void post( adinterface::waveform_generator * );

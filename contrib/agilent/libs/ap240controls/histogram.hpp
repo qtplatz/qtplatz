@@ -32,51 +32,50 @@
 #include <mutex>
 
 
-namespace ap240spectrometer { namespace ap240 {
+namespace ap240controls {
 
-    namespace ap240x = ap240spectrometer::ap240;
+    namespace ap240x = ap240controls;
 
-        class threshold_result;
-        
-        class AP240CONTROLSSHARED_EXPORT histogram {
-            histogram( const histogram & ) = delete;
-            histogram& operator = ( const histogram& ) = delete;
-            
-        public:
-            histogram();
-            void clear();
-            void append( const ap240spectrometer::ap240::threshold_result& result );
-            size_t trigger_count() const;
-            double triggers_per_sec() const;
-            size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
-                                 , metadata& meta
-                                 , uint32_t& serialnumber
-                                 , uint64_t& timeSinceEpoch );
+    class threshold_result;
 
-            static bool average( const std::vector< std::pair< double, uint32_t > >&
-                                 , double resolution, std::vector< double >& times, std::vector< double >& intens );
+    class AP240CONTROLSSHARED_EXPORT histogram {
+        histogram( const histogram & ) = delete;
+        histogram& operator = ( const histogram& ) = delete;
 
-        private:
-            // metadata for initial trigger in this histogram
-            metadata meta_;
-            uint32_t serialnumber_;               // first waveform trigger#
-            uint64_t timeSinceEpoch_;             // first waveform acquired time
+    public:
+        histogram();
+        void clear();
+        void append( const ap240controls::threshold_result& result );
+        size_t trigger_count() const;
+        double triggers_per_sec() const;
+        size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
+                             , ap240x::metadata& meta
+                             , uint32_t& serialnumber
+                             , uint64_t& timeSinceEpoch );
+
+        static bool average( const std::vector< std::pair< double, uint32_t > >&
+                             , double resolution, std::vector< double >& times, std::vector< double >& intens );
+
+    private:
+        // metadata for initial trigger in this histogram
+        ap240x::metadata meta_;
+        uint32_t serialnumber_;               // first waveform trigger#
+        uint64_t timeSinceEpoch_;             // first waveform acquired time
 
 #if defined _MSC_VER
 # pragma warning(push)
 # pragma warning(disable:4251)
 #endif
-            std::mutex mutex_;
-            std::chrono::steady_clock::time_point tp_;
-            std::atomic< size_t > trigger_count_; // number of triggers
-            std::vector< uint32_t > data_;
-            
+        std::mutex mutex_;
+        std::chrono::steady_clock::time_point tp_;
+        std::atomic< size_t > trigger_count_; // number of triggers
+        std::vector< uint32_t > data_;
+
 #if defined _MSC_VER
 # pragma warning( pop )
 #endif
-        };
+    };
 
-    }
 }
 
 
