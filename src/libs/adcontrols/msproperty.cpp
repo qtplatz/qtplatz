@@ -36,6 +36,9 @@ MSProperty::MSProperty() : time_since_injection_( 0 )
                          , time_since_epoch_( 0 )
                          , instAccelVoltage_( 0 )
                          , instTDelay_( 0 )
+                         , trig_number_( 0 )
+                         , trig_number_origin_( 0 )
+                         , deprecated_instSamplingInterval_( 0 )
 {
 }
 
@@ -44,9 +47,12 @@ MSProperty::MSProperty( const MSProperty& t )
     , time_since_epoch_( t.time_since_epoch_ )
     , instAccelVoltage_( t.instAccelVoltage_ )
     , instTDelay_( t.instTDelay_ )
+    , trig_number_( t.trig_number_ )
+    , trig_number_origin_( t.trig_number_origin_ )
+    , deprecated_instSamplingInterval_( t.deprecated_instSamplingInterval_ ) // deprecated
     , dataInterpreterClsid_( t.dataInterpreterClsid_ )
     , deviceData_( t.deviceData_ )
-    , deprecated_coeffs_( t.deprecated_coeffs_ ) // depricated
+    , deprecated_coeffs_( t.deprecated_coeffs_ ) // deprecated
     , samplingData_( t.samplingData_ )
 {
 }
@@ -179,6 +185,25 @@ void
 MSProperty::setTimeSinceEpoch( uint64_t value )
 {
     time_since_epoch_ = value;
+}
+
+uint32_t
+MSProperty::trigNumber( bool sinceOrigin ) const
+{
+    return sinceOrigin ? trig_number_ - trig_number_origin_ : trig_number_;
+}
+
+void
+MSProperty::setTrigNumber( uint32_t value, uint32_t origin )
+{
+    trig_number_ = value;
+    trig_number_origin_ = origin;
+}
+
+uint32_t
+MSProperty::trigNumberOrigin() const
+{
+    return trig_number_origin_;
 }
 
 void

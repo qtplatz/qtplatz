@@ -64,7 +64,11 @@ namespace adcontrols {
         uint64_t timeSinceEpoch() const;
         void setTimeSinceEpoch( uint64_t );
 
-        const SamplingInfo& getSamplingInfo() const; // depacrate
+        uint32_t trigNumberOrigin() const;        
+        uint32_t trigNumber( bool sinceOrigin = true ) const;
+        void setTrigNumber( uint32_t, uint32_t origin = 0 );
+
+        const SamplingInfo& getSamplingInfo() const; // deprecated
         const SamplingInfo& samplingInfo() const;        
         void setSamplingInfo( const SamplingInfo& );
 
@@ -139,13 +143,13 @@ namespace adcontrols {
         static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix pfx );
 
     private:
-        uint64_t time_since_injection_; // usec
-        uint64_t time_since_epoch_;     // ns
+        uint64_t time_since_injection_; // us
+        uint64_t time_since_epoch_;     // nanoseconds since 1970 Jan-1 UTC
         double instAccelVoltage_;       // for scan law
         double instTDelay_;             // for scan law
-        uint32_t deprecated_instNumAvrg_;               // use sampleData
-        uint32_t deprecated_instSamplingStartDelay_;    // use sampleData
-        uint32_t deprecated_instSamplingInterval_;      // use sampleData
+        uint32_t trig_number_;          // trigger number ( a.k.a. 'pos' in the code)
+        uint32_t trig_number_origin_;   // trigger number at 'inject' event
+        uint32_t deprecated_instSamplingInterval_;   // deprecated
         std::string dataInterpreterClsid_;
         std::string deviceData_;
         std::vector< double > deprecated_coeffs_; // deprecated
@@ -153,11 +157,14 @@ namespace adcontrols {
         std::string encode( const std::string& );
         std::string decode( const std::string& );
 #if defined _MSC_VER
+# pragma warning( push )        
 # pragma warning( disable: 4251 )
 #endif
         SamplingInfo samplingData_;
         std::pair< double, double > instMassRange_;
-
+#if defined _MSC_VER
+# pragma warning( pop )        
+#endif
         friend class boost::serialization::access;
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version ) {
@@ -189,8 +196,8 @@ namespace adcontrols {
                 ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
                 time_since_injection_ = time_since_injection;
                 ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
-                ar & BOOST_SERIALIZATION_NVP(deprecated_instNumAvrg_);            // same data is in sampleData_ below
-                ar & BOOST_SERIALIZATION_NVP(deprecated_instSamplingStartDelay_); // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP(trig_number_);            // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP(trig_number_origin_);     // same data is in sampleData_ below
                 ar & BOOST_SERIALIZATION_NVP(deprecated_instSamplingInterval_);   // same data is in sampleData_ below
                 ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
                 ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);

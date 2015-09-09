@@ -36,30 +36,56 @@
 
 namespace adcontrols {
 
+    template<typename T>
+    class MappedSpectrum::serializer {
+    public:
+        template<class Archive>
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP( _.data_ );
+            ar & BOOST_SERIALIZATION_NVP( _.num_average_ );
+            ar & BOOST_SERIALIZATION_NVP( _.trig_number_ );
+            ar & BOOST_SERIALIZATION_NVP( _.trig_number_origin_ );
+        }
+
+    };
+    
     ////////// PORTABLE BINARY ARCHIVE //////////
     template<> void
-    MappedSpectrum::serialize( portable_binary_oarchive& ar, const unsigned int )
+    MappedSpectrum::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-        ar & data_;
+        if ( version >= 2 )
+            serializer<const MappedSpectrum>().serialize( ar, *this, version );
+        else
+            ar & data_;
     }
 
     template<> void
     MappedSpectrum::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-        ar & data_;            
+        if ( version >= 2 )
+            serializer<MappedSpectrum>().serialize( ar, *this, version );
+        else
+            ar & data_;
     }
 
     ///////// XML archive ////////
     template<> void
-    MappedSpectrum::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
+    MappedSpectrum::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
-        ar & BOOST_SERIALIZATION_NVP(data_);                        
+        if ( version >= 2 )
+            serializer<const MappedSpectrum>().serialize( ar, *this, version );
+        else
+            ar & BOOST_SERIALIZATION_NVP( data_ );            
     }
 
     template<> void
     MappedSpectrum::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        ar & BOOST_SERIALIZATION_NVP(data_);            
+        if ( version >= 2 )
+            serializer<MappedSpectrum>().serialize( ar, *this, version );
+        else
+            ar & BOOST_SERIALIZATION_NVP( data_ );
     }
 }
 
@@ -69,11 +95,16 @@ MappedSpectrum::~MappedSpectrum()
 {
 }
 
-MappedSpectrum::MappedSpectrum()
+MappedSpectrum::MappedSpectrum() : num_average_( 0 )
+                                 , trig_number_( 0 )
+                                 , trig_number_origin_( 0 )
 {
 }
 
 MappedSpectrum::MappedSpectrum( const MappedSpectrum& t ) : data_( t.data_ )
+                                                          , num_average_( t.num_average_ )
+                                                          , trig_number_( t.trig_number_ )
+                                                          , trig_number_origin_( t.trig_number_origin_ )
 {
 }
 
@@ -81,6 +112,10 @@ MappedSpectrum&
 MappedSpectrum::operator = ( const MappedSpectrum& rhs )
 {
     data_ = rhs.data_;
+    num_average_ = rhs.num_average_;
+    trig_number_ = rhs.trig_number_;
+    trig_number_origin_ = rhs.trig_number_origin_;
+
     return *this;
 }
 
@@ -136,6 +171,38 @@ MappedSpectrum::tic() const
     return sum;
 }
 
+void
+MappedSpectrum::setNumAverage( uint32_t value )
+{
+    num_average_ = value;
+}
+
+uint32_t
+MappedSpectrum::numAverage() const
+{
+    return num_average_;
+}
+
+void
+MappedSpectrum::setTrigNumber( uint32_t value, uint32_t origin )
+{
+    trig_number_ = value;
+    trig_number_origin_ = origin;
+}
+
+uint32_t
+MappedSpectrum::trigNumber( bool sinceOrigin ) const
+{
+    return sinceOrigin ? trig_number_ - trig_number_origin_ : trig_number_;
+}
+
+uint32_t
+MappedSpectrum::trigNumberOrigin() const
+{
+    return trig_number_origin_;
+}
+
+
 MappedSpectrum&
 MappedSpectrum::operator << ( const datum_type& t )
 {
@@ -167,15 +234,18 @@ MappedSpectrum::operator << ( const datum_type& t )
 MappedSpectrum&
 MappedSpectrum::operator += ( const MappedSpectrum& t )
 {
+    num_average_ += t.numAverage() ? t.numAverage() : 1;
+    
     if ( data_.empty() ) {
-
+        
         data_ = t.data_;
 
     } else {
 
         for ( auto inIt = t.data_.begin(); inIt != t.data_.end(); ++inIt ) {
 
-            auto it = std::lower_bound( data_.begin(), data_.end(), inIt->first, [] ( const datum_type& a, const double& b ) { return a.first < b; } );
+            auto it = std::lower_bound( data_.begin(), data_.end(), inIt->first
+                                        , [] ( const datum_type& a, const double& b ) { return a.first < b; } );
  
             if ( it != data_.end() ) {
         

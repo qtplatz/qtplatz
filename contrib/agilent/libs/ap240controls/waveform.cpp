@@ -382,11 +382,11 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     sp.setCentroid( adcontrols::CentroidNone );
     
     adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::MSProperty::SamplingInfo info( 0
+    adcontrols::MSProperty::SamplingInfo info( 0 /* sampInterval (ps) */
                                                , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
                                                , uint32_t( waveform.size() )
-                                               , waveform.method_.hor_.nbrAvgWaveforms
-                                               , 0 );
+                                               , waveform.meta_.actualAverages
+                                               , 0 /* mode */ );
     info.fSampInterval( waveform.meta_.xIncrement );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );

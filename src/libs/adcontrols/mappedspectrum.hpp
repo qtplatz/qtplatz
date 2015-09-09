@@ -60,11 +60,23 @@ namespace adcontrols {
         iterator erase( iterator first, iterator last );
 
         double tic() const;
+        uint32_t numAverage() const;
+        void setNumAverage( uint32_t );
+        void setTrigNumber( uint32_t, uint32_t origin = 0 );
+        uint32_t trigNumber( bool sinceOrigin = true ) const;
+        uint32_t trigNumberOrigin() const;
+        
             
     private:
 
         std::vector< datum_type > data_;
+        uint32_t num_average_;
+        uint32_t trig_number_;
+        uint32_t trig_number_origin_;
 
+        template<typename T> class serializer;
+        friend class serializer<MappedSpectrum>;
+        friend class serializer<const MappedSpectrum>;
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
@@ -75,6 +87,6 @@ namespace adcontrols {
 }
 
 
-BOOST_CLASS_VERSION( adcontrols::MappedSpectrum, 1 )
+BOOST_CLASS_VERSION( adcontrols::MappedSpectrum, 2 )
 
 
