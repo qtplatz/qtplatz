@@ -56,6 +56,14 @@ identify::identify( const identify& t ) : bus_number_( t.bus_number_ )
 {
 }
 
+waveform::waveform( const identify& id, uint32_t pos, uint32_t events, uint64_t tp ) : ident_( id )
+                                                                                     , serialnumber_( pos )
+                                                                                     , wellKnownEvents_( events )
+                                                                                     , timeSinceEpoch_( tp )
+{
+}
+
+
 size_t
 waveform::size() const
 {

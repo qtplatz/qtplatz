@@ -24,6 +24,7 @@
 
 #include "histogram.hpp"
 #include "threshold_result.hpp"
+#include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <algorithm>
 #include <numeric>
@@ -64,8 +65,10 @@ histogram::append( const ap240x::threshold_result& result )
     }
     std::for_each( result.indecies().begin(), result.indecies().end(), [this] ( uint32_t idx ) {
             data_[ idx ] ++; });
+
     serialnumber_ = result.data()->serialnumber_;
     timeSinceEpoch_ = result.data()->timeSinceEpoch_;
+
     ++trigger_count_;
 }
 

@@ -105,14 +105,10 @@ namespace ap240controls {
 #endif
 
     class AP240CONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
-        waveform( const waveform& ); // = delete;
-        void operator = ( const waveform& ); // = delete;
+        waveform( const waveform& ) = delete;
+        void operator = ( const waveform& ) = delete;
     public:
-        waveform( const identify& id
-                  , uint32_t events = 0
-                  , uint32_t pos = 0
-                  , uint64_t tp = 0 ) : ident_( id ), wellKnownEvents_( events ), serialnumber_( pos ), timeSinceEpoch_( tp ) {
-        }
+        waveform( const identify& id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
 
         size_t size() const; // number of samples (octet size is depend on meta_.dataType)
 
