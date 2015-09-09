@@ -48,6 +48,10 @@ namespace ap240controls {
         void append( const ap240controls::threshold_result& result );
         size_t trigger_count() const;
         double triggers_per_sec() const;
+
+        uint32_t trigNumber( bool first = false ) const { return first ? serialnumber_0_ : serialnumber_; }
+        uint64_t timeSinceEpoch( bool first = false ) const { return first ? timeSinceEpoch_0_ : timeSinceEpoch_; }
+
         size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
                              , ap240x::metadata& meta
                              , uint32_t& serialnumber
@@ -59,8 +63,10 @@ namespace ap240controls {
     private:
         // metadata for initial trigger in this histogram
         ap240x::metadata meta_;
-        uint32_t serialnumber_;               // first waveform trigger#
-        uint64_t timeSinceEpoch_;             // first waveform acquired time
+        uint32_t serialnumber_0_;             // first waveform trigger#
+        uint32_t serialnumber_;               // last waveform trigger#
+        uint64_t timeSinceEpoch_0_;           // first waveform acquired time
+        uint64_t timeSinceEpoch_;             // last waveform acquired time
 
 #if defined _MSC_VER
 # pragma warning(push)

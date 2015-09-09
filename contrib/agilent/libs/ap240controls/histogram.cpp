@@ -56,15 +56,16 @@ histogram::append( const ap240x::threshold_result& result )
         
         trigger_count_ = 0;
         meta_ = result.data()->meta_;
-        serialnumber_ = result.data()->serialnumber_;
-        timeSinceEpoch_ = result.data()->timeSinceEpoch_;
+        serialnumber_0_ = result.data()->serialnumber_;
+        timeSinceEpoch_0_ = result.data()->timeSinceEpoch_;
         
         data_.resize( meta_.actualPoints );
         std::fill( data_.begin(), data_.end(), 0 );
     }
     std::for_each( result.indecies().begin(), result.indecies().end(), [this] ( uint32_t idx ) {
             data_[ idx ] ++; });
-
+    serialnumber_ = result.data()->serialnumber_;
+    timeSinceEpoch_ = result.data()->timeSinceEpoch_;
     ++trigger_count_;
 }
 
@@ -89,8 +90,8 @@ histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
     std::lock_guard< std::mutex > lock( mutex_ );
 
     meta = meta_;
-    serialnumber = serialnumber_;
-    timeSinceEpoch = timeSinceEpoch_;
+    serialnumber = serialnumber_0_;
+    timeSinceEpoch = timeSinceEpoch_0_;
 
     double t0 = meta_.initialXOffset;
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
