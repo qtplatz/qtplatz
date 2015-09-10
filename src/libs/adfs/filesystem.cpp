@@ -61,6 +61,12 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
 }
 
 bool
+filesystem::create( const char * filename, size_t alloc, size_t page_size )
+{
+    return create( boost::filesystem::path( filename ), alloc, page_size );
+}
+
+bool
 filesystem::create( const boost::filesystem::path& filepath, size_t alloc, size_t page_size )
 {
     if ( boost::filesystem::exists( filepath ) ) {
@@ -101,8 +107,19 @@ filesystem::create( const boost::filesystem::path& filepath, size_t alloc, size_
 bool
 filesystem::mount( const wchar_t * filename )
 {
-    boost::filesystem::path filepath( filename );
+    return mount( boost::filesystem::path( filename ) );
+}
 
+bool
+filesystem::mount( const char * filename )
+{
+    
+    return mount( boost::filesystem::path( filename ) );
+}
+
+bool
+filesystem::mount( const boost::filesystem::path& filepath )
+{
     db_.reset( new sqlite() );
 
     if ( db_->open( filepath.c_str() ) ) {
