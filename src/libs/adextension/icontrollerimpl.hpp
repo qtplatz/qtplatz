@@ -33,6 +33,8 @@
 #include <vector>
 #include <memory>
 
+class QString;
+
 namespace adextension {
 
     /*
@@ -100,9 +102,9 @@ namespace adextension {
                                                    , module_number_ ( module_number ) {
         }
 
-        template< typename T > std::shared_ptr<T> create( const QString& modle_name, int number ) {
-            return std::make_shared<T>( module_name, number );
-        }
+        // template< typename T > std::shared_ptr<T> create( const QString& modle_name, int number ) {
+        //     return std::make_shared<T>( module_name, number );
+        // }
 
         ~iControllerImpl() {
             if ( session_ ) {
@@ -118,12 +120,12 @@ namespace adextension {
         // connect() should be implemented specific to own instance
 
         void connect( adicontroller::Instrument::Session * session, const char * token ) {
-            if ( session_ = session->pThis() ) {
+            if ( ( session_ = session->pThis() ) ) {
                 setInitialized( true );
-                if ( receiver_ = std::make_shared< ReceiverImpl >( this ) ) {
+                if ( ( receiver_ = std::make_shared< ReceiverImpl >( this ) ) ) {
                     session_->connect( receiver_.get(), token );
                     if ( auto observer = session_->getObserver() ) {
-                        if ( observerEvents_ = std::make_shared< ObserverEventsImpl >( this ) )
+                        if ( ( observerEvents_ = std::make_shared< ObserverEventsImpl >( this ) ) )
                             observer->connect( observerEvents_.get(), adicontroller::SignalObserver::Realtime, token );
                     }
                     emit connected( this );
