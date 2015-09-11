@@ -45,6 +45,7 @@
 #include <qwt_plot_marker.h>
 #include <qwt_picker_machine.h>
 #include <qwt_text.h>
+#include <QDebug>
 #include <boost/format.hpp>
 #include <atomic>
 #include <set>
@@ -311,6 +312,8 @@ SpectrumWidget::scaleY( const QRectF& rc, std::pair< double, double >& left, std
 void
 SpectrumWidget::override_zoom_rect( QRectF& rc )
 {
+    qDebug() << "===== override_zoom_rect: " << rc;
+    
     if ( impl_->autoYZoom_ ) {
         std::pair< double, double > left, right;
         bool hasYRight = scaleY( rc, left, right );
