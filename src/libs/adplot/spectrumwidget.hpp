@@ -62,7 +62,6 @@ namespace adplot {
         class impl;
         impl * impl_;
 
-        bool scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
         void redraw_all();
 
     signals:

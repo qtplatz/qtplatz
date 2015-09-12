@@ -175,7 +175,7 @@ namespace adplot {
     public:
         impl() : autoAnnotation_( true )
                , isTimeAxis_( false )
-               , autoYZoom_( true ) 
+               , autoYScale_( true ) 
                , keepZoomed_( true )
                , haxis_( HorizontalAxisMass )
                , focusedFcn_( -1 ) // no focus
@@ -186,7 +186,7 @@ namespace adplot {
         std::vector< Annotation > annotations_;
         std::vector< spectrumwidget::TraceData > traces_;
 
-        std::atomic<bool> autoYZoom_;
+        std::atomic<bool> autoYScale_;
         std::atomic<bool> keepZoomed_;
         std::atomic<HorizontalAxis> haxis_;
         std::atomic<int> focusedFcn_;
@@ -198,6 +198,8 @@ namespace adplot {
         void handleZoomRect( QRectF& );
         QwtText tracker1( const QPointF& );
         QwtText tracker2( const QPointF&, const QPointF& );
+
+        std::pair<bool,bool> scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );        
     };
 
 } // namespace adplot
@@ -211,7 +213,7 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
                                                 , impl_( new SpectrumWidget::impl )
 {
     if ( auto zoomer = plot::zoomer() ) {
-        zoomer->autoYScale( impl_->autoYZoom_ );
+        zoomer->autoYScale( impl_->autoYScale_ );
 
         using namespace std::placeholders;
         zoomer->tracker1( std::bind( &SpectrumWidget::impl::tracker1, impl_, _1 ) );
@@ -219,10 +221,13 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
 
         zoomer->autoYScaleHock( [this]( QRectF& rc ){
                 std::pair<double, double > left, right;
-                if ( scaleY( rc, left, right ) )
+                auto hasAxis = impl_->scaleY( rc, left, right );
+                if ( hasAxis.second )
                     setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
-                rc.setBottom( left.first );
-                rc.setTop( left.second );  // return yLeft rc for zoom1 stack
+                if ( hasAxis.first ) {
+                    rc.setBottom( left.first );
+                    rc.setTop( left.second );  // return yLeft rc for zoom1 stack
+                }
             } );
 
         connect( zoomer, &QwtPlotZoomer::zoomed, this, &SpectrumWidget::zoomed );
@@ -274,15 +279,15 @@ SpectrumWidget::setVectorCompression( int compression )
             curve->setVectorCompression( compression );
 }
 
-bool
-SpectrumWidget::scaleY( const QRectF& rc, std::pair< double, double >& left, std::pair< double, double >& right )
+std::pair<bool, bool>
+SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& left, std::pair< double, double >& right )
 {
     using spectrumwidget::TraceData;
     bool hasYLeft( false ), hasYRight( false );
     
     left = right = std::make_pair( std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max() );
 
-    for ( const TraceData& trace: impl_->traces_ ) {
+    for ( const TraceData& trace: traces_ ) {
         std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
         if ( trace.yRight() ) {
             if ( !hasYRight ) {
@@ -299,8 +304,13 @@ SpectrumWidget::scaleY( const QRectF& rc, std::pair< double, double >& left, std
         }
     }
 
-    left.second = left.second + (left.second - left.first) * 0.12;
-    right.second = right.second + (right.second - right.first) * 0.12;
+    if ( ! hasYLeft )
+        left = std::make_pair( -5.0, 100 );
+    else
+        left.second = left.second + (left.second - left.first) * 0.12;
+
+    if ( hasYRight )
+        right.second = right.second + (right.second - right.first) * 0.12;
 
     if ( hasYLeft && hasYRight ) {
         if ( ( left.first <= 0 && left.second > 0 ) && ( right.first <= 0 && right.second > 0 ) ) {
@@ -314,7 +324,7 @@ SpectrumWidget::scaleY( const QRectF& rc, std::pair< double, double >& left, std
             }
         }
     }
-    return hasYRight;
+    return std::make_pair( hasYLeft, hasYRight );
 }
 
 void
@@ -326,12 +336,6 @@ SpectrumWidget::setKeepZoomed( bool value )
 void
 SpectrumWidget::zoomed( const QRectF& rect )
 {
-    // if ( impl_->autoYZoom_ ) {
-    //     std::pair< double, double > left, right;
-    //     if ( scaleY( rect, left, right ) ) // has Y-right
-    //         setAxisScale( QwtPlot::yRight, right.first, right.second );
-    //     setAxisScale( QwtPlot::yRight, left.first, left.second );        
-    // }
     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 
@@ -446,23 +450,31 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     QRectF rect;
     trace.setData( *this, ptr, rect, impl_->haxis_, yRight );
 
-    QRectF z = zoomer()->zoomRect(); // current (:= previous) zoom
+    if ( zoomer()->zoomRectIndex() == 0 || !impl_->keepZoomed_ ) {
 
-    setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
-    std::pair< double, double > left, right;
+        setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
+        zoomer()->setZoomBase();
 
-    if ( scaleY( rect, left, right ) && yRight ) {
-        setAxisScale( QwtPlot::yRight, right.first, right.second );
-    } else {
-        setAxisScale( QwtPlot::yLeft, left.first, left.second );
+        return;
     }
-    zoomer()->setZoomBase();
 
-    if ( lock && impl_->keepZoomed_ ) {
-        // auto prev = lock->getAcquisitionMassRange();
-        auto curr = ptr->getAcquisitionMassRange();
-        if ( z.left() < curr.second || curr.first < z.right() )
-            plot::zoom( z ); // push previous rect            
+    QRectF z = zoomer()->zoomRect(); // current
+
+    std::pair<double, double> left, right;
+    auto hasAxis = impl_->scaleY( z, left, right );
+    if ( yRight && hasAxis.second ) {
+
+        setAxisScale( QwtPlot::yRight, right.first, right.second );
+
+    } else {
+        z.setBottom( left.first );
+        z.setTop( left.second );
+        setAxisScale( QwtPlot::yLeft, left.first, left.second );
+
+        QStack< QRectF > stack;
+        stack.push( zoomer()->zoomStack()[ 0 ] );
+        stack.push( z );
+        zoomer()->setZoomStack( stack );  // this will do rescale if z changed
     }
 
     if ( ptr->isCentroid() ) {
@@ -632,7 +644,7 @@ TraceData::setData( plot& plot
         }
 
         // check if zero width
-        if ( adportable::compare<double>::approximatelyEqual( time_range.first, time_range.second ) ) {
+        if ( adportable::compare<double>::approximatelyEqual( time_range.first, time_range.second ) && ms->size() ) {
             time_range.first = ms->getTime( 0 );
             time_range.second = ms->getTime( ms->size() - 1 );
             if ( ms->isCentroid() || ms->size() == 0 ) {
