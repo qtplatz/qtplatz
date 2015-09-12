@@ -225,8 +225,8 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
                 if ( hasAxis.second )
                     setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
                 if ( hasAxis.first ) {
-                    rc.setBottom( left.first );
-                    rc.setTop( left.second );  // return yLeft rc for zoom1 stack
+                    rc.setCoords( rc.left(), left.second, rc.right(), left.first );
+                    // setAxisScale( QwtPlot::yLeft, left.first, left.second ); // set yLeft
                 }
             } );
 
@@ -467,14 +467,15 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
         setAxisScale( QwtPlot::yRight, right.first, right.second );
 
     } else {
-        z.setBottom( left.first );
-        z.setTop( left.second );
-        setAxisScale( QwtPlot::yLeft, left.first, left.second );
 
+        setAxisScale( QwtPlot::yLeft, left.first, left.second );
+#if 0
+        z.setCoords( z.left(), left.second, z.right(), left.first );
         QStack< QRectF > stack;
         stack.push( zoomer()->zoomStack()[ 0 ] );
         stack.push( z );
         zoomer()->setZoomStack( stack );  // this will do rescale if z changed
+#endif
     }
 
     if ( ptr->isCentroid() ) {
@@ -659,16 +660,16 @@ TraceData::setData( plot& plot
         rect.setCoords( scale_to_micro(time_range.first), top, scale_to_micro(time_range.second), bottom );
 
     } else {
-
+        
         std::pair< double, double > mass_range = ms->getAcquisitionMassRange();
         // check if zero width
-        if ( adportable::compare<double>::approximatelyEqual( mass_range.first, mass_range.second ) ) {
+        if ( adportable::compare<double>::approximatelyEqual( mass_range.first, mass_range.second ) && ms->size() ) {
             mass_range.first = double( int( ms->getMass(0) * 10 ) ) / 10.0;  // round to 0.1Da
             mass_range.second = double( int( ms->getMass( ms->size() - 1 ) * 10 + 1 ) ) / 10.0;
         }
         rect.setCoords( mass_range.first, top, mass_range.second, bottom );
-
     }
+    
     rect_ = rect;
     yRight_ = yRight;
     if ( ms->isCentroid() ) { // sticked
