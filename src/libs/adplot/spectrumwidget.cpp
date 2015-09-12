@@ -195,6 +195,7 @@ namespace adplot {
         void update_annotations( plot&, const std::pair<double, double>& );
 		void clear_annotations();
 
+        void handleZoomRect( QRectF& );
         QwtText tracker1( const QPointF& );
         QwtText tracker2( const QPointF&, const QPointF& );
     };
@@ -216,7 +217,14 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
         zoomer->tracker1( std::bind( &SpectrumWidget::impl::tracker1, impl_, _1 ) );
         zoomer->tracker2( std::bind( &SpectrumWidget::impl::tracker2, impl_, _1, _2 ) );
 
-        connect( zoomer, SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
+        zoomer->autoYScaleHock( [this]( QRectF& rc ){
+                std::pair<double, double > left, right;
+                if ( scaleY( rc, left, right ) )
+                    setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
+                rc.setBottom( left.first );
+                rc.setTop( left.second );  // return yLeft rc for zoom1 stack
+            } );
+
         connect( zoomer, &QwtPlotZoomer::zoomed, this, &SpectrumWidget::zoomed );
     }
 
@@ -318,13 +326,12 @@ SpectrumWidget::setKeepZoomed( bool value )
 void
 SpectrumWidget::zoomed( const QRectF& rect )
 {
-    if ( impl_->autoYZoom_ ) {
-        std::pair< double, double > left, right;
-        if ( scaleY( rect, left, right ) ) { // has Y-right
-            setAxisScale( QwtPlot::yRight, right.first, right.second );
-            replot();
-        }
-    }
+    // if ( impl_->autoYZoom_ ) {
+    //     std::pair< double, double > left, right;
+    //     if ( scaleY( rect, left, right ) ) // has Y-right
+    //         setAxisScale( QwtPlot::yRight, right.first, right.second );
+    //     setAxisScale( QwtPlot::yRight, left.first, left.second );        
+    // }
     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 

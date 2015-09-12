@@ -185,6 +185,24 @@ Zoomer::trackerTextF( const QPointF &pos ) const
 }
 
 void
+Zoomer::zoom( const QRectF& rect )
+{
+    if ( autoYScale_ && autoYScaleHock_ ) {
+        QRectF rc( rect );
+        autoYScaleHock_( rc );
+        QwtPlotZoomer::zoom( rc );
+    } else {
+        QwtPlotZoomer::zoom( rect );
+    }
+}
+
+void
+Zoomer::autoYScaleHock( std::function< void( QRectF& ) > f )
+{
+    autoYScaleHock_ = f;
+}
+
+void
 Zoomer::tracker1( std::function<QwtText( const QPointF& )> f )
 {
     tracker1_ = f;

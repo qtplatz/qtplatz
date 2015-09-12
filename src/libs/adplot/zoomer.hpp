@@ -40,9 +40,12 @@ namespace adplot {
         Zoomer( int xAxis, int yAxis, QWidget * canvas );
 
         void autoYScale( bool );
-
+        void autoYScaleHock( std::function< void( QRectF& ) > );
         void tracker1( std::function<QwtText( const QPointF& )> );
         void tracker2( std::function<QwtText( const QPointF&, const QPointF& )> );
+
+        // QwtPlotZoomer
+        void zoom( const QRectF& rect ) override;
 
     private:
         static const int minX = 20;
@@ -50,7 +53,7 @@ namespace adplot {
 
         bool autoYScale_;
         QPoint p1_;
-        std::function<void( QRectF& )> zoomAutoY_;
+        std::function<void( QRectF& )> autoYScaleHock_;
         std::function<QwtText( const QPointF& )> tracker1_;
         std::function<QwtText( const QPointF&, const QPointF& )> tracker2_;
     protected:
