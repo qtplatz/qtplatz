@@ -47,13 +47,14 @@ namespace adplot {
     public:
         ~impl() {
         }
+        
         impl( plot * pThis ) : this_( pThis ) 
                              , linkedzoom_inprocess_( false )
                              , vectorCompression_( false ) 
                              , zoomer1_( new Zoomer( int(QwtPlot::xBottom), int(QwtPlot::yLeft), pThis->canvas() ) )
                              , picker_( new Picker( pThis->canvas() ) )
                              , panner_( new Panner( pThis->canvas() ) )  {
-
+            
             panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
 
         }

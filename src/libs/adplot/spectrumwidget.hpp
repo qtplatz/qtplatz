@@ -70,7 +70,6 @@ namespace adplot {
 		void onSelected( const QRectF& );
         
     public slots:
-		virtual void override_zoom_rect( QRectF& );
 		virtual void moved( const QPointF& );
 		virtual void selected( const QPointF& );
 		virtual void selected( const QRectF& );

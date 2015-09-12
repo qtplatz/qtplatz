@@ -310,22 +310,6 @@ SpectrumWidget::scaleY( const QRectF& rc, std::pair< double, double >& left, std
 }
 
 void
-SpectrumWidget::override_zoom_rect( QRectF& rc )
-{
-    qDebug() << "===== override_zoom_rect: " << rc;
-    
-    if ( impl_->autoYZoom_ ) {
-        std::pair< double, double > left, right;
-        bool hasYRight = scaleY( rc, left, right );
-        // override
-        rc.setBottom( left.first );
-        rc.setTop( left.second );
-        if ( hasYRight )
-            setAxisScale( QwtPlot::yRight, right.first, right.second ); // immediate set
-    }
-}
-
-void
 SpectrumWidget::setKeepZoomed( bool value )
 {
     impl_->keepZoomed_ = value;

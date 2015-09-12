@@ -66,23 +66,6 @@ Zoomer::autoYScale( bool f )
 }
 
 void
-Zoomer::zoom( const QRectF& rect )
-{
-    QRectF rc( rect );
-    if ( autoYScale_ ) {
-        QRectF current = zoomRect();
-        qDebug() << "===== Zoomer::zoom( " << rect << ", <= " << current << " )";
-        rc = QRectF( rect.left(), current.y(), rect.right(), current.top() );
-        rc.setTop( current.top() );
-        rc.setBottom( current.bottom() );
-    }
-    qDebug() << "===== Zoomer::zoom( " << rect << ", --> " << rc << " )";
-
-    emit zoom_override( rc );
-	QwtPlotZoomer::zoom( rc );
-}
-
-void
 Zoomer::widgetMousePressEvent( QMouseEvent * e ) 
 {
     p1_ = e->pos();

@@ -40,7 +40,7 @@ set( ${PROJECT_NAME}_SOURCES
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  ap240
+  ap240controls
   adplugin
   adplugin_manager
   adlog

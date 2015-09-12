@@ -288,7 +288,7 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
         zoomer->tracker1( std::bind( &ChromatogramWidgetImpl::tracker1, impl_, _1 ) );
         zoomer->tracker2( std::bind( &ChromatogramWidgetImpl::tracker2, impl_, _1, _2 ) );
         
-        connect( zoomer, static_cast<void(Zoomer::*)(QRectF&)>(&Zoomer::zoom_override), this, &ChromatogramWidget::override_zoom_rect );
+        // connect( zoomer, static_cast<void(Zoomer::*)(QRectF&)>(&Zoomer::zoom_override), this, &ChromatogramWidget::override_zoom_rect );
         connect( zoomer, &Zoomer::zoomed, this, &ChromatogramWidget::zoomed );
 	}
     
@@ -514,13 +514,6 @@ ChromatogramWidget::drawPeakParameter( const adcontrols::Peak& pk )
         curve->attach( this );
         impl_->curves_.push_back( curve );
     }
-}
-
-void
-ChromatogramWidget::override_zoom_rect( QRectF& )
-{
-	// update rect if auto Y scale and/or apply minimum zoom etc.
-    
 }
 
 void
