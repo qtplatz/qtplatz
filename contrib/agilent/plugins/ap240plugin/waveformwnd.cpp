@@ -99,7 +99,7 @@ WaveformWnd::init()
     hpw_->setAutoAnnotation( false );
     
     spw_->link( hpw_ );
-    hpw_->link( spw_ );
+//    hpw_->link( spw_ );
     
     tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );

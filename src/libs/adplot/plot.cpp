@@ -39,6 +39,7 @@
 #include <qwt_plot_renderer.h>
 #include <QApplication>
 #include <QClipboard>
+#include <QSignalBlocker>
 //#include <QSvgGenerator>
 
 namespace adplot {
@@ -59,12 +60,10 @@ namespace adplot {
 
         }
         
-        void zoom( const QRectF& rect, const plot& origin ) {
-            if ( this_ == &origin )
-                return;
-            linkedzoom_inprocess_ = true;
-            zoomer1_->zoom( rect ); // will emit onZoomed
-            linkedzoom_inprocess_ = false;
+        void zoomChain( const QRectF& rect, const plot& origin ) {
+            QSignalBlocker block( zoomer1_.get() );
+            if ( &origin != this_ )
+                zoomer1_->zoom( rect );
         }
         
         void panne( int dx, int dy, const plot& origin ) {
@@ -72,8 +71,11 @@ namespace adplot {
                 panner_->panne( dx, dy );
         }
 
+        typedef std::list<plot *> plotlink;
+
+        void link( plot * );
+
         plot * this_;
-        typedef std::vector<plot *> plotlink;
         std::shared_ptr< plotlink > plotlink_;
         bool linkedzoom_inprocess_;
         bool vectorCompression_;
@@ -150,8 +152,8 @@ void
 plot::onZoomed( const QRectF& rect )
 {
     if ( impl_->plotlink_ && !impl_->linkedzoom_inprocess_ ) {
-        for ( impl::plotlink::value_type plot : *impl_->plotlink_ ) {
-            plot->impl_->zoom( rect, *this );
+        for ( auto plot : *impl_->plotlink_ ) {
+            plot->impl_->zoomChain( rect, *this );
 		}
 	}
 }
@@ -170,39 +172,38 @@ plot::onPanned( int dx, int dy )
 void
 plot::link( plot * p )
 {
-    if ( !impl_->plotlink_ ) {
-        connect( plot::zoomer(), SIGNAL( zoomed( const QRectF& ) ), this, SLOT( onZoomed( const QRectF& ) ) );
-		connect( plot::panner(), SIGNAL( panned( int, int ) ), this, SLOT( onPanned( int, int ) ) );
-	}
+    if ( impl_->plotlink_ == nullptr ) {
+        connect( this->zoomer(), &QwtPlotZoomer::zoomed, this, &plot::onZoomed );
+        connect( this->panner(), &QwtPlotPanner::panned, this, &plot::onPanned );
 
-    if ( impl_->plotlink_ && p->impl_->plotlink_ ) {
-		// marge into this->plotlink_
-        impl_->plotlink_->insert( impl_->plotlink_->end(), p->impl_->plotlink_->begin(), p->impl_->plotlink_->end() );
-
-		// update all plotlink in the marged list
-        for ( impl::plotlink::iterator it = p->impl_->plotlink_->begin(); it != p->impl_->plotlink_->end(); ++it )
-            (*it)->impl_->plotlink_ = impl_->plotlink_;
-
-    }
-    else if ( impl_->plotlink_ && !p->impl_->plotlink_ ) {
-
-        p->impl_->plotlink_ = impl_->plotlink_;
-        if ( std::find( impl_->plotlink_->begin(), impl_->plotlink_->end(), p ) == impl_->plotlink_->end() )
-            impl_->plotlink_->push_back( p );
-
-    }
-    else if ( !impl_->plotlink_ && p->impl_->plotlink_ ) {
-
-        impl_->plotlink_ = p->impl_->plotlink_;
-        if ( std::find( impl_->plotlink_->begin(), impl_->plotlink_->end(), this ) == impl_->plotlink_->end() )
-            impl_->plotlink_->push_back( this );
-
-    }
-    else if ( !impl_->plotlink_ && !p->impl_->plotlink_ ) {
         impl_->plotlink_ = std::make_shared< impl::plotlink >();
         impl_->plotlink_->push_back( this );
-        impl_->plotlink_->push_back( p );
-	}
+    }
+    p->impl_->link( this );
+}
+
+void
+plot::impl::link( plot * p )
+{
+    if ( plotlink_ == nullptr ) {
+
+        connect( this_->zoomer(), &QwtPlotZoomer::zoomed, this_, &plot::onZoomed );
+        connect( this_->panner(), &QwtPlotPanner::panned, this_, &plot::onPanned );
+        plotlink_ = p->impl_->plotlink_;
+        plotlink_->push_back( this_ );
+        
+    } else {
+        // merge into this->plotlink_
+        for ( auto& other : *p->impl_->plotlink_ ) {
+            if ( std::find( plotlink_->begin(), plotlink_->end(), other ) == plotlink_->end() )
+                plotlink_->push_back( other );
+        }
+
+    }
+
+    // replace with merged list
+    for ( auto& plot : *plotlink_ )
+        plot->impl_->plotlink_ = plotlink_;
 }
 
 void

@@ -274,7 +274,7 @@ MSProcessingWnd::init()
         pImpl_->pwplot_->hide();
 
         pImpl_->profileSpectrum_->link( pImpl_->processedSpectrum_ );
-        pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
+        //pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
         
 
         pImpl_->processedSpectrum_->setContextMenuPolicy( Qt::CustomContextMenu );

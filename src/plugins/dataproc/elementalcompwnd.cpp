@@ -107,7 +107,7 @@ ElementalCompWnd::init()
 		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );        
 
         pImpl_->processedSpectrum_->link( pImpl_->referenceSpectrum_ );
-        pImpl_->referenceSpectrum_->link( pImpl_->processedSpectrum_ );
+        //pImpl_->referenceSpectrum_->link( pImpl_->processedSpectrum_ );
 
         splitter->setOrientation( Qt::Vertical );
     }

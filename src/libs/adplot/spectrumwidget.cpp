@@ -46,6 +46,7 @@
 #include <qwt_picker_machine.h>
 #include <qwt_text.h>
 #include <QDebug>
+#include <QSignalBlocker>
 #include <boost/format.hpp>
 #include <atomic>
 #include <set>
@@ -224,9 +225,9 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
                 auto hasAxis = impl_->scaleY( rc, left, right );
                 if ( hasAxis.second )
                     setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
-                if ( hasAxis.first ) {
-                    rc.setCoords( rc.left(), left.second, rc.right(), left.first );
-                    // setAxisScale( QwtPlot::yLeft, left.first, left.second ); // set yLeft
+                if ( hasAxis.first ) { // yLeft
+                    // zoom rect seems be upside down
+                    rc.setCoords( rc.left(), left.first, rc.right(), left.second );
                 }
             } );
 
@@ -361,7 +362,7 @@ void
 SpectrumWidget::clear()
 {
     impl_->clear();
-    zoomer()->setZoomBase();
+    // zoomer()->setZoomBase(); --> this lose zoom stack
 }
 
 void
@@ -450,32 +451,39 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     QRectF rect;
     trace.setData( *this, ptr, rect, impl_->haxis_, yRight );
 
-    if ( zoomer()->zoomRectIndex() == 0 || !impl_->keepZoomed_ ) {
+    auto rectIndex = zoomer()->zoomRectIndex();
+    QRectF z = zoomer()->zoomRect();
+
+    if ( rectIndex == 0 || !impl_->keepZoomed_ ) {
 
         setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
         zoomer()->setZoomBase();
 
-        return;
-    }
-
-    QRectF z = zoomer()->zoomRect(); // current
-
-    std::pair<double, double> left, right;
-    auto hasAxis = impl_->scaleY( z, left, right );
-    if ( yRight && hasAxis.second ) {
-
-        setAxisScale( QwtPlot::yRight, right.first, right.second );
-
     } else {
 
-        setAxisScale( QwtPlot::yLeft, left.first, left.second );
-#if 0
-        z.setCoords( z.left(), left.second, z.right(), left.first );
-        QStack< QRectF > stack;
-        stack.push( zoomer()->zoomStack()[ 0 ] );
-        stack.push( z );
-        zoomer()->setZoomStack( stack );  // this will do rescale if z changed
-#endif
+        QRectF z = zoomer()->zoomRect(); // current
+
+        std::pair<double, double> left, right;
+        auto hasAxis = impl_->scaleY( z, left, right );
+
+        if ( yRight && hasAxis.second ) {
+
+            setAxisScale( QwtPlot::yRight, right.first, right.second );
+
+        } else {
+            if ( hasAxis.first ) {
+                QStack< QRectF > zstack;
+                QRectF rc;
+                rc.setCoords( rect.x(), rect.bottom(), rect.left(), rect.top() ); // upside down
+                //zstack.push_back( rc );
+                zstack.push_back( QRectF( rect.x(), rect.bottom(), rect.width(), -rect.height() ) ); // upside down
+                //rc.setCoords( z.left(), left.first, z.right(), left.second );
+                zstack.push_back( QRectF( z.x(), left.first, z.width(), left.second - left.first ) );
+                //zoom( z );
+                QSignalBlocker block( zoomer() );
+                zoomer()->setZoomStack( zstack );
+            }
+        }
     }
 
     if ( ptr->isCentroid() ) {
@@ -655,9 +663,8 @@ TraceData::setData( plot& plot
         }
 
         using namespace adcontrols::metric;
-        // setCoods( tof-left corner := (x1, y1) -- bottom-right corner := (x2, y2)
         // Origin of Qt's coordinate system is top,left (0,0) (opposit y-scale to GKS)
-        rect.setCoords( scale_to_micro(time_range.first), top, scale_to_micro(time_range.second), bottom );
+        rect.setCoords( scale_to_micro( time_range.first ), top, scale_to_micro( time_range.second ), bottom );
 
     } else {
         
