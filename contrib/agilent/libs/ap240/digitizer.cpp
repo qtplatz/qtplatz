@@ -542,7 +542,11 @@ task::handle_acquire()
                 }
 
                 if ( simulated_ ) {
-                    std::this_thread::sleep_until( tp + std::chrono::microseconds( 10000 ) ); // 100Hz
+#if defined _MSC_VER && defined _DEBUG
+                    std::this_thread::sleep_until( tp + std::chrono::milliseconds( 200 ) ); // 5Hz
+#else
+                    std::this_thread::sleep_until( tp + std::chrono::milliseconds( 10 ) ); // 100Hz
+#endif
                 }
                 
                 ++acquire_post_count_;
