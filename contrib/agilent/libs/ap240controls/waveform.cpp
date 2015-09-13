@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "waveform.hpp"
+#include "threshold_result.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -437,3 +438,67 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
 	return true;
 }
+
+//static
+bool
+waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, int scale )
+{
+    using namespace adcontrols::metric;
+
+    sp.setCentroid( adcontrols::CentroidNone );
+    const waveform& waveform = *result.data();
+    
+    adcontrols::MSProperty prop = sp.getMSProperty();
+    adcontrols::MSProperty::SamplingInfo info( 0 /* sampInterval (ps) */
+                                               , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
+                                               , uint32_t( waveform.size() )
+                                               , waveform.meta_.actualAverages
+                                               , 0 /* mode */ );
+    info.fSampInterval( waveform.meta_.xIncrement );
+    prop.acceleratorVoltage( 3000 );
+    prop.setSamplingInfo( info );
+    
+    prop.setTimeSinceInjection( uint64_t( scale_to_micro( waveform.meta_.initialXTimeSeconds ) ) );
+    prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
+    prop.setDataInterpreterClsid( "ap240" );
+
+    const device_data data( waveform.ident_, waveform.meta_ );
+    std::string ar;
+    adportable::binary::serialize<>()( data, ar );
+    prop.setDeviceData( ar.data(), ar.size() );
+
+    // prop.setDeviceData(); TBA
+    sp.setMSProperty( prop );
+    sp.resize( waveform.size() );
+	int idx = 0;
+
+    if ( result.processed().size() == waveform.size() ) { // has filterd waveform
+        if ( scale <= 1 )
+            sp.setIntensityArray( result.processed().data() ); // return Volts (no binary avilable for processed waveform)
+        else
+            for ( auto it = result.processed().begin(); it != result.processed().end(); ++it )
+                sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)
+        
+    } else if ( waveform.meta_.dataType == 1 ) {
+        if ( scale )
+            for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
+                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );        // V, mV ...
+        else
+            for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
+                sp.setIntensity( idx++, *y );          // binary 
+    } else {
+        double dbase, rms;
+        double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
+
+        if ( scale )
+            for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
+                sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) * scale ); // V, mV ...
+        else
+            for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
+                sp.setIntensity( idx++, *y - dbase );  // binary
+        
+    }
+    
+	return true;
+}
+

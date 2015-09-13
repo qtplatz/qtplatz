@@ -37,7 +37,7 @@
 namespace adcontrols { class MassSpectrum; }
 namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
 namespace ap240 { namespace detail { struct device_ap240; } }
-namespace ap240controls { class method; }
+namespace ap240controls { class method; class threshold_result; }
 
 namespace ap240controls {
 
@@ -138,6 +138,7 @@ namespace ap240controls {
             serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
 
         static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+        static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
     private:
 
