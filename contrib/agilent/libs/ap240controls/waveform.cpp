@@ -316,9 +316,9 @@ waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb 
                 }
             }
         }
-        return { waveforms[ 0 ], waveforms[ 1 ] };
+        return std::array< std::shared_ptr< const waveform >, 2 >( { waveforms[ 0 ], waveforms[ 1 ] } );
     }
-    return { 0, 0 };// std::array< std::shared_ptr< const waveform >, 2 >();
+    return std::array< std::shared_ptr< const waveform >, 2 >();
 }
 
 //static
