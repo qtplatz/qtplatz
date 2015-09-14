@@ -27,6 +27,7 @@
 #include "adcontrols_global.h"
 #include <cstdint>
 #include <memory>
+#include <string>
 
 namespace boost { 
     namespace uuids { struct uuid; }
@@ -36,8 +37,12 @@ namespace boost {
 namespace adcontrols {
 
     class idAudit;
+#if defined _MSC_VER
+    class SampleRun;
+    ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::weak_ptr < SampleRun > ;
+#endif
 
-    class ADCONTROLSSHARED_EXPORT SampleRun {
+    class ADCONTROLSSHARED_EXPORT SampleRun : public std::enable_shared_from_this< SampleRun > {
     public:
         ~SampleRun();
         SampleRun();
@@ -56,9 +61,11 @@ namespace adcontrols {
 
         const wchar_t * dataDirectory() const;
         void dataDirectory( const wchar_t * );
+        void setDataDirectory( const std::wstring& );
 
         const wchar_t * filePrefix() const; // RUN_0001
         void filePrefix( const wchar_t * file );
+        void setFilePrefix( const std::wstring& );
 
         const char * description() const;
         void description( const char * );

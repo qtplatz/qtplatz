@@ -34,13 +34,13 @@
 #include <adportable/profile.hpp>
 #include <adportable/uuid.hpp>
 #include <adportable/utf.hpp>
+#include <adportable/date_string.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
-//#include <workaround/boost/uuid/uuid_io.hpp>
-//#include <workaround/boost/uuid/uuid_serialize.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <cstdint>
@@ -55,7 +55,8 @@ namespace adcontrols {
         ~impl() {
         }
 
-        impl() : dataDirectory_( adportable::profile::user_data_dir<wchar_t>() + L"/data" )
+        impl() : dataDirectory_( adportable::profile::user_data_dir<wchar_t>() + L"/data/"
+                                 + adportable::date_string::wstring( boost::posix_time::second_clock::local_time().date() ) )
                , filePrefix_( L"RUN_0001" )
                , methodTime_( 60.0 )
                , replicates_( 999 )
@@ -188,6 +189,12 @@ SampleRun::dataDirectory( const wchar_t * v )
     impl_->dataDirectory_ = v ? v : L"";
 }
 
+void
+SampleRun::setDataDirectory( const std::wstring& dir )
+{
+    impl_->dataDirectory_ = dir;
+}
+
 const wchar_t *
 SampleRun::filePrefix() const // RUN_
 {
@@ -198,6 +205,12 @@ void
 SampleRun::filePrefix( const wchar_t * file )
 {
     impl_->filePrefix_ = file ? file : L"";
+}
+
+void
+SampleRun::setFilePrefix( const std::wstring& file )
+{
+    impl_->filePrefix_ = file;
 }
 
 const char * // utf8

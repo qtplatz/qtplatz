@@ -35,6 +35,7 @@ namespace adportable {
     class date_string {
     public:
         static std::string string( const boost::gregorian::date& dt, const char * fmt = "%Y-%m-%d" );
+        static std::wstring wstring( const boost::gregorian::date& dt, const wchar_t * fmt = L"%Y-%m-%d" );
         static std::string utc_to_localtime_string( time_t utc, unsigned usec, bool add_utc_offset = false );
         static std::string logformat( const std::chrono::system_clock::time_point& tp, bool add_utc_offset = false );
     };

@@ -42,6 +42,16 @@ date_string::string( const boost::gregorian::date& dt, const char * fmt )
     return os.str();
 }
 
+std::wstring
+date_string::wstring( const boost::gregorian::date& dt, const wchar_t * fmt )
+{
+    std::locale loc( std::locale::classic(), new boost::gregorian::wdate_facet( fmt ) );
+    std::wostringstream os;
+    os.imbue( loc );
+    os << dt;
+    return os.str();
+}
+
 // static
 std::string
 date_string::utc_to_localtime_string( time_t utc, unsigned usec, bool add_utc_offset )

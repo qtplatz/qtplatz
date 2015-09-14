@@ -90,7 +90,6 @@ namespace adextension {
      *  iControllerImpl -- implementation helper
      */    
     class iControllerImpl : public adextension::iController {
-    public:
     private:
         iControllerImpl( const iControllerImpl& ) = delete;
         iControllerImpl& operator = (const iControllerImpl& ) = delete;
@@ -101,10 +100,6 @@ namespace adextension {
                                                    , module_name_( module_name )
                                                    , module_number_ ( module_number ) {
         }
-
-        // template< typename T > std::shared_ptr<T> create( const QString& modle_name, int number ) {
-        //     return std::make_shared<T>( module_name, number );
-        // }
 
         ~iControllerImpl() {
             if ( session_ ) {
@@ -155,6 +150,7 @@ namespace adextension {
         void dataChangedHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > f ) override {
             dataChangedHandler_ = f;
         }
+
         void dataEventHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > f ) override {
             dataEventHandler_ = f;
         }

@@ -175,7 +175,7 @@ DataSequenceWidget::dataSelectionBar()
         toolBarLayout->addWidget( new Utils::StyledSeparator );
 
         auto label2 = new QLabel;
-        label2->setText( "Data Save in:" );
+        label2->setText( tr( "Data Save in:" ) );
         toolBarLayout->addWidget( label2 );
 
         auto edit = new QLineEdit;
