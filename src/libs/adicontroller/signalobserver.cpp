@@ -224,18 +224,6 @@ namespace adicontroller {
             impl_->description_ = v;
         }
 
-        uint32_t
-        Observer::objId() const
-        {
-            return impl_->objId_;
-        }
-
-        void
-        Observer::setObjId( uint32_t objid )
-        {
-            impl_->objId_ = objid;
-        }
-
         bool
         Observer::isActive() const
         {
@@ -264,27 +252,6 @@ namespace adicontroller {
                 return true;
             }
             return false;
-        }
-
-        Observer *
-        Observer::findObserver( uint32_t objId, bool recursive )
-        {
-            std::lock_guard< std::mutex > lock( impl_->mutex_ );            
-
-            auto it = std::find_if( impl_->siblings_.begin(), impl_->siblings_.end(), [objId]( const std::shared_ptr< Observer >& p ){
-                    return p->objId() == objId; });
-
-            if ( it != impl_->siblings_.end() )
-                return it->get();
-
-            if ( recursive ) {
-                for ( auto& sibling: impl_->siblings_ ) {
-                    if ( auto p = sibling->findObserver( objId, recursive ) )
-                        return p;
-                }
-            }
-            
-            return 0;
         }
 
         Observer *

@@ -49,8 +49,7 @@ namespace ap240controller {
         void uptime_range( uint64_t& oldest, uint64_t& newest ) const  { oldest = newest = 0; }
 
         std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) { return 0; }
-        const char * dataInterpreterClsid() const                      { return ""; }
-
+        const char * dataInterpreterClsid() const                      { return ""; } // master is not responcible to any specific data class
         int32_t posFromTime( uint64_t usec ) const                     { return 0; }
 
         // local impl

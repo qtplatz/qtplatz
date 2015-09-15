@@ -234,14 +234,13 @@ SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
     auto vec = parent->siblings();
 
     for ( auto observer : vec ) {
-        unsigned long objId = observer->objId();
         std::string dataClass;
         octet_array data;
         int32_t idx = 0;
         while ( observer->readCalibration( idx++, data, dataClass ) ) {
             adfs::stmt sql( fs_->db() );
-            sql.prepare( "INSERT INTO Calibration VALUES(:objid,:dataClass,:data,0)" );
-            sql.bind( 1 ) = objId;
+            sql.prepare( "INSERT INTO Calibration VALUES(:objuuid,:dataClass,:data,0)" );
+            sql.bind( 1 ) = observer->objid();
             sql.bind( 2 ) = dataClass;
             sql.bind( 3 ) = adfs::blob( data.size(), reinterpret_cast<const int8_t *>( data.data() ) );
             if ( sql.step() == adfs::sqlite_done )
@@ -259,26 +258,25 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
 {
     auto vec = parent->siblings();
 
-    unsigned long pobjId = parent->objId();
-
     //for ( CORBA::ULong i = 0; i < vec->length(); ++i ) {
     for ( auto observer : vec ) {
 
-        auto objuuid = observer->objid();
-        auto clsid = observer->dataInterpreterClsid();
-        auto desc = observer->description();
-        auto trace_id = desc.trace_id();
-        auto trace_display_name = desc.trace_display_name();
-        auto axis_x_label = desc.axis_label( SignalObserver::Description::axisX );
-        auto axis_y_label = desc.axis_label( SignalObserver::Description::axisY );
+        
+        if ( auto clsid = observer->dataInterpreterClsid() ) {
+            auto objid = observer->objid();
+            auto desc = observer->description();
+            auto trace_id = desc.trace_id();
+            auto trace_display_name = desc.trace_display_name();
+            auto axis_x_label = desc.axis_label( SignalObserver::Description::axisX );
+            auto axis_y_label = desc.axis_label( SignalObserver::Description::axisY );
 
-        v3::AcquiredConf::insert( fs_->db()
-                                           , observer->objid()
-                                           , std::string( observer->objtext() )
-                                           , parent->objid()
-                                           , observer->dataInterpreterClsid()
-                                           , desc );
-
+            v3::AcquiredConf::insert( fs_->db()
+                                      , observer->objid()
+                                      , std::string( observer->objtext() )
+                                      , parent->objid()
+                                      , observer->dataInterpreterClsid()
+                                      , desc );
+        }
         populate_descriptions( observer.get() );
     }
 }

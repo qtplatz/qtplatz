@@ -165,9 +165,6 @@ namespace adicontroller {
             virtual const Description& description() const;
             virtual void setDescription( const Description& desc );
 
-            virtual uint32_t objId() const;             // deprecated
-            virtual void setObjId( uint32_t objid );    // deprecated
-
             virtual const boost::uuids::uuid& objid() const = 0;
             virtual const char * objtext() const = 0;
 
@@ -189,7 +186,6 @@ namespace adicontroller {
             /** Instrument controller will add/remove sibling by changing method while running sequence
              */
             virtual bool addSibling( Observer * observer );
-            virtual Observer * findObserver( uint32_t objId, bool recursive );
             virtual Observer * findObserver( const boost::uuids::uuid&, bool recursive );
 
             /** uptime returns micro seconds since start moniring, 
@@ -197,7 +193,7 @@ namespace adicontroller {
              */
             virtual uint64_t uptime() const = 0;
 
-            virtual void uptime_range( uint64_t& oldest, uint64_t& newest ) const = 0;
+            virtual void uptime_range( uint64_t& oldest, uint64_t& newest ) const { oldest = 0; newest = 0; }
 
             virtual std::shared_ptr< DataReadBuffer > readData( uint32_t pos ) = 0;
 
@@ -206,7 +202,7 @@ namespace adicontroller {
              */
             virtual const char * dataInterpreterClsid() const  = 0;
             
-            virtual int32_t posFromTime( uint64_t usec ) const = 0;
+            virtual int32_t posFromTime( uint64_t usec ) const { return 0; }
 
             /** if instrument has one or more calibration information, adcontroller retrive them though this
              * interface start with idx = 0 until return false;  all data will be set to datainterpreter 

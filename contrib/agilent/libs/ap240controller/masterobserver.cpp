@@ -40,7 +40,8 @@
 
 namespace ap240controller {
 
-    static const char * objid__ = "ap240.ms-cheminfo.com"; // master has no unitid
+    static const char * objtext__ = "master.ap240.ms-cheminfo.com"; // master has no unitid
+    static const boost::uuids::uuid objid__ = boost::uuids::name_generator( adicontroller::SignalObserver::Observer::base_uuid() )( objtext__ );
 
     class MasterObserver::impl {
     public:
@@ -64,12 +65,12 @@ namespace ap240controller {
 
     const boost::uuids::uuid& MasterObserver::objid() const
     {
-        return boost::uuids::name_generator( base_uuid() )( objid__ );
+        return objid__;
     }
 
     const char * MasterObserver::objtext() const
     {
-        return objid__;
+        return objtext__;
     }
 
     bool

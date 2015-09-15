@@ -56,10 +56,9 @@ AcquiredConf::create_table_v3( adfs::sqlite& db )
         sql.exec(
             "CREATE TABLE \
 AcquiredConf (                \
-,objuuid              UUID     \
+ objuuid              UUID     \
 ,objtext              TEXT     \
 ,pobjuuid             UUID     \
-,uuid                 UUID     \
 ,dataInterpreterClsid TEXT     \
 ,trace_method         INTEGER  \
 ,spectrometer         INTEGER  \
@@ -84,7 +83,7 @@ AcquiredConf::insert( adfs::sqlite& dbf
 {
     adfs::stmt sql( dbf );
     
-    sql.prepare( 
+    bool success = sql.prepare(
         "INSERT INTO \
  AcquiredConf VALUES(\
 :objuuid             \
@@ -101,22 +100,25 @@ AcquiredConf::insert( adfs::sqlite& dbf
 ,:axis_y_decimals     \
 )" );
 
-    int col = 1;
-    sql.bind( col++ ) = objid;
-    sql.bind( col++ ) = objtext;
-    sql.bind( col++ ) = pobjid;
-    sql.bind( col++ ) = dataInterpreterClsid;
-    sql.bind( col++ ) = int64_t( d.trace_method() );
-    sql.bind( col++ ) = int64_t( d.spectrometer() );
-    sql.bind( col++ ) = std::string( d.trace_id() );
-    sql.bind( col++ ) = std::wstring( d.trace_display_name() );
-    sql.bind( col++ ) = std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisX ) );
-    sql.bind( col++ ) = std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisY ) );
-    sql.bind( col++ ) = d.axis_decimals( adicontroller::SignalObserver::Description::axisX );
-    sql.bind( col++ ) = d.axis_decimals( adicontroller::SignalObserver::Description::axisY );
+    if ( success ) {
 
-    if ( sql.step() == adfs::sqlite_done )
-        return true;
+        int col = 1;
+        sql.bind( col++ ) = objid;
+        sql.bind( col++ ) = objtext;
+        sql.bind( col++ ) = pobjid;
+        sql.bind( col++ ) = dataInterpreterClsid;
+        sql.bind( col++ ) = int64_t( d.trace_method() );
+        sql.bind( col++ ) = int64_t( d.spectrometer() );
+        sql.bind( col++ ) = std::string( d.trace_id() );
+        sql.bind( col++ ) = std::wstring( d.trace_display_name() );
+        sql.bind( col++ ) = std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisX ) );
+        sql.bind( col++ ) = std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisY ) );
+        sql.bind( col++ ) = d.axis_decimals( adicontroller::SignalObserver::Description::axisX );
+        sql.bind( col++ ) = d.axis_decimals( adicontroller::SignalObserver::Description::axisY );
+
+        if ( sql.step() == adfs::sqlite_done )
+            return true;
+    }
 
     sql.reset();
 	return false;
