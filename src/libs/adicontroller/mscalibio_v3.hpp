@@ -30,6 +30,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
+#include <string>
 
 namespace adfs { class sqlite; }
 namespace adcontrols { class MSCalibrateResult; }
