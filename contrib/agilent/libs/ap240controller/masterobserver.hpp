@@ -42,7 +42,8 @@ namespace ap240controller {
         bool connect( so::ObserverEvents * cb, so::eUpdateFrequency frequency, const std::string& token ) override;
         bool disconnect( so::ObserverEvents * cb ) override;
 
-        const boost::uuids::uuid& uuid() const { return base_uuid(); }
+        const boost::uuids::uuid& objid() const;
+        const char * objtext() const;
 
         uint64_t uptime() const { return 0; }
         void uptime_range( uint64_t& oldest, uint64_t& newest ) const  { oldest = newest = 0; }

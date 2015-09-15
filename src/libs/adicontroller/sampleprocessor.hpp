@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #pragma once
-
+#include "adicontroller_global.hpp"
 #include <string>
 #include <memory>
 #include <boost/filesystem.hpp>
@@ -33,40 +33,35 @@
 
 namespace adfs { class filesystem; class file; }
 namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
-namespace adicontroller { namespace SignalObserver { class Observer; class DataReadBuffer; } }
+namespace adicontroller { namespace SignalObserver { class DataReadBuffer; class Observer; } }
 
-namespace boost {
-    namespace filesystem {
-        class path;
-    }
-}
-
-namespace mpxcontroller {
-
-    namespace so = adicontroller::SignalObserver;
-
-    class SampleProcessor : public std::enable_shared_from_this< SampleProcessor > {
+namespace adicontroller {
+    
+    class ADICONTROLLERSHARED_EXPORT SampleProcessor {
 	public:
         ~SampleProcessor();
         SampleProcessor( boost::asio::io_service&
                          , std::shared_ptr< adcontrols::SampleRun >
                          , std::shared_ptr< adcontrols::ControlMethod::Method> );
-
-        void prepare_storage( std::shared_ptr< so::Observer > );
-
-        void close();
-
-        void handle_data( unsigned long objId, long pos, const so::DataReadBuffer& );
+        
+        void prepare_storage( SignalObserver::Observer * );
+        void handle_data( unsigned long objId, long pos, const adicontroller::SignalObserver::DataReadBuffer& );
         boost::asio::io_service::strand& strand() { return strand_; }
         void pos_front( unsigned int pos, unsigned long objId );
         void stop_triggered();
+        std::shared_ptr< const adcontrols::SampleRun > sampleRun() const;
 
-        const boost::filesystem::path& storage_name() const;
+        static boost::filesystem::path prepare_sample_run( adcontrols::SampleRun&, bool createDirectory = false );
         
     private:
 		void create_acquireddata_table();
-        void populate_descriptions( so::Observer * );
+        void populate_descriptions( SignalObserver::Observer * );
+        void populate_calibration( SignalObserver::Observer * );
 
+#if defined _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
+#endif
         boost::filesystem::path storage_name_;
         std::unique_ptr< adfs::filesystem > fs_;
 		bool inProgress_;
@@ -78,6 +73,11 @@ namespace mpxcontroller {
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
         std::shared_ptr< adcontrols::ControlMethod::Method > ctrl_method_;
         std::chrono::steady_clock::time_point tp_inject_trigger_;
+
+#if defined _MSC_VER
+# pragma warning(pop)
+#endif
+        uint64_t ts_inject_trigger_;
     };
 
 }

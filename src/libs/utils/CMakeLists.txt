@@ -23,6 +23,7 @@ add_definitions(-DQTCREATOR_UTILS_LIB)
 
 if (WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4250 /wd4290")
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 endif(WIN32)
 
 set( utils_lib_SOURCES

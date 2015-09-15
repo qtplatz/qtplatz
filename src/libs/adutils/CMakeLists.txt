@@ -3,23 +3,23 @@ project ( adutils )
 
 add_library( adutils 
   adutils.cpp
-  processeddata.cpp
-  adfile.cpp
-  cpio.cpp
-  fsio.cpp
-  fsio2.cpp
-  mscalibio.cpp
-  acquiredconf.cpp
-  acquireddata.cpp
   adutils.hpp
-  processeddata.hpp
-  adfile.hpp
-  cpio.hpp
-  fsio.hpp
-  fsio2.hpp
-  mscalibio.hpp
+  acquiredconf.cpp
   acquiredconf.hpp
+  acquireddata.cpp
   acquireddata.hpp
+  adfile.cpp
+  adfile.hpp
+  processeddata.cpp
+  cpio.cpp
+  cpio.hpp
+  fsio.cpp
+  fsio.hpp
+  fsio2.cpp
+  fsio2.hpp
+  mscalibio.cpp
+  mscalibio.hpp
+  processeddata.hpp
   )
 
 install( TARGETS ${PROJECT_NAME}

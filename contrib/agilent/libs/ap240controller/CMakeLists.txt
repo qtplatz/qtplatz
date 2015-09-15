@@ -23,8 +23,6 @@ set( _sources
   masterobserver.cpp
   session.hpp
   session.cpp
-  sampleprocessor.hpp
-  sampleprocessor.cpp
   )
 
 add_library( ${PROJECT_NAME} SHARED ${_sources} )

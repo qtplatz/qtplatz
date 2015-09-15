@@ -65,11 +65,11 @@ namespace adicontroller {
             const char * trace_id() const;
             void set_trace_id( const std::string& );
 
-            const char * trace_display_name() const;
-            void set_trace_display_name( const std::string& );
+            const wchar_t * trace_display_name() const;
+            void set_trace_display_name( const std::wstring& );
             
-            const char * axis_label( axis ) const;
-            void set_axis_label( axis, const std::string& );
+            const wchar_t * axis_label( axis ) const;
+            void set_axis_label( axis, const std::wstring& );
 
             int32_t axis_decimals( axis ) const;
             void set_axis_decimals( axis, int32_t );
@@ -82,9 +82,9 @@ namespace adicontroller {
 # pragma warning( disable: 4251 )
 #endif            
             std::string trace_id_;  // unique name for the trace, can be used as 'data storage name'
-            std::string trace_display_name_;
-            std::string axis_x_label_;
-            std::string axis_y_label_;
+            std::wstring trace_display_name_;
+            std::wstring axis_x_label_;
+            std::wstring axis_y_label_;
 #if defined _MSC_VER
 # pragma warning( pop )
 #endif            
@@ -102,6 +102,8 @@ namespace adicontroller {
             DataReadBuffer();
             
             uint64_t& timepoint();
+            uint64_t& elapsed_time();
+            uint64_t& epoch_time();            
             uint32_t& pos();       // data address (sequencial number for first data in this frame)
             uint32_t& fcn();       // function number for spectrum
             uint32_t& ndata();     // number of data in the buffer (for trace, spectrum should be always 1)
@@ -109,6 +111,8 @@ namespace adicontroller {
             octet_array& xdata();    // serialized data array
             octet_array& xmeta();    // serialized meta data array
             uint64_t timepoint() const;
+            uint64_t elapsed_time() const;
+            uint64_t epoch_time() const;                        
             uint32_t pos() const;       // data address (sequencial number for first data in this frame)
             uint32_t fcn() const;       // function number for spectrum
             uint32_t ndata() const;     // number of data in the buffer (for trace, spectrum should be always 1)
@@ -117,7 +121,8 @@ namespace adicontroller {
             const octet_array& xmeta() const;    // serialized meta data array
 
         private:
-            uint64_t timepoint_;      // time in usec
+            uint64_t elapsed_time_;  // ns
+            uint64_t epoch_time_;  // ns
             uint32_t pos_;         // data address (sequencial number for first data in this frame)
             uint32_t fcn_;         // function number for spectrum
             uint32_t ndata_;       // number of data in the buffer (for trace, spectrum should be always 1)
@@ -160,10 +165,11 @@ namespace adicontroller {
             virtual const Description& description() const;
             virtual void setDescription( const Description& desc );
 
-            virtual uint32_t objId() const;
-            virtual void setObjId( uint32_t objid );
+            virtual uint32_t objId() const;             // deprecated
+            virtual void setObjId( uint32_t objid );    // deprecated
 
-            virtual const boost::uuids::uuid& uuid() const = 0;
+            virtual const boost::uuids::uuid& objid() const = 0;
+            virtual const char * objtext() const = 0;
 
             /** \brief client can monitor real time events when make a connection, it is optional
              */

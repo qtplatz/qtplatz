@@ -43,7 +43,8 @@ namespace ap240controller {
         WaveformObserver();
         virtual ~WaveformObserver();
 
-        const boost::uuids::uuid& uuid() const;
+        const boost::uuids::uuid& objid() const;
+        const char * objtext() const;
         
         uint64_t uptime() const override;
         void uptime_range( uint64_t& oldest, uint64_t& newest ) const override;
@@ -60,7 +61,7 @@ namespace ap240controller {
 
     private:
         std::vector< std::shared_ptr< so::DataReadBuffer > > que_;
-        const boost::uuids::uuid uuid_;
+        const boost::uuids::uuid objid_;
 
     };
 }

@@ -43,16 +43,17 @@
 #include <sstream>
 
 using namespace ap240controller;
+static const char * objtext__ = "1.ap240.ms-cheminfo.com";
     
-WaveformObserver::WaveformObserver() : uuid_( boost::uuids::name_generator( base_uuid() )( "1.ap240.ms-cheminfo.com" ) )
+WaveformObserver::WaveformObserver() : objid_( boost::uuids::name_generator( base_uuid() )( objtext__ ) )
 {
     so::Description desc;
     desc.set_trace_method( so::eTRACE_IMAGE_TDC );
     desc.set_spectrometer( so::eMassSpectrometer );
-    desc.set_trace_id( "AP240.WAVEFORM" );  // unique name for the trace, can be used as 'data storage name'
-    desc.set_trace_display_name( "AP240 Waveforms" );
-    desc.set_axis_label( so::Description::axisX, "Time" );
-    desc.set_axis_label( so::Description::axisY, "mV" );
+    desc.set_trace_id( objtext__ );  // unique name for the trace, can be used as 'data storage name'
+    desc.set_trace_display_name( L"AP240 Waveforms" );
+    desc.set_axis_label( so::Description::axisX, L"Time" );
+    desc.set_axis_label( so::Description::axisY, L"mV" );
     desc.set_axis_decimals( so::Description::axisX, 3 );
     desc.set_axis_decimals( so::Description::axisY, 3 );
     setDescription( desc );
@@ -62,10 +63,16 @@ WaveformObserver::~WaveformObserver()
 {
 }
 
-const boost::uuids::uuid&
-WaveformObserver::uuid() const
+const char * 
+WaveformObserver::objtext() const
 {
-    return uuid_;
+    return objtext__;
+}
+
+const boost::uuids::uuid&
+WaveformObserver::objid() const
+{
+    return objid_;
 }
 
 uint64_t 

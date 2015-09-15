@@ -54,6 +54,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <tuple>
 #include <vector>
 #include <map>
 
@@ -87,10 +88,10 @@ namespace adcontrols {
            MassSpectrumImpl( const MassSpectrumImpl& );
            void clone( const MassSpectrumImpl&, bool deep = false );
 	    
-           inline const double * getTimeArray() const { return tofArray_.empty() ? 0 : &tofArray_[0]; }
-           inline const double * getMassArray() const { return massArray_.empty() ? 0 : &massArray_[0]; }
-           inline const double * getIntensityArray() const { return intsArray_.empty() ? 0 : &intsArray_[0]; }
-           inline const unsigned char * getColorArray() const { return colArray_.empty() ? 0 : &colArray_[0];}
+           inline const double * getTimeArray() const { return tofArray_.data(); }
+           inline const double * getMassArray() const { return massArray_.data(); }
+           inline const double * getIntensityArray() const { return intsArray_.data(); }
+           inline const unsigned char * getColorArray() const { return colArray_.data(); }
            inline size_t size() const { return massArray_.size(); }
            inline bool isCentroid() const { return algo_ != CentroidNone; }
            inline void setCentroid( CentroidAlgorithm algo ) { algo_ = algo; }
@@ -145,6 +146,7 @@ namespace adcontrols {
 
            // exclude from archive
            std::shared_ptr< ScanLaw > scanLaw_;
+           std::tuple< bool, double, double > minmax_;
 	    
            friend class MassSpectrum;
 
@@ -170,6 +172,9 @@ namespace adcontrols {
                        & BOOST_SERIALIZATION_NVP( nProtocols_ )
                        ;
                }
+               // exclude
+               scanLaw_.reset();
+               minmax_ = std::make_tuple( false, 0.0, 0.0 );
            }
        };
 
@@ -191,8 +196,12 @@ namespace adcontrols {
                 data.push_back( datum( i, massArray_[ i ], (tofArray_.empty() ? 0 : tofArray_[ i ]), intsArray_[i], (colArray_.empty() ? 0 : colArray_[ i ]) ) );
 
             ar & BOOST_SERIALIZATION_NVP( data );
-            // ar & BOOST_SERIALIZATION_NVP( vec_ );                              
+
+            // exclude
+            scanLaw_.reset();
+            minmax_ = std::make_tuple( false, 0.0, 0.0 );
         }
+
         template<> void MassSpectrumImpl::serialize( boost::archive::xml_wiarchive&, const unsigned int ) {
                // not supported
         }
@@ -622,9 +631,9 @@ double
 MassSpectrum::getMinIntensity() const
 {
     if ( ! isCentroid() ) {
-        adportable::array_wrapper<const double> y( pImpl_->getIntensityArray(), size() );
-        if ( y )
-            return *std::min_element( y.begin(), y.end() );
+        if ( !std::get<0>( pImpl_->minmax_ ) )
+            getMaxIntensity();
+        return std::get<1>( pImpl_->minmax_ );
     }
     return 0;
 }
@@ -632,11 +641,15 @@ MassSpectrum::getMinIntensity() const
 double
 MassSpectrum::getMaxIntensity() const
 {
-    if ( size() ) {
-        if ( auto y = pImpl_->getIntensityArray() )
-            return *std::max_element( y, y + size() );
+    if ( !std::get<0>( pImpl_->minmax_ ) ) {
+        std::get<0>( pImpl_->minmax_ ) = true;
+        auto it = std::minmax_element( pImpl_->intsArray_.begin(), pImpl_->intsArray_.end() );
+        if ( it.first != pImpl_->intsArray_.end() )
+            std::get<1>( pImpl_->minmax_ ) = *it.first;
+        if ( it.second != pImpl_->intsArray_.end() )
+            std::get<2>( pImpl_->minmax_ ) = *it.second;
     }
-    return 0;
+    return std::get<2>( pImpl_->minmax_ );
 }
 
 int32_t
@@ -842,6 +855,7 @@ MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
                                      , numSpectrumSinceInjTrigger_(0)
                                      , protocolId_(0)
                                      , nProtocols_(0)
+                                     , minmax_( std::make_tuple( false, 0.0, 0.0 ) )
 {
 }
 

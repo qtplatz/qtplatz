@@ -22,12 +22,25 @@
 **
 **************************************************************************/
 
+
+#if defined _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4996)
+#endif
 #include "masterobserver.hpp"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <algorithm>
 #include <tuple>
 #include <mutex>
 
 namespace ap240controller {
+
+    static const char * objid__ = "ap240.ms-cheminfo.com"; // master has no unitid
 
     class MasterObserver::impl {
     public:
@@ -47,6 +60,16 @@ namespace ap240controller {
     MasterObserver::~MasterObserver()
     {
         delete impl_;
+    }
+
+    const boost::uuids::uuid& MasterObserver::objid() const
+    {
+        return boost::uuids::name_generator( base_uuid() )( objid__ );
+    }
+
+    const char * MasterObserver::objtext() const
+    {
+        return objid__;
     }
 
     bool

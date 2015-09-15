@@ -94,19 +94,19 @@ namespace adicontroller {
             trace_id_ = v;
         }
 
-        const char *
+        const wchar_t *
         Description::trace_display_name() const
         {
             return trace_display_name_.c_str();
         }
         
         void
-        Description::set_trace_display_name( const std::string& v )
+        Description::set_trace_display_name( const std::wstring& v )
         {
             trace_display_name_ = v;
         }
         
-        const char *
+        const wchar_t *
         Description::axis_label( axis id ) const {
             if ( id == axisX )
                 return axis_x_label_.c_str();
@@ -115,7 +115,7 @@ namespace adicontroller {
         }
 
         void
-        Description::set_axis_label( axis id, const std::string& v ) {
+        Description::set_axis_label( axis id, const std::wstring& v ) {
             if ( id == axisX )
                 axis_x_label_ = v;
             else
@@ -135,26 +135,8 @@ namespace adicontroller {
         }
 
         ///////
-#if 0
-        class DataReadBuffer::impl {
-        public:
-            impl() : timepoint_( 0 )
-                   , pos_( 0 )
-                   , fcn_( 0 )
-                   , ndata_( 0 )
-                   , events_( 0 ) {
-            }
-            uint64_t timepoint_;   // time since epoch, in nanoseconds
-            uint32_t pos_;         // data address (sequencial number for first data in this frame)
-            uint32_t fcn_;         // function number for spectrum
-            uint32_t ndata_;       // number of data in the buffer (for trace, spectrum should be always 1)
-            uint32_t events_;      // well known events
-            octet_array xdata_;
-            octet_array xmeta_;
-        };
-#endif
-        
-        DataReadBuffer::DataReadBuffer() : timepoint_( 0 ) //: impl_( new impl() )
+        DataReadBuffer::DataReadBuffer() : elapsed_time_( 0 ) //: impl_( new impl() )
+                                         , epoch_time_( 0 )
                                          , pos_( 0 )
                                          , fcn_( 0 )
                                          , ndata_( 0 )
@@ -167,15 +149,19 @@ namespace adicontroller {
             //delete impl_;
         }
         
-        uint64_t& DataReadBuffer::timepoint()  { return /*impl_->*/timepoint_; }
-        uint32_t& DataReadBuffer::pos()        { return /*impl_->*/pos_; }
-        uint32_t& DataReadBuffer::fcn()        { return /*impl_->*/fcn_; }
-        uint32_t& DataReadBuffer::ndata()      { return /*impl_->*/ndata_; }
-        uint32_t& DataReadBuffer::events()     { return /*impl_->*/events_; }
-        octet_array& DataReadBuffer::xdata()   { return /*impl_->*/xdata_; }
-        octet_array& DataReadBuffer::xmeta()   { return /*impl_->*/xmeta_; }     
+        uint64_t& DataReadBuffer::timepoint()    { return /*impl_->*/epoch_time_; }
+        uint64_t& DataReadBuffer::epoch_time()   { return /*impl_->*/epoch_time_; }
+        uint64_t& DataReadBuffer::elapsed_time() { return /*impl_->*/elapsed_time_; }
+        uint32_t& DataReadBuffer::pos()          { return /*impl_->*/pos_; }
+        uint32_t& DataReadBuffer::fcn()          { return /*impl_->*/fcn_; }
+        uint32_t& DataReadBuffer::ndata()        { return /*impl_->*/ndata_; }
+        uint32_t& DataReadBuffer::events()       { return /*impl_->*/events_; }
+        octet_array& DataReadBuffer::xdata()     { return /*impl_->*/xdata_; }
+        octet_array& DataReadBuffer::xmeta()     { return /*impl_->*/xmeta_; }     
 
-        uint64_t DataReadBuffer::timepoint() const       { return /*impl_->*/timepoint_; } 
+        uint64_t DataReadBuffer::timepoint() const       { return /*impl_->*/epoch_time_; }
+        uint64_t DataReadBuffer::epoch_time() const      { return /*impl_->*/epoch_time_; }
+        uint64_t DataReadBuffer::elapsed_time() const    { return /*impl_->*/elapsed_time_; }
         uint32_t DataReadBuffer::pos() const             { return /*impl_->*/pos_; }       
         uint32_t DataReadBuffer::fcn() const             { return /*impl_->*/fcn_; }       
         uint32_t DataReadBuffer::ndata() const           { return /*impl_->*/ndata_; }     
@@ -307,7 +293,7 @@ namespace adicontroller {
             std::lock_guard< std::mutex > lock( impl_->mutex_ );            
 
             auto it = std::find_if( impl_->siblings_.begin(), impl_->siblings_.end(), [uuid]( const std::shared_ptr< Observer >& p ){
-                    return p->uuid() == uuid; });
+                    return p->objid() == uuid; });
 
             if ( it != impl_->siblings_.end() )
                 return it->get();
