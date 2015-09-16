@@ -23,8 +23,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "manager.hpp"
 
 namespace adicontroller {
