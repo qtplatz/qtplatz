@@ -44,7 +44,9 @@ namespace ap240controls {
 
     public:
         histogram();
+
         void clear();
+        void reset();
         void append( const ap240controls::threshold_result& result );
         size_t trigger_count() const;
         double triggers_per_sec() const;
@@ -54,8 +56,8 @@ namespace ap240controls {
 
         size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
                              , ap240x::metadata& meta
-                             , uint32_t& serialnumber
-                             , uint64_t& timeSinceEpoch );
+                             , std::pair<uint32_t, uint32_t>& serialnumber
+                             , std::pair<uint64_t, uint64_t>& timeSinceEpoch );
 
         static bool average( const std::vector< std::pair< double, uint32_t > >&
                              , double resolution, std::vector< double >& times, std::vector< double >& intens );
@@ -73,9 +75,9 @@ namespace ap240controls {
 # pragma warning(disable:4251)
 #endif
         std::mutex mutex_;
-        std::chrono::steady_clock::time_point tp_;
         std::atomic< size_t > trigger_count_; // number of triggers
         std::vector< uint32_t > data_;
+        std::atomic< bool > reset_requested_;
 
 #if defined _MSC_VER
 # pragma warning( pop )

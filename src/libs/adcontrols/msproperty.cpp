@@ -166,13 +166,22 @@ MSProperty::setfSamplingInterval( double v ) // seconds
 double
 MSProperty::timeSinceInjection() const
 {
-    return metric::scale_to_base<double>( double( time_since_injection_ ), metric::micro );
+    return metric::scale_to_base<double>( double( time_since_injection_ ), metric::nano );
 }
 
 void
-MSProperty::setTimeSinceInjection( int64_t value )
+MSProperty::setTimeSinceInjection( int64_t value, metric::prefix prefix )
 {
-    time_since_injection_ = value;
+    if ( prefix == metric::nano )
+        time_since_injection_ = value;
+    else
+        time_since_injection_ = metric::scale_to_nano( value, prefix );
+}
+
+void
+MSProperty::setTimeSinceInjection( double seconds )
+{
+    time_since_injection_ = metric::scale_to_nano( seconds );
 }
 
 uint64_t

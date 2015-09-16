@@ -400,7 +400,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
-    prop.setTimeSinceInjection( uint64_t( scale_to_micro( waveform.meta_.initialXTimeSeconds ) ) );
+    prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "ap240" );
 
@@ -458,7 +458,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
-    prop.setTimeSinceInjection( uint64_t( scale_to_micro( waveform.meta_.initialXTimeSeconds ) ) );
+    prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "ap240" );
 

@@ -59,7 +59,8 @@ namespace adcontrols {
         double time( size_t pos ); // return flight time for data[pos] in seconds
 
         double timeSinceInjection() const;
-        void setTimeSinceInjection( int64_t /* microseconds */);
+        void setTimeSinceInjection( int64_t, metric::prefix pfx = metric::micro ); // for previous compatibility
+        void setTimeSinceInjection( double );
 
         uint64_t timeSinceEpoch() const;
         void setTimeSinceEpoch( uint64_t );
@@ -143,7 +144,7 @@ namespace adcontrols {
         static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix pfx );
 
     private:
-        uint64_t time_since_injection_; // us
+        uint64_t time_since_injection_; // nanoseconds, (used be, (befor v8) this was microseconds
         uint64_t time_since_epoch_;     // nanoseconds since 1970 Jan-1 UTC
         double instAccelVoltage_;       // for scan law
         double instTDelay_;             // for scan law
@@ -167,7 +168,7 @@ namespace adcontrols {
 #endif
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize( Archive& ar, const unsigned int version ) {
+            void serialize( Archive& ar, const unsigned int version ) {
             if ( version >= 6 ) {
                 if ( version >= 8 ) {
                     ar & BOOST_SERIALIZATION_NVP( time_since_injection_ );
@@ -217,10 +218,13 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( deprecated_coeffs_ );
                 }
             }
+            if ( Archive::is_loading::value && version <= 8 ) {
+                time_since_injection_ *= 1000;  // us -> ns
+            }
         }
     };
 }
 
-BOOST_CLASS_VERSION(adcontrols::MSProperty, 8)
+BOOST_CLASS_VERSION(adcontrols::MSProperty, 9)
 BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 5)
 

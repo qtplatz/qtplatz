@@ -58,6 +58,7 @@ namespace adcontrols {  namespace metric {
         template<typename T> inline T scale_to( prefix to, const T t,prefix from = base ) {
             return T( t * std::pow( 10.0, from - to ) );
         }
+
         template<typename T, prefix to> inline T scale_to( T t, prefix from = base ) {
             return T( t * std::pow( 10.0, from - to ) );            
         }
@@ -70,12 +71,15 @@ namespace adcontrols {  namespace metric {
         template<typename T> inline T scale_to_pico( T t, prefix from = base ) {
             return scale_to<T, pico>( t, from );
         }
+
         template<typename T> inline T scale_to_nano( T t, prefix from = base ) {
             return scale_to<T, nano>( t, from );
         }
+
         template<typename T> inline T scale_to_micro( T t, prefix from = base ) {
             return scale_to<T, micro>( t, from );
         }
+
         template<typename T> inline T scale_to_milli( T t, prefix from = base ) {
             return scale_to<T, milli>( t, from );
         }

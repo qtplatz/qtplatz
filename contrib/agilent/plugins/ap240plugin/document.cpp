@@ -142,7 +142,9 @@ namespace ap240 {
         }
 
         inline size_t getHistogram( std::vector< std::pair< double, uint32_t > >& data
-                                    , ap240x::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch ) {
+                                    , ap240x::metadata& meta
+                                    , std::pair<uint32_t, uint32_t>& serialnumber
+                                    , std::pair<uint64_t, uint64_t>& timeSinceEpoch ) {
             return histogram_->getHistogram( data, meta, serialnumber, timeSinceEpoch );
         }
 
@@ -778,8 +780,8 @@ document::getHistogram( double resolution ) const
     std::vector< std::pair< double, uint32_t > > hist;
 
     auto sp = std::make_shared< adcontrols::MassSpectrum >();    
-    uint32_t serialnumber;
-    uint64_t timeSinceEpoch;
+    std::pair<uint32_t,uint32_t> serialnumber;
+    std::pair<uint64_t,uint64_t> timeSinceEpoch;
 
     if ( size_t trigCount = impl_->getHistogram( hist, meta, serialnumber, timeSinceEpoch ) ) {
         
@@ -798,7 +800,7 @@ document::getHistogram( double resolution ) const
         prop.setSamplingInfo( info );
         
         prop.setTimeSinceInjection( meta.initialXTimeSeconds );
-        prop.setTimeSinceEpoch( timeSinceEpoch );
+        prop.setTimeSinceEpoch( timeSinceEpoch.second );
         prop.setDataInterpreterClsid( "ap240" );
         
         {

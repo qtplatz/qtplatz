@@ -545,6 +545,7 @@ task::handle_acquire()
 #if defined _MSC_VER && defined _DEBUG
                     std::this_thread::sleep_until( tp + std::chrono::milliseconds( 200 ) ); // 5Hz
 #else
+                    //std::this_thread::sleep_until( tp + std::chrono::milliseconds( 40 ) ); // 25Hz
                     std::this_thread::sleep_until( tp + std::chrono::milliseconds( 10 ) ); // 100Hz
 #endif
                 }

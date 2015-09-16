@@ -28,43 +28,57 @@
 #include <adportable/float.hpp>
 #include <algorithm>
 #include <numeric>
+#include <cassert>
 
 using namespace ap240controls;
 
 histogram::histogram() : serialnumber_( 0 )
                        , timeSinceEpoch_( 0 )
                        , trigger_count_( 0 )
-                       , tp_( std::chrono::steady_clock::now() )
+                       , reset_requested_( true )
 {
 }
 
 void
 histogram::clear()
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-    meta_.actualPoints = 0;
-    tp_ = std::chrono::steady_clock::now();
+    reset_requested_ = true;    
+}
+
+void
+histogram::reset()
+{
+    reset_requested_ = true;
 }
 
 void
 histogram::append( const ap240x::threshold_result& result )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    
-    if ( meta_.actualPoints != result.data()->meta_.actualPoints ||
+
+    if ( reset_requested_ ||
+         meta_.actualPoints != result.data()->meta_.actualPoints ||
          !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data()->meta_.initialXOffset ) ||
          !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data()->meta_.xIncrement ) ) {
         
+        meta_ = result.data()->meta_;        
+        
+        assert ( meta_.actualPoints );
+        data_.resize( meta_.actualPoints );
+        
+        reset_requested_ = false;
         trigger_count_ = 0;
-        meta_ = result.data()->meta_;
+        
+        std::fill( data_.begin(), data_.end(), 0 );
+
         serialnumber_0_ = result.data()->serialnumber_;
         timeSinceEpoch_0_ = result.data()->timeSinceEpoch_;
-        
-        data_.resize( meta_.actualPoints );
-        std::fill( data_.begin(), data_.end(), 0 );
     }
-    std::for_each( result.indecies().begin(), result.indecies().end(), [this] ( uint32_t idx ) {
-            data_[ idx ] ++; });
+
+    assert( data_.size() );
+
+    if ( ! result.indecies().empty() )
+        std::for_each( result.indecies().begin(), result.indecies().end(), [&] ( uint32_t idx ) {  data_[ idx ] ++; });
 
     serialnumber_ = result.data()->serialnumber_;
     timeSinceEpoch_ = result.data()->timeSinceEpoch_;
@@ -81,26 +95,28 @@ histogram::trigger_count() const
 double
 histogram::triggers_per_sec() const
 {
-    return trigger_count_ / std::chrono::duration<double>(std::chrono::steady_clock::now() - tp_).count();
+    return trigger_count_ / double( timeSinceEpoch_ - timeSinceEpoch_0_ ) * 1.0e-9;
 }
 
 size_t
-histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
-                         , ap240controls::metadata& meta, uint32_t& serialnumber, uint64_t& timeSinceEpoch )
+histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& hist
+                         , ap240controls::metadata& meta
+                         , std::pair<uint32_t, uint32_t>& serialnumber
+                         , std::pair<uint64_t, uint64_t>& timeSinceEpoch )
 {
-    histogram.clear();
-    
     std::lock_guard< std::mutex > lock( mutex_ );
 
+    hist.clear();
+
     meta = meta_;
-    serialnumber = serialnumber_0_;
-    timeSinceEpoch = timeSinceEpoch_0_;
+    serialnumber = std::make_pair( serialnumber_0_, serialnumber_ );
+    timeSinceEpoch = std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ );
 
     double t0 = meta_.initialXOffset;
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
             double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
-            histogram.push_back( std::make_pair( t, *it ) );
+            hist.push_back( std::make_pair( t, *it ) );
         }
     }
 
