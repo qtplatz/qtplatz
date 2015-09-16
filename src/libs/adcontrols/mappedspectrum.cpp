@@ -23,7 +23,8 @@
 **************************************************************************/
 
 #include "mappedspectrum.hpp"
-
+#include "massspectrum.hpp"
+#include "msproperty.hpp"
 #include <adcontrols/idaudit.hpp>
 #include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -46,6 +47,12 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.num_average_ );
             ar & BOOST_SERIALIZATION_NVP( _.trig_number_ );
             ar & BOOST_SERIALIZATION_NVP( _.trig_number_origin_ );
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
+                ar & BOOST_SERIALIZATION_NVP( _.sampInterval_ );
+                ar & BOOST_SERIALIZATION_NVP( _.delay_ );
+                ar & BOOST_SERIALIZATION_NVP( _.nSamples_ );
+            }
         }
 
     };
@@ -98,6 +105,10 @@ MappedSpectrum::~MappedSpectrum()
 MappedSpectrum::MappedSpectrum() : num_average_( 0 )
                                  , trig_number_( 0 )
                                  , trig_number_origin_( 0 )
+                                 , timeSinceEpoch_( std::make_pair( 0, 0 ) )
+                                 , sampInterval_( 20.0e-9 / 16 ) // malpix as default
+                                 , delay_( 0 )
+                                 , nSamples_( 4096 )             // malpix as default (5ns)
 {
 }
 
@@ -105,6 +116,10 @@ MappedSpectrum::MappedSpectrum( const MappedSpectrum& t ) : data_( t.data_ )
                                                           , num_average_( t.num_average_ )
                                                           , trig_number_( t.trig_number_ )
                                                           , trig_number_origin_( t.trig_number_origin_ )
+                                                          , timeSinceEpoch_( t.timeSinceEpoch_ )
+                                                          , sampInterval_( t.sampInterval_ )
+                                                          , delay_( t.delay_ )
+                                                          , nSamples_( t.nSamples_ )
 {
 }
 
@@ -112,9 +127,14 @@ MappedSpectrum&
 MappedSpectrum::operator = ( const MappedSpectrum& rhs )
 {
     data_ = rhs.data_;
+
     num_average_ = rhs.num_average_;
     trig_number_ = rhs.trig_number_;
     trig_number_origin_ = rhs.trig_number_origin_;
+    timeSinceEpoch_ = rhs.timeSinceEpoch_;
+    sampInterval_ = rhs.sampInterval_;
+    delay_ = rhs.delay_;
+    nSamples_ = rhs.nSamples_;
 
     return *this;
 }
@@ -202,6 +222,17 @@ MappedSpectrum::trigNumberOrigin() const
     return trig_number_origin_;
 }
 
+std::pair<uint64_t, uint64_t>& 
+MappedSpectrum::timeSinceEpoch()
+{
+    return timeSinceEpoch_;
+}
+
+const std::pair<uint64_t, uint64_t>&
+MappedSpectrum::timeSinceEpoch() const
+{
+    return timeSinceEpoch_;
+}
 
 MappedSpectrum&
 MappedSpectrum::operator << ( const datum_type& t )
@@ -234,8 +265,13 @@ MappedSpectrum::operator << ( const datum_type& t )
 MappedSpectrum&
 MappedSpectrum::operator += ( const MappedSpectrum& t )
 {
+    if ( timeSinceEpoch_.first == 0 )
+        timeSinceEpoch_.first = t.timeSinceEpoch_.first;
+
+    timeSinceEpoch_.second = t.timeSinceEpoch_.second;
+
     num_average_ += t.numAverage() ? t.numAverage() : 1;
-    
+
     if ( data_.empty() ) {
         
         data_ = t.data_;
@@ -265,3 +301,39 @@ MappedSpectrum::operator += ( const MappedSpectrum& t )
     }
     return *this;
 }
+
+void
+MappedSpectrum::setSamplingInfo( double sampInterval, double delay, uint32_t nSamples )
+{
+    sampInterval_ = sampInterval;
+    delay_ = delay_;
+    nSamples_ = nSamples_;
+}
+
+bool
+MappedSpectrum::transform( adcontrols::MassSpectrum& ms )
+{
+    auto& prop = ms.getMSProperty();
+
+    uint32_t nDelay = uint32_t( ( delay_ / sampInterval_ ) + 0.5 );
+    auto si = MSProperty::SamplingInfo( 0, nDelay, nSamples_, num_average_, 0 /* mode */ );
+    si.fSampInterval( sampInterval_ );
+    prop.setSamplingInfo( si );
+    prop.setNumAverage( num_average_ );
+    prop.setTrigNumber( trig_number_, trig_number_origin_ );
+    prop.setTimeSinceEpoch( timeSinceEpoch_.second );
+
+    ms.resize( data_.size() );
+    ms.setCentroid( adcontrols::CentroidNative );
+    auto scanlaw = prop.scanLaw();
+    
+    for ( size_t idx = 0; idx < data_.size(); ++idx ) {
+        double tof = this->time( idx );
+        ms.setTime( idx, tof );
+        if ( scanlaw )
+            ms.setMass( idx, ms.compute_mass( data_[ idx ].first ) ); 
+        ms.setIntensity( idx, data_[ idx ].second );
+    }
+    return true;
+}
+

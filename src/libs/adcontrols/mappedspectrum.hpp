@@ -33,6 +33,8 @@
 namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
+
+    class MassSpectrum;
         
     class ADCONTROLSSHARED_EXPORT MappedSpectrum {
     public:
@@ -65,7 +67,11 @@ namespace adcontrols {
         void setTrigNumber( uint32_t, uint32_t origin = 0 );
         uint32_t trigNumber( bool sinceOrigin = true ) const;
         uint32_t trigNumberOrigin() const;
-        
+        std::pair<uint64_t, uint64_t>& timeSinceEpoch();
+        const std::pair<uint64_t, uint64_t>& timeSinceEpoch() const;
+        void setSamplingInfo( double samplingInterval, double delay, uint32_t nSamples );
+
+        bool transform( adcontrols::MassSpectrum& );
             
     private:
 
@@ -73,6 +79,10 @@ namespace adcontrols {
         uint32_t num_average_;
         uint32_t trig_number_;
         uint32_t trig_number_origin_;
+        std::pair<uint64_t, uint64_t> timeSinceEpoch_;
+        double sampInterval_;
+        double delay_;       // seconds to first sample
+        uint32_t nSamples_;  // number of samples per trigger (width(s)/sampInterval)
 
         template<typename T> class serializer;
         friend class serializer<MappedSpectrum>;
@@ -87,6 +97,6 @@ namespace adcontrols {
 }
 
 
-BOOST_CLASS_VERSION( adcontrols::MappedSpectrum, 2 )
+BOOST_CLASS_VERSION( adcontrols::MappedSpectrum, 3 )
 
 
