@@ -91,6 +91,7 @@
 
 #include <QApplication>
 #include <QCloseEvent>
+#include <QHostInfo>
 #include <QMenu>
 #include <QPrinter>
 #include <QStatusBar>
@@ -156,10 +157,15 @@ MainWindow::MainWindow() :
 
     Utils::HistoryCompleter::setSettings(PluginManager::settings());
 
-    setWindowTitle(tr("QtPlatz")); // modified for qtplatz, 13/08/2014 toshi
+    QString hostname = QHostInfo::localHostName();
+    QString windowTitle = QString( "QtPlatz @ %1" ).arg( hostname );
+
+    setWindowTitle( windowTitle ); // modified for qtplatz, 13/08/2014 toshi
     if (!Utils::HostOsInfo::isMacHost())
         QApplication::setWindowIcon(QIcon(QLatin1String(Constants::ICON_QTLOGO_128)));
-    QCoreApplication::setApplicationName(QLatin1String("QtCreator"));
+
+    QCoreApplication::setApplicationName( QLatin1String( "QtPlatz" ) ); // 19/09/2015 th
+
     QCoreApplication::setApplicationVersion(QLatin1String(Core::Constants::IDE_VERSION_LONG));
     QCoreApplication::setOrganizationName(QLatin1String(Constants::IDE_SETTINGSVARIANT_STR));
     QString baseName = QApplication::style()->objectName();
