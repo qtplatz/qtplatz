@@ -49,6 +49,7 @@
 #include <QSignalBlocker>
 #include <boost/format.hpp>
 #include <atomic>
+#include <mutex>
 #include <set>
 
 using namespace adplot;
@@ -143,7 +144,7 @@ namespace adplot {
             }
             ~TraceData();
             void setData( plot& plot
-                          , const std::shared_ptr< adcontrols::MassSpectrum>&
+                          , std::shared_ptr< const adcontrols::MassSpectrum>&
                           , QRectF&, SpectrumWidget::HorizontalAxis, bool yRight );
             void redraw( plot& plot, SpectrumWidget::HorizontalAxis, QRectF&, QRectF& );
             void setFocusedFcn( int fcn );
@@ -163,7 +164,7 @@ namespace adplot {
             bool yRight_;
         public:
             std::vector< std::shared_ptr< adPlotCurve > > curves_;
-            std::shared_ptr< adcontrols::MassSpectrum > pSpectrum_;
+            std::shared_ptr< const adcontrols::MassSpectrum > pSpectrum_;
         private:
 			bool isTimeAxis_;
         };
@@ -183,7 +184,7 @@ namespace adplot {
             {}
         bool autoAnnotation_;
         bool isTimeAxis_;
-        std::weak_ptr< adcontrols::MassSpectrum > centroid_;  // for annotation
+        std::weak_ptr< const adcontrols::MassSpectrum > centroid_;  // for annotation
         std::vector< Annotation > annotations_;
         std::vector< spectrumwidget::TraceData > traces_;
 
@@ -191,6 +192,7 @@ namespace adplot {
         std::atomic<bool> keepZoomed_;
         std::atomic<HorizontalAxis> haxis_;
         std::atomic<int> focusedFcn_;
+        std::mutex mutex_;
 
         void clear();
         void update_annotations( plot&, const std::pair<double, double>& );
@@ -437,7 +439,7 @@ SpectrumWidget::setAlpha( int idx, int alpha )
 }
 
 void
-SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr, int idx, bool yRight )
+SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum >& ptr, int idx, bool yRight )
 {
     using spectrumwidget::TraceData;
 
@@ -475,11 +477,8 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
                 QStack< QRectF > zstack;
                 QRectF rc;
                 rc.setCoords( rect.x(), rect.bottom(), rect.left(), rect.top() ); // upside down
-                //zstack.push_back( rc );
                 zstack.push_back( QRectF( rect.x(), rect.bottom(), rect.width(), -rect.height() ) ); // upside down
-                //rc.setCoords( z.left(), left.first, z.right(), left.second );
                 zstack.push_back( QRectF( z.x(), left.first, z.width(), left.second - left.first ) );
-                //zoom( z );
                 QSignalBlocker block( zoomer() );
                 zoomer()->setZoomStack( zstack );
             }
@@ -623,7 +622,7 @@ TraceData::redraw( plot& plot, SpectrumWidget::HorizontalAxis axis, QRectF& rcLe
 
 void
 TraceData::setData( plot& plot
-                    , const std::shared_ptr< adcontrols::MassSpectrum >& ms
+                    , std::shared_ptr< const adcontrols::MassSpectrum >& ms
                     , QRectF& rect
                     , SpectrumWidget::HorizontalAxis haxis
                     , bool yRight )
