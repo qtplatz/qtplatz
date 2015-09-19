@@ -439,7 +439,7 @@ SpectrumWidget::setAlpha( int idx, int alpha )
 }
 
 void
-SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum >& ptr, int idx, bool yRight )
+SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, int idx, bool yRight )
 {
     using spectrumwidget::TraceData;
 

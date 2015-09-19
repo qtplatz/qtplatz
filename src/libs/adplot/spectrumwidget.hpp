@@ -44,7 +44,7 @@ namespace adplot {
         
         void clear();
         void removeData( int idx, bool replot = true );
-        void setData( std::shared_ptr< const adcontrols::MassSpectrum >&, int idx, bool axisRight = false );
+        void setData( std::shared_ptr< const adcontrols::MassSpectrum >, int idx, bool axisRight = false );
         void setAlpha( int idx, int alpha );
         void setFocusedFcn( int fcn );
         
