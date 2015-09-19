@@ -364,7 +364,6 @@ void
 SpectrumWidget::clear()
 {
     impl_->clear();
-    // zoomer()->setZoomBase(); --> this lose zoom stack
 }
 
 void
