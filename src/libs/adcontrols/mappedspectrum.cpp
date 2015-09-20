@@ -270,6 +270,11 @@ MappedSpectrum::operator += ( const MappedSpectrum& t )
 
     timeSinceEpoch_.second = t.timeSinceEpoch_.second;
 
+    if ( trig_number_origin_ == 0 )
+        trig_number_origin_ = t.trig_number_origin_;
+
+    trig_number_ = t.trig_number_;
+
     num_average_ += t.numAverage() ? t.numAverage() : 1;
 
     if ( data_.empty() ) {
