@@ -72,6 +72,7 @@ if (MSVC)
 
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0601")
   add_definitions(-DUNICODE -D_UNICODE)
+#  add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
   message(STATUS "Using ${CMAKE_CXX_COMPILER}. C++11 support is native.")
 
 else()

@@ -38,7 +38,9 @@ set( adplot_SOURCES
   traces.cpp 
   zoomer.cpp 
   picker.cpp 
-  panner.cpp 
+  panner.cpp
+  spanmarker.cpp
+  spanmarker.hpp
   spectrogramwidget.cpp 
   spectrogramdata.cpp 
   peakmarker.cpp 
