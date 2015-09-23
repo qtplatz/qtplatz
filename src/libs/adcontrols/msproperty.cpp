@@ -181,7 +181,7 @@ MSProperty::setTimeSinceInjection( int64_t value, metric::prefix prefix )
 void
 MSProperty::setTimeSinceInjection( double seconds )
 {
-    time_since_injection_ = metric::scale_to_nano( seconds );
+    time_since_injection_ = uint64_t( metric::scale_to_nano( seconds ) );
 }
 
 uint64_t
