@@ -370,28 +370,44 @@ bool
 Method::archive( std::ostream& os, const Method& t )
 {
     portable_binary_oarchive ar( os );
-    ar << t;
-    return true;
+    try {
+        ar << t;
+        return true;
+    } catch ( ... ) {
+    }
+    return false;
 }
 
 bool
 Method::restore( std::istream& is, Method& t )
 {
     portable_binary_iarchive ar( is );
-    ar >> t;
-    return true;
+    try {
+        ar >> t;
+        return true;
+    } catch ( ... ) {
+    }
+    return false;
 }
 
 bool
 Method::xml_archive( std::wostream& os, const Method& t )
 {
-    return internal::xmlSerializer("Method").archive( os, t );
+    try {
+        return internal::xmlSerializer( "Method" ).archive( os, t );
+    } catch ( ... ) {
+        return false;
+    }
 }
 
 bool
 Method::xml_restore( std::wistream& is, Method& t )
 {
-    return internal::xmlSerializer("Method").restore( is, t );
+    try {
+        return internal::xmlSerializer( "Method" ).restore( is, t );
+    } catch ( ... ) {
+        return false;
+    }
 }
 
 Method::iterator
