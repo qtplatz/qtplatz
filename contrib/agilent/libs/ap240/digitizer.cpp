@@ -506,6 +506,8 @@ task::handle_acquire()
 {
     const static auto epoch = std::chrono::system_clock::from_time_t( 0 );
 
+    static auto acquire_tp = std::chrono::system_clock::now();
+
     --acquire_post_count_;
 
     if ( acquire() ) {
@@ -541,11 +543,11 @@ task::handle_acquire()
 
                 if ( simulated_ ) {
 #if defined _MSC_VER && defined _DEBUG
-                    std::this_thread::sleep_until( tp + std::chrono::milliseconds( 200 ) ); // 5Hz
+                    acquire_tp += std::chrono::milliseconds( 200 ); // 5Hz
 #else
-                    //std::this_thread::sleep_until( tp + std::chrono::milliseconds( 40 ) ); // 25Hz
-                    std::this_thread::sleep_until( tp + std::chrono::milliseconds( 10 ) ); // 100Hz
+                    acquire_tp += std::chrono::milliseconds( 10 );  // 100Hz
 #endif
+                    std::this_thread::sleep_until( acquire_tp );
                 }
                 
                 ++acquire_post_count_;

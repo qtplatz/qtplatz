@@ -115,7 +115,7 @@ namespace adextension {
         // connect() should be implemented specific to own instance
 
         void connect( adicontroller::Instrument::Session * session, const char * token ) {
-            if ( ( session_ = session->pThis() ) ) {
+            if ( !isInitialized_ && ( session_ = session->pThis() ) ) {
                 setInitialized( true );
                 if ( ( receiver_ = std::make_shared< ReceiverImpl >( this ) ) ) {
                     session_->connect( receiver_.get(), token );
