@@ -110,8 +110,6 @@ namespace ap240controls {
     public:
         waveform( const identify& id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
 
-        size_t size() const; // number of samples (octet size is depend on meta_.dataType)
-
         template<typename T> const T* begin() const;
         template<typename T> const T* end() const;
 
@@ -126,9 +124,13 @@ namespace ap240controls {
         uint64_t timeSinceEpoch_;
         identify ident_;
 
+        size_t size() const; // number of samples (octet size is depend on meta_.dataType)
+
         typedef int32_t value_type; // referenced from archiver in WaveformObserver
-        const value_type * data() const { return d_.data(); }
+
         value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
+
+        const value_type * data() const { return d_.data(); }
         size_t data_size() const { return d_.size(); }  // internal data count
 
         static std::array< std::shared_ptr< const waveform >, 2 >

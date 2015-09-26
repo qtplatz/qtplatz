@@ -64,6 +64,7 @@ histogram::append( const ap240x::threshold_result& result )
         meta_ = result.data()->meta_;        
         
         assert ( meta_.actualPoints );
+
         data_.resize( meta_.actualPoints );
         
         reset_requested_ = false;

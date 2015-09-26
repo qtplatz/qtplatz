@@ -134,6 +134,10 @@ namespace ap240 {
                     handler( key, value );
             }
 
+            bool simulated() const {
+                return simulated_;
+            }
+
         private:
             static task * instance_;
             static std::mutex mutex_;
@@ -203,7 +207,7 @@ namespace ap240 {
             static bool averager_setup( task&, ap240controls::method& );
             static bool digitizer_setup( task&, ap240controls::method& );
 
-            template<typename T, typename SegmentDescriptor> static bool
+            template<typename T, typename SegmentDescriptor> static ViStatus
             readData( ViSession inst, const ap240controls::method& m, int channel
                       , AqDataDescriptor& dataDesc, SegmentDescriptor& segDesc, ap240controls::waveform& d ) {
 
@@ -225,13 +229,11 @@ namespace ap240 {
                 readPar.reserved2 = 0;
                 readPar.reserved3 = 0;
                 d.d_.resize( readPar.dataArraySize / sizeof(int32_t) );
-                ViStatus rcode;
-                if ( ( rcode = AcqrsD1_readData( inst, channel, &readPar, d.d_.data(), &dataDesc, &segDesc ) ) == VI_SUCCESS ) {
-                    d.method_ = m;                    
-                    return true;
-                }
-                task::checkError( inst, rcode, "readData", __LINE__ );
-                return false;
+                d.method_ = m;
+                auto rcode = AcqrsD1_readData( inst, channel, &readPar, d.d_.data(), &dataDesc, &segDesc );
+                if ( rcode != ERROR_SUCCESS )
+                    task::checkError( inst, rcode, "readData", __LINE__ );
+                return rcode;
             }
         };
 
@@ -521,11 +523,7 @@ task::handle_acquire()
                     ch1 = std::make_shared< ap240controls::waveform >( *ident_, events, serialnumber );
                     ch1->serialnumber_ = serialnumber;
                     readData( *ch1, 1 );
-
-                    // On windows 8.1 (x86_64), time_since_epoch() return exactly same value as following
-                    // though c++ standard does not specify epoch.
                     ch1->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
-                    // uint64_t epoch_time = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
                 }
 
                 if ( method_.channels_ & 0x02 ) {
@@ -892,7 +890,7 @@ device_ap240::readData( task& task, ap240controls::waveform& data, const ap240co
     // std::cout << "## device_ap240::readData ##" << std::endl;    
     if ( m.hor_.mode == 0 ) {
         AqSegmentDescriptor segDesc;
-        if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) ) {
+        if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) == ERROR_SUCCESS ) {
 
             data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
 
@@ -914,11 +912,11 @@ device_ap240::readData( task& task, ap240controls::waveform& data, const ap240co
         }
     } else {
         AqSegmentDescriptorAvg segDesc;
-        if ( readData<int32_t, AqSegmentDescriptorAvg>( task.inst(), m, channel, dataDesc, segDesc, data ) ) {
+        ViStatus rcode(0);
+        if ( ( rcode = readData<int32_t, AqSegmentDescriptorAvg>( task.inst(), m, channel, dataDesc, segDesc, data ) ) == ERROR_SUCCESS ) {
 
             data.meta_.dataType = sizeof( int32_t );
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
-
             data.meta_.channel = channel;            
             data.meta_.actualAverages = segDesc.actualTriggersInSeg;  // number of triggers for average
             data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; //data.d_.size();
@@ -930,148 +928,23 @@ device_ap240::readData( task& task, ap240controls::waveform& data, const ap240co
             data.meta_.scaleOffset = dataDesc.vOffset;
             data.meta_.xIncrement = dataDesc.sampTime;
             data.meta_.horPos = segDesc.horPos;
-        }        
+        } else {
+            if ( rcode == ACQIRIS_ERROR_READMODE && task::instance()->simulated() ) {
+                data.meta_.dataType = sizeof( int32_t );
+                data.meta_.indexFirstPoint = 0;
+                data.meta_.channel = channel;
+                data.meta_.actualAverages = m.hor_.nbrAvgWaveforms;
+                data.meta_.actualPoints = m.hor_.nbrSamples;
+                data.meta_.flags = 0;
+                data.meta_.initialXOffset = m.hor_.sampInterval * m.hor_.nStartDelay;
+                data.meta_.initialXTimeSeconds = task::instance()->timestamp();
+                data.meta_.scaleFactor = 1.0;
+                data.meta_.scaleOffset = 0.0;
+                data.meta_.xIncrement = m.hor_.sampInterval;
+                data.meta_.horPos = 0.0;
+            }
+        }
     }
     return true;
 }
 
-#if 0
-size_t
-waveform::size() const
-{
-    return method_.hor_.nbrSamples;
-}
-
-template<> const int8_t *
-waveform::begin() const
-{
-    if ( meta_.dataType != sizeof(int8_t) )
-        throw std::bad_cast();
-    return reinterpret_cast< const int8_t* >( d_.data() ) + meta_.indexFirstPoint;
-}
-
-template<> const int8_t *
-waveform::end() const
-{
-    if ( meta_.dataType != sizeof(int8_t) )
-        throw std::bad_cast();    
-    return reinterpret_cast< const int8_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
-}
-
-template<> const int16_t *
-waveform::begin() const
-{
-    if ( meta_.dataType != sizeof(int16_t) )
-        throw std::bad_cast();        
-    return reinterpret_cast< const int16_t* >( d_.data() ) + meta_.indexFirstPoint;
-}
-
-template<> const int16_t *
-waveform::end() const
-{
-    if ( meta_.dataType != sizeof(int16_t) )
-        throw std::bad_cast();
-    return reinterpret_cast< const int16_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
-}
-
-template<> const int32_t *
-waveform::begin() const
-{
-    if ( meta_.dataType != sizeof(int32_t) )
-        throw std::bad_cast();                
-    return reinterpret_cast< const int32_t* >( d_.data() ) + meta_.indexFirstPoint;
-}
-
-template<> const int32_t *
-waveform::end() const
-{
-    if ( meta_.dataType != sizeof(int32_t) )
-        throw std::bad_cast();                    
-    return reinterpret_cast< const int32_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
-}
-
-std::pair<double, int>
-waveform::operator [] ( size_t idx ) const
-{
-    double time = idx * meta_.xIncrement + meta_.horPos;
-
-    if ( method_.hor_.mode == 0 )
-        time += method_.hor_.delay;
-    else
-        time += method_.hor_.nStartDelay * meta_.xIncrement;
-    
-    switch( meta_.dataType ) {
-    case 1: return std::make_pair( time, *(begin<int8_t>()  + idx) );
-    case 2: return std::make_pair( time, *(begin<int16_t>() + idx) );
-    case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
-    }
-    throw std::exception();
-}
-
-double
-waveform::toVolts( int d ) const
-{
-    if ( meta_.actualAverages == 0 )
-        return meta_.scaleFactor * d - meta_.scaleOffset;
-    else
-        return double( meta_.scaleFactor * d ) / meta_.actualAverages - ( meta_.scaleOffset * meta_.actualAverages );
-}
-
-double
-waveform::toVolts( double d ) const
-{
-    return d * meta_.scaleFactor /  meta_.actualAverages;
-}
-
-namespace ap240 {
-
-    bool method::archive( std::ostream& os, const method& t )
-    {
-        try {
-            portable_binary_oarchive ar( os );
-            ar & t;
-            return true;
-        } catch ( std::exception& ex ) {
-            BOOST_THROW_EXCEPTION( ex );
-        }
-        return false;
-    }
-
-    bool method::restore( std::istream& is, method& t )
-    {
-        try {
-            portable_binary_iarchive ar( is );
-            ar & t;
-            return true;
-        } catch ( std::exception& ex ) {
-            BOOST_THROW_EXCEPTION( ex );
-        }
-        return false;
-    }
-
-    bool method::xml_archive( std::wostream& os, const method& t )
-    {
-        try {
-            boost::archive::xml_woarchive ar( os );
-            ar & boost::serialization::make_nvp( "ap240_method", t );
-            return true;
-        } catch ( std::exception& ex ) {
-            BOOST_THROW_EXCEPTION( ex );
-        }
-        return false;
-    }
-
-    bool method::xml_restore( std::wistream& is, method& t )
-    {
-        try {
-            boost::archive::xml_wiarchive ar( is );
-            ar & boost::serialization::make_nvp( "ap240_method", t );
-            return true;
-        } catch ( std::exception& ex ) {
-            BOOST_THROW_EXCEPTION( ex );
-        }
-        return false;
-
-    }
-}
-#endif

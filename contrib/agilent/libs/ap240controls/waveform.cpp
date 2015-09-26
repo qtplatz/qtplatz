@@ -261,7 +261,13 @@ namespace ap240controls {
     ////////////////////
 
     class waveform_xmeta_archive {
+        waveform_xmeta_archive( const waveform_xmeta_archive& ) = delete;
+        waveform_xmeta_archive& operator = ( const waveform_xmeta_archive& ) = delete;
     public:
+        waveform_xmeta_archive() {}
+        ~waveform_xmeta_archive()
+        {}
+        
         identify ident_;
         std::vector< metadata > meta_;
         std::shared_ptr< ap240controls::method > method_;
@@ -336,19 +342,11 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
 
         waveform_xmeta_archive x;
 
-        size_t data_octets( 4 * sizeof( uint32_t ) );
-        
-        if ( ch1 ) {
-            rb.ndata()++;
+        const size_t data_count = ( ch1 ? ch1->d_.size() : 0 ) + ( ch2 ? ch2->d_.size() : 0 );
+        if ( ch1 )
             x.meta_.push_back( ch1->meta_ );
-            data_octets += ch1->size() * sizeof( waveform::value_type );
-        }
-        
-        if ( ch2 ) {
-            rb.ndata()++;
+        if ( ch2 )
             x.meta_.push_back( ch2->meta_ );
-            data_octets += ch2->size() * sizeof( waveform::value_type );
-        }
 
         { // serialize xmeta
             x.ident_ = waveform.ident_;
@@ -361,19 +359,16 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
             std::copy( device.data(), device.data() + device.size(), rb.xmeta().data() );
         }
         
-        rb.xdata().resize( data_octets );
-        waveform::value_type * dest_p = reinterpret_cast<waveform::value_type *>( rb.xdata().data() );
+        rb.xdata().resize( ( data_count + 4 ) * sizeof( int32_t ) );
+        int32_t * dest_p = reinterpret_cast<int32_t *>( rb.xdata().data() );
         
         for ( auto& ptr : { ch1, ch2 } ) {
-            
-            uint32_t * size_p = reinterpret_cast<uint32_t *>( dest_p );
-            size_p[ 0 ] = 0x7ffe0001; // separater & endian marker
-            size_p[ 1 ] = ptr ? uint32_t( ptr->size() ) : 0;
-            dest_p = reinterpret_cast<waveform::value_type *>( &size_p[ 2 ] );
-            
+            *dest_p++ = 0x7ffe0001; // separater & endian marker
+            *dest_p++ = ptr ? int32_t( ptr->d_.size() ) : 0;
             if ( ptr ) {
-                std::copy( ptr->data(), ptr->data() + ptr->data_size(), dest_p );
-                dest_p += ptr->size();
+                rb.ndata()++;
+                std::copy( ptr->d_.begin(), ptr->d_.end(), dest_p );
+                dest_p += ptr->d_.size();
             }
         }
         return true;
