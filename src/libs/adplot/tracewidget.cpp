@@ -161,7 +161,7 @@ TraceWidget::TraceWidget(QWidget *parent) : plot(parent)
 		using namespace std::placeholders;
         zoomer()->tracker1( std::bind( &TraceWidgetImpl::tracker1, impl_, _1 ) );
         zoomer()->tracker2( std::bind( &TraceWidgetImpl::tracker2, impl_, _1, _2 ) );
-        connect( zoomer(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
+        //connect( zoomer(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
     }
 
 	if ( picker() ) {
