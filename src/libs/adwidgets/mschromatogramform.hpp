@@ -25,9 +25,9 @@
 #ifndef MSCHROMATOGRAMFORM_HPP
 #define MSCHROMATOGRAMFORM_HPP
 
-#include "adwidgets_global.hpp"
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <QWidget>
+#include "adwidgets_global.hpp"
 
 namespace adcontrols { class ProcessMethod; class MSChromatogramMethod; }
 
@@ -42,6 +42,7 @@ namespace adwidgets {
                                                     , public adplugin::LifeCycle {
 
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
 
     public:
         explicit MSChromatogramForm(QWidget *parent = 0);
@@ -53,9 +54,6 @@ namespace adwidgets {
         void OnFinalClose();
         bool getContents( boost::any& ) const;
         bool setContents( boost::any& );
-
-    public slots:
-        void getLifeCycle( adplugin::LifeCycle *& p );
 
     signals:
         void onEnableLockMass( bool );

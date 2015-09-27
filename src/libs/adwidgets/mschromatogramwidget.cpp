@@ -24,7 +24,6 @@
 
 #include "mschromatogramwidget.hpp"
 #include "mschromatogramform.hpp"
-//#include "targetingtable.hpp"
 #include "moltable.hpp"
 #include "targetingadducts.hpp"
 #include <adportable/is_type.hpp>

@@ -228,12 +228,6 @@ MSCalibrateSummaryTable::setContents( boost::any& )
 }
 
 
-void
-MSCalibrateSummaryTable::getLifeCycle( adplugin::LifeCycle *& p )
-{
-    p = static_cast< adplugin::LifeCycle *>(this);
-}
-
 bool
 MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcontrols::MSAssignedMasses& assigned )
 {

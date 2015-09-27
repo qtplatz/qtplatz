@@ -180,12 +180,6 @@ PeakTable::setContents( boost::any& )
 }
 
 void
-PeakTable::getLifeCycle( adplugin::LifeCycle *& p )
-{
-    p = static_cast< adplugin::LifeCycle *>(this);
-}
-
-void
 PeakTable::setData( const adcontrols::Peaks& peaks )
 {
     QStandardItemModel& model = *model_;

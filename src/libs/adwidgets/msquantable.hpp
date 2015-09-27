@@ -30,7 +30,7 @@
 #include "adwidgets_global.hpp"
 #include <QTableView>
 #include <memory>
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 
 class QItemDelegate;
 class QStandardItemModel;
@@ -44,6 +44,8 @@ namespace adwidgets {
                                              , public adplugin::LifeCycle {
 
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
+
     public:
         explicit MSQuanTable( QWidget *parent = 0 );
 

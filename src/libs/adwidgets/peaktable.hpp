@@ -26,7 +26,7 @@
 
 #include "adwidgets_global.hpp"
 #include "tableview.hpp"
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <memory>
 
 class QStandardItemModel;
@@ -44,6 +44,8 @@ namespace adwidgets {
     class ADWIDGETSSHARED_EXPORT PeakTable : public TableView
                     , public adplugin::LifeCycle {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
+
      public:
         ~PeakTable();
         explicit PeakTable(QWidget *parent = 0);
@@ -63,7 +65,6 @@ namespace adwidgets {
     public slots:
         void setData( const adcontrols::Peaks& );
 		void setData( const adcontrols::PeakResult& );
-        void getLifeCycle( adplugin::LifeCycle*& );
 
     private:
         void add( const adcontrols::Peak& );

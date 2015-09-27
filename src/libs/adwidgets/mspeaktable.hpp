@@ -28,7 +28,7 @@
 #include "adwidgets_global.hpp"
 #include "tableview.hpp"
 #include <QItemDelegate>
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <memory>
 #if !defined Q_MOC_RUN
 # include <boost/variant.hpp>
@@ -46,6 +46,8 @@ namespace adwidgets {
     class ADWIDGETSSHARED_EXPORT MSPeakTable : public TableView
                                              , public adplugin::LifeCycle {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
+
     public:
         virtual ~MSPeakTable();
         explicit MSPeakTable(QWidget *parent = 0);

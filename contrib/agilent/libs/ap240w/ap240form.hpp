@@ -26,6 +26,7 @@
 #define AP240FORM_HPP
 
 #include <QWidget>
+#include <adplugin_manager/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
 #include "ap240w_global.hpp"
 #include "constants.hpp"
@@ -44,6 +45,7 @@ namespace ap240w {
                                         , public adplugin::LifeCycle {
 
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
 
     public:
         explicit ap240form(QWidget *parent = 0);

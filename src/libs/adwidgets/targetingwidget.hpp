@@ -26,8 +26,7 @@
 #define TARGETINGWIDGET_HPP
 
 #include "adwidgets_global.hpp"
-
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <QWidget>
 
 namespace adcontrols { class TargetingMethod; }
@@ -40,6 +39,8 @@ namespace adwidgets {
     class ADWIDGETSSHARED_EXPORT TargetingWidget : public QWidget
                                                  , public adplugin::LifeCycle {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
+
     public:
         explicit TargetingWidget(QWidget *parent = 0);
         ~TargetingWidget();

@@ -27,7 +27,7 @@
 
 #include "adwidgets_global.hpp"
 
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <QWidget>
 
 class QMenu;
@@ -38,6 +38,7 @@ namespace adwidgets {
                                                    , public adplugin::LifeCycle {
         
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
         
     public:
         explicit MSSimulatorWidget(QWidget *parent = 0);

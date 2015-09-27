@@ -28,7 +28,7 @@
 #pragma once
 
 #include <QWidget>
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include "adwidgets_global.hpp"
 
 namespace adcontrols { class SampleRun; }
@@ -38,6 +38,8 @@ namespace adwidgets {
     class ADWIDGETSSHARED_EXPORT SampleRunWidget : public QWidget
                                                  , public adplugin::LifeCycle {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
+
     public:
         explicit SampleRunWidget(QWidget *parent = 0);
 
@@ -55,7 +57,7 @@ namespace adwidgets {
     signals:
 
     public slots:
-        void getLifeCycle( adplugin::LifeCycle *& p );
+
     };
 
 }

@@ -88,12 +88,6 @@ MSChromatogramForm::setContents( boost::any& any )
 }
 
 void
-MSChromatogramForm::getLifeCycle( adplugin::LifeCycle *& p )
-{
-    p = this;
-}
-
-void
 MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
 {
     ui->comboBox->setCurrentIndex( m.dataSource() );

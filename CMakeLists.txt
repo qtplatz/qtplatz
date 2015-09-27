@@ -21,7 +21,7 @@ set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
 # cofigure boost & compiler
 include (qtplatz.cmake)
-include (qtplatz-version)
+include (version)
 
 if ( APPLE )
 
@@ -75,6 +75,10 @@ endif()
 configure_file(
   ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
   ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
+
+configure_file(
+  ${QTPLATZ_SOURCE_DIR}/doxyfile.in
+  ${QTPLATZ_BINARY_DIR}/Doxyfile )
 
 if ( WIN32 )
   set( SOLUTION_FILE "qtplatz" )  

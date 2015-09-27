@@ -30,7 +30,7 @@
 #include "adwidgets_global.hpp"
 
 #include <QTableView>
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <memory>
 
 namespace adcontrols {
@@ -50,6 +50,7 @@ namespace adwidgets {
                                                          , public adplugin::LifeCycle {
 
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
 
     public:
         ~MSCalibrateSummaryTable();
@@ -80,7 +81,7 @@ namespace adwidgets {
 
     public slots:
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
-        void getLifeCycle( adplugin::LifeCycle*& );
+
         void showContextMenu( const QPoint& );
         void handle_zoomed( const QRectF& );   // zoomer zoomed
         void handle_selected( const QRectF& ); // picker selected

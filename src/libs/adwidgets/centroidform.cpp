@@ -95,12 +95,6 @@ CentroidForm::setContents( boost::any& any )
     return true;
 }
 
-void
-CentroidForm::getLifeCycle( adplugin::LifeCycle *& p )
-{
-    p = this;
-}
-
 ///
 void
 CentroidForm::update_data( const adcontrols::CentroidMethod& method )

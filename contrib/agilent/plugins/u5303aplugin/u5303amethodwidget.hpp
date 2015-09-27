@@ -26,6 +26,7 @@
 #define U5303AMETHODWIDGET_HPP
 
 #include <QWidget>
+#include <adplugin_manager/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
 
 namespace u5303a {
@@ -33,6 +34,8 @@ namespace u5303a {
     class u5303AMethodWidget : public QWidget
                              , public adplugin::LifeCycle {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
+
     public:
         explicit u5303AMethodWidget(QWidget *parent = 0);
 

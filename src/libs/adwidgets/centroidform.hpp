@@ -29,7 +29,7 @@
 #include "adwidgets_global.hpp"
 #include <QWidget>
 #include <QStandardItemModel>
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <adportable/configuration.hpp>
 #include <memory>
 
@@ -48,7 +48,7 @@ namespace adwidgets {
     class ADWIDGETSSHARED_EXPORT CentroidForm : public QWidget 
                                               , public adplugin::LifeCycle {
         Q_OBJECT
-
+        Q_INTERFACES( adplugin::LifeCycle )
     public:
         explicit CentroidForm(QWidget *parent = 0);
         virtual ~CentroidForm();
@@ -74,7 +74,6 @@ namespace adwidgets {
         void update_data( const adcontrols::CentroidMethod& );
 
     public slots:
-        void getLifeCycle( adplugin::LifeCycle *& p );
         void getContents( adcontrols::ProcessMethod& );
 		virtual void update();
 

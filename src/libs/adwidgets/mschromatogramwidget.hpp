@@ -25,10 +25,9 @@
 #ifndef MSCHROMATOGRAMWIDGET_HPP
 #define MSCHROMATOGRAMWIDGET_HPP
 
-#include "adwidgets_global.hpp"
-
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <QWidget>
+#include "adwidgets_global.hpp"
 
 class QMenu;
 
@@ -42,6 +41,8 @@ namespace adwidgets {
     class ADWIDGETSSHARED_EXPORT MSChromatogramWidget : public QWidget
                                                       , public adplugin::LifeCycle {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
+
     public:
         explicit MSChromatogramWidget(QWidget *parent = 0);
         ~MSChromatogramWidget();

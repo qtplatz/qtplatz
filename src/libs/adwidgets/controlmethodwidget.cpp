@@ -26,7 +26,7 @@
 #include "controlmethodtable.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <adportable/debug.hpp>
 #include <boost/any.hpp>
 #include <QVBoxLayout>
@@ -230,12 +230,6 @@ bool
 ControlMethodWidget::setContents( boost::any& )
 {
     return true;
-}
-
-void
-ControlMethodWidget::getLifeCycle( adplugin::LifeCycle *& p )
-{
-    p = this;
 }
 
 void

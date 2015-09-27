@@ -26,6 +26,7 @@
 #define MSPROPERTYFORM_HPP
 
 #include <QWidget>
+#include <adplugin_manager/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <sstream>
 
@@ -41,6 +42,7 @@ namespace dataproc {
     class MSPropertyForm : public QWidget
                          , public adplugin::LifeCycle {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
         
     public:
         explicit MSPropertyForm(QWidget *parent = 0);

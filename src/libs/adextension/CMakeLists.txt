@@ -12,20 +12,6 @@ add_definitions( -DADEXTENSION_LIBRARY )
 set( adextension_SOURCES
   adextension.cpp
   adextension.hpp
-  isequence.cpp
-  isequence.hpp
-  isequenceimpl.hpp
-  ieditorfactory.cpp
-  ieditorfactory.hpp
-  ieditorfactory_t.hpp    
-  imonitorfactory.cpp
-  imonitorfactory.hpp
-  ipeptide.cpp
-  ipeptide.hpp
-  ipeptidehandler.cpp
-  ipeptidehandler.hpp
-  ilogger.cpp
-  ilogger.hpp
   ibroker.cpp
   ibroker.hpp
   icontroller.cpp
@@ -33,6 +19,22 @@ set( adextension_SOURCES
   icontrollerimpl.hpp
   idataproc.cpp
   idataproc.hpp
+  ieditorfactory.cpp
+  ieditorfactory.hpp
+  ieditorfactory_t.hpp    
+  ilogger.cpp
+  ilogger.hpp
+  imonitorfactory.cpp
+  imonitorfactory.hpp
+  ipeptide.cpp
+  ipeptide.hpp
+  ipeptidehandler.cpp
+  ipeptidehandler.hpp
+  ireceiver.cpp
+  ireceiver.hpp
+  isequence.cpp
+  isequence.hpp
+  isequenceimpl.hpp
   iwidgetfactory.cpp
   iwidgetfactory.hpp
   adextension_global.hpp

@@ -25,6 +25,7 @@
 #ifndef FILEPROPERTYWIDGET_HPP
 #define FILEPROPERTYWIDGET_HPP
 
+#include <adplugin_manager/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
@@ -38,6 +39,8 @@ namespace dataproc {
     class FilePropertyWidget : public QWidget
                              , public adplugin::LifeCycle {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
+
     public:
         explicit FilePropertyWidget(QWidget *parent = 0);
         ~FilePropertyWidget();

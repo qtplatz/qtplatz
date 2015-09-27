@@ -23,9 +23,9 @@
 **************************************************************************/
 
 #include "lifecycleaccessor.hpp"
-#include <adplugin/lifecycle.hpp>
-#include <QMetaEnum>
+#include <adplugin_manager/lifecycle.hpp>
 #include <QDebug>
+#include <QMetaEnum>
 #include <fstream>
 
 // when load module by QLibrary()/dlopen() method, gcc built module does not expose RTTI information.
@@ -33,56 +33,38 @@
 
 using namespace adplugin;
 
-static const char * exclude_list [] = {
-    "QWidgetResizeHandler"
-    , "QAction"
-    , "QWidget"
-    , "QWidgetResizeHandler"
-    , "QAction"
-    , "QWidget"
-    , "QPropertyAnimation"
-    , "QPropertyAnimation"
-    , "QWidgetResizeHandler"
-    , "QAction"
-    , "QWidget"
-    , "QPropertyAnimation"
-    , "QPropertyAnimation"
-};
-
-static bool is_exclude( const char * name )
-{
-    if ( *name == 'Q' ) {
-        for ( std::size_t i = 0; i < sizeof( exclude_list ) / sizeof( exclude_list[0] ); ++i )
-            if ( strcmp( name, exclude_list[ i ] ) == 0 )
-                return true;
-    }
-    return false;
-};
-
-LifeCycleAccessor::LifeCycleAccessor( QObject * target ) :  pObject_( target )
+LifeCycleAccessor::LifeCycleAccessor( QObject * target ) : pObject_( target )
                                                          , p_(0)
                                                          , conn_( false )
 {
-    p_ = dynamic_cast< adplugin::LifeCycle *>( pObject_ );
+    p_ = qobject_cast< adplugin::LifeCycle *>( pObject_ );
+
+    
+
     if ( p_ == 0 ) {
-        const char * name = target->metaObject()->className();
-        if ( ! is_exclude( name ) )
+        if ( p_ = dynamic_cast<adplugin::LifeCycle *>( pObject_ ) ) {
+
+            const char * name = target->metaObject()->className();
+
+            Q_ASSERT( p_ ); // if this is true, target is inherit from LifeCycle but not Q_INTERFACES not decleard.
+                            // dynamic_cast may not work for dynamically loaded objects on Linux and Mac 
+                            // but only works on Windows with RTTI enabled.
+        }
+
+        if ( p_ == 0 ) {
             conn_ = connect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
+            emit trigger( p_ );
+            disconnect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
+        }
     }
 }
 
 LifeCycleAccessor::~LifeCycleAccessor()
 {
-    if ( conn_ )
-        disconnect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
 }
 
 adplugin::LifeCycle *
 LifeCycleAccessor::get()
 {
-    if ( p_ )
-        return p_;
-    else
-        emit trigger( p_ );
     return p_;
 }

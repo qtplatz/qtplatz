@@ -129,12 +129,6 @@ PeakMethodForm::~PeakMethodForm()
 }
 
 void
-PeakMethodForm::getLifeCycle( adplugin::LifeCycle *& p )
-{
-    p = static_cast< adplugin::LifeCycle *>(this);
-}
-
-void
 PeakMethodForm::OnCreate( const adportable::Configuration& config )
 {
     (void)config;

@@ -27,7 +27,7 @@
 
 #include <QWidget>
 #include "adwidgets_global.hpp"
-#include <adplugin/lifecycle.hpp>
+#include <adplugin_manager/lifecycle.hpp>
 #include <memory>
 
 class QTabWidget;
@@ -49,6 +49,7 @@ namespace adwidgets {
     class  ADWIDGETSSHARED_EXPORT ControlMethodWidget : public QWidget
                                                       , adplugin::LifeCycle {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
     public:
         ~ControlMethodWidget();
         explicit ControlMethodWidget(QWidget *parent = 0);
@@ -81,8 +82,6 @@ namespace adwidgets {
         */
         void onImportInitialCondition();
             
-    public slots:
-        void getLifeCycle( adplugin::LifeCycle *& p );
     private slots:
         void showContextMenu( const QPoint& pt );
     };

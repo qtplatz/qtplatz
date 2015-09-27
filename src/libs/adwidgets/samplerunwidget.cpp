@@ -228,12 +228,6 @@ SampleRunWidget::OnFinalClose()
 {
 }
 
-void
-SampleRunWidget::getLifeCycle( adplugin::LifeCycle *& p )
-{
-    p = this;
-}
-
 bool
 SampleRunWidget::getContents( boost::any& a ) const
 {
