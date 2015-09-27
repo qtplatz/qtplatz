@@ -231,7 +231,7 @@ namespace ap240 {
                 d.d_.resize( readPar.dataArraySize / sizeof(int32_t) );
                 d.method_ = m;
                 auto rcode = AcqrsD1_readData( inst, channel, &readPar, d.d_.data(), &dataDesc, &segDesc );
-                if ( rcode != ERROR_SUCCESS )
+                if ( rcode != VI_SUCCESS )
                     task::checkError( inst, rcode, "readData", __LINE__ );
                 return rcode;
             }
@@ -892,7 +892,7 @@ device_ap240::readData( task& task, ap240controls::waveform& data, const ap240co
     // std::cout << "## device_ap240::readData ##" << std::endl;    
     if ( m.hor_.mode == 0 ) {
         AqSegmentDescriptor segDesc;
-        if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) == ERROR_SUCCESS ) {
+        if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) == VI_SUCCESS ) {
 
             data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
 
@@ -915,7 +915,7 @@ device_ap240::readData( task& task, ap240controls::waveform& data, const ap240co
     } else {
         AqSegmentDescriptorAvg segDesc;
         ViStatus rcode(0);
-        if ( ( rcode = readData<int32_t, AqSegmentDescriptorAvg>( task.inst(), m, channel, dataDesc, segDesc, data ) ) == ERROR_SUCCESS ) {
+        if ( ( rcode = readData<int32_t, AqSegmentDescriptorAvg>( task.inst(), m, channel, dataDesc, segDesc, data ) ) == VI_SUCCESS ) {
 
             data.meta_.dataType = sizeof( int32_t );
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
