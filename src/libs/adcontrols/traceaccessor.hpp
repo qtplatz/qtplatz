@@ -36,14 +36,23 @@ namespace adcontrols {
     class Trace;
     class Chromatogram;
 
+    /**
+     ** \class TraceAccessor
+     ** \brief Handle 'timed-trace' data fragment for real-time display
+     *
+     */
+
     class ADCONTROLSSHARED_EXPORT TraceAccessor {
     public:
         ~TraceAccessor();
         TraceAccessor();
         TraceAccessor( const TraceAccessor& );
+
         TraceAccessor& operator += ( const TraceAccessor& );
+
         inline bool empty() const { return trace_.empty(); }
         inline size_t size() const { return trace_.size(); }
+        inline void reserve( size_t size ) { trace_.reserve( size ); }
 
         struct fcnData {
             int fcn;
