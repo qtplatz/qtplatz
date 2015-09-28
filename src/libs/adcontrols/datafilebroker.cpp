@@ -87,14 +87,6 @@ datafileBroker::register_factory( datafile_factory * factory, const std::string&
     return datafileBrokerImpl::instance()->register_factory( factory, uniqname );
 }
 
-#if 0
-datafile_factory*
-datafileBroker::find( const std::wstring& name )
-{
-    return datafileBrokerImpl::instance()->find( name );
-}
-#endif
-
 datafile *
 datafileBroker::open( const std::wstring& filename, bool readonly )
 {
@@ -123,7 +115,11 @@ datafileBroker::create( const std::wstring& filename )
 bool
 datafileBrokerImpl::register_factory( datafile_factory * factory, const std::string& uniqname )
 {
+    if ( factories_.find( uniqname ) != factories_.end() )
+        return false;
+
     factories_[ uniqname ].reset( factory );
+
     return true;
 }
 
