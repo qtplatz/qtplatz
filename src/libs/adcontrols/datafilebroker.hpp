@@ -39,9 +39,8 @@ namespace adcontrols {
         ~datafileBroker();
         datafileBroker();
     public:
-        static bool register_factory( datafile_factory *, const std::wstring& name );
-        static datafile_factory* find( const std::wstring& name );
-        //
+        static bool register_factory( datafile_factory *, const std::string& uniqname );
+
         static datafile * create( const std::wstring& filename );
         static datafile * open( const std::wstring& filename, bool readonly = false );
         static bool access( const std::wstring& filename );

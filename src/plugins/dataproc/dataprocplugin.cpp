@@ -182,18 +182,21 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
     do {
         std::vector< std::string > mime;
-        std::vector< adplugin::plugin_ptr > dataproviders;
-        if ( adplugin::loader::select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
-            
-            std::for_each( dataproviders.begin(), dataproviders.end(), [&]( const adplugin::plugin_ptr& d ){
+        do {
+            std::vector< adplugin::plugin_ptr > dataproviders;
+            if ( adplugin::loader::select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
+
+                std::for_each( dataproviders.begin(), dataproviders.end(), [&] ( const adplugin::plugin_ptr& d ) {
                     adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
                     if ( factory ) {
-                        adcontrols::datafileBroker::register_factory( factory, factory->name() );
+                        adcontrols::datafileBroker::register_factory( factory, d->clsid() ); // factory->name() );
                         if ( factory->mimeTypes() )
                             mime.push_back( factory->mimeTypes() );
                     }
-                });
-        }
+                } );
+                long x = 0;
+            }
+        } while ( 0 );
         
         //------------------------------------------------
         QStringList mTypes;

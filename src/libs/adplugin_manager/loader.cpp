@@ -54,26 +54,33 @@ loader::populate( const wchar_t * directory )
     boost::filesystem::path appdir( directory );
     boost::filesystem::path modules( appdir / pluginDirectory );
     boost::filesystem::path sharedlibs( appdir / sharedDirectory );
-    
-    boost::filesystem::recursive_directory_iterator it( directory );
 
-    while ( it != boost::filesystem::recursive_directory_iterator() ) {
+    if ( boost::filesystem::is_directory( modules ) ) {
 
-        if ( boost::filesystem::is_regular_file( it->status() ) ) {
-            if ( it->path().extension() == L".adplugin" ) {
-                auto stem = it->path().stem();
-                auto branch = it->path().branch_path();
+        boost::system::error_code ec;
+        boost::filesystem::recursive_directory_iterator it( modules, ec );
 
-                for ( auto& dir : { branch, sharedlibs } ) {
-                    QString libname = QString::fromStdString( ( dir / stem ).string() + DEBUG_LIB_TRAIL );
-                    QLibrary lib( libname );
-                    if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) )
-                        break;
-                    lib.unload();
+        if ( !ec ) {
+
+            while ( it != boost::filesystem::recursive_directory_iterator() ) {
+
+                if ( boost::filesystem::is_regular_file( it->status() ) ) {
+                    if ( it->path().extension() == L".adplugin" ) {
+                        auto stem = it->path().stem();
+                        auto branch = it->path().branch_path();
+
+                        for ( auto& dir : { branch, sharedlibs } ) {
+                            QString libname = QString::fromStdString( ( dir / stem ).string() + DEBUG_LIB_TRAIL );
+                            QLibrary lib( libname );
+                            if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) )
+                                break;
+                            lib.unload();
+                        }
+                    }
                 }
+                ++it;
             }
         }
-        ++it;
     }
 	manager::instance()->populated();
 }

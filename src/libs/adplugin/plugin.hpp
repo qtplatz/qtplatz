@@ -28,7 +28,6 @@
 #include "adplugin_global.h"
 #include <string>
 #include <typeinfo>
-#include <compiler/disable_dll_interface.h>
 
 namespace adplugin {
 
@@ -38,8 +37,16 @@ namespace adplugin {
     class orbFactory;
 
     class ADPLUGINSHARED_EXPORT plugin {
+
+#if defined _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
+#endif
         std::string clsid_;  // full path to .adplugin
         std::string spec_;   // context of .adplugin
+#if defined _MSC_VER
+# pragma warning(pop)
+#endif
         friend class internal::manager_data;
         virtual void * query_interface_workaround( const char * /* typename */ ) { return 0; }
 	protected:

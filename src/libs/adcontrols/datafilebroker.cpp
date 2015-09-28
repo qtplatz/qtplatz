@@ -28,6 +28,7 @@
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
 #include "adcontrols.hpp"
+#include <atomic>
 #include <mutex>
 #include <memory>
 #include <map>
@@ -35,37 +36,39 @@
 using namespace adcontrols;
 
 namespace adcontrols {
+
     class datafileBrokerImpl;
 
     class datafileBrokerImpl : public datafileBroker {
-		static datafileBrokerImpl * instance_;
+        static std::atomic<datafileBrokerImpl *> instance_;
+        static std::once_flag flag;
     public:
         ~datafileBrokerImpl() {}
-        bool register_factory( datafile_factory * factory, const std::wstring& name );
-        datafile_factory * find( const std::wstring& name );
+
+        bool register_factory( datafile_factory * factory, const std::string& uniqname );
+
         void visit( adcontrols::datafile& );
 
         datafile * open( const std::wstring& filename, bool readonly );
         datafile * create( const std::wstring& filename );
+
         static datafileBrokerImpl * instance();
-        const std::map< std::wstring, std::shared_ptr< datafile_factory > >& factories() const { return factories_; }
+
+        const std::map< std::string, std::shared_ptr< datafile_factory > >& factories() const { return factories_; }
 
     private:
-        std::map< std::wstring, std::shared_ptr< datafile_factory > > factories_;
+        std::map < std::string, std::shared_ptr< datafile_factory > > factories_;
     };
     
 }
 
-datafileBrokerImpl * datafileBrokerImpl::instance_ = 0;
+std::atomic<datafileBrokerImpl * > datafileBrokerImpl::instance_( 0 );
+std::once_flag datafileBrokerImpl::flag;
 
 datafileBrokerImpl *
 datafileBrokerImpl::instance()
 {
-    if ( instance_ == 0 ) {
-        std::lock_guard< std::mutex > lock( adcontrols::global_mutex::mutex() );
-        if ( instance_ == 0 )
-			instance_ = new datafileBrokerImpl;
-	}
+    std::call_once( flag, [] () { instance_ = new datafileBrokerImpl(); } );
 	return instance_;
 }
 
@@ -79,16 +82,18 @@ datafileBroker::datafileBroker()
 }
 
 bool
-datafileBroker::register_factory( datafile_factory * factory, const std::wstring& name )
+datafileBroker::register_factory( datafile_factory * factory, const std::string& uniqname )
 {
-    return datafileBrokerImpl::instance()->register_factory( factory, name );
+    return datafileBrokerImpl::instance()->register_factory( factory, uniqname );
 }
 
+#if 0
 datafile_factory*
 datafileBroker::find( const std::wstring& name )
 {
     return datafileBrokerImpl::instance()->find( name );
 }
+#endif
 
 datafile *
 datafileBroker::open( const std::wstring& filename, bool readonly )
@@ -116,9 +121,9 @@ datafileBroker::create( const std::wstring& filename )
 //////////////////////////
 
 bool
-datafileBrokerImpl::register_factory( datafile_factory * factory, const std::wstring& name )
+datafileBrokerImpl::register_factory( datafile_factory * factory, const std::string& uniqname )
 {
-    factories_[ name ].reset( factory );
+    factories_[ uniqname ].reset( factory );
     return true;
 }
 
@@ -128,20 +133,11 @@ datafileBrokerImpl::visit( adcontrols::datafile& )
     // factory_type factory = impl.factory();
 }
 
-datafile_factory *
-datafileBrokerImpl::find( const std::wstring& name )
-{
-    std::map< std::wstring, std::shared_ptr<datafile_factory> >::iterator it = factories_.find( name );
-    if ( it != factories_.end() )
-        return it->second.get();
-    return 0;
-}
 
 datafile *
 datafileBrokerImpl::open( const std::wstring& name, bool readonly )
 {
-    std::map< std::wstring, std::shared_ptr<datafile_factory> >::iterator it;
-    for ( it = factories_.begin(); it != factories_.end(); ++it ) {
+    for ( auto it = factories_.begin(); it != factories_.end(); ++it ) {
         if ( it->second && it->second->access( name.c_str() ) ) {
             return it->second->open( name.c_str(), readonly );
         }
@@ -152,8 +148,7 @@ datafileBrokerImpl::open( const std::wstring& name, bool readonly )
 datafile *
 datafileBrokerImpl::create( const std::wstring& name )
 {
-    std::map< std::wstring, std::shared_ptr<datafile_factory> >::iterator it;
-    for ( it = factories_.begin(); it != factories_.end(); ++it ) {
+    for ( auto it = factories_.begin(); it != factories_.end(); ++it ) {
         if ( it->second && it->second->access( name.c_str(), adcontrols::write_access ) )
             return it->second->open( name.c_str(), false );
     }
