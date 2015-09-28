@@ -113,6 +113,10 @@ namespace ap240controls {
         template<typename T> const T* begin() const;
         template<typename T> const T* end() const;
 
+        template<typename T> void advance( const T*& it, size_t distance ) const {
+            it = ( distance && distance < std::distance( it, end<T>() ) ) ? it + distance : end<T>();
+        }
+
         std::pair<double, int> operator [] ( size_t ) const;
         double toVolts( int ) const;
         double toVolts( double ) const;

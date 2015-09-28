@@ -82,8 +82,6 @@ waveform::begin() const
 template<> const int8_t *
 waveform::end() const
 {
-    if ( meta_.dataType != sizeof(int8_t) )
-        throw std::bad_cast();    
     return reinterpret_cast< const int8_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
 }
 
