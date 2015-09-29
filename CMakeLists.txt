@@ -5,6 +5,8 @@ cmake_minimum_required (VERSION 2.8.9)
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW )
 
+option( DEBUG_SYMBOL "DEBUG_SYMBOL" OFF )
+
 set( QTPLATZ_CORELIB_ONLY CACHE BOOL OFF )
 
 if ( WIN32 )
@@ -85,11 +87,14 @@ if ( WIN32 )
   configure_file(
     ${QTPLATZ_SOURCE_DIR}/makefile.nmake.in
     ${CMAKE_BINARY_DIR}/makefile @ONLY )
-######
-  set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "/DEBUG" )
-  set( CMAKE_MODULE_LINKER_FLAGS_RELEASE "/DEBUG" )
-  set( CMAKE_CXX_FLAGS_RELEASE "/MD /Zi /O2 /Ob2 /D NDEBUG" )
-#####
+
+  if ( DEBUG_SYMBOL )
+    message( "##### Generating DEBUG SYMBOL : " ${DEBUG_SYMBOL} )
+    set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "/DEBUG" )
+    set( CMAKE_MODULE_LINKER_FLAGS_RELEASE "/DEBUG" )
+    set( CMAKE_CXX_FLAGS_RELEASE "/MD /Zi /O2 /Ob2 /D NDEBUG" )
+  endif()
+
 endif()
 
 install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION / COMPONENT libraries )

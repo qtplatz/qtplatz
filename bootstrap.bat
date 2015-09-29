@@ -30,9 +30,9 @@ mkdir %build_dir%
 cd %build_dir%
 
 if %build_type%==release (
-  cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Release %source_dir%
+  cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
 ) else if %build_type%==package (
-  cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Release %source_dir%
+  cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
   cd contrib\installer\wix
   nmake help
 ) else (
