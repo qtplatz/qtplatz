@@ -39,44 +39,45 @@ endif()
 
 set( ${PROJECT_NAME}_SOURCES
   adwidgets.cpp
-  targetingform.cpp
-  tableview.cpp
-  targetingwidget.cpp
-  targetingtable.cpp
-  targetingadducts.cpp
-  peptidewidget.cpp
-  peptidetable.cpp
-  delegatehelper.cpp
+  centroidform.cpp
   controlmethodtable.cpp
   controlmethodwidget.cpp
-  centroidform.cpp
+  consolewidget.cpp
+  delegatehelper.cpp
+  doublespinbox.cpp
+  dualspinslider.cpp
+  filedialog.cpp
   moltable.cpp
   mspeaktable.cpp
   msquantable.cpp
   mscalibrateform.cpp
+  mschromatogramform.cpp
+  mschromatogramwidget.cpp
+  mspeaksummary.cpp
+  mspeakwidget.cpp
+  mssimulatorform.cpp
+  mssimulatorwidget.cpp
   msreferencetable.cpp
   mscalibratewidget.cpp
   msreferencedialog.cpp
   mscalibratesummarytable.cpp
   mstoleranceform.cpp
   mslockform.cpp
-  progresswnd.cpp
-  spinslider.cpp
-  dualspinslider.cpp
-  filedialog.cpp
-  peaktable.cpp
-  mschromatogramform.cpp
-  mschromatogramwidget.cpp
-  peakmethodform.cpp
-  mspeaksummary.cpp
-  mspeakwidget.cpp
-  mssimulatorform.cpp
-  mssimulatorwidget.cpp
-  toftable.cpp        
-  samplerunwidget.cpp
-  consolewidget.cpp
   outputwidget.cpp
+  peakmethodform.cpp
+  peaktable.cpp
+  peptidewidget.cpp
+  peptidetable.cpp
+  progresswnd.cpp
+  samplerunwidget.cpp
   scanlawdialog.cpp
+  spinslider.cpp
+  targetingform.cpp
+  tableview.cpp
+  targetingwidget.cpp
+  targetingtable.cpp
+  targetingadducts.cpp
+  toftable.cpp        
   ${_sources}
 )
 
@@ -95,6 +96,7 @@ set( ${PROJECT_NAME}_HEADERS
   controlmethodtable.hpp
   controlmethodwidget.hpp
   centroidform.hpp
+  doublespinbox.hpp
   moltable.hpp  
   mspeaktable.hpp
   msquantable.hpp
