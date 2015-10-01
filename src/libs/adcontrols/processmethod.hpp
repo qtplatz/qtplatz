@@ -81,22 +81,30 @@ namespace adcontrols {
         template<class T> ProcessMethod& operator *= ( const T& t ) { remove<T>(); (*this) << t; return *this; } // remove if duplicate, and add
         ProcessMethod& operator *= ( const ProcessMethod& ); // remove duplicate and merge
 
+        template<class T> inline bool is_type( const value_type& t ) const {
+#if defined __GNUC__ 
+            return std::strcmp( t.type().name(), typeid( T ).name() ) == 0; // https://svn.boost.org/trac/boost/ticket/754
+#else
+            return t.type() == typeid( T );
+#endif
+        }
+
         template<class T> const T* find() const {
-            auto it = std::find_if( begin(), end(), [=] ( const value_type& t ){ return typeid(T) == t.type(); } );
+            auto it = std::find_if( begin(), end(), [=] ( const value_type& t ){ return is_type<T>( t ); }); //typeid(T) == t.type(); } );
             if ( it != end() )
                 return &boost::get<T>(*it);
             return 0;
         }
 
         template<class T> T* find() {
-            auto it = std::find_if( begin(), end(), [=] ( const value_type& t ){ return typeid(T) == t.type(); } );
+            auto it = std::find_if( begin(), end(), [=] ( const value_type& t ){ return is_type<T>( t ); }); //return typeid(T) == t.type(); } );
             if ( it != end() )
                 return &boost::get<T>(*it);
             return 0;
         }
 
         template<class T> void remove() {
-            auto it = std::remove_if( begin(), end(), [=] ( const value_type& t ){ return typeid(T) == t.type(); } );
+            auto it = std::remove_if( begin(), end(), [=] ( const value_type& t ){ return is_type<T>( t ); }); //typeid(T) == t.type(); } );
             if ( it != end() )
                 erase( it, end() );
         }
