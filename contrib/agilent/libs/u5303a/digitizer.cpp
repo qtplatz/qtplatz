@@ -55,6 +55,8 @@
 # undef TERR
 #endif
 
+#define DIGITIZER_MODE_TEST 0
+
 #define ERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_ERROR)<<e.Description()<<", "<<e.ErrorMessage(); error_reply(e,m); } while(0)
 #define TERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_ERROR)<<e.Description()<<", "<<e.ErrorMessage(); task.error_reply(e,m); } while(0)
 
@@ -675,7 +677,7 @@ device<UserFDK>::initial_setup( task& task, const method& m )
 
     ADTRACE() << "Set the Mode FDK...";
     //try { task.spDriver()->Acquisition->Mode = AgMD2AcquisitionModeUserFDK; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
-    try { task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager; } catch (_com_error& e) { TERR(e,"Acquisition::Mode"); }
+    try { task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager; } catch ( _com_error& e ) { TERR( e, "Acquisition::Mode" ); }
 
     // Set the sample rate and nbr of samples to acquire
     bool success = false;
@@ -715,11 +717,19 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     } catch ( _com_error& e ) {
         TERR(e,"mbr_of_averages");        
     }
+#if defined DIGITIZER_MODE_TEST && DIGITIZER_MODE_TEST
+    try {
+        task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeNormal;
+    } catch ( _com_error& e ) {
+        TERR(e,"mode");        
+    }
+#else
     try {
         task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager;
     } catch ( _com_error& e ) {
         TERR(e,"mode");        
     }
+#endif
     //<---
     try {
         task.spDriver()->Calibration->SelfCalibrate();
@@ -792,6 +802,59 @@ device<UserFDK>::waitForEndOfAcquisition( task& task, int timeout )
     return true;
 }
 
+#if defined DIGITIZER_MODE_TEST && DIGITIZER_MODE_TEST
+template<> bool
+device<UserFDK>::readData( task& task, waveform& data )
+{
+    IAgMD2Channel2Ptr spCh1 = task.spDriver()->Channels2->Item2[ L"Channel1" ];
+    __int64 firstRecord = 0;
+    __int64 numRecords = 1;
+    __int64 offsetWithinRecord = 0;
+    SAFEARRAY* dataArray = 0;
+    long actualAverages = 0;
+    __int64 actualPoints = 0;
+    __int64 firstValidPoint = 0;
+    //SAFEARRAY* firstValidPoints = 0;
+    double initialXTimeSeconds = 0;
+    double initialXTimeFraction = 0;
+
+    const int64_t numPointsPerRecord = task.method().digitizer_nbr_of_s_to_acquire;
+    
+    try {
+        spCh1->Measurement2->FetchWaveformInt32( &dataArray
+                                                 , &actualPoints
+                                                 , &firstValidPoint
+                                                 , &data.meta_.initialXOffset
+                                                 , &initialXTimeSeconds
+                                                 , &initialXTimeFraction
+                                                 , &data.meta_.xIncrement
+                                                 , &data.meta_.scaleFactor
+                                                 , &data.meta_.scaleOffset );
+
+        data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+
+        data.method_ = task.method();
+
+        data.meta_.actualAverages = actualAverages;
+
+        data.meta_.initialXTimeSeconds = initialXTimeSeconds + initialXTimeFraction;
+
+		safearray_t<int32_t> sa( dataArray );
+        data.d_.resize( numPointsPerRecord );
+        std::copy( sa.data() + firstValidPoint, sa.data() + numPointsPerRecord, data.d_.begin() );
+
+        // Release memory.
+        SafeArrayDestroy(dataArray);
+
+    } catch ( _com_error& e ) {
+        TERR(e,"readData::ReadIndirectInt32");
+        return false;
+    }
+    return true;
+}
+
+#else
+
 template<> bool
 device<UserFDK>::readData( task& task, waveform& data )
 {
@@ -861,7 +924,7 @@ device<UserFDK>::readData( task& task, waveform& data )
     }
     return true;
 }
-
+#endif
 
 template<> bool
 device<Simulate>::initial_setup( task& task, const method& m )
