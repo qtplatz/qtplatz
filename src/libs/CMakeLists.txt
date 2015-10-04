@@ -13,8 +13,11 @@ add_subdirectory (chromatogr)
 add_subdirectory (xmlparser)
 add_subdirectory (portfolio)
 
-add_subdirectory (adorbmgr)
-add_subdirectory (adinterface)
+if ( QTPLATZ_SUPPORT_CORBA )
+  add_subdirectory (adorbmgr)
+  add_subdirectory (adinterface)
+endif()
+
 add_subdirectory (adplugin)
 
 if ( rdkit_FOUND )

@@ -8,7 +8,6 @@ set( PROVIDER MS-Cheminformatics )
 #QT += core svg printsupport widgets
 find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
 find_package( qwt )
-find_package( ace+tao )
 find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -40,11 +39,9 @@ add_definitions(
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
-  ${CMAKE_BINARY_DIR}/src/libs/adinterface
   ${CMAKE_SOURCE_DIR}/src/libs
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
-  ${ACE+TAO_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
@@ -90,7 +87,6 @@ target_link_libraries(
   ap240
   ap240controls
   ap240w
-  ${ACE+TAO_LIBRARIES}
   ${Boost_LIBRARIES}
   )
 

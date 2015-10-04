@@ -35,12 +35,15 @@ set( ${PROJECT_NAME}_SOURCES
   ap240verticalform.hpp
   findslopeform.cpp
   findslopeform.hpp
+  thresholdwidget.cpp
+  thresholdwidget.hpp
 )
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ap240controls
+  u5303acontrols
   adplugin
   adplugin_manager
   adlog

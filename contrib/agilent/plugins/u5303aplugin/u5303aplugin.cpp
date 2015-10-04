@@ -87,8 +87,8 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
         mode_->setWidget( widget );
     addObject( mode_.get() );
 
-    if ( iSequenceImpl_ && mainWindow_->editor_factories( *iSequenceImpl_ ) )
-        addObject( iSequenceImpl_.get() );
+    //if ( iSequenceImpl_ && mainWindow_->editor_factories( *iSequenceImpl_ ) )
+    //    addObject( iSequenceImpl_.get() );
 
     QAction *action = new QAction(tr("u5303A action"), this);
 

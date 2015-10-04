@@ -43,7 +43,6 @@ namespace u5303a {
         void OnCreate( const adportable::Configuration& ) override;
         void OnInitialUpdate() override;
         void OnFinalClose() override;
-        //virtual void onUpdate( boost::any& ) {}
         virtual bool getContents( boost::any& ) const;
         virtual bool setContents( boost::any& );
 
@@ -56,7 +55,6 @@ namespace u5303a {
 
     public slots:
         void handle_trigger_apply();
-        void getLifeCycle( adplugin::LifeCycle *& p );
     };
 
 }

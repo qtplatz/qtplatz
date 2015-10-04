@@ -24,6 +24,7 @@
 
 #include "u5303amethodtable.hpp"
 #include <u5303a/digitizer.hpp>
+#include <u5303acontrols/method.hpp>
 #include <qtwrapper/font.hpp>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
@@ -201,6 +202,37 @@ u5303AMethodTable::setContents( const u5303a::method& m )
 }
 
 bool
+u5303AMethodTable::setContents( const u5303acontrols::device_method& m )
+{
+    QStandardItemModel& model = *model_;
+    
+    in_progress_ = true;
+
+    int row = 0;
+    model.setData( model.index( row, 1 ), m.front_end_range );
+    ++row;
+    model.setData( model.index( row, 1 ), m.front_end_offset );
+    ++row;
+    model.setData( model.index( row, 1 ), m.samp_rate );
+    ++row;
+    model.setData( model.index( row, 1 ), m.ext_trigger_level );
+    ++row;
+    model.setData( model.index( row, 1 ), m.nbr_of_s_to_acquire_ );
+    ++row;
+    model.setData( model.index( row, 1 ), m.nbr_of_averages );
+    ++row;
+    model.setData( model.index( row, 1 ), m.delay_to_first_sample_ * 1.0e6 ); // s -> us
+    ++row;
+    model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
+    ++row;
+    model.setData( model.index( row, 1 ), m.nsa );
+
+    in_progress_ = false;
+	
+	return true;
+}
+
+bool
 u5303AMethodTable::getContents( u5303a::method& m )
 {
     QStandardItemModel& model = *model_;
@@ -230,3 +262,35 @@ u5303AMethodTable::getContents( u5303a::method& m )
     in_progress_ = false;
 	return true;
 }
+
+bool
+u5303AMethodTable::getContents( u5303acontrols::device_method& m )
+{
+    QStandardItemModel& model = *model_;
+
+    int row = 0;
+	m.front_end_range = model.index( row, 1 ).data().toDouble();
+    ++row;
+	m.front_end_offset = model.index( row, 1 ).data().toDouble();
+    ++row;
+	m.samp_rate = model.index( row, 1 ).data().toDouble();
+	++row;
+	m.ext_trigger_level = model.index( row, 1 ).data().toDouble();
+    ++row;
+	m.nbr_of_s_to_acquire_ = model.index( row, 1 ).data().toInt();
+    ++row;
+	m.nbr_of_averages = model.index( row, 1 ).data().toInt();
+    ++row;
+    m.delay_to_first_sample_ = model.index( row, 1 ).data().toDouble() * 1.0e-6; // us -> s
+    ++row;
+    m.invert_signal = model.index( row, 1 ).data().toBool() ? 1 : 0;
+    ++row;
+    m.nsa = model.index( row, 1 ).data().toInt();
+
+    in_progress_ = true;
+    for ( int row = 0; row < model.rowCount(); ++row )
+		model.itemFromIndex( model.index( row, c_item_value ) )->setBackground( QColor( Qt::white ) );
+    in_progress_ = false;
+	return true;
+}
+

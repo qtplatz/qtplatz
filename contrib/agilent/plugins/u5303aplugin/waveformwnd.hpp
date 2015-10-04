@@ -26,14 +26,18 @@
 #define WAVEFORMWND_HPP
 
 #include <QWidget>
+#include <array>
 #include <memory>
+
+class QwtPlotMarker;
 
 namespace adplot { class ChromatogramWidget; class TraceWidget; class SpectrumWidget; }
 namespace adcontrols { class MassSpectrum; class Trace; }
+namespace u5303acontrols { class waveform; }
 
 namespace u5303a {
 
-    class waveform;
+    //class waveform;
 
     class WaveformWnd : public QWidget {
         Q_OBJECT
@@ -42,18 +46,26 @@ namespace u5303a {
         ~WaveformWnd();
         
         void onInitialUpdate();
-        void setData( const std::shared_ptr< const u5303a::waveform >& );
+        void setData( const std::shared_ptr< const u5303acontrols::waveform >& );
 
     public slots:
         void handle_waveform();
+        void handle_threshold_method( int ch );
+        void handle_method( const QString& );
 
     private:
         void init();
         void fini();
         adplot::ChromatogramWidget * tpw_;
         adplot::SpectrumWidget * spw_;
-        std::shared_ptr< adcontrols::MassSpectrum > sp_;
-        std::shared_ptr< adcontrols::Trace> tp_;
+        adplot::SpectrumWidget * hpw_;
+        size_t tickCount_;
+
+        std::array< std::shared_ptr< adcontrols::MassSpectrum >, 2 > sp_;
+
+        std::array< std::shared_ptr< adcontrols::Trace>, 2 > tp_;
+        std::array< std::pair<bool, double>, 2 > thresholds_;
+        std::array< QwtPlotMarker *, 2 > threshold_markers_;
     };
 
 }

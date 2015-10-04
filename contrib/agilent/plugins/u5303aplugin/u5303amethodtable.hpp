@@ -29,6 +29,8 @@
 
 class QStandardItemModel;
 
+namespace u5303acontrols { class device_method; }
+
 namespace u5303a {
 
     class method; // defined in <u5303a/digitizer.hpp>
@@ -42,6 +44,8 @@ namespace u5303a {
         void onInitialUpdate();
         bool setContents( const u5303a::method& );
         bool getContents( u5303a::method& );
+        bool setContents( const u5303acontrols::device_method& );
+        bool getContents( u5303acontrols::device_method& );
 
     private:
         QStandardItemModel * model_;

@@ -8,7 +8,6 @@ set( PROVIDER MS-Cheminformatics )
 #QT += core svg printsupport widgets
 find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Script Network )
 find_package( qwt )
-find_package( ace+tao )
 find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -87,7 +86,6 @@ target_link_libraries(
   adfs
   adutils
   adcontrols
-  adinterface
   adplot
   adwidgets
   acewrapper
@@ -96,11 +94,12 @@ target_link_libraries(
   adorbmgr
   adlog
   adportable
+  ap240w
   xmlparser
   Core
   u5303a
+  u5303acontrols
   u5303aspectrometer
-  ${ACE+TAO_LIBRARIES}
   ${Boost_LIBRARIES}
   )
 

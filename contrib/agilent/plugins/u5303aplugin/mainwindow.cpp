@@ -29,8 +29,11 @@
 #include "u5303a_constants.hpp"
 #include "u5303amethodwidget.hpp"
 #include <u5303a/digitizer.hpp>
+#include <u5303acontrols/method.hpp>
+#include <ap240w/thresholdwidget.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adextension/isnapshothandler.hpp>
 #include <adextension/ieditorfactory.hpp>
@@ -39,7 +42,6 @@
 #include <adportable/profile.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
-#include <adwidgets/controlmethodwidget.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -72,38 +74,11 @@
 #include <QIcon>
 #include <qdebug.h>
 
-namespace u5303a {
-
-    template<class T> class iEditorFactoryT : public adextension::iEditorFactory {
-
-        MainWindow& mainWindow_;
-        QString title_;
-        QString itemname_;
-
-	public:
-        iEditorFactoryT( MainWindow& w
-                         , const QString& title ) : mainWindow_( w )
-                                                  , title_( title ) {
-        }
-
-        QWidget * createEditor( QWidget * parent ) const {
-			return new T( parent );
-		}
-
-        QString title() const { return title_; }
-		
-        adextension::iEditorFactory::METHOD_TYPE method_type() const {
-			return adextension::iEditorFactory::CONTROL_METHOD;
-		}
-    };
-}
-
 using namespace u5303a;
 
 MainWindow * MainWindow::instance_ = 0;
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
-                                        , editor_(0)
 {
     instance_ = this;
 }
@@ -121,50 +96,61 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    editor_ = new adwidgets::ControlMethodWidget;
-    
-    iEditorFactoryT<u5303AMethodWidget> factory( *this, "U5303A" );
-    if ( auto widget = factory.createEditor(0) ) {
-        widget->setObjectName( factory.title() );
-        createDockWidget( widget, factory.title(), "ControlMethod" );
-        editor_->addEditor( widget );
+    if ( auto widget = new ap240w::ThresholdWidget ) {
+
+        widget->setObjectName( "ThresholdWidget" );
+        createDockWidget( widget, "U5303A", "ThresholdMethod" );
+
+        connect( widget, &ap240w::ThresholdWidget::valueChanged, [this]( ap240w::idCategory cat, int ch ){
+                if ( auto form = findChild< ap240w::ThresholdWidget * >() ) {
+                    if ( cat == ap240w::idSlopeTimeConverter ) {
+                        adcontrols::threshold_method tm;
+                        form->get( ch, tm );
+                        document::instance()->set_threshold_method( ch, tm );
+                    } else {
+                        
+                    }
+                }
+                
+            });
+
     }
-    auto ptr = document::instance()->controlMethod();
-    editor_->getControlMethod( *ptr ); // initialize with defailt initial-condition
-    // createDockWidget( new QTextEdit(), "Log", "Log" );
-    connect( editor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
-    createDockWidget( editor_, "Control Method", "ControlMethodWidget" );
+
+    if ( auto widget = new u5303AMethodWidget ) {
+
+        widget->setObjectName( "U5303A" );
+        createDockWidget( widget, "U5303A", "ControlMethod" );
+
+    }
 }
 
 void
 MainWindow::OnInitialUpdate()
 {
-    editor_->OnInitialUpdate();
-    auto ptr = document::instance()->controlMethod();
-    editor_->setControlMethod( *document::instance()->controlMethod() );
+    boost::any a( document::instance()->controlMethod() );
+    for ( auto dock: dockWidgets() ) {
+        if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
+            widget->OnInitialUpdate();
+            widget->setContents( a );
+        }
+    }
 
     setSimpleDockWidgetArrangement();
-
-    // QList< QDockWidget *> widgets = dockWidgets();
-    // for ( auto w: widgets ) {
-    //     if ( auto t = w->findChild< u5303AMethodWidget * >() )
-    //         t->onInitialUpdate();
-    // }
 
     connect( document::instance(), SIGNAL( on_reply(const QString&, const QString&) )
              , this, SLOT( handle_reply( const QString&, const QString& ) ) );
 
-    // connect( document::instance(), SIGNAL( on_waveform_received() ), this, SLOT( handle_waveform() ) );
     connect( document::instance(), SIGNAL( on_status(int) ), this, SLOT( handle_status(int) ) );
     for ( auto action: actions_ )
         action->setEnabled( false );
+
     actions_[ idActConnect ]->setEnabled( true );
 
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
     }
-
+    
 }
 
 void
@@ -199,7 +185,11 @@ MainWindow::createContents( Core::IMode * mode )
         editorWidget->setLayout( editorHolderLayout );
 
         editorHolderLayout->addWidget( createTopStyledToolbar() );
-        editorHolderLayout->addWidget( new WaveformWnd() );
+        if ( auto wnd = new WaveformWnd() ) {
+            editorHolderLayout->addWidget( wnd );
+            connect( document::instance(), &document::on_threshold_method_changed, wnd, &WaveformWnd::handle_threshold_method );
+            connect( document::instance(), &document::onControlMethodChanged, wnd, &WaveformWnd::handle_method );            
+        }
         
         //---------- central widget ------------
         if ( QWidget * centralWidget = new QWidget ) {
@@ -517,30 +507,39 @@ MainWindow::handle_status( int status )
     }
 }
 
-bool
-MainWindow::editor_factories( iSequenceImpl& impl )
-{
-    impl << iEditorFactoryPtr( new iEditorFactoryT<u5303AMethodWidget>( *this, "U5303A" ) );
-    return true;        
-}
+//bool
+//MainWindow::editor_factories( iSequenceImpl& impl )
+//{
+    //impl << iEditorFactoryPtr( new iEditorFactoryT<u5303AMethodWidget>( *this, "U5303A" ) );
+//    return true;        
+//}
 
 
 void
-MainWindow::setControlMethod( const adcontrols::ControlMethod::Method& m )
+MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> m )
 {
-    editor_->setControlMethod( m );
+    boost::any a( m );
+    for ( auto dock: dockWidgets() ) {
+        if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
+            widget->setContents( a );
+        }
+    }
 }
 
 void
-MainWindow::getControlMethod( adcontrols::ControlMethod::Method& m )
+MainWindow::getControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method > ptr )
 {
-    editor_->getControlMethod( m );
+    boost::any a( ptr );
+    for ( auto dock: dockWidgets() ) {
+        if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
+            widget->getContents( a );
+        }
+    }
 }
 
 void
 MainWindow::editor_commit()
 {
-    
     // editor_->commit();
     // todo...
 }

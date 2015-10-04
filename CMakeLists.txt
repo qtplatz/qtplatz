@@ -5,9 +5,9 @@ cmake_minimum_required (VERSION 2.8.9)
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW )
 
-option( DEBUG_SYMBOL "DEBUG_SYMBOL" OFF )
-
-set( QTPLATZ_CORELIB_ONLY CACHE BOOL OFF )
+set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
+set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
+set ( QTPLATZ_SUPPORT_CORBA ON CACHE BOOL "SUPPORT CORBA" )
 
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
@@ -19,7 +19,6 @@ endif()
 
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
-#set( CMAKE_BUILD_TYPE Release )
 
 # cofigure boost & compiler
 include (qtplatz.cmake)
@@ -74,6 +73,43 @@ else() # Linux
   set( CPACK_SET_DESTDIR ON )
 endif()
 
+message( STATUS "---------------------------------" )
+find_package( Boost REQUIRED )
+include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
+
+if ( NOT QTPLATZ_CORELIB_ONLY )
+  find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
+  if ( Qt5_FOUND )
+    message( STATUS "Found the Qt5 libraries at " ${Qt5_DIR} )      
+    find_package( qwt )
+    message( STATUS "Found the QWT library at " ${qwt_DIR} )
+  else()
+    message( STATUS "Qt5 NOT Found" )
+  endif()
+endif()
+
+find_package( rdkit QUIET )
+if ( rdkit_FOUND )
+  message( STATUS "Found the RDKit VERSION: " ${RDKit_PACKAGE_VERSION} " at " ${RDKit_INCLUDE_DIRS} " libs: "  ${RDKit_LIBRARY_DIRS} )
+  add_definitions(-DHAVE_RDKit=1)
+else()
+  message( STATUS "No RDKit found" )
+endif()
+
+if ( QTPLATZ_SUPPORT_CORBA )
+  find_package( ace+tao QUIET )
+  if ( ace+tao_FOUND )
+    message( STATUS "Found the ACE+TAO libraries at: " ${ace+tao_DIR} )
+    add_definitions(-DHAVE_TAO=1)
+  else()
+    message( STATUS "No ACE+TAO found" )
+    set ( QTPLATZ_SUPPORT_CORBA OFF )
+  endif()
+endif()
+
+message( STATUS "---------------------------------" )
+
+
 configure_file(
   ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
   ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
@@ -98,37 +134,6 @@ if ( WIN32 )
 endif()
 
 install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION / COMPONENT libraries )
-
-message( STATUS "---------------------------------" )
-find_package( Boost REQUIRED )
-include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
-
-if ( NOT QTPLATZ_CORELIB_ONLY )
-  find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
-  if ( Qt5_FOUND )
-    message( STATUS "Found the Qt5 libraries at " ${Qt5_DIR} )      
-    find_package( qwt )
-    message( STATUS "Found the QWT library at " ${qwt_DIR} )
-  else()
-    message( STATUS "Qt5 NOT Found" )
-  endif()
-endif()
-
-find_package( rdkit QUIET )
-if ( rdkit_FOUND )
-  message( STATUS "Found the RDKit VERSION: " ${RDKit_PACKAGE_VERSION} " at " ${RDKit_INCLUDE_DIRS} " libs: "  ${RDKit_LIBRARY_DIRS} )
-  add_definitions(-DHAVE_RDKit=1)
-else()
-  message( STATUS "No RDKit found" )
-endif()
-
-find_package( ace+tao QUIET )
-if ( ace+tao_FOUND )
-  message( STATUS "Found the ACE+TAO libraries at: " ${ace+tao_DIR} )
-else()
-  message( STATUS "No ACE+TAO found" )
-endif()
-message( STATUS "---------------------------------" )
 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 

@@ -26,6 +26,8 @@
 #include "mainwindow.hpp"
 #include "u5303a_constants.hpp"
 #include <u5303a/digitizer.hpp>
+#include <u5303acontrols/method.hpp>
+#include <u5303acontrols/metadata.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -40,6 +42,8 @@
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -104,21 +108,29 @@ namespace u5303a {
         }
     };
 
+    class document::impl {
+    public:
+        impl() {}
+    };
+
 }
     
 document::document() : digitizer_( new u5303a::digitizer )
                      , exec_( new exec() )
                      , device_status_( 0 )
                      , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
+                     , method_( std::make_shared< u5303acontrols::method >() )
                      , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                  , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                  , QLatin1String( "u5303a" ) ) )
+                     , impl_( new impl() )
 {
 }
 
 document::~document()
 {
     delete digitizer_;
+    delete impl_;
 }
 
 document *
@@ -145,7 +157,7 @@ document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
 
-    MainWindow::instance()->getControlMethod( *cm_ );
+    MainWindow::instance()->getControlMethod( cm_ );
 
     if ( exec_->prepare_for_run( *cm_ ) ) {
         digitizer_->peripheral_prepare_for_run( *exec_->ctrlm_ );
@@ -220,13 +232,71 @@ document::findWaveform( uint32_t serialnumber )
 	return 0;
 }
 
-#if 0
-const u5303a::method&
+std::shared_ptr< const u5303acontrols::method >
 document::method() const
 {
-    return *method_;
+    return method_;
 }
+
+std::shared_ptr< adcontrols::MassSpectrum >
+document::getHistogram( double resolution ) const
+{
+    u5303acontrols::metadata meta;
+    std::vector< std::pair< double, uint32_t > > hist;
+
+    auto sp = std::make_shared< adcontrols::MassSpectrum >();    
+    std::pair<uint32_t,uint32_t> serialnumber;
+    std::pair<uint64_t,uint64_t> timeSinceEpoch;
+#if 0
+    if ( size_t trigCount = impl_->getHistogram( hist, meta, serialnumber, timeSinceEpoch ) ) {
+        
+        using namespace adcontrols::metric;
+        
+        sp->setCentroid( adcontrols::CentroidNative );
+        
+        adcontrols::MSProperty prop = sp->getMSProperty();
+        adcontrols::MSProperty::SamplingInfo info( 0
+                                                   , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
+                                                   , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
+                                                   , uint32_t( trigCount )
+                                                   , 0 );
+        info.fSampInterval( meta.xIncrement );
+        prop.acceleratorVoltage( 3000 );
+        prop.setSamplingInfo( info );
+        
+        prop.setTimeSinceInjection( meta.initialXTimeSeconds );
+        prop.setTimeSinceEpoch( timeSinceEpoch.second );
+        prop.setDataInterpreterClsid( "ap240" );
+        
+        {
+            ap240::device_data data;
+            data.meta = meta;
+            std::string ar;
+            adportable::binary::serialize<>()( data, ar );
+            prop.setDeviceData( ar.data(), ar.size() );
+        }
+        
+        sp->setMSProperty( prop );
+
+        if ( resolution > meta.xIncrement ) {
+
+            std::vector< double > times, intens;
+            ap240x::histogram::average( hist, resolution, times, intens );
+            sp->resize( times.size() );
+            sp->setTimeArray( times.data() );
+            sp->setIntensityArray( intens.data() );
+        } else {
+            sp->resize( hist.size() );            
+            for ( size_t idx = 0; idx < hist.size(); ++idx ) {
+                sp->setTime( idx, hist[idx].first );
+                sp->setIntensity( idx, hist[idx].second );
+            }
+        }
+    }
 #endif
+    return sp;
+}
+
 
 // static
 bool
@@ -315,15 +385,28 @@ document::initialSetup()
     } else {
         path = QFileInfo( path ).path();
     }
-    // fake project directory for help initial openfiledialog location
-    Core::DocumentManager::setProjectsDirectory( path );
-    Core::DocumentManager::setUseProjectsDirectory( true );
 
-    boost::filesystem::path mfile( dir / "default.cmth" );
-    adcontrols::ControlMethod::Method cm;
-    if ( load( QString::fromStdWString( mfile.wstring() ), cm ) ) {
-        setControlMethod( cm, QString() ); // don't save default name
-    }
+    do {
+        boost::filesystem::path mfile( dir / "u5303a.cmth.xml" );
+        u5303acontrols::method m;
+        if ( load( QString::fromStdWString( mfile.wstring() ), m ) )
+            *method_ = m;
+
+        if ( cm_ ) {
+            cm_->append<>( m );
+        }
+
+    } while ( 0 );
+    
+    
+#if 0
+    do {
+        boost::filesystem::path mfile( dir / "u5303a.cmth" );
+        adcontrols::ControlMethod::Method cm;
+        if ( load( QString::fromStdWString( mfile.wstring() ), cm ) )
+            setControlMethod( cm, QString() ); // don't save default name
+    } while ( 0 );
+#endif
 }
 
 void
@@ -337,9 +420,21 @@ document::finalClose()
             return;
         }
     }
+
+    MainWindow::instance()->getControlMethod( cm_ );
+    auto it = cm_->find( cm_->begin(), cm_->end(), u5303acontrols::method::modelClass() );
+    if ( it != cm_->end() ) {
+        u5303acontrols::method x;
+        if ( it->get<>( *it, x ) ) {
+            boost::filesystem::path fname( dir / "u5303a.cmth.xml" );
+            save( QString::fromStdWString( fname.wstring() ), x );
+        }
+    }
+#if 0
     MainWindow::instance()->getControlMethod( *cm_ );
-    boost::filesystem::path fname( dir / "default.cmth" );
+    boost::filesystem::path fname( dir / "u5303a.cmth" );
     save( QString::fromStdWString( fname.wstring() ), *cm_ );
+#endif
 }
 
 void
@@ -370,6 +465,34 @@ document::recentFile( const char * group, bool dir_on_fail )
         return QString::fromStdWString( adportable::profile::user_data_dir< wchar_t >() );
     }
     return QString();
+}
+
+bool
+document::load( const QString& filename, u5303acontrols::method& m )
+{
+    try {
+
+        std::wifstream inf( filename.toStdString() );
+        boost::archive::xml_wiarchive ar( inf );
+        
+        ar >> boost::serialization::make_nvp( "u5303a_method", m );
+
+        return true;
+
+    } catch( ... ) {
+        std::cout << "############# u5303acontrols::method load failed" << std::endl;
+    }
+    return false;
+}
+
+bool
+document::save( const QString& filename, const u5303acontrols::method& m )
+{
+    std::wofstream outf( filename.toStdString() );
+
+    boost::archive::xml_woarchive ar( outf );
+    ar << boost::serialization::make_nvp( "u5303a_method", m );
+    return true;
 }
 
 bool
@@ -454,6 +577,12 @@ document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QS
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
         cm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
+        auto it = cm_->find( cm_->begin(), cm_->end(), u5303acontrols::method::modelClass() );
+        if ( it != cm_->end() ) {
+            u5303acontrols::method m;
+            if ( it->get( *it, m ) )
+                * method_ = m;
+        }
     } while(0);
 
     if ( ! filename.isEmpty() ) {
@@ -464,3 +593,41 @@ document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QS
     emit onControlMethodChanged( filename );
 }
 
+double
+document::triggers_per_second() const
+{
+    return 0; //impl_->triggers_per_sec();
+}
+
+size_t
+document::unprocessed_trigger_counts() const
+{
+    return 0; //impl_->unprocessed_trigger_counts();
+}
+
+void
+document::save_histogram( size_t tickCount, const adcontrols::MassSpectrum& hist )
+{
+#if 0
+    std::ofstream of( impl_->hist_datafile(), std::ios_base::out | std::ios_base::app );
+
+    const double * times = hist.getTimeArray();
+    const double * intens = hist.getIntensityArray();
+    const adcontrols::MSProperty& prop = hist.getMSProperty();
+
+    of << boost::format("\n%d, %.8lf, %.14le") % tickCount % prop.timeSinceInjection() % prop.instTimeRange().first;
+    for ( size_t i = 0; i < hist.size(); ++i )
+        of << boost::format(", %.14le, %d" ) % times[ i ] % uint32_t( intens[ i ] );
+#endif
+}
+
+void
+document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
+{
+    if ( ch == 0 ) {
+        auto ptr = std::make_shared< u5303acontrols::method >( *method_ );
+        ptr->threshold_ = m;
+        method_ = ptr;
+        emit on_threshold_method_changed( ch );
+    }
+}

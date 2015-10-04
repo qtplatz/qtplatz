@@ -104,6 +104,9 @@ namespace ap240controls {
     public:
         method();
         method( const method& t );
+
+        static const char * modelClass() { return "ap240"; };
+        
         uint32_t channels_;
         horizontal_method hor_;
         trigger_method trig_;

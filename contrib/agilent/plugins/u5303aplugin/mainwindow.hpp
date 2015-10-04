@@ -36,7 +36,7 @@ class QToolButton;
 class QAction;
 
 namespace adcontrols { class MassSpectrum; class Trace; namespace ControlMethod { class Method; } }
-namespace adwidgets { class ControlMethodWidget; }
+namespace u5303acontrols { class method; }
 
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
@@ -69,9 +69,9 @@ namespace u5303a {
 
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::Trace&, const std::wstring& traceId );
-		bool editor_factories( iSequenceImpl& );
-        void setControlMethod( const adcontrols::ControlMethod::Method& );
-        void getControlMethod( adcontrols::ControlMethod::Method& m );
+        //bool editor_factories( iSequenceImpl& );
+        void setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> );
+        void getControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method> m );
         void editor_commit();
 
     private:
@@ -99,7 +99,6 @@ namespace u5303a {
 	private:
         QAction * actionConnect_;
         static MainWindow * instance_;
-        adwidgets::ControlMethodWidget * editor_;
 
         void setToolBarDockWidget( QDockWidget * dock );
         void createDockWidgets();

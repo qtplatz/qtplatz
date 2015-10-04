@@ -183,6 +183,19 @@ Method::push_back( const MethodItem& item )
     impl_->items_.push_back( item );
 }
 
+bool
+Method::add( const MethodItem& item, bool uniq )
+{
+    if ( uniq ) {
+        auto it = std::find_if( begin(), end(), [item] ( const MethodItem& a ) { return item == a; } );
+        if ( it != end() )
+            impl_->items_.erase( it );
+    }
+    insert( item );
+    return true;
+}
+
+
 void
 Method::sort()
 {
@@ -257,6 +270,16 @@ MethodItem::MethodItem( const MethodItem& t ) : modelname_( t.modelname_ )
                                               , label_( t.label_ )
                                               , data_( t.data_ )
 {
+}
+
+bool
+MethodItem::operator == ( const MethodItem& t ) const
+{
+    if ( isInitialCondition() ) {
+        return modelname_ == t.modelname() && unitnumber_ == t.unitnumber() && isInitialCondition();
+    } else {
+        return modelname_ == t.modelname() && unitnumber_ == t.unitnumber() && adportable::compare<double>::essentiallyEqual( time_, t.time_ );
+    }
 }
 
 const std::string&

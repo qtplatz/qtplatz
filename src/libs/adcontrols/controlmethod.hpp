@@ -83,6 +83,8 @@ namespace adcontrols {
             const std::string& description() const;
             void setDescription( const char * );
 
+            bool operator == ( const MethodItem& ) const;
+
             template< typename T > static bool set( MethodItem& mi, const T& t
                                                     , std::function<bool( std::ostream&, const T& )> serialize = T::archive) {
                 std::ostringstream o;
@@ -96,7 +98,7 @@ namespace adcontrols {
             template< typename T > static bool get( const MethodItem& mi, T& t
                                                     , std::function<bool( std::istream&, T& )> deserialize = T::restore ) {
                 std::istringstream i( std::string( mi.data(), mi.size() ) );
-                return deserialize( i, t );
+                try { return deserialize( i, t ); } catch ( std::exception& ) { return false; }
             }
             
         private:
@@ -163,6 +165,7 @@ namespace adcontrols {
             iterator erase( iterator first, iterator last );
             iterator insert( const MethodItem& );
             void push_back( const MethodItem& );
+            bool add( const MethodItem&, bool unique );
             const idAudit& ident() const;
             void sort();
             void clear();
@@ -172,7 +175,15 @@ namespace adcontrols {
              */
             iterator find( iterator first, iterator last, const char * modelname, int unitnumber = ( -1 ) );
             const_iterator find( const_iterator first, const_iterator last, const char * modelname, int unitnumber = ( -1 ) ) const;
-
+            
+            template< typename T > bool append( const T& t
+                                                , const char * modelname = T::modelClass()
+                                                , int unitnumber = ( -1 )
+                                                , std::function<bool( std::ostream&, const T& )> serialize = T::archive) {
+                MethodItem mi( modelname, unitnumber );
+                return MethodItem::set( mi, t, serialize ) && add( mi, true );
+            }
+            
             static bool archive( std::ostream&, const Method& );
             static bool restore( std::istream&, Method& );
             static bool xml_archive( std::wostream&, const Method& );
