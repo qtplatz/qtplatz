@@ -26,8 +26,8 @@
 #include "mainwindow.hpp"
 #include "u5303a_constants.hpp"
 #include <u5303a/digitizer.hpp>
-#include <u5303acontrols/method.hpp>
-#include <u5303acontrols/metadata.hpp>
+#include <acqrscontrols/u5303a/method.hpp>
+#include <acqrscontrols/u5303a/metadata.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -119,7 +119,7 @@ document::document() : digitizer_( new u5303a::digitizer )
                      , exec_( new exec() )
                      , device_status_( 0 )
                      , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
-                     , method_( std::make_shared< u5303acontrols::method >() )
+                     , method_( std::make_shared< acqrscontrols::u5303a::method >() )
                      , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                  , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                  , QLatin1String( "u5303a" ) ) )
@@ -232,7 +232,7 @@ document::findWaveform( uint32_t serialnumber )
 	return 0;
 }
 
-std::shared_ptr< const u5303acontrols::method >
+std::shared_ptr< const acqrscontrols::u5303a::method >
 document::method() const
 {
     return method_;
@@ -241,7 +241,7 @@ document::method() const
 std::shared_ptr< adcontrols::MassSpectrum >
 document::getHistogram( double resolution ) const
 {
-    u5303acontrols::metadata meta;
+    acqrscontrols::u5303a::metadata meta;
     std::vector< std::pair< double, uint32_t > > hist;
 
     auto sp = std::make_shared< adcontrols::MassSpectrum >();    
@@ -388,7 +388,7 @@ document::initialSetup()
 
     do {
         boost::filesystem::path mfile( dir / "u5303a.cmth.xml" );
-        u5303acontrols::method m;
+        acqrscontrols::u5303a::method m;
         if ( load( QString::fromStdWString( mfile.wstring() ), m ) )
             *method_ = m;
 
@@ -422,9 +422,9 @@ document::finalClose()
     }
 
     MainWindow::instance()->getControlMethod( cm_ );
-    auto it = cm_->find( cm_->begin(), cm_->end(), u5303acontrols::method::modelClass() );
+    auto it = cm_->find( cm_->begin(), cm_->end(), acqrscontrols::u5303a::method::modelClass() );
     if ( it != cm_->end() ) {
-        u5303acontrols::method x;
+        acqrscontrols::u5303a::method x;
         if ( it->get<>( *it, x ) ) {
             boost::filesystem::path fname( dir / "u5303a.cmth.xml" );
             save( QString::fromStdWString( fname.wstring() ), x );
@@ -468,7 +468,7 @@ document::recentFile( const char * group, bool dir_on_fail )
 }
 
 bool
-document::load( const QString& filename, u5303acontrols::method& m )
+document::load( const QString& filename, acqrscontrols::u5303a::method& m )
 {
     try {
 
@@ -480,13 +480,13 @@ document::load( const QString& filename, u5303acontrols::method& m )
         return true;
 
     } catch( ... ) {
-        std::cout << "############# u5303acontrols::method load failed" << std::endl;
+        std::cout << "############# acqrscontrols::u5303a::method load failed" << std::endl;
     }
     return false;
 }
 
 bool
-document::save( const QString& filename, const u5303acontrols::method& m )
+document::save( const QString& filename, const acqrscontrols::u5303a::method& m )
 {
     std::wofstream outf( filename.toStdString() );
 
@@ -577,9 +577,9 @@ document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QS
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
         cm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
-        auto it = cm_->find( cm_->begin(), cm_->end(), u5303acontrols::method::modelClass() );
+        auto it = cm_->find( cm_->begin(), cm_->end(), acqrscontrols::u5303a::method::modelClass() );
         if ( it != cm_->end() ) {
-            u5303acontrols::method m;
+            acqrscontrols::u5303a::method m;
             if ( it->get( *it, m ) )
                 * method_ = m;
         }
@@ -625,7 +625,7 @@ void
 document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
 {
     if ( ch == 0 ) {
-        auto ptr = std::make_shared< u5303acontrols::method >( *method_ );
+        auto ptr = std::make_shared< acqrscontrols::u5303a::method >( *method_ );
         ptr->threshold_ = m;
         method_ = ptr;
         emit on_threshold_method_changed( ch );

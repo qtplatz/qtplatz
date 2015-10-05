@@ -29,8 +29,8 @@
 #include "u5303a_constants.hpp"
 #include "u5303amethodwidget.hpp"
 #include <u5303a/digitizer.hpp>
-#include <u5303acontrols/method.hpp>
-#include <ap240w/thresholdwidget.hpp>
+#include <acqrscontrols/u5303a/method.hpp>
+#include <acqrswidgets/thresholdwidget.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>

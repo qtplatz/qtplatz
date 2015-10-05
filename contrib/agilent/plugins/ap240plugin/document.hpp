@@ -37,8 +37,7 @@ namespace adcontrols {
 }
 
 namespace adextension { class iSequenceImpl; }
-namespace ap240controls { class method; class waveform; class threshold_result; }
-namespace ap240x = ap240controls;
+namespace acqrscontrols { namespace ap240 { class method; class waveform; class threshold_result; } }
 
 namespace ap240 {
     class digitizer;
@@ -62,21 +61,21 @@ namespace ap240 {
         void ap240_trigger_inject();
         void prepare_for_run();
 
-        typedef std::pair<std::shared_ptr< const ap240x::threshold_result >, std::shared_ptr< const ap240x::threshold_result > > waveforms_t;
+        typedef std::pair<std::shared_ptr< const acqrscontrols::ap240::threshold_result >, std::shared_ptr< const acqrscontrols::ap240::threshold_result > > waveforms_t;
 
         waveforms_t findWaveform( uint32_t serialnumber = (-1) );
         std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
         
         int32_t device_status() const;
 
-        static bool toMassSpectrum( adcontrols::MassSpectrum&, const ap240controls::waveform& );
+        static bool toMassSpectrum( adcontrols::MassSpectrum&, const acqrscontrols::ap240::waveform& );
         static bool appendOnFile( const std::wstring& path, const std::wstring& title, const adcontrols::MassSpectrum&, std::wstring& id );
 
         QSettings * settings() { return settings_.get(); }
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
-        std::shared_ptr< ap240controls::method> controlMethod() const;
-        void setControlMethod( const ap240controls::method& m, const QString& filename );
+        std::shared_ptr< acqrscontrols::ap240::method> controlMethod() const;
+        void setControlMethod( const acqrscontrols::ap240::method& m, const QString& filename );
 
         std::shared_ptr< const adcontrols::threshold_method> threshold_method( int ch ) const;
         void set_threshold_method( int ch, const adcontrols::threshold_method& );
@@ -90,8 +89,8 @@ namespace ap240 {
         adextension::iSequenceImpl * iSequence();
         ap240::iControllerImpl * iController();
 
-        static bool load( const QString& filename, ap240controls::method& );
-        static bool save( const QString& filename, const ap240controls::method& );
+        static bool load( const QString& filename, acqrscontrols::ap240::method& );
+        static bool save( const QString& filename, const acqrscontrols::ap240::method& );
         
     private:
         class impl;
@@ -99,14 +98,14 @@ namespace ap240 {
         
         ap240::digitizer * digitizer_;
         
-        std::shared_ptr< ap240controls::method > method_;
+        std::shared_ptr< acqrscontrols::ap240::method > method_;
 
         int32_t device_status_;
         std::shared_ptr< QSettings > settings_;  // user scope settings
         QString ctrlmethod_filename_;
 
         void reply_handler( const std::string&, const std::string& );
-        bool waveform_handler( const ap240controls::waveform *, const ap240controls::waveform *, ap240controls::method& );
+        bool waveform_handler( const acqrscontrols::ap240::waveform *, const acqrscontrols::ap240::waveform *, acqrscontrols::ap240::method& );
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();

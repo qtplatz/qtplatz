@@ -33,7 +33,7 @@ class QwtPlotMarker;
 
 namespace adplot { class ChromatogramWidget; class TraceWidget; class SpectrumWidget; }
 namespace adcontrols { class MassSpectrum; class Trace; }
-namespace u5303acontrols { class waveform; }
+namespace acqrscontrols { namespace u5303a { class waveform; } }
 
 namespace u5303a {
 
@@ -46,7 +46,7 @@ namespace u5303a {
         ~WaveformWnd();
         
         void onInitialUpdate();
-        void setData( const std::shared_ptr< const u5303acontrols::waveform >& );
+        void setData( const std::shared_ptr< const acqrscontrols::u5303a::waveform >& );
 
     public slots:
         void handle_waveform();

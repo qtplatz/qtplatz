@@ -27,8 +27,8 @@
 #include "icontrollerimpl.hpp"
 #include "mainwindow.hpp"
 #include <ap240/digitizer.hpp>
-#include <ap240controls/histogram.hpp>
-#include <ap240controls/threshold_result.hpp>
+#include <acqrscontrols/ap240/histogram.hpp>
+#include <acqrscontrols/ap240/threshold_result.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -133,8 +133,8 @@ namespace ap240 {
         std::mutex que_mutex_;
         
         std::vector< std::pair<
-                        std::shared_ptr< const ap240controls::waveform >
-                        , std::shared_ptr< const ap240controls::waveform >
+                        std::shared_ptr< const acqrscontrols::ap240::waveform >
+                        , std::shared_ptr< const acqrscontrols::ap240::waveform >
                         > > que_;
 
         inline void clearHistogram() {
@@ -243,7 +243,7 @@ namespace ap240 {
                 t.join();
         }
 
-        void find_threshold_timepoints( const ap240controls::waveform& data, const adcontrols::threshold_method& method
+        void find_threshold_timepoints( const acqrscontrols::ap240::waveform& data, const adcontrols::threshold_method& method
                                         , std::vector< uint32_t >& elements, std::vector<double>& processed ) {
 
             const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
@@ -316,7 +316,7 @@ namespace ap240 {
             }
         }
 
-        void handle_waveform( std::pair<std::shared_ptr< const ap240controls::waveform >, std::shared_ptr< const ap240controls::waveform > > pair ) {
+        void handle_waveform( std::pair<std::shared_ptr< const acqrscontrols::ap240::waveform >, std::shared_ptr< const acqrscontrols::ap240::waveform > > pair ) {
 
             if ( !pair.first && !pair.second ) // empty
                 return;
@@ -418,7 +418,7 @@ std::mutex document::impl::mutex_;
 document::document() : impl_( new impl() )
                      , digitizer_( new ap240::digitizer )
                      , device_status_( 0 )
-                     , method_( std::make_shared< ap240controls::method >() )
+                     , method_( std::make_shared< acqrscontrols::ap240::method >() )
                      , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                  , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                  , QLatin1String( "ap240" ) ) )
@@ -462,7 +462,7 @@ document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
 
-    ap240controls::method m;
+    acqrscontrols::ap240::method m;
     MainWindow::instance()->getControlMethod( m );
     digitizer_->peripheral_prepare_for_run( m );
 }
@@ -502,7 +502,7 @@ document::reply_handler( const std::string& method, const std::string& reply )
 }
 
 bool
-document::waveform_handler( const ap240controls::waveform * ch1, const ap240controls::waveform * ch2, ap240controls::method& )
+document::waveform_handler( const acqrscontrols::ap240::waveform * ch1, const acqrscontrols::ap240::waveform * ch2, acqrscontrols::ap240::method& )
 {
     impl_->waveform_post_count()++;
     
@@ -531,7 +531,7 @@ document::findWaveform( uint32_t serialnumber )
 
 // static
 bool
-document::toMassSpectrum( adcontrols::MassSpectrum& sp, const ap240controls::waveform& waveform )
+document::toMassSpectrum( adcontrols::MassSpectrum& sp, const acqrscontrols::ap240::waveform& waveform )
 {
     using namespace adcontrols::metric;
 
@@ -634,7 +634,7 @@ document::initialSetup()
     Core::DocumentManager::setUseProjectsDirectory( true );
 
     boost::filesystem::path mfile( dir / "ap240.xml" );
-    ap240controls::method m;
+    acqrscontrols::ap240::method m;
     if ( load( QString::fromStdWString( mfile.wstring() ), m ) )
         setControlMethod( m, QString() ); // don't save default name
     
@@ -665,7 +665,7 @@ document::finalClose()
             return;
         }
     }
-    ap240controls::method m;
+    acqrscontrols::ap240::method m;
     MainWindow::instance()->getControlMethod( m );
     boost::filesystem::path fname( dir / "ap240.xml" );
     save( QString::fromStdWString( fname.wstring() ), m );
@@ -708,7 +708,7 @@ document::recentFile( const char * group, bool dir_on_fail )
 }
 
 bool
-document::load( const QString& filename, ap240controls::method& m )
+document::load( const QString& filename, acqrscontrols::ap240::method& m )
 {
     try {
 
@@ -726,7 +726,7 @@ document::load( const QString& filename, ap240controls::method& m )
 }
 
 bool
-document::save( const QString& filename, const ap240controls::method& m )
+document::save( const QString& filename, const acqrscontrols::ap240::method& m )
 {
     std::wofstream outf( filename.toStdString() );
 
@@ -735,7 +735,7 @@ document::save( const QString& filename, const ap240controls::method& m )
     return true;
 }
 
-std::shared_ptr< ap240controls::method >
+std::shared_ptr< acqrscontrols::ap240::method >
 document::controlMethod() const
 {
     std::lock_guard< std::mutex > lock( impl::mutex_ );
@@ -743,11 +743,11 @@ document::controlMethod() const
 }
 
 void
-document::setControlMethod( const ap240controls::method& m, const QString& filename )
+document::setControlMethod( const acqrscontrols::ap240::method& m, const QString& filename )
 {
     do {
         std::lock_guard< std::mutex > lock( impl::mutex_ );
-        method_ = std::make_shared< ap240controls::method >( m );
+        method_ = std::make_shared< acqrscontrols::ap240::method >( m );
         digitizer_->peripheral_prepare_for_run( m );
     } while(0);
 

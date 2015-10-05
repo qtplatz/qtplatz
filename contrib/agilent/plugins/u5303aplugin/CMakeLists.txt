@@ -94,11 +94,11 @@ target_link_libraries(
   adorbmgr
   adlog
   adportable
-  ap240w
+  acqrswidgets
   xmlparser
   Core
   u5303a
-  u5303acontrols
+  acqrscontrols
   u5303aspectrometer
   ${Boost_LIBRARIES}
   )

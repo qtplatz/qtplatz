@@ -36,7 +36,7 @@ class QToolButton;
 class QAction;
 
 namespace adcontrols { class MassSpectrum; class Trace; namespace ControlMethod { class Method; } }
-namespace u5303acontrols { class method; }
+namespace acqrscontrols { class method; }
 
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }

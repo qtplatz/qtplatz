@@ -24,7 +24,7 @@
 
 #include "u5303amethodtable.hpp"
 #include <u5303a/digitizer.hpp>
-#include <u5303acontrols/method.hpp>
+#include <acqrscontrols/u5303a/method.hpp>
 #include <qtwrapper/font.hpp>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
@@ -202,7 +202,7 @@ u5303AMethodTable::setContents( const u5303a::method& m )
 }
 
 bool
-u5303AMethodTable::setContents( const u5303acontrols::device_method& m )
+u5303AMethodTable::setContents( const acqrscontrols::u5303a::device_method& m )
 {
     QStandardItemModel& model = *model_;
     
@@ -264,7 +264,7 @@ u5303AMethodTable::getContents( u5303a::method& m )
 }
 
 bool
-u5303AMethodTable::getContents( u5303acontrols::device_method& m )
+u5303AMethodTable::getContents( acqrscontrols::u5303a::device_method& m )
 {
     QStandardItemModel& model = *model_;
 

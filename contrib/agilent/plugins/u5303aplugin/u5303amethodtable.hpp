@@ -29,7 +29,7 @@
 
 class QStandardItemModel;
 
-namespace u5303acontrols { class device_method; }
+namespace acqrscontrols { namespace u5303a { class device_method; } }
 
 namespace u5303a {
 
@@ -44,8 +44,8 @@ namespace u5303a {
         void onInitialUpdate();
         bool setContents( const u5303a::method& );
         bool getContents( u5303a::method& );
-        bool setContents( const u5303acontrols::device_method& );
-        bool getContents( u5303acontrols::device_method& );
+        bool setContents( const acqrscontrols::u5303a::device_method& );
+        bool getContents( acqrscontrols::u5303a::device_method& );
 
     private:
         QStandardItemModel * model_;

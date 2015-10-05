@@ -32,7 +32,7 @@
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
 #include <u5303a/digitizer.hpp>
-#include <u5303acontrols/method.hpp>
+#include <acqrscontrols/u5303a/method.hpp>
 
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
@@ -121,9 +121,9 @@ u5303AMethodWidget::getContents( boost::any& a ) const
 
         adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
 
-        u5303acontrols::method m;
+        acqrscontrols::u5303a::method m;
         
-        auto it = ptr->find( ptr->begin(), ptr->end(), u5303acontrols::method::modelClass() );
+        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
         if ( it != ptr->end() )
             it->get<>( *it, m );
 
@@ -154,14 +154,14 @@ u5303AMethodWidget::setContents( boost::any& a )
             ptr = boost::any_cast<std::shared_ptr< adcontrols::ControlMethod::Method >>( a );
         }
         if ( ptr ) {
-            auto it = ptr->find( ptr->begin(), ptr->end(), u5303acontrols::method::modelClass() );
+            auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
             if ( it != ptr->end() )
                 pi = &( *it );
         }
     }
 
 	if (pi) {
-        u5303acontrols::method m;
+        acqrscontrols::u5303a::method m;
 		try {
             if ( pi->get<>( *pi, m ) ) {
                 if ( auto table = findChild< u5303AMethodTable * >() ) {

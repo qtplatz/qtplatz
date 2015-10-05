@@ -34,7 +34,7 @@ class QSettings;
 
 namespace adcontrols { class MassSpectrum; namespace ControlMethod { class Method; } class threshold_method; }
 
-namespace u5303acontrols { class method; }
+namespace acqrscontrols { namespace u5303a { class method; } }
 
 namespace u5303a {
 
@@ -71,7 +71,7 @@ namespace u5303a {
         std::shared_ptr< adcontrols::ControlMethod::Method > controlMethod() const;
         void setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename );
 
-        std::shared_ptr< const u5303acontrols::method > method() const;
+        std::shared_ptr< const acqrscontrols::u5303a::method > method() const;
         std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
 
         double triggers_per_second() const;
@@ -81,9 +81,9 @@ namespace u5303a {
         void set_threshold_method( int ch, const adcontrols::threshold_method& );
 
         static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
-        static bool load( const QString& filename, u5303acontrols::method& );
+        static bool load( const QString& filename, acqrscontrols::u5303a::method& );
         static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
-        static bool save( const QString& filename, const u5303acontrols::method& );
+        static bool save( const QString& filename, const acqrscontrols::u5303a::method& );
         
     private:
         friend struct detail::remover;
@@ -98,7 +98,7 @@ namespace u5303a {
         u5303a::digitizer * digitizer_;
         std::deque< std::shared_ptr< const waveform > > que_;
         std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
-        std::shared_ptr< u5303acontrols::method > method_;
+        std::shared_ptr< acqrscontrols::u5303a::method > method_;
         std::unique_ptr< exec > exec_;
 
         int32_t device_status_;

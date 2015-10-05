@@ -29,7 +29,7 @@
 #include "mainwindow.hpp"
 #include "document.hpp"
 #include "icontrollerimpl.hpp"
-#include <ap240controls/massspectrometer.hpp>
+#include <acqrscontrols/ap240/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adextension/isequenceimpl.hpp>
@@ -122,7 +122,7 @@ ap240Plugin::initialize( const QStringList &arguments, QString *errorString )
 void
 ap240Plugin::extensionsInitialized()
 {
-    auto factory = ap240controls::MassSpectrometer::instance();
+    auto factory = acqrscontrols::ap240::MassSpectrometer::instance();
 	adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
     document::instance()->initialSetup(); // load default control method
 	mainWindow_->OnInitialUpdate();

@@ -24,8 +24,8 @@
 
 #include "waveformwnd.hpp"
 #include "document.hpp"
-#include <u5303acontrols/threshold_result.hpp>
-#include <u5303acontrols/method.hpp>
+#include <acqrscontrols/u5303a/threshold_result.hpp>
+#include <acqrscontrols/u5303a/method.hpp>
 #include <u5303a/digitizer.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/chromatogramwidget.hpp>

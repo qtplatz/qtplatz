@@ -85,8 +85,8 @@ target_link_libraries(
   xmlparser
   Core
   ap240
-  ap240controls
-  ap240w
+  acqrscontrols
+  acqrswidgets
   ${Boost_LIBRARIES}
   )
 
