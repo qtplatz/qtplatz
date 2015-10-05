@@ -71,8 +71,8 @@ add_library( chromatogr SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
 add_library( u5303a SHARED IMPORTED )
 add_library( ap240 SHARED IMPORTED )
-add_library( ap240w SHARED IMPORTED )
-add_library( ap240controls SHARED IMPORTED )
+add_library( acqrswidgets SHARED IMPORTED )
+add_library( acqrscontrols SHARED IMPORTED )
 
 add_library( acewrapper STATIC IMPORTED )
 add_library( adfs STATIC IMPORTED )
@@ -164,12 +164,12 @@ if (WIN32)
   set_target_properties( ap240 PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/ap240.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/ap240d.lib )
-  set_target_properties( ap240w PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/ap240w.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/ap240wd.lib )  
-  set_target_properties( ap240controls PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/ap240controls.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/ap240controlsd.lib )  
+  set_target_properties( acqrswidgets PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acqrswidgets.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acqrswidgetsd.lib )  
+  set_target_properties( acqrscontrols PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acqrscontrols.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acqrscontrolsd.lib )  
   
 elseif ( APPLE )
 
@@ -227,11 +227,11 @@ elseif ( APPLE )
   set_target_properties( portfolio PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libportfolio.dylib )
 
-  set_target_properties( ap240w PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240w.dylib )
+  set_target_properties( acqrswidgets PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrswidgets.dylib )
 
-  set_target_properties( ap240controls PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240controls.dylib )
+  set_target_properties( acqrscontrols PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrscontrols.dylib )
   
 else()  #Linux
 
@@ -292,11 +292,11 @@ else()  #Linux
   set_target_properties( ap240 PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240.so )
 
-  set_target_properties( ap240w PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240w.so )  
+  set_target_properties( acqrswidgets PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrswidgets.so )  
 
-  set_target_properties( ap240controls PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240controls.so )  
+  set_target_properties( acqrscontrols PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrscontrols.so )  
 
 endif()
 
