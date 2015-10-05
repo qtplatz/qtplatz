@@ -42,7 +42,7 @@ simulator::simulator() : sampInterval_( 1.0e-9 )
                        , nbrSamples_( 10000 & ~0x0f )
                        , nbrWaveforms_( 496 )
                        , exitDelay_( 0.0 )
-                       , method_( std::make_shared< u5303a::method >() )
+                       , method_( std::make_shared< acqrscontrols::u5303a::method >() )
 {
 #if 0 // get segmentation falut
     boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
@@ -128,7 +128,7 @@ simulator::waitForEndOfAcquisition()
 }
 
 bool
-simulator::readData( waveform& data )
+simulator::readData( acqrscontrols::u5303a::waveform& data )
 {
     std::shared_ptr< adinterface::waveform_generator > ptr;
 
@@ -141,9 +141,9 @@ simulator::readData( waveform& data )
     } while(0);
 
     if ( ptr ) {
-        data.d_.resize( ptr->nbrSamples() );
-        std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), data.d_.begin() );
-        data.method_ = *method_;
+        auto dp = data.data( ptr->nbrSamples() );
+        std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
+        data.method_ = method_->method_;
         data.method_.digitizer_delay_to_first_sample = startDelay_;
         data.method_.nbr_of_averages = int32_t( nbrWaveforms_ );
         data.method_.digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
@@ -151,7 +151,7 @@ simulator::readData( waveform& data )
         data.meta_.initialXTimeSeconds = ptr->timestamp();
         data.serialnumber_ = ptr->serialNumber();
         data.wellKnownEvents_ = 0;
-        data.meta_.actualPoints = data.d_.size();
+        data.meta_.actualPoints = data.data_size();
         data.meta_.xIncrement = sampInterval_;
         data.meta_.initialXOffset = startDelay_;
         data.meta_.actualAverages = int32_t( nbrWaveforms_ );
@@ -172,11 +172,11 @@ simulator::post( adinterface::waveform_generator * generator )
 }
 
 void
-simulator::setup( const method& m )
+simulator::setup( const acqrscontrols::u5303a::method& m )
 {
     *method_ = m;
-    sampInterval_ = 1.0 / m.samp_rate;
-    startDelay_ = m.digitizer_delay_to_first_sample;
-    nbrSamples_ = m.digitizer_nbr_of_s_to_acquire;
-    nbrWaveforms_ = m.nbr_of_averages;
+    sampInterval_ = 1.0 / m.method_.samp_rate;
+    startDelay_ = m.method_.digitizer_delay_to_first_sample;
+    nbrSamples_ = m.method_.digitizer_nbr_of_s_to_acquire;
+    nbrWaveforms_ = m.method_.nbr_of_averages;
 }

@@ -119,7 +119,7 @@ u5303AMethodTable::onInitialUpdate()
     model.setHeaderData( 2, Qt::Horizontal, QObject::tr( "description" ) );
     // this->setColumnHidden( 3, true );
 
-    u5303a::method m; // constructor default method for initial display
+    acqrscontrols::u5303a::device_method m; // constructor default method for initial display
     int row = 0;
     model.setData( model.index( row, 0 ), "front end range" );
     model.setData( model.index( row, 1 ), m.front_end_range );
@@ -171,37 +171,6 @@ u5303AMethodTable::onInitialUpdate()
 }
 
 bool
-u5303AMethodTable::setContents( const u5303a::method& m )
-{
-    QStandardItemModel& model = *model_;
-    
-    in_progress_ = true;
-
-    int row = 0;
-    model.setData( model.index( row, 1 ), m.front_end_range );
-    ++row;
-    model.setData( model.index( row, 1 ), m.front_end_offset );
-    ++row;
-    model.setData( model.index( row, 1 ), m.samp_rate );
-    ++row;
-    model.setData( model.index( row, 1 ), m.ext_trigger_level );
-    ++row;
-    model.setData( model.index( row, 1 ), m.nbr_of_s_to_acquire_ );
-    ++row;
-    model.setData( model.index( row, 1 ), m.nbr_of_averages );
-    ++row;
-    model.setData( model.index( row, 1 ), m.delay_to_first_sample_ * 1.0e6 ); // s -> us
-    ++row;
-    model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
-    ++row;
-    model.setData( model.index( row, 1 ), m.nsa );
-
-    in_progress_ = false;
-	
-	return true;
-}
-
-bool
 u5303AMethodTable::setContents( const acqrscontrols::u5303a::device_method& m )
 {
     QStandardItemModel& model = *model_;
@@ -232,6 +201,40 @@ u5303AMethodTable::setContents( const acqrscontrols::u5303a::device_method& m )
 	return true;
 }
 
+#if 0
+bool
+u5303AMethodTable::setContents( const acqrscontrols::u5303a::method& m )
+{
+    QStandardItemModel& model = *model_;
+    
+    in_progress_ = true;
+
+    int row = 0;
+    model.setData( model.index( row, 1 ), m.method_.front_end_range );
+    ++row;
+    model.setData( model.index( row, 1 ), m.method_.front_end_offset );
+    ++row;
+    model.setData( model.index( row, 1 ), m.method_.samp_rate );
+    ++row;
+    model.setData( model.index( row, 1 ), m.method_.ext_trigger_level );
+    ++row;
+    model.setData( model.index( row, 1 ), m.method_.nbr_of_s_to_acquire_ );
+    ++row;
+    model.setData( model.index( row, 1 ), m.method_.nbr_of_averages );
+    ++row;
+    model.setData( model.index( row, 1 ), m.method_.delay_to_first_sample_ * 1.0e6 ); // s -> us
+    ++row;
+    model.setData( model.index( row, 1 ), m.method_.invert_signal ? true : false );
+    ++row;
+    model.setData( model.index( row, 1 ), m.method_.nsa );
+
+    in_progress_ = false;
+	
+	return true;
+}
+#endif
+
+#if 0
 bool
 u5303AMethodTable::getContents( u5303a::method& m )
 {
@@ -262,6 +265,7 @@ u5303AMethodTable::getContents( u5303a::method& m )
     in_progress_ = false;
 	return true;
 }
+#endif
 
 bool
 u5303AMethodTable::getContents( acqrscontrols::u5303a::device_method& m )

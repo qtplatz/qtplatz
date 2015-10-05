@@ -32,11 +32,12 @@
 
 namespace boost { namespace asio { class io_service; } }
 namespace adinterface { class waveform_generator;  }
+namespace acqrscontrols { namespace u5303a { class waveform; class method; } }
 
 namespace u5303a {
     
-    class waveform;
-    class method;
+    //class waveform;
+    //class method;
 
     class simulator  {
     public:
@@ -45,8 +46,8 @@ namespace u5303a {
 
         bool acquire( boost::asio::io_service& );
         bool waitForEndOfAcquisition();
-        bool readData( waveform& );
-        void setup( const method& );
+        bool readData( acqrscontrols::u5303a::waveform& );
+        void setup( const acqrscontrols::u5303a::method& );
 
         void protocol_handler( double, double );
 
@@ -64,7 +65,7 @@ namespace u5303a {
         uint32_t nbrSamples_;
         uint32_t nbrWaveforms_;
         double exitDelay_;
-        std::shared_ptr< u5303a::method > method_;
+        std::shared_ptr< acqrscontrols::u5303a::method > method_;
         static simulator * instance_;
 
         void post( adinterface::waveform_generator * );

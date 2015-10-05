@@ -75,8 +75,11 @@ namespace acqrscontrols {
 
             std::pair<double, int> operator [] ( size_t idx ) const;
 
-        private:
+            const identify* ident() const { return ident_.get(); }
+            template<typename const_iterator> const_iterator begin() const { return d_.begin(); }
+            template<typename const_iterator> const_iterator end() const { return d_.end(); }
 
+        private:
 #if defined _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4251)

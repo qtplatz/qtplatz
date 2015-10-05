@@ -52,22 +52,26 @@ namespace acqrscontrols {
             }
         };
 
-        template<> void identify::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        template<> void ACQRSCONTROLSSHARED_EXPORT
+        identify::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
         {
             identify_archive<>().serialize( ar, *this, version );
         }
 
-        template<> void identify::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT
+        void identify::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
         {
             identify_archive<>().serialize( ar, *this, version );
         }
 
-        template<> void identify::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT
+        void identify::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
             identify_archive<>().serialize( ar, *this, version );
         }
 
-        template<> void identify::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT
+        void identify::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
             identify_archive<>().serialize( ar, *this, version );
         }

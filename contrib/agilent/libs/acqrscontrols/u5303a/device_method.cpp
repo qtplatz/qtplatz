@@ -72,12 +72,12 @@ namespace acqrscontrols {
             device_method_archive<>().serialize( ar, *this, version );
         }
 
-        template<> void device_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT void device_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
             device_method_archive<>().serialize( ar, *this, version );
         }
 
-        template<> void device_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT void device_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
             device_method_archive<>().serialize( ar, *this, version );
         }

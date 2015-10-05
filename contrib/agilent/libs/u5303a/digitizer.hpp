@@ -26,6 +26,9 @@
 #define DIGITIZER_HPP
 
 #include "u5303a_global.hpp"
+#include <acqrscontrols/u5303a/identify.hpp>
+#include <acqrscontrols/u5303a/method.hpp>
+#include <acqrscontrols/u5303a/waveform.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
@@ -35,6 +38,7 @@
 
 namespace adcontrols { namespace ControlMethod { class Method; } }
 namespace adportable { class TimeSquaredScanLaw; }
+namespace acqrscontrols { namespace u5303a { class method; class device_method; } }
 
 #if defined _MSC_VER
 # pragma warning(disable:4251)
@@ -43,7 +47,7 @@ namespace adportable { class TimeSquaredScanLaw; }
 namespace u5303a {
 
     namespace detail { class task; }
-
+#if 0
     class U5303ASHARED_EXPORT identify {
     public:
         identify();
@@ -166,7 +170,7 @@ namespace u5303a {
             ar & BOOST_SERIALIZATION_NVP( scaleOffset );
         }
     };
-    
+
 	class U5303ASHARED_EXPORT waveform : public std::enable_shared_from_this< waveform > {
 		waveform( const waveform& ); // = delete;
 		void operator = ( const waveform& ); // = delete;
@@ -187,11 +191,11 @@ namespace u5303a {
     private:
         
     };
-
+#endif 
 	class U5303ASHARED_EXPORT device_data {
     public:
-        identify ident;
-        metadata meta;
+        acqrscontrols::u5303a::identify ident;
+        acqrscontrols::u5303a::metadata meta;
     private:
         friend class boost::serialization::access;
         template<class Archive>
@@ -210,7 +214,7 @@ namespace u5303a {
 
         bool peripheral_initialize();
         bool peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& );
-        bool peripheral_prepare_for_run( const u5303a::method& );
+        bool peripheral_prepare_for_run( const acqrscontrols::u5303a::method& );
         bool peripheral_run();
         bool peripheral_stop();
         bool peripheral_trigger_inject();
@@ -218,7 +222,7 @@ namespace u5303a {
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef std::function< void( const std::string, const std::string ) > command_reply_type;
-        typedef std::function< bool( const waveform *, u5303a::method& ) > waveform_reply_type;
+        typedef std::function< bool( const acqrscontrols::u5303a::waveform *, acqrscontrols::u5303a::method& ) > waveform_reply_type;
 
         void connect_reply( command_reply_type ); // method,reply
         void disconnect_reply( command_reply_type );
@@ -229,8 +233,8 @@ namespace u5303a {
 
 }
 
-BOOST_CLASS_VERSION( u5303a::method, 3 )
-BOOST_CLASS_VERSION( u5303a::metadata, 1 )
-BOOST_CLASS_VERSION( u5303a::identify, 1 )
+//BOOST_CLASS_VERSION( u5303a::method, 3 )
+//BOOST_CLASS_VERSION( u5303a::metadata, 1 )
+//BOOST_CLASS_VERSION( u5303a::identify, 1 )
 
 #endif

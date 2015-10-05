@@ -85,7 +85,7 @@ namespace u5303a {
     public:
         std::chrono::system_clock::time_point tp_start_;
         uint64_t inject_time_point_;
-        u5303a::method u5303a_;
+        acqrscontrols::u5303a::method u5303a_;
         std::shared_ptr< adcontrols::ControlMethod::Method > ctrlm_;
         adcontrols::ControlMethod::Method::const_iterator nextIt_;
 
@@ -101,7 +101,7 @@ namespace u5303a {
                     return mi.modelname() == "u5303a";
                 });
             if ( nextIt_ != ctrlm_->end() ) {
-                adportable::serializer< u5303a::method >::deserialize( u5303a_, nextIt_->data(), nextIt_->size() );
+                adportable::serializer< acqrscontrols::u5303a::method >::deserialize( u5303a_, nextIt_->data(), nextIt_->size() );
                 return true;
             }
             return false;
@@ -202,7 +202,7 @@ document::reply_handler( const std::string& method, const std::string& reply )
 }
 
 bool
-document::waveform_handler( const waveform * p, u5303a::method& )
+document::waveform_handler( const acqrscontrols::u5303a::waveform * p, acqrscontrols::u5303a::method& )
 {
     auto ptr = p->shared_from_this();
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -213,14 +213,14 @@ document::waveform_handler( const waveform * p, u5303a::method& )
     return false;
 }
 
-std::shared_ptr< const waveform >
+std::shared_ptr< const acqrscontrols::u5303a::waveform >
 document::findWaveform( uint32_t serialnumber )
 {
     (void)serialnumber;
     std::lock_guard< std::mutex > lock( mutex_ );
     if ( que_.empty() )
         return 0;
-	std::shared_ptr< const waveform > ptr = que_.back();
+	std::shared_ptr< const acqrscontrols::u5303a::waveform > ptr = que_.back();
     //ADTRACE() << "findWaveform: " << ptr->serialnumber_;
     //if ( serialnumber == (-1) )
     return ptr;
@@ -300,7 +300,7 @@ document::getHistogram( double resolution ) const
 
 // static
 bool
-document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform )
+document::toMassSpectrum( adcontrols::MassSpectrum& sp, const acqrscontrols::u5303a::waveform& waveform )
 {
     using namespace adcontrols::metric;
 
@@ -309,7 +309,7 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     adcontrols::MSProperty prop = sp.getMSProperty();
     adcontrols::MSProperty::SamplingInfo info( 0
                                                , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
-                                               , uint32_t( waveform.d_.size() )
+                                               , uint32_t( waveform.data_size() )
                                                , waveform.method_.nbr_of_averages + 1
                                                , 0 );
     info.fSampInterval( 1.0 / waveform.method_.samp_rate );
@@ -321,7 +321,7 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
     prop.setDataInterpreterClsid( "u5303a" );
 
     u5303a::device_data data;
-    data.ident = *waveform.ident_;
+    data.ident = *waveform.ident();
     data.meta = waveform.meta_;
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
@@ -329,10 +329,12 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const waveform& waveform
 
     // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );
-    sp.resize( waveform.d_.size() );
-	int idx = 0;
-    for ( auto y: waveform.d_ )
-        sp.setIntensity( idx++, y );
+    sp.resize( waveform.data_size() );
+
+    auto dp = waveform.data();
+    for ( size_t idx = 0; idx < waveform.data_size(); ++idx )
+        sp.setIntensity( idx, *dp++ );
+
     // mass array tba
 	return true;
 }

@@ -34,13 +34,13 @@ class QSettings;
 
 namespace adcontrols { class MassSpectrum; namespace ControlMethod { class Method; } class threshold_method; }
 
-namespace acqrscontrols { namespace u5303a { class method; } }
+namespace acqrscontrols { namespace u5303a { class method; class waveform; } }
 
 namespace u5303a {
 
     class digitizer;
-	class method;
-	class waveform;
+	//class method;
+	//class waveform;
 
     namespace detail { struct remover; }
 
@@ -59,10 +59,10 @@ namespace u5303a {
         void u5303a_stop();
         void u5303a_trigger_inject();
         void prepare_for_run();
-        std::shared_ptr< const waveform > findWaveform( uint32_t serialnumber = (-1) );
+        std::shared_ptr< const acqrscontrols::u5303a::waveform > findWaveform( uint32_t serialnumber = (-1) );
         int32_t device_status() const;
 
-        static bool toMassSpectrum( adcontrols::MassSpectrum&, const waveform& );
+        static bool toMassSpectrum( adcontrols::MassSpectrum&, const acqrscontrols::u5303a::waveform& );
         static bool appendOnFile( const std::wstring& path, const std::wstring& title, const adcontrols::MassSpectrum&, std::wstring& id );
 
         QSettings * settings() { return settings_.get(); }
@@ -96,7 +96,7 @@ namespace u5303a {
         static document * instance_;
 
         u5303a::digitizer * digitizer_;
-        std::deque< std::shared_ptr< const waveform > > que_;
+        std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
         std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
         std::shared_ptr< acqrscontrols::u5303a::method > method_;
         std::unique_ptr< exec > exec_;
@@ -106,7 +106,7 @@ namespace u5303a {
         QString ctrlmethod_filename_;
 
         void reply_handler( const std::string&, const std::string& );
-        bool waveform_handler( const waveform *, u5303a::method& );
+        bool waveform_handler( const acqrscontrols::u5303a::waveform *, acqrscontrols::u5303a::method& );
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();

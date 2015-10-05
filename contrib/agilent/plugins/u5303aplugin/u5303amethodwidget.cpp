@@ -72,7 +72,7 @@ u5303AMethodWidget::onInitialUpdate()
 
     if ( auto table = findChild< u5303AMethodTable * >() ) {
         table->onInitialUpdate();
-        table->setContents( u5303a::method() );
+        table->setContents( acqrscontrols::u5303a::device_method() );
     }
 }
 

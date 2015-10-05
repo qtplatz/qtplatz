@@ -42,10 +42,12 @@ namespace acqrscontrols {
             void serialize( Archive& ar, T& _, const unsigned int version ) {
                 // Since V4
                 using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( _.channels_ );
-                ar & BOOST_SERIALIZATION_NVP( _.mode_ );
-                ar & BOOST_SERIALIZATION_NVP( _.method_ );
-                ar & BOOST_SERIALIZATION_NVP( _.threshold_ );
+                if ( version >= 4 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.channels_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.mode_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.method_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.threshold_ );
+                }
             }
 
         };
@@ -60,12 +62,12 @@ namespace acqrscontrols {
             method_archive<>().serialize( ar, *this, version );
         }
 
-        template<> void method::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT void method::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
             method_archive<>().serialize( ar, *this, version );
         }
 
-        template<> void method::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT void method::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
             method_archive<>().serialize( ar, *this, version );
         }
