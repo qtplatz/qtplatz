@@ -77,9 +77,10 @@ AcquiredConf::insert( adfs::sqlite& dbf
     adfs::stmt sql( dbf );
 
     sql.prepare( 
-        "INSERT INTO AcquiredConf VALUES( \
+        "INSERT INTO AcquiredConf VALUES(\
 :objid                 \
 ,:pobjid               \
+,:uuid                 \
 ,:dataInterpreterClsid \
 ,:trace_method         \
 ,:spectrometer         \
@@ -91,22 +92,22 @@ AcquiredConf::insert( adfs::sqlite& dbf
 ,:axis_y_decimals      \
 )" );
     
-    sql.begin();
-
-    sql.bind( 1 ) = objid;
-    sql.bind( 2 ) = pobjid;
-    sql.bind( 3 ) = dataInterpreterClsid;
-    sql.bind( 4 ) = trace_method;
-    sql.bind( 5 ) = spectrometer_type;
-    sql.bind( 6 ) = trace_id;
-    sql.bind( 7 ) = trace_display_name;
-    sql.bind( 8 ) = axis_x_label;
-    sql.bind( 9 ) = axis_y_label;
-    sql.bind( 10 ) = axis_x_decimals;
-    sql.bind( 11 ) = axis_y_decimals;
+    static boost::uuids::uuid nullid { 0 } ;
+    int col = 1;
+    sql.bind( col++ ) = objid;
+    sql.bind( col++ ) = pobjid;
+    sql.bind( col++ ) = nullid;
+    sql.bind( col++ ) = dataInterpreterClsid;
+    sql.bind( col++ ) = trace_method;
+    sql.bind( col++ ) = spectrometer_type;
+    sql.bind( col++ ) = trace_id;
+    sql.bind( col++ ) = trace_display_name;
+    sql.bind( col++ ) = axis_x_label;
+    sql.bind( col++ ) = axis_y_label;
+    sql.bind( col++ ) = axis_x_decimals;
+    sql.bind( col++ ) = axis_y_decimals;
 
     if ( sql.step() == adfs::sqlite_done ) {
-        sql.commit();
         return true;
     } else
         sql.reset();
@@ -231,6 +232,7 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
                 }
                 vec.push_back( d );
             }
+            return true;
         }
 
     } else {
