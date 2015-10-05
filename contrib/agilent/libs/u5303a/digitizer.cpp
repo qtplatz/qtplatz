@@ -378,30 +378,34 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 				
     VARIANT_BOOL idQuery = VARIANT_TRUE;
     VARIANT_BOOL reset   = VARIANT_TRUE;
-
     simulated_ = false;
     bool success = false;
-    try {
-        BSTR strInitOptions = _bstr_t( L"Simulate=false, DriverSetup= Model=U5303A" ); // <-- this file does not exist
-        success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
-    } catch ( _com_error & e ) {
-        ERR(e,"Initialize");
+
+    if ( auto p = getenv( "U5303AOption" ) ) {
+        if ( std::strcmp( p, "simulate" ) == 0 ) {
+            try {
+                BSTR strInitOptions = _bstr_t( L"Simulate=true, DriverSetup= Model=U5303A, Trace=false" );
+                success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
+                simulated_ = true;
+                simulator_ = new u5303a::simulator();
+                // threads for waveform generation
+                threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+                threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+            } catch ( _com_error & e ) {
+                ERR( e, "Initialize" );
+            }
+        }
     }
-    
-    if ( !success ) {
+
+    if ( !simulated_ ) {
         try {
-            BSTR strInitOptions = _bstr_t( L"Simulate=true, DriverSetup= Model=U5303A, Trace=false" );
+            BSTR strInitOptions = _bstr_t( L"Simulate=false, DriverSetup= Model=U5303A" ); // <-- this file does not exist
             success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
-            simulated_ = true;
-            simulator_ = new u5303a::simulator();
-            // threads for waveform generation
-            threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
-            threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
         } catch ( _com_error & e ) {
             ERR( e, "Initialize" );
         }
     }
-
+    
     if ( success ) {
         
         ident_ = std::make_shared< identify >();
@@ -432,10 +436,10 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         for ( auto& reply: reply_handlers_ ) reply( "IOVersion", ident_->IOVersion );
         for ( auto& reply: reply_handlers_ ) reply( "Options", ident_->Options );
 
+        device<UserFDK>::initial_setup( *this, method_ );
         if ( simulated_ )
             device<Simulate>::initial_setup( *this, method_ );
-        else
-            device<UserFDK>::initial_setup( *this, method_ );
+
     }
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
@@ -690,7 +694,7 @@ device<UserFDK>::initial_setup( task& task, const method& m )
     }
     if ( !success ) {
         try {
-            task.spDriver()->Acquisition2->SampleRate = 1.0E9;
+            task.spDriver()->Acquisition2->SampleRate = m.samp_rate;
             success = true;
         } catch ( _com_error& e ) {
             TERR( e, "SampleRate" );

@@ -28,8 +28,8 @@
 #include <atomic>
 #include <memory>
 #include <vector>
-#include <ap240controls/waveform.hpp>
-#include <ap240controls/method.hpp>
+#include <acqrscontrols/ap240/waveform.hpp>
+#include <acqrscontrols/ap240/method.hpp>
 
 namespace boost { namespace asio { class io_service; } }
 namespace adinterface { class waveform_generator;  }
@@ -43,8 +43,8 @@ namespace ap240 {
 
         bool acquire( boost::asio::io_service& );
         bool waitForEndOfAcquisition();
-        bool readData( ap240controls::waveform& );
-        void setup( const ap240controls::method& );
+        bool readData( acqrscontrols::ap240::waveform& );
+        void setup( const acqrscontrols::ap240::method& );
 
         void protocol_handler( double, double );
 
@@ -62,7 +62,7 @@ namespace ap240 {
         uint32_t nbrSamples_;
         uint32_t nbrWaveforms_;
         double exitDelay_;
-        std::shared_ptr< ap240controls::method > method_;
+        std::shared_ptr< acqrscontrols::ap240::method > method_;
         static simulator * instance_;
 
         void post( adinterface::waveform_generator * );

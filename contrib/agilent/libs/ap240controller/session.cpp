@@ -80,7 +80,7 @@ namespace ap240controller { namespace Instrument {
                 ADDEBUG() << "===== ap240 reply ===== " << method << " reply: " << reply;
             }
             
-            bool waveform_handler( const ap240controls::waveform * ch1, const ap240controls::waveform * ch2, ap240controls::method& next ) {
+            bool waveform_handler( const acqrscontrols::ap240::waveform * ch1, const acqrscontrols::ap240::waveform * ch2, acqrscontrols::ap240::method& next ) {
                 if ( masterObserver_ && waveformObserver_ ) {
                     if ( ch1 || ch2 ) {
                         auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
@@ -242,7 +242,7 @@ Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
     if ( m ) {
         auto it = m->find( m->begin(), m->end(), "ap240" );
         if ( it != m->end() ) {
-            ap240controls::method method;
+            acqrscontrols::ap240::method method;
             if ( it->get<>( *it, method ) )
                 return impl_->digitizer_->peripheral_prepare_for_run( method );
         }

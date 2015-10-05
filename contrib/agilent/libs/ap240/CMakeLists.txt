@@ -43,7 +43,7 @@ target_link_libraries( ap240 PUBLIC
   adutils
   adportable
   adcontrols
-  ap240controls
+  acqrscontrols
   AqDrv4
   ${Boost_LIBRARIES}
   ${platform_libs}
@@ -52,7 +52,7 @@ target_link_libraries( ap240 PUBLIC
 add_executable( test_digitizer main.cpp )
 
 target_link_libraries( test_digitizer LINK_PUBLIC
-  ap240
+  ${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${platform_libs}
 )  

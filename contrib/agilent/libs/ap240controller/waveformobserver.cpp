@@ -33,7 +33,7 @@
 #if defined _MSC_VER
 #pragma warning(pop)
 #endif
-#include <ap240controls/waveform.hpp>
+#include <acqrscontrols/ap240/waveform.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -135,7 +135,7 @@ WaveformObserver::operator << ( const_waveform_pair_t& pair )
 {
     auto rb = std::make_shared< so::DataReadBuffer >();
 
-    ap240controls::waveform::serialize( *rb, pair.first, pair.second );
+    acqrscontrols::ap240::waveform::serialize( *rb, pair.first, pair.second );
     
     std::lock_guard< std::mutex > lock( mutex() );
     if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz

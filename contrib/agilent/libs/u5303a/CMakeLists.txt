@@ -48,6 +48,7 @@ target_link_libraries( u5303a PUBLIC
   adfs
   adutils
   adportable
-  adcontrols 
+  adcontrols
+  acqrscontrols
   ${Boost_LIBRARIES}
   )

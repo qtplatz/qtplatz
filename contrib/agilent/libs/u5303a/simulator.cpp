@@ -44,6 +44,7 @@ simulator::simulator() : sampInterval_( 1.0e-9 )
                        , exitDelay_( 0.0 )
                        , method_( std::make_shared< u5303a::method >() )
 {
+#if 0 // get segmentation falut
     boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
     if ( boost::interprocess::interprocess_mutex * mx
          = shm.find_or_construct< boost::interprocess::interprocess_mutex >( "waveform_simulator_mutex" )() ) {
@@ -53,7 +54,7 @@ simulator::simulator() : sampInterval_( 1.0e-9 )
         if ( __waveform_generator_generator = *ptr.first )
             auto p = __waveform_generator_generator( 0, 0, 0, 0 );
     }
-    
+#endif    
     instance_ = this;
 
     const double total = 60000;

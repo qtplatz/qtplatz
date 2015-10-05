@@ -27,11 +27,11 @@
 #include <adicontroller/signalobserver.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
 #include <deque>
-#include <ap240controls/waveform.hpp>
-#include <ap240controls/method.hpp>
+#include <acqrscontrols/ap240/waveform.hpp>
+#include <acqrscontrols/ap240/method.hpp>
 
-namespace ap240controls { class waveform; }
-namespace ap240x = ap240controls;
+namespace acqrscontrols { namespace ap240 { class waveform; } }
+namespace ap240x = acqrscontrols::ap240;
 
 namespace ap240controller {
 
@@ -55,8 +55,8 @@ namespace ap240controller {
         int32_t posFromTime( uint64_t usec ) const override;
         
         // WaveformObserver
-        typedef std::pair< std::shared_ptr< ap240controls::waveform >, std::shared_ptr< ap240controls::waveform > > waveform_pair_t;
-        typedef std::pair< std::shared_ptr< const ap240controls::waveform >, std::shared_ptr< const ap240controls::waveform > > const_waveform_pair_t;
+        typedef std::pair< std::shared_ptr< acqrscontrols::ap240::waveform >, std::shared_ptr< acqrscontrols::ap240::waveform > > waveform_pair_t;
+        typedef std::pair< std::shared_ptr< const acqrscontrols::ap240::waveform >, std::shared_ptr< const acqrscontrols::ap240::waveform > > const_waveform_pair_t;
         uint32_t operator << ( const_waveform_pair_t& );
 
     private:

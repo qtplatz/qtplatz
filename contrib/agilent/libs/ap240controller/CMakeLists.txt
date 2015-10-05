@@ -36,7 +36,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adicontroller
   adplugin
   ap240
-  ap240controls
+  acqrscontrols
   adportable
   adutils
   adfs
