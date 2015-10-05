@@ -232,6 +232,7 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
                 }
                 vec.push_back( d );
             }
+            return true;
         }
 
     } else {
