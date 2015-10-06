@@ -22,8 +22,8 @@
 **
 **************************************************************************/
 
-#include "u5303amethodtable.hpp"
-#include <u5303a/digitizer.hpp>
+#include "u5303atable.hpp"
+#include "constants.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <qtwrapper/font.hpp>
 #include <QStandardItemModel>
@@ -31,10 +31,13 @@
 #include <QHeaderView>
 #include <QTextDocument>
 #include <QComboBox>
+#include <QSignalBlocker>
+#include <QSpinBox>
 
-namespace u5303a {
+namespace acqrswidgets {
 
     enum { c_item_name, c_item_value, c_description };
+
     enum { r_front_end_range
            , r_front_end_offset
            , r_sampling_rate
@@ -46,23 +49,43 @@ namespace u5303a {
            , nsa
     };
     
-    class u5303AMethodDelegate : public QStyledItemDelegate {
-        // Q_OBJECT
+    class u5303ATable::MyDelegate : public QStyledItemDelegate {
+
+        u5303ATable * pThis_;
+
     public:
+        MyDelegate( u5303ATable * p ) : pThis_( p ) {}
+        
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             return QStyledItemDelegate::paint( painter, option, index );
         }
+        
         void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
             if ( index.row() == r_sampling_rate ) {
-                if ( auto combo = qobject_cast< QComboBox * >( editor ) ) {
+                if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
                     int idx = combo->currentIndex();
                     double value = ( idx == 0 ) ? 3.2e9 : 1.0e9;
                     model->setData( index, value, Qt::EditRole );
+                    emit pThis_->valueChanged( idU5303ASampRate, 0, value );
                 }
+
+            } else if ( index.row() == number_of_average ) {
+                if ( auto spin = qobject_cast<QSpinBox *>( editor ) ) {
+                    uint32_t value = spin->value();
+                    if ( value >= 8 && value % 8 )
+                        value &= ~07;
+                    model->setData( index, value & ~07 );
+                    emit pThis_->valueChanged( idNbrAverages, 0, value );
+                }
+            } else if ( index.row() == number_of_samples ) {
+                QStyledItemDelegate::setModelData( editor, model, index );
+                emit pThis_->valueChanged( idU5303ANbrSamples, 0, index.data( Qt::EditRole ).toInt() );
             } else {
                 return QStyledItemDelegate::setModelData( editor, model, index );
             }
+            
         }
+
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             if ( index.row() == r_sampling_rate ) {
                 auto combo = new QComboBox( parent );
@@ -77,37 +100,24 @@ namespace u5303a {
 
 }
 
-using namespace u5303a;
+using namespace acqrswidgets;
 
-u5303AMethodTable::~u5303AMethodTable()
+u5303ATable::~u5303ATable()
 {
     delete model_;
 }
 
-u5303AMethodTable::u5303AMethodTable(QWidget *parent) : adwidgets::TableView(parent)
-                                                      , model_( new QStandardItemModel )
-                                                      , in_progress_( false )
+u5303ATable::u5303ATable(QWidget *parent) : adwidgets::TableView(parent)
+                                          , model_( new QStandardItemModel )
 {
     setModel( model_ );
-	setItemDelegate( new u5303AMethodDelegate );
+	setItemDelegate( new MyDelegate( this ) );
     QFont font;
     setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 }
 
 void
-u5303AMethodTable::handleDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight )
-{
-    if ( in_progress_ )
-        return;
-
-    QStandardItemModel& model = *model_;
-
-    for ( int row = topLeft.row(); row <= bottomRight.row(); ++row )
-		model.itemFromIndex( model.index( row, c_item_value ) )->setBackground( QColor( Qt::yellow ) );
-}
-    
-void
-u5303AMethodTable::onInitialUpdate()
+u5303ATable::onInitialUpdate()
 {
     QStandardItemModel& model = *model_;
 
@@ -129,13 +139,13 @@ u5303AMethodTable::onInitialUpdate()
     model.setData( model.index( row, 1 ), m.front_end_offset );
     model.setData( model.index( row, 2 ), "[-0.5V,0.5V], [-1V,1V] offset" );
     ++row;
-    model.setData( model.index( row, 0 ), "sampling rate" );
+    model.setData( model.index( row, 0 ), "sampling rate (Hz)" );
     model.setData( model.index( row, 1 ), m.samp_rate );
     model.setData( model.index( row, 2 ), "sampling rate (1.0GS/s or 3.2GS/s)" );
     ++row;
-    model.setData( model.index( row, 0 ), "ext. trigger level" );
+    model.setData( model.index( row, 0 ), "ext. trigger level (V)" );
     model.setData( model.index( row, 1 ), m.ext_trigger_level );
-    model.setData( model.index( row, 2 ), "external trigger threshold" );
+    model.setData( model.index( row, 2 ), "external trigger threshold (+/- 5V FS)" );
     ++row;
     model.setData( model.index( row, 0 ), "number of samples" );
     model.setData( model.index( row, 1 ), uint32_t( m.nbr_of_s_to_acquire_ ) );
@@ -143,11 +153,11 @@ u5303AMethodTable::onInitialUpdate()
     ++row;
     model.setData( model.index( row, 0 ), "number of average" );
     model.setData( model.index( row, 1 ), m.nbr_of_averages );
-    model.setData( model.index( row, 2 ), "number of averages ninus one." );
+    model.setData( model.index( row, 2 ), "number of averages [1,2,3,4,5,6,7,8,16,24,32..520000]." );
     ++row;
     model.setData( model.index( row, 0 ), "delay to first sample" );
     model.setData( model.index( row, 1 ), m.delay_to_first_sample_ );
-    model.setData( model.index( row, 2 ), "delay to first sample" );
+    model.setData( model.index( row, 2 ), "delay to first sample (seconds)" );
     ++row;
     model.setData( model.index( row, 0 ), "invert signal" );
     model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
@@ -166,16 +176,20 @@ u5303AMethodTable::onInitialUpdate()
         model.item( row, c_description )->setEditable( false );
     }
 
-	connect( model_, SIGNAL( dataChanged(const QModelIndex&, const QModelIndex& ) )
-             , this, SLOT( handleDataChanged( const QModelIndex&, const QModelIndex& ) ) );
+    connect( model_, &QStandardItemModel::dataChanged, [this] ( const QModelIndex& topLeft, const QModelIndex& bottomRight ) {
+            if ( !this->signalsBlocked() ) {
+                for ( int row = topLeft.row(); row <= bottomRight.row(); ++row )
+                    model_->itemFromIndex( model_->index( row, c_item_value ) )->setBackground( QColor( Qt::yellow ) );
+            }
+        });
 }
 
 bool
-u5303AMethodTable::setContents( const acqrscontrols::u5303a::device_method& m )
+u5303ATable::setContents( const acqrscontrols::u5303a::device_method& m )
 {
     QStandardItemModel& model = *model_;
-    
-    in_progress_ = true;
+
+    QSignalBlocker block( this );
 
     int row = 0;
     model.setData( model.index( row, 1 ), m.front_end_range );
@@ -196,47 +210,11 @@ u5303AMethodTable::setContents( const acqrscontrols::u5303a::device_method& m )
     ++row;
     model.setData( model.index( row, 1 ), m.nsa );
 
-    in_progress_ = false;
-	
 	return true;
 }
 
-#if 0
 bool
-u5303AMethodTable::setContents( const acqrscontrols::u5303a::method& m )
-{
-    QStandardItemModel& model = *model_;
-    
-    in_progress_ = true;
-
-    int row = 0;
-    model.setData( model.index( row, 1 ), m.method_.front_end_range );
-    ++row;
-    model.setData( model.index( row, 1 ), m.method_.front_end_offset );
-    ++row;
-    model.setData( model.index( row, 1 ), m.method_.samp_rate );
-    ++row;
-    model.setData( model.index( row, 1 ), m.method_.ext_trigger_level );
-    ++row;
-    model.setData( model.index( row, 1 ), m.method_.nbr_of_s_to_acquire_ );
-    ++row;
-    model.setData( model.index( row, 1 ), m.method_.nbr_of_averages );
-    ++row;
-    model.setData( model.index( row, 1 ), m.method_.delay_to_first_sample_ * 1.0e6 ); // s -> us
-    ++row;
-    model.setData( model.index( row, 1 ), m.method_.invert_signal ? true : false );
-    ++row;
-    model.setData( model.index( row, 1 ), m.method_.nsa );
-
-    in_progress_ = false;
-	
-	return true;
-}
-#endif
-
-#if 0
-bool
-u5303AMethodTable::getContents( u5303a::method& m )
+u5303ATable::getContents( acqrscontrols::u5303a::device_method& m )
 {
     QStandardItemModel& model = *model_;
 
@@ -253,48 +231,43 @@ u5303AMethodTable::getContents( u5303a::method& m )
     ++row;
 	m.nbr_of_averages = model.index( row, 1 ).data().toInt();
     ++row;
-    m.delay_to_first_sample_ = model.index( row, 1 ).data().toDouble() * 1.0e-6; // us -> s
+    m.delay_to_first_sample_ = model.index( row, 1 ).data().toDouble(); // seconds
     ++row;
     m.invert_signal = model.index( row, 1 ).data().toBool() ? 1 : 0;
     ++row;
     m.nsa = model.index( row, 1 ).data().toInt();
 
-    in_progress_ = true;
+    QSignalBlocker blocks[] = { QSignalBlocker( model_ ), QSignalBlocker( this ) };
+
     for ( int row = 0; row < model.rowCount(); ++row )
 		model.itemFromIndex( model.index( row, c_item_value ) )->setBackground( QColor( Qt::white ) );
-    in_progress_ = false;
+
 	return true;
 }
-#endif
 
-bool
-u5303AMethodTable::getContents( acqrscontrols::u5303a::device_method& m )
+void
+u5303ATable::onHandleValue( idCategory id, int channel, const QVariant& value )
 {
-    QStandardItemModel& model = *model_;
+    QSignalBlocker block( this );
 
-    int row = 0;
-	m.front_end_range = model.index( row, 1 ).data().toDouble();
-    ++row;
-	m.front_end_offset = model.index( row, 1 ).data().toDouble();
-    ++row;
-	m.samp_rate = model.index( row, 1 ).data().toDouble();
-	++row;
-	m.ext_trigger_level = model.index( row, 1 ).data().toDouble();
-    ++row;
-	m.nbr_of_s_to_acquire_ = model.index( row, 1 ).data().toInt();
-    ++row;
-	m.nbr_of_averages = model.index( row, 1 ).data().toInt();
-    ++row;
-    m.delay_to_first_sample_ = model.index( row, 1 ).data().toDouble() * 1.0e-6; // us -> s
-    ++row;
-    m.invert_signal = model.index( row, 1 ).data().toBool() ? 1 : 0;
-    ++row;
-    m.nsa = model.index( row, 1 ).data().toInt();
-
-    in_progress_ = true;
-    for ( int row = 0; row < model.rowCount(); ++row )
-		model.itemFromIndex( model.index( row, c_item_value ) )->setBackground( QColor( Qt::white ) );
-    in_progress_ = false;
-	return true;
+    switch ( id ) {
+    case idU5303AStartDelay:
+        if ( model_ ) {
+            model_->setData( model_->index( delay_to_first_sample, c_item_value ), value );
+        }
+        break;
+    case idU5303AWidth:
+        if ( model_ ) {
+            double rate = model_->index( r_sampling_rate, c_item_value ).data( Qt::EditRole ).toDouble();
+            int nSamples = value.toDouble() * rate + 0.5;
+            model_->setData( model_->index( number_of_samples, c_item_value ), nSamples );
+        }
+        break;
+    case idNbrAverages:
+        if ( model_ ) {
+            model_->setData( model_->index( number_of_average, c_item_value ), value );
+        }
+        break;
+    }
 }
 

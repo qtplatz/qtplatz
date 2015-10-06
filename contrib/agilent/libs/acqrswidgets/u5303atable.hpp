@@ -6,7 +6,7 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
 ** a written agreement between you and MS-Cheminformatics LLC.
@@ -22,15 +22,43 @@
 **
 **************************************************************************/
 
-#ifndef AP240W_GLOBAL_HPP
-#define AP240W_GLOBAL_HPP
+#ifndef U5303AMETHODTABLE_HPP
+#define U5303AMETHODTABLE_HPP
 
-#include <QtCore/qglobal.h>
+#include "constants.hpp"
+#include <adwidgets/tableview.hpp>
 
-#if defined(AP240W_LIBRARY)
-#  define AP240WSHARED_EXPORT Q_DECL_EXPORT
-#else
-#  define AP240WSHARED_EXPORT Q_DECL_IMPORT
-#endif
+class QStandardItemModel;
 
-#endif // AP240W_GLOBAL_HPP
+namespace acqrscontrols {
+    namespace u5303a { class device_method; class method; }
+}
+
+namespace acqrswidgets {
+
+    class u5303ATable : public adwidgets::TableView  {
+        Q_OBJECT
+    public:
+        explicit u5303ATable(QWidget *parent = 0);
+        ~u5303ATable();
+
+        void onInitialUpdate();
+
+        bool setContents( const acqrscontrols::u5303a::device_method& );
+
+        bool getContents( acqrscontrols::u5303a::device_method& );
+
+        void onHandleValue( idCategory, int, const QVariant& );
+
+    private:
+        class MyDelegate;
+        QStandardItemModel * model_;
+
+    signals:
+        void valueChanged( idCategory, int channel, const QVariant& );
+
+    };
+
+}
+
+#endif // U5303AMETHODTABLE_HPP

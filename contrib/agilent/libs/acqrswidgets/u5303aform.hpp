@@ -22,43 +22,43 @@
 **
 **************************************************************************/
 
-#ifndef FINDSLOPEFORM_HPP
-#define FINDSLOPEFORM_HPP
+#ifndef U5303AFORM_HPP
+#define U5303AFORM_HPP
 
+#include "constants.hpp"
 #include <QWidget>
 
-namespace adcontrols { class threshold_method; }
+namespace acqrscontrols { namespace u5303a { class method; } }
 
 namespace acqrswidgets {
 
     namespace Ui {
-        class findSlopeForm;
+        class u5303AForm;
     }
-    
-    
-    class findSlopeForm : public QWidget   {
+
+    class u5303AForm : public QWidget {
         Q_OBJECT
 
     public:
-        explicit findSlopeForm(QWidget *parent = 0);
-        ~findSlopeForm();
+        explicit u5303AForm( QWidget *parent = 0 );
+        ~u5303AForm();
 
-        void setTitle( int ch, const QString& );
-        int channel() const;
-    
-        bool isChecked() const;
-        void setChecked( bool );
+        void onInitialUpdate();
 
-        void set( const adcontrols::threshold_method& );
-        void get( adcontrols::threshold_method& ) const;
+        void setContents( const acqrscontrols::u5303a::method& );
+
+        void getContents( acqrscontrols::u5303a::method& );
+
+        void onHandleValue( idCategory, int, const QVariant& );
 
     signals:
-        void valueChanged( int ch );
-
+        void valueChanged( idCategory, int channel, const QVariant& );
+        
     private:
-        Ui::findSlopeForm *ui;
-        int channel_;
+        Ui::u5303AForm *ui;
+        double sampRate_;  // Hz
     };
+
 }
 
-#endif // FINDSLOPEFORM_HPP
+#endif // U5303AFORM_HPP

@@ -24,6 +24,7 @@
 
 #include "simulator.hpp"
 #include "digitizer.hpp"
+#include <adportable/debug.hpp>
 #include <adinterface/waveform_generator.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
@@ -44,17 +45,25 @@ simulator::simulator() : sampInterval_( 1.0e-9 )
                        , exitDelay_( 0.0 )
                        , method_( std::make_shared< acqrscontrols::u5303a::method >() )
 {
-#if 0 // get segmentation falut
-    boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
-    if ( boost::interprocess::interprocess_mutex * mx
-         = shm.find_or_construct< boost::interprocess::interprocess_mutex >( "waveform_simulator_mutex" )() ) {
+    try {
+        boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
 
-        auto ptr = shm.find< waveform_generator_generator_t >( "waveform_generator_generator" );
-        boost::interprocess::scoped_lock< boost::interprocess::interprocess_mutex > lock( *mx );
-        if ( __waveform_generator_generator = *ptr.first )
-            auto p = __waveform_generator_generator( 0, 0, 0, 0 );
+        if ( auto mx = shm.find_or_construct< boost::interprocess::interprocess_mutex >( "waveform_simulator_mutex" )( ) ) {
+
+            auto ptr = shm.find< waveform_generator_generator_t >( "waveform_generator_generator" );
+
+            if ( ptr.first ) {
+
+                boost::interprocess::scoped_lock< boost::interprocess::interprocess_mutex > lock( *mx );
+                if ( __waveform_generator_generator = *ptr.first )
+                    auto p = __waveform_generator_generator( 0, 0, 0, 0 );
+
+            }
+        }
+    } catch ( std::exception& ex ) {
+        ADDEBUG() << ex.what();
     }
-#endif    
+
     instance_ = this;
 
     const double total = 60000;

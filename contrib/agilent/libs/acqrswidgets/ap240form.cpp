@@ -39,7 +39,7 @@
 #include <QPair>
 #include <boost/exception/all.hpp>
 
-using namespace ap240w;
+using namespace acqrswidgets;
 
 ap240form::ap240form(QWidget *parent) : QWidget(parent)
                                       , ui( new Ui::ap240form )

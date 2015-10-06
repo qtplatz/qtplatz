@@ -22,10 +22,9 @@
 **
 **************************************************************************/
 
-#include "u5303amethodwidget.hpp"
+#include "u5303awidget.hpp"
 #include "u5303aform.hpp"
-#include "u5303amethodtable.hpp"
-#include "document.hpp"
+#include "u5303atable.hpp"
 #include <u5303a/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adinterface/controlserver.hpp>
@@ -37,19 +36,20 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
+
 #include <QSplitter>
 #include <QBoxLayout>
 #include <QMessagebox>
 #include <boost/exception/all.hpp>
 
-using namespace u5303a;
+using namespace acqrswidgets;
 
-u5303AMethodWidget::u5303AMethodWidget(QWidget *parent) : QWidget(parent)
+u5303AWidget::u5303AWidget(QWidget *parent) : QWidget(parent)
 {
     if ( QSplitter * splitter = new QSplitter ) {
 
         splitter->addWidget( new u5303AForm(this) );
-        splitter->addWidget( new u5303AMethodTable(this) );
+        splitter->addWidget( new u5303ATable(this) );
         splitter->setOrientation( Qt::Horizontal );
         splitter->setStretchFactor( 0, 1 );
         splitter->setStretchFactor( 1, 4 );
@@ -63,59 +63,54 @@ u5303AMethodWidget::u5303AMethodWidget(QWidget *parent) : QWidget(parent)
 }
 
 void
-u5303AMethodWidget::onInitialUpdate()
+u5303AWidget::onInitialUpdate()
 {
     if ( auto form = findChild< u5303AForm * >() ) {
-        form->onInitialUpdate();
-        connect( form, &u5303AForm::trigger_apply, this, &u5303AMethodWidget::handle_trigger_apply );
-    }
+        if ( auto table = findChild< u5303ATable * >() ) {
 
-    if ( auto table = findChild< u5303AMethodTable * >() ) {
-        table->onInitialUpdate();
-        table->setContents( acqrscontrols::u5303a::device_method() );
-    }
-}
+            form->onInitialUpdate();
+            form->setContents( acqrscontrols::u5303a::method() );
 
-void
-u5303AMethodWidget::onStatus( int st )
-{
-    if ( auto form = findChild< u5303AForm * >() )
-        form->onStatus( st );        
-}
+            connect( form, &u5303AForm::valueChanged, [this, table] ( idCategory id, int channel, QVariant value ) {
+                    table->onHandleValue( id, channel, value );
+                    emit valueChanged( id, channel );
+                } );
+            
+            
+            table->onInitialUpdate();
+            table->setContents( acqrscontrols::u5303a::device_method() );
 
-void
-u5303AMethodWidget::handle_trigger_apply()
-{
-    document::instance()->prepare_for_run();
-    /*
-    if ( auto table = findChild< u5303AMethodTable * >() ) {
-        u5303a::method m;
-        if ( table->getContents( m ) ) {
-            document::instance()->prepare_for_run( m );
+            connect( table, &u5303ATable::valueChanged, [this, form] ( idCategory id, int channel, QVariant value ) {
+                    form->onHandleValue( id, channel, value );
+                    emit valueChanged( id, channel );
+                } );
         }
     }
-    */
-    
 }
 
 void
-u5303AMethodWidget::OnCreate( const adportable::Configuration& )
+u5303AWidget::onStatus( int st )
 {
 }
 
 void
-u5303AMethodWidget::OnInitialUpdate()
+u5303AWidget::OnCreate( const adportable::Configuration& )
+{
+}
+
+void
+u5303AWidget::OnInitialUpdate()
 {
     onInitialUpdate();
 }
 
 void
-u5303AMethodWidget::OnFinalClose()
+u5303AWidget::OnFinalClose()
 {
 }
 
 bool
-u5303AMethodWidget::getContents( boost::any& a ) const
+u5303AWidget::getContents( boost::any& a ) const
 {
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
 
@@ -127,17 +122,18 @@ u5303AMethodWidget::getContents( boost::any& a ) const
         if ( it != ptr->end() )
             it->get<>( *it, m );
 
-        if ( auto table = findChild< u5303AMethodTable * >() )
+        if ( auto table = findChild< u5303ATable * >() )
             table->getContents( m.method_ );
         
         ptr->append( m );
-        return true;        
+        return true;
+
     }
     return false;
 }
 
 bool
-u5303AMethodWidget::setContents( boost::any& a )
+u5303AWidget::setContents( boost::any& a )
 {
     const adcontrols::ControlMethod::MethodItem * pi(0);
     if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
@@ -163,12 +159,10 @@ u5303AMethodWidget::setContents( boost::any& a )
 	if (pi) {
         acqrscontrols::u5303a::method m;
 		try {
-            if ( pi->get<>( *pi, m ) ) {
-                if ( auto table = findChild< u5303AMethodTable * >() ) {
-                    table->setContents( m.method_ );
-                    return true;
-                }
-			}
+
+            if ( pi->get<>( *pi, m ) ) 
+                return set( m );
+
 		} catch (boost::exception& ex) {
 			QMessageBox::warning(this, "U5303A Method", QString::fromStdString(boost::diagnostic_information(ex)));
 		} catch ( ... ) {
@@ -176,4 +170,28 @@ u5303AMethodWidget::setContents( boost::any& a )
 		}
     }
     return false;
+}
+
+bool
+u5303AWidget::get( acqrscontrols::u5303a::method& m )
+{
+    if ( auto form = findChild< u5303AForm * >() ) {
+        form->getContents( m );
+    }
+    if ( auto table = findChild< u5303ATable *>() ) {
+        table->getContents( m.method_ );
+    }
+    return true;
+}
+
+bool
+u5303AWidget::set( const acqrscontrols::u5303a::method& m )
+{
+    if ( auto form = findChild< u5303AForm * >() ) {
+        form->setContents( m );
+    }
+    if ( auto table = findChild< u5303ATable *>() ) {
+        table->setContents( m.method_ );
+    }
+    return true;
 }

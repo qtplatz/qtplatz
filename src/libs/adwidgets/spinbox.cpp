@@ -22,43 +22,29 @@
 **
 **************************************************************************/
 
-#ifndef FINDSLOPEFORM_HPP
-#define FINDSLOPEFORM_HPP
+#include "spinbox.hpp"
 
-#include <QWidget>
+using namespace adwidgets;
 
-namespace adcontrols { class threshold_method; }
-
-namespace acqrswidgets {
-
-    namespace Ui {
-        class findSlopeForm;
-    }
-    
-    
-    class findSlopeForm : public QWidget   {
-        Q_OBJECT
-
-    public:
-        explicit findSlopeForm(QWidget *parent = 0);
-        ~findSlopeForm();
-
-        void setTitle( int ch, const QString& );
-        int channel() const;
-    
-        bool isChecked() const;
-        void setChecked( bool );
-
-        void set( const adcontrols::threshold_method& );
-        void get( adcontrols::threshold_method& ) const;
-
-    signals:
-        void valueChanged( int ch );
-
-    private:
-        Ui::findSlopeForm *ui;
-        int channel_;
-    };
+SpinBox::~SpinBox()
+{
 }
 
-#endif // FINDSLOPEFORM_HPP
+SpinBox::SpinBox(QWidget *parent ) : QSpinBox( parent )
+{
+}
+
+void
+SpinBox::stepBy( int steps )
+{
+    if ( stepBy_ )
+        stepBy_( this, steps );
+    else
+        QSpinBox::stepBy( steps );
+}
+
+void
+SpinBox::setStepBy( std::function<void( SpinBox *, int )> f )
+{
+    stepBy_ = f;
+}

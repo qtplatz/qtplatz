@@ -633,3 +633,12 @@ document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
         emit on_threshold_method_changed( ch );
     }
 }
+
+void
+document::set_method( const acqrscontrols::u5303a::method& m )
+{
+    auto ptr = std::make_shared< acqrscontrols::u5303a::method >( m );
+    ptr->threshold_ = method_->threshold_;
+
+    method_ = ptr;
+}

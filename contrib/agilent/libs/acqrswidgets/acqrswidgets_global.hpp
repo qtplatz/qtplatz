@@ -6,7 +6,7 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
 ** a written agreement between you and MS-Cheminformatics LLC.
@@ -22,38 +22,13 @@
 **
 **************************************************************************/
 
-#ifndef U5303AFORM_HPP
-#define U5303AFORM_HPP
+#pragma once
 
-#include <QWidget>
+#include <QtCore/qglobal.h>
 
-namespace Ui {
-class u5303AForm;
-}
+#if defined(ACQRSWIDGETS_LIBRARY)
+#  define ACQRSWIDGETSSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define ACQRSWIDGETSSHARED_EXPORT Q_DECL_IMPORT
+#endif
 
-namespace u5303a {
-
-    class u5303AForm : public QWidget
-    {
-        Q_OBJECT
-
-    public:
-        explicit u5303AForm(QWidget *parent = 0);
-        ~u5303AForm();
-
-        void onInitialUpdate();
-        void onStatus( int );
-
-    private slots:
-        void on_pushButton_clicked();
-
-    signals:
-        void trigger_apply();
-
-    private:
-        Ui::u5303AForm *ui;
-    };
-
-}
-
-#endif // U5303AFORM_HPP

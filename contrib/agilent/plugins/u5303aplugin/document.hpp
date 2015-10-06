@@ -79,6 +79,7 @@ namespace u5303a {
         void save_histogram( size_t tickCount, const adcontrols::MassSpectrum& hist );
 
         void set_threshold_method( int ch, const adcontrols::threshold_method& );
+        void set_method( const acqrscontrols::u5303a::method& );
 
         static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );

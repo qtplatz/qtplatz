@@ -28,20 +28,20 @@
 #include <QWidget>
 #include <adplugin_manager/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
-#include "ap240w_global.hpp"
+#include "acqrswidgets_global.hpp"
 #include "constants.hpp"
 #include <memory>
 
 namespace adcontrols { namespace ControlMethod { class Method; } class threshold_method; }
 namespace acqrscontrols { namespace ap240 { class method; } }
 
-namespace ap240w {
+namespace acqrswidgets {
     
     namespace Ui {
         class ap240form;
     }
 
-    class AP240WSHARED_EXPORT ap240form : public QWidget
+    class ACQRSWIDGETSSHARED_EXPORT ap240form : public QWidget
                                         , public adplugin::LifeCycle {
 
         Q_OBJECT
@@ -67,7 +67,7 @@ namespace ap240w {
         void set( int ch, const adcontrols::threshold_method& );    
 
     signals:
-        void valueChanged( ap240w::idCategory cat, int ch );
+        void valueChanged( idCategory cat, int ch );
         // void valueChanged( int, const QVariant& );
     
     private:

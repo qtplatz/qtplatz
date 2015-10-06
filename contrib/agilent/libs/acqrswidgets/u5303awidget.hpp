@@ -22,43 +22,49 @@
 **
 **************************************************************************/
 
-#ifndef U5303AMETHODTABLE_HPP
-#define U5303AMETHODTABLE_HPP
+#pragma once
 
-#include <adwidgets/tableview.hpp>
+#include "acqrswidgets_global.hpp"
+#include "constants.hpp"
+#include <QWidget>
+#include <adplugin_manager/lifecycle.hpp>
+#include <adplugin/lifecycle.hpp>
 
-class QStandardItemModel;
+namespace acqrscontrols { namespace u5303a { class method; } }
 
-namespace acqrscontrols { namespace u5303a { class device_method; } }
+namespace acqrswidgets {
+    
+    class ACQRSWIDGETSSHARED_EXPORT u5303AWidget : public QWidget
+                                                 , public adplugin::LifeCycle {
 
-namespace u5303a {
-
-    class method; // defined in <u5303a/digitizer.hpp>
-
-    class u5303AMethodTable : public adwidgets::TableView  {
         Q_OBJECT
+        Q_INTERFACES( adplugin::LifeCycle )
+        
     public:
-        explicit u5303AMethodTable(QWidget *parent = 0);
-        ~u5303AMethodTable();
-
+        explicit u5303AWidget(QWidget *parent = 0);
+        
+        // LifeCycle
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void OnFinalClose() override;
+        bool getContents( boost::any& ) const override;
+        bool setContents( boost::any& ) override;
+        
         void onInitialUpdate();
-        bool setContents( const u5303a::method& );
-        bool getContents( u5303a::method& );
-        bool setContents( const acqrscontrols::u5303a::device_method& );
-        bool getContents( acqrscontrols::u5303a::device_method& );
+        void onStatus( int );
 
+        bool get( acqrscontrols::u5303a::method& );
+        bool set( const acqrscontrols::u5303a::method& );
+        
     private:
-        QStandardItemModel * model_;
-        bool in_progress_;
-
-    signals:
+        
+    signals :
+        void valueChanged( idCategory, int channel );
 
     public slots:
-    private slots:
-        void handleDataChanged( const QModelIndex&, const QModelIndex& );
 
     };
 
 }
 
-#endif // U5303AMETHODTABLE_HPP
+

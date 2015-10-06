@@ -27,10 +27,10 @@
 #include "document.hpp"
 #include "isequenceimpl.hpp"
 #include "u5303a_constants.hpp"
-#include "u5303amethodwidget.hpp"
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrswidgets/thresholdwidget.hpp>
+#include <acqrswidgets/u5303awidget.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -96,19 +96,17 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    if ( auto widget = new ap240w::ThresholdWidget ) {
+    if ( auto widget = new acqrswidgets::ThresholdWidget ) {
 
         widget->setObjectName( "ThresholdWidget" );
         createDockWidget( widget, "U5303A", "ThresholdMethod" );
 
-        connect( widget, &ap240w::ThresholdWidget::valueChanged, [this]( ap240w::idCategory cat, int ch ){
-                if ( auto form = findChild< ap240w::ThresholdWidget * >() ) {
-                    if ( cat == ap240w::idSlopeTimeConverter ) {
+        connect( widget, &acqrswidgets::ThresholdWidget::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
+                if ( auto form = findChild< acqrswidgets::ThresholdWidget * >() ) {
+                    if ( cat == acqrswidgets::idSlopeTimeConverter ) {
                         adcontrols::threshold_method tm;
                         form->get( ch, tm );
                         document::instance()->set_threshold_method( ch, tm );
-                    } else {
-                        
                     }
                 }
                 
@@ -116,10 +114,16 @@ MainWindow::createDockWidgets()
 
     }
 
-    if ( auto widget = new u5303AMethodWidget ) {
+    if ( auto widget = new acqrswidgets::u5303AWidget ) {
 
         widget->setObjectName( "U5303A" );
         createDockWidget( widget, "U5303A", "ControlMethod" );
+
+        connect( widget, &acqrswidgets::u5303AWidget::valueChanged, [this,widget]( acqrswidgets::idCategory cat, int ch ) {
+                acqrscontrols::u5303a::method m;
+                if ( widget->get( m ) )
+                    document::instance()->set_method( m );
+            });
 
     }
 }
@@ -370,8 +374,6 @@ MainWindow::createMidStyledToolbar()
 void
 MainWindow::createActions()
 {
-    // enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
-
     actions_[ idActConnect ] = createAction( Constants::ICON_CONNECT,  tr("Connect"), this );    
     actions_[ idActInitRun ] = createAction( Constants::ICON_INITRUN,  tr("Initial run"), this );    
     actions_[ idActRun ]     = createAction( Constants::ICON_RUN,      tr("Run"), this );    
@@ -502,7 +504,7 @@ MainWindow::handle_status( int status )
             action->setEnabled( true );
         actions_[ idActConnect ]->setEnabled( false );
         actInitRun();
-        if ( auto mw = findChild< u5303AMethodWidget * >() )
+        if ( auto mw = findChild< acqrswidgets::u5303AWidget * >() )
             mw->onStatus( status );
     }
 }

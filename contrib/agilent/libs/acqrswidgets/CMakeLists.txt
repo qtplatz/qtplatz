@@ -19,7 +19,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/..
   )
 
-add_definitions(-DAP240W_LIBRARY)
+add_definitions(-DACQRSWIDGETS_LIBRARY)
 
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
@@ -37,6 +37,12 @@ set( ${PROJECT_NAME}_SOURCES
   findslopeform.hpp
   thresholdwidget.cpp
   thresholdwidget.hpp
+  u5303aform.cpp
+  u5303aform.hpp
+  u5303atable.cpp
+  u5303atable.hpp
+  u5303awidget.cpp
+  u5303awidget.hpp
 )
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )
@@ -47,7 +53,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adplugin_manager
   adlog
   adcontrols
-  adportable	
+  adportable
+  adwidgets
   qtwrapper
   ${QWT_LIBRARIES}
   Qt5::Widgets

@@ -97,7 +97,7 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    auto widget = new ap240w::ap240form();
+    auto widget = new acqrswidgets::ap240form();
 
     if ( auto tm = document::instance()->threshold_method( 0 ) )
         widget->set( 0, *tm );
@@ -107,9 +107,9 @@ MainWindow::createDockWidgets()
 
     createDockWidget( widget, "AP240", "AP240" );
     
-    connect( widget, &ap240w::ap240form::valueChanged, [this] ( ap240w::idCategory cat, int ch ) {
-        if ( auto form = findChild< ap240w::ap240form * >() ) {
-            if ( cat == ap240w::idSlopeTimeConverter ) {
+    connect( widget, &acqrswidgets::ap240form::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
+        if ( auto form = findChild< acqrswidgets::ap240form * >() ) {
+            if ( cat == acqrswidgets::idSlopeTimeConverter ) {
                 adcontrols::threshold_method tm;
                 form->get( ch, tm );
                 document::instance()->set_threshold_method( ch, tm );
@@ -126,7 +126,7 @@ MainWindow::createDockWidgets()
 void
 MainWindow::OnInitialUpdate()
 {
-    if ( auto form = findChild< ap240w::ap240form *>() ) {
+    if ( auto form = findChild< acqrswidgets::ap240form *>() ) {
         form->OnInitialUpdate();
         boost::any ptr( document::instance()->controlMethod() );
         form->getContents( ptr );
@@ -147,7 +147,7 @@ MainWindow::OnInitialUpdate()
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
     }
 
-    if ( auto widget = findChild< ap240w::ap240form * >() ) {
+    if ( auto widget = findChild< acqrswidgets::ap240form * >() ) {
         if ( auto tm = document::instance()->threshold_method( 0 ) )
             widget->set( 0, *tm );
         if ( auto tm = document::instance()->threshold_method( 1 ) )
@@ -543,7 +543,7 @@ bool
 MainWindow::editor_factories( adextension::iSequenceImpl& impl )
 {
     if ( std::shared_ptr< const adextension::iEditorFactory > ptr =
-         std::make_shared< adextension::iEditorFactoryT< ap240w::ap240form > >( "AP240", adextension::iEditorFactory::CONTROL_METHOD ) ) {
+         std::make_shared< adextension::iEditorFactoryT< acqrswidgets::ap240form > >( "AP240", adextension::iEditorFactory::CONTROL_METHOD ) ) {
         impl << ptr;
     }
     return true;        
@@ -553,7 +553,7 @@ MainWindow::editor_factories( adextension::iSequenceImpl& impl )
 void
 MainWindow::setControlMethod( const acqrscontrols::ap240::method& m )
 {
-    if ( auto form = findChild< ap240w::ap240form * >() ) {
+    if ( auto form = findChild< acqrswidgets::ap240form * >() ) {
         form->set( m );
     }
 }
@@ -561,7 +561,7 @@ MainWindow::setControlMethod( const acqrscontrols::ap240::method& m )
 void
 MainWindow::getControlMethod( acqrscontrols::ap240::method& m )
 {
-    if ( auto form = findChild< ap240w::ap240form * >() ) {
+    if ( auto form = findChild< acqrswidgets::ap240form * >() ) {
         form->get( m );
     }
 }

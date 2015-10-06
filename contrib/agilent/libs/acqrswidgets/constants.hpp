@@ -24,15 +24,27 @@
 
 #pragma once
 
-namespace ap240w {
+namespace acqrswidgets {
 
     enum idCategory {
-        idHorizontal
+        //------------------- global ---------------
+        idGlobalAny = 0
+        , idSlopeTimeConverter
+        //------------------- ap240 & global ---------------
+        , idAP240Any = 1000
+        , idHorizontal
         , idVertical
         , idTrigger
         , idChannels
-        , idSlopeTimeConverter
+
+        //------------------- u5303A ---------------
+        , idU5303AAny = 2000
+        , idU5303AStartDelay
+        , idU5303AWidth
+        , idNbrAverages
+        , idU5303AMode
+        , idU5303ASampRate
+        , idU5303ANbrSamples
     };
+    
 }
-
-

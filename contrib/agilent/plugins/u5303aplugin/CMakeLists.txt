@@ -37,11 +37,6 @@ add_definitions(
   -D_SCL_SECURE_NO_WARNINGS
   )
 
-#include(../../agilentplugin.pri)
-#nclude(../../qwt.pri)
-#include(../../boost.pri)
-
-#INCLUDEPATH *= $$OUT_PWD/../../libs
 include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${CMAKE_BINARY_DIR}/src/libs/adinterface
@@ -63,9 +58,6 @@ add_library(
   u5303amode.cpp
   document.cpp
   waveformwnd.cpp
-  u5303aform.cpp
-  u5303amethodtable.cpp
-  u5303amethodwidget.cpp
   isequenceimpl.cpp
   u5303aplugin.hpp
   u5303a_global.hpp
@@ -74,9 +66,6 @@ add_library(
   u5303amode.hpp
   document.hpp
   waveformwnd.hpp
-  u5303aform.hpp
-  u5303amethodtable.hpp
-  u5303amethodwidget.hpp
   isequenceimpl.cpp
   ${u5303a_Resources}
   )
@@ -109,25 +98,3 @@ set_target_properties( ${PROJECT_NAME}
   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
   LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )
   
-#  LIBS += -l$$qtLibraryTarget(adcontrols) \
-#        -l$$qtLibraryTarget(adlog) \
-#        -l$$qtLibraryTarget(adplugin) \
-#        -l$$qtLibraryTarget(adfs) \
-#        -l$$qtLibraryTarget(adextension) \
-#        -l$$qtLibraryTarget(adplot) \
-#        -l$$qtLibraryTarget(adportable) \
-#        -l$$qtLibraryTarget(adwidgets) \
-#        -l$$qtLibraryTarget(qtwrapper) \
-#        -l$$qtLibraryTarget(u5303a) \
-#        -l$$qtLibraryTarget(u5303aspectrometer)
-
-# Qt Creator linking
-
-## set the QTC_SOURCE environment variable to override the setting here
-#QTCREATOR_SOURCES = $$(QTC_SOURCE)
-
-## set the QTC_BUILD environment variable to override the setting here
-#IDE_BUILD_TREE = $$(QTC_BUILD)
-
-#    u5303a.qrc
-#    u5303aform.ui

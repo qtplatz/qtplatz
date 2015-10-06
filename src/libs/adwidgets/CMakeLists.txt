@@ -71,6 +71,7 @@ set( ${PROJECT_NAME}_SOURCES
   progresswnd.cpp
   samplerunwidget.cpp
   scanlawdialog.cpp
+  spinbox.cpp
   spinslider.cpp
   targetingform.cpp
   tableview.cpp
@@ -84,19 +85,16 @@ set( ${PROJECT_NAME}_SOURCES
 set( ${PROJECT_NAME}_HEADERS
   adwidgets.hpp
   adwidgets_global.hpp
-  targetingform.hpp
-  spin_t.hpp
-  tableview.hpp
-  targetingwidget.hpp
-  targetingtable.hpp
-  targetingadducts.hpp
-  peptidewidget.hpp
-  peptidetable.hpp
-  delegatehelper.hpp
+  consolewidget.hpp
   controlmethodtable.hpp
   controlmethodwidget.hpp
   centroidform.hpp
+  delegatehelper.hpp
   doublespinbox.hpp
+  dualspinslider.hpp
+  filedialog.hpp
+  peptidewidget.hpp
+  peptidetable.hpp
   moltable.hpp  
   mspeaktable.hpp
   msquantable.hpp
@@ -107,24 +105,28 @@ set( ${PROJECT_NAME}_HEADERS
   mscalibratesummarytable.hpp
   mstoleranceform.hpp
   mslockform.hpp
-  progresswnd.hpp
-  spinslider.hpp
-  dualspinslider.hpp
-  filedialog.hpp
-  pressuregauge.hpp
-  peaktable.hpp
   mschromatogramform.hpp
   mschromatogramwidget.hpp  
-  peakmethodform.hpp
   mspeaksummary.hpp
   mspeakwidget.hpp
   mssimulatorform.hpp
-  mssimulatorwidget.hpp  
-  toftable.hpp
-  samplerunwidget.hpp
-  consolewidget.hpp
+  mssimulatorwidget.hpp
   outputwidget.hpp
+  peaktable.hpp
+  peakmethodform.hpp
+  progresswnd.hpp
+  pressuregauge.hpp
   scanlawdialog.hpp
+  spin_t.hpp
+  spinbox.hpp
+  spinslider.hpp
+  samplerunwidget.hpp
+  toftable.hpp
+  targetingform.hpp
+  tableview.hpp
+  targetingwidget.hpp
+  targetingtable.hpp
+  targetingadducts.hpp
 )
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )

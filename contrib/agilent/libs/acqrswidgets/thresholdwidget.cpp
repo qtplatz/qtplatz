@@ -36,7 +36,7 @@
 #include <boost/exception/all.hpp>
 #include <memory>
 
-using namespace ap240w;
+using namespace acqrswidgets;
 
 ThresholdWidget::ThresholdWidget(QWidget *parent) : QWidget(parent)
 {

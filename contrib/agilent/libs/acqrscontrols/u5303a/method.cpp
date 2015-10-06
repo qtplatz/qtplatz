@@ -126,7 +126,7 @@ namespace acqrscontrols {
 using namespace acqrscontrols::u5303a;
 
 method:: method() : channels_( 0x01 )
-                  , mode_( 2 ) // averager mode
+                  , mode_( 0 ) // digitizer mode
 {
 }
 
