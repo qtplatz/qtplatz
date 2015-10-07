@@ -63,8 +63,6 @@
 
 using namespace u5303a;
 
-
-
 namespace u5303a {
 
     struct user_preference {
@@ -93,7 +91,8 @@ namespace u5303a {
     //..........................................
     class document::impl {
     public:
-        static std::unique_ptr< document > instance_;
+        //static std::unique_ptr< document > instance_;
+        static document * instance_; // workaround
         static std::mutex mutex_;
         static const std::chrono::steady_clock::time_point uptime_;
         static const uint64_t tp0_;
@@ -136,7 +135,8 @@ namespace u5303a {
     };
 
     std::mutex document::impl::mutex_;
-    std::unique_ptr< document > document::impl::instance_;
+    //std::unique_ptr< document > document::impl::instance_;
+    document * document::impl::instance_( 0 );
     const std::chrono::steady_clock::time_point document::impl::uptime_ = std::chrono::steady_clock::now();
     const uint64_t document::impl::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( document::impl::uptime_.time_since_epoch() ).count();
 }
@@ -155,8 +155,8 @@ document::instance()
 {
     static std::once_flag flag;
 
-    std::call_once( flag, [=] () { impl::instance_.reset( new document() ); } );
-    return impl::instance_.get();
+    std::call_once( flag, [=] () { impl::instance_ = new document(); } );
+    return impl::instance_;
 }
 
 void
@@ -267,27 +267,6 @@ document::waveform_handler( const acqrscontrols::u5303a::waveform * ch1, const a
     emit on_waveform_received();
     return false;
 }
-
-#if 0
-std::shared_ptr< const acqrscontrols::u5303a::waveform >
-document::findWaveform( uint32_t serialnumber )
-{
-    (void)serialnumber;
-    std::lock_guard< std::mutex > lock( impl::mutex_ );
-    if ( que_.empty() )
-        return 0;
-	std::shared_ptr< const acqrscontrols::u5303a::waveform > ptr = que_.back();
-    //ADTRACE() << "findWaveform: " << ptr->serialnumber_;
-    //if ( serialnumber == (-1) )
-    return ptr;
-	/*
-	auto it = std::find_if( que_.begin(), que_.end(), [=]( std::shared_ptr< const waveform >& p ){ return p->serialnumber_ == serialnumber; });
-    if ( it != que_.end() )
-        return *it;
-    */
-	return 0;
-}
-#endif
 
 std::shared_ptr< const acqrscontrols::u5303a::method >
 document::method() const
@@ -426,6 +405,8 @@ void
 document::finalClose()
 {
     task::instance()->finalize();
+
+    impl_->iControllers_.clear();
 
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {

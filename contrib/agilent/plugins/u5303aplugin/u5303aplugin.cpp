@@ -62,11 +62,6 @@ u5303APlugin::~u5303APlugin()
 {
     // Unregister objects from the plugin manager's object pool
     // Delete members
-    if ( mode_ )
-        removeObject( mode_.get() );
-
-    if ( auto iExtension = document::instance()->iController() )
-        removeObject( iExtension );
 }
 
 bool
@@ -120,6 +115,13 @@ ExtensionSystem::IPlugin::ShutdownFlag u5303APlugin::aboutToShutdown()
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
     document::instance()->finalClose();
+
+    if ( auto iExtension = document::instance()->iController() )
+        removeObject( iExtension );
+
+    if ( mode_ )
+        removeObject( mode_.get() );
+
     return SynchronousShutdown;
 }
 
