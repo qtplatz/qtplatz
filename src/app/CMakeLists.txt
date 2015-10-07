@@ -20,7 +20,7 @@ include_directories(
   ${Qt5Core_INCLUDE_DIRS}
   )
 
-if (WIN32)
+if (WIN32 )
   set( lockedfile_SOURCES
     ../shared/qtlockedfile/qtlockedfile_win.cpp
     )
@@ -39,7 +39,7 @@ set( SOURCES
   ../shared/qtlockedfile/qtlockedfile.cpp
   )
 
-if ( WIN32 )
+if ( WIN32 AND CMALE_BUILD_TYPE MATCHES RELEASE )
   add_executable( qtplatz WIN32
     ${SOURCES}  
     ${lockedfile_SOURCES}

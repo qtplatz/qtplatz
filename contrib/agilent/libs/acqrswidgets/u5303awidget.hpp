@@ -53,7 +53,7 @@ namespace acqrswidgets {
         void onInitialUpdate();
         void onStatus( int );
 
-        bool get( acqrscontrols::u5303a::method& );
+        bool get( acqrscontrols::u5303a::method& ) const;
         bool set( const acqrscontrols::u5303a::method& );
         
     private:

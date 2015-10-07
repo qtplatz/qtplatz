@@ -53,6 +53,8 @@ include_directories(
 
 add_library(
   u5303aplugin MODULE
+  constants.cpp
+  constants.hpp
   document.cpp
   document.hpp
   icontrollerimpl.cpp

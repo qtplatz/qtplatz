@@ -23,14 +23,15 @@
 **************************************************************************/
 
 #include "document.hpp"
+#include "constants.hpp"
 #include "mainwindow.hpp"
 #include "task.hpp"
 #include "tdcdoc.hpp"
 #include "u5303a_constants.hpp"
 #include "icontrollerimpl.hpp"
-#include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/metadata.hpp>
+#include <acqrscontrols/u5303a/waveform.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -62,8 +63,7 @@
 
 using namespace u5303a;
 
-document * document::instance_ = 0;
-std::mutex document::mutex_;
+
 
 namespace u5303a {
 
@@ -74,21 +74,9 @@ namespace u5303a {
         }
     };
 
-    namespace detail {
-        struct remover {
-            ~remover() {
-                if ( document::instance_ ) {
-                    std::lock_guard< std::mutex > lock( document::mutex_ );
-                    if ( document::instance_ )
-                        delete document::instance_;
-                }
-            };
-            static remover _remover;
-        };
-    }
-
     namespace so = adicontroller::SignalObserver;
 
+    //.................... todo -- move MasterObserver to more genelic place ..................
     class MasterObserver : public adicontroller::SignalObserver::Observer {
         const boost::uuids::uuid objid_;
     public:
@@ -102,49 +90,43 @@ namespace u5303a {
         const char * dataInterpreterClsid() const override { return 0; }
     };
 
-    class document::exec {
-    public:
-        std::chrono::system_clock::time_point tp_start_;
-        uint64_t inject_time_point_;
-        acqrscontrols::u5303a::method u5303a_;
-        std::shared_ptr< adcontrols::ControlMethod::Method > ctrlm_;
-        adcontrols::ControlMethod::Method::const_iterator nextIt_;
-
-        exec() : tp_start_( std::chrono::system_clock::now() )
-               , inject_time_point_(0) {
-        }
-
-        bool prepare_for_run( const adcontrols::ControlMethod::Method& m ) {
-            using adcontrols::ControlMethod::MethodItem;
-            ctrlm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
-            ctrlm_->sort();
-            nextIt_ = std::find_if( ctrlm_->begin(), ctrlm_->end(), [] ( const MethodItem& mi ){
-                    return mi.modelname() == "u5303a";
-                });
-            if ( nextIt_ != ctrlm_->end() ) {
-                adportable::serializer< acqrscontrols::u5303a::method >::deserialize( u5303a_, nextIt_->data(), nextIt_->size() );
-                return true;
-            }
-            return false;
-        }
-    };
-
+    //..........................................
     class document::impl {
     public:
+        static std::unique_ptr< document > instance_;
+        static std::mutex mutex_;
+        static const std::chrono::steady_clock::time_point uptime_;
+        static const uint64_t tp0_;
+        
         std::shared_ptr< tdcdoc > tdcdoc_;
         std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
         std::shared_ptr< ::u5303a::iControllerImpl > iControllerImpl_;
         std::vector< std::shared_ptr< adextension::iController > > iControllers_;
         std::shared_ptr< MasterObserver > masterObserver_;
         bool isRecording_;
-        std::mutex mutex_;
+
+        std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
+        std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
+        std::shared_ptr< acqrscontrols::u5303a::method > method_;
+
+        int32_t device_status_;
+        std::shared_ptr< QSettings > settings_;  // user scope settings
+        QString ctrlmethod_filename_;
+
+        // display data
+        std::map< boost::uuids::uuid, std::array< std::shared_ptr< adcontrols::MassSpectrum >, acqrscontrols::u5303a::nchannels > > spectra_;
 
         impl() : tdcdoc_( std::make_shared< tdcdoc >() )
                , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                , iControllerImpl_( std::make_shared< u5303a::iControllerImpl >() )
-               , isRecording_( false ) {
-        }
-
+               , isRecording_( false )
+               , device_status_( 0 )
+               , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
+               , method_( std::make_shared< acqrscontrols::u5303a::method >() )
+               , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
+                                                           , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                                           , QLatin1String( "u5303a" ) ) )                 
+            {}
         void addiController( std::shared_ptr< adextension::iController > p );
         void handleConnected( adextension::iController * controller );
         void handleMessage( adextension::iController * ic, unsigned long code, unsigned long value );
@@ -153,35 +135,28 @@ namespace u5303a {
 
     };
 
+    std::mutex document::impl::mutex_;
+    std::unique_ptr< document > document::impl::instance_;
+    const std::chrono::steady_clock::time_point document::impl::uptime_ = std::chrono::steady_clock::now();
+    const uint64_t document::impl::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( document::impl::uptime_.time_since_epoch() ).count();
 }
     
-document::document() : digitizer_( new u5303a::digitizer )
-                     , exec_( new exec() )
-                     , device_status_( 0 )
-                     , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
-                     , method_( std::make_shared< acqrscontrols::u5303a::method >() )
-                     , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
-                                                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                                 , QLatin1String( "u5303a" ) ) )
-                     , impl_( new impl() )
+document::document() : impl_( new impl() )
 {
 }
 
 document::~document()
 {
-    delete digitizer_;
     delete impl_;
 }
 
 document *
 document::instance()
 {
-    if ( instance_ == 0 ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        if ( instance_ == 0 )
-            instance_ = new document;
-    }
-    return instance_;
+    static std::once_flag flag;
+
+    std::call_once( flag, [=] () { impl::instance_.reset( new document() ); } );
+    return impl::instance_.get();
 }
 
 void
@@ -206,7 +181,8 @@ document::actionConnect()
         impl_->iControllers_ = activeControllers;
 
         auto cm = MainWindow::instance()->getControlMethod();
-        
+        setControlMethod( *cm, QString() );
+
         futures.clear();
         for ( auto& iController : impl_->iControllers_ ) {
             if ( auto session = iController->getInstrumentSession() )
@@ -231,50 +207,42 @@ document::actionConnect()
 }
 
 void
-document::u5303a_connect()
-{
-    digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
-    digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2, _3 ) );
-    digitizer_->peripheral_initialize();
-}
-
-void
 document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
 
-    cm_ = MainWindow::instance()->getControlMethod();
-
-    if ( exec_->prepare_for_run( *cm_ ) ) {
-        digitizer_->peripheral_prepare_for_run( *exec_->ctrlm_ );
-        // while .. if other item on initial condition exists.
+    auto cm = MainWindow::instance()->getControlMethod();
+    setControlMethod( *cm, QString() );
+    
+    std::vector< std::future< bool > > futures;
+    for ( auto& iController : impl_->iControllers_ ) {
+        if ( auto session = iController->getInstrumentSession() ) {
+            futures.push_back( std::async( [=] () { return session->prepare_for_run( cm ); } ) );
+        }
     }
-    else
-        QMessageBox::information( 0, "u5303a::document", QString( "Preparing for run withouth method " ) );
+    if ( !futures.empty() )
+        task::instance()->post( futures );
 }
 
 void
 document::u5303a_start_run()
 {
-	digitizer_->peripheral_run();
 }
 
 void
 document::u5303a_stop()
 {
-	digitizer_->peripheral_stop();
 }
 
 void
 document::u5303a_trigger_inject()
 {
-	digitizer_->peripheral_trigger_inject();
 }
 
 int32_t
 document::device_status() const
 {
-    return device_status_;
+    return impl_->device_status_;
 }
 
 void
@@ -282,8 +250,8 @@ document::reply_handler( const std::string& method, const std::string& reply )
 {
 	emit on_reply( QString::fromStdString( method ), QString::fromStdString( reply ) );
     if ( method == "InitialSetup" && reply == "success" ) {
-        device_status_ = controlserver::eStandBy;
-        emit on_status( device_status_ );
+        impl_->device_status_ = controlserver::eStandBy;
+        emit on_status( impl_->device_status_ );
     }
 }
 
@@ -291,19 +259,20 @@ bool
 document::waveform_handler( const acqrscontrols::u5303a::waveform * ch1, const acqrscontrols::u5303a::waveform * ch2, acqrscontrols::u5303a::method& )
 {
     auto ptr = ch1->shared_from_this();
-    std::lock_guard< std::mutex > lock( mutex_ );
-    while ( que_.size() >= 32 )
-        que_.pop_front();
-	que_.push_back( ptr );
+    std::lock_guard< std::mutex > lock( impl::mutex_ );
+    while ( impl_->que_.size() >= 32 )
+        impl_->que_.pop_front();
+    impl_->que_.push_back( ptr );
     emit on_waveform_received();
     return false;
 }
 
+#if 0
 std::shared_ptr< const acqrscontrols::u5303a::waveform >
 document::findWaveform( uint32_t serialnumber )
 {
     (void)serialnumber;
-    std::lock_guard< std::mutex > lock( mutex_ );
+    std::lock_guard< std::mutex > lock( impl::mutex_ );
     if ( que_.empty() )
         return 0;
 	std::shared_ptr< const acqrscontrols::u5303a::waveform > ptr = que_.back();
@@ -317,11 +286,12 @@ document::findWaveform( uint32_t serialnumber )
     */
 	return 0;
 }
+#endif
 
 std::shared_ptr< const acqrscontrols::u5303a::method >
 document::method() const
 {
-    return method_;
+    return impl_->method_;
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
@@ -389,48 +359,6 @@ document::iController()
     return impl_->iControllerImpl_.get();
 }
 
-
-// static
-bool
-document::toMassSpectrum( adcontrols::MassSpectrum& sp, const acqrscontrols::u5303a::waveform& waveform )
-{
-    using namespace adcontrols::metric;
-
-    sp.setCentroid( adcontrols::CentroidNone );
-
-    adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::MSProperty::SamplingInfo info( 0
-                                               , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
-                                               , uint32_t( waveform.data_size() )
-                                               , waveform.method_.method_.nbr_of_averages + 1
-                                               , 0 );
-    info.fSampInterval( 1.0 / waveform.method_.method_.samp_rate );
-    prop.acceleratorVoltage( 3000 );
-    prop.setSamplingInfo( info );
-    
-    prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
-    prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ );
-    prop.setDataInterpreterClsid( "u5303a" );
-
-    u5303a::device_data data;
-    data.ident = *waveform.ident();
-    data.meta = waveform.meta_;
-    std::string ar;
-    adportable::binary::serialize<>()( data, ar );
-    prop.setDeviceData( ar.data(), ar.size() );
-
-    // prop.setDeviceData(); TBA
-    sp.setMSProperty( prop );
-    sp.resize( waveform.data_size() );
-
-    auto dp = waveform.data();
-    for ( size_t idx = 0; idx < waveform.data_size(); ++idx )
-        sp.setIntensity( idx, *dp++ );
-
-    // mass array tba
-	return true;
-}
-
 // static
 bool
 document::appendOnFile( const std::wstring& path
@@ -464,7 +392,7 @@ document::appendOnFile( const std::wstring& path
 void
 document::initialSetup()
 {
-    boost::filesystem::path dir = user_preference::path( settings_.get() );
+    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
 
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
@@ -484,10 +412,10 @@ document::initialSetup()
         boost::filesystem::path mfile( dir / "u5303a.cmth.xml" );
         acqrscontrols::u5303a::method m;
         if ( load( QString::fromStdWString( mfile.wstring() ), m ) )
-            *method_ = m;
+            *impl_->method_ = m;
 
-        if ( cm_ ) {
-            cm_->append<>( m );
+        if ( impl_->cm_ ) {
+            impl_->cm_->append<>( m );
         }
 
     } while ( 0 );
@@ -496,7 +424,7 @@ document::initialSetup()
 void
 document::finalClose()
 {
-    boost::filesystem::path dir = user_preference::path( settings_.get() );
+    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "u5303a::document"
@@ -505,21 +433,22 @@ document::finalClose()
         }
     }
 
-    cm_ = MainWindow::instance()->getControlMethod();
-    auto it = cm_->find( cm_->begin(), cm_->end(), acqrscontrols::u5303a::method::modelClass() );
-    if ( it != cm_->end() ) {
+    auto cm = MainWindow::instance()->getControlMethod();
+    auto it = cm->find( cm->begin(), cm->end(), acqrscontrols::u5303a::method::modelClass() );
+    if ( it != cm->end() ) {
         acqrscontrols::u5303a::method x;
         if ( it->get<>( *it, x ) ) {
             boost::filesystem::path fname( dir / "u5303a.cmth.xml" );
             save( QString::fromStdWString( fname.wstring() ), x );
         }
+        impl_->cm_ = cm;
     }
 }
 
 void
 document::addToRecentFiles( const QString& filename )
 {
-    qtwrapper::settings(*settings_).addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, filename );
+    qtwrapper::settings( *impl_->settings_ ).addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, filename );
 }
 
 QString
@@ -528,14 +457,14 @@ document::recentFile( const char * group, bool dir_on_fail )
     if ( group == 0 )
         group = Constants::GRP_DATA_FILES;
 
-    QString file = qtwrapper::settings( *settings_ ).recentFile( group, Constants::KEY_FILES );
+    QString file = qtwrapper::settings( *impl_->settings_ ).recentFile( group, Constants::KEY_FILES );
     if ( !file.isEmpty() )
         return file;
 
     if ( dir_on_fail ) {
         file = Core::DocumentManager::currentFile();
         if ( file.isEmpty() )
-            file = qtwrapper::settings( *settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
+            file = qtwrapper::settings( *impl_->settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
 
         if ( !file.isEmpty() ) {
             QFileInfo fi( file );
@@ -646,30 +575,35 @@ document::save( const QString& filename, const adcontrols::ControlMethod::Method
 std::shared_ptr< adcontrols::ControlMethod::Method >
 document::controlMethod() const
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-    return cm_;
+    return impl_->cm_;
+}
+
+void
+document::setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method > ptr, const QString& filename )
+{
+    do {
+        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
+        if ( it != ptr->end() ) {
+            acqrscontrols::u5303a::method m;
+            if ( it->get( *it, m ) )
+                * impl_->method_ = m;
+            impl_->cm_ = ptr;
+        }
+    } while(0);
+
+    if ( ! filename.isEmpty() ) {
+        impl_->ctrlmethod_filename_ = filename;
+        qtwrapper::settings( *impl_->settings_ ).addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, filename );
+    }
+
+    emit onControlMethodChanged( filename );
 }
 
 void
 document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename )
 {
-    do {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        cm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
-        auto it = cm_->find( cm_->begin(), cm_->end(), acqrscontrols::u5303a::method::modelClass() );
-        if ( it != cm_->end() ) {
-            acqrscontrols::u5303a::method m;
-            if ( it->get( *it, m ) )
-                * method_ = m;
-        }
-    } while(0);
-
-    if ( ! filename.isEmpty() ) {
-        ctrlmethod_filename_ = filename;
-        qtwrapper::settings(*settings_).addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, filename );
-    }
-
-    emit onControlMethodChanged( filename );
+    auto ptr = std::make_shared< adcontrols::ControlMethod::Method >( m );
+    setControlMethod( ptr, filename );
 }
 
 double
@@ -704,9 +638,9 @@ void
 document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
 {
     if ( ch == 0 ) {
-        auto ptr = std::make_shared< acqrscontrols::u5303a::method >( *method_ );
+        auto ptr = std::make_shared< acqrscontrols::u5303a::method >( *impl_->method_ );
         ptr->threshold_ = m;
-        method_ = ptr;
+        impl_->method_ = ptr;
         emit on_threshold_method_changed( ch );
     }
 }
@@ -715,9 +649,9 @@ void
 document::set_method( const acqrscontrols::u5303a::method& m )
 {
     auto ptr = std::make_shared< acqrscontrols::u5303a::method >( m );
-    ptr->threshold_ = method_->threshold_;
+    ptr->threshold_ = impl_->method_->threshold_;
 
-    method_ = ptr;
+    impl_->method_ = ptr;
 }
 
 const adcontrols::SampleRun *
@@ -789,7 +723,7 @@ document::impl::addiController( std::shared_ptr< adextension::iController > p )
     connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
 
     // non UI thread
-    //p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
+    p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
 
 }
 
@@ -839,15 +773,18 @@ void
 document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum > ms, unsigned idx )
 {
     assert( idx < acqrscontrols::u5303a::nchannels );
-#if 0        
+
+    if ( idx >= acqrscontrols::u5303a::nchannels )
+        return;
+
     do {
         std::lock_guard< std::mutex > lock( impl_->mutex_ );    
         impl_->spectra_[ objid ][ idx ] = ms;
     } while( 0 );
 
-    emit dataChanged2( objid, idx );
+    emit dataChanged( objid, idx );
 
-    if ( objid == ap240_observer ) {
+    if ( objid == u5303a_observer ) {
         double resolution = 0;
         if ( auto tm = tdc()->threshold_method( idx ) )
             resolution = tm->time_resolution;
@@ -862,7 +799,87 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
             impl_->spectra_[ histogram_observer ][ idx ] = histogram;
         } while ( 0 );
 
-        emit dataChanged2( histogram_observer, idx );
+        emit dataChanged( histogram_observer, idx );
+    }
+
+}
+
+std::shared_ptr< adcontrols::MassSpectrum >
+document::recentSpectrum( const boost::uuids::uuid& uuid, int idx )
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+
+    auto it = impl_->spectra_.find( uuid );
+    if ( it != impl_->spectra_.end() ) {
+        if ( it->second.size() > idx )
+            return it->second.at( idx );
+    }
+    return 0;
+}
+
+QSettings *
+document::settings()
+{
+    return impl_->settings_.get();
+}
+
+void
+document::takeSnapshot()
+{
+#if 0
+    boost::filesystem::path dir( impl_->nextSampleRun_->dataDirectory() );
+    boost::filesystem::path file( std::wstring( impl_->nextSampleRun_->filePrefix() ) + L".adfs~" );
+
+    if ( ! boost::filesystem::exists( dir ) ) {
+        boost::system::error_code ec;
+        boost::filesystem::create_directories( dir, ec );
+    }
+
+    boost::filesystem::path path( dir / file );
+    if ( ! boost::filesystem::exists( path ) )
+        path = dir / ( std::wstring( impl_->nextSampleRun_->filePrefix() ) + L"_snapshots.adfs" );
+        
+    unsigned idx = 0;
+
+    // get histogram
+    double resolution = 0.0;
+    if ( auto tm = tdc()->threshold_method( idx ) )
+        resolution = tm->time_resolution;
+
+    size_t trigCount;
+    std::pair< uint64_t, uint64_t > timeSinceEpoch;
+    auto histogram = tdc()->getHistogram( resolution, idx, trigCount, timeSinceEpoch );
+
+    uint32_t serialnumber(0);
+
+    // get waveform(s)
+    auto spectra = impl_->spectra_[ ap240_observer ];
+    
+    int ch = 1;
+    for ( auto ms: spectra ) {
+        if ( ms ) {
+            serialnumber = ms->getMSProperty().trigNumber();
+            QString title = QString( "Spectrum %1 CH-%2" ).arg( QString::number( serialnumber ), QString::number( ch ) );
+            QString folderId;
+            if ( appendOnFile( path, title, *ms, folderId ) ) {
+                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+                for ( auto handler: vec )
+                    handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+            }
+        }
+        ++ch;
+    }
+
+    // save histogram
+    ch = 1;
+    if ( histogram ) {
+        QString title = QString( "Histgram %1 CH-%2" ).arg( QString::number( serialnumber ), QString::number( ch ) );
+        QString folderId;
+        if ( document::appendOnFile( path, title, *histogram, folderId ) ) {
+            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+            for ( auto handler: vec )
+                handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+        }
     }
 #endif
 }

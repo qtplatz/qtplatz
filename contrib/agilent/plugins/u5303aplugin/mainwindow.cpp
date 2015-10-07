@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "constants.hpp"
 #include "waveformwnd.hpp"
 #include "document.hpp"
 #include "isequenceimpl.hpp"
@@ -66,6 +67,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <QApplication>
 #include <QDockWidget>
 #include <QMenu>
@@ -80,6 +82,8 @@
 #include <qdebug.h>
 
 using namespace u5303a;
+
+Q_DECLARE_METATYPE( boost::uuids::uuid );
 
 MainWindow * MainWindow::instance_ = 0;
 
@@ -207,7 +211,12 @@ MainWindow::createContents( Core::IMode * mode )
         if ( auto wnd = new WaveformWnd() ) {
             editorHolderLayout->addWidget( wnd );
             connect( document::instance(), &document::on_threshold_method_changed, wnd, &WaveformWnd::handle_threshold_method );
-            connect( document::instance(), &document::onControlMethodChanged, wnd, &WaveformWnd::handle_method );            
+            connect( document::instance(), &document::onControlMethodChanged, wnd, &WaveformWnd::handle_method );
+            bool res = connect( document::instance(), &document::dataChanged, wnd, &WaveformWnd::dataChanged );
+#if defined _DEBUG
+            QVariant v;
+            v.setValue( boost::uuids::uuid() );
+#endif
         }
         
         //---------- central widget ------------
@@ -537,9 +546,12 @@ MainWindow::actStop()
     document::instance()->u5303a_stop();
 }
 #endif
+
 void
 MainWindow::actSnapshot()
 {
+    assert( 0 );
+#if 0
     if ( auto waveform = document::instance()->findWaveform() ) {
         adcontrols::MassSpectrum ms;
         if ( document::toMassSpectrum( ms, *waveform ) ) {
@@ -561,20 +573,8 @@ MainWindow::actSnapshot()
             }
         }
     }
-}
-
-#if 0
-void
-MainWindow::actInject()
-{
-    document::instance()->u5303a_trigger_inject();
-}
-
-void
-MainWindow::actFileOpen()
-{
-}
 #endif
+}
 
 void
 MainWindow::handle_reply( const QString& method, const QString& reply )

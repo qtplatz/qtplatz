@@ -319,10 +319,10 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
         << "\tinvert_signal: " << m.invert_signal
         << "\tnsa: " << m.nsa;
     
-    io_service_.post( strand_.wrap( [&] { handle_prepare_for_run( method ); } ) );
+    io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
     if ( acquire_post_count_ == 0 ) {
         acquire_post_count_++;
-        io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );
+        io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
 	}
     return true;
 }
@@ -513,8 +513,8 @@ task::handle_acquire()
     if ( acquire() ) {
         if ( waitForEndOfAcquisition( 3000 ) ) {
             uint32_t events(0);
-            auto avgr = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
-            if ( readData( *avgr ) ) {
+            auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
+            if ( readData( *waveform ) ) {
                 // if ( software_events_ ) {
                 //     avgr->wellKnownEvents |= software_events_; // marge with hardware events
                 //     software_events_ = 0;
@@ -528,9 +528,11 @@ task::handle_acquire()
                 // assert( avgr->nbrSamples );
                 acqrscontrols::u5303a::method m;
                 for ( auto& reply: waveform_handlers_ ) {
-                    if ( reply( avgr.get(), nullptr, m ) )
+                    if ( reply( waveform.get(), nullptr, m ) )
                         handle_protocol( m );
                 }
+                if ( simulated_ )
+                    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
             }
         } else {
             ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
@@ -555,9 +557,6 @@ task::acquire()
 bool
 task::waitForEndOfAcquisition( int timeout )
 {
-    // if ( simulated_ )
-    //     return device<Simulate>::waitForEndOfAcquisition( *this, timeout );
-    // else
     if ( method_.mode_ == 0 )
         return device<Digitizer>::waitForEndOfAcquisition( *this, timeout );
     else
@@ -568,9 +567,6 @@ bool
 task::readData( acqrscontrols::u5303a::waveform& data )
 {
     data.serialnumber_ = serialnumber_++;
-    // if ( simulated_ )
-    //     return device<Simulate>::readData( *this, data );
-    // else
     if ( method_.mode_ == 0 )    
         return device<Digitizer>::readData( *this, data );
     else
@@ -624,25 +620,6 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 {
     scanlaw_ = ptr;
 }
-
-#if 0 ///
-identify::identify()
-{
-}
-
-identify::identify( const identify& t ) : Identifier( t.Identifier )
-                                        , Revision( t.Revision )
-                                        , Vendor( t.Vendor )
-                                        , Description( t.Description )
-                                        , InstrumentModel( t.InstrumentModel )
-                                        , FirmwareRevision( t.FirmwareRevision )
-                                        , SerialNumber( t.SerialNumber )
-                                        , Options( t.Options )
-                                        , IOVersion( t.IOVersion )
-                                        , NbrADCBits( t.NbrADCBits )
-{
-}
-#endif
 
 template<> bool
 device<Averager>::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
@@ -894,12 +871,7 @@ template<> bool
 device<Digitizer>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 {
     IAgMD2Channel2Ptr spCh1 = task.spDriver()->Channels2->Item2[ L"Channel1" ];
-    __int64 firstRecord = 0;
-    __int64 numRecords = 1;
-    __int64 offsetWithinRecord = 0;
     SAFEARRAY* dataArray = 0;
-    long actualAverages = 0;
-    __int64 actualPoints = 0;
     __int64 firstValidPoint = 0;
     double initialXTimeSeconds = 0;
     double initialXTimeFraction = 0;
@@ -907,8 +879,8 @@ device<Digitizer>::readData( task& task, acqrscontrols::u5303a::waveform& data )
     const int64_t numPointsPerRecord = task.method().method_.digitizer_nbr_of_s_to_acquire;
     
     try {
-        spCh1->Measurement2->FetchWaveformInt32( &dataArray
-                                                 , &actualPoints
+        spCh1->Measurement2->FetchWaveformInt16( &dataArray
+                                                 , &data.meta_.actualPoints
                                                  , &firstValidPoint
                                                  , &data.meta_.initialXOffset
                                                  , &initialXTimeSeconds
@@ -921,19 +893,21 @@ device<Digitizer>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 
         data.method_ = task.method();
 
-        data.meta_.actualAverages = actualAverages;
+        data.meta_.actualAverages = 0; // digitizer
 
         data.meta_.initialXTimeSeconds = initialXTimeSeconds + initialXTimeFraction;
 
-		safearray_t<int32_t> sa( dataArray );
-        auto dp = data.data( numPointsPerRecord );
-        std::copy( sa.data() + firstValidPoint, sa.data() + numPointsPerRecord, dp );
+        safearray_t<int16_t> sa( dataArray );
+
+        data.resize( data.meta_.actualPoints );
+
+        std::copy( sa.data() + firstValidPoint, sa.data() + data.meta_.actualPoints, data.begin() );
 
         // Release memory.
         SafeArrayDestroy(dataArray);
 
     } catch ( _com_error& e ) {
-        TERR(e,"readData::ReadIndirectInt32");
+        TERR(e,"readData::FetchWaveformInt16");
         return false;
     }
     return true;
@@ -1038,9 +1012,10 @@ device<Simulate>::acquire( task& task )
 template<> bool
 device<Simulate>::waitForEndOfAcquisition( task& task, int /* timeout */)
 {
-    if ( simulator * simulator = task.simulator() )
-        return simulator->waitForEndOfAcquisition();
-    return false;
+    //if ( simulator * simulator = task.simulator() )
+    //    return simulator->waitForEndOfAcquisition();
+    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
+    return true;
 }
 
 template<> bool

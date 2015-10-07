@@ -52,7 +52,6 @@ namespace boost { namespace uuids { struct uuid; } }
 namespace u5303a {
 
     class iControllerImpl;
-    class digitizer;
     class tdcdoc;
 
     namespace detail { struct remover; }
@@ -60,8 +59,10 @@ namespace u5303a {
     class document : public QObject {
         Q_OBJECT
         document();
-        ~document();
+
     public:
+        ~document();
+
         static document * instance();
 
         void initialSetup();
@@ -78,17 +79,19 @@ namespace u5303a {
         void u5303a_stop();
         void u5303a_trigger_inject();
         void prepare_for_run();
-        std::shared_ptr< const acqrscontrols::u5303a::waveform > findWaveform( uint32_t serialnumber = (-1) );
+
         int32_t device_status() const;
 
-        static bool toMassSpectrum( adcontrols::MassSpectrum&, const acqrscontrols::u5303a::waveform& );
+        //static bool toMassSpectrum( adcontrols::MassSpectrum&, const acqrscontrols::u5303a::waveform& );
         static bool appendOnFile( const std::wstring& path, const std::wstring& title, const adcontrols::MassSpectrum&, std::wstring& id );
-
-        QSettings * settings() { return settings_.get(); }
+        
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
         std::shared_ptr< adcontrols::ControlMethod::Method > controlMethod() const;
+
         void setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename );
+        void setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method > m, const QString& filename = QString() );
+
         void addiController( adextension::iController * p );
 
         std::shared_ptr< const acqrscontrols::u5303a::method > method() const;
@@ -107,7 +110,12 @@ namespace u5303a {
 
         void setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum >, unsigned int idx );
 
+        std::shared_ptr< adcontrols::MassSpectrum > recentSpectrum( const boost::uuids::uuid& uuid, int idx );
+
+        void takeSnapshot();
+
         tdcdoc * tdc();
+        QSettings * settings(); // { return settings_.get(); }
 
         static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );
@@ -115,24 +123,8 @@ namespace u5303a {
         static bool save( const QString& filename, const acqrscontrols::u5303a::method& );
         
     private:
-        friend struct detail::remover;
-        class exec;
-
         class impl;
         impl * impl_;
-
-        static std::mutex mutex_;
-        static document * instance_;
-
-        u5303a::digitizer * digitizer_;
-        std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
-        std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
-        std::shared_ptr< acqrscontrols::u5303a::method > method_;
-        std::unique_ptr< exec > exec_;
-
-        int32_t device_status_;
-        std::shared_ptr< QSettings > settings_;  // user scope settings
-        QString ctrlmethod_filename_;
 
         void reply_handler( const std::string&, const std::string& );
         bool waveform_handler(  const acqrscontrols::u5303a::waveform *, const acqrscontrols::u5303a::waveform *, acqrscontrols::u5303a::method& );
@@ -143,6 +135,8 @@ namespace u5303a {
         void onControlMethodChanged( const QString& );
         void on_threshold_method_changed( int );
         void sampleRunChanged();
+
+        void dataChanged( const boost::uuids::uuid&, int );
     };
 
 }

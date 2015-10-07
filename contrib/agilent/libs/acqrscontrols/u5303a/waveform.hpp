@@ -90,11 +90,17 @@ namespace acqrscontrols {
             typedef int32_t value_type;
             
             value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
+
             const value_type * data() const { return d_.data(); }
+
+            void resize( size_t size ) { d_.resize( size ); }
+
             size_t data_size() const { return d_.size(); }
 
             std::pair<double, int> operator [] ( size_t idx ) const;
+
             double toVolts( int ) const;
+
             double toVolts( double ) const;
 
             const identify* ident() const { return ident_.get(); }
@@ -117,6 +123,7 @@ namespace acqrscontrols {
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
         private:
+
 #if defined _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4251)

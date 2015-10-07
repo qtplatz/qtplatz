@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "waveformwnd.hpp"
+#include "constants.hpp"
 #include "document.hpp"
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
@@ -41,6 +42,7 @@
 #include <QSplitter>
 #include <QBoxLayout>
 #include <boost/format.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <chrono>
 #include <sstream>
 
@@ -173,8 +175,57 @@ WaveformWnd::handle_method( const QString& )
 }
 
 void
+WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
+{
+    if ( auto sp = document::instance()->recentSpectrum( uuid, idx ) ) {
+
+        if ( uuid == u5303a_observer ) {
+
+            double seconds = sp->getMSProperty().timeSinceInjection();
+            QString title = QString( "U5303A: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
+                                                                                 , QString::number( sp->getMSProperty().trigNumber() ) );
+            
+            spw_->setTitle( title );
+            spw_->setData( sp, idx, bool( idx ) );
+
+
+        } else if ( uuid == histogram_observer ) {
+
+            double rate = 0; // document::instance()->tdc()->trig_per_seconds();
+
+            QString title = QString( "U5303A: %1 samples / Trig# %2 (%3/s)" ).arg( QString::number( sp->getMSProperty().numAverage() )
+                                                                           , QString::number( sp->getMSProperty().trigNumber() )
+                                                                           , QString::number( rate, 'f', 2 )   );
+            
+            hpw_->setTitle( title );
+            hpw_->setData( sp, idx, bool( idx ) );
+                                                                      
+        }
+        
+    } else {
+
+        // clear spectrum
+        static auto empty = std::make_shared< adcontrols::MassSpectrum >();
+        
+        if ( uuid == u5303a_observer ) {
+            
+            spw_->setData( empty, idx, bool( idx ) );
+
+        } else if ( uuid == histogram_observer ) {
+
+            hpw_->setData( empty, idx, bool( idx ) );
+                                                                      
+        }
+
+    }
+
+}
+
+void
 WaveformWnd::handle_waveform()
 {
+    assert( 0 );
+#if 0
     auto pair = document::instance()->findWaveform();
 
     double resolution = 0.0;
@@ -291,5 +342,5 @@ WaveformWnd::handle_waveform()
 #endif
     }
     //document::instance()->waveform_drawn();
-
+#endif
 }

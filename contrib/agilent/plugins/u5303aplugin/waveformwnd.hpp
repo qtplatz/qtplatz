@@ -34,6 +34,7 @@ class QwtPlotMarker;
 namespace adplot { class ChromatogramWidget; class TraceWidget; class SpectrumWidget; }
 namespace adcontrols { class MassSpectrum; class Trace; }
 namespace acqrscontrols { namespace u5303a { class waveform; } }
+namespace boost { namespace uuids { struct uuid; } }
 
 namespace u5303a {
 
@@ -52,6 +53,7 @@ namespace u5303a {
         void handle_waveform();
         void handle_threshold_method( int ch );
         void handle_method( const QString& );
+        void dataChanged( const boost::uuids::uuid&, int idx );
 
     private:
         void init();

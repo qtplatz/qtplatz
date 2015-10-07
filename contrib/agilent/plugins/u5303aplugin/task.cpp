@@ -22,6 +22,7 @@
 **************************************************************************/
 
 #include "task.hpp"
+#include "constants.hpp"
 #include "document.hpp"
 #include "tdcdoc.hpp"
 #include <acqrscontrols/constants.hpp>
@@ -67,10 +68,9 @@
 namespace u5303a {
 
     static std::once_flag flag1;
-    namespace so = adicontroller::SignalObserver;
-
-    extern const boost::uuids::uuid u5303a_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::waveform_observer_name );
-    extern const boost::uuids::uuid histogram_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::histogram_observer_name );
+    //namespace so = adicontroller::SignalObserver;
+    //extern const boost::uuids::uuid u5303a_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::waveform_observer_name );
+    //extern const boost::uuids::uuid histogram_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::histogram_observer_name );
 
     struct data_status {
         uint32_t pos_;
@@ -408,7 +408,7 @@ task::impl::handle_u5303a_average( const data_status status, std::array< thresho
     
     auto tp = std::chrono::steady_clock::now();
 
-    if ( std::chrono::duration_cast< std::chrono::milliseconds > ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
+    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 1000 ) {
 
         data_status_[ u5303a_observer ].plot_ready_ = true;
         sema_.signal();

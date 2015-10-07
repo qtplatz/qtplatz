@@ -33,12 +33,14 @@ template<typename T> class safearray_t {
     SAFEARRAY *& psa_;
     T * pdata_;
     ULONG size_;
+    VARTYPE vt_;
 public:
-    safearray_t( SAFEARRAY *& p ) : psa_( p ), pdata_(0), size_(0) {
+    safearray_t( SAFEARRAY *& p ) : psa_( p ), pdata_(0), size_(0), vt_(0) {
         SafeArrayAccessData( psa_, reinterpret_cast<void **>(&pdata_) );
 		LONG lBound, uBound;
 		SafeArrayGetLBound( psa_, 1, &lBound );
 		SafeArrayGetUBound( psa_, 1, &uBound );
+        SafeArrayGetVartype( psa_, &vt_ );
 		size_ = uBound - lBound + 1;
     }
     ~safearray_t() {
@@ -46,8 +48,9 @@ public:
 		SafeArrayDestroy( psa_ );
 		psa_ = 0;
     }
-    const T* data() const { return pdata_; }
-    uint32_t size() const { return static_cast<uint32_t>(size_); }
+    inline const VARTYPE& vt() const { return vt_; }
+    inline const T* data() const { return pdata_; }
+    inline size_t size() const { return static_cast<size_t>( size_ ); }
 };
 
 #endif

@@ -114,18 +114,12 @@ u5303AWidget::getContents( boost::any& a ) const
 {
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
 
-        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
-
         acqrscontrols::u5303a::method m;
-        
-        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
-        if ( it != ptr->end() )
-            it->get<>( *it, m );
+        get( m );
 
-        if ( auto table = findChild< u5303ATable * >() )
-            table->getContents( m.method_ );
-        
+        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>( a );
         ptr->append( m );
+
         return true;
 
     }
@@ -173,7 +167,7 @@ u5303AWidget::setContents( boost::any& a )
 }
 
 bool
-u5303AWidget::get( acqrscontrols::u5303a::method& m )
+u5303AWidget::get( acqrscontrols::u5303a::method& m ) const
 {
     if ( auto form = findChild< u5303AForm * >() ) {
         form->getContents( m );
