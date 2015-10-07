@@ -26,6 +26,7 @@ namespace boost { namespace uuids { struct uuid; } }
 
 namespace u5303a {
 
+    extern const boost::uuids::uuid ap240_observer;
     extern const boost::uuids::uuid u5303a_observer;
     extern const boost::uuids::uuid histogram_observer;
 

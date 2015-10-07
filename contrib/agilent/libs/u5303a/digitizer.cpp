@@ -85,6 +85,8 @@ namespace u5303a {
             ~task();
         public:
             static task * instance();
+            static const std::chrono::steady_clock::time_point uptime_;
+            static const uint64_t tp0_;
             
             inline boost::asio::io_service& io_service() { return io_service_; }
             
@@ -139,6 +141,9 @@ namespace u5303a {
             bool waitForEndOfAcquisition( int timeout );
             bool readData( acqrscontrols::u5303a::waveform& );
         };
+
+        const std::chrono::steady_clock::time_point task::uptime_ = std::chrono::steady_clock::now();
+        const uint64_t task::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( task::uptime_.time_since_epoch() ).count();
 
     }
 }
@@ -567,10 +572,11 @@ bool
 task::readData( acqrscontrols::u5303a::waveform& data )
 {
     data.serialnumber_ = serialnumber_++;
-    if ( method_.mode_ == 0 )    
+    if ( method_.mode_ == 0 ) {
         return device<Digitizer>::readData( *this, data );
-    else
+    } else {
         return device<Averager>::readData( *this, data );
+    }
 }
 
 void
@@ -889,13 +895,17 @@ device<Digitizer>::readData( task& task, acqrscontrols::u5303a::waveform& data )
                                                  , &data.meta_.scaleFactor
                                                  , &data.meta_.scaleOffset );
 
-        data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+        auto tp = std::chrono::steady_clock::now();
+        data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
 
         data.method_ = task.method();
 
         data.meta_.actualAverages = 0; // digitizer
 
         data.meta_.initialXTimeSeconds = initialXTimeSeconds + initialXTimeFraction;
+        if ( data.meta_.initialXTimeSeconds == 0 ) {  // bitwise zero though this is double
+            data.meta_.initialXTimeSeconds = double( std::chrono::duration_cast<std::chrono::nanoseconds>( tp - task::uptime_ ).count() ) * 1.0e-9;
+        }
 
         safearray_t<int16_t> sa( dataArray );
 

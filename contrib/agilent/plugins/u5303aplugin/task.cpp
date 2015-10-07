@@ -101,8 +101,8 @@ namespace u5303a {
             , cell_selection_enabled_( false )
             , histogram_window_enabled_( false )
             , histogram_clear_cycle_enabled_( false )
-            , cellRect_( 0, 0, 1, 1 )
-            , histogram_window_( std::make_pair( 0, 1.0 ) )  // 0 -- 1.0 seconds
+            //, cellRect_( 0, 0, 1, 1 )
+            //, histogram_window_( std::make_pair( 0, 1.0 ) )  // 0 -- 1.0 seconds
             , histogram_clear_cycle_( 100 )
             , device_delay_count_( 0 ) {
 
@@ -133,9 +133,10 @@ namespace u5303a {
         std::atomic< bool > histogram_window_enabled_;
         std::atomic< bool > cell_selection_enabled_;
         std::atomic< bool > histogram_clear_cycle_enabled_;
-        QRect cellRect_;
-        std::pair< double, double > histogram_window_;
-        std::pair< uint32_t, uint32_t > histogram_device_window_;
+
+        //QRect cellRect_;
+        //std::pair< double, double > histogram_window_;
+        //std::pair< uint32_t, uint32_t > histogram_device_window_;
         uint32_t histogram_clear_cycle_;
         std::condition_variable cv_;
 
@@ -152,6 +153,8 @@ namespace u5303a {
 
         void handle_u5303a_data( data_status&, std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb );
         void handle_u5303a_average( const data_status, std::array< threshold_result_ptr, 2 > );
+        void handle_ap240_data( data_status&, std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb );
+        void handle_ap240_average( const data_status, std::array< threshold_result_ptr, 2 > );
 
         void resetDeviceData() {
             traceAccessor_->clear();
@@ -202,6 +205,7 @@ task::task() : impl_( new impl() )
 
 task::~task()
 {
+    finalize();  // make sure
     delete impl_;
 }
 
@@ -363,15 +367,25 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
         }
     
         if ( so->objid() == u5303a_observer ) {
+
             std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
             do {
                 if ( ( rb = so->readData( status.pos_++ ) ) )
                     handle_u5303a_data( status, rb );
             } while ( rb && status.pos_ <= pos );
+
+        } else if ( so->objid() == ap240_observer ) {
+
+            std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
+            do {
+                if ( ( rb = so->readData( status.pos_++ ) ) )
+                    handle_ap240_data( status, rb );
+            } while ( rb && status.pos_ <= pos );
+
         } else {
             std::string name = so->objtext();
             auto uuid = so->objid();
-            assert( 0 );
+            ADDEBUG() << "Unhandled data : " << name;
         }
     }
 }
@@ -436,42 +450,6 @@ task::clear_histogram()
     impl_->clear_histogram();
 }
 
-void
-task::setCellSelection( const QRect& rect )
-{
-    do {
-        std::lock_guard< std::mutex > lock( impl_->mutex_ );
-        impl_->cellRect_ = rect;
-    } while ( 0 );
-
-    if ( impl_->cell_selection_enabled_ )
-        impl_->clear_histogram();
-}
-
-void
-task::setCellSelectionEnabled( bool enable )
-{
-    impl_->cell_selection_enabled_ = enable;
-}
-
-void
-task::setHistogramWindowEnabled( bool enable )
-{
-    impl_->histogram_window_enabled_ = enable;
-}
-
-void
-task::setHistogramWindow( double delay, double width )
-{
-    if ( delay >= 0 && width >= 0 ) {
-
-        impl_->histogram_window_ = std::make_pair( delay, width );
-
-        //uint32_t delay_count = uint32_t( delay / ( 1.0 / document::instance()->malpix_clock_rate() ) + 0.5 ) - impl_->device_delay_count_;
-        //uint32_t width_count = width / ( 1.0 / document::instance()->malpix_clock_rate() ) + 0.5;
-        //impl_->histogram_device_window_ = std::make_pair( delay_count, delay_count + width_count + 1 );
-    }
-}
 
 void
 task::setHistogramClearCycleEnabled( bool enable )
@@ -485,3 +463,46 @@ task::setHistogramClearCycle( uint32_t value )
     impl_->histogram_clear_cycle_ = value;
 }
 
+void
+task::impl::handle_ap240_data( data_status& status, std::shared_ptr<adicontroller::SignalObserver::DataReadBuffer> rb )
+{
+#if 0
+    // find slope threshold positions
+    auto waveforms = acqrscontrols::ap240::waveform::deserialize( rb.get() );
+
+    auto results = document::instance()->tdc()->handle_waveforms( waveforms );
+    // todo: result -> DataReadBuffer for save data
+
+
+    if ( results[0] || results[1] ) {
+
+        io_service_.post( strand2_.wrap( [=](){ document::instance()->tdc()->appendHistogram( results ); } ) );
+
+        io_service_.post( [=] () { handle_ap240_average( status, results ); } ); // draw spectrogram and TIC
+
+    }
+#endif
+}
+
+void
+task::impl::handle_ap240_average( const data_status status, std::array< threshold_result_ptr, 2 > results )
+{
+#if 0
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        que_.push_back( results );
+        if ( que_.size() >= 2000 )
+            que_.erase( que_.begin(), que_.begin() + 500 );
+        
+    } while( 0 ) ;
+    
+    auto tp = std::chrono::steady_clock::now();
+
+    if ( std::chrono::duration_cast< std::chrono::milliseconds > ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
+
+        data_status_[ ap240_observer ].plot_ready_ = true;
+        sema_.signal();
+
+    }
+#endif
+}

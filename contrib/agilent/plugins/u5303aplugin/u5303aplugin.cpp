@@ -27,7 +27,6 @@
 #include "u5303a_constants.hpp"
 #include "u5303amode.hpp"
 #include "mainwindow.hpp"
-//#include "isequenceimpl.hpp"
 #include "icontrollerimpl.hpp"
 #include "document.hpp"
 #include <adcontrols/massspectrometerbroker.hpp>

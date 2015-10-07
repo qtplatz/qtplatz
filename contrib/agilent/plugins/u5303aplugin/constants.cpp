@@ -38,5 +38,7 @@ namespace u5303a {
     const boost::uuids::uuid u5303a_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::waveform_observer_name );
 
     const boost::uuids::uuid histogram_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::histogram_observer_name );
+
+    const boost::uuids::uuid ap240_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::ap240::waveform_observer_name );
     
 }

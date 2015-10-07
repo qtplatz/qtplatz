@@ -115,9 +115,15 @@ u5303AWidget::getContents( boost::any& a ) const
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
 
         acqrscontrols::u5303a::method m;
-        get( m );
 
         adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>( a );
+        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
+
+        if ( it != ptr->end() )
+            it->get( *it, m ); // save threshold method 
+
+        get( m ); // override
+
         ptr->append( m );
 
         return true;

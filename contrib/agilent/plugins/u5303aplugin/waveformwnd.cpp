@@ -25,6 +25,7 @@
 #include "waveformwnd.hpp"
 #include "constants.hpp"
 #include "document.hpp"
+#include "tdcdoc.hpp"
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <u5303a/digitizer.hpp>
@@ -36,6 +37,7 @@
 #include <adcontrols/trace.hpp>
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adportable/debug.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_plot_marker.h>
 #include <qwt_scale_widget.h>
@@ -101,8 +103,7 @@ WaveformWnd::init()
     hpw_->setKeepZoomed( false );
     hpw_->setAutoAnnotation( false );
     
-    spw_->link( hpw_ );
-//    hpw_->link( spw_ );
+    // spw_->link( hpw_ );
     
     tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
@@ -143,6 +144,8 @@ WaveformWnd::handle_threshold_method( int ch )
 
         bool replot( false );
         double level_mV = method->threshold_.threshold_level * 1.0e3;
+
+        ADDEBUG() << "threhsold_level = " << level_mV << "mV";
 
         if ( !adportable::compare<double>::approximatelyEqual( threshold_markers_[ ch ]->yValue(), level_mV ) ) {
             threshold_markers_[ ch ]->setYValue( level_mV );
@@ -191,15 +194,26 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 
         } else if ( uuid == histogram_observer ) {
 
-            double rate = 0; // document::instance()->tdc()->trig_per_seconds();
+            double rate = document::instance()->tdc()->trig_per_seconds();
 
             QString title = QString( "U5303A: %1 samples / Trig# %2 (%3/s)" ).arg( QString::number( sp->getMSProperty().numAverage() )
-                                                                           , QString::number( sp->getMSProperty().trigNumber() )
-                                                                           , QString::number( rate, 'f', 2 )   );
-            
+                                                                                   , QString::number( sp->getMSProperty().trigNumber() )
+                                                                                   , QString::number( rate, 'f', 2 ) );
+
             hpw_->setTitle( title );
             hpw_->setData( sp, idx, bool( idx ) );
-                                                                      
+
+        } else if ( uuid == ap240_observer ) {
+
+            double seconds = sp->getMSProperty().timeSinceInjection();
+            QString title = QString( "AP240: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
+                                                                                 , QString::number( sp->getMSProperty().trigNumber() ) );
+            
+            spw_->setTitle( title );
+            spw_->setData( sp, idx, bool( idx ) );
+
+        } else {
+            ADDEBUG() << "Unhandled observer";
         }
         
     } else {

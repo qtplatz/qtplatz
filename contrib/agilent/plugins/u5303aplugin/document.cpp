@@ -424,6 +424,8 @@ document::initialSetup()
 void
 document::finalClose()
 {
+    task::instance()->finalize();
+
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
@@ -637,12 +639,12 @@ document::save_histogram( size_t tickCount, const adcontrols::MassSpectrum& hist
 void
 document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
 {
-    if ( ch == 0 ) {
-        auto ptr = std::make_shared< acqrscontrols::u5303a::method >( *impl_->method_ );
-        ptr->threshold_ = m;
-        impl_->method_ = ptr;
-        emit on_threshold_method_changed( ch );
-    }
+    tdc()->set_threshold_method( ch, m );
+
+    auto mp = MainWindow::instance()->getControlMethod();
+    setControlMethod( mp );
+
+    emit on_threshold_method_changed( ch );
 }
 
 void

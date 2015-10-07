@@ -192,14 +192,12 @@ Session::get_status()
 adicontroller::SignalObserver::Observer *
 Session::getObserver()
 {
-    ADDEBUG() << "##### Session::getObserver #####";
     return impl_->masterObserver_.get();
 }
       
 bool
 Session::initialize()
 {
-    ADDEBUG() << "##### Session::initialize #####";    
     std::call_once( impl::flag3_, [&] () {
             std::lock_guard< std::mutex > lock( impl::mutex_ );
             impl_->digitizer_ = std::make_shared< u5303a::digitizer >();
