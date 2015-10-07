@@ -103,7 +103,7 @@ WaveformWnd::init()
     hpw_->setKeepZoomed( false );
     hpw_->setAutoAnnotation( false );
     
-    // spw_->link( hpw_ );
+    spw_->link( hpw_ );
     
     tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
