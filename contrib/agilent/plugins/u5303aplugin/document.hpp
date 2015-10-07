@@ -32,15 +32,28 @@
 
 class QSettings;
 
-namespace adcontrols { class MassSpectrum; namespace ControlMethod { class Method; } class threshold_method; }
+//namespace adcontrols { class MassSpectrum; namespace ControlMethod { class Method; } class threshold_method; }
+namespace adextension { class iController; }
+
+namespace adcontrols {
+    namespace ControlMethod { class Method; }
+    struct seconds_t;
+    class MappedImage;
+    class MassSpectrum;
+    class TraceAccessor;
+    class Trace;
+    class SampleRun;
+    class threshold_method; 
+}
 
 namespace acqrscontrols { namespace u5303a { class method; class waveform; } }
+namespace boost { namespace uuids { struct uuid; } }
 
 namespace u5303a {
 
+    class iControllerImpl;
     class digitizer;
-	//class method;
-	//class waveform;
+    class tdcdoc;
 
     namespace detail { struct remover; }
 
@@ -54,7 +67,13 @@ namespace u5303a {
         void initialSetup();
         void finalClose();
 
-        void u5303a_connect();
+        bool isRecording() const;
+        void actionSyncTrig();
+        void actionRun( bool );
+        void actionRec( bool );
+        void actionConnect();
+
+        void u5303a_connect(); // depreicated
         void u5303a_start_run();
         void u5303a_stop();
         void u5303a_trigger_inject();
@@ -70,6 +89,7 @@ namespace u5303a {
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
         std::shared_ptr< adcontrols::ControlMethod::Method > controlMethod() const;
         void setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename );
+        void addiController( adextension::iController * p );
 
         std::shared_ptr< const acqrscontrols::u5303a::method > method() const;
         std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
@@ -80,6 +100,14 @@ namespace u5303a {
 
         void set_threshold_method( int ch, const adcontrols::threshold_method& );
         void set_method( const acqrscontrols::u5303a::method& );
+
+        u5303a::iControllerImpl * iController();
+        const adcontrols::SampleRun * sampleRun() const;
+        void setSampleRun( std::shared_ptr< adcontrols::SampleRun > );
+
+        void setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum >, unsigned int idx );
+
+        tdcdoc * tdc();
 
         static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );
@@ -107,13 +135,14 @@ namespace u5303a {
         QString ctrlmethod_filename_;
 
         void reply_handler( const std::string&, const std::string& );
-        bool waveform_handler( const acqrscontrols::u5303a::waveform *, acqrscontrols::u5303a::method& );
+        bool waveform_handler(  const acqrscontrols::u5303a::waveform *, const acqrscontrols::u5303a::waveform *, acqrscontrols::u5303a::method& );
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();
         void on_status( int );
         void onControlMethodChanged( const QString& );
         void on_threshold_method_changed( int );
+        void sampleRunChanged();
     };
 
 }

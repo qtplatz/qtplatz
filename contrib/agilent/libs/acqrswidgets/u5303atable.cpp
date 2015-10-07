@@ -237,6 +237,13 @@ u5303ATable::getContents( acqrscontrols::u5303a::device_method& m )
     ++row;
     m.nsa = model.index( row, 1 ).data().toInt();
 
+    // digitizer_<...> will be override -- due to u5303a require self calibration for following two parameter change.
+    // It takes one to two seconds so that is not acceptable for multi-turn protocol acquisition.
+    // Application layer will take a look overall 'protocol' parameer and chosse widest range put on digitizer_<...>
+    // parameters;  Later, it will be trimed into desiered range.
+    m.digitizer_delay_to_first_sample = m.delay_to_first_sample_;  
+    m.digitizer_nbr_of_s_to_acquire = m.nbr_of_s_to_acquire_;
+
     QSignalBlocker blocks[] = { QSignalBlocker( model_ ), QSignalBlocker( this ) };
 
     for ( int row = 0; row < model.rowCount(); ++row )

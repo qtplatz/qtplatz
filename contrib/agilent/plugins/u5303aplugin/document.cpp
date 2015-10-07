@@ -24,7 +24,10 @@
 
 #include "document.hpp"
 #include "mainwindow.hpp"
+#include "task.hpp"
+#include "tdcdoc.hpp"
 #include "u5303a_constants.hpp"
+#include "icontrollerimpl.hpp"
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/metadata.hpp>
@@ -33,7 +36,9 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/samplerun.hpp>
 #include <adinterface/controlserver.hpp>
+#include <adextension/icontrollerimpl.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adportable/profile.hpp>
@@ -52,6 +57,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <chrono>
+#include <future>
 #include <string>
 
 using namespace u5303a;
@@ -80,6 +86,21 @@ namespace u5303a {
             static remover _remover;
         };
     }
+
+    namespace so = adicontroller::SignalObserver;
+
+    class MasterObserver : public adicontroller::SignalObserver::Observer {
+        const boost::uuids::uuid objid_;
+    public:
+        MasterObserver() : objid_( { 0 } ) {}
+        bool connect( so::ObserverEvents * cb, so::eUpdateFrequency, const std::string& ) override { return false; }
+        bool disconnect( so::ObserverEvents * cb ) override { return false; }
+        const boost::uuids::uuid& objid() const override { return objid_; }
+        const char * objtext() const override { return 0; }
+        uint64_t uptime() const override { return 0; }
+        std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override { return 0; }
+        const char * dataInterpreterClsid() const override { return 0; }
+    };
 
     class document::exec {
     public:
@@ -110,7 +131,26 @@ namespace u5303a {
 
     class document::impl {
     public:
-        impl() {}
+        std::shared_ptr< tdcdoc > tdcdoc_;
+        std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
+        std::shared_ptr< ::u5303a::iControllerImpl > iControllerImpl_;
+        std::vector< std::shared_ptr< adextension::iController > > iControllers_;
+        std::shared_ptr< MasterObserver > masterObserver_;
+        bool isRecording_;
+        std::mutex mutex_;
+
+        impl() : tdcdoc_( std::make_shared< tdcdoc >() )
+               , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
+               , iControllerImpl_( std::make_shared< u5303a::iControllerImpl >() )
+               , isRecording_( false ) {
+        }
+
+        void addiController( std::shared_ptr< adextension::iController > p );
+        void handleConnected( adextension::iController * controller );
+        void handleMessage( adextension::iController * ic, unsigned long code, unsigned long value );
+        void handleLog( adextension::iController *, const QString& );
+        void handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
+
     };
 
 }
@@ -145,10 +185,56 @@ document::instance()
 }
 
 void
+document::actionConnect()
+{
+    if ( !impl_->iControllers_.empty() ) {
+
+        std::vector< std::future<bool> > futures;
+        for ( auto& iController : impl_->iControllers_ ) {
+            futures.push_back( std::async( [iController] () {
+                        return iController->connect() && iController->wait_for_connection_ready(); } ) );
+        }
+
+        std::vector< std::shared_ptr< adextension::iController > > activeControllers;
+
+        size_t i = 0;
+        for ( auto& future : futures ) {
+            if ( future.get() )
+                activeControllers.push_back( impl_->iControllers_[ i ] );
+            ++i;
+        }
+        impl_->iControllers_ = activeControllers;
+
+        auto cm = MainWindow::instance()->getControlMethod();
+        
+        futures.clear();
+        for ( auto& iController : impl_->iControllers_ ) {
+            if ( auto session = iController->getInstrumentSession() )
+                futures.push_back( std::async( std::launch::async, [session,cm](){
+                            return session->initialize() && session->prepare_for_run( cm );  } ) );
+        }
+
+        task::instance()->post( futures );
+
+        // setup observer hiralchey
+        impl_->masterObserver_ = std::make_shared< MasterObserver >();
+        for ( auto& iController : impl_->iControllers_ ) {
+            if ( auto session = iController->getInstrumentSession() ) {
+                if ( auto observer = session->getObserver() )
+                    impl_->masterObserver_->addSibling( observer );
+            }
+        }
+        
+        task::instance()->prepare_next_sample( impl_->masterObserver_.get(), impl_->nextSampleRun_, *cm );
+
+    }
+}
+
+void
 document::u5303a_connect()
 {
     digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
-    digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2 ) );
+    digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2, _3 ) );
     digitizer_->peripheral_initialize();
 }
 
@@ -157,7 +243,7 @@ document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
 
-    MainWindow::instance()->getControlMethod( cm_ );
+    cm_ = MainWindow::instance()->getControlMethod();
 
     if ( exec_->prepare_for_run( *cm_ ) ) {
         digitizer_->peripheral_prepare_for_run( *exec_->ctrlm_ );
@@ -202,9 +288,9 @@ document::reply_handler( const std::string& method, const std::string& reply )
 }
 
 bool
-document::waveform_handler( const acqrscontrols::u5303a::waveform * p, acqrscontrols::u5303a::method& )
+document::waveform_handler( const acqrscontrols::u5303a::waveform * ch1, const acqrscontrols::u5303a::waveform * ch2, acqrscontrols::u5303a::method& )
 {
-    auto ptr = p->shared_from_this();
+    auto ptr = ch1->shared_from_this();
     std::lock_guard< std::mutex > lock( mutex_ );
     while ( que_.size() >= 32 )
         que_.pop_front();
@@ -266,7 +352,7 @@ document::getHistogram( double resolution ) const
         
         prop.setTimeSinceInjection( meta.initialXTimeSeconds );
         prop.setTimeSinceEpoch( timeSinceEpoch.second );
-        prop.setDataInterpreterClsid( "ap240" );
+        prop.setDataInterpreterClsid( "u5303a" );
         
         {
             ap240::device_data data;
@@ -297,6 +383,12 @@ document::getHistogram( double resolution ) const
     return sp;
 }
 
+u5303a::iControllerImpl *
+document::iController()
+{
+    return impl_->iControllerImpl_.get();
+}
+
 
 // static
 bool
@@ -310,9 +402,9 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const acqrscontrols::u53
     adcontrols::MSProperty::SamplingInfo info( 0
                                                , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
                                                , uint32_t( waveform.data_size() )
-                                               , waveform.method_.nbr_of_averages + 1
+                                               , waveform.method_.method_.nbr_of_averages + 1
                                                , 0 );
-    info.fSampInterval( 1.0 / waveform.method_.samp_rate );
+    info.fSampInterval( 1.0 / waveform.method_.method_.samp_rate );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
@@ -399,16 +491,6 @@ document::initialSetup()
         }
 
     } while ( 0 );
-    
-    
-#if 0
-    do {
-        boost::filesystem::path mfile( dir / "u5303a.cmth" );
-        adcontrols::ControlMethod::Method cm;
-        if ( load( QString::fromStdWString( mfile.wstring() ), cm ) )
-            setControlMethod( cm, QString() ); // don't save default name
-    } while ( 0 );
-#endif
 }
 
 void
@@ -423,7 +505,7 @@ document::finalClose()
         }
     }
 
-    MainWindow::instance()->getControlMethod( cm_ );
+    cm_ = MainWindow::instance()->getControlMethod();
     auto it = cm_->find( cm_->begin(), cm_->end(), acqrscontrols::u5303a::method::modelClass() );
     if ( it != cm_->end() ) {
         acqrscontrols::u5303a::method x;
@@ -432,11 +514,6 @@ document::finalClose()
             save( QString::fromStdWString( fname.wstring() ), x );
         }
     }
-#if 0
-    MainWindow::instance()->getControlMethod( *cm_ );
-    boost::filesystem::path fname( dir / "u5303a.cmth" );
-    save( QString::fromStdWString( fname.wstring() ), *cm_ );
-#endif
 }
 
 void
@@ -641,4 +718,151 @@ document::set_method( const acqrscontrols::u5303a::method& m )
     ptr->threshold_ = method_->threshold_;
 
     method_ = ptr;
+}
+
+const adcontrols::SampleRun *
+document::sampleRun() const
+{
+    return impl_->nextSampleRun_.get();
+}
+
+void
+document::setSampleRun( std::shared_ptr< adcontrols::SampleRun > sr )
+{
+    impl_->nextSampleRun_ = sr;
+}
+
+bool
+document::isRecording() const
+{
+    return impl_->isRecording_;
+}
+
+void
+document::actionRec( bool onoff )
+{
+    if ( impl_->isRecording_ != onoff ) {
+        impl_->isRecording_ = onoff;
+        //emit recStateChanged( onoff );
+    }
+}
+
+void
+document::actionSyncTrig()
+{
+    //task::instance()->clear_histogram();
+}
+
+void
+document::actionRun( bool onoff )
+{
+}
+
+void
+document::addiController( adextension::iController * p )
+{
+    try {
+
+        if ( auto ptr = p->pThis() )
+            impl_->addiController( p->pThis() );
+
+    } catch ( std::bad_weak_ptr& ) {
+        
+        QMessageBox::warning( MainWindow::instance(), "MALPIX Acquire"
+                              , QString( tr( "Instrument controller %1 is not compatible; ignored." ) ).arg( p->module_name() ) );
+
+    }
+}
+
+void
+document::impl::addiController( std::shared_ptr< adextension::iController > p )
+{
+
+    using adextension::iController;
+    using adicontroller::SignalObserver::Observer;
+
+    iControllers_.push_back( p );
+
+    // switch to UI thread
+    connect( p.get(), &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
+    connect( p.get(), &iController::message, [this] ( iController * p, unsigned int code, unsigned int value ) { handleMessage( p, code, value ); } );
+    connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
+
+    // non UI thread
+    //p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
+
+}
+
+void
+document::impl::handleConnected( adextension::iController * controller )
+{
+    task::instance()->initialize();
+}
+
+void
+document::impl::handleMessage( adextension::iController * ic, unsigned long code, unsigned long value )
+{
+#if 0
+    if ( code == adicontroller::Receiver::CLIENT_ATTACHED ) {
+
+        emit document::instance()->instStateChanged( int( adicontroller::Instrument::eStandBy ) ); // --> enable FSM UI
+
+    } else if ( code == adicontroller::Receiver::STATE_CHANGED ) {
+
+        emit document::instance()->instStateChanged( int( value ) );
+
+        if ( value == adi::Instrument::eStandBy && ctrlMethod_ && ic ) {
+            if ( auto session = ic->getInstrumentSession() )
+                session->prepare_for_run( ctrlMethod_ );
+        }
+    }
+#endif
+}
+
+void
+document::impl::handleLog( adextension::iController *, const QString& )
+{
+}
+
+void
+document::impl::handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos )
+{
+}
+
+tdcdoc *
+document::tdc()
+{
+    return impl_->tdcdoc_.get();
+}
+
+void
+document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum > ms, unsigned idx )
+{
+    assert( idx < acqrscontrols::u5303a::nchannels );
+#if 0        
+    do {
+        std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+        impl_->spectra_[ objid ][ idx ] = ms;
+    } while( 0 );
+
+    emit dataChanged2( objid, idx );
+
+    if ( objid == ap240_observer ) {
+        double resolution = 0;
+        if ( auto tm = tdc()->threshold_method( idx ) )
+            resolution = tm->time_resolution;
+
+        size_t trigCount;
+        std::pair< uint64_t, uint64_t > timeSinceEpoch;
+
+        auto histogram = tdc()->getHistogram( resolution, idx, trigCount, timeSinceEpoch );
+        tdc()->update_rate( trigCount, timeSinceEpoch );
+        do {
+            std::lock_guard< std::mutex > lock( impl_->mutex_ );
+            impl_->spectra_[ histogram_observer ][ idx ] = histogram;
+        } while ( 0 );
+
+        emit dataChanged2( histogram_observer, idx );
+    }
+#endif
 }

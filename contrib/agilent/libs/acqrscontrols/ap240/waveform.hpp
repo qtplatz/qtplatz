@@ -105,6 +105,8 @@ namespace acqrscontrols {
         ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT std::weak_ptr < waveform > ;
 #endif
 
+        //////////////////
+        
         class ACQRSCONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
             waveform( const waveform& ) = delete;
             void operator = ( const waveform& ) = delete;

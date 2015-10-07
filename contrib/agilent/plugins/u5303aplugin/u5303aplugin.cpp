@@ -27,7 +27,8 @@
 #include "u5303a_constants.hpp"
 #include "u5303amode.hpp"
 #include "mainwindow.hpp"
-#include "isequenceimpl.hpp"
+//#include "isequenceimpl.hpp"
+#include "icontrollerimpl.hpp"
 #include "document.hpp"
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -54,7 +55,6 @@ using namespace u5303a;
 
 u5303APlugin::u5303APlugin() : mainWindow_( new MainWindow() )
                              , mode_( std::make_shared< u5303AMode >(this) )
-                             , iSequenceImpl_( new iSequenceImpl )
 {
     // Create your members
 }
@@ -66,8 +66,8 @@ u5303APlugin::~u5303APlugin()
     if ( mode_ )
         removeObject( mode_.get() );
 
-	if ( iSequenceImpl_ )
-		removeObject( iSequenceImpl_.get() );
+    if ( auto iExtension = document::instance()->iController() )
+        removeObject( iExtension );
 }
 
 bool
@@ -81,19 +81,21 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
     mainWindow_->activateWindow();
     mainWindow_->createActions();
 
-    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
-    mode_->setContext( gc );
+    const Core::Context context( ( "U5303A.MainView" ) );
+    mode_->setContext( context );
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
     addObject( mode_.get() );
 
-    //if ( iSequenceImpl_ && mainWindow_->editor_factories( *iSequenceImpl_ ) )
-    //    addObject( iSequenceImpl_.get() );
+    if ( auto iExtension = document::instance()->iController() ) {
+        addObject( iExtension );
+        connect( iExtension, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
+    }
 
     QAction *action = new QAction(tr("u5303A action"), this);
 
     Core::ActionManager * am = Core::ActionManager::instance();// ICore::instance()->actionManager();
-    Core::Command * cmd = am->registerAction(action, Constants::ACTION_ID, gc );
+    Core::Command * cmd = am->registerAction(action, Constants::ACTION_ID, context );
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
     connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));
 

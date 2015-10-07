@@ -53,20 +53,27 @@ include_directories(
 
 add_library(
   u5303aplugin MODULE
-  u5303aplugin.cpp
-  mainwindow.cpp
-  u5303amode.cpp
   document.cpp
-  waveformwnd.cpp
+  document.hpp
+  icontrollerimpl.cpp
+  icontrollerimpl.hpp
   isequenceimpl.cpp
-  u5303aplugin.hpp
+  mainwindow.cpp
+  mainwindow.hpp
+  task.cpp
+  task.hpp
+  tdcdoc.cpp
+  tdcdoc.hpp
   u5303a_global.hpp
   u5303a_constants.hpp
-  mainwindow.hpp
   u5303amode.hpp
-  document.hpp
+  u5303amode.cpp
+  u5303aplugin.cpp
+  u5303aplugin.hpp
+  waveformwnd.cpp
   waveformwnd.hpp
   isequenceimpl.cpp
+  isequenceimpl.hpp
   ${u5303a_Resources}
   )
 

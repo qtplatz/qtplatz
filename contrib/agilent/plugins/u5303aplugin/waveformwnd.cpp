@@ -263,7 +263,7 @@ WaveformWnd::handle_waveform()
             using namespace adcontrols::metric;
             prop.setTimeSinceInjection( timestamp * 1.0e6 ); // microseconds
             prop.setTimeSinceEpoch( waveform->timeSinceEpoch_ );
-            prop.setDataInterpreterClsid( "ap240" );
+            prop.setDataInterpreterClsid( "u5303a" );
             sp->setMSProperty( prop );
 
             if ( o.str().empty() )

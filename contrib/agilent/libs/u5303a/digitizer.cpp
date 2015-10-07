@@ -73,7 +73,7 @@ namespace u5303a {
         enum DeviceType { Simulate, Averager, Digitizer };
 
         template<DeviceType> struct device {
-            static bool initial_setup( task&, const acqrscontrols::u5303a::method& );
+            static bool initial_setup( task&, const acqrscontrols::u5303a::method&, const std::string& options );
             static bool setup( task&, const acqrscontrols::u5303a::method& );
             static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
@@ -178,8 +178,6 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
         acqrscontrols::u5303a::method m;
 
         if ( it->get( *it, m ) ) {
-            if ( m.threshold_.enable )
-                m.mode_ = 0;
             return task::instance()->prepare_for_run( m );
         }
 
@@ -430,9 +428,14 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             if ( auto iinfo = spDriver_->InstrumentInfo ) {
                 ident_->SerialNumber() = iinfo->SerialNumberString;
                 ident_->IOVersion() = iinfo->IOVersion;
-                ident_->Options() = iinfo->Options;
+                ident_->Options() = iinfo->Options; // Options_ = "CH2,LX2,F05,INT,M02,SR2"
                 ident_->NbrADCBits() = iinfo->NbrADCBits;
             }
+            // SR0 = 0.5GS/s 2ch; SR0+INT = 1.0GS/s 1ch;
+            // SR1 = 1.0GS/s 2ch; SR1+INT = 2.0GS/s 1ch;
+            // SR2 = 1.6GS/s 2ch; SR2+INT = 3.2GS/s 1ch;
+            // M02 = 256MB; M10 = 1GB, M40 = 4GB
+            
         } catch ( _com_error& ex ) {
             ERR( ex, "Identification failed." );
         }
@@ -447,9 +450,9 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         for ( auto& reply : reply_handlers_ ) reply( "Options", ident_->Options() );
 
         if ( method_.mode_ == 0 )
-            device<Digitizer>::initial_setup( *this, method_ );
+            device<Digitizer>::initial_setup( *this, method_, ident().Options() );
         else
-            device<Averager>::initial_setup( *this, method_ );
+            device<Averager>::initial_setup( *this, method_, ident().Options() );
 
         // if ( simulated_ )
         //     device<Simulate>::initial_setup( *this, method_ );
@@ -471,9 +474,9 @@ bool
 task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 {
     if ( m.mode_ == 0 )
-        device<Digitizer>::initial_setup( *this, m );
+        device<Digitizer>::initial_setup( *this, m, ident().Options() );
     else
-        device<Averager>::initial_setup( *this, m );        
+        device<Averager>::initial_setup( *this, m, ident().Options() );
 
     // if ( simulated_ )
     //     device<Simulate>::initial_setup( *this, m );
@@ -509,7 +512,8 @@ task::handle_acquire()
     --acquire_post_count_;
     if ( acquire() ) {
         if ( waitForEndOfAcquisition( 3000 ) ) {
-            auto avgr = std::make_shared< acqrscontrols::u5303a::waveform >( ident_ );
+            uint32_t events(0);
+            auto avgr = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
             if ( readData( *avgr ) ) {
                 // if ( software_events_ ) {
                 //     avgr->wellKnownEvents |= software_events_; // marge with hardware events
@@ -524,7 +528,7 @@ task::handle_acquire()
                 // assert( avgr->nbrSamples );
                 acqrscontrols::u5303a::method m;
                 for ( auto& reply: waveform_handlers_ ) {
-                    if ( reply( avgr.get(), m ) )
+                    if ( reply( avgr.get(), nullptr, m ) )
                         handle_protocol( m );
                 }
             }
@@ -641,7 +645,7 @@ identify::identify( const identify& t ) : Identifier( t.Identifier )
 #endif
 
 template<> bool
-device<Averager>::initial_setup( task& task, const acqrscontrols::u5303a::method& m )
+device<Averager>::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
 {
     // Create smart pointers to Channels and TriggerSource interfaces
     IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
@@ -725,18 +729,15 @@ device<Averager>::initial_setup( task& task, const acqrscontrols::u5303a::method
 }
 
 template<> bool
-device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::method& m )
+device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
 {
     IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
-    
+
     // Set Interleave ON
-#if 0
-    try {
-        spCh1->TimeInterleavedChannelList = "Channel2";
-    } catch ( _com_error& e ) {
-        TERR(e, "TimeInterleavedChannelList");
+    if ( options.find( "INT" ) != options.npos ) {
+        try { spCh1->TimeInterleavedChannelList = "Channel2"; } catch ( _com_error& e ) {
+            TERR( e, "TimeInterleavedChannelList" ); }
     }
-#endif
     try {  spCh1->PutRange( m.method_.front_end_range );   } catch ( _com_error& e ) {  TERR(e, "Range");   }
     try {  spCh1->PutOffset(m.method_.front_end_offset);   } catch ( _com_error& e ) {  TERR(e, "Offset");  }
 	try {  task.spDriver()->Channels2->Item2[L"Channel1"]->DataInversionEnabled = m.method_.invert_signal ? VARIANT_TRUE : VARIANT_FALSE; } catch (_com_error&) { }
@@ -755,22 +756,16 @@ device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::metho
 
     // Set the sample rate and nbr of samples to acquire
     bool success = false;
-    const double sample_rate = m.method_.samp_rate; // 1.0e9 | 3.2E9;
 
-    try {
-        task.spDriver()->Acquisition2->SampleRate = sample_rate;
-        success = true;
-    }  catch (_com_error& e) {
-        TERR(e,"SampleRate");
-    }
-    
     if ( !success ) {
-        double samp_rate = adportable::compare<double>::approximatelyEqual( m.method_.samp_rate, 1.0e9 ) ? 3.2e9 : 1.0e9;
-        try {
-            task.spDriver()->Acquisition2->SampleRate = samp_rate;
-            success = true;
-        } catch ( _com_error& e ) {
-            TERR( e, "SampleRate" );
+        for ( auto samp_rate : { m.method_.samp_rate, 3.2e9, 1.6e9, 1.0e9 } ) {
+            try {
+                task.spDriver()->Acquisition2->SampleRate = samp_rate;
+                success = true;
+                break;
+            } catch ( _com_error& e ) {
+                TERR( e, "SampleRate" );
+            }
         }
     }
 
@@ -788,11 +783,6 @@ device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::metho
         task.spDriver()->Acquisition->RecordSize = m.method_.digitizer_nbr_of_s_to_acquire;
     } catch ( _com_error& e ) {
         TERR(e,"mbr_of_s_to_acquire");        
-    }
-    try {
-        task.spDriver()->Acquisition2->NumberOfAverages = m.method_.nbr_of_averages;
-    } catch ( _com_error& e ) {
-        TERR(e,"mbr_of_averages");        
     }
 
     ADTRACE() << "Set the Mode Digitizer...";
@@ -929,7 +919,7 @@ device<Digitizer>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 
         data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
 
-        data.method_ = task.method().method_;
+        data.method_ = task.method();
 
         data.meta_.actualAverages = actualAverages;
 
@@ -987,7 +977,7 @@ device<Averager>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 
         data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
 
-        data.method_ = task.method().method_;
+        data.method_ = task.method();
 
         data.meta_.actualAverages = actualAverages;
 
@@ -1022,33 +1012,10 @@ device<Averager>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 
 
 template<> bool
-device<Simulate>::initial_setup( task& task, const acqrscontrols::u5303a::method& m )
+device<Simulate>::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
 {
     if ( simulator * simulator = task.simulator() )
         simulator->setup( m );
-
-    // Create smart pointers to Channels and TriggerSource interfaces
-    IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
-    IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[L"External1"];
-
-    try { spCh1->TimeInterleavedChannelList = "Channel2";       } catch ( _com_error& e ) { TERR(e, "TimeInterleavedChannelList");  }
-    try { spCh1->PutRange(m.method_.front_end_range);           } catch ( _com_error& e ) { TERR(e, "Range");  }
-    try { spCh1->PutOffset(m.method_.front_end_offset);         } catch ( _com_error& e ) { TERR(e, "Offset");  }
-    // Setup triggering
-    try { task.spDriver()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
-    try { spTrigSrc->PutLevel(m.method_.ext_trigger_level);     } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");  }
-
-    // Calibrate
-    ADTRACE() << "Calibrating...";
-    try { task.spDriver()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
-
-    // Set the sample rate and nbr of samples to acquire
-    double sample_rate = m.method_.samp_rate; // 1.0e9; // 3.2E9;
-    //try { task.spDriver()->Acquisition->PutSampleRate( sample_rate ); } catch ( _com_error& e ) { TERR( e, "SampleRate" ); }
-    //try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
-
-    try { task.spDriver()->Acquisition->ApplySetup();  } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
-
 	return true;
 }
 
@@ -1057,16 +1024,6 @@ device<Simulate>::setup( task& task, const acqrscontrols::u5303a::method& m )
 {
     if ( simulator * simulator = task.simulator() )
         simulator->setup( m );
-    
-    // Set the sample rate and nbr of samples to acquire
-    // double sample_rate = m.samp_rate; // 3.2E9;
-    //try { task.spDriver()->Acquisition->PutSampleRate( sample_rate ); } catch ( _com_error& e ) { TERR( e, "SampleRate" ); }
-    //try { spCh1->Filter->Bypass = 1; } catch ( _com_error& e ) { TERR( e, "Bandwidth" ); } // invalid value
-
-    try { task.spDriver()->Acquisition->ApplySetup(); } catch ( _com_error& e ) { TERR( e, "ApplySetup" ); }
-
-    //std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
-    
     return true; // device<Simulate>::initial_setup( task, m );
 }
 
@@ -1089,7 +1046,7 @@ device<Simulate>::waitForEndOfAcquisition( task& task, int /* timeout */)
 template<> bool
 device<Simulate>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 {
-    data.method_ = task.method().method_;
+    data.method_ = task.method();
     if ( simulator * simulator = task.simulator() ) {
         simulator->readData( data );
         data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();

@@ -37,6 +37,7 @@ class QAction;
 
 namespace adcontrols { class MassSpectrum; class Trace; namespace ControlMethod { class Method; } }
 namespace acqrscontrols { class method; }
+namespace adextension { class iController; }
 
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
@@ -70,28 +71,33 @@ namespace u5303a {
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::Trace&, const std::wstring& traceId );
         //bool editor_factories( iSequenceImpl& );
+
         void setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> );
-        void getControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method> m );
+
+        std::shared_ptr< adcontrols::ControlMethod::Method > getControlMethod() const;
+        
         void editor_commit();
 
     private:
-        enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
-        std::array< QAction *, numActions > actions_;
+        // enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
+        // std::array< QAction *, numActions > actions_;
         std::vector< QWidget* > widgets_;
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
-
 
     signals:
 
 	public slots:
-        void actConnect();
-        void actInject();
-        void actInitRun();
-        void actRun();
-        void actStop();
+        //void actConnect();
+        //void actInject();
+        //void actInitRun();
+        //void actRun();
+        //void actStop();
         void actSnapshot();
-        void actFileOpen();
-
+        //void actFileOpen();
+        void iControllerConnected( adextension::iController * );
+        void saveCurrentImage();
+        void printCurrentView();
+                                                               
     private slots:
         void handle_reply( const QString&, const QString& );
         void handle_status( int status );

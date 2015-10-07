@@ -28,7 +28,6 @@ namespace u5303a {
         ShutdownFlag aboutToShutdown();
     private:
         std::shared_ptr< u5303AMode > mode_;
-        std::unique_ptr< iSequenceImpl > iSequenceImpl_;
         MainWindow * mainWindow_;
 
     private slots:

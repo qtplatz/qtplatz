@@ -534,7 +534,7 @@ MainWindow::handle_status( int status )
         for ( auto action: actions_ )
             action->setEnabled( true );
         actions_[ idActConnect ]->setEnabled( false );
-        actInitRun();
+        document::instance()->prepare_for_run();
         //mw->onStatus( status );
     }
 }

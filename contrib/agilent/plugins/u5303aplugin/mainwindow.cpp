@@ -35,11 +35,16 @@
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/samplerun.hpp>
+#include <adextension/icontroller.hpp>
+#include <adextension/ieditorfactory_t.hpp>
+#include <adextension/ireceiver.hpp>
+#include <adextension/isequenceimpl.hpp>
 #include <adextension/isnapshothandler.hpp>
-#include <adextension/ieditorfactory.hpp>
 #include <adinterface/controlserver.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/split_filename.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -61,7 +66,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
-
+#include <QApplication>
 #include <QDockWidget>
 #include <QMenu>
 #include <QResizeEvent>
@@ -145,10 +150,20 @@ MainWindow::OnInitialUpdate()
              , this, SLOT( handle_reply( const QString&, const QString& ) ) );
 
     connect( document::instance(), SIGNAL( on_status(int) ), this, SLOT( handle_status(int) ) );
-    for ( auto action: actions_ )
-        action->setEnabled( false );
 
-    actions_[ idActConnect ]->setEnabled( true );
+    for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
+        if ( auto action = Core::ActionManager::command( id )->action() )
+            action->setEnabled( false );
+    }
+
+    for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
+        document::instance()->addiController( iController );
+    }
+    
+    //for ( auto action : actions_ )
+    //action->setEnabled( false );
+
+    //actions_[ idActConnect ]->setEnabled( true );
 
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
@@ -323,12 +338,19 @@ MainWindow::createTopStyledToolbar()
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
         if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_CONNECT)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_INITRUN)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_RUN)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_STOP)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_INJECT)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_SNAPSHOT)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_CONNECT)->action()));
+            //toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_INITRUN)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_RUN)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_STOP)->action()));
+            //toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_INJECT)->action()));
+
+            if ( auto button = new QToolButton() ) {
+                button->setDefaultAction( am->command( Constants::ACTION_REC )->action() );
+                button->setCheckable( true );
+                toolBarLayout->addWidget( button );
+            }
+            
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_SNAPSHOT)->action()));
             //-- separator --
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //---
@@ -355,7 +377,7 @@ MainWindow::createMidStyledToolbar()
             //toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
             //toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));
             // [file open] button
-            toolBarLayout->addWidget(toolButton(am->command(Constants::FILE_OPEN)->action()));
+            // toolBarLayout->addWidget( toolButton( am->command( Constants::FILE_OPEN )->action() ) );
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
@@ -374,11 +396,76 @@ MainWindow::createMidStyledToolbar()
 void
 MainWindow::createActions()
 {
+    Core::ActionContainer * menu = Core::ActionManager::instance()->createMenu( Constants::MENU_ID ); // Menu ID
+
+    if ( !menu )
+        return;
+    
+    menu->menu()->setTitle( "U5303A" );
+
+    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
+    
+    if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
+        connect( action, &QAction::triggered, [this](){ actSnapshot(); } );
+        action->setEnabled( false );
+        Core::Command * cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SNAPSHOT, gc );
+        menu->addAction( cmd );
+    }
+    if ( auto action = createAction( Constants::ICON_CONNECT, tr( "Connect" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->actionConnect(); } );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_CONNECT, gc );
+        menu->addAction( cmd );        
+    }
+
+    if ( auto action = createAction( Constants::ICON_RUN, tr( "Run" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->u5303a_start_run(); } );
+        action->setEnabled( false );        
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_RUN, gc );
+        menu->addAction( cmd );        
+    }
+
+    if ( auto action = createAction( Constants::ICON_STOP, tr( "Stop" ), this ) ) {
+        //connect( action, &QAction::triggered, [] () { document::instance()->actionRun( !document::instance()->isRecording() ); } );
+        connect( action, &QAction::triggered, [] () { document::instance()->u5303a_stop(); } );
+        action->setEnabled( false );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_STOP, gc );
+        menu->addAction( cmd );        
+    }
+
+    if ( auto action = createAction( Constants::ICON_REC_ON, tr( "REC" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->actionRec( !document::instance()->isRecording() ); } );
+        action->setEnabled( false );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, gc );
+        menu->addAction( cmd );        
+    }
+    
+    if ( auto action = createAction( Constants::ICON_SYNC, tr( "Sync trig." ), this ) ) {
+        connect( action, &QAction::triggered, [](){ document::instance()->actionSyncTrig(); } );
+        action->setEnabled( false );        
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SYNC, gc );
+        menu->addAction( cmd );        
+    }
+    
+    if ( auto action = createAction( Constants::ICON_PDF, tr( "PDF" ), this ) ) {
+        connect( action, &QAction::triggered, this, &MainWindow::printCurrentView );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::PRINT_CURRENT_VIEW, gc );
+        menu->addAction( cmd );        
+    }
+
+    if ( auto action = createAction( Constants::ICON_IMAGE, tr( "Screenshot" ), this ) ) {
+        connect( action, &QAction::triggered, this, &MainWindow::saveCurrentImage );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::SAVE_CURRENT_IMAGE, gc );
+        menu->addAction( cmd );        
+    }
+    
+    //handleInstState( 0 );
+    Core::ActionManager::instance()->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
+#if 0    
     actions_[ idActConnect ] = createAction( Constants::ICON_CONNECT,  tr("Connect"), this );    
     actions_[ idActInitRun ] = createAction( Constants::ICON_INITRUN,  tr("Initial run"), this );    
     actions_[ idActRun ]     = createAction( Constants::ICON_RUN,      tr("Run"), this );    
     actions_[ idActStop ]    = createAction( Constants::ICON_STOP,     tr("Stop"), this );    
-    actions_[ idActSnapshot ]= createAction( Constants::ICON_SNAPSHOT, tr("Snapshot"), this );    
+
     actions_[ idActInject ]  = createAction( Constants::ICON_INJECT,   tr("INJECT"), this );
     actions_[ idActFileOpen ]= createAction( Constants::ICON_FILE_OPEN,tr("Open protain file..."), this );
     connect( actions_[ idActConnect ], SIGNAL( triggered() ), this, SLOT( actConnect() ) );
@@ -414,6 +501,7 @@ MainWindow::createActions()
 
         am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
     }
+#endif
 }
 
 QAction *
@@ -424,6 +512,7 @@ MainWindow::createAction( const QString& iconname, const QString& msg, QObject *
     return new QAction( icon, msg, parent );
 }
 
+#if 0
 void
 MainWindow::actConnect()
 {
@@ -447,7 +536,7 @@ MainWindow::actStop()
 {
     document::instance()->u5303a_stop();
 }
-
+#endif
 void
 MainWindow::actSnapshot()
 {
@@ -474,6 +563,7 @@ MainWindow::actSnapshot()
     }
 }
 
+#if 0
 void
 MainWindow::actInject()
 {
@@ -484,6 +574,7 @@ void
 MainWindow::actFileOpen()
 {
 }
+#endif
 
 void
 MainWindow::handle_reply( const QString& method, const QString& reply )
@@ -500,22 +591,17 @@ void
 MainWindow::handle_status( int status )
 {
     if ( status == controlserver::eStandBy ) {
-        for ( auto action: actions_ )
-            action->setEnabled( true );
-        actions_[ idActConnect ]->setEnabled( false );
-        actInitRun();
+
+        for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( false );
+        }
+
+        document::instance()->prepare_for_run();
         if ( auto mw = findChild< acqrswidgets::u5303AWidget * >() )
             mw->onStatus( status );
     }
 }
-
-//bool
-//MainWindow::editor_factories( iSequenceImpl& impl )
-//{
-    //impl << iEditorFactoryPtr( new iEditorFactoryT<u5303AMethodWidget>( *this, "U5303A" ) );
-//    return true;        
-//}
-
 
 void
 MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> m )
@@ -528,20 +614,77 @@ MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::
     }
 }
 
-void
-MainWindow::getControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method > ptr )
+std::shared_ptr< adcontrols::ControlMethod::Method >
+MainWindow::getControlMethod() const
 {
+    auto ptr = std::make_shared< adcontrols::ControlMethod::Method >();
     boost::any a( ptr );
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
             widget->getContents( a );
         }
     }
+    return ptr;
 }
+
 
 void
 MainWindow::editor_commit()
 {
     // editor_->commit();
     // todo...
+}
+
+void
+MainWindow::saveCurrentImage()
+{
+    qApp->beep();
+    if ( auto screen = QGuiApplication::primaryScreen() ) {
+        
+        auto pixmap = QPixmap::grabWidget( this );
+
+        if ( auto sample = document::instance()->sampleRun() ) {
+            boost::filesystem::path path( sample->dataDirectory() );
+            if ( ! boost::filesystem::exists( path ) ) {
+                boost::system::error_code ec;
+                boost::filesystem::create_directories( path, ec );
+            }
+            int runno(0);
+            if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
+                using boost::filesystem::directory_iterator;
+                for ( directory_iterator it( path ); it != directory_iterator(); ++it ) {
+                    boost::filesystem::path fname = (*it);
+                    if ( fname.extension().string() == ".png" ) {
+                        runno = std::max( runno, adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
+                    }
+                }
+            }
+            
+            std::wostringstream o;
+            o << L"u5303a_" << std::setw( 4 ) << std::setfill( L'0' ) << runno + 1;
+            path /= o.str();
+            path.replace_extension( ".png" );
+
+            pixmap.save( QString::fromStdWString( path.wstring() ), "png" );
+        }
+    }
+}
+
+void
+MainWindow::printCurrentView()
+{
+    saveCurrentImage();
+}
+
+void
+MainWindow::iControllerConnected( adextension::iController * inst )
+{
+    if ( inst ) {
+        QString model = inst->module_name();
+        for ( auto dock : dockWidgets() ) {
+            if ( auto receiver = qobject_cast<adextension::iReceiver *>( dock->widget() ) ) {
+                receiver->onConnected( inst );
+            }
+        }
+    }
 }

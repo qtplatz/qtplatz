@@ -152,10 +152,10 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
     if ( ptr ) {
         auto dp = data.data( ptr->nbrSamples() );
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
-        data.method_ = method_->method_;
-        data.method_.digitizer_delay_to_first_sample = startDelay_;
-        data.method_.nbr_of_averages = int32_t( nbrWaveforms_ );
-        data.method_.digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+        data.method_ = *method_;
+        data.method_.method_.digitizer_delay_to_first_sample = startDelay_;
+        data.method_.method_.nbr_of_averages = int32_t( nbrWaveforms_ );
+        data.method_.method_.digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
 
         data.meta_.initialXTimeSeconds = ptr->timestamp();
         data.serialnumber_ = ptr->serialNumber();

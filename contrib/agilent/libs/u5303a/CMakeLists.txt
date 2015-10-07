@@ -18,6 +18,10 @@ set( u5303a_SOURCES
   digitizer.cpp
   simulator.cpp
   sampleprocessor.cpp
+  u5303acontroller.cpp
+  waveformobserver.cpp
+  masterobserver.cpp
+  session.cpp
   )
 
 set( u5303a_HEADERS
@@ -26,6 +30,9 @@ set( u5303a_HEADERS
   safearray.hpp
   simulator.hpp
   sampleprocessor.hpp
+  waveformobserver.hpp
+  masterobserver.hpp
+  session.hpp
   )
 
 add_library( u5303a SHARED
