@@ -182,6 +182,7 @@ document::actionConnect()
 
         auto cm = MainWindow::instance()->getControlMethod();
         setControlMethod( *cm, QString() );
+        tdc()->set_threshold_method( 0, impl_->method_->threshold_ );
 
         futures.clear();
         for ( auto& iController : impl_->iControllers_ ) {
@@ -587,8 +588,9 @@ document::setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method >
         auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
         if ( it != ptr->end() ) {
             acqrscontrols::u5303a::method m;
-            if ( it->get( *it, m ) )
-                * impl_->method_ = m;
+            if ( it->get( *it, m ) ) {
+                *impl_->method_ = m;
+            }
             impl_->cm_ = ptr;
         }
     } while(0);

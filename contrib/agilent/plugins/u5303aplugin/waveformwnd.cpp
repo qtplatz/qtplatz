@@ -190,7 +190,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
             
             spw_->setTitle( title );
             spw_->setData( sp, idx, bool( idx ) );
-
+            spw_->setKeepZoomed( true );
 
         } else if ( uuid == histogram_observer ) {
 
