@@ -27,8 +27,8 @@
 #include <adicontroller/signalobserver.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#include <QMetaType>
 
+#include <QMetaType>
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 
 namespace so = adicontroller::SignalObserver;

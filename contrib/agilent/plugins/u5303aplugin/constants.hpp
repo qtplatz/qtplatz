@@ -31,3 +31,4 @@ namespace u5303a {
     extern const boost::uuids::uuid histogram_observer;
 
 }
+

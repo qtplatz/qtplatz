@@ -422,7 +422,7 @@ task::impl::handle_u5303a_average( const data_status status, std::array< thresho
     
     auto tp = std::chrono::steady_clock::now();
 
-    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 1000 ) {
+    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
 
         data_status_[ u5303a_observer ].plot_ready_ = true;
         sema_.signal();

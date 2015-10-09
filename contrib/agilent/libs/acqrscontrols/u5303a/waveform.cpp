@@ -166,7 +166,9 @@ waveform::toVolts( int d ) const
 double
 waveform::toVolts( double d ) const
 {
-    return d * meta_.scaleFactor /  meta_.actualAverages;
+    if ( meta_.actualAverages )
+        return d * meta_.scaleFactor / meta_.actualAverages;
+    return d * meta_.scaleFactor;
 }
 
 //static

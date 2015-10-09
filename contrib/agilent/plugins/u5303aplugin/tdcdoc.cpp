@@ -41,8 +41,8 @@
 using namespace u5303a;
 
 tdcdoc::tdcdoc( QObject * parent ) : QObject( parent )
-                                   , histograms_( { std::make_shared<acqrscontrols::ap240::histogram>()
-                                               , std::make_shared<acqrscontrols::ap240::histogram>() } )
+                                   , histograms_( { std::make_shared<acqrscontrols::u5303a::histogram>()
+                                               , std::make_shared<acqrscontrols::u5303a::histogram>() } )
 {
 }
 
@@ -99,8 +99,8 @@ tdcdoc::threshold_method( int channel ) const
     return 0;
 }
 
-std::array< threshold_result_ptr, ap240::nchannels >
-tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::ap240::waveform >, 2 > waveforms )
+std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
+tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms )
 {
     if ( !waveforms[0] && !waveforms[1] ) // empty
         return std::array< threshold_result_ptr, 2 >();
@@ -112,7 +112,7 @@ tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::ap24
 
         if ( waveforms[ i ] ) {
 
-            results[ i ] = std::make_shared< acqrscontrols::ap240::threshold_result >( waveforms[ i ] );
+            results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
 
             if ( methods[ i ]->enable ) {
 
@@ -128,7 +128,7 @@ tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::ap24
 }
 
 void
-tdcdoc::appendHistogram( std::array< threshold_result_ptr, ap240::nchannels > results )
+tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results )
 {
     size_t channel = 0;
     for ( auto result: results ) {
@@ -140,7 +140,7 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, ap240::nchannels > re
 
 // static
 void
-tdcdoc::find_threshold_timepoints( const acqrscontrols::ap240::waveform& data
+tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
                                    , const adcontrols::threshold_method& method
                                    , std::vector< uint32_t >& elements
                                    , std::vector<double>& processed )
@@ -186,14 +186,16 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::ap240::waveform& data
     } else {
         
         // scaleFactor = Volts/LSB  (1.0V FS = 0.00390625)
-        double level_per_trigger = ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-        double level = level_per_trigger * data.meta_.actualAverages;
+        double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+        double level = level_per_trigger;
+        if ( data.meta_.actualAverages )
+            level = level_per_trigger * data.meta_.actualAverages;
         
         auto it = data.begin();
         while ( it != data.end() ) {
             if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end(), level, flag ) ) != data.end() ) {
                 if ( flag == findUp )                        
-                    elements.push_back( std::distance( data.begin<T>(), it ) );
+                    elements.push_back( std::distance( data.begin(), it ) );
                 adportable::advance( it, nfilter, data.end() );
             }
         }
@@ -210,7 +212,7 @@ tdcdoc::update_rate( size_t trigCount, const std::pair<uint64_t, uint64_t>& time
 std::shared_ptr< adcontrols::MassSpectrum >
 tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pair<uint64_t, uint64_t>& timeSinceEpoch ) const
 {
-    acqrscontrols::ap240::metadata meta;
+    acqrscontrols::u5303a::metadata meta;
     std::vector< std::pair< double, uint32_t > > hist;
 
     auto sp = std::make_shared< adcontrols::MassSpectrum >();
@@ -238,11 +240,11 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
     prop.setTimeSinceEpoch( histogram->timeSinceEpoch() );
     prop.setNumAverage( uint32_t( trigCount ) );
     prop.setTrigNumber( histogram->trigNumber() );
-    prop.setDataInterpreterClsid( "ap240" );
+    prop.setDataInterpreterClsid( "u5303a" );
         
     {
-        ap240::device_data data;
-        data.meta = meta;
+        acqrscontrols::u5303a::device_data data;
+        data.meta_ = meta;
         std::string ar;
         adportable::binary::serialize<>()( data, ar );
         prop.setDeviceData( ar.data(), ar.size() );
@@ -253,7 +255,7 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
     if ( resolution > meta.xIncrement ) {
 
         std::vector< double > times, intens;
-        acqrscontrols::ap240::histogram::average( hist, resolution, times, intens );
+        acqrscontrols::u5303a::histogram::average( hist, resolution, times, intens );
         sp->resize( times.size() );
         sp->setTimeArray( times.data() );
         sp->setIntensityArray( intens.data() );

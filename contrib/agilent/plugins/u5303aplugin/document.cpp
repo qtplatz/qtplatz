@@ -60,6 +60,8 @@
 #include <chrono>
 #include <future>
 #include <string>
+#include <QMetaType>
+Q_DECLARE_METATYPE( boost::uuids::uuid );
 
 using namespace u5303a;
 
@@ -103,6 +105,7 @@ namespace u5303a {
         std::vector< std::shared_ptr< adextension::iController > > iControllers_;
         std::shared_ptr< MasterObserver > masterObserver_;
         bool isRecording_;
+        bool isMethodDirty_;
 
         std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
         std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
@@ -119,6 +122,7 @@ namespace u5303a {
                , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                , iControllerImpl_( std::make_shared< u5303a::iControllerImpl >() )
                , isRecording_( false )
+               , isMethodDirty_( true )
                , device_status_( 0 )
                , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
                , method_( std::make_shared< acqrscontrols::u5303a::method >() )
@@ -143,6 +147,9 @@ namespace u5303a {
     
 document::document() : impl_( new impl() )
 {
+    // diagnostic
+    QVariant v;
+    v.setValue( boost::uuids::uuid() );
 }
 
 document::~document()
@@ -214,6 +221,7 @@ document::prepare_for_run()
 
     auto cm = MainWindow::instance()->getControlMethod();
     setControlMethod( *cm, QString() );
+    impl_->isMethodDirty_ = false;
     
     std::vector< std::future< bool > > futures;
     for ( auto& iController : impl_->iControllers_ ) {
@@ -631,12 +639,19 @@ document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
 }
 
 void
-document::set_method( const acqrscontrols::u5303a::method& m )
+document::set_method( const acqrscontrols::u5303a::method& )
 {
-    auto ptr = std::make_shared< acqrscontrols::u5303a::method >( m );
-    ptr->threshold_ = impl_->method_->threshold_;
+    if ( auto cm = MainWindow::instance()->getControlMethod() ) {
+        setControlMethod( cm );
 
-    impl_->method_ = ptr;
+        auto it = std::find_if( impl_->iControllers_.begin(), impl_->iControllers_.end(), [] ( std::shared_ptr<adextension::iController> ic ) {
+            return ic->module_name() == "u5303a";
+        } );
+        if ( it != impl_->iControllers_.end() ) {
+            if ( auto session = ( *it )->getInstrumentSession() )
+                session->prepare_for_run( cm );
+        }
+    }
 }
 
 const adcontrols::SampleRun *

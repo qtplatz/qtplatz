@@ -433,7 +433,8 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             if ( auto iinfo = spDriver_->InstrumentInfo ) {
                 ident_->SerialNumber() = iinfo->SerialNumberString;
                 ident_->IOVersion() = iinfo->IOVersion;
-                ident_->Options() = iinfo->Options; // Options_ = "CH2,LX2,F05,INT,M02,SR2"
+                ident_->Options() = iinfo->Options; // Options_ = "CH2,LX2,F05,INT,M02,SR2"; "CH2,LX2,F05,AVG,DGT,M02,SR1"
+
                 ident_->NbrADCBits() = iinfo->NbrADCBits;
             }
             // SR0 = 0.5GS/s 2ch; SR0+INT = 1.0GS/s 1ch;
@@ -721,6 +722,7 @@ device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::metho
         try { spCh1->TimeInterleavedChannelList = "Channel2"; } catch ( _com_error& e ) {
             TERR( e, "TimeInterleavedChannelList" ); }
     }
+
     try {  spCh1->PutRange( m.method_.front_end_range );   } catch ( _com_error& e ) {  TERR(e, "Range");   }
     try {  spCh1->PutOffset(m.method_.front_end_offset);   } catch ( _com_error& e ) {  TERR(e, "Offset");  }
 	try {  task.spDriver()->Channels2->Item2[L"Channel1"]->DataInversionEnabled = m.method_.invert_signal ? VARIANT_TRUE : VARIANT_FALSE; } catch (_com_error&) { }
@@ -740,15 +742,24 @@ device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::metho
     // Set the sample rate and nbr of samples to acquire
     bool success = false;
 
-    if ( !success ) {
-        for ( auto samp_rate : { m.method_.samp_rate, 3.2e9, 1.6e9, 1.0e9 } ) {
-            try {
-                task.spDriver()->Acquisition2->SampleRate = samp_rate;
-                success = true;
-                break;
-            } catch ( _com_error& e ) {
-                TERR( e, "SampleRate" );
-            }
+    double max_rate = 3.2e9;
+     if ( options.find( "SR1" ) != options.npos ) {
+        max_rate = 1.0e9;
+        if ( options.find( "INT" ) != options.npos )
+            max_rate = 2.0e9;
+    } else if ( options.find( "SR2" ) != options.npos ) {
+        max_rate = 1.6e9;
+        if ( options.find( "INT" ) != options.npos )
+            max_rate = 3.2e9;
+    }
+
+    for ( auto samp_rate : { m.method_.samp_rate, max_rate } ) {
+        try {
+            task.spDriver()->Acquisition2->SampleRate = samp_rate;
+            success = true;
+            break;
+        } catch ( _com_error& e ) {
+            TERR( e, "SampleRate" );
         }
     }
 

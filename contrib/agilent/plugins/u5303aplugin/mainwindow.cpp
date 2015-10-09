@@ -213,10 +213,10 @@ MainWindow::createContents( Core::IMode * mode )
             connect( document::instance(), &document::on_threshold_method_changed, wnd, &WaveformWnd::handle_threshold_method );
             connect( document::instance(), &document::onControlMethodChanged, wnd, &WaveformWnd::handle_method );
             bool res = connect( document::instance(), &document::dataChanged, wnd, &WaveformWnd::dataChanged );
-#if defined _DEBUG
+//#if defined _DEBUG
             QVariant v;
             v.setValue( boost::uuids::uuid() );
-#endif
+//#endif
         }
         
         //---------- central widget ------------
@@ -469,48 +469,7 @@ MainWindow::createActions()
     
     //handleInstState( 0 );
     Core::ActionManager::instance()->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
-#if 0    
-    actions_[ idActConnect ] = createAction( Constants::ICON_CONNECT,  tr("Connect"), this );    
-    actions_[ idActInitRun ] = createAction( Constants::ICON_INITRUN,  tr("Initial run"), this );    
-    actions_[ idActRun ]     = createAction( Constants::ICON_RUN,      tr("Run"), this );    
-    actions_[ idActStop ]    = createAction( Constants::ICON_STOP,     tr("Stop"), this );    
 
-    actions_[ idActInject ]  = createAction( Constants::ICON_INJECT,   tr("INJECT"), this );
-    actions_[ idActFileOpen ]= createAction( Constants::ICON_FILE_OPEN,tr("Open protain file..."), this );
-    connect( actions_[ idActConnect ], SIGNAL( triggered() ), this, SLOT( actConnect() ) );
-    connect( actions_[ idActInitRun ], SIGNAL( triggered() ), this, SLOT( actInitRun() ) );
-    connect( actions_[ idActRun ], SIGNAL( triggered() ), this, SLOT( actRun() ) );
-    connect( actions_[ idActStop ], SIGNAL( triggered() ), this, SLOT( actStop() ) );
-    connect( actions_[ idActInject ], SIGNAL( triggered() ), this, SLOT( actInject() ) );
-    connect( actions_[ idActSnapshot ], SIGNAL( triggered() ), this, SLOT( actSnapshot() ) );
-    connect( actions_[ idActFileOpen ], SIGNAL( triggered() ), this, SLOT( actFileOpen() ) );
-
-    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
-
-    if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
-
-        Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
-        menu->menu()->setTitle( "U5303A" );
-
-        Core::Command * cmd = 0;
-        cmd = am->registerAction( actions_[ idActConnect ], Constants::ACT_CONNECT, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActInitRun ], Constants::ACT_INITRUN, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActRun ], Constants::ACT_RUN, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActStop ], Constants::ACT_STOP, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActInject ], Constants::ACT_INJECT, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActSnapshot ], Constants::ACT_SNAPSHOT, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActFileOpen ], Constants::FILE_OPEN, gc );
-        menu->addAction( cmd );
-
-        am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
-    }
-#endif
 }
 
 QAction *
@@ -520,32 +479,6 @@ MainWindow::createAction( const QString& iconname, const QString& msg, QObject *
     icon.addFile( iconname );
     return new QAction( icon, msg, parent );
 }
-
-#if 0
-void
-MainWindow::actConnect()
-{
-    document::instance()->u5303a_connect();
-}
-
-void
-MainWindow::actInitRun()
-{
-    document::instance()->prepare_for_run();
-}
-
-void
-MainWindow::actRun()
-{
-    document::instance()->u5303a_start_run();
-}
-
-void
-MainWindow::actStop()
-{
-    document::instance()->u5303a_stop();
-}
-#endif
 
 void
 MainWindow::actSnapshot()
