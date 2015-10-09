@@ -39,7 +39,7 @@
 
 #include <QSplitter>
 #include <QBoxLayout>
-#include <QMessagebox>
+#include <QMessageBox>
 #include <boost/exception/all.hpp>
 
 using namespace acqrswidgets;

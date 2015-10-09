@@ -75,7 +75,7 @@ namespace acqrscontrols {
             void operator = ( const waveform& ); // = delete;
 
         public:
-            waveform( std::shared_ptr< identify >& id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
+            waveform( std::shared_ptr< identify > id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
 
             const int32_t * trim( metadata&, uint32_t& ) const;
 

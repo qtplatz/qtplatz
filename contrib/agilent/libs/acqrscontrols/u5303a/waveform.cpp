@@ -106,7 +106,7 @@ namespace acqrscontrols { namespace u5303a {
 
 using namespace acqrscontrols::u5303a;
 
-waveform::waveform( std::shared_ptr< identify >& id
+waveform::waveform( std::shared_ptr< identify > id
                     , uint32_t pos, uint32_t events, uint64_t tp ) : ident_( id )
                                                                    , serialnumber_( pos )
                                                                    , wellKnownEvents_( events )
