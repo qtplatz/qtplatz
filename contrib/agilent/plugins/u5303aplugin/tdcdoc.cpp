@@ -205,7 +205,15 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
 void
 tdcdoc::update_rate( size_t trigCount, const std::pair<uint64_t, uint64_t>& timeSinceEpoch )
 {
-    trig_per_seconds_ = double( trigCount ) / ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
+    int64_t duration = timeSinceEpoch.second - timeSinceEpoch.first;
+    if ( duration )
+        trig_per_seconds_ = double( trigCount ) / ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
+}
+
+double
+tdcdoc::trig_per_seconds() const
+{
+    return trig_per_seconds_;
 }
 
 

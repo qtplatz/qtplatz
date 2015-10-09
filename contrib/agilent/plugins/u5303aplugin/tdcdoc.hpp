@@ -63,7 +63,7 @@ namespace u5303a {
 
         void clear_histogram();
 
-        inline double trig_per_seconds() const { return trig_per_seconds_; }
+        double trig_per_seconds() const;
 
         static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
                                                , const adcontrols::threshold_method& method

@@ -58,7 +58,7 @@ histogram::append( const threshold_result& result )
 
     if ( reset_requested_ ||
          meta_.actualPoints != result.data()->meta_.actualPoints ||
-         !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data()->meta_.initialXOffset ) ||
+         ( std::abs( meta_.initialXOffset - result.data()->meta_.initialXOffset ) >= meta_.xIncrement * 2 ) ||
          !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data()->meta_.xIncrement ) ) {
         
         meta_ = result.data()->meta_;        

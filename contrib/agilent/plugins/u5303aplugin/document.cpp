@@ -602,7 +602,7 @@ document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QS
 double
 document::triggers_per_second() const
 {
-    return 0; //impl_->triggers_per_sec();
+    return impl_->tdcdoc_->trig_per_seconds();
 }
 
 size_t
