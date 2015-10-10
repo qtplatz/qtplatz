@@ -87,6 +87,8 @@ ActionManager::install_file_actions()
             menu->addAction( am->command( Constants::CREATE_SPECTROGRAM ) );
             menu->addAction( am->command( Constants::CLUSTER_SPECTROGRAM ) );
 
+            menu->addAction( am->command( Constants::HIDE_DOCK ) );
+
             am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
         }
     }
@@ -196,6 +198,15 @@ ActionManager::initialize_actions( const Core::Context& context )
         if ( auto p = actions_[ idActUncheckAllSpectra ] = new QAction( tr( "Uncheck all spectra" ), this ) )
             am->registerAction( p, Constants::UNCHECK_ALL_SPECTRA, context );
 
+        do {
+            QIcon icon;
+            icon.addPixmap( QPixmap( Constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::On );
+            icon.addPixmap( QPixmap( Constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::Off );
+            auto * action = new QAction( icon, tr( "Hide dock" ), this );
+            action->setCheckable( true );
+            am->registerAction( action, Constants::HIDE_DOCK, context );
+            connect( action, &QAction::triggered, [] ( bool onoff ) { MainWindow::instance()->hideDock( onoff ); } );
+        } while ( 0 );
     }
 
     connect( Core::ICore::instance(), &Core::ICore::contextChanged, this, &ActionManager::handleContextChanged );

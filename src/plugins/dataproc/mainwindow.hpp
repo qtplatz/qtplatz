@@ -121,6 +121,7 @@ namespace dataproc {
 		void actClusterSpectrogram();
         void handleWarningMessage( const QString& );
         void aboutQtPlatz();
+        void hideDock( bool );
 
     private slots:
         void handleApplyMethod();

@@ -11,5 +11,8 @@
         <file>image/calibration32.png</file>
         <file>image/calibration64.png</file>
         <file>image/calibration96.png</file>
+	<file>image/cross.png</file>
+	<file>image/control-270-small.png</file>
+	<file>image/control-090-small.png</file>
     </qresource>
 </RCC>

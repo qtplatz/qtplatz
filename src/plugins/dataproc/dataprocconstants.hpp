@@ -25,6 +25,7 @@ namespace Constants {
     const char * const PROCESS_ALL_CHECKED  = "dataproc.ProcessAllCheckedSpectra";
     const char * const IMPORT_ALL_CHECKED   = "dataproc.ImportAllCheckedSpectra";
     const char * const LISTPEAKS_ON_CHECKED = "dataproc.PeakListAllChecked";
+    const char * const HIDE_DOCK            = "dataproc.HideDock";
 
     const char * const CREATE_SPECTROGRAM   = "dataproc.Spectrogram";
     const char * const CLUSTER_SPECTROGRAM  = "dataproc.ClusterSpectrogram";
@@ -41,6 +42,8 @@ namespace Constants {
     const char * const ICON_METHOD_APPLY    = ":/dataproc/image/apply_small.png";
     const char * const ICON_PDF             = ":/dataproc/image/file_pdf.png"; // http://findicons.com/icon/74870/file_pdf?id=355001
     const char * const ICON_CALIBFILE       = ":/dataproc/image/calibration32.png";
+    const char * const ICON_DOCKHIDE        = ":/dataproc/image/control-270-small.png";
+    const char * const ICON_DOCKSHOW        = ":/dataproc/image/control-090-small.png";
     // freeware license, Designed by Andy Gongea
     // Folium (attachment) name
     const wchar_t * const F_DFT_FILTERD        = adcontrols::constants::F_DFT_FILTERD;

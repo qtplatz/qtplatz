@@ -21,7 +21,10 @@ for %%i in (%*) do (
     )
 )
 
-set build_dir=%build_root%\qtplatz.%build_type%-%tools%
+set build_dir=%build_root%\qtplatz.%build_type%
+if %tools%==vc14 (
+   set build_dir=%build_root%\qtplatz.%build_type%-vc14
+)
 
 if %build_clean%==true (
   echo rmdir %build_dir% /s /q

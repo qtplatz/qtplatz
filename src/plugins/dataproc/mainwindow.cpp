@@ -383,6 +383,9 @@ MainWindow::createStyledBarMiddle()
             toolBarLayout->addWidget( edit );
 
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+            toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
+            
         }
     }
     return toolBar2;
@@ -1281,4 +1284,15 @@ MainWindow::handleProcessMethodChanged( const QString& filename )
         setProcessMethod( *pm ); // update UI
     }
 
+}
+
+void
+MainWindow::hideDock( bool hide )
+{
+    for ( auto& w :  dockWidgets() ) {
+        if ( hide )
+            w->hide();
+        else
+            w->show();
+    }
 }

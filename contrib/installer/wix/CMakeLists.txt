@@ -4,7 +4,9 @@ project( wix_installer )
 
 set( QTPLATZ_BINARY_DIR "${CMAKE_BINARY_DIR}/../qtplatz.package" )
 
-find_package( ace+tao )
+if ( QTPALTZ_SUPPORT_CORBA )
+  find_package( ace+tao )
+endif()
 
 set( INFITOF_TARGET "" )
 set( MALPIX_TARGET "" )

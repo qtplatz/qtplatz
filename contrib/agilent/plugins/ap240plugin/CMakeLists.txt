@@ -79,7 +79,6 @@ target_link_libraries(
   acewrapper
   adplugin
   adextension
-  adorbmgr
   adlog
   adportable
   xmlparser

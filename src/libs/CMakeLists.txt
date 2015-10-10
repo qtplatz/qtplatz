@@ -47,3 +47,4 @@ if ( Qt5_FOUND )
 
 endif()
 
+message( STATUS "------------ end libs ----------------" )

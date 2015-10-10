@@ -23,3 +23,4 @@ if ( NOT QTPLATZ_CORELIB_ONLY )
   add_subdirectory( tools )  
 endif()
 
+message( STATUS "------------ end src ----------------" )

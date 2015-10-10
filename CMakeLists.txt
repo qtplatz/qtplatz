@@ -145,14 +145,18 @@ if ( WIN32 )
   set(CMAKE_DEBUG_POSTFIX "d")
 endif()
 
+message( STATUS "------------ src ----------------" )
 add_subdirectory (src)
+message( STATUS "------------ contrib ----------------" )
 add_subdirectory (contrib)
 if ( Qt5_FOUND )
+  message( STATUS "------------ share ----------------" )
   add_subdirectory (share)
 endif()
 
 ########### CPack ########
 
+message( STATUS "------------ cpack ----------------" )
 set( CPACK_PACKAGE_NAME "qtplatz" )
 
 include( qtplatz-cpack-config )
@@ -205,7 +209,9 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   
   include( qtplatz-cpack-config )
   include( boost-cpack )
-  include( ace+tao-cpack )
+  if ( QTPLATZ_SUPPORT_CORBA )
+    include( ace+tao-cpack )
+  endif()
   if ( NOT QTPLATZ_CORELIB_ONLY )
     if ( Qt5_FOUND )
       include( qt5-cpack )
