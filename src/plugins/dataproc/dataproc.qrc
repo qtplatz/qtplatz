@@ -14,5 +14,6 @@
 	<file>image/cross.png</file>
 	<file>image/control-270-small.png</file>
 	<file>image/control-090-small.png</file>
+	<file>image/button_close.png</file>
     </qresource>
 </RCC>

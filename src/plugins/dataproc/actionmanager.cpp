@@ -200,12 +200,12 @@ ActionManager::initialize_actions( const Core::Context& context )
 
         do {
             QIcon icon;
-            icon.addPixmap( QPixmap( Constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::On );
-            icon.addPixmap( QPixmap( Constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::Off );
+            icon.addPixmap( QPixmap( Constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::Off );
+            icon.addPixmap( QPixmap( Constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::On );
             auto * action = new QAction( icon, tr( "Hide dock" ), this );
             action->setCheckable( true );
             am->registerAction( action, Constants::HIDE_DOCK, context );
-            connect( action, &QAction::triggered, [] ( bool onoff ) { MainWindow::instance()->hideDock( onoff ); } );
+            connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::hideDock );
         } while ( 0 );
     }
 
