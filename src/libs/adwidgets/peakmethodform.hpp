@@ -45,9 +45,6 @@ namespace adcontrols {
 
 namespace adwidgets {
 
-	class TimeEventsDelegate;
-    class PeakMethodDelegate;
-
 	class ADWIDGETSSHARED_EXPORT PeakMethodForm : public QWidget
                                                 , public adplugin::LifeCycle {
 		Q_OBJECT
@@ -78,9 +75,7 @@ namespace adwidgets {
         ::Ui::PeakMethodForm *ui;
         std::unique_ptr< adcontrols::PeakMethod > pMethod_;
         std::unique_ptr< QStandardItemModel > pTimeEventsModel_; // time events
-		std::unique_ptr< TimeEventsDelegate > pTimeEventsDelegate_;
         std::unique_ptr< QStandardItemModel > pGlobalModel_; // time events
-		std::unique_ptr< PeakMethodDelegate > pGlobalDelegate_;
         void setContents( const adcontrols::PeakMethod& );
         void getContents( adcontrols::PeakMethod& ) const;
 	};

@@ -21,7 +21,6 @@ add_library( u5303aspectrometer SHARED
   )
 
 target_link_libraries( u5303aspectrometer LINK_PUBLIC
-  adinterface
   adplugin
   adportable
   adcontrols

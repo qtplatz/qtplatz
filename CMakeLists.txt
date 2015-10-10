@@ -100,11 +100,13 @@ if ( QTPLATZ_SUPPORT_CORBA )
   find_package( ace+tao QUIET )
   if ( ace+tao_FOUND )
     message( STATUS "Found the ACE+TAO libraries at: " ${ace+tao_DIR} )
-    add_definitions(-DHAVE_TAO=1)
+    add_definitions(-DHAVE_CORBA=1 -DHAVE_TAO=1)
   else()
     message( STATUS "No ACE+TAO found" )
     set ( QTPLATZ_SUPPORT_CORBA OFF )
   endif()
+else()
+  message( STATUS "No CORBA SUPPORT")
 endif()
 
 message( STATUS "---------------------------------" )
@@ -156,21 +158,23 @@ set( CPACK_PACKAGE_NAME "qtplatz" )
 include( qtplatz-cpack-config )
 
 if ( WIN32 )
-
+  
   set( CPACK_GENERATOR "WIX" )
   set( CPACK_WIX_UPGRADE_GUID "F8077E17-B0F6-4DDB-A7D9-CD7578199E82" )
   set( CPACK_WIX_PROGRAM_MENU_FOLDER "QtPlatz Mass Spectrometry" )
   set( CPACK_WIX_CMAKE_PACKAGE_REGISTRY "QtPlatz" )
-
-#  install( FILES
-#    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcp120.dll
-#    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcr120.dll
-#    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/vccorlib120.dll
-#    DESTINATION bin COMPONENT runtime_libraries )
-#    )
+  
+  #  install( FILES
+  #    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcp120.dll
+  #    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/msvcr120.dll
+  #    $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT/vccorlib120.dll
+  #    DESTINATION bin COMPONENT runtime_libraries )
+  #    )
   include( boost-cpack )
-  include( ace+tao-cpack )
-  include( qt5-cpack )
+  include( qt5-cpack )  
+  if ( QTPLATZ_SUPPORT_CORBA )
+    include( ace+tao-cpack )
+  endif()
 
 elseif( APPLE )
 
@@ -178,9 +182,11 @@ elseif( APPLE )
   set( CPACK_BINARY_DRAGNDROP ON )
   include( qtplatz-cpack-config )
   include( boost-cpack )
-  include( ace+tao-cpack )
   include( qt5-cpack )
   include( rdkit-cpack )
+  if ( QTPLATZ_SUPPORT_CORBA )
+    include( ace+tao-cpack )
+  endif()
   
 elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 

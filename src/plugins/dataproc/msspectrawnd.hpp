@@ -72,6 +72,9 @@ namespace dataproc {
         void update_quantable();
         void draw();
 
+        class impl;
+        impl * impl_;
+
         std::map< std::wstring // folium (profile) Guid (attGuid)
                   , std::tuple<int                                         // 0 idx
                                , std::wstring                              // 1 attached (:= centroid) guid

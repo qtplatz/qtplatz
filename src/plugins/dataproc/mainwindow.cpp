@@ -253,6 +253,11 @@ MainWindow::createStyledBarTop()
                 am->registerAction( p, "dataproc.selMSProcess", context );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
+            if ( auto p = selPages_[ idSelSpectra ] = new QAction( tr("Spectra"), this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectra ); } );
+                am->registerAction( p, "dataproc.selSpectra", context );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
             if ( auto p = selPages_[ idSelElementalComp] = new QAction( tr("Simulation"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelElementalComp ); } );
                 am->registerAction( p, "dataproc.selElementalComp", context );
@@ -285,11 +290,6 @@ MainWindow::createStyledBarTop()
                 toolBarLayout->addWidget( toolButton( p ) );
             }
 
-            if ( auto p = selPages_[ idSelSpectra ] = new QAction( tr("Spectra"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectra ); } );
-                am->registerAction( p, "dataproc.selSpectra", context );
-                toolBarLayout->addWidget( toolButton( p ) );
-            }
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );

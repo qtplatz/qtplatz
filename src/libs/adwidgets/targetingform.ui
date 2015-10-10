@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>245</width>
-    <height>277</height>
+    <height>254</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,14 +56,14 @@
         <property name="bottomMargin">
          <number>2</number>
         </property>
-        <property name="horizontalSpacing">
-         <number>2</number>
-        </property>
-        <property name="verticalSpacing">
+        <property name="spacing">
          <number>0</number>
         </property>
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
           <item row="0" column="0">
            <widget class="QRadioButton" name="radioButtonRP">
             <property name="text">

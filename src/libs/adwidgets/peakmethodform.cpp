@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -40,7 +40,9 @@
 #include <QItemDelegate>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QTableView>
 #include <QTextDocument>
+#include <QTreeView>
 #include <QPainter>
 #include <QKeyEvent>
 #include <QEvent>
@@ -86,7 +88,7 @@ namespace adwidgets {
 		Q_OBJECT
 	public:
 		explicit PeakMethodDelegate(PeakMethodForm *, QObject *parent = 0);
-
+        
         QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
         void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
         void setEditorData(QWidget *editor, const QModelIndex &index) const override;
@@ -110,17 +112,35 @@ PeakMethodForm::PeakMethodForm(QWidget *parent) : QWidget(parent)
                                                 , ui(new Ui::PeakMethodForm)
                                                 , pMethod_( new adcontrols::PeakMethod ) 
                                                 , pTimeEventsModel_( new QStandardItemModel )
-                                                , pTimeEventsDelegate_( new TimeEventsDelegate(this) )
                                                 , pGlobalModel_( new QStandardItemModel )
-                                                , pGlobalDelegate_( new PeakMethodDelegate(this) )
 {
     ui->setupUi(this);
 
-    ui->timeEvents->setModel( pTimeEventsModel_.get() );
-    ui->timeEvents->setItemDelegate( pTimeEventsDelegate_.get() );
-    ui->timeEvents->verticalHeader()->setDefaultSectionSize( 18 );
-    ui->treeView->setModel( pGlobalModel_.get() );
-    ui->treeView->setItemDelegate( pGlobalDelegate_.get() );
+    auto layout = new QVBoxLayout( ui->groupBox );
+    layout->setContentsMargins( 2, 2, 2, 2 );
+    layout->setSpacing( 0 );
+
+    auto hLayout = new QHBoxLayout();
+    hLayout->setContentsMargins( 2, 2, 2, 2 );
+    hLayout->setSpacing( 0 );
+        
+    if ( auto tree = new QTreeView() ) {
+            
+        tree->setModel( pGlobalModel_.get() );
+        tree->setItemDelegate( new PeakMethodDelegate(this) );
+        hLayout->addWidget( tree );
+            
+    }
+        
+    if ( auto table = new QTableView () ) {
+        table->setModel( pTimeEventsModel_.get() );
+        table->setItemDelegate( new TimeEventsDelegate(this) );
+        table->verticalHeader()->setDefaultSectionSize( 18 );
+        hLayout->addWidget( table );
+    }
+        
+    layout->addLayout( hLayout );
+        
 }
 
 PeakMethodForm::~PeakMethodForm()
@@ -138,18 +158,21 @@ void
 PeakMethodForm::OnInitialUpdate()
 {
     setContents( *pMethod_ );
-    do {
+
+    if ( auto table = findChild< QTableView * >() ) {
+
         QStandardItemModel& model = *pTimeEventsModel_;
         QStandardItem * rootNode = model.invisibleRootItem();
         rootNode->setColumnCount(3);
         model.setHeaderData( c_time, Qt::Horizontal, "Time(min)" );
         model.setHeaderData( c_function, Qt::Horizontal, "Func" );
         model.setHeaderData( c_event_value, Qt::Horizontal, "Value" );
-        ui->timeEvents->setSortingEnabled( true );
+        table->setSortingEnabled( true );
 
-    } while ( 0 );
+    }
 
-    do {
+    if ( auto tree = findChild< QTreeView * >() ) {
+
         QStandardItemModel& model = *pGlobalModel_;
 
         model.setColumnCount( c_num_columns );
@@ -157,14 +180,14 @@ PeakMethodForm::OnInitialUpdate()
         model.setHeaderData( c_value, Qt::Horizontal, "Value" );
 
         model.setRowCount( r_num_rows );
-        model.setData( model.index( r_slope,         c_header ), "Slope [&mu;V/min]" );
-        model.setData( model.index( r_min_width,     c_header ), "Minimum width[min]" );
-        model.setData( model.index( r_min_height,    c_header ), "Minimum height" );    
-        model.setData( model.index( r_drift,         c_header ), "Drift [height/min]" );
-        model.setData( model.index( r_min_area,      c_header ), "Minumum area[&mu;V&times;s]" );
-        model.setData( model.index( r_doubling_time, c_header ), "Peak width doubling time[min]" );
-        model.setData( model.index( r_void_time,     c_header ), "T<sub>0</sub>" );
-        model.setData( model.index( r_pharmacopoeia, c_header ), "Pharmacopoeia" );
+        model.setData( model.index( r_slope,         c_header ), tr( "Slope [&mu;V/min]" ) );
+        model.setData( model.index( r_min_width,     c_header ), tr( "Minimum width[min]" ) );
+        model.setData( model.index( r_min_height,    c_header ), tr( "Minimum height" ) );
+        model.setData( model.index( r_drift,         c_header ), tr( "Drift [height/min]" ) );
+        model.setData( model.index( r_min_area,      c_header ), tr( "Minumum area[&mu;V&times;s]" ) );
+        model.setData( model.index( r_doubling_time, c_header ), tr( "Peak width doubling time[min]" ) );
+        model.setData( model.index( r_void_time,     c_header ), tr( "<em>T<sub>0</sub></em>" ) );
+        model.setData( model.index( r_pharmacopoeia, c_header ), tr( "Pharmacopoeia" ) );
 
         setContents( *pMethod_ );
 
@@ -173,12 +196,13 @@ PeakMethodForm::OnInitialUpdate()
             model.item( row, c_value )->setEditable( true );
         }
 
-        ui->treeView->resizeColumnToContents( 0 );
-        ui->treeView->resizeColumnToContents( 1 );
-		ui->treeView->setExpandsOnDoubleClick( false );
-		ui->treeView->setEditTriggers( QAbstractItemView::AllEditTriggers );
-		ui->treeView->setTabKeyNavigation( true );
-    } while (0);
+        tree->resizeColumnToContents( 0 );
+        tree->resizeColumnToContents( 1 );
+		tree->setExpandsOnDoubleClick( false );
+		tree->setEditTriggers( QAbstractItemView::AllEditTriggers );
+		tree->setTabKeyNavigation( true );
+    }
+
 }
 
 void

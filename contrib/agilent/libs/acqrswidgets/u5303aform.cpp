@@ -109,6 +109,17 @@ void
 u5303AForm::onHandleValue( idCategory id, int channel, const QVariant& value )
 {
     switch ( id ) {
+    case idGlobalAny:
+    case idAP240Any:
+    case idSlopeTimeConverter:
+    case idHorizontal:
+    case idVertical:
+    case idChannels:
+    case idTrigger:
+    case idU5303AAny:
+    case idU5303AMode:
+    case idU5303AWidth:
+        break;
     case idU5303AStartDelay:
         do {
             QSignalBlocker block( ui->doubleSpinBox_1 );

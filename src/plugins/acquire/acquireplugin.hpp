@@ -31,10 +31,12 @@
 #include <deque>
 #include <map>
 
+#if defined HAS_CORBA
 #include <adinterface/controlserverC.h>
 #include <adinterface/signalobserverC.h>
 #include <adinterface/receiverC.h>
 #include <adplugin/orbservant.hpp>
+#endif
 
 #if ! defined Q_MOC_RUN
 #include <workaround/boost/asio.hpp>
@@ -170,6 +172,7 @@ namespace acquire {
                                 , std::wstring
                                 , bool
                                 , std::shared_ptr< adcontrols::MassSpectrometer > > observer_type;
+
             
             std::map< unsigned long, observer_type > observerMap_;
 
