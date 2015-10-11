@@ -29,7 +29,9 @@
 #include <xmlparser/pugixml.hpp>
 #include <string>
 #include <vector>
+#include <boost/uuid/uuid.hpp>
 #include <compiler/disable_dll_interface.h>
+
 
 namespace portfolio {
 
@@ -50,6 +52,7 @@ namespace portfolio {
             std::wstring name() const;
             void name( const std::wstring& name );
 
+            const boost::uuids::uuid& uuid() const;
             std::wstring id() const;
             void id( const std::wstring& );
 
@@ -63,6 +66,8 @@ namespace portfolio {
             void setAttribute( const std::wstring& key, const std::wstring& value );
 
             std::vector< std::pair<std::wstring, std::wstring> > attributes() const;
+
+            static boost::uuids::uuid uuidFromString( const std::string& );
 
         protected:
             pugi::xpath_node_set selectNodes( const std::wstring& query );
@@ -80,6 +85,7 @@ namespace portfolio {
         protected:
             pugi::xml_node node_;
             PortfolioImpl* impl_;
+            boost::uuids::uuid uuid_;
         };
 
     }

@@ -22,12 +22,18 @@
 **
 **************************************************************************/
 
+#if _MSC_VER
+# pragma warning(disable:4996)
+#endif
 #include "node.hpp"
 #include "portfolioimpl.hpp"
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <string>
 
 #include <compiler/diagnostic_push.h>
@@ -50,15 +56,42 @@ namespace portfolio { namespace internal {
 }
 }
 
+boost::uuids::uuid
+Node::uuidFromString( const std::string& id )
+{
+    boost::uuids::uuid uuid = { 0 };
+    if ( !id.empty() ) {
+        try {
+            if ( id[ 0 ] == '{' ) { // Windows CreateGUID format
+                auto idstr = id.substr( 1, 36 );
+                uuid = boost::lexical_cast<boost::uuids::uuid>( idstr );
+                return uuid;
+            } else {
+                uuid = boost::lexical_cast<boost::uuids::uuid>( id );
+                return uuid;
+            }
+        } catch ( boost::bad_lexical_cast& ) {
+            ADDEBUG() << "bad uuid cast: '" << id << "'";
+        }
+    }
+    return uuid;
+}
+
 Node::Node() : impl_(0)
+             , uuid_({ 0 })
 {
 }
 
-Node::Node( const pugi::xml_node& e, PortfolioImpl* impl ) : node_(e), impl_(impl)
+Node::Node( const pugi::xml_node& e, PortfolioImpl* impl ) : node_( e )
+                                                           , impl_( impl )
 {
+    std::string id = node_.attribute( "dataId" ).value();
+    uuid_ = uuidFromString( id );
 }
 
-Node::Node( const Node& t ) : node_( t.node_ ), impl_(t.impl_)
+Node::Node( const Node& t ) : node_( t.node_ )
+                            , impl_( t.impl_ )
+                            , uuid_( t.uuid_ )
 {
 }
 
@@ -79,6 +112,12 @@ Node::name( const std::wstring& value )
     setAttribute( L"name", value );
 }
 
+const boost::uuids::uuid&
+Node::uuid() const
+{
+    return uuid_;
+}
+
 std::wstring
 Node::id() const
 {
@@ -89,6 +128,7 @@ void
 Node::id( const std::wstring& value )
 {
    setAttribute( L"dataId", value );
+   uuid_ = uuidFromString( pugi::as_utf8( value ) );
 }
 
 bool
