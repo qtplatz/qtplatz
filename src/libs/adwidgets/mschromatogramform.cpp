@@ -36,7 +36,7 @@ MSChromatogramForm::MSChromatogramForm( QWidget *parent ) : QWidget( parent )
     ui->setupUi(this);
     ui->comboBox->addItems( QStringList() << tr( "Profile" ) << tr( "Centroid" ) );
     connect( ui->checkBox, &QCheckBox::stateChanged, this, [this] ( int state ) { emit onEnableLockMass( state == Qt::Checked ); } );
-    connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit onProcess(); } );
+    connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess(); } );
 }
 
 MSChromatogramForm::~MSChromatogramForm()

@@ -314,6 +314,11 @@ MainWindow::createDockWidgets()
 QDockWidget *
 MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& pageName )
 {
+    if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
+        widget->setWindowTitle( title );
+    if ( widget->objectName().isEmpty() )
+        widget->setObjectName( pageName );
+
     QDockWidget * dockWidget = addDockForWidget( widget );
     dockWidget->setObjectName( pageName.isEmpty() ? widget->objectName() : pageName );
 

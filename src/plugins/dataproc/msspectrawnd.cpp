@@ -39,7 +39,6 @@
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
-//#include <adplugin/widget_factory.hpp>
 #include <adportable/configuration.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
@@ -57,18 +56,57 @@
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 
+namespace dataproc {
+
+    class MSSpectraWnd::impl {
+    public:
+        impl( MSSpectraWnd * p ) : pThis_( p )
+                                 , table_( std::make_shared< adwidgets::MSQuanTable >() )
+                                 , isTimeAxis_( false )
+                                 , dirty_( false ) {
+            
+            for ( size_t i = 0; i < plots_.size(); ++i ) {
+
+                plots_[ i ] = std::make_shared< adplot::SpectrumWidget >();
+                markers_[ i ] = std::make_shared< adplot::PeakMarker >();
+
+            }
+            
+        }
+        
+        ~impl() {
+        }
+
+        MSSpectraWnd * pThis_;
+
+        std::map< std::wstring // folium (profile) Guid (attGuid)
+                  , std::tuple<int                                         // 0 idx
+                               , std::wstring                              // 1 attached (:= centroid) guid
+                               , std::weak_ptr< adcontrols::MassSpectrum>  // 2 
+                               , std::wstring                              // 3 filename::folium.name
+                               >  > dataIds_;
+
+        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > profile_;
+
+        std::shared_ptr< adwidgets::MSQuanTable > table_;
+        std::array< std::shared_ptr< adplot::SpectrumWidget >, 2 > plots_;
+        std::array< std::shared_ptr< adplot::PeakMarker >, 2 > markers_;
+        bool isTimeAxis_;
+        bool dirty_;
+        
+    };
+    
+}
+
 using namespace dataproc;
 
 MSSpectraWnd::~MSSpectraWnd()
 {
+    delete impl_;
 }
 
-MSSpectraWnd::MSSpectraWnd( QWidget *parent ) :  QWidget(parent)
-                                              , plot_( new adplot::SpectrumWidget )
-                                              , table_( new adwidgets::MSQuanTable )
-                                              , marker_( new adplot::PeakMarker )
-                                              , isTimeAxis_( false )
-                                              , dirty_( false )
+MSSpectraWnd::MSSpectraWnd( QWidget *parent ) : QWidget(parent)
+                                              , impl_( new impl( this ) )
 {
     init();
 }
@@ -78,21 +116,33 @@ MSSpectraWnd::init()
 {
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( adplugin::LifeCycle * p = dynamic_cast<adplugin::LifeCycle *>(table_.get()) ) {
-            p->OnInitialUpdate();
+
+        if ( auto lifecycle = qobject_cast< adplugin::LifeCycle * >( impl_->table_.get() ) ) {
+            lifecycle->OnInitialUpdate();
         }
 
-        connect( plot_.get()
-                 , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
-                 , [=]( const QRectF& rc){ table_->handleSelected( rc, isTimeAxis_); });
+        for ( size_t i = 0; i < impl_->plots_.size(); ++i ) {
 
-        plot_->enableAxis( QwtPlot::yRight );
-        marker_->attach( plot_.get() );
-        marker_->visible( true );
-        marker_->setYAxis( QwtPlot::yRight );
+            auto& plot = impl_->plots_[i];
+            auto& marker = impl_->markers_[i];
 
-        splitter->addWidget( plot_.get() );
-        splitter->addWidget( table_.get() );
+            connect( plot.get()
+                     , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
+                     , [=] ( const QRectF& rc ) { impl_->table_->handleSelected( rc, impl_->isTimeAxis_ ); } );
+
+            plot->enableAxis( QwtPlot::yRight );
+            marker->attach( plot.get() );
+            marker->visible( true );
+            marker->setYAxis( QwtPlot::yRight );
+
+            if ( i )
+                impl_->plots_[ 0 ]->link( plot.get() );
+
+            splitter->addWidget( plot.get() );
+
+        }
+
+        splitter->addWidget( impl_->table_.get() );
         splitter->setOrientation( Qt::Vertical );
     }
 
@@ -101,10 +151,10 @@ MSSpectraWnd::init()
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( splitter );
 
-    connect( table_.get()
-        , static_cast<void (adwidgets::MSQuanTable::*)(const QString&, int, int)>(&adwidgets::MSQuanTable::currentChanged)
-        , this
-        , &MSSpectraWnd::handleCurrentChanged );
+    connect( impl_->table_.get()
+             , static_cast<void (adwidgets::MSQuanTable::*)(const QString&, int, int)>(&adwidgets::MSQuanTable::currentChanged)
+             , this
+             , &MSSpectraWnd::handleCurrentChanged );
 }
 
 
@@ -124,11 +174,11 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 
                 if ( itCentroid != atts.end() ) {
                     if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
-                        auto it = dataIds_.find( folium.id() );
-                        int idx = (it != dataIds_.end()) ? std::get<0>( it->second ) : int( dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
+                        auto it = impl_->dataIds_.find( folium.id() );
+                        int idx = (it != impl_->dataIds_.end()) ? std::get<0>( it->second ) : int( impl_->dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
                         std::wstring name = processor->file().filename() + L"::" + folium.name();
-                        dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
-                        dirty_ = true;
+                        impl_->dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
+                        impl_->dirty_ = true;
                     }
                 }
             }
@@ -138,10 +188,10 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
     if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
         return;
 
-    if ( dirty_ ) {
+    if ( impl_->dirty_ ) {
         update_quantable();
         draw();
-        dirty_ = false;
+        impl_->dirty_ = false;
     }
 }
 
@@ -150,7 +200,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 {
     try {
         if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-            profile_ = std::make_pair( folium.id(), ptr );
+            impl_->profile_ = std::make_pair( folium.id(), ptr );
         } else {
             return;
         }
@@ -166,9 +216,9 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         if ( auto qpks = dataproc_document::instance()->msQuanTable() )
             modified = qpks->erase( folium.id() );
 
-        auto it = dataIds_.find( folium.id() );
-        if ( it != dataIds_.end() )
-            dataIds_.erase( it );
+        auto it = impl_->dataIds_.find( folium.id() );
+        if ( it != impl_->dataIds_.end() )
+            impl_->dataIds_.erase( it );
         
     } else {
 
@@ -180,11 +230,11 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 
             if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
 
-                auto it = dataIds_.find( folium.id() );
-                int idx = (it != dataIds_.end()) ? std::get<0>( it->second ) : int( dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
+                auto it = impl_->dataIds_.find( folium.id() );
+                int idx = ( it != impl_->dataIds_.end() ) ? std::get<0>( it->second ) : int( impl_->dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
                 std::wstring name = processor->file().filename() + L"::" + folium.name();
 
-                dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
+                impl_->dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
 
                 modified = true;
             }
@@ -192,15 +242,15 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         }
     }
 
-    dirty_ |= modified; // don't drop previous state if already 'dirty'
+    impl_->dirty_ |= modified; // don't drop previous state if already 'dirty'
 
     if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
         return;
     
-    if ( dirty_ ) {
+    if ( impl_->dirty_ ) {
         update_quantable();
         draw();
-        dirty_ = false;
+        impl_->dirty_ = false;
     }
 }
 
@@ -211,7 +261,7 @@ MSSpectraWnd::update_quantable()
 
         qpks->clear(); // all clear
 
-        for ( auto& data: dataIds_ ) {
+        for ( auto& data: impl_->dataIds_ ) {
             const std::wstring& profGuid = data.first;
             const std::wstring& centGuid = std::get<1>(data.second);
             const std::wstring& dataName = std::get<3>(data.second);
@@ -226,16 +276,16 @@ void
 MSSpectraWnd::draw()
 {
     if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
-        table_->setData( qpks );
+        impl_->table_->setData( qpks );
 
-        if ( auto profile = profile_.second.lock() ) {
-            plot_->setData( profile, 0 );
+        if ( auto profile = impl_->profile_.second.lock() ) {
+            impl_->plots_[ 1 ]->setData( profile, 0 );
         }
 
-        for ( auto& data: dataIds_ ) {
+        for ( auto& data: impl_->dataIds_ ) {
             int idx = std::get<0>(data.second);
             if ( auto centroid = std::get<2>(data.second).lock() ) 
-                plot_->setData( centroid, idx );
+                impl_->plots_[ 1 ]->setData( centroid, idx );
         }
     }
 }
@@ -248,8 +298,9 @@ MSSpectraWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 MSSpectraWnd::handleAxisChanged( int axis )
 {
-    isTimeAxis_ = ( axis == adplot::SpectrumWidget::HorizontalAxisTime );
-    plot_->setAxis( adplot::SpectrumWidget::HorizontalAxis( axis ), true );
+    impl_->isTimeAxis_ = ( axis == adplot::SpectrumWidget::HorizontalAxisTime );
+    for ( auto& plot: impl_->plots_ )
+        plot->setAxis( adplot::SpectrumWidget::HorizontalAxis( axis ), true );
 }
 
 void
@@ -270,10 +321,10 @@ MSSpectraWnd::handleCurrentChanged( const QString& guid, int idx, int fcn )
         if ( profGuid.empty() )
             return;
 
-        plot_->setFocusedFcn( fcn );
+        impl_->plots_[1]->setFocusedFcn( fcn );
 
-        auto it = dataIds_.find( profGuid );
-        if ( it != dataIds_.end() ) {
+        auto it = impl_->dataIds_.find( profGuid );
+        if ( it != impl_->dataIds_.end() ) {
             // verify guid
             if ( std::get<1>( it->second ) != dataGuid ) {
                 ADERROR() << "GUID mismatch -- it is a bug";
@@ -282,8 +333,8 @@ MSSpectraWnd::handleCurrentChanged( const QString& guid, int idx, int fcn )
             if ( auto processed = std::get<2>( it->second ).lock() ) {
                 adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *processed );
                 if ( segs.size() > size_t( fcn ) ) {
-                    marker_->setPeak( segs[ fcn ], idx, isTimeAxis_ );
-                    plot_->replot();
+                    impl_->markers_[ 1 ]->setPeak( segs[ fcn ], idx, impl_->isTimeAxis_ );
+                    impl_->plots_[ 1 ]->replot();
                 }
             }
         }
@@ -293,10 +344,10 @@ MSSpectraWnd::handleCurrentChanged( const QString& guid, int idx, int fcn )
 void
 MSSpectraWnd::onPageSelected()
 {
-    if ( dirty_ ) {
+    if ( impl_->dirty_ ) {
         update_quantable();
         draw();
-        dirty_ = false;
+        impl_->dirty_ = false;
     }
 }
 
@@ -313,8 +364,8 @@ MSSpectraWnd::onDataChanged( const QString& foliumGuid, const QString& attGuid, 
     (void)fcn;
     (void)idx;
     (void)attGuid;
-    auto it = dataIds_.find( foliumGuid.toStdWString() );
-    if ( it != dataIds_.end() ) {
+    auto it = impl_->dataIds_.find( foliumGuid.toStdWString() );
+    if ( it != impl_->dataIds_.end() ) {
 
         // pointer for spectrum is weak share with the portfolio, so centroid spectrum should be up to date
         // without pull data out again from portfolio
@@ -329,15 +380,15 @@ MSSpectraWnd::onDataChanged( const QString& foliumGuid, const QString& attGuid, 
                 const std::wstring& dataName = std::get<3>(it->second);
                 qpks->setData( *centroid, centGuid, profGuid, dataName );
 
-                dirty_ = true;
+                impl_->dirty_ = true;
             }
         }
     }
 
-    if ( dirty_ && ( MainWindow::instance()->curPage() == MainWindow::idSelSpectra ) ) {
+    if ( impl_->dirty_ && ( MainWindow::instance()->curPage() == MainWindow::idSelSpectra ) ) {
         update_quantable();
         draw();
-        dirty_ = false;
+        impl_->dirty_ = false;
     }
 }
 

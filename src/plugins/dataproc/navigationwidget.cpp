@@ -214,7 +214,29 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     pTreeView_->setModel( pModel_ );
     pTreeView_->setItemDelegate( pDelegate_ );
 	pTreeView_->setDragEnabled( true );
-	// pTreeView_->setDragDropMode( QAbstractItemView::DragOnly );
+
+    setStyleSheet(
+        "QTreeView {"
+        " alternate-background-color: #f6fafb;"
+        " background: #e8f4fc;"
+        "}"
+        "QTreeView::item:open {"
+        " background-color: #c5ebfb;"
+        " color: blue;"
+        "}"
+        "QTreeView::branch {"
+        " background-color: white;"
+        "}"
+        "QTreeView::branch:open {"
+        " image: url(:/dataproc/image/folder-open.png);"
+        "}"
+        "QTreeView::branch:closed:has-children {"
+        " image: url(:/dataproc/image/folder--plus.png);"
+        "}"
+        );
+
+    // pTreeView_->setDragDropMode( QAbstractItemView::DragOnly );
+
     qRegisterMetaTypeStreamOperators< portfolio::Folium >( "portfolio::Folium" );
     qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
 

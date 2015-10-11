@@ -75,20 +75,6 @@ namespace dataproc {
         class impl;
         impl * impl_;
 
-        std::map< std::wstring // folium (profile) Guid (attGuid)
-                  , std::tuple<int                                         // 0 idx
-                               , std::wstring                              // 1 attached (:= centroid) guid
-                               , std::weak_ptr< adcontrols::MassSpectrum>  // 2 
-                               , std::wstring                              // 3 filename::folium.name
-                               >  > dataIds_;
-
-        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > profile_;
-
-        std::unique_ptr< adwidgets::MSQuanTable > table_;
-        std::unique_ptr< adplot::SpectrumWidget > plot_;
-        std::unique_ptr< adplot::PeakMarker > marker_;
-        bool isTimeAxis_;
-        bool dirty_;
     };
 }
 

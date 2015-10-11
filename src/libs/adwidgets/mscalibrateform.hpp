@@ -61,7 +61,7 @@ namespace adwidgets {
 
     signals:
         void addReference( const adcontrols::MSReference& );
-        void onProcess();
+        void triggerProcess();
     };
 
 }

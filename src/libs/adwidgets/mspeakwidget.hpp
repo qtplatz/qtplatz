@@ -62,7 +62,7 @@ namespace adwidgets {
     signals:
         void onSetData( const QString&, const adcontrols::MSPeaks& );
         void onSetData( int mode, const adcontrols::MSPeaks& );
-            
+
     public slots:
         void handle_add_mspeaks( const adcontrols::MSPeaks& );
 

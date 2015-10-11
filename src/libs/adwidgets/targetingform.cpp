@@ -46,7 +46,7 @@ TargetingForm::TargetingForm(QWidget *parent) :  QWidget(parent)
 	spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxLowMassLimit, 1, 5000,  100 );
 	spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxHighMassLimit, 1, 5000, 2000 );
 
-    connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit onProcess(); } );
+    connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess(); } );
 }
 
 TargetingForm::~TargetingForm()

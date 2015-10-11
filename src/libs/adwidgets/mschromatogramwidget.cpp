@@ -62,7 +62,7 @@ MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QWidget(parent)
             connect( form, &MSChromatogramForm::onEnableLockMass, [table]( bool enable ) { table->setColumnHidden( MolTable::c_msref, !enable ); } );
         }
 
-        connect( form, &MSChromatogramForm::onProcess, [this] { run(); } );
+        connect( form, &MSChromatogramForm::triggerProcess, [this] { run(); } );
     }
 }
 
@@ -153,6 +153,6 @@ MSChromatogramWidget::handleContextMenu( QMenu& menu, const QPoint& pt )
 void
 MSChromatogramWidget::run()
 {
-    emit onProcess( "MSChromatogramWidget" );
+    emit triggerProcess( "MSChromatogramWidget" );
 }
 

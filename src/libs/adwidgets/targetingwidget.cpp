@@ -58,7 +58,7 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
 
         }
     }
-    connect( form_, &TargetingForm::onProcess, [this] { emit onProcess( "TargetingWidget" ); } );
+    connect( form_, &TargetingForm::triggerProcess, [this] { emit triggerProcess( "TargetingWidget" ); } );
 }
 
 TargetingWidget::~TargetingWidget()

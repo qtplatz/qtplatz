@@ -61,7 +61,7 @@ namespace adwidgets {
         void handleContextMenu( QMenu&, const QPoint& );
         
     signals:
-        void onProcess( const QString& );
+        void triggerProcess( const QString& );
 
     public slots:
 

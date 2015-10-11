@@ -68,6 +68,7 @@ namespace adwidgets {
     signals:
 		void apply( adcontrols::ProcessMethod& );
         void valueChanged();
+        void triggerProcess( const QString& ); // to be implemented.
 
     private slots:
 

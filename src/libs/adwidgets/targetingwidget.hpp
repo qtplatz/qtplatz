@@ -64,7 +64,7 @@ namespace adwidgets {
         //TargetingTable * table_;
         
     signals:
-        void onProcess( const QString& );
+        void triggerProcess( const QString& );
 
     public slots:
 

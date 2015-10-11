@@ -80,6 +80,7 @@ namespace adwidgets {
     signals:
         void apply( adcontrols::ProcessMethod& );
         void valueChanged();
+        void triggerProcess( const QString& );
 
     private slots:
         void on_doubleSpinBox_peakwidth_valueChanged(double arg1);

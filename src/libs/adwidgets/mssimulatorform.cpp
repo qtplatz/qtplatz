@@ -44,7 +44,7 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
     connect( ui->doubleSpinBox_4, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
     connect( ui->checkBox, &QCheckBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->groupBox, &QGroupBox::toggled, [this](bool) { emit onValueChanged(); } );    
-    connect( ui->pushButton, &QPushButton::pressed, [this] () { emit onProcess(); } );
+    connect( ui->pushButton, &QPushButton::pressed, [this] () { emit triggerProcess(); } );
 
     ui->doubleSpinBox_5->setMinimum( -1000.0 ); // us
     ui->doubleSpinBox_5->setMaximum( 1000.0 ); // us

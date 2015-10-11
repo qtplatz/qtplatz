@@ -51,7 +51,7 @@ MSSimulatorWidget::MSSimulatorWidget(QWidget *parent) : QWidget(parent)
         }
     }
     if ( auto form = findChild< MSSimulatorForm * >() )
-        connect( form, &MSSimulatorForm::onProcess, [this] { run(); } );
+        connect( form, &MSSimulatorForm::triggerProcess, [this] { run(); } );
 }
 
 MSSimulatorWidget::~MSSimulatorWidget()
@@ -159,6 +159,6 @@ MSSimulatorWidget::handleContextMenu( QMenu& menu, const QPoint& pt )
 void
 MSSimulatorWidget::run()
 {
-    emit onProcess( "MSSimulatorWidget" );
+    emit triggerProcess( "MSSimulatorWidget" );
 }
 

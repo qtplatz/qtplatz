@@ -15,5 +15,9 @@
 	<file>image/control-270-small.png</file>
 	<file>image/control-090-small.png</file>
 	<file>image/button_close.png</file>
+	<file>image/folder.png</file>
+	<file>image/folder-bookmark.png</file>
+	<file>image/folder-open.png</file>
+	<file>image/folder--plus.png</file>
     </qresource>
 </RCC>
