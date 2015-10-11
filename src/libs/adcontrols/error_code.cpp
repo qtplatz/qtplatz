@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "error_code.hpp"
 
 using namespace adcontrols;
