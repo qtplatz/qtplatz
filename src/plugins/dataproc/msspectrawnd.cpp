@@ -69,7 +69,7 @@ namespace dataproc {
         datafolder( int _0 = 0
                     , const std::wstring& _1 = std::wstring()
                     , const std::wstring& _2 = std::wstring()
-                    , const std::wstring& _3 = std::wstring() ) : idx( 0 )
+                    , const std::wstring& _3 = std::wstring() ) : idx( _0 )
                                                                 , display_name( _1 )
                                                                 , idFolium( _2 )
                                                                 , idCentroid( _3 ) {
@@ -350,9 +350,9 @@ MSSpectraWnd::draw()
     if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
         impl_->table_->setData( qpks );
 
-        //if ( auto profile = impl_->profile_.second.lock() ) {
-        //    impl_->plots_[ 0 ]->setData( profile, data.second.idx );
-        //}
+        if ( auto profile = impl_->profile_.second.lock() ) {
+            impl_->plots_[ 1 ]->setData( profile, 0 );
+        }
 
         for ( auto& data: impl_->dataIds_ ) {
             int idx = data.second.idx;// std::get<0>( data.second );
@@ -360,6 +360,7 @@ MSSpectraWnd::draw()
                 impl_->plots_[ 0 ]->setData( profile, idx * 2 );
             if ( auto centroid = data.second.centroid.lock() ) // std::get<2>( data.second ).lock() )
                 impl_->plots_[ 0 ]->setData( centroid, idx * 2 + 1, true );
+
         }
     }
 }
