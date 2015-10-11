@@ -45,7 +45,9 @@ string( REGEX REPLACE "/" "\\\\" STAGEDIR ${STAGEDIR} )
 
 string( REGEX REPLACE "/" "\\\\" QTDIR ${QTDIR} )
 
-string( REGEX REPLACE "/" "\\\\" ACE_ROOT ${ace+tao_DIR} )
+if ( QTPLATZ_SUPPORT_CORBA )
+  string( REGEX REPLACE "/" "\\\\" ACE_ROOT ${ace+tao_DIR} )
+endif()
   
 configure_file(
   "${PROJECT_SOURCE_DIR}/makefile.in"

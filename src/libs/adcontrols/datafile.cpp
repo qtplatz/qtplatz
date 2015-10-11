@@ -45,7 +45,7 @@ datafile::access( const std::wstring& filename )
 datafile*
 datafile::create( const std::wstring& filename )
 {
-    datafile * file = datafileBroker::create( filename );
+    datafile * file = datafileBroker::create( filename, 0 );
     if ( file ) {
         file->filename_ = filename;
         file->readonly_ = false;

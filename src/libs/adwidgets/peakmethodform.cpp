@@ -37,7 +37,7 @@
 
 #include <qtwrapper/qstring.hpp>
 #include <QStandardItemModel>
-#include <QItemDelegate>
+#include <QStyledItemDelegate>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QTableView>
@@ -52,61 +52,65 @@ namespace adwidgets {
 
     enum { c_time, c_function, c_event_value };
 
-    class TimeEventsDelegate : public QItemDelegate {
-        Q_OBJECT
-    public:
-        explicit TimeEventsDelegate(PeakMethodForm *, QObject *parent = 0);
+    namespace PeakMethodFormPrivate {
 
-        QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
-    private:
-        PeakMethodForm * form_;
+        class TimeEventsDelegate : public QStyledItemDelegate {
+            Q_OBJECT
+        public:
+            explicit TimeEventsDelegate( PeakMethodForm *, QObject *parent = 0 );
 
-    signals:
-            
-    public slots:
-        
-    };
-  
-    ////////////
-    enum { c_header, c_value, c_num_columns  };
+            QWidget * createEditor( QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+            void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+            void setModelData( QWidget *editor, QAbstractItemModel *model, const QModelIndex &index ) const override;
+        private:
+            PeakMethodForm * form_;
 
-    enum {
-        r_slope
-        , r_min_width
-        , r_min_height
-        , r_drift
-        , r_min_area
-        , r_doubling_time
-        , r_void_time
-        , r_pharmacopoeia
-        , r_num_rows
-    };
+        signals:
 
-	class PeakMethodDelegate : public QItemDelegate {
-		Q_OBJECT
-	public:
-		explicit PeakMethodDelegate(PeakMethodForm *, QObject *parent = 0);
-        
-        QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-        void setEditorData(QWidget *editor, const QModelIndex &index) const override;
-        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
-        QSize sizeHint( const QStyleOptionViewItem&, const QModelIndex& ) const override;
-        bool editorEvent( QEvent * event, QAbstractItemModel *
-                          , const QStyleOptionViewItem&, const QModelIndex& ) override;
-    private:
-        PeakMethodForm * form_;
-    
-    signals:
-    
-	public slots:
+            public slots :
 
-	};
+        };
+
+        ////////////
+        enum { c_header, c_value, c_num_columns };
+
+        enum {
+            r_slope
+            , r_min_width
+            , r_min_height
+            , r_drift
+            , r_min_area
+            , r_doubling_time
+            , r_void_time
+            , r_pharmacopoeia
+            , r_num_rows
+        };
+
+        class PeakMethodDelegate : public QStyledItemDelegate {
+            Q_OBJECT
+        public:
+            explicit PeakMethodDelegate( PeakMethodForm *, QObject *parent = 0 );
+
+            QWidget * createEditor( QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+            void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+            void setEditorData( QWidget *editor, const QModelIndex &index ) const override;
+            void setModelData( QWidget *editor, QAbstractItemModel *model, const QModelIndex &index ) const override;
+            QSize sizeHint( const QStyleOptionViewItem&, const QModelIndex& ) const override;
+            bool editorEvent( QEvent * event, QAbstractItemModel *
+                              , const QStyleOptionViewItem&, const QModelIndex& ) override;
+        private:
+            PeakMethodForm * form_;
+
+        signals:
+
+            public slots :
+
+        };
+    }
 }
 
 using namespace adwidgets;
+using namespace adwidgets::PeakMethodFormPrivate;
 
 PeakMethodForm::PeakMethodForm(QWidget *parent) : QWidget(parent)
                                                 , ui(new Ui::PeakMethodForm)
@@ -129,6 +133,8 @@ PeakMethodForm::PeakMethodForm(QWidget *parent) : QWidget(parent)
         tree->setModel( pGlobalModel_.get() );
         tree->setItemDelegate( new PeakMethodDelegate(this) );
         hLayout->addWidget( tree );
+
+        tree->setStyleSheet( "QTreeView::item::selected{ background-color: #1d3dec; color: white; }" );
             
     }
         
@@ -365,7 +371,7 @@ namespace adwidgets { namespace internal {
 
 #define countof(x) ( sizeof(x)/sizeof(x[0]) )
 
-TimeEventsDelegate::TimeEventsDelegate(PeakMethodForm * form, QObject *parent) : QItemDelegate(parent), form_( form )
+TimeEventsDelegate::TimeEventsDelegate(PeakMethodForm * form, QObject *parent) : QStyledItemDelegate(parent), form_( form )
 {
 }
 
@@ -380,7 +386,7 @@ TimeEventsDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &op
         pCombo->addItems( list );
         return pCombo;
     } else {
-        return QItemDelegate::createEditor( parent, option, index );
+        return QStyledItemDelegate::createEditor( parent, option, index );
   }
 }
 
@@ -390,17 +396,17 @@ TimeEventsDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
     if ( index.column() == c_function ) {
         int idx = index.data().toInt() - 1;
         if ( size_t( idx ) < countof( internal::functions ) )
-            drawDisplay( painter, option, option.rect, internal::functions[ idx ] );
+            painter->drawText( option.rect, Qt::AlignLeft | Qt::AlignVCenter, internal::functions[ idx ] );
         else
-            drawDisplay( painter, option, option.rect, index.data().toString() );
+            painter->drawText( option.rect, Qt::AlignLeft | Qt::AlignVCenter, index.data().toString() );
     } else if ( index.column() == c_time ) {
         double value = index.data().toDouble();
-        drawDisplay( painter, option, option.rect, ( boost::format( "%.4lf" ) % value ).str().c_str() );
+        painter->drawText( option.rect, Qt::AlignLeft | Qt::AlignVCenter, QString::number( value, 'f', 4 ) );
     } else if ( index.column() == c_event_value ) {
         double value = index.data().toDouble();
-        drawDisplay( painter, option, option.rect, ( boost::format( "%.3lf" ) % value ).str().c_str() );
+        painter->drawText( option.rect, Qt::AlignLeft | Qt::AlignVCenter, QString::number( value, 'f', 3 ) );
     } else {
-        QItemDelegate::paint( painter, option, index );
+        QStyledItemDelegate::paint( painter, option, index );
     }
 }
 
@@ -421,7 +427,7 @@ TimeEventsDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, con
                 model->setData( model->index( index.row(), c_event_value ), event.doubleValue() );
         }
     } else
-        QItemDelegate::setModelData( editor, model, index );
+        QStyledItemDelegate::setModelData( editor, model, index );
 
     if ( index.row() == model->rowCount() - 1 )
         model->insertRow( index.row() + 1 ); // add last blank line
@@ -431,27 +437,31 @@ TimeEventsDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, con
 
 ////////////////////////////////////
 
-PeakMethodDelegate::PeakMethodDelegate(PeakMethodForm * form, QObject *parent) : QItemDelegate(parent), form_( form )
+PeakMethodDelegate::PeakMethodDelegate(PeakMethodForm * form, QObject *parent) : QStyledItemDelegate(parent), form_( form )
 {
 }
 
 QWidget *
 PeakMethodDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    static QStringList list = { tr( "Not specified" ), tr( "EP" ), tr( "JP" ), tr( "USP" ) };
+
     if ( index.row() == r_pharmacopoeia ) {
+
         QComboBox * pCombo = new QComboBox( parent );
-        QStringList list;
-        list << "Not specified" << "EP" << "JP" << "USP";
         pCombo->addItems( list );
         return pCombo;
+
     } else if ( index.row() == r_slope ) {
+
         QDoubleSpinBox * w = new QDoubleSpinBox( parent );
         w->setMinimum( 0.0 );
         w->setMaximum( 1000.0 );
         w->setDecimals( 3 );
         return w;
+
     } else {
-        return QItemDelegate::createEditor( parent, option, index );
+        return QStyledItemDelegate::createEditor( parent, option, index );
   }
 }
 
@@ -460,17 +470,11 @@ PeakMethodDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
 {
     if ( index.column() == c_value ) {
         if ( index.row() == r_pharmacopoeia ) {
-            int value = index.data().toInt();
-            QString text;
-            switch ( value ) {
-            case adcontrols::chromatography::ePHARMACOPOEIA_NotSpcified: text = "Not specified"; break;
-            case adcontrols::chromatography::ePHARMACOPOEIA_EP:          text = "EP"; break;
-            case adcontrols::chromatography::ePHARMACOPOEIA_JP:          text = "JP"; break;
-            case adcontrols::chromatography::ePHARMACOPOEIA_USP:         text = "USP"; break;
-            }
-            drawDisplay( painter, option, option.rect, text );
+            static QStringList list = { tr( "Not specified" ), tr( "EP" ), tr( "JP" ), tr( "USP" ) };
+            int value = index.data().toInt() < list.size() ? index.data().toInt() : 0;
+            painter->drawText( option.rect, Qt::AlignLeft | Qt::AlignVCenter, list[value] );
         } else {
-            drawDisplay( painter, option, option.rect, ( boost::format( "%.3lf" ) % index.data().toDouble() ).str().c_str() );
+            painter->drawText( option.rect, Qt::AlignLeft | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 3 ) );
         }
     } else if ( index.column() == c_header ) {
         QStyleOptionViewItem op = option;
@@ -485,7 +489,7 @@ PeakMethodDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
 
         painter->restore();
     } else {
-        QItemDelegate::paint( painter, option, index );
+        QStyledItemDelegate::paint( painter, option, index );
     }
 }
 
@@ -497,13 +501,13 @@ PeakMethodDelegate::sizeHint( const QStyleOptionViewItem& option, const QModelIn
 		doc.setHtml( index.data().toString() );
 		return QSize( doc.size().width(), doc.size().height() );
 	} else 
-		return QItemDelegate::sizeHint( option, index );
+		return QStyledItemDelegate::sizeHint( option, index );
 }
 
 void
 PeakMethodDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    QItemDelegate::setEditorData( editor, index );
+    QStyledItemDelegate::setEditorData( editor, index );
 }
 
 void
@@ -514,7 +518,7 @@ PeakMethodDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, con
         int value = p->currentIndex();
         model->setData( index, value );
     } else
-        QItemDelegate::setModelData( editor, model, index );
+        QStyledItemDelegate::setModelData( editor, model, index );
     emit form_->valueChanged();
 }
 

@@ -288,8 +288,10 @@ Dataprocessor::open(const QString &filename, QString& emsg )
             }
         }
     } catch ( boost::exception& ex ) {
+        emsg = QString::fromStdString( boost::diagnostic_information( ex ) );
         ADERROR() << boost::diagnostic_information( ex );
     } catch ( ... ) {
+        emsg = QString::fromStdString( boost::current_exception_diagnostic_information() );
         ADERROR() << "got an exception '...'";
     }
     return false;

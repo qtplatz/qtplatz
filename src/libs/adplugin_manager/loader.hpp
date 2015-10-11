@@ -39,10 +39,13 @@ namespace adplugin {
     class plugin;
 
     class ADPLUGINSHARED_EXPORT loader {
+
         static void load( const wchar_t * library_filename );
         static void unload( const wchar_t * library_filename );
+
     public:
-		static void populate( const wchar_t * directory );
+        static void populate( const wchar_t * pluginpath );
+
         static std::string library_filename( const char * library );
         static plugin_ptr select_iid( const char * iid );
         static plugin_ptr select_clsid( const char * clsid ); // return first match only

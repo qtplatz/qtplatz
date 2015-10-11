@@ -1,9 +1,8 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
@@ -23,27 +22,15 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "massspectrometerfactory.hpp"
 
-#include "adcontrols_global.h"
-#include <string>
-#include <memory>
+extern "C" {
+    DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
+}
 
-namespace adcontrols {
-
-    class MassSpectrometer;
-    class datafile;
-    
-    class ADCONTROLSSHARED_EXPORT massspectrometer_factory {
-    public:
-        massspectrometer_factory(void);
-        virtual ~massspectrometer_factory(void);
-
-        virtual const wchar_t * name() const = 0;
-        virtual MassSpectrometer * get( const wchar_t * modelname ) = 0; // depricated
-        virtual std::shared_ptr< MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * ) const = 0;
-        virtual bool is_canonical_name( const wchar_t * )  const { return false; }   
-    };
-    
+adplugin::plugin *
+adplugin_plugin_instance()
+{
+    return adspectrometer::MassSpectrometerFactory::instance();
 }
 

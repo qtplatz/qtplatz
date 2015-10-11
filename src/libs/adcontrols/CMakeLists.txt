@@ -32,6 +32,7 @@ add_library( adcontrols SHARED
   elementalcomposition.cpp 
   elementalcompositioncollection.cpp 
   elementalcompositionmethod.cpp
+  error_code.cpp
   isotopecluster.cpp 
   isotopemethod.cpp 
   lcmsdataset.cpp 
@@ -150,6 +151,7 @@ install( FILES
   elementalcomposition.hpp 
   elementalcompositioncollection.hpp 
   elementalcompositionmethod.hpp
+  error_code.hpp
   isotopecluster.hpp 
   isotopemethod.hpp 
   lcmsdataset.hpp 

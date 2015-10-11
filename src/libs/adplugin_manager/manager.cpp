@@ -41,8 +41,9 @@
 #include <adportable/string.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <QLibrary>
-#include <map>
 #include <fstream>
+#include <map>
+#include <mutex>
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_variable.h>
@@ -123,14 +124,14 @@ namespace adplugin {
 }
 ////////////////////////////////////
 
-manager * manager::instance_ = 0;
+std::unique_ptr< manager > manager::instance_;
+static std::once_flag flag;
 
 manager *
 manager::instance()
 {
-	if ( instance_ == 0 )
-		instance_ = new manager;
-	return instance_;
+    std::call_once( flag, [] () { instance_.reset( new manager() ); } );
+	return instance_.get();
 }
 
 //////////////////////

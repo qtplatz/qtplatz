@@ -1,7 +1,6 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,25 +24,40 @@
 
 #pragma once
 
-#include "adcontrols_global.h"
-#include <string>
-#include <memory>
+#include "error_code.hpp"
 
-namespace adcontrols {
+using namespace adcontrols;
 
-    class MassSpectrometer;
-    class datafile;
-    
-    class ADCONTROLSSHARED_EXPORT massspectrometer_factory {
-    public:
-        massspectrometer_factory(void);
-        virtual ~massspectrometer_factory(void);
+error_code::error_code() : code_( 0 ), cat_( noerror )
+{
+}
 
-        virtual const wchar_t * name() const = 0;
-        virtual MassSpectrometer * get( const wchar_t * modelname ) = 0; // depricated
-        virtual std::shared_ptr< MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * ) const = 0;
-        virtual bool is_canonical_name( const wchar_t * )  const { return false; }   
-    };
-    
+error_code::error_code( const error_code& t ) : ec_( t.ec_ )
+                                              , cat_( t.cat_ )
+                                              , message_( t.message_ )
+{
+}
+
+
+void
+error_code::assign( int code, const std::string& message )
+{
+    code_ = code;
+    message_ = message;
+}
+
+void
+error_code::assign( std::error_code& ec )
+{
+    ec_ = ec;
+}
+
+
+std::string
+error_code::message() const
+{
+    if ( ec_ )
+        return ec_.message();
+    return message_;
 }
 

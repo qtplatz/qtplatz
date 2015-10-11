@@ -1,7 +1,6 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,23 +26,40 @@
 
 #include "adcontrols_global.h"
 #include <string>
-#include <memory>
+#include <system_error>
 
 namespace adcontrols {
 
-    class MassSpectrometer;
-    class datafile;
-    
-    class ADCONTROLSSHARED_EXPORT massspectrometer_factory {
+    class ADCONTROLSSHARED_EXPORT error_code {
     public:
-        massspectrometer_factory(void);
-        virtual ~massspectrometer_factory(void);
+        enum category { noerror, std_error, adcontrols_error };
+        
+        error_code();
+        error_code( const error_code& );
 
-        virtual const wchar_t * name() const = 0;
-        virtual MassSpectrometer * get( const wchar_t * modelname ) = 0; // depricated
-        virtual std::shared_ptr< MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * ) const = 0;
-        virtual bool is_canonical_name( const wchar_t * )  const { return false; }   
+        void assign( int ec, const std::string& message );
+        void assign( std::error_code& ec );
+
+        std::string message() const;
+
+    private:
+        category cat_;
+        int code_;
+
+#if defined _MSC_VER
+# pragma warning( push )
+# pragma warning( disable:4251 )
+#endif
+        std::string message_;
+        std::error_code ec_;
+
+#if defined _MSC_VER
+# pragma warning( pop )
+#endif        
+
     };
-    
+
 }
+
+
 

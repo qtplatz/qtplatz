@@ -167,9 +167,13 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
     std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc.config" );
-    boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
+    //boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
     
-	adplugin::loader::populate( plugindir.generic_wstring().c_str() );
+    try {
+        adplugin::loader::populate( apppath.c_str() );
+    } catch ( boost::exception& ex ) {
+        QMessageBox::warning( 0, tr( "Processing" ), boost::diagnostic_information( ex ).c_str() );
+    }
 
     pConfig_.reset( new adportable::Configuration() );
     adportable::Configuration& config = *pConfig_;

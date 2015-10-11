@@ -33,6 +33,8 @@
 #include <QLibrary>
 #include <QString>
 #include <QStringList>
+#include <boost/format.hpp>
+#include <boost/exception/all.hpp>
 
 using namespace adplugin;
 
@@ -49,9 +51,9 @@ using namespace adplugin;
 #endif
 
 void
-loader::populate( const wchar_t * directory )
+loader::populate( const wchar_t * topdir )
 {
-    boost::filesystem::path appdir( directory );
+    boost::filesystem::path appdir( topdir );
     boost::filesystem::path modules( appdir / pluginDirectory );
     boost::filesystem::path sharedlibs( appdir / sharedDirectory );
 
@@ -81,6 +83,8 @@ loader::populate( const wchar_t * directory )
                 ++it;
             }
         }
+    } else {
+        BOOST_THROW_EXCEPTION( std::runtime_error( ( boost::format( "adcontrols::loaser -- %1% is not directory" ) % modules.generic_string() ).str() ) );
     }
 	manager::instance()->populated();
 }

@@ -25,7 +25,8 @@
 
 #include "massspectrometerbroker.hpp"
 #include "massspectrometer.hpp"
-
+#include "massspectrometer_factory.hpp"
+#include <algorithm>
 #include <map>
 #include <string>
 #include <adportable/string.hpp>
@@ -55,6 +56,11 @@ namespace adcontrols {
         
         massspectrometer_factory * find( const std::wstring& name ) {
             auto it = factories_.find( name );
+            if ( it == factories_.end() ) {
+                it = std::find_if( factories_.begin(), factories_.end(), [name] ( decltype(factories_)::value_type& a ) {
+                    return a.second->is_canonical_name( name.c_str() );
+                } );
+            }
             if ( it != factories_.end() )
                 return it->second;
             return 0;

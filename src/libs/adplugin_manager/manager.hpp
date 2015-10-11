@@ -30,6 +30,7 @@
 #include <string>
 #include <adplugin/plugin_ptr.hpp>
 #include <vector>
+#include <memory>
 
 class QString;
 class QObject;
@@ -47,11 +48,21 @@ namespace adplugin {
 
     class ADPLUGINSHARED_EXPORT manager {
         internal::manager_data * d_;
-		static manager * instance_;
-	protected:
+#if defined _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
+#endif
+
+        static std::unique_ptr< manager > instance_;
+
+#if defined _MSC_VER
+# pragma warning(pop)
+#endif
+
+    protected:
         manager();
-        ~manager();
     public:
+        ~manager();
         static manager * instance();
         static void dispose();
         bool install( QLibrary&, const std::string& adpluginspec );
