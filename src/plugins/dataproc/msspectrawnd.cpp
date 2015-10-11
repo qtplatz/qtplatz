@@ -58,6 +58,33 @@
 
 namespace dataproc {
 
+    struct datafolder {
+        int idx;
+        std::wstring display_name; // fileneme::folium.name
+        std::wstring idFolium;
+        std::wstring idCentroid;
+        std::weak_ptr< adcontrols::MassSpectrum > profile;    // usually profile, TBD for histogram data
+        std::weak_ptr< adcontrols::MassSpectrum > centroid;  // centroid
+
+        datafolder( int _0 = 0
+                    , const std::wstring& _1 = std::wstring()
+                    , const std::wstring& _2 = std::wstring()
+                    , const std::wstring& _3 = std::wstring() ) : idx( 0 )
+                                                                , display_name( _1 )
+                                                                , idFolium( _2 )
+                                                                , idCentroid( _3 ) {
+            
+        }
+
+        datafolder( const datafolder& t ) : idx( t.idx )
+                                          , idFolium( t.idFolium )
+                                          , idCentroid( t.idCentroid )
+                                          , display_name( t.display_name )
+                                          , profile( t.profile )
+                                          , centroid( t.centroid ) {
+        }                       
+    };
+
     class MSSpectraWnd::impl {
     public:
         impl( MSSpectraWnd * p ) : pThis_( p )
@@ -79,12 +106,7 @@ namespace dataproc {
 
         MSSpectraWnd * pThis_;
 
-        std::map< std::wstring // folium (profile) Guid (attGuid)
-                  , std::tuple<int                                         // 0 idx
-                               , std::wstring                              // 1 attached (:= centroid) guid
-                               , std::weak_ptr< adcontrols::MassSpectrum>  // 2 
-                               , std::wstring                              // 3 filename::folium.name
-                               >  > dataIds_;
+        std::map< std::wstring /* folium (profile) Guid (attGuid) */, datafolder  > dataIds_;
 
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > profile_;
 
@@ -169,18 +191,38 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
 
-                portfolio::Folio atts = folium.attachments();
-                auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
+                if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-                if ( itCentroid != atts.end() ) {
-                    if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
-                        auto it = impl_->dataIds_.find( folium.id() );
-                        int idx = (it != impl_->dataIds_.end()) ? std::get<0>( it->second ) : int( impl_->dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
-                        std::wstring name = processor->file().filename() + L"::" + folium.name();
-                        impl_->dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
-                        impl_->dirty_ = true;
+                    std::wstring display_name = processor->file().filename() + L"::" + folium.name();
+
+                    auto it = impl_->dataIds_.find( folium.id() );
+                    if ( it == impl_->dataIds_.end() ) {
+                        
+                        auto data = datafolder( int( impl_->dataIds_.size() ), display_name, folium.id() );
+                        
+                        portfolio::Folio atts = folium.attachments();
+                        auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
+                        if ( itCentroid != atts.end() ) {
+
+                            data.idCentroid = itCentroid->id();
+                            data.centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
+                            
+                        }
+
+                        impl_->dataIds_[ folium.id() ] = data;
+
                     }
+                    
                 }
+                // if ( itCentroid != atts.end() ) {
+                //     if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
+                //         auto it = impl_->dataIds_.find( folium.id() );
+                //         int idx = (it != impl_->dataIds_.end()) ? std::get<0>( it->second ) : int( impl_->dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
+                //         std::wstring name = processor->file().filename() + L"::" + folium.name();
+                //         impl_->dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
+                //         impl_->dirty_ = true;
+                //     }
+                // }
             }
         }
     }
@@ -219,27 +261,55 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         auto it = impl_->dataIds_.find( folium.id() );
         if ( it != impl_->dataIds_.end() )
             impl_->dataIds_.erase( it );
+
+        // TODO:  add to spectrumwidget[1]
         
     } else {
 
-        portfolio::Folio atts = folium.attachments();
+        if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-        auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
-
-        if ( itCentroid != atts.end() ) {
-
-            if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
-
-                auto it = impl_->dataIds_.find( folium.id() );
-                int idx = ( it != impl_->dataIds_.end() ) ? std::get<0>( it->second ) : int( impl_->dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
-                std::wstring name = processor->file().filename() + L"::" + folium.name();
-
-                impl_->dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
+            std::wstring display_name = processor->file().filename() + L"::" + folium.name();
+            
+            auto it = impl_->dataIds_.find( folium.id() );
+            if ( it == impl_->dataIds_.end() ) {
+                
+                auto data = datafolder( int( impl_->dataIds_.size() ), display_name, folium.id() );
+                
+                portfolio::Folio atts = folium.attachments();
+                auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
+                if ( itCentroid != atts.end() ) {
+                    
+                    data.idCentroid = itCentroid->id();
+                    data.centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
+                    
+                }
+                
+                impl_->dataIds_[ folium.id() ] = data;
 
                 modified = true;
+                
             }
-
+            
         }
+
+        // portfolio::Folio atts = folium.attachments();
+
+        // auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
+
+        // if ( itCentroid != atts.end() ) {
+
+        //     if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
+
+        //         auto it = impl_->dataIds_.find( folium.id() );
+        //         int idx = ( it != impl_->dataIds_.end() ) ? std::get<0>( it->second ) : int( impl_->dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
+        //         std::wstring name = processor->file().filename() + L"::" + folium.name();
+
+        //         impl_->dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
+
+        //         modified = true;
+        //     }
+
+        // }
     }
 
     impl_->dirty_ |= modified; // don't drop previous state if already 'dirty'
@@ -263,9 +333,10 @@ MSSpectraWnd::update_quantable()
 
         for ( auto& data: impl_->dataIds_ ) {
             const std::wstring& profGuid = data.first;
-            const std::wstring& centGuid = std::get<1>(data.second);
-            const std::wstring& dataName = std::get<3>(data.second);
-            if ( auto centroid = std::get<2>(data.second).lock() )
+            const std::wstring& centGuid = data.second.idCentroid;// std::get<1>( data.second );
+            const std::wstring& dataName = data.second.display_name; // std::get<3>( data.second );
+
+            if ( auto centroid = data.second.centroid.lock() ) //std::get<2>(data.second).lock() )
                 qpks->setData( *centroid, centGuid, profGuid, dataName );
         }
 
@@ -279,13 +350,13 @@ MSSpectraWnd::draw()
         impl_->table_->setData( qpks );
 
         if ( auto profile = impl_->profile_.second.lock() ) {
-            impl_->plots_[ 1 ]->setData( profile, 0 );
+            impl_->plots_[ 0 ]->setData( profile, 0 );
         }
 
         for ( auto& data: impl_->dataIds_ ) {
-            int idx = std::get<0>(data.second);
-            if ( auto centroid = std::get<2>(data.second).lock() ) 
-                impl_->plots_[ 1 ]->setData( centroid, idx );
+            int idx = data.second.idx;// std::get<0>( data.second );
+            if ( auto profile = data.second.profile.lock() ) // std::get<2>( data.second ).lock() )
+                impl_->plots_[ 0 ]->setData( profile, idx );
         }
     }
 }
@@ -326,11 +397,11 @@ MSSpectraWnd::handleCurrentChanged( const QString& guid, int idx, int fcn )
         auto it = impl_->dataIds_.find( profGuid );
         if ( it != impl_->dataIds_.end() ) {
             // verify guid
-            if ( std::get<1>( it->second ) != dataGuid ) {
+            if ( it->second.idCentroid != dataGuid ) {
                 ADERROR() << "GUID mismatch -- it is a bug";
                 return;
             }
-            if ( auto processed = std::get<2>( it->second ).lock() ) {
+            if ( auto processed = it->second.centroid.lock() ) { //std::get<2>( it->second ).lock() ) {
                 adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *processed );
                 if ( segs.size() > size_t( fcn ) ) {
                     impl_->markers_[ 1 ]->setPeak( segs[ fcn ], idx, impl_->isTimeAxis_ );
@@ -370,14 +441,14 @@ MSSpectraWnd::onDataChanged( const QString& foliumGuid, const QString& attGuid, 
         // pointer for spectrum is weak share with the portfolio, so centroid spectrum should be up to date
         // without pull data out again from portfolio
 
-        if ( auto centroid = std::get<2>(it->second).lock() ) {
+        if ( auto centroid = it->second.centroid.lock() ) { //std::get<2>(it->second).lock() ) {
             if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
 
                 qpks->erase( foliumGuid.toStdWString() );
 
                 const std::wstring& profGuid = it->first;
-                const std::wstring& centGuid = std::get<1>(it->second);
-                const std::wstring& dataName = std::get<3>(it->second);
+                const std::wstring& centGuid = it->second.idCentroid; // std::get<1>( it->second );
+                const std::wstring& dataName = it->second.display_name; // std::get<3>( it->second );
                 qpks->setData( *centroid, centGuid, profGuid, dataName );
 
                 impl_->dirty_ = true;

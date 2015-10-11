@@ -12,8 +12,11 @@
         <file>image/calibration64.png</file>
         <file>image/calibration96.png</file>
 	<file>image/cross.png</file>
-	<file>image/control-270-small.png</file>
+	<file>image/control.png</file>
+	<file>image/control-270.png</file>
+	<file>image/control-000-small.png</file>
 	<file>image/control-090-small.png</file>
+	<file>image/control-270-small.png</file>
 	<file>image/button_close.png</file>
 	<file>image/folder.png</file>
 	<file>image/folder-bookmark.png</file>

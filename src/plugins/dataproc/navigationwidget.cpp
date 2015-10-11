@@ -149,9 +149,19 @@ class PortfolioHelper {
 
 public:
 
+    static void appendAttachment( QStandardItem& parent, portfolio::Folium& folium ) {
+		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, false );
+		item->setToolTip( QString::fromStdWString( folium.name() ) );
+    }
+    
     static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
+        
 		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true, folium.attribute( L"isChecked" ) == L"true" );
 		item->setToolTip( QString::fromStdWString( folium.name() ) );
+        
+        auto atts = folium.attachments();
+        for ( auto& att: atts )
+            appendAttachment( *item, att );
     }
 
     static void appendFolder( QStandardItem& parent, portfolio::Folder& folder ) {
@@ -217,23 +227,28 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
 
     setStyleSheet(
         "QTreeView {"
-        " alternate-background-color: #f6fafb;"
-        " background: #e8f4fc;"
+        " show-decoration-selected: 1;"
         "}"
+        "QTreeView::item:selected {"
+        " border: 1px solid #567dbc;"
+        "}"        
         "QTreeView::item:open {"
         " background-color: #c5ebfb;"
         " color: blue;"
         "}"
+#if ! defined Q_OS_MAC
         "QTreeView::branch {"
-        " background-color: white;"
+        " background: palette(base);"
         "}"
         "QTreeView::branch:open {"
-        " image: url(:/dataproc/image/folder-open.png);"
+        " image: url(:/dataproc/image/control-270-small.png);"
         "}"
         "QTreeView::branch:closed:has-children {"
-        " image: url(:/dataproc/image/folder--plus.png);"
+        " image: url(:/dataproc/image/control-000-small.png);"
         "}"
+#endif        
         );
+
 
     // pTreeView_->setDragDropMode( QAbstractItemView::DragOnly );
 
@@ -290,14 +305,6 @@ NavigationWidget::setAutoSynchronization( bool sync )
     if ( autoSync_ == sync )
         return;
     autoSync_ = sync;
-
-//    Core::DocumentManager *fileManager = Core::ICore::instance()->documentManager();
-//    if ( autoSync_ ) {
-        // connect(fileManager, SIGNAL(currentFileChanged(QString)), this, SLOT(setCurrentFile(QString)));
-        // setCurrentFile(fileManager->currentFile());
-//    } else {
-//        disconnect(fileManager, SIGNAL(currentFileChanged(QString)), this, SLOT(setCurrentFile(QString)));
-//    }
 }
 
 bool
