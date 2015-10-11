@@ -274,6 +274,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
             if ( it == impl_->dataIds_.end() ) {
                 
                 auto data = datafolder( int( impl_->dataIds_.size() ), display_name, folium.id() );
+                data.profile = profile;
                 
                 portfolio::Folio atts = folium.attachments();
                 auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
@@ -349,14 +350,16 @@ MSSpectraWnd::draw()
     if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
         impl_->table_->setData( qpks );
 
-        if ( auto profile = impl_->profile_.second.lock() ) {
-            impl_->plots_[ 0 ]->setData( profile, 0 );
-        }
+        //if ( auto profile = impl_->profile_.second.lock() ) {
+        //    impl_->plots_[ 0 ]->setData( profile, data.second.idx );
+        //}
 
         for ( auto& data: impl_->dataIds_ ) {
             int idx = data.second.idx;// std::get<0>( data.second );
             if ( auto profile = data.second.profile.lock() ) // std::get<2>( data.second ).lock() )
-                impl_->plots_[ 0 ]->setData( profile, idx );
+                impl_->plots_[ 0 ]->setData( profile, idx * 2 );
+            if ( auto centroid = data.second.centroid.lock() ) // std::get<2>( data.second ).lock() )
+                impl_->plots_[ 0 ]->setData( centroid, idx * 2 + 1, true );
         }
     }
 }
