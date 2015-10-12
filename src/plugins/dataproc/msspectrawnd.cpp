@@ -361,10 +361,15 @@ MSSpectraWnd::draw( int which )
                     title += " .";
                 }
 
-                if ( auto profile = data.second.profile.lock() )
+                QColor color = impl_->plots_[ 0 ]->index_color( idx );
+
+                if ( auto profile = data.second.profile.lock() ) {
                     impl_->plots_[ 0 ]->setData( profile, idx * 2 );
+                    impl_->plots_[ 0 ]->setColor( idx * 2, color );
+                }
                 if ( auto centroid = data.second.centroid.lock() ) {
                     impl_->plots_[ 0 ]->setData( centroid, idx * 2 + 1, true );
+                    impl_->plots_[ 0 ]->setColor( idx * 2 + 1, color );
                     impl_->plots_[ 0 ]->setAlpha( idx * 2, 0x40 ); 
                 }
                 

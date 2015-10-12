@@ -46,6 +46,7 @@ namespace adplot {
         void removeData( int idx, bool replot = true );
         void setData( std::shared_ptr< const adcontrols::MassSpectrum >, int idx, bool axisRight = false );
         void setAlpha( int idx, int alpha );
+        void setColor( int idx, const QColor& color );
         void setFocusedFcn( int fcn );
         
         enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
@@ -57,6 +58,8 @@ namespace adplot {
         void setKeepZoomed( bool );
         void setZoomBase( const std::pair< double, double >& range, bool horizontal = true );
         void setVectorCompression( int ) override;
+
+        static QColor index_color( unsigned int idx );
 
     private:
         class impl;

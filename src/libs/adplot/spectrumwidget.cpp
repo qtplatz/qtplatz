@@ -62,15 +62,15 @@ namespace adplot {
             Qt::blue          // 0
             , Qt::red           // 1
             , Qt::darkGreen     // 2
-            , Qt::cyan         // 3
-            , Qt::magenta       // 4
-            , Qt::yellow        // 5
-            , Qt::darkRed       // 6
-            , Qt::green         // 7
-            , Qt::red          // 8
-            , Qt::darkCyan      // 9
-            , Qt::darkMagenta   // 10
-            , Qt::darkYellow    // 11
+            , Qt::darkCyan      // 3
+            , Qt::darkMagenta   // 4
+            , Qt::darkYellow    // 5
+            , Qt::darkBlue      // 6
+            , Qt::darkRed       // 7            
+            , Qt::green         // 8
+            , Qt::cyan          // 9
+            , Qt::magenta       // 10
+            , Qt::yellow        // 11
             , Qt::darkGray      // 12
             , Qt::black         // 13
             , Qt::lightGray     // 14
@@ -132,7 +132,11 @@ namespace adplot {
             TraceData( int idx ) : idx_( idx )
                                  , focusedFcn_( -1 )
                                  , yRight_( false )  {
+
+                color_ = color_table[ idx % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) ) ];
+
             }
+            
             TraceData( const TraceData& t ) : idx_( t.idx_ )
                                             , focusedFcn_( t.focusedFcn_ )
                                             , alpha_( 0xff )
@@ -140,8 +144,10 @@ namespace adplot {
                                             , yRight_( t.yRight_ )
                                             , curves_( t.curves_ )
                                             , pSpectrum_( t.pSpectrum_ )
-                                            , isTimeAxis_( t.isTimeAxis_ ) {
+                                            , isTimeAxis_( t.isTimeAxis_ )
+                                            , color_( t.color_ ) {
             }
+            
             ~TraceData();
             void setData( plot& plot
                           , std::shared_ptr< const adcontrols::MassSpectrum>&
@@ -151,6 +157,7 @@ namespace adplot {
             std::pair<double, double> y_range( double left, double right ) const;
             bool yRight() const { return yRight_; }
             void setAlpha( int alpha );
+            void setColor( const QColor& );
             const QRectF& rect() const { return rect_; }
 
         private:
@@ -163,6 +170,7 @@ namespace adplot {
             int alpha_;
             QRectF rect_;
             bool yRight_;
+            QColor color_;
         public:
             std::vector< std::shared_ptr< adPlotCurve > > curves_;
             std::shared_ptr< const adcontrols::MassSpectrum > pSpectrum_;
@@ -208,6 +216,15 @@ namespace adplot {
     };
 
 } // namespace adplot
+
+
+QColor
+SpectrumWidget::index_color( unsigned int idx )
+{
+    using namespace adplot::spectrumwidget;
+    idx = idx % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) - 1); // subtract for transparent [17]
+    return color_table[ idx ];
+}
 
 SpectrumWidget::~SpectrumWidget()
 {
@@ -470,6 +487,15 @@ SpectrumWidget::setAlpha( int idx, int alpha )
 }
 
 void
+SpectrumWidget::setColor( int idx, const QColor& color )
+{
+    if ( impl_->traces_.size() > idx ) {
+        spectrumwidget::TraceData& trace = impl_->traces_[ idx ];
+        trace.setColor( color );
+    }
+}
+
+void
 SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, int idx, bool yRight )
 {
     using spectrumwidget::TraceData;
@@ -493,9 +519,6 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
     if ( rectIndex == 0 || !impl_->keepZoomed_ ) {
 
         setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
-
-        if ( yRight )
-            qDebug() << "right y base scale: " << baseRect.bottom() << ", " << baseRect.top();
         
         setAxisScale( QwtPlot::xBottom, baseRect.left(), baseRect.right() );
         
@@ -511,7 +534,6 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         if ( yRight && hasAxis.second ) {
 
             setAxisScale( QwtPlot::yRight, right.first, right.second );
-            qDebug() << "right y scale: " << right.first << ", " << right.second;
 
         } else {
             if ( hasAxis.first ) {
@@ -556,14 +578,9 @@ TraceData::setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const
 {
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
 
-    // std::pair< double, double > range = ms.getAcquisitionMassRange();
-    // ADDEBUG() << "segments size=" << segments.size() << " range(" << range.first << ", " << range.second << ")";
-    
     int fcn = 0;
     for ( auto& seg: segments ) {
 
-        // ADDEBUG() << "seg[" << fcn << "] size=" << seg.size() << " range: " << seg.getMass(0) << ", " << seg.getMass( seg.size() - 1 );
-        
         auto ptr = std::make_shared< adPlotCurve >();
         ptr->attach( &plot );
         curves_.push_back( ptr );
@@ -740,12 +757,19 @@ TraceData::setAlpha( int alpha )
         alpha_ = alpha;
         int fcn = 0;
         for ( auto& curve: curves_ ) {
-            QColor color( color_table[ idx_ ] );
-            color.setAlpha( alpha );
-            curve->setPen( color );
+            color_.setAlpha( alpha );
+            curve->setPen( color_ );
             ++fcn;
         }
     }
+}    
+
+void
+TraceData::setColor( const QColor& color )
+{
+    color_ = color;
+    for ( auto& curve: curves_ )
+        curve->setPen( color_ );
 }    
 
 std::pair< double, double >
