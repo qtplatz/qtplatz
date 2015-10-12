@@ -47,7 +47,7 @@ namespace adcontrols {
 }
 
 namespace acqrscontrols { namespace u5303a { class method; class waveform; } }
-namespace boost { namespace uuids { struct uuid; } }
+namespace boost { namespace uuids { struct uuid; } namespace filesystem { class path; } }
 
 namespace u5303a {
 
@@ -74,16 +74,14 @@ namespace u5303a {
         void actionRec( bool );
         void actionConnect();
 
-        void u5303a_connect(); // depreicated
-        void u5303a_start_run();
-        void u5303a_stop();
-        void u5303a_trigger_inject();
         void prepare_for_run();
+        void start_run();
+        void stop();
 
         int32_t device_status() const;
 
-        //static bool toMassSpectrum( adcontrols::MassSpectrum&, const acqrscontrols::u5303a::waveform& );
-        static bool appendOnFile( const std::wstring& path, const std::wstring& title, const adcontrols::MassSpectrum&, std::wstring& id );
+        static bool appendOnFile( const boost::filesystem::path& path
+                                  , const QString& title, const adcontrols::MassSpectrum&, QString& id );
         
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
@@ -115,7 +113,7 @@ namespace u5303a {
         void takeSnapshot();
 
         tdcdoc * tdc();
-        QSettings * settings(); // { return settings_.get(); }
+        QSettings * settings();
 
         static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );
@@ -131,12 +129,13 @@ namespace u5303a {
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();
-        void on_status( int );
+        // void on_status( int );
         void onControlMethodChanged( const QString& );
         void on_threshold_method_changed( int );
         void sampleRunChanged();
 
         void dataChanged( const boost::uuids::uuid&, int );
+        void instStateChanged( int );
     };
 
 }

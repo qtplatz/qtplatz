@@ -73,13 +73,17 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
     Q_UNUSED(errorString)
 
     mainWindow_->activateWindow();
-    mainWindow_->createActions();
-
+        
     const Core::Context context( ( "U5303A.MainView" ) );
-    mode_->setContext( context );
+    mode_->setContext( context );    
+
+    mainWindow_->createActions( context );
+    
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
+
     addObject( mode_.get() );
+
 
     if ( auto iExtension = document::instance()->iController() ) {
         addObject( iExtension );
@@ -88,7 +92,7 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
 
     QAction *action = new QAction(tr("u5303A action"), this);
 
-    Core::ActionManager * am = Core::ActionManager::instance();// ICore::instance()->actionManager();
+    Core::ActionManager * am = Core::ActionManager::instance(); // ICore::instance()->actionManager();
     Core::Command * cmd = am->registerAction(action, Constants::ACTION_ID, context );
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
     connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));

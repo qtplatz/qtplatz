@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "acquireplugin.hpp"
-#include "acquiredocument.hpp"
+#include "document.hpp"
 #include "acquiremode.hpp"
 #include "brokerevent_i.hpp"
 #include "constants.hpp"
@@ -138,78 +138,74 @@
 #include <map>
 
 using namespace acquire;
-using namespace acquire::internal;
 
 namespace acquire {
 
-    namespace internal {
+    class AcquireImpl {
+    public:
+        ~AcquireImpl() {
+        }
+        AcquireImpl() : timePlot_(0), spectrumPlot_(0) {
+        }
 
-        class AcquireImpl {
-        public:
-            ~AcquireImpl() {
-            }
-            AcquireImpl() : timePlot_(0), spectrumPlot_(0) {
-            }
+        Broker::Session_var brokerSession_;
 
-            Broker::Session_var brokerSession_;
+        std::unique_ptr< brokerevent_i > brokerEvent_;
+        std::map< int, adcontrols::Trace > traces_;
+        adplot::ChromatogramWidget * timePlot_;
+        adplot::SpectrumWidget * spectrumPlot_;
+        QIcon icon_;
+        void loadIcon() {
+            icon_.addFile( constants::ICON_CONNECT );
+            icon_.addFile( constants::ICON_CONNECT_SMALL );
+        }
 
-            std::unique_ptr< brokerevent_i > brokerEvent_;
-            std::map< int, adcontrols::Trace > traces_;
-            adplot::ChromatogramWidget * timePlot_;
-            adplot::SpectrumWidget * spectrumPlot_;
-            QIcon icon_;
-            void loadIcon() {
-                icon_.addFile( constants::ICON_CONNECT );
-                icon_.addFile( constants::ICON_CONNECT_SMALL );
-            }
+        void initialize_broker_session() {
+            brokerEvent_.reset( new brokerevent_i );
+            brokerEvent_->assign_message( [=]( const std::string& text ){
+                    handle_message( text );
+                });
+            brokerEvent_->assign_portfolio_created( [=]( const std::wstring& file ){
+                    handle_portfolio_created( file );
+                });
+            brokerEvent_->assign_folium_added(
+                [=]( const std::wstring& token
+                     , const std::wstring& path
+                     , const std::wstring& folderId ){
+                    handle_folium_added( token, path, folderId );
+                });
+            brokerSession_->connect( "user", "pass", "acquire", brokerEvent_->_this() );
+        }
 
-            void initialize_broker_session() {
-                brokerEvent_.reset( new brokerevent_i );
-                brokerEvent_->assign_message( [=]( const std::string& text ){
-                        handle_message( text );
-                    });
-                brokerEvent_->assign_portfolio_created( [=]( const std::wstring& file ){
-                        handle_portfolio_created( file );
-                    });
-                brokerEvent_->assign_folium_added(
-                    [=]( const std::wstring& token
-                         , const std::wstring& path
-                         , const std::wstring& folderId ){
-                        handle_folium_added( token, path, folderId );
-                    });
-                brokerSession_->connect( "user", "pass", "acquire", brokerEvent_->_this() );
+        void terminate_broker_session() {
+            // disconnect broker session
+            if ( !CORBA::is_nil( brokerSession_ ) && brokerEvent_ ) {
+                brokerSession_->disconnect( brokerEvent_->_this() );
+                adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
             }
+        }
 
-            void terminate_broker_session() {
-                // disconnect broker session
-                if ( !CORBA::is_nil( brokerSession_ ) && brokerEvent_ ) {
-                    brokerSession_->disconnect( brokerEvent_->_this() );
-                    adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
-                }
-            }
+    protected:
+        void handle_message( const std::string& msg ) {
+            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+            for ( auto handler: vec )
+                handler->message( QString( msg.c_str() ) );
+        }
 
-        protected:
-            void handle_message( const std::string& msg ) {
-                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
-                for ( auto handler: vec )
-                    handler->message( QString( msg.c_str() ) );
-            }
-
-            void handle_portfolio_created( const std::wstring& token ) {
-                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
-                for ( auto handler: vec )
-                    handler->portfolio_created( qtwrapper::qstring( token ) );
-            }
+        void handle_portfolio_created( const std::wstring& token ) {
+            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+            for ( auto handler: vec )
+                handler->portfolio_created( qtwrapper::qstring( token ) );
+        }
             
-            void handle_folium_added( const std::wstring& token, const std::wstring& path, const std::wstring& id ) {
-                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
-                for ( auto handler: vec )
-                    handler->folium_added( qtwrapper::qstring( token )
-                                           , qtwrapper::qstring( path ), qtwrapper::qstring( id ) );
-            }
-        };
+        void handle_folium_added( const std::wstring& token, const std::wstring& path, const std::wstring& id ) {
+            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+            for ( auto handler: vec )
+                handler->folium_added( qtwrapper::qstring( token )
+                                       , qtwrapper::qstring( path ), qtwrapper::qstring( id ) );
+        }
+    };
 
-    }
 }
 
 // static

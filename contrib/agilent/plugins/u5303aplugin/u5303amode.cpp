@@ -39,8 +39,6 @@ u5303AMode::~u5303AMode()
 
 u5303AMode::u5303AMode(QObject *parent) :  Core::IMode(parent)
 {
-    //setName( tr( "U5303A" ) );
-    //setUniqueModeName( u5303a::Constants::U5303A_MODE );
     setDisplayName( tr( "U5303A" ) );
     setIcon(QIcon(":/u5303a/images/image001_512.png"));
     setPriority( 50 );

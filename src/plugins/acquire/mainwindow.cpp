@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
-#include "acquiredocument.hpp"
+#include "document.hpp"
 #include <adextension/icontroller.hpp>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
@@ -57,7 +57,6 @@
 #include <QTabBar>
 
 using namespace acquire;
-using namespace acquire::internal;
 
 MainWindow::~MainWindow()
 {
@@ -136,6 +135,11 @@ MainWindow::OnFinalClose()
 QDockWidget *
 MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& objname )
 {
+    if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
+        widget->setWindowTitle( title );
+    if ( widget->objectName().isEmpty() )
+        widget->setObjectName( objname );
+
     QDockWidget * dockWidget = addDockForWidget( widget );
     dockWidget->setObjectName( widget->objectName() );
     if ( title.isEmpty() )

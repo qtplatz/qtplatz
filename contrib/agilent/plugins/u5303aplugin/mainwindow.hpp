@@ -39,7 +39,7 @@ namespace adcontrols { class MassSpectrum; class Trace; namespace ControlMethod 
 namespace acqrscontrols { class method; }
 namespace adextension { class iController; }
 
-namespace Core { class IMode; }
+namespace Core { class IMode; class Context; }
 namespace Utils { class StyledBar; }
 
 namespace u5303a {
@@ -62,7 +62,7 @@ namespace u5303a {
 		void setSimpleDockWidgetArrangement();
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& page = QString() );
 
-        void createActions();
+        void createActions( const Core::Context& );
 
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
@@ -100,7 +100,7 @@ namespace u5303a {
                                                                
     private slots:
         void handle_reply( const QString&, const QString& );
-        void handle_status( int status );
+        void handleInstState( int status );
 
 	private:
         QAction * actionConnect_;

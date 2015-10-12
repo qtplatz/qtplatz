@@ -135,11 +135,6 @@ ActionManager::initialize_actions( const Core::Context& context )
             connect( p, &QAction::triggered, this, &ActionManager::handleSaveAs );
         }
 
-        // , idActCloseCurrentEditor
-        // , idActCloseAllEditor
-        // , idActOtherEditor
-        // , idActImportFile
-
         if ( auto p = actions_[ idActMethodOpen ] = create( Constants::ICON_METHOD_OPEN, tr("Process method open..."), this ) ) {
             am->registerAction( p, Constants::METHOD_OPEN, context );
             connect( p, &QAction::triggered, this, &ActionManager::actMethodOpen );

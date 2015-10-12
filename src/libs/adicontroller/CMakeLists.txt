@@ -26,6 +26,8 @@ add_library( ${PROJECT_NAME} SHARED
   instrument.cpp
   manager.hpp
   manager.cpp
+  masterobserver.hpp
+  masterobserver.cpp
   mscalibio_v3.hpp
   mscalibio_v3.cpp
   octet_array.hpp

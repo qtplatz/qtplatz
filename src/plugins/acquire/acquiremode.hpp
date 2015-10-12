@@ -30,24 +30,21 @@
 
 namespace acquire {
 
-    namespace internal {
-    
-        class AcquireMode : public Core::IMode {
-            Q_OBJECT
-                ;
-        public:
-            ~AcquireMode();
-            explicit AcquireMode(QObject *parent = 0);
+    class AcquireMode : public Core::IMode {
+        Q_OBJECT
+        ;
+    public:
+        ~AcquireMode();
+        explicit AcquireMode(QObject *parent = 0);
 
-        signals:
+    signals:
 
-        public slots:
+    public slots:
 
-        private:
+    private:
 
-        };
-        //---------
-    }
+    };
+    //---------
 }
 
 #endif // ACQUIREMODE_H

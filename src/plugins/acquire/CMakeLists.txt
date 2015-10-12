@@ -66,22 +66,39 @@ link_directories(
 set( ${PROJECT_NAME}_SOURCES
   acquiremode.cpp
   acquireplugin.cpp
-  orbconnection.cpp
+  document.cpp
+  icontrollerimpl.cpp
   mainwindow.cpp
-  qbroker.cpp
-  acquiredocument.cpp
+  task.cpp
   )
+
 
 set( ${PROJECT_NAME}_HEADERS
   acquire_global.h
   acquiremode.hpp
   acquireplugin.hpp
-  orbconnection.hpp
+  document.hpp
+  icontrollerimpl.hpp
   mainwindow.hpp
   constants.hpp
-  qbroker.hpp
-  acquiredocument.hpp
+  task.hpp
   )
+
+if ( QTPLATZ_SUPPORT_CORBA )
+  list( APPEND ${PROJECT_NAME}_SOURCES
+    qbroker.cpp
+    qbroker.hpp
+    orbconnection.cpp
+    orbconnection.hpp
+    )
+  
+  set( CORBA_DEPENDENCY
+    adinterface
+    adorbmgr
+    ${ACE+TAO_LIBRARIES}
+    )
+  
+endif()
 
 add_library(
   acquire MODULE
@@ -90,23 +107,23 @@ add_library(
   ${Resources}
   )
 
+
 target_link_libraries(
   acquire LINK_PUBLIC
   adfs
   adutils
   adcontrols
-  adinterface
+  adicontroller
   adplot
   adwidgets
   acewrapper
   adplugin
   adextension
-  adorbmgr
   adlog
   adportable
   xmlparser
   Core
-  ${ACE+TAO_LIBRARIES}
+  ${CORBA_DEPENDENCY}
   ${Boost_LIBRARIES}
   )
 

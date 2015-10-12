@@ -42,7 +42,8 @@
 #include <adextension/ireceiver.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adextension/isnapshothandler.hpp>
-#include <adinterface/controlserver.hpp>
+//#include <adinterface/controlserver.hpp>
+#include <adicontroller/constants.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/split_filename.hpp>
@@ -140,6 +141,8 @@ MainWindow::createDockWidgets()
 void
 MainWindow::OnInitialUpdate()
 {
+    connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
+
     boost::any a( document::instance()->controlMethod() );
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
@@ -150,10 +153,7 @@ MainWindow::OnInitialUpdate()
 
     setSimpleDockWidgetArrangement();
 
-    connect( document::instance(), SIGNAL( on_reply(const QString&, const QString&) )
-             , this, SLOT( handle_reply( const QString&, const QString& ) ) );
-
-    connect( document::instance(), SIGNAL( on_status(int) ), this, SLOT( handle_status(int) ) );
+    connect( document::instance(), &document::on_reply, this, &MainWindow::handle_reply );
 
     for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
         if ( auto action = Core::ActionManager::command( id )->action() )
@@ -164,11 +164,6 @@ MainWindow::OnInitialUpdate()
         document::instance()->addiController( iController );
     }
     
-    //for ( auto action : actions_ )
-    //action->setEnabled( false );
-
-    //actions_[ idActConnect ]->setEnabled( true );
-
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
@@ -353,10 +348,8 @@ MainWindow::createTopStyledToolbar()
         toolBarLayout->setSpacing( 0 );
         if ( auto am = Core::ActionManager::instance() ) {
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_CONNECT)->action()));
-            //toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_INITRUN)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_RUN)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_STOP)->action()));
-            //toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_INJECT)->action()));
 
             if ( auto button = new QToolButton() ) {
                 button->setDefaultAction( am->command( Constants::ACTION_REC )->action() );
@@ -408,7 +401,7 @@ MainWindow::createMidStyledToolbar()
 }
 
 void
-MainWindow::createActions()
+MainWindow::createActions( const Core::Context& context )
 {
     Core::ActionContainer * menu = Core::ActionManager::instance()->createMenu( Constants::MENU_ID ); // Menu ID
 
@@ -417,62 +410,68 @@ MainWindow::createActions()
     
     menu->menu()->setTitle( "U5303A" );
 
-    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
+    // const Core::Context context( (Core::Id( Core::Constants::C_GLOBAL )) );
     
     if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
         connect( action, &QAction::triggered, [this](){ actSnapshot(); } );
         action->setEnabled( false );
-        Core::Command * cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SNAPSHOT, gc );
+        Core::Command * cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SNAPSHOT, context );
         menu->addAction( cmd );
     }
     if ( auto action = createAction( Constants::ICON_CONNECT, tr( "Connect" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionConnect(); } );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_CONNECT, gc );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_CONNECT, context );
         menu->addAction( cmd );        
     }
 
     if ( auto action = createAction( Constants::ICON_RUN, tr( "Run" ), this ) ) {
-        connect( action, &QAction::triggered, [] () { document::instance()->u5303a_start_run(); } );
+        connect( action, &QAction::triggered, [] () { document::instance()->start_run(); } );
         action->setEnabled( false );        
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_RUN, gc );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_RUN, context );
         menu->addAction( cmd );        
     }
 
     if ( auto action = createAction( Constants::ICON_STOP, tr( "Stop" ), this ) ) {
         //connect( action, &QAction::triggered, [] () { document::instance()->actionRun( !document::instance()->isRecording() ); } );
-        connect( action, &QAction::triggered, [] () { document::instance()->u5303a_stop(); } );
+        connect( action, &QAction::triggered, [] () { document::instance()->stop(); } );
         action->setEnabled( false );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_STOP, gc );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_STOP, context );
         menu->addAction( cmd );        
     }
 
-    if ( auto action = createAction( Constants::ICON_REC_ON, tr( "REC" ), this ) ) {
-        connect( action, &QAction::triggered, [] () { document::instance()->actionRec( !document::instance()->isRecording() ); } );
-        action->setEnabled( false );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, gc );
-        menu->addAction( cmd );        
-    }
+    do {
+        QIcon icon;
+        icon.addPixmap( QPixmap( Constants::ICON_REC_ON ), QIcon::Normal, QIcon::Off );
+        icon.addPixmap( QPixmap( Constants::ICON_REC_PAUSE ), QIcon::Normal, QIcon::On );
+        if ( auto action = new QAction( icon, tr( "REC" ), this ) ) {
+            action->setCheckable( true );
+            action->setEnabled( false );
+            auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, context );
+            menu->addAction( cmd );        
+            connect( action, &QAction::triggered, document::instance(), &document::actionRec );
+        }
+    } while ( 0 );
     
     if ( auto action = createAction( Constants::ICON_SYNC, tr( "Sync trig." ), this ) ) {
         connect( action, &QAction::triggered, [](){ document::instance()->actionSyncTrig(); } );
         action->setEnabled( false );        
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SYNC, gc );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SYNC, context );
         menu->addAction( cmd );        
     }
     
     if ( auto action = createAction( Constants::ICON_PDF, tr( "PDF" ), this ) ) {
         connect( action, &QAction::triggered, this, &MainWindow::printCurrentView );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::PRINT_CURRENT_VIEW, gc );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::PRINT_CURRENT_VIEW, context );
         menu->addAction( cmd );        
     }
 
     if ( auto action = createAction( Constants::ICON_IMAGE, tr( "Screenshot" ), this ) ) {
         connect( action, &QAction::triggered, this, &MainWindow::saveCurrentImage );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::SAVE_CURRENT_IMAGE, gc );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::SAVE_CURRENT_IMAGE, context );
         menu->addAction( cmd );        
     }
     
-    //handleInstState( 0 );
+    handleInstState( 0 );
     Core::ActionManager::instance()->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
 
 }
@@ -488,30 +487,7 @@ MainWindow::createAction( const QString& iconname, const QString& msg, QObject *
 void
 MainWindow::actSnapshot()
 {
-    assert( 0 );
-#if 0
-    if ( auto waveform = document::instance()->findWaveform() ) {
-        adcontrols::MassSpectrum ms;
-        if ( document::toMassSpectrum( ms, *waveform ) ) {
-
-            boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
-            path /= "data";
-            path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
-            if ( ! boost::filesystem::exists( path ) ) {
-                boost::system::error_code ec;
-                boost::filesystem::create_directories( path, ec );
-            }
-            path /= "u5303a.adfs";
-            std::wstring title = ( boost::wformat( L"Spectrum %1%" ) % waveform->serialnumber_ ).str();
-            std::wstring folderId;
-			if ( document::appendOnFile( path.wstring(), title, ms, folderId ) ) {
-                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
-                for ( auto handler: vec )
-                    handler->folium_added( path.string().c_str(), "/Processed/Spectra", QString::fromStdWString( folderId ) );
-            }
-        }
-    }
-#endif
+    document::instance()->takeSnapshot();
 }
 
 void
@@ -526,19 +502,30 @@ MainWindow::handle_reply( const QString& method, const QString& reply )
 }
 
 void
-MainWindow::handle_status( int status )
+MainWindow::handleInstState( int status )
 {
-    if ( status == controlserver::eStandBy ) {
+    if ( status <= adicontroller::Instrument::eNotConnected ) {
+
+        if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
+            action->setEnabled( true  );
 
         for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
             if ( auto action = Core::ActionManager::command( id )->action() )
                 action->setEnabled( false );
         }
 
-        document::instance()->prepare_for_run();
-        if ( auto mw = findChild< acqrswidgets::u5303AWidget * >() )
-            mw->onStatus( status );
+    } else if ( status >= adicontroller::Instrument::eStandBy ) {
+
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_CONNECT )->action() )
+            action->setEnabled( false );
+        
+        for ( auto id :
+            { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT, Constants::ACTION_SYNC } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( true );
+        }
     }
+
 }
 
 void

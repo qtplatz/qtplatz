@@ -38,8 +38,9 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/samplerun.hpp>
-#include <adinterface/controlserver.hpp>
+#include <adextension/isnapshothandler.hpp>
 #include <adextension/icontrollerimpl.hpp>
+#include <adicontroller/masterobserver.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adportable/profile.hpp>
@@ -48,6 +49,7 @@
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
+#include <extensionsystem/pluginmanager.h>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/bind.hpp>
@@ -76,19 +78,19 @@ namespace u5303a {
 
     namespace so = adicontroller::SignalObserver;
 
-    //.................... todo -- move MasterObserver to more genelic place ..................
-    class MasterObserver : public adicontroller::SignalObserver::Observer {
-        const boost::uuids::uuid objid_;
-    public:
-        MasterObserver() : objid_( { 0 } ) {}
-        bool connect( so::ObserverEvents * cb, so::eUpdateFrequency, const std::string& ) override { return false; }
-        bool disconnect( so::ObserverEvents * cb ) override { return false; }
-        const boost::uuids::uuid& objid() const override { return objid_; }
-        const char * objtext() const override { return 0; }
-        uint64_t uptime() const override { return 0; }
-        std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override { return 0; }
-        const char * dataInterpreterClsid() const override { return 0; }
-    };
+    // //.................... todo -- move MasterObserver to more genelic place ..................
+    // class MasterObserver : public adicontroller::SignalObserver::Observer {
+    //     const boost::uuids::uuid objid_;
+    // public:
+    //     MasterObserver() : objid_( { 0 } ) {}
+    //     bool connect( so::ObserverEvents * cb, so::eUpdateFrequency, const std::string& ) override { return false; }
+    //     bool disconnect( so::ObserverEvents * cb ) override { return false; }
+    //     const boost::uuids::uuid& objid() const override { return objid_; }
+    //     const char * objtext() const override { return 0; }
+    //     uint64_t uptime() const override { return 0; }
+    //     std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override { return 0; }
+    //     const char * dataInterpreterClsid() const override { return 0; }
+    // };
 
     //..........................................
     class document::impl {
@@ -103,7 +105,7 @@ namespace u5303a {
         std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
         std::shared_ptr< ::u5303a::iControllerImpl > iControllerImpl_;
         std::vector< std::shared_ptr< adextension::iController > > iControllers_;
-        std::shared_ptr< MasterObserver > masterObserver_;
+        std::shared_ptr< adicontroller::MasterObserver > masterObserver_;
         bool isRecording_;
         bool isMethodDirty_;
 
@@ -172,6 +174,7 @@ document::actionConnect()
     if ( !impl_->iControllers_.empty() ) {
 
         std::vector< std::future<bool> > futures;
+
         for ( auto& iController : impl_->iControllers_ ) {
             futures.push_back( std::async( [iController] () {
                         return iController->connect() && iController->wait_for_connection_ready(); } ) );
@@ -201,7 +204,7 @@ document::actionConnect()
         task::instance()->post( futures );
 
         // setup observer hiralchey
-        impl_->masterObserver_ = std::make_shared< MasterObserver >();
+        impl_->masterObserver_ = std::make_shared< adicontroller::MasterObserver >();
         for ( auto& iController : impl_->iControllers_ ) {
             if ( auto session = iController->getInstrumentSession() ) {
                 if ( auto observer = session->getObserver() )
@@ -234,18 +237,14 @@ document::prepare_for_run()
 }
 
 void
-document::u5303a_start_run()
+document::start_run()
 {
 }
 
 void
-document::u5303a_stop()
+document::stop()
 {
-}
-
-void
-document::u5303a_trigger_inject()
-{
+    
 }
 
 int32_t
@@ -259,8 +258,8 @@ document::reply_handler( const std::string& method, const std::string& reply )
 {
 	emit on_reply( QString::fromStdString( method ), QString::fromStdString( reply ) );
     if ( method == "InitialSetup" && reply == "success" ) {
-        impl_->device_status_ = controlserver::eStandBy;
-        emit on_status( impl_->device_status_ );
+        impl_->device_status_ = adicontroller::Instrument::eStandBy;
+        emit instStateChanged( int( adicontroller::Instrument::eStandBy ) ); // --> enable FSM UI
     }
 }
 
@@ -349,9 +348,10 @@ document::iController()
 
 // static
 bool
-document::appendOnFile( const std::wstring& path
-                        , const std::wstring& title
-                        , const adcontrols::MassSpectrum& ms, std::wstring& id )
+document::appendOnFile( const boost::filesystem::path& path
+                        , const QString& title
+                        , const adcontrols::MassSpectrum& ms
+                        , QString& id )
 {
     adfs::filesystem fs;
 	
@@ -365,11 +365,11 @@ document::appendOnFile( const std::wstring& path
 	adfs::folder folder = fs.addFolder( L"/Processed/Spectra" );
 
     if ( folder ) {
-		adfs::file file = folder.addFile( adfs::create_uuid(), title );
+		adfs::file file = folder.addFile( adfs::create_uuid(), title.toStdWString() );
         if ( file ) {
             file.dataClass( ms.dataClass() );
-            id = file.id();
-            if ( file.save( ms ) ) //adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
+            id = QString::fromStdWString( file.id() );
+            if ( file.save( ms ) )
 				file.commit();
         }
 	}
@@ -736,7 +736,6 @@ document::impl::handleConnected( adextension::iController * controller )
 void
 document::impl::handleMessage( adextension::iController * ic, unsigned long code, unsigned long value )
 {
-#if 0
     if ( code == adicontroller::Receiver::CLIENT_ATTACHED ) {
 
         emit document::instance()->instStateChanged( int( adicontroller::Instrument::eStandBy ) ); // --> enable FSM UI
@@ -745,12 +744,11 @@ document::impl::handleMessage( adextension::iController * ic, unsigned long code
 
         emit document::instance()->instStateChanged( int( value ) );
 
-        if ( value == adi::Instrument::eStandBy && ctrlMethod_ && ic ) {
+        if ( value == adicontroller::Instrument::eStandBy && cm_ && ic ) {
             if ( auto session = ic->getInstrumentSession() )
-                session->prepare_for_run( ctrlMethod_ );
+                session->prepare_for_run( cm_ );
         }
     }
-#endif
 }
 
 void
@@ -826,19 +824,18 @@ document::settings()
 void
 document::takeSnapshot()
 {
-#if 0
     boost::filesystem::path dir( impl_->nextSampleRun_->dataDirectory() );
     boost::filesystem::path file( std::wstring( impl_->nextSampleRun_->filePrefix() ) + L".adfs~" );
-
+    
     if ( ! boost::filesystem::exists( dir ) ) {
         boost::system::error_code ec;
         boost::filesystem::create_directories( dir, ec );
     }
-
+    
     boost::filesystem::path path( dir / file );
     if ( ! boost::filesystem::exists( path ) )
         path = dir / ( std::wstring( impl_->nextSampleRun_->filePrefix() ) + L"_snapshots.adfs" );
-        
+    
     unsigned idx = 0;
 
     // get histogram
@@ -881,5 +878,5 @@ document::takeSnapshot()
                 handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
         }
     }
-#endif
+
 }

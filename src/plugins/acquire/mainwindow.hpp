@@ -43,49 +43,48 @@ class QDockWidget;
 class QAction;
 class QMainWindow;
 
-namespace acquire {  namespace internal {
+namespace acquire {
         
-        struct AcquireManagerActions;
-        struct MainWindowData;
+    struct AcquireManagerActions;
+    struct MainWindowData;
         
-        //------------
-        //------------
-        class MainWindow : public Utils::FancyMainWindow {
-            Q_OBJECT
-        public:
-            ~MainWindow();
-            explicit MainWindow(QWidget *parent = 0);
+    //------------
+    //------------
+    class MainWindow : public Utils::FancyMainWindow {
+        Q_OBJECT
+    public:
+        ~MainWindow();
+        explicit MainWindow(QWidget *parent = 0);
       
-            void init( const adportable::Configuration& config );
-            void setSimpleDockWidgetArrangement();
+        void init( const adportable::Configuration& config );
+        void setSimpleDockWidgetArrangement();
 
-            void OnInitialUpdate();
-            void OnFinalClose();
-            // 
-            void eventLog( const QString& );
-            void getControlMethod( adcontrols::ControlMethod::Method& );
-            void setControlMethod( const adcontrols::ControlMethod::Method& );
-            bool getSampleRun( adcontrols::SampleRun& );
-            void setSampleRun( const adcontrols::SampleRun& );
-            //
-        signals:
-            void signal_eventLog( QString );
-            void signal_message( unsigned long msg, unsigned long value );
-            void signal_debug_print( unsigned long priority, unsigned long category, QString text );
+        void OnInitialUpdate();
+        void OnFinalClose();
+        // 
+        void eventLog( const QString& );
+        void getControlMethod( adcontrols::ControlMethod::Method& );
+        void setControlMethod( const adcontrols::ControlMethod::Method& );
+        bool getSampleRun( adcontrols::SampleRun& );
+        void setSampleRun( const adcontrols::SampleRun& );
+        //
+    signals:
+        void signal_eventLog( QString );
+        void signal_message( unsigned long msg, unsigned long value );
+        void signal_debug_print( unsigned long priority, unsigned long category, QString text );
 
-        public slots:
-            void handle_message( unsigned long msg, unsigned long value );
-            void handle_shutdown();
-            void handle_debug_print( unsigned long priority, unsigned long category, QString text );
-            void handleControlMethod();
+    public slots:
+        void handle_message( unsigned long msg, unsigned long value );
+        void handle_shutdown();
+        void handle_debug_print( unsigned long priority, unsigned long category, QString text );
+        void handleControlMethod();
 
-        private:
-            QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
-            adwidgets::ControlMethodWidget * cmEditor_;
-            adwidgets::SampleRunWidget * runEditor_;
-        };
+    private:
+        QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
+        adwidgets::ControlMethodWidget * cmEditor_;
+        adwidgets::SampleRunWidget * runEditor_;
+    };
 
-    }
 }
 
 #endif // ACQUIREUIMANAGER_H

@@ -31,7 +31,7 @@
 #include <deque>
 #include <map>
 
-#if defined HAS_CORBA
+#if defined HAVE_CORBA
 #include <adinterface/controlserverC.h>
 #include <adinterface/signalobserverC.h>
 #include <adinterface/receiverC.h>
@@ -79,147 +79,145 @@ namespace acquire {
     class receiver_i;
     class brokerevent_i;
 
-    namespace internal {
+    class MainWindow;
+    class AcquireImpl;
+    class ObserverEvents_i;
 
-        class MainWindow;
-        class AcquireImpl;
-        class ObserverEvents_i;
-
-        //------------
-        class AcquirePlugin : public ExtensionSystem::IPlugin {
-            Q_OBJECT
-			Q_PLUGIN_METADATA(IID "com.ms-cheminfo.qtplatz.plugin" FILE "acquire.json")
+    //------------
+    class AcquirePlugin : public ExtensionSystem::IPlugin {
+        Q_OBJECT
+        Q_PLUGIN_METADATA(IID "com.ms-cheminfo.qtplatz.plugin" FILE "acquire.json")
         public:
-            ~AcquirePlugin();
-            AcquirePlugin();
+        ~AcquirePlugin();
+        AcquirePlugin();
 
-            // implement IPlugin
-            virtual bool initialize(const QStringList &arguments, QString *error_message);
-            virtual void extensionsInitialized();
-            virtual ShutdownFlag aboutToShutdown();
+        // implement IPlugin
+        virtual bool initialize(const QStringList &arguments, QString *error_message);
+        virtual void extensionsInitialized();
+        virtual ShutdownFlag aboutToShutdown();
 
-        public slots:
-            void handleCommitMethods();
+    public slots:
+        void handleCommitMethods();
 
-        private slots:
-            void actionConnect();
-            void actionDisconnect();
-            void actionSnapshot();
-            void actionInitRun();
-            void actionRun();
-            void actionStop();
-            void actionInject();
-            void actMethodOpen();
-            void actMethodSave();
+    private slots:
+        void actionConnect();
+        void actionDisconnect();
+        void actionSnapshot();
+        void actionInitRun();
+        void actionRun();
+        void actionStop();
+        void actionInject();
+        void actMethodOpen();
+        void actMethodSave();
 
-            void handle_controller_message( unsigned long msg, unsigned long value );
-            void handle_shutdown();
-            void handle_debug_print( unsigned long priority, unsigned long category, QString text );
+        void handle_controller_message( unsigned long msg, unsigned long value );
+        void handle_shutdown();
+        void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
-            void handle_config_changed( unsigned long objid, long pos );
-            void handle_method_changed( unsigned long objid, long pos );
-			void handle_event( unsigned long objid, long pos, long flags );
-            void handle_update_ui_data( unsigned long objid, long pos );
+        void handle_config_changed( unsigned long objid, long pos );
+        void handle_method_changed( unsigned long objid, long pos );
+        void handle_event( unsigned long objid, long pos, long flags );
+        void handle_update_ui_data( unsigned long objid, long pos );
 
-            void handle_monitor_selected( int );
-            void handle_monitor_activated( int );
+        void handle_monitor_selected( int );
+        void handle_monitor_activated( int );
 
-			void handleSelected( const QPointF& );
-			void handleSelected( const QRectF& );
+        void handleSelected( const QPointF& );
+        void handleSelected( const QRectF& );
 
-            void handle_broker_initialized();
+        void handle_broker_initialized();
 
-        signals:
-            // observer signals
-            void onUpdateUIData( unsigned long, long );
-            void onObserverConfigChanged( unsigned long, long );
-            void onObserverMethodChanged( unsigned long, long );
-            void onObserverEvent( unsigned long, long, long );
+    signals:
+        // observer signals
+        void onUpdateUIData( unsigned long, long );
+        void onObserverConfigChanged( unsigned long, long );
+        void onObserverMethodChanged( unsigned long, long );
+        void onObserverEvent( unsigned long, long, long );
 
-            // receiver signals
-            void onReceiverMessage( unsigned long, unsigned long );
+        // receiver signals
+        void onReceiverMessage( unsigned long, unsigned long );
 
         // 
-        private:
-            void selectPoint( double x, double y );
-            void selectRange( double x1, double x2, double y1, double y2 );
-            void handle_update_data( unsigned long objid, long pos );
+    private:
+        void selectPoint( double x, double y );
+        void selectRange( double x1, double x2, double y1, double y2 );
+        void handle_update_data( unsigned long objid, long pos );
 
-            MainWindow * mainWindow_;
-            AcquireImpl * pImpl_;
+        MainWindow * mainWindow_;
+        AcquireImpl * pImpl_;
 
-            QAction * actionConnect_;
-            QAction * actionRun_;
-            QAction * actionInitRun_;
-            QAction * actionStop_;
-            QAction * actionSnapshot_;
-            QAction * actionInject_;
+        QAction * actionConnect_;
+        QAction * actionRun_;
+        QAction * actionInitRun_;
+        QAction * actionStop_;
+        QAction * actionSnapshot_;
+        QAction * actionInject_;
 
-            QAction * actMethodOpen_;
-            QAction * actMethodSave_;
-            adportable::Configuration * pConfig_;
+        QAction * actMethodOpen_;
+        QAction * actMethodSave_;
+        adportable::Configuration * pConfig_;
 
-            void initialize_actions();
-            QWidget * createContents( Core::IMode * );
-            void initialize_broker();
-            void shutdown_broker();
+        void initialize_actions();
+        QWidget * createContents( Core::IMode * );
+        void initialize_broker();
+        void shutdown_broker();
 
-            ControlServer::Session_var session_;
-            SignalObserver::Observer_var observer_;
+        ControlServer::Session_var session_;
+        SignalObserver::Observer_var observer_;
 
-            typedef std::tuple< SignalObserver::Observer_var
-                                , SignalObserver::Description_var
-                                , std::wstring
-                                , bool
-                                , std::shared_ptr< adcontrols::MassSpectrometer > > observer_type;
+        typedef std::tuple< SignalObserver::Observer_var
+                            , SignalObserver::Description_var
+                            , std::wstring
+                            , bool
+                            , std::shared_ptr< adcontrols::MassSpectrometer > > observer_type;
 
             
-            std::map< unsigned long, observer_type > observerMap_;
+        std::map< unsigned long, observer_type > observerMap_;
 
-            std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
-            std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
-            std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
-            std::map< unsigned long, long > npos_map_;
-            std::map< unsigned long, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
+        std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
+        std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
+        std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
+        std::map< unsigned long, long > npos_map_;
+        std::map< unsigned long, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
 
-            std::unique_ptr< receiver_i > receiver_i_;
-            std::unique_ptr< adinterface::ObserverEvents_i > sink_;
-            std::vector< std::wstring > trace_descriptions_;
-            QComboBox * traceBox_;
+        std::unique_ptr< receiver_i > receiver_i_;
+        std::unique_ptr< adinterface::ObserverEvents_i > sink_;
+        std::vector< std::wstring > trace_descriptions_;
+        QComboBox * traceBox_;
 
-            boost::asio::io_service io_service_;
-            boost::asio::io_service::work work_;
-            boost::asio::io_service::strand strand_;
-            std::vector< adportable::asio::thread > threads_;
-            std::mutex mutex_;
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        boost::asio::io_service::strand strand_;
+        std::vector< adportable::asio::thread > threads_;
+        std::mutex mutex_;
 
-            void populate( SignalObserver::Observer_var& );
-            bool readCalibrations( observer_type& );
-            bool readMassSpectra( const SignalObserver::DataReadBuffer&
-                                  , const adcontrols::MassSpectrometer&
-                                  , const adcontrols::DataInterpreter& dataInterpreter
-                                  , unsigned long objId );
-            bool readTrace( const SignalObserver::Description&
-                            , const SignalObserver::DataReadBuffer&
-                            , const adcontrols::DataInterpreter& dataInterpreter
-                            , unsigned long objId );
+        void populate( SignalObserver::Observer_var& );
+        bool readCalibrations( observer_type& );
+        bool readMassSpectra( const SignalObserver::DataReadBuffer&
+                              , const adcontrols::MassSpectrometer&
+                              , const adcontrols::DataInterpreter& dataInterpreter
+                              , unsigned long objId );
+        bool readTrace( const SignalObserver::Description&
+                        , const SignalObserver::DataReadBuffer&
+                        , const adcontrols::DataInterpreter& dataInterpreter
+                        , unsigned long objId );
 
-            // observer event handlers
-            void handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus );
-            void handle_observer_update_data( uint32_t objid, int32_t pos );
-            void handle_observer_method_changed( uint32_t objid, int32_t pos );
-            void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
+        // observer event handlers
+        void handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus );
+        void handle_observer_update_data( uint32_t objid, int32_t pos );
+        void handle_observer_method_changed( uint32_t objid, int32_t pos );
+        void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
 
-            // receiver_i handlers
-            // void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
-            void handle_receiver_log( const ::EventLog::LogMessage& );
-            void handle_receiver_shutdown();
-            void handle_receiver_debug_print( int32_t, int32_t, std::string );
+        // receiver_i handlers
+        // void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
+        void handle_receiver_log( const ::EventLog::LogMessage& );
+        void handle_receiver_shutdown();
+        void handle_receiver_debug_print( int32_t, int32_t, std::string );
 
-        public:
-            static QToolButton * toolButton( QAction * action );
-        };
-    }
+    public:
+        static QToolButton * toolButton( QAction * action );
+    };
+
 }
 
 #endif // ACQUIREPLUGIN_H

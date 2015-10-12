@@ -31,7 +31,6 @@
 #include <coreplugin/modemanager.h>
 
 using namespace acquire;
-using namespace acquire::internal;
 
 AcquireMode::~AcquireMode()
 {

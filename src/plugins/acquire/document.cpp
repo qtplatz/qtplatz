@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "acquiredocument.hpp"
+#include "document.hpp"
 #include "constants.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/controlmethod.hpp>
@@ -135,7 +135,7 @@ namespace acquire {
                 ADDEBUG() << "no transition from state " << state << " on event " << typeid( e ).name();
             }
             typedef Empty initial_state;
-            internal::MainWindow * mainWindow_;
+            MainWindow * mainWindow_;
         };
         
         // back-end
@@ -161,7 +161,7 @@ namespace acquire {
 
         inline fsm::acquire& fsm() { return fsm_; }
 
-        void setMainWindow( internal::MainWindow * w ) {
+        void setMainWindow( MainWindow * w ) {
             fsm_.mainWindow_ = w;
         }
     private:
@@ -256,7 +256,7 @@ document::initialSetup()
 }
 
 void
-document::finalClose( internal::MainWindow * mainwindow )
+document::finalClose( MainWindow * mainwindow )
 {
     boost::filesystem::path dir = user_preference::path( settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
@@ -473,7 +473,7 @@ document::fsmStop()
 }
 
 void
-document::fsmSetMainWindow( internal::MainWindow * w )
+document::fsmSetMainWindow( MainWindow * w )
 {
     impl_->setMainWindow( w );
 }

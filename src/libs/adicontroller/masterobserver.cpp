@@ -1,6 +1,7 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,33 +23,55 @@
 **
 **************************************************************************/
 
-#include "isnapshothandlerimpl.hpp"
-#include <adlog/logger.hpp>
+#include "masterobserver.hpp"
 
-using namespace dataproc;
+#include <boost/uuid/uuid.hpp>
 
-iSnapshotHandlerImpl::~iSnapshotHandlerImpl()
+using namespace adicontroller;
+
+MasterObserver::MasterObserver()
 {
 }
 
-iSnapshotHandlerImpl::iSnapshotHandlerImpl()
+bool
+MasterObserver::connect( so::ObserverEvents * cb, so::eUpdateFrequency, const std::string& )
 {
+    return false;
 }
 
-void
-iSnapshotHandlerImpl::message( const QString& message )
+bool
+MasterObserver::disconnect( so::ObserverEvents * cb )
 {
-    emit onSnapshotMessage( message );
+    return false;
 }
 
-void
-iSnapshotHandlerImpl::portfolio_created( const QString& token )
+const boost::uuids::uuid&
+MasterObserver::objid() const
 {
-    emit onPortfolioCreated( token );
+    const static boost::uuids::uuid uuid = { 0 };
+    return uuid;
 }
 
-void
-iSnapshotHandlerImpl::folium_added( const QString& token, const QString& path, const QString& folderId )
+const char *
+MasterObserver::objtext() const
 {
-    emit onFoliumAdded( token, path, folderId );
+    return 0;
+}
+
+uint64_t
+MasterObserver::uptime() const
+{
+    return 0;
+}
+
+std::shared_ptr< so::DataReadBuffer >
+MasterObserver::readData( uint32_t pos )
+{
+    return 0;
+}
+
+const char *
+MasterObserver::dataInterpreterClsid() const
+{
+    return 0;
 }

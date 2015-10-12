@@ -1,6 +1,7 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,33 +23,28 @@
 **
 **************************************************************************/
 
-#include "isnapshothandlerimpl.hpp"
-#include <adlog/logger.hpp>
+#pragma once
 
-using namespace dataproc;
+#include "adicontroller_global.hpp"
+#include "signalobserver.hpp"
 
-iSnapshotHandlerImpl::~iSnapshotHandlerImpl()
-{
-}
+namespace boost { namespace uuids { struct uuid; } }
 
-iSnapshotHandlerImpl::iSnapshotHandlerImpl()
-{
-}
+namespace adicontroller {
 
-void
-iSnapshotHandlerImpl::message( const QString& message )
-{
-    emit onSnapshotMessage( message );
-}
+    namespace so = adicontroller::SignalObserver;
 
-void
-iSnapshotHandlerImpl::portfolio_created( const QString& token )
-{
-    emit onPortfolioCreated( token );
-}
+    class ADICONTROLLERSHARED_EXPORT MasterObserver : public SignalObserver::Observer {
+    public:
+        MasterObserver();
 
-void
-iSnapshotHandlerImpl::folium_added( const QString& token, const QString& path, const QString& folderId )
-{
-    emit onFoliumAdded( token, path, folderId );
+        bool connect( so::ObserverEvents * cb, so::eUpdateFrequency, const std::string& ) override;
+        bool disconnect( so::ObserverEvents * cb ) override;
+        const boost::uuids::uuid& objid() const override;
+        const char * objtext() const override;
+        uint64_t uptime() const override;
+        std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override;
+        const char * dataInterpreterClsid() const override;
+    };
+
 }

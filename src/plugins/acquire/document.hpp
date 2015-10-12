@@ -37,7 +37,7 @@ namespace adcontrols {
 
 namespace acquire {
 
-    namespace internal { class MainWindow; }
+    class MainWindow; 
 
     class document : public QObject {
         Q_OBJECT
@@ -49,7 +49,7 @@ namespace acquire {
         ~document();
         
         void initialSetup();
-        void finalClose( internal::MainWindow * );
+        void finalClose( MainWindow * );
         QSettings * settings() { return settings_.get(); }
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
@@ -68,7 +68,7 @@ namespace acquire {
         // fsm actions
         void fsmStart();
         void fsmStop();
-        void fsmSetMainWindow( internal::MainWindow * );
+        void fsmSetMainWindow( MainWindow * );
         void fsmActPrepareForRun();
         void fsmActRun();
         void fsmActStop();
@@ -90,6 +90,7 @@ namespace acquire {
         void onSampleRunLength( const QString& );
         void instStateChanged( int );
         //void requestCommitMethods();
+        void sampleRunChanged();
 
     public slots:
         

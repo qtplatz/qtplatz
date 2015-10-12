@@ -1,6 +1,5 @@
 project( portfolio )
 
-#cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0022 NEW)
 
 add_definitions(-DPORTFOLIO_LIBRARY)
@@ -26,10 +25,6 @@ target_link_libraries( portfolio LINK_PUBLIC
   ${Boost_LIBRARIES}
   adportable  
   xmlparser )
-
-#set_target_properties( portfolio
-#  PROPERTIES
-#  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
