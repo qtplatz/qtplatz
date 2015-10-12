@@ -70,7 +70,7 @@ namespace dataproc {
         void handleCurrentChanged( const QString& dataGuid, int idx, int fcn );
         void handleSelected( const QRectF& );
         void update_quantable();
-        void draw();
+        void draw( int which = (-1) );
 
         class impl;
         impl * impl_;

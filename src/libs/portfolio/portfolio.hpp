@@ -30,6 +30,8 @@
 #include <memory>
 #include <compiler/disable_dll_interface.h>
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace portfolio {
 
     namespace internal {
@@ -69,6 +71,9 @@ namespace portfolio {
 
         // for debugging convension
         bool save( const std::wstring& filename ) const;
+
+        static boost::uuids::uuid uuidFromString( const std::string& );
+        static boost::uuids::uuid uuidFromString( const std::wstring& );
      
     private:
         std::shared_ptr< internal::PortfolioImpl > impl_;

@@ -76,13 +76,34 @@ namespace dataproc {
             
         }
 
+        datafolder( int _idx
+                    , const std::wstring& _display_name
+                    , portfolio::Folium& folium ) : idx( _idx )
+                                                   , display_name( _display_name )
+                                                   , idFolium( folium.id() )  {
+            
+            if ( auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+                profile = ms; // maybe profile or histogram
+            }
+
+            portfolio::Folio atts = folium.attachments();
+            auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
+            if ( itCentroid != atts.end() ) {
+                
+                idCentroid = itCentroid->id();
+                centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
+                
+            }
+        }
+
         datafolder( const datafolder& t ) : idx( t.idx )
                                           , idFolium( t.idFolium )
                                           , idCentroid( t.idCentroid )
                                           , display_name( t.display_name )
                                           , profile( t.profile )
                                           , centroid( t.centroid ) {
-        }                       
+        }
+
     };
 
     class MSSpectraWnd::impl {
@@ -108,7 +129,7 @@ namespace dataproc {
 
         std::map< std::wstring /* folium (profile) Guid (attGuid) */, datafolder  > dataIds_;
 
-        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > profile_;
+        std::pair< std::wstring, datafolder > profile_;
 
         std::shared_ptr< adwidgets::MSQuanTable > table_;
         std::array< std::shared_ptr< adplot::SpectrumWidget >, 2 > plots_;
@@ -190,7 +211,7 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
         for ( auto& folium: folder.folio() ) {
 
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
-
+                
                 if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
                     std::wstring display_name = processor->file().filename() + L"::" + folium.name();
@@ -198,31 +219,12 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
                     auto it = impl_->dataIds_.find( folium.id() );
                     if ( it == impl_->dataIds_.end() ) {
                         
-                        auto data = datafolder( int( impl_->dataIds_.size() ), display_name, folium.id() );
-                        
-                        portfolio::Folio atts = folium.attachments();
-                        auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
-                        if ( itCentroid != atts.end() ) {
-
-                            data.idCentroid = itCentroid->id();
-                            data.centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
-                            
-                        }
-
+                        auto data = datafolder( int( impl_->dataIds_.size() ), display_name, folium );
                         impl_->dataIds_[ folium.id() ] = data;
 
                     }
                     
                 }
-                // if ( itCentroid != atts.end() ) {
-                //     if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
-                //         auto it = impl_->dataIds_.find( folium.id() );
-                //         int idx = (it != impl_->dataIds_.end()) ? std::get<0>( it->second ) : int( impl_->dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
-                //         std::wstring name = processor->file().filename() + L"::" + folium.name();
-                //         impl_->dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
-                //         impl_->dirty_ = true;
-                //     }
-                // }
             }
         }
     }
@@ -232,7 +234,7 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 
     if ( impl_->dirty_ ) {
         update_quantable();
-        draw();
+        draw( -1 );
         impl_->dirty_ = false;
     }
 }
@@ -242,7 +244,9 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 {
     try {
         if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-            impl_->profile_ = std::make_pair( folium.id(), ptr );
+            std::wstring display_name = processor->file().filename() + L"::" + folium.name();
+            impl_->profile_ = std::make_pair( folium.id(), datafolder( 0, display_name, folium ) );
+            draw( 1 );
         } else {
             return;
         }
@@ -290,27 +294,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
                 modified = true;
                 
             }
-            
         }
-
-        // portfolio::Folio atts = folium.attachments();
-
-        // auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
-
-        // if ( itCentroid != atts.end() ) {
-
-        //     if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
-
-        //         auto it = impl_->dataIds_.find( folium.id() );
-        //         int idx = ( it != impl_->dataIds_.end() ) ? std::get<0>( it->second ) : int( impl_->dataIds_.size() + 1 ); // 1.. (0 is reserved for profile overlay data)
-        //         std::wstring name = processor->file().filename() + L"::" + folium.name();
-
-        //         impl_->dataIds_[ folium.id() ] = std::make_tuple( idx, itCentroid->id(), centroid, name );
-
-        //         modified = true;
-        //     }
-
-        // }
     }
 
     impl_->dirty_ |= modified; // don't drop previous state if already 'dirty'
@@ -320,7 +304,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
     
     if ( impl_->dirty_ ) {
         update_quantable();
-        draw();
+        draw( 0 );
         impl_->dirty_ = false;
     }
 }
@@ -345,22 +329,47 @@ MSSpectraWnd::update_quantable()
 }
 
 void
-MSSpectraWnd::draw()
+MSSpectraWnd::draw( int which )
 {
-    if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
-        impl_->table_->setData( qpks );
-
-        if ( auto profile = impl_->profile_.second.lock() ) {
-            impl_->plots_[ 1 ]->setData( profile, 0 );
+    if ( which == 1 || which == ( -1 ) ) {
+        impl_->plots_[ 1 ]->clear();
+        impl_->plots_[ 1 ]->setTitle( impl_->profile_.second.display_name );
+        if ( auto ms = impl_->profile_.second.profile.lock() ) {
+            impl_->plots_[ 1 ]->setData( ms, 0 );
         }
+        if ( auto ms = impl_->profile_.second.centroid.lock() ) {
+            impl_->plots_[ 1 ]->setData( ms, 1, true );
+            impl_->plots_[ 1 ]->setAlpha( 0, 0x40 ); 
+        }
+    }
 
-        for ( auto& data: impl_->dataIds_ ) {
-            int idx = data.second.idx;// std::get<0>( data.second );
-            if ( auto profile = data.second.profile.lock() ) // std::get<2>( data.second ).lock() )
-                impl_->plots_[ 0 ]->setData( profile, idx * 2 );
-            if ( auto centroid = data.second.centroid.lock() ) // std::get<2>( data.second ).lock() )
-                impl_->plots_[ 0 ]->setData( centroid, idx * 2 + 1, true );
+    if ( which == 0 || which == ( -1 ) ) {
+        
+        if ( auto qpks = dataproc_document::instance()->msQuanTable() ) {
+            impl_->table_->setData( qpks );
 
+            impl_->plots_[ 0 ]->clear();
+
+            QString title;
+
+            for ( auto& data: impl_->dataIds_ ) {
+                int idx = data.second.idx;
+
+                if ( title.isEmpty() ) {
+                    title = QString::fromStdWString( data.second.display_name );
+                } else {
+                    title += " .";
+                }
+
+                if ( auto profile = data.second.profile.lock() )
+                    impl_->plots_[ 0 ]->setData( profile, idx * 2 );
+                if ( auto centroid = data.second.centroid.lock() ) {
+                    impl_->plots_[ 0 ]->setData( centroid, idx * 2 + 1, true );
+                    impl_->plots_[ 0 ]->setAlpha( idx * 2, 0x40 ); 
+                }
+                
+            }
+            impl_->plots_[ 0 ]->setTitle( title );
         }
     }
 }

@@ -133,3 +133,14 @@ Portfolio::fullpath() const
 	return impl_->fullpath();
 }
 
+boost::uuids::uuid
+Portfolio::uuidFromString( const std::string& id )
+{
+    return internal::Node::uuidFromString( id );
+}
+
+boost::uuids::uuid
+Portfolio::uuidFromString( const std::wstring& id )
+{
+    return internal::Node::uuidFromString( pugi::as_utf8( id ));
+}
