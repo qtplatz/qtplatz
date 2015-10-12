@@ -36,11 +36,17 @@
 #include <acewrapper/constants.hpp>
 #include <acewrapper/ifconfig.hpp>
 #include <adextension/isnapshothandler.hpp>
-#include <adinterface/brokerC.h>
-#include <adinterface/controlserverC.h>
-#include <adinterface/receiverC.h>
-#include <adinterface/signalobserverC.h>
-#include <adinterface/observerevents_i.hpp>
+
+#if HAVE_CORBA
+# include <adinterface/brokerC.h>
+# include <adinterface/controlserverC.h>
+# include <adinterface/receiverC.h>
+# include <adinterface/signalobserverC.h>
+# include <adinterface/observerevents_i.hpp>
+# include <adorbmgr/orbmgr.hpp>
+# include <tao/Object.h>
+#endif
+
 #include <adinterface/eventlog_helper.hpp>
 #include <adinterface/eventlog_helper.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -62,7 +68,6 @@
 #include <adcontrols/trace.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/timeutil.hpp>
-#include <adorbmgr/orbmgr.hpp>
 #include <adextension/imonitorfactory.hpp>
 #include <adextension/icontroller.hpp>
 #include <adinterface/controlmethodhelper.hpp>
@@ -92,8 +97,6 @@
 #include <qtwrapper/application.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <servant/servantplugin.hpp>
-
-#include <tao/Object.h>
 #include <utils/fancymainwindow.h>
 
 #include <coreplugin/icore.h>
@@ -141,16 +144,53 @@ using namespace acquire;
 
 namespace acquire {
 
+#if HAVE_CORBA
+
+    class AcquirePlugin::orb_i {
+        AcquirePlugin * pThis_;
+    public:
+        ControlServer::Session_var session_;
+        SignalObserver::Observer_var observer_;
+
+        typedef std::tuple< SignalObserver::Observer_var
+                            , SignalObserver::Description_var
+                            , std::wstring
+                            , bool
+                            , std::shared_ptr< adcontrols::MassSpectrometer > > observer_type;
+
+        std::map< unsigned long, observer_type > observerMap_;
+        std::unique_ptr< receiver_i > receiver_i_;
+        std::unique_ptr< adinterface::ObserverEvents_i > sink_;
+        std::map< unsigned long, long > npos_map_;
+
+        void actionConnect();
+        void actionDisconnect();
+        void actionInitRun();
+        void actionRun();
+        void actionStop();
+        void actionInject();
+        void actionSnapshot();
+        bool readCalibrations( observer_type& );
+        
+        void handle_update_data( unsigned long objId, long pos );
+        void handle_controller_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value );
+        
+        orb_i( AcquirePlugin * p ) : pThis_( p ) {
+        }
+    };
+
     class AcquireImpl {
     public:
+        
         ~AcquireImpl() {
         }
+        
         AcquireImpl() : timePlot_(0), spectrumPlot_(0) {
         }
 
         Broker::Session_var brokerSession_;
-
         std::unique_ptr< brokerevent_i > brokerEvent_;
+
         std::map< int, adcontrols::Trace > traces_;
         adplot::ChromatogramWidget * timePlot_;
         adplot::SpectrumWidget * spectrumPlot_;
@@ -205,7 +245,7 @@ namespace acquire {
                                        , qtwrapper::qstring( path ), qtwrapper::qstring( id ) );
         }
     };
-
+#endif
 }
 
 // static
@@ -223,12 +263,14 @@ AcquirePlugin::~AcquirePlugin()
     shutdown_broker();
 
     delete mainWindow_;
+    delete orb_i_;
     delete pImpl_;
     ADTRACE() << "====== AcquirePlugin dtor complete ===============";
 }
 
 AcquirePlugin::AcquirePlugin() : mainWindow_(0)
                                , pImpl_( new AcquireImpl() )
+                               , orb_i_( new orb_i( this ) )
                                , actionConnect_(0)
                                , actionRun_(0)
                                , actionInitRun_(0)
@@ -282,8 +324,6 @@ AcquirePlugin::initialize_actions()
 	actionInject_->setEnabled( false );
     actionSnapshot_->setEnabled( true );
   
-    //const AcquireManagerActions& actions = mainWindow_->acquireManagerActions();
-    //Core::Context context( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
     Core::Context context( ( Core::Id( "Acquire.MainView" ), Core::Id( Core::Constants::C_GLOBAL ) ) );
 
     if ( auto am = Core::ActionManager::instance() ) {
@@ -316,7 +356,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         mode->setContext( context );
     else
         return false;
-
+    
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
     std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config" );
     boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
@@ -349,7 +389,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     mainWindow_->setSimpleDockWidgetArrangement();
     addAutoReleasedObject(mode);
 
-  return true;
+    return true;
 }
 
 void
@@ -376,6 +416,7 @@ AcquirePlugin::handle_broker_initialized()
         return;
     
     pImpl_->initialize_broker_session();
+    
     threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 }
 
@@ -412,8 +453,14 @@ AcquirePlugin::actionConnect()
     for ( auto& future : futures )
         future.get();
 
-    if ( CORBA::is_nil( session_.in() ) ) {
+    orb_i_->actionConnect();
+}
 
+void
+AcquirePlugin::orb_i::actionConnect()
+{
+    if ( CORBA::is_nil( session_.in() ) ) {
+        
         Broker::Manager_var broker = OrbConnection::instance()->brokerManager();
         if ( ! CORBA::is_nil( broker ) ) {
             using namespace acewrapper::constants;
@@ -426,21 +473,20 @@ AcquirePlugin::actionConnect()
                     receiver_i_.reset( new receiver_i );
 
                     receiver_i_->assign_message( [this] ( ::Receiver::eINSTEVENT code, uint32_t value ){
-                            emit onReceiverMessage( static_cast<unsigned long>(code), value );                            
+                            emit pThis_->onReceiverMessage( static_cast<unsigned long>(code), value );                            
                         });
 
-
-                    receiver_i_->assign_log( [this] ( const ::EventLog::LogMessage& log ){ this->handle_receiver_log( log ); } );
-
-                    receiver_i_->assign_shutdown( [this](){ this->handle_receiver_shutdown(); } );
-
+                    receiver_i_->assign_log( [this] ( const ::EventLog::LogMessage& log ){ pThis_->handle_receiver_log( log ); } );
+                    
+                    receiver_i_->assign_shutdown( [this](){ pThis_->handle_receiver_shutdown(); } );
+                    
                     receiver_i_->assign_debug_print( [this]( int32_t pri, int32_t cat, std::string text ){ 
-                            this->handle_receiver_debug_print( pri, cat, text ); } );
+                            pThis_->handle_receiver_debug_print( pri, cat, text ); } );
 
-                    connect( this, &AcquirePlugin::onReceiverMessage, this, &AcquirePlugin::handle_controller_message );
+                    connect( pThis_, &AcquirePlugin::onReceiverMessage, [this]( unsigned long code, uint32_t value ){ handle_controller_message( code, value); } );
                         
                     if ( session_->connect( receiver_i_->_this(), "acquire" ) )
-                        actionConnect_->setEnabled( false );
+                        pThis_->actionConnect_->setEnabled( false );
                         
                     if ( session_->status() <= ControlServer::eConfigured )
                         session_->initialize();
@@ -450,32 +496,32 @@ AcquirePlugin::actionConnect()
                     if ( !CORBA::is_nil( observer_.in() ) ) {
                         if ( !sink_ ) {
                             sink_.reset( new adinterface::ObserverEvents_i );
-
+                            
                             sink_->assignConfigChanged( [=] ( uint32_t oid, SignalObserver::eConfigStatus st ){
-                                this->handle_observer_config_changed( oid, st );
-                            } );
-
+                                    pThis_->handle_observer_config_changed( oid, st );
+                                } );
+                            
                             sink_->assignUpdateData( [=] ( uint32_t oid, int32_t pos ){
-                                this->handle_observer_update_data( oid, pos );
-                            } );
-
+                                    pThis_->handle_observer_update_data( oid, pos );
+                                } );
+                            
                             sink_->assignMethodChanged( [=] ( uint32_t oid, int32_t pos ){
-                                this->handle_observer_method_changed( oid, pos );
-                            } );
+                                    pThis_->handle_observer_method_changed( oid, pos );
+                                } );
                             sink_->assignEvent( [=] ( uint32_t oid, int32_t pos, int32_t ev ){
-                                this->handle_observer_event( oid, pos, ev );
-                            } );
-
+                                    pThis_->handle_observer_event( oid, pos, ev );
+                                } );
+                            
                             observer_->connect( sink_->_this(), SignalObserver::Frequent, "acquireplugin" );
                                 
-                            connect( this, SIGNAL( onObserverConfigChanged( unsigned long, long ) )
-                                , this, SLOT( handle_config_changed( unsigned long, long ) ) );
-                            connect( this, SIGNAL( onUpdateUIData( unsigned long, long ) )
-                                , this, SLOT( handle_update_ui_data( unsigned long, long ) ) );
-                            connect( this, SIGNAL( onObserverMethodChanged( unsigned long, long ) )
-                                , this, SLOT( handle_method_changed( unsigned long, long ) ) );
-                            connect( this, SIGNAL( onObserverEvent( unsigned long, long, long ) )
-                                , this, SLOT( handle_event( unsigned long, long, long ) ) );
+                            connect( pThis_, SIGNAL( onObserverConfigChanged( unsigned long, long ) )
+                                     , pThis_, SLOT( handle_config_changed( unsigned long, long ) ) );
+                            connect( pThis_, SIGNAL( onUpdateUIData( unsigned long, long ) )
+                                     , pThis_, SLOT( handle_update_ui_data( unsigned long, long ) ) );
+                            connect( pThis_, SIGNAL( onObserverMethodChanged( unsigned long, long ) )
+                                     , pThis_, SLOT( handle_method_changed( unsigned long, long ) ) );
+                            connect( pThis_, SIGNAL( onObserverEvent( unsigned long, long, long ) )
+                                     , pThis_, SLOT( handle_event( unsigned long, long, long ) ) );
                         }
                         
                         // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
@@ -484,18 +530,18 @@ AcquirePlugin::actionConnect()
 
                         for ( CORBA::ULong i = 0; i < nsize; ++i ) {
                             SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[ i ] );
-                            populate( var );
+                            pThis_->populate( var );
                         }
                     }
                 }
-                actionInitRun();
+                pThis_->actionInitRun();
             }
         }
     }
 
     if ( ! CORBA::is_nil( session_ ) ) {
-        actionInitRun_->setEnabled( true );
-        actionRun_->setEnabled( true );
+        pThis_->actionInitRun_->setEnabled( true );
+        pThis_->actionRun_->setEnabled( true );
         document::instance()->fsmStop();
     }
 }
@@ -519,6 +565,12 @@ AcquirePlugin::populate( SignalObserver::Observer_var& observer )
 void
 AcquirePlugin::actionDisconnect()
 {
+    orb_i_->actionDisconnect();
+}
+
+void
+AcquirePlugin::orb_i::actionDisconnect()
+{
     if ( ! CORBA::is_nil( session_ ) ) {
 
         // disconnect from observer
@@ -535,12 +587,17 @@ AcquirePlugin::actionDisconnect()
         document::instance()->fsmStop(); // FSM
     }
 }
-    
+
 void
 AcquirePlugin::actionInitRun()
 {
     handleCommitMethods();
+    orb_i_->actionInitRun();
+}
 
+void
+AcquirePlugin::orb_i::actionInitRun()
+{
     if ( ! CORBA::is_nil( session_ ) ) {
 
         document::instance()->fsmActPrepareForRun(); // FSM
@@ -560,6 +617,12 @@ AcquirePlugin::actionInitRun()
 void
 AcquirePlugin::actionRun()
 {
+    orb_i_->actionRun();
+}
+
+void
+AcquirePlugin::orb_i::actionRun()
+{
     actionInitRun();
     if ( ! CORBA::is_nil( session_ ) ) {
         session_->start_run();
@@ -570,6 +633,12 @@ AcquirePlugin::actionRun()
 void
 AcquirePlugin::actionStop()
 {
+    orb_i_->actionStop();
+}
+
+void
+AcquirePlugin::orb_i::actionStop()
+{
     if ( ! CORBA::is_nil( session_ ) ) {
         session_->stop_run();
         document::instance()->fsmActStop(); // FSM
@@ -579,6 +648,12 @@ AcquirePlugin::actionStop()
 void
 AcquirePlugin::actionInject()
 {
+    orb_i_->actionInject();
+}
+
+void
+AcquirePlugin::orb_i::actionInject()
+{
     if ( ! CORBA::is_nil( session_ ) ) {
 		session_->event_out( ControlServer::event_InjectOut ); // simulate inject out to modules
     }
@@ -586,6 +661,12 @@ AcquirePlugin::actionInject()
 
 void
 AcquirePlugin::actionSnapshot()
+{
+    orb_i_->actionSnapshot();
+}
+
+void
+AcquirePlugin::orb_i::actionSnapshot()
 {
     if ( CORBA::is_nil( observer_ ) )
         return;
@@ -597,7 +678,7 @@ AcquirePlugin::actionSnapshot()
             siblings[i]->uptime_range( first, second );
             double m1 = double(second) / 60.0e6;
             double m0 = double(second - 1000) / 60.0e6;  // 1s before
-			selectRange( m0, m1, 0, 0 );
+			pThis_->selectRange( m0, m1, 0, 0 );
         }
     }
 }
@@ -723,7 +804,7 @@ AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
 }
 
 bool
-AcquirePlugin::readCalibrations( observer_type& obs )
+AcquirePlugin::orb_i::readCalibrations( observer_type& obs )
 {
     CORBA::String_var dataClass;
     SignalObserver::Observer_ptr tgt = std::get<0>( obs ).in();
@@ -747,12 +828,12 @@ AcquirePlugin::readCalibrations( observer_type& obs )
 }
 
 void
-AcquirePlugin::handle_update_data( unsigned long objId, long pos )
+AcquirePlugin::orb_i::handle_update_data( unsigned long objId, long pos )
 {
     ACE_UNUSED_ARG( pos );
 
     try {
-        std::lock_guard< std::mutex > lock( mutex_ );
+        std::lock_guard< std::mutex > lock( pThis_->mutex_ );
         
         if ( observerMap_.find( objId ) == observerMap_.end() ) {
             SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
@@ -798,9 +879,9 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                 while ( tgt->readData( npos, rb ) && npos <= pos ) {
                     // ADDEBUG() << "\treadData( " << npos << " ) " << rb->pos;
                     ++npos;
-                    readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
+                    pThis_->readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
                 }
-                emit onUpdateUIData( objId, pos );
+                emit pThis_->onUpdateUIData( objId, pos );
             } catch ( CORBA::Exception& ex ) {
                 ADTRACE() << "handle_update_data got an corba exception: " << ex._info().c_str();
             } catch ( ... ) {
@@ -812,8 +893,8 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                 SignalObserver::DataReadBuffer_var rb;
                 while ( tgt->readData( npos, rb ) ) {
                     npos = rb->pos + rb->ndata;
-                    readTrace( desc, rb, dataInterpreter, objId );
-                    emit onUpdateUIData( objId, pos );
+                    pThis_->readTrace( desc, rb, dataInterpreter, objId );
+                    emit pThis_->onUpdateUIData( objId, pos );
                     return;
                 }
             } catch ( CORBA::Exception& ex ) {
@@ -847,7 +928,7 @@ AcquirePlugin::handle_event( unsigned long objid, long pos, long flags )
 }
 
 void
-AcquirePlugin::handle_controller_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
+AcquirePlugin::orb_i::handle_controller_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
 {
     try {
         using namespace ControlServer;
@@ -858,27 +939,27 @@ AcquirePlugin::handle_controller_message( unsigned long /* Receiver::eINSTEVENT 
 
             if ( status == eWaitingForContactClosure ) {
 
-                actionInject_->setEnabled( true );
-                actionStop_->setEnabled( true );
-                actionRun_->setEnabled( false );
+                pThis_->actionInject_->setEnabled( true );
+                pThis_->actionStop_->setEnabled( true );
+                pThis_->actionRun_->setEnabled( false );
 
                 CORBA::String_var xml = session_->running_sample();
                 document::instance()->notify_ready_for_run( xml );
 
             } else if ( status == ePreparingForRun ) {
 
-                actionStop_->setEnabled( false );
+                pThis_->actionStop_->setEnabled( false );
 
             } else if ( status == eReadyForRun ) {
 
-                actionStop_->setEnabled( false );
-                actionRun_->setEnabled( true );
+                pThis_->actionStop_->setEnabled( false );
+                pThis_->actionRun_->setEnabled( true );
 
             } else if ( status == eRunning ) {
 
-                actionStop_->setEnabled( true );
-                actionInject_->setEnabled( false );
-                actionRun_->setEnabled( false );
+                pThis_->actionStop_->setEnabled( true );
+                pThis_->actionInject_->setEnabled( false );
+                pThis_->actionRun_->setEnabled( false );
 
             }
         }
@@ -937,7 +1018,7 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 {
     (void)y1; (void)y2;
 
-    SignalObserver::Observers_var siblings = observer_->getSiblings();
+    SignalObserver::Observers_var siblings = orb_i_->observer_->getSiblings();
     CORBA::ULong nsize = siblings->length();
 
     for ( CORBA::ULong i = 0; i < nsize; ++i ) {
@@ -977,7 +1058,7 @@ AcquirePlugin::handle_observer_config_changed( uint32_t objid, SignalObserver::e
 void
 AcquirePlugin::handle_observer_update_data( uint32_t objid, int32_t pos )
 {
-    io_service_.post( strand_.wrap( std::bind(&AcquirePlugin::handle_update_data, this, objid, pos ) ) );    
+    io_service_.post( strand_.wrap( std::bind(&AcquirePlugin::orb_i::handle_update_data, orb_i_, objid, pos ) ) );    
 }
 
 void

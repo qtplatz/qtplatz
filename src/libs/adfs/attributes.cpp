@@ -184,7 +184,7 @@ uint32_t
 attributes::fetch_format_version() const
 {
     uint32_t format_version = 0;
-    if ( format_version = db().fs_format_version() )
+    if ( ( format_version = db().fs_format_version() ) )
         return format_version;
     
     adfs::stmt sql( db() );

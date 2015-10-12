@@ -85,17 +85,22 @@ namespace acquire {
 
     //------------
     class AcquirePlugin : public ExtensionSystem::IPlugin {
+
         Q_OBJECT
         Q_PLUGIN_METADATA(IID "com.ms-cheminfo.qtplatz.plugin" FILE "acquire.json")
-        public:
+
+    public:
         ~AcquirePlugin();
         AcquirePlugin();
 
         // implement IPlugin
-        virtual bool initialize(const QStringList &arguments, QString *error_message);
-        virtual void extensionsInitialized();
-        virtual ShutdownFlag aboutToShutdown();
+        bool initialize(const QStringList &arguments, QString *error_message) override;
+        void extensionsInitialized() override;
+        ShutdownFlag aboutToShutdown() override;
 
+    public:
+        static QToolButton * toolButton( QAction * action );
+                                              
     public slots:
         void handleCommitMethods();
 
@@ -110,7 +115,6 @@ namespace acquire {
         void actMethodOpen();
         void actMethodSave();
 
-        void handle_controller_message( unsigned long msg, unsigned long value );
         void handle_shutdown();
         void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
@@ -143,6 +147,9 @@ namespace acquire {
         void selectRange( double x1, double x2, double y1, double y2 );
         void handle_update_data( unsigned long objid, long pos );
 
+        class orb_i;
+        orb_i * orb_i_;
+
         MainWindow * mainWindow_;
         AcquireImpl * pImpl_;
 
@@ -162,26 +169,12 @@ namespace acquire {
         void initialize_broker();
         void shutdown_broker();
 
-        ControlServer::Session_var session_;
-        SignalObserver::Observer_var observer_;
-
-        typedef std::tuple< SignalObserver::Observer_var
-                            , SignalObserver::Description_var
-                            , std::wstring
-                            , bool
-                            , std::shared_ptr< adcontrols::MassSpectrometer > > observer_type;
-
-            
-        std::map< unsigned long, observer_type > observerMap_;
-
+        
         std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
         std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
         std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
-        std::map< unsigned long, long > npos_map_;
         std::map< unsigned long, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
 
-        std::unique_ptr< receiver_i > receiver_i_;
-        std::unique_ptr< adinterface::ObserverEvents_i > sink_;
         std::vector< std::wstring > trace_descriptions_;
         QComboBox * traceBox_;
 
@@ -192,7 +185,7 @@ namespace acquire {
         std::mutex mutex_;
 
         void populate( SignalObserver::Observer_var& );
-        bool readCalibrations( observer_type& );
+
         bool readMassSpectra( const SignalObserver::DataReadBuffer&
                               , const adcontrols::MassSpectrometer&
                               , const adcontrols::DataInterpreter& dataInterpreter
@@ -207,15 +200,13 @@ namespace acquire {
         void handle_observer_update_data( uint32_t objid, int32_t pos );
         void handle_observer_method_changed( uint32_t objid, int32_t pos );
         void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
-
+        
         // receiver_i handlers
         // void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
         void handle_receiver_log( const ::EventLog::LogMessage& );
         void handle_receiver_shutdown();
         void handle_receiver_debug_print( int32_t, int32_t, std::string );
 
-    public:
-        static QToolButton * toolButton( QAction * action );
     };
 
 }
