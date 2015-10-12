@@ -151,6 +151,7 @@ namespace adplot {
             std::pair<double, double> y_range( double left, double right ) const;
             bool yRight() const { return yRight_; }
             void setAlpha( int alpha );
+            const QRectF& rect() const { return rect_; }
 
         private:
             void setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, bool yRight );
@@ -202,7 +203,8 @@ namespace adplot {
         QwtText tracker1( const QPointF& );
         QwtText tracker2( const QPointF&, const QPointF& );
 
-        std::pair<bool,bool> scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );        
+        std::pair<bool,bool> scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
+        void baseScale( bool, QRectF& rc );
     };
 
 } // namespace adplot
@@ -227,8 +229,8 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
                 auto hasAxis = impl_->scaleY( rc, left, right );
                 if ( hasAxis.second )
                     setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
-                if ( hasAxis.first ) { // yLeft
-                    // zoom rect seems be upside down
+
+                if ( hasAxis.first ) { // yLeft; zoom rect seems be upside down
                     rc.setCoords( rc.left(), left.first, rc.right(), left.second );
                 }
             } );
@@ -318,7 +320,7 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
     if ( hasYLeft && hasYRight ) {
         if ( ( left.first <= 0 && left.second > 0 ) && ( right.first <= 0 && right.second > 0 ) ) {
             // adjust zero level
-            double left_base = left.first / ( left.second - left.first ); // should be negative
+            double left_base = left.first / ( left.second - left.first );   // should be negative
             double right_base = right.first / (right.second - right.first); // negative too
             if ( left_base < right_base ) { // left axis has higher zero position
                 right.first = (right.second - right.first) * left_base;
@@ -328,6 +330,36 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
         }
     }
     return std::make_pair( hasYLeft, hasYRight );
+}
+
+void
+SpectrumWidget::impl::baseScale( bool yRight, QRectF& rc )
+{
+    using spectrumwidget::TraceData;
+
+    rc = QRectF(); // make them 'null'
+
+    for ( const TraceData& trace: traces_ ) {
+
+        const QRectF& t = trace.rect();
+
+        if ( rc.isNull() ) {
+
+            rc = t;
+
+        } else {
+
+            rc.setLeft( std::min( t.left(), rc.left() ) );
+            rc.setRight( std::max( t.right(), rc.right() ) );
+            
+            if ( trace.yRight() == yRight ) {
+                
+                rc.setBottom( std::min( t.bottom(), rc.bottom() ) );
+                rc.setTop( std::max( t.top(), rc.top() ) );
+                
+            }
+        }
+    }
 }
 
 void
@@ -452,13 +484,21 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
     QRectF rect;
     trace.setData( *this, ptr, rect, impl_->haxis_, yRight );
 
+    QRectF baseRect;
+    impl_->baseScale( yRight, baseRect );
+
     auto rectIndex = zoomer()->zoomRectIndex();
     QRectF z = zoomer()->zoomRect();
 
     if ( rectIndex == 0 || !impl_->keepZoomed_ ) {
 
-        setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
-        setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
+        setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
+
+        if ( yRight )
+            qDebug() << "right y base scale: " << baseRect.bottom() << ", " << baseRect.top();
+        
+        setAxisScale( QwtPlot::xBottom, baseRect.left(), baseRect.right() );
+        
         zoomer()->setZoomBase();
 
     } else {
@@ -471,13 +511,12 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         if ( yRight && hasAxis.second ) {
 
             setAxisScale( QwtPlot::yRight, right.first, right.second );
+            qDebug() << "right y scale: " << right.first << ", " << right.second;
 
         } else {
             if ( hasAxis.first ) {
                 QStack< QRectF > zstack;
-                QRectF rc;
-                rc.setCoords( rect.x(), rect.bottom(), rect.left(), rect.top() ); // upside down
-                zstack.push_back( QRectF( rect.x(), rect.bottom(), rect.width(), -rect.height() ) ); // upside down
+                zstack.push_back( QRectF( baseRect.x(), baseRect.bottom(), baseRect.width(), -baseRect.height() ) ); // upside down
                 zstack.push_back( QRectF( z.x(), left.first, z.width(), left.second - left.first ) );
                 QSignalBlocker block( zoomer() );
                 zoomer()->setZoomStack( zstack );
@@ -490,8 +529,8 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         update_annotation( false );
     } else {
         impl_->clear_annotations();
-        replot();
     }
+    replot();
 }
 
 void
@@ -637,8 +676,6 @@ TraceData::setData( plot& plot
 	double top = adcontrols::segments_helper::max_intensity( *ms );
     double bottom = adcontrols::segments_helper::min_intensity( *ms );
 	
-	if ( ms->isCentroid() )
-		bottom = 0;
 	top = top + ( top - bottom ) * 0.12; // add 12% margine for annotation
 
     if ( isTimeAxis_ ) {
@@ -676,8 +713,8 @@ TraceData::setData( plot& plot
         rect.setCoords( mass_range.first, top, mass_range.second, bottom );
     }
     
-    rect_ = rect;
     yRight_ = yRight;
+    rect_ = rect;
     if ( ms->isCentroid() ) { // sticked
         setCentroidData( plot, *ms, rect, yRight );
     } else { // Profile
@@ -723,7 +760,7 @@ TraceData::y_range( double left, double right ) const
     if ( pSpectrum_ ) {
 
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *pSpectrum_ );
-
+        
         for ( auto& seg: segments ) {
 
             bool isCentroid = seg.isCentroid();
@@ -778,10 +815,10 @@ TraceData::y_range( double left, double right ) const
                 double max = *minmax.second;
 
                 top = std::max( top, max );
-                if ( !isCentroid ) {
-                    bottom = min - (max - min) / 25;
+                if ( isCentroid ) {
+                    bottom = 0;
                 } else {
-                    bottom = -( max - min ) / 25;
+                    bottom = min - (max - min) / 25;                    
                 }
             }
         }
