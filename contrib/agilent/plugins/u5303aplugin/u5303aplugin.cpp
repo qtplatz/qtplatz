@@ -55,13 +55,10 @@ using namespace u5303a;
 u5303APlugin::u5303APlugin() : mainWindow_( new MainWindow() )
                              , mode_( std::make_shared< u5303AMode >(this) )
 {
-    // Create your members
 }
 
 u5303APlugin::~u5303APlugin()
 {
-    // Unregister objects from the plugin manager's object pool
-    // Delete members
 }
 
 bool
@@ -84,7 +81,6 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
 
     addObject( mode_.get() );
 
-
     if ( auto iExtension = document::instance()->iController() ) {
         addObject( iExtension );
         connect( iExtension, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
@@ -92,7 +88,7 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
 
     QAction *action = new QAction(tr("u5303A action"), this);
 
-    Core::ActionManager * am = Core::ActionManager::instance(); // ICore::instance()->actionManager();
+    Core::ActionManager * am = Core::ActionManager::instance();
     Core::Command * cmd = am->registerAction(action, Constants::ACTION_ID, context );
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
     connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));
@@ -105,7 +101,8 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
     return true;
 }
 
-void u5303APlugin::extensionsInitialized()
+void
+u5303APlugin::extensionsInitialized()
 {
     auto factory = u5303aspectrometer::MassSpectrometer::instance();
 	adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
@@ -113,7 +110,8 @@ void u5303APlugin::extensionsInitialized()
 	mainWindow_->OnInitialUpdate();
 }
 
-ExtensionSystem::IPlugin::ShutdownFlag u5303APlugin::aboutToShutdown()
+ExtensionSystem::IPlugin::ShutdownFlag
+u5303APlugin::aboutToShutdown()
 {
     // Save settings
     // Disconnect from signals that are not needed during shutdown
@@ -129,7 +127,8 @@ ExtensionSystem::IPlugin::ShutdownFlag u5303APlugin::aboutToShutdown()
     return SynchronousShutdown;
 }
 
-void u5303APlugin::triggerAction()
+void
+u5303APlugin::triggerAction()
 {
     QMessageBox::information(Core::ICore::instance()->mainWindow(),
                              tr("Action triggered"),

@@ -32,7 +32,6 @@
 
 class QSettings;
 
-//namespace adcontrols { class MassSpectrum; namespace ControlMethod { class Method; } class threshold_method; }
 namespace adextension { class iController; }
 
 namespace adcontrols {

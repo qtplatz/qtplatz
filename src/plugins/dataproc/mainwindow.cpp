@@ -372,7 +372,7 @@ MainWindow::createStyledBarMiddle()
                     QMenu menu;
                     menu.addAction( am->command( Constants::PROCESS_ALL_CHECKED )->action() );
                     menu.exec( features->mapToGlobal( pt ) );
-                } );
+                });
 
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -380,6 +380,7 @@ MainWindow::createStyledBarMiddle()
             auto edit = new QLineEdit;
             edit->setObjectName( Constants::EDIT_PROCMETHOD );
             edit->setEnabled( false );
+
             toolBarLayout->addWidget( edit );
 
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );

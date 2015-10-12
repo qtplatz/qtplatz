@@ -42,7 +42,6 @@
 #include <adextension/ireceiver.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adextension/isnapshothandler.hpp>
-//#include <adinterface/controlserver.hpp>
 #include <adicontroller/constants.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
@@ -323,20 +322,6 @@ MainWindow::toolButton( const char * id )
     return toolButton( Core::ActionManager::instance()->command( id )->action() );
 }
 
-void
-MainWindow::setData( const adcontrols::MassSpectrum& )
-{
-    // if ( monitorView_ )
-    //     monitorView_->setData( ms );
-}
-
-void
-MainWindow::setData( const adcontrols::Trace&, const std::wstring& )
-{
-    // if ( monitorView_ )
-    //     monitorView_->setData( trace, traceId );
-}
-
 Utils::StyledBar *
 MainWindow::createTopStyledToolbar()
 {
@@ -351,12 +336,8 @@ MainWindow::createTopStyledToolbar()
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_RUN)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_STOP)->action()));
 
-            if ( auto button = new QToolButton() ) {
-                button->setDefaultAction( am->command( Constants::ACTION_REC )->action() );
-                button->setCheckable( true );
-                toolBarLayout->addWidget( button );
-            }
-            
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_REC)->action()));            
+
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_SNAPSHOT)->action()));
             //-- separator --
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -381,10 +362,8 @@ MainWindow::createMidStyledToolbar()
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
             // print, method file open & save buttons
-            //toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
-            //toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));
-            // [file open] button
-            // toolBarLayout->addWidget( toolButton( am->command( Constants::FILE_OPEN )->action() ) );
+            toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::SAVE_CURRENT_IMAGE)->action()));
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
@@ -394,6 +373,9 @@ MainWindow::createMidStyledToolbar()
             toolBarLayout->addWidget( new Utils::StyledSeparator );
 
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+            toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
+            
         }
 		return toolBar;
     }
@@ -441,14 +423,19 @@ MainWindow::createActions( const Core::Context& context )
 
     do {
         QIcon icon;
-        icon.addPixmap( QPixmap( Constants::ICON_REC_ON ), QIcon::Normal, QIcon::Off );
-        icon.addPixmap( QPixmap( Constants::ICON_REC_PAUSE ), QIcon::Normal, QIcon::On );
+        icon.addPixmap( QPixmap( Constants::ICON_REC_ON ), QIcon::Normal, QIcon::On );
+        icon.addPixmap( QPixmap( Constants::ICON_REC_PAUSE ), QIcon::Normal, QIcon::Off );
         if ( auto action = new QAction( icon, tr( "REC" ), this ) ) {
             action->setCheckable( true );
             action->setEnabled( false );
             auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, context );
             menu->addAction( cmd );        
-            connect( action, &QAction::triggered, document::instance(), &document::actionRec );
+            connect( action, &QAction::triggered, [this](bool rec){
+                    document::instance()->actionRec(rec);
+                    if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
+                        if ( !action->isEnabled() )
+                            action->setEnabled( true );
+                } );
         }
     } while ( 0 );
     
@@ -470,7 +457,17 @@ MainWindow::createActions( const Core::Context& context )
         auto cmd = Core::ActionManager::registerAction( action, Constants::SAVE_CURRENT_IMAGE, context );
         menu->addAction( cmd );        
     }
-    
+
+    do {
+        QIcon icon;
+        icon.addPixmap( QPixmap( Constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::Off );
+        icon.addPixmap( QPixmap( Constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::On );
+        auto * action = new QAction( icon, tr( "Hide dock" ), this );
+        action->setCheckable( true );
+        Core::ActionManager::registerAction( action, Constants::HIDE_DOCK, context );
+        connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::hideDock );
+    } while ( 0 );
+
     handleInstState( 0 );
     Core::ActionManager::instance()->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
 
@@ -611,5 +608,16 @@ MainWindow::iControllerConnected( adextension::iController * inst )
                 receiver->onConnected( inst );
             }
         }
+    }
+}
+
+void
+MainWindow::hideDock( bool hide )
+{
+    for ( auto& w :  dockWidgets() ) {
+        if ( hide )
+            w->hide();
+        else
+            w->show();
     }
 }

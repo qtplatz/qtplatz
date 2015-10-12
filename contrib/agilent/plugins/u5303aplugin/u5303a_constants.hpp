@@ -26,14 +26,15 @@ namespace Constants {
     const char * const ACTION_SYNC          = "u5303a.SyncTrig";
     const char * const PRINT_CURRENT_VIEW   = "u5303a.print_current_view";
     const char * const SAVE_CURRENT_IMAGE   = "u5303a.save_current_image";
+    const char * const HIDE_DOCK            = "u5303a.HideDock";
 
     // icon
-    const char * const ICON_FILE_OPEN       = ":/dataproc/image/fileopen.png";
-    const char * const ICON_INITRUN         = ":/acquire/images/Button Last.png";
-    //const char * const ICON_RUN           = ":/acquire/images/Button Play.png";
-    //const char * const ICON_STOP          = ":/acquire/images/Button Stop.png";
-    const char * const ICON_INJECT          = ":/acquire/images/Button Add.png";
-    //const char * const ICON_SNAPSHOT      = ":/acquire/images/snapshot_small.png";
+    // const char * const ICON_FILE_OPEN       = ":/dataproc/image/fileopen.png";
+    // const char * const ICON_INITRUN         = ":/acquire/images/Button Last.png";
+    // const char * const ICON_INJECT          = ":/acquire/images/Button Add.png";
+
+    const char * const ICON_DOCKHIDE        = ":/dataproc/image/button_close.png";
+    const char * const ICON_DOCKSHOW        = ":/dataproc/image/control-090-small.png";
 
     // icon
     const char * const ICON_CONNECT         = ":/u5303a/images/control_power_blue.png";

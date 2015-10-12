@@ -78,20 +78,6 @@ namespace u5303a {
 
     namespace so = adicontroller::SignalObserver;
 
-    // //.................... todo -- move MasterObserver to more genelic place ..................
-    // class MasterObserver : public adicontroller::SignalObserver::Observer {
-    //     const boost::uuids::uuid objid_;
-    // public:
-    //     MasterObserver() : objid_( { 0 } ) {}
-    //     bool connect( so::ObserverEvents * cb, so::eUpdateFrequency, const std::string& ) override { return false; }
-    //     bool disconnect( so::ObserverEvents * cb ) override { return false; }
-    //     const boost::uuids::uuid& objid() const override { return objid_; }
-    //     const char * objtext() const override { return 0; }
-    //     uint64_t uptime() const override { return 0; }
-    //     std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override { return 0; }
-    //     const char * dataInterpreterClsid() const override { return 0; }
-    // };
-
     //..........................................
     class document::impl {
     public:
@@ -141,7 +127,6 @@ namespace u5303a {
     };
 
     std::mutex document::impl::mutex_;
-    //std::unique_ptr< document > document::impl::instance_;
     document * document::impl::instance_( 0 );
     const std::chrono::steady_clock::time_point document::impl::uptime_ = std::chrono::steady_clock::now();
     const uint64_t document::impl::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( document::impl::uptime_.time_since_epoch() ).count();

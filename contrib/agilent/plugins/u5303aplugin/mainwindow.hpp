@@ -68,10 +68,6 @@ namespace u5303a {
 		static QToolButton * toolButton( QAction * );
 		static MainWindow * instance();
 
-        void setData( const adcontrols::MassSpectrum& );
-        void setData( const adcontrols::Trace&, const std::wstring& traceId );
-        //bool editor_factories( iSequenceImpl& );
-
         void setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> );
 
         std::shared_ptr< adcontrols::ControlMethod::Method > getControlMethod() const;
@@ -79,24 +75,17 @@ namespace u5303a {
         void editor_commit();
 
     private:
-        // enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
-        // std::array< QAction *, numActions > actions_;
         std::vector< QWidget* > widgets_;
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
 
     signals:
 
 	public slots:
-        //void actConnect();
-        //void actInject();
-        //void actInitRun();
-        //void actRun();
-        //void actStop();
         void actSnapshot();
-        //void actFileOpen();
         void iControllerConnected( adextension::iController * );
         void saveCurrentImage();
         void printCurrentView();
+        void hideDock( bool );
                                                                
     private slots:
         void handle_reply( const QString&, const QString& );
