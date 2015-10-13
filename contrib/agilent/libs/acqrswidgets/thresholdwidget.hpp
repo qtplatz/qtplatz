@@ -43,7 +43,7 @@ namespace acqrswidgets {
         Q_INTERFACES( adplugin::LifeCycle )
 
     public:
-        explicit ThresholdWidget(QWidget *parent = 0);
+        explicit ThresholdWidget( const QString& model, int unitid = 1, QWidget *parent = 0);
         ~ThresholdWidget();
 
         // LifeCycle
@@ -62,7 +62,9 @@ namespace acqrswidgets {
     signals:
         void valueChanged( idCategory cat, int ch );
         // void valueChanged( int, const QVariant& );
-    
+    private:
+        QString modelClass_;
+        uint32_t unitId_;
     };
 }
 

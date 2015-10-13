@@ -40,6 +40,7 @@
 #include <adcontrols/samplerun.hpp>
 #include <adextension/isnapshothandler.hpp>
 #include <adextension/icontrollerimpl.hpp>
+#include <adextension/isequenceimpl.hpp>
 #include <adicontroller/masterobserver.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
@@ -90,9 +91,9 @@ namespace u5303a {
         std::shared_ptr< tdcdoc > tdcdoc_;
         std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
         std::shared_ptr< ::u5303a::iControllerImpl > iControllerImpl_;
+        std::shared_ptr< adextension::iSequenceImpl > iSequenceImpl_;
         std::vector< std::shared_ptr< adextension::iController > > iControllers_;
         std::shared_ptr< adicontroller::MasterObserver > masterObserver_;
-        bool isRecording_;
         bool isMethodDirty_;
 
         std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
@@ -109,7 +110,7 @@ namespace u5303a {
         impl() : tdcdoc_( std::make_shared< tdcdoc >() )
                , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                , iControllerImpl_( std::make_shared< u5303a::iControllerImpl >() )
-               , isRecording_( false )
+               , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >() )
                , isMethodDirty_( true )
                , device_status_( 0 )
                , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
@@ -123,7 +124,6 @@ namespace u5303a {
         void handleMessage( adextension::iController * ic, unsigned long code, unsigned long value );
         void handleLog( adextension::iController *, const QString& );
         void handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
-
     };
 
     std::mutex document::impl::mutex_;
@@ -198,8 +198,70 @@ document::actionConnect()
         }
         
         task::instance()->prepare_next_sample( impl_->masterObserver_.get(), impl_->nextSampleRun_, *cm );
+    }
+}
+
+void
+document::actionRec( bool onoff )
+{
+    for ( auto inst : impl_->iControllers_ ) {
+        if ( auto session = inst->getInstrumentSession() )
+            session->recording( onoff );
+    }
+}
+
+void
+document::actionSyncTrig()
+{
+    tdc()->clear_histogram();
+}
+
+void
+document::actionRun( bool run )
+{
+    for ( auto inst : impl_->iControllers_ ) {
+        if ( auto session = inst->getInstrumentSession() ) {
+            if ( run )
+                session->start_run();
+            else
+                session->stop_run();
+        }
+    }
+}
+
+void
+document::addiController( adextension::iController * p )
+{
+    try {
+
+        if ( auto ptr = p->pThis() )
+            impl_->addiController( p->pThis() );
+
+    } catch ( std::bad_weak_ptr& ) {
+        
+        QMessageBox::warning( MainWindow::instance(), "MALPIX Acquire"
+                              , QString( tr( "Instrument controller %1 is not compatible; ignored." ) ).arg( p->module_name() ) );
 
     }
+}
+
+void
+document::impl::addiController( std::shared_ptr< adextension::iController > p )
+{
+
+    using adextension::iController;
+    using adicontroller::SignalObserver::Observer;
+
+    iControllers_.push_back( p );
+
+    // switch to UI thread
+    connect( p.get(), &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
+    connect( p.get(), &iController::message, [this] ( iController * p, unsigned int code, unsigned int value ) { handleMessage( p, code, value ); } );
+    connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
+
+    // non UI thread
+    p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
+
 }
 
 void
@@ -264,71 +326,6 @@ std::shared_ptr< const acqrscontrols::u5303a::method >
 document::method() const
 {
     return impl_->method_;
-}
-
-std::shared_ptr< adcontrols::MassSpectrum >
-document::getHistogram( double resolution ) const
-{
-    acqrscontrols::u5303a::metadata meta;
-    std::vector< std::pair< double, uint32_t > > hist;
-
-    auto sp = std::make_shared< adcontrols::MassSpectrum >();    
-    std::pair<uint32_t,uint32_t> serialnumber;
-    std::pair<uint64_t,uint64_t> timeSinceEpoch;
-#if 0
-    if ( size_t trigCount = impl_->getHistogram( hist, meta, serialnumber, timeSinceEpoch ) ) {
-        
-        using namespace adcontrols::metric;
-        
-        sp->setCentroid( adcontrols::CentroidNative );
-        
-        adcontrols::MSProperty prop = sp->getMSProperty();
-        adcontrols::MSProperty::SamplingInfo info( 0
-                                                   , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
-                                                   , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
-                                                   , uint32_t( trigCount )
-                                                   , 0 );
-        info.fSampInterval( meta.xIncrement );
-        prop.acceleratorVoltage( 3000 );
-        prop.setSamplingInfo( info );
-        
-        prop.setTimeSinceInjection( meta.initialXTimeSeconds );
-        prop.setTimeSinceEpoch( timeSinceEpoch.second );
-        prop.setDataInterpreterClsid( "u5303a" );
-        
-        {
-            ap240::device_data data;
-            data.meta = meta;
-            std::string ar;
-            adportable::binary::serialize<>()( data, ar );
-            prop.setDeviceData( ar.data(), ar.size() );
-        }
-        
-        sp->setMSProperty( prop );
-
-        if ( resolution > meta.xIncrement ) {
-
-            std::vector< double > times, intens;
-            ap240x::histogram::average( hist, resolution, times, intens );
-            sp->resize( times.size() );
-            sp->setTimeArray( times.data() );
-            sp->setIntensityArray( intens.data() );
-        } else {
-            sp->resize( hist.size() );            
-            for ( size_t idx = 0; idx < hist.size(); ++idx ) {
-                sp->setTime( idx, hist[idx].first );
-                sp->setIntensity( idx, hist[idx].second );
-            }
-        }
-    }
-#endif
-    return sp;
-}
-
-u5303a::iControllerImpl *
-document::iController()
-{
-    return impl_->iControllerImpl_.get();
 }
 
 // static
@@ -630,8 +627,8 @@ document::set_method( const acqrscontrols::u5303a::method& )
         setControlMethod( cm );
 
         auto it = std::find_if( impl_->iControllers_.begin(), impl_->iControllers_.end(), [] ( std::shared_ptr<adextension::iController> ic ) {
-            return ic->module_name() == "u5303a";
-        } );
+                return ic->module_name() == "u5303a";
+            } );
         if ( it != impl_->iControllers_.end() ) {
             if ( auto session = ( *it )->getInstrumentSession() )
                 session->prepare_for_run( cm );
@@ -654,62 +651,12 @@ document::setSampleRun( std::shared_ptr< adcontrols::SampleRun > sr )
 bool
 document::isRecording() const
 {
-    return impl_->isRecording_;
-}
-
-void
-document::actionRec( bool onoff )
-{
-    if ( impl_->isRecording_ != onoff ) {
-        impl_->isRecording_ = onoff;
-        //emit recStateChanged( onoff );
+    bool recording( false );
+    for ( auto inst : impl_->iControllers_ ) {
+        if ( auto session = inst->getInstrumentSession() )
+            recording |= session->isRecording();
     }
-}
-
-void
-document::actionSyncTrig()
-{
-    //task::instance()->clear_histogram();
-}
-
-void
-document::actionRun( bool onoff )
-{
-}
-
-void
-document::addiController( adextension::iController * p )
-{
-    try {
-
-        if ( auto ptr = p->pThis() )
-            impl_->addiController( p->pThis() );
-
-    } catch ( std::bad_weak_ptr& ) {
-        
-        QMessageBox::warning( MainWindow::instance(), "MALPIX Acquire"
-                              , QString( tr( "Instrument controller %1 is not compatible; ignored." ) ).arg( p->module_name() ) );
-
-    }
-}
-
-void
-document::impl::addiController( std::shared_ptr< adextension::iController > p )
-{
-
-    using adextension::iController;
-    using adicontroller::SignalObserver::Observer;
-
-    iControllers_.push_back( p );
-
-    // switch to UI thread
-    connect( p.get(), &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
-    connect( p.get(), &iController::message, [this] ( iController * p, unsigned int code, unsigned int value ) { handleMessage( p, code, value ); } );
-    connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
-
-    // non UI thread
-    p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
-
+    return recording;
 }
 
 void
@@ -865,3 +812,16 @@ document::takeSnapshot()
     }
 
 }
+
+u5303a::iControllerImpl *
+document::iController()
+{
+    return impl_->iControllerImpl_.get();
+}
+
+adextension::iSequenceImpl *
+document::iSequence()
+{
+    return impl_->iSequenceImpl_.get();
+}
+

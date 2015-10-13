@@ -85,10 +85,18 @@ namespace adicontroller {
             virtual bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m ) = 0;
     
             virtual bool event_out( uint32_t event ) = 0;
+            
             virtual bool start_run() = 0;
+
             virtual bool suspend_run() = 0;
+
             virtual bool resume_run() = 0;
+
             virtual bool stop_run() = 0;
+
+            virtual bool recording( bool ) { return false; }
+
+            virtual bool isRecording() const { return false; }
         };
 
 

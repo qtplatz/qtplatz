@@ -52,7 +52,7 @@ namespace adextension {
         virtual bool wait_for_connection_ready() = 0;
 
         // for backword compat; use getInstrumentSession() instead
-        virtual bool preparing_for_run( adcontrols::ControlMethod::Method& ) { return false; } 
+        virtual bool preparing_for_run( adcontrols::ControlMethod::Method& ) { return false; }
 
         /*
          * api below this line was defined for pure c++ instrument controller interface -- ported from CORBA api

@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "tdcdoc.hpp"
-//#include <ap240/digitizer.hpp>  // ap240 methods were defined.
+
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -49,6 +49,44 @@ tdcdoc::tdcdoc( QObject * parent ) : QObject( parent )
 tdcdoc::~tdcdoc()
 {
 }
+
+void
+tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results )
+{
+    size_t channel = 0;
+    for ( auto result: results ) {
+        if ( result )
+            histograms_[ channel ]->append( *result );
+        ++channel;
+    }
+}
+
+std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
+tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms )
+{
+    if ( !waveforms[0] && !waveforms[1] ) // empty
+        return std::array< threshold_result_ptr, 2 >();
+
+    std::array< threshold_result_ptr, 2 > results;
+    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = threshold_methods_;  // todo: duplicate for thread safety
+
+    for ( size_t i = 0; i < waveforms.size(); ++i ) {
+
+        if ( waveforms[ i ] ) {
+
+            results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
+
+            if ( methods[ i ]->enable ) {
+
+                find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
+                
+            }
+        }
+    }
+
+    return results;
+}
+
 
 bool
 tdcdoc::set_threshold_method( int channel, const adcontrols::threshold_method& m )
@@ -97,45 +135,6 @@ tdcdoc::threshold_method( int channel ) const
     if ( channel < threshold_methods_.size() )
         return threshold_methods_[ channel ];
     return 0;
-}
-
-std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
-tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms )
-{
-    if ( !waveforms[0] && !waveforms[1] ) // empty
-        return std::array< threshold_result_ptr, 2 >();
-
-    std::array< threshold_result_ptr, 2 > results;
-    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = threshold_methods_;  // todo: duplicate for thread safety
-
-    for ( size_t i = 0; i < waveforms.size(); ++i ) {
-
-        if ( waveforms[ i ] ) {
-
-            results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
-
-            if ( methods[ i ]->enable ) {
-
-                find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
-                
-            }
-        }
-    }
-
-    return results;
-    //waveform_proc_count_++;
-    //sema_.signal();
-}
-
-void
-tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results )
-{
-    size_t channel = 0;
-    for ( auto result: results ) {
-        if ( result )
-            histograms_[ channel ]->append( *result );
-        ++channel;
-    }
 }
 
 // static
@@ -275,4 +274,11 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
         }
     }
     return sp;
+}
+
+void
+tdcdoc::clear_histogram()
+{
+    for ( auto h : histograms_ )
+        h->clear();
 }

@@ -25,6 +25,8 @@
 #pragma once
 
 #include "ieditorfactory.hpp"
+#include <functional>
+#include <QString>
 
 namespace adextension {
 
@@ -58,6 +60,62 @@ namespace adextension {
         
     };
 
+    namespace helper
+    {
+        template <std::size_t... Ts>
+        struct index {};
+    
+        template <std::size_t N, std::size_t... Ts>
+        struct gen_seq : gen_seq<N - 1, N - 1, Ts...> {};
+    
+        template <std::size_t... Ts>
+        struct gen_seq<0, Ts...> : index<Ts...> {};
+    }
+    
+    template< typename Editor, typename... Args >
+    class iEditorFactoryV : public iEditorFactory {
+
+        iEditorFactoryV( const iEditorFactoryV& ) = delete;
+        iEditorFactoryV& operator = ( const iEditorFactoryV& ) = delete;
+        QString title_;
+        iEditorFactory::METHOD_TYPE mtype_;
+        const std::tuple<Args...> args_;
+    public:
+        
+		iEditorFactoryV( const QString& title
+                         , iEditorFactory::METHOD_TYPE type
+                         , Args&&... args ) : title_( title )
+                                            , mtype_( type )
+                                            , args_( std::make_tuple(std::forward<Args>(args)...) ) {
+        }
+
+		~iEditorFactoryV() {
+        }
+
+        template<typename... Args, std::size_t... Is>
+        QWidget * __creator( QWidget * parent, const std::tuple<Args...>& args, helper::index<Is...> ) const {
+            return new Editor( std::get<Is>(args)..., parent);
+        }
+
+        template<typename... Args>
+        QWidget * creator( QWidget * parent, const std::tuple<Args...>& args ) const {
+            return __creator( parent, args, helper::gen_seq<sizeof...(Args)>{} );
+        }
+
+        QWidget * createEditor( QWidget * parent = 0 ) const override {
+            return creator( parent, args_ );
+        }
+
+        QString title() const override {
+            return title_;
+        }
+        
+        iEditorFactory::METHOD_TYPE method_type() const {
+            return mtype_;
+        }
+        
+    };
+    
 }
 
 

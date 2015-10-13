@@ -31,6 +31,7 @@
 #include "document.hpp"
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adextension/iSequenceimpl.hpp>
 #include <adportable/debug_core.hpp>
 #include <adlog/logging_handler.hpp>
 #include <u5303aspectrometer/massspectrometer.hpp>
@@ -86,6 +87,11 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
         connect( iExtension, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
     }
 
+    if ( auto iExtension = document::instance()->iSequence() ) {
+        MainWindow::instance()->getEditorFactories( *iExtension );
+        addObject( iExtension );
+    }
+    
     QAction *action = new QAction(tr("u5303A action"), this);
 
     Core::ActionManager * am = Core::ActionManager::instance();
@@ -118,6 +124,9 @@ u5303APlugin::aboutToShutdown()
     // Hide UI (if you add UI that is not in the main window directly)
     document::instance()->finalClose();
 
+    if ( auto iExtension = document::instance()->iSequence() )
+        removeObject( iExtension );
+    
     if ( auto iExtension = document::instance()->iController() )
         removeObject( iExtension );
 

@@ -37,14 +37,12 @@ class QAction;
 
 namespace adcontrols { class MassSpectrum; class Trace; namespace ControlMethod { class Method; } }
 namespace acqrscontrols { class method; }
-namespace adextension { class iController; }
+namespace adextension { class iController; class iSequenceImpl; }
 
 namespace Core { class IMode; class Context; }
 namespace Utils { class StyledBar; }
 
 namespace u5303a {
-
-    class iSequenceImpl;
 
     namespace Internal { class u5303APlugin; }
 
@@ -66,11 +64,14 @@ namespace u5303a {
 
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
+
 		static MainWindow * instance();
 
         void setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> );
-
+        
         std::shared_ptr< adcontrols::ControlMethod::Method > getControlMethod() const;
+
+        void getEditorFactories( adextension::iSequenceImpl& );
         
         void editor_commit();
 

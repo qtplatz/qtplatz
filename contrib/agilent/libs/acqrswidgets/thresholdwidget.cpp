@@ -38,7 +38,11 @@
 
 using namespace acqrswidgets;
 
-ThresholdWidget::ThresholdWidget(QWidget *parent) : QWidget(parent)
+ThresholdWidget::ThresholdWidget( const QString& model
+                                  , int uid
+                                  , QWidget *parent) : QWidget(parent)
+                                                     , modelClass_( model )
+                                                     , unitId_( uid )
 {
     // Software TDC (Slope Time Converter) UI
     if ( auto layout = new QVBoxLayout( this ) ) {
@@ -85,19 +89,22 @@ ThresholdWidget::getContents( boost::any& a ) const
 
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
 
-        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);
-        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
+        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
+        if ( modelClass_ == acqrscontrols::u5303a::method::modelClass() ) {
+            auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
 
-        if ( it != ptr->end() )
-            it->get<>( *it, m );
+            if ( it != ptr->end() )
+                it->get<>( *it, m );
 
-        get( 0, m.threshold_ );
-        ptr->append( m );
+            get( 0, m.threshold_ );
+            ptr->append( m );
 
-        return true;
+            return true;
+        }
+        // TBA: ap240 code and time event code
         
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
-#if 0        
+#if 0  
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
         acqrscontrols::ap240::method m;
         get( m );

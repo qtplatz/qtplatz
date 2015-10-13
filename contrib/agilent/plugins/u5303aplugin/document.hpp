@@ -32,7 +32,7 @@
 
 class QSettings;
 
-namespace adextension { class iController; }
+namespace adextension { class iController; class iSequenceImpl; }
 
 namespace adcontrols {
     namespace ControlMethod { class Method; }
@@ -92,7 +92,7 @@ namespace u5303a {
         void addiController( adextension::iController * p );
 
         std::shared_ptr< const acqrscontrols::u5303a::method > method() const;
-        std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
+//        std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
 
         double triggers_per_second() const;
         size_t unprocessed_trigger_counts() const;
@@ -101,7 +101,10 @@ namespace u5303a {
         void set_threshold_method( int ch, const adcontrols::threshold_method& );
         void set_method( const acqrscontrols::u5303a::method& );
 
+        adextension::iSequenceImpl * iSequence();
+
         u5303a::iControllerImpl * iController();
+
         const adcontrols::SampleRun * sampleRun() const;
         void setSampleRun( std::shared_ptr< adcontrols::SampleRun > );
 

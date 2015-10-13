@@ -105,7 +105,7 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    if ( auto widget = new acqrswidgets::ThresholdWidget ) {
+    if ( auto widget = new acqrswidgets::ThresholdWidget( acqrscontrols::u5303a::method::modelClass(), 1 ) ) {
 
         widget->setObjectName( "ThresholdWidget" );
         createDockWidget( widget, "U5303A", "ThresholdMethod" );
@@ -549,6 +549,20 @@ MainWindow::getControlMethod() const
     return ptr;
 }
 
+void
+MainWindow::getEditorFactories( adextension::iSequenceImpl& impl )
+{
+    if ( std::shared_ptr< const adextension::iEditorFactory > p
+         = std::make_shared< adextension::iEditorFactoryV< acqrswidgets::ThresholdWidget, QString, int > >(
+         QString( "U5303A Threshold" ), adextension::iEditorFactory::CONTROL_METHOD, QString("u5303a"), 1 ) ) {
+        impl << p;
+    }
+
+    if ( std::shared_ptr< const adextension::iEditorFactory > p
+         = std::make_shared< adextension::iEditorFactoryT< acqrswidgets::u5303AWidget > >("U5303A", adextension::iEditorFactory::CONTROL_METHOD ) ) {
+        impl << p;
+    }
+}
 
 void
 MainWindow::editor_commit()

@@ -37,6 +37,8 @@ namespace adcontrols {
         enum FilterAlgo { SG_Filter, DFT_Filter };
         enum Slope { CrossUp, CrossDown };
 
+        static const char * modelClass() { return "threshold_method"; }
+
         bool enable;
         double threshold_level;   // V
         double time_resolution;   // seconds --> for histogram (does not affect for acquiring waveforms)
@@ -47,8 +49,9 @@ namespace adcontrols {
         double sgwidth;           // SG-smooth width
         double cutoffHz;          // DFT
         bool complex_;
-        
+
         threshold_method();
+
     private:
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
