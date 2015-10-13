@@ -25,7 +25,7 @@
 #include "document.hpp"
 #include "constants.hpp"
 #include "mainwindow.hpp"
-#include "imastercontroller.hpp"
+#include "mastercontroller.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adfs/adfs.hpp>
@@ -153,7 +153,7 @@ namespace acquire {
 
     class document::impl {
     public:
-        impl() : masterController_( std::make_shared< iMasterController >() ) {
+        impl() : masterController_( std::make_shared< MasterController >() ) {
 
             fsm_.mainWindow_ = 0;
         }
@@ -167,7 +167,7 @@ namespace acquire {
             fsm_.mainWindow_ = w;
         }
     public:
-        std::shared_ptr< iMasterController > masterController_;
+        std::shared_ptr< MasterController > masterController_;
     private:
         fsm::acquire fsm_;
     };
@@ -536,7 +536,7 @@ document::notify_ready_for_run( const char * xml )
     }
 }
 
-iMasterController *
+MasterController *
 document::masterController()
 {
     return impl_->masterController_.get();

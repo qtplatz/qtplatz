@@ -38,7 +38,7 @@ namespace adcontrols {
 namespace acquire {
 
     class MainWindow;
-    class iMasterController;
+    class MasterController;
 
     class document : public QObject {
         Q_OBJECT
@@ -79,7 +79,8 @@ namespace acquire {
         void notify_ready_for_run( const char * xml );
 
         //
-        iMasterController * masterController();
+        MasterController * masterController();
+        
     private:
         std::shared_ptr< QSettings > settings_;  // user scope settings
         std::shared_ptr< adcontrols::ControlMethod::Method > cm_;

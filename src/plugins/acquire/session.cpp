@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "session.hpp"
-#include "sampleprocessor.hpp"
+//#include "sampleprocessor.hpp"
 #include "task.hpp"
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/controlmethod.hpp>

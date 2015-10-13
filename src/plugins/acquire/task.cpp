@@ -23,12 +23,12 @@
 **************************************************************************/
 
 #include "task.hpp"
-#include "iproxy.hpp"
-#include "logging.hpp"
+//#include "iproxy.hpp"
+//#include "logging.hpp"
 #include "masterobserver.hpp"
-#include "oproxy.hpp"
-#include "observer.hpp"
-#include "sampleprocessor.hpp"
+//#include "oproxy.hpp"
+//#include "observer.hpp"
+//#include "sampleprocessor.hpp"
 #include <acewrapper/udpeventreceiver.hpp>
 #include <iostream>
 #include <sstream>
@@ -40,6 +40,7 @@
 #include <acewrapper/orbservant.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/pugiwrapper.hpp>
+#include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <stdexcept>
@@ -56,28 +57,34 @@ namespace acquire {
         static std::once_flag flag;
         
         impl( task * p ) : this_( p )
-                         , masterObserver_( std::make_shared< MasterObserver >() ) {
+                         , masterObserver_( std::make_shared< MasterObserver >() )
+                         , work_( io_service_ )
+                         , strand_( io_service_ ) {
         }
         
         std::shared_ptr< MasterObserver > masterObserver_;
-        
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        boost::asio::io_service::strand strand_;
+        std::vector< adportable::asio::thread > threads_;
+        std::mutex mutex_;
     };
 
     std::unique_ptr< task > task::impl::instance_ = 0;
     std::once_flag task::impl::flag;
 
     struct receiver_data {
-//        bool operator == ( const receiver_data& ) const;
-//        bool operator == ( const Receiver_ptr ) const;
-//       bool operator == ( const ControlServer::Session_ptr ) const;
-//        ControlServer::Session_var session_;
-//        Receiver_var receiver_;
-//        std::string token_;
-//        size_t failed_;
-//        receiver_data() : failed_( 0 ) {}
-//        receiver_data( const receiver_data& t )
-//            : session_(t.session_), receiver_(t.receiver_), token_( t.token_ ), failed_( t.failed_ ) {
- //       }
+        //   bool operator == ( const receiver_data& ) const;
+        //   bool operator == ( const Receiver_ptr ) const;
+        //   bool operator == ( const ControlServer::Session_ptr ) const;
+        //   ControlServer::Session_var session_;
+        //   Receiver_var receiver_;
+        //   std::string token_;
+        //   size_t failed_;
+        //   receiver_data() : failed_( 0 ) {}
+        //   receiver_data( const receiver_data& t )
+        //       : session_(t.session_), receiver_(t.receiver_), token_( t.token_ ), failed_( t.failed_ ) {
+        //   }
     };
 }
 
@@ -107,11 +114,20 @@ task::masterObserver()
 void
 task::close()
 {
+    impl_->io_service_.stop();
+
+    for ( auto& t: impl_->threads_ )
+        t.join();
 }
 
 bool
 task::open()
 {
+    unsigned cores = std::max( 3u, std::thread::hardware_concurrency() - 1 );
+
+    for ( unsigned i = 0; i < cores; ++i ) 
+        impl_->threads_.push_back( adportable::asio::thread( [this](){ impl_->io_service_.run(); } ) );
+
     return true;
 }
 

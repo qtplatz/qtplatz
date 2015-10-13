@@ -22,39 +22,47 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "mastercontroller.hpp"
+#include "document.hpp"
+#include "task.hpp"
+#include <adplugin/plugin.hpp>
+#include <adcontrols/controlmethod.hpp>
+#include <adicontroller/instrument.hpp>
+#include <adicontroller/receiver.hpp>
+#include <adicontroller/signalobserver.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
+#include <adportable/serializer.hpp>
+#include <adicontroller/manager.hpp>
+#include <QLibrary>
+#include <QVariant>
+#include <memory>
 
-#include "constants.hpp"
-#include <adextension/icontrollerimpl.hpp>
-#include <condition_variable>
-#include <mutex>
+#if defined _DEBUG || defined DEBUG
+# if defined WIN32
+#  define DEBUG_LIB_TRAIL "d" // xyzd.dll
+# elif defined __MACH__
+#  define DEBUG_LIB_TRAIL "_debug" // xyz_debug.dylib
+# else
+#  define DEBUG_LIB_TRAIL ""        // xyz.so 
+# endif
+#else
+# define DEBUG_LIB_TRAIL ""
+#endif
 
-namespace adicontroller { namespace Instrument { class Session; } }
+using namespace acquire;
 
-namespace acquire {
-
-    class iMasterController : public adextension::iControllerImpl {
-
-        Q_OBJECT
-
-    public:
-        iMasterController();
-        ~iMasterController();
-
-        bool connect() override;
-
-    signals:
-                
-    private slots:
-            
-    private:
-        bool isInitialized_;
-        std::mutex mutex_;
-        std::condition_variable cv_;
-        class impl;
-        impl * impl_;
-    };
-
+MasterController::MasterController() : adextension::iControllerImpl( "Acquire" )
+{
 }
 
+MasterController::~MasterController()
+{
+}
+
+bool
+MasterController::connect()
+{
+    return true;
+}
 

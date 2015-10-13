@@ -67,10 +67,10 @@ set( ${PROJECT_NAME}_SOURCES
   acquiremode.cpp
   acquireplugin.cpp
   document.cpp
-  imastercontroller.cpp
   mainwindow.cpp
   task.cpp
   session.cpp
+  mastercontroller.cpp
   masterobserver.cpp
   )
 
@@ -80,11 +80,11 @@ set( ${PROJECT_NAME}_HEADERS
   acquiremode.hpp
   acquireplugin.hpp
   document.hpp
-  imastercontroller.hpp
   mainwindow.hpp
   constants.hpp
   task.hpp
   session.hpp
+  mastercontroller.hpp
   masterobserver.hpp
   )
 

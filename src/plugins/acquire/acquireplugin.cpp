@@ -28,7 +28,7 @@
 #include "brokerevent_i.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include "imastercontroller.hpp"
+#include "mastercontroller.hpp"
 #include "mainwindow.hpp"
 #include "orbconnection.hpp"
 #include "qbroker.hpp"
