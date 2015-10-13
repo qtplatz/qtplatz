@@ -37,25 +37,34 @@ namespace acquire {
         session();
       
         std::string software_revision() const override;
-        bool connect( adicontroller::Receiver * , const std::string& token ) override;
-        bool disconnect( adicontroller::Receiver * ) override;
 
         bool setConfiguration( const std::string& xml ) override;
         bool configComplete() override;
+        
+        bool connect( adicontroller::Receiver * , const std::string& token ) override;
+        bool disconnect( adicontroller::Receiver * ) override;
 
         uint32_t get_status() override;
+        adicontroller::SignalObserver::Observer * getObserver(void) override;
+        
         bool initialize() override;
+        
         bool shutdown() override;
+        
         bool echo( const std::string& msg ) override;
         bool shell( const std::string& cmdline ) override;
-        adicontroller::SignalObserver::Observer * getObserver(void) override;
+
+        std::shared_ptr< const adcontrols::ControlMethod::Method > getControlMethod() override;
         bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m ) override;
+
         // bool push_back( SampleBroker::SampleSequence_ptr s ) override;
         bool event_out( uint32_t value ) override;
         bool start_run() override;
         bool suspend_run() override;
         bool resume_run() override;
         bool stop_run() override;
+        bool recording( bool ) override { return false; }
+        bool isRecording() const override { return false; }
 
         // CORBA::Char * running_sample() override;
       

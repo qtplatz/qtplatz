@@ -115,6 +115,12 @@ session::shell( const std::string& cmdline )
     return false;
 }
 
+std::shared_ptr< const adcontrols::ControlMethod::Method >
+session::getControlMethod()
+{
+    return 0;
+}
+
 //---------
 bool
 session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )

@@ -24,6 +24,7 @@
 
 #include "mastercontroller.hpp"
 #include "document.hpp"
+#include "session.hpp"
 #include "task.hpp"
 #include <adplugin/plugin.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -50,9 +51,23 @@
 # define DEBUG_LIB_TRAIL ""
 #endif
 
+namespace acquire {
+
+    class MasterController::impl {
+    public:
+        
+        impl() {
+        }
+
+        std::shared_ptr< session > session_;
+    };
+    
+}
+
 using namespace acquire;
 
 MasterController::MasterController() : adextension::iControllerImpl( "Acquire" )
+                                     , impl_( new impl() )
 {
 }
 
@@ -63,6 +78,8 @@ MasterController::~MasterController()
 bool
 MasterController::connect()
 {
+    // 'connect' triggered
+    impl_->session_ = std::make_shared< session >();
     return true;
 }
 
