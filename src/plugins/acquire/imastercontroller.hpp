@@ -33,11 +33,14 @@ namespace adicontroller { namespace Instrument { class Session; } }
 
 namespace acquire {
 
-    class iControllerImpl : public adextension::iControllerImpl {
+    class iMasterController : public adextension::iControllerImpl {
+
         Q_OBJECT
+
     public:
-        iControllerImpl();
-        ~iControllerImpl();
+        iMasterController();
+        ~iMasterController();
+
         bool connect() override;
 
     signals:

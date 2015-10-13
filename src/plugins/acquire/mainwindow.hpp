@@ -37,7 +37,7 @@ namespace adcontrols {
 }
 
 namespace adportable { class Configuration; }
-namespace adextension { class iMonitorFactory; }
+namespace adextension { class iMonitorFactory; class iController; }
 namespace adwidgets { class ControlMethodWidget; class SampleRunWidget; }
 class QDockWidget;
 class QAction;
@@ -78,6 +78,7 @@ namespace acquire {
         void handle_shutdown();
         void handle_debug_print( unsigned long priority, unsigned long category, QString text );
         void handleControlMethod();
+        void iControllerConnected( adextension::iController * inst );
 
     private:
         QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );

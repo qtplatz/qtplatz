@@ -67,9 +67,11 @@ set( ${PROJECT_NAME}_SOURCES
   acquiremode.cpp
   acquireplugin.cpp
   document.cpp
-  icontrollerimpl.cpp
+  imastercontroller.cpp
   mainwindow.cpp
   task.cpp
+  session.cpp
+  masterobserver.cpp
   )
 
 
@@ -78,10 +80,12 @@ set( ${PROJECT_NAME}_HEADERS
   acquiremode.hpp
   acquireplugin.hpp
   document.hpp
-  icontrollerimpl.hpp
+  imastercontroller.hpp
   mainwindow.hpp
   constants.hpp
   task.hpp
+  session.hpp
+  masterobserver.hpp
   )
 
 if ( QTPLATZ_SUPPORT_CORBA )

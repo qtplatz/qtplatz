@@ -32,6 +32,7 @@
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/string.hpp>
 #include <adlog/logger.hpp>
 #include <adwidgets/controlmethodwidget.hpp>
@@ -256,3 +257,8 @@ MainWindow::handleControlMethod()
         cmEditor_->setControlMethod( *ptr );
 }
 
+void
+MainWindow::iControllerConnected( adextension::iController * inst )
+{
+    ADDEBUG() << "iControllerConnected( adextension::iController * inst )";
+}

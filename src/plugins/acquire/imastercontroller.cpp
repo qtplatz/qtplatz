@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "icontrollerimpl.hpp"
+#include "imastercontroller.hpp"
 #include "document.hpp"
 #include "task.hpp"
 #include <adplugin/plugin.hpp>
@@ -52,44 +52,17 @@
 
 using namespace acquire;
 
-iControllerImpl::iControllerImpl() : adextension::iControllerImpl( "Acquire" )
+iMasterController::iMasterController() : adextension::iControllerImpl( "Acquire" )
 {
 }
 
-iControllerImpl::~iControllerImpl()
+iMasterController::~iMasterController()
 {
 }
 
 bool
-iControllerImpl::connect()
+iMasterController::connect()
 {
-    typedef adplugin::plugin * ( *factory )( );
-
-#if 0
-    QLibrary lib( QString("controller") + DEBUG_LIB_TRAIL );
-
-    if ( ! lib.isLoaded() )
-        lib.load();
-    
-    if ( lib.isLoaded() ) {
-        
-        if ( factory f = reinterpret_cast<factory>( lib.resolve( "adplugin_plugin_instance" ) ) ) {
-
-            adplugin::plugin * plugin = f();
-            if ( auto manager = plugin->query_interface< adicontroller::manager >() ) {
-                if ( auto session = manager->session( "acquire::icontrollerimpl" ) ) {
-                    
-                    QString xml;
-                    if ( document::instance()->getMethodXml( xml ) ) {
-                        session->setConfiguration( xml.toUtf8().toStdString() );
-                    }
-
-                    adextension::iControllerImpl::connect( session, "acquire::iControllerImpl" );
-                }
-            }
-        }
-    }
-#endif
     return true;
 }
 

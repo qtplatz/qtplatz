@@ -24,10 +24,11 @@
 **************************************************************************/
 
 #include "acquireplugin.hpp"
-#include "document.hpp"
 #include "acquiremode.hpp"
 #include "brokerevent_i.hpp"
 #include "constants.hpp"
+#include "document.hpp"
+#include "imastercontroller.hpp"
 #include "mainwindow.hpp"
 #include "orbconnection.hpp"
 #include "qbroker.hpp"
@@ -348,28 +349,27 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(error_message);
 
     adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
+    
+    do {
+        std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
+        std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config" );
+        boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
+
+        const wchar_t * query = L"/AcquireConfiguration/Configuration";
+
+        pConfig_ = new adportable::Configuration();
+
+        if ( ! adportable::ConfigLoader::loadConfigFile( *pConfig_, configFile, query ) ) {
+            ADWARN() << "AcquirePlugin::initialize loadConfig '" << configFile << "' load failed";
+            return false;
+        }
+    } while(0);
 
     Core::Context context( (Core::Id( "Acquire.MainView" )), (Core::Id( Core::Constants::C_NAVIGATION_PANE )) );
 
     AcquireMode * mode = new AcquireMode(this);
-    if ( mode )
-        mode->setContext( context );
-    else
-        return false;
+    mode->setContext( context );
     
-    std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config" );
-    boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
-
-    const wchar_t * query = L"/AcquireConfiguration/Configuration";
-
-    pConfig_ = new adportable::Configuration();
-
-    if ( ! adportable::ConfigLoader::loadConfigFile( *pConfig_, configFile, query ) ) {
-        ADWARN() << "AcquirePlugin::initialize loadConfig '" << configFile << "' load failed";
-        return false;
-    }
-
     mainWindow_ = new MainWindow(0);
     if ( mainWindow_ )
         mainWindow_->init( *pConfig_ );
@@ -380,14 +380,21 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         ADERROR() << "exception handled for initailize_actions: " << boost::current_exception_diagnostic_information();
     }
 
+    // CORBA DEPENDENT
     auto qbroker = new QBroker();
     connect( qbroker, &QBroker::initialized, this, &AcquirePlugin::handle_broker_initialized );
     addObject( qbroker );
+    // <--
 
     mode->setWidget( createContents( mode ) );
+    addAutoReleasedObject(mode);
+
+    if ( auto iExtension = document::instance()->masterController() ) {
+        addObject( iExtension );
+        connect( iExtension, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
+    }
 
     mainWindow_->setSimpleDockWidgetArrangement();
-    addAutoReleasedObject(mode);
 
     return true;
 }
@@ -454,6 +461,7 @@ AcquirePlugin::actionConnect()
         future.get();
 
     orb_i_->actionConnect();
+    document::instance()->actionConnect();
 }
 
 void
