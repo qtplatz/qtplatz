@@ -320,13 +320,13 @@ task::impl::worker_thread()
             status.plot_ready_ = false;
             
             int channel = 0;
-            std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > results;
+            std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > threshold_results;
             do {
                 std::lock_guard< std::mutex > lock( mutex_ );
-                results = que_.back();
+                threshold_results = que_.back();
             } while ( 0 );
 
-            for ( auto result: results ) {
+            for ( auto result: threshold_results ) {
                 if ( result ) {
                     
                     auto ms = std::make_shared< adcontrols::MassSpectrum >();
@@ -394,25 +394,26 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroll
     // find slope threshold positions
     auto waveforms = acqrscontrols::u5303a::waveform::deserialize( rb.get() );
 
-    auto results = document::instance()->tdc()->handle_waveforms( waveforms );
+    auto threshold_results = document::instance()->tdc()->handle_waveforms( waveforms );
     // todo: result -> DataReadBuffer for save data
 
+    if ( threshold_results[0] || threshold_results[1] ) {
 
-    if ( results[0] || results[1] ) {
+        io_service_.post( strand2_.wrap( [=](){ document::instance()->tdc()->appendHistogram( threshold_results ); } ) );
 
-        io_service_.post( strand2_.wrap( [=](){ document::instance()->tdc()->appendHistogram( results ); } ) );
-
-        io_service_.post( [=] () { handle_u5303a_average( status, results ); } ); // draw spectrogram and TIC
+        io_service_.post( [=] () { handle_u5303a_average( status, threshold_results ); } ); // draw spectrogram and TIC
 
     }
 }
 
 void
-task::impl::handle_u5303a_average( const data_status status, std::array< threshold_result_ptr, 2 > results )
+task::impl::handle_u5303a_average( const data_status status, std::array< threshold_result_ptr, 2 > threshold_results )
 {
     do {
+        document::instance()->result_to_file( threshold_results[0] );
+
         std::lock_guard< std::mutex > lock( mutex_ );
-        que_.push_back( results );
+        que_.push_back( threshold_results );
         if ( que_.size() >= 2000 )
             que_.erase( que_.begin(), que_.begin() + 500 );
         

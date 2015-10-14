@@ -45,7 +45,7 @@ namespace adcontrols {
     class threshold_method; 
 }
 
-namespace acqrscontrols { namespace u5303a { class method; class waveform; } }
+namespace acqrscontrols { namespace u5303a { class method; class waveform; class threshold_result; } }
 namespace boost { namespace uuids { struct uuid; } namespace filesystem { class path; } }
 
 namespace u5303a {
@@ -116,6 +116,10 @@ namespace u5303a {
 
         tdcdoc * tdc();
         QSettings * settings();
+
+        // tentative solution -- will be removed
+        void result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_result > ch1 );
+        // <---
 
         static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );

@@ -32,6 +32,7 @@
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/metadata.hpp>
 #include <acqrscontrols/u5303a/waveform.hpp>
+#include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -89,6 +90,12 @@ namespace u5303a {
         static std::mutex mutex_;
         static const std::chrono::steady_clock::time_point uptime_;
         static const uint64_t tp0_;
+
+        // tempolary -- will be rmoved
+        std::string time_datafile_;
+        std::string hist_datafile_;
+        std::vector< std::shared_ptr< acqrscontrols::u5303a::threshold_result > > que2_;
+        // <--- will be removed ---
         
         std::shared_ptr< tdcdoc > tdcdoc_;
         std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
@@ -120,7 +127,10 @@ namespace u5303a {
                , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                            , QLatin1String( "u5303a" ) ) )                 
-            {}
+            {
+                time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_time_data.txt" ).string();
+                hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_histogram.txt" ).string();
+            }
         void addiController( std::shared_ptr< adextension::iController > p );
         void handleConnected( adextension::iController * controller );
         void handleMessage( adextension::iController * ic, unsigned long code, unsigned long value );
@@ -732,6 +742,42 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
         } while ( 0 );
 
         emit dataChanged( histogram_observer, idx );
+
+        /////////////////////////////////////////////////////////////////////////////
+        // save data to file -- tentative --
+        std::vector< std::shared_ptr< acqrscontrols::u5303a::threshold_result > > list;
+        do {
+            std::lock_guard< std::mutex > lock( impl_->mutex_ );
+            if ( impl_->que2_.size() >= 3 ) {
+                list.resize( impl_->que2_.size() - 2 );
+                std::copy( impl_->que2_.begin(), impl_->que2_.begin() + list.size(), list.begin() );
+                impl_->que2_.erase( impl_->que2_.begin(), impl_->que2_.begin() + list.size() );
+            }
+        } while ( 0 );
+        if ( !list.empty() ) {
+            std::ofstream of( impl_->time_datafile_, std::ios_base::out | std::ios_base::app );
+            if ( !of.fail() ) {
+                std::for_each( list.begin(), list.end(), [&of] ( std::shared_ptr< acqrscontrols::u5303a::threshold_result > rp ) {
+                    if ( rp )
+                        of << *rp;
+                } );
+            }
+        }
+        ///////////////////////////////////////////////////////////////////////////////
+        // save histogram
+        do {
+            std::ofstream of( impl_->hist_datafile_, std::ios_base::out | std::ios_base::app );
+            
+            const double * times = histogram->getTimeArray();
+            const double * counts = histogram->getIntensityArray();
+            const auto& prop = histogram->getMSProperty();
+            
+            of << boost::format( "\n%d, %.8lf, %.14le" )
+                % trigCount % ( double( timeSinceEpoch.first ) * 1.0e-9 ) % ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
+            for ( size_t i = 0; i < histogram->size(); ++i )
+                of << boost::format( ", %.14le, %d" ) % times[ i ] % uint32_t( counts[ i ] );
+
+        } while ( 0 );
     }
 
 }
@@ -827,3 +873,10 @@ document::iSequence()
     return impl_->iSequenceImpl_.get();
 }
 
+void
+document::result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_result > ch1 )
+{
+    std::lock_guard< std::mutex >( impl_->mutex_ );
+    impl_->que2_.push_back( ch1 );
+    // inside of task::mutex locked.
+}
