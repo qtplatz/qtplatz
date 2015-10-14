@@ -12,6 +12,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Boost 1.57 REQUIRED COMPONENTS wserialization serialization)
 
 add_definitions(-DADICONTROLLER_LIBRARY)
+if (WIN32)
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
+endif()
 
 add_library( ${PROJECT_NAME} SHARED
   adicontroller.cpp

@@ -49,7 +49,7 @@ namespace acquire {
         static document * instance();
         ~document();
 
-        void actionConnect();
+        void actionConnect( bool );
         
         void initialSetup();
         void finalClose( MainWindow * );
@@ -69,7 +69,6 @@ namespace acquire {
         static bool save( const QString& filename, const adcontrols::SampleRun& );
 
         // fsm actions
-        void fsmStart();
         void fsmStop();
         void fsmSetMainWindow( MainWindow * );
         void fsmActPrepareForRun();

@@ -31,11 +31,12 @@
 #include <adcontrols/samplerun.hpp>
 #include <workaround/boost/asio.hpp>
 #include <adportable/asio/thread.hpp>
+#include <deque>
+#include <future>
 #include <memory>
 #include <mutex>
-#include <vector>
-#include <deque>
 #include <thread>
+#include <vector>
 
 namespace pugi { class xml_document; }
 namespace EventLog { struct LogMessage; }
@@ -71,6 +72,8 @@ namespace acquire {
         
         bool open();
         void close();
+
+        void post( std::vector< std::future<bool> >& futues );
 
 	//  instrument communication methods below
         void reset_clock();

@@ -55,6 +55,8 @@ namespace acquire {
     public:
         ~MainWindow();
         explicit MainWindow(QWidget *parent = 0);
+
+        static MainWindow * instance();
       
         void init( const adportable::Configuration& config );
         void setSimpleDockWidgetArrangement();
@@ -63,10 +65,15 @@ namespace acquire {
         void OnFinalClose();
         // 
         void eventLog( const QString& );
+
+        std::shared_ptr< adcontrols::ControlMethod::Method > getControlMethod();
         void getControlMethod( adcontrols::ControlMethod::Method& );
         void setControlMethod( const adcontrols::ControlMethod::Method& );
+
         bool getSampleRun( adcontrols::SampleRun& );
         void setSampleRun( const adcontrols::SampleRun& );
+
+        void findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& );
         //
     signals:
         void signal_eventLog( QString );
@@ -84,6 +91,7 @@ namespace acquire {
         QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
         adwidgets::ControlMethodWidget * cmEditor_;
         adwidgets::SampleRunWidget * runEditor_;
+        static MainWindow * instance_;
     };
 
 }

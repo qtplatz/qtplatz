@@ -146,20 +146,22 @@ session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
 bool
 session::start_run()
 {
-    //iTask::instance()->io_service().post( std::bind( &iTask::handle_start_run, iTask::instance() ) );
+    // MasterController's session does not hock up any perticular device -- always return true;
     return true;
 }
 
 bool
 session::suspend_run()
 {
-    return false;
+    // MasterController's session does not hock up any perticular device -- always return true;
+    return true;
 }
 
 bool
 session::resume_run()
 {
-    return false;
+    // MasterController's session does not hock up any perticular device -- always return true;
+    return true;
 }
 
 bool
@@ -185,7 +187,9 @@ session::event_out( uint32_t value )
 adicontroller::SignalObserver::Observer *
 session::getObserver (void)
 {
-    return task::instance()->masterObserver();
+    // Should not return any observer from 'MasterController'; Otherwise it makes cyclic link.
+    // task's MasterObserver instance keeps complete list of all observers.
+    return 0; 
 }
 
 #if 0

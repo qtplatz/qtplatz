@@ -35,16 +35,26 @@ namespace adicontroller {
     namespace so = adicontroller::SignalObserver;
 
     class ADICONTROLLERSHARED_EXPORT MasterObserver : public SignalObserver::Observer {
+
+        class impl;
+        impl * impl_;
+
     public:
-        MasterObserver();
+
+        MasterObserver( const char * objtext = 0 );
+        ~MasterObserver();
 
         bool connect( so::ObserverEvents * cb, so::eUpdateFrequency, const std::string& ) override;
         bool disconnect( so::ObserverEvents * cb ) override;
+
         const boost::uuids::uuid& objid() const override;
         const char * objtext() const override;
+
         uint64_t uptime() const override;
         std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override;
         const char * dataInterpreterClsid() const override;
+
+        virtual void dataChanged( SignalObserver::Observer * so, uint32_t pos );
     };
 
 }

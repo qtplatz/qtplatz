@@ -32,7 +32,7 @@
 
 namespace acqrscontrols { namespace u5303a { class waveform; } }
 
-namespace u5303a_controller {
+namespace u5303a {
 
     namespace so = adicontroller::SignalObserver;
     

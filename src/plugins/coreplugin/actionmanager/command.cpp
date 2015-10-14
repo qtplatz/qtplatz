@@ -306,8 +306,7 @@ static QString msgActionWarning(QAction *newAction, Id id, QAction *oldAction)
 {
     QString msg;
     QTextStream str(&msg);
-    str << "addOverrideAction " << newAction->objectName() << '/' << newAction->text()
-         << ": Action ";
+    str << "addOverrideAction new: " << newAction->objectName() << "/" << newAction->text() << "; Action old: ";
     if (oldAction)
         str << oldAction->objectName() << '/' << oldAction->text();
     str << " is already registered for context " << id.uniqueIdentifier() << ' '

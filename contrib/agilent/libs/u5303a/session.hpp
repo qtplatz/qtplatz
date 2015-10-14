@@ -31,7 +31,7 @@
 namespace u5303a { class digitizer; }
 namespace acqrscontrols { namespace u5303a { class method; } }
 
-namespace u5303a_controller {
+namespace u5303a {
     
     namespace Instrument {
 

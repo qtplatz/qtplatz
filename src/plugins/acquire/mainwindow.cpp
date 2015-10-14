@@ -25,6 +25,7 @@
 
 #include "mainwindow.hpp"
 #include "document.hpp"
+#include <adcontrols/controlmethod.hpp>
 #include <adextension/icontroller.hpp>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
@@ -59,6 +60,8 @@
 
 using namespace acquire;
 
+MainWindow * MainWindow::instance_; 
+
 MainWindow::~MainWindow()
 {
 }
@@ -67,7 +70,22 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , cmEditor_( new adwidgets::ControlMethodWidget )
                                         , runEditor_( new adwidgets::SampleRunWidget )
 {
+    instance_ = this;
     connect( cmEditor_, &adwidgets::ControlMethodWidget::onImportInitialCondition, this, &MainWindow::handleControlMethod );
+}
+void 
+MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& vec )
+{
+    for ( auto v : ExtensionSystem::PluginManager::getObjects< adextension::iController >() ) {
+        ADDEBUG() << v->module_name().toStdString();
+        vec.push_back( v->shared_from_this() );
+    }
+}
+
+MainWindow * 
+MainWindow::instance()
+{
+    return instance_;
 }
 
 void
@@ -210,6 +228,14 @@ void
 MainWindow::setControlMethod( const adcontrols::ControlMethod::Method& m )
 {
     cmEditor_->setControlMethod( m );
+}
+
+std::shared_ptr< adcontrols::ControlMethod::Method >
+MainWindow::getControlMethod()
+{
+    auto mp = std::make_shared< adcontrols::ControlMethod::Method >();
+    cmEditor_->getControlMethod( *mp );
+    return mp;
 }
 
 void

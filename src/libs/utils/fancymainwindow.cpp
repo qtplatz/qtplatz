@@ -321,11 +321,16 @@ FancyMainWindow::~FancyMainWindow()
     delete d;
 }
 
-QDockWidget *FancyMainWindow::addDockForWidget(QWidget *widget)
+static int __debug_break;
+
+QDockWidget *FancyMainWindow::addDockForWidget( QWidget *widget )
 {
-    QTC_ASSERT(widget, return 0);
-    QTC_CHECK(widget->objectName().size());
-    QTC_CHECK(widget->windowTitle().size());
+    QTC_ASSERT( widget, return 0 );
+    QTC_CHECK( widget->objectName().size() );
+    QTC_CHECK( widget->windowTitle().size() );
+    if ( widget->objectName().size() == 0 || widget->windowTitle().size() == 0 ) {
+        __debug_break = 0;
+    }
 
     auto dockWidget = new DockWidget(widget, this);
     connect(dockWidget->toggleViewAction(), SIGNAL(triggered()),

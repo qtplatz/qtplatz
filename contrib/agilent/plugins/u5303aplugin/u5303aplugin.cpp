@@ -72,9 +72,11 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
 
     mainWindow_->activateWindow();
         
-    const Core::Context context( ( "U5303A.MainView" ) );
-    mode_->setContext( context );    
+    mode_->setId( "U5303A.MainView" );
 
+    const Core::Context context( ( "U5303A.MainView" ) );
+
+    mode_->setContext( context );    
     mainWindow_->createActions( context );
     
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )

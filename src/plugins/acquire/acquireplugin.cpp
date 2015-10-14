@@ -450,18 +450,9 @@ AcquirePlugin::aboutToShutdown()
 void
 AcquirePlugin::actionConnect()
 {
-    // using adinterface::EventLog::LogMessageHelper;
-    auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
-
-    std::vector< std::future<bool> > futures;
-    for ( auto& iController : iControllers ) {
-        futures.push_back( std::async( [iController] () { return iController->connect() && iController->wait_for_connection_ready(); } ) );
-    }
-    for ( auto& future : futures )
-        future.get();
-
+    // Pressed 'CONNECT' button on Acquire View
+    document::instance()->actionConnect( true ); // fetch method from MainWindow
     orb_i_->actionConnect();
-    document::instance()->actionConnect();
 }
 
 void

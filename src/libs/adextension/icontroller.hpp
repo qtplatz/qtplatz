@@ -75,7 +75,6 @@ namespace adextension {
 
         /* call backs */
         virtual void invokeDataChanged( adicontroller::SignalObserver::Observer * o, unsigned int pos ) { emit dataChanged( o, pos ); }
-        
         virtual void invokeDataEvent( adicontroller::SignalObserver::Observer * o, unsigned int events, unsigned int pos ) { emit dataEvent( o, events, pos ); }
 
     signals:

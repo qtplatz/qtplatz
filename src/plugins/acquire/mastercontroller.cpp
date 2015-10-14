@@ -37,6 +37,7 @@
 #include <adicontroller/manager.hpp>
 #include <QLibrary>
 #include <QVariant>
+#include <atomic>
 #include <memory>
 
 #if defined _DEBUG || defined DEBUG
@@ -57,9 +58,12 @@ namespace acquire {
     public:
         
         impl() {
+            connected_.clear();
         }
 
         std::shared_ptr< session > session_;
+        std::atomic_flag connected_;
+        std::once_flag flag_;
     };
     
 }
@@ -78,8 +82,17 @@ MasterController::~MasterController()
 bool
 MasterController::connect()
 {
-    // 'connect' triggered
-    impl_->session_ = std::make_shared< session >();
+    // When press 'connect' button on Acquire's MainWindow, this call from document::actionConnect();
+    // When press 'connect' on other plugin, this call from iController::connect invoker.
+    // then MainWindow call document::actionConnect
+
+    std::call_once( impl_->flag_, [this] () { session_ = std::make_shared< session >(); } );
+
+    if ( impl_->connected_.test_and_set( std::memory_order_acquire ) == false ) {
+        document::instance()->actionConnect( false );
+        setInitialized( true );
+    }
     return true;
+
 }
 

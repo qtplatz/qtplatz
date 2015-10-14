@@ -44,8 +44,9 @@
 #include <adicontroller/masterobserver.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
-#include <adportable/profile.hpp>
 #include <adportable/binary_serializer.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
@@ -64,6 +65,7 @@
 #include <future>
 #include <string>
 #include <QMetaType>
+
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 
 using namespace u5303a;

@@ -24,8 +24,11 @@
 
 #include "document.hpp"
 #include "constants.hpp"
+#include "fsm.hpp"
 #include "mainwindow.hpp"
 #include "mastercontroller.hpp"
+#include "masterobserver.hpp"
+#include "task.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adfs/adfs.hpp>
@@ -59,91 +62,11 @@
 #include <boost/msm/front/euml/operator.hpp>
 #include <boost/msm/front/euml/state_grammar.hpp>
 #include <atomic>
+#include <future>
+
 
 namespace acquire {
-
-    namespace fsm {
-        // events
-        namespace msm = boost::msm;
-        namespace mpl = boost::mpl;
-        using boost::msm::front::Row;
-        using boost::msm::front::none;
-        
-        struct prepare {};
-        struct start_run {};
-        struct stop {};
-        struct inject {};
-
-        // front-end
-        struct acquire_ : public msm::front::state_machine_def< acquire_ > {
-            template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: peripheral"; }
-            template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: peripheral"; }
-
-            struct Empty : public msm::front::state<> {
-                // Empty method and sample
-                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: Empty"; }
-                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: Empty"; }
-            };
-            struct Preparing : public msm::front::state<> {
-                // Preparing state; we have a method and sample data to be processed.  Equilibrating instrument(s) for the method
-                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: Preparing"; }
-                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: Preparing"; }
-            };
-            struct Waiting : public msm::front::state<> {
-                // Instrument is waiting for inject trigger; This is actually a part of running state
-                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: WaitForContactClosure"; }
-                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: WaitForContactClosure"; }
-            };
-            struct Running : public msm::front::state<> {
-                // Method and sample is in progress
-                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: Running"; }
-                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: Running"; }
-            };
-            struct Dormant : public msm::front::state<> {
-                // Method and sample has been completed.  Keep instrument running at the last step of method
-                template< class Event, class FSM >  void on_etry( Event const&, FSM& ) { ADDEBUG() << "enterling: Dormant"; }
-                template< class Event, class FSM >  void on_exit( Event const&, FSM& ) { ADDEBUG() << "leaving: Dormant"; }
-            };
-
-            void action( prepare const& ) {}
-            void action( start_run const& ) {}
-            void action( stop const& ) {}
-            void action( inject const& ) {}
-
-            typedef acquire_ p;
-            // Transition table
-            struct transition_table : mpl::vector<
-                //    Start          Event         Next      Action				 Guard
-                //  +---------+-------------+---------+---------------------+----------------------+
-                // 0 = Empty
-                a_row < Empty,       prepare,   Preparing, &p::action >
-                // 1 = Preparing
-                , a_row < Preparing, start_run, Waiting,   &p::action >
-                , a_row < Preparing, stop,      Dormant,   &p::action >
-                , a_row < Preparing, inject,    Running,   &p::action >
-                // 2 = WaitingForContactClosure
-                , a_row < Waiting,   inject,    Running,   &p::action >
-                , a_row < Waiting,   stop,      Dormant,   &p::action >
-                // 3 = Running
-                , a_row < Running,   stop,      Dormant,   &p::action >
-                // 4 = Dormant
-                , a_row < Dormant,   stop,      Empty,     &p::action >
-                , a_row < Dormant,   prepare,   Preparing, &p::action >
-                , a_row < Dormant,   start_run, Waiting,   &p::action >
-                > {};
-            template<class FSM, class Event>
-            void no_transition( Event const& e, FSM&, int state ) {
-                ADDEBUG() << "no transition from state " << state << " on event " << typeid( e ).name();
-            }
-            typedef Empty initial_state;
-            MainWindow * mainWindow_;
-        };
-        
-        // back-end
-        typedef msm::back::state_machine< acquire_ > acquire;
-        
-    } // namespace fsm
-
+    
     struct user_preference {
         static boost::filesystem::path path( QSettings * settings ) {
             boost::filesystem::path dir( settings->fileName().toStdWString() );
@@ -153,9 +76,8 @@ namespace acquire {
 
     class document::impl {
     public:
-        impl() : masterController_( std::make_shared< MasterController >() ) {
-
-            fsm_.mainWindow_ = 0;
+        impl() {
+            connected_.clear();
         }
 
         ~impl() {
@@ -163,13 +85,26 @@ namespace acquire {
 
         inline fsm::acquire& fsm() { return fsm_; }
 
-        void setMainWindow( MainWindow * w ) {
-            fsm_.mainWindow_ = w;
+        MasterController * masterController() {
+            static std::once_flag flag;
+            std::call_once( flag, [this] () { masterController_ = std::make_shared< MasterController>(); } );
+            return masterController_.get();
         }
+
+        MasterObserver * masterObserver() {
+            static std::once_flag flag;
+            std::call_once( flag, [this] () { masterObserver_ = std::make_shared< MasterObserver>(); } );
+            return masterObserver_.get();
+        }
+
     public:
-        std::shared_ptr< MasterController > masterController_;
+        std::atomic_flag connected_;
+        std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
+
     private:
         fsm::acquire fsm_;
+        std::shared_ptr< MasterController > masterController_;
+        std::shared_ptr< MasterObserver > masterObserver_;
     };
 
 }
@@ -195,11 +130,67 @@ document::document(QObject *parent) : QObject(parent)
 }
 
 void
-document::actionConnect()
+document::actionConnect( bool applyMethod )
 {
-    if ( impl_->masterController_ ) { // master controller
+    // When press 'connect' button on Acquire's MainWindow, directory goes to MasterController::connect 
+    // then call this from MainWindow.
+
+    if ( impl_->connected_.test_and_set( std::memory_order_acquire ) == false ) {
+
+        task::instance()->open();
+
+        if ( *( impl_->fsm().current_state() ) == 0 ) {
+            impl_->fsm().start();
+
+            std::vector< std::shared_ptr< adextension::iController > > vec;
+            MainWindow::instance()->findInstControllers( vec );
+
+            std::vector< std::future<bool> > futures;
+            for ( auto& iController : vec ) {
+                futures.push_back( std::async( [iController] () {
+                    return iController->connect() && iController->wait_for_connection_ready(); } ) );
+            }
+
+            size_t i = 0;
+            for ( auto& future : futures ) {
+                if ( future.get() )
+                    impl_->activeControllers_.push_back( vec[ i ] );
+                ++i;
+            }
+
+
+            if ( auto masterObserver = impl_->masterObserver() ) {
+
+                auto ptr( masterObserver->shared_from_this() );
+
+                for ( auto& iController : impl_->activeControllers_ ) {
+                    if ( auto session = iController->getInstrumentSession() ) {
+                        if ( auto observer = session->getObserver() ) {
+                            ADDEBUG() << iController->module_name().toStdString() << "  --> Added to MasterObserver";
+                            ptr->addSibling( observer );
+                        }
+                    }
+                }
+            }
+
+            if ( applyMethod ) {
+                futures.clear();
+                auto cm = MainWindow::instance()->getControlMethod();
+                for ( auto iController : impl_->activeControllers_ ) {
+                    if ( auto session = iController->getInstrumentSession() )
+                        futures.push_back( std::async( std::launch::async, [session, cm] () {
+                                    return session->initialize() && session->prepare_for_run( cm ); } ) );
+                }
+                task::instance()->post( futures );
+            }
+        }
     }
-    
+}
+
+void
+document::addToRecentFiles( const QString& filename )
+{
+    qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_DATA_FILES, constants::KEY_FILES, filename );
 }
 
 document * 
@@ -222,12 +213,6 @@ document::instance()
 }
 
 void
-document::addToRecentFiles( const QString& filename )
-{
-    qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_DATA_FILES, constants::KEY_FILES, filename );
-}
-
-void
 document::initialSetup()
 {
     boost::filesystem::path dir = user_preference::path( settings_.get() );
@@ -245,8 +230,7 @@ document::initialSetup()
     } else {
         path = QFileInfo( path ).path();
     }
-    // fake project directory for help initial openfiledialog location
-    //Core::DocumentManager::setProjectsDirectory( path ); -- Quan plugin may set already
+
     Core::DocumentManager::setUseProjectsDirectory( true );
 
     boost::filesystem::path mfile( dir / "default.cmth" );
@@ -346,7 +330,7 @@ document::recentFile( const char * group, bool dir_on_fail )
         file = Core::DocumentManager::currentFile();
         if ( file.isEmpty() )
             file = qtwrapper::settings( *settings_ ).recentFile( constants::GRP_DATA_FILES, constants::KEY_FILES );
-
+        
         if ( !file.isEmpty() ) {
             QFileInfo fi( file );
             return fi.path();
@@ -473,29 +457,18 @@ document::save( const QString& filename, const adcontrols::SampleRun& m )
 }
 
 void
-document::fsmStart()
-{
-    impl_->fsm().start();
-}
-
-void
 document::fsmStop()
 {
     impl_->fsm().start();
 }
 
 void
-document::fsmSetMainWindow( MainWindow * w )
-{
-    impl_->setMainWindow( w );
-}
-
-void
 document::fsmActPrepareForRun()
 {
     adcontrols::SampleRun run;
+    auto mainWindow = MainWindow::instance();
 
-    if ( impl_->fsm().mainWindow_ && impl_->fsm().mainWindow_->getSampleRun( run ) )
+    if ( mainWindow && mainWindow->getSampleRun( run ) )
         setSampleRun( run, QString() );
 
     impl_->fsm().process_event( fsm::prepare() );
@@ -539,5 +512,5 @@ document::notify_ready_for_run( const char * xml )
 MasterController *
 document::masterController()
 {
-    return impl_->masterController_.get();
+    return impl_->masterController();
 }

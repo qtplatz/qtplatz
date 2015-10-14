@@ -28,6 +28,7 @@
 #include <adicontroller/instrument.hpp>
 #include <adicontroller/receiver.hpp>
 #include <adicontroller/signalobserver.hpp>
+#include <cassert>
 #include <chrono>
 #include <condition_variable>
 #include <vector>
@@ -148,25 +149,21 @@ namespace adextension {
         int module_number() const override { return module_number_; }
 
         void dataChangedHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > f ) override {
-            dataChangedHandler_ = f;
+            dataChangedHandler_.push_back( f );
         }
 
         void dataEventHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > f ) override {
-            dataEventHandler_ = f;
+            dataEventHandler_.push_back( f );
         }
 
         void invokeDataChanged( adicontroller::SignalObserver::Observer * o, unsigned int pos ) override {
-            if ( dataChangedHandler_ )
-                dataChangedHandler_( o, pos );
-            else
-                iController::invokeDataChanged( o, pos );
+            for ( auto& dataChanged : dataChangedHandler_ )
+                dataChanged( o, pos );
         }
 
         void invokeDataEvent( adicontroller::SignalObserver::Observer * o, unsigned int events, unsigned int pos ) override {
-            if ( dataEventHandler_ )
-                dataEventHandler_( o, events, pos );
-            else
-                iController::invokeDataEvent( o, events, pos );
+            for ( auto& dataEvent : dataEventHandler_ )
+                dataEvent( o, events, pos );
         }
 
     protected:
@@ -178,8 +175,8 @@ namespace adextension {
         std::shared_ptr< ObserverEventsImpl > observerEvents_;
         QString module_name_;
         int module_number_;
-        std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > dataChangedHandler_;
-        std::function< void( adicontroller::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > dataEventHandler_;
+        std::vector< std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > > dataChangedHandler_;
+        std::vector< std::function< void( adicontroller::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > > dataEventHandler_;
     };
 
 }

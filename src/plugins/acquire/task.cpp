@@ -30,8 +30,6 @@
 //#include "observer.hpp"
 //#include "sampleprocessor.hpp"
 #include <acewrapper/udpeventreceiver.hpp>
-#include <iostream>
-#include <sstream>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
@@ -43,7 +41,10 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
+#include <future>
 #include <stdexcept>
+#include <iostream>
+#include <sstream>
 #if defined _DEBUG
 # include <iostream>
 #endif
@@ -55,6 +56,7 @@ namespace acquire {
     public:
         static std::unique_ptr< task > instance_;
         static std::once_flag flag;
+        static std::once_flag open_flag;
         
         impl( task * p ) : this_( p )
                          , masterObserver_( std::make_shared< MasterObserver >() )
@@ -71,7 +73,7 @@ namespace acquire {
     };
 
     std::unique_ptr< task > task::impl::instance_ = 0;
-    std::once_flag task::impl::flag;
+    std::once_flag task::impl::flag, task::impl::open_flag;
 
     struct receiver_data {
         //   bool operator == ( const receiver_data& ) const;
@@ -99,9 +101,11 @@ task::instance()
 
 task::~task()
 {
+    close();
+    delete impl_;
 }
 
-task::task()
+task::task() : impl_(new impl( this ))
 {
 }
 
@@ -123,12 +127,38 @@ task::close()
 bool
 task::open()
 {
-    unsigned cores = std::max( 3u, std::thread::hardware_concurrency() - 1 );
+    std::call_once( impl_->open_flag, [this] () {
 
-    for ( unsigned i = 0; i < cores; ++i ) 
-        impl_->threads_.push_back( adportable::asio::thread( [this](){ impl_->io_service_.run(); } ) );
+        unsigned cores = std::max( 3u, std::thread::hardware_concurrency() - 1 );
+
+        for ( unsigned i = 0; i < cores; ++i )
+            impl_->threads_.push_back( adportable::asio::thread( [this] () { impl_->io_service_.run(); } ) );
+
+    } );
 
     return true;
+}
+
+void
+task::post( std::vector< std::future<bool> >& futures )
+{
+    bool processed( false );
+    static std::mutex m;
+    static std::condition_variable cv;
+
+    impl_->io_service_.post( [&] () {
+
+            std::vector< std::future<bool> > xfutures;
+            for ( auto& future : futures )
+                xfutures.push_back( std::move( future ) );
+
+            { std::lock_guard< std::mutex > lk( m ); processed = true; }  cv.notify_one(); // release
+
+            std::for_each( xfutures.begin(), xfutures.end(), [] ( std::future<bool>& f ) { f.get(); } ); // exec
+        });
+
+    std::unique_lock< std::mutex > lock( m );
+    cv.wait( lock, [&processed] { return processed; } );
 }
 
 void

@@ -35,7 +35,7 @@ extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
 
-namespace u5303a_controller {
+namespace u5303a {
 
     class factory : public adplugin::plugin
                   , public adicontroller::manager {
@@ -52,12 +52,12 @@ namespace u5303a_controller {
 
         // adicontroller::manager impl
         adicontroller::Instrument::Session * session( const char * token ) override {
-            return u5303a_controller::Instrument::Session::instance();
+            return u5303a::Instrument::Session::instance();
         }
 
         // adplugin impl
 
-        const char * iid() const { return "com.ms-cheminfo.qtplatz.adplugins.u5303a_controller"; }
+        const char * iid() const { return "com.ms-cheminfo.qtplatz.adplugins.u5303a"; }
 
         // Linux may fail with dynamic_cast<> when shared library was dlopen'nd
         void * query_interface_workaround( const char * typenam ) override {
@@ -78,5 +78,5 @@ namespace u5303a_controller {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
-    return u5303a_controller::factory::instance();
+    return u5303a::factory::instance();
 }

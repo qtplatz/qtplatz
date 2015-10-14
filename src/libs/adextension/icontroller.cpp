@@ -24,6 +24,8 @@
 
 #include "icontroller.hpp"
 #include <adicontroller/signalobserver.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <QMetaType>
 
 using namespace adextension;
 
@@ -32,3 +34,4 @@ iController::iController(QObject *parent) : QObject(parent)
 }
 
 Q_DECLARE_METATYPE( adicontroller::SignalObserver::Observer * );
+Q_DECLARE_METATYPE( boost::uuids::uuid );

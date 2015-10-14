@@ -42,7 +42,7 @@
 #include <algorithm>
 #include <sstream>
 
-using namespace u5303a_controller;
+using namespace u5303a;
 static const char * objtext__ = "1.u5303a.ms-cheminfo.com";
     
 WaveformObserver::WaveformObserver() : objid_( boost::uuids::name_generator( base_uuid() )( objtext__ ) )

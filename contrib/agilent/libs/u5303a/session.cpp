@@ -23,10 +23,10 @@
 **************************************************************************/
 
 #include "session.hpp"
-#include "masterobserver.hpp"
 #include "waveformobserver.hpp"
 #include <u5303a/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adicontroller/masterobserver.hpp>
 #include <adicontroller/receiver.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/utf.hpp>
@@ -40,12 +40,12 @@
 
 namespace adi = adicontroller;
 
-namespace u5303a_controller { namespace Instrument {
+namespace u5303a { namespace Instrument {
 
         struct Session::impl {
 
             impl() : work_( io_service_ )
-                   , masterObserver_( std::make_shared< MasterObserver >() )
+                   , masterObserver_( std::make_shared< adicontroller::MasterObserver >( "u5303a.master.observer.ms-cheminfo.com" ) )
                    , waveformObserver_( std::make_shared< WaveformObserver >() ) {
 
                 masterObserver_->addSibling( waveformObserver_.get() );
@@ -65,7 +65,7 @@ namespace u5303a_controller { namespace Instrument {
             inline std::mutex& mutex() { return mutex_; }
 
             std::shared_ptr< u5303a::digitizer > digitizer_;
-            std::shared_ptr< MasterObserver > masterObserver_;
+            std::shared_ptr< adicontroller::MasterObserver > masterObserver_;
             std::shared_ptr< WaveformObserver > waveformObserver_;
             
             void reply_message( adi::Receiver::eINSTEVENT msg, uint32_t value ) {
@@ -85,6 +85,7 @@ namespace u5303a_controller { namespace Instrument {
                     if ( ch1 || ch2 ) {
                         auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
                         auto pos = (*waveformObserver_) << pair;
+                        ADDEBUG() << "waveform_handler(" << pos << ")";
                         masterObserver_->dataChanged( waveformObserver_.get(), pos );
                         return false; // no next method changed.
                     }
@@ -102,7 +103,7 @@ namespace u5303a_controller { namespace Instrument {
     }
 }
 
-using namespace u5303a_controller::Instrument;
+using namespace u5303a::Instrument;
 
 Session *
 Session::instance()
@@ -130,23 +131,20 @@ Session::software_revision() const
 bool
 Session::setConfiguration( const std::string& xml )
 {
-    ADDEBUG() << "##### Session::setConfiguration #####";
     return true;
 }
 
 bool
 Session::configComplete()
 {
-    ADDEBUG() << "##### Session::configComplete #####";    
     return true;    
 }
             
 bool
 Session::connect( adi::Receiver * receiver, const std::string& token )
 {
-    ADDEBUG() << "##### Session::connect token=" << token << " ######";
-    
     auto ptr( receiver->shared_from_this() );
+
     if ( ptr ) {
         std::call_once( impl::flag2_, [&] () {
                 impl_->threads_.push_back( adportable::asio::thread( [=]() { impl_->io_service_.run(); } ) );
@@ -167,8 +165,6 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
 bool
 Session::disconnect( adicontroller::Receiver * receiver )
 {
-    ADDEBUG() << "##### Session::disconnect #####";
-    
     auto self( receiver->shared_from_this() );
     
     std::lock_guard< std::mutex > lock( impl_->mutex() );
@@ -236,7 +232,6 @@ Session::getControlMethod()
 bool
 Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
 {
-    ADDEBUG() << "##### Session::prepare_for_run #####";
     if ( m ) {
         auto it = m->find( m->begin(), m->end(), "u5303a" );
         if ( it != m->end() ) {
