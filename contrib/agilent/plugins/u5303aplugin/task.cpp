@@ -256,7 +256,7 @@ task::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos 
 {
     // on SignalObserver::Observer masharing (sync with device data-reading thread)
 #if WIN32 && defined _DEBUG
-    ADDEBUG() << "u5303a::task::onDataChanged( " << pos << ")";
+    // ADDEBUG() << "u5303a::task::onDataChanged( " << pos << ")";
 #endif
 
     auto self( so->shared_from_this() );

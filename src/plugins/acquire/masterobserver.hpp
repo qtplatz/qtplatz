@@ -32,10 +32,12 @@ namespace acquire {
     namespace so = adicontroller::SignalObserver;
 
     class MasterObserver : public adicontroller::SignalObserver::Observer {
-        adicontroller::SignalObserver::Description desc_;
+
         class impl;
         impl * impl_;
+
     public:
+
         MasterObserver();
         ~MasterObserver();
 
@@ -44,6 +46,8 @@ namespace acquire {
 
         const boost::uuids::uuid& objid() const override;
         const char * objtext() const override;
+
+        bool addSibling( Observer * observer ) override;
 
         uint64_t uptime() const { return 0; }
         void uptime_range( uint64_t& oldest, uint64_t& newest ) const  { oldest = newest = 0; }

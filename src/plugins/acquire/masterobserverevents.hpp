@@ -24,37 +24,38 @@
 
 #pragma once
 
-#include "constants.hpp"
-#include <adextension/icontrollerimpl.hpp>
-#include <condition_variable>
-#include <mutex>
+#include <adicontroller/signalobserver.hpp>
+#include <adicontroller/constants.hpp>
+#include <memory>
 
-namespace adicontroller { namespace Instrument { class Session; } }
+namespace adextension { class iController; }
 
 namespace acquire {
 
-    class MasterController : public adextension::iControllerImpl {
+    class MasterController;
 
-        Q_OBJECT
+    /*
+     *  ObserverEvents -- implementation helper
+     */
+
+    class MasterObserverEvents : public adicontroller::SignalObserver::ObserverEvents {
+        // ObserverEvents
+        std::weak_ptr< adextension::iController > controller_;
 
     public:
-        MasterController();
-        ~MasterController();
+        ~MasterObserverEvents();
 
-        bool connect() override;
-
-    signals:
-                
-    private slots:
+        MasterObserverEvents( MasterController * );
             
-    private:
-        // bool isInitialized_;
-        // std::mutex mutex_;
-        // std::condition_variable cv_;
-        class impl;
-        impl * impl_;
+        void OnConfigChanged( uint32_t objId, adicontroller::SignalObserver::eConfigStatus status );
+            
+        void OnUpdateData( uint32_t objId, long pos );
+            
+        void OnMethodChanged( uint32_t objId, long pos );
+            
+        void OnEvent( uint32_t objId, uint32_t event, long pos );
+            
+        void onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos ) override;
     };
 
 }
-
-

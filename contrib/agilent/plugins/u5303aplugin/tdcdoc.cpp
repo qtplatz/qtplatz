@@ -76,7 +76,7 @@ tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u530
 
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
 
-            if ( methods[ i ]->enable ) {
+            if ( methods[ i ] && methods[ i ]->enable ) {
 
                 find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
                 

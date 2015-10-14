@@ -22,39 +22,38 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "masterreceiver.hpp"
+#include "mastercontroller.hpp"
 
-#include "constants.hpp"
-#include <adextension/icontrollerimpl.hpp>
-#include <condition_variable>
-#include <mutex>
+using namespace acquire;
 
-namespace adicontroller { namespace Instrument { class Session; } }
-
-namespace acquire {
-
-    class MasterController : public adextension::iControllerImpl {
-
-        Q_OBJECT
-
-    public:
-        MasterController();
-        ~MasterController();
-
-        bool connect() override;
-
-    signals:
-                
-    private slots:
-            
-    private:
-        // bool isInitialized_;
-        // std::mutex mutex_;
-        // std::condition_variable cv_;
-        class impl;
-        impl * impl_;
-    };
-
+MasterReceiver::MasterReceiver( MasterController * p ) : controller_( p->pThis() )
+{
 }
 
+MasterReceiver::~MasterReceiver()
+{
+}
 
+void
+MasterReceiver::message( eINSTEVENT msg, uint32_t value )
+{
+    if ( auto p = controller_.lock() )
+        emit p->message( p.get(), unsigned( msg ), unsigned( value ) );
+}
+            
+void
+MasterReceiver::log( const adicontroller::EventLog::LogMessage& log )
+{
+}
+            
+void
+MasterReceiver::shutdown()
+{
+}
+            
+void
+MasterReceiver::debug_print( uint32_t priority, uint32_t category, const std::string& text )
+{
+}        
+        

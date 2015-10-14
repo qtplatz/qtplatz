@@ -206,6 +206,8 @@ ChemDocument::dbInit( ChemConnection * connection )
         , { "[Cl-].[S+]1C2C=C(C=CC=2N=C2C=CC(=CC=12)N(C)C)N(C)C",                                         "Methylene blue" }
         , { "CN(C)C1C=CC(=CC=1)C(C1C=CC(=CC=1)N(C)C)=C1C=CC(C=C1)=[N+](C)C.[Cl-]",                        "Methyl violet; Crystal violet" }
         , { "CCN(CC)c1ccc2c(c1)oc-3cc(=[N+](CC)CC)ccc3c2c4ccccc4C(=O)O.[Cl-]",                            "Rhodamine B" }
+        , { "C/C(=N\\c1ccc(cc1)O)/O",                                                                      "Paracetamol" }
+        , { "c1ccc2c(c1)c(=N)c3c([nH]2)CCCC3",                                                            "Tacrine" }
     };
 
     auto query = std::make_shared< ChemQuery >( connection->db() );

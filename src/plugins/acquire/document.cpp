@@ -27,6 +27,7 @@
 #include "fsm.hpp"
 #include "mainwindow.hpp"
 #include "mastercontroller.hpp"
+#include "masterreceiver.hpp"
 #include "masterobserver.hpp"
 #include "task.hpp"
 #include <adcontrols/controlmethod.hpp>
@@ -87,16 +88,22 @@ namespace acquire {
 
         MasterController * masterController() {
             static std::once_flag flag;
-            std::call_once( flag, [this] () { masterController_ = std::make_shared< MasterController>(); } );
+            std::call_once( flag, [this] () { masterController_ = std::make_shared< MasterController >(); } );
             return masterController_.get();
         }
 
         MasterObserver * masterObserver() {
             static std::once_flag flag;
-            std::call_once( flag, [this] () { masterObserver_ = std::make_shared< MasterObserver>(); } );
+            std::call_once( flag, [this] () { masterObserver_ = std::make_shared< MasterObserver >(); } );
             return masterObserver_.get();
         }
-
+        
+        MasterReceiver * masterReceiver() {
+            static std::once_flag flag;
+            std::call_once( flag, [this] () { receiver_ = std::make_shared< MasterReceiver >( masterController() ); } );
+            return receiver_.get();
+        }
+        
     public:
         std::atomic_flag connected_;
         std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
@@ -105,6 +112,7 @@ namespace acquire {
         fsm::acquire fsm_;
         std::shared_ptr< MasterController > masterController_;
         std::shared_ptr< MasterObserver > masterObserver_;
+        std::shared_ptr< MasterReceiver > receiver_;
     };
 
 }
@@ -158,13 +166,16 @@ document::actionConnect( bool applyMethod )
                 ++i;
             }
 
-
             if ( auto masterObserver = impl_->masterObserver() ) {
 
                 auto ptr( masterObserver->shared_from_this() );
 
                 for ( auto& iController : impl_->activeControllers_ ) {
+                    
                     if ( auto session = iController->getInstrumentSession() ) {
+
+                        session->connect( impl_->masterReceiver(), "acquire.master" );
+
                         if ( auto observer = session->getObserver() ) {
                             ADDEBUG() << iController->module_name().toStdString() << "  --> Added to MasterObserver";
                             ptr->addSibling( observer );

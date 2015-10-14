@@ -24,37 +24,33 @@
 
 #pragma once
 
-#include "constants.hpp"
-#include <adextension/icontrollerimpl.hpp>
-#include <condition_variable>
-#include <mutex>
+#include <adicontroller/receiver.hpp>
+#include <adicontroller/constants.hpp>
+#include <memory>
 
-namespace adicontroller { namespace Instrument { class Session; } }
+namespace adextension { class iController; }
 
 namespace acquire {
 
-    class MasterController : public adextension::iControllerImpl {
+    class MasterController;
 
-        Q_OBJECT
+    class MasterReceiver : public adicontroller::Receiver {
+
+        std::weak_ptr< adextension::iController > controller_;
 
     public:
-        MasterController();
-        ~MasterController();
+        ~MasterReceiver();
 
-        bool connect() override;
-
-    signals:
-                
-    private slots:
+        MasterReceiver( MasterController * p );
             
-    private:
-        // bool isInitialized_;
-        // std::mutex mutex_;
-        // std::condition_variable cv_;
-        class impl;
-        impl * impl_;
+        void message( eINSTEVENT msg, uint32_t value ) override;
+            
+        void log( const adicontroller::EventLog::LogMessage& log ) override;
+            
+        void shutdown() override;
+            
+        void debug_print( uint32_t priority, uint32_t category, const std::string& text ) override;
+        
     };
 
 }
-
-

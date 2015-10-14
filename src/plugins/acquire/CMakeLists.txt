@@ -72,6 +72,8 @@ set( ${PROJECT_NAME}_SOURCES
   session.cpp
   mastercontroller.cpp
   masterobserver.cpp
+  masterreceiver.cpp
+  masterobserverevents.cpp  
   )
 
 
@@ -86,6 +88,8 @@ set( ${PROJECT_NAME}_HEADERS
   session.hpp
   mastercontroller.hpp
   masterobserver.hpp
+  masterreceiver.hpp
+  masterobserverevents.hpp  
   )
 
 if ( QTPLATZ_SUPPORT_CORBA )

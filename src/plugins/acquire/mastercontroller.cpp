@@ -24,6 +24,8 @@
 
 #include "mastercontroller.hpp"
 #include "document.hpp"
+#include "masterreceiver.hpp"
+#include "masterobserverevents.hpp"
 #include "session.hpp"
 #include "task.hpp"
 #include <adplugin/plugin.hpp>
@@ -39,18 +41,6 @@
 #include <QVariant>
 #include <atomic>
 #include <memory>
-
-#if defined _DEBUG || defined DEBUG
-# if defined WIN32
-#  define DEBUG_LIB_TRAIL "d" // xyzd.dll
-# elif defined __MACH__
-#  define DEBUG_LIB_TRAIL "_debug" // xyz_debug.dylib
-# else
-#  define DEBUG_LIB_TRAIL ""        // xyz.so 
-# endif
-#else
-# define DEBUG_LIB_TRAIL ""
-#endif
 
 namespace acquire {
 
@@ -82,15 +72,18 @@ MasterController::~MasterController()
 bool
 MasterController::connect()
 {
-    // When press 'connect' button on Acquire's MainWindow, this call from document::actionConnect();
-    // When press 'connect' on other plugin, this call from iController::connect invoker.
-    // then MainWindow call document::actionConnect
+    // Press 'Connect' button on Acquire's MainWindow, this call from document::actionConnect();
+    // Press 'Connect' on other plugin's view, this call back from iController::connect invoker.
 
-    std::call_once( impl_->flag_, [this] () { session_ = std::make_shared< session >(); } );
+    std::call_once( impl_->flag_, [this] () {
+            impl_->session_ = std::make_shared< session >();
+        } );
 
     if ( impl_->connected_.test_and_set( std::memory_order_acquire ) == false ) {
-        document::instance()->actionConnect( false );
+
+        document::instance()->actionConnect( false ); // call document's actionConnect
         setInitialized( true );
+
     }
     return true;
 

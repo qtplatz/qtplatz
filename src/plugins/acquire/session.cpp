@@ -56,17 +56,12 @@ session::software_revision() const
 bool
 session::connect( adicontroller::Receiver * receiver, const std::string& token )
 {
-//    if ( ! iTask::instance()->connect( _this(), receiver, token ) ) {
-//        throw ControlServer::Session::CannotAdd( "receiver already exist" );
-//        return false;
-//    }
     return true;
 }
 
 bool
 session::disconnect( adicontroller::Receiver *receiver )
 {
-    //return iTask::instance()->disconnect( _this(), receiver );
     return false;
 }
 
