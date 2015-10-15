@@ -43,7 +43,7 @@ if %tools%==vc12 (
      cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
      cd contrib\installer\wix
      nmake help
-     got end
+     goto end
    ) else (
      cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Debug %source_dir%
    )
