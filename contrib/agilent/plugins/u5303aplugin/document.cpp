@@ -830,7 +830,7 @@ document::takeSnapshot()
     uint32_t serialnumber(0);
 
     // get waveform(s)
-    auto spectra = impl_->spectra_[ ap240_observer ];
+    auto spectra = impl_->spectra_[ u5303a_observer ];
     
     int ch = 1;
     for ( auto ms: spectra ) {

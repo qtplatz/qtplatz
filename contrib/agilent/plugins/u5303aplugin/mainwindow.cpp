@@ -367,10 +367,6 @@ MainWindow::createMidStyledToolbar()
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
-            Core::Context context( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
-            
-            //----------
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
 
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 
@@ -383,17 +379,17 @@ MainWindow::createMidStyledToolbar()
 }
 
 void
-MainWindow::createActions( const Core::Context& context )
+MainWindow::createActions()
 {
     Core::ActionContainer * menu = Core::ActionManager::instance()->createMenu( Constants::MENU_ID ); // Menu ID
 
     if ( !menu )
         return;
+
+    const Core::Context context( (Core::Id( Core::Constants::C_GLOBAL ) ) );
     
     menu->menu()->setTitle( "U5303A" );
 
-    // const Core::Context context( (Core::Id( Core::Constants::C_GLOBAL )) );
-    
     if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
         connect( action, &QAction::triggered, [this](){ actSnapshot(); } );
         action->setEnabled( false );

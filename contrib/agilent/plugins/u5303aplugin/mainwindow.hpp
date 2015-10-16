@@ -60,7 +60,7 @@ namespace u5303a {
 		void setSimpleDockWidgetArrangement();
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& page = QString() );
 
-        void createActions( const Core::Context& );
+        void createActions();
 
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );

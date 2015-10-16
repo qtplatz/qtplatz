@@ -65,20 +65,17 @@ u5303APlugin::~u5303APlugin()
 bool
 u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
 {
-    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
-
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
 
     mainWindow_->activateWindow();
-        
-    mode_->setId( "U5303A.MainView" );
+    mainWindow_->createActions();
 
     const Core::Context context( ( "U5303A.MainView" ) );
 
-    mode_->setContext( context );    
-    mainWindow_->createActions( context );
-    
+    mode_->setId( "U5303A.MainView" );
+    mode_->setContext( context );
+
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
 
