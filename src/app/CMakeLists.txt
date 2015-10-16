@@ -39,7 +39,8 @@ set( SOURCES
   ../shared/qtlockedfile/qtlockedfile.cpp
   )
 
-if ( WIN32 AND CMALE_BUILD_TYPE MATCHES RELEASE )
+#if ( WIN32 AND CMALE_BUILD_TYPE MATCHES RELEASE )
+if ( WIN32 AND NOT DEBUG_SYMBOL )
   add_executable( qtplatz WIN32
     ${SOURCES}  
     ${lockedfile_SOURCES}

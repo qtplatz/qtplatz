@@ -85,7 +85,6 @@ namespace u5303a { namespace Instrument {
                     if ( ch1 || ch2 ) {
                         auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
                         auto pos = (*waveformObserver_) << pair;
-                        ADDEBUG() << "waveform_handler(" << pos << ")";
                         masterObserver_->dataChanged( waveformObserver_.get(), pos );
                         return false; // no next method changed.
                     }

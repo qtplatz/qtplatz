@@ -351,10 +351,13 @@ task::impl::worker_thread()
 void
 task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos )
 {
-
     auto self( so->shared_from_this() );
 
     if ( self ) {
+
+#ifdef _DEBUG
+        ADDEBUG() << "readData(" << pos << ") status.pos = " << data_status_[ so->objid() ].pos_;
+#endif
 
         auto& status = data_status_[ so->objid() ];
         status.posted_data_count_++;
@@ -368,8 +371,10 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
 
             std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
             do {
-                if ( ( rb = so->readData( status.pos_++ ) ) )
+                if ( ( rb = so->readData( status.pos_ ) ) ) {
                     handle_u5303a_data( status, rb );
+                    status.pos_++;
+                }
             } while ( rb && status.pos_ <= pos );
 
         } else if ( so->objid() == ap240_observer ) {

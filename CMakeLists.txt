@@ -127,7 +127,7 @@ if ( WIN32 )
     ${CMAKE_BINARY_DIR}/makefile @ONLY )
 
   if ( DEBUG_SYMBOL )
-    message( "##### Generating DEBUG SYMBOL : " ${DEBUG_SYMBOL} )
+    message( "##### Generating DEBUG SYMBOL and CONSOLE: " ${DEBUG_SYMBOL} )
     set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "/DEBUG" )
     set( CMAKE_MODULE_LINKER_FLAGS_RELEASE "/DEBUG" )
     set( CMAKE_CXX_FLAGS_RELEASE "/MD /Zi /O2 /Ob2 /D NDEBUG" )

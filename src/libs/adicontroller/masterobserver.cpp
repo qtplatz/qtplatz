@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "masterobserver.hpp"
+#include <adportable/debug.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
