@@ -355,10 +355,6 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
 
     if ( self ) {
 
-#ifdef _DEBUG
-        ADDEBUG() << "readData(" << pos << ") status.pos = " << data_status_[ so->objid() ].pos_;
-#endif
-
         auto& status = data_status_[ so->objid() ];
         status.posted_data_count_++;
 

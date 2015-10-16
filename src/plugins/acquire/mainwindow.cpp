@@ -78,7 +78,14 @@ MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iCon
 {
     for ( auto v : ExtensionSystem::PluginManager::getObjects< adextension::iController >() ) {
         ADDEBUG() << v->module_name().toStdString();
-        vec.push_back( v->shared_from_this() );
+        try {
+            vec.push_back( v->shared_from_this() );
+        } catch ( std::bad_weak_ptr& ) {
+#if defined _DEBUG || defined DEBUG
+            ADDEBUG() << "adextension::iController does not inherit from shared_ptr";
+#endif
+            // ignore old iController implementation
+        }
     }
 }
 

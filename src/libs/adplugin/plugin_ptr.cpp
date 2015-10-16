@@ -28,6 +28,8 @@
 #include <boost/intrusive_ptr.hpp>
 
 namespace adplugin {
+
+    std::string __last_released_intrusive_ptr_clsid;
     
     void intrusive_ptr_add_ref( plugin * p )
     {
@@ -36,6 +38,7 @@ namespace adplugin {
     
     void intrusive_ptr_release( plugin * p )
     {
+        __last_released_intrusive_ptr_clsid = p->clsid();
         p->release();
     }
 
