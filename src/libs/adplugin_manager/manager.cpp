@@ -97,46 +97,45 @@ namespace adplugin {
         }
     };
 
-    namespace internal {
-
-        class manager_data : boost::noncopyable
-                           , adplugin::visitor {
-        public:
-            virtual ~manager_data() {}
-            manager_data() {}
-            typedef std::map< std::string, plugin_data > map_type;
-            typedef std::vector< plugin_data > vector_type;
-            bool install( QLibrary&, const std::string& adpluginspec, const std::string& context );
-			void populated();
-            plugin_ptr select_iid( const char * regex );
-            plugin_ptr select_clsid( const char * regex );
-            size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
-            size_t select_clsids( const char * regex, std::vector< plugin_ptr >& );
-
-            // visitor 
-            void visit( adplugin::plugin * plugin, const char * adpluginspec );
-        private:
-            map_type plugins_;
-            vector_type additionals_; // if shared-object contains more than two plugins
-        };
-    }
+    class manager::data : adplugin::visitor {
+        data( const data& ) = delete;
+        data& operator = ( const data& ) = delete;
+    public:
+        virtual ~data() {}
+        data() {}
+        typedef std::map< std::string, plugin_data > map_type;
+        typedef std::vector< plugin_data > vector_type;
+        bool install( QLibrary&, const std::string& adpluginspec, const std::string& context );
+        void populated();
+        plugin_ptr select_iid( const char * regex );
+        plugin_ptr select_clsid( const char * regex );
+        size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
+        size_t select_clsids( const char * regex, std::vector< plugin_ptr >& );
+        
+        // visitor 
+        void visit( adplugin::plugin * plugin, const char * adpluginspec );
+    private:
+        map_type plugins_;
+        vector_type additionals_; // if shared-object contains more than two plugins
+    };
 
 }
 ////////////////////////////////////
 
 std::unique_ptr< manager > manager::instance_;
-static std::once_flag flag;
 
 manager *
 manager::instance()
 {
+    static std::once_flag flag;
+
     std::call_once( flag, [] () { instance_.reset( new manager() ); } );
 	return instance_.get();
 }
 
 //////////////////////
 
-manager::manager(void) : d_( new internal::manager_data() )
+manager::manager(void) : d_( new manager::data() )
 {
 	adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 }
@@ -187,10 +186,8 @@ manager::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
 
 //////////////////
 
-using namespace adplugin::internal;
-
 void
-manager_data::visit( adplugin::plugin * plugin, const char * adpluginspec )
+manager::data::visit( adplugin::plugin * plugin, const char * adpluginspec )
 {
     if ( adpluginspec == 0 || plugin == 0 )
         return;
@@ -199,12 +196,13 @@ manager_data::visit( adplugin::plugin * plugin, const char * adpluginspec )
 	auto it = std::find_if( plugins_.begin(), plugins_.end(), [&](const map_type::value_type& d){
 		return d.second == (*plugin);
 	});
+
 	if ( it == plugins_.end() )
-		additionals_.push_back( plugin_data( plugin ) );
+		additionals_.push_back( plugin_data( plugin->pThis() ) );
 }
 
 void
-manager_data::populated()
+manager::data::populated()
 {
 #if ( defined _DEBUG || defined DEBUG ) && 0
     adportable::debug(__FILE__, __LINE__) << "==> populated";
@@ -216,23 +214,21 @@ manager_data::populated()
 }
 
 bool
-manager_data::install( QLibrary& lib, const std::string& adpluginspec, const std::string& specxml )
+manager::data::install( QLibrary& lib, const std::string& adpluginspec, const std::string& specxml )
 {
     if ( plugins_.find( adpluginspec ) != plugins_.end() )
         return true; // already in, so that does not need unload() call
+
     typedef adplugin::plugin * (*factory)();
 
     if ( lib.isLoaded() ) {
         factory f = reinterpret_cast< factory >( lib.resolve( "adplugin_plugin_instance" ) );
         if ( f ) {
-            adplugin::plugin * pptr = f();
-            adplugin::plugin_ptr ptr( pptr, false );
-            if ( ptr ) {
-                ptr->clsid_ = adpluginspec;
-                ptr->spec_  = specxml;
-				plugins_[ adpluginspec ] = plugin_data( ptr );
+            if ( adplugin::plugin * pptr = f() ) {
+                pptr->setConfig( adpluginspec, specxml );
+				plugins_[ adpluginspec ] = plugin_data( pptr->pThis() );
 
-                ptr->accept( *this, adpluginspec.c_str() );
+                pptr->accept( *this, adpluginspec.c_str() );
 
                 return true;
             }
@@ -242,7 +238,7 @@ manager_data::install( QLibrary& lib, const std::string& adpluginspec, const std
 }
 
 plugin_ptr
-manager_data::select_iid( const char * regex )
+manager::data::select_iid( const char * regex )
 {
 #if defined BOOST_REGEX
 	boost::regex re( regex );
@@ -263,13 +259,13 @@ manager_data::select_iid( const char * regex )
 }
 
 plugin_ptr
-manager_data::select_clsid( const char * regex )
+manager::data::select_clsid( const char * regex )
 {
     return 0;
 }
 
 size_t
-manager_data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
+manager::data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
 #ifdef BOOST_REGEX
 	boost::regex re( regex );
@@ -289,7 +285,7 @@ manager_data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 }
 
 size_t
-manager_data::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
+manager::data::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
 {
     return 0;
 }

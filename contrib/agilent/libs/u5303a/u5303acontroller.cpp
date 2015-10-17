@@ -41,13 +41,13 @@ namespace u5303a {
                   , public adicontroller::manager {
 
         static std::once_flag flag;
-        static std::atomic<factory * > instance_;
+        static std::shared_ptr< factory > instance_;
 
     public:
 
         static adplugin::plugin * instance() {
-            std::call_once( flag, [&] () { instance_ = new factory(); } );
-            return instance_;
+            std::call_once( flag, [&] () { instance_ = std::make_shared< factory >(); } );
+            return instance_.get();
         }
 
         // adicontroller::manager impl
@@ -71,7 +71,7 @@ namespace u5303a {
         }
     };
 
-    std::atomic<factory *> factory::instance_( 0 );
+    std::shared_ptr<factory> factory::instance_( 0 );
     std::once_flag factory::flag;
 };
 

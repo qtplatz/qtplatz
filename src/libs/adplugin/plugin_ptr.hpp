@@ -26,17 +26,19 @@
 #pragma once
 
 #include "adplugin_global.h"
-#include <boost/intrusive_ptr.hpp>
+#include <memory>
+// #include <boost/intrusive_ptr.hpp>
 
 #pragma once
 
 namespace adplugin {
 
     class plugin;
+    typedef std::shared_ptr< plugin > plugin_ptr;
 
-    typedef boost::intrusive_ptr< plugin > plugin_ptr;
-    void ADPLUGINSHARED_EXPORT intrusive_ptr_add_ref( plugin * );
-    void ADPLUGINSHARED_EXPORT intrusive_ptr_release( plugin * );
+    // typedef boost::intrusive_ptr< plugin > plugin_ptr;
+    // void ADPLUGINSHARED_EXPORT intrusive_ptr_add_ref( plugin * );
+    // void ADPLUGINSHARED_EXPORT intrusive_ptr_release( plugin * );
 }
 
 

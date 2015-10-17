@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adplugin_global.h"
+#include <memory>
 #include <string>
 #include <typeinfo>
 
@@ -35,9 +36,19 @@ namespace adplugin {
 
     class visitor;
     class orbFactory;
+    class plugin;
 
-    class ADPLUGINSHARED_EXPORT plugin {
+#if defined _MSC_VER
+    ADPLUGINSHARED_TEMPLATE_EXPORT template class ADPLUGINSHARED_EXPORT std::weak_ptr < plugin > ;
+#endif
 
+    ////////////////////////
+    
+    class ADPLUGINSHARED_EXPORT plugin : public std::enable_shared_from_this<plugin> {
+
+        plugin( const plugin& ) = delete;
+        plugin& operator = ( const plugin& ) = delete;
+        
 #if defined _MSC_VER
 # pragma warning(push)
 # pragma warning(disable:4251)
@@ -47,16 +58,20 @@ namespace adplugin {
 #if defined _MSC_VER
 # pragma warning(pop)
 #endif
-        friend class internal::manager_data;
         virtual void * query_interface_workaround( const char * /* typename */ ) { return 0; }
-	protected:
-        int ref_count_;
-		virtual ~plugin();
+
     public:
+		virtual ~plugin();
         plugin();
-        plugin( const plugin& );
-        virtual void add_ref();
-        virtual void release();
+
+        void setConfig( const std::string& adpluginspec, const std::string& xml );
+
+        std::shared_ptr< plugin > pThis();
+        std::shared_ptr< const plugin > pThis() const;
+
+        // virtual void add_ref();
+        // virtual void release();
+
         virtual void accept( visitor&, const char * adplugin ) = 0;
         virtual const char * iid() const = 0;
         virtual const char * clsid() const { return clsid_.c_str(); }       // adplugin name

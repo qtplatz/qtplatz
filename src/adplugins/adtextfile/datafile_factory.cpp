@@ -31,8 +31,11 @@
 #include <adplugin/visitor.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <mutex>
 
 using namespace adtextfile;
+
+std::shared_ptr< datafile_factory > datafile_factory::instance_( 0 );
 
 datafile_factory::~datafile_factory(void)
 {
@@ -45,8 +48,10 @@ datafile_factory::datafile_factory()
 datafile_factory *
 datafile_factory::instance()
 {
-    return new datafile_factory;
-    // destraction will manage by ref_count installed in adplugin::plugin base class
+    static std::once_flag flag;
+
+    std::call_once( flag, [] () { instance_ = std::make_shared< datafile_factory >(); } );
+    return instance_.get();
 }
 
 void

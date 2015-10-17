@@ -66,7 +66,7 @@ namespace acqrscontrols {
 
 using namespace acqrscontrols::ap240;
 
-std::atomic< MassSpectrometer * > MassSpectrometer::instance_( 0 );
+std::shared_ptr< MassSpectrometer > MassSpectrometer::instance_( 0 );
 std::mutex MassSpectrometer::mutex_;
 
 MassSpectrometer::~MassSpectrometer()
@@ -88,19 +88,10 @@ MassSpectrometer::MassSpectrometer( adcontrols::datafile * file ) : adcontrols::
 MassSpectrometer *
 MassSpectrometer::instance()
 {
-    typedef MassSpectrometer T;
-    T * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new T();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static std::once_flag flag;
+
+    std::call_once( flag, [] () { instance_ = std::make_shared< MassSpectrometer >(); } );
+    return instance_.get();
 }
 
 //static

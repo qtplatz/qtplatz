@@ -49,16 +49,16 @@ std::string __ior_session;
 //--------------------
 class adcontroller_plugin : public adplugin::plugin 
                           , public adplugin::orbFactory {
-    static adcontroller_plugin * instance_;
+    static std::shared_ptr< adcontroller_plugin > instance_;
 	static std::mutex mutex_;
 public:
     static inline adcontroller_plugin *instance() {
         static std::once_flag flag;
         std::call_once( flag, []{
-                adcontroller_plugin::instance_ = new adcontroller_plugin();
+                adcontroller_plugin::instance_ = std::make_shared< adcontroller_plugin >();
                 adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
             });
-        return instance_;
+        return instance_.get();
     }
     
     // adplugin::plugin
@@ -68,7 +68,7 @@ public:
     virtual adplugin::orbServant * create_instance();
 };
 
-adcontroller_plugin * adcontroller_plugin::instance_ = 0;
+std::shared_ptr< adcontroller_plugin > adcontroller_plugin::instance_ = 0;
 std::mutex adcontroller_plugin::mutex_;
 
 //-----------------------------------------------

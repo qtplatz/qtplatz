@@ -34,15 +34,15 @@
 using namespace adspectrometer;
 
 // adplugin is managed by ref_count
-MassSpectrometerFactory * MassSpectrometerFactory::instance_ = 0;
+std::shared_ptr< MassSpectrometerFactory > MassSpectrometerFactory::instance_ = 0;
 
 static std::once_flag flag;
 
 MassSpectrometerFactory *
 MassSpectrometerFactory::instance()
 {
-    std::call_once( flag, [] () { instance_ = new MassSpectrometerFactory(); } );
-    return instance_;
+    std::call_once( flag, [] () { instance_ = std::make_shared< MassSpectrometerFactory >(); } );
+    return instance_.get();
 }
 
 

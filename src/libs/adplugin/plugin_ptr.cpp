@@ -29,18 +29,18 @@
 
 namespace adplugin {
 
-    std::string __last_released_intrusive_ptr_clsid;
+    // std::string __last_released_intrusive_ptr_clsid;
     
-    void intrusive_ptr_add_ref( plugin * p )
-    {
-        p->add_ref();
-    }
+    // void intrusive_ptr_add_ref( plugin * p )
+    // {
+    //     p->add_ref();
+    // }
     
-    void intrusive_ptr_release( plugin * p )
-    {
-        __last_released_intrusive_ptr_clsid = p->clsid();
-        p->release();
-    }
+    // void intrusive_ptr_release( plugin * p )
+    // {
+    //     __last_released_intrusive_ptr_clsid = p->clsid();
+    //     p->release();
+    // }
 
 }
 

@@ -35,12 +35,12 @@ namespace adspectrometer {
 
     class MassSpectrometerFactory : public adcontrols::massspectrometer_factory
                                   , public adplugin::plugin {
-        MassSpectrometerFactory();
-        ~MassSpectrometerFactory();
 
-        static MassSpectrometerFactory * instance_; // managed by ref_count on adplugin::plugin
+        static std::shared_ptr< MassSpectrometerFactory > instance_; // managed by ref_count on adplugin::plugin
 
     public:
+        MassSpectrometerFactory();
+        ~MassSpectrometerFactory();
         
         static MassSpectrometerFactory * instance();
 

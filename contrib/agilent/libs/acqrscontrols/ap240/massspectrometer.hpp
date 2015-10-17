@@ -39,11 +39,11 @@ namespace acqrscontrols {
         class DataInterpreter;
 
         class ACQRSCONTROLSSHARED_EXPORT MassSpectrometer : public adcontrols::MassSpectrometer
-            , public adcontrols::massspectrometer_factory
-            , public adplugin::plugin {
+                                                          , public adcontrols::massspectrometer_factory
+                                                          , public adplugin::plugin {
 
-            MassSpectrometer();
         public:
+            MassSpectrometer();
             ~MassSpectrometer();
             MassSpectrometer( adcontrols::datafile * );
 
@@ -67,7 +67,7 @@ namespace acqrscontrols {
 
         private:
             static std::mutex mutex_;
-            static std::atomic< MassSpectrometer * > instance_;
+            static std::shared_ptr< MassSpectrometer > instance_;
             std::shared_ptr< ScanLaw > scanlaw_;
             std::shared_ptr< DataInterpreter > interpreter_;
         };

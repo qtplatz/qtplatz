@@ -46,9 +46,9 @@ LifeCycleAccessor::LifeCycleAccessor( QObject * target ) : pObject_( target )
 
             const char * name = target->metaObject()->className();
 
-            Q_ASSERT( p_ ); // if this is true, target is inherit from LifeCycle but not Q_INTERFACES not decleard.
+            Q_ASSERT( p_ ); // if this is true, target is inherit from LifeCycle but not Q_INTERFACES decleard.
                             // dynamic_cast may not work for dynamically loaded objects on Linux and Mac 
-                            // but only works on Windows with RTTI enabled.
+                            // but on Windows with RTTI enabled.
         }
 
         if ( p_ == 0 ) {

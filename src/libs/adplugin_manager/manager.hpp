@@ -47,7 +47,9 @@ namespace adplugin {
     namespace internal { class manager_data; }
 
     class ADPLUGINSHARED_EXPORT manager {
-        internal::manager_data * d_;
+        class data;
+        data * d_;
+        
 #if defined _MSC_VER
 # pragma warning(push)
 # pragma warning(disable:4251)

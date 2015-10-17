@@ -25,16 +25,11 @@
 #include "fticr.hpp"
 #include "datafile_factory.hpp"
 #include <boost/filesystem.hpp>
+#include <memory>
+#include <mutex>
 
-#if defined WIN32
-#  if defined _DEBUG
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "portfoliod.lib")
-#  else
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "portfolio.lib")
-#  endif
-#endif
+static std::shared_ptr< fticr::datafile_factory > instance_;
+static std::once_flag flag;
 
 FTICR::FTICR()
 {
@@ -62,6 +57,8 @@ adplugin_plugin_instance()
     // Workaround for boost/VC bug #6320 according to following artcile
     // https://svn.boost.org/trac/boost/ticket/6320
     boost::filesystem::path p("dummy");
-#endif   
-    return new fticr::datafile_factory();
+#endif
+
+    std::call_once( flag, [](){ instance_ = std::make_shared< fticr::datafile_factory >(); } );
+    return instance_.get();
 }

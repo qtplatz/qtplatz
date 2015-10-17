@@ -101,13 +101,13 @@ class adbroker_plugin : public adplugin::plugin
                       , public adplugin::orbFactory
                       , public adbroker::orbBroker {
 
-    static std::atomic< adbroker_plugin * > instance_;
+    static std::shared_ptr< adbroker_plugin > instance_;
     static std::mutex mutex_;
+public:
 
     adbroker_plugin() {}
     ~adbroker_plugin() {}
 
-public:
     static adbroker_plugin * instance();
 
     // plugin
@@ -121,26 +121,16 @@ public:
     }
 };
 
-std::atomic< adbroker_plugin * > adbroker_plugin::instance_(0);
+std::shared_ptr< adbroker_plugin > adbroker_plugin::instance_(0);
 std::mutex adbroker_plugin::mutex_;
 
 adbroker_plugin *
 adbroker_plugin::instance()
 {
-    typedef adbroker_plugin T;
+    std::once_flag flag;
 
-    T * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new T();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    std::call_once( flag, [] () { instance_ = std::make_shared< adbroker_plugin >(); } );
+    return instance_.get();
 }
 
 const char *

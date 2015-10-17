@@ -35,8 +35,7 @@
 
 using namespace addatafile;
 
-datafile_factory * datafile_factory::instance_ = 0;
-std::mutex __mutex;
+std::shared_ptr< datafile_factory > datafile_factory::instance_ = 0;
 
 datafile_factory::~datafile_factory(void)
 {
@@ -50,15 +49,9 @@ datafile_factory::datafile_factory()
 datafile_factory *
 datafile_factory::instance()
 {
-    if ( instance_ == 0 ) {
-        std::lock_guard< std::mutex > lock( __mutex );
-        if ( instance_ == 0 ) {
-            instance_ = new datafile_factory;
-			// destractor will call from adplugin::dispose by reference couting method,
-            // so 'singleton' mechanism may not be necessary though...
-		}
-    }
-    return instance_;
+    static std::once_flag flag;
+    std::call_once( flag, [] () { instance_ = std::make_shared< datafile_factory >(); } );
+    return instance_.get();
 }
 
 void

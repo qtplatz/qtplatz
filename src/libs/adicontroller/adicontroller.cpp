@@ -37,12 +37,12 @@ namespace adicontroller {
 
     class factory : public adplugin::plugin {
         static std::once_flag flag;
-        static std::atomic<factory * > instance_;
+        static std::shared_ptr<factory > instance_;
 
     public:
         static adplugin::plugin * instance() {
-            std::call_once( flag, [&] () { instance_ = new factory(); } );
-            return instance_;
+            std::call_once( flag, [&] () { instance_ = std::make_shared< factory >(); } );
+            return instance_.get();
         }
 
         const char * iid() const { return "com.ms-cheminfo.qtplatz.adplugins.adicontroller"; }
@@ -52,7 +52,7 @@ namespace adicontroller {
         }
     };
 
-    std::atomic<factory *> factory::instance_( 0 );
+    std::shared_ptr< factory > factory::instance_( 0 );
     std::once_flag factory::flag;
 };
 

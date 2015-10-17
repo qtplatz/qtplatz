@@ -32,10 +32,10 @@ namespace addatafile {
 
     class datafile_factory : public adcontrols::datafile_factory
                            , public adplugin::plugin {
-        static datafile_factory * instance_;
+        static std::shared_ptr< datafile_factory > instance_;
+    public:
         ~datafile_factory();
         datafile_factory();
-    public:
         static datafile_factory * instance();
 
 		const char * mimeTypes() const { return 0; }

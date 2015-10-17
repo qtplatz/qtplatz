@@ -27,6 +27,7 @@
 #include "orbfactory.hpp"
 #include "orbservant.hpp"
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 
 using namespace adplugin;
 
@@ -35,27 +36,38 @@ plugin::~plugin()
     ADTRACE() << "##### plugin dtor called #####";
 }
 
-plugin::plugin() : ref_count_( 1 )
+plugin::plugin()
 {
-}
-
-plugin::plugin( const plugin& t ) : clsid_( t.clsid_ )
-                                  , ref_count_( t.ref_count_ )
-{
-    ADTRACE() << "==== plugin copy called #####";
 }
 
 void
-plugin::add_ref()
+plugin::setConfig( const std::string& adpluginspec, const std::string& xml )
 {
-    ++ref_count_;
+    clsid_ = adpluginspec; // full path name to <>.adplugin file
+    spec_ = xml; // contents of .adplugin file
+    // this data will be noticed via visitor pattern @ adplugin_manager::manager::data::install
 }
 
-void 
-plugin::release()
+std::shared_ptr< plugin >
+plugin::pThis()
 {
-    if ( ref_count_ ) {
-        if ( --ref_count_ == 0 )
-            delete this;
-     }
+    try {
+        return shared_from_this();
+    } catch ( std::bad_weak_ptr& ) {
+        // workaround
+        ADDEBUG() << "adplugin::plugin bad weak_ptr found for: " << clsid_;
+        return std::shared_ptr< plugin >( this );
+    }
+}
+
+std::shared_ptr< const plugin >
+plugin::pThis() const
+{
+    try {
+        return shared_from_this();
+    } catch ( std::bad_weak_ptr& ) {
+        // workaround        
+        ADDEBUG() << "adplugin::plugin bad weak_ptr found for: " << clsid_;
+        return std::shared_ptr< const plugin >( this );
+    }
 }

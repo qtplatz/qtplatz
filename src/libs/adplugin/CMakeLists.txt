@@ -15,14 +15,21 @@ set(CMAKE_AUTOMOC ON)
 add_definitions(-DADPLUGIN_LIBRARY)
 
 add_library( adplugin SHARED
-    lifecycle.cpp
-    plugin.cpp
-    orbfactory.cpp
-    orbbroker.cpp
-    orbservant.cpp
-    plugin_ptr.cpp
-    visitor.cpp
-    )
+  lifecycle.cpp
+  lifecycle.hpp
+  plugin.cpp
+  plugin.hpp
+  plugin_ptr.cpp
+  plugin_ptr.hpp  
+  orbfactory.cpp
+  orbfactory.hpp
+  orbbroker.cpp
+  orbbroker.hpp
+  orbservant.cpp
+  orbservant.hpp
+  visitor.cpp
+  visitor.hpp
+  )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${Boost_LIBRARIES}
