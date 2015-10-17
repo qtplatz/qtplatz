@@ -43,6 +43,7 @@ set( ${PROJECT_NAME}_SOURCES
   controlmethodtable.cpp
   controlmethodwidget.cpp
   consolewidget.cpp
+  cherrypicker.cpp
   delegatehelper.cpp
   doublespinbox.cpp
   dualspinslider.cpp
@@ -89,6 +90,7 @@ set( ${PROJECT_NAME}_HEADERS
   controlmethodtable.hpp
   controlmethodwidget.hpp
   centroidform.hpp
+  cherrypicker.hpp
   delegatehelper.hpp
   doublespinbox.hpp
   dualspinslider.hpp

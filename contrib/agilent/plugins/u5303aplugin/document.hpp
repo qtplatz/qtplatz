@@ -91,8 +91,11 @@ namespace u5303a {
 
         void addiController( adextension::iController * p );
 
+        void setControllerState( const QString& module, bool );
+        bool isControllerEnabled( const QString& module ) const;
+
         std::shared_ptr< const acqrscontrols::u5303a::method > method() const;
-//        std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
+        // std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
 
         double triggers_per_second() const;
         size_t unprocessed_trigger_counts() const;
@@ -102,7 +105,6 @@ namespace u5303a {
         void set_method( const acqrscontrols::u5303a::method& );
 
         adextension::iSequenceImpl * iSequence();
-
         u5303a::iControllerImpl * iController();
 
         const adcontrols::SampleRun * sampleRun() const;
@@ -131,7 +133,9 @@ namespace u5303a {
         impl * impl_;
 
         void reply_handler( const std::string&, const std::string& );
-        bool waveform_handler(  const acqrscontrols::u5303a::waveform *, const acqrscontrols::u5303a::waveform *, acqrscontrols::u5303a::method& );
+        bool waveform_handler( const acqrscontrols::u5303a::waveform *
+                               , const acqrscontrols::u5303a::waveform *
+                               , acqrscontrols::u5303a::method& );
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();

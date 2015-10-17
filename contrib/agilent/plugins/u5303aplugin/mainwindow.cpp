@@ -48,6 +48,7 @@
 #include <adportable/split_filename.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
+#include <adwidgets/cherrypicker.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -135,6 +136,16 @@ MainWindow::createDockWidgets()
             });
 
     }
+
+    if ( auto widget = new adwidgets::CherryPicker ) {
+
+        widget->setObjectName( "ModulePicker" );
+        createDockWidget( widget, "Modules", "CherryPicker" );
+
+        connect( widget, &adwidgets::CherryPicker::stateChanged, [this]( const QString& key, bool enable ){
+                document::instance()->setControllerState( key, enable );
+            });
+    }
 }
 
 void
@@ -162,12 +173,19 @@ MainWindow::OnInitialUpdate()
     for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
         document::instance()->addiController( iController );
     }
+
+    if ( auto picker = findChild< adwidgets::CherryPicker * >( "ModulePicker" ) ) {
+        for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
+            bool enable = document::instance()->isControllerEnabled( iController->module_name() );
+            picker->addItem( iController->module_name(), iController->module_name(), enable, false );
+        }
+    }
     
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
     }
-    
+
 }
 
 void

@@ -150,20 +150,33 @@ document::actionConnect( bool applyMethod )
         if ( *( impl_->fsm().current_state() ) == 0 ) {
             impl_->fsm().start();
 
-            std::vector< std::shared_ptr< adextension::iController > > vec;
-            MainWindow::instance()->findInstControllers( vec );
+            if ( applyMethod ) {
+                // Do here when 'Correct' button push on Acquire view
 
-            std::vector< std::future<bool> > futures;
-            for ( auto& iController : vec ) {
-                futures.push_back( std::async( [iController] () {
-                    return iController->connect() && iController->wait_for_connection_ready(); } ) );
-            }
+                std::vector< std::shared_ptr< adextension::iController > > vec;
+                MainWindow::instance()->findInstControllers( vec );
 
-            size_t i = 0;
-            for ( auto& future : futures ) {
-                if ( future.get() )
-                    impl_->activeControllers_.push_back( vec[ i ] );
-                ++i;
+                std::vector< std::future<bool> > futures;
+                for ( auto& iController : vec ) {
+                    futures.push_back( std::async( [iController] () {
+                        return iController->connect() && iController->wait_for_connection_ready(); } ) );
+                }
+
+                size_t i = 0;
+                for ( auto& future : futures ) {
+                    if ( future.get() )
+                        impl_->activeControllers_.push_back( vec[ i ] );
+                    ++i;
+                }
+
+                futures.clear();
+                auto cm = MainWindow::instance()->getControlMethod();
+                for ( auto iController : impl_->activeControllers_ ) {
+                    if ( auto session = iController->getInstrumentSession() )
+                        futures.push_back( std::async( std::launch::async, [session, cm] () {
+                                    return session->initialize() && session->prepare_for_run( cm ); } ) );
+                }
+                task::instance()->post( futures );
             }
 
             if ( auto masterObserver = impl_->masterObserver() ) {
@@ -184,16 +197,6 @@ document::actionConnect( bool applyMethod )
                 }
             }
 
-            if ( applyMethod ) {
-                futures.clear();
-                auto cm = MainWindow::instance()->getControlMethod();
-                for ( auto iController : impl_->activeControllers_ ) {
-                    if ( auto session = iController->getInstrumentSession() )
-                        futures.push_back( std::async( std::launch::async, [session, cm] () {
-                                    return session->initialize() && session->prepare_for_run( cm ); } ) );
-                }
-                task::instance()->post( futures );
-            }
         }
     }
 }

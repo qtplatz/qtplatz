@@ -174,6 +174,7 @@ MSSpectraWnd::init()
                      , [=] ( const QRectF& rc ) { impl_->table_->handleSelected( rc, impl_->isTimeAxis_ ); } );
 
             plot->enableAxis( QwtPlot::yRight );
+            plot->setMinimumHeight( 80 );
             marker->attach( plot.get() );
             marker->visible( true );
             marker->setYAxis( QwtPlot::yRight );

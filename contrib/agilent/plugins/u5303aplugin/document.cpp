@@ -102,6 +102,7 @@ namespace u5303a {
         std::shared_ptr< ::u5303a::iControllerImpl > iControllerImpl_;
         std::shared_ptr< adextension::iSequenceImpl > iSequenceImpl_;
         std::vector< std::shared_ptr< adextension::iController > > iControllers_;
+        std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
         std::shared_ptr< adicontroller::MasterObserver > masterObserver_;
         bool isMethodDirty_;
 
@@ -110,8 +111,11 @@ namespace u5303a {
         std::shared_ptr< acqrscontrols::u5303a::method > method_;
 
         int32_t device_status_;
+        
         std::shared_ptr< QSettings > settings_;  // user scope settings
         QString ctrlmethod_filename_;
+
+        std::map< QString, bool > moduleStates_;
 
         // display data
         std::map< boost::uuids::uuid, std::array< std::shared_ptr< adcontrols::MassSpectrum >, acqrscontrols::u5303a::nchannels > > spectra_;
@@ -136,6 +140,8 @@ namespace u5303a {
         void handleMessage( adextension::iController * ic, unsigned long code, unsigned long value );
         void handleLog( adextension::iController *, const QString& );
         void handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
+        void setControllerState( const QString&, bool enable );
+        void loadControllerState();
     };
 
     std::mutex document::impl::mutex_;
@@ -172,20 +178,28 @@ document::actionConnect()
 
         std::vector< std::future<bool> > futures;
 
-        for ( auto& iController : impl_->iControllers_ ) {
-            futures.push_back( std::async( [iController] () {
-                        return iController->connect() && iController->wait_for_connection_ready(); } ) );
-        }
-
         std::vector< std::shared_ptr< adextension::iController > > activeControllers;
+
+        for ( auto& iController : impl_->iControllers_ ) {
+
+            if ( isControllerEnabled( iController->module_name() ) ) {
+
+                ADDEBUG() << "u5303a actionConnect connecting to " << iController->module_name().toStdString();
+
+                activeControllers.push_back( iController );
+                
+                futures.push_back( std::async( [iController] () {
+                            return iController->connect() && iController->wait_for_connection_ready(); } ) );
+
+            }
+        }
 
         size_t i = 0;
         for ( auto& future : futures ) {
             if ( future.get() )
-                activeControllers.push_back( impl_->iControllers_[ i ] );
+                impl_->activeControllers_.push_back( activeControllers[ i ] );
             ++i;
         }
-        impl_->iControllers_ = activeControllers;
 
         auto cm = MainWindow::instance()->getControlMethod();
         setControlMethod( *cm, QString() );
@@ -251,8 +265,8 @@ document::addiController( adextension::iController * p )
 
     } catch ( std::bad_weak_ptr& ) {
         
-        QMessageBox::warning( MainWindow::instance(), "MALPIX Acquire"
-                              , QString( tr( "Instrument controller %1 is not compatible; ignored." ) ).arg( p->module_name() ) );
+        QMessageBox::warning( MainWindow::instance(), "U5303A plugin"
+                              , QString( tr( "Instrument controller %1 has no shared_ptr; ignored." ) ).arg( p->module_name() ) );
 
     }
 }
@@ -266,13 +280,15 @@ document::impl::addiController( std::shared_ptr< adextension::iController > p )
 
     iControllers_.push_back( p );
 
-    // switch to UI thread
-    connect( p.get(), &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
-    connect( p.get(), &iController::message, [this] ( iController * p, unsigned int code, unsigned int value ) { handleMessage( p, code, value ); } );
-    connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
+    if ( p->module_name() == "u5303a" ) { // handle only this device
+        // switch to UI thread
+        connect( p.get(), &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
+        connect( p.get(), &iController::message, [this] ( iController * p, unsigned int code, unsigned int value ) { handleMessage( p, code, value ); } );
+        connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
 
-    // non UI thread
-    p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
+        // non UI thread
+        p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
+    }
 
 }
 
@@ -401,6 +417,9 @@ document::initialSetup()
         }
 
     } while ( 0 );
+
+    impl_->loadControllerState();
+
 }
 
 void
@@ -429,6 +448,23 @@ document::finalClose()
         }
         impl_->cm_ = cm;
     }
+
+    if ( auto settings = impl_->settings_ ) {
+        settings->beginGroup( "u5303a" );
+        
+        settings->beginWriteArray( "ControlModule" );
+
+        int i = 0;
+        for ( auto& state : impl_->moduleStates_ ) {
+            settings->setArrayIndex( i++ );
+            settings->setValue( "module_name", state.first );
+            settings->setValue( "enable", state.second );
+        }
+
+        settings->endArray();
+        settings->endGroup();
+    }
+    
 }
 
 void
@@ -674,6 +710,7 @@ document::isRecording() const
 void
 document::impl::handleConnected( adextension::iController * controller )
 {
+    ADDEBUG() << controller->module_name().toStdString();
     task::instance()->initialize();
 }
 
@@ -879,4 +916,66 @@ document::result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_resu
     std::lock_guard< std::mutex >( impl_->mutex_ );
     impl_->que2_.push_back( ch1 );
     // inside of task::mutex locked.
+}
+
+void
+document::setControllerState( const QString& module, bool enable )
+{
+    impl_->setControllerState( module, enable );
+}
+
+bool
+document::isControllerEnabled( const QString& module ) const
+{
+    auto it = impl_->moduleStates_.find( module );
+
+    if ( it != impl_->moduleStates_.end() )
+        return it->second;
+
+    return false;
+}
+
+void
+document::impl::setControllerState( const QString& module, bool enable )
+{
+    moduleStates_[ module ] = enable;
+
+    // update settings
+    settings_->beginGroup( "u5303a" );
+        
+    settings_->beginWriteArray( "Controllers" );
+
+    int i = 0;
+    for ( auto& state : moduleStates_ ) {
+        settings_->setArrayIndex( i++ );
+        settings_->setValue( "module_name", state.first );
+        settings_->setValue( "enable", state.second );
+    }
+
+    settings_->endArray();
+    settings_->endGroup();
+}
+
+void
+document::impl::loadControllerState()
+{
+    settings_->beginGroup( "u5303a" );
+        
+    int size = settings_->beginReadArray( "Controllers" );
+    
+    for ( int i = 0; i < size; ++i ) {
+        settings_->setArrayIndex( i );
+        QString module_name = settings_->value("module_name").toString();
+        bool enable = settings_->value( "enable" ).toBool();
+        moduleStates_[ module_name ] = enable;
+    }
+    
+    settings_->endArray();
+    settings_->endGroup();
+
+    auto it = this->moduleStates_.find( "Acquire" );
+    if ( it == moduleStates_.end() )
+        moduleStates_[ "Acquire" ] = true;
+
+    setControllerState( "u5303a", true );
 }

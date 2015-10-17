@@ -29,6 +29,7 @@
 #include <adplugin/plugin.hpp>
 
 namespace fticr {
+
 	class datafile_factory : public adcontrols::datafile_factory
 	                       , public adplugin::plugin {
 	public:
@@ -40,7 +41,7 @@ namespace fticr {
         bool access( const wchar_t * filename, adcontrols::access_mode ) const;
         adcontrols::datafile * open( const wchar_t * filename, bool readonly ) const;
         void close( adcontrols::datafile * );
-		       // adplugin::plugin
+
     public:
         const char * iid() const;
         void accept( adplugin::visitor& v, const char * adplugin );
