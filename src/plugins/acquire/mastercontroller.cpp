@@ -75,9 +75,7 @@ MasterController::connect()
     // Press 'Connect' button on Acquire's MainWindow, this call from document::actionConnect();
     // Press 'Connect' on other plugin's view, this call back from iController::connect invoker.
 
-    std::call_once( impl_->flag_, [this] () {
-            impl_->session_ = std::make_shared< session >();
-        } );
+    std::call_once( impl_->flag_, [this] () { impl_->session_ = std::make_shared< session >(); } );
 
     if ( impl_->connected_.test_and_set( std::memory_order_acquire ) == false ) {
 

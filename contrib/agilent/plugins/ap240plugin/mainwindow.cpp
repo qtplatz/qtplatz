@@ -388,6 +388,7 @@ MainWindow::createActions()
     actions_[ idActSnapshot ]= createAction( Constants::ICON_SNAPSHOT, tr("Snapshot"), this );    
     actions_[ idActInject ]  = createAction( Constants::ICON_INJECT,   tr("INJECT"), this );
     actions_[ idActFileOpen ]= createAction( Constants::ICON_FILE_OPEN,tr("Open protain file..."), this );
+    
     connect( actions_[ idActConnect ], SIGNAL( triggered() ), this, SLOT( actConnect() ) );
     connect( actions_[ idActInitRun ], SIGNAL( triggered() ), this, SLOT( actInitRun() ) );
     connect( actions_[ idActRun ], SIGNAL( triggered() ), this, SLOT( actRun() ) );
@@ -434,7 +435,7 @@ MainWindow::createAction( const QString& iconname, const QString& msg, QObject *
 void
 MainWindow::actConnect()
 {
-    document::instance()->ap240_connect();
+    document::instance()->actionConnect();
 }
 
 void

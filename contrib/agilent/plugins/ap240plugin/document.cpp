@@ -449,7 +449,7 @@ document::instance()
 }
 
 void
-document::ap240_connect()
+document::actionConnect()
 {
     digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
     digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2, _3 ) );
@@ -876,3 +876,8 @@ document::iController()
     return impl_->iController();
 }
 
+bool
+document::isControllerEnabled( const QString& module_name ) const
+{
+    return module_name == "ap240" || module_name == "Acquire";
+}

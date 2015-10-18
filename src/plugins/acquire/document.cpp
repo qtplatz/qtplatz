@@ -148,26 +148,31 @@ document::actionConnect( bool applyMethod )
         task::instance()->open();
 
         if ( *( impl_->fsm().current_state() ) == 0 ) {
+
             impl_->fsm().start();
+
+            std::vector< std::shared_ptr< adextension::iController > > vec;
+            MainWindow::instance()->findInstControllers( vec );
+
+            if ( !applyMethod ) {  // Connect triggered from other plugin (not on Acquire)
+                vec.erase( std::remove_if( vec.begin(), vec.end(), [] ( std::shared_ptr< adextension::iController >& p ) { return p->module_name() != "Acquire"; } ) );
+            }
+
+            std::vector< std::future<bool> > futures;
+            for ( auto& iController : vec ) {
+                futures.push_back( std::async( [iController] () {
+                    return iController->connect() && iController->wait_for_connection_ready(); } ) );
+            }
+            
+            size_t i = 0;
+            for ( auto& future : futures ) {
+                if ( future.get() )
+                    impl_->activeControllers_.push_back( vec[ i ] );
+                ++i;
+            }
 
             if ( applyMethod ) {
                 // Do here when 'Correct' button push on Acquire view
-
-                std::vector< std::shared_ptr< adextension::iController > > vec;
-                MainWindow::instance()->findInstControllers( vec );
-
-                std::vector< std::future<bool> > futures;
-                for ( auto& iController : vec ) {
-                    futures.push_back( std::async( [iController] () {
-                        return iController->connect() && iController->wait_for_connection_ready(); } ) );
-                }
-
-                size_t i = 0;
-                for ( auto& future : futures ) {
-                    if ( future.get() )
-                        impl_->activeControllers_.push_back( vec[ i ] );
-                    ++i;
-                }
 
                 futures.clear();
                 auto cm = MainWindow::instance()->getControlMethod();

@@ -55,7 +55,7 @@ namespace ap240 {
         void initialSetup();
         void finalClose();
 
-        void ap240_connect();
+        void actionConnect();
         void ap240_start_run();
         void ap240_stop();
         void ap240_trigger_inject();
@@ -88,6 +88,8 @@ namespace ap240 {
 
         adextension::iSequenceImpl * iSequence();
         ap240::iControllerImpl * iController();
+
+        bool isControllerEnabled( const QString& module_name ) const;
 
         static bool load( const QString& filename, acqrscontrols::ap240::method& );
         static bool save( const QString& filename, const acqrscontrols::ap240::method& );

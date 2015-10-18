@@ -73,7 +73,7 @@ namespace acquire {
         bool getSampleRun( adcontrols::SampleRun& );
         void setSampleRun( const adcontrols::SampleRun& );
 
-        void findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& );
+        void findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& ) const;
         //
     signals:
         void signal_eventLog( QString );

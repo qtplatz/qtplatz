@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
     connect( cmEditor_, &adwidgets::ControlMethodWidget::onImportInitialCondition, this, &MainWindow::handleControlMethod );
 }
 void 
-MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& vec )
+MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& vec ) const
 {
     for ( auto v : ExtensionSystem::PluginManager::getObjects< adextension::iController >() ) {
         ADDEBUG() << v->module_name().toStdString();
