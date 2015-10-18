@@ -27,9 +27,9 @@
 //#include <openbabel/obconversion.h>
 
 #include <qtwrapper/qstring.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folium.hpp>
-#include <portfolio/folder.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <iostream>

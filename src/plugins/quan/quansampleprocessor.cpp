@@ -69,9 +69,9 @@
 #include <adlog/logger.hpp>
 #include <adutils/cpio.hpp>
 #include <adwidgets/progresswnd.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <algorithm>

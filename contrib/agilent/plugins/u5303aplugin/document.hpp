@@ -89,7 +89,7 @@ namespace u5303a {
         void setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename );
         void setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method > m, const QString& filename = QString() );
 
-        void addiController( adextension::iController * p );
+        void addInstController( adextension::iController * p );
 
         void setControllerState( const QString& module, bool );
         bool isControllerEnabled( const QString& module ) const;

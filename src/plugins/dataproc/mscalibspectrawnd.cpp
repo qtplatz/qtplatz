@@ -54,9 +54,9 @@
 #include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adplugin_manager/manager.hpp>
 #include <adutils/processeddata.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <qtwrapper/font.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_legend.h>

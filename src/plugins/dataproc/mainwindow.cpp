@@ -73,9 +73,9 @@
 #include <adwidgets/peakmethodform.hpp>
 #include <adwidgets/mspeakwidget.hpp>
 #include <adwidgets/mssimulatorwidget.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
-#include <portfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>

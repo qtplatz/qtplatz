@@ -46,9 +46,9 @@
 #include <adplot/peakmarker.hpp>
 #include <adwidgets/msquantable.hpp>
 
-#include <portfolio/folium.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/portfolio.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/portfolio.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>

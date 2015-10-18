@@ -67,10 +67,10 @@
 #include <adportable/float.hpp>
 #include <adwidgets/centroidform.hpp>
 #include <adwidgets/progresswnd.hpp>
-#include <portfolio/logging_hook.hpp>
-#include <portfolio/folium.hpp>
-//#include <portfolio/folder.hpp>
-//#include <portfolio/portfolio.hpp>
+#include <adportfolio/logging_hook.hpp>
+#include <adportfolio/folium.hpp>
+//#include <adportfolio/folder.hpp>
+//#include <adportfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
 #include <qtwrapper/waitcursor.hpp>

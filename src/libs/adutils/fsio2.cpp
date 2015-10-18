@@ -36,9 +36,9 @@
 #include <adinterface/method.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/posix_path.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <boost/exception/all.hpp>
 
 namespace adutils { namespace detail {

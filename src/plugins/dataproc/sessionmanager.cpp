@@ -30,7 +30,7 @@
 
 #include <adlog/logger.hpp>
 #include <boost/any.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/folium.hpp>
 #include <coreplugin/editormanager/editormanager.h>
 
 using namespace dataproc;

@@ -34,9 +34,9 @@
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <qtwrapper/settings.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <app/app_version.h>

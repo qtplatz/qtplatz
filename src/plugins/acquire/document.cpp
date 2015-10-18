@@ -41,9 +41,9 @@
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/utf.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <qtwrapper/settings.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <app/app_version.h>

@@ -49,9 +49,9 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/utf.hpp>
 #include <chromatogr/chromatography.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folium.hpp>
-#include <portfolio/folder.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
 #include <algorithm>
 #include <numeric>
 #include <set>

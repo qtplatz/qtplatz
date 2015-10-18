@@ -35,9 +35,9 @@
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quansample.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>

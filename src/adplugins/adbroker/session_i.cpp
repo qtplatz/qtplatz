@@ -27,7 +27,7 @@
 #include "manager_i.hpp"
 #include "brokermanager.hpp"
 #include "task.hpp"
-#include <portfolio/folium.hpp>
+#include <adportfolio/folium.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/utf.hpp>
 #include <acewrapper/orbservant.hpp>

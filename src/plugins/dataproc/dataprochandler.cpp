@@ -54,7 +54,7 @@
 #include <adportable/polfit.hpp>
 #include <adlog/logger.hpp>
 #include <chromatogr/chromatography.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/folium.hpp>
 
 #include <iomanip>
 #include <fstream>

@@ -41,9 +41,9 @@
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>

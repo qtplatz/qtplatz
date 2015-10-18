@@ -39,9 +39,9 @@
 #include <adcontrols/spectrogram.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adwidgets/progresswnd.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folium.hpp>
-#include <portfolio/folder.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
 #include <coreplugin/icore.h>
 #include <QMessageBox>
 #include <functional>

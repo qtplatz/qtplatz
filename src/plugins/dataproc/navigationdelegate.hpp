@@ -28,8 +28,8 @@
 
 #include <QItemDelegate>
 #if !defined Q_MOC_RUN
-#include <portfolio/folium.hpp>
-#include <portfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
 #endif
 #if QT_VERSION >= 0x050000
 # include "dataprocessor.hpp"

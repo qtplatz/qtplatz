@@ -72,6 +72,8 @@ namespace u5303a {
         std::shared_ptr< adcontrols::ControlMethod::Method > getControlMethod() const;
 
         void getEditorFactories( adextension::iSequenceImpl& );
+
+        size_t findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& vec ) const;
         
         void editor_commit();
 

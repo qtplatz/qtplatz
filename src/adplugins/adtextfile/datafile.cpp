@@ -43,9 +43,9 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adportable/textfile.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <adlog/logger.hpp>
 #include <QApplication>
 #include <QMessageBox>

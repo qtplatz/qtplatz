@@ -48,7 +48,7 @@
 #include <adplugin/orbbroker.hpp>
 #include <adlog/logging_handler.hpp>
 #include <adcontrols/logging_hook.hpp>
-#include <portfolio/logging_hook.hpp>
+#include <adportfolio/logging_hook.hpp>
 
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>

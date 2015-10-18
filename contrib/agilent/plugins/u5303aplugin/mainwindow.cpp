@@ -148,6 +148,19 @@ MainWindow::createDockWidgets()
     }
 }
 
+size_t
+MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& vec ) const
+{
+    for ( auto v: ExtensionSystem::PluginManager::getObjects< adextension::iController >() ) {
+        try {
+            vec.push_back( v->shared_from_this() );
+        } catch ( std::bad_weak_ptr& ) {
+            ADWARN() << "adextension::iController does not have weak_ptr -- maybe deprecated plugin instance";
+        }
+    }
+    return vec.size();
+}
+
 void
 MainWindow::OnInitialUpdate()
 {
@@ -171,7 +184,7 @@ MainWindow::OnInitialUpdate()
     }
 
     for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
-        document::instance()->addiController( iController );
+        document::instance()->addInstController( iController );
     }
 
     if ( auto picker = findChild< adwidgets::CherryPicker * >( "ModulePicker" ) ) {

@@ -30,8 +30,8 @@
 #include "qtwidgets_name.hpp"
 #include "mass_calibrator.hpp"
 #include "sessionmanager.hpp"
-#include <portfolio/folium.hpp>
-#include <portfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/msproperty.hpp>

@@ -47,7 +47,7 @@
 #include <adportable/configuration.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwidgets/peaktable.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>

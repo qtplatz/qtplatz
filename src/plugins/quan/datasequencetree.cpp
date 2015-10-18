@@ -36,9 +36,9 @@
 #include <adcontrols/quanmethod.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 
 #include <QApplication>
 #include <QBrush>

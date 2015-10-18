@@ -30,8 +30,8 @@
 #include <adcontrols/spectrogram.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
-#include <portfolio/folium.hpp>
-#include <portfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
 #include <adplot/spectrogramwidget.hpp>
 #include <adplot/spectrogramdata.hpp>
 #include <adplot/spectrumwidget.hpp>

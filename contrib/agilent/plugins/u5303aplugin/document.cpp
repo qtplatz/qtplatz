@@ -135,7 +135,7 @@ namespace u5303a {
                 time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_time_data.txt" ).string();
                 hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_histogram.txt" ).string();
             }
-        void addiController( std::shared_ptr< adextension::iController > p );
+        void addInstController( std::shared_ptr< adextension::iController > p );
         void handleConnected( adextension::iController * controller );
         void handleMessage( adextension::iController * ic, unsigned long code, unsigned long value );
         void handleLog( adextension::iController *, const QString& );
@@ -256,12 +256,12 @@ document::actionRun( bool run )
 }
 
 void
-document::addiController( adextension::iController * p )
+document::addInstController( adextension::iController * p )
 {
     try {
 
         if ( auto ptr = p->pThis() )
-            impl_->addiController( p->pThis() );
+            impl_->addInstController( p->pThis() );
 
     } catch ( std::bad_weak_ptr& ) {
         
@@ -272,20 +272,22 @@ document::addiController( adextension::iController * p )
 }
 
 void
-document::impl::addiController( std::shared_ptr< adextension::iController > p )
+document::impl::addInstController( std::shared_ptr< adextension::iController > p )
 {
 
     using adextension::iController;
     using adicontroller::SignalObserver::Observer;
 
-    iControllers_.push_back( p );
+    if ( document::instance()->isControllerEnabled( p->module_name() ) ) {
+        iControllers_.push_back( p );
+    }
 
     if ( p->module_name() == "u5303a" ) { // handle only this device
         // switch to UI thread
         connect( p.get(), &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
         connect( p.get(), &iController::message, [this] ( iController * p, unsigned int code, unsigned int value ) { handleMessage( p, code, value ); } );
         connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
-
+        
         // non UI thread
         p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
     }

@@ -63,9 +63,9 @@
 #include <adutils/processeddata.hpp>
 #include <adwidgets/filedialog.hpp>
 #include <adwidgets/scanlawdialog.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folium.hpp>
-#include <portfolio/folder.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
 #include <qtwrapper/xmlformatter.hpp>
 #include <qtwrapper/font.hpp>
 #include <coreplugin/minisplitter.h>

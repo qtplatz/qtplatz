@@ -32,9 +32,9 @@
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/description.hpp>
 //--
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <adutils/processeddata.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>

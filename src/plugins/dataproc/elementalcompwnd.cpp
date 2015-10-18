@@ -41,7 +41,7 @@
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/polfit.hpp>
 #include <adutils/processeddata.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
 #include <adplot/chromatogramwidget.hpp>

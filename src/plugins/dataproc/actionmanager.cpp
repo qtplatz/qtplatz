@@ -40,7 +40,7 @@
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/profile.hpp>
-#include <portfolio/portfolio.hpp>
+#include <adportfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/id.h>

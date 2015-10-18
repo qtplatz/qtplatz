@@ -35,9 +35,9 @@
 #include <adutils/processeddata.hpp>
 #include <adutils/fsio2.hpp>
 #include <adlog/logger.hpp>
-#include <portfolio/portfolio.hpp>
-#include <portfolio/folder.hpp>
-#include <portfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/qfiledialog.hpp>
 #include <coreplugin/icore.h>

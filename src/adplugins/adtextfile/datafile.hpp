@@ -30,7 +30,7 @@
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
-#include <portfolio/portfolio.hpp>
+#include <adportfolio/portfolio.hpp>
 #include <memory>
 #include <map>
 
