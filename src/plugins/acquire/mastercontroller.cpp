@@ -51,7 +51,6 @@ namespace acquire {
             connected_.clear();
         }
 
-        std::shared_ptr< session > session_;
         std::atomic_flag connected_;
         std::once_flag flag_;
     };
@@ -72,15 +71,17 @@ MasterController::~MasterController()
 bool
 MasterController::connect()
 {
-    // Press 'Connect' button on Acquire's MainWindow, this call from document::actionConnect();
+    // Press 'Connect' button on Acquire's MainWindow, this method call from document::actionConnect();
     // Press 'Connect' on other plugin's view, this call back from iController::connect invoker.
 
-    std::call_once( impl_->flag_, [this] () { impl_->session_ = std::make_shared< session >(); } );
+    std::call_once( impl_->flag_, [this] () { session_ = std::make_shared< session >(); } );
 
     if ( impl_->connected_.test_and_set( std::memory_order_acquire ) == false ) {
 
         document::instance()->actionConnect( false ); // call document's actionConnect
         setInitialized( true );
+
+        emit connected( this ); // --> MainWindow::iControllerConnected; on UI thread
 
     }
     return true;

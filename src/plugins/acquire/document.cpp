@@ -154,25 +154,25 @@ document::actionConnect( bool applyMethod )
             std::vector< std::shared_ptr< adextension::iController > > vec;
             MainWindow::instance()->findInstControllers( vec );
 
-            if ( !applyMethod ) {  // Connect triggered from other plugin (not on Acquire)
-                vec.erase( std::remove_if( vec.begin(), vec.end(), [] ( std::shared_ptr< adextension::iController >& p ) { return p->module_name() != "Acquire"; } ) );
-            }
-
-            std::vector< std::future<bool> > futures;
-            for ( auto& iController : vec ) {
-                futures.push_back( std::async( [iController] () {
-                    return iController->connect() && iController->wait_for_connection_ready(); } ) );
-            }
-            
-            size_t i = 0;
-            for ( auto& future : futures ) {
-                if ( future.get() )
-                    impl_->activeControllers_.push_back( vec[ i ] );
-                ++i;
-            }
+            for ( auto inst : vec ) 
+                connect( inst.get(), &adextension::iController::message, MainWindow::instance(), &MainWindow::iControllerMessage );
 
             if ( applyMethod ) {
-                // Do here when 'Correct' button push on Acquire view
+                // Do here when 'Correct' button on Acquire view pressed
+
+                std::vector< std::future<bool> > futures;
+                for ( auto& iController : vec ) {
+                    // fire 'connect' trigger to all controllers
+                    futures.push_back( std::async( [iController] () {
+                        return iController->connect() && iController->wait_for_connection_ready(); } ) );
+                }
+                
+                size_t i = 0;
+                for ( auto& future : futures ) {
+                    if ( future.get() )
+                        impl_->activeControllers_.push_back( vec[ i ] );
+                    ++i;
+                }
 
                 futures.clear();
                 auto cm = MainWindow::instance()->getControlMethod();
@@ -184,14 +184,16 @@ document::actionConnect( bool applyMethod )
                 task::instance()->post( futures );
             }
 
+            // connect all data streams
             if ( auto masterObserver = impl_->masterObserver() ) {
 
                 auto ptr( masterObserver->shared_from_this() );
 
-                for ( auto& iController : impl_->activeControllers_ ) {
-                    
+                for ( auto& iController : vec ) {
+
                     if ( auto session = iController->getInstrumentSession() ) {
 
+                        // connect to each controller session for instrument state change
                         session->connect( impl_->masterReceiver(), "acquire.master" );
 
                         if ( auto observer = session->getObserver() ) {
@@ -532,4 +534,10 @@ MasterController *
 document::masterController()
 {
     return impl_->masterController();
+}
+
+MasterObserver *
+document::masterObserver()
+{
+    return impl_->masterObserver();
 }

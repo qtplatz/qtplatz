@@ -73,7 +73,7 @@ namespace acquire {
         bool getSampleRun( adcontrols::SampleRun& );
         void setSampleRun( const adcontrols::SampleRun& );
 
-        void findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& ) const;
+        size_t findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& ) const;
         //
     signals:
         void signal_eventLog( QString );
@@ -85,7 +85,10 @@ namespace acquire {
         void handle_shutdown();
         void handle_debug_print( unsigned long priority, unsigned long category, QString text );
         void handleControlMethod();
+
+        // new interface for pure c++ instrument controller (aka iController)
         void iControllerConnected( adextension::iController * inst );
+        void iControllerMessage( adextension::iController *, uint32_t msg, uint32_t value );
 
     private:
         QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );

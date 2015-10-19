@@ -25,24 +25,31 @@
 
 #include "mainwindow.hpp"
 #include "document.hpp"
+#include "masterobserver.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adextension/icontroller.hpp>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
+#include <adicontroller/instrument.hpp>
+#include <adicontroller/receiver.hpp>
+#include <adicontroller/signalobserver.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/string.hpp>
+#include <adportable/utf.hpp>
 #include <adlog/logger.hpp>
 #include <adwidgets/controlmethodwidget.hpp>
+#include <adwidgets/insttreeview.hpp>
 #include <adwidgets/samplerunwidget.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <extensionsystem/pluginmanager.h>
 
 #include <boost/variant.hpp>
-#include <boost/noncopyable.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
@@ -73,7 +80,8 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
     instance_ = this;
     connect( cmEditor_, &adwidgets::ControlMethodWidget::onImportInitialCondition, this, &MainWindow::handleControlMethod );
 }
-void 
+
+size_t 
 MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& vec ) const
 {
     for ( auto v : ExtensionSystem::PluginManager::getObjects< adextension::iController >() ) {
@@ -87,6 +95,7 @@ MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iCon
             // ignore old iController implementation
         }
     }
+    return vec.size();
 }
 
 MainWindow * 
@@ -108,7 +117,7 @@ MainWindow::OnInitialUpdate()
     cmEditor_->OnInitialUpdate();
     runEditor_->OnInitialUpdate();
 
-    createDockWidget( runEditor_, "Sample Run",     "SampleRunWidget" ); // this must be first
+    createDockWidget( runEditor_, "Sample Run", "SampleRunWidget" ); // this must be first
 
     // then, series of individual control method widgets
     auto visitables = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
@@ -131,6 +140,9 @@ MainWindow::OnInitialUpdate()
         }
     }
 
+    if ( auto tree = new adwidgets::InstTreeView() )
+        createDockWidget( tree, "Status", "InstStatus" );
+
     // and this must be very last.
     createDockWidget( cmEditor_, "Control Method", "ControlMethodWidget" );
 
@@ -138,8 +150,12 @@ MainWindow::OnInitialUpdate()
 
     connect( cmEditor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
 
+    auto instTree = findChild< adwidgets::InstTreeView * >();
+
     for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
         connect( iController, &adextension::iController::onControlMethodChanged, this, &MainWindow::handleControlMethod );
+        if ( instTree )
+            instTree->addItem( iController->module_name(), iController->module_name(), false );
     }
 }
 
@@ -163,6 +179,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
 {
     if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
         widget->setWindowTitle( title );
+
     if ( widget->objectName().isEmpty() )
         widget->setObjectName( objname );
 
@@ -290,8 +307,78 @@ MainWindow::handleControlMethod()
         cmEditor_->setControlMethod( *ptr );
 }
 
+struct observer2ptree {
+
+    void operator()( adicontroller::SignalObserver::Observer * observer, boost::property_tree::ptree& pt ) {
+
+        const auto& desc = observer->description();
+
+        pt.put( "observer.objid", observer->objid() );        
+        pt.put( "observer.objtext", observer->objtext() );
+        pt.put( "observer.desc.trace_id", desc.trace_id() );
+        pt.put( "observer.desc.trace_display_name", adportable::utf::to_utf8( desc.trace_display_name() ) );
+        pt.put( "observer.desc.trace_method", desc.trace_method() );
+
+        int count( 0 );
+        boost::property_tree::ptree vec;
+
+        for ( auto sibling : observer->siblings() ) {
+            boost::property_tree::ptree child;
+            observer2ptree()( sibling.get(), child );
+            vec.push_back( std::make_pair( "", child ) );
+            ++count;
+        }
+        if ( count )
+            pt.add_child( "siblings", vec );
+    }
+    
+};
+
 void
 MainWindow::iControllerConnected( adextension::iController * inst )
 {
     ADDEBUG() << "iControllerConnected( adextension::iController * inst )";
+
+    if ( auto tree = findChild< adwidgets::InstTreeView * >() ) {
+
+        tree->setChecked( inst->module_name(), true );
+
+        boost::property_tree::ptree pt;
+        if ( inst->module_name() == "Acquire" ) {
+            observer2ptree()( document::instance()->masterObserver(), pt );
+        } else {
+            if ( auto session = inst->getInstrumentSession() ) {
+                if ( auto observer = session->getObserver() ) 
+                    observer2ptree()( observer, pt );
+            }
+        }
+        std::ostringstream o;
+        boost::property_tree::write_json( o, pt );
+        tree->setObserverTree( inst->module_name(), QString::fromStdString( o.str() ) );
+    }
 }
+
+void
+MainWindow::iControllerMessage( adextension::iController * p, uint32_t msg, uint32_t value )
+{
+    ADDEBUG() << "iControllerMessage(" << p->module_name().toStdString() << ", msg=" << msg << ", value=" << value << ")";
+    static const QString state_names[] = {
+        "Nothing"
+        , "Not Connected"             //= 0x00000001,  // no instrument := no driver software loaded
+        , "Off"                      //= 0x00000002,  // software driver can be controled, but hardware is currently off
+        , "Initializing"             //= 0x00000003,  // startup initializing (only at the begining after startup)
+        , "StandBy"                  //= 0x00000004,  // instrument is stand by state
+        , "PreparingForRun"          //= 0x00000005,  // preparing for next method (parameters being be set value)
+        , "ReadyForRun"              //= 0x00000006,  // method is in initial state, ready to run (INIT RUN, MS HTV is ready)
+        , "WaitingForContactClosure" //= 0x00000007,  //
+        , "Running"                  //= 0x00000008,  // method is in progress
+        , "Stop"                     //= 0x00000009,  // stop := detector is not monitoring, pump is off
+    };
+
+    if ( auto tree = findChild< adwidgets::InstTreeView * >() ) {
+        if ( msg == adicontroller::Receiver::STATE_CHANGED && value < sizeof(state_names)/sizeof(state_names[0]) ) {
+            tree->setInstState( p->module_name(), state_names[ value ] );
+        }
+    }
+}
+

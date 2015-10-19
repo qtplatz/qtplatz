@@ -66,8 +66,6 @@ namespace acquire {
         bool recording( bool ) override { return false; }
         bool isRecording() const override { return false; }
 
-        // CORBA::Char * running_sample() override;
-      
     private:
 
     };

@@ -39,6 +39,7 @@ namespace acquire {
 
     class MainWindow;
     class MasterController;
+    class MasterObserver;
 
     class document : public QObject {
         Q_OBJECT
@@ -79,6 +80,7 @@ namespace acquire {
 
         //
         MasterController * masterController();
+        MasterObserver * masterObserver();
         
     private:
         std::shared_ptr< QSettings > settings_;  // user scope settings
