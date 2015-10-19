@@ -377,8 +377,10 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
 
             std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
             do {
-                if ( ( rb = so->readData( status.pos_++ ) ) )
+                if ( ( rb = so->readData( status.pos_ ) ) ) {
                     handle_ap240_data( status, rb );
+                    status.pos_++;
+                }
             } while ( rb && status.pos_ <= pos );
 
         } else {
