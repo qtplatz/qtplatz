@@ -281,6 +281,10 @@ MappedSpectrum::operator += ( const MappedSpectrum& t )
         
         data_ = t.data_;
 
+        sampInterval_ = t.sampInterval_;
+        delay_ = t.delay_;
+        nSamples_ = t.nSamples_;
+
     } else {
 
         for ( auto inIt = t.data_.begin(); inIt != t.data_.end(); ++inIt ) {
@@ -311,8 +315,8 @@ void
 MappedSpectrum::setSamplingInfo( double sampInterval, double delay, uint32_t nSamples )
 {
     sampInterval_ = sampInterval;
-    delay_ = delay_;
-    nSamples_ = nSamples_;
+    delay_ = delay;
+    nSamples_ = nSamples;
 }
 
 bool
