@@ -44,7 +44,7 @@ namespace u5303a {
     static std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
     static std::chrono::high_resolution_clock::time_point __last__;
     static uint32_t __serialNumber__;
-    static const std::vector< std::pair<double, double> > peak_list = { { 4.0e-5, 1000.0 }, { 5.0e-5, 1000.0 }, { 6.0e-5, 1000.0 } };
+    static const std::vector< std::pair<double, double> > peak_list = { { 4.0e-6, 0.1 }, { 5.0e-6, 0.05 }, { 6.0e-6, 0.030 } };
 
     class waveform_generator : public adinterface::waveform_generator {
     public:
@@ -167,7 +167,6 @@ simulator::acquire()
                 generator->addIons( ions_ );
                 generator->onTriggered();
                 
-                
                 post( generator.get() );
                 
                 hasWaveform_ = true;
@@ -272,7 +271,7 @@ waveform_generator::onTriggered()
 
         double y = 0;
         for ( auto& peak : peak_list ) {
-            boost::math::normal_distribution< double > nd( peak.first /* mean */, 3.0e-9 /* sd */); // 10ns width
+            boost::math::normal_distribution< double > nd( peak.first /* mean */, 5.0e-9 /* sd */);
             y += boost::math::pdf( nd, t ) * peak.second + __noise__();
         }
         d = int32_t(y) + 10000; // add background (simulate high background level)
