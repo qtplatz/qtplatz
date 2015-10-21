@@ -28,11 +28,13 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adicontroller/masterobserver.hpp>
 #include <adicontroller/receiver.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/semaphore.hpp>
 #include <boost/asio.hpp>
+#include <boost/exception/all.hpp>
 #include <atomic>
 #include <future>
 #include <memory>
@@ -75,9 +77,11 @@ namespace u5303a { namespace Instrument {
             }
 
             void reply_handler( const std::string& method, const std::string& reply) {
-                if ( method == "InitialSetup" )
-                    reply_message( adi::Receiver::STATE_CHANGED, ( reply == "success" ) ? adi::Instrument::eStandBy : adi::Instrument::eOff );
-                ADDEBUG() << "===== u5303a reply ===== " << method << " reply: " << reply;
+                if ( method == "InitialSetup" ) {
+                    reply_message( adi::Receiver::STATE_CHANGED
+                                   , ( reply == "success" ) ? adi::Instrument::eStandBy : adi::Instrument::eNotConnected | adi::Instrument::eErrorFlag );
+                }
+                ADTRACE() << "u5303a reply: " << method << " = " << reply;
             }
             
             bool waveform_handler( const acqrscontrols::u5303a::waveform * ch1, const acqrscontrols::u5303a::waveform * ch2, acqrscontrols::u5303a::method& next ) {
@@ -146,7 +150,13 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
 
     if ( ptr ) {
         std::call_once( impl::flag2_, [&] () {
-                impl_->threads_.push_back( adportable::asio::thread( [=]() { impl_->io_service_.run(); } ) );
+                impl_->threads_.push_back( adportable::asio::thread( [=]() { 
+                    try {
+                        impl_->io_service_.run();
+                    } catch ( ... ) {
+                        ADDEBUG() << boost::current_exception_diagnostic_information();
+                    }
+                    } ) );
             });
         
         do {

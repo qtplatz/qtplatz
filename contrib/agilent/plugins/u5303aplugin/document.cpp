@@ -137,7 +137,7 @@ namespace u5303a {
             }
         void addInstController( std::shared_ptr< adextension::iController > p );
         void handleConnected( adextension::iController * controller );
-        void handleMessage( adextension::iController * ic, unsigned long code, unsigned long value );
+        //void handleMessage( adextension::iController * ic, unsigned long code, unsigned long value );
         void handleLog( adextension::iController *, const QString& );
         void handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
         void setControllerState( const QString&, bool enable );
@@ -284,11 +284,13 @@ document::impl::addInstController( std::shared_ptr< adextension::iController > p
 
     if ( p->module_name() == "u5303a" ) { // handle only this device
         // switch to UI thread
+        connect( p.get(), &iController::message, document::instance()
+                 , [] ( iController * p, unsigned int code, unsigned int value ) { document::instance()->handleMessage( p, code, value ); } );
+
+        // non UI thread
         connect( p.get(), &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
-        connect( p.get(), &iController::message, [this] ( iController * p, unsigned int code, unsigned int value ) { handleMessage( p, code, value ); } );
         connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
         
-        // non UI thread
         p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
     }
 
@@ -328,28 +330,6 @@ int32_t
 document::device_status() const
 {
     return impl_->device_status_;
-}
-
-void
-document::reply_handler( const std::string& method, const std::string& reply )
-{
-	emit on_reply( QString::fromStdString( method ), QString::fromStdString( reply ) );
-    if ( method == "InitialSetup" && reply == "success" ) {
-        impl_->device_status_ = adicontroller::Instrument::eStandBy;
-        emit instStateChanged( int( adicontroller::Instrument::eStandBy ) ); // --> enable FSM UI
-    }
-}
-
-bool
-document::waveform_handler( const acqrscontrols::u5303a::waveform * ch1, const acqrscontrols::u5303a::waveform * ch2, acqrscontrols::u5303a::method& )
-{
-    auto ptr = ch1->shared_from_this();
-    std::lock_guard< std::mutex > lock( impl::mutex_ );
-    while ( impl_->que_.size() >= 32 )
-        impl_->que_.pop_front();
-    impl_->que_.push_back( ptr );
-    emit on_waveform_received();
-    return false;
 }
 
 std::shared_ptr< const acqrscontrols::u5303a::method >
@@ -717,7 +697,7 @@ document::impl::handleConnected( adextension::iController * controller )
 }
 
 void
-document::impl::handleMessage( adextension::iController * ic, unsigned long code, unsigned long value )
+document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t value )
 {
     if ( code == adicontroller::Receiver::CLIENT_ATTACHED ) {
 
@@ -725,11 +705,17 @@ document::impl::handleMessage( adextension::iController * ic, unsigned long code
 
     } else if ( code == adicontroller::Receiver::STATE_CHANGED ) {
 
-        emit document::instance()->instStateChanged( int( value ) );
+        if ( value & adicontroller::Instrument::eErrorFlag ) {
+            QMessageBox::warning( MainWindow::instance(), "U5303A Error"
+                                  , QString( "Module %1 error with code %2" ).arg( ic->module_name(), QString::number( value, 16 ) ) );
+        } else {
 
-        if ( value == adicontroller::Instrument::eStandBy && cm_ && ic ) {
-            if ( auto session = ic->getInstrumentSession() )
-                session->prepare_for_run( cm_ );
+            emit document::instance()->instStateChanged( value );
+            
+            if ( value == adicontroller::Instrument::eStandBy && impl_->cm_ && ic ) {
+                if ( auto session = ic->getInstrumentSession() )
+                    session->prepare_for_run( impl_->cm_ );
+            }
         }
     }
 }

@@ -127,15 +127,18 @@ namespace u5303a {
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );
         static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
         static bool save( const QString& filename, const acqrscontrols::u5303a::method& );
+
+    private slots:
+        void handleMessage( adextension::iController *, uint32_t code, uint32_t value );
         
     private:
         class impl;
         impl * impl_;
 
-        void reply_handler( const std::string&, const std::string& );
-        bool waveform_handler( const acqrscontrols::u5303a::waveform *
-                               , const acqrscontrols::u5303a::waveform *
-                               , acqrscontrols::u5303a::method& );
+        // void reply_handler( const std::string&, const std::string& );
+        // bool waveform_handler( const acqrscontrols::u5303a::waveform *
+        //                        , const acqrscontrols::u5303a::waveform *
+        //                        , acqrscontrols::u5303a::method& );
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();

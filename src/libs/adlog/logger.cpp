@@ -65,3 +65,9 @@ logger::operator << ( const wchar_t * text )
 	o_ << adportable::string::convert( text );
 	return *this;
 }
+
+std::string
+logger::string() const
+{
+    return o_.str();
+}

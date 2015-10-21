@@ -42,6 +42,7 @@ namespace adlog {
         ~logger();
         template<typename T> inline logger& operator << ( const T& t ) { o_ << t; return *this; }
 		logger& operator << ( const wchar_t *);
+        std::string string() const;
 
     private:
         int pri_;

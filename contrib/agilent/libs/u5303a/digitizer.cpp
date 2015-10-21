@@ -41,6 +41,8 @@
 #include <boost/variant.hpp>
 #include <boost/bind.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/format.hpp>
 
 #include <mutex>
 #include <thread>
@@ -61,8 +63,8 @@
 
 #define DIGITIZER_MODE_TEST 0
 
-#define ERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_ERROR)<<e.Description()<<", "<<e.ErrorMessage(); error_reply(e,m); } while(0)
-#define TERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_ERROR)<<e.Description()<<", "<<e.ErrorMessage(); task.error_reply(e,m); } while(0)
+#define ERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_WARN)<<e.Description()<<", "<<e.ErrorMessage(); error_reply(e,m); } while(0)
+#define TERR(e,m) do { adlog::logger(__FILE__,__LINE__,adlog::LOG_WARN)<<e.Description()<<", "<<e.ErrorMessage(); task.error_reply(e,m); } while(0)
 
 namespace u5303a {
 
@@ -87,6 +89,7 @@ namespace u5303a {
             static task * instance();
             static const std::chrono::steady_clock::time_point uptime_;
             static const uint64_t tp0_;
+            std::exception_ptr exptr_;
             
             inline boost::asio::io_service& io_service() { return io_service_; }
             
@@ -103,6 +106,8 @@ namespace u5303a {
             void connect( digitizer::waveform_reply_type f );
             void disconnect( digitizer::waveform_reply_type f );
             void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr );
+
+            bool findResource();
 
             inline IAgMD2Ex2Ptr& spDriver() { return spDriver_; }
             inline simulator * simulator() { return simulator_; }
@@ -125,6 +130,7 @@ namespace u5303a {
             uint32_t serialnumber_;
             std::atomic<int> acquire_post_count_;
             uint64_t inject_timepoint_;
+            std::vector< _bstr_t > foundResources_;
 
             std::deque< std::shared_ptr< SampleProcessor > > queue_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
@@ -154,7 +160,6 @@ using namespace u5303a::detail;
 task * task::instance_ = 0;
 std::mutex task::mutex_;
 
-
 digitizer::digitizer()
 {
     boost::interprocess::shared_memory_object::remove( "waveform_simulator" );
@@ -165,10 +170,9 @@ digitizer::~digitizer()
 }
 
 bool
-digitizer::peripheral_terminate()
+digitizer::peripheral_initialize()
 {
-    task::instance()->terminate();
-    return true;
+    return task::instance()->initialize();
 }
 
 bool
@@ -193,13 +197,8 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
 bool
 digitizer::peripheral_prepare_for_run( const acqrscontrols::u5303a::method& m )
 {
-    return task::instance()->prepare_for_run( m );
-}
 
-bool
-digitizer::peripheral_initialize()
-{
-    return task::instance()->initialize();
+    return task::instance()->prepare_for_run( m );
 }
 
 bool
@@ -212,6 +211,13 @@ bool
 digitizer::peripheral_stop()
 {
     return task::instance()->stop();
+}
+
+bool
+digitizer::peripheral_terminate()
+{
+    task::instance()->terminate();
+    return true;
 }
 
 bool
@@ -280,15 +286,67 @@ task::task() : work_( io_service_ )
              , simulator_( 0 )
              , serialnumber_( 0 )
              , acquire_post_count_( 0 )
+             , exptr_( nullptr )
 {
-    threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+    threads_.push_back( adportable::asio::thread( [this]() {
+                try {
+                    io_service_.run();
+                } catch ( ... ) {
+                    ADERROR() << "Exception: " << boost::current_exception_diagnostic_information();
+                    exptr_ = std::current_exception();
+                }
+            } ) );
+
     io_service_.post( strand_.wrap( [&] { ::CoInitialize( 0 ); } ) );
-    io_service_.post( strand_.wrap( [&] { spDriver_.CreateInstance(__uuidof(AgMD2)); } ) );
 }
 
 task::~task()
 {
     delete simulator_;
+}
+
+bool
+task::findResource()
+{
+    bool found( false );
+
+    IResourceManagerPtr rm;
+    if ( rm.CreateInstance( __uuidof( ResourceManager ) ) == S_OK ) {
+
+        try {
+            if ( SAFEARRAY * list = rm->FindRsrc( "PXI?*" ) ) {
+                
+                safearray_t<BSTR> sa( list );
+                
+                for ( size_t i = 0; i < sa.size(); ++i ) {
+                    
+                    _bstr_t res = sa.data()[i];
+                    ADTRACE() << "IVI Resource found: " << res;
+
+                    IAgMD2Ex2Ptr spDriver;
+                    if ( spDriver.CreateInstance( __uuidof( AgMD2 ) ) == S_OK ) {
+
+                        VARIANT_BOOL idQuery = VARIANT_TRUE;
+                        VARIANT_BOOL resetDevice = VARIANT_FALSE;
+                        BSTR strInitOptions = _bstr_t( L"Simulate=false, DriverSetup= Model=U5303A, CAL=0, Trace=false" );
+                        
+                        try {
+                            if ( spDriver->Initialize( res, idQuery, resetDevice, strInitOptions ) == S_OK ) {
+                                foundResources_.push_back( res );
+                            }
+                        } catch ( _com_error& e ) {
+                            ADWARN() << e.Description() << ", " << e.ErrorMessage() << "; \"" << res << "\" is not a U5303A";
+                        }
+                    }
+                    
+                }
+                SafeArrayDestroy( list );
+            }
+        } catch ( _com_error& e ) {
+            ADERROR() << "Exception: " << e.Description() << ", " << e.ErrorMessage();
+        }
+    }
+    return found;
 }
 
 task *
@@ -306,7 +364,11 @@ bool
 task::initialize()
 {
     ADTRACE() << "u5303a digitizer initializing...";
-    io_service_.post( strand_.wrap( [&] { handle_initial_setup( 32, 1024 * 10, 2 ); } ) );
+
+    io_service_.post( strand_.wrap( [this] { findResource(); } ) );
+
+    io_service_.post( strand_.wrap( [this] { handle_initial_setup( 32, 1024 * 10, 2 ); } ) );
+        
     return true;
 }
 
@@ -380,8 +442,10 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 	(void)nAverage;
 	(void)nSamples;
 	(void)nDelay;
-	// u5303a::method m;
-	BSTR strResourceDesc = bstr_t(L"PXI4::0::0::INSTR");
+	// BSTR strResourceDesc = bstr_t(L"PXI4::0::0::INSTR");
+
+    if ( spDriver_.CreateInstance( __uuidof( AgMD2 ) ) != S_OK )
+        return false;
     
     // If desired, use 'DriverSetup= CAL=0' to prevent digitizer from doing a SelfCal (~1 seconds) each time
     // it is initialized or reset which is the default behavior. By default set to false.
@@ -391,35 +455,33 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 				
     VARIANT_BOOL idQuery = VARIANT_TRUE;
     VARIANT_BOOL reset   = VARIANT_TRUE;
-    simulated_ = false;
+    bool simulated = false;
     bool success = false;
 
+    BSTR strInitOptions = _bstr_t( L"Simulate=false, DriverSetup= Model=U5303A" );
+
     if ( auto p = getenv( "AcqirisOption" ) ) {
-        if ( std::strcmp( p, "simulate" ) == 0 ) {
-            try {
-                BSTR strInitOptions = _bstr_t( L"Simulate=true, DriverSetup= Model=U5303A, Trace=false" );
-                success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
-                simulated_ = true;
-                simulator_ = new u5303a::simulator();
-                // threads for waveform generation
-                threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
-                threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
-            } catch ( _com_error & e ) {
-                ERR( e, "Initialize" );
-            }
+        if ( p && std::strcmp( p, "simulate" ) == 0 ) {
+            strInitOptions = _bstr_t( L"Simulate=true, DriverSetup= Model=U5303A, Trace=false" );
+            simulated = true;
+            foundResources_.push_back( _bstr_t( L"PXI4::0::0::INSTR" ) );
         }
     }
 
-    if ( !simulated_ ) {
-        try {
-            BSTR strInitOptions = _bstr_t( L"Simulate=false, DriverSetup= Model=U5303A" ); // <-- this file does not exist
-            success = spDriver_->Initialize( strResourceDesc, idQuery, reset, strInitOptions ) == S_OK;
-        } catch ( _com_error & e ) {
-            ERR( e, "Initialize" );
+    for ( auto& res : foundResources_ ) {
+        IAgMD2Ex2Ptr spDriver;
+        if ( spDriver.CreateInstance(__uuidof(AgMD2)) == S_OK ) {
+            try {
+                success = spDriver_->Initialize( res, VARIANT_TRUE, VARIANT_TRUE, strInitOptions ) == S_OK;
+                break;
+            } catch ( _com_error& e ) {
+                ERR(e, (boost::format("; while Initialize %1%") % static_cast<const char *>( res ) ).str() );
+            }
         }
     }
     
     if ( success ) {
+        simulated_ = simulated;
         
         ident_ = std::make_shared< acqrscontrols::u5303a::identify >();
 
@@ -455,13 +517,14 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         for ( auto& reply : reply_handlers_ ) reply( "IOVersion", ident_->IOVersion() );
         for ( auto& reply : reply_handlers_ ) reply( "Options", ident_->Options() );
 
-        if ( method_.mode_ == 0 )
-            device<Digitizer>::initial_setup( *this, method_, ident().Options() );
-        else
-            device<Averager>::initial_setup( *this, method_, ident().Options() );
-
-        // if ( simulated_ )
-        //     device<Simulate>::initial_setup( *this, method_ );
+        try {
+            if ( method_.mode_ == 0 )
+                device<Digitizer>::initial_setup( *this, method_, ident().Options() );
+            else
+                device<Averager>::initial_setup( *this, method_, ident().Options() );
+        } catch ( _com_error& e ) {
+            ADERROR() << "Exception: " << e.Description() << ", " << e.ErrorMessage();
+        }
 
     }
 
@@ -484,10 +547,8 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
     else
         device<Averager>::initial_setup( *this, m, ident().Options() );
 
-    // if ( simulated_ )
-    //     device<Simulate>::initial_setup( *this, m );
-
     method_ = m;
+
     return true;
 }
 
@@ -551,22 +612,27 @@ task::handle_acquire()
 bool
 task::acquire()
 {
-    // if ( simulated_ )
-    //     return device<Simulate>::acquire( *this );
-    // else
-    if ( method_.mode_ == 0 )
+    if ( method_.mode_ == 0 ) {
         return device<Digitizer>::acquire( *this );
-    else
-        return device<Averager>::acquire( *this );
+    }  else {
+        if ( simulated_ )
+            return device<Simulate>::acquire( *this );
+        else
+            return device<Averager>::acquire( *this );
+    }
 }
 
 bool
 task::waitForEndOfAcquisition( int timeout )
 {
-    if ( method_.mode_ == 0 )
+    if ( method_.mode_ == 0 ) {
         return device<Digitizer>::waitForEndOfAcquisition( *this, timeout );
-    else
-        return device<Averager>::waitForEndOfAcquisition( *this, timeout );
+    } else {
+        if ( simulated_ )
+            return device<Simulate>::waitForEndOfAcquisition( *this, timeout );
+        else
+            return device<Averager>::waitForEndOfAcquisition( *this, timeout );
+    }
 }
 
 bool
@@ -576,7 +642,10 @@ task::readData( acqrscontrols::u5303a::waveform& data )
     if ( method_.mode_ == 0 ) {
         return device<Digitizer>::readData( *this, data );
     } else {
-        return device<Averager>::readData( *this, data );
+        if ( simulated_ )
+            return device<Simulate>::readData( *this, data );
+        else
+            return device<Averager>::readData( *this, data );
     }
 }
 
@@ -590,11 +659,7 @@ task::connect( digitizer::command_reply_type f )
 void
 task::disconnect( digitizer::command_reply_type f )
 {
-    std::lock_guard< std::mutex > lock( mutex_ );    
-//	auto it = std::remove_if( reply_handlers_.begin(), reply_handlers_.end(), [=]( const digitizer::command_reply_type& t ){
-//            return t == f;
-//        });
-//    reply_handlers_.erase( it, reply_handlers_.end() );
+    // no way to do 'disconnect' since std::function<> has no operator == implemented.
 }
 
 void
@@ -607,11 +672,7 @@ task::connect( digitizer::waveform_reply_type f )
 void
 task::disconnect( digitizer::waveform_reply_type f )
 {
-    std::lock_guard< std::mutex > lock( mutex_ );    
-//	auto it = std::remove_if( waveform_handlers_.begin(), waveform_handlers_.end(), [=]( const digitizer::waveform_reply_type& t ){
-//            return t == f;
-//        });
-//    waveform_handlers_.erase( it, waveform_handlers_.end() );
+    // no way to do 'disconnect' since std::function<> has no operator == implemented.
 }
 
 void
@@ -635,13 +696,11 @@ device<Averager>::initial_setup( task& task, const acqrscontrols::u5303a::method
     IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
     
     // Set Interleave ON
-#if 0
-    try {
-        spCh1->TimeInterleavedChannelList = "Channel2";
-    } catch ( _com_error& e ) {
-        TERR(e, "TimeInterleavedChannelList");
+    if ( options.find( "INT" ) != options.npos ) {
+        try { spCh1->TimeInterleavedChannelList = "Channel2"; } catch ( _com_error& e ) {
+            TERR( e, "TimeInterleavedChannelList" ); }
     }
-#endif
+
     try {  spCh1->PutRange( m.method_.front_end_range );  } catch ( _com_error& e ) {
         TERR(e, "Range");  }
     try {  spCh1->PutOffset(m.method_.front_end_offset);  } catch ( _com_error& e ) {
@@ -715,7 +774,7 @@ device<Averager>::initial_setup( task& task, const acqrscontrols::u5303a::method
 template<> bool
 device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
 {
-    IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
+    IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[ L"Channel1" ];
 
     // Set Interleave ON
     if ( options.find( "INT" ) != options.npos ) {
@@ -793,6 +852,7 @@ device<Averager>::setup( task& task, const acqrscontrols::u5303a::method& m )
 {
     IAgMD2ChannelPtr spCh1 = task.spDriver()->Channels->Item[L"Channel1"];
 #if 0
+    // protocol paramater -- this can not be used due to U5303A require 'calibration' when change number of samples and/or number of averages.
     try {
         uint64_t nDelay = uint64_t( m.delay_to_first_sample / 1.0e-9 + 0.5 ); // ns
         task.spDriver()->Trigger->Delay = double( ( nDelay / 16 ) * 16 ) * 1.0e-9;

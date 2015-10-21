@@ -39,6 +39,7 @@ namespace adicontroller {
             , eWaitingForContactClosure //= 0x00000007,  //
             , eRunning                  //= 0x00000008,  // method is in progress
             , eStop                     //= 0x00000009,  // stop := detector is not monitoring, pump is off
+            , eErrorFlag = 0x80000000
         };
     };
 
