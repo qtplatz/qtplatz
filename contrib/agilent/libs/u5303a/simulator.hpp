@@ -40,11 +40,14 @@ namespace u5303a {
     //class method;
 
     class simulator  {
+        simulator();
+        simulator( const simulator& ) = delete;
+        simulator& operator = ( const simulator& ) = delete;
+        static std::unique_ptr< simulator > instance_;
     public:
         ~simulator();
-        simulator();
 
-        bool acquire( boost::asio::io_service& );
+        bool acquire();
         bool waitForEndOfAcquisition();
         bool readData( acqrscontrols::u5303a::waveform& );
         void setup( const acqrscontrols::u5303a::method& );
@@ -66,7 +69,6 @@ namespace u5303a {
         uint32_t nbrWaveforms_;
         double exitDelay_;
         std::shared_ptr< acqrscontrols::u5303a::method > method_;
-        static simulator * instance_;
 
         void post( adinterface::waveform_generator * );
     };

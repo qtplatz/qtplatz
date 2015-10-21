@@ -68,8 +68,6 @@
 
 namespace u5303a {
 
-    class simulator;
-
     namespace detail {
 
         enum DeviceType { Simulate, Averager, Digitizer };
@@ -110,9 +108,13 @@ namespace u5303a {
             bool findResource();
 
             inline IAgMD2Ex2Ptr& spDriver() { return spDriver_; }
-            inline simulator * simulator() { return simulator_; }
+
             inline const acqrscontrols::u5303a::method& method() const { return method_; }
+
             inline const acqrscontrols::u5303a::identify& ident() const { return *ident_; }
+
+            inline bool isSimulated() const { return simulated_; }
+            
             void error_reply( const _com_error& e, const std::string& );
 
         private:
@@ -126,7 +128,6 @@ namespace u5303a {
             boost::asio::io_service::strand strand_;
             bool simulated_;
             acqrscontrols::u5303a::method method_;
-            u5303a::simulator * simulator_;
             uint32_t serialnumber_;
             std::atomic<int> acquire_post_count_;
             uint64_t inject_timepoint_;
@@ -283,7 +284,6 @@ waveform::trim( u5303a::metadata& meta, uint32_t& nSamples ) const
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , simulated_( false )
-             , simulator_( 0 )
              , serialnumber_( 0 )
              , acquire_post_count_( 0 )
              , exptr_( nullptr )
@@ -302,7 +302,6 @@ task::task() : work_( io_service_ )
 
 task::~task()
 {
-    delete simulator_;
 }
 
 bool
@@ -547,6 +546,12 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
     else
         device<Averager>::initial_setup( *this, m, ident().Options() );
 
+    if ( m.mode_ && simulated_ ) {
+        acqrscontrols::u5303a::method a( m );
+        a.method_.samp_rate = spDriver()->Acquisition2->SampleRate;
+        simulator::instance()->setup( a );
+    }
+
     method_ = m;
 
     return true;
@@ -560,8 +565,8 @@ task::handle_protocol( const acqrscontrols::u5303a::method m )
     else
         device<Averager>::setup( *this, m );
 
-    // if ( simulated_ )
-    //     device<Simulate>::setup( *this, m );
+    if ( m.mode_ && simulated_ )
+        simulator::instance()->setup( m );
     
     method_ = m;
     return true;
@@ -598,8 +603,6 @@ task::handle_acquire()
                     if ( reply( waveform.get(), nullptr, m ) )
                         handle_protocol( m );
                 }
-                if ( simulated_ )
-                    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
             }
         } else {
             ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
@@ -612,26 +615,28 @@ task::handle_acquire()
 bool
 task::acquire()
 {
+    if ( method_.mode_ && simulated_ )    
+        return device<Simulate>::acquire( *this );
+        
     if ( method_.mode_ == 0 ) {
         return device<Digitizer>::acquire( *this );
     }  else {
-        if ( simulated_ )
-            return device<Simulate>::acquire( *this );
-        else
-            return device<Averager>::acquire( *this );
+        return device<Averager>::acquire( *this );
     }
 }
 
 bool
 task::waitForEndOfAcquisition( int timeout )
 {
+    if ( method_.mode_ && simulated_ )
+        return device<Simulate>::waitForEndOfAcquisition( *this, timeout );
+
     if ( method_.mode_ == 0 ) {
+        if ( simulated_ )
+            std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
         return device<Digitizer>::waitForEndOfAcquisition( *this, timeout );
     } else {
-        if ( simulated_ )
-            return device<Simulate>::waitForEndOfAcquisition( *this, timeout );
-        else
-            return device<Averager>::waitForEndOfAcquisition( *this, timeout );
+        return device<Averager>::waitForEndOfAcquisition( *this, timeout );
     }
 }
 
@@ -639,13 +644,14 @@ bool
 task::readData( acqrscontrols::u5303a::waveform& data )
 {
     data.serialnumber_ = serialnumber_++;
+
+    if ( method_.mode_ && simulated_ )    
+        return device<Simulate>::readData( *this, data );
+
     if ( method_.mode_ == 0 ) {
         return device<Digitizer>::readData( *this, data );
     } else {
-        if ( simulated_ )
-            return device<Simulate>::readData( *this, data );
-        else
-            return device<Averager>::readData( *this, data );
+        return device<Averager>::readData( *this, data );
     }
 }
 
@@ -889,10 +895,6 @@ device<Averager>::acquire( task& task )
     } catch ( _com_error & e ) {
         TERR(e,"Initialte");
     } 
-    //Start the acquisition
-    // try { task.spDriver()->Acquisition->UserControl->StartSegmentation(); } catch ( _com_error& e ) { TERR(e, "StartSegmentation"); }
-    // try { task.spDriver()->Acquisition->UserControl->StartProcessing(AgMD2UserControlProcessingType1); } catch ( _com_error& e ) {
-    //     TERR( e, "StartProcessing" ); }
     return true;
 }
 
@@ -912,14 +914,9 @@ template<> bool
 device<Averager>::waitForEndOfAcquisition( task& task, int timeout )
 {
 	(void)timeout;
-    //Wait for the end of the acquisition
 
     long const timeoutInMs = 3000;
 
-    // long wait_for_end = 0x80000000;
-    // IAgMD2LogicDevicePtr spDpuA = task.spDriver()->LogicDevices->Item[L"DpuA"];	
-
-    std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
     try {
         task.spDriver()->Acquisition->WaitForAcquisitionComplete(timeoutInMs);
     } catch ( _com_error& e ) {
@@ -932,7 +929,6 @@ template<> bool
 device<Digitizer>::waitForEndOfAcquisition( task& task, int timeout )
 {
 	(void)timeout;
-    //Wait for the end of the acquisition
 
     long const timeoutInMs = 3000;
 
@@ -1069,45 +1065,34 @@ device<Averager>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 template<> bool
 device<Simulate>::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
 {
-    if ( simulator * simulator = task.simulator() )
-        simulator->setup( m );
-	return true;
+    simulator::instance()->setup( m );
+    return true;
 }
 
 template<> bool
 device<Simulate>::setup( task& task, const acqrscontrols::u5303a::method& m )
 {
-    if ( simulator * simulator = task.simulator() )
-        simulator->setup( m );
-    return true; // device<Simulate>::initial_setup( task, m );
+    simulator::instance()->setup( m );
+    return true;
 }
 
 template<> bool
 device<Simulate>::acquire( task& task )
 {
-    if ( simulator * simulator = task.simulator() )
-        return simulator->acquire( task.io_service() );
-    return false;
+    return simulator::instance()->acquire();
 }
 
 template<> bool
 device<Simulate>::waitForEndOfAcquisition( task& task, int /* timeout */)
 {
-    //if ( simulator * simulator = task.simulator() )
-    //    return simulator->waitForEndOfAcquisition();
-    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
-    return true;
+    return simulator::instance()->waitForEndOfAcquisition();
 }
 
 template<> bool
 device<Simulate>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 {
-    data.method_ = task.method();
-    if ( simulator * simulator = task.simulator() ) {
-        simulator->readData( data );
-        data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
-        return true;
-    }
-    return false;
+    simulator::instance()->readData( data );
+    data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+    return true;
 }
 

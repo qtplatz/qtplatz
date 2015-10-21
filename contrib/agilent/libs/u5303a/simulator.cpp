@@ -28,17 +28,80 @@
 #include <adinterface/waveform_generator.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/math/distributions/normal.hpp>
+#include <boost/random.hpp>
 #include <thread>
+#include <random>
 
 namespace u5303a {
-    simulator * simulator::instance_(0);
+
+    std::unique_ptr< simulator > simulator::instance_;
+
+    static std::mt19937 __gen__;
+    static std::uniform_real_distribution<> __dist__( -15.0, 35.0 );        
+    static auto __noise__ = []{ return __dist__( __gen__ ); };
+    
+    static std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
+    static std::chrono::high_resolution_clock::time_point __last__;
+    static uint32_t __serialNumber__;
+    static const std::vector< std::pair<double, double> > peak_list = { { 4.0e-5, 1000.0 }, { 5.0e-5, 1000.0 }, { 6.0e-5, 1000.0 } };
+
+    class waveform_generator : public adinterface::waveform_generator {
+    public:
+
+        waveform_generator( double sampInterval = 1.0e-9
+                            , double startDelay = 0
+                            , uint32_t nbrSamples = 100000 & 0x0f
+                            , uint32_t nbrWaveforms = 1 ) : sampInterval_( sampInterval )
+                                                         , startDelay_( startDelay )
+                                                         , nbrSamples_( nbrSamples )
+                                                         , nbrWaveforms_( nbrWaveforms )
+            {}
+
+        void addIons( const std::vector< std::pair<double, double> >& ions ) override {}
+        
+        void onTriggered() override;
+
+        const int32_t * waveform() const  override { return waveform_.data(); }
+
+        double timestamp() const  override { return timeStamp_; }
+
+        uint32_t serialNumber() const  override { return serialNumber_; }
+
+        double startDelay() const  override { return startDelay_; }
+
+        uint32_t nbrWaveforms() const  override { return nbrWaveforms_; }
+
+        uint32_t nbrSamples() const  override { return nbrSamples_; }
+
+        double sampInterval() const  override { return sampInterval_; }
+
+        static std::shared_ptr< adinterface::waveform_generator >
+        waveform_generator::create( double sampInterval
+                                    , double startDelay
+                                    , uint32_t nbrSamples
+                                    , uint32_t nbrWaveforms ) {
+            return std::make_shared< waveform_generator >( sampInterval, startDelay, nbrSamples, nbrWaveforms );
+        }
+
+        std::vector< int32_t > waveform_;
+        double startDelay_;
+        double sampInterval_;
+        double timeStamp_;
+        uint32_t serialNumber_;
+        uint32_t nbrSamples_;
+        uint32_t nbrWaveforms_;
+    };
+
 }
 
 waveform_generator_generator_t __waveform_generator_generator;
 
 using namespace u5303a;
 
-simulator::simulator() : sampInterval_( 1.0e-9 )
+simulator::simulator() : hasWaveform_( false )
+                       , acqTriggered_( false )
+                       , sampInterval_( 1.0e-9 )
                        , startDelay_( 0.0 )
                        , nbrSamples_( 10000 & ~0x0f )
                        , nbrWaveforms_( 496 )
@@ -53,19 +116,17 @@ simulator::simulator() : sampInterval_( 1.0e-9 )
             auto ptr = shm.find< waveform_generator_generator_t >( "waveform_generator_generator" );
 
             if ( ptr.first ) {
-
                 boost::interprocess::scoped_lock< boost::interprocess::interprocess_mutex > lock( *mx );
                 if ( __waveform_generator_generator = *ptr.first )
                     auto p = __waveform_generator_generator( 0, 0, 0, 0 );
-
             }
         }
     } catch ( std::exception& ex ) {
         ADDEBUG() << ex.what();
+        __waveform_generator_generator = &waveform_generator::create;
     }
 
-    instance_ = this;
-
+    // for InfiTOF simulator compatibility
     const double total = 60000;
     ions_.push_back( std::make_pair( 18.0105646, 1000.0 ) ); // H2O
     ions_.push_back( std::make_pair( 28.006148,  0.7809 * total ) ); // N2
@@ -75,13 +136,14 @@ simulator::simulator() : sampInterval_( 1.0e-9 )
 
 simulator::~simulator()
 {
-    instance_ = 0;
 }
 
 simulator *
 simulator::instance()
 {
-    return instance_;
+    static std::once_flag flag;
+    std::call_once( flag, [] () { instance_.reset( new simulator() ); } );
+    return instance_.get();
 }
 
 void
@@ -92,31 +154,27 @@ simulator::protocol_handler( double delay, double width )
 }
 
 bool
-simulator::acquire( boost::asio::io_service& io_service )
+simulator::acquire()
 {
     hasWaveform_ = false;
 
-    if ( ! acqTriggered_ ) {
+    if ( !acqTriggered_ ) {
 
-        io_service.post( [&]() {
-            if ( __waveform_generator_generator ) {
-
-                if ( auto generator = __waveform_generator_generator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
-
-                    generator->addIons( ions_ );
-                    generator->onTriggered();
-
-                    std::this_thread::sleep_for( std::chrono::milliseconds( nbrWaveforms_ ) ); // simulate triggers
-
-                    post( generator.get() );
-
-                    hasWaveform_ = true;
-                    std::unique_lock< std::mutex > lock( queue_ );
-                    cond_.notify_one();
-                }
+        if ( __waveform_generator_generator ) {
+            
+            if ( auto generator = __waveform_generator_generator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
+                
+                generator->addIons( ions_ );
+                generator->onTriggered();
+                
+                
+                post( generator.get() );
+                
+                hasWaveform_ = true;
+                std::unique_lock< std::mutex > lock( queue_ );
+                cond_.notify_one();
             }
-        } );
-
+        }
         acqTriggered_ = true;
         return true;        
     }
@@ -126,6 +184,7 @@ simulator::acquire( boost::asio::io_service& io_service )
 bool
 simulator::waitForEndOfAcquisition()
 {
+    std::this_thread::sleep_for( std::chrono::milliseconds( nbrWaveforms_ ) ); // simulate triggers
     std::unique_lock< std::mutex > lock( queue_ );
     if ( cond_.wait_for( lock, std::chrono::milliseconds( 3000 ), [=](){ return hasWaveform_ == true; } ) ) {
         acqTriggered_ = false;
@@ -158,7 +217,6 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
         data.method_.method_.digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
 
         data.meta_.initialXTimeSeconds = ptr->timestamp();
-        data.serialnumber_ = ptr->serialNumber();
         data.wellKnownEvents_ = 0;
         data.meta_.actualPoints = data.data_size();
         data.meta_.xIncrement = sampInterval_;
@@ -188,4 +246,35 @@ simulator::setup( const acqrscontrols::u5303a::method& m )
     startDelay_ = m.method_.digitizer_delay_to_first_sample;
     nbrSamples_ = m.method_.digitizer_nbr_of_s_to_acquire;
     nbrWaveforms_ = m.method_.nbr_of_averages;
+}
+
+///////////////////////////////
+
+void
+waveform_generator::onTriggered()
+{
+	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();    
+    timeStamp_ = std::chrono::duration< double >( now - __uptime__ ).count(); // s
+
+    double seconds = timeStamp_;
+    double hf = ( std::sin( seconds / 10.0 ) + 1.20 ) / 2.20;
+
+	static int counter;
+    
+	__last__ = now;
+
+    waveform_.resize( nbrSamples_ );
+
+    size_t idx = 0;
+    for ( int32_t& d: waveform_ ) {
+        
+        double t = startDelay_ + sampInterval_ * idx++;
+
+        double y = 0;
+        for ( auto& peak : peak_list ) {
+            boost::math::normal_distribution< double > nd( peak.first /* mean */, 3.0e-9 /* sd */); // 10ns width
+            y += boost::math::pdf( nd, t ) * peak.second + __noise__();
+        }
+        d = int32_t(y) + 10000; // add background (simulate high background level)
+    }
 }
