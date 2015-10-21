@@ -188,7 +188,7 @@ CherryPicker::impl::displayValue( const QString& key ) const
 {
     int row = findRow( key );
     if ( row >= 0 ) {
-        return model.index( row, c_display_value ).data( Qt::EditRole ).toBool();
+        return model.index( row, c_display_value ).data( Qt::EditRole ).toString();
     }
     return QString();
 }

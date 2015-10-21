@@ -58,8 +58,8 @@ public:
 	static void _abort_server();
 
     // plugin
-    const char * iid() const { return "com.ms-cheminfo.lib.qtplatz.plugins.adcontroller"; }
-    void accept( adplugin::visitor&, const char * ) { /* do nothing */ }
+    const char * iid() const override { return "com.ms-cheminfo.lib.qtplatz.plugins.adcontroller"; }
+    void accept( adplugin::visitor&, const char * ) override { /* do nothing */ }
 private:
 
 };

@@ -54,9 +54,9 @@ public:
 	CORBA::Object * _this() const override;
 
     // plugin
-    const char * iid() const { return "com.ms-cheminfo.lib.qtplatz.plugins.adborker"; }
-    void accept( adplugin::visitor&, const char * ) { /* do nothing */ }
-    virtual void * query_interface_workaround( const char * typenam );
+    const char * iid() const override { return "com.ms-cheminfo.lib.qtplatz.plugins.adborker"; }
+    void accept( adplugin::visitor&, const char * ) override { /* do nothing */ }
+    void * query_interface_workaround( const char * typenam ) override;
 };
 
 extern "C" {

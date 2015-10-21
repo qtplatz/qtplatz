@@ -49,13 +49,13 @@ namespace acquire {
 
         bool addSibling( Observer * observer ) override;
 
-        uint64_t uptime() const { return 0; }
-        void uptime_range( uint64_t& oldest, uint64_t& newest ) const  { oldest = newest = 0; }
+        uint64_t uptime() const override { return 0; }
+        void uptime_range( uint64_t& oldest, uint64_t& newest ) const override { oldest = newest = 0; }
 
-        std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) { return 0; }
-        const char * dataInterpreterClsid() const                      { return ""; }
+        std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override { return 0; }
+        const char * dataInterpreterClsid() const override             { return ""; }
 
-        int32_t posFromTime( uint64_t usec ) const                     { return 0; }
+        int32_t posFromTime( uint64_t usec ) const override            { return 0; }
 
         // local impl
         void dataChanged( adicontroller::SignalObserver::Observer *, uint32_t pos );

@@ -66,8 +66,9 @@ plugin::pThis() const
     try {
         return shared_from_this();
     } catch ( std::bad_weak_ptr& ) {
-        // workaround        
+        // workaround
         ADDEBUG() << "adplugin::plugin bad weak_ptr found for: " << clsid_;
-        return std::shared_ptr< const plugin >( this );
+        return 0;
+        // return std::shared_ptr< const plugin >( this );
     }
 }
