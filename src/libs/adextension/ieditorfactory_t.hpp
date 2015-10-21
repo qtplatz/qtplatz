@@ -92,12 +92,12 @@ namespace adextension {
 		~iEditorFactoryV() {
         }
 
-        template<typename... Args, std::size_t... Is>
+        template</*typename... Args,*/ std::size_t... Is>
         QWidget * __creator( QWidget * parent, const std::tuple<Args...>& args, helper::index<Is...> ) const {
             return new Editor( std::get<Is>(args)..., parent);
         }
 
-        template<typename... Args>
+        //template<> typename... Args>
         QWidget * creator( QWidget * parent, const std::tuple<Args...>& args ) const {
             return __creator( parent, args, helper::gen_seq<sizeof...(Args)>{} );
         }
