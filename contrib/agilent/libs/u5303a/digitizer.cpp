@@ -364,7 +364,7 @@ task::initialize()
 {
     ADTRACE() << "u5303a digitizer initializing...";
 
-    io_service_.post( strand_.wrap( [this] { findResource(); } ) );
+	//io_service_.post( strand_.wrap( [this] { findResource(); } ) );
 
     io_service_.post( strand_.wrap( [this] { handle_initial_setup( 32, 1024 * 10, 2 ); } ) );
         
@@ -463,14 +463,16 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
         if ( p && std::strcmp( p, "simulate" ) == 0 ) {
             strInitOptions = _bstr_t( L"Simulate=true, DriverSetup= Model=U5303A, Trace=false" );
             simulated = true;
-            foundResources_.push_back( _bstr_t( L"PXI4::0::0::INSTR" ) );
+            foundResources_.push_back( _bstr_t( L"PXI3::0::0::INSTR" ) );
         }
     }
-
+	success = spDriver_->Initialize( L"PXI3::0::0::INSTR", VARIANT_TRUE, VARIANT_TRUE, strInitOptions ) == S_OK;
+#if 0
     for ( auto& res : foundResources_ ) {
-        IAgMD2Ex2Ptr spDriver;
-        if ( spDriver.CreateInstance(__uuidof(AgMD2)) == S_OK ) {
+		//IAgMD2Ex2Ptr spDriver;
+        if ( spDriver_.CreateInstance(__uuidof(AgMD2)) == S_OK ) {
             try {
+				ADTRACE() << "Open resource: " << res;
                 success = spDriver_->Initialize( res, VARIANT_TRUE, VARIANT_TRUE, strInitOptions ) == S_OK;
                 break;
             } catch ( _com_error& e ) {
@@ -478,7 +480,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             }
         }
     }
-    
+#endif    
     if ( success ) {
         simulated_ = simulated;
         
