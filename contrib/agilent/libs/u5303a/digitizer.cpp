@@ -320,8 +320,13 @@ task::findResource()
                 for ( size_t i = 0; i < sa.size(); ++i ) {
                     
                     _bstr_t res = sa.data()[i];
-                    ADTRACE() << "IVI Resource found: " << res;
 
+                    if ( std::string( static_cast<const char *>( res ) ).find( "INSTR" ) != std::string::npos ) {
+                        foundResources_.push_back( res );
+                        ADTRACE() << "IVI Resource found: " << res;
+                    }
+
+#if 0
                     IAgMD2Ex2Ptr spDriver;
                     if ( spDriver.CreateInstance( __uuidof( AgMD2 ) ) == S_OK ) {
 
@@ -337,6 +342,7 @@ task::findResource()
                             ADWARN() << e.Description() << ", " << e.ErrorMessage() << "; \"" << res << "\" is not a U5303A";
                         }
                     }
+#endif
                     
                 }
                 SafeArrayDestroy( list );
@@ -364,7 +370,7 @@ task::initialize()
 {
     ADTRACE() << "u5303a digitizer initializing...";
 
-	//io_service_.post( strand_.wrap( [this] { findResource(); } ) );
+	io_service_.post( strand_.wrap( [this] { findResource(); } ) );
 
     io_service_.post( strand_.wrap( [this] { handle_initial_setup( 32, 1024 * 10, 2 ); } ) );
         
@@ -445,7 +451,7 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
 
     if ( spDriver_.CreateInstance( __uuidof( AgMD2 ) ) != S_OK )
         return false;
-    
+
     // If desired, use 'DriverSetup= CAL=0' to prevent digitizer from doing a SelfCal (~1 seconds) each time
     // it is initialized or reset which is the default behavior. By default set to false.
     // CUSTOM FIRMWARE NAME: U5303ADPULX2AVE.bit
@@ -466,21 +472,22 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             foundResources_.push_back( _bstr_t( L"PXI3::0::0::INSTR" ) );
         }
     }
-	success = spDriver_->Initialize( L"PXI3::0::0::INSTR", VARIANT_TRUE, VARIANT_TRUE, strInitOptions ) == S_OK;
-#if 0
+	// success = spDriver_->Initialize( L"PXI3::0::0::INSTR", VARIANT_TRUE, VARIANT_TRUE, strInitOptions ) == S_OK;
+
     for ( auto& res : foundResources_ ) {
-		//IAgMD2Ex2Ptr spDriver;
-        if ( spDriver_.CreateInstance(__uuidof(AgMD2)) == S_OK ) {
+//		IAgMD2Ex2Ptr spDriver;
+//       if ( spDriver.CreateInstance(__uuidof(AgMD2)) == S_OK ) {
             try {
-				ADTRACE() << "Open resource: " << res;
+				ADTRACE() << "Initialize resource: " << res;
                 success = spDriver_->Initialize( res, VARIANT_TRUE, VARIANT_TRUE, strInitOptions ) == S_OK;
+                ADTRACE() << "Success initialize " << res;
                 break;
             } catch ( _com_error& e ) {
                 ERR(e, (boost::format("; while Initialize %1%") % static_cast<const char *>( res ) ).str() );
             }
-        }
+//        }
     }
-#endif    
+
     if ( success ) {
         simulated_ = simulated;
         
