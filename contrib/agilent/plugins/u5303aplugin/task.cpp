@@ -394,7 +394,8 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
 void
 task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroller::SignalObserver::DataReadBuffer> rb )
 {
-    // find slope threshold positions
+    
+    
     auto waveforms = acqrscontrols::u5303a::waveform::deserialize( rb.get() );
 
     auto threshold_results = document::instance()->tdc()->handle_waveforms( waveforms );

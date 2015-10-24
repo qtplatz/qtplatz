@@ -288,16 +288,20 @@ task::task() : work_( io_service_ )
              , acquire_post_count_( 0 )
              , exptr_( nullptr )
 {
-    threads_.push_back( adportable::asio::thread( [this]() {
-                try {
-                    io_service_.run();
-                } catch ( ... ) {
-                    ADERROR() << "Exception: " << boost::current_exception_diagnostic_information();
-                    exptr_ = std::current_exception();
-                }
-            } ) );
+    for ( int i = 0; i < 4; ++i ) {
 
-    io_service_.post( strand_.wrap( [&] { ::CoInitialize( 0 ); } ) );
+        threads_.push_back( adportable::asio::thread( [this]() {
+                    try {
+                        ::CoInitialize( 0 );
+                        io_service_.run();
+                    } catch ( ... ) {
+                        ADERROR() << "Exception: " << boost::current_exception_diagnostic_information();
+                        exptr_ = std::current_exception();
+                    }
+                    ::CoUninitialize();
+                } ) );
+
+    }
 }
 
 task::~task()
