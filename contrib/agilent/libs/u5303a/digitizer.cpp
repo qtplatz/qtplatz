@@ -322,18 +322,34 @@ task::findResource()
                     _bstr_t res = sa.data()[i];
 
                     if ( std::string( static_cast<const char *>( res ) ).find( "INSTR" ) != std::string::npos ) {
-                        foundResources_.push_back( res );
-                        ADTRACE() << "IVI Resource found: " << res;
+
+                        ADTRACE() << "IVI Resource on PXI device found: " << res;
 
                         IAgMD2Ex2Ptr spDriver;
                         if ( spDriver.CreateInstance( __uuidof( AgMD2 ) ) == S_OK ) {
                             if ( spDriver->Initialize( res, VARIANT_FALSE, VARIANT_FALSE, "DriverSetup= CAL=0" ) == S_OK ) {
-                                auto iinfo = spDriver->Identity;
-                                _bstr_t model = iinfo->InstrumentModel;
-                                ADTRACE() << model;
+                                try {
+                                    _bstr_t model = spDriver->Identity->InstrumentModel;
+                                    if ( model == _bstr_t( L"U5303A" ) )
+                                        foundResources_.push_back( res );
+                                    _bstr_t identifier = spDriver->Identity->Identifier;
+                                    _bstr_t revision   = spDriver->Identity->Revision;
+                                    _bstr_t vendor     = spDriver->Identity->Vendor;
+                                    _bstr_t description= spDriver->Identity->Description;
+                                    _bstr_t firmwareRevision = spDriver->Identity->InstrumentFirmwareRevision;
+                                    
+                                    ADTRACE() << "Found: " << res 
+                                              << "; model '" << model << "' "
+                                              << identifier << "; "
+                                              << revision << "; "
+                                              << vendor << "; "
+                                              << description << "; "
+                                              << firmwareRevision << "; ";
+                                } catch ( _com_error& e ) {
+                                    ADERROR() << "Exception: " << e.Description() << ", " << e.ErrorMessage();                                    
+                                }
                                 spDriver->Close();
                             }
-                            
                         }
                     }
                 }
@@ -343,7 +359,7 @@ task::findResource()
             ADERROR() << "Exception: " << e.Description() << ", " << e.ErrorMessage();
         }
     }
-    return found;
+    return !foundResources_.empty();
 }
 
 task *
@@ -464,20 +480,16 @@ task::handle_initial_setup( int nDelay, int nSamples, int nAverage )
             foundResources_.push_back( _bstr_t( L"PXI3::0::0::INSTR" ) );
         }
     }
-	// success = spDriver_->Initialize( L"PXI3::0::0::INSTR", VARIANT_TRUE, VARIANT_TRUE, strInitOptions ) == S_OK;
 
     for ( auto& res : foundResources_ ) {
-//		IAgMD2Ex2Ptr spDriver;
-//       if ( spDriver.CreateInstance(__uuidof(AgMD2)) == S_OK ) {
-            try {
-				ADTRACE() << "Initialize resource: " << res;
-                success = spDriver_->Initialize( res, VARIANT_TRUE, VARIANT_TRUE, strInitOptions ) == S_OK;
-                ADTRACE() << "Success initialize " << res;
-                break;
-            } catch ( _com_error& e ) {
-                ERR(e, (boost::format("; while Initialize %1%") % static_cast<const char *>( res ) ).str() );
-            }
-//        }
+        try {
+            ADTRACE() << "Initialize resource: " << res;
+            success = spDriver_->Initialize( res, VARIANT_TRUE, VARIANT_TRUE, strInitOptions ) == S_OK;
+            ADTRACE() << "Success initialize " << res;
+            break;
+        } catch ( _com_error& e ) {
+            ERR(e, (boost::format("; while Initialize %1%") % static_cast<const char *>( res ) ).str() );
+        }
     }
 
     if ( success ) {
