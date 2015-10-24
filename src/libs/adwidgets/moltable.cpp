@@ -48,6 +48,7 @@
 #include <QStyledItemDelegate>
 #include <QSvgRenderer>
 #include <QUrl>
+#include <sstream>
 
 #if defined HAVE_RDKit && HAVE_RDKit
 #if defined _MSC_VER
@@ -414,8 +415,8 @@ MolTable::handleValueChanged( const QModelIndex& index )
                 auto synonym = model_->index( index.row(), c_synonym ).data( Qt::EditRole ).toString();
                 auto description = model_->index( index.row(), c_description ).data( Qt::EditRole ).toString();
                 impl_->setData( *this, index.row(), formula, adducts, smiles, QByteArray( svg.data(), int( svg.size() ) ), synonym, description );
-#endif            
             }
+#endif            
         }
 
     }

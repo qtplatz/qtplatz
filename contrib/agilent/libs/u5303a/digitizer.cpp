@@ -324,6 +324,13 @@ task::findResource()
                     if ( std::string( static_cast<const char *>( res ) ).find( "INSTR" ) != std::string::npos ) {
                         foundResources_.push_back( res );
                         ADTRACE() << "IVI Resource found: " << res;
+						IMessagePtr ptr;
+						if ( ptr = rm->Open( res, NO_LOCK, 0, "" ) ) {							
+							_bstr_t name = ptr->HardwareInterfaceName;
+							ptr->Clear();
+							ptr->WriteString("*IDN?\n");
+							ptr->Close();
+						}
                     }
 
 #if 0
