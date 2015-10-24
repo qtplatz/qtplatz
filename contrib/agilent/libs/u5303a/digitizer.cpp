@@ -324,33 +324,18 @@ task::findResource()
                     if ( std::string( static_cast<const char *>( res ) ).find( "INSTR" ) != std::string::npos ) {
                         foundResources_.push_back( res );
                         ADTRACE() << "IVI Resource found: " << res;
-						IMessagePtr ptr;
-						if ( ptr = rm->Open( res, NO_LOCK, 0, "" ) ) {							
-							_bstr_t name = ptr->HardwareInterfaceName;
-							ptr->Clear();
-							ptr->WriteString("*IDN?\n");
-							ptr->Close();
-						}
-                    }
 
-#if 0
-                    IAgMD2Ex2Ptr spDriver;
-                    if ( spDriver.CreateInstance( __uuidof( AgMD2 ) ) == S_OK ) {
-
-                        VARIANT_BOOL idQuery = VARIANT_TRUE;
-                        VARIANT_BOOL resetDevice = VARIANT_FALSE;
-                        BSTR strInitOptions = _bstr_t( L"Simulate=false, DriverSetup= Model=U5303A, CAL=0, Trace=false" );
-                        
-                        try {
-                            if ( spDriver->Initialize( res, idQuery, resetDevice, strInitOptions ) == S_OK ) {
-                                foundResources_.push_back( res );
+                        IAgMD2Ex2Ptr spDriver;
+                        if ( spDriver.CreateInstance( __uuidof( AgMD2 ) ) == S_OK ) {
+                            if ( spDriver->Initialize( res, VARIANT_FALSE, VARIANT_FALSE, "DriverSetup= CAL=0" ) == S_OK ) {
+                                auto iinfo = spDriver->Identity;
+                                _bstr_t model = iinfo->InstrumentModel;
+                                ADTRACE() << model;
+                                spDriver->Close();
                             }
-                        } catch ( _com_error& e ) {
-                            ADWARN() << e.Description() << ", " << e.ErrorMessage() << "; \"" << res << "\" is not a U5303A";
+                            
                         }
                     }
-#endif
-                    
                 }
                 SafeArrayDestroy( list );
             }
