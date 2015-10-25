@@ -120,6 +120,7 @@ namespace u5303a {
             
             void error_reply( const _com_error& e, const std::string& );
 
+            inline void digitizerNumRecords( int numRecords ) { digitizerNumRecords_ = numRecords; }
             inline uint64_t digitizerNumRecords() const { return digitizerNumRecords_; }
 
             inline uint32_t dataSerialNumber( bool postInc = true ) { return postInc ? serialnumber_++ : serialnumber_; }
@@ -128,7 +129,7 @@ namespace u5303a {
             static task * instance_;
             static std::mutex mutex_;
 
-            const uint64_t digitizerNumRecords_ = 2;
+            uint64_t digitizerNumRecords_;
 
             IAgMD2Ex2Ptr spDriver_;
             std::vector< adportable::asio::thread > threads_;
@@ -272,6 +273,7 @@ task::task() : work_( io_service_ )
              , serialnumber_( 0 )
              , acquire_post_count_( 0 )
              , exptr_( nullptr )
+             , digitizerNumRecords_( 1 )
 {
     for ( int i = 0; i < 2; ++i ) {
 
@@ -842,10 +844,11 @@ device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::metho
 
     //--->
     try {
+        task.digitizerNumRecords( m.method_.nbr_records );
         task.spDriver()->Acquisition->RecordSize = m.method_.digitizer_nbr_of_s_to_acquire;
         task.spDriver()->Acquisition->NumRecordsToAcquire = task.digitizerNumRecords();
 
-        ADTRACE() << "Set the Mode Digitizer...";
+        ADTRACE() << "Set the Mode Digitizer; RecordSize=" << task.spDriver()->Acquisition->RecordSize << "; NumRecords=" << task.spDriver()->Acquisition->NumRecordsToAcquire;
         task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeNormal;
 
         // Calibrate

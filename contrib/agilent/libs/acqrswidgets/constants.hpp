@@ -45,6 +45,7 @@ namespace acqrswidgets {
         , idU5303AMode
         , idU5303ASampRate
         , idU5303ANbrSamples
+        , idNbrRecords
     };
     
 }

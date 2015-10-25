@@ -57,7 +57,9 @@ namespace acqrscontrols {
                     ar & BOOST_SERIALIZATION_NVP( _.digitizer_delay_to_first_sample );
                     ar & BOOST_SERIALIZATION_NVP( _.digitizer_nbr_of_s_to_acquire );
                 }
-
+                if ( version >= 4 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.nbr_records );
+                }
             }
 
         };
@@ -87,16 +89,17 @@ namespace acqrscontrols {
 
 using namespace acqrscontrols::u5303a;
 
-device_method::device_method() : front_end_range( 2.0 )         // 1V,2V range
-                               , front_end_offset( 0.0 )        // [-0.5V,0.5V], [-1V,1V] offset
-                               , ext_trigger_level( 1.0 )       // external trigger threshold
-                               , samp_rate( 1.0e9 )			   // sampling rate (1.0GS/s)
-                               , nbr_of_s_to_acquire_( 100000 ) // from 1 to 480,000 samples
-                               , nbr_of_averages( 512 )		   // number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
-                               , delay_to_first_sample_( 0 )    // delay from trigger (seconds)
-                               , invert_signal( 0 )             // 0-> no inversion , 1-> signal inverted
+device_method::device_method() : front_end_range( 2.0 )          // 1V,2V range
+                               , front_end_offset( 0.0 )         // [-0.5V,0.5V], [-1V,1V] offset
+                               , ext_trigger_level( 1.0 )        // external trigger threshold
+                               , samp_rate( 1.0e9 )			     // sampling rate (1.0GS/s)
+                               , nbr_of_s_to_acquire_( 100000 )  // from 1 to 480,000 samples
+                               , nbr_of_averages( 512 )		     // number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
+                               , delay_to_first_sample_( 0 )     // delay from trigger (seconds)
+                               , invert_signal( 0 )              // 0-> no inversion , 1-> signal inverted
                                , nsa( 0x0 )
                                , digitizer_delay_to_first_sample( 0 )    // device set value
                                , digitizer_nbr_of_s_to_acquire( 100000 ) // device set value
+                               , nbr_records( 1 )                // MultiRecord Acquisition
 {
 }

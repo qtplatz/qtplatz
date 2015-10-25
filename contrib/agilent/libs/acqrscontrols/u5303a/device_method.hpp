@@ -48,8 +48,12 @@ namespace acqrscontrols {
             int32_t invert_signal;
             int32_t nsa;
 
+            // CLASS VERSION 3
             double digitizer_delay_to_first_sample; // actual delay set to u5303a
             uint32_t digitizer_nbr_of_s_to_acquire; // actual number of samples per waveform
+            
+            // CLASS VERSION 4; 2015-OCT-25 
+            uint32_t nbr_records; // MultiRecord Acquisition
 
         private:
 
@@ -61,4 +65,4 @@ namespace acqrscontrols {
     }
 }
 
-BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_method, 3 )
+BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_method, 4 )

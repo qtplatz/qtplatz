@@ -56,16 +56,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="adwidgets::DoubleSpinBox" name="doubleSpinBox_2">
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="maximum">
-             <double>1000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="1">
            <widget class="adwidgets::SpinBox" name="spinBox">
             <property name="minimum">
@@ -73,6 +63,29 @@
             </property>
             <property name="maximum">
              <number>520000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="1">
+           <widget class="adwidgets::DoubleSpinBox" name="doubleSpinBox_2">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="maximum">
+             <double>1000.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -86,18 +99,19 @@
             </property>
            </widget>
           </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>MultiRecord</string>
+            </property>
+           </widget>
+          </item>
           <item row="3" column="1">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+           <widget class="QSpinBox" name="spinBox_2">
+            <property name="minimum">
+             <number>1</number>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
+           </widget>
           </item>
          </layout>
         </item>

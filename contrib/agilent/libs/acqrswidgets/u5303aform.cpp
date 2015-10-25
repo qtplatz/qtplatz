@@ -61,6 +61,10 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
 
     // mode
     connect( ui->checkBox_Avg, &QCheckBox::toggled, [this] ( bool flag ) { emit valueChanged( idU5303AMode, 0, QVariant( flag ) ); } );
+
+    // MultiRecord
+    connect( ui->spinBox_2, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int d ) {
+            emit valueChanged( idNbrRecords, 0, QVariant( d ) ); } );
 }
 
 u5303AForm::~u5303AForm()
@@ -78,7 +82,7 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
 {
     QSignalBlocker blocks[] = {
         QSignalBlocker( ui->doubleSpinBox_1 ), QSignalBlocker( ui->doubleSpinBox_2 )
-        , QSignalBlocker( ui->spinBox ), QSignalBlocker( ui->checkBox_Avg ) };
+        , QSignalBlocker( ui->spinBox ), QSignalBlocker( ui->checkBox_Avg ), QSignalBlocker( ui->spinBox_2 ) };
 
     ui->doubleSpinBox_1->setValue( adcontrols::metric::scale_to_micro( m.method_.delay_to_first_sample_ ) );
 
@@ -89,6 +93,8 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
     ui->spinBox->setValue( m.method_.nbr_of_averages );
 
     ui->checkBox_Avg->setChecked( !( m.mode_ == 0 ) );
+
+    ui->spinBox_2->setValue( m.method_.nbr_records );
 }
 
 void
@@ -102,6 +108,7 @@ u5303AForm::getContents( acqrscontrols::u5303a::method& m )
     m.method_.nbr_of_averages = ui->spinBox->value();
 
     m.mode_ = ui->checkBox_Avg->isChecked() ? 2 : 0;
+    m.method_.nbr_records = ui->spinBox_2->value();
 }
 
 
