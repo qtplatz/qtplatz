@@ -2,7 +2,7 @@
 @echo off
 set source_dir=%cd%
 set build_root=..\build-x86_64
-set build_type=debug
+set build_type=release
 set build_tests=false
 set build_clean=false
 set tools=vc12
@@ -45,7 +45,7 @@ if %tools%==vc12 (
      nmake help
      goto end
    ) else (
-     cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Debug %source_dir%
+     cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Debug -DDEBUG_SYMBOL:BOOL=ON %source_dir%
    )
    if %build_tests%==true (
       echo "Build tests directory on %cd%"

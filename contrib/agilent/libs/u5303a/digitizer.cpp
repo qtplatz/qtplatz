@@ -78,6 +78,7 @@ namespace u5303a {
             static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
             static bool readData( task&, acqrscontrols::u5303a::waveform& );
+            static bool readData( task&, uint64_t numRecords, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
         };
 
         class task {
@@ -113,13 +114,21 @@ namespace u5303a {
 
             inline const acqrscontrols::u5303a::identify& ident() const { return *ident_; }
 
+            inline std::shared_ptr< acqrscontrols::u5303a::identify > ident_ptr() { return ident_; }
+
             inline bool isSimulated() const { return simulated_; }
             
             void error_reply( const _com_error& e, const std::string& );
 
+            inline uint64_t digitizerNumRecords() const { return digitizerNumRecords_; }
+
+            inline uint32_t dataSerialNumber( bool postInc = true ) { return postInc ? serialnumber_++ : serialnumber_; }
+
         private:
             static task * instance_;
             static std::mutex mutex_;
+
+            const uint64_t digitizerNumRecords_ = 2;
 
             IAgMD2Ex2Ptr spDriver_;
             std::vector< adportable::asio::thread > threads_;
@@ -257,30 +266,6 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
     task::instance()->setScanLaw( ptr );
 }
 
-//////////////
-#if 0
-const int32_t *
-waveform::trim( u5303a::metadata& meta, uint32_t& nSamples ) const
-{
-    meta = meta_;
-
-    size_t offset = 0;
-    if ( method_.digitizer_delay_to_first_sample < method_.delay_to_first_sample_ )
-        offset = size_t( ( ( method_.delay_to_first_sample_ - method_.digitizer_delay_to_first_sample ) / meta.xIncrement ) + 0.5 );
-
-    nSamples = method_.nbr_of_s_to_acquire_;
-    if ( nSamples + offset > method_.digitizer_nbr_of_s_to_acquire )
-        nSamples = uint32_t( method_.digitizer_nbr_of_s_to_acquire - offset );
-
-    meta.initialXOffset = method_.delay_to_first_sample_;
-    meta.actualPoints = nSamples;
-
-    return d_.data() + offset;
-}
-#endif
-
-////////////////////
-
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , simulated_( false )
@@ -288,7 +273,7 @@ task::task() : work_( io_service_ )
              , acquire_post_count_( 0 )
              , exptr_( nullptr )
 {
-    for ( int i = 0; i < 4; ++i ) {
+    for ( int i = 0; i < 2; ++i ) {
 
         threads_.push_back( adportable::asio::thread( [this]() {
                     try {
@@ -393,6 +378,7 @@ bool
 task::prepare_for_run( const acqrscontrols::u5303a::method& method )
 {
     auto& m = method.method_;
+
     ADTRACE() << "u5303a::task::prepare_for_run";
     ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
         << "\text_trigger_level: " << m.ext_trigger_level
@@ -404,10 +390,12 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
         << "\tnsa: " << m.nsa;
     
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
+
     if ( acquire_post_count_ == 0 ) {
         acquire_post_count_++;
         io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
 	}
+
     return true;
 }
 
@@ -601,31 +589,31 @@ task::handle_acquire()
     --acquire_post_count_;
     if ( acquire() ) {
         if ( waitForEndOfAcquisition( 3000 ) ) {
-            uint32_t events(0);
-            auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
-            if ( readData( *waveform ) ) {
-                // if ( software_events_ ) {
-                //     avgr->wellKnownEvents |= software_events_; // marge with hardware events
-                //     software_events_ = 0;
-
-                //     // set time for injection to zero (a.k.a. retention time)
-                //     if ( avgr->wellKnownEvents & SignalObserver::wkEvent_INJECT ) {
-                //         averager_inject_usec_ = avgr->uptime;
-                //         avgr->timeSinceInject = 0;
-                //     }
-                // }
-                // assert( avgr->nbrSamples );
-                acqrscontrols::u5303a::method m;
-                for ( auto& reply: waveform_handlers_ ) {
-                    if ( reply( waveform.get(), nullptr, m ) )
-                        handle_protocol( m );
+            if ( method_.mode_ == 0 ) { // digitizer
+                std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
+                device<Digitizer>::readData( *this, digitizerNumRecords_, vec );
+                for ( auto& waveform: vec ) {
+                    acqrscontrols::u5303a::method m;
+                    for ( auto& reply: waveform_handlers_ ) {
+                        if ( reply( waveform.get(), nullptr, m ) )
+                            handle_protocol( m );
+                    }
+                }
+            } else {
+                uint32_t events( 0 );
+                auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
+                if ( readData( *waveform ) ) {
+                    acqrscontrols::u5303a::method m;
+                    for ( auto& reply : waveform_handlers_ ) {
+                        if ( reply( waveform.get(), nullptr, m ) )
+                            handle_protocol( m );
+                    }
                 }
             }
-        } else {
-            ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
         }
         return true;
     }
+    ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
     return false;
 }
 
@@ -645,12 +633,14 @@ task::acquire()
 bool
 task::waitForEndOfAcquisition( int timeout )
 {
-    if ( method_.mode_ && simulated_ )
+    if ( method_.mode_ && simulated_ ) {
+        std::this_thread::sleep_for( std::chrono::microseconds( 500 ) );
         return device<Simulate>::waitForEndOfAcquisition( *this, timeout );
+    }
 
     if ( method_.mode_ == 0 ) {
         if ( simulated_ )
-            std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+            std::this_thread::sleep_for( std::chrono::microseconds( 500 ) );
         return device<Digitizer>::waitForEndOfAcquisition( *this, timeout );
     } else {
         return device<Averager>::waitForEndOfAcquisition( *this, timeout );
@@ -724,72 +714,73 @@ device<Averager>::initial_setup( task& task, const acqrscontrols::u5303a::method
             TERR( e, "TimeInterleavedChannelList" ); }
     }
 
-    try {  spCh1->PutRange( m.method_.front_end_range );  } catch ( _com_error& e ) {
-        TERR(e, "Range");  }
-    try {  spCh1->PutOffset(m.method_.front_end_offset);  } catch ( _com_error& e ) {
-        TERR(e, "Offset"); }
-	try {   task.spDriver()->Channels2->Item2[L"Channel1"]->DataInversionEnabled = m.method_.invert_signal ? VARIANT_TRUE : VARIANT_FALSE; } catch (_com_error&) {
+    try {
+        spCh1->PutRange( m.method_.front_end_range );
+        spCh1->PutOffset(m.method_.front_end_offset);
+        task.spDriver()->Channels2->Item2[L"Channel1"]->DataInversionEnabled = m.method_.invert_signal ? VARIANT_TRUE : VARIANT_FALSE;
+
+    } catch (_com_error& e) {
+        TERR( e, "device<Averager>::initial_setup" );
+        
 	}
 
     // Setup triggering
-    try { task.spDriver()->Trigger->ActiveSource = "External1"; } catch ( _com_error& e ) {
-        TERR( e, "Trigger::ActiveSource" ); }
-    try { task.spDriver()->Trigger->Delay = m.method_.digitizer_delay_to_first_sample; } catch ( _com_error& e ) {
-        TERR(e,"mode");  }
+    try {
+        task.spDriver()->Trigger->ActiveSource = "External1";
+        task.spDriver()->Trigger->Delay = m.method_.digitizer_delay_to_first_sample;
 
-    IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[ L"External1" ];
-    try { spTrigSrc->Level = m.method_.ext_trigger_level; } catch ( _com_error& e ) {
-		TERR(e, "TriggerSource::Level"); }
-    try { spTrigSrc->Edge->Slope = AgMD2TriggerSlopePositive; } catch ( _com_error& e ) {
-		TERR(e, "TriggerSource::Level"); }
+        IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[ L"External1" ];
+        spTrigSrc->Level = m.method_.ext_trigger_level;
+        spTrigSrc->Edge->Slope = AgMD2TriggerSlopePositive;
+
+    } catch ( _com_error& e ) {
+        TERR( e, "device<Averager>::initial_setup" );        
+    }
+
         
-    // Calibrate
-    ADTRACE() << "Calibrating...";
-    try {  task.spDriver()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) {
-        TERR(e, "Calibration::SelfCalibrate"); }
+    try {
+        // Calibrate
 
-    ADTRACE() << "Set the Mode Averager...";
-    try { task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager; } catch ( _com_error& e ) { TERR( e, "Acquisition::Mode" ); }
+        ADTRACE() << "Set the Mode Averager...";
+        task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager;
+
+    } catch ( _com_error& e ) {
+        TERR( e, "Acquisition::Mode" );
+    }
 
     // Set the sample rate and nbr of samples to acquire
     bool success = false;
-    //const double sample_rate = m.method_.samp_rate; //  1.0e9; //m.samp_rate; // 3.2E9;
     try {
         task.spDriver()->Acquisition2->SampleRate = m.method_.samp_rate;
         success = true;
     }  catch (_com_error& e) {
         TERR(e,"SampleRate");
     }
+
     if ( !success ) {
         try {
             task.spDriver()->Acquisition2->SampleRate = adportable::compare<double>::approximatelyEqual( m.method_.samp_rate, 1.0e9 ) ? 3.2e9 : 1.0e9;
             success = true;
         } catch ( _com_error& e ) {
-            TERR( e, "SampleRate" );
+            TERR( e, "device<Averager>::initial_setup" );            
         }
     }
 
-    // Start on trigger
-    // Full bandwidth
-#if 0
+// #if 0
+//     task.spDriver()->Channels2->GetItem2("Channel1")->Filter->Bypass = 1;
+// #endif
+
     try {
-        task.spDriver()->Channels2->GetItem2("Channel1")->Filter->Bypass = 1;
+        task.spDriver()->Acquisition->RecordSize = m.method_.digitizer_nbr_of_s_to_acquire;
+        task.spDriver()->Acquisition->NumRecordsToAcquire = 1;
+        task.spDriver()->Acquisition2->NumberOfAverages = m.method_.nbr_of_averages;
+        task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager;
+
+        ADTRACE() << "Calibrating...";
+        task.spDriver()->Calibration->SelfCalibrate();
     } catch ( _com_error& e ) {
-        TERR( e, "Bandwidth" );
+        TERR( e, "device<Averager>::initial_setup" );        
     }
-#endif
-    //--->
-    try { task.spDriver()->Acquisition->RecordSize = m.method_.digitizer_nbr_of_s_to_acquire;  } catch ( _com_error& e ) {
-        TERR(e,"mbr_of_s_to_acquire"); }
-    try { task.spDriver()->Acquisition2->NumberOfAverages = m.method_.nbr_of_averages; } catch ( _com_error& e ) {
-        TERR(e,"mbr_of_averages");     }
-
-    try { task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager;   } catch ( _com_error& e ) {
-        TERR(e,"mode"); }
-
-    //<---
-    try { task.spDriver()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) {
-        TERR(e, "Calibration::SelfCalibrate"); }
 
 	return true;
 }
@@ -804,28 +795,28 @@ device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::metho
         try { spCh1->TimeInterleavedChannelList = "Channel2"; } catch ( _com_error& e ) {
             TERR( e, "TimeInterleavedChannelList" ); }
     }
+    try {
+        spCh1->PutRange( m.method_.front_end_range );
+        spCh1->PutOffset(m.method_.front_end_offset);
+        task.spDriver()->Channels2->Item2[L"Channel1"]->DataInversionEnabled = m.method_.invert_signal ? VARIANT_TRUE : VARIANT_FALSE;
 
-    try {  spCh1->PutRange( m.method_.front_end_range );   } catch ( _com_error& e ) {  TERR(e, "Range");   }
-    try {  spCh1->PutOffset(m.method_.front_end_offset);   } catch ( _com_error& e ) {  TERR(e, "Offset");  }
-	try {  task.spDriver()->Channels2->Item2[L"Channel1"]->DataInversionEnabled = m.method_.invert_signal ? VARIANT_TRUE : VARIANT_FALSE; } catch (_com_error&) { }
+        // Setup triggering
+        task.spDriver()->Trigger->ActiveSource = "External1";
+        task.spDriver()->Trigger->Delay = m.method_.digitizer_delay_to_first_sample;
 
-    // Setup triggering
-    try {  task.spDriver()->Trigger->ActiveSource = "External1";   } catch ( _com_error& e ) { TERR(e, "Trigger::ActiveSource");  }
-    try {  task.spDriver()->Trigger->Delay = m.method_.digitizer_delay_to_first_sample;  } catch ( _com_error& e ) { TERR(e,"mode"); }
+        IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[ L"External1" ];
+        spTrigSrc->Level = m.method_.ext_trigger_level;
+        spTrigSrc->Edge->Slope = AgMD2TriggerSlopePositive;
 
-    IAgMD2TriggerSourcePtr spTrigSrc = task.spDriver()->Trigger->Sources->Item[ L"External1" ];
-    try { spTrigSrc->Level = m.method_.ext_trigger_level; } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level"); }
-    try { spTrigSrc->Edge->Slope = AgMD2TriggerSlopePositive; } catch ( _com_error& e ) { TERR(e, "TriggerSource::Level");	}
-
-    // Calibrate
-    ADTRACE() << "Calibrating...";
-    try {  task.spDriver()->Calibration->SelfCalibrate();  } catch ( _com_error& e ) {  TERR(e, "Calibration::SelfCalibrate");  }
+    } catch ( _com_error& e ) {
+        TERR( e, "device<Digitizer>::initial_setup" );
+    }        
 
     // Set the sample rate and nbr of samples to acquire
     bool success = false;
-
+    
     double max_rate = 3.2e9;
-     if ( options.find( "SR1" ) != options.npos ) {
+    if ( options.find( "SR1" ) != options.npos ) {
         max_rate = 1.0e9;
         if ( options.find( "INT" ) != options.npos )
             max_rate = 2.0e9;
@@ -834,7 +825,7 @@ device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::metho
         if ( options.find( "INT" ) != options.npos )
             max_rate = 3.2e9;
     }
-
+    
     for ( auto samp_rate : { m.method_.samp_rate, max_rate } ) {
         try {
             task.spDriver()->Acquisition2->SampleRate = samp_rate;
@@ -844,28 +835,26 @@ device<Digitizer>::initial_setup( task& task, const acqrscontrols::u5303a::metho
             TERR( e, "SampleRate" );
         }
     }
+        
+// #if 0
+//     task.spDriver()->Channels2->GetItem2("Channel1")->Filter->Bypass = 1;
+// #endif
 
-    // Start on trigger
-    // Full bandwidth
-#if 0
-    try {
-        task.spDriver()->Channels2->GetItem2("Channel1")->Filter->Bypass = 1;
-    } catch ( _com_error& e ) {
-        TERR( e, "Bandwidth" );
-    }
-#endif
     //--->
     try {
         task.spDriver()->Acquisition->RecordSize = m.method_.digitizer_nbr_of_s_to_acquire;
+        task.spDriver()->Acquisition->NumRecordsToAcquire = task.digitizerNumRecords();
+
+        ADTRACE() << "Set the Mode Digitizer...";
+        task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeNormal;
+
+        // Calibrate
+        ADTRACE() << "Calibrating...";
+        task.spDriver()->Calibration->SelfCalibrate();
+
     } catch ( _com_error& e ) {
         TERR(e,"mbr_of_s_to_acquire");        
     }
-
-    ADTRACE() << "Set the Mode Digitizer...";
-    try {  task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeNormal;   } catch ( _com_error& e ) { TERR(e,"mode"); }
-
-    //<---
-    try {  task.spDriver()->Calibration->SelfCalibrate(); } catch ( _com_error& e ) { TERR(e, "Calibration::SelfCalibrate"); }
 
 	return true;
 }
@@ -1007,6 +996,82 @@ device<Digitizer>::readData( task& task, acqrscontrols::u5303a::waveform& data )
     return true;
 }
 
+template<> bool
+device<Digitizer>::readData( task& task, uint64_t numRecords, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
+{
+    IAgMD2Channel2Ptr spCh1 = task.spDriver()->Channels2->Item2[ L"Channel1" ];
+    SAFEARRAY* dataArray( 0 );
+    SAFEARRAY* firstValidPoints( 0 );
+    SAFEARRAY* actualPoints( 0 );
+    SAFEARRAY* initialXOffset( 0 );
+    SAFEARRAY* initialXTimeSeconds( 0 );
+    SAFEARRAY* initialXTimeFraction( 0 );
+    int64_t firstRecord( 0 ), offsetWithinRecord( 0 ), actualRecords(0);
+    double xIncrement( 0 ), scaleFactor( 0 ), scaleOffset( 0 );
+    const int64_t numPointsPerRecord = task.method().method_.digitizer_nbr_of_s_to_acquire;
+    
+    try {
+
+        spCh1->MultiRecordMeasurement->FetchMultiRecordWaveformInt16( firstRecord
+                                                                      , numRecords
+                                                                      , offsetWithinRecord
+                                                                      , numPointsPerRecord
+                                                                      , &dataArray
+                                                                      , &actualRecords
+                                                                      , &actualPoints
+                                                                      , &firstValidPoints // --> data.meta_
+                                                                      , &initialXOffset // --> data.meta_
+                                                                      , &initialXTimeSeconds
+                                                                      , &initialXTimeFraction
+                                                                      , &xIncrement
+                                                                      , &scaleFactor
+                                                                      , &scaleOffset );
+    } catch ( _com_error& e ) {
+        TERR(e,"readMultiData::FetchMultiRecordWaveformInt16");
+        return false;
+    }
+    
+    auto tp = std::chrono::steady_clock::now();
+    safearray_t<__int64> saFirstValidPoint( firstValidPoints );
+    // safearray_t<int> saFlags( flags );
+    safearray_t< double > saInitialXTimeSeconds( initialXTimeSeconds );
+    safearray_t< double > saInitialXTimeFraction( initialXTimeFraction );
+    safearray_t< int64_t > saActualPoints( actualPoints );
+    safearray_t< int16_t > saData( dataArray );
+
+    for ( int64_t iRecord = 0; iRecord < actualRecords; ++iRecord ) {
+
+        if ( auto data = std::make_shared< acqrscontrols::u5303a::waveform >(task.ident_ptr(), task.dataSerialNumber() ) ) {
+
+            data->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
+            data->method_ = task.method();
+            data->meta_.actualAverages = 0; // digitizer
+            data->meta_.actualPoints = saActualPoints.data()[ iRecord ];
+            data->meta_.initialXTimeSeconds = saInitialXTimeSeconds.data()[ iRecord ] + saInitialXTimeFraction.data()[ iRecord ];
+            data->meta_.xIncrement = xIncrement;
+            data->meta_.scaleFactor = scaleFactor;
+            data->meta_.scaleOffset = scaleOffset;
+
+            data->resize( data->meta_.actualPoints );
+            
+            int64_t firstValidPoint = saFirstValidPoint.data()[ iRecord ];
+
+            std::copy( saData.data() + firstValidPoint, saData.data() + firstValidPoint + data->meta_.actualPoints, data->begin() );
+
+            vec.push_back( data );
+        }
+    }
+
+    SafeArrayDestroy( dataArray );
+    SafeArrayDestroy( firstValidPoints );
+    SafeArrayDestroy( actualPoints );
+    SafeArrayDestroy( initialXOffset );
+    SafeArrayDestroy( initialXTimeSeconds );
+    SafeArrayDestroy( initialXTimeFraction );
+
+    return true;
+}
+
 
 template<> bool
 device<Averager>::readData( task& task, acqrscontrols::u5303a::waveform& data )
@@ -1051,7 +1116,7 @@ device<Averager>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 
 		safearray_t<__int64> saFirstValidPoint( firstValidPoints );
         __int64 firstValidPoint = saFirstValidPoint.data()[ 0 ];
-
+        
         safearray_t<int> saFlags( flags );
         data.meta_.flags = saFlags.data()[ 0 ];
 
