@@ -62,10 +62,12 @@
 #include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QMetaType>
 #include <chrono>
 #include <future>
 #include <string>
-#include <QMetaType>
+#include <fstream>
+
 
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 

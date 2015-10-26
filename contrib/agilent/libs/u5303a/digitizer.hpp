@@ -86,7 +86,6 @@ namespace u5303a {
         void connect_waveform( waveform_reply_type );
         void disconnect_waveform( waveform_reply_type );
     };
-
 }
 
 //BOOST_CLASS_VERSION( u5303a::method, 3 )

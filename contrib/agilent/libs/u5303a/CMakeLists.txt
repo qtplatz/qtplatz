@@ -4,24 +4,32 @@ cmake_policy( SET CMP0028 NEW )
 
 project( u5303a )
 
-#include(../../agilentlibrary.pri)
-#include(../../boost.pri)
-
 find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem wserialization serialization)
-
-set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
-set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
 
 add_definitions(-DU5303A_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
 
+if ( WIN32 )
+  set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
+  set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
+endif()
+
+
+
 set( u5303a_SOURCES
-  digitizer.cpp
   simulator.cpp
   sampleprocessor.cpp
   u5303acontroller.cpp
   waveformobserver.cpp
   session.cpp
   )
+
+if ( WIN32 )
+  list( APPEND u5303a_SOURCES digitizer_windows.cpp )
+else()
+  list( APPEND u5303a_SOURCES digitizer_linux.cpp agmd2.cpp )
+  list( APPEND u5303a_HEADERS agmd2.hpp )
+  set( AGMD2_LIBRARY "AgMD2" )
+endif()
 
 set( u5303a_HEADERS
   u5303a_global.hpp
@@ -55,5 +63,6 @@ target_link_libraries( u5303a PUBLIC
   adportable
   adcontrols
   acqrscontrols
+  ${AGMD2_LIBRARY}
   ${Boost_LIBRARIES}
   )

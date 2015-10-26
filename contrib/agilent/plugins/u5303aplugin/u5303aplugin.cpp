@@ -31,7 +31,7 @@
 #include "document.hpp"
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
-#include <adextension/iSequenceimpl.hpp>
+#include <adextension/isequenceimpl.hpp>
 #include <adportable/debug_core.hpp>
 #include <adlog/logging_handler.hpp>
 #include <u5303aspectrometer/massspectrometer.hpp>

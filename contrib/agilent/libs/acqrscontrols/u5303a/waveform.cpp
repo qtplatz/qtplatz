@@ -111,6 +111,7 @@ waveform::waveform( std::shared_ptr< identify > id
                                                                    , serialnumber_( pos )
                                                                    , wellKnownEvents_( events )
                                                                    , timeSinceEpoch_( tp )
+                                                                   , firstValidPoint_( 0 )
 {
 }
 

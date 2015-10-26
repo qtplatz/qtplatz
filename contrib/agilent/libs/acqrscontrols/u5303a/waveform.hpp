@@ -84,6 +84,7 @@ namespace acqrscontrols {
             uint32_t serialnumber_;
             uint32_t wellKnownEvents_;
             uint64_t timeSinceEpoch_;
+            uint64_t firstValidPoint_;
 
             size_t size() const; // number of samples (octet size is depend on meta_.dataType)
 
@@ -91,7 +92,7 @@ namespace acqrscontrols {
             
             value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
 
-            const value_type * data() const { return d_.data(); }
+            const value_type * data() const { return d_.data() + firstValidPoint_; }
 
             void resize( size_t size ) { d_.resize( size ); }
 

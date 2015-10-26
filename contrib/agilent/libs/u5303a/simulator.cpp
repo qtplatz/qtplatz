@@ -76,14 +76,13 @@ namespace u5303a {
 
         double sampInterval() const  override { return sampInterval_; }
 
-        static std::shared_ptr< adinterface::waveform_generator >
-        waveform_generator::create( double sampInterval
-                                    , double startDelay
-                                    , uint32_t nbrSamples
-                                    , uint32_t nbrWaveforms ) {
+        static std::shared_ptr< adinterface::waveform_generator >  create( double sampInterval
+                                                                           , double startDelay
+                                                                           , uint32_t nbrSamples
+                                                                           , uint32_t nbrWaveforms ) {
             return std::make_shared< waveform_generator >( sampInterval, startDelay, nbrSamples, nbrWaveforms );
         }
-
+        
         std::vector< int32_t > waveform_;
         double startDelay_;
         double sampInterval_;
