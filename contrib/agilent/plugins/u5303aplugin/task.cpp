@@ -46,6 +46,7 @@
 #include <adicontroller/instrument.hpp>
 #include <adicontroller/signalobserver.hpp>
 #include <adicontroller/sampleprocessor.hpp>
+#include <adlog/logger.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
@@ -212,6 +213,7 @@ task::initialize()
             impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->worker_thread(); } ) );
             
             unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
+            ADTRACE() << nCores << " threads created for u5303a task";
             while( nCores-- )
                 impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->io_service_.run(); } ) );
 
@@ -255,15 +257,11 @@ void
 task::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos )
 {
     // on SignalObserver::Observer masharing (sync with device data-reading thread)
-#if WIN32 && defined _DEBUG
-    // ADDEBUG() << "u5303a::task::onDataChanged( " << pos << ")";
-#endif
 
-    auto self( so->shared_from_this() );
-    
-    if ( self )
-        impl_->io_service_.post( impl_->strand_.wrap( [=]{ impl_->readData( so, pos ); } ) );
+    if ( ( pos % 3000 ) == 0 )
+        ADDEBUG() << "u5303a::task::onDataChanged( " << pos << ")";
 
+    impl_->io_service_.post( impl_->strand_.wrap( [=]{ impl_->readData( so, pos ); } ) );
 }
 
 task *
@@ -368,25 +366,15 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
             std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
             do {
                 if ( ( rb = so->readData( status.pos_ ) ) ) {
-                    handle_u5303a_data( status, rb );
                     status.pos_++;
-                }
-            } while ( rb && status.pos_ <= pos );
-
-        } else if ( so->objid() == ap240_observer ) {
-
-            std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
-            do {
-                if ( ( rb = so->readData( status.pos_ ) ) ) {
-                    handle_ap240_data( status, rb );
-                    status.pos_++;
+                    io_service_.post( [this,&status,rb](){ handle_u5303a_data( status, rb ); } );
                 }
             } while ( rb && status.pos_ <= pos );
 
         } else {
             std::string name = so->objtext();
             auto uuid = so->objid();
-            ADDEBUG() << "Unhandled data : " << name;
+            ADTRACE() << "Unhandled data : " << name;
         }
     }
 }
@@ -394,7 +382,6 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
 void
 task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroller::SignalObserver::DataReadBuffer> rb )
 {
-    
 
     auto waveforms = acqrscontrols::u5303a::waveform::deserialize( rb.get() );
 
@@ -403,7 +390,8 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroll
 
     if ( threshold_results[0] || threshold_results[1] ) {
 
-        io_service_.post( strand2_.wrap( [=](){ document::instance()->tdc()->appendHistogram( threshold_results ); } ) );
+        //io_service_.post( strand2_.wrap( [=](){ document::instance()->tdc()->appendHistogram( threshold_results ); } ) );
+        io_service_.post( [=]() { document::instance()->tdc()->appendHistogram( threshold_results ); } );
 
         io_service_.post( [=] () { handle_u5303a_average( status, threshold_results ); } ); // draw spectrogram and TIC
 
@@ -418,14 +406,14 @@ task::impl::handle_u5303a_average( const data_status status, std::array< thresho
 
         std::lock_guard< std::mutex > lock( mutex_ );
         que_.push_back( threshold_results );
-        if ( que_.size() >= 2000 )
-            que_.erase( que_.begin(), que_.begin() + 500 );
+        if ( que_.size() >= 5000 )
+            que_.erase( que_.begin(), que_.begin() + 1000 );
         
     } while( 0 ) ;
     
     auto tp = std::chrono::steady_clock::now();
 
-    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
+    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 250 ) {
 
         data_status_[ u5303a_observer ].plot_ready_ = true;
         sema_.signal();
@@ -469,43 +457,9 @@ task::setHistogramClearCycle( uint32_t value )
 void
 task::impl::handle_ap240_data( data_status& status, std::shared_ptr<adicontroller::SignalObserver::DataReadBuffer> rb )
 {
-#if 0
-    // find slope threshold positions
-    auto waveforms = acqrscontrols::ap240::waveform::deserialize( rb.get() );
-
-    auto results = document::instance()->tdc()->handle_waveforms( waveforms );
-    // todo: result -> DataReadBuffer for save data
-
-
-    if ( results[0] || results[1] ) {
-
-        io_service_.post( strand2_.wrap( [=](){ document::instance()->tdc()->appendHistogram( results ); } ) );
-
-        io_service_.post( [=] () { handle_ap240_average( status, results ); } ); // draw spectrogram and TIC
-
-    }
-#endif
 }
 
 void
 task::impl::handle_ap240_average( const data_status status, std::array< threshold_result_ptr, 2 > results )
 {
-#if 0
-    do {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        que_.push_back( results );
-        if ( que_.size() >= 2000 )
-            que_.erase( que_.begin(), que_.begin() + 500 );
-        
-    } while( 0 ) ;
-    
-    auto tp = std::chrono::steady_clock::now();
-
-    if ( std::chrono::duration_cast< std::chrono::milliseconds > ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
-
-        data_status_[ ap240_observer ].plot_ready_ = true;
-        sema_.signal();
-
-    }
-#endif
 }

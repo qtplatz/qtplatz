@@ -43,13 +43,15 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
     connect( ui->doubleSpinBox, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
              , [this] ( double value ) {
         emit valueChanged( channel_ ); } );
+
     ui->doubleSpinBox->setAccelerated( true );
 
     // Time resolution (ns)
     connect( ui->doubleSpinBox_resolution, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
              , [this] ( double value ) { emit valueChanged( channel_ ); } );
 
-    // Response time (us)
+    // Response time (ns)
+    ui->doubleSpinBox_resp->setMaximum( 100000 );
     connect( ui->doubleSpinBox_resp, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
              , [this] ( double value ) { emit valueChanged( channel_ ); } );
 
