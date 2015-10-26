@@ -146,9 +146,7 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
 {
 
     const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
-    const size_t nfilter =
-        ( method.response_time < data.meta_.xIncrement ) ? 1 :
-        size_t( method.response_time / data.meta_.xIncrement ) & 01;
+    const unsigned int nfilter = unsigned int( method.response_time / data.meta_.xIncrement ) | 01;
 
     bool flag;
 

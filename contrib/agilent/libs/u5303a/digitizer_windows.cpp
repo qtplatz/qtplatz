@@ -635,14 +635,13 @@ task::acquire()
 bool
 task::waitForEndOfAcquisition( int timeout )
 {
-    if ( method_.mode_ && simulated_ ) {
-        std::this_thread::sleep_for( std::chrono::microseconds( 500 ) );
-        return device<Simulate>::waitForEndOfAcquisition( *this, timeout );
+    if ( simulated_ ) {
+        std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+        if ( method_.mode_ ) 
+            return device<Simulate>::waitForEndOfAcquisition( *this, timeout );
     }
 
     if ( method_.mode_ == 0 ) {
-        if ( simulated_ )
-            std::this_thread::sleep_for( std::chrono::microseconds( 500 ) );
         return device<Digitizer>::waitForEndOfAcquisition( *this, timeout );
     } else {
         return device<Averager>::waitForEndOfAcquisition( *this, timeout );
