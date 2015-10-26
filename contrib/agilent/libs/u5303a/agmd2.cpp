@@ -24,13 +24,35 @@
 
 #include "agmd2.hpp"
 #include <acqrscontrols/u5303a/identify.hpp>
+#include <acqrscontrols/u5303a/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <boost/format.hpp>
+#include <atomic>
+
+namespace u5303a {
+
+    class AgMD2::impl {
+
+        std::atomic< uint32_t > dataSerialNumber_;
+    public:
+        std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
+        
+    public:
+        impl() : dataSerialNumber_( 0 ) {
+        }
+
+        uint32_t dataSerialNumber() {
+            return dataSerialNumber_++;
+        }
+    };
+    
+}
 
 using namespace u5303a;
 
 AgMD2::AgMD2() : session_( 0 )
+               , impl_( new impl() )
 {
 }
 
@@ -73,43 +95,60 @@ AgMD2::GetAttributeViString ( ViStatus& rcode, ViConstString RepCapIdentifier, V
 }
 
 bool
-AgMD2::Identify( acqrscontrols::u5303a::identify& ident )
+AgMD2::Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& ident )
 {
-    // Read and output a few attributes.
+    if ( !ident )
+        ident = std::make_shared< acqrscontrols::u5303a::identify >();
 
     ViStatus rcode(0);
     std::string str;
 
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_PREFIX, str ) )
-        ident.Identifier() = str;
+        ident->Identifier() = str;
 
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_REVISION, str ) )
-        ident.Revision() = str;
+        ident->Revision() = str;
 
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_VENDOR, str ) )
-        ident.Vendor() = str;
+        ident->Vendor() = str;
             
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_DESCRIPTION, str ) )
-        ident.Description() = str;
+        ident->Description() = str;
             
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_MODEL, str) )
-        ident.InstrumentModel() = str;
+        ident->InstrumentModel() = str;
 
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_OPTIONS, str) )
-        ident.Options() = str;
+        ident->Options() = str;
         
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_FIRMWARE_REVISION, str ) )
-        ident.FirmwareRevision() = str;
+        ident->FirmwareRevision() = str;
                  
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_SERIAL_NUMBER_STRING, str ) )
-        ident.SerialNumber() = str;
+        ident->SerialNumber() = str;
             
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_IO_VERSION, str ) )
-        ident.IOVersion() = str;
+        ident->IOVersion() = str;
 
     int32_t nbrADCBits(0);
     if ( AgMD2_GetAttributeViInt32( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS, &nbrADCBits ) )
-        ident.NbrADCBits() = nbrADCBits;
+        ident->NbrADCBits() = nbrADCBits;
+
+    impl_->ident_ = ident;
+
+    return true;
+}
+
+std::shared_ptr< acqrscontrols::u5303a::identify >
+AgMD2::Identify()
+{
+    return impl_->ident_;
+}
+
+uint32_t
+AgMD2::dataSerialNumber()
+{
+    return impl_->dataSerialNumber();
 }
 
 bool
@@ -202,10 +241,10 @@ AgMD2::setDataInversionEnabled( bool enable )
 }
 
 bool
-AgMD2::setAcquisitionRecordSize( uint32_t recordSize )
+AgMD2::setAcquisitionRecordSize( uint32_t nbrSamples )
 {
     // waveform length
-    return log( AgMD2_SetAttributeViInt64( session_, "", AGMD2_ATTR_RECORD_SIZE,            recordSize ), __FILE__, __LINE__ );
+    return log( AgMD2_SetAttributeViInt64( session_, "", AGMD2_ATTR_RECORD_SIZE, nbrSamples ), __FILE__, __LINE__ );
 }
 
 bool
@@ -245,3 +284,4 @@ AgMD2::AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds )
 {
     return log( AgMD2_WaitForAcquisitionComplete( session_, milliseconds ), __FILE__, __LINE__ );
 }
+

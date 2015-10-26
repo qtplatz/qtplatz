@@ -24,8 +24,8 @@ add_executable( test_u5303a main.cpp )
 link_directories( ${QTPLATZ_SOURCE_DIR}/../build-x86_64/qtplatz.debug/lib/qtplatz )
 
 target_link_libraries( ${PROJECT_NAME}
-  /home/toshi/src/build-x86_64/qtplatz.debug/lib/qtplatz/libu5303a.so
-  /home/toshi/src/build-x86_64/qtplatz.debug/lib/qtplatz/libacqrscontrols.so
+  /home/toshi/src/build-x86_64/qtplatz.release/lib/qtplatz/libu5303a.so
+  /home/toshi/src/build-x86_64/qtplatz.release/lib/qtplatz/libacqrscontrols.so
   AgMD2 dl )
 
 

@@ -25,15 +25,17 @@
 #pragma once
 
 #include <AgMD2.h>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
-namespace acqrscontrols { namespace u5303a { class identify; } }
+namespace acqrscontrols { namespace u5303a { class identify; class waveform; } }
 
 namespace u5303a {
 
     class AgMD2 {
-
+        class impl;
+        std::unique_ptr< impl > impl_;
         ViSession session_;
 
         AgMD2( const AgMD2& ) = delete;
@@ -43,16 +45,18 @@ namespace u5303a {
         ~AgMD2();
         AgMD2();
 
-
         inline ViSession session() { return session_; }
 
         static bool log( ViStatus rcode, const char * const file, int line );
+
+        uint32_t dataSerialNumber();
         
         bool InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options );
 
         bool GetAttributeViString ( ViStatus& rcode, ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result );
 
-        bool Identify( acqrscontrols::u5303a::identify& ident );
+        bool Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& );
+        std::shared_ptr< acqrscontrols::u5303a::identify > Identify();
 
         bool ConfigureTimeInterleavedChannelList( const std::string& channelName, const std::string& channelList );
 
@@ -88,6 +92,5 @@ namespace u5303a {
         bool AcquisitionInitiate();
 
         bool AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds );
-        
     }; 
 }

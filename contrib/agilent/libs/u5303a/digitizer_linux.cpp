@@ -93,11 +93,6 @@ namespace u5303a {
             
             void error_reply( const std::string& emsg, const std::string& );
 
-            inline void digitizerNumRecords( int numRecords ) { digitizerNumRecords_ = numRecords; }
-            inline uint64_t digitizerNumRecords() const { return digitizerNumRecords_; }
-
-            inline uint32_t dataSerialNumber( bool postInc = true ) { return postInc ? serialnumber_++ : serialnumber_; }
-
         private:
             friend std::unique_ptr< task >::deleter_type;
             static std::unique_ptr< task > instance_;
@@ -112,7 +107,6 @@ namespace u5303a {
             boost::asio::io_service::strand strand_;
             bool simulated_;
             acqrscontrols::u5303a::method method_;
-            uint32_t serialnumber_;
             std::atomic<int> acquire_post_count_;
             uint64_t inject_timepoint_;
             std::vector< std::string > foundResources_;
@@ -138,9 +132,9 @@ namespace u5303a {
             static bool setup( task&, const acqrscontrols::u5303a::method& );
             static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
-            static bool readData( task&, uint64_t numRecords, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
-            static bool readData16( task&, acqrscontrols::u5303a::waveform& );
-            static bool readData32( task&, acqrscontrols::u5303a::waveform& );            
+            // static bool readData( task&, uint64_t numRecords, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
+            // static bool readData16( task&, acqrscontrols::u5303a::waveform& );
+            // static bool readData32( task&, acqrscontrols::u5303a::waveform& );            
         };
 
         const std::chrono::steady_clock::time_point task::uptime_ = std::chrono::steady_clock::now();
@@ -255,7 +249,6 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , simulated_( false )
-             , serialnumber_( 0 )
              , acquire_post_count_( 0 )
              , exptr_( nullptr )
              , digitizerNumRecords_( 1 )
@@ -381,8 +374,6 @@ task::handle_initial_setup()
 {
     spDriver_ = std::make_shared< AgMD2 >();
 
-    // note that CAL=0 is not necessary with MD2 as the card is initialized without calibration.
-				
     ViBoolean idQuery = VI_TRUE;
     ViBoolean reset   = VI_TRUE;
     bool simulated = false;
@@ -410,7 +401,7 @@ task::handle_initial_setup()
         simulated_ = simulated;
         
         ident_ = std::make_shared< acqrscontrols::u5303a::identify >();
-        spDriver_->Identify( *ident_ );
+        spDriver_->Identify( ident_ );
         // SR0 = 0.5GS/s 2ch; SR0+INT = 1.0GS/s 1ch;
         // SR1 = 1.0GS/s 2ch; SR1+INT = 2.0GS/s 1ch;
         // SR2 = 1.6GS/s 2ch; SR2+INT = 3.2GS/s 1ch;
@@ -485,7 +476,7 @@ task::handle_acquire()
         if ( waitForEndOfAcquisition( 3000 ) ) {
             if ( method_.mode_ == 0 ) { // digitizer
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
-                device::readData( *this, digitizerNumRecords_, vec );
+                digitizer::readData( *spDriver(), method_, vec );
                 for ( auto& waveform: vec ) {
                     acqrscontrols::u5303a::method m;
                     for ( auto& reply: waveform_handlers_ ) {
@@ -535,7 +526,7 @@ task::waitForEndOfAcquisition( int timeout )
 bool
 task::readData( acqrscontrols::u5303a::waveform& data )
 {
-    data.serialnumber_ = serialnumber_++;
+    data.serialnumber_ = spDriver()->dataSerialNumber();
     
     if ( method_.mode_ && simulated_ ) {
         simulator::instance()->readData( data );
@@ -544,9 +535,9 @@ task::readData( acqrscontrols::u5303a::waveform& data )
     }
 
     if ( method_.mode_ == 0 ) {
-        return device::readData16( *this, data );
+        return digitizer::readData16( *spDriver(), method_, data );
     } else {
-        return device::readData32( *this, data );
+        return digitizer::readData32( *spDriver(), method_, data );
     }
 }
 
@@ -603,14 +594,10 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     rcode = AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1", m.method_.front_end_range, m.method_.front_end_offset, coupling, VI_TRUE );
     task.spDriver()->log( rcode, __FILE__, __LINE__ );
 
-    task.spDriver()->setDataInversionEnabled( m.method_.invert_signal );
-
     task.spDriver()->setActiveTriggerSource( "External1" );
-    task.spDriver()->setTriggerDelay( m.method_.digitizer_delay_to_first_sample );
-
     task.spDriver()->setTriggerLevel( "External1", m.method_.ext_trigger_level );
-
     task.spDriver()->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
+    task.spDriver()->setTriggerDelay( m.method_.digitizer_delay_to_first_sample );
 
     bool success = false;
     
@@ -631,25 +618,20 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     }
         
     if ( m.mode_ == 0 ) { // Digitizer 
-        
-        task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
 
-        task.digitizerNumRecords( m.method_.nbr_records );        
-        task.spDriver()->setAcquisitionNumRecordsToAcquire( m.method_.nbr_records );
-        
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
-        
+        task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
+        task.spDriver()->setAcquisitionNumRecordsToAcquire( m.method_.nbr_records );
 
     } else { // Averager
-        
+
+        task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
+        task.spDriver()->setDataInversionEnabled( m.method_.invert_signal );
         task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
         task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
         task.spDriver()->setAcquisitionNumberOfAverages( m.method_.nbr_of_averages );
 
-        // task.spDriver()->Acquisition2->Mode = AgMD2AcquisitionModeAverager;
-        task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
     }
-    
 
     ADTRACE() << "Calibrating...";
     task.spDriver()->CalibrationSelfCalibrate();
@@ -680,14 +662,16 @@ device::waitForEndOfAcquisition( task& task, int timeout )
     return task.spDriver()->AcquisitionWaitForAcquisitionComplete(timeoutInMs);
 }
 
+/////////////
 bool
-device::readData( task& task, uint64_t numRecords, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
+digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
 {
     ViInt64 arraySize = 0;
-    const int64_t recordSize = task.method().method_.digitizer_nbr_of_s_to_acquire;
+    const int64_t recordSize = m.method_.digitizer_nbr_of_s_to_acquire;
+    const int64_t numRecords = m.method_.nbr_records;
     
     if ( AgMD2::log(
-             AgMD2_QueryMinWaveformMemory( task.spDriver()->session(), 16, numRecords, 0, recordSize, &arraySize )
+             AgMD2_QueryMinWaveformMemory( md2.session(), 16, numRecords, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
 
         std::vector<ViInt16> dataArray( arraySize );
@@ -699,7 +683,7 @@ device::readData( task& task, uint64_t numRecords, std::vector< std::shared_ptr<
 
         auto tp = std::chrono::steady_clock::now();
         
-        if ( AgMD2::log( AgMD2_FetchMultiRecordWaveformInt16( task.spDriver()->session()
+        if ( AgMD2::log( AgMD2_FetchMultiRecordWaveformInt16( md2.session()
                                                               , "Channel1"
                                                               , 0
                                                               , numRecords
@@ -720,10 +704,10 @@ device::readData( task& task, uint64_t numRecords, std::vector< std::shared_ptr<
 
             for ( int64_t iRecord = 0; iRecord < actualRecords; ++iRecord ) {
 
-                if ( auto data = std::make_shared< acqrscontrols::u5303a::waveform >(task.ident_ptr(), task.dataSerialNumber() ) ) {
+                if ( auto data = std::make_shared< acqrscontrols::u5303a::waveform >( md2.Identify(), md2.dataSerialNumber() ) ) {
 
                     data->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
-                    data->method_ = task.method();
+                    data->method_ = m;
                     data->meta_.actualAverages = 0; // digitizer
                     data->meta_.actualPoints = actualPoints[ iRecord ];
                     data->meta_.initialXTimeSeconds = initialXTimeSeconds[ iRecord ] + initialXTimeFraction[ iRecord ];
@@ -746,13 +730,13 @@ device::readData( task& task, uint64_t numRecords, std::vector< std::shared_ptr<
 }
 
 bool
-device::readData16( task& task, acqrscontrols::u5303a::waveform& data )
+digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrscontrols::u5303a::waveform& data )
 {
-    const int64_t recordSize = task.method().method_.digitizer_nbr_of_s_to_acquire;
+    const int64_t recordSize = m.method_.digitizer_nbr_of_s_to_acquire;
     ViInt64 arraySize(0);
 
     if ( AgMD2::log(
-             AgMD2_QueryMinWaveformMemory( task.spDriver()->session(), 32, 1, 0, recordSize, &arraySize )
+             AgMD2_QueryMinWaveformMemory( md2.session(), 32, 1, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
 
         ViInt64 const numRecords = 1;
@@ -765,7 +749,7 @@ device::readData16( task& task, acqrscontrols::u5303a::waveform& data )
         ViReal64 initialXOffset(0), xIncrement(0), scaleFactor(0), scaleOffset(0);
         ViInt32 flags[numRecords];
         
-        if ( AgMD2::log( AgMD2_FetchWaveformInt32( task.spDriver()->session()
+        if ( AgMD2::log( AgMD2_FetchWaveformInt32( md2.session()
                                                    , "Channel1"
                                                    , arraySize
                                                    , data.data( arraySize )
@@ -779,7 +763,7 @@ device::readData16( task& task, acqrscontrols::u5303a::waveform& data )
                                                    , &scaleOffset ), __FILE__, __LINE__ ) ) {
 
             data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
-            data.method_ = task.method();
+            data.method_ = m;
             data.meta_.actualAverages = actualAverages;
             data.meta_.actualPoints = actualPoints[ 0 ];
             data.meta_.initialXTimeSeconds = initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
@@ -794,16 +778,15 @@ device::readData16( task& task, acqrscontrols::u5303a::waveform& data )
     return false;
 }
 
-
 bool
-device::readData32( task& task, acqrscontrols::u5303a::waveform& data )
+digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrscontrols::u5303a::waveform& data )
 {
     ViInt64 const numRecords = 1;
-    const int64_t recordSize = task.method().method_.digitizer_nbr_of_s_to_acquire;
+    const int64_t recordSize = m.method_.digitizer_nbr_of_s_to_acquire;
     ViInt64 arraySize(0);
 
     if ( AgMD2::log(
-             AgMD2_QueryMinWaveformMemory( task.spDriver()->session(), 32, 1, 0, recordSize, &arraySize )
+             AgMD2_QueryMinWaveformMemory( md2.session(), 32, 1, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
 
         data.data( arraySize );
@@ -816,7 +799,7 @@ device::readData32( task& task, acqrscontrols::u5303a::waveform& data )
         ViReal64 initialXOffset(0), xIncrement(0), scaleFactor(0), scaleOffset(0);
         ViInt32 flags[numRecords];
         
-        if ( AgMD2::log( AgMD2_FetchAccumulatedWaveformInt32( task.spDriver()->session()
+        if ( AgMD2::log( AgMD2_FetchAccumulatedWaveformInt32( md2.session()
                                                               , "Channel1"
                                                               , 0
                                                               , 1
@@ -836,7 +819,7 @@ device::readData32( task& task, acqrscontrols::u5303a::waveform& data )
                                                               , &scaleOffset, flags ), __FILE__, __LINE__ ) ) {
             
             data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
-            data.method_ = task.method();
+            data.method_ = m;
             data.meta_.actualAverages = actualAverages;
             data.meta_.actualPoints = actualPoints[ 0 ];
             data.meta_.initialXTimeSeconds = initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];

@@ -1,6 +1,8 @@
 
 #include <u5303a/agmd2.hpp>
+#include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/identify.hpp>
+#include <acqrscontrols/u5303a/method.hpp>
 #include <iostream>
 #include <vector>
 #include <stdexcept>
@@ -18,7 +20,7 @@ main()
     std::cout << std::endl;
     
     bool success( false ), simulated( false );
-    
+
     if ( auto md2 = std::make_shared< u5303a::AgMD2 >() ) {
 
         const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
@@ -40,9 +42,21 @@ main()
         }
         
         if ( success ) {
-        
+
+            acqrscontrols::u5303a::method method;
+            method.channels_ = 0x01;
+            method.mode_ = 0; // digitizer
+            method.method_.front_end_range = 1.0;  // V
+            method.method_.front_end_offset = 0.0; // V
+            method.method_.ext_trigger_level = 1.0;
+            method.method_.samp_rate = 3.2e9;
+            method.method_.nbr_records = 1;        // MultiRecords
+            method.method_.nbr_of_averages = 0;    // digitizer
+            method.method_.delay_to_first_sample_ = method.method_.digitizer_delay_to_first_sample = 4.0e-6; // 4us
+            method.method_.digitizer_nbr_of_s_to_acquire = method.method_.nbr_of_s_to_acquire_ = 320000; // 100us
+            
             auto ident = std::make_shared< acqrscontrols::u5303a::identify >();
-            md2->Identify( *ident );
+            md2->Identify( ident );
 
             std::cout << "Identifier:       " << ident->Identifier() << std::endl
                       << "Revision:         " << ident->Revision() << std::endl
@@ -59,8 +73,6 @@ main()
                 md2->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
 
             md2->setActiveTriggerSource( "External1" );
-
-            md2->setTriggerDelay( 4.0e-6 );  // 4us
             
             md2->setTriggerLevel( "External1", 1.0 ); // 1V
             std::cout << "TriggerLevel: " << md2->TriggerLevel( "External1" ) << std::endl;
@@ -76,12 +88,14 @@ main()
             }
 
             md2->setSampleRate( max_rate );
-            std::cout << "SampleRate: " << md2->SampleRate() << std::endl;            
+            method.method_.samp_rate = md2->SampleRate();
+            std::cout << "SampleRate: " << method.method_.samp_rate << std::endl;            
 
-            md2->setAcquisitionRecordSize( 320000 );  // 100us @ 3.2GS/s
+            md2->setAcquisitionRecordSize( method.method_.digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
+            md2->setTriggerDelay( method.method_.digitizer_delay_to_first_sample );
 
             // digitizer dependent 
-            md2->setAcquisitionNumRecordsToAcquire( 1 );
+            md2->setAcquisitionNumRecordsToAcquire( method.method_.nbr_records );
             md2->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
             // <--
 
@@ -89,14 +103,25 @@ main()
 
             std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();
 
-            for ( ;; ) {
+            std::shared_ptr< acqrscontrols::u5303a::waveform > w1;
+            
+            std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
+
+            const size_t replicates = 1000;
+
+            for ( int i = 0; i < replicates; ++i ) {
+
                 md2->AcquisitionInitiate();
                 md2->AcquisitionWaitForAcquisitionComplete( 1000 );
 
-                std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
-                
-                
+                u5303a::digitizer::readData( *md2, method, vec );
+                if ( i == 0 && !vec.empty() )
+                    w1 = vec[0];
             }
+            
+            uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::steady_clock::now() - tp ).count();
+            double s = double(ns) * 1.0e-9;
+            std::cout << "Took " << s << " seconds; " << double(replicates) / s << "Hz" << std::endl;
         }
         
     }
