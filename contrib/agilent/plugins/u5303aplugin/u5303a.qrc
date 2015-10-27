@@ -1,20 +1,20 @@
 <RCC>
-    <qresource prefix="/u5303a">
-      <file>images/image001_512.png</file>
-      <file>images/arrow-circle-double.png</file>
-      <file>images/camera.png</file>
-      <file>images/control-pause-record.png</file>
-      <file>images/control-pause.png</file>
-      <file>images/control.png</file>
-      <file>images/control_eject.png</file>
-      <file>images/control_power_blue.png</file>
-      <file>images/control_record.png</file>
-      <file>images/control_stop.png</file>
-      <file>images/disk--plus.png</file>
-      <file>images/document-pdf.png</file>
-      <file>images/fileopen.png</file>
-      <file>images/filesave.png</file>
-      <file>images/folder-horizontal-open.png</file>
-      <file>images/image.png</file>
-    </qresource>
+  <qresource prefix="/u5303a">
+    <file>images/image001_512.png</file>
+    <file>images/arrow-circle-double.png</file>
+    <file>images/camera.png</file>
+    <file>images/control-pause-record.png</file>
+    <file>images/control-pause.png</file>
+    <file>images/control.png</file>
+    <file>images/control_eject.png</file>
+    <file>images/control_power_blue.png</file>
+    <file>images/control_record.png</file>
+    <file>images/control_stop.png</file>
+    <file>images/disk--plus.png</file>
+    <file>images/document-pdf.png</file>
+    <file>images/fileopen.png</file>
+    <file>images/filesave.png</file>
+    <file>images/folder-horizontal-open.png</file>
+    <file>images/image.png</file>
+  </qresource>
 </RCC>

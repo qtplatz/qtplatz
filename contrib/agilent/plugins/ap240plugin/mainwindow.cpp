@@ -37,6 +37,7 @@
 #include <adextension/ieditorfactory_t.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adinterface/controlserver.hpp>
+#include <adicontroller/instrument.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
@@ -138,10 +139,12 @@ MainWindow::OnInitialUpdate()
              , this, SLOT( handle_reply( const QString&, const QString& ) ) );
     
     connect( document::instance(), SIGNAL( on_status(int) ), this, SLOT( handle_status(int) ) );
-    for ( auto action: actions_ )
-        action->setEnabled( false );
-    actions_[ idActConnect ]->setEnabled( true );
 
+    for ( auto id : { Constants::ACT_RUN, Constants::ACT_STOP, Constants::ACT_REC, Constants::ACT_SNAPSHOT } ) {
+        if ( auto action = Core::ActionManager::command( id )->action() )
+            action->setEnabled( false );
+    }
+    
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
@@ -329,10 +332,11 @@ MainWindow::createTopStyledToolbar()
         toolBarLayout->setSpacing( 0 );
         if ( auto am = Core::ActionManager::instance() ) {
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_CONNECT)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_INITRUN)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_RUN)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_STOP)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_INJECT)->action()));
+
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_REC)->action()));            
+
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACT_SNAPSHOT)->action()));
             //-- separator --
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -357,19 +361,16 @@ MainWindow::createMidStyledToolbar()
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
             // print, method file open & save buttons
-            //toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
-            //toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::SAVE_CURRENT_IMAGE)->action()));
             // [file open] button
             toolBarLayout->addWidget(toolButton(am->command(Constants::FILE_OPEN)->action()));
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
-            Core::Context context( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
-            
-            //----------
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+            toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
         }
 		return toolBar;
     }
@@ -379,49 +380,99 @@ MainWindow::createMidStyledToolbar()
 void
 MainWindow::createActions()
 {
-    // enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
+    if ( Core::ActionContainer * menu = Core::ActionManager::createMenu( Constants::MENU_ID ) ) { // Menu ID
 
-    actions_[ idActConnect ] = createAction( Constants::ICON_CONNECT,  tr("Connect"), this );    
-    actions_[ idActInitRun ] = createAction( Constants::ICON_INITRUN,  tr("Initial run"), this );    
-    actions_[ idActRun ]     = createAction( Constants::ICON_RUN,      tr("Run"), this );    
-    actions_[ idActStop ]    = createAction( Constants::ICON_STOP,     tr("Stop"), this );    
-    actions_[ idActSnapshot ]= createAction( Constants::ICON_SNAPSHOT, tr("Snapshot"), this );    
-    actions_[ idActInject ]  = createAction( Constants::ICON_INJECT,   tr("INJECT"), this );
-    actions_[ idActFileOpen ]= createAction( Constants::ICON_FILE_OPEN,tr("Open protain file..."), this );
-    
-    connect( actions_[ idActConnect ], SIGNAL( triggered() ), this, SLOT( actConnect() ) );
-    connect( actions_[ idActInitRun ], SIGNAL( triggered() ), this, SLOT( actInitRun() ) );
-    connect( actions_[ idActRun ], SIGNAL( triggered() ), this, SLOT( actRun() ) );
-    connect( actions_[ idActStop ], SIGNAL( triggered() ), this, SLOT( actStop() ) );
-    connect( actions_[ idActInject ], SIGNAL( triggered() ), this, SLOT( actInject() ) );
-    connect( actions_[ idActSnapshot ], SIGNAL( triggered() ), this, SLOT( actSnapshot() ) );
-    connect( actions_[ idActFileOpen ], SIGNAL( triggered() ), this, SLOT( actFileOpen() ) );
+        const Core::Context context( (Core::Id( Core::Constants::C_GLOBAL )) );
 
-    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
-
-    if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
-
-        Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( "AP240" );
 
-        Core::Command * cmd = 0;
-        cmd = am->registerAction( actions_[ idActConnect ], Constants::ACT_CONNECT, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActInitRun ], Constants::ACT_INITRUN, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActRun ], Constants::ACT_RUN, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActStop ], Constants::ACT_STOP, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActInject ], Constants::ACT_INJECT, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActSnapshot ], Constants::ACT_SNAPSHOT, gc );
-        menu->addAction( cmd );
-        cmd = am->registerAction( actions_[ idActFileOpen ], Constants::FILE_OPEN, gc );
-        menu->addAction( cmd );
+        if ( auto action = createAction( Constants::ICON_CONNECT, tr( "Connect" ), this ) ) {
+            connect( action, &QAction::triggered, this, &MainWindow::actConnect );
+            auto cmd = Core::ActionManager::registerAction( action, Constants::ACT_CONNECT, context );
+            menu->addAction( cmd );
+            action->setEnabled( true );
+        }
 
-        am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
+        if ( auto action = createAction( Constants::ICON_RUN, tr( "Run" ), this ) ) {
+            connect( action, &QAction::triggered, this, &MainWindow::actRun );
+            auto cmd = Core::ActionManager::registerAction( action, Constants::ACT_RUN, context );
+            menu->addAction( cmd );
+            action->setEnabled( false );
+        }
+
+        if ( auto action = createAction( Constants::ICON_STOP, tr( "Stop" ), this ) ) {
+            connect( action, &QAction::triggered, this, &MainWindow::actStop );            
+            auto cmd = Core::ActionManager::registerAction( action, Constants::ACT_STOP, context );
+            menu->addAction( cmd );
+            action->setEnabled( false );
+        }
+
+        do {
+            QIcon icon;
+            icon.addPixmap( QPixmap( Constants::ICON_REC_ON ), QIcon::Normal, QIcon::On );
+            icon.addPixmap( QPixmap( Constants::ICON_REC_PAUSE ), QIcon::Normal, QIcon::Off );
+            if ( auto action = new QAction( icon, tr( "REC" ), this ) ) {
+                action->setCheckable( true );
+                action->setEnabled( false );
+                auto cmd = Core::ActionManager::registerAction( action, Constants::ACT_REC, context );
+                menu->addAction( cmd );        
+                connect( action, &QAction::triggered, [this](bool rec){
+                    //document::instance()->actionRec( rec );
+                        if ( auto action = Core::ActionManager::command(Constants::ACT_REC)->action() )
+                            if ( !action->isEnabled() )
+                                action->setEnabled( true );
+                    } );
+            }
+        } while ( 0 );
+
+        if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
+            connect( action, &QAction::triggered, [this](){ actSnapshot(); } );
+            action->setEnabled( false );
+            Core::Command * cmd = Core::ActionManager::registerAction( action, Constants::ACT_SNAPSHOT, context );
+            menu->addAction( cmd );
+        }
+        
+        if ( auto action = createAction( Constants::ICON_SYNC, tr( "Sync trig." ), this ) ) {
+            //connect( action, &QAction::triggered, [] () { document::instance()->actionSyncTrig(); } );
+            action->setEnabled( false );        
+            auto cmd = Core::ActionManager::registerAction( action, Constants::ACT_SYNC, context );
+            menu->addAction( cmd );        
+        }
+    
+        if ( auto action = createAction( Constants::ICON_PDF, tr( "PDF" ), this ) ) {
+            //connect( action, &QAction::triggered, this, &MainWindow::printCurrentView );
+            auto cmd = Core::ActionManager::registerAction( action, Constants::PRINT_CURRENT_VIEW, context );
+            menu->addAction( cmd );        
+        }
+
+        if ( auto action = createAction( Constants::ICON_IMAGE, tr( "Screenshot" ), this ) ) {
+            //connect( action, &QAction::triggered, this, &MainWindow::saveCurrentImage );
+            auto cmd = Core::ActionManager::registerAction( action, Constants::SAVE_CURRENT_IMAGE, context );
+            menu->addAction( cmd );        
+        }
+
+        do {
+            QIcon icon;
+            icon.addPixmap( QPixmap( Constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::Off );
+            icon.addPixmap( QPixmap( Constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::On );
+            auto * action = new QAction( icon, tr( "Hide dock" ), this );
+            action->setCheckable( true );
+            Core::ActionManager::registerAction( action, Constants::HIDE_DOCK, context );
+            connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::hideDock );
+        } while ( 0 );
+
+        if ( auto action = createAction( Constants::ICON_FILE_OPEN, tr( "File open" ), this ) ) {
+            //connect( action, &QAction::triggered, this, &MainWindow::saveCurrentImage );
+            auto cmd = Core::ActionManager::registerAction( action, Constants::FILE_OPEN, context );
+            menu->addAction( cmd );        
+        }
+        
+        
+        handleInstState( 0 );
+        Core::ActionManager::instance()->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
+
     }
+    
 }
 
 QAction *
@@ -535,14 +586,28 @@ MainWindow::handle_reply( const QString& method, const QString& reply )
 }
 
 void
-MainWindow::handle_status( int status )
+MainWindow::handleInstState( int status )
 {
-    if ( status == controlserver::eStandBy ) {
-        for ( auto action: actions_ )
-            action->setEnabled( true );
-        actions_[ idActConnect ]->setEnabled( false );
-        document::instance()->prepare_for_run();
-        //mw->onStatus( status );
+    if ( status <= adicontroller::Instrument::eNotConnected ) {
+        
+        if ( auto action = Core::ActionManager::instance()->command( Constants::ACT_CONNECT )->action() )
+            action->setEnabled( true  );
+
+        for ( auto id : { Constants::ACT_RUN, Constants::ACT_STOP, Constants::ACT_REC, Constants::ACT_SNAPSHOT } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( false );
+        }
+
+    } else if ( status >= adicontroller::Instrument::eStandBy ) {
+
+        if ( auto action = Core::ActionManager::command( Constants::ACT_CONNECT )->action() )
+            action->setEnabled( false );
+        
+        for ( auto id :
+            { Constants::ACT_RUN, Constants::ACT_STOP, Constants::ACT_REC, Constants::ACT_SNAPSHOT, Constants::ACT_SYNC } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( true );
+        }
     }
 }
 
@@ -579,4 +644,15 @@ MainWindow::editor_commit()
     
     // editor_->commit();
     // todo...
+}
+
+void
+MainWindow::hideDock( bool hide )
+{
+    for ( auto& w :  dockWidgets() ) {
+        if ( hide )
+            w->hide();
+        else
+            w->show();
+    }
 }

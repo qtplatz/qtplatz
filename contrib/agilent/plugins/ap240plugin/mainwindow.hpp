@@ -75,8 +75,8 @@ namespace ap240 {
         void editor_commit();
 
     private:
-        enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
-        std::array< QAction *, numActions > actions_;
+        // enum idActions { idActConnect, idActInitRun, idActRun, idActStop, idActSnapshot, idActInject, idActFileOpen, numActions };
+        // std::array< QAction *, numActions > actions_;
         std::vector< QWidget* > widgets_;
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
 
@@ -94,7 +94,8 @@ namespace ap240 {
 
     private slots:
         void handle_reply( const QString&, const QString& );
-        void handle_status( int status );
+        void handleInstState( int status );
+        void hideDock( bool );
 
 	private:
         QAction * actionConnect_;
