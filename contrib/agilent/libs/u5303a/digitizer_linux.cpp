@@ -251,10 +251,11 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , simulated_( false )
-             , acquire_posted_( false )
              , exptr_( nullptr )
              , digitizerNumRecords_( 1 )
 {
+    acquire_posted_.clear();
+
     for ( int i = 0; i < 2; ++i ) {
 
         threads_.push_back( adportable::asio::thread( [this]() {
@@ -324,12 +325,8 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
     
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
 
-    ADDEBUG() << "### handle_acquire() ??? ### ";
-
-    if ( ! std::atomic_flag_test_and_set( &acquire_posted_ ) ) {
+    if ( ! std::atomic_flag_test_and_set( &acquire_posted_ ) ) 
         io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
-        ADDEBUG() << "### handle_acquire() posted ###";
-    }
 
 
     return true;
@@ -442,8 +439,6 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 {
-    ADDEBUG() << "### task::handle_prepare_for_run ###";
-
     device::initial_setup( *this, m, ident().Options() );
 
     if ( m.mode_ && simulated_ ) {

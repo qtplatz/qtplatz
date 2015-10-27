@@ -255,14 +255,13 @@ Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
 bool
 Session::event_out( uint32_t event )
 {
-    impl_->digitizer_->peripheral_trigger_inject();    
-    return true;
+    return impl_->digitizer_->peripheral_trigger_inject();    
 }
 
 bool
 Session::start_run()
 {
-    impl_->digitizer_->peripheral_run();
+    return impl_->digitizer_->peripheral_run();
 }
 
 bool
