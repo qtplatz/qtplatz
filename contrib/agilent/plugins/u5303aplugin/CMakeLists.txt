@@ -62,6 +62,8 @@ add_library(
   isequenceimpl.cpp
   mainwindow.cpp
   mainwindow.hpp
+  resultwriter.cpp
+  resultwriter.hpp
   task.cpp
   task.hpp
   tdcdoc.cpp

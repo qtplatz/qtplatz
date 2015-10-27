@@ -25,6 +25,7 @@
 #include "document.hpp"
 #include "constants.hpp"
 #include "mainwindow.hpp"
+#include "resultwriter.hpp"
 #include "task.hpp"
 #include "tdcdoc.hpp"
 #include "u5303a_constants.hpp"
@@ -93,11 +94,11 @@ namespace u5303a {
         static const std::chrono::steady_clock::time_point uptime_;
         static const uint64_t tp0_;
 
-        // tempolary -- will be rmoved
-        std::string time_datafile_;
-        std::string hist_datafile_;
-        std::vector< std::shared_ptr< acqrscontrols::u5303a::threshold_result > > que2_;
-        // <--- will be removed ---
+        // // tempolary -- will be rmoved
+        // std::string time_datafile_;
+        // std::string hist_datafile_;
+        // std::vector< std::shared_ptr< acqrscontrols::u5303a::threshold_result > > que2_;
+        // // <--- will be removed ---
         
         std::shared_ptr< tdcdoc > tdcdoc_;
         std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
@@ -111,6 +112,7 @@ namespace u5303a {
         std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
         std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
         std::shared_ptr< acqrscontrols::u5303a::method > method_;
+        std::shared_ptr< ResultWriter > resultWriter_;
 
         int32_t device_status_;
         
@@ -132,14 +134,12 @@ namespace u5303a {
                , method_( std::make_shared< acqrscontrols::u5303a::method >() )
                , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                           , QLatin1String( "u5303a" ) ) )                 
-            {
-                time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_time_data.txt" ).string();
-                hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_histogram.txt" ).string();
-            }
+                                                           , QLatin1String( "u5303a" ) ) )
+               , resultWriter_( std::make_shared< ResultWriter >() )  {
+            
+        }
         void addInstController( std::shared_ptr< adextension::iController > p );
         void handleConnected( adextension::iController * controller );
-        //void handleMessage( adextension::iController * ic, unsigned long code, unsigned long value );
         void handleLog( adextension::iController *, const QString& );
         void handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
         void setControllerState( const QString&, bool enable );
@@ -776,32 +776,10 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
 void
 document::commitData()
 {
-    /////////////////////////////////////////////////////////////////////////////
-    // save data to file -- tentative --
+    // save time data
+    impl_->resultWriter_->commitData();
 
-    std::vector< std::shared_ptr< acqrscontrols::u5303a::threshold_result > > list;
-    do {
-        std::lock_guard< std::mutex > lock( impl_->mutex_ );
-        if ( impl_->que2_.size() >= 3 ) {
-            list.resize( impl_->que2_.size() - 2 );
-            std::copy( impl_->que2_.begin(), impl_->que2_.begin() + list.size(), list.begin() );
-            impl_->que2_.erase( impl_->que2_.begin(), impl_->que2_.begin() + list.size() );
-        }
-    } while ( 0 );
-
-    if ( !list.empty() ) {
-        std::ofstream of( impl_->time_datafile_, std::ios_base::out | std::ios_base::app );
-        if ( !of.fail() ) {
-            std::for_each( list.begin(), list.end(), [&of] ( std::shared_ptr< acqrscontrols::u5303a::threshold_result > rp ) {
-                    if ( rp )
-                        of << *rp;
-                } );
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
     // save histogram
-
     double resolution = 0;
     const int channel = 0;
     if ( auto tm = tdc()->threshold_method( channel ) ) // CH-1 
@@ -811,18 +789,9 @@ document::commitData()
     std::pair< uint64_t, uint64_t > timeSinceEpoch( 0,0 );
     
     if ( auto histogram = tdc()->getHistogram( resolution, channel, trigCount, timeSinceEpoch ) ) {
+
+        impl_->resultWriter_->writeHistogram( trigCount, timeSinceEpoch, histogram );
     
-        std::ofstream of( impl_->hist_datafile_, std::ios_base::out | std::ios_base::app );
-        
-        const double * times = histogram->getTimeArray();
-        const double * counts = histogram->getIntensityArray();
-        const auto& prop = histogram->getMSProperty();
-        
-        of << boost::format( "\n%d, %.8lf, %.14le" )
-            % trigCount % ( double( timeSinceEpoch.first ) * 1.0e-9 ) % ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
-        for ( size_t i = 0; i < histogram->size(); ++i )
-            of << boost::format( ", %.14le, %d" ) % times[ i ] % uint32_t( counts[ i ] );
-        
     }
 }
 
@@ -920,8 +889,7 @@ document::iSequence()
 void
 document::result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_result > ch1 )
 {
-    std::lock_guard< std::mutex >( impl_->mutex_ );
-    impl_->que2_.push_back( ch1 );
+    *( impl_->resultWriter_ ) << ch1;
 }
 
 void

@@ -131,7 +131,7 @@ AgMD2::Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& ident )
         ident->IOVersion() = str;
 
     int32_t nbrADCBits(0);
-    if ( AgMD2_GetAttributeViInt32( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS, &nbrADCBits ) )
+    if ( AgMD2_GetAttributeViInt32( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS, reinterpret_cast<ViInt32 *>(&nbrADCBits) ) )
         ident->NbrADCBits() = nbrADCBits;
 
     impl_->ident_ = ident;
@@ -226,7 +226,7 @@ AgMD2::TriggerSlope( const std::string& trigSource ) const
 {
     int32_t slope(0);  // NEGATIVE = 0, POSITIVE = 1
 
-    if ( log( AgMD2_GetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_SLOPE, &slope ), __FILE__, __LINE__ ) )
+    if ( log( AgMD2_GetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_SLOPE, reinterpret_cast<ViInt32*>(&slope) ), __FILE__, __LINE__ ) )
         return slope;
 
     return 0;

@@ -46,9 +46,7 @@ namespace acqrscontrols { namespace u5303a { class method; class device_method; 
 
 namespace u5303a {
 
-#if defined __linux
     class AgMD2;
-#endif
     
     namespace detail { class task; }
 
@@ -90,11 +88,11 @@ namespace u5303a {
         void connect_waveform( waveform_reply_type );
         void disconnect_waveform( waveform_reply_type );
 
-#if defined __linux
+//#if defined __linux
         static bool readData( AgMD2&, const acqrscontrols::u5303a::method&, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
         static bool readData16( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform& );
         static bool readData32( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform& );            
-#endif
+//#endif
     };
 }
 

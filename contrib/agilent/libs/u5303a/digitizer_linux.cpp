@@ -626,7 +626,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     } else { // Averager
 
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
-        task.spDriver()->setDataInversionEnabled( m.method_.invert_signal );
+        task.spDriver()->setDataInversionEnabled( m.method_.invert_signal ? true : false );
         task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
         task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
         task.spDriver()->setAcquisitionNumberOfAverages( m.method_.nbr_of_averages );
@@ -677,8 +677,8 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
         std::vector<ViInt16> dataArray( arraySize );
         
         ViInt64 actualRecords(0), waveformArrayActualSize(0);
-        ViInt64 actualPoints[numRecords] = {0}, firstValidPoints[numRecords] = {0};
-        ViReal64 initialXOffset[numRecords] = {0}, initialXTimeSeconds[numRecords] = {0}, initialXTimeFraction[numRecords] = {0};
+        std::vector<ViInt64> actualPoints( numRecords ), firstValidPoints( numRecords );
+        std::vector<ViReal64> initialXOffset( numRecords ), initialXTimeSeconds( numRecords ), initialXTimeFraction( numRecords );
         ViReal64 xIncrement(0), scaleFactor(0), scaleOffset(0);
 
         auto tp = std::chrono::steady_clock::now();
@@ -693,11 +693,11 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                                                               , dataArray.data()
                                                               , &waveformArrayActualSize
                                                               , &actualRecords
-                                                              , actualPoints
-                                                              , firstValidPoints
-                                                              , initialXOffset
-                                                              , initialXTimeSeconds
-                                                              , initialXTimeFraction
+                                                              , actualPoints.data()
+                                                              , firstValidPoints.data()
+                                                              , initialXOffset.data()
+                                                              , initialXTimeSeconds.data()
+                                                              , initialXTimeFraction.data()
                                                               , &xIncrement
                                                               , &scaleFactor
                                                               , &scaleOffset ), __FILE__, __LINE__ ) ) {
@@ -733,26 +733,24 @@ bool
 digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrscontrols::u5303a::waveform& data )
 {
     const int64_t recordSize = m.method_.digitizer_nbr_of_s_to_acquire;
+    ViInt64 const numRecords = 1;
     ViInt64 arraySize(0);
 
     if ( AgMD2::log(
              AgMD2_QueryMinWaveformMemory( md2.session(), 32, 1, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
 
-        ViInt64 const numRecords = 1;
-        
         //vector<ViInt16> dataArray( arraySize );
         ViInt32 actualAverages(0);
         ViInt64 actualRecords(0);
         ViInt64 actualPoints[numRecords] = {0}, firstValidPoint[numRecords] = {0};
         ViReal64 initialXTimeSeconds[numRecords] = {0}, initialXTimeFraction[numRecords] = {0};
         ViReal64 initialXOffset(0), xIncrement(0), scaleFactor(0), scaleOffset(0);
-        ViInt32 flags[numRecords];
         
         if ( AgMD2::log( AgMD2_FetchWaveformInt32( md2.session()
                                                    , "Channel1"
                                                    , arraySize
-                                                   , data.data( arraySize )
+                                                   , reinterpret_cast<ViInt32*>(data.data( arraySize ))
                                                    , actualPoints
                                                    , firstValidPoint
                                                    , &initialXOffset
@@ -806,7 +804,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
                                                               , 0
                                                               , recordSize
                                                               , arraySize
-                                                              , data.data( arraySize )
+                                                              , reinterpret_cast<ViInt32*>(data.data( arraySize ))
                                                               , &actualAverages
                                                               , &actualRecords
                                                               , actualPoints

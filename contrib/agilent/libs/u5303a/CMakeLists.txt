@@ -4,16 +4,17 @@ cmake_policy( SET CMP0028 NEW )
 
 project( u5303a )
 
+set( DISABLE_IVI_COM TRUE )
+
 find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem wserialization serialization)
 
-add_definitions(-DU5303A_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
+add_definitions( -DU5303A_LIBRARY )
 
 if ( WIN32 )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
   set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
   set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
 endif()
-
-
 
 set( u5303a_SOURCES
   simulator.cpp
@@ -23,12 +24,21 @@ set( u5303a_SOURCES
   session.cpp
   )
 
-if ( WIN32 )
+if ( WIN32 AND NOT DISABLE_IVI_COM )
+
   list( APPEND u5303a_SOURCES digitizer_windows.cpp )
+
 else()
+  
   list( APPEND u5303a_SOURCES digitizer_linux.cpp agmd2.cpp )
   list( APPEND u5303a_HEADERS agmd2.hpp )
-  set( AGMD2_LIBRARY "AgMD2" )
+
+  if ( WIN32 )
+    find_library( AgMD2_LIBRARY AgMD2 ${IVIROOTDIR}/Lib_x64/msc )
+  else()
+    set( AgMD2_LIBRARY "AgMD2" )
+  endif()
+
 endif()
 
 set( u5303a_HEADERS
@@ -63,6 +73,6 @@ target_link_libraries( u5303a PUBLIC
   adportable
   adcontrols
   acqrscontrols
-  ${AGMD2_LIBRARY}
+  ${AgMD2_LIBRARY}
   ${Boost_LIBRARIES}
   )
