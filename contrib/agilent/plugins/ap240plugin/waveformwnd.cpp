@@ -180,11 +180,11 @@ WaveformWnd::handle_waveform()
     if ( auto tm = document::instance()->threshold_method( 0 ) )
         resolution = tm->time_resolution;
 
-    if ( auto ms = document::instance()->getHistogram( resolution ) ) {
+    if ( auto ms = document::instance()->getHistogram( 0, resolution ) ) {
 
         if ( ms->size() > 0 )
             hpw_->setData( ms, 0 );
-
+        
         const auto& info = ms->getMSProperty().getSamplingInfo();
         hpw_->setTitle( ( boost::format( "triggers: %1%;&nbsp;&nbsp;%2% triggers in que; &nbsp; rate = %3% trig/s" )
                           % info.numberOfTriggers()
@@ -193,13 +193,20 @@ WaveformWnd::handle_waveform()
         if ( ( tickCount_++ % 5 ) == 0 )
             document::instance()->save_histogram( tickCount_, *ms );
     }
+    
+    if ( auto ms = document::instance()->getHistogram( 1, resolution ) ) {
 
-#if defined DEBUG || defined _DEBUG && 0
-    if ( auto ms = document::instance()->getHistogram( 0.0 ) ) {
-        hpw_->setData( ms, 1 );
-        hpw_->setAlpha( 1, 0x20 );
-    }
-#endif
+        if ( ms->size() > 0 )
+            hpw_->setData( ms, 1 );
+
+    }    
+
+// #if defined DEBUG || defined _DEBUG && 0
+//     if ( auto ms = document::instance()->getHistogram( 0.0 ) ) {
+//         hpw_->setData( ms, 1 );
+//         hpw_->setAlpha( 1, 0x20 );
+//     }
+// #endif
 
     std::ostringstream o;
 

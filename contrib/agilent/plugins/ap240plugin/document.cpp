@@ -39,6 +39,7 @@
 #include <adinterface/controlserver.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
+#include <adportable/advance.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
@@ -100,7 +101,8 @@ namespace ap240 {
     public:
         impl() : worker_stop_( false )
                , work_( io_service_ )
-               , histogram_( std::make_shared< ap240x::histogram >() )
+               , histograms_( { std::make_shared< ap240x::histogram >()
+                           , std::make_shared< ap240x::histogram >() } )
                , postCount_( 0 )
                , round_trip_( 0 )
                , waveform_post_count_( 0 )
@@ -138,20 +140,24 @@ namespace ap240 {
                         > > que_;
 
         inline void clearHistogram() {
-            histogram_->clear();
+            for ( auto& histogram : histograms_ )
+                histogram->clear();
         }
 
-        inline size_t getHistogram( std::vector< std::pair< double, uint32_t > >& data
+        inline size_t getHistogram( int channel
+                                    , std::vector< std::pair< double, uint32_t > >& data
                                     , ap240x::metadata& meta
                                     , std::pair<uint32_t, uint32_t>& serialnumber
                                     , std::pair<uint64_t, uint64_t>& timeSinceEpoch ) {
-            return histogram_->getHistogram( data, meta, serialnumber, timeSinceEpoch );
+            if ( channel < histograms_.size() )
+                return histograms_[ channel ]->getHistogram( data, meta, serialnumber, timeSinceEpoch );
+            return 0;
         }
 
         inline double triggers_per_sec() const {
-            return histogram_->triggers_per_sec();
+            return histograms_[ 0 ]->triggers_per_sec();
         }
-
+        
         inline void waveform_drawn() {
             if ( postCount_ ) {
                 --postCount_;
@@ -169,7 +175,7 @@ namespace ap240 {
         
         std::mutex que2_mutex_;
         std::vector< threshold_result_pair_t > que2_;
-        std::shared_ptr< ap240x::histogram > histogram_;
+        std::array< std::shared_ptr< ap240x::histogram >, 2 > histograms_;
         std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
         
     public:
@@ -187,7 +193,7 @@ namespace ap240 {
                          prev->use_filter != m.use_filter ) {
                         
                         // clear histogram except for time_resolution change, which is for histogram calculation resolution
-                        histogram_->clear();
+                        histograms_[ ch ]->clear();
                     }
 
                     if ( m.use_filter ) {
@@ -198,7 +204,7 @@ namespace ap240 {
                                ( ( !ap::compare<double>::approximatelyEqual( prev->cutoffHz, m.cutoffHz ) ) ||
                                  ( m.complex_ != prev->complex_ ) ) ) ) {
                             // clear histogram except for time_resolution change, which is for histogram calculation resolution
-                            histogram_->clear();                                 
+                            histograms_[ ch ]->clear();                                 
                         }
                     }
                 }
@@ -243,11 +249,12 @@ namespace ap240 {
                 t.join();
         }
 
-        void find_threshold_timepoints( const acqrscontrols::ap240::waveform& data, const adcontrols::threshold_method& method
+        void find_threshold_timepoints( const acqrscontrols::ap240::waveform& data
+                                        , const adcontrols::threshold_method& method
                                         , std::vector< uint32_t >& elements, std::vector<double>& processed ) {
-
+            
             const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
-            const size_t nfilter = size_t( method.response_time / data.meta_.xIncrement );
+            const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
             bool flag;
 
@@ -280,9 +287,10 @@ namespace ap240 {
                     if ( ( it = adportable::waveform_processor().find_threshold_element( it, processed.end(), level, flag ) ) != processed.end() ) {
                         if ( flag == findUp )
                             elements.push_back( std::distance( processed.begin(), it ) );
-                        std::advance( it, nfilter );
+                        adportable::advance( it, nfilter, processed.end() );
                     }
                 }
+
             } else {
             
                 if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
@@ -309,14 +317,15 @@ namespace ap240 {
                         if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
                             if ( flag == findUp )                        
                                 elements.push_back( std::distance( data.begin<T>(), it ) );
-                            std::advance( it, nfilter );                        
+                            adportable::advance( it, nfilter, data.end<T>() );
                         }
                     }
                 }
             }
         }
 
-        void handle_waveform( std::pair<std::shared_ptr< const acqrscontrols::ap240::waveform >, std::shared_ptr< const acqrscontrols::ap240::waveform > > pair ) {
+        void handle_waveform( std::pair<std::shared_ptr< const acqrscontrols::ap240::waveform >
+                              , std::shared_ptr< const acqrscontrols::ap240::waveform > > pair ) {
 
             if ( !pair.first && !pair.second ) // empty
                 return;
@@ -336,7 +345,7 @@ namespace ap240 {
                 if ( methods[0]->enable ) {
                     
                     find_threshold_timepoints( *pair.first, *methods[0], results.first->indecies(), results.first->processed() );
-                    histogram_->append( *results.first );
+                    histograms_[0]->append( *results.first );
 
                 }
             }
@@ -345,8 +354,12 @@ namespace ap240 {
 
                 results.second = std::make_shared< ap240x::threshold_result >( pair.second );
                 
-                if ( methods[1]->enable )
+                if ( methods[1]->enable ) {
+                    
                     find_threshold_timepoints( *pair.second, *methods[1], results.second->indecies(), results.second->processed() );
+                    histograms_[1]->append( *results.second );
+                }
+                
             }
             
             do {
@@ -774,7 +787,7 @@ document::threshold_method( int ch ) const
 
 
 std::shared_ptr< adcontrols::MassSpectrum >
-document::getHistogram( double resolution ) const
+document::getHistogram( int channel, double resolution ) const
 {
     ap240x::metadata meta;
     std::vector< std::pair< double, uint32_t > > hist;
@@ -783,7 +796,7 @@ document::getHistogram( double resolution ) const
     std::pair<uint32_t,uint32_t> serialnumber;
     std::pair<uint64_t,uint64_t> timeSinceEpoch;
 
-    if ( size_t trigCount = impl_->getHistogram( hist, meta, serialnumber, timeSinceEpoch ) ) {
+    if ( size_t trigCount = impl_->getHistogram( channel, hist, meta, serialnumber, timeSinceEpoch ) ) {
         
         using namespace adcontrols::metric;
         

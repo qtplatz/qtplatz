@@ -176,7 +176,7 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
                 if ( flag == findUp )
                     elements.push_back( std::distance( processed.begin(), it ) );
                 if ( nfilter && nfilter < size_t( std::distance( it, processed.end() ) ) )
-                    std::advance( it, nfilter );
+                    adportable::advance( it, nfilter, processed.end() );
             }
         }
         

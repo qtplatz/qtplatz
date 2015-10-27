@@ -61,10 +61,11 @@ namespace ap240 {
         void ap240_trigger_inject();
         void prepare_for_run();
 
-        typedef std::pair<std::shared_ptr< const acqrscontrols::ap240::threshold_result >, std::shared_ptr< const acqrscontrols::ap240::threshold_result > > waveforms_t;
+        typedef std::pair<std::shared_ptr< const acqrscontrols::ap240::threshold_result >
+                          , std::shared_ptr< const acqrscontrols::ap240::threshold_result > > waveforms_t;
 
         waveforms_t findWaveform( uint32_t serialnumber = (-1) );
-        std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
+        std::shared_ptr< adcontrols::MassSpectrum > getHistogram( int channel, double rs ) const;
         
         int32_t device_status() const;
 
