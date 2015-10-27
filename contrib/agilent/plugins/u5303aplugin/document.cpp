@@ -769,44 +769,61 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
         } while ( 0 );
 
         emit dataChanged( histogram_observer, idx );
+    }
+}
 
-        /////////////////////////////////////////////////////////////////////////////
-        // save data to file -- tentative --
-        std::vector< std::shared_ptr< acqrscontrols::u5303a::threshold_result > > list;
-        do {
-            std::lock_guard< std::mutex > lock( impl_->mutex_ );
-            if ( impl_->que2_.size() >= 3 ) {
-                list.resize( impl_->que2_.size() - 2 );
-                std::copy( impl_->que2_.begin(), impl_->que2_.begin() + list.size(), list.begin() );
-                impl_->que2_.erase( impl_->que2_.begin(), impl_->que2_.begin() + list.size() );
-            }
-        } while ( 0 );
-        if ( !list.empty() ) {
-            std::ofstream of( impl_->time_datafile_, std::ios_base::out | std::ios_base::app );
-            if ( !of.fail() ) {
-                std::for_each( list.begin(), list.end(), [&of] ( std::shared_ptr< acqrscontrols::u5303a::threshold_result > rp ) {
+
+void
+document::commitData()
+{
+    /////////////////////////////////////////////////////////////////////////////
+    // save data to file -- tentative --
+
+    std::vector< std::shared_ptr< acqrscontrols::u5303a::threshold_result > > list;
+    do {
+        std::lock_guard< std::mutex > lock( impl_->mutex_ );
+        if ( impl_->que2_.size() >= 3 ) {
+            list.resize( impl_->que2_.size() - 2 );
+            std::copy( impl_->que2_.begin(), impl_->que2_.begin() + list.size(), list.begin() );
+            impl_->que2_.erase( impl_->que2_.begin(), impl_->que2_.begin() + list.size() );
+        }
+    } while ( 0 );
+
+    if ( !list.empty() ) {
+        std::ofstream of( impl_->time_datafile_, std::ios_base::out | std::ios_base::app );
+        if ( !of.fail() ) {
+            std::for_each( list.begin(), list.end(), [&of] ( std::shared_ptr< acqrscontrols::u5303a::threshold_result > rp ) {
                     if ( rp )
                         of << *rp;
                 } );
-            }
         }
-        ///////////////////////////////////////////////////////////////////////////////
-        // save histogram
-        do {
-            std::ofstream of( impl_->hist_datafile_, std::ios_base::out | std::ios_base::app );
-            
-            const double * times = histogram->getTimeArray();
-            const double * counts = histogram->getIntensityArray();
-            const auto& prop = histogram->getMSProperty();
-            
-            of << boost::format( "\n%d, %.8lf, %.14le" )
-                % trigCount % ( double( timeSinceEpoch.first ) * 1.0e-9 ) % ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
-            for ( size_t i = 0; i < histogram->size(); ++i )
-                of << boost::format( ", %.14le, %d" ) % times[ i ] % uint32_t( counts[ i ] );
-
-        } while ( 0 );
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // save histogram
+
+    double resolution = 0;
+    const int channel = 0;
+    if ( auto tm = tdc()->threshold_method( channel ) ) // CH-1 
+        resolution = tm->time_resolution;
+
+    size_t trigCount(0);
+    std::pair< uint64_t, uint64_t > timeSinceEpoch( 0,0 );
+    
+    if ( auto histogram = tdc()->getHistogram( resolution, channel, trigCount, timeSinceEpoch ) ) {
+    
+        std::ofstream of( impl_->hist_datafile_, std::ios_base::out | std::ios_base::app );
+        
+        const double * times = histogram->getTimeArray();
+        const double * counts = histogram->getIntensityArray();
+        const auto& prop = histogram->getMSProperty();
+        
+        of << boost::format( "\n%d, %.8lf, %.14le" )
+            % trigCount % ( double( timeSinceEpoch.first ) * 1.0e-9 ) % ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
+        for ( size_t i = 0; i < histogram->size(); ++i )
+            of << boost::format( ", %.14le, %d" ) % times[ i ] % uint32_t( counts[ i ] );
+        
+    }
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
@@ -905,7 +922,6 @@ document::result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_resu
 {
     std::lock_guard< std::mutex >( impl_->mutex_ );
     impl_->que2_.push_back( ch1 );
-    // inside of task::mutex locked.
 }
 
 void

@@ -111,6 +111,7 @@ namespace u5303a {
         void setSampleRun( std::shared_ptr< adcontrols::SampleRun > );
 
         void setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum >, unsigned int idx );
+        void commitData();
 
         std::shared_ptr< adcontrols::MassSpectrum > recentSpectrum( const boost::uuids::uuid& uuid, int idx );
 

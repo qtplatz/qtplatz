@@ -32,6 +32,7 @@ qrc_*.cpp
 .qmake.stash
 *.dmg
 Thumbs.db
+TAGS
 src/libs/adinterface/*.cxx
 qtplatz.opensdf
 build

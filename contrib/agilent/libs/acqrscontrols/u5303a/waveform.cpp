@@ -36,8 +36,10 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adicontroller/signalobserver.hpp>
+#include <adlog/logger.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
@@ -185,28 +187,32 @@ waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb 
 
         size_t nChannels = rb->ndata();
 
-        waveform_xmeta_archive x;
-        if ( adportable::binary::deserialize<>()( x, reinterpret_cast<const char *>( rb->xmeta().data() ), rb->xmeta().size() ) ) {
+        try {
+            waveform_xmeta_archive x;
+            if ( adportable::binary::deserialize<>()( x, reinterpret_cast<const char *>( rb->xmeta().data() ), rb->xmeta().size() ) ) {
             
-            waveforms[ 0 ] = std::make_shared< waveform >( std::make_shared< identify >( x.ident_ ), rb->pos(), rb->events(), rb->timepoint() );
-            waveforms[ 0 ]->meta_ = x.meta_[ 0 ];
-            if ( x.method_ )
-                waveforms[ 0 ]->method_ = *x.method_;
+                waveforms[ 0 ] = std::make_shared< waveform >( std::make_shared< identify >( x.ident_ ), rb->pos(), rb->events(), rb->timepoint() );
+                waveforms[ 0 ]->meta_ = x.meta_[ 0 ];
+                if ( x.method_ )
+                    waveforms[ 0 ]->method_ = *x.method_;
             
-            const uint32_t * pdata = reinterpret_cast<const uint32_t *>( rb->xdata().data() );
-            for ( auto& waveform : waveforms ) {
-                if ( *pdata == 0x7ffe0001 ) {
-                    ++pdata;
-                    uint32_t size = *pdata++;
-                    if ( size && waveform ) {
-                        const acqrscontrols::u5303a::waveform::value_type * data_p = reinterpret_cast<const acqrscontrols::u5303a::waveform::value_type *>( pdata );
-                        std::copy( data_p, data_p + size, waveform->data( size ) );
-                        pdata = reinterpret_cast<const uint32_t *>( data_p + size );
+                const uint32_t * pdata = reinterpret_cast<const uint32_t *>( rb->xdata().data() );
+                for ( auto& waveform : waveforms ) {
+                    if ( *pdata == 0x7ffe0001 ) {
+                        ++pdata;
+                        uint32_t size = *pdata++;
+                        if ( size && waveform ) {
+                            const acqrscontrols::u5303a::waveform::value_type * data_p = reinterpret_cast<const acqrscontrols::u5303a::waveform::value_type *>( pdata );
+                            std::copy( data_p, data_p + size, waveform->data( size ) );
+                            pdata = reinterpret_cast<const uint32_t *>( data_p + size );
+                        }
                     }
                 }
             }
+            return std::array< std::shared_ptr< const waveform >, 2 >( { waveforms[ 0 ], nullptr } );
+        } catch ( ... ) {
+            ADERROR() << boost::current_exception_diagnostic_information();
         }
-        return std::array< std::shared_ptr< const waveform >, 2 >( { waveforms[ 0 ], nullptr } );
     }
     return std::array< std::shared_ptr< const waveform >, 2 >();
 }

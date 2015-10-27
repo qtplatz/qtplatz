@@ -75,16 +75,20 @@ namespace u5303a {
         uint32_t pos_origin_;
         int device_version_;
         uint32_t posted_data_count_;
+        uint32_t proced_data_count_;
         std::atomic< bool > plot_ready_;
+        std::atomic< bool > data_ready_;        
         std::chrono::steady_clock::time_point tp_data_handled_;
         std::chrono::steady_clock::time_point tp_plot_handled_;
-        data_status() : pos_( -1 ), pos_origin_( 0 ), device_version_( 0 ), posted_data_count_( 0 ), plot_ready_( false ) {
+        data_status() : pos_( -1 ), pos_origin_( 0 ), device_version_( 0 ), posted_data_count_( 0 ), plot_ready_( false ), data_ready_( false ) {
         }
-        data_status( const data_status& t ) : pos_( t.pos_ ), pos_origin_( t.pos_origin_ )
-            , device_version_( t.device_version_ )
-            , posted_data_count_( t.posted_data_count_ )
-            , tp_data_handled_( t.tp_data_handled_ )
-            , tp_plot_handled_( t.tp_plot_handled_ ) {
+        data_status( const data_status& t ) : pos_( t.pos_ )
+                                            , pos_origin_( t.pos_origin_ )
+                                            , device_version_( t.device_version_ )
+                                            , posted_data_count_( t.posted_data_count_ )
+                                            , proced_data_count_( t.proced_data_count_ )
+                                            , tp_data_handled_( t.tp_data_handled_ )
+                                            , tp_plot_handled_( t.tp_plot_handled_ ) {
         }
     };
 
@@ -257,11 +261,7 @@ void
 task::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos )
 {
     // on SignalObserver::Observer masharing (sync with device data-reading thread)
-
-    if ( ( pos % 3000 ) == 0 )
-        ADDEBUG() << "u5303a::task::onDataChanged( " << pos << ")";
-
-    impl_->io_service_.post( impl_->strand_.wrap( [=]{ impl_->readData( so, pos ); } ) );
+    impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
 }
 
 task *
@@ -312,11 +312,14 @@ task::impl::worker_thread()
 
         if ( worker_stopping_ )
             return;
-        
-        if ( data_status_[ u5303a_observer ].plot_ready_ ) {
-            auto& status = data_status_[ u5303a_observer ];
+
+        auto& status = data_status_[ u5303a_observer ];
+
+        if ( status.plot_ready_ ) {
+
             status.plot_ready_ = false;
-            
+            status.tp_plot_handled_ = std::chrono::steady_clock::now();
+
             int channel = 0;
             std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > threshold_results;
             do {
@@ -326,7 +329,6 @@ task::impl::worker_thread()
 
             for ( auto result: threshold_results ) {
                 if ( result ) {
-                    
                     auto ms = std::make_shared< adcontrols::MassSpectrum >();
                     
                     if ( acqrscontrols::u5303a::waveform::translate( *ms, *result ) ) {
@@ -338,8 +340,13 @@ task::impl::worker_thread()
                 }
                 ++channel;
             }
+            
+        }
 
-            status.tp_plot_handled_ = std::chrono::steady_clock::now();
+        if ( status.data_ready_ ) {
+            status.data_ready_ = false;
+            status.tp_data_handled_ = std::chrono::steady_clock::now();
+            document::instance()->commitData();
         }
 
     } while ( true );
@@ -349,9 +356,7 @@ task::impl::worker_thread()
 void
 task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos )
 {
-    auto self( so->shared_from_this() );
-
-    if ( self ) {
+    if ( so ) {
 
         auto& status = data_status_[ so->objid() ];
         status.posted_data_count_++;
@@ -364,11 +369,9 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
         if ( so->objid() == u5303a_observer ) {
 
             std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
-            do {
-                if ( ( rb = so->readData( status.pos_ ) ) ) {
-                    status.pos_++;
-                    io_service_.post( [this,&status,rb](){ handle_u5303a_data( status, rb ); } );
-                }
+            if ( ( rb = so->readData( status.pos_ ) ) ) {
+                status.pos_++;
+                handle_u5303a_data( status, rb );
             } while ( rb && status.pos_ <= pos );
 
         } else {
@@ -390,11 +393,11 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroll
 
     if ( threshold_results[0] || threshold_results[1] ) {
 
-        //io_service_.post( strand2_.wrap( [=](){ document::instance()->tdc()->appendHistogram( threshold_results ); } ) );
-        io_service_.post( [=]() { document::instance()->tdc()->appendHistogram( threshold_results ); } );
+        document::instance()->tdc()->appendHistogram( threshold_results );
+        handle_u5303a_average( status, threshold_results ); // draw spectrogram and TIC
 
-        io_service_.post( [=] () { handle_u5303a_average( status, threshold_results ); } ); // draw spectrogram and TIC
-
+        // io_service_.post( [=]() { document::instance()->tdc()->appendHistogram( threshold_results ); } );
+        // io_service_.post( [=] () { handle_u5303a_average( status, threshold_results ); } ); // draw spectrogram and TIC
     }
 }
 
@@ -406,19 +409,27 @@ task::impl::handle_u5303a_average( const data_status status, std::array< thresho
 
         std::lock_guard< std::mutex > lock( mutex_ );
         que_.push_back( threshold_results );
-        if ( que_.size() >= 5000 )
-            que_.erase( que_.begin(), que_.begin() + 1000 );
+        if ( que_.size() >= 10 )
+            que_.erase( que_.begin(), que_.begin() + 5 );
         
     } while( 0 ) ;
     
     auto tp = std::chrono::steady_clock::now();
 
-    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 250 ) {
+    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
 
         data_status_[ u5303a_observer ].plot_ready_ = true;
         sema_.signal();
 
     }
+    
+    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_data_handled_ ).count() >= 1000 ) {
+        
+        data_status_[ u5303a_observer ].data_ready_ = true;
+        sema_.signal();
+
+    }
+    
 }
 
 void
