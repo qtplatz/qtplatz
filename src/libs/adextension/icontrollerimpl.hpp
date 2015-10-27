@@ -103,13 +103,17 @@ namespace adextension {
         }
 
         ~iControllerImpl() {
+
             if ( session_ ) {
+
                 if ( observerEvents_ ) {
                     if ( auto observer = session_->getObserver()->shared_from_this() )
                         observer->disconnect( observerEvents_.get() );
                 }
                 if ( receiver_ )
                     session_->disconnect( receiver_.get() );
+
+                session_->shutdown();
             }
         }
 

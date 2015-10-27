@@ -409,9 +409,9 @@ document::initialSetup()
 void
 document::finalClose()
 {
-    task::instance()->finalize();
-
     impl_->iControllers_.clear();
+
+    task::instance()->finalize();
 
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {

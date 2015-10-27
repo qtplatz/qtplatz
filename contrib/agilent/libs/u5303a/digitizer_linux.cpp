@@ -269,6 +269,8 @@ task::task() : work_( io_service_ )
 
 task::~task()
 {
+    if ( !threads_.empty() )
+        terminate();
 }
 
 bool
