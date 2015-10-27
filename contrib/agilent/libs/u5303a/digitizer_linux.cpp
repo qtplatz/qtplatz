@@ -43,12 +43,12 @@
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
-
+#include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <mutex>
 #include <thread>
-#include <algorithm>
-#include <chrono>
-#include <atomic>
+
 
 namespace u5303a {
 
@@ -107,7 +107,7 @@ namespace u5303a {
             boost::asio::io_service::strand strand_;
             bool simulated_;
             acqrscontrols::u5303a::method method_;
-            std::atomic<int> acquire_post_count_;
+            std::atomic_flag acquire_posted_;
             uint64_t inject_timepoint_;
             std::vector< std::string > foundResources_;
 
@@ -169,6 +169,8 @@ bool
 digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& m )
 {
     using adcontrols::ControlMethod::MethodItem;
+
+    ADDEBUG() << "### peripheral_prepare_for_run ###";
 
     adcontrols::ControlMethod::Method cm( m );
     cm.sort();
@@ -249,7 +251,7 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , simulated_( false )
-             , acquire_post_count_( 0 )
+             , acquire_posted_( false )
              , exptr_( nullptr )
              , digitizerNumRecords_( 1 )
 {
@@ -269,8 +271,8 @@ task::task() : work_( io_service_ )
 
 task::~task()
 {
-    if ( !threads_.empty() )
-        terminate();
+    ADDEBUG() << "******** task dtor";
+    terminate();
 }
 
 bool
@@ -322,10 +324,13 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
     
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
 
-    if ( acquire_post_count_ == 0 ) {
-        acquire_post_count_++;
+    ADDEBUG() << "### handle_acquire() ??? ### ";
+
+    if ( ! std::atomic_flag_test_and_set( &acquire_posted_ ) ) {
         io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
-	}
+        ADDEBUG() << "### handle_acquire() posted ###";
+    }
+
 
     return true;
 }
@@ -334,7 +339,7 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
 bool
 task::run()
 {
-    // std::lock_guard< std::mutex > lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 	if ( queue_.empty() ) {
         queue_.push_back( std::make_shared< SampleProcessor >( io_service_ ) );
         queue_.back()->prepare_storage( 0 ); //pMasterObserver_->_this() );
@@ -347,6 +352,7 @@ task::run()
 bool
 task::stop()
 {
+    std::atomic_flag_clear( &acquire_posted_ );
     return true;
 }
 
@@ -436,6 +442,8 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 {
+    ADDEBUG() << "### task::handle_prepare_for_run ###";
+
     device::initial_setup( *this, m, ident().Options() );
 
     if ( m.mode_ && simulated_ ) {
@@ -470,11 +478,14 @@ task::handle_acquire()
 {
     static int counter_;
 
-    ++acquire_post_count_;
-    io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );    // scedule for next acquire
-
-    --acquire_post_count_;
+    // acquire_posted_ clear --> stop acquisition
+    if ( std::atomic_flag_test_and_set( &acquire_posted_ ) )
+        io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );    // scedule for next acquire
+    else
+        std::atomic_flag_clear( &acquire_posted_ ); // keep it false
+        
     if ( acquire() ) {
+
         if ( waitForEndOfAcquisition( 3000 ) ) {
             if ( method_.mode_ == 0 ) { // digitizer
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;

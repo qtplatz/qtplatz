@@ -162,6 +162,7 @@ document::document() : impl_( new impl() )
 document::~document()
 {
     delete impl_;
+    ADDEBUG() << "=====> document dtor";    
 }
 
 document *
@@ -247,6 +248,7 @@ document::actionSyncTrig()
 void
 document::actionRun( bool run )
 {
+    ADDEBUG() << "### actionRun " << run << " ###";
     for ( auto inst : impl_->iControllers_ ) {
         if ( auto session = inst->getInstrumentSession() ) {
             if ( run )
@@ -306,6 +308,8 @@ document::prepare_for_run()
     auto cm = MainWindow::instance()->getControlMethod();
     setControlMethod( *cm, QString() );
     impl_->isMethodDirty_ = false;
+
+    ADDEBUG() << "### prepare_for_run ###";
     
     std::vector< std::future< bool > > futures;
     for ( auto& iController : impl_->iControllers_ ) {
@@ -320,11 +324,24 @@ document::prepare_for_run()
 void
 document::start_run()
 {
+    ADDEBUG() << "### start run ###";    
+    prepare_for_run();
 }
 
 void
 document::stop()
 {
+    ADDEBUG() << "### stop ###";
+
+    std::vector< std::future< bool > > futures;
+    
+    for ( auto& iController : impl_->iControllers_ ) {
+        if ( auto session = iController->getInstrumentSession() ) {
+            futures.push_back( std::async( [=] () { return session->stop_run(); } ) );
+        }
+    }
+    if ( !futures.empty() )
+        task::instance()->post( futures );
     
 }
 
@@ -409,10 +426,15 @@ document::initialSetup()
 void
 document::finalClose()
 {
-    impl_->iControllers_.clear();
+    ADDEBUG() << "=====> document::finalClose()";
 
     task::instance()->finalize();
 
+    if ( auto session = impl_->iControllerImpl_->getInstrumentSession() )
+        session->shutdown();
+
+    ADDEBUG() << "=====> document session shutdwon.";    
+        
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
