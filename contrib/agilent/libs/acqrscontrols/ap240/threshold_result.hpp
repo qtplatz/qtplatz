@@ -46,6 +46,8 @@ namespace acqrscontrols {
             std::shared_ptr< const ap240x::waveform > data_;
             std::vector< uint32_t > indecies_;
             std::vector< double > processed_;
+            uint32_t foundIndex_;
+            std::pair< uint32_t, uint32_t > findRange_;
 
 #if defined _MSC_VER
 #pragma warning(pop)
@@ -57,6 +59,9 @@ namespace acqrscontrols {
             std::shared_ptr< const ap240x::waveform > data() const;
             const std::vector< uint32_t >& indecies() const;
             const std::vector< double >& processed() const;
+            const std::pair<uint32_t, uint32_t >& findRange() const;
+            uint32_t foundIndex() const;
+            void setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& );
 
             threshold_result();
             threshold_result( std::shared_ptr< const ap240x::waveform > d );

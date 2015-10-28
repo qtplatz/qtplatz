@@ -28,7 +28,8 @@
 
 using namespace acqrscontrols::ap240;
 
-threshold_result::threshold_result()
+threshold_result::threshold_result() : foundIndex_(-1)
+                                     , findRange_( 0, 0 )
 {
 }
 
@@ -39,6 +40,8 @@ threshold_result::threshold_result( std::shared_ptr< const acqrscontrols::ap240:
 threshold_result::threshold_result( const threshold_result& t ) : indecies_( t.indecies_ )
                                                                 , data_( t.data_ )
                                                                 , processed_( t.processed_ )
+                                                                , foundIndex_( t.foundIndex_ )
+                                                                , findRange_( t.findRange_ )
 {
 }
 
@@ -76,6 +79,25 @@ const std::vector< double >&
 threshold_result::processed() const
 {
     return processed_;
+}
+
+const std::pair<uint32_t, uint32_t >&
+threshold_result::findRange() const
+{
+    return findRange_;
+}
+
+uint32_t
+threshold_result::foundIndex() const
+{
+    return foundIndex_;
+}
+
+void
+threshold_result::setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& range )
+{
+    foundIndex_ = index;
+    findRange_ = range;
 }
 
 namespace acqrscontrols {
