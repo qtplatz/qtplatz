@@ -57,12 +57,20 @@ add_library(
   ap240plugin.hpp  
   ap240mode.cpp
   ap240mode.hpp
+  constants.cpp
+  constants.hpp
   document.cpp
   document.hpp  
   icontrollerimpl.cpp
   icontrollerimpl.hpp
   mainwindow.cpp
-  mainwindow.hpp  
+  mainwindow.hpp
+  resultwriter.cpp
+  resultwriter.hpp
+  task.cpp
+  task.hpp
+  tdcdoc.cpp
+  tdcdoc.hpp
   waveformwnd.cpp
   waveformwnd.hpp
   ${ap240_Resources}

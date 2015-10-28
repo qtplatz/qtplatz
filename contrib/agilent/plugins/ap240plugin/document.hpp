@@ -30,6 +30,8 @@
 
 class QSettings;
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace adcontrols {
     class MassSpectrum;
     class threshold_method;
@@ -40,9 +42,11 @@ namespace adextension { class iSequenceImpl; }
 namespace acqrscontrols { namespace ap240 { class method; class waveform; class threshold_result; } }
 
 namespace ap240 {
+
     class digitizer;
     class iControllerImpl;
-
+    class tdcdoc;
+    
     namespace detail { struct remover; }
 
     class document : public QObject {
@@ -60,6 +64,8 @@ namespace ap240 {
         void ap240_stop();
         void ap240_trigger_inject();
         void prepare_for_run();
+
+        tdcdoc * tdc();
 
         typedef std::pair<std::shared_ptr< const acqrscontrols::ap240::threshold_result >
                           , std::shared_ptr< const acqrscontrols::ap240::threshold_result > > waveforms_t;
@@ -94,6 +100,9 @@ namespace ap240 {
 
         static bool load( const QString& filename, acqrscontrols::ap240::method& );
         static bool save( const QString& filename, const acqrscontrols::ap240::method& );
+
+        void setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum >, unsigned int idx );
+        void commitData();
         
     private:
         class impl;
@@ -115,6 +124,7 @@ namespace ap240 {
         void on_status( int );
         void onControlMethodChanged( const QString& );
         void on_threshold_method_changed( int ch );
+        void sampleRunChanged();
     };
 
 }

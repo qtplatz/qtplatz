@@ -26,6 +26,8 @@
 #include "document.hpp"
 #include "icontrollerimpl.hpp"
 #include "mainwindow.hpp"
+#include "resultwriter.hpp"
+#include "tdcdoc.hpp"
 #include <ap240/digitizer.hpp>
 #include <acqrscontrols/ap240/histogram.hpp>
 #include <acqrscontrols/ap240/threshold_result.hpp>
@@ -95,6 +97,9 @@ namespace ap240 {
         std::shared_ptr< ap240::iControllerImpl > iControllerImpl_;
         
     public:
+        std::shared_ptr< ResultWriter > resultWriter_;
+        std::shared_ptr< tdcdoc > tdcdoc_;
+
         static std::atomic< document * > instance_;
         static std::mutex mutex_;
 
@@ -109,7 +114,9 @@ namespace ap240 {
                , waveform_proc_count_( 0 )
                , worker_data_serialnumber_( 0 )
                , iSequenceImpl_( new adextension::iSequenceImpl() )
-               , iControllerImpl_( std::make_shared< ap240::iControllerImpl >() ) {
+               , iControllerImpl_( std::make_shared< ap240::iControllerImpl >() )
+               , tdcdoc_( std::make_shared< tdcdoc >() )
+               , resultWriter_( std::make_shared< ResultWriter >() ) {
             
             time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
             hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histogram.txt" ).string();
@@ -894,3 +901,81 @@ document::isControllerEnabled( const QString& module_name ) const
 {
     return module_name == "ap240" || module_name == "Acquire";
 }
+
+tdcdoc *
+document::tdc()
+{
+    return impl_->tdcdoc_.get();
+}
+
+void
+document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum > ms, unsigned idx )
+{
+    assert( idx < acqrscontrols::u5303a::nchannels );
+
+    if ( idx >= acqrscontrols::u5303a::nchannels )
+        return;
+#if 0
+    do {
+        std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+        impl_->spectra_[ objid ][ idx ] = ms;
+    } while( 0 );
+
+    emit dataChanged( objid, idx );
+
+    if ( objid == u5303a_observer ) {
+        double resolution = 0;
+        if ( auto tm = tdc()->threshold_method( idx ) )
+            resolution = tm->time_resolution;
+
+        size_t trigCount;
+        std::pair< uint64_t, uint64_t > timeSinceEpoch;
+
+        auto histogram = tdc()->getHistogram( resolution, idx, trigCount, timeSinceEpoch );
+        tdc()->update_rate( trigCount, timeSinceEpoch );
+        do {
+            std::lock_guard< std::mutex > lock( impl_->mutex_ );
+            impl_->spectra_[ histogram_observer ][ idx ] = histogram;
+        } while ( 0 );
+
+        emit dataChanged( histogram_observer, idx );
+    }
+#endif
+}
+
+void
+document::commitData()
+{
+    // save time data
+    impl_->resultWriter_->commitData();
+
+    // save histogram
+    double resolution = 0;
+    const int channel = 0;
+    if ( auto tm = tdc()->threshold_method( channel ) ) // CH-1 
+        resolution = tm->time_resolution;
+
+    size_t trigCount(0);
+    std::pair< uint64_t, uint64_t > timeSinceEpoch( 0,0 );
+    
+    if ( auto histogram = tdc()->getHistogram( resolution, channel, trigCount, timeSinceEpoch ) ) {
+
+        impl_->resultWriter_->writeHistogram( trigCount, timeSinceEpoch, histogram );
+    
+    }
+}
+
+#if 0
+std::shared_ptr< adcontrols::MassSpectrum >
+document::recentSpectrum( const boost::uuids::uuid& uuid, int idx )
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+
+    auto it = impl_->spectra_.find( uuid );
+    if ( it != impl_->spectra_.end() ) {
+        if ( it->second.size() > idx )
+            return it->second.at( idx );
+    }
+    return 0;
+}
+#endif
