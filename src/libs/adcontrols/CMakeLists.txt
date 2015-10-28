@@ -14,14 +14,18 @@ endif()
 add_library( adcontrols SHARED
   acceptor.cpp 
   acquireddataset.cpp 
-  adcontrols.cpp 
+  adcontrols.cpp
+  annotation.cpp 
+  annotations.cpp 
   baseline.cpp 
   baselines.cpp 
   centroidmethod.cpp 
   centroidprocess.cpp 
   chemicalformula.cpp 
   chromatogram.cpp 
-  controlmethod.cpp 
+  controlmethod.cpp
+  ctable.cpp 
+  ctfile.cpp 
   datafile.cpp 
   datafilebroker.cpp 
   datainterpreter.cpp 
@@ -34,9 +38,13 @@ add_library( adcontrols SHARED
   elementalcompositionmethod.cpp
   error_code.cpp
   isotopecluster.cpp 
-  isotopemethod.cpp 
+  isotopemethod.cpp
+  idaudit.cpp
+  idaudit.hpp 
   lcmsdataset.cpp 
   lockmass.cpp
+  logging_hook.cpp
+  logging_hook.hpp   
   mappedspectrum.cpp
   mappedspectrum.hpp
   mappedspectra.cpp
@@ -61,32 +69,7 @@ add_library( adcontrols SHARED
   msreferencedefns.cpp 
   msreferences.cpp
   msident.cpp 
-  msquant.cpp 
-  peak.cpp 
-  peakasymmetry.cpp 
-  peakmethod.cpp 
-  peakresolution.cpp 
-  peaks.cpp 
-  processeddataset.cpp 
-  processmethod.cpp 
-  reportmethod.cpp 
-  retentiontime.cpp
-  samplerun.cpp
-  scanlaw.hpp
-  tableofelement.cpp 
-  targetingmethod.cpp
-  theoreticalplate.cpp
-  threshold_method.cpp
-  timeutil.cpp 
-  trace.cpp 
-  traceaccessor.cpp 
-  visitor.cpp 
-  ctable.cpp 
-  ctfile.cpp 
-  peakresult.cpp 
-  waveform.cpp 
-  annotation.cpp 
-  annotations.cpp 
+  msquant.cpp
   mspeakinfo.cpp
   mspeakinfo.hpp   
   mspeak.cpp 
@@ -98,12 +81,14 @@ add_library( adcontrols SHARED
   mssimulatormethod.cpp
   moltable.cpp
   moltable.hpp
-  spectrogram.cpp
-  spectrogram.hpp   
-  targeting.cpp
-  targeting.hpp  
-  logging_hook.cpp
-  logging_hook.hpp   
+  peak.cpp 
+  peakasymmetry.cpp 
+  peakmethod.cpp 
+  peakresolution.cpp 
+  peaks.cpp 
+  processeddataset.cpp 
+  processmethod.cpp
+  peakresult.cpp
   profile_time_array.cpp
   profile_time_array.hpp  
   quanmethod.cpp 
@@ -113,12 +98,30 @@ add_library( adcontrols SHARED
   quansample.cpp 
   quanreport.cpp 
   quanresponse.cpp 
-  idaudit.cpp 
+  reportmethod.cpp 
+  retentiontime.cpp
+  samplerun.cpp
+  scanlaw.hpp
+  spectrogram.cpp
+  spectrogram.hpp   
+  tableofelement.cpp 
+  targetingmethod.cpp
+  theoreticalplate.cpp
+  threshold_method.cpp
+  threshold_action.cpp
+  timeutil.cpp 
+  trace.cpp 
+  traceaccessor.cpp 
+  targeting.cpp
+  targeting.hpp
+  visitor.cpp 
   msfinder.cpp 
   quanresponses.cpp 
   quancalibration.cpp 
   quancalibrations.cpp 
-  serializer.cpp )
+  serializer.cpp
+  waveform.cpp 
+  )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 target_link_libraries( adcontrols LINK_PUBLIC ${Boost_LIBRARIES} adportable )
@@ -140,7 +143,9 @@ install( FILES
   centroidprocess.hpp 
   chemicalformula.hpp 
   chromatogram.hpp 
-  controlmethod.hpp 
+  controlmethod.hpp
+  ctable.hpp 
+  ctfile.hpp 
   datafile.hpp 
   datafilebroker.hpp 
   datainterpreter.hpp 
@@ -156,6 +161,7 @@ install( FILES
   isotopemethod.hpp 
   lcmsdataset.hpp 
   lockmass.hpp
+  logging_hook.hpp 
   mappedspectrum.hpp
   mappedspectrum.hpp
   mappedspectra.hpp
@@ -192,16 +198,18 @@ install( FILES
   retentiontime.hpp
   samplerun.hpp
   scanlaw.hpp
-  tableofelement.hpp 
+  serializer.hpp
+  spectrogram.hpp 
+  tableofelement.hpp
+  targeting.hpp 
   targetingmethod.hpp
   theoreticalplate.hpp
   threshold_method.hpp
+  threshold_action.hpp
   timeutil.hpp 
   trace.hpp 
   traceaccessor.hpp 
   visitor.hpp 
-  ctable.hpp 
-  ctfile.hpp 
   peakresult.hpp 
   waveform.hpp 
   annotation.hpp 
@@ -215,9 +223,6 @@ install( FILES
   mschromatogrammethod.hpp
   mssimulatormethod.hpp
   moltable.hpp
-  spectrogram.hpp 
-  targeting.hpp 
-  logging_hook.hpp 
   profile_time_array.hpp 
   quanmethod.hpp 
   quancompounds.hpp 
@@ -226,10 +231,8 @@ install( FILES
   quansample.hpp 
   quanreport.hpp 
   quanresponse.hpp 
-  idaudit.hpp 
   msfinder.hpp 
   quanresponses.hpp 
   quancalibration.hpp 
   quancalibrations.hpp 
-  serializer.hpp
   DESTINATION include/adcontrols COMPONENT headers )

@@ -22,59 +22,48 @@
 **
 **************************************************************************/
 
-#ifndef AP240FORM_HPP
-#define AP240FORM_HPP
+#ifndef TRIGGERACTIONFORM_HPP
+#define TRIGGERACTIONFORM_HPP
 
-#include <QWidget>
+#include "adwidgets_global.hpp"
 #include <adplugin_manager/lifecycle.hpp>
-#include <adplugin/lifecycle.hpp>
-#include "acqrswidgets_global.hpp"
-#include "constants.hpp"
-#include <memory>
+#include <QWidget>
 
-namespace adcontrols { namespace ControlMethod { class Method; } class threshold_method; class threshold_action; }
-namespace acqrscontrols { namespace ap240 { class method; } }
+class QStandardItemModel;
 
-namespace acqrswidgets {
-    
+namespace adcontrols { class threshold_action; }
+
+namespace adwidgets {
+
     namespace Ui {
-        class ap240form;
+        class ThresholdActionForm;
     }
 
-    class ACQRSWIDGETSSHARED_EXPORT ap240form : public QWidget
-                                        , public adplugin::LifeCycle {
+    class ADWIDGETSSHARED_EXPORT ThresholdActionForm : public QWidget
+                                                     , adplugin::LifeCycle {
 
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
 
     public:
-        explicit ap240form(QWidget *parent = 0);
-        ~ap240form();
+        explicit ThresholdActionForm( QWidget *parent = 0 );
+        ~ThresholdActionForm();
 
-        // LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
         void OnInitialUpdate() override;
         void OnFinalClose() override;
+        void onUpdate( boost::any& );
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any& ) override;
-    
-        void onInitialUpdate();
-        void onStatus( int );
 
-        void get( acqrscontrols::ap240::method& ) const;
-        void set( const acqrscontrols::ap240::method& );
-        void get( int ch, adcontrols::threshold_method& ) const;    
-        void set( int ch, const adcontrols::threshold_method& );    
-        void get( adcontrols::threshold_action& ) const;    
-        void set( const adcontrols::threshold_action& );    
-
+        bool get( adcontrols::threshold_action& ) const;
+        bool set( const adcontrols::threshold_action& );
     signals:
-        void valueChanged( idCategory cat, int ch );
-        // void valueChanged( int, const QVariant& );
-    
+        void valueChanged();
+
     private:
-        Ui::ap240form *ui;
+        Ui::ThresholdActionForm *ui;
     };
 }
 
-#endif // AP240FORM_HPP
+#endif // TRIGGERACTIONFORM_HPP

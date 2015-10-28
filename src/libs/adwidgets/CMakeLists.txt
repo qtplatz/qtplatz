@@ -80,7 +80,8 @@ set( ${PROJECT_NAME}_SOURCES
   targetingwidget.cpp
   targetingtable.cpp
   targetingadducts.cpp
-  toftable.cpp        
+  toftable.cpp
+  thresholdactionform.cpp
   ${_sources}
 )
 
@@ -131,6 +132,7 @@ set( ${PROJECT_NAME}_HEADERS
   targetingwidget.hpp
   targetingtable.hpp
   targetingadducts.hpp
+  thresholdactionform.hpp
 )
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )

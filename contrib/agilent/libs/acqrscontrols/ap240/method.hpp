@@ -25,6 +25,7 @@
 #pragma once
 
 #include "../acqrscontrols_global.hpp"
+#include <adcontrols/threshold_action.hpp>
 #include <adcontrols/threshold_method.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -116,6 +117,7 @@ namespace acqrscontrols {
             vertical_method ch2_;
             adcontrols::threshold_method slope1_;
             adcontrols::threshold_method slope2_;
+            adcontrols::threshold_action action_;
 
             static bool archive( std::ostream&, const method& );
             static bool restore( std::istream&, method& );
@@ -130,4 +132,4 @@ namespace acqrscontrols {
     }
 }
 
-
+BOOST_CLASS_VERSION( acqrscontrols::ap240::method, 1 )

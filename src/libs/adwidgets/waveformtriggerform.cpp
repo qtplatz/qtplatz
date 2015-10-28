@@ -22,31 +22,53 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "waveformtriggerform.hpp"
+#include "ui_waveformtriggerform.h"
 
-namespace acqrswidgets {
+using namespace adwidgets;
 
-    enum idCategory {
-        //------------------- global ---------------
-        idGlobalAny = 0
-        , idSlopeTimeConverter
-        , idThresholdAction
-        //------------------- ap240 & global ---------------
-        , idAP240Any = 1000
-        , idHorizontal
-        , idVertical
-        , idTrigger
-        , idChannels
-
-        //------------------- u5303A ---------------
-        , idU5303AAny = 2000
-        , idU5303AStartDelay
-        , idU5303AWidth
-        , idNbrAverages
-        , idU5303AMode
-        , idU5303ASampRate
-        , idU5303ANbrSamples
-        , idNbrRecords
-    };
-    
+WaveformTriggerForm::WaveformTriggerForm(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::WaveformTriggerForm)
+{
+    ui->setupUi(this);
 }
+
+WaveformTriggerForm::~WaveformTriggerForm()
+{
+    delete ui;
+}
+
+void
+WaveformTriggerForm::OnCreate( const adportable::Configuration& )
+{
+}
+
+void
+WaveformTriggerForm::OnInitialUpdate()
+{
+}
+
+void
+WaveformTriggerForm::OnFinalClose()
+{
+}
+
+bool
+WaveformTriggerForm::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+WaveformTriggerForm::setContents( boost::any& )
+{
+    return false;
+}
+
+void *
+WaveformTriggerForm::query_interface_workaround( const char * typenam )
+{
+    return 0;
+}
+

@@ -30,8 +30,10 @@
 #include "ui_ap240form.h"
 #include <acqrscontrols/ap240/method.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/threshold_action.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
+#include <adwidgets/thresholdactionform.hpp>
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include <QMessageBox>
@@ -48,7 +50,8 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
 
     // Software TDC (Slope Time Converter) UI
     if ( auto layout = new QVBoxLayout( ui->groupBox_2 ) ) {    
-        //ui->horizontalLayout_2->insertLayout( 0, layout );
+
+        ///////////// Slope detect ////////////////
         if ( auto tab = new QTabWidget() ) {
             layout->addWidget( tab );
             int idx = 0;
@@ -61,6 +64,12 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                 connect( ch, &findSlopeForm::valueChanged, [this] ( int ch ) {
                     emit valueChanged( idSlopeTimeConverter, ch ); } );
             }
+
+            ////////// Threshold Action ///////////
+            auto form = new adwidgets::ThresholdActionForm();
+            form->setObjectName( "ThresholdActionForm" );
+            tab->addTab( form, tr( "Action" ) );
+            connect( form, &adwidgets::ThresholdActionForm::valueChanged, [this] () { emit valueChanged( idThresholdAction, 0 ); } );
         }
     }
 
@@ -112,26 +121,6 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
             } );
 
     }
-#if 0
-    for ( auto& g : { std::make_pair( 1, ui->groupBox_2 )
-                    , std::make_pair( 2, ui->groupBox_3 )
-                    , std::make_pair( -1, ui->groupBox_5 ) } ) {
-
-        auto layout = new QVBoxLayout( g.second );
-
-        layout->setMargin( 0 );
-        layout->setSpacing( 0 );
-        auto w = new ap240VerticalForm();
-        w->setChannel( g.first );
-        layout->addWidget( w );
-
-        connect( w, &ap240VerticalForm::valueChanged, [this] ( ap240VerticalForm::idItem id, int channel, const QVariant& ) {
-                emit valueChanged( idVertical, channel );
-        } );
-        
-        connect( g.second, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( idChannels, -1 ); } );
-    }
-#endif
     set( acqrscontrols::ap240::method() );
 }
 
@@ -149,6 +138,8 @@ ap240form::OnCreate( const adportable::Configuration& )
 void
 ap240form::OnInitialUpdate()
 {
+    if ( auto form = findChild< adwidgets::ThresholdActionForm * >() )
+        form->OnInitialUpdate();
 }
 
 void
@@ -273,6 +264,7 @@ ap240form::set( const acqrscontrols::ap240::method& m )
     }
     set( 0, m.slope1_ );
     set( 1, m.slope2_ );
+    set( m.action_ );
 }
 
 void
@@ -304,6 +296,7 @@ ap240form::get( acqrscontrols::ap240::method& m ) const
 
     get( 0, m.slope1_ );
     get( 1, m.slope2_ );
+    get( m.action_ );
 }
 
 void
@@ -326,3 +319,16 @@ ap240form::set( int ch, const adcontrols::threshold_method& m )
     }
 }
 
+void
+ap240form::get( adcontrols::threshold_action& m ) const
+{
+    if ( auto form = findChild< adwidgets::ThresholdActionForm *>() )
+        form->get( m );
+}
+
+void
+ap240form::set( const adcontrols::threshold_action& m )
+{
+    if ( auto form = findChild< adwidgets::ThresholdActionForm *>() )
+        form->set( m );
+}

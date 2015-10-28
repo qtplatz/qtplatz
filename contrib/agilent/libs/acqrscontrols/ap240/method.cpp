@@ -45,6 +45,7 @@ method::method( const method& t ) : channels_( t.channels_ )
                                   , ch2_( t.ch2_ )
                                   , slope1_( t.slope1_ )
                                   , slope2_( t.slope2_ )
+                                  , action_( t.action_ )
 {
 }
 
@@ -176,6 +177,8 @@ namespace acqrscontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.ch2_ );
                 ar & BOOST_SERIALIZATION_NVP( _.slope1_ );
                 ar & BOOST_SERIALIZATION_NVP( _.slope2_ );
+                if ( version >= 1 )
+                    ar & BOOST_SERIALIZATION_NVP( _.action_ );
             }
 
         };
