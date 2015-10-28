@@ -148,7 +148,8 @@ namespace ap240 {
             boost::asio::io_service::strand strand_;
             bool simulated_;
             acqrscontrols::ap240::method method_;
-            std::atomic<int> acquire_post_count_;
+            std::atomic_flag acquire_posted_;
+            
             std::chrono::steady_clock::time_point uptime_;
             uint64_t inject_timepoint_;
             uint32_t data_serialnumber_;
@@ -330,13 +331,15 @@ task::task() : work_( io_service_ )
              , simulated_( false )
              , data_serialnumber_( 0 )
              , serial_number_( 0 )
-             , acquire_post_count_( 0 )
              , inst_( -1 )
              , numInstruments_( 0 )
              , uptime_( std::chrono::steady_clock::now() )
              , ident_( std::make_shared< acqrscontrols::ap240::identify >() )
 {
+    acquire_posted_.clear();
+    
     threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+
 #if defined WIN32
     for ( auto& t: threads_ )
         SetThreadPriority( t.native_handle(), THREAD_PRIORITY_BELOW_NORMAL );
@@ -362,7 +365,8 @@ bool
 task::initialize()
 {
     ADTRACE() << "ap240 digitizer initializing...";
-    io_service_.post( strand_.wrap( [&] { handle_initial_setup(); } ) );
+    //io_service_.post( strand_.wrap( [&] { handle_initial_setup(); } ) );
+    strand_.post( [&] { handle_initial_setup(); } );
     return true;
 }
 
@@ -372,17 +376,14 @@ task::prepare_for_run( const acqrscontrols::ap240::method& m )
     if ( inst_ == ViSession( -1 ) )
         return false;
 
-    if ( method_.hor_.mode == 0 && acquire_post_count_ ) // digitizer mode
-        stop();
+    //io_service_.post( strand_.wrap( [this,m] { handle_prepare_for_run(m); } ) );
+    strand_.post( [this,m] { handle_prepare_for_run(m); } );
+
+    if ( ! std::atomic_flag_test_and_set( &acquire_posted_) ) {
+        //io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
+        strand_.post( [this] { handle_acquire(); } );
+    }
     
-    io_service_.post( strand_.wrap( [this,m] { handle_prepare_for_run(m); } ) );
-    
-    if ( acquire_post_count_ == 0 ) {
-        // here is the race condition, which if acquie_post_count_ going to zero after it has been tested
-        // no 'handle_acquire' will be posted.  Although, it can be recovered by user operation
-        acquire_post_count_++;
-        io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
-	}
     return true;
 }
 
@@ -396,7 +397,8 @@ task::run()
 bool
 task::stop()
 {
-    AcqrsD1_stopAcquisition( inst_ );    
+    acquire_posted_.clear();
+    AcqrsD1_stopAcquisition( inst_ );
     return true;
 }
 
@@ -506,68 +508,63 @@ task::handle_acquire()
 {
     const static auto epoch = std::chrono::system_clock::from_time_t( 0 );
 
-    static auto acquire_tp = std::chrono::system_clock::now();
-
-    --acquire_post_count_;
-
-    if ( acquire() ) {
-        int retry = 3;
-        do {
-            if ( waitForEndOfAcquisition( 3000 ) ) {
-                auto tp = std::chrono::system_clock::now();
-
-                std::shared_ptr< acqrscontrols::ap240::waveform > ch1, ch2;
-
-                auto serialnumber = data_serialnumber_++;
-                
-                uint32_t events = 0;
-                if ( method_.channels_ & 0x01 ) {
-                    ch1 = std::make_shared< acqrscontrols::ap240::waveform >( *ident_, events, serialnumber );
-                    ch1->serialnumber_ = serialnumber;
-                    readData( *ch1, 1 );
-                    ch1->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
-                }
-
-                if ( method_.channels_ & 0x02 ) {
-                    ch2 = std::make_shared< acqrscontrols::ap240::waveform >( *ident_, events, serialnumber );
-                    ch2->serialnumber_ = serialnumber;
-                    readData( *ch2, 2 );
-                    ch2->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
-                }
-
-                for ( auto& reply: waveform_handlers_ ) {
-                    acqrscontrols::ap240::method m;
-                    if ( reply( ch1.get(), ch2.get(), m ) )
-                        handle_protocol( m );
-                }
-
-                if ( simulated_ ) {
-#if defined _MSC_VER && defined _DEBUG
-                    acquire_tp += std::chrono::milliseconds( 200 ); // 5Hz
-#else
-                    acquire_tp += std::chrono::milliseconds( 10 );  // 100Hz
-#endif
-                    std::this_thread::sleep_until( acquire_tp );
-                }
-                
-                ++acquire_post_count_;
-                io_service_.post( strand_.wrap( [=] { handle_acquire(); } ) );    // scedule for next acquire
-
-                return true;            
-
-            } else {
-                reply( "acquire", "timed out" );
-            }
-            
-            ++acquire_post_count_;
-            io_service_.post( strand_.wrap( [=] { handle_acquire(); } ) );    // scedule for next acquire    
-
-        } while ( retry-- );
-        
-        reply( "acquire", "timed out, stop acquisition" );
-        AcqrsD1_stopAcquisition( inst_ );
+    if ( std::atomic_flag_test_and_set( &acquire_posted_ ) ) {
+        //io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );    // scedule for next acquire
+        strand_.post( [&] { handle_acquire(); } );    // scedule for next acquire
+    } else {
+        std::atomic_flag_clear( &acquire_posted_ ); // keep it false
     }
 
+    static auto acquire_tp = std::chrono::system_clock::now();    
+
+    if ( acquire() ) {
+
+        if ( waitForEndOfAcquisition( 3000 ) ) {
+
+            auto tp = std::chrono::system_clock::now();
+            
+            std::shared_ptr< acqrscontrols::ap240::waveform > ch1, ch2;
+            
+            auto serialnumber = data_serialnumber_++;
+            
+            uint32_t events = 0;
+            if ( method_.channels_ & 0x01 ) {
+                ch1 = std::make_shared< acqrscontrols::ap240::waveform >( *ident_, events, serialnumber );
+                ch1->serialnumber_ = serialnumber;
+                readData( *ch1, 1 );
+                ch1->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
+            }
+            
+            if ( method_.channels_ & 0x02 ) {
+                ch2 = std::make_shared< acqrscontrols::ap240::waveform >( *ident_, events, serialnumber );
+                ch2->serialnumber_ = serialnumber;
+                readData( *ch2, 2 );
+                ch2->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
+            }
+            
+            for ( auto& reply: waveform_handlers_ ) {
+                acqrscontrols::ap240::method m;
+                if ( reply( ch1.get(), ch2.get(), m ) )
+                    handle_protocol( m );
+            }
+            
+            if ( simulated_ ) {
+#if defined _MSC_VER && defined _DEBUG
+                acquire_tp += std::chrono::milliseconds( 200 ); // 5Hz
+#else
+                //acquire_tp += std::chrono::microseconds( 10000 );  // 100Hz
+                acquire_tp += std::chrono::microseconds( 5000 );  // 200Hz
+                //acquire_tp += std::chrono::microseconds( 2000 );  // 500Hz
+                //acquire_tp += std::chrono::microseconds( 1000 );  // 1kHz
+#endif
+                std::this_thread::sleep_until( acquire_tp );
+            }
+            return true;            
+
+        } else {
+            reply( "acquire", "timed out" );
+        }
+    }
     return false;
 }
 

@@ -27,6 +27,7 @@
 #include "icontrollerimpl.hpp"
 #include "mainwindow.hpp"
 #include "resultwriter.hpp"
+#include "task.hpp"
 #include "tdcdoc.hpp"
 #include <ap240/digitizer.hpp>
 #include <acqrscontrols/ap240/histogram.hpp>
@@ -87,19 +88,16 @@ namespace ap240 {
 
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
-        std::string time_datafile_;
-        std::string hist_datafile_;     
         std::atomic<int> postCount_;
         std::atomic<size_t> waveform_proc_count_;        
         std::atomic<size_t> waveform_post_count_;
         std::atomic<uint32_t> worker_data_serialnumber_;
+    public:        
         std::unique_ptr< adextension::iSequenceImpl > iSequenceImpl_;
         std::shared_ptr< ap240::iControllerImpl > iControllerImpl_;
-        
-    public:
         std::shared_ptr< ResultWriter > resultWriter_;
         std::shared_ptr< tdcdoc > tdcdoc_;
-
+        
         static std::atomic< document * > instance_;
         static std::mutex mutex_;
 
@@ -117,10 +115,6 @@ namespace ap240 {
                , iControllerImpl_( std::make_shared< ap240::iControllerImpl >() )
                , tdcdoc_( std::make_shared< tdcdoc >() )
                , resultWriter_( std::make_shared< ResultWriter >() ) {
-            
-            time_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_time_data.txt" ).string();
-            hist_datafile_ = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/ap240_histogram.txt" ).string();
-            
         }
         
         ~impl() {
@@ -129,7 +123,6 @@ namespace ap240 {
         }
         
         inline boost::asio::io_service& io_service() { return io_service_; }
-        inline const std::string& hist_datafile() const { return hist_datafile_; };
 
         inline std::atomic<size_t>& waveform_post_count() { return waveform_post_count_; }
         inline std::atomic<size_t>& waveform_proc_count() { return waveform_proc_count_; }
@@ -229,7 +222,7 @@ namespace ap240 {
             }
             return 0;
         }
-
+        
         inline document::waveforms_t findWaveform() {
             std::lock_guard< std::mutex > lock( que2_mutex_ );
             if ( que2_.empty() )
@@ -256,81 +249,6 @@ namespace ap240 {
                 t.join();
         }
 
-        void find_threshold_timepoints( const acqrscontrols::ap240::waveform& data
-                                        , const adcontrols::threshold_method& method
-                                        , std::vector< uint32_t >& elements, std::vector<double>& processed ) {
-            
-            const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
-            const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
-
-            bool flag;
-
-            if ( method.use_filter ) {
-
-                processed.resize( data.size() );
-
-                if ( data.meta_.dataType == 1 ) {
-                    for ( size_t i = 0; i < data.size(); ++i )
-                        processed[ i ] = data.toVolts( *(data.begin<int8_t>() + i) );
-                } else if ( data.meta_.dataType == 4 ) {
-                    for ( size_t i = 0; i < data.size(); ++i )
-                        processed[ i ] = data.toVolts( *(data.begin<int32_t>() + i) );
-                }
-
-                if ( method.filter == adcontrols::threshold_method::SG_Filter ) {
-
-                    adcontrols::waveform::sg::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.sgwidth );
-
-                } else if ( method.filter == adcontrols::threshold_method::DFT_Filter ) {
-                    if ( method.complex_ )
-                        adcontrols::waveform::fft4c::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
-                    else
-                        adcontrols::waveform::fft4g::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
-                }
-
-                double level = method.threshold_level;
-                auto it = processed.begin();
-                while ( it != processed.end() ) {
-                    if ( ( it = adportable::waveform_processor().find_threshold_element( it, processed.end(), level, flag ) ) != processed.end() ) {
-                        if ( flag == findUp )
-                            elements.push_back( std::distance( processed.begin(), it ) );
-                        adportable::advance( it, nfilter, processed.end() );
-                    }
-                }
-
-            } else {
-            
-                if ( data.meta_.dataType == 1 ) { // sizeof(int8_t)
-                    double level = ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-                    
-                    typedef int8_t T;
-                    auto it = data.begin<T>();
-                    while ( it != data.end<T>() ) {
-                        if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
-                            if ( flag == findUp )
-                                elements.push_back( std::distance( data.begin<T>(), it ) );
-                            std::advance( it, nfilter );
-                        }
-                    }
-                    
-                } else if ( data.meta_.dataType == 4 ) { // sizeof(int32_t)
-                    // scaleFactor = Volts/LSB  (1.0V FS = 0.00390625)
-                    double level_per_trigger = ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-                    double level = level_per_trigger * data.meta_.actualAverages;
-                    
-                    typedef int32_t T;
-                    auto it = data.begin<T>();
-                    while ( it != data.end<T>() ) {
-                        if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end<T>(), level, flag ) ) != data.end<T>() ) {
-                            if ( flag == findUp )                        
-                                elements.push_back( std::distance( data.begin<T>(), it ) );
-                            adportable::advance( it, nfilter, data.end<T>() );
-                        }
-                    }
-                }
-            }
-        }
-
         void handle_waveform( std::pair<std::shared_ptr< const acqrscontrols::ap240::waveform >
                               , std::shared_ptr< const acqrscontrols::ap240::waveform > > pair ) {
 
@@ -351,7 +269,7 @@ namespace ap240 {
 
                 if ( methods[0]->enable ) {
                     
-                    find_threshold_timepoints( *pair.first, *methods[0], results.first->indecies(), results.first->processed() );
+                    tdcdoc::find_threshold_timepoints( *pair.first, *methods[0], results.first->indecies(), results.first->processed() );
                     histograms_[0]->append( *results.first );
 
                 }
@@ -363,7 +281,7 @@ namespace ap240 {
                 
                 if ( methods[1]->enable ) {
                     
-                    find_threshold_timepoints( *pair.second, *methods[1], results.second->indecies(), results.second->processed() );
+                    tdcdoc::find_threshold_timepoints( *pair.second, *methods[1], results.second->indecies(), results.second->processed() );
                     histograms_[1]->append( *results.second );
                 }
                 
@@ -372,6 +290,11 @@ namespace ap240 {
             do {
                 std::lock_guard< std::mutex > lock( que2_mutex_ );
                 que2_.push_back( results );
+                ResultWriter::threshold_result_type t;
+                t[0] = results.first;
+                t[1] = results.second;
+                (*resultWriter_) << t;
+                
             } while( 0 );
 
             waveform_proc_count_++;
@@ -402,29 +325,8 @@ namespace ap240 {
                         ++postCount_;
                         emit document::instance()->on_waveform_received();
                     }
-                    
-                    std::vector< threshold_result_pair_t > list;
-                    do {
-                        std::lock_guard< std::mutex > lock( que2_mutex_ );
-                        if ( que2_.size() > 3 ) {
-                            list.resize( que2_.size() - 2 );
-                            std::copy( que2_.begin(), que2_.begin() + list.size(), list.begin() );
-                            que2_.erase( que2_.begin(), que2_.begin() + list.size() );
-                        }
-                    } while( 0 );
 
-                    if ( !list.empty() ) {
-                        // std::cout << "list count: " << list.size() << " from: "
-                        //           << list.front().first->data_->serialnumber_ << ", " << list.back().first->data_->serialnumber_ << std::endl;
-
-                        std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
-                        if ( !of.fail() ) {
-                            std::for_each( list.begin(), list.end(), [&of]( const threshold_result_pair_t& p ){
-                                    if ( p.first )
-                                        of << *p.first;
-                                });
-                        }
-                    }
+                    resultWriter_->commitData();
                 }
             }
         }
@@ -475,6 +377,7 @@ document::actionConnect()
     digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2, _3 ) );
     digitizer_->peripheral_initialize();
     impl_->run();
+    task::instance()->initialize();
 }
 
 void
@@ -675,6 +578,7 @@ void
 document::finalClose()
 {
     ADDEBUG() << "########### document::finalClose ##############";
+    task::instance()->finalize();
     impl_->stop();
     
     boost::filesystem::path dir = user_preference::path( settings_.get() );
@@ -854,16 +758,8 @@ document::getHistogram( int channel, double resolution ) const
 void
 document::save_histogram( size_t tickCount, const adcontrols::MassSpectrum& hist )
 {
-    std::ofstream of( impl_->hist_datafile(), std::ios_base::out | std::ios_base::app );
-
-    const double * times = hist.getTimeArray();
-    const double * intens = hist.getIntensityArray();
-    const adcontrols::MSProperty& prop = hist.getMSProperty();
-
-    of << boost::format("\n%d, %.8lf, %.14le") % tickCount % prop.timeSinceInjection() % prop.instTimeRange().first;
-    for ( size_t i = 0; i < hist.size(); ++i )
-        of << boost::format(", %.14le, %d" ) % times[ i ] % uint32_t( intens[ i ] );
-
+    //std::pair< uint64_t, uint64_t > timeSinceEpoch( 0, 0 );
+    //impl_->resultWriter_->writeHistogram( tickCount, timeSinceEpoch, hist );
 }
 
 void

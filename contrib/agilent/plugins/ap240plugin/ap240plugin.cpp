@@ -67,11 +67,11 @@ ap240Plugin::~ap240Plugin()
     if ( mode_ )
         removeObject( mode_.get() );
 
-    if ( auto iExtension = document::instance()->iSequence() )
-        removeObject( iExtension );
+    // if ( auto iExtension = document::instance()->iSequence() )
+    //     removeObject( iExtension );
 
-    if ( auto iExtension = document::instance()->iController() )
-        removeObject( iExtension );
+    // if ( auto iExtension = document::instance()->iController() )
+    //     removeObject( iExtension );
 }
 
 bool
@@ -135,6 +135,13 @@ ap240Plugin::aboutToShutdown()
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
     document::instance()->finalClose();
+
+    if ( auto iExtension = document::instance()->iSequence() )
+        removeObject( iExtension );
+
+    if ( auto iExtension = document::instance()->iController() )
+        removeObject( iExtension );
+    
     return SynchronousShutdown;
 }
 
