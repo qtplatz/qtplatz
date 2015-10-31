@@ -131,7 +131,7 @@ MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent)
 
 MSCalibrateForm::~MSCalibrateForm()
 {
-    ADDEBUG() << "MSCalibrateForm::DTOR";
+    //ADDEBUG() << "MSCalibrateForm::DTOR";
     if ( dlg_ )
         dlg_->close();
     delete dlg_;
@@ -141,7 +141,7 @@ MSCalibrateForm::~MSCalibrateForm()
 void
 MSCalibrateForm::finalClose()
 {
-    ADDEBUG() << "MSCalibrateForm::finalClose";
+    //ADDEBUG() << "MSCalibrateForm::finalClose";
     if ( dlg_ )
         dlg_->close();    
 }

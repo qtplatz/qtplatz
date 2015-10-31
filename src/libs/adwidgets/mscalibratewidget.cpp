@@ -77,7 +77,7 @@ MSCalibrateWidget::onUpdate( boost::any& )
 void
 MSCalibrateWidget::OnFinalClose()
 {
-    ADDEBUG() << "MSCalibrateWidget OnFinalClose";
+    // ADDEBUG() << "MSCalibrateWidget OnFinalClose";
     form_->finalClose();
 }
 
