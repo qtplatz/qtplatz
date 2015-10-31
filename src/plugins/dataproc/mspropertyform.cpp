@@ -127,10 +127,11 @@ MSPropertyForm::render( std::ostream& o, const portfolio::Folium& folium )
 
     if ( folium.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
         try {
-            const adcontrols::MassSpectrumPtr ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( folium.data() );
-            if ( ptr ) 
+            const adcontrols::MassSpectrumPtr ptr = boost::any_cast<adcontrols::MassSpectrumPtr>( folium.data() );
+            if ( ptr )
                 render( o, *ptr );
-        } catch( std::exception() ) {
+        } catch ( boost::bad_any_cast& ex ) {
+            ADDEBUG() << boost::diagnostic_information( ex );
         }
     }
 }
