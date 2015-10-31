@@ -38,6 +38,7 @@
 #include <coreplugin/coreconstants.h>
 #include <qtwrapper/waitcursor.hpp>
 #include <QTextEdit>
+#include <QEvent>
 
 using namespace dataproc;
 

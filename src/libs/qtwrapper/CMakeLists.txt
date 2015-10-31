@@ -14,7 +14,6 @@ include_directories(
   ${Qt5Widgets_INCLUDE_DIRS}
   )
 
-
 add_library( qtwrapper
   qtwrapper.cpp
   application.cpp
@@ -23,6 +22,8 @@ add_library( qtwrapper
   font.cpp
   settings.cpp
   progresshandler.hpp
+  waitcursor.cpp
+  waitcursor.hpp
 )
 
 install( TARGETS ${PROJECT_NAME}

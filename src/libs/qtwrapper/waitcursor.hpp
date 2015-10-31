@@ -25,21 +25,28 @@
 #ifndef WAITCURSOR_HPP
 #define WAITCURSOR_HPP
 
-#include <QApplication>
+#include <atomic>
 
 namespace qtwrapper {
 
     class waitCursor {
+        static std::atomic_flag blocked_;
 	public:
-        waitCursor() {
-            QApplication::setOverrideCursor( Qt::WaitCursor );
-            QApplication::processEvents();
+        static void block();
+        static void unblock();
+        waitCursor();
+        ~waitCursor();
+    };
+
+    struct waitCursorBlocker {
+        waitCursorBlocker() {
+            waitCursor::block();
         }
-        ~waitCursor() {
-            QApplication::restoreOverrideCursor();
-            QApplication::processEvents();
+        ~waitCursorBlocker() {
+            waitCursor::unblock();
         }
     };
+    
 }
 
 #endif // WAITCURSOR_HPP
