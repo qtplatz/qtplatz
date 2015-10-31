@@ -57,8 +57,9 @@ identify::identify( const identify& t ) : bus_number_( t.bus_number_ )
 {
 }
 
-waveform::waveform( const identify& id, uint32_t pos, uint32_t events, uint64_t tp ) : ident_( id )
+waveform::waveform( const identify& id, uint32_t pos, uint32_t events, uint64_t tp, uint32_t pos0 ) : ident_( id )
                                                                                      , serialnumber_( pos )
+                                                                                     , serialnumber_origin_( pos0 )
                                                                                      , wellKnownEvents_( events )
                                                                                      , timeSinceEpoch_( tp )
 {
@@ -376,10 +377,8 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
     return false;
 }
 
-
-//static
 bool
-waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int scale )
+waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& waveform )
 {
     using namespace adcontrols::metric;
 
@@ -394,7 +393,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     info.fSampInterval( waveform.meta_.xIncrement );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
-    
+    prop.setTrigNumber( waveform.serialnumber_, waveform.serialnumber_origin_ );
     prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "ap240" );
@@ -404,8 +403,20 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );
 
-    // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );
+
+    return true;
+}
+
+
+//static
+bool
+waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int scale )
+{
+    using namespace adcontrols::metric;
+
+    translate_property( sp, waveform );
+
     sp.resize( waveform.size() );
 	int idx = 0;
 
@@ -440,30 +451,9 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 {
     using namespace adcontrols::metric;
 
-    sp.setCentroid( adcontrols::CentroidNone );
-    const waveform& waveform = *result.data();
-    
-    adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::MSProperty::SamplingInfo info( 0 /* sampInterval (ps) */
-                                               , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
-                                               , uint32_t( waveform.size() )
-                                               , waveform.meta_.actualAverages
-                                               , 0 /* mode */ );
-    info.fSampInterval( waveform.meta_.xIncrement );
-    prop.acceleratorVoltage( 3000 );
-    prop.setSamplingInfo( info );
-    
-    prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
-    prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
-    prop.setDataInterpreterClsid( "ap240" );
+    auto& waveform = *result.data();
+    translate_property( sp, waveform );
 
-    const device_data data( waveform.ident_, waveform.meta_ );
-    std::string ar;
-    adportable::binary::serialize<>()( data, ar );
-    prop.setDeviceData( ar.data(), ar.size() );
-
-    // prop.setDeviceData(); TBA
-    sp.setMSProperty( prop );
     sp.resize( waveform.size() );
 	int idx = 0;
 

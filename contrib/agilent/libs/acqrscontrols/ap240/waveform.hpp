@@ -111,7 +111,7 @@ namespace acqrscontrols {
             waveform( const waveform& ) = delete;
             void operator = ( const waveform& ) = delete;
         public:
-            waveform( const identify& id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
+            waveform( const identify& id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0, uint32_t posorg = 0 );
 
             template<typename T> const T* begin() const;
             template<typename T> const T* end() const;
@@ -126,6 +126,7 @@ namespace acqrscontrols {
 
             acqrscontrols::ap240::method method_;
             metadata meta_;
+            uint32_t serialnumber_origin_;
             uint32_t serialnumber_;
             uint32_t wellKnownEvents_;
             uint64_t timeSinceEpoch_;
@@ -150,6 +151,7 @@ namespace acqrscontrols {
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
         private:
+            static bool translate_property( adcontrols::MassSpectrum&, const waveform& );
 
 #if defined _MSC_VER
 # pragma warning(push)
