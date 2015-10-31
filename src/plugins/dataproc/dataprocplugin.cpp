@@ -60,6 +60,7 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
+#include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug_core.hpp>
 #include <adlog/logger.hpp>
@@ -69,8 +70,6 @@
 #include <adwidgets/progresswnd.hpp>
 #include <adportfolio/logging_hook.hpp>
 #include <adportfolio/folium.hpp>
-//#include <adportfolio/folder.hpp>
-//#include <adportfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -299,7 +298,12 @@ DataprocPlugin::handle_portfolio_created( const QString filename )
 void
 DataprocPlugin::handle_folium_added( const QString fname, const QString path, const QString id )
 {
-    qDebug() << "===== DataprocPlugin::handle_folium_added" << fname << " path=" << path;
+    static int count = 0;
+    int x = 0;
+    
+    ADDEBUG() << "==> DataprocPlugin::handle_folium_added"
+              << fname.toStdString() << "\t"
+              << std::this_thread::get_id() << " count: " << count++ << ", " << (void*)(&x);
 
 	std::wstring filename = fname.toStdWString();
 
@@ -312,6 +316,9 @@ DataprocPlugin::handle_folium_added( const QString fname, const QString path, co
 		Dataprocessor& processor = it->getDataprocessor();
 		processor.load( path.toStdWString(), id.toStdWString() );
     }
+    
+    ADDEBUG() << "<***** DataprocPlugin::handle_folium_added"
+              << fname.toStdString() << " count=" << --count;
 }
 
 void
