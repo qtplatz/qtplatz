@@ -337,7 +337,6 @@ Dataprocessor::setCurrentSelection( portfolio::Folder& folder )
 void
 Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
-    qtwrapper::waitCursor wait;
 	fetch( folium );
     idActiveFolium_ = folium.id();
     SessionManager::instance()->selectionChanged( this, folium );

@@ -68,6 +68,7 @@
 #include <adportfolio/folder.hpp>
 #include <qtwrapper/xmlformatter.hpp>
 #include <qtwrapper/font.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
@@ -398,6 +399,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                 folium.setAttribute( L"protoId", (boost::wformat( L"%d" ) % fcn).str() );
 		}
         if ( portfolio::Folium folium = folder.findFoliumByName( L"TIC/TIC.1" ) ) {
+            qtwrapper::waitCursor wait;
 			if ( folium.empty() )
 				processor->fetch( folium );
 			processor->setCurrentSelection( folium );

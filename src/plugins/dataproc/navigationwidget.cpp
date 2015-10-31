@@ -40,6 +40,7 @@
 #include <adportfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/qfiledialog.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/modemanager.h>
@@ -433,6 +434,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 	if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
         if ( QStandardItem * leaf = StandardItemHelper::findFolium( item, folium.id() ) )
             pTreeView_->setCurrentIndex( leaf->index() );
+        qtwrapper::waitCursor wait;
         processor->setCurrentSelection( folium );
     }
 
@@ -480,6 +482,7 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 
 		if ( data.canConvert< portfolio::Folder >() ) {
 			// folder (Spectra|Chromatograms)
+            qtwrapper::waitCursor wait;
 			portfolio::Folder folder = data.value< portfolio::Folder >();
 			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 			processor->setCurrentSelection( folder );
@@ -490,11 +493,8 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 
 			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 			if ( processor ) {
+                qtwrapper::waitCursor wait;
 				std::string tname = static_cast<boost::any&>( folium ).type().name();
-				// ADTRACE()
-				// 	<< "folium name: '" << folium.name()
-				// 	<< "'\tfilename: " << processor->file().filename()
-				// 	<< "\tfolium(type=" << tname << ", id=" << folium.id() << ")";
 				processor->setCurrentSelection( folium );
 			}
         }
