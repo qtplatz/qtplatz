@@ -434,7 +434,6 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 	if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
         if ( QStandardItem * leaf = StandardItemHelper::findFolium( item, folium.id() ) )
             pTreeView_->setCurrentIndex( leaf->index() );
-        qtwrapper::waitCursor wait;
         processor->setCurrentSelection( folium );
     }
 

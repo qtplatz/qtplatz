@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,31 +22,43 @@
 **
 **************************************************************************/
 
-#ifndef WAITCURSOR_HPP
-#define WAITCURSOR_HPP
+#include "waitcursor.hpp"
+#include <QApplication>
 
-#include <atomic>
+using namespace qtwrapper;
 
-namespace qtwrapper {
+std::atomic_flag waitCursor::blocked_( { false } );
 
-    class waitCursor {
-        static std::atomic_flag blocked_;
-	public:
-        static void block();
-        static void unblock();
-        waitCursor();
-        ~waitCursor();
-    };
-
-    struct waitCursorBlocker {
-        waitCursorBlocker() {
-            waitCursor::block();
-        }
-        ~waitCursorBlocker() {
-            waitCursor::unblock();
-        }
-    };
-    
+void
+waitCursor::block()
+{
+    blocked_.test_and_set();
 }
 
-#endif // WAITCURSOR_HPP
+void
+waitCursor::unblock()
+{
+    blocked_.clear();
+}
+
+waitCursor::waitCursor()
+{
+    QApplication::setOverrideCursor( Qt::WaitCursor );
+
+    if ( ! blocked_.test_and_set() ) {
+        QApplication::processEvents();
+        blocked_.clear();
+    }
+
+}
+        
+waitCursor::~waitCursor()
+{
+    QApplication::restoreOverrideCursor();
+
+    if ( ! blocked_.test_and_set() ) {    
+        QApplication::processEvents();
+        blocked_.clear();
+    }
+
+}

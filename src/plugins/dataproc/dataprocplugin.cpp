@@ -298,12 +298,7 @@ DataprocPlugin::handle_portfolio_created( const QString filename )
 void
 DataprocPlugin::handle_folium_added( const QString fname, const QString path, const QString id )
 {
-    static int count = 0;
-    int x = 0;
-    
-    ADDEBUG() << "==> DataprocPlugin::handle_folium_added"
-              << fname.toStdString() << "\t"
-              << std::this_thread::get_id() << " count: " << count++ << ", " << (void*)(&x);
+    qtwrapper::waitCursorBlocker block;
 
 	std::wstring filename = fname.toStdWString();
 
@@ -312,13 +307,11 @@ DataprocPlugin::handle_folium_added( const QString fname, const QString path, co
 		Core::EditorManager::instance()->openEditor( fname );
         it = SessionManager::instance()->find( filename );
     }
+
     if ( it != SessionManager::instance()->end() ) {
 		Dataprocessor& processor = it->getDataprocessor();
 		processor.load( path.toStdWString(), id.toStdWString() );
     }
-    
-    ADDEBUG() << "<***** DataprocPlugin::handle_folium_added"
-              << fname.toStdString() << " count=" << --count;
 }
 
 void
