@@ -38,6 +38,7 @@ ThresholdActionForm::ThresholdActionForm(QWidget *parent) : QWidget(parent)
                                                       , ui( new Ui::ThresholdActionForm )
 {
     ui->setupUi(this);
+    connect( ui->groupBox, &QGroupBox::toggled, [this] (bool) { emit valueChanged(); } );
     connect( ui->checkBox, &QCheckBox::toggled, [this] (bool) { emit valueChanged(); } );
     connect( ui->checkBox_2, &QCheckBox::toggled, [this] (bool) { emit valueChanged(); } );
     connect( ui->checkBox_3, &QCheckBox::toggled, [this] (bool) { emit valueChanged(); } );

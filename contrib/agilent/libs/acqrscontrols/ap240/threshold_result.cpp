@@ -34,6 +34,8 @@ threshold_result::threshold_result() : foundIndex_(-1)
 }
 
 threshold_result::threshold_result( std::shared_ptr< const acqrscontrols::ap240::waveform > d ) : data_( d )
+                                                                                                , foundIndex_( -1 )
+                                                                                                , findRange_( 0, 0 )
 {
 }
 

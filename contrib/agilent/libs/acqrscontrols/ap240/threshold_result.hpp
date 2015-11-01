@@ -62,6 +62,12 @@ namespace acqrscontrols {
             const std::pair<uint32_t, uint32_t >& findRange() const;
             uint32_t foundIndex() const;
             void setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& );
+#if defined _MSC_VER
+            static const uint32_t npos = (-1);
+#else
+            static constexpr uint32_t npos = (-1);
+#endif
+            bool hasFoundIndex() const { return foundIndex_ != npos; }
 
             threshold_result();
             threshold_result( std::shared_ptr< const ap240x::waveform > d );
