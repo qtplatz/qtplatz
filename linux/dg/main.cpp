@@ -31,13 +31,16 @@ main()
 {
     ppio pp;
 
-    auto tp = std::chrono::steady_clock::now();
-    std::chrono::time_point< std::chrono::steady_clock > to = tp;
-    
     for ( ;; ) {
+        auto tp = std::chrono::steady_clock::now() + std::chrono::microseconds( 1000 );
         pp << uint8_t(0xf0);
+        std::this_thread::sleep_for( std::chrono::microseconds( 1 ) );
         pp << uint8_t(0x00);
-        std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) );
+        std::this_thread::sleep_for( std::chrono::microseconds( 10 ) );
+        pp << uint8_t(0x0f);
+        std::this_thread::sleep_for( std::chrono::microseconds( 1 ) );
+        pp << uint8_t(0x00);
+        std::this_thread::sleep_until( tp );
     }
     return 0;
 }
