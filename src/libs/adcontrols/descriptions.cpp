@@ -79,26 +79,25 @@ namespace adcontrols {
 		};
 		//
 
-        template< typename char_t > struct make_folder_name {
-            std::basic_regex< char_t > regex_;
+        struct make_folder_name {
+            std::basic_regex< wchar_t > regex_;
             const descriptionsImpl::vector_type& vec_;
 
-            make_folder_name( const std::basic_string< char_t >& pattern
+            make_folder_name( const std::wstring& pattern
                               , const descriptionsImpl::vector_type& vec ) : regex_( pattern ), vec_( vec ) {
             }
 
-            std::basic_string< char_t > operator()() const {
+            std::wstring operator()() const {
 
-                std::basic_string< char_t > name;
-
-                // make it reverse order
+                std::wstring name;
+                
                 std::for_each( vec_.rbegin(), vec_.rend(), [&] ( const description& d ){
                         
-                        std::match_results< std::basic_string< wchar_t >::const_iterator > match;
-
-                        if ( std::regex_match( std::wstring( d.key() ), match, regex_) ) {
+                        std::match_results< std::wstring::const_iterator > match;
+                        std::wstring key = d.key();
+                        if ( std::regex_match( key, match, regex_ ) ) {
                             if ( !name.empty() )
-                                name += char_t( ' ' );
+                                name += L' ';
                             name += d.text();
                         }
 
@@ -201,7 +200,7 @@ descriptions::end() const
 std::wstring
 descriptions::make_folder_name( const std::wstring& regex ) const
 {
-    return internal::make_folder_name< wchar_t >( regex, *pImpl_ )();
+    return internal::make_folder_name( regex, *pImpl_ )();
 }
 
 namespace adcontrols {
