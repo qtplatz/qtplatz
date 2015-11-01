@@ -285,3 +285,41 @@ AgMD2::AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds )
     return log( AgMD2_WaitForAcquisitionComplete( session_, milliseconds ), __FILE__, __LINE__ );
 }
 
+bool
+AgMD2::setTSREnabled( bool enable )
+{
+    ViBoolean value = enable ? VI_TRUE : VI_FALSE;
+    return log( AgMD2_SetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, value ), __FILE__, __LINE__ );
+}
+
+bool
+AgMD2::TSREnabled()
+{
+    ViBoolean value( VI_FALSE );
+    log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, &value ), __FILE__, __LINE__ );
+    return value == VI_FALSE ? false : true;
+}
+
+bool
+AgMD2::isTSRAcquisitonComplete()
+{
+    ViBoolean value( VI_FALSE );
+    log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value ), __FILE__, __LINE__ );
+    return value == VI_FALSE ? false : true;    
+}
+
+bool
+AgMD2::TSRMemoryOverflowOccured()
+{
+    ViBoolean value( VI_FALSE );
+    log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED, &value ), __FILE__, __LINE__ );
+    return value == VI_FALSE ? false : true;    
+}
+
+bool
+AgMD2::TSRContinue()
+{
+    ViBoolean value( VI_FALSE );
+    return log( AgMD2_TSRContinue( session_ ), __FILE__, __LINE__ ) ;
+}
+

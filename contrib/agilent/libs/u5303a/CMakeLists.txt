@@ -22,6 +22,7 @@ set( u5303a_SOURCES
   u5303acontroller.cpp
   waveformobserver.cpp
   session.cpp
+  ppio.cpp
   )
 
 if ( WIN32 AND NOT DISABLE_IVI_COM )
@@ -49,6 +50,7 @@ set( u5303a_HEADERS
   sampleprocessor.hpp
   waveformobserver.hpp
   session.hpp
+  ppio.hpp
   )
 
 add_library( u5303a SHARED

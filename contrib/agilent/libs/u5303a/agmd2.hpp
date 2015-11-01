@@ -92,5 +92,14 @@ namespace u5303a {
         bool AcquisitionInitiate();
 
         bool AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds );
+
+        bool setTSREnabled( bool );
+        bool TSREnabled();
+
+        bool isTSRAcquisitonComplete();
+
+        bool TSRMemoryOverflowOccured();
+
+        bool TSRContinue();        
     }; 
 }
