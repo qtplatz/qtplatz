@@ -75,6 +75,9 @@ namespace ap240controller {
             bool suspend_run() override;
             bool resume_run() override;
             bool stop_run() override;
+            bool recording( bool ) override;
+            bool isRecording() const override;
+            
         };
 
     };

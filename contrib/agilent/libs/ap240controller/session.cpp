@@ -113,7 +113,6 @@ Session::instance()
 
 Session::Session() : impl_( new impl() )
 {
-    ADDEBUG() << "##### Session ctor #####";
 }
 
 Session::~Session()
@@ -130,23 +129,20 @@ Session::software_revision() const
 bool
 Session::setConfiguration( const std::string& xml )
 {
-    ADDEBUG() << "##### Session::setConfiguration #####";
     return true;
 }
 
 bool
 Session::configComplete()
 {
-    ADDEBUG() << "##### Session::configComplete #####";    
     return true;    
 }
             
 bool
 Session::connect( adi::Receiver * receiver, const std::string& token )
 {
-    ADDEBUG() << "##### Session::connect token=" << token << " ######";
-    
     auto ptr( receiver->shared_from_this() );
+
     if ( ptr ) {
         std::call_once( impl::flag2_, [&] () {
                 impl_->threads_.push_back( adportable::asio::thread( [=]() { impl_->io_service_.run(); } ) );
@@ -167,8 +163,6 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
 bool
 Session::disconnect( adicontroller::Receiver * receiver )
 {
-    ADDEBUG() << "##### Session::disconnect #####";
-    
     auto self( receiver->shared_from_this() );
     
     std::lock_guard< std::mutex > lock( impl_->mutex() );
@@ -192,14 +186,12 @@ Session::get_status()
 adicontroller::SignalObserver::Observer *
 Session::getObserver()
 {
-    ADDEBUG() << "##### Session::getObserver #####";
     return impl_->masterObserver_.get();
 }
       
 bool
 Session::initialize()
 {
-    ADDEBUG() << "##### Session::initialize #####";    
     std::call_once( impl::flag3_, [&] () {
             std::lock_guard< std::mutex > lock( impl::mutex_ );
             impl_->digitizer_ = std::make_shared< ap240::digitizer >();
@@ -238,7 +230,6 @@ Session::getControlMethod()
 bool
 Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
 {
-    ADDEBUG() << "##### Session::prepare_for_run #####";
     if ( m ) {
         auto it = m->find( m->begin(), m->end(), "ap240" );
         if ( it != m->end() ) {
@@ -265,18 +256,36 @@ Session::start_run()
 bool
 Session::suspend_run()
 {
-    return true;
+    return true; // digitizer has no timed event.
 }
 
 bool
 Session::resume_run()
 {
-    return true;
+    return true;  // digitizer has no timed event.
 }
 
 bool
 Session::stop_run()
 {
-    return true;
+    return true; // No action for 'stop' by means of terminate current sample run.
 }
 
+bool
+Session::recording( bool enable )
+{
+    ADDEBUG() << "recording: " << enable;
+    
+    if ( auto digi = impl_->digitizer_ ) {
+        if ( enable )
+            digi->peripheral_prepare_for_run();
+        else
+            digi->peripheral_stop();
+    }
+}
+
+bool
+Session::isRecording() const
+{
+    return true;
+}

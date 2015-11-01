@@ -86,6 +86,7 @@ namespace ap240 {
 
         bool peripheral_initialize();
         bool peripheral_prepare_for_run( const acqrscontrols::ap240::method& );
+        bool peripheral_prepare_for_run();
         bool peripheral_run();
         bool peripheral_stop();
         bool peripheral_trigger_inject();

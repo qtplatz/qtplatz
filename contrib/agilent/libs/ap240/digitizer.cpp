@@ -271,6 +271,14 @@ digitizer::peripheral_prepare_for_run( const acqrscontrols::ap240::method& m )
 }
 
 bool
+digitizer::peripheral_prepare_for_run()
+{
+    if ( task::instance()->inst() != ViSession( -1 ) )
+        return task::instance()->prepare_for_run( task::instance()->method() );
+    return false;
+}
+
+bool
 digitizer::peripheral_initialize()
 {
     return task::instance()->initialize();
