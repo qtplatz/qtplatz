@@ -27,7 +27,6 @@
 #include "../acqrscontrols_global.hpp"
 #include "device_method.hpp"
 #include <adcontrols/threshold_method.hpp>
-
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <memory>

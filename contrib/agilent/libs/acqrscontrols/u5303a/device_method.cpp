@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
@@ -60,6 +60,9 @@ namespace acqrscontrols {
                 if ( version >= 4 ) {
                     ar & BOOST_SERIALIZATION_NVP( _.nbr_records );
                 }
+                if ( version >= 5 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.TSR_enabled );
+                }
             }
 
         };
@@ -101,5 +104,9 @@ device_method::device_method() : front_end_range( 2.0 )          // 1V,2V range
                                , digitizer_delay_to_first_sample( 0 )    // device set value
                                , digitizer_nbr_of_s_to_acquire( 100000 ) // device set value
                                , nbr_records( 1 )                // MultiRecord Acquisition
+                               , TSR_enabled( false )
 {
 }
+
+// All member variables are POD, so that no copy constractor implemented
+

@@ -748,7 +748,6 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
              AgMD2_QueryMinWaveformMemory( md2.session(), 32, 1, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
 
-        //vector<ViInt16> dataArray( arraySize );
         ViInt32 actualAverages(0);
         ViInt64 actualRecords(0);
         ViInt64 actualPoints[numRecords] = {0}, firstValidPoint[numRecords] = {0};
@@ -795,9 +794,6 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
              AgMD2_QueryMinWaveformMemory( md2.session(), 32, 1, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
 
-        data.data( arraySize );
-
-        // vector<ViInt16> dataArray( arraySize );
         ViInt32 actualAverages(0);
         ViInt64 actualRecords(0);
         ViInt64 actualPoints[numRecords] = {0}, firstValidPoint[numRecords] = {0};
@@ -833,9 +829,6 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.scaleFactor = scaleFactor;
             data.meta_.scaleOffset = scaleOffset;
             data.firstValidPoint_ = firstValidPoint[0];
-            
-            // auto dp = data.data( numPointsPerRecord );            
-            // std::copy( sa.data() + firstValidPoint, sa.data() + numPointsPerRecord, dp );            
             
             return true;
         }
