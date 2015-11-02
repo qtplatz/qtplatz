@@ -96,6 +96,7 @@ target_link_libraries(
   adpublisher LINK_PUBLIC
   adcontrols
   adportable
+  qtwrapper
   xmlparser
   Qt5::Widgets
   Qt5::Core

@@ -49,24 +49,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBox_Avg">
-            <property name="text">
-             <string>Average Mode</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="adwidgets::SpinBox" name="spinBox">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>520000</number>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
+          <item row="5" column="1">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -78,6 +61,23 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="2" column="1">
+           <widget class="adwidgets::SpinBox" name="spinBox">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>520000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="checkBox_Avg">
+            <property name="text">
+             <string>Average Mode</string>
+            </property>
+           </widget>
           </item>
           <item row="1" column="1">
            <widget class="adwidgets::DoubleSpinBox" name="doubleSpinBox_2">
@@ -110,6 +110,13 @@
            <widget class="QSpinBox" name="spinBox_2">
             <property name="minimum">
              <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="checkBox">
+            <property name="text">
+             <string>TSR</string>
             </property>
            </widget>
           </item>
