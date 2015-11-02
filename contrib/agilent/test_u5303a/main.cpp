@@ -1,4 +1,28 @@
+/**************************************************************************
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+*
+** Contact: toshi.hondo@qtplatz.com
+**
+** Commercial Usage
+**
+** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with
+** the Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
+#include "ppio.hpp"
 #include <u5303a/agmd2.hpp>
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/identify.hpp>
@@ -10,9 +34,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <chrono>
-
-ViChar resource[] = "PXI40::0::0::INSTR";
-ViChar options[]  = "Simulate=true, DriverSetup= Model=U5303A";
 
 int
 main()
@@ -54,6 +75,7 @@ main()
             method.method_.nbr_of_averages = 0;    // digitizer
             method.method_.delay_to_first_sample_ = method.method_.digitizer_delay_to_first_sample = 4.0e-6; // 4us
             method.method_.digitizer_nbr_of_s_to_acquire = method.method_.nbr_of_s_to_acquire_ = 320000; // 100us
+            method.method_.TSR_enabled = true;
             
             auto ident = std::make_shared< acqrscontrols::u5303a::identify >();
             md2->Identify( ident );
@@ -68,7 +90,7 @@ main()
                       << "SerialNumber:     " << ident->SerialNumber() << std::endl
                       << "IOVersion:        " << ident->IOVersion() << std::endl
                       << "NbrADCBits:       " << ident->NbrADCBits() << std::endl;
-
+            
             if ( ident->Options().find( "INT" ) != std::string::npos )   // Interleave ON
                 md2->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
 
@@ -94,29 +116,41 @@ main()
             md2->setAcquisitionRecordSize( method.method_.digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
             md2->setTriggerDelay( method.method_.digitizer_delay_to_first_sample );
 
-            // digitizer dependent 
             md2->setAcquisitionNumRecordsToAcquire( method.method_.nbr_records );
-            md2->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
-            // <--
+            md2->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL ); // Digitizer mode
+
+            md2->setTSREnabled( method.method_.TSR_enabled );            
 
             md2->CalibrationSelfCalibrate();
-
+            
             std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();
 
             std::shared_ptr< acqrscontrols::u5303a::waveform > w1;
             
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
 
-            const size_t replicates = 1000;
+            contexpr size_t replicates = 100000;
 
-            for ( int i = 0; i < replicates; ++i ) {
+            if ( md2->TSREnabled() ) {
 
-                md2->AcquisitionInitiate();
-                md2->AcquisitionWaitForAcquisitionComplete( 1000 );
+                std::cout << "TSR " << md2->TSREnabled() << std::endl;
+                
+                
 
-                u5303a::digitizer::readData( *md2, method, vec );
-                if ( i == 0 && !vec.empty() )
-                    w1 = vec[0];
+            } else {
+
+                for ( int i = 0; i < replicates; ++i ) {
+
+                    pp << uint8_t( 0x01 );
+
+                    md2->AcquisitionInitiate();
+                    md2->AcquisitionWaitForAcquisitionComplete( 1000 );
+
+                    pp << uint8_t( 0x02 );
+
+                    u5303a::digitizer::readData( *md2, method, vec );
+                    vec.clear();
+                }
             }
             
             uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::steady_clock::now() - tp ).count();

@@ -55,6 +55,9 @@ namespace acqrscontrols {
             // CLASS VERSION 4; 2015-OCT-25 
             uint32_t nbr_records; // MultiRecord Acquisition
 
+            // CLASS VERSION 5; 2015-NOV-02
+            bool TSR_enabled;     // Triggered simultaneous acquisition and readout
+
         private:
 
             friend class boost::serialization::access;
@@ -65,4 +68,4 @@ namespace acqrscontrols {
     }
 }
 
-BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_method, 4 )
+BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_method, 5 )
