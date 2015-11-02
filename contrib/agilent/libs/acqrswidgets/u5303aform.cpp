@@ -65,6 +65,9 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
     // MultiRecord
     connect( ui->spinBox_2, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int d ) {
             emit valueChanged( idNbrRecords, 0, QVariant( d ) ); } );
+
+    // TSR
+    connect( ui->checkBox, &QCheckBox::toggled, [this] ( bool flag ) { emit valueChanged( idTSREnable, 0, QVariant( flag ) ); } );    
 }
 
 u5303AForm::~u5303AForm()
@@ -95,6 +98,8 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
     ui->checkBox_Avg->setChecked( !( m.mode_ == 0 ) );
 
     ui->spinBox_2->setValue( m.method_.nbr_records );
+
+    ui->checkBox->setChecked( m.method_.TSR_enabled );
 }
 
 void
@@ -108,7 +113,10 @@ u5303AForm::getContents( acqrscontrols::u5303a::method& m )
     m.method_.nbr_of_averages = ui->spinBox->value();
 
     m.mode_ = ui->checkBox_Avg->isChecked() ? 2 : 0;
+
     m.method_.nbr_records = ui->spinBox_2->value();
+
+    m.method_.TSR_enabled = ui->checkBox->isChecked();
 }
 
 

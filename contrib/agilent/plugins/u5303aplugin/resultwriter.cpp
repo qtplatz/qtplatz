@@ -26,6 +26,11 @@
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adportable/profile.hpp>
 #include <boost/filesystem/path.hpp>
+// for debug
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <acqrscontrols/u5303a/waveform.hpp>
+// end debug
 #include <fstream>
 
 using namespace u5303a;
@@ -87,10 +92,38 @@ ResultWriter::writeHistogram( size_t trigCount
     const double * times = histogram->getTimeArray();
     const double * counts = histogram->getIntensityArray();
     const auto& prop = histogram->getMSProperty();
-        
+    
     of << boost::format( "\n%d, %.8lf, %.14le" )
         % trigCount % ( double( timeSinceEpoch.first ) * 1.0e-9 ) % ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
 
     for ( size_t i = 0; i < histogram->size(); ++i )
         of << boost::format( ", %.14le, %d" ) % times[ i ] % uint32_t( counts[ i ] );
+}
+
+void
+ResultWriter::dump_waveform() 
+{
+    std::shared_ptr< const acqrscontrols::u5303a::threshold_result > rp;
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( cache_.empty() )
+            return;
+        rp = cache_.back();
+    } while(0);
+
+    if ( rp ) {
+        auto path = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_waveform.txt" ).string();
+        
+        std::wofstream of( path, std::ios_base::out | std::ios_base::app );
+        auto waveform = rp->data();
+        
+        boost::archive::xml_woarchive ar( of );
+        ar & boost::serialization::make_nvp( "meta", waveform->meta_ );
+        
+        auto dp = waveform->data();
+        for ( size_t i = 0; i < waveform->size(); ++i )
+            of << boost::wformat( L"0x%04x, " ) % dp[i];
+        of << std::endl;
+    }
+    
 }

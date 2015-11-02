@@ -42,8 +42,9 @@ ppio::ppio() : success_( false )
 
 ppio::~ppio()
 {
-#if defined __linux    
-    ioperm( BASEPORT, 5, 0 );
+#if defined __linux
+    if ( success_ )
+        ioperm( BASEPORT, 5, 0 );
 #endif
 }
 
@@ -55,10 +56,36 @@ ppio::operator bool () const
 ppio&
 ppio::operator << ( const unsigned char d )
 {
-#if defined __linux    
     data_ = d;
-    outb( d, BASEPORT + 0 );
+#if defined __linux
+    if ( success_ )    
+        outb( data_, BASEPORT + 0 );
 #endif
     return *this;
 }
 
+ppio&
+ppio::operator |= ( const uint8_t d )
+{
+    data_ |= d;
+#if defined __linux
+    if ( success_ )        
+        outb( data_, BASEPORT + 0 );
+#endif    
+}
+
+ppio&
+ppio::operator &= ( const uint8_t d )
+{
+    data_ &= d;
+#if defined __linux
+    if ( success_ )            
+        outb( data_, BASEPORT + 0 );
+#endif        
+}
+
+uint8_t
+ppio::data() const
+{
+    return data_;
+}

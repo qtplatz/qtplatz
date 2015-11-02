@@ -46,6 +46,8 @@ namespace u5303a {
 
         void commitData();
         void writeHistogram( size_t, const std::pair< uint64_t, uint64_t>&, std::shared_ptr< adcontrols::MassSpectrum > );
+
+        void dump_waveform();
         
     private:
         std::mutex mutex_;

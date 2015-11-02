@@ -144,6 +144,7 @@ namespace u5303a {
         void handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
         void setControllerState( const QString&, bool enable );
         void loadControllerState();
+        void takeSnapshot();
     };
 
     std::mutex document::impl::mutex_;
@@ -426,15 +427,13 @@ document::initialSetup()
 void
 document::finalClose()
 {
-    ADDEBUG() << "=====> document::finalClose()";
+    ADTRACE() << "=====> document::finalClose()";
 
     task::instance()->finalize();
 
     if ( auto session = impl_->iControllerImpl_->getInstrumentSession() )
         session->shutdown();
 
-    ADDEBUG() << "=====> document session shutdwon.";    
-        
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
@@ -470,7 +469,7 @@ document::finalClose()
         settings->endArray();
         settings->endGroup();
     }
-    
+    ADTRACE() << "=====> document finalClose completed.";
 }
 
 void
@@ -839,8 +838,20 @@ document::settings()
 void
 document::takeSnapshot()
 {
-    boost::filesystem::path dir( impl_->nextSampleRun_->dataDirectory() );
-    boost::filesystem::path file( std::wstring( impl_->nextSampleRun_->filePrefix() ) + L".adfs~" );
+    std::vector< std::future<bool> > futures;
+    futures.push_back( std::async( std::launch::async, [this](){ impl_->takeSnapshot(); return true; } ) );
+    task::instance()->post( futures );
+}
+
+void
+document::impl::takeSnapshot()
+{
+    boost::filesystem::path dir( nextSampleRun_->dataDirectory() );
+    boost::filesystem::path file( std::wstring( nextSampleRun_->filePrefix() ) + L".adfs~" );
+
+    // debug -->
+    resultWriter_->dump_waveform();
+    // <-- debug
     
     if ( ! boost::filesystem::exists( dir ) ) {
         boost::system::error_code ec;
@@ -849,23 +860,23 @@ document::takeSnapshot()
     
     boost::filesystem::path path( dir / file );
     if ( ! boost::filesystem::exists( path ) )
-        path = dir / ( std::wstring( impl_->nextSampleRun_->filePrefix() ) + L"_snapshots.adfs" );
+        path = dir / ( std::wstring( nextSampleRun_->filePrefix() ) + L"_snapshots.adfs" );
     
     unsigned idx = 0;
 
     // get histogram
     double resolution = 0.0;
-    if ( auto tm = tdc()->threshold_method( idx ) )
+    if ( auto tm = tdcdoc_->threshold_method( idx ) )
         resolution = tm->time_resolution;
 
     size_t trigCount;
     std::pair< uint64_t, uint64_t > timeSinceEpoch;
-    auto histogram = tdc()->getHistogram( resolution, idx, trigCount, timeSinceEpoch );
+    auto histogram = tdcdoc_->getHistogram( resolution, idx, trigCount, timeSinceEpoch );
 
     uint32_t serialnumber(0);
 
     // get waveform(s)
-    auto spectra = impl_->spectra_[ u5303a_observer ];
+    auto spectra = spectra_[ u5303a_observer ];
     
     int ch = 1;
     for ( auto ms: spectra ) {

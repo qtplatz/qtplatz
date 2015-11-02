@@ -68,8 +68,11 @@ namespace u5303a {
 
         bool setActiveTriggerSource( const std::string& trigSource );
         
-        bool setTriggerCoupling( int32_t );
+        bool setTriggerCoupling( const std::string& trigSoruce, int32_t );
+        int32_t TriggerCoupling( const std::string& trigSoruce ) const;
+        
         bool setTriggerDelay( double );
+        double TriggerDelay();
 
         bool setTriggerLevel( const std::string& trigSource, double );
         double TriggerLevel( const std::string& trigSource ) const;
@@ -96,10 +99,15 @@ namespace u5303a {
         bool setTSREnabled( bool );
         bool TSREnabled();
 
-        bool isTSRAcquisitonComplete();
-
+        bool isTSRAcquisitionComplete();
+        
         bool TSRMemoryOverflowOccured();
 
-        bool TSRContinue();        
+        bool TSRContinue();
+
+        bool Abort();
+
+        bool setTriggerHoldOff( double seconds );
+        double TriggerHoldOff() const;
     }; 
 }

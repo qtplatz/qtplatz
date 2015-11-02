@@ -23,24 +23,58 @@
 **************************************************************************/
 
 #include "ppio.hpp"
+#include <boost/program_options.hpp>
 #include <chrono>
+#include <iostream>
 #include <thread>
 
+namespace po = boost::program_options;
+
 int
-main()
+main( int argc, char * argv [] )
 {
+    po::variables_map vm;
+    po::options_description description( "test_u5303a" );
+    {
+        description.add_options()
+            ( "help,h",    "Display this help message" )
+            ( "interval,i",    po::value<int>()->default_value( 1000 ), "Trig interval (us)" )
+            ( "delay",         po::value<int>()->default_value( 2 ), "Pulse delay (us)" )
+            ( "width",         po::value<int>()->default_value( 1 ), "Pulse delay (us)" )
+            ;
+        po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
+        po::notify(vm);
+    }
+    
+    if ( vm.count( "help" ) ) {
+        std::cout << description;
+        return 0;
+    }
+
+    int trig_interval = vm[ "interval" ].as<int>();
+    int pulse_delay = vm[ "delay" ].as<int>();
+    int pulse_width = vm[ "width" ].as<int>();
+
     ppio pp;
 
     for ( ;; ) {
-        auto tp = std::chrono::steady_clock::now() + std::chrono::microseconds( 1000 );
-        pp << uint8_t(0xf0);
-        std::this_thread::sleep_for( std::chrono::microseconds( 1 ) );
-        pp << uint8_t(0x00);
-        std::this_thread::sleep_for( std::chrono::microseconds( 10 ) );
+        pp << uint8_t(0xf0); // H        
+        auto tp0 = std::chrono::steady_clock::now();
+        auto tp_next        = tp0 + std::chrono::microseconds( trig_interval );
+        auto tp_trig_down   = tp0 + std::chrono::microseconds( 1 );
+        auto tp_pulse_raise = tp0 + std::chrono::microseconds( pulse_delay );
+        auto tp_pulse_down  = tp_pulse_raise + std::chrono::microseconds( pulse_width );
+
+        std::this_thread::sleep_until( tp_trig_down ); // trig width
+        pp << uint8_t(0x00); // L
+        
+        std::this_thread::sleep_until( tp_pulse_raise );
         pp << uint8_t(0x0f);
-        std::this_thread::sleep_for( std::chrono::microseconds( 1 ) );
+
+        std::this_thread::sleep_until( tp_pulse_down );
         pp << uint8_t(0x00);
-        std::this_thread::sleep_until( tp );
+        
+        std::this_thread::sleep_until( tp_next );
     }
     return 0;
 }

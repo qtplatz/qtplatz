@@ -22,25 +22,50 @@
 **
 **************************************************************************/
 
-#include "ppio.hpp"
+#include <u5303a/ppio.hpp>
 #include <u5303a/agmd2.hpp>
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/identify.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
-#include <iostream>
-#include <vector>
-#include <stdexcept>
-#include <memory>
+#include <boost/program_options.hpp>
 #include <cstdlib>
 #include <cstring>
 #include <chrono>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <thread>
+#include <vector>
+
+namespace po = boost::program_options;
 
 int
-main()
+main( int argc, char * argv [] )
 {
-    std::cout << std::endl;
-    
     bool success( false ), simulated( false );
+
+    po::variables_map vm;
+    po::options_description description( "test_u5303a" );
+    {
+        description.add_options()
+            ( "help,h",    "Display this help message" )
+            ( "tsr,s",      po::value<int>()->default_value( 0 ), "TSR enable(1)/disable(0)" )
+            ( "records,r",  po::value<int>()->default_value( 1 ), "Number of records" )
+            ( "average,a",  po::value<int>()->default_value( 0 ), "Number of average" )
+            ( "mode,m",     po::value<int>()->default_value( 0 ), "Digitizer (0) or Averager (2)" )
+            ( "delay,d",    po::value<double>()->default_value( 0.0 ), "Delay (us)" )
+            ( "width,w",    po::value<double>()->default_value( 100.0 ), "Waveform width (us)" )
+            ;
+        po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
+        po::notify(vm);
+    }
+    
+    if ( vm.count( "help" ) ) {
+        std::cout << description;
+        return 0;
+    }
+
+    ppio pp;
 
     if ( auto md2 = std::make_shared< u5303a::AgMD2 >() ) {
 
@@ -61,21 +86,32 @@ main()
                     break;
             }
         }
+
+        
         
         if ( success ) {
 
             acqrscontrols::u5303a::method method;
             method.channels_ = 0x01;
-            method.mode_ = 0; // digitizer
+            method.mode_ = vm[ "mode" ].as<int>();
             method.method_.front_end_range = 1.0;  // V
             method.method_.front_end_offset = 0.0; // V
             method.method_.ext_trigger_level = 1.0;
             method.method_.samp_rate = 3.2e9;
-            method.method_.nbr_records = 1;        // MultiRecords
-            method.method_.nbr_of_averages = 0;    // digitizer
-            method.method_.delay_to_first_sample_ = method.method_.digitizer_delay_to_first_sample = 4.0e-6; // 4us
-            method.method_.digitizer_nbr_of_s_to_acquire = method.method_.nbr_of_s_to_acquire_ = 320000; // 100us
-            method.method_.TSR_enabled = true;
+
+            // MultiRecords or single record
+            method.method_.nbr_records = vm[ "records" ].as<int>();
+            method.method_.nbr_of_averages = vm[ "average" ].as<int>();    // 0 for digitizer
+
+            // delay
+            method.method_.delay_to_first_sample_ = method.method_.digitizer_delay_to_first_sample = vm[ "delay" ].as<double>() * 1.0e-6;
+
+            // data length
+            uint32_t width = uint32_t( ( vm[ "width" ].as<double>() * 1.0e-6 ) * method.method_.samp_rate + 0.5 );
+            method.method_.digitizer_nbr_of_s_to_acquire = method.method_.nbr_of_s_to_acquire_ = width;
+
+            // TSR
+            method.method_.TSR_enabled = vm[ "tsr" ].as<int>() ? true : false;
             
             auto ident = std::make_shared< acqrscontrols::u5303a::identify >();
             md2->Identify( ident );
@@ -96,10 +132,12 @@ main()
 
             md2->setActiveTriggerSource( "External1" );
             
-            md2->setTriggerLevel( "External1", 1.0 ); // 1V
+            md2->setTriggerLevel( "External1", method.method_.ext_trigger_level ); // 1V
+
             std::cout << "TriggerLevel: " << md2->TriggerLevel( "External1" ) << std::endl;
 
             md2->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
+
             std::cout << "TriggerSlope: " << md2->TriggerSlope( "External1" ) << std::endl;
 
             double max_rate(0);
@@ -129,14 +167,46 @@ main()
             
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
 
-            contexpr size_t replicates = 100000;
+            constexpr size_t replicates = 1000;
+            
+            std::cout << "********** TSR " << std::boolalpha << md2->TSREnabled() << std::endl;
+
+            double seconds(0), last(0);
 
             if ( md2->TSREnabled() ) {
-
-                std::cout << "TSR " << md2->TSREnabled() << std::endl;
                 
-                
+                md2->AcquisitionInitiate();
 
+                size_t dataCount(0);
+
+                while ( replicates > dataCount ) {
+                    
+                    if ( md2->TSRMemoryOverflowOccured() ) {
+                        std::cout << "Memory Overflow" << std::endl;
+                        break;
+                    }
+
+                    while ( !md2->isTSRAcquisitionComplete() )
+                        std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
+                    
+                    u5303a::digitizer::readData( *md2, method, vec );
+                    md2->TSRContinue();
+                    
+                    std::cout << "read : " << vec.size() << std::endl;
+                    
+                    for ( auto& waveform: vec ) {
+                        seconds = waveform->meta_.initialXTimeSeconds;
+                        if ( last != 0 )
+                            std::cout << seconds << ", " << seconds - last << std::endl;
+                        last = seconds;
+                    }
+                    
+
+                    dataCount += vec.size();
+
+                    vec.clear();  // delete data
+                }
+                    
             } else {
 
                 for ( int i = 0; i < replicates; ++i ) {

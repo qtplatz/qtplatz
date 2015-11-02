@@ -75,7 +75,7 @@ AgMD2::log( ViStatus rcode, const char * const file, int line )
         ViInt32 errorCode;
         ViChar msg[256];
         AgMD2_GetError( VI_NULL, &errorCode, sizeof(msg), msg );
-        adportable::debug(file, line) << boost::format("0x%x::0x%x: %s") % rcode % errorCode % msg;
+        adportable::debug(file, line) << boost::format("0x%x: %s") % errorCode % msg;
         adlog::logger(file,line,(rcode < 0 ? adlog::LOG_ERROR : adlog::LOG_WARN)) << boost::format("0x%x: %s") % errorCode % msg;
     }
     return rcode == VI_SUCCESS;
@@ -192,9 +192,18 @@ AgMD2::setTriggerDelay( double delay )
 }
 
 bool
-AgMD2::setTriggerCoupling( int32_t coupling )
+AgMD2::setTriggerCoupling( const std::string& trigSource, int32_t coupling )
 {
-    return log( AgMD2_SetAttributeViInt32( session_, "", AGMD2_ATTR_TRIGGER_COUPLING, coupling ), __FILE__, __LINE__ );
+    return log( AgMD2_SetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_COUPLING, coupling ), __FILE__, __LINE__ );
+}
+
+int32_t
+AgMD2::TriggerCoupling( const std::string& trigSource ) const
+{
+    int32_t coupling(0);
+    if ( log( AgMD2_GetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_COUPLING, &coupling ), __FILE__, __LINE__ ) )
+        return coupling;
+    return (-1);
 }
 
 bool
@@ -301,7 +310,7 @@ AgMD2::TSREnabled()
 }
 
 bool
-AgMD2::isTSRAcquisitonComplete()
+AgMD2::isTSRAcquisitionComplete()
 {
     ViBoolean value( VI_FALSE );
     log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value ), __FILE__, __LINE__ );
@@ -322,4 +331,29 @@ AgMD2::TSRContinue()
     ViBoolean value( VI_FALSE );
     return log( AgMD2_TSRContinue( session_ ), __FILE__, __LINE__ ) ;
 }
+
+bool
+AgMD2::Abort()
+{
+    ViBoolean value( VI_FALSE );
+    return log( AgMD2_Abort( session_ ), __FILE__, __LINE__ ) ;
+}
+
+bool
+AgMD2::setTriggerHoldOff( double seconds )
+{
+    return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_HOLDOFF, seconds ), __FILE__, __LINE__ ) ;
+}
+
+double
+AgMD2::TriggerHoldOff() const
+{
+    double seconds(0);
+    if ( log( AgMD2_GetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_HOLDOFF, &seconds ), __FILE__, __LINE__ ) )
+        return seconds;
+    return -9999;
+}
+
+
+
 

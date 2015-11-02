@@ -95,8 +95,6 @@ namespace u5303a {
     class task::impl {
     public:
         impl() : worker_stopping_( false )
-               , strand_( io_service_ )
-               , strand2_( io_service_ )
                , work_( io_service_ )
                , traceAccessor_( std::make_shared< adcontrols::TraceAccessor >() )
                , software_inject_triggered_( false )
@@ -112,8 +110,6 @@ namespace u5303a {
         static std::mutex mutex_;
 
         boost::asio::io_service io_service_;
-        boost::asio::io_service::strand strand_;
-        boost::asio::io_service::strand strand2_;
         boost::asio::io_service::work work_;
 
         std::vector< std::thread > threads_;
@@ -121,9 +117,6 @@ namespace u5303a {
         std::atomic< bool > worker_stopping_;
         std::chrono::steady_clock::time_point tp_uptime_;
         std::chrono::steady_clock::time_point tp_inject_;
-
-        std::shared_ptr< adcontrols::MappedImage > mappedTic_;
-        std::shared_ptr< adcontrols::MappedSpectrum> mappedSpectrum_;
 
         std::map< boost::uuids::uuid, data_status > data_status_;
 
@@ -134,9 +127,6 @@ namespace u5303a {
         std::atomic< bool > cell_selection_enabled_;
         std::atomic< bool > histogram_clear_cycle_enabled_;
 
-        //QRect cellRect_;
-        //std::pair< double, double > histogram_window_;
-        //std::pair< uint32_t, uint32_t > histogram_device_window_;
         uint32_t histogram_clear_cycle_;
         std::condition_variable cv_;
 
@@ -175,24 +165,8 @@ namespace u5303a {
         template<typename Rep, typename Period> Rep timeSinceInject() const {
             return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::steady_clock::now() - tp_inject_ ).count();
         }
-#if 0
-        void initSampleProcessor() {
-            auto sampleRun = std::make_shared< adcontrols::SampleRun >( *document::instance()->sampleRun() );
-            auto cm = std::make_shared< adcontrols::ControlMethod::Method >( *document::instance()->getControlMethod() );
-            if ( auto sp = std::make_shared< adicontroller::SampleProcessor >( io_service_, sampleRun, cm ) ) {
-                //sp->prepare_storage( masterobserver );
-            }
-        }
-
-        inline std::shared_ptr< mpxcontroller::SampleProcessor > getSampleProcessor() {
-            std::lock_guard< std::mutex > lock( mutex_ );
-            if ( !sampleProcessors_.empty() )
-                return  sampleProcessors_.front();
-            return 0;
-        }
-#endif            
     };
-
+    
     std::atomic< task * > task::impl::instance_( 0 );
     std::mutex task::impl::mutex_;
 }
@@ -249,8 +223,6 @@ task::impl::finalize()
 void
 task::instInitialize( adicontroller::Instrument::Session * session )
 {
-    ADDEBUG() << "===== instInitialize =====";
-
     auto self( session->shared_from_this() );
     if ( self ) {
         impl_->io_service_.post( [self] () { self->initialize(); } );

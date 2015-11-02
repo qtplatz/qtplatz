@@ -18,7 +18,6 @@ endif()
 
 set( u5303a_SOURCES
   simulator.cpp
-  sampleprocessor.cpp
   u5303acontroller.cpp
   waveformobserver.cpp
   session.cpp
