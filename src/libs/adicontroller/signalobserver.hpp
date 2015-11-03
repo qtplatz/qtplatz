@@ -24,13 +24,14 @@
 
 #pragma once
 
+#include "octet_array.hpp"
+#include "constants.hpp"
+#include "adicontroller_global.hpp"
+#include <boost/any.hpp>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
-#include "octet_array.hpp"
-#include "constants.hpp"
-#include "adicontroller_global.hpp"
 
 namespace boost { namespace uuids { struct uuid; } }
 
@@ -98,7 +99,7 @@ namespace adicontroller {
             void operator = ( const DataReadBuffer& ) = delete;
             
         public:
-            ~DataReadBuffer();
+            virtual ~DataReadBuffer();
             DataReadBuffer();
             
             uint64_t& timepoint();
@@ -117,8 +118,12 @@ namespace adicontroller {
             uint32_t fcn() const;       // function number for spectrum
             uint32_t ndata() const;     // number of data in the buffer (for trace, spectrum should be always 1)
             uint32_t events() const;    // well known events
+
             const octet_array& xdata() const;    // serialized data array
             const octet_array& xmeta() const;    // serialized meta data array
+
+            const boost::any& data() const;
+            void setData( boost::any );
 
         private:
             uint64_t elapsed_time_;  // ns
@@ -129,6 +134,7 @@ namespace adicontroller {
             uint32_t events_;      // well known events
             octet_array xdata_;    // encoded data array
             octet_array xmeta_;
+            boost::any any_;
         };
     
         class ADICONTROLLERSHARED_EXPORT ObserverEvents : public std::enable_shared_from_this< ObserverEvents > {

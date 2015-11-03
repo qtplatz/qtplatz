@@ -39,14 +39,14 @@
 namespace adicontroller {
 
     namespace SignalObserver {
-
+        
         Description::Description() : trace_method_( eTRACE_TRACE )
                                    , spectrometer_( eUnknownSpectrometer )
                                    , axis_x_decimals_( 2 )
                                    , axis_y_decimals_( 0 )
         {
         }
-
+        
         Description::Description( const Description& t ) : trace_method_( t.trace_method_ )
                                                          , spectrometer_( t.spectrometer_ )
                                                          , trace_id_( t.trace_id_ )
@@ -57,13 +57,13 @@ namespace adicontroller {
                                                          , axis_y_decimals_( t.axis_y_decimals_ )
         {
         }
-
+        
         eTRACE_METHOD
         Description::trace_method() const
         {
             return trace_method_;
         }
-
+        
         void
         Description::set_trace_method( eTRACE_METHOD v )
         {
@@ -87,7 +87,7 @@ namespace adicontroller {
         {
             return trace_id_.c_str();
         }
-
+        
         void
         Description::set_trace_id( const std::string& v )
         {
@@ -149,27 +149,30 @@ namespace adicontroller {
             //delete impl_;
         }
         
-        uint64_t& DataReadBuffer::timepoint()    { return /*impl_->*/epoch_time_; }
-        uint64_t& DataReadBuffer::epoch_time()   { return /*impl_->*/epoch_time_; }
-        uint64_t& DataReadBuffer::elapsed_time() { return /*impl_->*/elapsed_time_; }
-        uint32_t& DataReadBuffer::pos()          { return /*impl_->*/pos_; }
-        uint32_t& DataReadBuffer::fcn()          { return /*impl_->*/fcn_; }
-        uint32_t& DataReadBuffer::ndata()        { return /*impl_->*/ndata_; }
-        uint32_t& DataReadBuffer::events()       { return /*impl_->*/events_; }
-        octet_array& DataReadBuffer::xdata()     { return /*impl_->*/xdata_; }
-        octet_array& DataReadBuffer::xmeta()     { return /*impl_->*/xmeta_; }     
-
-        uint64_t DataReadBuffer::timepoint() const       { return /*impl_->*/epoch_time_; }
-        uint64_t DataReadBuffer::epoch_time() const      { return /*impl_->*/epoch_time_; }
-        uint64_t DataReadBuffer::elapsed_time() const    { return /*impl_->*/elapsed_time_; }
-        uint32_t DataReadBuffer::pos() const             { return /*impl_->*/pos_; }       
-        uint32_t DataReadBuffer::fcn() const             { return /*impl_->*/fcn_; }       
-        uint32_t DataReadBuffer::ndata() const           { return /*impl_->*/ndata_; }     
-        uint32_t DataReadBuffer::events() const          { return /*impl_->*/events_; }    
-        const octet_array& DataReadBuffer::xdata() const { return /*impl_->*/xdata_; }     
-        const octet_array& DataReadBuffer::xmeta() const { return /*impl_->*/xmeta_; }     
+        uint64_t& DataReadBuffer::timepoint()    { return epoch_time_; }
+        uint64_t& DataReadBuffer::epoch_time()   { return epoch_time_; }
+        uint64_t& DataReadBuffer::elapsed_time() { return elapsed_time_; }
+        uint32_t& DataReadBuffer::pos()          { return pos_; }
+        uint32_t& DataReadBuffer::fcn()          { return fcn_; }
+        uint32_t& DataReadBuffer::ndata()        { return ndata_; }
+        uint32_t& DataReadBuffer::events()       { return events_; }
+        octet_array& DataReadBuffer::xdata()     { return xdata_; }
+        octet_array& DataReadBuffer::xmeta()     { return xmeta_; }     
+        
+        uint64_t DataReadBuffer::timepoint() const       { return epoch_time_; }
+        uint64_t DataReadBuffer::epoch_time() const      { return epoch_time_; }
+        uint64_t DataReadBuffer::elapsed_time() const    { return elapsed_time_; }
+        uint32_t DataReadBuffer::pos() const             { return pos_; }       
+        uint32_t DataReadBuffer::fcn() const             { return fcn_; }       
+        uint32_t DataReadBuffer::ndata() const           { return ndata_; }     
+        uint32_t DataReadBuffer::events() const          { return events_; }    
+        const octet_array& DataReadBuffer::xdata() const { return xdata_; }     
+        const octet_array& DataReadBuffer::xmeta() const { return xmeta_; }
+        const boost::any& DataReadBuffer::data() const   { return any_; }
+        void DataReadBuffer::setData( boost::any d )     { any_ = d; }
 
         ///////
+        
         class Observer::impl {
         public:
             impl() : objId_( 0 )

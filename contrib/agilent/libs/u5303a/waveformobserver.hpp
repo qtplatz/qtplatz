@@ -47,7 +47,7 @@ namespace u5303a {
         
         uint64_t uptime() const override;
         void uptime_range( uint64_t& oldest, uint64_t& newest ) const override;
-
+        
         std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override;
 
         const char * dataInterpreterClsid() const override { return "u5303a.digi"; }
@@ -56,6 +56,7 @@ namespace u5303a {
         // WaveformObserver
         typedef std::pair< std::shared_ptr< acqrscontrols::u5303a::waveform >, std::shared_ptr< acqrscontrols::u5303a::waveform > > waveform_pair_t;
         typedef std::pair< std::shared_ptr< const acqrscontrols::u5303a::waveform >, std::shared_ptr< const acqrscontrols::u5303a::waveform > > const_waveform_pair_t;
+
         uint32_t operator << ( const_waveform_pair_t& );
 
     private:

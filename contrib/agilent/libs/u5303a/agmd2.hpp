@@ -25,6 +25,7 @@
 #pragma once
 
 #include <AgMD2.h>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -47,7 +48,7 @@ namespace u5303a {
 
         inline ViSession session() { return session_; }
 
-        static bool log( ViStatus rcode, const char * const file, int line );
+        static bool log( ViStatus rcode, const char * const file, int line, std::function< std::string()> details = []{ return std::string(); } );
 
         uint32_t dataSerialNumber();
         
@@ -99,7 +100,7 @@ namespace u5303a {
         bool setTSREnabled( bool );
         bool TSREnabled();
 
-        bool isTSRAcquisitionComplete();
+        bool isTSRAcquisitionComplete( bool& );
         
         bool TSRMemoryOverflowOccured();
 

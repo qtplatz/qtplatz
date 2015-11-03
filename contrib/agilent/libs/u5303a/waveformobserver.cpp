@@ -42,7 +42,22 @@
 #include <algorithm>
 #include <sstream>
 
+namespace u5303a {
+
+    struct waveform_pair {
+
+        static inline uint32_t pos( const WaveformObserver::const_waveform_pair_t& pair ) {
+            return pair.first ? pair.first->serialnumber_ : pair.second->serialnumber_;
+        }
+
+        static inline uint64_t timepoint( const WaveformObserver::const_waveform_pair_t& pair ) {
+            return pair.first ? pair.first->timeSinceEpoch_ : pair.second->timeSinceEpoch_;
+        }
+    };
+}
+
 using namespace u5303a;
+
 static const char * objtext__ = "1.u5303a.ms-cheminfo.com";
     
 WaveformObserver::WaveformObserver() : objid_( boost::uuids::name_generator( base_uuid() )( objtext__ ) )
@@ -89,8 +104,8 @@ WaveformObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const
     std::lock_guard< std::mutex > lock( const_cast<WaveformObserver *>( this )->mutex() );
 
     if ( !que_.empty() ) {
-        oldest = que_.front()->pos();
-        newest = que_.back()->pos();
+        oldest = que_.front()->timepoint(); //waveform_pair::pos( que_.front() );
+        newest = que_.back()->timepoint();  //waveform_pair::pos( que_.back() );
     }
     
 }
@@ -105,27 +120,57 @@ WaveformObserver::readData( uint32_t pos )
 
     if ( pos == std::numeric_limits<uint32_t>::max() ) {
         return que_.back();
+        // auto rb = std::make_shared< so::DataReadBuffer >();
+        // auto pair = que_.back();
+        // acqrscontrols::u5303a::waveform::serialize( *rb, pair.first, pair.second );
+        // return rb;
     }
 
-    auto it = std::find_if( que_.begin(), que_.end(), [pos]( const std::shared_ptr< so::DataReadBuffer >& p ){ return pos == p->pos(); } );
-    if ( it != que_.end() )
-        return *it;
+    auto it = std::lower_bound( que_.begin(), que_.end(), pos, []( const std::shared_ptr<so::DataReadBuffer>& p, uint32_t pos ){
+            return p->pos() < pos;
+        });
+
+    // auto it = std::lower_bound( que_.begin(), que_.end(), pos, [] ( const const_waveform_pair_t& d, uint32_t pos ){
+    //         return waveform_pair::pos( d ) < pos;
+    //     } );
+    
+    if ( it != que_.end() ) {
+
+        if ( (*it)->pos() == pos )
+            return (*it);
+
+        // auto tpos = it->first ? it->first->serialnumber_ : it->second->serialnumber_;
+        // if ( pos == tpos ) {
+        //     auto rb = std::make_shared< so::DataReadBuffer >();
+        //     acqrscontrols::u5303a::waveform::serialize( *rb, it->first, it->second );
+        //     return rb;
+        // }
+    }
+
+    // auto it = std::find_if( que_.begin(), que_.end(), [pos]( const std::shared_ptr< so::DataReadBuffer >& p ){ return pos == p->pos(); } );
+    // if ( it != que_.end() )
+    //     return *it;
     
     return 0;
 }
 
 int32_t
-WaveformObserver::posFromTime( uint64_t usec ) const 
+WaveformObserver::posFromTime( uint64_t nsec ) const 
 {
     std::lock_guard< std::mutex > lock( const_cast< WaveformObserver *>(this)->mutex() );
     
     if ( que_.empty() )
         return false;
-
-    auto it = std::lower_bound( que_.begin(), que_.end(), usec
+    
+    auto it = std::lower_bound( que_.begin(), que_.end(), nsec
                                 , [] ( const std::shared_ptr< so::DataReadBuffer >& p, uint64_t usec ) { return p->timepoint() < usec; } );
+    
+    // auto it = std::lower_bound( que_.begin(), que_.end(), nsec, [] ( const const_waveform_pair_t& d, uint64_t nsec ){
+    //         return waveform_pair::timepoint( d ) < nsec;
+    //     });
+    
     if ( it != que_.end() )
-        return (*it)->pos();
+        return (*it)->pos(); //waveform_pair::pos(*it);
 
     return 0;
 }
@@ -134,16 +179,26 @@ uint32_t
 WaveformObserver::operator << ( const_waveform_pair_t& pair )
 {
     auto rb = std::make_shared< so::DataReadBuffer >();
+    // acqrscontrols::u5303a::waveform::serialize( *rb, pair.first, pair.second );
 
-    acqrscontrols::u5303a::waveform::serialize( *rb, pair.first, pair.second );
-    
-    std::lock_guard< std::mutex > lock( mutex() );
-    if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz
-        auto tail = que_.begin();
-        std::advance( tail, 500 );
-        que_.erase( que_.begin(), tail );
+    if ( pair.first || pair.second ) {
+        
+        rb->pos() = waveform_pair::pos( pair );
+        rb->timepoint() = waveform_pair::timepoint( pair );
+        rb->setData( boost::any( pair ) );
+        
+        std::lock_guard< std::mutex > lock( mutex() );
+        if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz
+            auto tail = que_.begin();
+            std::advance( tail, 500 );
+            que_.erase( que_.begin(), tail );
+        }
+
+        que_.push_back( rb );
+
+        return rb->pos();
     }
-    que_.push_back( rb );
-    return rb->pos();
+
+    return uint32_t(-1);
 }
 

@@ -69,13 +69,13 @@ AgMD2::InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolea
 }
         
 bool
-AgMD2::log( ViStatus rcode, const char * const file, int line )
+AgMD2::log( ViStatus rcode, const char * const file, int line, std::function< std::string()> details )
 {
     if ( rcode ) {
         ViInt32 errorCode;
         ViChar msg[256];
         AgMD2_GetError( VI_NULL, &errorCode, sizeof(msg), msg );
-        adportable::debug(file, line) << boost::format("0x%x: %s") % errorCode % msg;
+        adportable::debug(file, line) << boost::format("0x%x: %s") % errorCode % msg << details();
         adlog::logger(file,line,(rcode < 0 ? adlog::LOG_ERROR : adlog::LOG_WARN)) << boost::format("0x%x: %s") % errorCode % msg;
     }
     return rcode == VI_SUCCESS;
@@ -167,7 +167,8 @@ AgMD2::isSimulate() const
 bool
 AgMD2::setSampleRate( double sampleRate )
 {
-    return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_SAMPLE_RATE, sampleRate ), __FILE__, __LINE__ );
+    return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_SAMPLE_RATE, sampleRate ), __FILE__, __LINE__
+                , [=](){ return (boost::format("setSampleRate( %g )") % sampleRate).str();} );
 }
 
 double
@@ -188,7 +189,8 @@ AgMD2::setActiveTriggerSource( const std::string& trigSource )
 bool
 AgMD2::setTriggerDelay( double delay )
 {
-    return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_DELAY, delay ), __FILE__, __LINE__ );
+    return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_DELAY, delay ), __FILE__, __LINE__
+                , [=](){ return (boost::format("setTriggerDelay( %g )") % delay).str();} );
 }
 
 bool
@@ -285,13 +287,14 @@ AgMD2::CalibrationSelfCalibrate()
 bool
 AgMD2::AcquisitionInitiate()
 {
-    return log( AgMD2_InitiateAcquisition( session_ ), __FILE__, __LINE__ );
+    return log( AgMD2_InitiateAcquisition( session_ ), __FILE__, __LINE__, []{ return std::string("AcquisitionInitiate"); } );
 }
 
 bool
 AgMD2::AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds )
 {
-    return log( AgMD2_WaitForAcquisitionComplete( session_, milliseconds ), __FILE__, __LINE__ );
+    return log( AgMD2_WaitForAcquisitionComplete( session_, milliseconds ), __FILE__, __LINE__
+                , [=]{ return ( boost::format("AcquisitionWaitForComplete(%1%)") % milliseconds ).str() ; } );
 }
 
 bool
@@ -310,18 +313,23 @@ AgMD2::TSREnabled()
 }
 
 bool
-AgMD2::isTSRAcquisitionComplete()
+AgMD2::isTSRAcquisitionComplete( bool& result )
 {
+    result = false;
+
     ViBoolean value( VI_FALSE );
-    log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value ), __FILE__, __LINE__ );
-    return value == VI_FALSE ? false : true;    
+    if ( log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value ), __FILE__, __LINE__, [](){ return "isTSRAcquisitionComplete"; } ) ) {
+        result = ( value != VI_FALSE );
+        return true;
+    }
+    return false;
 }
 
 bool
 AgMD2::TSRMemoryOverflowOccured()
 {
     ViBoolean value( VI_FALSE );
-    log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED, &value ), __FILE__, __LINE__ );
+    log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED, &value ), __FILE__, __LINE__, [](){ return "TSRMemoryOverflowOccured()"; } );
     return value == VI_FALSE ? false : true;    
 }
 

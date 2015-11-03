@@ -41,6 +41,7 @@
 #include <adcontrols/traceaccessor.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/is_type.hpp>
 #include <adportable/semaphore.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adicontroller/instrument.hpp>
@@ -71,7 +72,6 @@ namespace u5303a {
     static std::once_flag flag1;
 
     struct data_status {
-        uint32_t pos_;
         uint32_t pos_origin_;
         int device_version_;
         uint32_t posted_data_count_;
@@ -80,10 +80,10 @@ namespace u5303a {
         std::atomic< bool > data_ready_;        
         std::chrono::steady_clock::time_point tp_data_handled_;
         std::chrono::steady_clock::time_point tp_plot_handled_;
-        data_status() : pos_( -1 ), pos_origin_( 0 ), device_version_( 0 ), posted_data_count_( 0 ), plot_ready_( false ), data_ready_( false ) {
+        data_status() : /* pos_( -1 ), */ pos_origin_( -1 ), device_version_( 0 ), posted_data_count_( 0 ), plot_ready_( false ), data_ready_( false ) {
         }
-        data_status( const data_status& t ) : pos_( t.pos_ )
-                                            , pos_origin_( t.pos_origin_ )
+        data_status( const data_status& t ) : /* pos_( t.pos_ ) */
+                                            pos_origin_( t.pos_origin_ )
                                             , device_version_( t.device_version_ )
                                             , posted_data_count_( t.posted_data_count_ )
                                             , proced_data_count_( t.proced_data_count_ )
@@ -232,7 +232,10 @@ task::instInitialize( adicontroller::Instrument::Session * session )
 void
 task::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos )
 {
-    // on SignalObserver::Observer masharing (sync with device data-reading thread)
+    // This thread is marshaled from SignalObserver::Observer, which is the device's data read thread
+
+    impl_->data_status_[ so->objid() ].posted_data_count_++;
+
     impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
 }
 
@@ -304,8 +307,8 @@ task::impl::worker_thread()
                     auto ms = std::make_shared< adcontrols::MassSpectrum >();
                     
                     if ( acqrscontrols::u5303a::waveform::translate( *ms, *result ) ) {
-                        
-                        ms->getMSProperty().setTrigNumber( status.pos_, status.pos_origin_ );
+
+                        ms->getMSProperty().setTrigNumber( result->data()->serialnumber_, status.pos_origin_ );
                         document::instance()->setData( u5303a_observer, ms, channel );
                         
                     }
@@ -324,27 +327,23 @@ task::impl::worker_thread()
     } while ( true );
 }
 
-// strand::wrap
 void
 task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos )
 {
     if ( so ) {
 
         auto& status = data_status_[ so->objid() ];
-        status.posted_data_count_++;
 
-        if ( status.pos_ == uint32_t( -1 ) ) {
-            status.pos_ = pos;
+        if ( status.pos_origin_ == uint32_t( -1 ) ) {
             status.pos_origin_ = pos;
         }
-    
+        
         if ( so->objid() == u5303a_observer ) {
 
             std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
-            if ( ( rb = so->readData( status.pos_ ) ) ) {
-                status.pos_++;
+
+            if ( ( rb = so->readData( pos ) ) )
                 handle_u5303a_data( status, rb );
-            } while ( rb && status.pos_ <= pos );
 
         } else {
             std::string name = so->objtext();
@@ -357,19 +356,34 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
 void
 task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroller::SignalObserver::DataReadBuffer> rb )
 {
+    typedef std::pair< std::shared_ptr< const acqrscontrols::u5303a::waveform >, std::shared_ptr< const acqrscontrols::u5303a::waveform > > const_waveform_pair_t;
 
-    auto waveforms = acqrscontrols::u5303a::waveform::deserialize( rb.get() );
+    std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms( {0, 0} );
+    
+    if ( adportable::a_type< const_waveform_pair_t >::is_a( rb->data() ) ) {
+        try {
+            const_waveform_pair_t pair = boost::any_cast< const_waveform_pair_t >( rb->data() );
+            waveforms = { pair.first, pair.second };
+        } catch ( boost::bad_any_cast& ) {
+            assert( 0 );
+            ADERROR() << "bad any cast";
+        }
+    }
 
-    auto threshold_results = document::instance()->tdc()->handle_waveforms( waveforms );
-    // todo: result -> DataReadBuffer for save data
+    // if ( !waveforms[0] && !waveforms[1] ) {
+    //     waveforms = acqrscontrols::u5303a::waveform::deserialize( rb.get() );
+    // }
 
-    if ( threshold_results[0] || threshold_results[1] ) {
+    if ( waveforms[0] || waveforms[1] ) {
 
-        document::instance()->tdc()->appendHistogram( threshold_results );
-        handle_u5303a_average( status, threshold_results ); // draw spectrogram and TIC
-
-        // io_service_.post( [=]() { document::instance()->tdc()->appendHistogram( threshold_results ); } );
-        // io_service_.post( [=] () { handle_u5303a_average( status, threshold_results ); } ); // draw spectrogram and TIC
+        auto threshold_results = document::instance()->tdc()->handle_waveforms( waveforms );
+        
+        if ( threshold_results[0] || threshold_results[1] ) {
+            
+            document::instance()->tdc()->appendHistogram( threshold_results );
+            handle_u5303a_average( status, threshold_results ); // draw spectrogram and TIC
+  
+        }
     }
 }
 

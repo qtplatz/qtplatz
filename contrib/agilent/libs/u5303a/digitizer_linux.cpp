@@ -24,8 +24,8 @@
 
 #include "digitizer.hpp"
 #include "simulator.hpp"
-//#include "sampleprocessor.hpp"
 #include "agmd2.hpp"
+#include "automaton.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
@@ -53,7 +53,7 @@ namespace u5303a {
 
     namespace detail {
  
-        class task {
+        class task : public fsm::handler {
             task();
             ~task();
         public:
@@ -95,12 +95,23 @@ namespace u5303a {
             void error_reply( const std::string& emsg, const std::string& );
 
         private:
+            // fsm::handler
+            void fsm_action_prepare() override;
+            void fsm_action_stop() override;
+            void fsm_action_TSR_stop() override;
+            void fsm_action_initiate() override;
+            void fsm_action_TSR_initiate() override;
+            void fsm_action_continue() override;
+            void fsm_action_TSR_continue() override;
+            
+        private:
             friend std::unique_ptr< task >::deleter_type;
             static std::unique_ptr< task > instance_;
             static std::mutex mutex_;
 
             uint64_t digitizerNumRecords_;
 
+            fsm::controller fsm_;
             std::shared_ptr< AgMD2 > spDriver_;
             std::vector< adportable::asio::thread > threads_;
             boost::asio::io_service io_service_;
@@ -108,11 +119,10 @@ namespace u5303a {
             boost::asio::io_service::strand strand_;
             bool simulated_;
             acqrscontrols::u5303a::method method_;
-            std::atomic_flag acquire_posted_;
+            std::atomic_flag acquire_posted_;   // only one 'acquire' handler can be in the strand
+            
             uint64_t inject_timepoint_;
             std::vector< std::string > foundResources_;
-
-            //std::deque< std::shared_ptr< SampleProcessor > > queue_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
@@ -252,27 +262,26 @@ task::task() : work_( io_service_ )
              , simulated_( false )
              , exptr_( nullptr )
              , digitizerNumRecords_( 1 )
+             , fsm_( this )
 {
     acquire_posted_.clear();
+    
+    fsm_.start(); // Stopped state
 
-    for ( int i = 0; i < 2; ++i ) {
-
-        threads_.push_back( adportable::asio::thread( [this]() {
-                    try {
-                        io_service_.run();
-                    } catch ( ... ) {
-                        ADERROR() << "Exception: " << boost::current_exception_diagnostic_information();
-                        exptr_ = std::current_exception();
-                    }
-                } ) );
-
-    }
+    threads_.push_back( adportable::asio::thread( [this]() {
+                try {
+                    io_service_.run();
+                } catch ( ... ) {
+                    ADERROR() << "Exception: " << boost::current_exception_diagnostic_information();
+                    exptr_ = std::current_exception();
+                }
+            } ) );
+    
 }
 
 task::~task()
 {
     ADDEBUG() << "******** task dtor";
-    acquire_posted_.clear();
     terminate();
 }
 
@@ -322,32 +331,22 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
               << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
               << "\tinvert_signal: " << m.invert_signal
               << "\tnsa: " << m.nsa;
-    
+
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
-
-    if ( ! std::atomic_flag_test_and_set( &acquire_posted_ ) ) 
-        io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
-
 
     return true;
 }
 
-
 bool
 task::run()
 {
-    // std::lock_guard< std::mutex > lock( mutex_ );
-	// if ( queue_.empty() ) {
-    //     queue_.push_back( std::make_shared< SampleProcessor >( io_service_ ) );
-    //     queue_.back()->prepare_storage( 0 ); //pMasterObserver_->_this() );
-    // }
     return true;
 }
 
 bool
 task::stop()
 {
-    std::atomic_flag_clear( &acquire_posted_ );
+    fsm_.process_event( fsm::Stop() );
     return true;
 }
 
@@ -360,8 +359,6 @@ task::trigger_inject_out()
 void
 task::terminate()
 {
-    acquire_posted_.clear();
-
     spDriver()->Abort();
     
     io_service_.stop();
@@ -373,9 +370,63 @@ task::terminate()
 
 
 ///////////////////////////////////////
-         //// Parameters ////
 //////////////////////////////////////
-//////////////////////////////////////
+
+void
+task::fsm_action_stop()
+{
+    ADDEBUG() << "***** fsm_action_stop";
+}
+
+void
+task::fsm_action_TSR_stop()
+{
+    ADDEBUG() << "***** fsm_action_TSR_stop";
+    spDriver_->Abort();
+}
+
+void
+task::fsm_action_prepare()
+{
+    ADDEBUG() << "***** fsm_action_prepare";
+    if ( spDriver_->TSREnabled() )
+        spDriver_->Abort();
+}
+
+void
+task::fsm_action_initiate()
+{
+    if ( ! acquire_posted_.test_and_set() ) {
+        io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
+        ADDEBUG() << "***** fsm_action_initialize posted";
+    }
+}
+
+void
+task::fsm_action_TSR_initiate()
+{
+    if ( ! acquire_posted_.test_and_set() ) {
+        acquire();
+        io_service_.post( strand_.wrap( [this] { handle_TSR_acquire(); } ) );
+        ADDEBUG() << "***** fsm_action_TSR_initialize posted";
+    }
+}
+
+void
+task::fsm_action_continue()
+{
+    if ( ! acquire_posted_.test_and_set() ) {
+        io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
+    }
+}
+
+void
+task::fsm_action_TSR_continue()
+{
+    if ( ! acquire_posted_.test_and_set() ) {
+        io_service_.post( strand_.wrap( [this] { handle_TSR_acquire(); } ) );
+    }
+}
 
 bool
 task::handle_initial_setup()
@@ -430,6 +481,9 @@ task::handle_initial_setup()
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
 
+    spDriver_->Abort();
+    fsm_.process_event( fsm::Stop() );
+
 	return success;
 }
 
@@ -443,9 +497,9 @@ bool
 task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 {
     bool aborted( false );
-    if ( spDriver()->TSREnabled() )
-        aborted = spDriver()->Abort();
-    
+
+    fsm_.process_event( fsm::Prepare() );
+
     device::initial_setup( *this, m, ident().Options() );
 
     if ( m.mode_ && simulated_ ) {
@@ -455,9 +509,12 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
     }
 
     method_ = m;
-
-    if ( aborted && spDriver()->TSREnabled() )
-        acquire();
+    
+    if ( spDriver()->TSREnabled() ) {
+        fsm_.process_event( fsm::TSRInitiate() );
+    } else {
+        fsm_.process_event( fsm::Initiate() );
+    }
 
     return true;
 }
@@ -481,24 +538,32 @@ task::handle_protocol( const acqrscontrols::u5303a::method m )
 bool
 task::handle_TSR_acquire()
 {
-    if ( !std::atomic_flag_test_and_set( &acquire_posted_ ) ) {
-        std::atomic_flag_clear( &acquire_posted_ ); // keep it false
-        return false;
-    }
-    
-    io_service_.post( strand_.wrap( [&] { handle_TSR_acquire(); } ) );    // scedule for next acquire
-    
+    acquire_posted_.clear();  // make sure only one 'acquire' handler is in the strand que
+
+    ADDEBUG() << "******** handle_TSR_acquire ********";
+
     if ( spDriver()->TSRMemoryOverflowOccured() )
         ADTRACE() << "Memory Overflow";
-    
-    while ( ! spDriver()->isTSRAcquisitionComplete() )
-        std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
+
+    auto tp = std::chrono::steady_clock::now() + std::chrono::milliseconds( 1000 ); // 1 seconds
+
+    bool complete( false );
+    while ( spDriver()->isTSRAcquisitionComplete( complete )
+            && !complete
+            && ( std::chrono::steady_clock::now() < tp )  ) {
+        std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) ); // assume 1ms trig. interval
+    }
+
+    if ( !complete )
+        return false;
     
     std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
-
+    
     digitizer::readData( *spDriver(), method_, vec );
     spDriver_->TSRContinue();    
-    
+
+    fsm_.process_event( fsm::Continue() );    
+
     for ( auto& waveform: vec ) {
         acqrscontrols::u5303a::method m;
         for ( auto& reply: waveform_handlers_ ) {
@@ -506,34 +571,18 @@ task::handle_TSR_acquire()
                 handle_protocol( m );
         }
     }
-
     return true;
 }
 
 bool
 task::handle_acquire()
 {
-    static int counter_;
-
-    if ( !std::atomic_flag_test_and_set( &acquire_posted_ ) ) {
-
-        std::atomic_flag_clear( &acquire_posted_ ); // keep it false
-        return false;
-
-    }
-
-    if ( spDriver()->TSREnabled() ) {
-        ADDEBUG() << "handle_acquire TSR enabled";
-        if ( acquire() )
-            io_service_.post( strand_.wrap( [&] { handle_TSR_acquire(); } ) );  // scedule for TSR acquire
-        return false;
-
-    } else {
-        
-        io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );  // scedule for TSR acquire
-        
-    }
-        
+    acquire_posted_.clear();  // make sure only one 'acquire' handler is in the strand que
+    
+    ADDEBUG() << "******** handle_acquire ********";
+    
+    fsm_.process_event( fsm::Continue() );
+    
     if ( acquire() ) {
 
         if ( waitForEndOfAcquisition( 3000 ) ) {
@@ -562,7 +611,6 @@ task::handle_acquire()
         }
     }
     ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
-    spDriver()->Abort();
     return false;
 }
 
