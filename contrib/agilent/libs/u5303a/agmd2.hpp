@@ -25,6 +25,7 @@
 #pragma once
 
 #include <AgMD2.h>
+#include <boost/logic/tribool.hpp>
 #include <functional>
 #include <memory>
 #include <string>
@@ -48,13 +49,14 @@ namespace u5303a {
 
         inline ViSession session() { return session_; }
 
-        static bool log( ViStatus rcode, const char * const file, int line, std::function< std::string()> details = []{ return std::string(); } );
+        static bool log( ViStatus rcode, const char * const file, int line
+                         , std::function< std::string()> details = std::function<std::string()>() );
 
         uint32_t dataSerialNumber();
         
         bool InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options );
 
-        bool GetAttributeViString ( ViStatus& rcode, ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result );
+        bool GetAttributeViString ( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result );
 
         bool Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& );
         std::shared_ptr< acqrscontrols::u5303a::identify > Identify();
@@ -100,15 +102,22 @@ namespace u5303a {
         bool setTSREnabled( bool );
         bool TSREnabled();
 
-        bool isTSRAcquisitionComplete( bool& );
+        boost::tribool isTSRAcquisitionComplete() const;
         
-        bool TSRMemoryOverflowOccured();
+        boost::tribool TSRMemoryOverflowOccured() const;
 
         bool TSRContinue();
 
         bool Abort();
 
         bool setTriggerHoldOff( double seconds );
+
         double TriggerHoldOff() const;
+
+        boost::tribool isIdle() const;
+        boost::tribool isMeasuring() const;
+        boost::tribool isWaitingForArm() const;
+        boost::tribool isWaitingForTrigger() const;
+        
     }; 
 }

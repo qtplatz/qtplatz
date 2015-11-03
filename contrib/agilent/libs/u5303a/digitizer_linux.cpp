@@ -359,7 +359,8 @@ task::trigger_inject_out()
 void
 task::terminate()
 {
-    spDriver()->Abort();
+    if ( spDriver_ )
+        spDriver_->Abort();
     
     io_service_.stop();
     
@@ -405,10 +406,13 @@ task::fsm_action_initiate()
 void
 task::fsm_action_TSR_initiate()
 {
-    if ( ! acquire_posted_.test_and_set() ) {
+    if ( spDriver_->isIdle() )
         acquire();
+
+    if ( ! acquire_posted_.test_and_set() ) {
+
         io_service_.post( strand_.wrap( [this] { handle_TSR_acquire(); } ) );
-        ADDEBUG() << "***** fsm_action_TSR_initialize posted";
+
     }
 }
 
@@ -510,7 +514,7 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 
     method_ = m;
     
-    if ( spDriver()->TSREnabled() ) {
+    if ( m.method_.TSR_enabled ) {
         fsm_.process_event( fsm::TSRInitiate() );
     } else {
         fsm_.process_event( fsm::Initiate() );
@@ -538,19 +542,16 @@ task::handle_protocol( const acqrscontrols::u5303a::method m )
 bool
 task::handle_TSR_acquire()
 {
-    acquire_posted_.clear();  // make sure only one 'acquire' handler is in the strand que
-
-    ADDEBUG() << "******** handle_TSR_acquire ********";
-
+    acquire_posted_.clear();
+    fsm_.process_event( fsm::Continue() );
+    
     if ( spDriver()->TSRMemoryOverflowOccured() )
         ADTRACE() << "Memory Overflow";
 
-    auto tp = std::chrono::steady_clock::now() + std::chrono::milliseconds( 1000 ); // 1 seconds
+    auto tp = std::chrono::steady_clock::now() + std::chrono::milliseconds( 1000 ); // wait for max 1 second
 
-    bool complete( false );
-    while ( spDriver()->isTSRAcquisitionComplete( complete )
-            && !complete
-            && ( std::chrono::steady_clock::now() < tp )  ) {
+    boost::tribool complete;
+    while ( ! ( complete = spDriver()->isTSRAcquisitionComplete() ) && ( std::chrono::steady_clock::now() < tp ) ) {
         std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) ); // assume 1ms trig. interval
     }
 
@@ -561,8 +562,6 @@ task::handle_TSR_acquire()
     
     digitizer::readData( *spDriver(), method_, vec );
     spDriver_->TSRContinue();    
-
-    fsm_.process_event( fsm::Continue() );    
 
     for ( auto& waveform: vec ) {
         acqrscontrols::u5303a::method m;
@@ -578,8 +577,6 @@ bool
 task::handle_acquire()
 {
     acquire_posted_.clear();  // make sure only one 'acquire' handler is in the strand que
-    
-    ADDEBUG() << "******** handle_acquire ********";
     
     fsm_.process_event( fsm::Continue() );
     
@@ -610,7 +607,6 @@ task::handle_acquire()
             return true;
         }
     }
-    ADTRACE() << "===== handle_acquire waitForEndOfAcquisitioon == not handled.";
     return false;
 }
 

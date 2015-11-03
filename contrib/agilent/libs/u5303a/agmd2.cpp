@@ -28,6 +28,7 @@
 #include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <boost/format.hpp>
+#include <boost/logic/tribool.hpp>
 #include <atomic>
 
 namespace u5303a {
@@ -69,14 +70,19 @@ AgMD2::InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolea
 }
         
 bool
-AgMD2::log( ViStatus rcode, const char * const file, int line, std::function< std::string()> details )
+AgMD2::log( ViStatus rcode, const char * const file, int line, std::function< std::string()> describe )
 {
     if ( rcode ) {
         ViInt32 errorCode;
         ViChar msg[256];
         AgMD2_GetError( VI_NULL, &errorCode, sizeof(msg), msg );
-        adportable::debug(file, line) << boost::format("0x%x: %s") % errorCode % msg << details();
-        adlog::logger(file,line,(rcode < 0 ? adlog::LOG_ERROR : adlog::LOG_WARN)) << boost::format("0x%x: %s") % errorCode % msg;
+        if ( describe ) {
+            adportable::debug(file, line) << boost::format("0x%x: %s where ") % errorCode % msg << describe();
+            adlog::logger(file,line,(rcode < 0 ? adlog::LOG_ERROR : adlog::LOG_WARN)) << boost::format("0x%x: %s where %s") % errorCode % msg % describe();
+        } else {
+            adportable::debug(file, line) << boost::format("0x%x: %s") % errorCode % msg;
+            adlog::logger(file,line,(rcode < 0 ? adlog::LOG_ERROR : adlog::LOG_WARN)) << boost::format("0x%x: %s ") % errorCode % msg;            
+        }
     }
     return rcode == VI_SUCCESS;
 }
@@ -312,25 +318,28 @@ AgMD2::TSREnabled()
     return value == VI_FALSE ? false : true;
 }
 
-bool
-AgMD2::isTSRAcquisitionComplete( bool& result )
+boost::tribool
+AgMD2::isTSRAcquisitionComplete() const
 {
-    result = false;
-
     ViBoolean value( VI_FALSE );
-    if ( log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value ), __FILE__, __LINE__, [](){ return "isTSRAcquisitionComplete"; } ) ) {
-        result = ( value != VI_FALSE );
-        return true;
+    if ( log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value ) 
+              , __FILE__, __LINE__, [](){ return "isTSRAcquisitionComplete()"; } ) ) {
+        return value != VI_FALSE;
     }
-    return false;
+    return boost::indeterminate;
 }
 
-bool
-AgMD2::TSRMemoryOverflowOccured()
+boost::tribool
+AgMD2::TSRMemoryOverflowOccured() const
 {
     ViBoolean value( VI_FALSE );
-    log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED, &value ), __FILE__, __LINE__, [](){ return "TSRMemoryOverflowOccured()"; } );
-    return value == VI_FALSE ? false : true;    
+    ViStatus rcode;
+
+    if ( log( ( rcode = AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED, &value ) )
+              , __FILE__, __LINE__, [](){ return "TSRMemoryOverflowOccured()"; } ) )
+        return value == VI_FALSE ? false : true;
+    
+    return boost::indeterminate;
 }
 
 bool
@@ -362,6 +371,65 @@ AgMD2::TriggerHoldOff() const
     return -9999;
 }
 
+boost::tribool
+AgMD2::isIdle() const
+{
+    ViInt32 status( 0 );
+    if ( log( AgMD2_IsIdle ( session_, &status ), __FILE__, __LINE__, [](){ return "isIdle"; }) ) {
+        if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE )
+            return true;
+        else if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_FALSE )
+            return false;
+        else if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_UNKNOWN )
+            return boost::indeterminate;
+    }
+    return boost::indeterminate;
+}
 
+boost::tribool
+AgMD2::isMeasuring() const
+{
+    ViInt32 status( 0 );
 
+    if ( log( AgMD2_IsMeasuring( session_, &status ), __FILE__, __LINE__, [](){ return "isMeasuring"; }) ) {
+        if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE )
+            return true;
+        else if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_FALSE )
+            return false;
+        else if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_UNKNOWN )
+            return boost::indeterminate;
+    }
+    return boost::indeterminate;
+}
 
+boost::tribool
+AgMD2::isWaitingForArm () const
+{
+    ViInt32 status( 0 );
+    
+    if ( log( AgMD2_IsWaitingForArm( session_, &status ), __FILE__, __LINE__, [](){ return "isWaitingForArm"; }) ) {
+        if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE )
+            return true;
+        else if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_FALSE )
+            return false;
+        else if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_UNKNOWN )
+            return boost::indeterminate;
+    }
+    return boost::indeterminate;
+}
+
+boost::tribool
+AgMD2::isWaitingForTrigger() const
+{
+    ViInt32 status( 0 );
+    
+    if ( log( AgMD2_IsWaitingForTrigger( session_, &status ), __FILE__, __LINE__, [](){ return "isWaitingForTrigger"; }) ) {
+        if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE )
+            return true;
+        else if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_FALSE )
+            return false;
+        else if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_UNKNOWN )
+            return boost::indeterminate;
+    }
+    return boost::indeterminate;    
+}

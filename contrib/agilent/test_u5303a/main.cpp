@@ -43,18 +43,21 @@ int
 main( int argc, char * argv [] )
 {
     bool success( false ), simulated( false );
+    bool TSR_enabled( false );
 
     po::variables_map vm;
     po::options_description description( "test_u5303a" );
     {
         description.add_options()
             ( "help,h",    "Display this help message" )
-            ( "tsr,s",      po::value<int>()->default_value( 0 ), "TSR enable(1)/disable(0)" )
+            ( "tsr,t",     "TSR enable" )
             ( "records,r",  po::value<int>()->default_value( 1 ), "Number of records" )
             ( "average,a",  po::value<int>()->default_value( 0 ), "Number of average" )
-            ( "mode,m",     po::value<int>()->default_value( 0 ), "Digitizer (0) or Averager (2)" )
+            ( "mode,m",     po::value<int>()->default_value( 0 ), "=0 Normal(digitizer); =2 Averager" )
             ( "delay,d",    po::value<double>()->default_value( 0.0 ), "Delay (us)" )
             ( "width,w",    po::value<double>()->default_value( 100.0 ), "Waveform width (us)" )
+            ( "replicates", po::value<int>()->default_value( 1000 ), "Number of triggers to acquire waveforms" )
+            ( "rate",       po::value<double>()->default_value( 1.0 ),  "Trigger interval in millisecond" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -64,6 +67,13 @@ main( int argc, char * argv [] )
         std::cout << description;
         return 0;
     }
+
+    if ( vm.count( "tsr" ) ) {
+        TSR_enabled = true;
+    }
+        
+
+    double rate = vm[ "rate" ].as<double>() * 1.0e-3 * 1.2; // milliseconds -> seconds + 20%
 
     ppio pp;
 
@@ -86,8 +96,6 @@ main( int argc, char * argv [] )
                     break;
             }
         }
-
-        
         
         if ( success ) {
 
@@ -111,7 +119,7 @@ main( int argc, char * argv [] )
             method.method_.digitizer_nbr_of_s_to_acquire = method.method_.nbr_of_s_to_acquire_ = width;
 
             // TSR
-            method.method_.TSR_enabled = vm[ "tsr" ].as<int>() ? true : false;
+            method.method_.TSR_enabled = TSR_enabled;
             
             auto ident = std::make_shared< acqrscontrols::u5303a::identify >();
             md2->Identify( ident );
@@ -127,7 +135,7 @@ main( int argc, char * argv [] )
                       << "IOVersion:        " << ident->IOVersion() << std::endl
                       << "NbrADCBits:       " << ident->NbrADCBits() << std::endl;
             
-            if ( ident->Options().find( "INT" ) != std::string::npos )   // Interleave ON
+            if ( ident->Options().find( "INT" ) != std::string::npos ) // Interleave ON
                 md2->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
 
             md2->setActiveTriggerSource( "External1" );
@@ -161,24 +169,20 @@ main( int argc, char * argv [] )
 
             md2->CalibrationSelfCalibrate();
             
-            std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();
-
-            std::shared_ptr< acqrscontrols::u5303a::waveform > w1;
-            
+            std::vector< std::pair< double, double > > exceededTimings;
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
 
-            constexpr size_t replicates = 1000;
-            
-            std::cout << "********** TSR " << std::boolalpha << md2->TSREnabled() << std::endl;
-
+            const size_t replicates = vm[ "replicates" ].as<int>();
+            size_t deadcount(0);
             double seconds(0), last(0);
+            size_t dataCount(0);
 
+            std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();            
+            
             if ( md2->TSREnabled() ) {
                 
                 md2->AcquisitionInitiate();
-
-                size_t dataCount(0);
-
+                
                 while ( replicates > dataCount ) {
                     
                     if ( md2->TSRMemoryOverflowOccured() ) {
@@ -192,21 +196,35 @@ main( int argc, char * argv [] )
                     u5303a::digitizer::readData( *md2, method, vec );
                     md2->TSRContinue();
                     
-                    std::cout << "read : " << vec.size() << std::endl;
-                    
                     for ( auto& waveform: vec ) {
+                        // report if trigger receive interval exceeded
                         seconds = waveform->meta_.initialXTimeSeconds;
-                        if ( last != 0 )
-                            std::cout << seconds << ", " << seconds - last << std::endl;
+                        if ( last != 0 ) {
+                            double interval = seconds - last;
+                            if ( interval > rate )
+                                exceededTimings.push_back( std::make_pair( seconds, interval ) );
+                        }
                         last = seconds;
                     }
                     
-
                     dataCount += vec.size();
-
-                    vec.clear();  // delete data
-                }
                     
+                    constexpr size_t deadsize = 100;
+                    for ( auto& waveform: vec ) {
+                        size_t count(0);
+                        for ( auto it = waveform->begin(); it != waveform->end(); ++it ) {
+                            if ( !( *it == 0 || *it == 0xffffdead ) )
+                                break;
+                            if ( ++count >= deadsize )
+                                break;
+                        }
+                        if ( count >= deadsize )
+                            ++deadcount;
+                    }
+                    
+                    vec.clear();  // throw waveforms away.
+                }
+                
             } else {
 
                 for ( int i = 0; i < replicates; ++i ) {
@@ -219,15 +237,22 @@ main( int argc, char * argv [] )
                     pp << uint8_t( 0x02 );
 
                     u5303a::digitizer::readData( *md2, method, vec );
+                    dataCount += vec.size();
+
                     vec.clear();
                 }
             }
             
             uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::steady_clock::now() - tp ).count();
             double s = double(ns) * 1.0e-9;
-            std::cout << "Took " << s << " seconds; " << double(replicates) / s << "Hz" << std::endl;
+            std::cout << "Took " << s << " seconds; " << double(dataCount) / s << "Hz" << std::endl;
+            std::cout << deadcount << " DEAD data received / " << dataCount << " waveforms read" << std::endl;
+            std::cout << exceededTimings.size() << " waveforms has the trigger timing exceeded from external trig rate of " << rate << std::endl;
+
+            for ( auto& pair: exceededTimings ) {
+                std::cout << "waveform at " << pair.first << " interval: " << pair.second << std::endl;
+            }
         }
-        
     }
     
     return 0;
