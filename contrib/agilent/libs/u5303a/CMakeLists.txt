@@ -76,3 +76,9 @@ target_link_libraries( u5303a PUBLIC
   ${AgMD2_LIBRARY}
   ${Boost_LIBRARIES}
   )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT modules
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  

@@ -27,3 +27,8 @@ target_link_libraries( u5303aspectrometer LINK_PUBLIC
   acewrapper
   )
 
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  
