@@ -24,6 +24,7 @@
 
 #include "u5303aform.hpp"
 #include "ui_u5303aform.h"
+#include <adportable/debug.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <QSignalBlocker>
@@ -36,38 +37,59 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
 {
     ui->setupUi( this );
 
+    connect( ui->pushButton, &QPushButton::pressed, [=](){  emit valueChanged( idU5303AAny, 0, QVariant() ); } );
+
     ui->spinBox->setStepBy( []( adwidgets::SpinBox * _this, int step ) {
-        int index = _this->value() >= 8 ? ( _this->value() ) / 8 + 7 : _this->value();
-        index += step;
-        int value = index <= 8 ? index : ( index - 7 ) * 8;
-        _this->setValue( value );
-    });
+            int index = _this->value() >= 8 ? ( _this->value() ) / 8 + 7 : _this->value();
+            index += step;
+            int value = index <= 8 ? index : ( index - 7 ) * 8;
+            _this->setValue( value );
+        });
 
     // start delay
     connect( ui->doubleSpinBox_1, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double d ) {
-            emit valueChanged( idU5303AStartDelay, 0, QVariant( adcontrols::metric::scale_to_base( d, adcontrols::metric::micro ) ) ); } );
-
+            ui->doubleSpinBox_1->setStyleSheet( "QDoubleSpinBox { color: #ff6347; }" );
+            emit valueChanged( idU5303AStartDelay, 0, QVariant( adcontrols::metric::scale_to_base( d, adcontrols::metric::micro ) ) );
+        } );
+    
     // width
     connect( ui->doubleSpinBox_2, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double d ) {
-            emit valueChanged( idU5303AWidth, 0, QVariant( adcontrols::metric::scale_to_base( d, adcontrols::metric::micro ) ) ); } );
+            ui->doubleSpinBox_2->setStyleSheet( "QDoubleSpinBox { color: #ff6347; }" );
+            emit valueChanged( idU5303AWidth, 0, QVariant( adcontrols::metric::scale_to_base( d, adcontrols::metric::micro ) ) );
+        });
+    
 
     // number of average
     connect( ui->spinBox, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int d ) {
-        if ( d > 8 && ( d % 8 ) ) {
-            QSignalBlocker block( ui->spinBox );
-            ui->spinBox->setValue( d & ~07 );
-        }
-        emit valueChanged( idNbrAverages, 0, QVariant( d ) ); } );
-
-    // mode
-    connect( ui->checkBox_Avg, &QCheckBox::toggled, [this] ( bool flag ) { emit valueChanged( idU5303AMode, 0, QVariant( flag ) ); } );
+            if ( d > 8 && ( d % 8 ) ) {
+                QSignalBlocker block( ui->spinBox );
+                ui->spinBox->setValue( d & ~07 );
+            }
+            ui->spinBox->setStyleSheet( "QSpinBox { color: #ff6347; }" );
+            emit valueChanged( idNbrAverages, 0, QVariant( d ) );
+        } );
 
     // MultiRecord
     connect( ui->spinBox_2, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int d ) {
-            emit valueChanged( idNbrRecords, 0, QVariant( d ) ); } );
+            ui->spinBox_2->setStyleSheet( "QSpinBox { color: #ff6347; }" );
+            // emit valueChanged( idNbrRecords, 0, QVariant( d ) );
+        } );
+
+    // mode
+    connect( ui->checkBox_Avg, &QCheckBox::toggled, [this] ( bool flag ) {
+            ui->checkBox_Avg->setStyleSheet( "QCheckBox { color: #ff6347; }" );
+            if ( flag && ui->checkBox->isChecked() ) // exclusive w/ TSR
+                ui->checkBox->setChecked( false );
+            //emit valueChanged( idU5303AMode, 0, QVariant( flag ) );
+        } );
 
     // TSR
-    connect( ui->checkBox, &QCheckBox::toggled, [this] ( bool flag ) { emit valueChanged( idTSREnable, 0, QVariant( flag ) ); } );    
+    connect( ui->checkBox, &QCheckBox::toggled, [this] ( bool flag ) {
+            ui->checkBox->setStyleSheet( "QCheckBox { color: #ff6347; }" );
+            if ( flag && ui->checkBox_Avg->isChecked() )
+                ui->checkBox_Avg->setChecked( false );
+            // emit valueChanged( idTSREnable, 0, QVariant( flag ) ); }
+        });
 }
 
 u5303AForm::~u5303AForm()
@@ -85,7 +107,8 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
 {
     QSignalBlocker blocks[] = {
         QSignalBlocker( ui->doubleSpinBox_1 ), QSignalBlocker( ui->doubleSpinBox_2 )
-        , QSignalBlocker( ui->spinBox ), QSignalBlocker( ui->checkBox_Avg ), QSignalBlocker( ui->spinBox_2 ) };
+        , QSignalBlocker( ui->spinBox ), QSignalBlocker( ui->checkBox_Avg ), QSignalBlocker( ui->spinBox_2 )
+        , QSignalBlocker( ui->checkBox ) };
 
     ui->doubleSpinBox_1->setValue( adcontrols::metric::scale_to_micro( m.method_.delay_to_first_sample_ ) );
 
@@ -100,15 +123,24 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
     ui->spinBox_2->setValue( m.method_.nbr_records );
 
     ui->checkBox->setChecked( m.method_.TSR_enabled );
+
+    for ( auto w : { ui->doubleSpinBox_1, ui->doubleSpinBox_2 } )
+        w->setStyleSheet( "QDoubleSpinBox { color: black; }" );
+    ui->spinBox->setStyleSheet( "QSpinBox { color: black; }" );
+    ui->spinBox_2->setStyleSheet( "QSpinBox { color: black; }" );
+    ui->checkBox->setStyleSheet( "QCheckBox { color: black; }" );
+    ui->checkBox_Avg->setStyleSheet( "QCheckBox { color: black; }" );
 }
 
 void
 u5303AForm::getContents( acqrscontrols::u5303a::method& m )
 {
     m.method_.delay_to_first_sample_ = adcontrols::metric::scale_to_base( ui->doubleSpinBox_1->value(), adcontrols::metric::micro );
+    ADDEBUG() << "delay_to_first_sample: " << m.method_.delay_to_first_sample_;
 
     double width = adcontrols::metric::scale_to_base( ui->doubleSpinBox_2->value(), adcontrols::metric::micro );
     m.method_.nbr_of_s_to_acquire_ = uint32_t( width * m.method_.samp_rate + 0.5 );
+    ADDEBUG() << "number of samples: " << m.method_.nbr_of_s_to_acquire_;
 
     m.method_.nbr_of_averages = ui->spinBox->value();
 
@@ -117,8 +149,14 @@ u5303AForm::getContents( acqrscontrols::u5303a::method& m )
     m.method_.nbr_records = ui->spinBox_2->value();
 
     m.method_.TSR_enabled = ui->checkBox->isChecked();
-}
 
+    for ( auto w : { ui->doubleSpinBox_1, ui->doubleSpinBox_2 } )
+        w->setStyleSheet( "QDoubleSpinBox { color: black; }" );
+    ui->spinBox->setStyleSheet( "QSpinBox { color: black; }" );
+    ui->spinBox_2->setStyleSheet( "QSpinBox { color: black; }" );
+    ui->checkBox->setStyleSheet( "QCheckBox { color: black; }" );
+    ui->checkBox_Avg->setStyleSheet( "QCheckBox { color: black; }" );
+}
 
 void
 u5303AForm::onHandleValue( idCategory id, int channel, const QVariant& value )

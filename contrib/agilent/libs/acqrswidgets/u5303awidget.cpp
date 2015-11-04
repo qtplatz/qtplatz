@@ -73,7 +73,8 @@ u5303AWidget::onInitialUpdate()
 
             connect( form, &u5303AForm::valueChanged, [this, table] ( idCategory id, int channel, QVariant value ) {
                     table->onHandleValue( id, channel, value );
-                    emit valueChanged( id, channel );
+                    if ( id == idU5303AAny || id == idTSREnable )
+                        emit valueChanged( id, channel );
                 } );
             
             
@@ -82,7 +83,7 @@ u5303AWidget::onInitialUpdate()
 
             connect( table, &u5303ATable::valueChanged, [this, form] ( idCategory id, int channel, QVariant value ) {
                     form->onHandleValue( id, channel, value );
-                    emit valueChanged( id, channel );
+                    // emit valueChanged( id, channel );
                 } );
         }
     }

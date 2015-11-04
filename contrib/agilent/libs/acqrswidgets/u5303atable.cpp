@@ -204,7 +204,7 @@ u5303ATable::setContents( const acqrscontrols::u5303a::device_method& m )
     ++row;
     model.setData( model.index( row, 1 ), m.nbr_of_averages );
     ++row;
-    model.setData( model.index( row, 1 ), m.delay_to_first_sample_ * 1.0e6 ); // s -> us
+    model.setData( model.index( row, 1 ), m.delay_to_first_sample_ ); // seconds
     ++row;
     model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
     ++row;

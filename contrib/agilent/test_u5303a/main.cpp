@@ -173,6 +173,8 @@ main( int argc, char * argv [] )
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
 
             const size_t replicates = vm[ "replicates" ].as<int>();
+
+            std::cout << "Replicates: " << replicates << std::endl;
             size_t deadcount(0);
             double seconds(0), last(0);
             size_t dataCount(0);
@@ -180,13 +182,13 @@ main( int argc, char * argv [] )
             std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();            
             
             if ( md2->TSREnabled() ) {
-                
+
                 md2->AcquisitionInitiate();
                 
                 while ( replicates > dataCount ) {
                     
                     if ( md2->TSRMemoryOverflowOccured() ) {
-                        std::cout << "Memory Overflow" << std::endl;
+                        std::cout << "***** Memory Overflow" << std::endl;
                         break;
                     }
 

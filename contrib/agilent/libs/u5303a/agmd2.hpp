@@ -92,6 +92,7 @@ namespace u5303a {
         bool setAcquisitionNumRecordsToAcquire( uint32_t ); // MultiRecord
 
         bool setAcquisitionMode( int );
+        int AcquisitionMode() const;
 
         bool CalibrationSelfCalibrate();
 

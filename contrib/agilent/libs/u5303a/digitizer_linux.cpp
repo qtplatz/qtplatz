@@ -376,20 +376,17 @@ task::terminate()
 void
 task::fsm_action_stop()
 {
-    ADDEBUG() << "***** fsm_action_stop";
 }
 
 void
 task::fsm_action_TSR_stop()
 {
-    ADDEBUG() << "***** fsm_action_TSR_stop";
     spDriver_->Abort();
 }
 
 void
 task::fsm_action_prepare()
 {
-    ADDEBUG() << "***** fsm_action_prepare";
     if ( spDriver_->TSREnabled() )
         spDriver_->Abort();
 }
@@ -399,7 +396,6 @@ task::fsm_action_initiate()
 {
     if ( ! acquire_posted_.test_and_set() ) {
         io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
-        ADDEBUG() << "***** fsm_action_initialize posted";
     }
 }
 
@@ -500,8 +496,6 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 {
-    bool aborted( false );
-
     fsm_.process_event( fsm::Prepare() );
 
     device::initial_setup( *this, m, ident().Options() );
@@ -732,22 +726,26 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     }
         
     if ( m.mode_ == 0 ) { // Digitizer 
-
+        ADDEBUG() << "Normal Mode";
+        task.spDriver()->setTSREnabled( m.method_.TSR_enabled );
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
         task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
         task.spDriver()->setAcquisitionNumRecordsToAcquire( m.method_.nbr_records );
 
     } else { // Averager
 
-        task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
+        ADDEBUG() << "Averager Mode";
+        task.spDriver()->setTSREnabled( false );
         task.spDriver()->setDataInversionEnabled( m.method_.invert_signal ? true : false );
         task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
         task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
         task.spDriver()->setAcquisitionNumberOfAverages( m.method_.nbr_of_averages );
 
+        // It looks like this command should be issued as last
+        task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
     }
 
-    task.spDriver()->setTSREnabled( m.method_.TSR_enabled );
+    ADTRACE() << "##### ACQUISITION_MODE : " << task.spDriver()->AcquisitionMode();
     
     task.spDriver()->CalibrationSelfCalibrate();
 
@@ -943,8 +941,9 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
                                                               , initialXTimeFraction
                                                               , &xIncrement
                                                               , &scaleFactor
-                                                              , &scaleOffset, flags ), __FILE__, __LINE__ ) ) {
-            
+                                                              , &scaleOffset, flags )
+                         , __FILE__, __LINE__, [](){ return "FetchAccumulatedWaveformInt32()"; } ) ) {
+
             // data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
             data.method_ = m;
             data.meta_.actualAverages = actualAverages;

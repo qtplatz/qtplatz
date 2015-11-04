@@ -284,6 +284,15 @@ AgMD2::setAcquisitionMode( int mode )
 
 }
 
+int
+AgMD2::AcquisitionMode() const
+{
+    int mode( 0 );
+    if ( log( AgMD2_GetAttributeViInt32( session_, "", AGMD2_ATTR_ACQUISITION_MODE, &mode ), __FILE__, __LINE__ ) )
+        return mode;
+    return (-1);
+}
+
 bool
 AgMD2::CalibrationSelfCalibrate()
 {
