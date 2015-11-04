@@ -136,11 +136,9 @@ void
 u5303AForm::getContents( acqrscontrols::u5303a::method& m )
 {
     m.method_.delay_to_first_sample_ = adcontrols::metric::scale_to_base( ui->doubleSpinBox_1->value(), adcontrols::metric::micro );
-    ADDEBUG() << "delay_to_first_sample: " << m.method_.delay_to_first_sample_;
 
     double width = adcontrols::metric::scale_to_base( ui->doubleSpinBox_2->value(), adcontrols::metric::micro );
     m.method_.nbr_of_s_to_acquire_ = uint32_t( width * m.method_.samp_rate + 0.5 );
-    ADDEBUG() << "number of samples: " << m.method_.nbr_of_s_to_acquire_;
 
     m.method_.nbr_of_averages = ui->spinBox->value();
 

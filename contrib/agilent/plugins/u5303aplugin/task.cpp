@@ -82,8 +82,7 @@ namespace u5303a {
         std::chrono::steady_clock::time_point tp_plot_handled_;
         data_status() : /* pos_( -1 ), */ pos_origin_( -1 ), device_version_( 0 ), posted_data_count_( 0 ), plot_ready_( false ), data_ready_( false ) {
         }
-        data_status( const data_status& t ) : /* pos_( t.pos_ ) */
-                                            pos_origin_( t.pos_origin_ )
+        data_status( const data_status& t ) : pos_origin_( t.pos_origin_ )
                                             , device_version_( t.device_version_ )
                                             , posted_data_count_( t.posted_data_count_ )
                                             , proced_data_count_( t.proced_data_count_ )
@@ -102,7 +101,8 @@ namespace u5303a {
                , histogram_window_enabled_( false )
                , histogram_clear_cycle_enabled_( false )
                , histogram_clear_cycle_( 100 )
-               , device_delay_count_( 0 ) {
+               , device_delay_count_( 0 )
+               , isRecording_( true ) {
             
         }
 
@@ -122,10 +122,10 @@ namespace u5303a {
 
         std::shared_ptr< adcontrols::TraceAccessor > traceAccessor_;
         std::atomic< bool > software_inject_triggered_;
-
         std::atomic< bool > histogram_window_enabled_;
         std::atomic< bool > cell_selection_enabled_;
         std::atomic< bool > histogram_clear_cycle_enabled_;
+        std::atomic< bool > isRecording_;
 
         uint32_t histogram_clear_cycle_;
         std::condition_variable cv_;
@@ -234,9 +234,13 @@ task::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos 
 {
     // This thread is marshaled from SignalObserver::Observer, which is the device's data read thread
 
-    impl_->data_status_[ so->objid() ].posted_data_count_++;
-
-    impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
+    if ( impl_->isRecording_ ) {
+        
+        impl_->data_status_[ so->objid() ].posted_data_count_++;
+        
+        impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
+        
+    }
 }
 
 task *
@@ -399,7 +403,7 @@ task::impl::handle_u5303a_average( const data_status status, std::array< thresho
             que_.erase( que_.begin(), que_.begin() + 5 );
         
     } while( 0 ) ;
-    
+
     auto tp = std::chrono::steady_clock::now();
 
     if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
@@ -415,7 +419,6 @@ task::impl::handle_u5303a_average( const data_status status, std::array< thresho
         sema_.signal();
 
     }
-    
 }
 
 void
@@ -459,4 +462,16 @@ task::impl::handle_ap240_data( data_status& status, std::shared_ptr<adicontrolle
 void
 task::impl::handle_ap240_average( const data_status status, std::array< threshold_result_ptr, 2 > results )
 {
+}
+
+void
+task::setRecording( bool rec )
+{
+    impl_->isRecording_ = rec;
+}
+
+bool
+task::isRecording() const
+{
+    return impl_->isRecording_;
 }

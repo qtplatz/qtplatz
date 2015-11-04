@@ -44,6 +44,7 @@
 #include <adextension/isnapshothandler.hpp>
 #include <adicontroller/constants.hpp>
 #include <adportable/date_string.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/split_filename.hpp>
 #include <adplugin/lifecycle.hpp>
@@ -367,7 +368,9 @@ MainWindow::createTopStyledToolbar()
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_RUN)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_STOP)->action()));
 
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_REC)->action()));            
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_REC)->action()));
+            
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_SYNC)->action()));
 
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_SNAPSHOT)->action()));
             //-- separator --
@@ -441,7 +444,6 @@ MainWindow::createActions()
     }
 
     if ( auto action = createAction( Constants::ICON_STOP, tr( "Stop" ), this ) ) {
-        //connect( action, &QAction::triggered, [] () { document::instance()->actionRun( !document::instance()->isRecording() ); } );
         connect( action, &QAction::triggered, [] () { document::instance()->stop(); } );
         action->setEnabled( false );
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_STOP, context );
@@ -454,6 +456,7 @@ MainWindow::createActions()
         icon.addPixmap( QPixmap( Constants::ICON_REC_PAUSE ), QIcon::Normal, QIcon::Off );
         if ( auto action = new QAction( icon, tr( "REC" ), this ) ) {
             action->setCheckable( true );
+            // action->setChecked( true );
             action->setEnabled( false );
             auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, context );
             menu->addAction( cmd );        
@@ -538,7 +541,7 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( false );
         }
 
-    } else if ( status >= adicontroller::Instrument::eStandBy ) {
+    } else if ( status == adicontroller::Instrument::eStandBy ) {
 
         if ( auto action = Core::ActionManager::command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( false );
@@ -548,7 +551,34 @@ MainWindow::handleInstState( int status )
             if ( auto action = Core::ActionManager::command( id )->action() )
                 action->setEnabled( true );
         }
+
+        if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
+            action->setChecked( true );
+        
+    } else if ( status == adicontroller::Instrument::ePreparingForRun ||
+                status == adicontroller::Instrument::eReadyForRun ||
+                status == adicontroller::Instrument::eWaitingForContactClosure ||
+                status == adicontroller::Instrument::eRunning ) {
+        // All enable
+        for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT, Constants::ACTION_SYNC } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( true );
+        }
+        // RUN during 'Running' is possible := simply create new data file
+        
+    } else if ( status == adicontroller::Instrument::eStop ) {
+        // Disable
+        for ( auto id : { Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SYNC } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( false );
+        }
+        for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_SNAPSHOT } ) {
+            if ( auto action = Core::ActionManager::command(Constants::ACTION_RUN)->action() )
+                action->setEnabled( true );
+        }
     }
+
+    ADDEBUG() << "handleInstState(" << status << ")";
 
 }
 
@@ -601,6 +631,7 @@ MainWindow::editor_commit()
 void
 MainWindow::saveCurrentImage()
 {
+    ADDEBUG() << "saveCurrentImage()";
     qApp->beep();
     if ( auto screen = QGuiApplication::primaryScreen() ) {
         
@@ -628,6 +659,8 @@ MainWindow::saveCurrentImage()
             path /= o.str();
             path.replace_extension( ".png" );
 
+            ADDEBUG() << "saveCurrentImage(" << path.string() << ")";
+
             pixmap.save( QString::fromStdWString( path.wstring() ), "png" );
         }
     }
@@ -649,6 +682,7 @@ MainWindow::iControllerConnected( adextension::iController * inst )
                 receiver->onConnected( inst );
             }
         }
+        
     }
 }
 

@@ -52,6 +52,8 @@ namespace u5303a {
         using boost::msm::front::Row;
         using boost::msm::front::none;
 
+        enum idState { idStopped, idReadyToInitiate, idRunning, idTSRRunning };
+
         // events
         struct Stop        {};
         struct Prepare     {};
@@ -78,48 +80,55 @@ namespace u5303a {
             //-----------------------------
             struct Stopped_Entry { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->fsm_state( true, idStopped );
                 }
             };
             struct Stopped_Exit { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->fsm_state( false, idStopped );
                 }
             };
             struct Stopped_tag {};
             typedef msm::front::euml::func_state< Stopped_tag, Stopped_Entry, Stopped_Exit> Stopped;
 
             //-----------------------------
-            struct Preparing_Entry { 
-                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& state ) {
-                }
-            };
-            struct Preparing_Exit { 
-                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& state ) {
-                }
-            };
-            struct Preparing_tag {};
-            typedef msm::front::euml::func_state< Preparing_tag, Preparing_Entry, Preparing_Exit> Preparing;
+            // struct Preparing_Entry { 
+            //     template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& state ) {
+            //         fsm.handler_->fsm_state( true, idPreparing );
+            //     }
+            // };
+            // struct Preparing_Exit { 
+            //     template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& state ) {
+            //         fsm.handler_->fsm_state( false, idPreparing );
+            //     }
+            // };
+            // struct Preparing_tag {};
+            // typedef msm::front::euml::func_state< Preparing_tag, Preparing_Entry, Preparing_Exit> Preparing;
             
             struct ReadyToInitiate_Entry { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                    // nothing
+                    fsm.handler_->fsm_state( true, idReadyToInitiate );
                 }
             };
             struct ReadyToInitiate_Exit { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->fsm_state( false, idReadyToInitiate );
                     // noting
                 }
             };
             struct ReadyToInitiate_tag {};
-            typedef msm::front::euml::func_state< Preparing_tag, Preparing_Entry, Preparing_Exit> ReadyToInitiate;
+            typedef msm::front::euml::func_state< ReadyToInitiate_tag, ReadyToInitiate_Entry, ReadyToInitiate_Exit> ReadyToInitiate;
             
 
             //-----------------------------
             struct Running_Entry {
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->fsm_state( true, idRunning );
                 }
             };
             struct Running_Exit {
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->fsm_state( false, idRunning );
                 }
             };            
             struct Running_tag {};
@@ -128,10 +137,12 @@ namespace u5303a {
             //-----------------------------
             struct TSRRunning_Entry {
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    // fsm.handler_->fsm_state( true, idTSRRunning );
                 }
             };
             struct TSRRunning_Exit {
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    // fsm.handler_->fsm_state( false, idTSRRunning );
                 }
             };
             struct TSRRunning_tag {};
@@ -231,9 +242,8 @@ namespace u5303a {
 
             // Replaces the default no-transition response.
             template <class FSM,class Event> void no_transition(Event const& e, FSM& fsm, int state)  {
-                std::cout << "no transition from state " << state
-                          << " on event " << typeid(e).name() << std::endl;
-                }
+                ADDEBUG() << "no transition from state " << state;
+            }
             handler* handler_;
         };
 
@@ -246,6 +256,7 @@ namespace u5303a {
             virtual void fsm_action_TSR_initiate() = 0;
             virtual void fsm_action_continue() = 0;
             virtual void fsm_action_TSR_continue() = 0;
+            virtual void fsm_state( bool, idState ) = 0;
         };
 
         // Pick a back-end

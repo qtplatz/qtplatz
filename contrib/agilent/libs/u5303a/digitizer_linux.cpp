@@ -103,6 +103,7 @@ namespace u5303a {
             void fsm_action_TSR_initiate() override;
             void fsm_action_continue() override;
             void fsm_action_TSR_continue() override;
+            void fsm_state( bool, fsm::idState ) override;
             
         private:
             friend std::unique_ptr< task >::deleter_type;
@@ -210,7 +211,6 @@ digitizer::peripheral_run()
 bool
 digitizer::peripheral_stop()
 {
-    ADDEBUG() << "############## peripheral_stop";
     return task::instance()->stop();
 }
 
@@ -374,8 +374,21 @@ task::terminate()
 //////////////////////////////////////
 
 void
+task::fsm_state( bool enter, fsm::idState state )
+{
+    if ( state == fsm::idStopped && enter ) {
+        for ( auto& reply: reply_handlers_ )
+            reply( "StateChanged", "Stopped" );
+    } else if ( state == fsm::idReadyToInitiate && enter ) {
+        for ( auto& reply: reply_handlers_ )
+            reply( "StateChanged", "Running" );
+    }
+}
+
+void
 task::fsm_action_stop()
 {
+    // Non TSR stop
 }
 
 void

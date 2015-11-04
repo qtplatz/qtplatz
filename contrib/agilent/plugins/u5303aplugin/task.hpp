@@ -61,6 +61,8 @@ namespace u5303a {
         void setDeviceDelay( double delay );
         void setHistogramClearCycleEnabled( bool );
         void setHistogramClearCycle( uint32_t );
+        void setRecording( bool );
+        bool isRecording() const;
 
     private:
         class impl;

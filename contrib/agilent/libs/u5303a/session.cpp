@@ -80,6 +80,11 @@ namespace u5303a { namespace Instrument {
                 if ( method == "InitialSetup" ) {
                     reply_message( adi::Receiver::STATE_CHANGED
                                    , ( reply == "success" ) ? adi::Instrument::eStandBy : adi::Instrument::eNotConnected | adi::Instrument::eErrorFlag );
+                } else if ( method == "StateChanged" ) {
+                    if ( reply == "Stopped" )
+                        reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eStop ); // 9
+                    else if ( reply == "Running" )
+                        reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eRunning ); // 8
                 }
                 ADTRACE() << "u5303a reply: " << method << " = " << reply;
             }

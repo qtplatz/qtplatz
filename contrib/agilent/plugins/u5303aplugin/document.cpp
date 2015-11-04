@@ -47,6 +47,7 @@
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adportable/binary_serializer.hpp>
+#include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
@@ -234,6 +235,8 @@ document::actionConnect()
 void
 document::actionRec( bool onoff )
 {
+    task::instance()->setRecording( onoff );
+
     for ( auto inst : impl_->iControllers_ ) {
         if ( auto session = inst->getInstrumentSession() )
             session->recording( onoff );
@@ -704,12 +707,7 @@ document::setSampleRun( std::shared_ptr< adcontrols::SampleRun > sr )
 bool
 document::isRecording() const
 {
-    bool recording( false );
-    for ( auto inst : impl_->iControllers_ ) {
-        if ( auto session = inst->getInstrumentSession() )
-            recording |= session->isRecording();
-    }
-    return recording;
+    return task::instance()->isRecording();
 }
 
 void
@@ -873,7 +871,12 @@ document::impl::takeSnapshot()
     std::pair< uint64_t, uint64_t > timeSinceEpoch;
     auto histogram = tdcdoc_->getHistogram( resolution, idx, trigCount, timeSinceEpoch );
 
+    //std::chrono::time_point<std::chrono::system_clock,std::chrono::nanoseconds> tp( std::chrono::nanoseconds( timeSinceEpoch.second ) );
+    std::chrono::system_clock::time_point tp = std::chrono::system_clock::now(); 
+    std::string date = adportable::date_string::logformat( tp );
+
     uint32_t serialnumber(0);
+    
 
     // get waveform(s)
     auto spectra = spectra_[ u5303a_observer ];
@@ -882,7 +885,7 @@ document::impl::takeSnapshot()
     for ( auto ms: spectra ) {
         if ( ms ) {
             serialnumber = ms->getMSProperty().trigNumber();
-            QString title = QString( "Spectrum %1 CH-%2" ).arg( QString::number( serialnumber ), QString::number( ch ) );
+            QString title = QString( "Spectrum %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
             QString folderId;
             if ( appendOnFile( path, title, *ms, folderId ) ) {
                 auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
@@ -896,7 +899,7 @@ document::impl::takeSnapshot()
     // save histogram
     ch = 1;
     if ( histogram ) {
-        QString title = QString( "Histgram %1 CH-%2" ).arg( QString::number( serialnumber ), QString::number( ch ) );
+        QString title = QString( "Histogram %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
         QString folderId;
         if ( document::appendOnFile( path, title, *histogram, folderId ) ) {
             auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
