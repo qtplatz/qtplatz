@@ -208,7 +208,7 @@ AgMD2::setTriggerCoupling( const std::string& trigSource, int32_t coupling )
 int32_t
 AgMD2::TriggerCoupling( const std::string& trigSource ) const
 {
-    int32_t coupling(0);
+    ViInt32 coupling(0);
     if ( log( AgMD2_GetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_COUPLING, &coupling ), __FILE__, __LINE__ ) )
         return coupling;
     return (-1);
@@ -287,7 +287,7 @@ AgMD2::setAcquisitionMode( int mode )
 int
 AgMD2::AcquisitionMode() const
 {
-    int mode( 0 );
+    ViInt32 mode( 0 );
     if ( log( AgMD2_GetAttributeViInt32( session_, "", AGMD2_ATTR_ACQUISITION_MODE, &mode ), __FILE__, __LINE__ ) )
         return mode;
     return (-1);

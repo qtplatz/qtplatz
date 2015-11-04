@@ -72,6 +72,7 @@ ppio::operator |= ( const uint8_t d )
     if ( success_ )        
         outb( data_, BASEPORT + 0 );
 #endif    
+    return *this;
 }
 
 ppio&
@@ -82,6 +83,7 @@ ppio::operator &= ( const uint8_t d )
     if ( success_ )            
         outb( data_, BASEPORT + 0 );
 #endif        
+    return *this;
 }
 
 uint8_t

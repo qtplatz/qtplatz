@@ -282,6 +282,7 @@ Session::recording( bool enable )
         else
             digi->peripheral_stop();
     }
+    return true;
 }
 
 bool

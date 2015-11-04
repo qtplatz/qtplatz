@@ -25,7 +25,11 @@
 #include <cstdint>
 
 class ppio {
+#if defined _MSC_VER
+    static const uint16_t BASEPORT = 0x378;
+#else
     static constexpr uint16_t BASEPORT = 0x378;
+#endif
     uint8_t data_;
     bool success_;
 public:
