@@ -46,7 +46,6 @@ set( u5303a_HEADERS
   digitizer.hpp
   safearray.hpp
   simulator.hpp
-  sampleprocessor.hpp
   waveformobserver.hpp
   session.hpp
   ppio.hpp
