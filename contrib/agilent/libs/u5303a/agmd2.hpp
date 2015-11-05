@@ -83,7 +83,7 @@ namespace u5303a {
         bool setTriggerSlope( const std::string& trigSource, int32_t slope );
         int32_t TriggerSlope( const std::string& trigSource ) const;  // 0:NEGATIVE, 1:POSITIvE
         
-        bool setDataInversionEnabled( bool );
+        bool setDataInversionEnabled( const std::string&, bool );
 
         bool setAcquisitionRecordSize( uint32_t );
 

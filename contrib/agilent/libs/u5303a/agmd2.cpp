@@ -251,10 +251,11 @@ AgMD2::TriggerSlope( const std::string& trigSource ) const
 
 
 bool
-AgMD2::setDataInversionEnabled( bool enable )
+AgMD2::setDataInversionEnabled( const std::string& channel, bool enable )
 {
-    ViBoolean value = enable ? VI_TRUE : VI_FALSE;
-    return log( AgMD2_SetAttributeViBoolean( session_, "", AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED, value ), __FILE__, __LINE__ );
+    ViBoolean value = enable ? ( -1 ) : 0;
+    ADTRACE() << "##### setDataInversionEnabled: " << value << " channel=" << channel;
+    return log( AgMD2_SetAttributeViBoolean( session_, channel.c_str(), AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED, value ), __FILE__, __LINE__ );
 }
 
 bool

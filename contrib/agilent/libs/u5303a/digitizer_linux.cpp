@@ -699,7 +699,6 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 bool
 device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
 {
-    ViStatus rcode;
 #if defined _MSC_VER
     ViInt32 const coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;
 #else
@@ -749,7 +748,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
         ADDEBUG() << "Averager Mode";
         task.spDriver()->setTSREnabled( false );
-        task.spDriver()->setDataInversionEnabled( m.method_.invert_signal ? true : false );
+        task.spDriver()->setDataInversionEnabled( "Channel1", m.method_.invert_signal ? true : false );
         task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
         task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
         task.spDriver()->setAcquisitionNumberOfAverages( m.method_.nbr_of_averages );
