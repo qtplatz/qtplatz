@@ -54,11 +54,17 @@ if ( NOT CMAKE_CROSSCOMPILING )
   if ( QMAKE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
       OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+    message( "########## QMAKE ############: " ${QTDIR} )
+    
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PLUGINS
       OUTPUT_VARIABLE QT_INSTALL_PLUGINS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_LIBEXECS
       OUTPUT_VARIABLE QT_INSTALL_LIBEXECS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
-    find_program( XMLPATTERNS NAMES xmlpatterns PATHS ${QT_INSTALL_LIBEXECS} )
+    #find_program( XMLPATTERNS NAMES xmlpatterns HINTS ${QT_INSTALL_PREFIX}/bin ${QT_INSTALL_LIBEXECS} )
+    #find_program( XMLPATTERNS NAMES xmlpatterns PATHS "${QTDIR}/bin" )
+    set( XMLPATTERNS "${QTDIR}/bin/xmlpatterns" )
+    message( "########## QMAKE ############ " ${XMLPATTERNS} )    
   endif()
 
   find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )  
