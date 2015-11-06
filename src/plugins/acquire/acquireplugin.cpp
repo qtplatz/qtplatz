@@ -482,7 +482,8 @@ AcquirePlugin::orb_i::actionConnect()
                     receiver_i_->assign_debug_print( [this]( int32_t pri, int32_t cat, std::string text ){ 
                             pThis_->handle_receiver_debug_print( pri, cat, text ); } );
 
-                    connect( pThis_, &AcquirePlugin::onReceiverMessage, [this]( unsigned long code, uint32_t value ){ handle_controller_message( code, value); } );
+                    // connect( pThis_, &AcquirePlugin::onReceiverMessage, [this]( unsigned long code, uint32_t value ){ handle_controller_message( code, value); } );
+                    connect( pThis_, &AcquirePlugin::onReceiverMessage, pThis_, &AcquirePlugin::handleReceiverMessage );
                         
                     if ( session_->connect( receiver_i_->_this(), "acquire" ) )
                         pThis_->actionConnect_->setEnabled( false );
@@ -950,9 +951,16 @@ AcquirePlugin::orb_i::handle_controller_message( unsigned long /* Receiver::eINS
                 pThis_->actionStop_->setEnabled( false );
 
             } else if ( status == eReadyForRun ) {
-
-                pThis_->actionStop_->setEnabled( false );
-                pThis_->actionRun_->setEnabled( true );
+                try {
+                    if ( pThis_ && pThis_->actionStop_ )
+                        pThis_->actionStop_->setEnabled( false );
+                    if ( pThis_ && pThis_->actionRun_ )
+                        pThis_->actionRun_->setEnabled( true );
+                } catch ( ... ) {
+                    QMessageBox::warning( MainWindow::instance()
+                                          , "AcquirePlugin"
+                                          , QString::fromStdString( boost::current_exception_diagnostic_information() ) );
+                }
 
             } else if ( status == eRunning ) {
 
@@ -1266,6 +1274,12 @@ AcquirePlugin::handleCommitMethods()
     adcontrols::SampleRun run;
     mainWindow_->getSampleRun( run );
     acquire::document::instance()->setSampleRun( run ); // commit
+}
+
+void
+AcquirePlugin::handleReceiverMessage( unsigned long msg, unsigned long value )
+{
+    orb_i_->handle_controller_message( msg, value );
 }
 
 Q_EXPORT_PLUGIN( AcquirePlugin )

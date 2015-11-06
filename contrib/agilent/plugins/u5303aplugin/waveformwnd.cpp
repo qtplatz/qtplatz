@@ -135,6 +135,7 @@ void
 WaveformWnd::onInitialUpdate()
 {
     spw_->setKeepZoomed( false );
+    hpw_->setKeepZoomed( false );
 }
 
 void
@@ -201,7 +202,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                                                                                    , QString::number( rate, 'f', 2 ) );
             hpw_->setTitle( title );
             hpw_->setData( sp, idx, bool( idx ) );
-            spw_->setKeepZoomed( true );
+            hpw_->setKeepZoomed( true );
 
         } else if ( uuid == ap240_observer ) {
 

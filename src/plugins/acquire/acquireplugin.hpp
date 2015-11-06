@@ -131,6 +131,8 @@ namespace acquire {
 
         void handle_broker_initialized();
 
+        void handleReceiverMessage( unsigned long, unsigned long );
+
     signals:
         // observer signals
         void onUpdateUIData( unsigned long, long );
