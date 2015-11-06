@@ -150,6 +150,16 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
 
     bool flag;
 
+    // workaround
+    size_t count(0);
+    for ( auto it = data.begin(); it != data.end(); ++it ) {
+        if ( !( *it == 0 || *it == 0xffffdead ) )
+            break;
+        if ( ++count >= 100 )
+            return;
+    }
+    // <<-- workaround
+
     if ( method.use_filter ) {
 
         processed.resize( data.size() );
