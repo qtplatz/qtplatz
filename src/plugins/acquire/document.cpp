@@ -28,6 +28,7 @@
 #include "mainwindow.hpp"
 #include "mastercontroller.hpp"
 #include "masterreceiver.hpp"
+#include "orb_i.hpp"
 #include "masterobserver.hpp"
 #include "task.hpp"
 #include <adcontrols/controlmethod.hpp>
@@ -48,6 +49,7 @@
 #include <xmlparser/pugixml.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
+#include <extensionsystem/pluginmanager.h>
 #include <QFileInfo>
 #include <QSettings>
 #include <QMessageBox>
@@ -103,7 +105,25 @@ namespace acquire {
             std::call_once( flag, [this] () { receiver_ = std::make_shared< MasterReceiver >( masterController() ); } );
             return receiver_.get();
         }
-        
+
+        void handleCommitMethods() {
+            // Update ControlMethod by UI data with individual initial conditions
+            adcontrols::ControlMethod::Method cm;
+            MainWindow::instance()->getControlMethod( cm );
+
+            auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
+            if ( !iControllers.isEmpty() ) {
+                for ( auto& iController : iControllers )
+                    iController->preparing_for_run( cm );
+            }
+            document::instance()->setControlMethod( cm ); // commit
+
+            // Update document by UI data
+            adcontrols::SampleRun run;
+            MainWindow::instance()->getSampleRun( run );
+            acquire::document::instance()->setSampleRun( run ); // commit
+        }
+
     public:
         std::atomic_flag connected_;
         std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
@@ -545,34 +565,51 @@ document::masterObserver()
 void
 document::actionConnect()
 {
+    // move fro AcquirePlugin
+    this->actionConnect( true ); // fetch method from MainWindow
+    if ( auto orbi = orb_i::instance() )
+      orbi->actionConnect();
 }
 
 void
 document::actionDisconnect()
 {
+    if ( auto orbi = orb_i::instance() )
+        orbi->actionDisconnect();    
 }
 
 void
 document::actionInitRun()
 {
+    impl_->handleCommitMethods();
+    if ( auto orbi = orb_i::instance() )    
+        orbi->actionInitRun();
 }
 
 void
 document::actionRun()
 {
+    if ( auto orbi = orb_i::instance() )        
+        orbi->actionRun();    
 }
 
 void
 document::actionStop()
 {
+    if ( auto orbi = orb_i::instance() )        
+    orbi->actionStop();    
 }
 
 void
 document::actionInject()
 {
+    if ( auto orbi = orb_i::instance() )        
+    orbi->actionInject();    
 }
 
 void
 document::actionSnapshot()
 {
+    if ( auto orbi = orb_i::instance() )        
+        orbi->actionSnapshot();    
 }

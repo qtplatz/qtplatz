@@ -104,16 +104,16 @@ namespace acquire {
         //static QToolButton * toolButton( QAction * action );
                                               
     public slots:
-        void handleCommitMethods();
+        //void handleCommitMethods();
 
     private slots:
-        void actionConnect();
-        void actionDisconnect();
-        void actionSnapshot();
-        void actionInitRun();
-        void actionRun();
-        void actionStop();
-        void actionInject();
+        //void actionConnect();
+        //void actionDisconnect();
+        //void actionSnapshot();
+        //void actionInitRun();
+        //void actionRun();
+        //void actionStop();
+        //void actionInject();
 
         void handle_shutdown();
         void handle_debug_print( unsigned long priority, unsigned long category, QString text );
@@ -131,7 +131,7 @@ namespace acquire {
 
         void handle_broker_initialized();
 
-        void handleReceiverMessage( unsigned long, unsigned long );
+        //void handleReceiverMessage( unsigned long, unsigned long );
 
     signals:
         // observer signals
@@ -153,22 +153,6 @@ namespace acquire {
 
         AcquireImpl * pImpl_;
 
-        // QAction * actionConnect_;
-        // QAction * actionRun_;
-        // QAction * actionInitRun_;
-        // QAction * actionStop_;
-        // QAction * actionSnapshot_;
-        // QAction * actionInject_;
-
-        // QAction * actMethodOpen_;
-        // QAction * actMethodSave_;
-        // adportable::Configuration * pConfig_;
-
-        //void initialize_actions();
-        // QWidget * createContents( Core::IMode * );
-        // void initialize_broker();
-        // void shutdown_broker();
-
         std::mutex mutex_;
         std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
         std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
@@ -177,7 +161,7 @@ namespace acquire {
 
         std::vector< std::wstring > trace_descriptions_;
 
-        void populate( SignalObserver::Observer_var& );
+        // void populate( SignalObserver::Observer_var& );
 
         bool readMassSpectra( const SignalObserver::DataReadBuffer&
                               , const adcontrols::MassSpectrometer&

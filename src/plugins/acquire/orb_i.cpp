@@ -170,6 +170,7 @@ namespace acquire {
     public:
         Broker::Session_var brokerSession_;
         std::unique_ptr< brokerevent_i > brokerEvent_;
+        static orb_i * instance_;
 
         void initialize_broker_session() {
             brokerEvent_.reset( new brokerevent_i );
@@ -214,8 +215,25 @@ namespace acquire {
                 handler->folium_added( qtwrapper::qstring( token )
                                        , qtwrapper::qstring( path ), qtwrapper::qstring( id ) );
         }
+
+        void populate( SignalObserver::Observer_var& observer )   {
+            SignalObserver::Description_var topLevelDesc = observer->getDescription();
+                
+            std::string topLevelName = topLevelDesc->trace_display_name.in();
+            //traceBox_->addItem( QString::fromStdString( topLevelName ) );
+            //todo: set name on MainWindow's traceBox_
+            
+            SignalObserver::Observers_var children = observer->getSiblings();
+            for ( CORBA::ULong i = 0; i < children->length(); ++i ) {
+                SignalObserver::Description_var secondLevelDesc = children[i]->getDescription();
+                CORBA::String_var secondLevelName = children[i]->getDescription()->trace_display_name.in();
+                //traceBox_->addItem( QString( "   %1" ).arg( secondLevelName.in() ) );
+            }
+        }
         
     };
+
+    orb_i * orb_i::impl::instance_( 0 );
     
 }
 
@@ -224,6 +242,7 @@ using namespace acquire;
 orb_i::orb_i() : task_( new task() )
                , impl_( new impl() )
 {
+    impl::instance_ = this;
 }
 
 orb_i::~orb_i()
@@ -260,7 +279,7 @@ orb_i::actionConnect()
                     receiver_i_->assign_debug_print( [this]( int32_t pri, int32_t cat, std::string text ){ handle_receiver_debug_print( pri, cat, text ); } );
 
                     // connect( pThis_, &AcquirePlugin::onReceiverMessage, [this]( unsigned long code, uint32_t value ){ handle_controller_message( code, value); } );
-                    connect( this, &orb_i::onReceiverMessage, pThis_, &AcquirePlugin::handleReceiverMessage );
+                    connect( this, &orb_i::onReceiverMessage, this, &orb_i::handle_controller_message );
                         
                     if ( session_->connect( receiver_i_->_this(), "acquire" ) ) {
                         MainWindow::instance()->handleInstState( adicontroller::Instrument::eStandBy );
@@ -317,11 +336,11 @@ orb_i::actionConnect()
 
                         for ( CORBA::ULong i = 0; i < nsize; ++i ) {
                             SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[ i ] );
-                            pThis_->populate( var );
+                            impl_->populate( var );
                         }
                     }
                 }
-                pThis_->actionInitRun();
+                document::instance()->actionInitRun();
             }
         }
     }
@@ -413,7 +432,7 @@ orb_i::actionSnapshot()
             siblings[i]->uptime_range( first, second );
             double m1 = double(second) / 60.0e6;
             double m0 = double(second - 1000) / 60.0e6;  // 1s before
-			pThis_->selectRange( m0, m1, 0, 0 );
+//			pThis_->selectRange( m0, m1, 0, 0 );
         }
     }
 }
@@ -448,7 +467,7 @@ orb_i::handle_update_data( unsigned long objId, long pos )
     ACE_UNUSED_ARG( pos );
 
     try {
-        std::lock_guard< std::mutex > lock( pThis_->mutex_ );
+        std::lock_guard< std::mutex > lock( task_->mutex_ );
         
         if ( observerMap_.find( objId ) == observerMap_.end() ) {
             SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
@@ -492,7 +511,7 @@ orb_i::handle_update_data( unsigned long objId, long pos )
             try {
                 SignalObserver::DataReadBuffer_var rb;
                 while ( tgt->readData( npos, rb ) && npos <= pos ) {
-                    // ADDEBUG() << "\treadData( " << npos << " ) " << rb->pos;
+                    ADDEBUG() << "\treadData( " << npos << " ) " << rb->pos;
                     ++npos;
                     pThis_->readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
                 }
@@ -655,3 +674,8 @@ orb_i::shutdown()
     ADTRACE() << "orb_i::shutdown_broker() completed.";
 }
 
+orb_i *
+orb_i::instance()
+{
+    return impl::instance_;
+}

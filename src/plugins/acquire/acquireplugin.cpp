@@ -391,7 +391,7 @@ AcquirePlugin::aboutToShutdown()
 {
     ADTRACE() << "====== AcquirePlugin shutting down...  ===============";
 
-    actionDisconnect();
+    document::instance()->actionDisconnect();
 
     if ( orb_i_ )
         orb_i_->shutdown();
@@ -414,68 +414,68 @@ AcquirePlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
-void
-AcquirePlugin::actionConnect()
-{
-    // Pressed 'CONNECT' button on Acquire View
-    document::instance()->actionConnect( true ); // fetch method from MainWindow
-    orb_i_->actionConnect();
-}
+// void
+// AcquirePlugin::actionConnect()
+// {
+//     // Pressed 'CONNECT' button on Acquire View
+//     document::instance()->actionConnect( true ); // fetch method from MainWindow
+//     orb_i_->actionConnect();
+// }
 
-void
-AcquirePlugin::populate( SignalObserver::Observer_var& observer )
-{
-    SignalObserver::Description_var topLevelDesc = observer->getDescription();
+// void
+// AcquirePlugin::populate( SignalObserver::Observer_var& observer )
+// {
+//     SignalObserver::Description_var topLevelDesc = observer->getDescription();
 
-#if 0
-    std::string topLevelName = topLevelDesc->trace_display_name.in();
-    traceBox_->addItem( QString::fromStdString( topLevelName ) );
+// #if 0
+//     std::string topLevelName = topLevelDesc->trace_display_name.in();
+//     traceBox_->addItem( QString::fromStdString( topLevelName ) );
 
-    SignalObserver::Observers_var children = observer->getSiblings();
-    for ( CORBA::ULong i = 0; i < children->length(); ++i ) {
-        SignalObserver::Description_var secondLevelDesc = children[i]->getDescription();
-        CORBA::String_var secondLevelName = children[i]->getDescription()->trace_display_name.in();
-        traceBox_->addItem( QString( "   %1" ).arg( secondLevelName.in() ) );
-    }
-#endif
-}
+//     SignalObserver::Observers_var children = observer->getSiblings();
+//     for ( CORBA::ULong i = 0; i < children->length(); ++i ) {
+//         SignalObserver::Description_var secondLevelDesc = children[i]->getDescription();
+//         CORBA::String_var secondLevelName = children[i]->getDescription()->trace_display_name.in();
+//         traceBox_->addItem( QString( "   %1" ).arg( secondLevelName.in() ) );
+//     }
+// #endif
+// }
 
-void
-AcquirePlugin::actionDisconnect()
-{
-    orb_i_->actionDisconnect();
-}
+// void
+// AcquirePlugin::actionDisconnect()
+// {
+//     orb_i_->actionDisconnect();
+// }
 
-void
-AcquirePlugin::actionInitRun()
-{
-    handleCommitMethods();
-    orb_i_->actionInitRun();
-}
+// void
+// AcquirePlugin::actionInitRun()
+// {
+//     handleCommitMethods();
+//     orb_i_->actionInitRun();
+// }
 
-void
-AcquirePlugin::actionRun()
-{
-    orb_i_->actionRun();
-}
+// void
+// AcquirePlugin::actionRun()
+// {
+//     orb_i_->actionRun();
+// }
 
-void
-AcquirePlugin::actionStop()
-{
-    orb_i_->actionStop();
-}
+// void
+// AcquirePlugin::actionStop()
+// {
+//     orb_i_->actionStop();
+// }
 
-void
-AcquirePlugin::actionInject()
-{
-    orb_i_->actionInject();
-}
+// void
+// AcquirePlugin::actionInject()
+// {
+//     orb_i_->actionInject();
+// }
 
-void
-AcquirePlugin::actionSnapshot()
-{
-    orb_i_->actionSnapshot();
-}
+// void
+// AcquirePlugin::actionSnapshot()
+// {
+//     orb_i_->actionSnapshot();
+// }
 
 bool
 AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
@@ -803,31 +803,31 @@ AcquirePlugin::createContents( Core::IMode * mode )
 }
 #endif
 
-void
-AcquirePlugin::handleCommitMethods()
-{
-    // Update ControlMethod by UI data with individual initial conditions
-    adcontrols::ControlMethod::Method cm;
-    MainWindow::instance()->getControlMethod( cm );
+// void
+// AcquirePlugin::handleCommitMethods()
+// {
+//     // Update ControlMethod by UI data with individual initial conditions
+//     adcontrols::ControlMethod::Method cm;
+//     MainWindow::instance()->getControlMethod( cm );
 
-    auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
-    if ( !iControllers.isEmpty() ) {
-        for ( auto& iController : iControllers )
-            iController->preparing_for_run( cm ); // *ptr, os.str().c_str() );
-    }
-    acquire::document::instance()->setControlMethod( cm ); // commit
+//     auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
+//     if ( !iControllers.isEmpty() ) {
+//         for ( auto& iController : iControllers )
+//             iController->preparing_for_run( cm ); // *ptr, os.str().c_str() );
+//     }
+//     acquire::document::instance()->setControlMethod( cm ); // commit
 
-    // Update document by UI data
-    adcontrols::SampleRun run;
-    MainWindow::instance()->getSampleRun( run );
-    acquire::document::instance()->setSampleRun( run ); // commit
-}
+//     // Update document by UI data
+//     adcontrols::SampleRun run;
+//     MainWindow::instance()->getSampleRun( run );
+//     acquire::document::instance()->setSampleRun( run ); // commit
+// }
 
-void
-AcquirePlugin::handleReceiverMessage( unsigned long msg, unsigned long value )
-{
-    orb_i_->handle_controller_message( msg, value );
-}
+// void
+// AcquirePlugin::handleReceiverMessage( unsigned long msg, unsigned long value )
+// {
+//     orb_i_->handle_controller_message( msg, value );
+// }
 
 Q_EXPORT_PLUGIN( AcquirePlugin )
 

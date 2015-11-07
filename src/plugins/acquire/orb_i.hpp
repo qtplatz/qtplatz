@@ -44,7 +44,6 @@ namespace acquire {
     class orb_i : public QObject {
 
         Q_OBJECT
-        AcquirePlugin * pThis_;
 
     public:
         ControlServer::Session_var session_;
@@ -80,13 +79,15 @@ namespace acquire {
         void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
         
         // receiver_i handlers
-        // void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
+        //void handle_receiver_message( Receiver::eINSTEVENT, uint32_t ); --> handle_controller_message
         void handle_receiver_log( const ::EventLog::LogMessage& );
         void handle_receiver_shutdown();
         void handle_receiver_debug_print( int32_t, int32_t, std::string );
 
         void initialize();
         void shutdown();
+
+        static orb_i * instance();
         
         orb_i();
         ~orb_i();
