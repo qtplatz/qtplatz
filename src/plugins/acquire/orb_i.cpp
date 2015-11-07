@@ -171,6 +171,11 @@ namespace acquire {
         Broker::Session_var brokerSession_;
         std::unique_ptr< brokerevent_i > brokerEvent_;
         static orb_i * instance_;
+        std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
+        std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
+        std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
+        std::map< unsigned long, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
+        std::mutex mutex_;
 
         void initialize_broker_session() {
             brokerEvent_.reset( new brokerevent_i );
@@ -230,7 +235,15 @@ namespace acquire {
                 //traceBox_->addItem( QString( "   %1" ).arg( secondLevelName.in() ) );
             }
         }
-        
+
+        bool readMassSpectra( const SignalObserver::DataReadBuffer& rb
+                              , const adcontrols::MassSpectrometer& spectrometer
+                              , const adcontrols::DataInterpreter& dataInterpreter
+                              , unsigned long objid );
+        bool readTrace( const SignalObserver::Description& desc
+                        , const SignalObserver::DataReadBuffer& rb
+                        , const adcontrols::DataInterpreter& dataInterpreter
+                        , unsigned long objid );
     };
 
     orb_i * orb_i::impl::instance_( 0 );
@@ -513,7 +526,7 @@ orb_i::handle_update_data( unsigned long objId, long pos )
                 while ( tgt->readData( npos, rb ) && npos <= pos ) {
                     ADDEBUG() << "\treadData( " << npos << " ) " << rb->pos;
                     ++npos;
-                    pThis_->readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
+                    impl_->readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
                 }
                 emit onUpdateUIData( objId, pos );
             } catch ( CORBA::Exception& ex ) {
@@ -527,7 +540,7 @@ orb_i::handle_update_data( unsigned long objId, long pos )
                 SignalObserver::DataReadBuffer_var rb;
                 while ( tgt->readData( npos, rb ) ) {
                     npos = rb->pos + rb->ndata;
-                    pThis_->readTrace( desc, rb, dataInterpreter, objId );
+					impl_->readTrace( desc, rb, dataInterpreter, objId );
                     emit onUpdateUIData( objId, pos );
                     return;
                 }
@@ -678,4 +691,49 @@ orb_i *
 orb_i::instance()
 {
     return impl::instance_;
+}
+
+bool
+orb_i::impl::readMassSpectra( const SignalObserver::DataReadBuffer& rb
+                              , const adcontrols::MassSpectrometer& spectrometer
+                              , const adcontrols::DataInterpreter& dataInterpreter
+                              , unsigned long objid )
+{
+    if ( ! rdmap_[ objid ] )
+        rdmap_[ objid ].reset( new adcontrols::MassSpectrum );
+
+    adcontrols::MassSpectrum& ms = *rdmap_[ objid ];
+
+    size_t idData = 0;
+    adcontrols::translate_state state = 
+        dataInterpreter.translate( ms
+                                   , reinterpret_cast< const char *>(rb.xdata.get_buffer()), rb.xdata.length()
+                                   , reinterpret_cast< const char *>(rb.xmeta.get_buffer()), rb.xmeta.length()
+                                   , spectrometer, idData++, 0 );
+    if ( state == adcontrols::translate_complete ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        fifo_ms_.push_back( rdmap_[ objid ] );
+        rdmap_[ objid ].reset( new adcontrols::MassSpectrum );
+    } 
+    return state != adcontrols::translate_error;
+}
+
+bool
+orb_i::impl::readTrace( const SignalObserver::Description& desc
+                         , const SignalObserver::DataReadBuffer& rb
+                         , const adcontrols::DataInterpreter& dataInterpreter
+                          , unsigned long objid )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    if ( trace_accessors_.find( objid ) == trace_accessors_.end() )
+        trace_accessors_[ objid ] = std::shared_ptr< adcontrols::TraceAccessor >( new adcontrols::TraceAccessor );
+
+    adcontrols::TraceAccessor& accessor = *trace_accessors_[ objid ];
+    if ( dataInterpreter.translate( accessor
+									, reinterpret_cast< const char *>( rb.xdata.get_buffer() ), rb.xdata.length()
+									, reinterpret_cast< const char * >( rb.xmeta.get_buffer() ), rb.xmeta.length()
+                                    , rb.events ) == adcontrols::translate_complete ) {
+        return true;
+    }
+    return false;
 }

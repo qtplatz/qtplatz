@@ -154,6 +154,7 @@ namespace acquire {
         AcquireImpl * pImpl_;
 
         std::mutex mutex_;
+//---
         std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
         std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
         std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
@@ -167,6 +168,7 @@ namespace acquire {
                               , const adcontrols::MassSpectrometer&
                               , const adcontrols::DataInterpreter& dataInterpreter
                               , unsigned long objId );
+
         bool readTrace( const SignalObserver::Description&
                         , const SignalObserver::DataReadBuffer&
                         , const adcontrols::DataInterpreter& dataInterpreter
