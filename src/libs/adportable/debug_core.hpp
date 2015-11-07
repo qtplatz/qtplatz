@@ -36,7 +36,7 @@ namespace adportable {
 
     namespace core {
         
-        class debug_core : public std::enable_shared_from_this< debug_core > {
+        class debug_core { //: public std::enable_shared_from_this< debug_core > {
             debug_core();
             ~debug_core();
         public:

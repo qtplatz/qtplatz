@@ -76,12 +76,14 @@ namespace EventLog {
 
 namespace acquire {
 
-    class receiver_i;
-    class brokerevent_i;
-
     class MainWindow;
     class AcquireImpl;
+#if HAVE_CORBA
+    class receiver_i;
+    class brokerevent_i;
     class ObserverEvents_i;
+    class orb_i;
+#endif
 
     //------------
     class AcquirePlugin : public ExtensionSystem::IPlugin {
@@ -148,8 +150,7 @@ namespace acquire {
         void selectPoint( double x, double y );
         void selectRange( double x1, double x2, double y1, double y2 );
         void handle_update_data( unsigned long objid, long pos );
-
-        class orb_i;
+        friend class orb_i;
         orb_i * orb_i_;
 
         MainWindow * mainWindow_;

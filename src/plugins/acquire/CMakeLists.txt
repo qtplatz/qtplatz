@@ -98,6 +98,8 @@ if ( QTPLATZ_SUPPORT_CORBA )
     qbroker.hpp
     orbconnection.cpp
     orbconnection.hpp
+    orb_i.cpp
+    orb_i.hpp
     )
   
   set( CORBA_DEPENDENCY

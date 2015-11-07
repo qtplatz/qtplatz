@@ -4,10 +4,8 @@ include( ${CMAKE_SOURCE_DIR}/pluginconfig.cmake )
 add_subdirectory( coreplugin )
 add_subdirectory( servant )
 
-if ( QTPLATZ_SUPPORT_CORBA )
-  if ( QTPLATZ_CONFIG_Acquire )
-    add_subdirectory( acquire )
-  endif()
+if ( QTPLATZ_CONFIG_Acquire )
+  add_subdirectory( acquire )
 endif()
 
 if ( QTPLATZ_CONFIG_Sequence )
