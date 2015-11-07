@@ -73,6 +73,9 @@
 #include <adcontrols/timeutil.hpp>
 #include <adextension/imonitorfactory.hpp>
 #include <adextension/icontroller.hpp>
+#include <adicontroller/instrument.hpp>
+#include <adicontroller/receiver.hpp>
+#include <adicontroller/signalobserver.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
@@ -142,7 +145,90 @@
 #include <future>
 #include <map>
 
+namespace acquire {
+
+    class orb_i::task {
+    public:
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        boost::asio::io_service::strand strand_;
+        std::vector< adportable::asio::thread > threads_;
+        std::mutex mutex_;
+
+        task() : work_( io_service_ )
+               , strand_( io_service_ ) {
+        }
+
+        void terminate() {
+            io_service_.stop();
+            for ( auto& t : threads_ )
+                t.join();
+        }
+    };
+
+    class orb_i::impl {
+    public:
+        Broker::Session_var brokerSession_;
+        std::unique_ptr< brokerevent_i > brokerEvent_;
+
+        void initialize_broker_session() {
+            brokerEvent_.reset( new brokerevent_i );
+            brokerEvent_->assign_message( [=]( const std::string& text ){
+                    handle_message( text );
+                });
+            brokerEvent_->assign_portfolio_created( [=]( const std::wstring& file ){
+                    handle_portfolio_created( file );
+                });
+            brokerEvent_->assign_folium_added(
+                [=]( const std::wstring& token
+                     , const std::wstring& path
+                     , const std::wstring& folderId ){
+                    handle_folium_added( token, path, folderId );
+                });
+            brokerSession_->connect( "user", "pass", "acquire", brokerEvent_->_this() );
+        }
+
+        void terminate_broker_session() {
+            // disconnect broker session
+            if ( !CORBA::is_nil( brokerSession_ ) && brokerEvent_ ) {
+                brokerSession_->disconnect( brokerEvent_->_this() );
+                adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
+            }
+        }
+
+        void handle_message( const std::string& msg ) {
+            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+            for ( auto handler: vec )
+                handler->message( QString( msg.c_str() ) );
+        }
+
+        void handle_portfolio_created( const std::wstring& token ) {
+            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+            for ( auto handler: vec )
+                handler->portfolio_created( qtwrapper::qstring( token ) );
+        }
+            
+        void handle_folium_added( const std::wstring& token, const std::wstring& path, const std::wstring& id ) {
+            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+            for ( auto handler: vec )
+                handler->folium_added( qtwrapper::qstring( token )
+                                       , qtwrapper::qstring( path ), qtwrapper::qstring( id ) );
+        }
+        
+    };
+    
+}
+
 using namespace acquire;
+
+orb_i::orb_i() : task_( new task() )
+               , impl_( new impl() )
+{
+}
+
+orb_i::~orb_i()
+{
+}
 
 void
 orb_i::actionConnect()
@@ -150,10 +236,13 @@ orb_i::actionConnect()
     if ( CORBA::is_nil( session_.in() ) ) {
         
         Broker::Manager_var broker = OrbConnection::instance()->brokerManager();
+
         if ( ! CORBA::is_nil( broker ) ) {
+
             using namespace acewrapper::constants;
             CORBA::Object_var obj = broker->find_object( adcontroller::manager::_name() );
             ::ControlServer::Manager_var manager = ::ControlServer::Manager::_narrow( obj );
+
             if ( !CORBA::is_nil( manager ) ) {
                 session_ = manager->getSession( "acquire" );
                 if ( !CORBA::is_nil( session_.in() ) ) {
@@ -161,21 +250,22 @@ orb_i::actionConnect()
                     receiver_i_.reset( new receiver_i );
 
                     receiver_i_->assign_message( [this] ( ::Receiver::eINSTEVENT code, uint32_t value ){
-                            emit pThis_->onReceiverMessage( static_cast<unsigned long>(code), value );                            
+                            emit onReceiverMessage( static_cast<unsigned long>(code), value );                            
                         });
-
-                    receiver_i_->assign_log( [this] ( const ::EventLog::LogMessage& log ){ pThis_->handle_receiver_log( log ); } );
                     
-                    receiver_i_->assign_shutdown( [this](){ pThis_->handle_receiver_shutdown(); } );
+                    receiver_i_->assign_log( [this] ( const ::EventLog::LogMessage& log ){ handle_receiver_log( log ); } );
                     
-                    receiver_i_->assign_debug_print( [this]( int32_t pri, int32_t cat, std::string text ){ 
-                            pThis_->handle_receiver_debug_print( pri, cat, text ); } );
+                    receiver_i_->assign_shutdown( [this](){ handle_receiver_shutdown(); } );
+                    
+                    receiver_i_->assign_debug_print( [this]( int32_t pri, int32_t cat, std::string text ){ handle_receiver_debug_print( pri, cat, text ); } );
 
                     // connect( pThis_, &AcquirePlugin::onReceiverMessage, [this]( unsigned long code, uint32_t value ){ handle_controller_message( code, value); } );
-                    QObject::connect( pThis_, &AcquirePlugin::onReceiverMessage, pThis_, &AcquirePlugin::handleReceiverMessage );
+                    connect( this, &orb_i::onReceiverMessage, pThis_, &AcquirePlugin::handleReceiverMessage );
                         
-                    if ( session_->connect( receiver_i_->_this(), "acquire" ) )
-                        pThis_->actionConnect_->setEnabled( false );
+                    if ( session_->connect( receiver_i_->_this(), "acquire" ) ) {
+                        MainWindow::instance()->handleInstState( adicontroller::Instrument::eStandBy );
+                        // pThis_->actionConnect_->setEnabled( false );
+                    }
                         
                     if ( session_->status() <= ControlServer::eConfigured )
                         session_->initialize();
@@ -187,18 +277,18 @@ orb_i::actionConnect()
                             sink_.reset( new adinterface::ObserverEvents_i );
                             
                             sink_->assignConfigChanged( [=] ( uint32_t oid, SignalObserver::eConfigStatus st ){
-                                    pThis_->handle_observer_config_changed( oid, st );
+                                    handle_observer_config_changed( oid, st );
                                 } );
                             
                             sink_->assignUpdateData( [=] ( uint32_t oid, int32_t pos ){
-                                    pThis_->handle_observer_update_data( oid, pos );
+                                    handle_observer_update_data( oid, pos );
                                 } );
                             
                             sink_->assignMethodChanged( [=] ( uint32_t oid, int32_t pos ){
-                                    pThis_->handle_observer_method_changed( oid, pos );
+                                    handle_observer_method_changed( oid, pos );
                                 } );
                             sink_->assignEvent( [=] ( uint32_t oid, int32_t pos, int32_t ev ){
-                                    pThis_->handle_observer_event( oid, pos, ev );
+                                    handle_observer_event( oid, pos, ev );
                                 } );
                             
                             observer_->connect( sink_->_this(), SignalObserver::Frequent, "acquireplugin" );
@@ -211,14 +301,14 @@ orb_i::actionConnect()
                             //          , pThis_, SLOT( handle_method_changed( unsigned long, long ) ) );
                             // QObject::connect( pThis_, SIGNAL( onObserverEvent( unsigned long, long, long ) )
                             //          , pThis_, SLOT( handle_event( unsigned long, long, long ) ) );
+                            
+                            // connect( this, &orb_i::onObserverConfigChanged, pThis_, &AcquirePlugin::handle_config_changed ); -- does nothing
 
-                            QObject::connect( pThis_, &AcquirePlugin::onObserverConfigChanged, pThis_, &AcquirePlugin::handle_config_changed );
+                            // connect( this, &orb_i::onUpdateUIData, pThis_, &AcquirePlugin::handle_update_ui_data ); --> AcquirePlugin::handle_broker_initialized()
 
-                            QObject::connect( pThis_, &AcquirePlugin::onUpdateUIData, pThis_, &AcquirePlugin::handle_update_ui_data );
+                            // connect( this, &orb_i::onObserverMethodChanged, pThis_, &AcquirePlugin::handle_method_changed ); -- does nothing
 
-                            QObject::connect( pThis_, &AcquirePlugin::onObserverMethodChanged, pThis_, &AcquirePlugin::handle_method_changed );
-
-                            QObject::connect( pThis_, &AcquirePlugin::onObserverEvent, pThis_, &AcquirePlugin::handle_event );
+                            // connect( this, &orb_i::onObserverEvent, pThis_, &AcquirePlugin::handle_event );  -- does nothing
                         }
                         
                         // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
@@ -237,8 +327,9 @@ orb_i::actionConnect()
     }
 
     if ( ! CORBA::is_nil( session_ ) ) {
-        pThis_->actionInitRun_->setEnabled( true );
-        pThis_->actionRun_->setEnabled( true );
+        MainWindow::instance()->handleInstState( adicontroller::Instrument::eStandBy );        
+        //pThis_->actionInitRun_->setEnabled( true );
+        //pThis_->actionRun_->setEnabled( true );
         document::instance()->fsmStop();
     }
 }
@@ -405,7 +496,7 @@ orb_i::handle_update_data( unsigned long objId, long pos )
                     ++npos;
                     pThis_->readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
                 }
-                emit pThis_->onUpdateUIData( objId, pos );
+                emit onUpdateUIData( objId, pos );
             } catch ( CORBA::Exception& ex ) {
                 ADTRACE() << "handle_update_data got an corba exception: " << ex._info().c_str();
             } catch ( ... ) {
@@ -418,7 +509,7 @@ orb_i::handle_update_data( unsigned long objId, long pos )
                 while ( tgt->readData( npos, rb ) ) {
                     npos = rb->pos + rb->ndata;
                     pThis_->readTrace( desc, rb, dataInterpreter, objId );
-                    emit pThis_->onUpdateUIData( objId, pos );
+                    emit onUpdateUIData( objId, pos );
                     return;
                 }
             } catch ( CORBA::Exception& ex ) {
@@ -439,37 +530,38 @@ orb_i::handle_controller_message( unsigned long /* Receiver::eINSTEVENT */ msg, 
         if ( msg == Receiver::STATE_CHANGED ) {
 
             eStatus status = eStatus( value );
-
+            MainWindow::instance()->handleInstState( status );
+            
             if ( status == eWaitingForContactClosure ) {
 
-                pThis_->actionInject_->setEnabled( true );
-                pThis_->actionStop_->setEnabled( true );
-                pThis_->actionRun_->setEnabled( false );
+                // pThis_->actionInject_->setEnabled( true );
+                // pThis_->actionStop_->setEnabled( true );
+                // pThis_->actionRun_->setEnabled( false );
 
                 CORBA::String_var xml = session_->running_sample();
                 document::instance()->notify_ready_for_run( xml );
 
             } else if ( status == ePreparingForRun ) {
 
-                pThis_->actionStop_->setEnabled( false );
+                //pThis_->actionStop_->setEnabled( false );
 
             } else if ( status == eReadyForRun ) {
-                try {
-                    if ( pThis_ && pThis_->actionStop_ )
-                        pThis_->actionStop_->setEnabled( false );
-                    if ( pThis_ && pThis_->actionRun_ )
-                        pThis_->actionRun_->setEnabled( true );
-                } catch ( ... ) {
-                    QMessageBox::warning( MainWindow::instance()
-                                          , "AcquirePlugin"
-                                          , QString::fromStdString( boost::current_exception_diagnostic_information() ) );
-                }
+                // try {
+                //     if ( pThis_ && pThis_->actionStop_ )
+                //         pThis_->actionStop_->setEnabled( false );
+                //     if ( pThis_ && pThis_->actionRun_ )
+                //         pThis_->actionRun_->setEnabled( true );
+                // } catch ( ... ) {
+                //     QMessageBox::warning( MainWindow::instance()
+                //                           , "AcquirePlugin"
+                //                           , QString::fromStdString( boost::current_exception_diagnostic_information() ) );
+                // }
 
             } else if ( status == eRunning ) {
 
-                pThis_->actionStop_->setEnabled( true );
-                pThis_->actionInject_->setEnabled( false );
-                pThis_->actionRun_->setEnabled( false );
+                // pThis_->actionStop_->setEnabled( true );
+                // pThis_->actionInject_->setEnabled( false );
+                // pThis_->actionRun_->setEnabled( false );
 
             }
         }
@@ -477,5 +569,89 @@ orb_i::handle_controller_message( unsigned long /* Receiver::eINSTEVENT */ msg, 
         ADDEBUG() << boost::current_exception_diagnostic_information();
         assert( 0 );
     }
+}
+
+void
+orb_i::handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus st )
+{
+    emit onObserverConfigChanged( objid, long( st ) );
+}
+
+void
+orb_i::handle_observer_update_data( uint32_t objid, int32_t pos )
+{
+    task_->io_service_.post( task_->strand_.wrap( std::bind(&orb_i::handle_update_data, this, objid, pos ) ) );    
+}
+
+void
+orb_i::handle_observer_method_changed( uint32_t objid, int32_t pos )
+{
+    emit onObserverMethodChanged( objid, pos );
+}
+
+void
+orb_i::handle_observer_event( uint32_t objid, int32_t pos, int32_t events )
+{
+    emit onObserverEvent( objid, pos, events );
+}
+
+void
+orb_i::handle_receiver_log( const ::EventLog::LogMessage& log )
+{
+    QString msg;
+    try {
+        msg = QString::fromStdString( adportable::date_string::utc_to_localtime_string( log.tv.sec, log.tv.usec ) + "\t" );
+        msg += QString::fromStdWString( adinterface::EventLog::LogMessageHelper::toString( log ) );
+        MainWindow::instance()->eventLog( msg ); // will emit signal
+    } catch ( ... ) {
+        msg += QString::fromStdString( boost::current_exception_diagnostic_information() );
+        MainWindow::instance()->eventLog( msg );
+    }
+}
+
+void
+orb_i::handle_receiver_shutdown()
+{
+    // handle_shutdown
+}
+
+void
+orb_i::handle_receiver_debug_print( int32_t, int32_t, std::string text )
+{
+    QString qtext( text.c_str() );
+    MainWindow::instance()->eventLog( qtext ); // will emit
+}
+
+void
+orb_i::initialize()
+{
+    Broker::Manager_var mgr = OrbConnection::instance()->brokerManager();
+    if ( CORBA::is_nil( mgr ) ) {
+        return;
+    }
+
+    impl_->brokerSession_ = mgr->getSession( "acquire" );
+    if ( CORBA::is_nil( impl_->brokerSession_ ) ) {
+        return;
+    }
+
+    impl_->initialize_broker_session();
+
+    task_->threads_.push_back( adportable::asio::thread( [this](){ task_->io_service_.run(); } ) );
+
+}
+
+void
+orb_i::shutdown()
+{
+    impl_->terminate_broker_session();
+    
+    ADTRACE() << "orb_i::shutdown_broker() ...";
+
+    OrbConnection::instance()->shutdown();
+
+    task_->terminate();
+
+    ADTRACE() << "orb_i::shutdown_broker() completed.";
 }
 

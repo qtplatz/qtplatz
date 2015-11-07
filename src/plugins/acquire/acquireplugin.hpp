@@ -46,7 +46,7 @@
 #include <mutex>
 
 
-class QToolButton;
+//class QToolButton;
 class QAction;
 class QComboBox;
 class QPointF;
@@ -101,7 +101,7 @@ namespace acquire {
         ShutdownFlag aboutToShutdown() override;
 
     public:
-        static QToolButton * toolButton( QAction * action );
+        //static QToolButton * toolButton( QAction * action );
                                               
     public slots:
         void handleCommitMethods();
@@ -114,8 +114,6 @@ namespace acquire {
         void actionRun();
         void actionStop();
         void actionInject();
-        void actMethodOpen();
-        void actMethodSave();
 
         void handle_shutdown();
         void handle_debug_print( unsigned long priority, unsigned long category, QString text );
@@ -137,13 +135,13 @@ namespace acquire {
 
     signals:
         // observer signals
-        void onUpdateUIData( unsigned long, long );
-        void onObserverConfigChanged( unsigned long, long );
-        void onObserverMethodChanged( unsigned long, long );
-        void onObserverEvent( unsigned long, long, long );
+        //void onUpdateUIData( unsigned long, long );
+        // void onObserverConfigChanged( unsigned long, long );
+        // void onObserverMethodChanged( unsigned long, long );
+        // void onObserverEvent( unsigned long, long, long );
 
-        // receiver signals
-        void onReceiverMessage( unsigned long, unsigned long );
+        // // receiver signals
+        // void onReceiverMessage( unsigned long, unsigned long );
 
         // 
     private:
@@ -153,39 +151,31 @@ namespace acquire {
         friend class orb_i;
         orb_i * orb_i_;
 
-        MainWindow * mainWindow_;
         AcquireImpl * pImpl_;
 
-        QAction * actionConnect_;
-        QAction * actionRun_;
-        QAction * actionInitRun_;
-        QAction * actionStop_;
-        QAction * actionSnapshot_;
-        QAction * actionInject_;
+        // QAction * actionConnect_;
+        // QAction * actionRun_;
+        // QAction * actionInitRun_;
+        // QAction * actionStop_;
+        // QAction * actionSnapshot_;
+        // QAction * actionInject_;
 
-        QAction * actMethodOpen_;
-        QAction * actMethodSave_;
-        adportable::Configuration * pConfig_;
+        // QAction * actMethodOpen_;
+        // QAction * actMethodSave_;
+        // adportable::Configuration * pConfig_;
 
-        void initialize_actions();
-        QWidget * createContents( Core::IMode * );
-        void initialize_broker();
-        void shutdown_broker();
+        //void initialize_actions();
+        // QWidget * createContents( Core::IMode * );
+        // void initialize_broker();
+        // void shutdown_broker();
 
-        
+        std::mutex mutex_;
         std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
         std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
         std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
         std::map< unsigned long, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
 
         std::vector< std::wstring > trace_descriptions_;
-        QComboBox * traceBox_;
-
-        boost::asio::io_service io_service_;
-        boost::asio::io_service::work work_;
-        boost::asio::io_service::strand strand_;
-        std::vector< adportable::asio::thread > threads_;
-        std::mutex mutex_;
 
         void populate( SignalObserver::Observer_var& );
 
@@ -198,17 +188,17 @@ namespace acquire {
                         , const adcontrols::DataInterpreter& dataInterpreter
                         , unsigned long objId );
 
-        // observer event handlers
-        void handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus );
-        void handle_observer_update_data( uint32_t objid, int32_t pos );
-        void handle_observer_method_changed( uint32_t objid, int32_t pos );
-        void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
+        // // observer event handlers
+        // void handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus );
+        // void handle_observer_update_data( uint32_t objid, int32_t pos );
+        // void handle_observer_method_changed( uint32_t objid, int32_t pos );
+        // void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
         
-        // receiver_i handlers
-        // void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
-        void handle_receiver_log( const ::EventLog::LogMessage& );
-        void handle_receiver_shutdown();
-        void handle_receiver_debug_print( int32_t, int32_t, std::string );
+        // // receiver_i handlers
+        // // void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
+        // void handle_receiver_log( const ::EventLog::LogMessage& );
+        // void handle_receiver_shutdown();
+        // void handle_receiver_debug_print( int32_t, int32_t, std::string );
 
     };
 

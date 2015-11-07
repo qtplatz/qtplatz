@@ -23,123 +23,16 @@
 **
 **************************************************************************/
 
-// #include "acquireplugin.hpp"
-// #include "acquiremode.hpp"
-// #include "brokerevent_i.hpp"
-// #include "constants.hpp"
-// #include "document.hpp"
-// #include "mastercontroller.hpp"
-// #include "mainwindow.hpp"
-// #if HAVE_CORBA
-// #include "orbconnection.hpp"
-// #include "qbroker.hpp"
-// #endif
-
-// #include <acewrapper/constants.hpp>
-// #include <acewrapper/ifconfig.hpp>
-// #include <adextension/isnapshothandler.hpp>
+#include <QObject>
 
 #if HAVE_CORBA
 # include "receiver_i.hpp"
 # include <adinterface/brokerC.h>
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>
-// # include <adinterface/signalobserverC.h>
 # include <adinterface/observerevents_i.hpp>
-// # include <adinterface/eventlog_helper.hpp>
-// # include <adinterface/controlmethodhelper.hpp>
-// # include <adorbmgr/orbmgr.hpp>
-// # include <tao/Object.h>
 #endif
 
-// #include <adcontrols/controlmethod.hpp>
-// #include <adcontrols/massspectrum.hpp>
-// #include <adcontrols/msproperty.hpp>
-// #include <adcontrols/description.hpp>
-// #include <adcontrols/descriptions.hpp>
-// #include <adcontrols/massspectrometer.hpp>
-// #include <adcontrols/mscalibrateresult.hpp>
-// #include <adcontrols/msreference.hpp>
-// #include <adcontrols/msreferences.hpp>
-// #include <adcontrols/mscalibration.hpp>
-// #include <adcontrols/msassignedmass.hpp>
-// #include <adcontrols/datainterpreter.hpp>
-// #include <adcontrols/centroidprocess.hpp>
-// #include <adcontrols/centroidmethod.hpp>
-// #include <adcontrols/controlmethod.hpp>
-// #include <adcontrols/samplerun.hpp>
-// #include <adcontrols/trace.hpp>
-// #include <adcontrols/traceaccessor.hpp>
-// #include <adcontrols/timeutil.hpp>
-// #include <adextension/imonitorfactory.hpp>
-// #include <adextension/icontroller.hpp>
-// #include <adportable/array_wrapper.hpp>
-// #include <adportable/configuration.hpp>
-// #include <adportable/configloader.hpp>
-// #include <adportable/date_string.hpp>
-// #include <adportable/profile.hpp>
-// #include <adportable/binary_serializer.hpp>
-// #include <adportable/debug.hpp>
-// #include <adplugin_manager/loader.hpp>
-// #include <adplugin_manager/manager.hpp>
-// #include <adplugin/plugin.hpp>
-// #include <adplugin/plugin_ptr.hpp>
-// #include <adplugin/orbbroker.hpp>
-
-// #include <adportable/debug_core.hpp>
-// #include <adlog/logging_handler.hpp>
-// #include <adlog/logger.hpp>
-
-// #include <adportable/date_string.hpp>
-// #include <adportable/fft.hpp>
-// #include <adportable/debug.hpp>
-// #include <adplot/chromatogramwidget.hpp>
-// #include <adplot/spectrumwidget.hpp>
-
-// #include <qtwrapper/application.hpp>
-// #include <qtwrapper/qstring.hpp>
-// #include <servant/servantplugin.hpp>
-// #include <utils/fancymainwindow.h>
-
-// #include <coreplugin/icore.h>
-// #include <coreplugin/id.h>
-// #include <coreplugin/actionmanager/actioncontainer.h>
-// #include <coreplugin/actionmanager/actionmanager.h>
-// #include <coreplugin/coreconstants.h>
-// #include <coreplugin/minisplitter.h>
-// #include <coreplugin/modemanager.h>
-// #include <coreplugin/navigationwidget.h>
-// #include <coreplugin/outputpane.h>
-// #include <coreplugin/rightpane.h>
-// #include <extensionsystem/pluginmanager.h>
-// #include <utils/styledbar.h>
-
-// #include <QAction>
-// #include <QComboBox>
-// #include <QtCore/qplugin.h>
-// #include <QFileDialog>
-// #include <QHBoxLayout>
-// #include <QBoxLayout>
-// #include <QToolButton>
-// #include <QLabel>
-// #include <QLineEdit>
-// #include <QTableWidget>
-// #include <QTextEdit>
-// #include <QToolButton>
-// #include <QMessageBox>
-// #include <qdebug.h>
-
-// #include <boost/exception/all.hpp>
-// #include <boost/format.hpp>
-// #include <boost/filesystem.hpp>
-// #include <boost/date_time/posix_time/posix_time.hpp>
-// #include <boost/bind.hpp>
-// #include <boost/exception/all.hpp>
-// #include <algorithm>
-// #include <cmath>
-// #include <fstream>
-// #include <functional>
-// #include <future>
 #include <map>
 
 namespace adcontrols { class MassSpectrometer; }
@@ -148,8 +41,11 @@ namespace acquire {
 
     class AcquirePlugin;
 
-    class orb_i {
+    class orb_i : public QObject {
+
+        Q_OBJECT
         AcquirePlugin * pThis_;
+
     public:
         ControlServer::Session_var session_;
         SignalObserver::Observer_var observer_;
@@ -176,9 +72,38 @@ namespace acquire {
         
         void handle_update_data( unsigned long objId, long pos );
         void handle_controller_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value );
+
+        // observer event handlers
+        void handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus );
+        void handle_observer_update_data( uint32_t objid, int32_t pos );
+        void handle_observer_method_changed( uint32_t objid, int32_t pos );
+        void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
         
-        orb_i( AcquirePlugin * p ) : pThis_( p ) {
-        }
+        // receiver_i handlers
+        // void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
+        void handle_receiver_log( const ::EventLog::LogMessage& );
+        void handle_receiver_shutdown();
+        void handle_receiver_debug_print( int32_t, int32_t, std::string );
+
+        void initialize();
+        void shutdown();
+        
+        orb_i();
+        ~orb_i();
+    signals:
+        void onUpdateUIData( unsigned long, long );        
+        void onObserverConfigChanged( unsigned long, long );
+        void onObserverMethodChanged( unsigned long, long );
+        void onObserverEvent( unsigned long, long, long );
+        // receiver signals
+        void onReceiverMessage( unsigned long, unsigned long );
+
+    private:
+        class task;
+        std::unique_ptr< task > task_;
+
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 }
 

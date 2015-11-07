@@ -36,12 +36,20 @@ namespace adcontrols {
     class SampleRun;
 }
 
+namespace Core { class IMode; class Context; }
+namespace Utils { class StyledBar; }
+
 namespace adportable { class Configuration; }
 namespace adextension { class iMonitorFactory; class iController; }
 namespace adwidgets { class ControlMethodWidget; class SampleRunWidget; }
+
 class QDockWidget;
 class QAction;
 class QMainWindow;
+class QHBoxLayout;
+class QWidget;
+class QToolButton;
+class QAction;
 
 namespace acquire {
         
@@ -51,16 +59,20 @@ namespace acquire {
     //------------
     //------------
     class MainWindow : public Utils::FancyMainWindow {
+
         Q_OBJECT
+        explicit MainWindow(QWidget *parent = 0);        
+
     public:
         ~MainWindow();
-        explicit MainWindow(QWidget *parent = 0);
 
         static MainWindow * instance();
       
         void init( const adportable::Configuration& config );
         void setSimpleDockWidgetArrangement();
 
+        QWidget * createContents( Core::IMode * );
+        
         void OnInitialUpdate();
         void OnFinalClose();
         // 
@@ -74,6 +86,12 @@ namespace acquire {
         void setSampleRun( const adcontrols::SampleRun& );
 
         size_t findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& ) const;
+
+        //
+        void createActions();
+        void actMethodOpen();
+        void actMethodSave();
+        void handleInstState( int );
         //
     signals:
         void signal_eventLog( QString );
@@ -92,9 +110,15 @@ namespace acquire {
 
     private:
         QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
-        adwidgets::ControlMethodWidget * cmEditor_;
-        adwidgets::SampleRunWidget * runEditor_;
-        static MainWindow * instance_;
+        static QToolButton * toolButton( QAction * action );
+        static QToolButton * toolButton( const char * id );
+        QAction * createAction( const QString&, const QString& msg, QObject * parent );
+        void saveCurrentImage();
+        void printCurrentView();
+        void hideDock( bool );
+        
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 }

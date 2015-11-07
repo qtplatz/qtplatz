@@ -77,10 +77,19 @@ namespace acquire {
         void fsmActStop();
         void fsmActInject();
         void notify_ready_for_run( const char * xml );
-
-        //
+        // 
         MasterController * masterController();
         MasterObserver * masterObserver();
+
+        //
+        void actionConnect();
+        void actionDisconnect();
+        void actionInitRun();
+        void actionRun();
+        void actionStop();
+        void actionInject();
+        void actionSnapshot();
+        //bool readCalibrations( observer_type& );
         
     private:
         std::shared_ptr< QSettings > settings_;  // user scope settings

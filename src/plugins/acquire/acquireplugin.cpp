@@ -30,6 +30,7 @@
 #include "document.hpp"
 #include "mastercontroller.hpp"
 #include "mainwindow.hpp"
+
 #if HAVE_CORBA
 #include "orb_i.hpp"
 #include "orbconnection.hpp"
@@ -116,19 +117,19 @@
 #include <utils/styledbar.h>
 
 #include <QAction>
-#include <QComboBox>
+//#include <QComboBox>
 #include <QtCore/qplugin.h>
-#include <QFileDialog>
-#include <QHBoxLayout>
-#include <QBoxLayout>
-#include <QToolButton>
-#include <QLabel>
-#include <QLineEdit>
-#include <QTableWidget>
-#include <QTextEdit>
-#include <QToolButton>
+//#include <QFileDialog>
+//#include <QHBoxLayout>
+//#include <QBoxLayout>
+//#include <QToolButton>
+//#include <QLabel>
+//#include <QLineEdit>
+//#include <QTableWidget>
+//#include <QTextEdit>
+//#include <QToolButton>
 #include <QMessageBox>
-#include <qdebug.h>
+//#include <qdebug.h>
 
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
@@ -158,158 +159,146 @@ namespace acquire {
         AcquireImpl() : timePlot_(0), spectrumPlot_(0) {
         }
 
-        Broker::Session_var brokerSession_;
-        std::unique_ptr< brokerevent_i > brokerEvent_;
+        // Broker::Session_var brokerSession_;
+        // std::unique_ptr< brokerevent_i > brokerEvent_;
 
         std::map< int, adcontrols::Trace > traces_;
         adplot::ChromatogramWidget * timePlot_;
         adplot::SpectrumWidget * spectrumPlot_;
         QIcon icon_;
         void loadIcon() {
-            icon_.addFile( constants::ICON_CONNECT );
-            icon_.addFile( constants::ICON_CONNECT_SMALL );
+            // icon_.addFile( constants::ICON_CONNECT );
+            // icon_.addFile( constants::ICON_CONNECT_SMALL );
         }
 
-        void initialize_broker_session() {
-            brokerEvent_.reset( new brokerevent_i );
-            brokerEvent_->assign_message( [=]( const std::string& text ){
-                    handle_message( text );
-                });
-            brokerEvent_->assign_portfolio_created( [=]( const std::wstring& file ){
-                    handle_portfolio_created( file );
-                });
-            brokerEvent_->assign_folium_added(
-                [=]( const std::wstring& token
-                     , const std::wstring& path
-                     , const std::wstring& folderId ){
-                    handle_folium_added( token, path, folderId );
-                });
-            brokerSession_->connect( "user", "pass", "acquire", brokerEvent_->_this() );
-        }
-
-        void terminate_broker_session() {
-            // disconnect broker session
-            if ( !CORBA::is_nil( brokerSession_ ) && brokerEvent_ ) {
-                brokerSession_->disconnect( brokerEvent_->_this() );
-                adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
-            }
-        }
+        // void initialize_broker_session() {
+        //     brokerEvent_.reset( new brokerevent_i );
+        //     brokerEvent_->assign_message( [=]( const std::string& text ){
+        //             handle_message( text );
+        //         });
+        //     brokerEvent_->assign_portfolio_created( [=]( const std::wstring& file ){
+        //             handle_portfolio_created( file );
+        //         });
+        //     brokerEvent_->assign_folium_added(
+        //         [=]( const std::wstring& token
+        //              , const std::wstring& path
+        //              , const std::wstring& folderId ){
+        //             handle_folium_added( token, path, folderId );
+        //         });
+        //     brokerSession_->connect( "user", "pass", "acquire", brokerEvent_->_this() );
+        // }
+        
+        // void terminate_broker_session() {
+        //     // disconnect broker session
+        //     if ( !CORBA::is_nil( brokerSession_ ) && brokerEvent_ ) {
+        //         brokerSession_->disconnect( brokerEvent_->_this() );
+        //         adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
+        //     }
+        // }
 
     protected:
-        void handle_message( const std::string& msg ) {
-            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
-            for ( auto handler: vec )
-                handler->message( QString( msg.c_str() ) );
-        }
+        // void handle_message( const std::string& msg ) {
+        //     auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+        //     for ( auto handler: vec )
+        //         handler->message( QString( msg.c_str() ) );
+        // }
 
-        void handle_portfolio_created( const std::wstring& token ) {
-            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
-            for ( auto handler: vec )
-                handler->portfolio_created( qtwrapper::qstring( token ) );
-        }
+        // void handle_portfolio_created( const std::wstring& token ) {
+        //     auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+        //     for ( auto handler: vec )
+        //         handler->portfolio_created( qtwrapper::qstring( token ) );
+        // }
             
-        void handle_folium_added( const std::wstring& token, const std::wstring& path, const std::wstring& id ) {
-            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
-            for ( auto handler: vec )
-                handler->folium_added( qtwrapper::qstring( token )
-                                       , qtwrapper::qstring( path ), qtwrapper::qstring( id ) );
-        }
+        // void handle_folium_added( const std::wstring& token, const std::wstring& path, const std::wstring& id ) {
+        //     auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+        //     for ( auto handler: vec )
+        //         handler->folium_added( qtwrapper::qstring( token )
+        //                                , qtwrapper::qstring( path ), qtwrapper::qstring( id ) );
+        // }
     };
 #endif
 }
 
-// static
-QToolButton * 
-AcquirePlugin::toolButton( QAction * action )
-{
-    QToolButton * button = new QToolButton;
-    if ( button )
-        button->setDefaultAction( action );
-    return button;
-}
-
 AcquirePlugin::~AcquirePlugin()
 {
-    shutdown_broker();
+    orb_i_->shutdown();
 
-    delete mainWindow_;
     delete orb_i_;
     delete pImpl_;
     ADTRACE() << "====== AcquirePlugin dtor complete ===============";
 }
 
-AcquirePlugin::AcquirePlugin() : mainWindow_(0)
-                               , pImpl_( new AcquireImpl() )
-                               , orb_i_( new orb_i( this ) )
-                               , actionConnect_(0)
-                               , actionRun_(0)
-                               , actionInitRun_(0)
-                               , actionStop_(0)
-                               , actionSnapshot_(0)
-                               , actionInject_(0)
-                               , actMethodOpen_(0)
-                               , actMethodSave_(0)
-                               , pConfig_( 0 )
-                               , traceBox_( 0 ) 
-                               , work_( io_service_ )
-                               , strand_( io_service_ )
+AcquirePlugin::AcquirePlugin() : pImpl_( new AcquireImpl() )
+                               , orb_i_( new orb_i() )
+                               // , actionConnect_(0)
+                               // , actionRun_(0)
+                               // , actionInitRun_(0)
+                               // , actionStop_(0)
+                               // , actionSnapshot_(0)
+                               // , actionInject_(0)
+                               // , actMethodOpen_(0)
+                               // , actMethodSave_(0)
+                               // , pConfig_( 0 )
+                               //, traceBox_( 0 ) 
+                               //, work_( io_service_ )
+                               //, strand_( io_service_ )
 {
 }
 
-void
-AcquirePlugin::initialize_actions()
-{
-    pImpl_->loadIcon();
+// void
+// AcquirePlugin::initialize_actions()
+// {
+//     pImpl_->loadIcon();
 
-    actionConnect_ = new QAction( QIcon(":/acquire/images/Button Refresh.png"), tr("Connect to control server..."), this);
-    connect( actionConnect_, &QAction::triggered, this, &AcquirePlugin::actionConnect );
+//     actionConnect_ = new QAction( QIcon(":/acquire/images/Button Refresh.png"), tr("Connect to control server..."), this);
+//     connect( actionConnect_, &QAction::triggered, this, &AcquirePlugin::actionConnect );
   
-    actionInitRun_ = new QAction(QIcon(":/acquire/images/Button Last.png"), tr("Preparing"), this);
-    connect( actionInitRun_, &QAction::triggered, this, &AcquirePlugin::actionInitRun );
+//     actionInitRun_ = new QAction(QIcon(":/acquire/images/Button Last.png"), tr("Preparing"), this);
+//     connect( actionInitRun_, &QAction::triggered, this, &AcquirePlugin::actionInitRun );
   
-    actionRun_ = new QAction(QIcon(":/acquire/images/Button Play.png"), tr("Run"), this);
-    connect( actionRun_, &QAction::triggered, this, &AcquirePlugin::actionRun );
+//     actionRun_ = new QAction(QIcon(":/acquire/images/Button Play.png"), tr("Run"), this);
+//     connect( actionRun_, &QAction::triggered, this, &AcquirePlugin::actionRun );
   
-    actionStop_ = new QAction(QIcon(":/acquire/images/Button Stop.png"), tr("Stop"), this);
-    connect( actionStop_, &QAction::triggered, this, &AcquirePlugin::actionStop );
+//     actionStop_ = new QAction(QIcon(":/acquire/images/Button Stop.png"), tr("Stop"), this);
+//     connect( actionStop_, &QAction::triggered, this, &AcquirePlugin::actionStop );
   
-    actionInject_ = new QAction(QIcon(":/acquire/images/Button Add.png"), tr("Inject (recording data)"), this);
-    connect( actionInject_, &QAction::triggered, this, &AcquirePlugin::actionInject );
+//     actionInject_ = new QAction(QIcon(":/acquire/images/Button Add.png"), tr("Inject (recording data)"), this);
+//     connect( actionInject_, &QAction::triggered, this, &AcquirePlugin::actionInject );
 
-    //------------ snapshot -------------
-    actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
-    connect( actionSnapshot_, &QAction::triggered, this, &AcquirePlugin::actionSnapshot );
+//     //------------ snapshot -------------
+//     actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
+//     connect( actionSnapshot_, &QAction::triggered, this, &AcquirePlugin::actionSnapshot );
     
-    //------------ method file open/save
-    actMethodOpen_ = new QAction( QIcon( ":/acquire/images/fileopen.png" ), tr( "Method open..." ), this );
-    connect( actMethodOpen_, &QAction::triggered, this, &AcquirePlugin::actMethodOpen );
+//     //------------ method file open/save
+//     actMethodOpen_ = new QAction( QIcon( ":/acquire/images/fileopen.png" ), tr( "Method open..." ), this );
+//     connect( actMethodOpen_, &QAction::triggered, MainWindow::instance(), &MainWindow::actMethodOpen );
 
-    actMethodSave_ = new QAction( QIcon( ":/acquire/images/filesave.png" ), tr( "Method save..." ), this );
-    connect( actMethodSave_, &QAction::triggered, this, &AcquirePlugin::actMethodSave );
+//     actMethodSave_ = new QAction( QIcon( ":/acquire/images/filesave.png" ), tr( "Method save..." ), this );
+//     connect( actMethodSave_, &QAction::triggered, MainWindow::instance(), &MainWindow::actMethodSave );
 
-    actionConnect_->setEnabled( true );
-    actionInitRun_->setEnabled( false );
-    actionRun_->setEnabled( false );
-	actionStop_->setEnabled( false );
-	actionInject_->setEnabled( false );
-    actionSnapshot_->setEnabled( true );
+//     actionConnect_->setEnabled( true );
+//     actionInitRun_->setEnabled( false );
+//     actionRun_->setEnabled( false );
+// 	actionStop_->setEnabled( false );
+// 	actionInject_->setEnabled( false );
+//     actionSnapshot_->setEnabled( true );
   
-    Core::Context context( ( Core::Id( "Acquire.MainView" ), Core::Id( Core::Constants::C_GLOBAL ) ) );
+//     Core::Context context( ( Core::Id( "Acquire.MainView" ), Core::Id( Core::Constants::C_GLOBAL ) ) );
 
-    if ( auto am = Core::ActionManager::instance() ) {
-        Core::Command * cmd = 0;
-        cmd = am->registerAction( actionConnect_, constants::CONNECT, context );
+//     if ( auto am = Core::ActionManager::instance() ) {
+//         Core::Command * cmd = 0;
+//         cmd = am->registerAction( actionConnect_, constants::CONNECT, context );
 
-        cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, context );
-        cmd = am->registerAction( actionRun_, constants::RUN, context );
-        cmd = am->registerAction( actionStop_, constants::STOP, context );
-        cmd = am->registerAction( actionInject_, constants::ACQUISITION, context );
-        cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, context );
-        cmd = am->registerAction( actMethodOpen_, constants::METHODOPEN, context );
-        cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, context );
-        (void)cmd;
-    }
-}
+//         cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, context );
+//         cmd = am->registerAction( actionRun_, constants::RUN, context );
+//         cmd = am->registerAction( actionStop_, constants::STOP, context );
+//         cmd = am->registerAction( actionInject_, constants::ACQUISITION, context );
+//         cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, context );
+//         cmd = am->registerAction( actMethodOpen_, constants::METHODOPEN, context );
+//         cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, context );
+//         (void)cmd;
+//     }
+// }
 
 bool
 AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
@@ -318,7 +307,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(error_message);
 
     adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
-    
+
     do {
         std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
         std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config" );
@@ -326,44 +315,49 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
         const wchar_t * query = L"/AcquireConfiguration/Configuration";
 
-        pConfig_ = new adportable::Configuration();
+        //pConfig_ = new adportable::Configuration();
 
-        if ( ! adportable::ConfigLoader::loadConfigFile( *pConfig_, configFile, query ) ) {
-            ADWARN() << "AcquirePlugin::initialize loadConfig '" << configFile << "' load failed";
-            return false;
-        }
+        // if ( ! adportable::ConfigLoader::loadConfigFile( *pConfig_, configFile, query ) ) {
+        //     ADWARN() << "AcquirePlugin::initialize loadConfig '" << configFile << "' load failed";
+        //     return false;
+        // }
     } while(0);
-
+    
     Core::Context context( (Core::Id( "Acquire.MainView" )), (Core::Id( Core::Constants::C_NAVIGATION_PANE )) );
 
-    AcquireMode * mode = new AcquireMode(this);
-    mode->setContext( context );
-    
-    mainWindow_ = new MainWindow(0);
-    if ( mainWindow_ )
-        mainWindow_->init( *pConfig_ );
+    if ( AcquireMode * mode = new AcquireMode(this) ) {
+        mode->setContext( context );
+        
+        if ( auto mainWindow = MainWindow::instance() ) {
 
-    try {
-        initialize_actions();
-    } catch ( ... ) {
-        ADERROR() << "exception handled for initailize_actions: " << boost::current_exception_diagnostic_information();
+            mainWindow->activateWindow();
+            mainWindow->createActions();
+            
+            //mainWindow->init( *pConfig_ );
+            
+            mode->setWidget( mainWindow->createContents( mode ) );
+            
+            addAutoReleasedObject(mode);
+            mainWindow->setSimpleDockWidgetArrangement();
+        }
     }
 
+    // try {
+    //     initialize_actions();
+    // } catch ( ... ) {
+    //     ADERROR() << "exception handled for initailize_actions: " << boost::current_exception_diagnostic_information();
+    // }
+    
     // CORBA DEPENDENT
     auto qbroker = new QBroker();
     connect( qbroker, &QBroker::initialized, this, &AcquirePlugin::handle_broker_initialized );
     addObject( qbroker );
     // <--
 
-    mode->setWidget( createContents( mode ) );
-    addAutoReleasedObject(mode);
-
     if ( auto iExtension = document::instance()->masterController() ) {
         addObject( iExtension );
-        connect( iExtension, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
+        connect( iExtension, &adextension::iController::connected, MainWindow::instance(), &MainWindow::iControllerConnected );
     }
-
-    mainWindow_->setSimpleDockWidgetArrangement();
 
     return true;
 }
@@ -371,29 +365,25 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 AcquirePlugin::extensionsInitialized()
 {
-	mainWindow_->OnInitialUpdate();
-    document::instance()->initialSetup();
-    mainWindow_->setControlMethod( *document::instance()->controlMethod() );
-    mainWindow_->setSampleRun( *document::instance()->sampleRun() );
+    if ( auto mainWindow = MainWindow::instance() ) {
 
-    // gather and initialize control method,time events
-    mainWindow_->handleControlMethod();
+        mainWindow->OnInitialUpdate();
+        document::instance()->initialSetup();
+        mainWindow->setControlMethod( *document::instance()->controlMethod() );
+        mainWindow->setSampleRun( *document::instance()->sampleRun() );
+
+        // gather and initialize control method,time events
+        mainWindow->handleControlMethod();
+    }
 }
 
 void
 AcquirePlugin::handle_broker_initialized()
 {
-    Broker::Manager_var mgr = OrbConnection::instance()->brokerManager();
-    if ( CORBA::is_nil( mgr ) )
-        return;
-
-    pImpl_->brokerSession_ = mgr->getSession( "acquire" );
-    if ( CORBA::is_nil( pImpl_->brokerSession_ ) )
-        return;
-    
-    pImpl_->initialize_broker_session();
-    
-    threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+    if ( orb_i_ ) {
+        orb_i_->initialize();
+        connect( orb_i_, &orb_i::onUpdateUIData, this, &AcquirePlugin::handle_update_ui_data );
+    }
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
@@ -402,14 +392,22 @@ AcquirePlugin::aboutToShutdown()
     ADTRACE() << "====== AcquirePlugin shutting down...  ===============";
 
     actionDisconnect();
-    pImpl_->terminate_broker_session();
 
-    document::instance()->finalClose( mainWindow_ );
-    mainWindow_->OnFinalClose();
+    if ( orb_i_ )
+        orb_i_->shutdown();
 
-    io_service_.stop();
-    for ( auto& t: threads_ )
-        t.join();
+    auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
+    removeObject( iBroker );
+
+    if ( auto mainWindow = MainWindow::instance() ) {
+
+        document::instance()->finalClose( mainWindow );
+        mainWindow->OnFinalClose();
+    }
+
+//    io_service_.stop();
+//    for ( auto& t: threads_ )
+//        t.join();
 
     ADTRACE() << "====== AcquirePlugin shutdown complete ===============";
     
@@ -429,6 +427,7 @@ AcquirePlugin::populate( SignalObserver::Observer_var& observer )
 {
     SignalObserver::Description_var topLevelDesc = observer->getDescription();
 
+#if 0
     std::string topLevelName = topLevelDesc->trace_display_name.in();
     traceBox_->addItem( QString::fromStdString( topLevelName ) );
 
@@ -438,6 +437,7 @@ AcquirePlugin::populate( SignalObserver::Observer_var& observer )
         CORBA::String_var secondLevelName = children[i]->getDescription()->trace_display_name.in();
         traceBox_->addItem( QString( "   %1" ).arg( secondLevelName.in() ) );
     }
+#endif
 }
 
 void
@@ -475,39 +475,6 @@ void
 AcquirePlugin::actionSnapshot()
 {
     orb_i_->actionSnapshot();
-}
-
-void
-AcquirePlugin::actMethodOpen()
-{
-    QString name
-        = QFileDialog::getOpenFileName( mainWindow_
-                                        , tr("Open control method")
-                                        , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
-                                        , tr( "Control method files(*.cmth)" ) );
-    adcontrols::ControlMethod::Method m;
-    if ( document::load( name, m ) ) {
-        document::instance()->setControlMethod( m, name );
-        mainWindow_->setControlMethod( m );
-    }
-    
-}
-
-void
-AcquirePlugin::actMethodSave()
-{
-    QString name
-        = QFileDialog::getSaveFileName( mainWindow_
-                                        , tr("Save control method")
-                                        , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
-                                        , tr( "Control method files(*.cmth)" ) );
-    adcontrols::ControlMethod::Method m;
-    mainWindow_->getControlMethod( m );
-    document::instance()->setControlMethod( m );
-    if ( document::save( name, m ) ) {
-        document::instance()->setControlMethod( m, name );
-    }
-
 }
 
 bool
@@ -622,7 +589,7 @@ void
 AcquirePlugin::handle_shutdown()
 {
     try { 
-        mainWindow_->handle_shutdown();
+        MainWindow::instance()->handle_shutdown();
     } catch ( ... ) {
         ADDEBUG() << boost::current_exception_diagnostic_information();
         assert( 0 );        
@@ -633,7 +600,7 @@ void
 AcquirePlugin::handle_debug_print( unsigned long priority, unsigned long category, QString text )
 {
     try {
-        mainWindow_->handle_debug_print( priority, category, text );
+        MainWindow::instance()->handle_debug_print( priority, category, text );
     } catch ( ... ) {
         ADDEBUG() << boost::current_exception_diagnostic_information();
         assert( 0 );        
@@ -666,7 +633,7 @@ void
 AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 {
     (void)y1; (void)y2;
-
+#if 0
     SignalObserver::Observers_var siblings = orb_i_->observer_->getSiblings();
     CORBA::ULong nsize = siblings->length();
 
@@ -696,73 +663,10 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
             }
         }
     }
+#endif
 }
 
-void
-AcquirePlugin::handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus st )
-{
-    emit onObserverConfigChanged( objid, long( st ) );
-}
-
-void
-AcquirePlugin::handle_observer_update_data( uint32_t objid, int32_t pos )
-{
-    io_service_.post( strand_.wrap( std::bind(&orb_i::handle_update_data, orb_i_, objid, pos ) ) );    
-}
-
-void
-AcquirePlugin::handle_observer_method_changed( uint32_t objid, int32_t pos )
-{
-    emit onObserverMethodChanged( objid, pos );
-}
-
-void
-AcquirePlugin::handle_observer_event( uint32_t objid, int32_t pos, int32_t events )
-{
-    emit onObserverEvent( objid, pos, events );
-}
-
-void
-AcquirePlugin::handle_receiver_log( const ::EventLog::LogMessage& log )
-{
-    QString msg;
-    try {
-        msg = QString::fromStdString( adportable::date_string::utc_to_localtime_string( log.tv.sec, log.tv.usec ) + "\t" );
-        msg += QString::fromStdWString( adinterface::EventLog::LogMessageHelper::toString( log ) );
-        mainWindow_->eventLog( msg ); // will emit signal
-    } catch ( ... ) {
-        msg += QString::fromStdString( boost::current_exception_diagnostic_information() );
-        mainWindow_->eventLog( msg );
-    }
-}
-
-void
-AcquirePlugin::handle_receiver_shutdown()
-{
-    // handle_shutdown
-}
-
-void
-AcquirePlugin::handle_receiver_debug_print( int32_t, int32_t, std::string text )
-{
-    QString qtext( text.c_str() );
-    mainWindow_->eventLog( qtext ); // will emit
-}
-
-
-void
-AcquirePlugin::shutdown_broker()
-{
-    ADTRACE() << "AcquirePlugin::shutdown_broker() ...";
-
-    auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
-	removeObject( iBroker );
-
-    OrbConnection::instance()->shutdown();
-
-    ADTRACE() << "AcquirePlugin::shutdown_broker() completed.";
-}
-
+#if 0
 QWidget *
 AcquirePlugin::createContents( Core::IMode * mode )
 {
@@ -897,13 +801,14 @@ AcquirePlugin::createContents( Core::IMode * mode )
 
         return splitter2;
 }
+#endif
 
 void
 AcquirePlugin::handleCommitMethods()
 {
     // Update ControlMethod by UI data with individual initial conditions
     adcontrols::ControlMethod::Method cm;
-    mainWindow_->getControlMethod( cm );
+    MainWindow::instance()->getControlMethod( cm );
 
     auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
     if ( !iControllers.isEmpty() ) {
@@ -914,7 +819,7 @@ AcquirePlugin::handleCommitMethods()
 
     // Update document by UI data
     adcontrols::SampleRun run;
-    mainWindow_->getSampleRun( run );
+    MainWindow::instance()->getSampleRun( run );
     acquire::document::instance()->setSampleRun( run ); // commit
 }
 

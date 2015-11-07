@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "constants.hpp"
 #include "document.hpp"
 #include "masterobserver.hpp"
 #include <adcontrols/controlmethod.hpp>
@@ -33,6 +34,8 @@
 #include <adicontroller/instrument.hpp>
 #include <adicontroller/receiver.hpp>
 #include <adicontroller/signalobserver.hpp>
+#include <adplot/chromatogramwidget.hpp>
+#include <adplot/spectrumwidget.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
@@ -45,18 +48,38 @@
 #include <adwidgets/insttreeview.hpp>
 #include <adwidgets/samplerunwidget.hpp>
 #include <qtwrapper/qstring.hpp>
-#include <extensionsystem/pluginmanager.h>
 
+#include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/actionmanager/command.h>
+#include <coreplugin/imode.h>
+#include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/findplaceholder.h>
+#include <coreplugin/rightpane.h>
+#include <coreplugin/minisplitter.h>
+#include <coreplugin/outputpane.h>
+#include <coreplugin/navigationwidget.h>
+#include <coreplugin/coreconstants.h>
+#include <coreplugin/icore.h>
+#include <extensionsystem/pluginmanager.h>
+#include <utils/styledbar.h>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/variant.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
+#include <QApplication>
+#include <QComboBox>
 #include <QDockWidget>
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QToolBar>
+#include <QToolButton>
 #include <QTextEdit>
 #include <QPluginLoader>
 #include <QLibrary>
@@ -65,20 +88,48 @@
 #include <QMessageBox>
 #include <QTabBar>
 
+namespace acquire {
+
+    class MainWindow::impl {
+    public:
+        impl() : cmEditor_( new adwidgets::ControlMethodWidget )
+               , runEditor_( new adwidgets::SampleRunWidget )
+               , timePlot_( new adplot::ChromatogramWidget )
+               , spectrumPlot_( new adplot::SpectrumWidget ) {
+        }
+        
+        static std::unique_ptr< MainWindow > instance_;
+
+        adplot::ChromatogramWidget * timePlot_;
+        adplot::SpectrumWidget * spectrumPlot_;
+        
+        std::unique_ptr< adwidgets::ControlMethodWidget > cmEditor_;
+        std::unique_ptr< adwidgets::SampleRunWidget > runEditor_;
+        QComboBox * traceBox_;
+    };
+
+    std::unique_ptr< MainWindow > MainWindow::impl::instance_; 
+}
+
 using namespace acquire;
 
-MainWindow * MainWindow::instance_; 
+MainWindow * 
+MainWindow::instance()
+{
+    static std::once_flag flag;
+    std::call_once( flag, [](){ impl::instance_.reset( new MainWindow() ); } );
+    return impl::instance_.get();
+}
+
 
 MainWindow::~MainWindow()
 {
 }
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
-                                        , cmEditor_( new adwidgets::ControlMethodWidget )
-                                        , runEditor_( new adwidgets::SampleRunWidget )
+                                        , impl_( new impl() )
 {
-    instance_ = this;
-    connect( cmEditor_, &adwidgets::ControlMethodWidget::onImportInitialCondition, this, &MainWindow::handleControlMethod );
+    connect( impl_->cmEditor_.get(), &adwidgets::ControlMethodWidget::onImportInitialCondition, this, &MainWindow::handleControlMethod );
 }
 
 size_t 
@@ -98,26 +149,21 @@ MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iCon
     return vec.size();
 }
 
-MainWindow * 
-MainWindow::instance()
-{
-    return instance_;
-}
-
 void
 MainWindow::init( const adportable::Configuration& config )
 {
-	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
-    setDocumentMode( true );
 }
 
 void
 MainWindow::OnInitialUpdate()
 {
-    cmEditor_->OnInitialUpdate();
-    runEditor_->OnInitialUpdate();
+	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
+    setDocumentMode( true );
+    
+    impl_->cmEditor_->OnInitialUpdate();
+    impl_->runEditor_->OnInitialUpdate();
 
-    createDockWidget( runEditor_, "Sample Run", "SampleRunWidget" ); // this must be first
+    createDockWidget( impl_->runEditor_.get(), "Sample Run", "SampleRunWidget" ); // this must be first
 
     // then, series of individual control method widgets
     auto visitables = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
@@ -132,7 +178,7 @@ MainWindow::OnInitialUpdate()
                 if ( auto widget = factory.createEditor( 0 ) ) {
                     widget->setObjectName( factory.title() );
                     createDockWidget( widget, factory.title(), "ControlMethod" );
-                    cmEditor_->addEditor( widget ); // will call OnInitialUpdate
+                    impl_->cmEditor_->addEditor( widget ); // will call OnInitialUpdate
                 }
                 
             }
@@ -144,11 +190,11 @@ MainWindow::OnInitialUpdate()
         createDockWidget( tree, "Status", "InstStatus" );
 
     // and this must be very last.
-    createDockWidget( cmEditor_, "Control Method", "ControlMethodWidget" );
+    createDockWidget( impl_->cmEditor_.get(), "Control Method", "ControlMethodWidget" );
 
 	setSimpleDockWidgetArrangement();
 
-    connect( cmEditor_, &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
+    connect( impl_->cmEditor_.get(), &adwidgets::ControlMethodWidget::onCurrentChanged, this, [this] ( QWidget * w ){ w->parentWidget()->raise(); } );
 
     auto instTree = findChild< adwidgets::InstTreeView * >();
 
@@ -251,33 +297,33 @@ MainWindow::eventLog( const QString& text )
 void
 MainWindow::setControlMethod( const adcontrols::ControlMethod::Method& m )
 {
-    cmEditor_->setControlMethod( m );
+    impl_->cmEditor_->setControlMethod( m );
 }
 
 std::shared_ptr< adcontrols::ControlMethod::Method >
 MainWindow::getControlMethod()
 {
     auto mp = std::make_shared< adcontrols::ControlMethod::Method >();
-    cmEditor_->getControlMethod( *mp );
+    impl_->cmEditor_->getControlMethod( *mp );
     return mp;
 }
 
 void
 MainWindow::getControlMethod( adcontrols::ControlMethod::Method& m )
 {
-    cmEditor_->getControlMethod( m );
+    impl_->cmEditor_->getControlMethod( m );
 }
 
 void
 MainWindow::setSampleRun( const adcontrols::SampleRun& m )
 {
-    runEditor_->setSampleRun( m );
+    impl_->runEditor_->setSampleRun( m );
 }
 
 bool
 MainWindow::getSampleRun( adcontrols::SampleRun& m )
 {
-    runEditor_->getSampleRun( m );
+    impl_->runEditor_->getSampleRun( m );
     return true;
 }
 
@@ -303,8 +349,8 @@ MainWindow::handleControlMethod()
     for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
         iController->preparing_for_run( *ptr );
     }
-    if ( cmEditor_ )
-        cmEditor_->setControlMethod( *ptr );
+    if ( impl_->cmEditor_ )
+        impl_->cmEditor_->setControlMethod( *ptr );
 }
 
 struct observer2ptree {
@@ -382,3 +428,484 @@ MainWindow::iControllerMessage( adextension::iController * p, uint32_t msg, uint
     }
 }
 
+QWidget *
+MainWindow::createContents( Core::IMode * mode )
+{
+    //              [mainWindow]
+    // splitter> ---------------------
+    //              [OutputPane]
+  
+    Core::MiniSplitter * splitter = new Core::MiniSplitter;
+    if ( splitter ) {
+        splitter->addWidget( this );
+        splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
+
+        splitter->setStretchFactor( 0, 10 );
+        splitter->setStretchFactor( 1, 0 );
+        splitter->setOrientation( Qt::Vertical ); // horizontal splitter bar
+    }
+
+    //
+    //         <splitter2>         [mainWindow]
+    // [Navigation] | [splitter ------------------- ]
+    //                             [OutputPane]
+
+    Core::MiniSplitter * splitter2 = new Core::MiniSplitter;
+    if ( splitter2 ) {
+        splitter2->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
+        splitter2->addWidget( splitter );
+        splitter2->setStretchFactor( 0, 0 );
+        splitter2->setStretchFactor( 1, 1 );
+    }
+      
+    Utils::StyledBar * toolBar = new Utils::StyledBar;
+    if ( toolBar ) {
+        toolBar->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin(0);
+        toolBarLayout->setSpacing( 4 );
+
+        auto cmdLayout = new QHBoxLayout();
+        // Core::ActionManager *am = Core::ICore::instance()->actionManager();
+        if ( auto am = Core::ActionManager::instance() ) {
+            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_CONNECT )->action() ) );
+            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_INITIALRUN )->action() ) );
+            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_RUN )->action() ) );
+            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_STOP )->action() ) );
+            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_INJECT )->action() ) );
+        }
+        toolBarLayout->addLayout( cmdLayout );
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+
+        auto infoLayout = new QHBoxLayout();
+
+        if ( auto edit = new QLineEdit() ) {
+            infoLayout->addWidget( new QLabel( tr( "Run name:" ) ) );
+            edit->setReadOnly( true );
+            infoLayout->addWidget( edit );
+            infoLayout->setStretchFactor( edit, 2 );
+            connect( acquire::document::instance(), &acquire::document::onSampleRunChanged,
+                     [edit] ( const QString& name, const QString& dir ) { edit->setText( name ); } );
+        }
+            
+        if ( auto label = new QLabel( "" ) ) {
+            infoLayout->addWidget( label );
+            infoLayout->setStretchFactor( label, 1 );
+            connect( acquire::document::instance(), &acquire::document::onSampleRunLength,
+                     [label] ( const QString& text ) { label->setText( text ); } );
+        }
+            
+        infoLayout->addWidget( new Utils::StyledSeparator );
+        if ( auto edit = new QLineEdit() ) {
+            infoLayout->addWidget( new QLabel( tr( "Data save in:" ) ) );
+            edit->setReadOnly( true );
+            infoLayout->addWidget( edit );
+            infoLayout->setStretchFactor( edit, 3 );
+            connect( acquire::document::instance(), &acquire::document::onSampleRunChanged,
+                     [edit] ( const QString& name, const QString& dir ) { edit->setText( dir ); } );
+        }
+        toolBarLayout->addLayout( infoLayout );
+        toolBarLayout->addSpacerItem( new QSpacerItem( 32, 0, QSizePolicy::Expanding ) );
+    }
+
+    Utils::StyledBar * toolBar2 = new Utils::StyledBar;
+    if ( toolBar2 ) {
+        toolBar2->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
+        toolBarLayout->setMargin(0);
+        toolBarLayout->setSpacing(0);
+
+        if ( auto am = Core::ActionManager::instance() ) {
+            toolBarLayout->addWidget( toolButton( am->command( constants::ACTION_SNAPSHOT )->action() ) ); //actionSnapshot_ ) );
+            toolBarLayout->addWidget( toolButton( am->command( constants::METHODOPEN )->action() ) ); //actMethodOpen_ ) );
+            toolBarLayout->addWidget( toolButton( am->command( constants::METHODSAVE )->action() ) ); //actMethodSave_ ) );
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );
+            impl_->traceBox_ = new QComboBox;
+            impl_->traceBox_->addItem( "-----------------------------" );
+            connect( impl_->traceBox_, SIGNAL( currentIndexChanged(int) ), this, SLOT( handle_monitor_selected(int) ) );
+            connect( impl_->traceBox_, SIGNAL( activated(int) ), this, SLOT( handle_monitor_activated(int) ) );
+            toolBarLayout->addWidget( impl_->traceBox_ );
+            toolBarLayout->addWidget( new QLabel( tr("  ") ), 10 );
+        }
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
+    }
+
+    if ( QWidget* centralWidget = new QWidget ) {
+
+        setCentralWidget( centralWidget );
+
+        Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
+        if ( splitter3 ) {
+            splitter3->addWidget( impl_->timePlot_ );
+            splitter3->addWidget( impl_->spectrumPlot_ );
+            splitter3->setOrientation( Qt::Vertical );
+
+            using adplot::ChromatogramWidget;
+                
+            //connect( impl_->timePlot_, static_cast< void( ChromatogramWidget::*)( const QPointF& ) >( &ChromatogramWidget::onSelected ), this, &MainWindow::handleSelected );
+            //connect( impl_->timePlot_, static_cast< void( ChromatogramWidget::*)( const QRectF& ) >( &ChromatogramWidget::onSelected ), this, &MainWindow::handleSelected );
+        }
+
+        QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
+        toolBarAddingLayout->setMargin(0);
+        toolBarAddingLayout->setSpacing(0);
+        //toolBarAddingLayout->addWidget( rightPaneSplitter );
+        toolBarAddingLayout->addWidget( toolBar );
+        toolBarAddingLayout->addWidget( splitter3 );
+        toolBarAddingLayout->addWidget( toolBar2 );
+    }
+    
+    return splitter2;
+}
+
+// static
+QToolButton * 
+MainWindow::toolButton( QAction * action )
+{
+    QToolButton * button = new QToolButton;
+    if ( button )
+        button->setDefaultAction( action );
+    return button;
+}
+
+// static
+QToolButton * 
+MainWindow::toolButton( const char * id )
+{
+    return toolButton( Core::ActionManager::instance()->command( id )->action() );
+}
+
+void
+MainWindow::actMethodOpen()
+{
+    QString name
+        = QFileDialog::getOpenFileName( this
+                                        , tr("Open control method")
+                                        , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
+                                        , tr( "Control method files(*.cmth)" ) );
+    adcontrols::ControlMethod::Method m;
+    if ( document::load( name, m ) ) {
+        document::instance()->setControlMethod( m, name );
+        setControlMethod( m );
+    }
+    
+}
+
+void
+MainWindow::actMethodSave()
+{
+    QString name
+        = QFileDialog::getSaveFileName( this
+                                        , tr("Save control method")
+                                        , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
+                                        , tr( "Control method files(*.cmth)" ) );
+    
+    adcontrols::ControlMethod::Method m;
+    getControlMethod( m );
+
+    document::instance()->setControlMethod( m );
+    if ( document::save( name, m ) ) {
+        document::instance()->setControlMethod( m, name );
+    }
+
+}
+
+/*
+void
+AcquirePlugin::initialize_actions()
+{
+    pImpl_->loadIcon();
+
+    actionConnect_->setEnabled( true );
+    actionInitRun_->setEnabled( false );
+    actionRun_->setEnabled( false );
+	actionStop_->setEnabled( false );
+	actionInject_->setEnabled( false );
+    actionSnapshot_->setEnabled( true );
+  
+    Core::Context context( ( Core::Id( "Acquire.MainView" ), Core::Id( Core::Constants::C_GLOBAL ) ) );
+
+    if ( auto am = Core::ActionManager::instance() ) {
+        Core::Command * cmd = 0;
+        cmd = am->registerAction( actionConnect_, constants::CONNECT, context );
+
+        cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, context );
+        cmd = am->registerAction( actionRun_, constants::RUN, context );
+        cmd = am->registerAction( actionStop_, constants::STOP, context );
+        cmd = am->registerAction( actionInject_, constants::ACQUISITION, context );
+        cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, context );
+        cmd = am->registerAction( actMethodOpen_, constants::METHODOPEN, context );
+        cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, context );
+        (void)cmd;
+    }
+}
+*/
+
+void
+MainWindow::createActions()
+{
+    Core::ActionContainer * menu = Core::ActionManager::instance()->createMenu( constants::MENU_ID ); // Menu ID
+
+    if ( !menu )
+        return;
+
+    const Core::Context context( (Core::Id( Core::Constants::C_GLOBAL ) ) );
+    menu->menu()->setTitle( "Acquire" );
+
+    //------------ snapshot -------------
+    // actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
+    // connect( actionSnapshot_, &QAction::triggered, this, &AcquirePlugin::actionSnapshot );
+    if ( auto action = createAction( constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
+        connect( action, &QAction::triggered, [](){ document::instance()->actionSnapshot(); } );
+        action->setEnabled( false );
+        Core::Command * cmd = Core::ActionManager::registerAction( action, constants::ACTION_SNAPSHOT, context );
+        menu->addAction( cmd );
+    }
+
+    // actionConnect_ = new QAction( QIcon(":/acquire/images/Button Refresh.png"), tr("Connect to control server..."), this);
+    // connect( actionConnect_, &QAction::triggered, this, &AcquirePlugin::actionConnect );
+    if ( auto action = createAction( constants::ICON_CONNECT, tr( "Connect" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->actionConnect(); } );
+        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_CONNECT, context );
+        menu->addAction( cmd );        
+    }
+
+    // actionInitRun_ = new QAction(QIcon(":/acquire/images/Button Last.png"), tr("Preparing"), this);
+    // connect( actionInitRun_, &QAction::triggered, this, &AcquirePlugin::actionInitRun );
+    if ( auto action = createAction( constants::ICON_INITRUN, tr( "Prepare" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->actionInitRun(); } );
+        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_INITIALRUN, context );
+        menu->addAction( cmd );
+    }
+    
+
+    // actionRun_ = new QAction(QIcon(":/acquire/images/Button Play.png"), tr("Run"), this);
+    // connect( actionRun_, &QAction::triggered, this, &AcquirePlugin::actionRun );
+    if ( auto action = createAction( constants::ICON_RUN, tr( "Run" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->actionRun(); } );
+        action->setEnabled( false );        
+        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_RUN, context );
+        menu->addAction( cmd );        
+    }
+
+    // actionStop_ = new QAction(QIcon(":/acquire/images/Button Stop.png"), tr("Stop"), this);
+    // connect( actionStop_, &QAction::triggered, this, &AcquirePlugin::actionStop );
+    if ( auto action = createAction( constants::ICON_STOP, tr( "Stop" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->actionStop(); } );
+        action->setEnabled( false );
+        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_STOP, context );
+        menu->addAction( cmd );        
+    }
+
+    // actionInject_ = new QAction(QIcon(":/acquire/images/Button Add.png"), tr("Inject (recording data)"), this);
+    // connect( actionInject_, &QAction::triggered, this, &AcquirePlugin::actionInject );
+    if ( auto action = createAction( constants::ICON_INJECT, tr( "Inject" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->actionInject(); } );
+        action->setEnabled( false );
+        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_INJECT, context );
+        menu->addAction( cmd );                
+    }
+
+    //------------ method file open/save
+    if ( auto action = createAction( constants::ICON_FILE_OPEN, tr( "Method open..." ), this ) ) {
+        connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::actMethodOpen );
+        auto cmd = Core::ActionManager::registerAction( action, constants::METHODOPEN, context );
+        menu->addAction( cmd );
+    }
+
+    if ( auto action = createAction( constants::ICON_FILE_SAVE, tr( "Method save..." ), this ) ) {
+        connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::actMethodSave );
+        auto cmd = Core::ActionManager::registerAction( action, constants::METHODSAVE, context );
+        menu->addAction( cmd );
+    }
+#if 0    
+    do {
+        QIcon icon;
+        icon.addPixmap( QPixmap( Constants::ICON_REC_ON ), QIcon::Normal, QIcon::On );
+        icon.addPixmap( QPixmap( Constants::ICON_REC_PAUSE ), QIcon::Normal, QIcon::Off );
+        if ( auto action = new QAction( icon, tr( "REC" ), this ) ) {
+            action->setCheckable( true );
+            // action->setChecked( true );
+            action->setEnabled( false );
+            auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, context );
+            menu->addAction( cmd );        
+            connect( action, &QAction::triggered, [this](bool rec){
+                    document::instance()->actionRec(rec);
+                    if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
+                        if ( !action->isEnabled() )
+                            action->setEnabled( true );
+                } );
+        }
+    } while ( 0 );
+    
+    if ( auto action = createAction( Constants::ICON_SYNC, tr( "Sync trig." ), this ) ) {
+        connect( action, &QAction::triggered, [](){ document::instance()->actionSyncTrig(); } );
+        action->setEnabled( false );        
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SYNC, context );
+        menu->addAction( cmd );        
+    }
+#endif
+    
+    if ( auto action = createAction( constants::ICON_PDF, tr( "PDF" ), this ) ) {
+        connect( action, &QAction::triggered, this, &MainWindow::printCurrentView );
+        auto cmd = Core::ActionManager::registerAction( action, constants::PRINT_CURRENT_VIEW, context );
+        menu->addAction( cmd );        
+    }
+
+    if ( auto action = createAction( constants::ICON_IMAGE, tr( "Screenshot" ), this ) ) {
+        connect( action, &QAction::triggered, this, &MainWindow::saveCurrentImage );
+        auto cmd = Core::ActionManager::registerAction( action, constants::SAVE_CURRENT_IMAGE, context );
+        menu->addAction( cmd );        
+    }
+
+    do {
+        QIcon icon;
+        icon.addPixmap( QPixmap( constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::Off );
+        icon.addPixmap( QPixmap( constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::On );
+        auto * action = new QAction( icon, tr( "Hide dock" ), this );
+        action->setCheckable( true );
+        Core::ActionManager::registerAction( action, constants::HIDE_DOCK, context );
+        connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::hideDock );
+    } while ( 0 );
+
+    handleInstState( 0 );
+    Core::ActionManager::instance()->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
+
+}
+
+QAction *
+MainWindow::createAction( const QString& iconname, const QString& msg, QObject * parent )
+{
+    QIcon icon;
+    icon.addFile( iconname );
+    return new QAction( icon, msg, parent );
+}
+
+void
+MainWindow::saveCurrentImage()
+{
+    ADDEBUG() << "saveCurrentImage()";
+    qApp->beep();
+    if ( auto screen = QGuiApplication::primaryScreen() ) {
+        
+        auto pixmap = QPixmap::grabWidget( this );
+#if 0
+        if ( auto sample = document::instance()->sampleRun() ) {
+            boost::filesystem::path path( sample->dataDirectory() );
+            if ( ! boost::filesystem::exists( path ) ) {
+                boost::system::error_code ec;
+                boost::filesystem::create_directories( path, ec );
+            }
+            int runno(0);
+            if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
+                using boost::filesystem::directory_iterator;
+                for ( directory_iterator it( path ); it != directory_iterator(); ++it ) {
+                    boost::filesystem::path fname = (*it);
+                    if ( fname.extension().string() == ".png" ) {
+                        runno = std::max( runno, adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
+                    }
+                }
+            }
+            
+            std::wostringstream o;
+            o << L"acquire_" << std::setw( 4 ) << std::setfill( L'0' ) << runno + 1;
+            path /= o.str();
+            path.replace_extension( ".png" );
+
+            ADDEBUG() << "saveCurrentImage(" << path.string() << ")";
+
+            pixmap.save( QString::fromStdWString( path.wstring() ), "png" );
+        }
+#endif
+    }
+}
+
+void
+MainWindow::printCurrentView()
+{
+    saveCurrentImage();
+}
+
+void
+MainWindow::hideDock( bool hide )
+{
+    for ( auto& w :  dockWidgets() ) {
+        if ( hide )
+            w->hide();
+        else
+            w->show();
+    }
+}
+
+void
+MainWindow::handleInstState( int status )
+{
+    if ( status <= adicontroller::Instrument::eNotConnected ) {
+
+        if ( auto action = Core::ActionManager::instance()->command( constants::ACTION_CONNECT )->action() )
+            action->setEnabled( true  );
+
+        for ( auto id : { constants::ACTION_RUN, constants::ACTION_STOP, constants::ACTION_SNAPSHOT } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( false );
+        }
+
+    } else if ( status == adicontroller::Instrument::eStandBy ) {
+
+        if ( auto action = Core::ActionManager::command( constants::ACTION_CONNECT )->action() )
+            action->setEnabled( false );
+        
+        for ( auto id :
+            { constants::ACTION_INITIALRUN, constants::ACTION_RUN /*, constants::ACTION_STOP, */, constants::ACTION_SNAPSHOT } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( true );
+        }
+
+        // if ( auto action = Core::ActionManager::command(constants::ACTION_REC)->action() )
+        //     action->setChecked( true );
+    } else if ( status == adicontroller::Instrument::eWaitingForContactClosure ) {
+
+        for ( auto id : { constants::ACTION_INJECT, constants::ACTION_STOP, constants::ACTION_SNAPSHOT } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( true );
+        }
+        if ( auto action = Core::ActionManager::command( constants::ACTION_RUN )->action() )
+            action->setEnabled( false );
+
+    } else if ( status == adicontroller::Instrument::ePreparingForRun ) {
+
+        if ( auto action = Core::ActionManager::command( constants::ACTION_STOP )->action() )
+            action->setEnabled( false );        
+
+    } else if ( status == adicontroller::Instrument::eReadyForRun ) {
+
+        if ( auto action = Core::ActionManager::command( constants::ACTION_STOP )->action() )
+            action->setEnabled( false );
+        if ( auto action = Core::ActionManager::command( constants::ACTION_RUN )->action() )
+            action->setEnabled( true );                
+        
+    } else if ( status == adicontroller::Instrument::eRunning ) {
+        if ( auto action = Core::ActionManager::command( constants::ACTION_STOP )->action() )
+            action->setEnabled( true );
+        if ( auto action = Core::ActionManager::command( constants::ACTION_INJECT )->action() )
+            action->setEnabled( false );
+        if ( auto action = Core::ActionManager::command( constants::ACTION_RUN )->action() )
+            action->setEnabled( false );
+        
+    } else if ( status == adicontroller::Instrument::eStop ) {
+        // Disable
+        // for ( auto id : { constants::ACTION_STOP } ) {
+        //     if ( auto action = Core::ActionManager::command( id )->action() )
+        //         action->setEnabled( false );
+        // }
+        // for ( auto id : { constants::ACTION_RUN, constants::ACTION_SNAPSHOT } ) {
+        //     if ( auto action = Core::ActionManager::command(constants::ACTION_RUN)->action() )
+        //         action->setEnabled( true );
+        // }
+    }
+
+    ADDEBUG() << "handleInstState(" << status << ")";
+
+}

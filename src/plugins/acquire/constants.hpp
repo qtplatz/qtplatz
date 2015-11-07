@@ -28,31 +28,44 @@
 namespace acquire {
 
     namespace constants {
+
+        const char ACTION_ID[] = "Acquire.Action";
+        const char MENU_ID[] = "Acquire.Menu";
+        
         const char * const C_MODE_ACQUIRE = "Acquire.Mode";
         const int P_MODE_ACQUIRE        = 99;
     
         // common actions
-        const char * const CONNECT              = "Acquire.Connect";
-        const char * const RESET                = "Acquire.Reset";
-        const char * const INITIALRUN           = "Acquire.InitialRun";
-        const char * const RUN                  = "Acquire.Run";
-        const char * const STOP                 = "Acquire.Stop";
-        const char * const ACQUISITION          = "Acquire.Acquisition";
-        const char * const SNAPSHOT             = "Acquire.Snapshot";
+        const char * const ACTION_SNAPSHOT      = "Acquire.Snapshot";
+        const char * const ACTION_CONNECT       = "Acquire.Connect";
+        const char * const ACTION_RESET         = "Acquire.Reset";
+        const char * const ACTION_INITIALRUN    = "Acquire.InitialRun";
+        const char * const ACTION_RUN           = "Acquire.Run";
+        const char * const ACTION_STOP          = "Acquire.Stop";
+        //const char * const ACTION_ACQUISITION   = "Acquire.Acquisition";
+        const char * const ACTION_INJECT        = "Acquire.Inject";
         const char * const METHODOPEN           = "Acquire.MethodOpen";
         const char * const METHODSAVE           = "Acquire.MethodSave";
+        const char * const PRINT_CURRENT_VIEW   = "Acquire.print_current_view";
+        const char * const SAVE_CURRENT_IMAGE   = "Acquire.save_current_image";
+        const char * const HIDE_DOCK            = "Acquire.HideDock";
+        
 
         // icon
-        const char * const ICON_CONNECT         = ":/acquire/images/debugger_continue.png";
-        const char * const ICON_CONNECT_SMALL   = ":/acquire/images/debugger_continue_small.png";
+        const char * const ICON_CONNECT         = ":/acquire/images/Button Refresh.png";
         const char * const ICON_START           = ":/acquire/images/debugger_start.png";
-        const char * const ICON_START_SMALL     = ":/acquire/images/debugger_start_small.png";
-        const char * const ICON_RUN             = ":/acquire/images/debugger_start.png";
-        const char * const ICON_RUN_SMALL       = ":/acquire/images/debugger_start_small.png";
-        const char * const ICON_INTERRUPT       = ":/acquire/images/debugger_interrupt.png";
-        const char * const ICON_INTERRUPT_SMALL = ":/acquire/images/debugger_interrupt_small.png";
-        const char * const ICON_STOP            = ":/acquire/images/debugger_stop.png";
-        const char * const ICON_STOP_SMALL      = ":/acquire/images/debugger_stop_small.png";
+        const char * const ICON_INITRUN         = ":/acquire/images/Button Last.png";
+        const char * const ICON_RUN             = ":/acquire/images/Button Play.png";
+        const char * const ICON_INJECT          = ":/acquire/images/Button Add.png";
+        const char * const ICON_STOP            = ":/acquire/images/Button Stop.png";
+        //
+        const char * const ICON_SNAPSHOT        = ":/acquire/images/snapshot_small.png";
+        const char * const ICON_FILE_OPEN       = ":/acquire/images/fileopen.png";
+        const char * const ICON_FILE_SAVE       = ":/acquire/images/filesave.png";
+        const char * const ICON_PDF             = ":/acquire/images/document-pdf.png";
+        const char * const ICON_IMAGE           = ":/acquire/images/image.png";
+        const char * const ICON_DOCKHIDE        = ":/dataproc/image/button_close.png";
+        const char * const ICON_DOCKSHOW        = ":/dataproc/image/control-090-small.png";
 
         // settings
         const char * const GRP_DATA_FILES       = "DataFiles";
