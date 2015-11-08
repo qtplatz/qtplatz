@@ -28,10 +28,12 @@
 #include "mainwindow.hpp"
 #include "mastercontroller.hpp"
 #include "masterreceiver.hpp"
-#include "orb_i.hpp"
 #include "masterobserver.hpp"
+#include "orb_i.hpp"
 #include "task.hpp"
+#include "waveformwnd.hpp"
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/trace.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
@@ -79,14 +81,20 @@ namespace acquire {
 
     class document::impl {
     public:
-        impl() {
-            connected_.clear();
+        impl() : settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
+                                                           , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                                           , QLatin1String( "acquire" ) ) )
+               , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
+               , sampleRun_( std::make_shared< adcontrols::SampleRun >() ) {
+            connected_.clear();            
         }
 
         ~impl() {
         }
 
         inline fsm::acquire& fsm() { return fsm_; }
+
+        void setControllerState( const QString& module, bool enable );
 
         MasterController * masterController() {
             static std::once_flag flag;
@@ -117,7 +125,7 @@ namespace acquire {
                     iController->preparing_for_run( cm );
             }
             document::instance()->setControlMethod( cm ); // commit
-
+            
             // Update document by UI data
             adcontrols::SampleRun run;
             MainWindow::instance()->getSampleRun( run );
@@ -129,10 +137,17 @@ namespace acquire {
         std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
 
     private:
+        friend class document;
         fsm::acquire fsm_;
         std::shared_ptr< MasterController > masterController_;
         std::shared_ptr< MasterObserver > masterObserver_;
         std::shared_ptr< MasterReceiver > receiver_;
+        std::map< QString, bool > moduleStates_;
+        std::shared_ptr< QSettings > settings_;  // user scope settings
+        std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
+        std::shared_ptr< adcontrols::SampleRun > sampleRun_;
+        QString ctrlmethod_filename_;
+        QString samplerun_filename_;
     };
 
 }
@@ -148,11 +163,6 @@ document::~document()
 }
 
 document::document(QObject *parent) : QObject(parent)
-                                    , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
-                                                                                , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                                                , QLatin1String( "acquire" ) ) )
-                                    , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
-                                    , sampleRun_( std::make_shared< adcontrols::SampleRun >() )
                                     , impl_( new impl() )
 {
 }
@@ -231,7 +241,7 @@ document::actionConnect( bool applyMethod )
 void
 document::addToRecentFiles( const QString& filename )
 {
-    qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_DATA_FILES, constants::KEY_FILES, filename );
+    qtwrapper::settings(*impl_->settings_).addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, filename );
 }
 
 document * 
@@ -256,7 +266,7 @@ document::instance()
 void
 document::initialSetup()
 {
-    boost::filesystem::path dir = user_preference::path( settings_.get() );
+    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
 
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
@@ -265,7 +275,7 @@ document::initialSetup()
         }
     }
 
-    QString path = recentFile( constants::GRP_DATA_FILES, false );
+    QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
         path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
     } else {
@@ -295,7 +305,7 @@ document::initialSetup()
 void
 document::finalClose( MainWindow * mainwindow )
 {
-    boost::filesystem::path dir = user_preference::path( settings_.get() );
+    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "dataproc::document"
@@ -303,43 +313,40 @@ document::finalClose( MainWindow * mainwindow )
             return;
         }
     }
-    mainwindow->getControlMethod( *cm_ );
+    mainwindow->getControlMethod( *impl_->cm_ );
     boost::filesystem::path fname( dir / "default.cmth" );
-    save( QString::fromStdWString( fname.wstring() ), *cm_ );
+    save( QString::fromStdWString( fname.wstring() ), *impl_->cm_ );
 
-    mainwindow->getSampleRun( *sampleRun_ );
+    mainwindow->getSampleRun( *impl_->sampleRun_ );
     boost::filesystem::path sname( dir / "samplerun.sequ" );
-    save( QString::fromStdWString( sname.wstring() ), *sampleRun_ );
+    save( QString::fromStdWString( sname.wstring() ), *impl_->sampleRun_ );
 }
 
 std::shared_ptr< adcontrols::ControlMethod::Method >
 document::controlMethod() const
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-    return cm_;
+    return impl_->cm_;
 }
 
 std::shared_ptr< adcontrols::SampleRun >
 document::sampleRun() const
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-    return sampleRun_;
+    return impl_->sampleRun_;
 }
 
 void
 document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename )
 {
     do {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        cm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
+        impl_->cm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
         for ( auto& item : m ) {
             ADDEBUG() << item.modelname() << ", " << item.itemLabel() << " initial: " << item.isInitialCondition() << " time: " << item.time();
         }
     } while(0);
 
     if ( ! filename.isEmpty() ) {
-        ctrlmethod_filename_ = filename;
-        qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_METHOD_FILES, constants::KEY_FILES, filename );
+        impl_->ctrlmethod_filename_ = filename;
+        qtwrapper::settings(*impl_->settings_).addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, filename );
     }
 
     emit onControlMethodChanged( filename );
@@ -348,29 +355,29 @@ document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QS
 void
 document::setSampleRun( const adcontrols::SampleRun& m, const QString& filename )
 {
-    sampleRun_ = std::make_shared< adcontrols::SampleRun >( m );
+    impl_->sampleRun_ = std::make_shared< adcontrols::SampleRun >( m );
 
     if ( ! filename.isEmpty() ) {
-        samplerun_filename_ = filename;
-        qtwrapper::settings(*settings_).addRecentFiles( constants::GRP_SEQUENCE_FILES, constants::KEY_FILES, filename );
+        impl_->samplerun_filename_ = filename;
+        qtwrapper::settings(*impl_->settings_).addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, filename );
     }
-    emit onSampleRunChanged( QString::fromWCharArray( sampleRun_->filePrefix() ), QString::fromWCharArray( sampleRun_->dataDirectory() ) );
+    emit onSampleRunChanged( QString::fromWCharArray( impl_->sampleRun_->filePrefix() ), QString::fromWCharArray( impl_->sampleRun_->dataDirectory() ) );
 }
 
 QString
 document::recentFile( const char * group, bool dir_on_fail )
 {
     if ( group == 0 )
-        group = constants::GRP_DATA_FILES;
+        group = Constants::GRP_DATA_FILES;
 
-    QString file = qtwrapper::settings( *settings_ ).recentFile( group, constants::KEY_FILES );
+    QString file = qtwrapper::settings( *impl_->settings_ ).recentFile( group, Constants::KEY_FILES );
     if ( !file.isEmpty() )
         return file;
 
     if ( dir_on_fail ) {
         file = Core::DocumentManager::currentFile();
         if ( file.isEmpty() )
-            file = qtwrapper::settings( *settings_ ).recentFile( constants::GRP_DATA_FILES, constants::KEY_FILES );
+            file = qtwrapper::settings( *impl_->settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
         
         if ( !file.isEmpty() ) {
             QFileInfo fi( file );
@@ -565,7 +572,6 @@ document::masterObserver()
 void
 document::actionConnect()
 {
-    // move fro AcquirePlugin
     this->actionConnect( true ); // fetch method from MainWindow
     if ( auto orbi = orb_i::instance() )
       orbi->actionConnect();
@@ -613,3 +619,48 @@ document::actionSnapshot()
     if ( auto orbi = orb_i::instance() )        
         orbi->actionSnapshot();    
 }
+
+///////////
+
+void
+document::setData( const boost::uuids::uuid& objid, std::shared_ptr< const adcontrols::MassSpectrum > ms )
+{
+    if ( auto wnd = MainWindow::instance()->findChild< WaveformWnd * >() )
+        wnd->setData( objid, ms, 0, false );
+}
+
+void
+document::setData( const boost::uuids::uuid& objid, const adcontrols::TraceAccessor& trace, int fcn )
+{
+    if ( auto wnd = MainWindow::instance()->findChild< WaveformWnd * >() )
+        wnd->setData( objid, trace, fcn );
+}
+
+void
+document::setControllerState( const QString& module, bool enable )
+{
+    impl_->setControllerState( module, enable );
+}
+
+void
+document::impl::setControllerState( const QString& module, bool enable )
+{
+    moduleStates_[ module ] = enable;
+
+    // update settings
+    settings_->beginGroup( "u5303a" );
+        
+    settings_->beginWriteArray( "Controllers" );
+
+    int i = 0;
+    for ( auto& state : moduleStates_ ) {
+        settings_->setArrayIndex( i++ );
+        settings_->setValue( "module_name", state.first );
+        settings_->setValue( "enable", state.second );
+    }
+
+    settings_->endArray();
+    settings_->endGroup();
+}
+
+////////////

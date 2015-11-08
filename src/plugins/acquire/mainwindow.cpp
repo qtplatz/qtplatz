@@ -27,6 +27,7 @@
 #include "constants.hpp"
 #include "document.hpp"
 #include "masterobserver.hpp"
+#include "waveformwnd.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adextension/icontroller.hpp>
 #include <adextension/isequence.hpp>
@@ -44,6 +45,7 @@
 #include <adportable/string.hpp>
 #include <adportable/utf.hpp>
 #include <adlog/logger.hpp>
+#include <adwidgets/cherrypicker.hpp>
 #include <adwidgets/controlmethodwidget.hpp>
 #include <adwidgets/insttreeview.hpp>
 #include <adwidgets/samplerunwidget.hpp>
@@ -87,6 +89,8 @@
 #include <QUrl>
 #include <QMessageBox>
 #include <QTabBar>
+#include <QMetaType>
+Q_DECLARE_METATYPE( boost::uuids::uuid );
 
 namespace acquire {
 
@@ -431,6 +435,75 @@ MainWindow::iControllerMessage( adextension::iController * p, uint32_t msg, uint
 QWidget *
 MainWindow::createContents( Core::IMode * mode )
 {
+    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::West );
+    setDocumentMode( true );
+    setDockNestingEnabled( true );
+
+    QBoxLayout * editorHolderLayout = new QVBoxLayout;
+	editorHolderLayout->setMargin( 0 );
+	editorHolderLayout->setSpacing( 0 );
+	    
+    if ( QWidget * editorWidget = new QWidget ) {
+
+        editorWidget->setLayout( editorHolderLayout );
+
+        editorHolderLayout->addWidget( createTopStyledToolbar() );
+        if ( auto wnd = new WaveformWnd() ) {
+            editorHolderLayout->addWidget( wnd );
+            // for compile check
+            QVariant v;
+            v.setValue( boost::uuids::uuid() );
+        }
+        
+        //---------- central widget ------------
+        if ( QWidget * centralWidget = new QWidget ) {
+
+            setCentralWidget( centralWidget );
+            
+            QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
+            centralWidget->setLayout( centralLayout );
+            centralLayout->setMargin( 0 );
+            centralLayout->setSpacing( 0 );
+            // ----------------------------------------------------
+            centralLayout->addWidget( editorWidget ); // [ToolBar + WaveformWnd]
+            // ----------------------------------------------------
+
+            centralLayout->setStretch( 0, 1 );
+            centralLayout->setStretch( 1, 0 );
+            // ----------------- mid tool bar -------------------
+            centralLayout->addWidget( createMidStyledToolbar() );      // [Middle toolbar]
+        }
+    }
+
+	if ( Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter ) {
+
+        QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
+        outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
+
+        mainWindowSplitter->addWidget( this );        // [Central Window]
+        mainWindowSplitter->addWidget( outputPane );  // [Output (log) Window]
+
+        mainWindowSplitter->setStretchFactor( 0, 9 );
+        mainWindowSplitter->setStretchFactor( 1, 1 );
+        mainWindowSplitter->setOrientation( Qt::Vertical );
+
+        // Split Navigation and Application window
+        Core::MiniSplitter * splitter = new Core::MiniSplitter;               // entier this view
+        if ( splitter ) {
+            splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) ); // navegate
+            splitter->addWidget( mainWindowSplitter );                            // *this + ontput
+            splitter->setStretchFactor( 0, 0 );
+            splitter->setStretchFactor( 1, 1 );
+            splitter->setOrientation( Qt::Horizontal );
+            splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
+        }
+
+        createDockWidgets();
+
+        return splitter;
+    }
+    return 0;
+#if 0    
     //              [mainWindow]
     // splitter> ---------------------
     //              [OutputPane]
@@ -468,11 +541,11 @@ MainWindow::createContents( Core::IMode * mode )
         auto cmdLayout = new QHBoxLayout();
         // Core::ActionManager *am = Core::ICore::instance()->actionManager();
         if ( auto am = Core::ActionManager::instance() ) {
-            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_CONNECT )->action() ) );
-            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_INITIALRUN )->action() ) );
-            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_RUN )->action() ) );
-            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_STOP )->action() ) );
-            cmdLayout->addWidget( toolButton( am->command( constants::ACTION_INJECT )->action() ) );
+            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_CONNECT )->action() ) );
+            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_INITIALRUN )->action() ) );
+            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_RUN )->action() ) );
+            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_STOP )->action() ) );
+            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_INJECT )->action() ) );
         }
         toolBarLayout->addLayout( cmdLayout );
         toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -516,9 +589,9 @@ MainWindow::createContents( Core::IMode * mode )
         toolBarLayout->setSpacing(0);
 
         if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget( toolButton( am->command( constants::ACTION_SNAPSHOT )->action() ) ); //actionSnapshot_ ) );
-            toolBarLayout->addWidget( toolButton( am->command( constants::METHODOPEN )->action() ) ); //actMethodOpen_ ) );
-            toolBarLayout->addWidget( toolButton( am->command( constants::METHODSAVE )->action() ) ); //actMethodSave_ ) );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::ACTION_SNAPSHOT )->action() ) ); //actionSnapshot_ ) );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODOPEN )->action() ) ); //actMethodOpen_ ) );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODSAVE )->action() ) ); //actMethodSave_ ) );
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );
             impl_->traceBox_ = new QComboBox;
@@ -558,6 +631,7 @@ MainWindow::createContents( Core::IMode * mode )
     }
     
     return splitter2;
+#endif
 }
 
 // static
@@ -583,7 +657,7 @@ MainWindow::actMethodOpen()
     QString name
         = QFileDialog::getOpenFileName( this
                                         , tr("Open control method")
-                                        , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
+                                        , document::instance()->recentFile( Constants::GRP_METHOD_FILES, true )
                                         , tr( "Control method files(*.cmth)" ) );
     adcontrols::ControlMethod::Method m;
     if ( document::load( name, m ) ) {
@@ -599,7 +673,7 @@ MainWindow::actMethodSave()
     QString name
         = QFileDialog::getSaveFileName( this
                                         , tr("Save control method")
-                                        , document::instance()->recentFile( constants::GRP_METHOD_FILES, true )
+                                        , document::instance()->recentFile( Constants::GRP_METHOD_FILES, true )
                                         , tr( "Control method files(*.cmth)" ) );
     
     adcontrols::ControlMethod::Method m;
@@ -629,15 +703,15 @@ AcquirePlugin::initialize_actions()
 
     if ( auto am = Core::ActionManager::instance() ) {
         Core::Command * cmd = 0;
-        cmd = am->registerAction( actionConnect_, constants::CONNECT, context );
+        cmd = am->registerAction( actionConnect_, Constants::CONNECT, context );
 
-        cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, context );
-        cmd = am->registerAction( actionRun_, constants::RUN, context );
-        cmd = am->registerAction( actionStop_, constants::STOP, context );
-        cmd = am->registerAction( actionInject_, constants::ACQUISITION, context );
-        cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, context );
-        cmd = am->registerAction( actMethodOpen_, constants::METHODOPEN, context );
-        cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, context );
+        cmd = am->registerAction( actionInitRun_, Constants::INITIALRUN, context );
+        cmd = am->registerAction( actionRun_, Constants::RUN, context );
+        cmd = am->registerAction( actionStop_, Constants::STOP, context );
+        cmd = am->registerAction( actionInject_, Constants::ACQUISITION, context );
+        cmd = am->registerAction( actionSnapshot_, Constants::SNAPSHOT, context );
+        cmd = am->registerAction( actMethodOpen_, Constants::METHODOPEN, context );
+        cmd = am->registerAction( actMethodSave_, Constants::METHODSAVE, context );
         (void)cmd;
     }
 }
@@ -646,7 +720,7 @@ AcquirePlugin::initialize_actions()
 void
 MainWindow::createActions()
 {
-    Core::ActionContainer * menu = Core::ActionManager::instance()->createMenu( constants::MENU_ID ); // Menu ID
+    Core::ActionContainer * menu = Core::ActionManager::instance()->createMenu( Constants::MENU_ID ); // Menu ID
 
     if ( !menu )
         return;
@@ -657,67 +731,67 @@ MainWindow::createActions()
     //------------ snapshot -------------
     // actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
     // connect( actionSnapshot_, &QAction::triggered, this, &AcquirePlugin::actionSnapshot );
-    if ( auto action = createAction( constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
         connect( action, &QAction::triggered, [](){ document::instance()->actionSnapshot(); } );
         action->setEnabled( false );
-        Core::Command * cmd = Core::ActionManager::registerAction( action, constants::ACTION_SNAPSHOT, context );
+        Core::Command * cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SNAPSHOT, context );
         menu->addAction( cmd );
     }
 
     // actionConnect_ = new QAction( QIcon(":/acquire/images/Button Refresh.png"), tr("Connect to control server..."), this);
     // connect( actionConnect_, &QAction::triggered, this, &AcquirePlugin::actionConnect );
-    if ( auto action = createAction( constants::ICON_CONNECT, tr( "Connect" ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_CONNECT, tr( "Connect" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionConnect(); } );
-        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_CONNECT, context );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_CONNECT, context );
         menu->addAction( cmd );        
     }
 
     // actionInitRun_ = new QAction(QIcon(":/acquire/images/Button Last.png"), tr("Preparing"), this);
     // connect( actionInitRun_, &QAction::triggered, this, &AcquirePlugin::actionInitRun );
-    if ( auto action = createAction( constants::ICON_INITRUN, tr( "Prepare" ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_INITRUN, tr( "Prepare" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionInitRun(); } );
-        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_INITIALRUN, context );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_INITIALRUN, context );
         menu->addAction( cmd );
     }
     
 
     // actionRun_ = new QAction(QIcon(":/acquire/images/Button Play.png"), tr("Run"), this);
     // connect( actionRun_, &QAction::triggered, this, &AcquirePlugin::actionRun );
-    if ( auto action = createAction( constants::ICON_RUN, tr( "Run" ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_RUN, tr( "Run" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionRun(); } );
         action->setEnabled( false );        
-        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_RUN, context );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_RUN, context );
         menu->addAction( cmd );        
     }
 
     // actionStop_ = new QAction(QIcon(":/acquire/images/Button Stop.png"), tr("Stop"), this);
     // connect( actionStop_, &QAction::triggered, this, &AcquirePlugin::actionStop );
-    if ( auto action = createAction( constants::ICON_STOP, tr( "Stop" ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_STOP, tr( "Stop" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionStop(); } );
         action->setEnabled( false );
-        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_STOP, context );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_STOP, context );
         menu->addAction( cmd );        
     }
 
     // actionInject_ = new QAction(QIcon(":/acquire/images/Button Add.png"), tr("Inject (recording data)"), this);
     // connect( actionInject_, &QAction::triggered, this, &AcquirePlugin::actionInject );
-    if ( auto action = createAction( constants::ICON_INJECT, tr( "Inject" ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_INJECT, tr( "Inject" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionInject(); } );
         action->setEnabled( false );
-        auto cmd = Core::ActionManager::registerAction( action, constants::ACTION_INJECT, context );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_INJECT, context );
         menu->addAction( cmd );                
     }
 
     //------------ method file open/save
-    if ( auto action = createAction( constants::ICON_FILE_OPEN, tr( "Method open..." ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_FILE_OPEN, tr( "Method open..." ), this ) ) {
         connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::actMethodOpen );
-        auto cmd = Core::ActionManager::registerAction( action, constants::METHODOPEN, context );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::METHODOPEN, context );
         menu->addAction( cmd );
     }
 
-    if ( auto action = createAction( constants::ICON_FILE_SAVE, tr( "Method save..." ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_FILE_SAVE, tr( "Method save..." ), this ) ) {
         connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::actMethodSave );
-        auto cmd = Core::ActionManager::registerAction( action, constants::METHODSAVE, context );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::METHODSAVE, context );
         menu->addAction( cmd );
     }
 #if 0    
@@ -748,25 +822,25 @@ MainWindow::createActions()
     }
 #endif
     
-    if ( auto action = createAction( constants::ICON_PDF, tr( "PDF" ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_PDF, tr( "PDF" ), this ) ) {
         connect( action, &QAction::triggered, this, &MainWindow::printCurrentView );
-        auto cmd = Core::ActionManager::registerAction( action, constants::PRINT_CURRENT_VIEW, context );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::PRINT_CURRENT_VIEW, context );
         menu->addAction( cmd );        
     }
 
-    if ( auto action = createAction( constants::ICON_IMAGE, tr( "Screenshot" ), this ) ) {
+    if ( auto action = createAction( Constants::ICON_IMAGE, tr( "Screenshot" ), this ) ) {
         connect( action, &QAction::triggered, this, &MainWindow::saveCurrentImage );
-        auto cmd = Core::ActionManager::registerAction( action, constants::SAVE_CURRENT_IMAGE, context );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::SAVE_CURRENT_IMAGE, context );
         menu->addAction( cmd );        
     }
 
     do {
         QIcon icon;
-        icon.addPixmap( QPixmap( constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::Off );
-        icon.addPixmap( QPixmap( constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::On );
+        icon.addPixmap( QPixmap( Constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::Off );
+        icon.addPixmap( QPixmap( Constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::On );
         auto * action = new QAction( icon, tr( "Hide dock" ), this );
         action->setCheckable( true );
-        Core::ActionManager::registerAction( action, constants::HIDE_DOCK, context );
+        Core::ActionManager::registerAction( action, Constants::HIDE_DOCK, context );
         connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::hideDock );
     } while ( 0 );
 
@@ -844,68 +918,135 @@ MainWindow::handleInstState( int status )
 {
     if ( status <= adicontroller::Instrument::eNotConnected ) {
 
-        if ( auto action = Core::ActionManager::instance()->command( constants::ACTION_CONNECT )->action() )
+        if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( true  );
 
-        for ( auto id : { constants::ACTION_RUN, constants::ACTION_STOP, constants::ACTION_SNAPSHOT } ) {
+        for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_SNAPSHOT } ) {
             if ( auto action = Core::ActionManager::command( id )->action() )
                 action->setEnabled( false );
         }
 
     } else if ( status == adicontroller::Instrument::eStandBy ) {
 
-        if ( auto action = Core::ActionManager::command( constants::ACTION_CONNECT )->action() )
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( false );
         
         for ( auto id :
-            { constants::ACTION_INITIALRUN, constants::ACTION_RUN /*, constants::ACTION_STOP, */, constants::ACTION_SNAPSHOT } ) {
+            { Constants::ACTION_INITIALRUN, Constants::ACTION_RUN /*, Constants::ACTION_STOP, */, Constants::ACTION_SNAPSHOT } ) {
             if ( auto action = Core::ActionManager::command( id )->action() )
                 action->setEnabled( true );
         }
 
-        // if ( auto action = Core::ActionManager::command(constants::ACTION_REC)->action() )
+        // if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
         //     action->setChecked( true );
     } else if ( status == adicontroller::Instrument::eWaitingForContactClosure ) {
 
-        for ( auto id : { constants::ACTION_INJECT, constants::ACTION_STOP, constants::ACTION_SNAPSHOT } ) {
+        for ( auto id : { Constants::ACTION_INJECT, Constants::ACTION_STOP, Constants::ACTION_SNAPSHOT } ) {
             if ( auto action = Core::ActionManager::command( id )->action() )
                 action->setEnabled( true );
         }
-        if ( auto action = Core::ActionManager::command( constants::ACTION_RUN )->action() )
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_RUN )->action() )
             action->setEnabled( false );
 
     } else if ( status == adicontroller::Instrument::ePreparingForRun ) {
 
-        if ( auto action = Core::ActionManager::command( constants::ACTION_STOP )->action() )
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_STOP )->action() )
             action->setEnabled( false );        
 
     } else if ( status == adicontroller::Instrument::eReadyForRun ) {
 
-        if ( auto action = Core::ActionManager::command( constants::ACTION_STOP )->action() )
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_STOP )->action() )
             action->setEnabled( false );
-        if ( auto action = Core::ActionManager::command( constants::ACTION_RUN )->action() )
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_RUN )->action() )
             action->setEnabled( true );                
         
     } else if ( status == adicontroller::Instrument::eRunning ) {
-        if ( auto action = Core::ActionManager::command( constants::ACTION_STOP )->action() )
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_STOP )->action() )
             action->setEnabled( true );
-        if ( auto action = Core::ActionManager::command( constants::ACTION_INJECT )->action() )
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_INJECT )->action() )
             action->setEnabled( false );
-        if ( auto action = Core::ActionManager::command( constants::ACTION_RUN )->action() )
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_RUN )->action() )
             action->setEnabled( false );
         
     } else if ( status == adicontroller::Instrument::eStop ) {
         // Disable
-        // for ( auto id : { constants::ACTION_STOP } ) {
+        // for ( auto id : { Constants::ACTION_STOP } ) {
         //     if ( auto action = Core::ActionManager::command( id )->action() )
         //         action->setEnabled( false );
         // }
-        // for ( auto id : { constants::ACTION_RUN, constants::ACTION_SNAPSHOT } ) {
-        //     if ( auto action = Core::ActionManager::command(constants::ACTION_RUN)->action() )
+        // for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_SNAPSHOT } ) {
+        //     if ( auto action = Core::ActionManager::command(Constants::ACTION_RUN)->action() )
         //         action->setEnabled( true );
         // }
     }
 
     ADDEBUG() << "handleInstState(" << status << ")";
 
+}
+
+Utils::StyledBar *
+MainWindow::createTopStyledToolbar()
+{
+    Utils::StyledBar * toolBar = new Utils::StyledBar;
+    if ( toolBar ) {
+        toolBar->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+        if ( auto am = Core::ActionManager::instance() ) {
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_CONNECT)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_RUN)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_STOP)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_SNAPSHOT)->action()));
+            //-- separator --
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            //---
+            //toolBarLayout->addWidget( topLineEdit_.get() );
+        }
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+    }
+    return toolBar;
+}
+
+Utils::StyledBar *
+MainWindow::createMidStyledToolbar()
+{
+    if ( Utils::StyledBar * toolBar = new Utils::StyledBar ) {
+
+        toolBar->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin(0);
+        toolBarLayout->setSpacing(0);
+        Core::ActionManager * am = Core::ActionManager::instance();
+        if ( am ) {
+            // print, method file open & save buttons
+            toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::SAVE_CURRENT_IMAGE)->action()));
+            //----------
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            //----------
+
+            toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+            toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
+            
+        }
+		return toolBar;
+    }
+    return 0;
+}
+
+void
+MainWindow::createDockWidgets()
+{
+    if ( auto widget = new adwidgets::CherryPicker ) {
+
+        widget->setObjectName( "ModulePicker" );
+        createDockWidget( widget, "Modules", "CherryPicker" );
+
+        connect( widget, &adwidgets::CherryPicker::stateChanged, [this]( const QString& key, bool enable ){
+                document::instance()->setControllerState( key, enable );
+            });
+    }
 }

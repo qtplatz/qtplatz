@@ -25,9 +25,13 @@
 
 #pragma once
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace acquire {
 
-    namespace constants {
+    extern const boost::uuids::uuid deprecated_observer;
+    
+    namespace Constants {
 
         const char ACTION_ID[] = "Acquire.Action";
         const char MENU_ID[] = "Acquire.Menu";
@@ -49,7 +53,6 @@ namespace acquire {
         const char * const PRINT_CURRENT_VIEW   = "Acquire.print_current_view";
         const char * const SAVE_CURRENT_IMAGE   = "Acquire.save_current_image";
         const char * const HIDE_DOCK            = "Acquire.HideDock";
-        
 
         // icon
         const char * const ICON_CONNECT         = ":/acquire/images/Button Refresh.png";

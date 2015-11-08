@@ -165,7 +165,6 @@ simulator::acquire()
                 
                 generator->addIons( ions_ );
                 generator->onTriggered();
-                
                 post( generator.get() );
                 
                 hasWaveform_ = true;

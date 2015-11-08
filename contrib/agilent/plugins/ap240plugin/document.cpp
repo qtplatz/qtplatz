@@ -861,17 +861,3 @@ document::commitData()
     }
 }
 
-#if 0
-std::shared_ptr< adcontrols::MassSpectrum >
-document::recentSpectrum( const boost::uuids::uuid& uuid, int idx )
-{
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );    
-
-    auto it = impl_->spectra_.find( uuid );
-    if ( it != impl_->spectra_.end() ) {
-        if ( it->second.size() > idx )
-            return it->second.at( idx );
-    }
-    return 0;
-}
-#endif

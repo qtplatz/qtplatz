@@ -167,8 +167,8 @@ namespace acquire {
         adplot::SpectrumWidget * spectrumPlot_;
         QIcon icon_;
         void loadIcon() {
-            // icon_.addFile( constants::ICON_CONNECT );
-            // icon_.addFile( constants::ICON_CONNECT_SMALL );
+            // icon_.addFile( Constants::ICON_CONNECT );
+            // icon_.addFile( Constants::ICON_CONNECT_SMALL );
         }
 
         // void initialize_broker_session() {
@@ -287,15 +287,15 @@ AcquirePlugin::AcquirePlugin() : pImpl_( new AcquireImpl() )
 
 //     if ( auto am = Core::ActionManager::instance() ) {
 //         Core::Command * cmd = 0;
-//         cmd = am->registerAction( actionConnect_, constants::CONNECT, context );
+//         cmd = am->registerAction( actionConnect_, Constants::CONNECT, context );
 
-//         cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, context );
-//         cmd = am->registerAction( actionRun_, constants::RUN, context );
-//         cmd = am->registerAction( actionStop_, constants::STOP, context );
-//         cmd = am->registerAction( actionInject_, constants::ACQUISITION, context );
-//         cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, context );
-//         cmd = am->registerAction( actMethodOpen_, constants::METHODOPEN, context );
-//         cmd = am->registerAction( actMethodSave_, constants::METHODSAVE, context );
+//         cmd = am->registerAction( actionInitRun_, Constants::INITIALRUN, context );
+//         cmd = am->registerAction( actionRun_, Constants::RUN, context );
+//         cmd = am->registerAction( actionStop_, Constants::STOP, context );
+//         cmd = am->registerAction( actionInject_, Constants::ACQUISITION, context );
+//         cmd = am->registerAction( actionSnapshot_, Constants::SNAPSHOT, context );
+//         cmd = am->registerAction( actMethodOpen_, Constants::METHODOPEN, context );
+//         cmd = am->registerAction( actMethodSave_, Constants::METHODSAVE, context );
 //         (void)cmd;
 //     }
 // }
@@ -382,7 +382,6 @@ AcquirePlugin::handle_broker_initialized()
 {
     if ( orb_i_ ) {
         orb_i_->initialize();
-        connect( orb_i_, &orb_i::onUpdateUIData, this, &AcquirePlugin::handle_update_ui_data );
     }
 }
 
@@ -477,113 +476,68 @@ AcquirePlugin::aboutToShutdown()
 //     orb_i_->actionSnapshot();
 // }
 
-bool
-AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
-                                , const adcontrols::MassSpectrometer& spectrometer
-                                , const adcontrols::DataInterpreter& dataInterpreter
-                                , unsigned long objid )
-{
-    if ( ! rdmap_[ objid ] )
-        rdmap_[ objid ].reset( new adcontrols::MassSpectrum );
-
-    adcontrols::MassSpectrum& ms = *rdmap_[ objid ];
-
-    size_t idData = 0;
-    adcontrols::translate_state state = 
-        dataInterpreter.translate( ms
-                                   , reinterpret_cast< const char *>(rb.xdata.get_buffer()), rb.xdata.length()
-                                   , reinterpret_cast< const char *>(rb.xmeta.get_buffer()), rb.xmeta.length()
-                                   , spectrometer, idData++, 0 );
-    if ( state == adcontrols::translate_complete ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        fifo_ms_.push_back( rdmap_[ objid ] );
-        rdmap_[ objid ].reset( new adcontrols::MassSpectrum );
-    } 
-    return state != adcontrols::translate_error;
-}
-
-bool
-AcquirePlugin::readTrace( const SignalObserver::Description& desc
-                         , const SignalObserver::DataReadBuffer& rb
-                         , const adcontrols::DataInterpreter& dataInterpreter
-                          , unsigned long objid )
-{
-    std::lock_guard< std::mutex > lock( mutex_ );
-    if ( trace_accessors_.find( objid ) == trace_accessors_.end() )
-        trace_accessors_[ objid ] = std::shared_ptr< adcontrols::TraceAccessor >( new adcontrols::TraceAccessor );
-
-    adcontrols::TraceAccessor& accessor = *trace_accessors_[ objid ];
-    if ( dataInterpreter.translate( accessor
-									, reinterpret_cast< const char *>( rb.xdata.get_buffer() ), rb.xdata.length()
-									, reinterpret_cast< const char * >( rb.xmeta.get_buffer() ), rb.xmeta.length()
-                                    , rb.events ) == adcontrols::translate_complete ) {
-        return true;
-    }
-    return false;
-}
-
-void
-AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
-{
-    std::shared_ptr< adcontrols::MassSpectrum > ms;
-    do {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        if ( ! fifo_ms_.empty() )
-            ms = fifo_ms_.back();
-        fifo_ms_.clear();
-    } while(0);
+// void
+// AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
+// {
+//     std::shared_ptr< adcontrols::MassSpectrum > ms;
+//     do {
+//         std::lock_guard< std::mutex > lock( mutex_ );
+//         if ( ! fifo_ms_.empty() )
+//             ms = fifo_ms_.back();
+//         fifo_ms_.clear();
+//     } while(0);
     
-    if ( ms ) {
-        std::wostringstream o;
-        pImpl_->spectrumPlot_->setData( ms, 0 );
-        double elapsed_time = ms->getMSProperty().timeSinceInjection();
+//     if ( ms ) {
+//         std::wostringstream o;
+//         pImpl_->spectrumPlot_->setData( ms, 0 );
+//         double elapsed_time = ms->getMSProperty().timeSinceInjection();
 
-        o << boost::wformat( L"Elapsed time: %.3f min; " ) % (elapsed_time / 60.0);
+//         o << boost::wformat( L"Elapsed time: %.3f min; " ) % (elapsed_time / 60.0);
 
-        auto& descs = ms->getDescriptions();
-        for ( auto& d: descs )
-            o << d.text() << L"; ";
-        pImpl_->spectrumPlot_->setTitle( o.str() );
-    }
+//         auto& descs = ms->getDescriptions();
+//         for ( auto& d: descs )
+//             o << d.text() << L"; ";
+//         pImpl_->spectrumPlot_->setTitle( o.str() );
+//     }
         
-    do {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        if ( trace_accessors_.find( objId ) == trace_accessors_.end() )
-            return;
+//     do {
+//         std::lock_guard< std::mutex > lock( mutex_ );
+//         if ( trace_accessors_.find( objId ) == trace_accessors_.end() )
+//             return;
 
-        adcontrols::TraceAccessor& accessor = *trace_accessors_[ objId ];
-        for ( int fcn = 0; fcn < static_cast<int>(accessor.nfcn()); ++fcn ) {
-            if ( pImpl_->traces_.find( fcn ) == pImpl_->traces_.end() )
-                pImpl_->traces_[ fcn ] = adcontrols::Trace( fcn );
-            adcontrols::Trace& trace = pImpl_->traces_[ fcn ];
-            if ( accessor >> trace && trace.size() >= 2 )
-                pImpl_->timePlot_->setData( trace, fcn );
-        }
-        accessor.clear();
-    } while ( 0 );
+//         adcontrols::TraceAccessor& accessor = *trace_accessors_[ objId ];
+//         for ( int fcn = 0; fcn < static_cast<int>(accessor.nfcn()); ++fcn ) {
+//             if ( pImpl_->traces_.find( fcn ) == pImpl_->traces_.end() )
+//                 pImpl_->traces_[ fcn ] = adcontrols::Trace( fcn );
+//             adcontrols::Trace& trace = pImpl_->traces_[ fcn ];
+//             if ( accessor >> trace && trace.size() >= 2 )
+//                 pImpl_->timePlot_->setData( trace, fcn );
+//         }
+//         accessor.clear();
+//     } while ( 0 );
 
-}
+// }
 
-void
-AcquirePlugin::handle_config_changed( unsigned long objid, long pos )
-{
-    (void)objid;
-    (void)pos;
-}
+// void
+// AcquirePlugin::handle_config_changed( unsigned long objid, long pos )
+// {
+//     (void)objid;
+//     (void)pos;
+// }
 
-void
-AcquirePlugin::handle_method_changed( unsigned long objid, long pos )
-{
-    (void)objid;
-    (void)pos;
-}
+// void
+// AcquirePlugin::handle_method_changed( unsigned long objid, long pos )
+// {
+//     (void)objid;
+//     (void)pos;
+// }
 
-void
-AcquirePlugin::handle_event( unsigned long objid, long pos, long flags )
-{
-    (void)objid;
-    (void)pos;
-}
+// void
+// AcquirePlugin::handle_event( unsigned long objid, long pos, long flags )
+// {
+//     (void)objid;
+//     (void)pos;
+// }
 
 void
 AcquirePlugin::handle_shutdown()
@@ -708,11 +662,11 @@ AcquirePlugin::createContents( Core::IMode * mode )
             auto cmdLayout = new QHBoxLayout();
             // Core::ActionManager *am = Core::ICore::instance()->actionManager();
             if ( auto am = Core::ActionManager::instance() ) {
-                cmdLayout->addWidget( toolButton( am->command( constants::CONNECT )->action() ) );
-                cmdLayout->addWidget( toolButton( am->command( constants::INITIALRUN )->action() ) );
-                cmdLayout->addWidget( toolButton( am->command( constants::RUN )->action() ) );
-                cmdLayout->addWidget( toolButton( am->command( constants::STOP )->action() ) );
-                cmdLayout->addWidget( toolButton( am->command( constants::ACQUISITION )->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( Constants::CONNECT )->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( Constants::INITIALRUN )->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( Constants::RUN )->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( Constants::STOP )->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( Constants::ACQUISITION )->action() ) );
             }
             toolBarLayout->addLayout( cmdLayout );
             toolBarLayout->addWidget( new Utils::StyledSeparator );

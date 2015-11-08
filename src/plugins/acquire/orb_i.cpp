@@ -175,6 +175,7 @@ namespace acquire {
         std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
         std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
         std::map< unsigned long, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
+        std::map< int, std::shared_ptr< adcontrols::Trace > > traces_;
         std::mutex mutex_;
 
         void initialize_broker_session() {
@@ -658,6 +659,7 @@ void
 orb_i::initialize()
 {
     Broker::Manager_var mgr = OrbConnection::instance()->brokerManager();
+
     if ( CORBA::is_nil( mgr ) ) {
         return;
     }
@@ -668,6 +670,8 @@ orb_i::initialize()
     }
 
     impl_->initialize_broker_session();
+
+    connect( this, &orb_i::onUpdateUIData, this, &orb_i::handle_update_ui_data );
 
     task_->threads_.push_back( adportable::asio::thread( [this](){ task_->io_service_.run(); } ) );
 
@@ -736,4 +740,76 @@ orb_i::impl::readTrace( const SignalObserver::Description& desc
         return true;
     }
     return false;
+}
+
+void
+orb_i::handle_update_ui_data( unsigned long objId, long pos )
+{
+    std::shared_ptr< adcontrols::MassSpectrum > ms;
+    do {
+        std::lock_guard< std::mutex > lock( task_->mutex_ );
+        if ( ! impl_->fifo_ms_.empty() )
+            ms = impl_->fifo_ms_.back();
+        impl_->fifo_ms_.clear();
+    } while(0);
+    
+    if ( ms ) {
+        document::instance()->setData( deprecated_observer, ms );
+#if 0
+        // std::wostringstream o;
+        // //pImpl_->spectrumPlot_->setData( ms, 0 );
+        // double elapsed_time = ms->getMSProperty().timeSinceInjection();
+
+        // o << boost::wformat( L"Elapsed time: %.3f min; " ) % (elapsed_time / 60.0);
+
+        // auto& descs = ms->getDescriptions();
+        // for ( auto& d: descs )
+        //     o << d.text() << L"; ";
+        //pImpl_->spectrumPlot_->setTitle( o.str() );
+#endif
+    }
+        
+    do {
+        std::lock_guard< std::mutex > lock( task_->mutex_ );
+        if ( impl_->trace_accessors_.find( objId ) == impl_->trace_accessors_.end() )
+            return;
+
+        adcontrols::TraceAccessor& accessor = *impl_->trace_accessors_[ objId ];
+        for ( int fcn = 0; fcn < static_cast<int>(accessor.nfcn()); ++fcn ) {
+
+            document::instance()->setData( deprecated_observer, accessor, fcn );        
+
+            // auto it = impl_->traces_.find( fcn );
+            // if ( it == impl_->traces_.end() ) {
+            //     impl_->traces_[ fcn ] = std::make_shared< adcontrols::Trace >( fcn );
+            //     it = impl_->traces_.find( fcn );
+            // }
+            // auto trace = impl_->traces_[ fcn ];
+            // if ( accessor >> (*trace) && trace->size() >= 2 )
+            //     document::instance()->setData( boost::uuids::uuid(), trace, fcn );
+        }
+        accessor.clear();
+    } while ( 0 );
+
+}
+
+void
+orb_i::handle_config_changed( unsigned long objid, long pos )
+{
+    (void)objid;
+    (void)pos;
+}
+
+void
+orb_i::handle_method_changed( unsigned long objid, long pos )
+{
+    (void)objid;
+    (void)pos;
+}
+
+void
+orb_i::handle_event( unsigned long objid, long pos, long flags )
+{
+    (void)objid;
+    (void)pos;
 }

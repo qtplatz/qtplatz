@@ -91,6 +91,13 @@ namespace acquire {
         
         orb_i();
         ~orb_i();
+
+    public slots:
+        void handle_config_changed( unsigned long objid, long pos );
+        void handle_method_changed( unsigned long objid, long pos );
+        void handle_event( unsigned long objid, long pos, long flags );
+        void handle_update_ui_data( unsigned long objid, long pos );
+        
     signals:
         void onUpdateUIData( unsigned long, long );        
         void onObserverConfigChanged( unsigned long, long );

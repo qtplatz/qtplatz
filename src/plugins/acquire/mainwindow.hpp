@@ -109,6 +109,10 @@ namespace acquire {
         void iControllerMessage( adextension::iController *, uint32_t msg, uint32_t value );
 
     private:
+        Utils::StyledBar * createTopStyledToolbar();
+        Utils::StyledBar * createMidStyledToolbar();
+        void createDockWidgets();
+        
         QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
         static QToolButton * toolButton( QAction * action );
         static QToolButton * toolButton( const char * id );

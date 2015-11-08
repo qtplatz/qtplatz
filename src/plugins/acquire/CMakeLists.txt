@@ -65,31 +65,34 @@ link_directories(
 
 set( ${PROJECT_NAME}_SOURCES
   acquiremode.cpp
+  acquiremode.hpp
   acquireplugin.cpp
+  acquireplugin.hpp
+  constants.cpp
+  constants.hpp
   document.cpp
+  document.hpp
   mainwindow.cpp
+  mainwindow.hpp  
   task.cpp
+  task.hpp
   session.cpp
+  session.hpp
   mastercontroller.cpp
+  mastercontroller.hpp
   masterobserver.cpp
+  masterobserver.hpp
   masterreceiver.cpp
-  masterobserverevents.cpp  
+  masterreceiver.hpp
+  masterobserverevents.cpp
+  masterobserverevents.hpp  
+  waveformwnd.cpp
+  waveformwnd.hpp
   )
 
 
 set( ${PROJECT_NAME}_HEADERS
   acquire_global.h
-  acquiremode.hpp
-  acquireplugin.hpp
-  document.hpp
-  mainwindow.hpp
-  constants.hpp
-  task.hpp
-  session.hpp
-  mastercontroller.hpp
-  masterobserver.hpp
-  masterreceiver.hpp
-  masterobserverevents.hpp  
   )
 
 if ( QTPLATZ_SUPPORT_CORBA )

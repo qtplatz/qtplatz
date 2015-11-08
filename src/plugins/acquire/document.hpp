@@ -28,11 +28,15 @@
 #include <set>
 #include <mutex>
 
+namespace boost { namespace uuids { struct uuid; } }
+
 class QSettings;
 
 namespace adcontrols {
     namespace ControlMethod { class Method; }
     class SampleRun;
+    class MassSpectrum;
+    class TraceAccessor;
 }
 
 namespace acquire {
@@ -54,7 +58,7 @@ namespace acquire {
         
         void initialSetup();
         void finalClose( MainWindow * );
-        QSettings * settings() { return settings_.get(); }
+        QSettings * settings();
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
 
@@ -90,14 +94,13 @@ namespace acquire {
         void actionInject();
         void actionSnapshot();
         //bool readCalibrations( observer_type& );
-        
-    private:
-        std::shared_ptr< QSettings > settings_;  // user scope settings
-        std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
-        std::shared_ptr< adcontrols::SampleRun > sampleRun_;
-        QString ctrlmethod_filename_;
-        QString samplerun_filename_;
 
+        void setData( const boost::uuids::uuid&, std::shared_ptr< const adcontrols::MassSpectrum > ms );
+        void setData( const boost::uuids::uuid&, const adcontrols::TraceAccessor&, int fcn );
+
+        void setControllerState( const QString& module, bool enable );
+
+    private:
         class impl;
         impl * impl_;
         

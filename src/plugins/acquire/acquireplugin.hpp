@@ -118,10 +118,10 @@ namespace acquire {
         void handle_shutdown();
         void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
-        void handle_config_changed( unsigned long objid, long pos );
-        void handle_method_changed( unsigned long objid, long pos );
-        void handle_event( unsigned long objid, long pos, long flags );
-        void handle_update_ui_data( unsigned long objid, long pos );
+        // void handle_config_changed( unsigned long objid, long pos );
+        // void handle_method_changed( unsigned long objid, long pos );
+        // void handle_event( unsigned long objid, long pos, long flags );
+        // void handle_update_ui_data( unsigned long objid, long pos );
 
         void handle_monitor_selected( int );
         void handle_monitor_activated( int );
@@ -164,15 +164,15 @@ namespace acquire {
 
         // void populate( SignalObserver::Observer_var& );
 
-        bool readMassSpectra( const SignalObserver::DataReadBuffer&
-                              , const adcontrols::MassSpectrometer&
-                              , const adcontrols::DataInterpreter& dataInterpreter
-                              , unsigned long objId );
+        // bool readMassSpectra( const SignalObserver::DataReadBuffer&
+        //                       , const adcontrols::MassSpectrometer&
+        //                       , const adcontrols::DataInterpreter& dataInterpreter
+        //                       , unsigned long objId );
 
-        bool readTrace( const SignalObserver::Description&
-                        , const SignalObserver::DataReadBuffer&
-                        , const adcontrols::DataInterpreter& dataInterpreter
-                        , unsigned long objId );
+        // bool readTrace( const SignalObserver::Description&
+        //                 , const SignalObserver::DataReadBuffer&
+        //                 , const adcontrols::DataInterpreter& dataInterpreter
+        //                 , unsigned long objId );
 
         // // observer event handlers
         // void handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus );
