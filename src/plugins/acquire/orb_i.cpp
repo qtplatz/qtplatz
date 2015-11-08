@@ -754,23 +754,14 @@ orb_i::handle_update_ui_data( unsigned long objId, long pos )
     } while(0);
     
     if ( ms ) {
+
         document::instance()->setData( deprecated_observer, ms );
-#if 0
-        // std::wostringstream o;
-        // //pImpl_->spectrumPlot_->setData( ms, 0 );
-        // double elapsed_time = ms->getMSProperty().timeSinceInjection();
 
-        // o << boost::wformat( L"Elapsed time: %.3f min; " ) % (elapsed_time / 60.0);
-
-        // auto& descs = ms->getDescriptions();
-        // for ( auto& d: descs )
-        //     o << d.text() << L"; ";
-        //pImpl_->spectrumPlot_->setTitle( o.str() );
-#endif
     }
         
     do {
         std::lock_guard< std::mutex > lock( task_->mutex_ );
+
         if ( impl_->trace_accessors_.find( objId ) == impl_->trace_accessors_.end() )
             return;
 
@@ -779,16 +770,10 @@ orb_i::handle_update_ui_data( unsigned long objId, long pos )
 
             document::instance()->setData( deprecated_observer, accessor, fcn );        
 
-            // auto it = impl_->traces_.find( fcn );
-            // if ( it == impl_->traces_.end() ) {
-            //     impl_->traces_[ fcn ] = std::make_shared< adcontrols::Trace >( fcn );
-            //     it = impl_->traces_.find( fcn );
-            // }
-            // auto trace = impl_->traces_[ fcn ];
-            // if ( accessor >> (*trace) && trace->size() >= 2 )
-            //     document::instance()->setData( boost::uuids::uuid(), trace, fcn );
         }
+
         accessor.clear();
+
     } while ( 0 );
 
 }
