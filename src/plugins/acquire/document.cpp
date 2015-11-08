@@ -270,7 +270,7 @@ document::initialSetup()
 
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
-            QMessageBox::information( 0, "dataproc::document"
+            QMessageBox::information( 0, "acquire::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
         }
     }
@@ -573,51 +573,66 @@ void
 document::actionConnect()
 {
     this->actionConnect( true ); // fetch method from MainWindow
+#if HAVE_CORBA
     if ( auto orbi = orb_i::instance() )
       orbi->actionConnect();
+#endif
 }
 
 void
 document::actionDisconnect()
 {
+#if HAVE_CORBA
     if ( auto orbi = orb_i::instance() )
         orbi->actionDisconnect();    
+#endif
 }
 
 void
 document::actionInitRun()
 {
     impl_->handleCommitMethods();
+
+#if HAVE_CORBA
     if ( auto orbi = orb_i::instance() )    
         orbi->actionInitRun();
+#endif
 }
 
 void
 document::actionRun()
 {
+#if HAVE_CORBA
     if ( auto orbi = orb_i::instance() )        
         orbi->actionRun();    
+#endif
 }
 
 void
 document::actionStop()
 {
+#if HAVE_CORBA
     if ( auto orbi = orb_i::instance() )        
     orbi->actionStop();    
+#endif
 }
 
 void
 document::actionInject()
 {
+#if HAVE_CORBA
     if ( auto orbi = orb_i::instance() )        
     orbi->actionInject();    
+#endif
 }
 
 void
 document::actionSnapshot()
 {
+#if HAVE_CORBA
     if ( auto orbi = orb_i::instance() )        
         orbi->actionSnapshot();    
+#endif
 }
 
 ///////////

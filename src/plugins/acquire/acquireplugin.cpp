@@ -45,7 +45,6 @@
 #include <adplugin_manager/loader.hpp>
 #include <adlog/logging_handler.hpp>
 #include <adlog/logger.hpp>
-//#include <qtwrapper/application.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/id.h>
 #include <coreplugin/coreconstants.h>
@@ -60,14 +59,19 @@ using namespace acquire;
 
 AcquirePlugin::~AcquirePlugin()
 {
+#if HAVE_CORBA
     orb_i_->shutdown();
-
     delete orb_i_;
+#endif
     //delete pImpl_;
     ADTRACE() << "====== AcquirePlugin dtor complete ===============";
 }
 
+#if HAVE_CORBA
 AcquirePlugin::AcquirePlugin() : orb_i_( new orb_i() )
+#else
+AcquirePlugin::AcquirePlugin() 
+#endif
 {
 }
 
@@ -99,16 +103,12 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         }
     }
 
-    // try {
-    //     initialize_actions();
-    // } catch ( ... ) {
-    //     ADERROR() << "exception handled for initailize_actions: " << boost::current_exception_diagnostic_information();
-    // }
-    
     // CORBA DEPENDENT
+#if HAVE_CORBA
     auto qbroker = new QBroker();
     connect( qbroker, &QBroker::initialized, this, &AcquirePlugin::handle_broker_initialized );
     addObject( qbroker );
+#endif
     // <--
 
     if ( auto iExtension = document::instance()->masterController() ) {
@@ -137,9 +137,11 @@ AcquirePlugin::extensionsInitialized()
 void
 AcquirePlugin::handle_broker_initialized()
 {
+#if HAVE_CORBA
     if ( orb_i_ ) {
         orb_i_->initialize();
     }
+#endif
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
@@ -149,11 +151,15 @@ AcquirePlugin::aboutToShutdown()
 
     document::instance()->actionDisconnect();
 
+#if HAVE_CORBA
+
     if ( orb_i_ )
         orb_i_->shutdown();
 
     auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
     removeObject( iBroker );
+
+#endif
 
     if ( auto mainWindow = MainWindow::instance() ) {
 

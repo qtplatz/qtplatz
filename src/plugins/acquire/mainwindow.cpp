@@ -54,8 +54,6 @@
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
-#include <coreplugin/imode.h>
-#include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/findplaceholder.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/minisplitter.h>
@@ -74,22 +72,25 @@
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
 #include <QApplication>
+#include <QAction>
 #include <QComboBox>
 #include <QDockWidget>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
+#include <QMessageBox>
+#include <QMetaType>
 #include <QToolBar>
 #include <QToolButton>
 #include <QTextEdit>
+#include <QTabBar>
 #include <QPluginLoader>
 #include <QLibrary>
 #include <QtCore>
 #include <QUrl>
-#include <QMessageBox>
-#include <QTabBar>
-#include <QMetaType>
+
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 
 namespace acquire {
@@ -97,15 +98,15 @@ namespace acquire {
     class MainWindow::impl {
     public:
         impl() : cmEditor_( new adwidgets::ControlMethodWidget )
-               , runEditor_( new adwidgets::SampleRunWidget )
-               , timePlot_( new adplot::ChromatogramWidget )
-               , spectrumPlot_( new adplot::SpectrumWidget ) {
+               , runEditor_( new adwidgets::SampleRunWidget ) {
+               // , timePlot_( new adplot::ChromatogramWidget )
+               // , spectrumPlot_( new adplot::SpectrumWidget ) {
         }
         
         static std::unique_ptr< MainWindow > instance_;
 
-        adplot::ChromatogramWidget * timePlot_;
-        adplot::SpectrumWidget * spectrumPlot_;
+        // adplot::ChromatogramWidget * timePlot_;
+        // adplot::SpectrumWidget * spectrumPlot_;
         
         std::unique_ptr< adwidgets::ControlMethodWidget > cmEditor_;
         std::unique_ptr< adwidgets::SampleRunWidget > runEditor_;
@@ -503,135 +504,6 @@ MainWindow::createContents( Core::IMode * mode )
         return splitter;
     }
     return 0;
-#if 0    
-    //              [mainWindow]
-    // splitter> ---------------------
-    //              [OutputPane]
-  
-    Core::MiniSplitter * splitter = new Core::MiniSplitter;
-    if ( splitter ) {
-        splitter->addWidget( this );
-        splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
-
-        splitter->setStretchFactor( 0, 10 );
-        splitter->setStretchFactor( 1, 0 );
-        splitter->setOrientation( Qt::Vertical ); // horizontal splitter bar
-    }
-
-    //
-    //         <splitter2>         [mainWindow]
-    // [Navigation] | [splitter ------------------- ]
-    //                             [OutputPane]
-
-    Core::MiniSplitter * splitter2 = new Core::MiniSplitter;
-    if ( splitter2 ) {
-        splitter2->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
-        splitter2->addWidget( splitter );
-        splitter2->setStretchFactor( 0, 0 );
-        splitter2->setStretchFactor( 1, 1 );
-    }
-      
-    Utils::StyledBar * toolBar = new Utils::StyledBar;
-    if ( toolBar ) {
-        toolBar->setProperty( "topBorder", true );
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin(0);
-        toolBarLayout->setSpacing( 4 );
-
-        auto cmdLayout = new QHBoxLayout();
-        // Core::ActionManager *am = Core::ICore::instance()->actionManager();
-        if ( auto am = Core::ActionManager::instance() ) {
-            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_CONNECT )->action() ) );
-            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_INITIALRUN )->action() ) );
-            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_RUN )->action() ) );
-            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_STOP )->action() ) );
-            cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_INJECT )->action() ) );
-        }
-        toolBarLayout->addLayout( cmdLayout );
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-
-        auto infoLayout = new QHBoxLayout();
-
-        if ( auto edit = new QLineEdit() ) {
-            infoLayout->addWidget( new QLabel( tr( "Run name:" ) ) );
-            edit->setReadOnly( true );
-            infoLayout->addWidget( edit );
-            infoLayout->setStretchFactor( edit, 2 );
-            connect( acquire::document::instance(), &acquire::document::onSampleRunChanged,
-                     [edit] ( const QString& name, const QString& dir ) { edit->setText( name ); } );
-        }
-            
-        if ( auto label = new QLabel( "" ) ) {
-            infoLayout->addWidget( label );
-            infoLayout->setStretchFactor( label, 1 );
-            connect( acquire::document::instance(), &acquire::document::onSampleRunLength,
-                     [label] ( const QString& text ) { label->setText( text ); } );
-        }
-            
-        infoLayout->addWidget( new Utils::StyledSeparator );
-        if ( auto edit = new QLineEdit() ) {
-            infoLayout->addWidget( new QLabel( tr( "Data save in:" ) ) );
-            edit->setReadOnly( true );
-            infoLayout->addWidget( edit );
-            infoLayout->setStretchFactor( edit, 3 );
-            connect( acquire::document::instance(), &acquire::document::onSampleRunChanged,
-                     [edit] ( const QString& name, const QString& dir ) { edit->setText( dir ); } );
-        }
-        toolBarLayout->addLayout( infoLayout );
-        toolBarLayout->addSpacerItem( new QSpacerItem( 32, 0, QSizePolicy::Expanding ) );
-    }
-
-    Utils::StyledBar * toolBar2 = new Utils::StyledBar;
-    if ( toolBar2 ) {
-        toolBar2->setProperty( "topBorder", true );
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
-        toolBarLayout->setMargin(0);
-        toolBarLayout->setSpacing(0);
-
-        if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget( toolButton( am->command( Constants::ACTION_SNAPSHOT )->action() ) ); //actionSnapshot_ ) );
-            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODOPEN )->action() ) ); //actMethodOpen_ ) );
-            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODSAVE )->action() ) ); //actMethodSave_ ) );
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );
-            impl_->traceBox_ = new QComboBox;
-            impl_->traceBox_->addItem( "-----------------------------" );
-            connect( impl_->traceBox_, SIGNAL( currentIndexChanged(int) ), this, SLOT( handle_monitor_selected(int) ) );
-            connect( impl_->traceBox_, SIGNAL( activated(int) ), this, SLOT( handle_monitor_activated(int) ) );
-            toolBarLayout->addWidget( impl_->traceBox_ );
-            toolBarLayout->addWidget( new QLabel( tr("  ") ), 10 );
-        }
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-        toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
-    }
-
-    if ( QWidget* centralWidget = new QWidget ) {
-
-        setCentralWidget( centralWidget );
-
-        Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
-        if ( splitter3 ) {
-            splitter3->addWidget( impl_->timePlot_ );
-            splitter3->addWidget( impl_->spectrumPlot_ );
-            splitter3->setOrientation( Qt::Vertical );
-
-            using adplot::ChromatogramWidget;
-                
-            //connect( impl_->timePlot_, static_cast< void( ChromatogramWidget::*)( const QPointF& ) >( &ChromatogramWidget::onSelected ), this, &MainWindow::handleSelected );
-            //connect( impl_->timePlot_, static_cast< void( ChromatogramWidget::*)( const QRectF& ) >( &ChromatogramWidget::onSelected ), this, &MainWindow::handleSelected );
-        }
-
-        QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
-        toolBarAddingLayout->setMargin(0);
-        toolBarAddingLayout->setSpacing(0);
-        //toolBarAddingLayout->addWidget( rightPaneSplitter );
-        toolBarAddingLayout->addWidget( toolBar );
-        toolBarAddingLayout->addWidget( splitter3 );
-        toolBarAddingLayout->addWidget( toolBar2 );
-    }
-    
-    return splitter2;
-#endif
 }
 
 // static
@@ -686,36 +558,6 @@ MainWindow::actMethodSave()
 
 }
 
-/*
-void
-AcquirePlugin::initialize_actions()
-{
-    pImpl_->loadIcon();
-
-    actionConnect_->setEnabled( true );
-    actionInitRun_->setEnabled( false );
-    actionRun_->setEnabled( false );
-	actionStop_->setEnabled( false );
-	actionInject_->setEnabled( false );
-    actionSnapshot_->setEnabled( true );
-  
-    Core::Context context( ( Core::Id( "Acquire.MainView" ), Core::Id( Core::Constants::C_GLOBAL ) ) );
-
-    if ( auto am = Core::ActionManager::instance() ) {
-        Core::Command * cmd = 0;
-        cmd = am->registerAction( actionConnect_, Constants::CONNECT, context );
-
-        cmd = am->registerAction( actionInitRun_, Constants::INITIALRUN, context );
-        cmd = am->registerAction( actionRun_, Constants::RUN, context );
-        cmd = am->registerAction( actionStop_, Constants::STOP, context );
-        cmd = am->registerAction( actionInject_, Constants::ACQUISITION, context );
-        cmd = am->registerAction( actionSnapshot_, Constants::SNAPSHOT, context );
-        cmd = am->registerAction( actMethodOpen_, Constants::METHODOPEN, context );
-        cmd = am->registerAction( actMethodSave_, Constants::METHODSAVE, context );
-        (void)cmd;
-    }
-}
-*/
 
 void
 MainWindow::createActions()
@@ -729,8 +571,6 @@ MainWindow::createActions()
     menu->menu()->setTitle( "Acquire" );
 
     //------------ snapshot -------------
-    // actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
-    // connect( actionSnapshot_, &QAction::triggered, this, &AcquirePlugin::actionSnapshot );
     if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
         connect( action, &QAction::triggered, [](){ document::instance()->actionSnapshot(); } );
         action->setEnabled( false );
@@ -738,16 +578,12 @@ MainWindow::createActions()
         menu->addAction( cmd );
     }
 
-    // actionConnect_ = new QAction( QIcon(":/acquire/images/Button Refresh.png"), tr("Connect to control server..."), this);
-    // connect( actionConnect_, &QAction::triggered, this, &AcquirePlugin::actionConnect );
     if ( auto action = createAction( Constants::ICON_CONNECT, tr( "Connect" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionConnect(); } );
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_CONNECT, context );
         menu->addAction( cmd );        
     }
 
-    // actionInitRun_ = new QAction(QIcon(":/acquire/images/Button Last.png"), tr("Preparing"), this);
-    // connect( actionInitRun_, &QAction::triggered, this, &AcquirePlugin::actionInitRun );
     if ( auto action = createAction( Constants::ICON_INITRUN, tr( "Prepare" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionInitRun(); } );
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_INITIALRUN, context );
@@ -755,8 +591,6 @@ MainWindow::createActions()
     }
     
 
-    // actionRun_ = new QAction(QIcon(":/acquire/images/Button Play.png"), tr("Run"), this);
-    // connect( actionRun_, &QAction::triggered, this, &AcquirePlugin::actionRun );
     if ( auto action = createAction( Constants::ICON_RUN, tr( "Run" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionRun(); } );
         action->setEnabled( false );        
@@ -764,8 +598,6 @@ MainWindow::createActions()
         menu->addAction( cmd );        
     }
 
-    // actionStop_ = new QAction(QIcon(":/acquire/images/Button Stop.png"), tr("Stop"), this);
-    // connect( actionStop_, &QAction::triggered, this, &AcquirePlugin::actionStop );
     if ( auto action = createAction( Constants::ICON_STOP, tr( "Stop" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionStop(); } );
         action->setEnabled( false );
@@ -773,8 +605,6 @@ MainWindow::createActions()
         menu->addAction( cmd );        
     }
 
-    // actionInject_ = new QAction(QIcon(":/acquire/images/Button Add.png"), tr("Inject (recording data)"), this);
-    // connect( actionInject_, &QAction::triggered, this, &AcquirePlugin::actionInject );
     if ( auto action = createAction( Constants::ICON_INJECT, tr( "Inject" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionInject(); } );
         action->setEnabled( false );
@@ -992,19 +822,50 @@ MainWindow::createTopStyledToolbar()
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
-        toolBarLayout->setSpacing( 0 );
-        if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_CONNECT)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_RUN)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_STOP)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_SNAPSHOT)->action()));
+        toolBarLayout->setSpacing( 4 );
+        if ( auto cmdLayout = new QHBoxLayout() ) {
+            if ( auto am = Core::ActionManager::instance() ) {
+                cmdLayout->addWidget( toolButton(am->command(Constants::ACTION_CONNECT)->action() ) );
+                cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_INITIALRUN )->action() ) );
+                cmdLayout->addWidget( toolButton(am->command(Constants::ACTION_RUN)->action() ) );
+                cmdLayout->addWidget( toolButton(am->command(Constants::ACTION_STOP)->action() ) );
+                cmdLayout->addWidget( toolButton(am->command(Constants::ACTION_SNAPSHOT)->action() ) );
+            }
+            toolBarLayout->addLayout( cmdLayout );
             //-- separator --
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            //---
-            //toolBarLayout->addWidget( topLineEdit_.get() );
+            toolBarLayout->addWidget( new Utils::StyledSeparator );            
         }
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+        
+        if ( auto infoLayout = new QHBoxLayout() ) {
+            if ( auto edit = new QLineEdit() ) {
+                infoLayout->addWidget( new QLabel( tr( "Run name:" ) ) );
+                edit->setReadOnly( true );
+                infoLayout->addWidget( edit );
+                infoLayout->setStretchFactor( edit, 2 );
+                connect( acquire::document::instance(), &acquire::document::onSampleRunChanged,
+                         [edit] ( const QString& name, const QString& dir ) { edit->setText( name ); } );
+            }
+            
+            if ( auto label = new QLabel( "" ) ) {
+                infoLayout->addWidget( label );
+                infoLayout->setStretchFactor( label, 1 );
+                connect( acquire::document::instance(), &acquire::document::onSampleRunLength,
+                         [label] ( const QString& text ) { label->setText( text ); } );
+            }
+
+            //-- separator --
+            infoLayout->addWidget( new Utils::StyledSeparator );
+            if ( auto edit = new QLineEdit() ) {
+                infoLayout->addWidget( new QLabel( tr( "Data save in:" ) ) );
+                edit->setReadOnly( true );
+                infoLayout->addWidget( edit );
+                infoLayout->setStretchFactor( edit, 3 );
+                connect( acquire::document::instance(), &acquire::document::onSampleRunChanged,
+                         [edit] ( const QString& name, const QString& dir ) { edit->setText( dir ); } );
+            }
+            toolBarLayout->addLayout( infoLayout );
+            toolBarLayout->addItem( new QSpacerItem( 32, 0, QSizePolicy::Expanding ) );
+        }
     }
     return toolBar;
 }
@@ -1018,20 +879,23 @@ MainWindow::createMidStyledToolbar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin(0);
         toolBarLayout->setSpacing(0);
-        Core::ActionManager * am = Core::ActionManager::instance();
-        if ( am ) {
-            // print, method file open & save buttons
-            toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::SAVE_CURRENT_IMAGE)->action()));
-            //----------
+
+        if ( auto am = Core::ActionManager::instance() ) {
+            toolBarLayout->addWidget( toolButton( am->command( Constants::ACTION_SNAPSHOT )->action() ) ); //actionSnapshot_ ) );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODOPEN )->action() ) ); //actMethodOpen_ ) );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODSAVE )->action() ) ); //actMethodSave_ ) );
             toolBarLayout->addWidget( new Utils::StyledSeparator );
-            //----------
-
-            toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
-
-            toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
-            
+            toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );
+            impl_->traceBox_ = new QComboBox;
+            impl_->traceBox_->addItem( "-----------------------------" );
+            connect( impl_->traceBox_, SIGNAL( currentIndexChanged(int) ), this, SLOT( handle_monitor_selected(int) ) );
+            connect( impl_->traceBox_, SIGNAL( activated(int) ), this, SLOT( handle_monitor_activated(int) ) );
+            toolBarLayout->addWidget( impl_->traceBox_ );
+            toolBarLayout->addWidget( new QLabel( tr("  ") ), 10 );
         }
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
+        
 		return toolBar;
     }
     return 0;
