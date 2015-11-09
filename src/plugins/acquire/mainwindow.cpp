@@ -98,22 +98,26 @@ namespace acquire {
     class MainWindow::impl {
     public:
         impl() : cmEditor_( new adwidgets::ControlMethodWidget )
-               , runEditor_( new adwidgets::SampleRunWidget ) {
-               // , timePlot_( new adplot::ChromatogramWidget )
-               // , spectrumPlot_( new adplot::SpectrumWidget ) {
+               , runEditor_( new adwidgets::SampleRunWidget )
+               , traceBox_( 0 ) {
+        }
+
+        ~impl() {
+            runEditor_.reset();
+            cmEditor_.reset();
         }
         
-        static std::unique_ptr< MainWindow > instance_;
+        // Don't manage instance memory, due to destractor will call from Utils::FancyMainWindow
+        //static std::unique_ptr< MainWindow > instance_;
+        static MainWindow * instance_;
 
-        // adplot::ChromatogramWidget * timePlot_;
-        // adplot::SpectrumWidget * spectrumPlot_;
-        
         std::unique_ptr< adwidgets::ControlMethodWidget > cmEditor_;
         std::unique_ptr< adwidgets::SampleRunWidget > runEditor_;
         QComboBox * traceBox_;
     };
 
-    std::unique_ptr< MainWindow > MainWindow::impl::instance_; 
+    MainWindow * MainWindow::impl::instance_( 0 );
+    //std::unique_ptr< MainWindow > MainWindow::impl::instance_; 
 }
 
 using namespace acquire;
@@ -122,8 +126,9 @@ MainWindow *
 MainWindow::instance()
 {
     static std::once_flag flag;
-    std::call_once( flag, [](){ impl::instance_.reset( new MainWindow() ); } );
-    return impl::instance_.get();
+    //std::call_once( flag, [](){ impl::instance_.reset( new MainWindow() ); } );
+    std::call_once( flag, [](){ impl::instance_ = new MainWindow(); } );
+    return impl::instance_;
 }
 
 
