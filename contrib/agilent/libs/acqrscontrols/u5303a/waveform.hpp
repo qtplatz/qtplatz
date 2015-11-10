@@ -114,6 +114,8 @@ namespace acqrscontrols {
             const_iterator begin() const { return d_.begin(); }
             const_iterator end() const { return d_.end(); }
 
+            bool isDEAD() const;
+            
             static std::array< std::shared_ptr< const waveform >, 2 >
                 deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
 
@@ -121,6 +123,7 @@ namespace acqrscontrols {
                 serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
 
             static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
         private:

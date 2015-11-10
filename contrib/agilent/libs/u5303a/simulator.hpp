@@ -43,7 +43,7 @@ namespace u5303a {
         simulator();
         simulator( const simulator& ) = delete;
         simulator& operator = ( const simulator& ) = delete;
-        static std::unique_ptr< simulator > instance_;
+
     public:
         ~simulator();
 

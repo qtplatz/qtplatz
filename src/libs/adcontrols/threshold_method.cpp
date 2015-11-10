@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "threshold_method.hpp"
+#include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
@@ -88,4 +89,30 @@ namespace adcontrols {
         threshold_method_archive<>().serialize( ar, *this, version );        
     }
 
+}
+
+bool
+threshold_method::operator != ( const threshold_method& m ) const
+{
+    namespace ap = adportable;
+    
+    if ( enable != m.enable ||
+         (!ap::compare<double>::approximatelyEqual( threshold_level, m.threshold_level )) ||
+         (!ap::compare<double>::approximatelyEqual( response_time, m.response_time )) ||
+         slope != m.slope ||
+         use_filter != m.use_filter )
+        return true;
+
+    if ( use_filter ) {
+        if ( ( filter != m.filter ) ||
+             ( ( m.filter == adcontrols::threshold_method::SG_Filter ) && 
+               ( !ap::compare<double>::approximatelyEqual( sgwidth, m.sgwidth ) ) ) ||
+             ( ( m.filter == adcontrols::threshold_method::DFT_Filter ) && 
+               ( ( !ap::compare<double>::approximatelyEqual( cutoffHz, m.cutoffHz ) ) ||
+                 ( m.complex_ != complex_ ) ) ) ) {
+            return true;
+        }
+    }
+
+    return false;
 }

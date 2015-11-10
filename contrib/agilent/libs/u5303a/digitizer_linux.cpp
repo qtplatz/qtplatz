@@ -650,7 +650,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
 {
     data.serialnumber_ = spDriver()->dataSerialNumber();
     
-    if ( method_.mode_ && simulated_ ) {
+    if ( /* method_.mode_ && */ simulated_ ) {
         simulator::instance()->readData( data );
         data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
         return true;        

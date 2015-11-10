@@ -52,6 +52,8 @@ namespace adcontrols {
 
         threshold_method();
 
+        bool operator != ( const threshold_method& ) const;
+
     private:
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );

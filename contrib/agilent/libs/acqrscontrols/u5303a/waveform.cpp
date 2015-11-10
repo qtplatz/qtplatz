@@ -384,3 +384,13 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 	return true;
 }
 
+bool
+waveform::isDEAD() const
+{
+    size_t count( 99 );
+    for ( auto it = d_.begin(); it != d_.end() && count--; ++it ) {
+        if ( !( *it == 0 || *it == 0xffffdead ) )
+            return false;
+    }
+    return true;
+}

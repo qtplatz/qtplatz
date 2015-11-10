@@ -35,8 +35,6 @@
 
 namespace u5303a {
 
-    std::unique_ptr< simulator > simulator::instance_;
-
     static std::mt19937 __gen__;
     static std::uniform_real_distribution<> __dist__( -15.0, 35.0 );        
     static auto __noise__ = []{ return __dist__( __gen__ ); };
@@ -140,9 +138,8 @@ simulator::~simulator()
 simulator *
 simulator::instance()
 {
-    static std::once_flag flag;
-    std::call_once( flag, [] () { instance_.reset( new simulator() ); } );
-    return instance_.get();
+    static simulator __simulator__;
+    return &__simulator__;
 }
 
 void
@@ -203,6 +200,13 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
             waveforms_.erase( waveforms_.begin() );
         }
     } while(0);
+    
+    if ( !ptr && method_->mode_ == 0 && __waveform_generator_generator ) {
+        if ( auto ptr = __waveform_generator_generator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
+            ptr->addIons( ions_ );
+            ptr->onTriggered();
+        }
+    }
 
     if ( ptr ) {
         auto dp = data.data( ptr->nbrSamples() );
