@@ -201,13 +201,6 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
         }
     } while(0);
     
-    if ( !ptr && method_->mode_ == 0 && __waveform_generator_generator ) {
-        if ( auto ptr = __waveform_generator_generator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
-            ptr->addIons( ions_ );
-            ptr->onTriggered();
-        }
-    }
-
     if ( ptr ) {
         auto dp = data.data( ptr->nbrSamples() );
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
@@ -248,6 +241,26 @@ simulator::setup( const acqrscontrols::u5303a::method& m )
     nbrWaveforms_ = m.method_.nbr_of_averages;
 }
 
+void
+simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
+{
+    for ( auto& waveform: vec ) {
+
+        size_t idx = 0;
+
+        for ( auto it = waveform->begin(); it != waveform->end(); ++it ) {
+
+            double t = startDelay_ + sampInterval_ * idx++;
+            double y = 0;
+            for ( auto& peak : peak_list ) {
+                boost::math::normal_distribution< double > nd( peak.first /* mean */, 5.0e-9 /* sd */);
+                y += boost::math::pdf( nd, t ) * peak.second + __noise__();
+            }
+            *it = int(y);
+        }
+    }
+}
+
 ///////////////////////////////
 
 void
@@ -278,3 +291,5 @@ waveform_generator::onTriggered()
         d = int32_t(y) + 10000; // add background (simulate high background level)
     }
 }
+
+

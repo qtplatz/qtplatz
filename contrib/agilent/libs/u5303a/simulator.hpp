@@ -51,6 +51,7 @@ namespace u5303a {
         bool waitForEndOfAcquisition();
         bool readData( acqrscontrols::u5303a::waveform& );
         void setup( const acqrscontrols::u5303a::method& );
+        void touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
 
         void protocol_handler( double, double );
 
