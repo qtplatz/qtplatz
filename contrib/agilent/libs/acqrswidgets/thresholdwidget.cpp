@@ -243,7 +243,7 @@ ThresholdWidget::get( acqrscontrols::ap240::method& m ) const
 void
 ThresholdWidget::get( int ch, adcontrols::threshold_method& m ) const
 {
-    const QString name = QString( "CH%1" ).arg( QString::number(ch) );
+    const QString name = QString( "CH%1" ).arg( QString::number( ch + 1 ) );
 
     if ( auto form = findChild< adwidgets::findSlopeForm * >( name ) ) {
         form->get( m );
@@ -253,7 +253,7 @@ ThresholdWidget::get( int ch, adcontrols::threshold_method& m ) const
 void
 ThresholdWidget::set( int ch, const adcontrols::threshold_method& m )
 {
-    const QString name = QString( "CH%1" ).arg( QString::number(ch) );    
+    const QString name = QString( "CH%1" ).arg( QString::number( ch + 1 ) );
 
     if ( auto form = findChild< adwidgets::findSlopeForm * >( name ) ) {
         form->set( m );

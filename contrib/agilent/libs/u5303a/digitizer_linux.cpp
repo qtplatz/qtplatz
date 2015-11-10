@@ -107,7 +107,7 @@ namespace u5303a {
             
         private:
             friend std::unique_ptr< task >::deleter_type;
-            static std::unique_ptr< task > instance_;
+            //static std::unique_ptr< task > instance_;
             static std::mutex mutex_;
 
             uint64_t digitizerNumRecords_;
@@ -157,7 +157,7 @@ namespace u5303a {
 using namespace u5303a;
 using namespace u5303a::detail;
 
-std::unique_ptr< task > task::instance_;
+//std::unique_ptr< task > task::instance_;
 
 std::mutex task::mutex_;
 
@@ -300,9 +300,11 @@ task::findResource()
 task *
 task::instance()
 {
-    static std::once_flag flag;
-    std::call_once( flag, [](){ instance_.reset( new task() ); } );
-    return instance_.get();
+    static task __task__;
+    return &__task__;
+    //static std::once_flag flag;
+    //std::call_once( flag, [] () { instance_.reset( new task() ); } );
+    //return instance_.get();
 }
 
 bool

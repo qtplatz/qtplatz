@@ -32,6 +32,7 @@
 
 namespace acqrscontrols {
     namespace u5303a {
+
         class waveform;
 
         class ACQRSCONTROLSSHARED_EXPORT threshold_result {
@@ -43,6 +44,8 @@ namespace acqrscontrols {
             std::shared_ptr< const waveform > data_;
             std::vector< uint32_t > indecies_;
             std::vector< double > processed_;
+            uint32_t foundIndex_;
+            std::pair< uint32_t, uint32_t > findRange_;
 
 #if defined _MSC_VER
 #pragma warning(pop)
@@ -56,6 +59,15 @@ namespace acqrscontrols {
             const std::vector< uint32_t >& indecies() const;
             const std::vector< double >& processed() const;
 
+            const std::pair<uint32_t, uint32_t >& findRange() const;
+            uint32_t foundIndex() const;
+            void setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& );
+
+#if defined _MSC_VER
+            static const uint32_t npos = (-1);
+#else
+            static constexpr uint32_t npos = ( -1 );
+#endif
             threshold_result();
             threshold_result( std::shared_ptr< const waveform > d );
             threshold_result( const threshold_result& t );

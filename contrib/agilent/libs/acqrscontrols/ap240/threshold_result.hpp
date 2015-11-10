@@ -54,9 +54,10 @@ namespace acqrscontrols {
 #endif
         public:
             std::shared_ptr< const ap240x::waveform >& data();
+            std::shared_ptr< const ap240x::waveform > data() const;
+
             std::vector< uint32_t >& indecies();
             std::vector< double >& processed();
-            std::shared_ptr< const ap240x::waveform > data() const;
             const std::vector< uint32_t >& indecies() const;
             const std::vector< double >& processed() const;
             const std::pair<uint32_t, uint32_t >& findRange() const;
