@@ -48,6 +48,7 @@ set( ${PROJECT_NAME}_SOURCES
   doublespinbox.cpp
   dualspinslider.cpp
   filedialog.cpp
+  findslopeform.cpp
   insttreeview.cpp
   moltable.cpp
   mspeaktable.cpp
@@ -97,6 +98,7 @@ set( ${PROJECT_NAME}_HEADERS
   doublespinbox.hpp
   dualspinslider.hpp
   filedialog.hpp
+  findslopeform.hpp
   insttreeview.hpp
   peptidewidget.hpp
   peptidetable.hpp

@@ -23,11 +23,12 @@
 **************************************************************************/
 
 #include "thresholdwidget.hpp"
-#include "findslopeform.hpp"
+#include <acqrscontrols/u5303a/method.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
-#include <acqrscontrols/u5303a/method.hpp>
+#include <adwidgets/findslopeform.hpp>
+#include <adwidgets/thresholdactionform.hpp>
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include <QMessageBox>
@@ -39,27 +40,37 @@
 using namespace acqrswidgets;
 
 ThresholdWidget::ThresholdWidget( const QString& model
-                                  , int uid
+                                  , uint32_t nChannels
                                   , QWidget *parent) : QWidget(parent)
                                                      , modelClass_( model )
-                                                     , unitId_( uid )
+                                                     , nChannels_( nChannels )
 {
-    // Software TDC (Slope Time Converter) UI
+    // Software TDC (Slope Time Digital Converter) UI
     if ( auto layout = new QVBoxLayout( this ) ) {
+
         if ( auto tab = new QTabWidget() ) {
+
             layout->addWidget( tab );
-            int idx = 0;
-            for ( auto& title : { tr( "CH1" ), tr( "CH2" ) } ) {
-                auto ch = new findSlopeForm();
-                ch->setTitle( idx++, title );
+
+            for ( uint32_t channel = 0; channel < nChannels_; ++channel ) {
+                auto title = QString( "CH%1" ).arg( QString::number( channel + 1 ) );
+                auto ch = new adwidgets::findSlopeForm();
+                ch->setTitle( channel, title );
                 ch->setObjectName( title );
                 tab->addTab( ch, title );
                 // enable|disable
-                connect( ch, &findSlopeForm::valueChanged, [this] ( int ch ) {
-                    emit valueChanged( idSlopeTimeConverter, ch ); } );
+                connect( ch, &adwidgets::findSlopeForm::valueChanged, [this] ( int ch ) { emit valueChanged( idSlopeTimeConverter, ch ); } );
             }
+            
+            ///////////// Threshold action --- See also ap240form class /////////
+
+            auto form = new adwidgets::ThresholdActionForm();
+            form->setObjectName( "ThresholdWidget::ThresholdActionForm" );
+            tab->addTab( form, tr( "Action" ) );
+            connect( form, &adwidgets::ThresholdActionForm::valueChanged, [this](){ emit valueChanged( idThresholdAction, 0 ); } );
         }
     }
+    
 }
 
 ThresholdWidget::~ThresholdWidget()
@@ -104,6 +115,8 @@ ThresholdWidget::getContents( boost::any& a ) const
         // TBA: ap240 code and time event code
         
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
+        // time function
+        assert(0); // tba
 #if 0  
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
         acqrscontrols::ap240::method m;
@@ -230,9 +243,9 @@ ThresholdWidget::get( acqrscontrols::ap240::method& m ) const
 void
 ThresholdWidget::get( int ch, adcontrols::threshold_method& m ) const
 {
-    const QString names[] = { "CH1", "CH2" };
+    const QString name = QString( "CH%1" ).arg( QString::number(ch) );
 
-    if ( auto form = findChild< findSlopeForm * >( names[ ch ] ) ) {
+    if ( auto form = findChild< adwidgets::findSlopeForm * >( name ) ) {
         form->get( m );
     }
 }
@@ -240,10 +253,23 @@ ThresholdWidget::get( int ch, adcontrols::threshold_method& m ) const
 void
 ThresholdWidget::set( int ch, const adcontrols::threshold_method& m )
 {
-    const QString names[] = { "CH1", "CH2" };
+    const QString name = QString( "CH%1" ).arg( QString::number(ch) );    
 
-    if ( auto form = findChild< findSlopeForm * >( names[ ch ] ) ) {
+    if ( auto form = findChild< adwidgets::findSlopeForm * >( name ) ) {
         form->set( m );
     }
 }
 
+void
+ThresholdWidget::get( adcontrols::threshold_action& m ) const
+{
+    if ( auto form = findChild< adwidgets::ThresholdActionForm *>() )
+        form->get( m );
+}
+
+void
+ThresholdWidget::set( const adcontrols::threshold_action& m )
+{
+    if ( auto form = findChild< adwidgets::ThresholdActionForm *>() )
+        form->set( m );
+}

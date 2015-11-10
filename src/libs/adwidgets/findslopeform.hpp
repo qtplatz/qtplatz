@@ -25,18 +25,19 @@
 #ifndef FINDSLOPEFORM_HPP
 #define FINDSLOPEFORM_HPP
 
+#include "adwidgets_global.hpp"
 #include <QWidget>
 
 namespace adcontrols { class threshold_method; }
 
-namespace acqrswidgets {
+namespace adwidgets {
 
     namespace Ui {
         class findSlopeForm;
     }
     
-    
-    class findSlopeForm : public QWidget   {
+    class ADWIDGETSSHARED_EXPORT findSlopeForm : public QWidget   {
+
         Q_OBJECT
 
     public:

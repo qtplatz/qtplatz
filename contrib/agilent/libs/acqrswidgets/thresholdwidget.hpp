@@ -31,7 +31,7 @@
 #include "constants.hpp"
 #include <memory>
 
-namespace adcontrols { class threshold_method; }
+namespace adcontrols { class threshold_method; class threshold_action; }
 
 namespace acqrswidgets {
     
@@ -43,7 +43,8 @@ namespace acqrswidgets {
         Q_INTERFACES( adplugin::LifeCycle )
 
     public:
-        explicit ThresholdWidget( const QString& model, int unitid = 1, QWidget *parent = 0);
+            
+        explicit ThresholdWidget( const QString& model, uint32_t nChannels = 2, QWidget *parent = 0);
         ~ThresholdWidget();
 
         // LifeCycle
@@ -59,12 +60,15 @@ namespace acqrswidgets {
         void get( int ch, adcontrols::threshold_method& ) const;    
         void set( int ch, const adcontrols::threshold_method& );    
 
+        void get( adcontrols::threshold_action& ) const;    
+        void set( const adcontrols::threshold_action& );    
+
     signals:
         void valueChanged( idCategory cat, int ch );
         // void valueChanged( int, const QVariant& );
     private:
         QString modelClass_;
-        uint32_t unitId_;
+        uint32_t nChannels_; // number of channels to be supported
     };
 }
 

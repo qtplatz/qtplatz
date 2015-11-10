@@ -24,10 +24,10 @@
 
 #include "findslopeform.hpp"
 #include "ui_findslopeform.h"
-#include <ap240/digitizer.hpp>
+#include <adcontrols/threshold_method.hpp>
 #include <QSignalBlocker>
 
-using namespace acqrswidgets;
+using namespace adwidgets;
 
 findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
                                               , ui(new Ui::findSlopeForm)

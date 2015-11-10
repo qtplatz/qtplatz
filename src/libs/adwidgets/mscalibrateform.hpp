@@ -27,10 +27,6 @@
 
 #include <QWidget>
 
-namespace Ui {
-class MSCalibrateForm;
-}
-
 class QLabel;
 class QSpinBox;
 class QDoubleSpinBox;
@@ -38,6 +34,10 @@ class QDoubleSpinBox;
 namespace adcontrols { class MSCalibrateMethod; class MSReference; }
 
 namespace adwidgets {
+
+    namespace Ui {
+        class MSCalibrateForm;
+    }
 
     class MSReferenceDialog;
 

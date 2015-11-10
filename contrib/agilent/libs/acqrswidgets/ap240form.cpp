@@ -26,7 +26,6 @@
 #include "ap240horizontalform.hpp"
 #include "ap240verticalform.hpp"
 #include "ap240triggerform.hpp"
-#include "findslopeform.hpp"
 #include "ui_ap240form.h"
 #include <acqrscontrols/ap240/method.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -34,6 +33,7 @@
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
 #include <adwidgets/thresholdactionform.hpp>
+#include <adwidgets/findslopeform.hpp>
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include <QMessageBox>
@@ -56,12 +56,12 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
             layout->addWidget( tab );
             int idx = 0;
             for ( auto& title : { tr( "CH1" ), tr( "CH2" ) } ) {
-                auto ch = new findSlopeForm();
+                auto ch = new adwidgets::findSlopeForm();
                 ch->setTitle( idx++, title );
                 ch->setObjectName( title );
                 tab->addTab( ch, title );
                 // enable|disable
-                connect( ch, &findSlopeForm::valueChanged, [this] ( int ch ) {
+                connect( ch, &adwidgets::findSlopeForm::valueChanged, [this] ( int ch ) {
                     emit valueChanged( idSlopeTimeConverter, ch ); } );
             }
 
@@ -304,7 +304,7 @@ ap240form::get( int ch, adcontrols::threshold_method& m ) const
 {
     const QString names[] = { "CH1", "CH2" };
 
-    if ( auto form = findChild< findSlopeForm * >( names[ ch ] ) ) {
+    if ( auto form = findChild< adwidgets::findSlopeForm * >( names[ ch ] ) ) {
         form->get( m );
     }
 }
@@ -314,7 +314,7 @@ ap240form::set( int ch, const adcontrols::threshold_method& m )
 {
     const QString names[] = { "CH1", "CH2" };
 
-    if ( auto form = findChild< findSlopeForm * >( names[ ch ] ) ) {
+    if ( auto form = findChild< adwidgets::findSlopeForm * >( names[ ch ] ) ) {
         form->set( m );
     }
 }

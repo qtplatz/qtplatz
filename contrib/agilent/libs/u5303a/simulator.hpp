@@ -61,7 +61,7 @@ namespace u5303a {
         std::mutex queue_;
         std::vector< std::pair< double, double > > ions_; // pair<mass, intensity>
         std::atomic<bool> hasWaveform_;
-        std::atomic<bool> acqTriggered_;
+        std::atomic_flag acqTriggered_;
         std::vector< std::shared_ptr< adinterface::waveform_generator > > waveforms_;
         double sampInterval_;
         double startDelay_;

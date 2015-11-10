@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>acqrswidgets::findSlopeForm</class>
- <widget class="QWidget" name="acqrswidgets::findSlopeForm">
+ <class>adwidgets::findSlopeForm</class>
+ <widget class="QWidget" name="adwidgets::findSlopeForm">
   <property name="geometry">
    <rect>
     <x>0</x>

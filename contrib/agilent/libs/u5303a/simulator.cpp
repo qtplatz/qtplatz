@@ -99,7 +99,6 @@ waveform_generator_generator_t __waveform_generator_generator;
 using namespace u5303a;
 
 simulator::simulator() : hasWaveform_( false )
-                       , acqTriggered_( false )
                        , sampInterval_( 1.0e-9 )
                        , startDelay_( 0.0 )
                        , nbrSamples_( 10000 & ~0x0f )
@@ -107,6 +106,7 @@ simulator::simulator() : hasWaveform_( false )
                        , exitDelay_( 0.0 )
                        , method_( std::make_shared< acqrscontrols::u5303a::method >() )
 {
+    acqTriggered_.clear();
     try {
         boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
 
@@ -157,7 +157,7 @@ simulator::acquire()
 {
     hasWaveform_ = false;
 
-    if ( !acqTriggered_ ) {
+    if ( ! acqTriggered_.test_and_set() ) {
 
         if ( __waveform_generator_generator ) {
             
@@ -172,7 +172,6 @@ simulator::acquire()
                 cond_.notify_one();
             }
         }
-        acqTriggered_ = true;
         return true;        
     }
     return false;
@@ -184,10 +183,10 @@ simulator::waitForEndOfAcquisition()
     //std::this_thread::sleep_for( std::chrono::milliseconds( nbrWaveforms_ ) ); // simulate triggers
     std::unique_lock< std::mutex > lock( queue_ );
     if ( cond_.wait_for( lock, std::chrono::milliseconds( 3000 ), [=](){ return hasWaveform_ == true; } ) ) {
-        acqTriggered_ = false;
+        acqTriggered_.clear();
         return true;
     } else {
-        acqTriggered_ = false;
+        acqTriggered_.clear();
         return false;
     }
 }

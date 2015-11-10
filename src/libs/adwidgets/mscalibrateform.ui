@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MSCalibrateForm</class>
- <widget class="QWidget" name="MSCalibrateForm">
+ <class>adwidgets::MSCalibrateForm</class>
+ <widget class="QWidget" name="adwidgets::MSCalibrateForm">
   <property name="geometry">
    <rect>
     <x>0</x>
