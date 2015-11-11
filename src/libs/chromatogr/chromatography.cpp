@@ -148,7 +148,7 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
         const double * y = c.getIntensityArray();
         const double * x = c.getTimeArray();
         for ( size_t i = 0; i < c.size(); ++i ) {
-            progress( *y, integrator );
+            progress( *x, integrator );
             integrator << std::make_pair( *x++, *y++ );
         }
     }
