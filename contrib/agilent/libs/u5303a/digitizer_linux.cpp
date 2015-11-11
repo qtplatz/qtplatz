@@ -515,7 +515,7 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 
     device::initial_setup( *this, m, ident().Options() );
 
-    if ( m.mode_ && simulated_ ) {
+    if ( /* m.mode_ && */ simulated_ ) {
         acqrscontrols::u5303a::method a( m );
         a.method_.samp_rate = spDriver()->SampleRate();
         simulator::instance()->setup( a );

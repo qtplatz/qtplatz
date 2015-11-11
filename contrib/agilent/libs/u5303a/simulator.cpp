@@ -254,9 +254,9 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
             double y = 0;
             for ( auto& peak : peak_list ) {
                 boost::math::normal_distribution< double > nd( peak.first /* mean */, 5.0e-9 /* sd */);
-                y += boost::math::pdf( nd, t ) * peak.second + __noise__();
+                y += boost::math::pdf( nd, t ) * peak.second * 0.001;
             }
-            *it = int(y);
+            *it = int( -y + __noise__() );
         }
     }
 }
@@ -286,9 +286,9 @@ waveform_generator::onTriggered()
         double y = 0;
         for ( auto& peak : peak_list ) {
             boost::math::normal_distribution< double > nd( peak.first /* mean */, 5.0e-9 /* sd */);
-            y += boost::math::pdf( nd, t ) * peak.second + __noise__();
+            y += boost::math::pdf( nd, t ) * peak.second; // + __noise__();
         }
-        d = int32_t(y) + 10000; // add background (simulate high background level)
+        d = int32_t( int32_t( y ) + __noise__() );
     }
 }
 

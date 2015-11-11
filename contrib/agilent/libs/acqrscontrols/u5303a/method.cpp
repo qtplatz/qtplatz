@@ -30,7 +30,7 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-
+#include <boost/archive/archive_exception.hpp>
 
 namespace acqrscontrols {
     namespace u5303a {
@@ -40,14 +40,19 @@ namespace acqrscontrols {
         public:
             template<class Archive>
             void serialize( Archive& ar, T& _, const unsigned int version ) {
-                // Since V4
+
+                if ( version < 4 )
+                    throw boost::archive::archive_exception( boost::archive::archive_exception::unsupported_version );
+                
                 using namespace boost::serialization;
-                if ( version >= 4 ) {
-                    ar & BOOST_SERIALIZATION_NVP( _.channels_ );
-                    ar & BOOST_SERIALIZATION_NVP( _.mode_ );
-                    ar & BOOST_SERIALIZATION_NVP( _.method_ );
-                    ar & BOOST_SERIALIZATION_NVP( _.threshold_ );
-                }
+                
+                ar & BOOST_SERIALIZATION_NVP( _.channels_ );
+                ar & BOOST_SERIALIZATION_NVP( _.mode_ );
+                ar & BOOST_SERIALIZATION_NVP( _.method_ );
+                ar & BOOST_SERIALIZATION_NVP( _.threshold_ );
+                if ( version >= 5 )
+                    ar & BOOST_SERIALIZATION_NVP( _.action_ );                    
+
             }
 
         };
@@ -134,5 +139,6 @@ method:: method( const method& t ) : channels_( t.channels_ )
                                    , mode_( t.mode_ )
                                    , method_( t.method_ )
                                    , threshold_( t.threshold_ )
+                                   , action_( t.action_ )
 {
 }

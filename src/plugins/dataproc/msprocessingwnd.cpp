@@ -1251,16 +1251,25 @@ MSProcessingWnd::compute_minmax( double s, double e )
 
                 adportable::array_wrapper<const double> data( ms.getIntensityArray(), ms.size() );
                 auto pair = std::minmax_element( data.begin() + range.first, data.begin() + range.second );
+
                 std::pair<double, double> result = std::make_pair( *pair.first, *pair.second );
-
-                size_t index = std::distance( data.begin(), pair.second );
-				double t = adcontrols::MSProperty::toSeconds( index, ms.getMSProperty().getSamplingInfo() );
-
-                ptr->addDescription( adcontrols::description( L"process"
-					, (boost::wformat(L"MAX at %.4us=%.3f") % scale_to_micro(t) % result.second ).str() ) );
+                std::pair< size_t, size_t > index = std::make_pair( std::distance( data.begin(), pair.first ), std::distance( data.begin(), pair.second ) );
                 
-				QString text = QString::fromStdString( ( boost::format("max @\t%d\t%.14lf\t%.7f") % index % scale_to_micro(t) % result.second ).str() );
-                QApplication::clipboard()->setText( text );
+                std::pair< double, double > time = std::make_pair(
+                    adcontrols::MSProperty::toSeconds( index.first, ms.getMSProperty().getSamplingInfo() )
+                    , adcontrols::MSProperty::toSeconds( index.second, ms.getMSProperty().getSamplingInfo() )
+                    );
+                
+                ptr->addDescription( adcontrols::description( L"process"
+                                                              , ( boost::wformat(L"min at %.4us=%.3f; max at %.4us=%3f" )
+                                                                  % scale_to_micro(time.first) % result.first
+                                                                  % scale_to_micro(time.second) % result.second ).str() ) );
+
+                std::ostringstream o;
+                o << boost::format("min @\t%d\t%.14lf\t%.7f") % index.first % scale_to_micro(time.first) % result.first
+                  << boost::format("\tmax @\t%d\t%.14lf\t%.7f") % index.second % scale_to_micro(time.second) % result.second;
+
+                QApplication::clipboard()->setText( QString::fromStdString( o.str() ) );
 
 				return result;
             }
