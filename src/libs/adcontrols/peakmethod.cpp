@@ -391,7 +391,8 @@ bool
 PeakMethod::TimedEvent::isBool( adcontrols::chromatography::ePeakEvent t )
 {
     switch( t ) {
-    case PeakEvent_Off:
+    case ePeakEvent_Nothing:
+    case ePeakEvent_Off:
     case ePeakEvent_ForcedBase:
     case ePeakEvent_ShiftBase:
     case ePeakEvent_VtoV:
@@ -491,4 +492,12 @@ void
 PeakMethod::TimedEvent::setValue( double value )
 {
     value_ = value;
+}
+
+void
+PeakMethod::sort()
+{
+    std::sort( timedEvents_.begin(), timedEvents_.end(), [] ( const TimedEvent& a, const TimedEvent& b ) {
+            return a.time() < b.time();
+        });
 }

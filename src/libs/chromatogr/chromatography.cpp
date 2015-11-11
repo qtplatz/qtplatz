@@ -33,21 +33,27 @@
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/chromatogram.hpp>
 
-namespace chromatogr { namespace internal {
+namespace chromatogr {
 
-        class ChromatographyImpl {
-        public:
-            bool setup( const adcontrols::PeakMethod& );
-            bool findPeaks( const adcontrols::Chromatogram& );
-            void clear();
-            inline const adcontrols::Peaks & getPeaks() const { return peaks_; }
-            inline const adcontrols::Baselines & getBaselines() const { return baselines_; }
-        private:
-            adcontrols::PeakMethod method_;
-            adcontrols::Peaks peaks_;
-            adcontrols::Baselines baselines_;
-        };
-    }
+    class Chromatography::impl {
+    public:
+        impl() : tp_( method_.end() ) {
+        }
+        
+        bool setup( const adcontrols::PeakMethod& );
+        bool findPeaks( const adcontrols::Chromatogram& );
+        void clear();
+
+        void progress( double seconds, Integrator& );
+        
+        inline const adcontrols::Peaks & getPeaks() const { return peaks_; }
+        inline const adcontrols::Baselines & getBaselines() const { return baselines_; }
+    private:
+        adcontrols::PeakMethod method_;
+        adcontrols::Peaks peaks_;
+        adcontrols::Baselines baselines_;
+        adcontrols::PeakMethod::const_iterator_type tp_;
+    };
 }
 
 using namespace chromatogr;
@@ -57,11 +63,11 @@ Chromatography::~Chromatography()
     delete pImpl_;
 }
 
-Chromatography::Chromatography() : pImpl_( new internal::ChromatographyImpl() )
+Chromatography::Chromatography() : pImpl_( new impl() )
 {
 }
 
-Chromatography::Chromatography( const adcontrols::PeakMethod& method ) : pImpl_( new internal::ChromatographyImpl() )
+Chromatography::Chromatography( const adcontrols::PeakMethod& method ) : pImpl_( new impl() )
 {
 	pImpl_->setup( method );
 }
@@ -96,23 +102,29 @@ Chromatography::getBaselines() const
 ////
 using namespace chromatogr::internal;
 void
-ChromatographyImpl::clear()
+Chromatography::impl::clear()
 {
 }
 
 bool
-ChromatographyImpl::setup( const adcontrols::PeakMethod& m )
+Chromatography::impl::setup( const adcontrols::PeakMethod& m )
 {
+    using adcontrols::PeakMethod;
+
     method_ = m;
-    return false;
+    method_.sort();
+
+    return true;
 }
 
 bool
-ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& c )
+Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
 {
 	using adcontrols::Peaks;
 	using adcontrols::Baselines;
 
+    tp_ = method_.begin();
+    
 	Integrator integrator;
 
 	integrator.minimum_width( method_.minimumWidth() * 60.0 ); // min -> sec
@@ -123,18 +135,22 @@ ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& c )
 	const size_t nSize = c.size();
 
     if ( c.isConstantSampledData() ) {
-
+        double t = 0;
         integrator.samping_interval( c.sampInterval() ); // sec
         const double * y = c.getIntensityArray();
-        for ( size_t i = 0; i < nSize; ++i )
+        for ( size_t i = 0; i < nSize; ++i ) {
+            progress( t + i * c.sampInterval(), integrator );
             integrator << *y++;
+        }
 
     } else {
 
         const double * y = c.getIntensityArray();
         const double * x = c.getTimeArray();
-        for ( size_t i = 0; i < c.size(); ++i )
+        for ( size_t i = 0; i < c.size(); ++i ) {
+            progress( *y, integrator );
             integrator << std::make_pair( *x++, *y++ );
+        }
     }
 
 	integrator.close( method_, peaks_, baselines_ );
@@ -160,3 +176,17 @@ ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& c )
     return true;
 }
 
+void
+Chromatography::impl::progress( double seconds, Integrator& integrator )
+{
+    using namespace adcontrols::chromatography;
+
+    while ( ( tp_ != method_.end() ) && ( tp_->time( false ) < seconds ) ) {
+
+        if ( tp_->peakEvent() == adcontrols::chromatography::ePeakEvent_Off ) {
+            integrator.offIntegration( tp_->boolValue() );
+        }
+
+        ++tp_;
+    }
+}

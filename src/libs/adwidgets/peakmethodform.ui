@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>718</width>
-    <height>224</height>
+    <height>165</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -46,6 +46,9 @@
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
         <string>Chromatography peak integration method</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <property name="leftMargin">
@@ -86,6 +89,19 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>&lt;i&gt;T&lt;sub&gt;0&lt;/sub&gt;&lt;/i&gt;</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::RichText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
           <property name="decimals">
@@ -99,19 +115,6 @@
           </property>
           <property name="value">
            <double>10.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>&lt;i&gt;T&lt;sub&gt;0&lt;/sub&gt;&lt;/i&gt;</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::RichText</enum>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -164,6 +167,29 @@
           </property>
          </widget>
         </item>
+        <item row="4" column="1">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
+          <property name="maximum">
+           <double>999999999999999.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox">
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="maximum">
+           <double>99.989999999999995</double>
+          </property>
+          <property name="singleStep">
+           <double>0.001000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.005000000000000</double>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_2">
           <property name="text">
@@ -198,29 +224,6 @@
           </item>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="QDoubleSpinBox" name="doubleSpinBox">
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="maximum">
-           <double>99.989999999999995</double>
-          </property>
-          <property name="singleStep">
-           <double>0.001000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.005000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
-          <property name="maximum">
-           <double>999999999999999.000000000000000</double>
-          </property>
-         </widget>
-        </item>
         <item row="6" column="0">
          <widget class="QLabel" name="label_7">
           <property name="text">
@@ -244,19 +247,6 @@
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
        </layout>
       </widget>
      </item>
@@ -264,6 +254,9 @@
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
         <string>Timed events</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <property name="spacing">
@@ -282,24 +275,30 @@
          <number>2</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="adwidgets::TableView" name="tableView"/>
+           <widget class="adwidgets::TableView" name="tableView">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>240</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
           </item>
          </layout>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>

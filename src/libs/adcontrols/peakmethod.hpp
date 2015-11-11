@@ -61,7 +61,7 @@ namespace adcontrols {
 
         enum ePeakEvent {
             ePeakEvent_Nothing
-            , PeakEvent_Off
+            , ePeakEvent_Off
             , ePeakEvent_ForcedBase
             , ePeakEvent_ShiftBase
             , ePeakEvent_VtoV
@@ -181,6 +181,7 @@ namespace adcontrols {
         PeakMethod& operator << ( const TimedEvent& );
         iterator_type erase( iterator_type );
         iterator_type erase( iterator_type first, iterator_type last );
+        void sort();
 
 	private:
         double minimumHeight_;

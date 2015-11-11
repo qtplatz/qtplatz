@@ -52,7 +52,8 @@ namespace chromatogr {
 		const adcontrols::Baselines& getBaselines() const;
         const adcontrols::Peaks& getPeaks() const;
 	private:
-        internal::ChromatographyImpl * pImpl_;
+        class impl;
+        impl * pImpl_;
     };
     
 }
