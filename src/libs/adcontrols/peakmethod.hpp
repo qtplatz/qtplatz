@@ -31,7 +31,6 @@
 #include <boost/variant.hpp>
 #include <adcontrols/timeutil.hpp>
 #include <vector>
-//#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
     namespace chromatography {
@@ -62,7 +61,7 @@ namespace adcontrols {
 
         enum ePeakEvent {
             ePeakEvent_Nothing
-            , PeakEvent_Lock
+            , PeakEvent_Off
             , ePeakEvent_ForcedBase
             , ePeakEvent_ShiftBase
             , ePeakEvent_VtoV
@@ -89,6 +88,9 @@ namespace adcontrols {
         };
 
     } // chromatography
+
+    template<typename T> class TimedEvent_archive;
+    template<typename T> class PeakMethod_archive;
 
     class ADCONTROLSSHARED_EXPORT PeakMethod {
     public:
@@ -145,18 +147,25 @@ namespace adcontrols {
 			bool boolValue() const;
             void setValue( bool );
             void setValue( double );
+
+            static bool isBool( adcontrols::chromatography::ePeakEvent );
+            static bool isDouble( adcontrols::chromatography::ePeakEvent );
 			
         private:
             double time_;
             adcontrols::chromatography::ePeakEvent event_;
+
 #if defined _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4251)
 #endif
             boost::variant< bool, double > value_;
+
 #if defined _MSC_VER
 #pragma warning(pop)
 #endif
+            friend class TimedEvent_archive < TimedEvent > ;
+            friend class TimedEvent_archive < const TimedEvent > ;
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version);
         };
@@ -195,12 +204,13 @@ namespace adcontrols {
 
         chromatography::eNoiseFilterMethod noiseFilterMethod_;
         double cutoffFreqHz_; // Hz
-
-       friend class boost::serialization::access;
-       template<class Archive> void serialize(Archive& ar, const unsigned int version );
+        friend class PeakMethod_archive < PeakMethod > ;
+        friend class PeakMethod_archive < const PeakMethod > ;        
+        friend class boost::serialization::access;
+        template<class Archive> void serialize(Archive& ar, const unsigned int version );
 	};
     
 }
 
 BOOST_CLASS_VERSION( adcontrols::PeakMethod::TimedEvent,  2 )
-BOOST_CLASS_VERSION( adcontrols::PeakMethod,  2 )
+BOOST_CLASS_VERSION( adcontrols::PeakMethod,  3 )

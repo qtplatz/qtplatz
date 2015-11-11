@@ -35,95 +35,89 @@
 #include <boost/archive/xml_wiarchive.hpp>
 
 namespace adcontrols {
-    namespace chromatography {
 
-        template< typename T = TimedEvent >
-        class TimedEvent_archive {
-        public:
-            
-            friend class boost::serialization::access;
-            template<class Archive>
-            void serialize(Archive& ar, T& _, const unsigned int version) {
-                ar & BOOST_SERIALIZATION_NVP( _.time_ );
-                ar & BOOST_SERIALIZATION_NVP( _.event_ );
-                if ( version < 2 ) {
-                    double tmp(0);
-                    ar & BOOST_SERIALIZATION_NVP( tmp );
-                    _.value_ = tmp;
-                } else {
-                    ar & BOOST_SERIALIZATION_NVP( _.value_ );
-                }
+    template< typename T = PeakMethod::TimedEvent >
+    class TimedEvent_archive {
+    public:
+        template<class Archive>
+        void serialize(Archive& ar, T& _, const unsigned int version) {
+            ar & BOOST_SERIALIZATION_NVP( _.time_ );
+            ar & BOOST_SERIALIZATION_NVP( _.event_ );
+            if ( version < 2 ) {
+                double tmp(0);
+                ar & BOOST_SERIALIZATION_NVP( tmp );
+                _.value_ = tmp;
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( _.value_ );
             }
+        }
             
-        };
+    };
 
-#if 0        
-        template<> void PeakMethod::TimedEvent::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-        {
-            TimedEvent_archive<>().serialize( ar, *this, version );
-        }
-        template<> void PeakMethod::TimedEvent::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-        {
-            TimedEvent_archive<>().serialize( ar, *this, version );
-        }
+    template<> void PeakMethod::TimedEvent::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        TimedEvent_archive<>().serialize( ar, *this, version );
+    }
+    template<> void PeakMethod::TimedEvent::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        TimedEvent_archive<>().serialize( ar, *this, version );
+    }
     
-        template<> void PeakMethod::TimedEvent::serialize( portable_binary_oarchive& ar, const unsigned int version )
-        {
-            TimedEvent_archive<>().serialize( ar, *this, version );
-        }
+    template<> void PeakMethod::TimedEvent::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        TimedEvent_archive<>().serialize( ar, *this, version );
+    }
     
-        template<> void PeakMethod::TimedEvent::serialize( portable_binary_iarchive& ar, const unsigned int version )
-        {
-            TimedEvent_archive<>().serialize( ar, *this, version );
-        }
-#endif
+    template<> void PeakMethod::TimedEvent::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        TimedEvent_archive<>().serialize( ar, *this, version );
+    }
 
-        /////////////////////
-        template< typename T = PeakMethod >
-        class PeakMethod_archive {
-        public:
-            friend class boost::serialization::access;
-            template<class Archive>
-            void serialize(Archive& ar, T& _, const unsigned int version) {
-                ar & BOOST_SERIALIZATION_NVP( _.minimumHeight_ );
-                ar & BOOST_SERIALIZATION_NVP( _.minimumArea_ );
-                ar & BOOST_SERIALIZATION_NVP( _.minimumWidth_ );
-                ar & BOOST_SERIALIZATION_NVP( _.doubleWidthTime_ );
-                ar & BOOST_SERIALIZATION_NVP( _.slope_ );
-                ar & BOOST_SERIALIZATION_NVP( _.drift_ );
-                ar & BOOST_SERIALIZATION_NVP( _.t0_ );
-                ar & BOOST_SERIALIZATION_NVP( _.pharmacopoeia_ );
-                ar & BOOST_SERIALIZATION_NVP( _.peakWidthMethod_ );
-                ar & BOOST_SERIALIZATION_NVP( _.theoreticalPlateMethod_ );
+    /////////////////////
+    template< typename T = PeakMethod >
+    class PeakMethod_archive {
+    public:
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive& ar, T& _, const unsigned int version) {
+            ar & BOOST_SERIALIZATION_NVP( _.minimumHeight_ );
+            ar & BOOST_SERIALIZATION_NVP( _.minimumArea_ );
+            ar & BOOST_SERIALIZATION_NVP( _.minimumWidth_ );
+            ar & BOOST_SERIALIZATION_NVP( _.doubleWidthTime_ );
+            ar & BOOST_SERIALIZATION_NVP( _.slope_ );
+            ar & BOOST_SERIALIZATION_NVP( _.drift_ );
+            ar & BOOST_SERIALIZATION_NVP( _.t0_ );
+            ar & BOOST_SERIALIZATION_NVP( _.pharmacopoeia_ );
+            ar & BOOST_SERIALIZATION_NVP( _.peakWidthMethod_ );
+            ar & BOOST_SERIALIZATION_NVP( _.theoreticalPlateMethod_ );
                 
-                if ( version >= 2 ) {
-                    ar & BOOST_SERIALIZATION_NVP( _.noiseFilterMethod_);
-                    ar & BOOST_SERIALIZATION_NVP( _.cutoffFreqHz_ );
-                }
-                
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( _.noiseFilterMethod_);
+                ar & BOOST_SERIALIZATION_NVP( _.cutoffFreqHz_ );
             }
-        };
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( _.timedEvents_ );
+            }
+        }
+    };
 
-        template<> void PeakMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-        {
-            PeakMethod_archive<>().serialize( ar, *this, version );
-        }
-        template<> void PeakMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-        {
-            PeakMethod_archive<>().serialize( ar, *this, version );
-        }
+    template<> void PeakMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        PeakMethod_archive<>().serialize( ar, *this, version );
+    }
+    template<> void PeakMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        PeakMethod_archive<>().serialize( ar, *this, version );
+    }
     
-        template<> void PeakMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
-        {
-            PeakMethod_archive<>().serialize( ar, *this, version );
-        }
+    template<> void PeakMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        PeakMethod_archive<>().serialize( ar, *this, version );
+    }
     
-        template<> void PeakMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
-        {
-            PeakMethod_archive<>().serialize( ar, *this, version );
-        }
-
-        
+    template<> void PeakMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        PeakMethod_archive<>().serialize( ar, *this, version );
     }
 }
 
@@ -165,6 +159,7 @@ PeakMethod::operator = ( const PeakMethod & rhs )
     pharmacopoeia_          = rhs.pharmacopoeia_;
     peakWidthMethod_        = rhs.peakWidthMethod_;
     theoreticalPlateMethod_ = rhs.theoreticalPlateMethod_;
+    timedEvents_            = rhs.timedEvents_;
     return * this;
 }
 
@@ -376,11 +371,27 @@ PeakMethod::TimedEvent::TimedEvent() : time_(0)
 } 
 
 PeakMethod::TimedEvent::TimedEvent( seconds_t t
-                                    , chromatography::ePeakEvent func ) : time_( t )
-                                                                        , event_( func )
+                                    , chromatography::ePeakEvent e ) : time_( t )
+                                                                     , event_( e )
 {
-    switch( func ) {
-    case PeakEvent_Lock:
+    if ( isBool( e ) )
+        value_ = bool( false );
+    else
+        value_ = double(0.0);
+}
+
+PeakMethod::TimedEvent::TimedEvent( const TimedEvent& t ) : time_( t.time_ )
+                                                          , event_( t.event_ )
+														  , value_( t.value_ )
+{
+}
+
+//static
+bool
+PeakMethod::TimedEvent::isBool( adcontrols::chromatography::ePeakEvent t )
+{
+    switch( t ) {
+    case PeakEvent_Off:
     case ePeakEvent_ForcedBase:
     case ePeakEvent_ShiftBase:
     case ePeakEvent_VtoV:
@@ -392,27 +403,28 @@ PeakMethod::TimedEvent::TimedEvent( seconds_t t
     case ePeakEvent_HorizontalBase:
     case ePeakEvent_PostHorizontalBase:
     case ePeakEvent_ForcedPeak:
-        value_ = bool( false );
-        break;
-    case ePeakEvent_Slope:
-    case ePeakEvent_MinWidth:
-    case ePeakEvent_MinHeight:
-    case ePeakEvent_MinArea:
-    case ePeakEvent_Drift:
-        value_ = double(0.0);
-        break;
     case ePeakEvent_Elimination:
     case ePeakEvent_Manual:
-    default:
-        value_ = bool( false );
-        break;
+        return true;
     }
+    return false;
+    // case ePeakEvent_Slope:
+    // case ePeakEvent_MinWidth:
+    // case ePeakEvent_MinHeight:
+    // case ePeakEvent_MinArea:
+    // case ePeakEvent_Drift:
+    //     return false;
+    // default:
+    //     return true;
+    // }
+    return false;
 }
 
-PeakMethod::TimedEvent::TimedEvent( const TimedEvent& t ) : time_( t.time_ )
-                                                          , event_( t.event_ )
-														  , value_( t.value_ )
+//static
+bool
+PeakMethod::TimedEvent::isDouble( adcontrols::chromatography::ePeakEvent t )
 {
+    return !isBool( t );
 }
   
 double

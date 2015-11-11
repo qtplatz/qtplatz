@@ -34,16 +34,17 @@ class QStandardItemModel;
 class QStandardItem;
 class QModelIndex;
 
-namespace Ui {
-	class PeakMethodForm;
-}
-
 namespace adcontrols {
 	class PeakMethod;
     class ProcessMethod;
 }
 
 namespace adwidgets {
+
+    namespace Ui {
+        class PeakMethodForm;
+    }
+
 
 	class ADWIDGETSSHARED_EXPORT PeakMethodForm : public QWidget
                                                 , public adplugin::LifeCycle {
@@ -73,10 +74,10 @@ namespace adwidgets {
     private slots:
 
     private:
-        ::Ui::PeakMethodForm *ui;
-        std::unique_ptr< adcontrols::PeakMethod > pMethod_;
-        std::unique_ptr< QStandardItemModel > pTimeEventsModel_; // time events
-        std::unique_ptr< QStandardItemModel > pGlobalModel_; // time events
+        Ui::PeakMethodForm *ui;
+        class impl;
+        std::unique_ptr< impl > impl_;
+
         void setContents( const adcontrols::PeakMethod& );
         void getContents( adcontrols::PeakMethod& ) const;
 	};
