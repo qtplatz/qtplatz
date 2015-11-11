@@ -25,6 +25,107 @@
 
 #include "peakmethod.hpp"
 #include <adportable/float.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/variant.hpp>
+#include <boost/serialization/version.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+
+namespace adcontrols {
+    namespace chromatography {
+
+        template< typename T = TimedEvent >
+        class TimedEvent_archive {
+        public:
+            
+            friend class boost::serialization::access;
+            template<class Archive>
+            void serialize(Archive& ar, T& _, const unsigned int version) {
+                ar & BOOST_SERIALIZATION_NVP( _.time_ );
+                ar & BOOST_SERIALIZATION_NVP( _.event_ );
+                if ( version < 2 ) {
+                    double tmp(0);
+                    ar & BOOST_SERIALIZATION_NVP( tmp );
+                    _.value_ = tmp;
+                } else {
+                    ar & BOOST_SERIALIZATION_NVP( _.value_ );
+                }
+            }
+            
+        };
+
+#if 0        
+        template<> void PeakMethod::TimedEvent::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        {
+            TimedEvent_archive<>().serialize( ar, *this, version );
+        }
+        template<> void PeakMethod::TimedEvent::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        {
+            TimedEvent_archive<>().serialize( ar, *this, version );
+        }
+    
+        template<> void PeakMethod::TimedEvent::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        {
+            TimedEvent_archive<>().serialize( ar, *this, version );
+        }
+    
+        template<> void PeakMethod::TimedEvent::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        {
+            TimedEvent_archive<>().serialize( ar, *this, version );
+        }
+#endif
+
+        /////////////////////
+        template< typename T = PeakMethod >
+        class PeakMethod_archive {
+        public:
+            friend class boost::serialization::access;
+            template<class Archive>
+            void serialize(Archive& ar, T& _, const unsigned int version) {
+                ar & BOOST_SERIALIZATION_NVP( _.minimumHeight_ );
+                ar & BOOST_SERIALIZATION_NVP( _.minimumArea_ );
+                ar & BOOST_SERIALIZATION_NVP( _.minimumWidth_ );
+                ar & BOOST_SERIALIZATION_NVP( _.doubleWidthTime_ );
+                ar & BOOST_SERIALIZATION_NVP( _.slope_ );
+                ar & BOOST_SERIALIZATION_NVP( _.drift_ );
+                ar & BOOST_SERIALIZATION_NVP( _.t0_ );
+                ar & BOOST_SERIALIZATION_NVP( _.pharmacopoeia_ );
+                ar & BOOST_SERIALIZATION_NVP( _.peakWidthMethod_ );
+                ar & BOOST_SERIALIZATION_NVP( _.theoreticalPlateMethod_ );
+                
+                if ( version >= 2 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.noiseFilterMethod_);
+                    ar & BOOST_SERIALIZATION_NVP( _.cutoffFreqHz_ );
+                }
+                
+            }
+        };
+
+        template<> void PeakMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        {
+            PeakMethod_archive<>().serialize( ar, *this, version );
+        }
+        template<> void PeakMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        {
+            PeakMethod_archive<>().serialize( ar, *this, version );
+        }
+    
+        template<> void PeakMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        {
+            PeakMethod_archive<>().serialize( ar, *this, version );
+        }
+    
+        template<> void PeakMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        {
+            PeakMethod_archive<>().serialize( ar, *this, version );
+        }
+
+        
+    }
+}
 
 using namespace adcontrols;
 using namespace adcontrols::chromatography;

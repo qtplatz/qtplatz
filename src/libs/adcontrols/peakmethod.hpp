@@ -31,7 +31,7 @@
 #include <boost/variant.hpp>
 #include <adcontrols/timeutil.hpp>
 #include <vector>
-#include <compiler/disable_dll_interface.h>
+//#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
     namespace chromatography {
@@ -149,21 +149,16 @@ namespace adcontrols {
         private:
             double time_;
             adcontrols::chromatography::ePeakEvent event_;
+#if defined _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
             boost::variant< bool, double > value_;
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
             friend class boost::serialization::access;
-            template<class Archive>
-                void serialize(Archive& ar, const unsigned int version) {
-                ar & BOOST_SERIALIZATION_NVP( time_ )
-                    & BOOST_SERIALIZATION_NVP( event_ )
-                    ;
-                if ( version < 2 ) {
-                    double tmp(0);
-                    ar & BOOST_SERIALIZATION_NVP( tmp );
-                    value_ = tmp;
-                } else {
-                    ar & BOOST_SERIALIZATION_NVP( value_ );
-                }
-            }
+            template<class Archive> void serialize(Archive& ar, const unsigned int version);
         };
         
         typedef std::vector< TimedEvent >::iterator iterator_type;
@@ -189,34 +184,20 @@ namespace adcontrols {
         adcontrols::chromatography::ePharmacopoeia pharmacopoeia_;
         adcontrols::chromatography::ePeakWidthMethod peakWidthMethod_;
         adcontrols::chromatography::ePeakWidthMethod theoreticalPlateMethod_;
+#if defined _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
         std::vector< TimedEvent > timedEvents_;
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
 
         chromatography::eNoiseFilterMethod noiseFilterMethod_;
         double cutoffFreqHz_; // Hz
 
        friend class boost::serialization::access;
-       template<class Archive>
-           void serialize(Archive& ar, const unsigned int version ) {
-           using namespace boost::serialization;
-
-           ar & BOOST_SERIALIZATION_NVP( minimumHeight_ )
-               & BOOST_SERIALIZATION_NVP( minimumArea_ )
-               & BOOST_SERIALIZATION_NVP( minimumWidth_ )
-               & BOOST_SERIALIZATION_NVP( doubleWidthTime_ )
-               & BOOST_SERIALIZATION_NVP( slope_ )
-               & BOOST_SERIALIZATION_NVP( drift_ )
-               & BOOST_SERIALIZATION_NVP( t0_ )
-               & BOOST_SERIALIZATION_NVP( pharmacopoeia_ )
-               & BOOST_SERIALIZATION_NVP( peakWidthMethod_ )
-               & BOOST_SERIALIZATION_NVP( theoreticalPlateMethod_ );
-
-           if ( version >= 2 ) {
-               ar & BOOST_SERIALIZATION_NVP( noiseFilterMethod_)
-                   & BOOST_SERIALIZATION_NVP( cutoffFreqHz_ )
-				   ;
-           }
-       }
-       
+       template<class Archive> void serialize(Archive& ar, const unsigned int version );
 	};
     
 }
