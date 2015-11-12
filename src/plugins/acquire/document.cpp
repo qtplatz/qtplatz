@@ -29,7 +29,9 @@
 #include "mastercontroller.hpp"
 #include "masterreceiver.hpp"
 #include "masterobserver.hpp"
+#if HAVE_CORBA
 #include "orb_i.hpp"
+#endif
 #include "task.hpp"
 #include "waveformwnd.hpp"
 #include <adcontrols/controlmethod.hpp>

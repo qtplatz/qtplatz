@@ -28,8 +28,11 @@
 
 #include <QObject>
 #include <QWidget>
+#if HAVE_CORBA
 #include <adinterface/receiverC.h>
+#endif
 #include <utils/fancymainwindow.h>
+#include <memory>
 
 namespace adcontrols {
     namespace ControlMethod { class Method; }

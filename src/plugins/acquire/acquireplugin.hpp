@@ -105,9 +105,10 @@ namespace acquire {
         void selectPoint( double x, double y );
         void selectRange( double x1, double x2, double y1, double y2 );
         void handle_update_data( unsigned long objid, long pos );
+#if HAVE_CORBA
         friend class orb_i;
         orb_i * orb_i_;
-
+#endif
         //AcquireImpl * pImpl_;
 
         std::mutex mutex_;
