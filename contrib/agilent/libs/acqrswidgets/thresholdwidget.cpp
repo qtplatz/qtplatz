@@ -116,24 +116,22 @@ ThresholdWidget::getContents( boost::any& a ) const
         
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
         // time function
-        assert(0); // tba
-#if 0  
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
-        acqrscontrols::ap240::method m;
-        get( m );
-        pi->setModelname( "ap240" );
-        pi->setItemLabel( "ap240" );
-        pi->unitnumber( 1 );
-        pi->funcid( 1 );
+        get( 0, m.threshold_ );
+        //pi->setModelname( m.modelClass() );
+        //pi->setItemLabel( m.itemClass() );
+        //pi->unitnumber( 1 );
+        //pi->funcid( 1 );
         pi->set<>( *pi, m ); // serialize
         return true;
 
-    } else if ( adportable::a_type< acqrscontrols::ap240::method >::is_pointer( a ) ) {
+    } else if ( adportable::a_type< acqrscontrols::u5303a::method >::is_pointer( a ) ) {
 
-        auto pm = boost::any_cast<acqrscontrols::ap240::method *>( a );
-        get( *pm );
+        auto pm = boost::any_cast<acqrscontrols::u5303a::method *>( a );
+        //get( *pm );
+        assert( 0 );
         return true;
-#endif
+
     }
     return false;
 }
