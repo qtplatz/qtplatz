@@ -41,6 +41,10 @@ add_library( ${PROJECT_NAME} SHARED
   sampleprocessor.cpp
   signalobserver.hpp
   signalobserver.cpp
+  waveform_simulator.hpp
+  waveform_simulator.cpp
+  waveform_simulator_manager.hpp
+  waveform_simulator_manager.cpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC adplugin adfs adcontrols adutils ${Boost_LIBRARIES} )
