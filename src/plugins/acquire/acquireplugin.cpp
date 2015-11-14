@@ -153,8 +153,8 @@ AcquirePlugin::aboutToShutdown()
 
 #if HAVE_CORBA
 
-    if ( orb_i_ )
-        orb_i_->shutdown();
+//    if ( orb_i_ )
+//        orb_i_->shutdown();
 
     auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
     removeObject( iBroker );

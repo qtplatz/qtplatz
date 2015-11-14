@@ -31,7 +31,7 @@
 #include <vector>
 
 namespace boost { namespace asio { class io_service; } }
-namespace adinterface { class waveform_generator;  }
+namespace adicontroller { class waveform_simulator;  }
 namespace acqrscontrols { namespace u5303a { class waveform; class method; } }
 
 namespace u5303a {
@@ -63,7 +63,7 @@ namespace u5303a {
         std::vector< std::pair< double, double > > ions_; // pair<mass, intensity>
         std::atomic<bool> hasWaveform_;
         std::atomic_flag acqTriggered_;
-        std::vector< std::shared_ptr< adinterface::waveform_generator > > waveforms_;
+        std::vector< std::shared_ptr< adicontroller::waveform_simulator > > waveforms_;
         double sampInterval_;
         double startDelay_;
         uint32_t nbrSamples_;
@@ -71,7 +71,7 @@ namespace u5303a {
         double exitDelay_;
         std::shared_ptr< acqrscontrols::u5303a::method > method_;
 
-        void post( adinterface::waveform_generator * );
+		void post( std::shared_ptr< adicontroller::waveform_simulator >& );
     };
 
 }

@@ -27,27 +27,37 @@
 
 #include "adicontroller_global.hpp"
 #include <functional>
+#include <memory>
 
 namespace adicontroller {
 
     class waveform_simulator;
 
+#if defined _MSC_VER
+	ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::function < std::shared_ptr< adicontroller::waveform_simulator >( double, double, uint32_t, uint32_t ) > ;
+#endif
     class ADICONTROLLERSHARED_EXPORT waveform_simulator_manager {
-
-        class impl;
 
         waveform_simulator_manager();
         ~waveform_simulator_manager();
+
         waveform_simulator_manager( const waveform_simulator_manager& ) = delete;
         waveform_simulator_manager& operator = ( const waveform_simulator_manager& ) = delete;
 
+		std::function< std::shared_ptr< adicontroller::waveform_simulator >( double, double, uint32_t, uint32_t ) > factory_;
+
     public:
+		typedef decltype( factory_ ) factory_type;
+
         static waveform_simulator_manager& instance();
 
-        void install_factory( std::function< std::shared_ptr< adicontroller::waveform_simulator >(*)(double, double, uint32_t, uint32_t) > f);
+        void install_factory( factory_type );
 
-        std::shared_ptr< adicontroller::waveform_simulator > waveform_simulator() const;
-
+        std::shared_ptr< adicontroller::waveform_simulator >
+            waveform_simulator( double sampInterval = 1.0e-9
+                                , double startDelay = 0
+                                , uint32_t nbrSamples = 100000 & 0x0f
+                                , uint32_t nbrWavefoms = 1 ) const;
     };
 
 }

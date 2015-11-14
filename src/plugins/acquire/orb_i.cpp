@@ -199,7 +199,7 @@ namespace acquire {
             // disconnect broker session
             if ( !CORBA::is_nil( brokerSession_ ) && brokerEvent_ ) {
                 brokerSession_->disconnect( brokerEvent_->_this() );
-                adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
+				//adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
             }
         }
 
@@ -684,7 +684,7 @@ orb_i::shutdown()
     
     ADTRACE() << "orb_i::shutdown_broker() ...";
 
-    OrbConnection::instance()->shutdown();
+	//OrbConnection::instance()->shutdown();
 
     task_->terminate();
 

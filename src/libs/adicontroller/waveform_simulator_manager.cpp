@@ -29,15 +29,6 @@
 #include "waveform_simulator_manager.hpp"
 #include <functional>
 
-namespace adicontroller {
-
-    class waveform_simulator_manager::impl {
-    public:
-        std::function< std::shared_ptr< adicontroller::waveform_simulator >(*)(double, double, uint32_t, uint32_t) > factory_;
-    };
-
-}
-
 using namespace adicontroller;
 
 waveform_simulator_manager::waveform_simulator_manager()
@@ -56,15 +47,18 @@ waveform_simulator_manager::instance()
 }
 
 void
-waveform_simulator_manager::install_factory( std::function< std::shared_ptr< adicontroller::waveform_simulator >(*)(double, double, uint32_t, uint32_t) > f)
+waveform_simulator_manager::install_factory( factory_type f )
 {
-    impl_.factory_ = f;
+    factory_ = f;
 }
 
 std::shared_ptr< adicontroller::waveform_simulator >
-waveform_simulator_manager::waveform_simulator() const
+waveform_simulator_manager::waveform_simulator( double sampInterval
+                                                , double startDelay
+                                                , uint32_t nbrSamples
+                                                , uint32_t nbrWavefoms ) const
 {
-    if ( impl_.factory_ )
-        return impl_.factory_();
+    if ( factory_ )
+        return factory_( sampInterval, startDelay, nbrSamples, nbrWavefoms );
     return 0;
 }

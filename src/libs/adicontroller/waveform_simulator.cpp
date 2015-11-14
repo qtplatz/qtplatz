@@ -22,19 +22,15 @@
 **
 **************************************************************************/
 
-#include "waveform_simularot.hpp"
-
+#include "waveform_simulator.hpp"
+#include <functional>
 
 namespace adicontroller {
 
-    waveform_simulator::~waveform_simulator()
-    {
-    }
-        
-    waveform_simulator::waveform_simulator( double sampInterval = 1.0e-9
-                                            , double startDelay = 0
-                                            , uint32_t nbrSamples = 100000 & 0x0f
-                                            , uint32_t nbrWavefoms = 1 )
+    waveform_simulator::waveform_simulator( double sampInterval
+                                            , double startDelay
+                                            , uint32_t nbrSamples
+                                            , uint32_t nbrWavefoms )
     {
     }
 

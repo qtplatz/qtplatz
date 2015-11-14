@@ -24,15 +24,17 @@
 
 #pragma once
 
+#include "adicontroller_global.hpp"
 #include <memory>
+#include <vector>
 
 namespace adicontroller {
 
     /** \brief waveform_simulator for mass spectrometer (hardware) control software debug without hardware.
      */
-    class waveform_simulator : public std::enable_shared_from_this< waveform_simulator > {
+    class ADICONTROLLERSHARED_EXPORT waveform_simulator : public std::enable_shared_from_this< waveform_simulator > {
     public:
-        virtual ~waveform_simulator();
+        virtual ~waveform_simulator() {}
         
         waveform_simulator( double sampInterval = 1.0e-9
                             , double startDelay = 0
@@ -51,7 +53,7 @@ namespace adicontroller {
     };
 }
 
-extern "C" {
-    typedef std::shared_ptr< adicontroller::waveform_simulator >(*waveform_simulator_generator_t)( double, double, uint32_t, uint32_t );
-}
+// extern "C" {
+//     typedef std::shared_ptr< adicontroller::waveform_simulator >(*waveform_simulator_factory_t)( double, double, uint32_t, uint32_t );
+// }
 

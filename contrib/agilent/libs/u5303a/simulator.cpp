@@ -24,8 +24,9 @@
 
 #include "simulator.hpp"
 #include "digitizer.hpp"
+#include <adicontroller/waveform_simulator_manager.hpp>
+#include <adicontroller/waveform_simulator.hpp>
 #include <adportable/debug.hpp>
-#include <adinterface/waveform_generator.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/math/distributions/normal.hpp>
@@ -44,10 +45,10 @@ namespace u5303a {
     static uint32_t __serialNumber__;
     static const std::vector< std::pair<double, double> > peak_list = { { 4.0e-6, 0.1 }, { 5.0e-6, 0.05 }, { 6.0e-6, 0.030 } };
 
-    class waveform_generator : public adinterface::waveform_generator {
+    class waveform_simulator : public adicontroller::waveform_simulator {
     public:
 
-        waveform_generator( double sampInterval = 1.0e-9
+        waveform_simulator( double sampInterval = 1.0e-9
                             , double startDelay = 0
                             , uint32_t nbrSamples = 100000 & 0x0f
                             , uint32_t nbrWaveforms = 1 ) : sampInterval_( sampInterval )
@@ -74,11 +75,11 @@ namespace u5303a {
 
         double sampInterval() const  override { return sampInterval_; }
 
-        static std::shared_ptr< adinterface::waveform_generator >  create( double sampInterval
+        static std::shared_ptr< adicontroller::waveform_simulator >  create( double sampInterval
                                                                            , double startDelay
                                                                            , uint32_t nbrSamples
                                                                            , uint32_t nbrWaveforms ) {
-            return std::make_shared< waveform_generator >( sampInterval, startDelay, nbrSamples, nbrWaveforms );
+            return std::make_shared< waveform_simulator >( sampInterval, startDelay, nbrSamples, nbrWaveforms );
         }
         
         std::vector< int32_t > waveform_;
@@ -92,7 +93,7 @@ namespace u5303a {
 
 }
 
-waveform_generator_generator_t __waveform_generator_generator;
+//waveform_simulator_generator_t __waveform_simulator_generator;
 
 using namespace u5303a;
 
@@ -105,23 +106,31 @@ simulator::simulator() : hasWaveform_( false )
                        , method_( std::make_shared< acqrscontrols::u5303a::method >() )
 {
     acqTriggered_.clear();
-    try {
-        boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
 
-        if ( auto mx = shm.find_or_construct< boost::interprocess::interprocess_mutex >( "waveform_simulator_mutex" )( ) ) {
+    // try {
+    //     boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
 
-            auto ptr = shm.find< waveform_generator_generator_t >( "waveform_generator_generator" );
+    //     if ( auto mx = shm.find_or_construct< boost::interprocess::interprocess_mutex >( "waveform_simulator_mutex" )( ) ) {
 
-            if ( ptr.first ) {
-                boost::interprocess::scoped_lock< boost::interprocess::interprocess_mutex > lock( *mx );
-                if ( __waveform_generator_generator = *ptr.first )
-                    auto p = __waveform_generator_generator( 0, 0, 0, 0 );
-            }
-        }
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << ex.what();
-        __waveform_generator_generator = &waveform_generator::create;
+    //         auto ptr = shm.find< waveform_simulator_generator_t >( "waveform_simulator_generator" );
+
+    //         if ( ptr.first ) {
+    //             boost::interprocess::scoped_lock< boost::interprocess::interprocess_mutex > lock( *mx );
+    //             if ( __waveform_simulator_generator = *ptr.first )
+    //                 auto p = __waveform_simulator_generator( 0, 0, 0, 0 );
+    //         }
+    //     }
+    // } catch ( std::exception& ex ) {
+    //     ADDEBUG() << ex.what();
+    //     __waveform_simulator_generator = &waveform_simulator::create;
+    // }
+
+    if ( ! adicontroller::waveform_simulator_manager::instance().waveform_simulator( 0, 0, 0, 0 ) ) {
+        adicontroller::waveform_simulator_manager::instance().install_factory( [](double _1, double _2, uint32_t _3, uint32_t _4){
+                return std::make_shared< waveform_simulator >(_1, _2, _3, _4);
+            });
     }
+
 
     // for InfiTOF simulator compatibility
     const double total = 60000;
@@ -156,22 +165,18 @@ simulator::acquire()
 
     if ( ! acqTriggered_.test_and_set() ) {
 
-        if ( __waveform_generator_generator ) {
-            
-            if ( auto generator = __waveform_generator_generator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
+		if ( auto generator = adicontroller::waveform_simulator_manager::instance().waveform_simulator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
                 
-                generator->addIons( ions_ );
-                generator->onTriggered();
-                post( generator.get() );
-                
-                hasWaveform_ = true;
-                std::unique_lock< std::mutex > lock( queue_ );
-                cond_.notify_one();
-            }
-        }
-        return true;        
-    }
-    return false;
+			generator->addIons( ions_ );
+			generator->onTriggered();
+			post( generator );
+			
+			hasWaveform_ = true;
+			std::unique_lock< std::mutex > lock( queue_ );
+			cond_.notify_one();
+		}
+	}
+	return true;
 }
 
 bool
@@ -191,7 +196,7 @@ simulator::waitForEndOfAcquisition()
 bool
 simulator::readData( acqrscontrols::u5303a::waveform& data )
 {
-    std::shared_ptr< adinterface::waveform_generator > ptr;
+    std::shared_ptr< adicontroller::waveform_simulator > ptr;
 
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
@@ -224,11 +229,10 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
 }
 
 void
-simulator::post( adinterface::waveform_generator * generator )
+simulator::post( std::shared_ptr< adicontroller::waveform_simulator >& generator )
 {
-    auto ptr = generator->shared_from_this();
     std::lock_guard< std::mutex > lock( mutex_ );
-    waveforms_.push_back( ptr );
+    waveforms_.push_back( generator );
 }
 
 void
@@ -264,7 +268,7 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 ///////////////////////////////
 
 void
-waveform_generator::onTriggered()
+waveform_simulator::onTriggered()
 {
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();    
     timeStamp_ = std::chrono::duration< double >( now - __uptime__ ).count(); // s
