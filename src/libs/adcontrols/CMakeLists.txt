@@ -109,7 +109,9 @@ add_library( adcontrols SHARED
   theoreticalplate.cpp
   threshold_method.cpp
   threshold_action.cpp
-  timeutil.cpp 
+  timeutil.cpp
+  tofchromatogrammethod.cpp
+  tofchromatogramsmethod.cpp
   trace.cpp 
   traceaccessor.cpp 
   targeting.cpp
@@ -234,5 +236,7 @@ install( FILES
   msfinder.hpp 
   quanresponses.hpp 
   quancalibration.hpp 
-  quancalibrations.hpp 
+  quancalibrations.hpp
+  tofchromatogrammethod.hpp
+  tofchromatogramsmethod.hpp  
   DESTINATION include/adcontrols COMPONENT headers )

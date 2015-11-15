@@ -181,7 +181,7 @@ CentroidForm::getContents( adcontrols::ProcessMethod& pm )
 QSize
 CentroidForm::sizeHint() const
 {
-    return QSize( 300, 250 );
+    return QSize( 274, 196 );
 }
 
 void

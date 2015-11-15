@@ -148,7 +148,10 @@ CherryPicker::impl::addItem( const QString& key, const QString& displayValue, bo
     model.setData( model.index( row, c_key ), key );
 
     if ( auto item = model.item( row, 0 ) ) {
-        item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+        if ( isEnable )
+            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+        else
+            item->setFlags( item->flags() & ~( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsEditable ) );
         model.setData( model.index( row, c_display_value ), isChecked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
 }
@@ -210,3 +213,10 @@ CherryPicker::impl::findRow( const QString& key ) const
     }
     return -1;
 }
+
+QSize
+CherryPicker::sizeHint() const
+{
+    return QSize( 180, 80 );
+}
+

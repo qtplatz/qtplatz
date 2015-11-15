@@ -61,7 +61,7 @@ namespace adwidgets {
         bool setContents( boost::any& );
 
         // QWidget
-        virtual QSize sizeHint() const;
+        QSize sizeHint() const override;
         //<----
 
     private:

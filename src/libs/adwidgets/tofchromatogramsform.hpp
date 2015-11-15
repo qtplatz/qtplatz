@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,40 +24,34 @@
 
 #pragma once
 
-#include <QWidget>
 #include "adwidgets_global.hpp"
-#include "tableview.hpp"
+#include <QWidget>
+#include <memory>
 
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT CherryPicker : public TableView {
-        
+    class ADWIDGETSSHARED_EXPORT TofChromatogramsForm : public QWidget {
+
         Q_OBJECT
-
-    public:
-        explicit CherryPicker(QWidget *parent = 0);
-        ~CherryPicker();
-
-        void addItem( const QString& key, const QString& displayValue, bool isChecked = true, bool isEnabled = true );
         
-        void setChecked( const QString& key, bool checked );
-        void setEnabled( const QString& key, bool checked );
-        bool checked( const QString& key ) const;
-        bool enabled( const QString& key ) const;
+    public:
+        explicit TofChromatogramsForm( QWidget *parent = 0 );
+        ~TofChromatogramsForm();
 
-        size_t size() const;
-        QString key( size_t idx ) const;
-        QString displayValue( const QString& key ) const;
-
-        QSize sizeHint() const override;
-
-    signals:
-        void stateChanged( const QString& key, bool isChecked );
+        void OnInitialUpdate();
 
     private:
-        class delegate;
+        TofChromatogramsForm( const TofChromatogramsForm& ) = delete;
+
         class impl;
-        impl * impl_;
+        std::unique_ptr< impl > impl_;
+        
+    signals:
+        void valueChanged();
+        void applyTriggered();
+
+    public slots:
+
     };
 
 }

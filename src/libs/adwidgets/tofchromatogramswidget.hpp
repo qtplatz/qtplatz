@@ -24,40 +24,43 @@
 
 #pragma once
 
-#include <QWidget>
 #include "adwidgets_global.hpp"
-#include "tableview.hpp"
+
+#include <adplugin_manager/lifecycle.hpp>
+#include <QWidget>
+
+class QMenu;
 
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT CherryPicker : public TableView {
+    class ADWIDGETSSHARED_EXPORT TofChromatogramsWidget : public QWidget
+                                                        , public adplugin::LifeCycle {
         
         Q_OBJECT
-
-    public:
-        explicit CherryPicker(QWidget *parent = 0);
-        ~CherryPicker();
-
-        void addItem( const QString& key, const QString& displayValue, bool isChecked = true, bool isEnabled = true );
+        Q_INTERFACES( adplugin::LifeCycle )
         
-        void setChecked( const QString& key, bool checked );
-        void setEnabled( const QString& key, bool checked );
-        bool checked( const QString& key ) const;
-        bool enabled( const QString& key ) const;
+    public:
+        explicit TofChromatogramsWidget(QWidget *parent = 0);
+        ~TofChromatogramsWidget();
 
-        size_t size() const;
-        QString key( size_t idx ) const;
-        QString displayValue( const QString& key ) const;
-
-        QSize sizeHint() const override;
-
-    signals:
-        void stateChanged( const QString& key, bool isChecked );
-
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void onUpdate( boost::any& ) override;
+        void OnFinalClose() override;
+        bool getContents( boost::any& ) const override;
+        bool setContents( boost::any& ) override;   
+        //
     private:
-        class delegate;
-        class impl;
-        impl * impl_;
+        void handleContextMenu( QMenu&, const QPoint& );
+        
+    signals:
+        void valueChanged();
+        void applyTriggered();
+
+    public slots:
+
+    private slots:
     };
 
 }

@@ -82,6 +82,8 @@ set( ${PROJECT_NAME}_SOURCES
   targetingtable.cpp
   targetingadducts.cpp
   toftable.cpp
+  tofchromatogramsform.cpp
+  tofchromatogramswidget.cpp
   thresholdactionform.cpp
   ${_sources}
 )
@@ -134,6 +136,8 @@ set( ${PROJECT_NAME}_HEADERS
   targetingwidget.hpp
   targetingtable.hpp
   targetingadducts.hpp
+  tofchromatogramsform.hpp
+  tofchromatogramswidget.hpp
   thresholdactionform.hpp
 )
 

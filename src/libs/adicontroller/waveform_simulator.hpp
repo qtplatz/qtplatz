@@ -30,6 +30,11 @@
 
 namespace adicontroller {
 
+#if defined _MSC_VER
+    class waveform_simulator;
+    ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr<waveform_simulator>;
+#endif
+
     /** \brief waveform_simulator for mass spectrometer (hardware) control software debug without hardware.
      */
     class ADICONTROLLERSHARED_EXPORT waveform_simulator : public std::enable_shared_from_this< waveform_simulator > {
@@ -51,9 +56,7 @@ namespace adicontroller {
         virtual uint32_t nbrSamples() const = 0;
         virtual double sampInterval() const = 0;
     };
+
 }
 
-// extern "C" {
-//     typedef std::shared_ptr< adicontroller::waveform_simulator >(*waveform_simulator_factory_t)( double, double, uint32_t, uint32_t );
-// }
 
