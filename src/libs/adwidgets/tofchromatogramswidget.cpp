@@ -186,11 +186,6 @@ TofChromatogramsWidget::getContents( boost::any& a ) const
     adcontrols::TofChromatogramsMethod m;
     getContents( m );
 
-#if defined _DEBUG
-    std::wofstream of( "C:/Users/Toshi/Documents/data/tofchromatograms.xml" );
-    m.xml_archive( of, m );
-#endif
-
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
         auto ptr = boost::any_cast< std::shared_ptr< adcontrols::ControlMethod::Method > >( a );
         ptr->append( m );
@@ -237,7 +232,7 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
         item.setMassWindow( query.value( "masswindow" ).toDouble() );
         item.setTime( query.value( "time" ).toDouble() );
         item.setTimeWindow( query.value( "timewindow" ).toDouble() );
-        item.setIntensityAlgorithm( adcontrols::TofChromatogramMethod::eIntensityAlgorishm(  query.value( "algorithsm" ).toInt() ) );
+        item.setIntensityAlgorithm( adcontrols::TofChromatogramMethod::eIntensityAlgorishm(  query.value( "algorithm" ).toInt() ) );
         m << item;
     }
     return true;
@@ -253,9 +248,12 @@ TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m
     QSqlDatabase db = QSqlDatabase::database( ConnectionString );
     QSqlQuery query( db );
 
-    query.exec( "DELETE FROM tofChromatograms" );
+    if ( !query.exec( "DELETE FROM tofChromatograms" ) )
+        qDebug() << "error: " << query.lastError();
 
-    query.prepare( "INSERT into tofChromatograms (formula,mass,masswindow,time,timewindow) VALUES (?,?,?,?,?)" );
+    if ( !query.prepare( "INSERT into tofChromatograms (formula,mass,masswindow,time,timewindow,algorithm) VALUES (?,?,?,?,?,?)" ) )
+        qDebug() << "error: " << query.lastError();
+
     for ( auto& item: m ) {
         query.addBindValue( QString::fromStdString( item.formula() ) );
         query.addBindValue( item.mass() );
@@ -265,8 +263,8 @@ TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m
         query.addBindValue( item.intensityAlgorithm() );
         if ( !query.exec() )
             qDebug() << "error: " << query.lastError();
-        query.clear();
     }
+    impl_->model_->select();
     return true;
 
 }
