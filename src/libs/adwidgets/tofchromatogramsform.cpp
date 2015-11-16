@@ -105,6 +105,10 @@ TofChromatogramsForm::getContents( adcontrols::TofChromatogramsMethod& m ) const
 }
 
 void
-TofChromatogramsForm::setContents( const adcontrols::TofChromatogramsMethod& )
+TofChromatogramsForm::setContents( const adcontrols::TofChromatogramsMethod& m )
 {
+    if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) ) {
+        size_t n = m.numberOfTriggers() == 0 ? 1 : m.numberOfTriggers();
+        spin->setValue( int( n ) );
+    }
 }
