@@ -59,6 +59,7 @@ namespace adwidgets {
         void setColumnEditable( int column, bool );
         bool isColumnEditable( int column ) const;
         void setContextMenuHandler( std::function<void(const QPoint& )> );
+        void setChoice( int column, const std::vector< std::pair< QString, QVariant > >& );
 
         static double getMonoIsotopicMass( const QString& formula, const QString& adducts = QString() );
 

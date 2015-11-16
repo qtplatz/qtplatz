@@ -40,6 +40,7 @@
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QDragEnterEvent>
 #include <QFileInfo>
@@ -93,16 +94,27 @@ namespace adwidgets {
 
         std::function<void(const QPoint& )> handleContextMenu_;
 
+        //-------------------------------------------------
         struct columnState {
             MolTableView::fields field;
             bool isEditable;
             bool isCheckable;
+            std::vector< std::pair< QString, QVariant > > choice;
+
+            inline bool isChoice() const { return !choice.empty(); }
+            
             columnState( MolTableView::fields f = MolTableView::f_any
                          , bool editable = true
                          , bool checkable = false ) : field( f ), isEditable( editable ), isCheckable( checkable ) {
             }
+            columnState( const columnState& t ) : field( t.field )
+                                                , isEditable( t.isEditable )
+                                                , isCheckable( t.isCheckable )
+                                                , choice( t.choice) {
+            }
         };
-
+        //-------------------------------------------------
+        
         std::map< int, columnState > columnStates_;
 
         inline const columnState& state( int column ) { return columnStates_[ column ]; }
@@ -130,8 +142,11 @@ namespace adwidgets {
             QStyleOptionViewItem opt(option);
             initStyleOption( &opt, index );
             opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
-            auto field = impl_->field( index.column() );
 
+            if ( impl_->state( index.column() ).isChoice() ) {
+            }
+
+            auto field = impl_->field( index.column() );
             if ( field == MolTableView::f_formula ) {
                 
                 auto formula = QString::fromStdString( ac::ChemicalFormula::formatFormulae( index.data().toString().toStdString() ) );
@@ -179,6 +194,30 @@ namespace adwidgets {
                 painter->restore();
             } else {
                 QStyledItemDelegate::paint( painter, opt, index );
+            }
+        }
+
+        void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
+            if ( impl_->state( index.column() ).isChoice() ) {
+                auto combo = qobject_cast< QComboBox *>( editor );
+                if ( combo->currentIndex() >= 0 && impl_->state( index.column() ).choice.size() < combo->currentIndex() ) {
+                    model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].first, Qt::DisplayRole );
+                    model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].second, Qt::EditRole );
+                }
+            } else 
+                QStyledItemDelegate::setModelData( editor, model, index );
+        }
+        
+
+        QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
+            auto& state = impl_->state( index.column() );
+            if ( state.isChoice() ) {
+                auto combo = new QComboBox( parent );
+                for ( auto& x : state.choice )
+                    combo->addItem( x.first );
+                return combo;
+            } else {
+                return QStyledItemDelegate::createEditor( parent, option, index );
             }
         }
 
@@ -231,6 +270,12 @@ MolTableView::~MolTableView()
 void
 MolTableView::onInitialUpdate()
 {
+}
+
+void
+MolTableView::setChoice( int column, const std::vector< std::pair< QString, QVariant > >& choice )
+{
+    impl_->columnStates_[ column ].choice = choice;
 }
 
 void

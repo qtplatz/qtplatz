@@ -134,11 +134,18 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
     }
 
     if ( auto table = findChild< MolTableView * >() ) {
+        
         table->setModel( impl_->model_.get() );
         table->setContextMenuHandler( [this]( const QPoint& pt ){ impl_->handleContextMenu( pt ); } );
         table->setColumnHidden( impl::c_id, true );
         table->setColumnField( impl::c_formula, MolTableView::f_formula, true, false );
         table->setColumnField( impl::c_mass, MolTableView::f_mass );
+
+        std::vector< std::pair< QString, QVariant > > choice;
+        choice.push_back( std::make_pair( "Area on Profile", QVariant( adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) ) );
+        choice.push_back( std::make_pair( "Height on Profile", QVariant( adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) ) );
+        choice.push_back( std::make_pair( "Counting", QVariant( adcontrols::TofChromatogramMethod::eCounting ) ) );
+        table->setChoice( impl::c_algo, choice );
     }
 
     if ( auto form = findChild< TofChromatogramsForm * >() ) 
