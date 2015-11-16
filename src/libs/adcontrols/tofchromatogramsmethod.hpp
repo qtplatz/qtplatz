@@ -42,11 +42,16 @@ namespace adcontrols {
         TofChromatogramsMethod();
         TofChromatogramsMethod( const TofChromatogramsMethod& );
 
+        static const char * modelClass() { return "TofChromatograms"; }
+        static const char * itemClass() { return "Chromatograms.1"; }
+
         typedef std::vector< TofChromatogramMethod >::iterator iterator;
         typedef std::vector< TofChromatogramMethod >::const_iterator const_iterator;
 
         size_t size() const;
         void clear();
+
+        TofChromatogramsMethod& operator << ( const TofChromatogramMethod& );
 
         iterator begin();
         iterator end();
@@ -57,10 +62,10 @@ namespace adcontrols {
         size_t numberOfTriggers() const;
         void setNumberOfTriggers( size_t );
 
-        static bool archive( std::ostream&, const TofChromatogramMethod& );
-        static bool restore( std::ostream&, const TofChromatogramMethod& );
-        static bool xml_archive( std::wostream&, const TofChromatogramMethod& );
-        static bool xml_restore( std::wostream&, const TofChromatogramMethod& );        
+        static bool archive( std::ostream&, const TofChromatogramsMethod& );
+        static bool restore( std::istream&, TofChromatogramsMethod& );
+        static bool xml_archive( std::wostream&, const TofChromatogramsMethod& );
+        static bool xml_restore( std::wistream&, TofChromatogramsMethod& );        
         
     private:
         class impl;

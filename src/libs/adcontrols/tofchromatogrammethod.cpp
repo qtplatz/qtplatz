@@ -45,7 +45,8 @@ namespace adcontrols {
                , algo_( ePeakAreaOnProfile ) {
         }        
 
-        impl( const impl& t ) : mass_( t.mass_ )
+        impl( const impl& t ) : formula_( t.formula_ )
+                              , mass_( t.mass_ )
                               , massWindow_( t.massWindow_ )             
                               , time_( t.time_ )
                               , timeWindow_( t.timeWindow_ )             

@@ -24,6 +24,7 @@
 
 #include "tofchromatogramsmethod.hpp"
 #include "tofchromatogrammethod.hpp"
+#include "serializer.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
@@ -85,6 +86,13 @@ TofChromatogramsMethod::clear()
     impl_->vec_.clear();
 }
 
+TofChromatogramsMethod&
+TofChromatogramsMethod::operator << ( const TofChromatogramMethod& t )
+{
+    impl_->vec_.push_back( t );
+    return *this;
+}
+
 TofChromatogramsMethod::iterator
 TofChromatogramsMethod::begin()
 {
@@ -119,4 +127,31 @@ void
 TofChromatogramsMethod::setNumberOfTriggers( size_t value )
 {
     impl_->numberOfTriggers_ = value;
+}
+
+bool
+TofChromatogramsMethod::archive( std::ostream& os, const TofChromatogramsMethod& t )
+{
+    return internal::binSerializer().archive( os, *t.impl_ );
+}
+
+//static
+bool
+TofChromatogramsMethod::restore( std::istream& is, TofChromatogramsMethod& t )
+{
+    return internal::binSerializer().restore( is, *t.impl_ );
+}
+
+//static
+bool
+TofChromatogramsMethod::xml_archive( std::wostream& os, const TofChromatogramsMethod& t )
+{
+    return internal::xmlSerializer("TofChromatogramsMethod").archive( os, *t.impl_ );
+}
+
+//static
+bool
+TofChromatogramsMethod::xml_restore( std::wistream& is, TofChromatogramsMethod& t )
+{
+    return internal::xmlSerializer("TofChromatogramsMethod").restore( is, *t.impl_ );
 }

@@ -24,6 +24,7 @@
 
 #include "tofchromatogramsform.hpp"
 #include "create_widget.hpp"
+#include <adcontrols/tofchromatogramsmethod.hpp>
 #include <QWidget>
 #include <QBoxLayout>
 #include <QDoubleSpinBox>
@@ -89,5 +90,20 @@ TofChromatogramsForm::~TofChromatogramsForm()
 
 void
 TofChromatogramsForm::OnInitialUpdate()
+{
+}
+
+void
+TofChromatogramsForm::getContents( adcontrols::TofChromatogramsMethod& m ) const
+{
+    if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) )
+        m.setNumberOfTriggers( spin->value() );
+
+    //if ( auto spin = findChild< QDoubleSpinBox *>( "response" ) )
+    //    ; // not in use
+}
+
+void
+TofChromatogramsForm::setContents( const adcontrols::TofChromatogramsMethod& )
 {
 }

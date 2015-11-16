@@ -54,13 +54,14 @@ else()
   set ( RDKit_INCLUDE_DIRS ${_include_dir} )
   set ( RDKit_LIBRARY_DIRS ${_libdir} )
 
-  find_library(SMILESPARSE_LIB    NAMES SmilesParse   HINTS ${_libdir})
-  find_library(DEPICTOR_LIB       NAMES Depictor      HINTS ${_libdir})
-  find_library(DESCRIPTORS_LIB    NAMES Descriptors   HINTS ${_libdir})  
-  find_library(GRAPHMOL_LIB       NAMES GraphMol      HINTS ${_libdir})
-  find_library(RDGEOMETRYLIB_LIB  NAMES RDGeometryLib HINTS ${_libdir})
-  find_library(RDGENERAL_LIB      NAMES RDGeneral     HINTS ${_libdir})
+  find_library(SMILESPARSE_LIB    NAMES SmilesParse    HINTS ${_libdir})
+  find_library(DEPICTOR_LIB       NAMES Depictor       HINTS ${_libdir})
+  find_library(DESCRIPTORS_LIB    NAMES Descriptors    HINTS ${_libdir})  
+  find_library(GRAPHMOL_LIB       NAMES GraphMol       HINTS ${_libdir})
+  find_library(RDGEOMETRYLIB_LIB  NAMES RDGeometryLib  HINTS ${_libdir})
+  find_library(RDGENERAL_LIB      NAMES RDGeneral      HINTS ${_libdir})
   find_library(SUBSTRUCTMATCH_LIB NAMES SubstructMatch HINTS ${_libdir})
+  find_library(MOLDRAW2D_LIB      NAMES MolDraw2D      HINTS ${_libdir})  
 
   add_library( FileParsers SHARED IMPORTED )
   add_library( GraphMol    SHARED IMPORTED )
@@ -70,15 +71,17 @@ else()
   add_library( SubstructMatch SHARED IMPORTED )
   add_library( Depictor    SHARED IMPORTED )
   add_library( Descriptors SHARED IMPORTED )
+  add_library( MolDraw2D   SHARED IMPORTED )
 
-  set_target_properties( FileParsers PROPERTIES IMPORTED_LOCATION ${_fileparsers_lib} )
-  set_target_properties( GraphMol    PROPERTIES IMPORTED_LOCATION ${GRAPHMOL_LIB} )
-  set_target_properties( SmilesParse PROPERTIES IMPORTED_LOCATION ${SMILESPARSE_LIB} )
-  set_target_properties( RDGeneral   PROPERTIES IMPORTED_LOCATION ${RDGENERAL_LIB} )
+  set_target_properties( FileParsers    PROPERTIES IMPORTED_LOCATION ${_fileparsers_lib} )
+  set_target_properties( GraphMol       PROPERTIES IMPORTED_LOCATION ${GRAPHMOL_LIB} )
+  set_target_properties( SmilesParse    PROPERTIES IMPORTED_LOCATION ${SMILESPARSE_LIB} )
+  set_target_properties( RDGeneral      PROPERTIES IMPORTED_LOCATION ${RDGENERAL_LIB} )
   set_target_properties( RDGeometryLib  PROPERTIES IMPORTED_LOCATION ${RDGEOMETRYLIB_LIB} )
   set_target_properties( SubstructMatch PROPERTIES IMPORTED_LOCATION ${SUBSTRUCTMATCH_LIB} )
-  set_target_properties( Depictor    PROPERTIES IMPORTED_LOCATION ${DEPICTOR_LIB} )
-  set_target_properties( Descriptors PROPERTIES IMPORTED_LOCATION ${DESCRIPTORS_LIB} )
+  set_target_properties( Depictor       PROPERTIES IMPORTED_LOCATION ${DEPICTOR_LIB} )
+  set_target_properties( Descriptors    PROPERTIES IMPORTED_LOCATION ${DESCRIPTORS_LIB} )
+  set_target_properties( MolDraw2D      PROPERTIES IMPORTED_LOCATION ${MOLDRAW2D_LIB} )  
   
 endif()
 
@@ -97,6 +100,7 @@ set (RDKit_LIBRARIES
   RDGeometryLib
   RDGeneral
   SubstructMatch
+  MolDraw2D
   )
 
 

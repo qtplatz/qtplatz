@@ -28,8 +28,11 @@
 
 #include <adplugin_manager/lifecycle.hpp>
 #include <QWidget>
+#include <memory>
 
 class QMenu;
+
+namespace adcontrols { class TofChromatogramsMethod; }
 
 namespace adwidgets {
 
@@ -51,8 +54,12 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any& ) override;   
         //
+        bool getContents( adcontrols::TofChromatogramsMethod& ) const;
+        bool setContents( const adcontrols::TofChromatogramsMethod& );
     private:
         void handleContextMenu( QMenu&, const QPoint& );
+        class impl;
+        std::unique_ptr< impl > impl_;
         
     signals:
         void valueChanged();
@@ -61,6 +68,7 @@ namespace adwidgets {
     public slots:
 
     private slots:
+        
     };
 
 }

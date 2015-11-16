@@ -168,7 +168,7 @@ MainWindow::createContents( Core::IMode * )
                                                        , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
-            widget->setMaximumHeight( std::numeric_limits<int>::max() );
+            //widget->setMaximumHeight( std::numeric_limits<int>::max() );
         }
         stack_->addWidget( panelsWidget );
     }
@@ -181,7 +181,7 @@ MainWindow::createContents( Core::IMode * )
                                                        , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
-            widget->setMaximumHeight( std::numeric_limits<int>::max() );
+            //widget->setMaximumHeight( std::numeric_limits<int>::max() );
         }
         stack_->addWidget( panelsWidget );
     }

@@ -10,12 +10,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets Svg PrintSupport )
+find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport )
 
 include_directories(
   ${QWT_INCLUDE_DIR}
   ${Qt5PrintSupport_INCLUDE_DIRS}
-  ${Qt5Svg_INCLUDE_DIRS}  
+  ${Qt5Svg_INCLUDE_DIRS}
+  ${Qt5Sql_INCLUDE_DIRS}  
   ${Qt5Widgets_INCLUDE_DIRS}
   )
 
@@ -50,6 +51,8 @@ set( ${PROJECT_NAME}_SOURCES
   filedialog.cpp
   findslopeform.cpp
   insttreeview.cpp
+  moldraw.hpp
+  moldraw.cpp
   moltable.cpp
   mspeaktable.cpp
   msquantable.cpp
@@ -72,6 +75,7 @@ set( ${PROJECT_NAME}_SOURCES
   peptidewidget.cpp
   peptidetable.cpp
   progresswnd.cpp
+  moltableview.cpp
   samplerunwidget.cpp
   scanlawdialog.cpp
   spinbox.cpp
@@ -104,7 +108,7 @@ set( ${PROJECT_NAME}_HEADERS
   insttreeview.hpp
   peptidewidget.hpp
   peptidetable.hpp
-  moltable.hpp  
+  moltable.hpp
   mspeaktable.hpp
   msquantable.hpp
   mscalibrateform.hpp
@@ -125,6 +129,7 @@ set( ${PROJECT_NAME}_HEADERS
   peakmethodform.hpp
   progresswnd.hpp
   pressuregauge.hpp
+  moltableview.hpp
   scanlawdialog.hpp
   spin_t.hpp
   spinbox.hpp
@@ -155,6 +160,7 @@ target_link_libraries( adwidgets LINK_PUBLIC
   Qt5::Core
   Qt5::Widgets
   Qt5::Svg
+  Qt5::Sql
   Qt5::PrintSupport
   ${Boost_LIBRARIES}
   ${RDKit_LIBRARIES}

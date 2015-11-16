@@ -25,6 +25,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/variant.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -37,6 +38,8 @@ namespace adcontrols {
     public:
         enum molflags { isMSRef = 0x80000000 };
 
+        typedef boost::variant< bool, uint32_t, double, std::string > custom_type;
+        
         class ADCONTROLSSHARED_EXPORT value_type {
             bool enable_;
             uint32_t flags_;
@@ -51,6 +54,8 @@ namespace adcontrols {
             std::string synonym_;
             std::string smiles_;
             std::wstring description_;
+            std::vector < std::pair< std::string, custom_type > > customValues_;
+
 #if defined _MSC_VER
 #pragma warning(pop)
 #endif
@@ -74,6 +79,8 @@ namespace adcontrols {
             const char * smiles() const { return smiles_.c_str(); }
             const wchar_t * description() const { return description_.c_str(); }
 
+            std::vector< std::pair< std::string, custom_type > >& customValues();
+            const std::vector< std::pair< std::string, custom_type > >& customValues() const;
             
             value_type() : enable_( true ), flags_(0), mass_( 0 ), abundance_( 1.0 ) {}
             
@@ -85,7 +92,8 @@ namespace adcontrols {
                 , adducts_( t.adducts_ )
                 , synonym_( t.synonym_ )
                 , smiles_( t.smiles_ )
-                , description_( t.description_ ) {
+                , description_( t.description_ )
+                , customValues_( t.customValues_ ) {
             }
             bool isMSRef() const;
             void setIsMSRef( bool on );

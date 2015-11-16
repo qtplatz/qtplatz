@@ -28,6 +28,8 @@
 #include <QWidget>
 #include <memory>
 
+namespace adcontrols { class TofChromatogramsMethod; }
+
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT TofChromatogramsForm : public QWidget {
@@ -39,6 +41,8 @@ namespace adwidgets {
         ~TofChromatogramsForm();
 
         void OnInitialUpdate();
+        void getContents( adcontrols::TofChromatogramsMethod& ) const;
+        void setContents( const adcontrols::TofChromatogramsMethod& );
 
     private:
         TofChromatogramsForm( const TofChromatogramsForm& ) = delete;
