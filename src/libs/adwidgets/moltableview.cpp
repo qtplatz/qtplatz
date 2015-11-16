@@ -122,7 +122,8 @@ namespace adwidgets {
         inline MolTableView::fields field( int column ) { return columnStates_[ column ].field; }
 
         inline int findColumn( MolTableView::fields field ) const {
-            auto it = std::find_if( columnStates_.begin(), columnStates_.end(), [field]( const std::pair< int, columnState >& c ){ return c.second.field == field; });
+            auto it = std::find_if( columnStates_.begin(), columnStates_.end()
+                                    , [field]( const std::pair< int, columnState >& c ){ return c.second.field == field; });
             if ( it != columnStates_.end() )
                 return it->first;
             return (-1);
@@ -131,9 +132,11 @@ namespace adwidgets {
         QAbstractItemModel * model() { return this_->model(); }
     };
 
+    //-------------------------- delegate ---------------
     class MolTableView::delegate : public QStyledItemDelegate {
         MolTableView::impl * impl_;
     public:
+
         MolTableView::delegate( MolTableView::impl * impl ) : impl_( impl ) {
         }
         
@@ -142,12 +145,16 @@ namespace adwidgets {
             QStyleOptionViewItem opt(option);
             initStyleOption( &opt, index );
             opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
-
-            if ( impl_->state( index.column() ).isChoice() ) {
-            }
-
+            auto& state = impl_->state( index.column() );
             auto field = impl_->field( index.column() );
-            if ( field == MolTableView::f_formula ) {
+
+            if ( state.isChoice() ) {
+
+                int idx = index.data().toInt();
+				if ( idx >= 0 && idx  < state.choice.size() )
+                    painter->drawText( option.rect, Qt::AlignHCenter | Qt::AlignVCenter, state.choice[ idx ].first );
+
+            } else if ( field == MolTableView::f_formula ) {
                 
                 auto formula = QString::fromStdString( ac::ChemicalFormula::formatFormulae( index.data().toString().toStdString() ) );
                 DelegateHelper::render_html2( painter, opt, ( formula.isEmpty() ? index.data().toString() : formula ) );
@@ -163,6 +170,7 @@ namespace adwidgets {
                 QStyledItemDelegate::paint( painter, opt, index );
 
             } else if ( field == MolTableView::f_mass ) {
+
                 painter->save();
                 int cformula = impl_->findColumn( MolTableView::f_formula );
                 if ( cformula >= 0 ) {
@@ -184,6 +192,7 @@ namespace adwidgets {
                 painter->restore();
 
             } else if ( index.column() == MolTableView::f_svg ) {
+
                 painter->save();
                 QSvgRenderer renderer( index.data().toByteArray() );
                 painter->translate( option.rect.x(), option.rect.y() );
@@ -192,18 +201,20 @@ namespace adwidgets {
                 QRect target( 0, 0, option.rect.width(), option.rect.height() );
                 renderer.render( painter, target );
                 painter->restore();
+
             } else {
                 QStyledItemDelegate::paint( painter, opt, index );
             }
         }
 
         void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
-            if ( impl_->state( index.column() ).isChoice() ) {
-                auto combo = qobject_cast< QComboBox *>( editor );
-                if ( combo->currentIndex() >= 0 && impl_->state( index.column() ).choice.size() < combo->currentIndex() ) {
-                    model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].first, Qt::DisplayRole );
-                    model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].second, Qt::EditRole );
-                }
+			auto& state = impl_->state( index.column() );
+			if ( state.isChoice() ) {
+				if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
+					int idx = combo->currentIndex();
+					if ( idx >= 0 && idx < state.choice.size() )
+						model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].second, Qt::EditRole );
+				}
             } else 
                 QStyledItemDelegate::setModelData( editor, model, index );
         }

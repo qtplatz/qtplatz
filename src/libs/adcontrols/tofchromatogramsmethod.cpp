@@ -40,7 +40,8 @@ namespace adcontrols {
         impl() {
         }
 
-        impl( const impl& t ) : vec_( t.vec_ ) {
+        impl( const impl& t ) : numberOfTriggers_( 100 )
+                              , vec_( t.vec_ ) {
         }
 
         size_t numberOfTriggers_;

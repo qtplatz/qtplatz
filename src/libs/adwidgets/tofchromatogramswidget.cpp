@@ -142,8 +142,8 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
         table->setColumnField( impl::c_mass, MolTableView::f_mass );
 
         std::vector< std::pair< QString, QVariant > > choice;
-        choice.push_back( std::make_pair( "Area on Profile", QVariant( adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) ) );
-        choice.push_back( std::make_pair( "Height on Profile", QVariant( adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) ) );
+        choice.push_back( std::make_pair( "Area", QVariant( adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) ) );
+        choice.push_back( std::make_pair( "Height", QVariant( adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) ) );
         choice.push_back( std::make_pair( "Counting", QVariant( adcontrols::TofChromatogramMethod::eCounting ) ) );
         table->setChoice( impl::c_algo, choice );
     }
@@ -228,7 +228,6 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
     if ( auto form = findChild< TofChromatogramsForm *>() ) {
         form->getContents( m );
     }
-    m.setNumberOfTriggers( 0 );
     
     QSqlDatabase db = QSqlDatabase::database( ConnectionString );
     QSqlQuery query( "SELECT * from tofChromatograms", db );

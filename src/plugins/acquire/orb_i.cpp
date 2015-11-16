@@ -199,7 +199,6 @@ namespace acquire {
             // disconnect broker session
             if ( !CORBA::is_nil( brokerSession_ ) && brokerEvent_ ) {
                 brokerSession_->disconnect( brokerEvent_->_this() );
-				//adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
             }
         }
 
@@ -226,14 +225,14 @@ namespace acquire {
             SignalObserver::Description_var topLevelDesc = observer->getDescription();
                 
             std::string topLevelName = topLevelDesc->trace_display_name.in();
-            //traceBox_->addItem( QString::fromStdString( topLevelName ) );
+			//traceBox_->addItem( QString::fromStdString( topLevelName ) );
             //todo: set name on MainWindow's traceBox_
             
             SignalObserver::Observers_var children = observer->getSiblings();
             for ( CORBA::ULong i = 0; i < children->length(); ++i ) {
                 SignalObserver::Description_var secondLevelDesc = children[i]->getDescription();
                 CORBA::String_var secondLevelName = children[i]->getDescription()->trace_display_name.in();
-                //traceBox_->addItem( QString( "   %1" ).arg( secondLevelName.in() ) );
+				//traceBox_->addItem( QString( "   %1" ).arg( secondLevelName.in() ) );
             }
         }
 
@@ -292,12 +291,10 @@ orb_i::actionConnect()
                     
                     receiver_i_->assign_debug_print( [this]( int32_t pri, int32_t cat, std::string text ){ handle_receiver_debug_print( pri, cat, text ); } );
 
-                    // connect( pThis_, &AcquirePlugin::onReceiverMessage, [this]( unsigned long code, uint32_t value ){ handle_controller_message( code, value); } );
                     connect( this, &orb_i::onReceiverMessage, this, &orb_i::handle_controller_message );
                         
                     if ( session_->connect( receiver_i_->_this(), "acquire" ) ) {
                         MainWindow::instance()->handleInstState( adicontroller::Instrument::eStandBy );
-                        // pThis_->actionConnect_->setEnabled( false );
                     }
                         
                     if ( session_->status() <= ControlServer::eConfigured )
@@ -326,23 +323,7 @@ orb_i::actionConnect()
                             
                             observer_->connect( sink_->_this(), SignalObserver::Frequent, "acquireplugin" );
 
-                            // QObject::connect( pThis_, SIGNAL( onObserverConfigChanged( unsigned long, long ) )
-                            //          , pThis_, SLOT( handle_config_changed( unsigned long, long ) ) );
-                            // QObject::connect( pThis_, SIGNAL( onUpdateUIData( unsigned long, long ) )
-                            //          , pThis_, SLOT( handle_update_ui_data( unsigned long, long ) ) );
-                            // QObject::connect( pThis_, SIGNAL( onObserverMethodChanged( unsigned long, long ) )
-                            //          , pThis_, SLOT( handle_method_changed( unsigned long, long ) ) );
-                            // QObject::connect( pThis_, SIGNAL( onObserverEvent( unsigned long, long, long ) )
-                            //          , pThis_, SLOT( handle_event( unsigned long, long, long ) ) );
-                            
-                            // connect( this, &orb_i::onObserverConfigChanged, pThis_, &AcquirePlugin::handle_config_changed ); -- does nothing
-
-                            // connect( this, &orb_i::onUpdateUIData, pThis_, &AcquirePlugin::handle_update_ui_data ); --> AcquirePlugin::handle_broker_initialized()
-
-                            // connect( this, &orb_i::onObserverMethodChanged, pThis_, &AcquirePlugin::handle_method_changed ); -- does nothing
-
-                            // connect( this, &orb_i::onObserverEvent, pThis_, &AcquirePlugin::handle_event );  -- does nothing
-                        }
+						}
                         
                         // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
                         SignalObserver::Observers_var siblings = observer_->getSiblings();
@@ -361,8 +342,6 @@ orb_i::actionConnect()
 
     if ( ! CORBA::is_nil( session_ ) ) {
         MainWindow::instance()->handleInstState( adicontroller::Instrument::eStandBy );        
-        //pThis_->actionInitRun_->setEnabled( true );
-        //pThis_->actionRun_->setEnabled( true );
         document::instance()->fsmStop();
     }
 }

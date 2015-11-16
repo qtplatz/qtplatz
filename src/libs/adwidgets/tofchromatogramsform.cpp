@@ -75,6 +75,7 @@ TofChromatogramsForm::TofChromatogramsForm( QWidget * parent ) : QWidget( parent
     }
 
     if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) ) {
+        spin->setMaximum( 10000 );
         connect( spin, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged(); } );
     }
 
