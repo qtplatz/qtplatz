@@ -103,18 +103,8 @@ namespace adextension {
         }
 
         ~iControllerImpl() {
-
-            if ( session_ ) {
-
-                if ( observerEvents_ ) {
-                    if ( auto observer = session_->getObserver()->shared_from_this() )
-                        observer->disconnect( observerEvents_.get() );
-                }
-                if ( receiver_ )
-                    session_->disconnect( receiver_.get() );
-
-                session_->shutdown();
-            }
+            if ( isInitialized_ )
+                disconnect( true );
         }
 
         // connect() should be implemented specific to own instance
@@ -137,6 +127,24 @@ namespace adextension {
             std::lock_guard< std::mutex > lock( mutex_ );
             isInitialized_ = v;
             cv_.notify_all();
+        }
+
+        void disconnect( bool shutdown ) override {
+
+            if ( session_ && isInitialized_ ) {
+
+                isInitialized_ = false;
+                
+                if ( observerEvents_ ) {
+                    if ( auto observer = session_->getObserver()->shared_from_this() )
+                        observer->disconnect( observerEvents_.get() );
+                }
+                if ( receiver_ )
+                    session_->disconnect( receiver_.get() );
+
+                if ( shutdown )
+                    session_->shutdown();
+            }
         }
 
         bool wait_for_connection_ready() override {

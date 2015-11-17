@@ -49,6 +49,9 @@ namespace adextension {
         std::shared_ptr< const iController > pThis() const { return shared_from_this(); }        
 
         virtual bool connect() = 0;
+
+        virtual void disconnect( bool shutdown = false ) = 0;
+
         virtual bool wait_for_connection_ready() = 0;
 
         // for backword compat; use getInstrumentSession() instead
