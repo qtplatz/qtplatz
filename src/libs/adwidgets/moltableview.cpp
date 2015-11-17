@@ -137,7 +137,7 @@ namespace adwidgets {
         MolTableView::impl * impl_;
     public:
 
-        MolTableView::delegate( MolTableView::impl * impl ) : impl_( impl ) {
+        delegate( impl * p ) : impl_( p ) {
         }
         
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {

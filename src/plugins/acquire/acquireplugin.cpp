@@ -63,7 +63,6 @@ AcquirePlugin::~AcquirePlugin()
     orb_i_->shutdown();
     delete orb_i_;
 #endif
-    //delete pImpl_;
     ADTRACE() << "====== AcquirePlugin dtor complete ===============";
 }
 

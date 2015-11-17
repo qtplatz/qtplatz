@@ -67,7 +67,10 @@ namespace acquire {
 
     class MainWindow;
     class AcquireImpl;
-
+#if HAVE_CORBA
+    class orb_i;
+#endif
+    
     //------------
     class AcquirePlugin : public ExtensionSystem::IPlugin {
 
@@ -105,19 +108,13 @@ namespace acquire {
         void selectPoint( double x, double y );
         void selectRange( double x1, double x2, double y1, double y2 );
         void handle_update_data( unsigned long objid, long pos );
+
 #if HAVE_CORBA
         friend class orb_i;
         orb_i * orb_i_;
 #endif
-        //AcquireImpl * pImpl_;
-
         std::mutex mutex_;
-//---
-        // std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
-        // std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
-        // std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
-        // std::map< unsigned long, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
-        //std::vector< std::wstring > trace_descriptions_;
+
     };
 
 }

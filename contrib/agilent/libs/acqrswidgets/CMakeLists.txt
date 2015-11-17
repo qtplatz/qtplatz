@@ -10,7 +10,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 REQUIRED PrintSupport Svg Widgets Gui Core )
+find_package( Qt5 REQUIRED PrintSupport Sql Svg Widgets Gui Core )
 
 include_directories(
   ${QWT_INCLUDE_DIR}
