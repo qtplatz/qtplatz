@@ -15,15 +15,16 @@ include_directories(
   )
 
 add_library( qtwrapper
-  qtwrapper.cpp
   application.cpp
-  qstring.cpp
-  xmlformatter.cpp
+  make_widget.hpp
   font.cpp
-  settings.cpp
   progresshandler.hpp
+  qtwrapper.cpp
+  qstring.cpp
+  settings.cpp
   waitcursor.cpp
   waitcursor.hpp
+  xmlformatter.cpp
 )
 
 install( TARGETS ${PROJECT_NAME}
