@@ -244,6 +244,11 @@ namespace u5303a {
             template <class FSM,class Event> void no_transition(Event const& e, FSM& fsm, int state)  {
                 ADDEBUG() << "no transition from state " << state;
             }
+
+            template <class FSM,class Event> void exception_caught(Event const& ev, FSM& fsm, std::exception& ex) {
+                ADDEBUG() << "exception_caught " << typeid(ev).name() << "; " << ex.what();
+            }
+
             handler* handler_;
         };
 

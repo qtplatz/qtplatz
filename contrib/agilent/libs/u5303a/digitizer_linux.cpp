@@ -282,7 +282,6 @@ task::task() : work_( io_service_ )
 task::~task()
 {
     ADDEBUG() << "******** task dtor";
-    terminate();
 }
 
 bool
@@ -292,6 +291,7 @@ task::findResource()
     foundResources_.clear();
     foundResources_.push_back( "PXI3::0::0::INSTR" );
     foundResources_.push_back( "PXI4::0::0::INSTR" );
+    foundResources_.push_back( "PXI5::0::0::INSTR" );
     foundResources_.push_back( "PXI0::0::0::INSTR" );
     foundResources_.push_back( "PXI1::0::0::INSTR" );
     return true;
@@ -302,9 +302,6 @@ task::instance()
 {
     static task __task__;
     return &__task__;
-    //static std::once_flag flag;
-    //std::call_once( flag, [] () { instance_.reset( new task() ); } );
-    //return instance_.get();
 }
 
 bool
@@ -361,14 +358,15 @@ task::trigger_inject_out()
 void
 task::terminate()
 {
-    if ( spDriver_ )
-        spDriver_->Abort();
-    
+    // if ( spDriver_ ) 
+    //     spDriver_->Abort();
+
     io_service_.stop();
     
     for ( std::thread& t: threads_ )
         t.join();
-    threads_.clear();
+
+    threads_.clear();    
 }
 
 
@@ -540,7 +538,7 @@ task::handle_protocol( const acqrscontrols::u5303a::method m )
     else
         device::setup( *this, m );
 
-    if ( m.mode_ && simulated_ )
+    if ( /* m.mode_ && */ simulated_ )
         simulator::instance()->setup( m );
     
     method_ = m;

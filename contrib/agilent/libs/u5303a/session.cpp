@@ -221,8 +221,14 @@ Session::initialize()
 bool
 Session::shutdown()
 {
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    return impl_->digitizer_ && impl_->digitizer_->peripheral_terminate();
+    impl_->digitizer_ && impl_->digitizer_->peripheral_terminate();
+
+    impl_->io_service_.stop();
+
+    for ( auto& t : impl_->threads_ )
+        t.join();
+
+    return true;
 }
 
 bool

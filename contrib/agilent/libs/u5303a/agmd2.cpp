@@ -59,7 +59,7 @@ AgMD2::AgMD2() : session_( 0 )
 
 AgMD2::~AgMD2()
 {
-    AgMD2_close( session_ );    
+    //AgMD2_close( session_ );
 }
 
 bool

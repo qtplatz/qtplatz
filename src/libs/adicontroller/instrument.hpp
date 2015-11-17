@@ -54,7 +54,7 @@ namespace adicontroller {
             Session();
             virtual ~Session();
 
-            virtual std::shared_ptr< Session > pThis() { return shared_from_this(); }
+            virtual std::shared_ptr< Session > pThis() { try { return shared_from_this(); } catch ( std::bad_weak_ptr& ) { return 0; } }
 
             template<typename T> T* _narrow() {
                 T* p( 0 );

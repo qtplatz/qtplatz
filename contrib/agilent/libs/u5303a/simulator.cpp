@@ -107,30 +107,14 @@ simulator::simulator() : hasWaveform_( false )
 {
     acqTriggered_.clear();
 
-    // try {
-    //     boost::interprocess::managed_shared_memory shm( boost::interprocess::open_only, "waveform_simulator" );
-
-    //     if ( auto mx = shm.find_or_construct< boost::interprocess::interprocess_mutex >( "waveform_simulator_mutex" )( ) ) {
-
-    //         auto ptr = shm.find< waveform_simulator_generator_t >( "waveform_simulator_generator" );
-
-    //         if ( ptr.first ) {
-    //             boost::interprocess::scoped_lock< boost::interprocess::interprocess_mutex > lock( *mx );
-    //             if ( __waveform_simulator_generator = *ptr.first )
-    //                 auto p = __waveform_simulator_generator( 0, 0, 0, 0 );
-    //         }
-    //     }
-    // } catch ( std::exception& ex ) {
-    //     ADDEBUG() << ex.what();
-    //     __waveform_simulator_generator = &waveform_simulator::create;
-    // }
-
     if ( ! adicontroller::waveform_simulator_manager::instance().waveform_simulator( 0, 0, 0, 0 ) ) {
+
+        // No external simulator found, install local simulator
         adicontroller::waveform_simulator_manager::instance().install_factory( [](double _1, double _2, uint32_t _3, uint32_t _4){
                 return std::make_shared< waveform_simulator >(_1, _2, _3, _4);
             });
-    }
 
+    }
 
     // for InfiTOF simulator compatibility
     const double total = 60000;
@@ -252,15 +236,11 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 
         size_t idx = 0;
 
-        for ( auto it = waveform->begin(); it != waveform->end(); ++it ) {
+        if ( auto ptr = adicontroller::waveform_simulator_manager::instance().waveform_simulator(
+                 waveform->meta_.xIncrement, waveform->meta_.initialXOffset, uint32_t( waveform->meta_.actualPoints ), waveform->meta_.actualAverages ) ) {
 
-            double t = startDelay_ + sampInterval_ * idx++;
-            double y = 0;
-            for ( auto& peak : peak_list ) {
-                boost::math::normal_distribution< double > nd( peak.first /* mean */, 5.0e-9 /* sd */);
-                y += boost::math::pdf( nd, t ) * peak.second * 0.001;
-            }
-            *it = int( -y + __noise__() );
+            std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), waveform->begin() );
+
         }
     }
 }
