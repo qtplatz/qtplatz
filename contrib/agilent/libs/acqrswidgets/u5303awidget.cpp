@@ -73,8 +73,12 @@ u5303AWidget::onInitialUpdate()
 
             connect( form, &u5303AForm::valueChanged, [this, table] ( idCategory id, int channel, QVariant value ) {
                     table->onHandleValue( id, channel, value );
-                    if ( id == idU5303AAny || id == idTSREnable )
-                        emit valueChanged( id, channel );
+                    if ( id == idU5303AAny || id == idTSREnable ) {
+                        emit applyTriggered();      // apply method to hardware
+                        emit valueChanged( id, channel ); // for previous compatibility, will be deprecated
+                    } else {
+                        emit dataChanged(); // give a chance to update UI-Complex (such as InfiTOF/U5303A combination)
+                    }
                 } );
             
             
@@ -83,7 +87,7 @@ u5303AWidget::onInitialUpdate()
 
             connect( table, &u5303ATable::valueChanged, [this, form] ( idCategory id, int channel, QVariant value ) {
                     form->onHandleValue( id, channel, value );
-                    // emit valueChanged( id, channel );
+                    emit dataChanged(); // give a chance to update UI-Complex (such as InfiTOF/U5303A combination)
                 } );
         }
     }
@@ -195,4 +199,15 @@ u5303AWidget::set( const acqrscontrols::u5303a::method& m )
         table->setContents( m.method_ );
     }
     return true;
+}
+
+void
+u5303AWidget::setEnabled( const QString& name, bool enable )
+{
+    if ( auto form = findChild< u5303AForm * >() ) {
+        form->setEnabled( name, enable );
+    }
+    if ( auto table = findChild< u5303ATable *>() ) {
+        table->setEnabled( name, enable );
+    }
 }

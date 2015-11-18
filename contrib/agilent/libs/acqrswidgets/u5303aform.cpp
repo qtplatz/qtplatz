@@ -198,3 +198,13 @@ u5303AForm::onHandleValue( idCategory id, int channel, const QVariant& value )
         break;
     }
 }
+
+void
+u5303AForm::setEnabled( const QString& name, bool enable )
+{
+    if ( name == "StartDelay" )
+        ui->doubleSpinBox_1->setEnabled( enable );
+
+    if ( name == "Width" )
+        ui->doubleSpinBox_2->setEnabled( enable );    
+}

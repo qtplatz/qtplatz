@@ -50,6 +50,8 @@ namespace acqrswidgets {
 
         void onHandleValue( idCategory, int, const QVariant& );
 
+        void setEnabled( const QString&, bool );
+
     private:
         class MyDelegate;
         QStandardItemModel * model_;

@@ -51,6 +51,8 @@ namespace acqrswidgets {
 
         void onHandleValue( idCategory, int, const QVariant& );
 
+        void setEnabled( const QString&, bool );
+
     signals:
         void valueChanged( idCategory, int channel, const QVariant& );
         
