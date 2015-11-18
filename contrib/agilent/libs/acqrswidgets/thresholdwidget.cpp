@@ -25,6 +25,7 @@
 #include "thresholdwidget.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/timedigitalmethod.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
 #include <adwidgets/findslopeform.hpp>
@@ -99,8 +100,9 @@ ThresholdWidget::getContents( boost::any& a ) const
     acqrscontrols::u5303a::method m;
 
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
-
+        // depricated -- for backward compatibility purpose
         adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
+#if 0
         if ( modelClass_ == acqrscontrols::u5303a::method::modelClass() ) {
             auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
 
@@ -112,17 +114,15 @@ ThresholdWidget::getContents( boost::any& a ) const
 
             return true;
         }
-        // TBA: ap240 code and time event code
+        // end deprecated
+#endif
+        adcontrols::TimeDigitalMethod tdm;
+        get( tdm );
+        ptr->append( tdm );
         
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
         // time function
-        auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
-        get( 0, m.threshold_ );
-        //pi->setModelname( m.modelClass() );
-        //pi->setItemLabel( m.itemClass() );
-        //pi->unitnumber( 1 );
-        //pi->funcid( 1 );
-        pi->set<>( *pi, m ); // serialize
+        //assert( 0 );  // TBA
         return true;
 
     } else if ( adportable::a_type< acqrscontrols::u5303a::method >::is_pointer( a ) ) {
@@ -149,15 +149,14 @@ ThresholdWidget::setContents( boost::any& a )
         ptr = boost::any_cast <std::shared_ptr< adcontrols::ControlMethod::Method>>( a );
     }
     if ( ptr ) {
-        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
-        if ( it != ptr->end() ) {
-            acqrscontrols::u5303a::method m;
-            if ( it->get<>( *it, m ) )
-                set( 0, m.threshold_ );
+        auto it = ptr->find( ptr->begin(), ptr->end(), adcontrols::TimeDigitalMethod::modelClass() );
+        if ( it != ptr->end() ) {        
+            adcontrols::TimeDigitalMethod tdm;
+            if ( it->get<>( *it, tdm ) )
+                set( tdm );
         }
         return true;
     }
-
     return false;
 }
 
@@ -171,72 +170,41 @@ ThresholdWidget::onStatus( int )
 {
 }
 
-#if 0
 void
-ThresholdWidget::set( const acqrscontrols::ap240::method& m )
+ThresholdWidget::get( adcontrols::TimeDigitalMethod& m ) const
 {
-    if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
-        QSignalBlocker block( gbox );
-        gbox->setChecked( m.channels_ & 0x01 );
-    }
-    if ( auto gbox = findChild< QGroupBox * >( "CH-2" ) ) {
-        QSignalBlocker block( gbox );
-        gbox->setChecked( m.channels_ & 0x02 );
-    }
-    if ( auto gbox = findChild< QGroupBox * >( "Ext" ) ) {
-        QSignalBlocker block( gbox );
-        gbox->setChecked( m.trig_.trigPattern & 0x80000000 );
+    m.thresholds().clear();
+
+    for ( uint32_t ch = 0; ch < nChannels_; ++ch ) {
+        if ( auto form = findChild< adwidgets::findSlopeForm * >( QString( "CH%1" ).arg( char( '1' + ch ) ) ) ) {
+            adcontrols::threshold_method t;
+            form->get( t );
+            m.thresholds().push_back( t );
+        }
     }
 
-    if ( auto form = findChild< ap240HorizontalForm *>() ) {
-        QSignalBlocker block( form );
-        form->set( m );
+    if ( auto form = findChild< adwidgets::ThresholdActionForm *>() ) {
+        adcontrols::threshold_action a;
+        form->get( a );
+        m.action() = a;
     }
-    
-    if ( auto form = findChild< ap240TriggerForm *>() ) {
-        QSignalBlocker block( form );
-        form->set( m );        
-    }
-    
-    for ( auto form : findChildren< ap240VerticalForm * >() ) {
-        QSignalBlocker block( form );
-        form->set( m );        
-    }
-    set( 0, m.slope1_ );
-    set( 1, m.slope2_ );
 }
 
 void
-ThresholdWidget::get( acqrscontrols::ap240::method& m ) const
+ThresholdWidget::set( const adcontrols::TimeDigitalMethod& m )
 {
-    uint32_t channels( 0 );
-    
-    if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
-        if ( gbox->isChecked() )
-            channels |= 1;             
-    }
-    if ( auto gbox = findChild< QGroupBox * >( "CH-2" ) ) {
-        if ( gbox->isChecked() )
-            channels |= 2;
-    }    
-    m.channels_ = channels;
- 
-    if ( auto form = findChild< ap240HorizontalForm *>() ) {
-        form->get( m );
+    for ( uint32_t ch = 0; ch < nChannels_; ++ch ) {
+        if ( m.thresholds().size() > ch ) {
+            if ( auto form = findChild< adwidgets::findSlopeForm * >( QString( "CH%1" ).arg( char( '1' + ch ) ) ) ) {
+                form->set( m.thresholds()[ ch ] );
+            }
+        }
     }
     
-    if ( auto form = findChild< ap240TriggerForm *>() ) {
-        form->get( m );        
+    if ( auto form = findChild< adwidgets::ThresholdActionForm *>() ) {
+        form->set( m.action() );
     }
-    
-    for ( auto form : findChildren< ap240VerticalForm * >() ) {
-        form->get( m );        
-    }
-
-    get( 0, m.slope1_ );
-    get( 1, m.slope2_ );
 }
-#endif
 
 void
 ThresholdWidget::get( int ch, adcontrols::threshold_method& m ) const

@@ -49,10 +49,13 @@ namespace acqrscontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.channels_ );
                 ar & BOOST_SERIALIZATION_NVP( _.mode_ );
                 ar & BOOST_SERIALIZATION_NVP( _.method_ );
-                ar & BOOST_SERIALIZATION_NVP( _.threshold_ );
-                if ( version >= 5 )
-                    ar & BOOST_SERIALIZATION_NVP( _.action_ );                    
-
+                if ( version < 6 ) {
+                    // follwing items has been removed since v6
+                    adcontrols::threshold_method threshold;
+                    adcontrols::threshold_action action;
+                    ar & BOOST_SERIALIZATION_NVP( threshold );
+                    ar & BOOST_SERIALIZATION_NVP( action );
+                }
             }
 
         };
@@ -138,7 +141,7 @@ method:: method() : channels_( 0x01 )
 method:: method( const method& t ) : channels_( t.channels_ )
                                    , mode_( t.mode_ )
                                    , method_( t.method_ )
-                                   , threshold_( t.threshold_ )
-                                   , action_( t.action_ )
+//                                   , threshold_( t.threshold_ )
+//                                   , action_( t.action_ )
 {
 }

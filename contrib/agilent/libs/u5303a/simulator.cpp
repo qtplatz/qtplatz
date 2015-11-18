@@ -236,8 +236,13 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 
         size_t idx = 0;
 
-        if ( auto ptr = adicontroller::waveform_simulator_manager::instance().waveform_simulator(
-                 waveform->meta_.xIncrement, waveform->meta_.initialXOffset, uint32_t( waveform->meta_.actualPoints ), waveform->meta_.actualAverages ) ) {
+        if ( auto ptr = adicontroller::waveform_simulator_manager::instance().waveform_simulator( waveform->meta_.xIncrement
+                                                                                                  , waveform->meta_.initialXOffset
+                                                                                                  , uint32_t( waveform->meta_.actualPoints )
+                                                                                                  , waveform->meta_.actualAverages ) ) {
+            
+            ptr->addIons( ions_ );
+			ptr->onTriggered();
 
             std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), waveform->begin() );
 

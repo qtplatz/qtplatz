@@ -40,6 +40,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/samplerun.hpp>
+#include <adcontrols/timedigitalmethod.hpp>
 #include <adextension/isnapshothandler.hpp>
 #include <adextension/icontrollerimpl.hpp>
 #include <adextension/isequenceimpl.hpp>
@@ -95,12 +96,6 @@ namespace u5303a {
         static const std::chrono::steady_clock::time_point uptime_;
         static const uint64_t tp0_;
 
-        // // tempolary -- will be rmoved
-        // std::string time_datafile_;
-        // std::string hist_datafile_;
-        // std::vector< std::shared_ptr< acqrscontrols::u5303a::threshold_result > > que2_;
-        // // <--- will be removed ---
-        
         std::shared_ptr< tdcdoc > tdcdoc_;
         std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
         std::shared_ptr< ::u5303a::iControllerImpl > iControllerImpl_;
@@ -113,6 +108,7 @@ namespace u5303a {
         std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
         std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
         std::shared_ptr< acqrscontrols::u5303a::method > method_;
+        std::shared_ptr< adcontrols::TimeDigitalMethod > tdm_;
         std::shared_ptr< ResultWriter > resultWriter_;
 
         int32_t device_status_;
@@ -133,6 +129,7 @@ namespace u5303a {
                , device_status_( 0 )
                , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
                , method_( std::make_shared< acqrscontrols::u5303a::method >() )
+               , tdm_( std::make_shared< adcontrols::TimeDigitalMethod>() )
                , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                            , QLatin1String( "u5303a" ) ) )
@@ -208,7 +205,7 @@ document::actionConnect()
 
         auto cm = MainWindow::instance()->getControlMethod();
         setControlMethod( *cm, QString() );
-        tdc()->set_threshold_method( 0, impl_->method_->threshold_ );
+        tdc()->set_threshold_method( 0, impl_->tdm_->threshold( 0 ) );
 
         futures.clear();
         for ( auto& iController : impl_->iControllers_ ) {
@@ -621,6 +618,15 @@ document::setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method >
             impl_->cm_ = ptr;
         }
     } while(0);
+
+    do {
+        auto it = ptr->find( ptr->begin(), ptr->end(), adcontrols::TimeDigitalMethod::modelClass() );
+        if ( it != ptr->end() ) {
+            adcontrols::TimeDigitalMethod tdm;
+            if ( it->get( *it, tdm ) )
+                *impl_->tdm_;
+        }
+    } while ( 0 );
 
     if ( ! filename.isEmpty() ) {
         impl_->ctrlmethod_filename_ = filename;

@@ -828,11 +828,12 @@ MainWindow::createTopStyledToolbar()
         toolBarLayout->setSpacing( 4 );
         if ( auto cmdLayout = new QHBoxLayout() ) {
             if ( auto am = Core::ActionManager::instance() ) {
-                cmdLayout->addWidget( toolButton(am->command(Constants::ACTION_CONNECT)->action() ) );
+                cmdLayout->addWidget( toolButton( am->command(Constants::ACTION_CONNECT)->action() ) );
                 cmdLayout->addWidget( toolButton( am->command( Constants::ACTION_INITIALRUN )->action() ) );
-                cmdLayout->addWidget( toolButton(am->command(Constants::ACTION_RUN)->action() ) );
-                cmdLayout->addWidget( toolButton(am->command(Constants::ACTION_STOP)->action() ) );
-                cmdLayout->addWidget( toolButton(am->command(Constants::ACTION_SNAPSHOT)->action() ) );
+                cmdLayout->addWidget( toolButton( am->command(Constants::ACTION_RUN)->action() ) );
+                cmdLayout->addWidget( toolButton( am->command(Constants::ACTION_STOP)->action() ) );
+                cmdLayout->addWidget( toolButton( am->command(Constants::ACTION_SNAPSHOT)->action() ) );
+                cmdLayout->addWidget( toolButton( am->command(Constants::ACTION_INJECT)->action() ) );
             }
             toolBarLayout->addLayout( cmdLayout );
             //-- separator --

@@ -41,6 +41,21 @@ namespace adicontroller {
             , eStop                     //= 0x00000009,  // stop := detector is not monitoring, pump is off
             , eErrorFlag = 0x80000000
         };
+
+        enum eInstEvent  {
+            instEventNothing,
+            instEventHeartBeat,
+            instEventStateChanged,
+            instEventConfigChanged,
+            instEventUpdateData,
+            instEventStartIn,
+            instEventStartOut,
+            instEventInjectIn,
+            instEventInjectOut,
+            instEventEventIn,
+            instEventEventOut
+        };
+        
     };
 
     namespace SignalObserver {

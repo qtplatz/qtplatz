@@ -31,7 +31,7 @@
 #include "constants.hpp"
 #include <memory>
 
-namespace adcontrols { class threshold_method; class threshold_action; }
+namespace adcontrols { class threshold_method; class threshold_action; class TimeDigitalMethod; }
 
 namespace acqrswidgets {
     
@@ -56,6 +56,9 @@ namespace acqrswidgets {
     
         void onInitialUpdate();
         void onStatus( int );
+
+        void get( adcontrols::TimeDigitalMethod& ) const;
+        void set( const adcontrols::TimeDigitalMethod& );
 
         void get( int ch, adcontrols::threshold_method& ) const;    
         void set( int ch, const adcontrols::threshold_method& );    

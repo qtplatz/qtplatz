@@ -28,30 +28,54 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/version.hpp>
 
+#include "threshold_method.hpp"
+#include "threshold_action.hpp"
+#include <vector>
+#include <iostream>
+
 namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT threshold_action {
+#if defined _MSC_VER
+    ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < threshold_method > ;
+#endif
+
+    template<typename T> class TimeDigitalMethod_archive;
+
+    class ADCONTROLSSHARED_EXPORT TimeDigitalMethod {
     public:
-        ~threshold_action(void);
-        threshold_action(void);
-		threshold_action(const threshold_action &);
-        static const char * modelClass() { return "threshold_action"; }
+        ~TimeDigitalMethod(void);
+        TimeDigitalMethod(void);
+		TimeDigitalMethod( const TimeDigitalMethod& );
 
-        bool enable;
-        double delay;
-        double width;
-        bool enableTimeRange;
-        bool recordOnFile;
-        bool exclusiveDisplay;
+        static const char * modelClass() { return "TimeDigitalMethod"; }
 
+        std::vector< threshold_method >& thresholds();
+        const std::vector< threshold_method >& thresholds() const;
+
+        const threshold_method& threshold( size_t ch ) const;
+        void setThreshold( size_t ch, const threshold_method& );
+
+        threshold_action& action();
+        const threshold_action& action() const;
+
+        static bool archive( std::ostream&, const TimeDigitalMethod& );
+        static bool restore( std::istream&, TimeDigitalMethod& );
+        static bool xml_archive( std::wostream&, const TimeDigitalMethod& );
+        static bool xml_restore( std::wistream&, TimeDigitalMethod& );
+        
     private:
+        std::vector< threshold_method > thresholds_;
+        threshold_action action_;
+        
+        friend class TimeDigitalMethod_archive < TimeDigitalMethod > ;
+        friend class TimeDigitalMethod_archive < const TimeDigitalMethod > ;
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
 	};
     
 }
 
-BOOST_CLASS_VERSION( adcontrols::threshold_action, 1 )
+BOOST_CLASS_VERSION( adcontrols::TimeDigitalMethod, 0 )
 

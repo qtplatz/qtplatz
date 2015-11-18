@@ -141,10 +141,10 @@ WaveformWnd::onInitialUpdate()
 void
 WaveformWnd::handle_threshold_method( int ch )
 {
-    if ( auto method = document::instance()->method() ) {
+    if ( auto th = document::instance()->tdc()->threshold_method( ch ) ) {
 
         bool replot( false );
-        double level_mV = method->threshold_.threshold_level * 1.0e3;
+        double level_mV = th->threshold_level * 1.0e3;
 
         ADDEBUG() << "threhsold_level = " << level_mV << "mV";
 
@@ -152,8 +152,8 @@ WaveformWnd::handle_threshold_method( int ch )
             threshold_markers_[ ch ]->setYValue( level_mV );
             replot = true;
         }
-        if ( method->threshold_.enable != threshold_markers_[ ch ]->isVisible() ) {
-            threshold_markers_[ ch ]->setVisible( method->threshold_.enable );
+        if ( th->enable != threshold_markers_[ ch ]->isVisible() ) {
+            threshold_markers_[ ch ]->setVisible( th->enable );
             replot = true;
         }
         if ( replot )
