@@ -26,6 +26,7 @@ link_directories( ${QTPLATZ_SOURCE_DIR}/../build-x86_64/qtplatz.debug/lib/qtplat
 
 target_link_libraries( ${PROJECT_NAME}
   /home/toshi/src/build-x86_64/qtplatz.release/lib/qtplatz/libu5303a.so
+  /home/toshi/src/build-x86_64/qtplatz.release/lib/qtplatz/libadcontrols.so
   /home/toshi/src/build-x86_64/qtplatz.release/lib/qtplatz/libacqrscontrols.so
   ${Boost_LIBRARIES}
   AgMD2 dl )
