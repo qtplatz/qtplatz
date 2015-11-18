@@ -278,3 +278,14 @@ u5303ATable::onHandleValue( idCategory id, int channel, const QVariant& value )
     }
 }
 
+void
+u5303ATable::setEnabled( const QString& name, bool enable )
+{
+    if ( name == "StartDelay" ) {
+        if ( auto item = model_->item( delay_to_first_sample, c_item_value ) )
+            item->setEditable( enable );
+    } else if ( name == "Width" ) {
+        if ( auto item = model_->item( number_of_samples, c_item_value ) )
+            item->setEditable( enable );
+    }
+}

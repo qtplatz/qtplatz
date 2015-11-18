@@ -55,11 +55,15 @@ namespace acqrswidgets {
 
         bool get( acqrscontrols::u5303a::method& ) const;
         bool set( const acqrscontrols::u5303a::method& );
-        
+
+        void setEnabled( const QString&, bool );
+
     private:
         
     signals :
-        void valueChanged( idCategory, int channel );
+        void valueChanged( idCategory, int channel ); // historical, deprecated
+        void dataChanged();
+        void applyTriggered();
 
     public slots:
 
