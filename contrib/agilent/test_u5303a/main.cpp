@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <chrono>
+#include <ostream>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -38,6 +39,68 @@
 #include <vector>
 
 namespace po = boost::program_options;
+
+class execStatistics {
+    execStatistics( const execStatistics& ) = delete; // non copyable
+
+public:
+    double last_;
+    size_t deadCount_;
+    size_t dataCount_;
+    double rate_;
+    std::chrono::steady_clock::time_point tp_;
+    std::vector< std::pair< double, double > > exceededTimings_;
+
+    execStatistics() : last_( 0 )
+                     , deadCount_( 0 )
+                     , dataCount_( 0 )
+                     , rate_( 0 )
+                     , tp_( std::chrono::steady_clock::now() ) {
+    }
+
+    inline double difference_from_last( double seconds ) {
+        return seconds - last_;
+    }
+
+    static execStatistics& instance() {
+
+        // lasy initialized singleton
+
+        static execStatistics __instance;
+        return __instance;
+
+    }
+};
+
+std::ostream& operator << ( std::ostream& out, const execStatistics& t )
+{
+    uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::steady_clock::now() - t.tp_ ).count();
+    double s = double(ns) * 1.0e-9;
+    
+    out << "Took " << s << " seconds; " << double(t.dataCount_) / s << "Hz" << std::endl;
+    out << t.deadCount_ << " DEAD data received / " << t.dataCount_ << " waveforms read" << std::endl;
+    out << t.exceededTimings_.size() << " waveforms has the trigger timing exceeded from external trig rate of " << t.rate_ << std::endl;
+    
+    for ( auto& pair: t.exceededTimings_ )
+        out << "waveform at " << pair.first << " interval: " << pair.second << std::endl;
+}
+
+#if defined __linux
+
+#include <csignal>
+
+static void sigint(int num )
+{
+    std::cout << "************* got signal " << num << " ***************" << std::endl;
+
+    std::cout << execStatistics::instance() << std::endl;
+    
+    std::cout << "Merci, Salut" << std::endl;
+    exit( num );
+}
+
+#endif
+
 
 int
 main( int argc, char * argv [] )
@@ -71,9 +134,16 @@ main( int argc, char * argv [] )
     if ( vm.count( "tsr" ) ) {
         TSR_enabled = true;
     }
-        
 
-    double rate = vm[ "rate" ].as<double>() * 1.0e-3 * 1.2; // milliseconds -> seconds + 20%
+#if defined __linux
+    signal( SIGINT, &sigint );
+    signal( SIGQUIT, &sigint );
+    signal( SIGABRT, &sigint );
+    signal( SIGHUP, &sigint );
+    signal( SIGKILL, &sigint );
+#endif
+
+    execStatistics::instance().rate_ = vm[ "rate" ].as<double>() * 1.0e-3 * 1.2; // milliseconds -> seconds + 20%
 
     ppio pp;
 
@@ -90,7 +160,7 @@ main( int argc, char * argv [] )
         }
         
         if ( !simulated ) {
-            for ( auto& res : { "PXI4::0::0::INSTR", "PXI3::0::0::INSTR", "PXI2::0::0::INSTR", "PXI1::0::0::INSTR" } ) {
+            for ( auto& res : { "PXI5::0::0::INSTR", "PXI4::0::0::INSTR", "PXI3::0::0::INSTR", "PXI2::0::0::INSTR", "PXI1::0::0::INSTR" } ) {
                 std::cout << "Initialize resource: " << res;
                 if ( success = md2->InitWithOptions( res, VI_TRUE, VI_TRUE, strInitOptions ) )
                     break;
@@ -169,15 +239,14 @@ main( int argc, char * argv [] )
 
             md2->CalibrationSelfCalibrate();
             
-            std::vector< std::pair< double, double > > exceededTimings;
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
 
             const size_t replicates = vm[ "replicates" ].as<int>();
 
             std::cout << "Replicates: " << replicates << std::endl;
-            size_t deadcount(0);
-            double seconds(0), last(0);
-            size_t dataCount(0);
+            // size_t deadcount(0);
+            // double seconds(0), last(0);
+            // size_t dataCount(0);
 
             std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();            
             
@@ -185,7 +254,7 @@ main( int argc, char * argv [] )
 
                 md2->AcquisitionInitiate();
                 
-                while ( replicates > dataCount ) {
+                while ( replicates > execStatistics::instance().dataCount_ ) {
                     
                     if ( md2->TSRMemoryOverflowOccured() ) {
                         std::cout << "***** Memory Overflow" << std::endl;
@@ -199,17 +268,21 @@ main( int argc, char * argv [] )
                     md2->TSRContinue();
                     
                     for ( auto& waveform: vec ) {
+
                         // report if trigger receive interval exceeded
-                        seconds = waveform->meta_.initialXTimeSeconds;
-                        if ( last != 0 ) {
-                            double interval = seconds - last;
-                            if ( interval > rate )
-                                exceededTimings.push_back( std::make_pair( seconds, interval ) );
+                        double seconds = waveform->meta_.initialXTimeSeconds;
+
+                        if ( std::abs( execStatistics::instance().last_ ) >= std::numeric_limits<double>::epsilon() ) {
+
+                            double interval = execStatistics::instance().difference_from_last( seconds );
+                            if ( interval > execStatistics::instance().rate_ )
+                                execStatistics::instance().exceededTimings_.push_back( std::make_pair( seconds, interval ) );
+
                         }
-                        last = seconds;
+                        execStatistics::instance().last_ = seconds;
                     }
                     
-                    dataCount += vec.size();
+                    execStatistics::instance().dataCount_ += vec.size();
                     
                     constexpr size_t deadsize = 100;
                     for ( auto& waveform: vec ) {
@@ -220,8 +293,9 @@ main( int argc, char * argv [] )
                             if ( ++count >= deadsize )
                                 break;
                         }
+                        
                         if ( count >= deadsize )
-                            ++deadcount;
+                            execStatistics::instance().deadCount_++;
                     }
                     
                     vec.clear();  // throw waveforms away.
@@ -239,21 +313,23 @@ main( int argc, char * argv [] )
                     pp << uint8_t( 0x02 );
 
                     u5303a::digitizer::readData( *md2, method, vec );
-                    dataCount += vec.size();
+                    execStatistics::instance().dataCount_ += vec.size();
 
                     vec.clear();
                 }
             }
-            
-            uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::steady_clock::now() - tp ).count();
-            double s = double(ns) * 1.0e-9;
-            std::cout << "Took " << s << " seconds; " << double(dataCount) / s << "Hz" << std::endl;
-            std::cout << deadcount << " DEAD data received / " << dataCount << " waveforms read" << std::endl;
-            std::cout << exceededTimings.size() << " waveforms has the trigger timing exceeded from external trig rate of " << rate << std::endl;
 
-            for ( auto& pair: exceededTimings ) {
-                std::cout << "waveform at " << pair.first << " interval: " << pair.second << std::endl;
-            }
+            std::cout << execStatistics::instance();
+            
+            // uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::steady_clock::now() - tp ).count();
+            // double s = double(ns) * 1.0e-9;
+            // std::cout << "Took " << s << " seconds; " << double(dataCount) / s << "Hz" << std::endl;
+            // std::cout << deadcount << " DEAD data received / " << dataCount << " waveforms read" << std::endl;
+            // std::cout << exceededTimings.size() << " waveforms has the trigger timing exceeded from external trig rate of " << rate << std::endl;
+
+            // for ( auto& pair: exceededTimings ) {
+            //     std::cout << "waveform at " << pair.first << " interval: " << pair.second << std::endl;
+            // }
         }
     }
     
