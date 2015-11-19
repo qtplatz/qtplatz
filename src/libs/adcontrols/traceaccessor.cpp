@@ -46,6 +46,8 @@ TraceAccessor&
 TraceAccessor::operator += ( const TraceAccessor& t )
 {
 	trace_.insert( trace_.end(), t.trace_.begin(), t.trace_.end() );
+	if ( maxfcn_ < t.maxfcn_ )
+		maxfcn_ = t.maxfcn_;
     return *this;
 }
 

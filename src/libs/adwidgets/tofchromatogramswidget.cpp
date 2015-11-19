@@ -236,8 +236,8 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
         item.setFormula( query.value( "formula" ).toString().toStdString() );
         item.setMass( query.value( "mass" ).toDouble() );
         item.setMassWindow( query.value( "masswindow" ).toDouble() );
-        item.setTime( query.value( "time" ).toDouble() );
-        item.setTimeWindow( query.value( "timewindow" ).toDouble() );
+		item.setTime( query.value( "time" ).toDouble() * 1.0e-6 ); // us -> s
+        item.setTimeWindow( query.value( "timewindow" ).toDouble() * 1.0e-9 ); // ns -> s
         item.setIntensityAlgorithm( adcontrols::TofChromatogramMethod::eIntensityAlgorishm(  query.value( "algorithm" ).toInt() ) );
         m << item;
     }
@@ -264,8 +264,8 @@ TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m
         query.addBindValue( QString::fromStdString( item.formula() ) );
         query.addBindValue( item.mass() );
         query.addBindValue( item.massWindow() );
-        query.addBindValue( item.time() );
-        query.addBindValue( item.timeWindow() );
+        query.addBindValue( item.time() * 1.0e6 );       // s -> us
+		query.addBindValue( item.timeWindow() * 1.0e9 ); // s -> ns
         query.addBindValue( item.intensityAlgorithm() );
         if ( !query.exec() )
             qDebug() << "error: " << query.lastError();
