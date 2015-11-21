@@ -26,19 +26,24 @@
 
 #include <memory>
 
-namespace u5303a {
+namespace acqrscontrols {
+    namespace u5303a {
 
-    class mblock : public std::enable_shared_from_this< mblock > {
-        std::unique_ptr< uint8_t [] > pData_;
-    public:
+        template<typename value_type=int32_t>
+        class mblock : public std::enable_shared_from_this< mblock<value_type> > {
 
-        const size_t default_size_octets = 256 * 1024 * 1024 * sizeof( int32_t );
+            std::unique_ptr< value_type [] > pData_;
+            size_t size_;
+            mblock( const mblock& ) = delete;
 
-        mblock( size_t blocksize = default_size_octets ) : pData_( new T [ blocksize ] ) {
-        }
+        public:
 
-		uint8_t * data() { return pData_.get(); }
-    };
-    
+            mblock( size_t size = 256 * 0x1000000LL ) : pData_( new value_type[ size ] )
+                                                      , size_( size ) {
+            }
+        
+            value_type * data() { return pData_.get(); }
+            const value_type * data() const { return pData_.get(); }
+        };
+    }
 }
-

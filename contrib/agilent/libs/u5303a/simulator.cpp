@@ -24,7 +24,7 @@
 
 #include "simulator.hpp"
 #include "digitizer.hpp"
-#include "mblock.hpp"
+#include <acqrscontrols/u5303a/mblock.hpp>
 #include <adicontroller/waveform_simulator_manager.hpp>
 #include <adicontroller/waveform_simulator.hpp>
 #include <adportable/debug.hpp>
@@ -193,7 +193,7 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
     } while(0);
     
     if ( ptr ) {
-		auto mblk = std::make_shared< mblock<int32_t> >( ptr->nbrSamples() );
+		auto mblk = std::make_shared< acqrscontrols::u5303a::mblock<int32_t> >( ptr->nbrSamples() );
 
         auto dp = mblk->data();
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );

@@ -119,10 +119,11 @@ ResultWriter::dump_waveform()
         
         boost::archive::xml_woarchive ar( of );
         ar & boost::serialization::make_nvp( "meta", waveform->meta_ );
-        
-        auto dp = waveform->data();
-        for ( size_t i = 0; i < waveform->size(); ++i )
-            of << boost::wformat( L"0x%04x, " ) % dp[i];
+
+        for ( size_t i = 0; i < waveform->size(); ++i ) {
+            auto pair = waveform->xy(i);
+            of << boost::wformat( L"0x%04x, " ) % pair.second;
+        }
         of << std::endl;
     }
     

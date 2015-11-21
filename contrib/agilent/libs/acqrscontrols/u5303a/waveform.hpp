@@ -29,6 +29,7 @@
 #include "identify.hpp"
 #include "metadata.hpp"
 #include <boost/serialization/version.hpp>
+#include <boost/variant.hpp>
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -46,7 +47,7 @@ namespace acqrscontrols {
         class method;
         class ident;
         class metadata;
-		class mblock;
+        template<typename T> class mblock;
 
         class ACQRSCONTROLSSHARED_EXPORT device_data {
             device_data( const device_data& ) = delete;
@@ -91,16 +92,12 @@ namespace acqrscontrols {
 
             typedef int32_t value_type;
             
-            //value_type * data( size_t size ) { d_.resize( size ); return d_.data(); } // raw data pointer
-            //const value_type * data() const { return d_.data() + firstValidPoint_; }  // raw data pointer
-            //size_t data_size() const { return d_.size(); }
-            //void resize( size_t size ) { d_.resize( size ); }
-            void setData( const std::shared_ptr< mblock >&, size_t firstValidPoint );
+            void setData( const std::shared_ptr< mblock<int32_t> >&, size_t firstValidPoint );
+            void setData( const std::shared_ptr< mblock<int16_t> >&, size_t firstValidPoint );
 
-            std::pair<double, int> operator [] ( size_t idx ) const;
-
+            int operator [] ( size_t idx ) const;
+            std::pair<double, int> xy( size_t idx ) const;
             double toVolts( int ) const;
-
             double toVolts( double ) const;
 
             const identify* ident() const { return ident_.get(); }
@@ -127,10 +124,9 @@ namespace acqrscontrols {
 #pragma warning(push)
 #pragma warning(disable:4251)
 #endif
-            //std::vector< int32_t > d_;
             std::shared_ptr< identify > ident_;
-            std::shared_ptr< mblock > mblock_;
-
+            boost::variant < std::shared_ptr< mblock<int32_t> >, std::shared_ptr< mblock<int16_t> > > mblock_;
+            
 #if defined _MSC_VER
 #pragma warning(pop)
 #endif

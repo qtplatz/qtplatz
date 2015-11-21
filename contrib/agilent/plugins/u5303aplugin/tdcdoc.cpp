@@ -151,13 +151,8 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
     bool flag;
 
     // workaround
-    size_t count(0);
-    for ( auto it = data.begin(); it != data.end(); ++it ) {
-        if ( !( *it == 0 || *it == 0xffffdead ) )
-            break;
-        if ( ++count >= 100 )
-            return;
-    }
+    if ( data.isDEAD() )
+        return;
     // <<-- workaround
 
     if ( method.use_filter ) {
@@ -165,7 +160,7 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
         processed.resize( data.size() );
 
         for ( size_t i = 0; i < data.size(); ++i )
-            processed[ i ] = data.toVolts( data.data()[ i ] );
+            processed[ i ] = data.toVolts( data[ i ] );
 
         if ( method.filter == adcontrols::threshold_method::SG_Filter ) {
 

@@ -25,6 +25,7 @@
 #include "waveform.hpp"
 #include "threshold_result.hpp"
 #include "method.hpp"
+#include "mblock.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -162,8 +163,18 @@ waveform::size() const
     return meta_.actualPoints;
 }
 
-std::pair<double, int>
+int
 waveform::operator [] ( size_t idx ) const
+{
+    switch( meta_.dataType ) {
+    case 2: return *(begin<int16_t>() + idx);
+    case 4: return *(begin<int32_t>() + idx);
+    }
+	throw std::bad_cast();    
+}
+
+std::pair<double, int>
+waveform::xy( size_t idx ) const
 {
     double time = idx * meta_.xIncrement + meta_.initialXOffset;
 
@@ -408,34 +419,78 @@ waveform::isDEAD() const
     return true;
 }
 
+void
+waveform::setData( const std::shared_ptr< mblock<int32_t> >& mblk, size_t firstValidPoint )
+{
+    mblock_ = mblk;
+    firstValidPoint_ = firstValidPoint;
+}
+
+void
+waveform::setData( const std::shared_ptr< mblock<int16_t> >& mblk, size_t firstValidPoint )
+{
+    mblock_ = mblk;
+    firstValidPoint_ = firstValidPoint;
+}
+
 template<> const int16_t *
 waveform::begin() const
 {
-    if ( meta_.dataType != sizeof(int16_t) )
-		throw std::bad_cast();
-    return reinterpret_cast< const int16_t* >( mblock_.get() ) + firstValidPoint_;
+    if ( mblock_.which() == 1 ) {
+        auto& mblk = boost::get < std::shared_ptr< mblock<int16_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();
 }
 
 template<> const int16_t *
 waveform::end() const
 {
-    if ( meta_.dataType != sizeof(int16_t) )
-        throw std::bad_cast();
-	return reinterpret_cast<const int16_t*>( mblock_.get() ) + firstValidPoint_ + meta_.actualPoints;
+    if ( mblock_.which() == 1 ) {
+        auto& mblk = boost::get < std::shared_ptr< mblock<int16_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_ + meta_.actualPoints;
+    }
+    throw std::bad_cast();
 }
 
 template<> const int32_t *
 waveform::begin() const
 {
-    if ( meta_.dataType != sizeof(int32_t) )
-        throw std::bad_cast();                
-	return reinterpret_cast<const int32_t*>( mblock_.get() ) + firstValidPoint_;
+    if ( mblock_.which() == 0 ) {
+        auto& mblk = boost::get < std::shared_ptr< mblock<int32_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();
 }
 
 template<> const int32_t *
 waveform::end() const
 {
-    if ( meta_.dataType != sizeof(int32_t) )
-        throw std::bad_cast();                    
-	return reinterpret_cast<const int32_t*>( mblock_.get() ) + firstValidPoint_ + meta_.actualPoints;
+    if ( mblock_.which() == 0 ) {
+        auto& mblk = boost::get < std::shared_ptr< mblock<int32_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_ + meta_.actualPoints;
+    }
+    throw std::bad_cast();
 }
+
+template<> int16_t *
+waveform::data()
+{
+    if ( mblock_.which() == 1 ) {
+        auto& mblk = boost::get < std::shared_ptr< mblock<int16_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();    
+}
+
+template<> int32_t *
+waveform::data()
+{
+    if ( mblock_.which() == 0 ) {
+        auto& mblk = boost::get < std::shared_ptr< mblock<int32_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();        
+}
+
+

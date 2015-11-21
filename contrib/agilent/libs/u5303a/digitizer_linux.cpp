@@ -26,7 +26,7 @@
 #include "simulator.hpp"
 #include "agmd2.hpp"
 #include "automaton.hpp"
-#include "mblock.hpp"
+#include <acqrscontrols/u5303a/mblock.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
@@ -806,7 +806,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
              AgMD2_QueryMinWaveformMemory( md2.session(), 16, numRecords, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
 
-        auto mblk = std::make_shared< mblock<ViInt16> >( arraySize );
+        auto mblk = std::make_shared< acqrscontrols::u5303a::mblock<int16_t> >( arraySize );
 
 		//std::unique_ptr< ViInt16[] > dataArray( new ViInt16[ arraySize ] );
         
@@ -888,7 +888,7 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
 
         const auto& tp = task::instance()->tp_acquire();        
         uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
-		auto mblk = std::make_shared< mblock<int32_t> >( arraySize );
+		auto mblk = std::make_shared< acqrscontrols::u5303a::mblock<int32_t> >( arraySize );
         
         if ( AgMD2::log( AgMD2_FetchWaveformInt32( md2.session()
                                                    , "Channel1"
@@ -942,6 +942,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
         ViReal64 initialXTimeSeconds[numRecords] = {0}, initialXTimeFraction[numRecords] = {0};
         ViReal64 initialXOffset(0), xIncrement(0), scaleFactor(0), scaleOffset(0);
         ViInt32 flags[numRecords];
+        auto mblk = std::make_shared< acqrscontrols::u5303a::mblock<int32_t> >( arraySize );
 
         const auto& tp = task::instance()->tp_acquire();
         uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
@@ -953,7 +954,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
                                                               , 0
                                                               , recordSize
                                                               , arraySize
-                                                              , reinterpret_cast<ViInt32*>(data.data( arraySize ))
+                                                              , reinterpret_cast<ViInt32*>( mblk->data() )
                                                               , &actualAverages
                                                               , &actualRecords
                                                               , actualPoints
@@ -966,7 +967,6 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
                                                               , &scaleOffset, flags )
                          , __FILE__, __LINE__, [](){ return "FetchAccumulatedWaveformInt32()"; } ) ) {
 
-            // data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
             data.method_ = m;
             data.meta_.actualAverages = actualAverages;
             data.meta_.actualPoints = actualPoints[ 0 ];
@@ -977,6 +977,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.scaleOffset = scaleOffset;
             data.timeSinceEpoch_ = acquire_tp_count + uint64_t( data.meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
             data.firstValidPoint_ = firstValidPoint[0];
+            data.setData( mblk, firstValidPoint[0] );
             
             return true;
         }
