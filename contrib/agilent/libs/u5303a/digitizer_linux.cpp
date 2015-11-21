@@ -26,6 +26,7 @@
 #include "simulator.hpp"
 #include "agmd2.hpp"
 #include "automaton.hpp"
+#include "mblock.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
@@ -805,16 +806,16 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
              AgMD2_QueryMinWaveformMemory( md2.session(), 16, numRecords, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
 
-        std::vector<ViInt16> dataArray( arraySize );
+        auto mblk = std::make_shared< mblock<ViInt16> >( arraySize );
 
-        std::fill( dataArray.begin(), dataArray.end(), 0 );
+		//std::unique_ptr< ViInt16[] > dataArray( new ViInt16[ arraySize ] );
         
         ViInt64 actualRecords(0), waveformArrayActualSize(0);
         std::vector<ViInt64> actualPoints( numRecords ), firstValidPoints( numRecords );
         std::vector<ViReal64> initialXOffset( numRecords ), initialXTimeSeconds( numRecords ), initialXTimeFraction( numRecords );
         ViReal64 xIncrement(0), scaleFactor(0), scaleOffset(0);
 
-        auto tp = task::instance()->tp_acquire(); //std::chrono::steady_clock::now();
+        auto tp = task::instance()->tp_acquire();
         
         if ( AgMD2::log( AgMD2_FetchMultiRecordWaveformInt16( md2.session()
                                                               , "Channel1"
@@ -823,7 +824,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                                                               , 0
                                                               , recordSize
                                                               , arraySize
-                                                              , dataArray.data()
+                                                              , mblk->data()
                                                               , &waveformArrayActualSize
                                                               , &actualRecords
                                                               , actualPoints.data()
@@ -841,21 +842,23 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
             for ( int64_t iRecord = 0; iRecord < actualRecords; ++iRecord ) {
 
                 if ( auto data = std::make_shared< acqrscontrols::u5303a::waveform >( md2.Identify(), md2.dataSerialNumber() ) ) {
+                    
+                    auto& d = *data;
+                    d.method_ = m;
+                    d.meta_.actualAverages = 0; // digitizer
+                    d.meta_.actualPoints = actualPoints[ iRecord ];
+                    d.meta_.initialXTimeSeconds = initialXTimeSeconds[ iRecord ] + initialXTimeFraction[ iRecord ];
+                    d.meta_.xIncrement  = xIncrement;
+                    d.meta_.initialXOffset = initialXOffset[ iRecord ];
+                    d.meta_.scaleFactor = scaleFactor;
+                    d.meta_.scaleOffset = scaleOffset;
 
-                    data->method_ = m;
-                    data->meta_.actualAverages = 0; // digitizer
-                    data->meta_.actualPoints = actualPoints[ iRecord ];
-                    data->meta_.initialXTimeSeconds = initialXTimeSeconds[ iRecord ] + initialXTimeFraction[ iRecord ];
-                    data->meta_.xIncrement  = xIncrement;
-                    data->meta_.initialXOffset = initialXOffset[ iRecord ];
-                    data->meta_.scaleFactor = scaleFactor;
-                    data->meta_.scaleOffset = scaleOffset;
-                    data->timeSinceEpoch_   = acquire_tp_count + uint64_t( data->meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
+					d.timeSinceEpoch_ = acquire_tp_count + uint64_t( data->meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
+                    d.setData( mblk, firstValidPoints[ iRecord ] );
 
-                    data->resize( data->meta_.actualPoints );
-            
-                    std::copy( dataArray.begin() + firstValidPoints[iRecord]
-                               , dataArray.begin() + firstValidPoints[iRecord] + data->meta_.actualPoints, data->begin() );
+                    // data->resize( data->meta_.actualPoints );
+                    // std::copy( dataArray.get() + firstValidPoints[iRecord]
+                    //            , dataArray.get() + firstValidPoints[ iRecord ] + data->meta_.actualPoints, data->begin() );
 
                     vec.push_back( data );
                 }
@@ -885,11 +888,12 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
 
         const auto& tp = task::instance()->tp_acquire();        
         uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
+		auto mblk = std::make_shared< mblock<int32_t> >( arraySize );
         
         if ( AgMD2::log( AgMD2_FetchWaveformInt32( md2.session()
                                                    , "Channel1"
                                                    , arraySize
-                                                   , reinterpret_cast<ViInt32*>(data.data( arraySize ))
+												   , reinterpret_cast<ViInt32*>( mblk->data() )
                                                    , actualPoints
                                                    , firstValidPoint
                                                    , &initialXOffset

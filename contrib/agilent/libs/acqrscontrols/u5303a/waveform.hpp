@@ -46,6 +46,7 @@ namespace acqrscontrols {
         class method;
         class ident;
         class metadata;
+		class mblock;
 
         class ACQRSCONTROLSSHARED_EXPORT device_data {
             device_data( const device_data& ) = delete;
@@ -90,13 +91,11 @@ namespace acqrscontrols {
 
             typedef int32_t value_type;
             
-            value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
-
-            const value_type * data() const { return d_.data() + firstValidPoint_; }
-
-            void resize( size_t size ) { d_.resize( size ); }
-
-            size_t data_size() const { return d_.size(); }
+            //value_type * data( size_t size ) { d_.resize( size ); return d_.data(); } // raw data pointer
+            //const value_type * data() const { return d_.data() + firstValidPoint_; }  // raw data pointer
+            //size_t data_size() const { return d_.size(); }
+            //void resize( size_t size ) { d_.resize( size ); }
+            void setData( const std::shared_ptr< mblock >&, size_t firstValidPoint );
 
             std::pair<double, int> operator [] ( size_t idx ) const;
 
@@ -106,13 +105,9 @@ namespace acqrscontrols {
 
             const identify* ident() const { return ident_.get(); }
 
-            typedef std::vector< int32_t >::iterator iterator;
-            typedef std::vector< int32_t >::const_iterator const_iterator;
-
-            iterator begin() { return d_.begin(); }
-            iterator end() { return d_.end(); }
-            const_iterator begin() const { return d_.begin(); }
-            const_iterator end() const { return d_.end(); }
+            template<typename T=int32_t> const T* begin() const;
+            template<typename T=int32_t> const T* end() const;
+			template<typename T> T* data();
 
             bool isDEAD() const;
             
@@ -132,17 +127,20 @@ namespace acqrscontrols {
 #pragma warning(push)
 #pragma warning(disable:4251)
 #endif
-            std::vector< int32_t > d_;
+            //std::vector< int32_t > d_;
             std::shared_ptr< identify > ident_;
+            std::shared_ptr< mblock > mblock_;
+
 #if defined _MSC_VER
 #pragma warning(pop)
 #endif
         };
 
-        //template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
-        //template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
-        //template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
-        //template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
-
+        template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
+        template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
+        template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
+        template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
+		template<> ACQRSCONTROLSSHARED_EXPORT int16_t * waveform::data();
+        template<> ACQRSCONTROLSSHARED_EXPORT int32_t * waveform::data();
     }
 }

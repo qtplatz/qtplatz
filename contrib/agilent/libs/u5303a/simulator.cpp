@@ -24,6 +24,7 @@
 
 #include "simulator.hpp"
 #include "digitizer.hpp"
+#include "mblock.hpp"
 #include <adicontroller/waveform_simulator_manager.hpp>
 #include <adicontroller/waveform_simulator.hpp>
 #include <adportable/debug.hpp>
@@ -33,6 +34,7 @@
 #include <boost/random.hpp>
 #include <thread>
 #include <random>
+#include <memory>
 
 namespace u5303a {
 
@@ -191,7 +193,9 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
     } while(0);
     
     if ( ptr ) {
-        auto dp = data.data( ptr->nbrSamples() );
+		auto mblk = std::make_shared< mblock<int32_t> >( ptr->nbrSamples() );
+
+        auto dp = mblk->data();
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
         data.method_ = *method_;
         data.method_.method_.digitizer_delay_to_first_sample = startDelay_;
@@ -200,7 +204,7 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
 
         data.meta_.initialXTimeSeconds = ptr->timestamp();
         data.wellKnownEvents_ = 0;
-        data.meta_.actualPoints = data.data_size();
+        data.meta_.actualPoints = ptr->nbrSamples();
         data.meta_.xIncrement = sampInterval_;
         data.meta_.initialXOffset = startDelay_;
         data.meta_.actualAverages = int32_t( nbrWaveforms_ );
@@ -244,7 +248,10 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
             ptr->addIons( ions_ );
 			ptr->onTriggered();
 
-            std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), waveform->begin() );
+			if ( waveform->meta_.dataType == 2 )
+				std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), waveform->data<int16_t>() );
+			else 
+				std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), waveform->data<int32_t>() );
 
         }
     }

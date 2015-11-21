@@ -46,6 +46,7 @@ namespace acqrscontrols {
             double xIncrement;
             double scaleFactor;
             double scaleOffset;
+            int32_t dataType;  // 2(int16_t)|4(int32_t)
 
         private:
             friend class boost::serialization::access;
@@ -54,4 +55,4 @@ namespace acqrscontrols {
     }
 }
 
-BOOST_CLASS_VERSION( acqrscontrols::u5303a::metadata, 1 )
+BOOST_CLASS_VERSION( acqrscontrols::u5303a::metadata, 2 )

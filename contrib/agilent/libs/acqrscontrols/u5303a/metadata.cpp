@@ -54,6 +54,8 @@ namespace acqrscontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.xIncrement );
                 ar & BOOST_SERIALIZATION_NVP( _.scaleFactor );
                 ar & BOOST_SERIALIZATION_NVP( _.scaleOffset );
+                if ( version >= 2 )
+                    ar & BOOST_SERIALIZATION_NVP( _.dataType );
             }
         };
 

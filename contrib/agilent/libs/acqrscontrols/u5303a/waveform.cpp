@@ -48,6 +48,26 @@
 
 namespace acqrscontrols { namespace u5303a {
 
+        template<typename data_type> struct waveform_copy {
+
+            void operator ()( adcontrols::MassSpectrum& sp, const waveform& w, int scale ) const {
+                int idx = 0;
+                for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
+                    if ( scale ) // mV(1000) or V(1)
+                        sp.setIntensity( idx++, scale ? ( w.toVolts( *it ) * scale ) : *it );
+                }         
+            }
+
+            void operator ()( adcontrols::MassSpectrum& sp, const waveform& w, int scale, double dbase ) const {
+                int idx = 0;                
+                for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
+					double d = scale ? ( w.toVolts(*it - dbase) * scale  ) : *it - dbase;
+					sp.setIntensity( idx++, d );
+                }         
+            }
+
+        };
+
         class waveform_xmeta_archive {
             waveform_xmeta_archive( const waveform_xmeta_archive& ) = delete;
             waveform_xmeta_archive& operator = ( const waveform_xmeta_archive& ) = delete;
@@ -133,7 +153,7 @@ waveform::trim( metadata& meta, uint32_t& nSamples ) const
     meta.initialXOffset = method_.method_.delay_to_first_sample_;
     meta.actualPoints = nSamples;
 
-    return d_.data() + offset;
+	return begin<int32_t>() + offset;
 }
 
 size_t
@@ -146,15 +166,14 @@ std::pair<double, int>
 waveform::operator [] ( size_t idx ) const
 {
     double time = idx * meta_.xIncrement + meta_.initialXOffset;
-    return std::make_pair( time, d_[ idx ] );
+
+    assert( meta_.dataType == 2 || meta_.dataType == 4 );
     
-    // switch( meta_.dataType ) {
-    // case 1: return std::make_pair( time, *(begin<int8_t>()  + idx) );
-    // case 2: return std::make_pair( time, *(begin<int16_t>() + idx) );
-    // case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
-    // }
-    
-    //throw std::exception();
+    switch( meta_.dataType ) {
+    case 2: return std::make_pair( time, *(begin<int16_t>() + idx) );
+    case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
+    }
+	throw std::bad_cast();
 }
 
 double
@@ -174,6 +193,7 @@ waveform::toVolts( double d ) const
     return d * meta_.scaleFactor;
 }
 
+#if 0
 //static
 std::array< std::shared_ptr< const waveform >, 2 >
 waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb )
@@ -202,8 +222,8 @@ waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb 
                         ++pdata;
                         uint32_t size = *pdata++;
                         if ( size && waveform ) {
-                            const acqrscontrols::u5303a::waveform::value_type * data_p = reinterpret_cast<const acqrscontrols::u5303a::waveform::value_type *>( pdata );
-                            std::copy( data_p, data_p + size, waveform->data( size ) );
+                            auto * data_p = reinterpret_cast<const acqrscontrols::u5303a::waveform::value_type *>( pdata );
+							std::copy( data_p, data_p + size, waveform->data( size ) );
                             pdata = reinterpret_cast<const uint32_t *>( data_p + size );
                         }
                     }
@@ -265,7 +285,7 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
     }
     return false;
 }
-
+#endif
 
 //static
 bool
@@ -297,25 +317,21 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );
     sp.resize( waveform.size() );
-	int idx = 0;
 
-    if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
-        if ( scale )
-            for ( auto y = waveform.data(); y != waveform.data() + waveform.size(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );        // V | mV ...
-        else
-            for ( auto y = waveform.data(); y != waveform.data() + waveform.size(); ++y )
-                sp.setIntensity( idx++, *y );          // binary 
+	if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
+
+		if ( waveform.meta_.dataType == 2 ) {
+			waveform_copy<int16_t>()( sp, waveform, scale );
+		} else {
+			waveform_copy<int32_t>()( sp, waveform, scale );
+		}
+
     } else {
-        double dbase, rms;
-        double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.data(), dbase, rms );
 
-        if ( scale )
-            for ( auto y = waveform.data(); y != waveform.data() + waveform.size(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) * scale );
-        else
-            for ( auto y = waveform.data(); y != waveform.data() + waveform.size(); ++y )
-                sp.setIntensity( idx++, *y - dbase );
+        double dbase, rms;
+		double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
+        waveform_copy<int32_t>()( sp, waveform, scale, dbase );
+
     }
 
 	return true;
@@ -362,23 +378,15 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
                 sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)
         
     } else if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
-        if ( scale )
-            for ( auto y = waveform.data(); y != waveform.data() + waveform.size(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );        // V | mV ...
-        else
-            for ( auto y = waveform.data(); y != waveform.data() + waveform.size(); ++y )
-                sp.setIntensity( idx++, *y );          // binary 
+		if ( waveform.meta_.dataType == 2 ) {
+			waveform_copy<int16_t>()( sp, waveform, scale );
+		} else {
+			waveform_copy<int32_t>()( sp, waveform, scale );
+		}
     } else {
         double dbase, rms;
-        double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.data(), dbase, rms );
-
-        if ( scale )
-            for ( auto y = waveform.data(); y != waveform.data() + waveform.size(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) * scale ); // V, mV ...
-        else
-            for ( auto y = waveform.data(); y != waveform.data() + waveform.size(); ++y )
-                sp.setIntensity( idx++, *y - dbase );  // binary
-        
+		double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
+		waveform_copy<int32_t>()( sp, waveform, scale, dbase );
     }
     
 	return true;
@@ -388,9 +396,46 @@ bool
 waveform::isDEAD() const
 {
     size_t count( 99 );
-    for ( auto it = d_.begin(); it != d_.end() && count--; ++it ) {
-        if ( !( *it == 0 || *it == 0xffffdead ) )
-            return false;
-    }
+	if ( meta_.dataType == 2 ) {
+		for ( auto it = begin<int16_t>(); it != end<int16_t>() && count--; ++it )
+			if ( !( *it == 0 || *it == 0xdead ) )
+				return false;
+	} else {
+		for ( auto it = begin<int32_t>(); it != end<int32_t>() && count--; ++it )
+			if ( !( *it == 0 || *it == 0xffffdead ) )
+				return false;			
+	}
     return true;
+}
+
+template<> const int16_t *
+waveform::begin() const
+{
+    if ( meta_.dataType != sizeof(int16_t) )
+		throw std::bad_cast();
+    return reinterpret_cast< const int16_t* >( mblock_.get() ) + firstValidPoint_;
+}
+
+template<> const int16_t *
+waveform::end() const
+{
+    if ( meta_.dataType != sizeof(int16_t) )
+        throw std::bad_cast();
+	return reinterpret_cast<const int16_t*>( mblock_.get() ) + firstValidPoint_ + meta_.actualPoints;
+}
+
+template<> const int32_t *
+waveform::begin() const
+{
+    if ( meta_.dataType != sizeof(int32_t) )
+        throw std::bad_cast();                
+	return reinterpret_cast<const int32_t*>( mblock_.get() ) + firstValidPoint_;
+}
+
+template<> const int32_t *
+waveform::end() const
+{
+    if ( meta_.dataType != sizeof(int32_t) )
+        throw std::bad_cast();                    
+	return reinterpret_cast<const int32_t*>( mblock_.get() ) + firstValidPoint_ + meta_.actualPoints;
 }
