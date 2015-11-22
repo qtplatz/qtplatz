@@ -41,13 +41,13 @@ namespace u5303a {
     typedef std::shared_ptr< acqrscontrols::u5303a::threshold_result > threshold_result_ptr;
     typedef std::shared_ptr< const acqrscontrols::u5303a::threshold_result > const_threshold_result_ptr;
 
-    class tdcdoc : public QObject {
+    class tdcdoc { //: public QObject {
 
-        Q_OBJECT
+        // Q_OBJECT
 
     public:
         ~tdcdoc();
-        tdcdoc( QObject * parent = nullptr );
+        tdcdoc(); // QObject * parent = nullptr );
 
         bool set_threshold_method( int channel, const adcontrols::threshold_method& );
         std::shared_ptr< const adcontrols::threshold_method > threshold_method( int channel ) const;
@@ -75,12 +75,6 @@ namespace u5303a {
         std::array< std::shared_ptr< acqrscontrols::u5303a::histogram >, 2 > histograms_;
         std::atomic< double > trig_per_seconds_;
         std::mutex mutex_;
-
-    signals:
-        // void getMethodFromUI( adcontrols::ControlMethod::Method& ) const;
-        // void onControlMethodChanged();
-        // void instStateChanged( int );
-        // void dataChanged( int );
     };
 
 }

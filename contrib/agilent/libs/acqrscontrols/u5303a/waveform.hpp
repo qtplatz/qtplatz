@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -41,13 +41,14 @@ namespace adcontrols { class MassSpectrum; }
 namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
 namespace acqrscontrols { namespace u5303a { class method; class threshold_result; } }
 
+namespace adportable { template<typename T> class mblock; }
+
 namespace acqrscontrols {
     namespace u5303a {
 
         class method;
         class ident;
         class metadata;
-        template<typename T> class mblock;
 
         class ACQRSCONTROLSSHARED_EXPORT device_data {
             device_data( const device_data& ) = delete;
@@ -92,8 +93,8 @@ namespace acqrscontrols {
             
             typedef int32_t value_type;
             
-            void setData( const std::shared_ptr< mblock<int32_t> >&, size_t firstValidPoint );
-            void setData( const std::shared_ptr< mblock<int16_t> >&, size_t firstValidPoint );
+            void setData( const std::shared_ptr< adportable::mblock<int32_t> >&, size_t firstValidPoint );
+            void setData( const std::shared_ptr< adportable::mblock<int16_t> >&, size_t firstValidPoint );
 
             int operator [] ( size_t idx ) const;
             std::pair<double, int> xy( size_t idx ) const;
@@ -125,7 +126,7 @@ namespace acqrscontrols {
 #pragma warning(disable:4251)
 #endif
             std::shared_ptr< identify > ident_;
-            boost::variant < std::shared_ptr< mblock<int32_t> >, std::shared_ptr< mblock<int16_t> > > mblock_;
+            boost::variant < std::shared_ptr< adportable::mblock<int32_t> >, std::shared_ptr< adportable::mblock<int16_t> > > mblock_;
             
 #if defined _MSC_VER
 #pragma warning(pop)

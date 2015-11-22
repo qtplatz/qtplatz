@@ -15,6 +15,7 @@ add_library( adportable
   fft.cpp
   http_client.cpp
   lifecycleframe.cpp
+  mblock.hpp
   mslockref.cpp  
   mslockref.hpp
   polfit.cpp

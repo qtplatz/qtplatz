@@ -26,28 +26,28 @@
 
 #include <memory>
 
-namespace acqrscontrols {
-    namespace u5303a {
+namespace adportable {
 
-        template<typename value_type /* =int32_t */>
-        class mblock : public std::enable_shared_from_this< mblock<value_type> > {
+    template<typename value_type /* =int32_t */>
+    class mblock : public std::enable_shared_from_this< mblock<value_type> > {
 
-            std::unique_ptr< value_type [] > pData_;
-            size_t size_;
-            mblock( const mblock& ) = delete;
+        std::unique_ptr< value_type [] > pData_;
+        size_t size_;
+        mblock( const mblock& ) = delete;
 
-        public:
+    public:
 
-            mblock( size_t size = 256 * 0x1000000LL ) : pData_( new value_type[ size ] )
-                                                      , size_( size ) {
-            }
+        mblock( size_t size = 256 * 0x1000000LL ) : pData_( new value_type[ size ] )
+                                                  , size_( size ) {
+        }
         
-            value_type * data() { return pData_.get(); }
+        value_type * data() { return pData_.get(); }
 
-            const value_type * data() const { return pData_.get(); }
+        const value_type * data() const { return pData_.get(); }
 
-            static size_t dataType() { return sizeof( value_type ); }
+        static size_t dataType() { return sizeof( value_type ); }
             
-        };
-    }
+    };
+
 }
+

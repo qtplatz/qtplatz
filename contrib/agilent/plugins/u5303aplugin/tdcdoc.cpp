@@ -29,7 +29,6 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/waveform.hpp>
-//#include <adportable/advance.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
@@ -41,9 +40,9 @@
 
 using namespace u5303a;
 
-tdcdoc::tdcdoc( QObject * parent ) : QObject( parent )
-                                   , histograms_( { std::make_shared<acqrscontrols::u5303a::histogram>()
-                                               , std::make_shared<acqrscontrols::u5303a::histogram>() } )
+tdcdoc::tdcdoc() :
+    histograms_( { std::make_shared<acqrscontrols::u5303a::histogram>()
+                , std::make_shared<acqrscontrols::u5303a::histogram>() } )
 {
 }
 
@@ -137,29 +136,6 @@ tdcdoc::threshold_method( int channel ) const
         return threshold_methods_[ channel ];
     return 0;
 }
-
-
-struct threshold_finder {
-    
-    const bool findUp;
-    const unsigned int nfilter;
-    
-    threshold_finder( bool _findUp, unsigned int _nfilter ) : findUp( _findUp )
-                                                            , nfilter( _nfilter ) {
-    }
-
-    template< typename const_iterator >
-    void operator()( const_iterator begin, const_iterator end, std::vector< uint32_t >& elements, double level ) {
-        bool flag;
-        auto it = begin;
-        while ( it != end )
-            if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
-                if ( flag == findUp )                        
-                    elements.push_back( std::distance( begin, it ) );
-                adportable::advance( it, nfilter, end );
-            }
-    }
-};
 
 // static
 void
