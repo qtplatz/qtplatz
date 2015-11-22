@@ -29,12 +29,13 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/waveform.hpp>
+//#include <adportable/advance.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adportable/threshold_finder.hpp>
 #include <adportable/waveform_processor.hpp>
-#include <adportable/advance.hpp>
 
 #include <QObject>
 
@@ -137,6 +138,29 @@ tdcdoc::threshold_method( int channel ) const
     return 0;
 }
 
+
+struct threshold_finder {
+    
+    const bool findUp;
+    const unsigned int nfilter;
+    
+    threshold_finder( bool _findUp, unsigned int _nfilter ) : findUp( _findUp )
+                                                            , nfilter( _nfilter ) {
+    }
+
+    template< typename const_iterator >
+    void operator()( const_iterator begin, const_iterator end, std::vector< uint32_t >& elements, double level ) {
+        bool flag;
+        auto it = begin;
+        while ( it != end )
+            if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
+                if ( flag == findUp )                        
+                    elements.push_back( std::distance( begin, it ) );
+                adportable::advance( it, nfilter, end );
+            }
+    }
+};
+
 // static
 void
 tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
@@ -148,6 +172,9 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
     const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
     const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
+    adportable::threshold_finder finder( findUp, nfilter );
+    //threshold_finder finder( findUp, nfilter );
+    
     bool flag;
 
     // workaround
@@ -186,13 +213,13 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
         }
         
     } else {
-        
+
         // scaleFactor = Volts/LSB  (1.0V FS = 0.00390625)
         double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
         double level = level_per_trigger;
         if ( data.meta_.actualAverages )
             level = level_per_trigger * data.meta_.actualAverages;
-        
+#if 0        
         auto it = data.begin();
         while ( it != data.end() ) {
             if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end(), level, flag ) ) != data.end() ) {
@@ -201,6 +228,11 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
                 adportable::advance( it, nfilter, data.end() );
             }
         }
+#endif
+        if ( data.meta_.dataType == 2 )
+            finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
+        else
+            finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
     }
 }
 

@@ -89,7 +89,7 @@ namespace acqrscontrols {
             uint64_t firstValidPoint_;
 
             size_t size() const; // number of samples (octet size is depend on meta_.dataType)
-
+            
             typedef int32_t value_type;
             
             void setData( const std::shared_ptr< mblock<int32_t> >&, size_t firstValidPoint );
@@ -108,11 +108,11 @@ namespace acqrscontrols {
 
             bool isDEAD() const;
 
-            static std::array< std::shared_ptr< const waveform >, 2 >
-                deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
-
             static bool
                 serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
+
+            static std::array< std::shared_ptr< const waveform >, 2 >
+                deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
 
             static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 

@@ -594,8 +594,10 @@ task::handle_acquire()
             if ( method_.mode_ == 0 ) { // digitizer
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
                 digitizer::readData( *spDriver(), method_, vec );
-                if ( simulated_ )
-                    simulator::instance()->touchup( vec );
+
+                // if ( simulated_ )
+                //     simulator::instance()->touchup( vec );
+
                 for ( auto& waveform: vec ) {
                     acqrscontrols::u5303a::method m;
                     for ( auto& reply: waveform_handlers_ ) {

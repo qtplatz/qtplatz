@@ -30,6 +30,7 @@ add_library( adportable
   spectrum_processor.cpp
   string.cpp
   textfile.cpp
+  threshold_finder.hpp
   timer.cpp
   timesquaredscanlaw.cpp
   utf.cpp
