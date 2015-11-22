@@ -852,6 +852,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                     d.meta_.initialXOffset = initialXOffset[ iRecord ];
                     d.meta_.scaleFactor = scaleFactor;
                     d.meta_.scaleOffset = scaleOffset;
+                    d.meta_.dataType = mblk->dataType();
 
 					d.timeSinceEpoch_ = acquire_tp_count + uint64_t( data->meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
                     d.setData( mblk, firstValidPoints[ iRecord ] );
@@ -860,7 +861,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                     // std::copy( dataArray.get() + firstValidPoints[iRecord]
                     //            , dataArray.get() + firstValidPoints[ iRecord ] + data->meta_.actualPoints, data->begin() );
 
-                    vec.push_back( data );
+                    vec.emplace_back( data );
                 }
             }
             return true;

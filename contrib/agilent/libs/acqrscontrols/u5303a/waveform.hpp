@@ -102,12 +102,12 @@ namespace acqrscontrols {
 
             const identify* ident() const { return ident_.get(); }
 
-            template<typename T=int32_t> const T* begin() const;
-            template<typename T=int32_t> const T* end() const;
+            template<typename T /*=int32_t */> const T* begin() const;
+            template<typename T /*=int32_t */> const T* end() const;
 			template<typename T> T* data();
 
             bool isDEAD() const;
-            
+
             static std::array< std::shared_ptr< const waveform >, 2 >
                 deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
 

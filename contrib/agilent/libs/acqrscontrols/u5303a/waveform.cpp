@@ -437,7 +437,7 @@ template<> const int16_t *
 waveform::begin() const
 {
     if ( mblock_.which() == 1 ) {
-        auto& mblk = boost::get < std::shared_ptr< mblock<int16_t> > >( mblock_ );
+        auto&& mblk = boost::get < std::shared_ptr< mblock<int16_t> > >( mblock_ );
         return mblk->data() + firstValidPoint_;
     }
     throw std::bad_cast();
@@ -447,7 +447,7 @@ template<> const int16_t *
 waveform::end() const
 {
     if ( mblock_.which() == 1 ) {
-        auto& mblk = boost::get < std::shared_ptr< mblock<int16_t> > >( mblock_ );
+        auto&& mblk = boost::get < std::shared_ptr< mblock<int16_t> > >( mblock_ );
         return mblk->data() + firstValidPoint_ + meta_.actualPoints;
     }
     throw std::bad_cast();
@@ -457,7 +457,7 @@ template<> const int32_t *
 waveform::begin() const
 {
     if ( mblock_.which() == 0 ) {
-        auto& mblk = boost::get < std::shared_ptr< mblock<int32_t> > >( mblock_ );
+        auto&& mblk = boost::get < std::shared_ptr< mblock<int32_t> > >( mblock_ );
         return mblk->data() + firstValidPoint_;
     }
     throw std::bad_cast();
@@ -467,7 +467,7 @@ template<> const int32_t *
 waveform::end() const
 {
     if ( mblock_.which() == 0 ) {
-        auto& mblk = boost::get < std::shared_ptr< mblock<int32_t> > >( mblock_ );
+        auto&& mblk = boost::get < std::shared_ptr< mblock<int32_t> > >( mblock_ );
         return mblk->data() + firstValidPoint_ + meta_.actualPoints;
     }
     throw std::bad_cast();
@@ -477,7 +477,7 @@ template<> int16_t *
 waveform::data()
 {
     if ( mblock_.which() == 1 ) {
-        auto& mblk = boost::get < std::shared_ptr< mblock<int16_t> > >( mblock_ );
+        auto&& mblk = boost::get < std::shared_ptr< mblock<int16_t> > >( mblock_ );
         return mblk->data() + firstValidPoint_;
     }
     throw std::bad_cast();    
@@ -487,7 +487,7 @@ template<> int32_t *
 waveform::data()
 {
     if ( mblock_.which() == 0 ) {
-        auto& mblk = boost::get < std::shared_ptr< mblock<int32_t> > >( mblock_ );
+        auto&& mblk = boost::get < std::shared_ptr< mblock<int32_t> > >( mblock_ );
         return mblk->data() + firstValidPoint_;
     }
     throw std::bad_cast();        

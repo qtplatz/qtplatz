@@ -91,6 +91,7 @@ metadata::metadata() : initialXTimeSeconds( 0 )
                      , initialXOffset( 0 )
                      , scaleFactor( 0 )
                      , scaleOffset(0)
+                     , dataType( 0 )
 {
 }
 

@@ -29,7 +29,7 @@
 namespace acqrscontrols {
     namespace u5303a {
 
-        template<typename value_type=int32_t>
+        template<typename value_type /* =int32_t */>
         class mblock : public std::enable_shared_from_this< mblock<value_type> > {
 
             std::unique_ptr< value_type [] > pData_;
@@ -43,7 +43,11 @@ namespace acqrscontrols {
             }
         
             value_type * data() { return pData_.get(); }
+
             const value_type * data() const { return pData_.get(); }
+
+            static size_t dataType() { return sizeof( value_type ); }
+            
         };
     }
 }
