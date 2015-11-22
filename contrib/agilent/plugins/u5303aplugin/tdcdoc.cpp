@@ -173,7 +173,6 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
     const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
     adportable::threshold_finder finder( findUp, nfilter );
-    //threshold_finder finder( findUp, nfilter );
     
     bool flag;
 
@@ -202,33 +201,14 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
         }
 
         double level = method.threshold_level;
-        auto it = processed.begin();
-        while ( it != processed.end() ) {
-            if ( ( it = adportable::waveform_processor().find_threshold_element( it, processed.end(), level, flag ) ) != processed.end() ) {
-                if ( flag == findUp )
-                    elements.push_back( std::distance( processed.begin(), it ) );
-                if ( nfilter && nfilter < size_t( std::distance( it, processed.end() ) ) )
-                    adportable::advance( it, nfilter, processed.end() );
-            }
-        }
+        finder( processed.begin(), processed.end(), elements, level );        
         
     } else {
-
-        // scaleFactor = Volts/LSB  (1.0V FS = 0.00390625)
         double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
         double level = level_per_trigger;
         if ( data.meta_.actualAverages )
             level = level_per_trigger * data.meta_.actualAverages;
-#if 0        
-        auto it = data.begin();
-        while ( it != data.end() ) {
-            if ( ( it = adportable::waveform_processor().find_threshold_element( it, data.end(), level, flag ) ) != data.end() ) {
-                if ( flag == findUp )                        
-                    elements.push_back( std::distance( data.begin(), it ) );
-                adportable::advance( it, nfilter, data.end() );
-            }
-        }
-#endif
+
         if ( data.meta_.dataType == 2 )
             finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
         else
