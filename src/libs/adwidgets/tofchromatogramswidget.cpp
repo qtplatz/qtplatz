@@ -59,7 +59,7 @@ namespace adwidgets {
                 QSqlQuery query( db );
 
                 model_.reset( new QSqlTableModel( 0, db ) );
-
+                
                 model_->setEditStrategy( QSqlTableModel::OnRowChange );
                 
                 model_->setTable( "tofChromatograms" );
@@ -84,23 +84,27 @@ namespace adwidgets {
         }
 
         void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
-            if ( _1.column() <= c_formula && c_formula <= _2.column() ) {
-                for ( int row = _1.row(); row <= _2.row(); ++row ) {
-                    auto record = model_->record( row );
 
-                    size_t id = record.value( "id" ).toLongLong();
-                    double exactMass = MolTableView::getMonoIsotopicMass( record.value( "formula" ).toString() );
-                    if ( exactMass > 0.7 ) {
-                        model_->setData( model_->index( row, c_mass ), exactMass );
-                        for ( auto& id : { std::make_pair( c_masswindow, 0.005 ), std::make_pair( c_time, 0.0 ), std::make_pair( c_timewindow, 10.0 ) } ) {
-                            if ( record.isNull( id.first ) )
-                                model_->setData( model_->index( row, id.first ), id.second );
-                        }
-                    } else {
-                        for ( auto& id : { c_mass, c_masswindow, c_time, c_timewindow } )
-                            model_->setData( model_->index( row, id ), QVariant() );
+            if ( _1.column() == c_formula ) {
+                int row = _1.row();
+                auto record = model_->record( row );
+                
+                size_t id = record.value( "id" ).toLongLong();
+                double exactMass = MolTableView::getMonoIsotopicMass( record.value( "formula" ).toString() );
+                if ( exactMass > 0.7 ) {
+                    model_->setData( model_->index( row, c_mass ), exactMass );
+                    for ( auto& id : { std::make_pair( c_masswindow, 0.005 ), std::make_pair( c_time, 0.0 ), std::make_pair( c_timewindow, 10.0 ) } ) {
+                        if ( record.isNull( id.first ) )
+                            model_->setData( model_->index( row, id.first ), id.second );
                     }
+                } else {
+                    for ( auto& id : { c_mass, c_masswindow, c_time, c_timewindow } )
+                        model_->setData( model_->index( row, id ), QVariant() );
                 }
+            }
+
+            if ( _1.column() == c_time || _1.column() == c_timewindow ) {
+                emit this_->valueChanged();
             }
         }
 
@@ -338,7 +342,7 @@ TofChromatogramsWidget::impl::handleContextMenu( const QPoint& pt )
 
         std::vector< action_type > actions;
         actions.push_back( std::make_pair( menu.addAction( "add line" ), [this](){ addLine(); }) );
-        actions.push_back( std::make_pair( menu.addAction( "select" ), [this](){ model_->select(); }) );
+        actions.push_back( std::make_pair( menu.addAction( "refresh" ), [this](){ model_->select(); }) );
         
         if ( QAction * selected = menu.exec( table->mapToGlobal( pt ) ) ) {
             auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){ return t.first == selected; });

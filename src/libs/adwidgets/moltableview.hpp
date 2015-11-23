@@ -51,6 +51,7 @@ namespace adwidgets {
             , f_description
             , f_svg
             , f_smiles
+            , f_time
         };
 
         void onInitialUpdate();
@@ -60,6 +61,7 @@ namespace adwidgets {
         bool isColumnEditable( int column ) const;
         void setContextMenuHandler( std::function<void(const QPoint& )> );
         void setChoice( int column, const std::vector< std::pair< QString, QVariant > >& );
+        void setPrecision( int column, int prec );
 
         static double getMonoIsotopicMass( const QString& formula, const QString& adducts = QString() );
 

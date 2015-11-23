@@ -28,6 +28,7 @@
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/tofchromatogramsmethod.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
@@ -37,14 +38,37 @@
 #include <adportable/waveform_processor.hpp>
 #include <adportable/waveform_wrapper.hpp>
 
+namespace acqrscontrols {
+    namespace u5303a {
+
+        class tdcdoc::impl {
+        public:
+            ~impl() {}
+            
+            impl() : histograms_( { std::make_shared< histogram_type >(), std::make_shared<histogram_type>() } ) {
+            }
+
+            std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
+            std::array< std::shared_ptr< acqrscontrols::u5303a::histogram >, 2 > histograms_;
+            std::array< std::pair< uint32_t, uint32_t >, 2 > threshold_action_counts_;
+            std::shared_ptr< adcontrols::threshold_action > threshold_action_;
+            std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
+            std::atomic< double > trig_per_seconds_;
+            std::mutex mutex_;
+        };
+        
+    }
+}
+
 using namespace acqrscontrols::u5303a;
 
-tdcdoc::tdcdoc() : histograms_( { std::make_shared< histogram_type >(), std::make_shared<histogram_type>() } )
+tdcdoc::tdcdoc() : impl_( new impl() )
 {
 }
 
 tdcdoc::~tdcdoc()
 {
+    delete impl_;
 }
 
 void
@@ -53,7 +77,7 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a
     size_t channel = 0;
     for ( auto result: results ) {
         if ( result )
-            histograms_[ channel ]->append( *result );
+            impl_->histograms_[ channel ]->append( *result );
         ++channel;
     }
 }
@@ -65,12 +89,12 @@ tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u530
         return std::array< threshold_result_ptr, 2 >();
 
     std::array< threshold_result_ptr, 2 > results;
-    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = threshold_methods_;  // todo: duplicate for thread safety
+    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;  // todo: duplicate for thread safety
 
     for ( size_t i = 0; i < waveforms.size(); ++i ) {
 
         if ( waveforms[ i ] ) {
-
+            
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
 
             if ( methods[ i ] && methods[ i ]->enable ) {
@@ -88,9 +112,9 @@ tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u530
 bool
 tdcdoc::set_threshold_action( const adcontrols::threshold_action& m )
 {
-    threshold_action_ = std::make_shared< adcontrols::threshold_action >( m );
+    impl_->threshold_action_ = std::make_shared< adcontrols::threshold_action >( m );
     
-    for ( auto& counts: threshold_action_counts_ )
+    for ( auto& counts: impl_->threshold_action_counts_ )
         counts = std::make_pair( 0, 0 );
     
     return true;
@@ -99,20 +123,20 @@ tdcdoc::set_threshold_action( const adcontrols::threshold_action& m )
 std::shared_ptr< const adcontrols::threshold_action >
 tdcdoc::threshold_action() const
 {
-    return threshold_action_;
+    return impl_->threshold_action_;
 }
 
 bool
 tdcdoc::set_threshold_method( int channel, const adcontrols::threshold_method& m )
 {
-    if ( channel < threshold_methods_.size() ) {
+    if ( channel < impl_->threshold_methods_.size() ) {
         
-        if ( auto prev = threshold_methods_[ channel ] ) {
+        if ( auto prev = impl_->threshold_methods_[ channel ] ) {
             if ( *prev != m )
-                histograms_[ channel ]->clear();
+                impl_->histograms_[ channel ]->clear();
         }
         
-        threshold_methods_[ channel ] = std::make_shared< adcontrols::threshold_method >( m );
+        impl_->threshold_methods_[ channel ] = std::make_shared< adcontrols::threshold_method >( m );
         return true;
     }
 
@@ -122,9 +146,28 @@ tdcdoc::set_threshold_method( int channel, const adcontrols::threshold_method& m
 std::shared_ptr< const adcontrols::threshold_method > 
 tdcdoc::threshold_method( int channel ) const
 {
-    if ( channel < threshold_methods_.size() )
-        return threshold_methods_[ channel ];
+    if ( channel < impl_->threshold_methods_.size() )
+        return impl_->threshold_methods_[ channel ];
     return 0;
+}
+
+bool
+tdcdoc::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
+{
+    impl_->tofChromatogramsMethod_ = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
+    return true;
+}
+
+std::shared_ptr< const adcontrols::TofChromatogramsMethod >
+tdcdoc::tofChromatogramsMethod() const
+{
+    return impl_->tofChromatogramsMethod_;
+}
+
+void
+tdcdoc::clearTofChromatogramsMethod()
+{
+    impl_->tofChromatogramsMethod_.reset();
 }
 
 // static
@@ -170,13 +213,13 @@ tdcdoc::update_rate( size_t trigCount, const std::pair<uint64_t, uint64_t>& time
 {
     int64_t duration = timeSinceEpoch.second - timeSinceEpoch.first;
     if ( duration )
-        trig_per_seconds_ = double( trigCount ) / ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
+        impl_->trig_per_seconds_ = double( trigCount ) / ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
 }
 
 double
 tdcdoc::trig_per_seconds() const
 {
-    return trig_per_seconds_;
+    return impl_->trig_per_seconds_;
 }
 
 
@@ -191,9 +234,9 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
 
     std::pair<uint32_t,uint32_t> serialnumber;
 
-    trigCount = histograms_[ channel ]->getHistogram( hist, meta, serialnumber, timeSinceEpoch );
+    trigCount = impl_->histograms_[ channel ]->getHistogram( hist, meta, serialnumber, timeSinceEpoch );
 
-    const auto& histogram = histograms_[ channel ];
+    const auto& histogram = impl_->histograms_[ channel ];
 
     using namespace adcontrols::metric;
     
@@ -244,14 +287,14 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
 void
 tdcdoc::clear_histogram()
 {
-    threshold_action_counts_ = { { { 0, 0 } } };
+    impl_->threshold_action_counts_ = { { { 0, 0 } } };
 
-    for ( auto h : histograms_ )
+    for ( auto h : impl_->histograms_ )
         h->clear();
 }
 
 std::pair< uint32_t, uint32_t >
 tdcdoc::threshold_action_counts( int channel ) const
 {
-    return threshold_action_counts_[ channel ];
+    return impl_->threshold_action_counts_[ channel ];
 }

@@ -99,17 +99,20 @@ namespace adwidgets {
             MolTableView::fields field;
             bool isEditable;
             bool isCheckable;
+            int precision;
             std::vector< std::pair< QString, QVariant > > choice;
 
             inline bool isChoice() const { return !choice.empty(); }
             
             columnState( MolTableView::fields f = MolTableView::f_any
                          , bool editable = true
-                         , bool checkable = false ) : field( f ), isEditable( editable ), isCheckable( checkable ) {
+                         , bool checkable = false ) : field( f ), isEditable( editable ), isCheckable( checkable )
+                                                    , precision( 0 ) {
             }
             columnState( const columnState& t ) : field( t.field )
                                                 , isEditable( t.isEditable )
                                                 , isCheckable( t.isCheckable )
+                                                , precision( t.precision )
                                                 , choice( t.choice) {
             }
         };
@@ -202,6 +205,8 @@ namespace adwidgets {
                 renderer.render( painter, target );
                 painter->restore();
 
+            } else if ( impl_->state( index.column() ).precision && index.data( Qt::EditRole ).canConvert<double>() ) {
+                //QString str = QString::number( index.data( Qt::EditRole ).toDouble(), 'f', impl_->state( index.column() ).precision;
             } else {
                 QStyledItemDelegate::paint( painter, opt, index );
             }
@@ -287,6 +292,12 @@ void
 MolTableView::setChoice( int column, const std::vector< std::pair< QString, QVariant > >& choice )
 {
     impl_->columnStates_[ column ].choice = choice;
+}
+
+void
+MolTableView::setPrecision( int column, int prec )
+{
+    impl_->columnStates_[ column ].precision = prec;
 }
 
 void

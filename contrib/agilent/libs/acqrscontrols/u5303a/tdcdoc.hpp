@@ -34,7 +34,7 @@
 
 namespace acqrscontrols { namespace u5303a { class waveform; class threshold_result; class histogram; } }
 
-namespace adcontrols { class threshold_action; class threshold_method; class MassSpectrum; }
+namespace adcontrols { class threshold_action; class threshold_method; class MassSpectrum; class TofChromatogramsMethod; }
 
 namespace acqrscontrols {
 
@@ -62,6 +62,10 @@ namespace acqrscontrols {
             bool set_threshold_method( int channel, const adcontrols::threshold_method& );
             std::shared_ptr< const adcontrols::threshold_method > threshold_method( int channel ) const;
 
+            bool setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& );
+            std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
+            void clearTofChromatogramsMethod();
+            
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
             handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > );
 
@@ -85,19 +89,8 @@ namespace acqrscontrols {
                                                    , std::vector<double>& processed );
 
         private:
-            std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
-            std::array< std::shared_ptr< acqrscontrols::u5303a::histogram >, 2 > histograms_;
-            std::array< std::pair< uint32_t, uint32_t >, 2 > threshold_action_counts_;
-#if defined _MSC_VER
-#pragma warning( push )
-#pragma warning( disable: 4251)
-#endif
-            std::shared_ptr< adcontrols::threshold_action > threshold_action_;
-            std::atomic< double > trig_per_seconds_;
-            std::mutex mutex_;
-#if defined _MSC_VER
-#pragma warning( pop )
-#endif
+            class impl;
+            impl * impl_;
         };
 
     }

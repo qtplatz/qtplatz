@@ -34,10 +34,10 @@ namespace adportable {
         impl() : actualPoints_( 1000 * 10 ) // 10us
                , xIncrement_( 1.0e-9 )
                , delay_( 0.0 )
-               , dist_( -3, 5 )
+               , dist_( -5, 5 )
                , sign_( -1 )
                , sigma_( 1.0e-9 )
-               , pseudo_peaks_( { { 1.0e-6, 200 }, { 1.5e-6, 400 }, { 2.0e-6, 2000 }, { 2.5e-6, 100 } } ) {
+               , pseudo_peaks_( { { 1.5e-6, 100 }, { 2.0e-6, 200 }, { 2.5e-6, 80 } } ) {
 
             const double sigma_( 1.0e-9 );
             

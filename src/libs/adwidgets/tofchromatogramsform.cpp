@@ -67,7 +67,13 @@ TofChromatogramsForm::TofChromatogramsForm( QWidget * parent ) : QWidget( parent
     gridLayout->addWidget( create_widget<QDoubleSpinBox>( "response" ), row, col++ );
 
     impl_->layout_->addItem( new QSpacerItem( 40, 20, QSizePolicy::Maximum, QSizePolicy::Expanding ) );
-    
+
+    // impl_->layout_->addWidget( create_widget< QPushButton >( "minusButton", tr( "-" ) ) );
+    // impl_->layout_->addWidget( create_widget< QPushButton >( "plusButton", tr( "+" ) ) );
+    // setStyleSheet( "QPushButton#addRow { max-width: 1em; border-style: outset; border-width: 1px; border-color: beige; font: bold 14px; }"
+    //                      "QPushButton#addRow:pressed { background-color: rgb(224,0,0); border-style: inset; }"
+    //                      );
+
     impl_->layout_->addWidget( create_widget< QPushButton >( "applyButton", tr( "Apply" ) ) );
 
     if ( auto button = findChild< QPushButton *>( "applyButton" ) ) {
