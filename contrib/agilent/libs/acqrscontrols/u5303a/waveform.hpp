@@ -73,7 +73,7 @@ namespace acqrscontrols {
         /////////////////////////////
 
         class ACQRSCONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
-
+            
             waveform( const waveform& ); // = delete;
             void operator = ( const waveform& ); // = delete;
 
@@ -101,15 +101,13 @@ namespace acqrscontrols {
             std::pair<double, int> xy( size_t idx ) const;
             double toVolts( int ) const;
             double toVolts( double ) const;
+            bool isDEAD() const;            
 
             const identify* ident() const { return ident_.get(); }
 
-            template<typename T /*=int32_t */> const T* begin() const;
-            template<typename T /*=int32_t */> const T* end() const;
-			template<typename T> T* data();
-
-            bool isDEAD() const;
-
+            template< typename value_type > const value_type* begin() const;
+            template< typename value_type > const value_type* end() const;
+			template< typename value_type > value_type* data();
 
             static bool
                 serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );

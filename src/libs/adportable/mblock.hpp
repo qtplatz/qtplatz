@@ -28,11 +28,12 @@
 
 namespace adportable {
 
-    template<typename value_type /* =int32_t */>
+    template< typename value_type >
     class mblock : public std::enable_shared_from_this< mblock<value_type> > {
 
         std::unique_ptr< value_type [] > pData_;
         size_t size_;
+
         mblock( const mblock& ) = delete;
 
     public:

@@ -28,6 +28,7 @@
 #include <adicontroller/waveform_simulator.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/mblock.hpp>
+#include <adportable/waveform_simulator.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/math/distributions/normal.hpp>
@@ -236,22 +237,21 @@ simulator::setup( const acqrscontrols::u5303a::method& m )
 void
 simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
 {
-    for ( auto& waveform: vec ) {
+    if ( ! vec.empty() )  {
+                
+        if ( vec[0]->meta_.dataType == 2 ) {
 
-        size_t idx = 0;
+            std::shared_ptr< adportable::mblock< int16_t > > mblock;
+            adportable::waveform_simulator()( mblock, vec.size() );
+            for ( auto& w: vec )
+                w->setData( mblock, w->firstValidPoint_ );
 
-        if ( auto ptr = adicontroller::waveform_simulator_manager::instance().waveform_simulator( waveform->meta_.xIncrement
-                                                                                                  , waveform->meta_.initialXOffset
-                                                                                                  , uint32_t( waveform->meta_.actualPoints )
-                                                                                                  , waveform->meta_.actualAverages ) ) {
-            
-            ptr->addIons( ions_ );
-			ptr->onTriggered();
+        } else {
 
-			if ( waveform->meta_.dataType == 2 )
-				std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), waveform->data<int16_t>() );
-			else 
-				std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), waveform->data<int32_t>() );
+            std::shared_ptr< adportable::mblock< int16_t > > mblock;
+            adportable::waveform_simulator()( mblock, vec.size() );
+            for ( auto& w: vec )
+                w->setData( mblock, w->firstValidPoint_ );
 
         }
     }

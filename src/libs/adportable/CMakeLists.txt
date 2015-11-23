@@ -37,7 +37,11 @@ add_library( adportable
   utf.cpp
   uuid.cpp
   fft4g_h.c
+  waveform_averager.hpp
   waveform_processor.hpp
+  waveform_simulator.hpp
+  waveform_simulator.cpp
+  waveform_wrapper.hpp
   )
 
 target_include_directories( adportable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
