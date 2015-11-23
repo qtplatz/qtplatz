@@ -85,6 +85,23 @@ tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u530
 
 
 bool
+tdcdoc::set_threshold_action( const adcontrols::threshold_action& m )
+{
+    threshold_action_ = std::make_shared< adcontrols::threshold_action >( m );
+    
+    for ( auto& counts: threshold_action_counts_ )
+        counts = std::make_pair( 0, 0 );
+    
+    return true;
+}
+
+std::shared_ptr< const adcontrols::threshold_action >
+tdcdoc::threshold_action() const
+{
+    return threshold_action_;
+}
+
+bool
 tdcdoc::set_threshold_method( int channel, const adcontrols::threshold_method& m )
 {
     if ( channel < threshold_methods_.size() ) {
@@ -228,6 +245,14 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
 void
 tdcdoc::clear_histogram()
 {
+    threshold_action_counts_ = { { { 0, 0 } } };
+
     for ( auto h : histograms_ )
         h->clear();
+}
+
+std::pair< uint32_t, uint32_t >
+tdcdoc::threshold_action_counts( int channel ) const
+{
+    return threshold_action_counts_[ channel ];
 }

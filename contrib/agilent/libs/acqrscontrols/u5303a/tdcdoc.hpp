@@ -32,7 +32,8 @@
 #include <vector>
 
 namespace acqrscontrols { namespace u5303a { class waveform; class threshold_result; class histogram; } }
-namespace adcontrols { class threshold_method; class MassSpectrum; }
+
+namespace adcontrols { class threshold_action; class threshold_method; class MassSpectrum; }
 
 namespace acqrscontrols {
 
@@ -47,6 +48,9 @@ namespace acqrscontrols {
         public:
             ~tdcdoc();
             tdcdoc();
+
+            bool set_threshold_action( const adcontrols::threshold_action& );
+            std::shared_ptr< const adcontrols::threshold_action > threshold_action() const;
 
             bool set_threshold_method( int channel, const adcontrols::threshold_method& );
             std::shared_ptr< const adcontrols::threshold_method > threshold_method( int channel ) const;
@@ -66,15 +70,19 @@ namespace acqrscontrols {
 
             double trig_per_seconds() const;
 
+            std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const;
+
             static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
                                                    , const adcontrols::threshold_method& method
                                                    , std::vector< uint32_t >& elements
                                                    , std::vector<double>& processed );
 
         private:
+            std::shared_ptr< adcontrols::threshold_action > threshold_action_;
             std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
             std::array< std::shared_ptr< acqrscontrols::u5303a::histogram >, 2 > histograms_;
             std::atomic< double > trig_per_seconds_;
+            std::array< std::pair< uint32_t, uint32_t >, 2 > threshold_action_counts_;
             std::mutex mutex_;
         };
 
