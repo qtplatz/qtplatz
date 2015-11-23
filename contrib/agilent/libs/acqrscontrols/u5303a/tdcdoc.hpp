@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <acqrscontrols/acqrscontrols_global.hpp>
 #include <acqrscontrols/constants.hpp>
 #include <atomic>
 #include <array>
@@ -39,12 +40,18 @@ namespace acqrscontrols {
 
     namespace u5303a {
 
-        typedef std::shared_ptr< acqrscontrols::u5303a::threshold_result > threshold_result_ptr;
-        typedef std::shared_ptr< const acqrscontrols::u5303a::threshold_result > const_threshold_result_ptr;
+        typedef acqrscontrols::u5303a::threshold_result threshold_result_type;
+        typedef std::shared_ptr< threshold_result_type > threshold_result_ptr;
+        typedef std::shared_ptr< const threshold_result_type > const_threshold_result_ptr;
         typedef acqrscontrols::u5303a::waveform waveform_type;
         typedef acqrscontrols::u5303a::histogram histogram_type;
 
-        class tdcdoc { 
+#if defined _MSC_VER
+        ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT std::weak_ptr < threshold_result_type > ;
+        ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT std::weak_ptr < histogram_type > ;
+#endif
+
+        class ACQRSCONTROLSSHARED_EXPORT tdcdoc { 
         public:
             ~tdcdoc();
             tdcdoc();
@@ -78,12 +85,19 @@ namespace acqrscontrols {
                                                    , std::vector<double>& processed );
 
         private:
-            std::shared_ptr< adcontrols::threshold_action > threshold_action_;
             std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
             std::array< std::shared_ptr< acqrscontrols::u5303a::histogram >, 2 > histograms_;
-            std::atomic< double > trig_per_seconds_;
             std::array< std::pair< uint32_t, uint32_t >, 2 > threshold_action_counts_;
+#if defined _MSC_VER
+#pragma warning( push )
+#pragma warning( disable: 4251)
+#endif
+            std::shared_ptr< adcontrols::threshold_action > threshold_action_;
+            std::atomic< double > trig_per_seconds_;
             std::mutex mutex_;
+#if defined _MSC_VER
+#pragma warning( pop )
+#endif
         };
 
     }

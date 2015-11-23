@@ -37,6 +37,8 @@ namespace adportable {
         ~waveform_simulator();
         waveform_simulator();
 
+        waveform_simulator( double delay, size_t actualPoints, double xIncrement );
+
         void operator()( std::shared_ptr< mblock<int16_t> >&, int numRecords = 1 ) const;
 
         void operator()( std::shared_ptr< mblock<int32_t> >&, int numRecords = 1 ) const;

@@ -238,18 +238,21 @@ void
 simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
 {
     if ( ! vec.empty() )  {
+
+        auto& w = *vec[ 0 ];
                 
-        if ( vec[0]->meta_.dataType == 2 ) {
+        if ( w.meta_.dataType == 2 ) {
 
             std::shared_ptr< adportable::mblock< int16_t > > mblock;
-            adportable::waveform_simulator()( mblock, vec.size() );
+            adportable::waveform_simulator( w.meta_.initialXOffset, w.meta_.actualPoints, w.meta_.xIncrement )( mblock, int( vec.size() ) );
+
             for ( auto& w: vec )
                 w->setData( mblock, w->firstValidPoint_ );
 
         } else {
 
             std::shared_ptr< adportable::mblock< int16_t > > mblock;
-            adportable::waveform_simulator()( mblock, vec.size() );
+            adportable::waveform_simulator()( mblock, int( vec.size() ) );
             for ( auto& w: vec )
                 w->setData( mblock, w->firstValidPoint_ );
 

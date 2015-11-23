@@ -35,6 +35,7 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/threshold_finder.hpp>
 #include <adportable/waveform_processor.hpp>
+#include <adportable/waveform_wrapper.hpp>
 
 using namespace acqrscontrols::u5303a;
 
@@ -138,8 +139,6 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
 
     adportable::threshold_finder finder( findUp, nfilter );
     
-    bool flag;
-
     // workaround
     // if ( data.isDEAD() )
     //     return;

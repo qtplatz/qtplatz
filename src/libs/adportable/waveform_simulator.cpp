@@ -31,25 +31,27 @@ namespace adportable {
 
     class waveform_simulator::impl {
     public:
-        impl() : size_( 0 )
+        impl() : actualPoints_( 1000 * 10 ) // 10us
                , xIncrement_( 1.0e-9 )
-               , width_( 10.0e-6 )
                , delay_( 0.0 )
-               , dist_( -2, 3 )
+               , dist_( -3, 5 )
                , sign_( -1 )
-               , pseudo_peaks_( { { 1.0e-6, 0x1f }, { 1.5e-6, 0x1f }, { 2.0e-6, 0x1f } } ) {
+               , sigma_( 1.0e-9 )
+               , pseudo_peaks_( { { 1.0e-6, 200 }, { 1.5e-6, 400 }, { 2.0e-6, 2000 }, { 2.5e-6, 100 } } ) {
+
+            const double sigma_( 1.0e-9 );
             
         }
 
-        std::vector< std::pair< double, int > > pseudo_peaks_;
         std::shared_ptr< mblock< int16_t > > mblk_;
-        size_t size_;
-        double xIncrement_;
-        double width_;
+        double sigma_;
         double delay_;
+        double xIncrement_;
+        size_t actualPoints_;
         int sign_;
         std::mt19937 __gen__;
         std::uniform_real_distribution<double> dist_;
+        std::vector< std::pair< double, int > > pseudo_peaks_;
 
         static impl& instance() {
             static impl __impl__;
@@ -61,18 +63,39 @@ namespace adportable {
         };
 
         void generate() {
-            size_ = size_t( width_ / xIncrement_ + 0.5 );
-            mblk_ = std::make_shared< mblock< int16_t > >( size_ );
-            for( size_t i = 0; i < size_; ++i ) {
-                double t = delay_ + xIncrement_ * i;
-                double y;
+
+            if ( mblk_ )
+                return;
+
+            mblk_ = std::make_shared< mblock< int16_t > >( actualPoints_ );
+            for ( size_t i = 0; i < actualPoints_; ++i ) {
+                double t = /* delay_ + */ xIncrement_ * i;
+                double y(0);
                 for ( auto& peak: pseudo_peaks_ ) {
-                    boost::math::normal_distribution< double > nd( peak.first, 1.0e-9 );
-                    y += boost::math::pdf( nd, t ) * peak.second * sign_;
+                    if ( std::abs( t - peak.first ) < 3.0e-9 ) {
+                        boost::math::normal_distribution< double > nd( peak.first, sigma_ );
+                        y += boost::math::pdf( nd, t ) * sigma_ * peak.second * sign_;
+                    }
                 }
                 mblk_->data()[ i ] = int( y );
             }
         }
+
+        template< typename value_type >
+        void generate( std::shared_ptr< mblock<value_type> >& mblk, int numRecords ) {
+
+            mblk = std::make_shared < adportable::mblock< value_type > >( actualPoints_ * numRecords );
+            generate();
+            
+            auto * dp = mblk->data();
+            
+            for ( int i = 0; i < numRecords; ++i ) {
+                auto * sp = mblk_->data();
+                std::transform( sp, sp + actualPoints_, dp, [] ( int y ) { return y + impl::instance().noise(); } );
+                dp += impl::instance().actualPoints_;
+            }
+        }
+
     };
 
 }
@@ -87,38 +110,32 @@ waveform_simulator::waveform_simulator()
 {
 }
 
+waveform_simulator::waveform_simulator( double delay, size_t size, double xIncrement )
+{
+    if ( impl::instance().actualPoints_ != size ||
+         std::abs( impl::instance().delay_ - delay ) >= 1.0e-10 ||
+         std::abs( impl::instance().xIncrement_ - xIncrement ) >= 1.0e-10 )
+        impl::instance().mblk_.reset();
+    
+    impl::instance().actualPoints_ = size;
+    impl::instance().delay_ = delay;
+    impl::instance().xIncrement_ = xIncrement;
+}
+
 void
 waveform_simulator::operator () ( std::shared_ptr< mblock<int16_t> >& mblk, int numRecords ) const
 {
-    if ( ! impl::instance().mblk_ )
-        impl::instance().generate();
-
-    mblk = std::make_shared< mblock<int16_t > >( impl::instance().size_ * numRecords );
-
-    auto * dp = mblk->data();
-    for ( int i = 0; i < numRecords; ++i ) {
-        auto * sp = impl::instance().mblk_->data();
-        std::transform( sp, sp + impl::instance().size_, dp, []( int y ){ return y + impl::instance().noise(); } );
-        dp += impl::instance().size_;
-    }
+    impl::instance().generate< int16_t >( mblk, numRecords );    
 }
 
 void
 waveform_simulator::operator () ( std::shared_ptr< mblock<int32_t> >& mblk, int numRecords ) const
 {
-    if ( ! impl::instance().mblk_ )
-        impl::instance().generate();
-
-    auto * dp = mblk->data();
-    for ( int i = 0; i < numRecords; ++i ) {
-        auto * sp = impl::instance().mblk_->data();
-        std::transform( sp, sp + impl::instance().size_, dp, []( int y ){ return y + impl::instance().noise(); } );
-        dp += impl::instance().size_;
-    }
+    impl::instance().generate< int32_t >( mblk, numRecords );
 }
 
 size_t
 waveform_simulator::actualPoints() const
 {
-    return impl::instance().size_;
+    return impl::instance().actualPoints_;
 }

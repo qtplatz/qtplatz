@@ -92,7 +92,7 @@ namespace acqrscontrols {
             size_t size() const; // number of samples
             int dataType() const; // 2 = int16_t, 4 = int32_t
             
-            typedef int32_t value_type;
+            // typedef int32_t value_type;
             
             void setData( const std::shared_ptr< adportable::mblock<int32_t> >&, size_t firstValidPoint );
             void setData( const std::shared_ptr< adportable::mblock<int16_t> >&, size_t firstValidPoint );

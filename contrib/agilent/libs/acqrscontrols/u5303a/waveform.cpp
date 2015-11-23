@@ -317,6 +317,7 @@ waveform::transform( std::vector< double >& v, const waveform& w, int scale )
     } else {
         std::transform( w.begin<int32_t>(), w.end<int32_t>(), v.begin(), [&]( int32_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
     }
+    return true;
 }
 
 

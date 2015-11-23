@@ -45,7 +45,7 @@ namespace adportable {
             while ( it != end ) {
                 if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
                     if ( flag == findUp )                        
-                        indecies.push_back( std::distance( begin, it ) );
+                        indecies.push_back( uint32_t( std::distance( begin, it ) ) );
                     adportable::advance( it, nfilter, end );
                 }
             }

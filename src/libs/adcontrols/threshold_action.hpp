@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include <boost/serialization/version.hpp>
+#include <memory>
 
 namespace boost { namespace serialization { class access; } }
 
@@ -50,6 +51,8 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
 	};
+    
+    ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::weak_ptr< threshold_action >;
     
 }
 
