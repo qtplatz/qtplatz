@@ -29,6 +29,8 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/waveform.hpp>
+
 #include <adportable/asio/thread.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
@@ -36,6 +38,7 @@
 #include <adportable/serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
+#include <adportable/waveform_processor.hpp>
 #include <adicontroller/signalobserver.hpp>
 #include <adlog/logger.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -161,6 +164,12 @@ size_t
 waveform::size() const
 {
     return meta_.actualPoints;
+}
+
+int
+waveform::dataType() const
+{
+    return meta_.dataType;
 }
 
 int
@@ -297,6 +306,44 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
     return false;
 }
 #endif
+
+bool
+waveform::transform( std::vector< double >& v, const waveform& w, int scale )
+{
+    v.resize( w.size() );
+
+    if ( w.meta_.dataType == 2 ) {
+        std::transform( w.begin<int16_t>(), w.end<int16_t>(), v.begin(), [&]( int16_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
+    } else {
+        std::transform( w.begin<int32_t>(), w.end<int32_t>(), v.begin(), [&]( int32_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
+    }
+}
+
+
+bool
+waveform::apply_filter( std::vector<double>& v, const waveform& w, const adcontrols::threshold_method& m )
+{
+    if ( m.filter ) {
+
+        transform( v, w, 1 );
+
+        if ( m.filter == adcontrols::threshold_method::SG_Filter ) {
+            
+            adcontrols::waveform::sg::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.sgwidth );
+            
+        } else if ( m.filter == adcontrols::threshold_method::DFT_Filter ) {
+
+            if ( m.complex_ )
+                adcontrols::waveform::fft4c::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
+            else
+                adcontrols::waveform::fft4g::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
+        }
+        
+        return true;
+    }
+
+    return false;
+}
 
 //static
 bool

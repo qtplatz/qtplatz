@@ -91,41 +91,17 @@ tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u530
 bool
 tdcdoc::set_threshold_method( int channel, const adcontrols::threshold_method& m )
 {
-    namespace ap = adportable;
-    
     if ( channel < threshold_methods_.size() ) {
-
+        
         if ( auto prev = threshold_methods_[ channel ] ) {
-            
-            if ( prev->enable != m.enable ||
-                 (!ap::compare<double>::approximatelyEqual( prev->threshold_level, m.threshold_level )) ||
-                 (!ap::compare<double>::approximatelyEqual( prev->response_time, m.response_time )) ||
-                 prev->slope != m.slope ||
-                 prev->use_filter != m.use_filter ) {
-                
-                // clear histogram except for time_resolution change, which is for histogram calculation resolution
+            if ( *prev != m )
                 histograms_[ channel ]->clear();
-            }
-
-            if ( m.use_filter ) {
-                if ( ( prev->filter != m.filter ) ||
-                     ( ( m.filter == adcontrols::threshold_method::SG_Filter ) && 
-                       ( !ap::compare<double>::approximatelyEqual( prev->sgwidth, m.sgwidth ) ) ) ||
-                     ( ( m.filter == adcontrols::threshold_method::DFT_Filter ) && 
-                       ( ( !ap::compare<double>::approximatelyEqual( prev->cutoffHz, m.cutoffHz ) ) ||
-                         ( m.complex_ != prev->complex_ ) ) ) ) {
-
-                    // clear histogram except for time_resolution change, which is for histogram calculation resolution
-                    histograms_[ channel ]->clear();                                 
-                }
-            }
         }
-
-        std::lock_guard< std::mutex > lock( mutex_ );                
+        
         threshold_methods_[ channel ] = std::make_shared< adcontrols::threshold_method >( m );
         return true;
-
     }
+
     return false;
 }
 
@@ -144,7 +120,6 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
                                    , std::vector< uint32_t >& elements
                                    , std::vector<double>& processed )
 {
-
     const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
     const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
@@ -153,33 +128,19 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
     bool flag;
 
     // workaround
-    if ( data.isDEAD() )
-        return;
+    // if ( data.isDEAD() )
+    //     return;
     // <<-- workaround
 
     if ( method.use_filter ) {
 
-        processed.resize( data.size() );
-
-        for ( size_t i = 0; i < data.size(); ++i )
-            processed[ i ] = data.toVolts( data[ i ] );
-
-        if ( method.filter == adcontrols::threshold_method::SG_Filter ) {
-
-            adcontrols::waveform::sg::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.sgwidth );
-
-        } else if ( method.filter == adcontrols::threshold_method::DFT_Filter ) {
-
-            if ( method.complex_ )
-                adcontrols::waveform::fft4c::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
-            else
-                adcontrols::waveform::fft4g::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
-        }
+        waveform_type::apply_filter( processed, data, method );
 
         double level = method.threshold_level;
         finder( processed.begin(), processed.end(), elements, level );        
         
     } else {
+
         double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
         double level = level_per_trigger;
         if ( data.meta_.actualAverages )

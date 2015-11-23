@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -41,13 +41,12 @@ namespace u5303a {
     typedef std::shared_ptr< acqrscontrols::u5303a::threshold_result > threshold_result_ptr;
     typedef std::shared_ptr< const acqrscontrols::u5303a::threshold_result > const_threshold_result_ptr;
 
-    class tdcdoc { //: public QObject {
-
-        // Q_OBJECT
-
+    class tdcdoc { 
     public:
         ~tdcdoc();
-        tdcdoc(); // QObject * parent = nullptr );
+        tdcdoc();
+
+        typedef acqrscontrols::u5303a::waveform waveform_type;    
 
         bool set_threshold_method( int channel, const adcontrols::threshold_method& );
         std::shared_ptr< const adcontrols::threshold_method > threshold_method( int channel ) const;

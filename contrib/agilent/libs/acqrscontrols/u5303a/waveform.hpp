@@ -89,7 +89,8 @@ namespace acqrscontrols {
             uint64_t timeSinceEpoch_;
             uint64_t firstValidPoint_;
 
-            size_t size() const; // number of samples (octet size is depend on meta_.dataType)
+            size_t size() const; // number of samples
+            int dataType() const; // 2 = int16_t, 4 = int32_t
             
             typedef int32_t value_type;
             
@@ -109,12 +110,17 @@ namespace acqrscontrols {
 
             bool isDEAD() const;
 
+
             static bool
                 serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
 
             static std::array< std::shared_ptr< const waveform >, 2 >
                 deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
 
+            static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
+
+            static bool transform( std::vector<double>&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+            
             static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...

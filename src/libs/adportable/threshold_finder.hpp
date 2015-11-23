@@ -39,13 +39,13 @@ namespace adportable {
         }
 
         template< typename const_iterator >
-        void operator()( const_iterator&& begin, const_iterator&& end, std::vector< uint32_t >& elements, double level ) {
+        void operator()( const_iterator&& begin, const_iterator&& end, std::vector< uint32_t >& indecies, double level ) {
             bool flag;
             auto it = begin;
             while ( it != end ) {
                 if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
                     if ( flag == findUp )                        
-                        elements.push_back( std::distance( begin, it ) );
+                        indecies.push_back( std::distance( begin, it ) );
                     adportable::advance( it, nfilter, end );
                 }
             }
