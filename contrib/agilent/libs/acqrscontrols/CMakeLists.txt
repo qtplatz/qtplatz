@@ -10,6 +10,11 @@ if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS -wd4996 )
 endif()
 
+include_directories(
+  ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
+  ${CMAKE_SOURCE_DIR}/src/libs
+  )
+
 add_library( ${PROJECT_NAME} SHARED
   acqrscontrols_global.hpp
   u5303a/device_method.hpp
@@ -20,6 +25,8 @@ add_library( ${PROJECT_NAME} SHARED
   u5303a/metadata.cpp
   u5303a/method.hpp
   u5303a/method.cpp
+  u5303a/tdcdoc.cpp
+  u5303a/tdcdoc.hpp
   u5303a/threshold_result.hpp
   u5303a/threshold_result.cpp
   u5303a/histogram.hpp

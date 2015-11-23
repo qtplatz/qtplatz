@@ -24,7 +24,7 @@
 #include "task.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include "tdcdoc.hpp"
+#include <acqrscontrols/u5303a/tdcdoc.hpp>
 #include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
@@ -70,6 +70,11 @@
 namespace u5303a {
 
     static std::once_flag flag1;
+
+    typedef std::shared_ptr< acqrscontrols::u5303a::threshold_result > threshold_result_ptr;
+    typedef std::shared_ptr< const acqrscontrols::u5303a::threshold_result > const_threshold_result_ptr;
+    typedef acqrscontrols::u5303a::waveform waveform_type;
+    typedef acqrscontrols::u5303a::histogram histogram_type;
 
     struct data_status {
         uint32_t pos_origin_;

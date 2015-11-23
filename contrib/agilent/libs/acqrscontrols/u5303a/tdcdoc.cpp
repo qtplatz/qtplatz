@@ -36,13 +36,9 @@
 #include <adportable/threshold_finder.hpp>
 #include <adportable/waveform_processor.hpp>
 
-#include <QObject>
+using namespace acqrscontrols::u5303a;
 
-using namespace u5303a;
-
-tdcdoc::tdcdoc() :
-    histograms_( { std::make_shared<acqrscontrols::u5303a::histogram>()
-                , std::make_shared<acqrscontrols::u5303a::histogram>() } )
+tdcdoc::tdcdoc() : histograms_( { std::make_shared< histogram_type >(), std::make_shared<histogram_type>() } )
 {
 }
 
@@ -186,6 +182,7 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
     using namespace adcontrols::metric;
     
     adcontrols::MSProperty prop = sp->getMSProperty();
+    
     adcontrols::MSProperty::SamplingInfo info( 0 /* int interval (must be zero) */
                                                , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
                                                , uint32_t( meta.actualPoints ) // this is for acq. time range calculation

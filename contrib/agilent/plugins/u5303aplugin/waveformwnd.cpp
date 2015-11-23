@@ -25,7 +25,7 @@
 #include "waveformwnd.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include "tdcdoc.hpp"
+#include <acqrscontrols/u5303a/tdcdoc.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <u5303a/digitizer.hpp>

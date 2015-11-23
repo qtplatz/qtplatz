@@ -66,8 +66,6 @@ add_library(
   resultwriter.hpp
   task.cpp
   task.hpp
-  tdcdoc.cpp
-  tdcdoc.hpp
   u5303a_global.hpp
   u5303a_constants.hpp
   u5303amode.hpp

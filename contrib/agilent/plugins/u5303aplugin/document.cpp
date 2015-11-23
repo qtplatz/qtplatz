@@ -27,11 +27,11 @@
 #include "mainwindow.hpp"
 #include "resultwriter.hpp"
 #include "task.hpp"
-#include "tdcdoc.hpp"
 #include "u5303a_constants.hpp"
 #include "icontrollerimpl.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/metadata.hpp>
+#include <acqrscontrols/u5303a/tdcdoc.hpp>
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adlog/logger.hpp>
@@ -96,7 +96,7 @@ namespace u5303a {
         static const std::chrono::steady_clock::time_point uptime_;
         static const uint64_t tp0_;
 
-        std::shared_ptr< tdcdoc > tdcdoc_;
+        std::shared_ptr< acqrscontrols::u5303a::tdcdoc > tdcdoc_;
         std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
         std::shared_ptr< ::u5303a::iControllerImpl > iControllerImpl_;
         std::shared_ptr< adextension::iSequenceImpl > iSequenceImpl_;
@@ -121,7 +121,7 @@ namespace u5303a {
         // display data
         std::map< boost::uuids::uuid, std::array< std::shared_ptr< adcontrols::MassSpectrum >, acqrscontrols::u5303a::nchannels > > spectra_;
 
-        impl() : tdcdoc_( std::make_shared< tdcdoc >() )
+        impl() : tdcdoc_( std::make_shared< acqrscontrols::u5303a::tdcdoc >() )
                , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                , iControllerImpl_( std::make_shared< u5303a::iControllerImpl >() )
                , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >() )
@@ -757,7 +757,7 @@ document::impl::handleDataEvent( adicontroller::SignalObserver::Observer *, unsi
 {
 }
 
-tdcdoc *
+acqrscontrols::u5303a::tdcdoc *
 document::tdc()
 {
     return impl_->tdcdoc_.get();

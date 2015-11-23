@@ -45,13 +45,12 @@ namespace adcontrols {
     class threshold_method; 
 }
 
-namespace acqrscontrols { namespace u5303a { class method; class waveform; class threshold_result; } }
+namespace acqrscontrols { namespace u5303a { class method; class waveform; class threshold_result; class tdcdoc; } }
 namespace boost { namespace uuids { struct uuid; } namespace filesystem { class path; } }
 
 namespace u5303a {
 
     class iControllerImpl;
-    class tdcdoc;
 
     namespace detail { struct remover; }
 
@@ -117,7 +116,7 @@ namespace u5303a {
 
         void takeSnapshot();
 
-        tdcdoc * tdc();
+        acqrscontrols::u5303a::tdcdoc * tdc();
         QSettings * settings();
 
         // tentative solution -- will be removed
