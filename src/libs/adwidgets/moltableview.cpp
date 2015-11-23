@@ -178,7 +178,7 @@ namespace adwidgets {
                 int cformula = impl_->findColumn( MolTableView::f_formula );
                 if ( cformula >= 0 ) {
                     auto expr = index.model()->index( index.row(), cformula ).data( Qt::EditRole ).toString();
-
+                    
                     int cadducts = impl_->findColumn( MolTableView::f_adducts );
                     if ( cadducts >= 0 )
                         expr += " " + index.model()->index( index.row(), cadducts ).data( Qt::EditRole ).toString();
@@ -190,7 +190,9 @@ namespace adwidgets {
                                 adportable::compare<double>::approximatelyEqual( exactMass, mass ) ) )
                             painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
                     }
-                    QStyledItemDelegate::paint( painter, opt, index );
+                    painter->drawText( option.rect, option.displayAlignment
+                                       , QString::number( index.data( Qt::EditRole ).toDouble(), 'f', 
+                                                          impl_->state( index.column() ).precision  ) );
                 }
                 painter->restore();
 
@@ -206,7 +208,9 @@ namespace adwidgets {
                 painter->restore();
 
             } else if ( impl_->state( index.column() ).precision && index.data( Qt::EditRole ).canConvert<double>() ) {
-                //QString str = QString::number( index.data( Qt::EditRole ).toDouble(), 'f', impl_->state( index.column() ).precision;
+                painter->drawText( option.rect, option.displayAlignment
+                                   , QString::number( index.data( Qt::EditRole ).toDouble(), 'f', 
+                                                      impl_->state( index.column() ).precision  ) );
             } else {
                 QStyledItemDelegate::paint( painter, opt, index );
             }
@@ -223,7 +227,6 @@ namespace adwidgets {
             } else 
                 QStyledItemDelegate::setModelData( editor, model, index );
         }
-        
 
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
             auto& state = impl_->state( index.column() );
@@ -232,6 +235,12 @@ namespace adwidgets {
                 for ( auto& x : state.choice )
                     combo->addItem( x.first );
                 return combo;
+            } else if ( state.precision && index.data( Qt::EditRole ).canConvert< double >() ) {
+				auto spin = new QDoubleSpinBox( parent );
+                spin->setDecimals( state.precision );
+                spin->setMaximum( 100000 );
+				spin->setSingleStep( std::pow( 10, -state.precision ) );
+                return spin;
             } else {
                 return QStyledItemDelegate::createEditor( parent, option, index );
             }
@@ -517,6 +526,8 @@ void
 MolTableView::setColumnField( int column, fields f, bool editable, bool checkable )
 {
     impl_->columnStates_[ column ] = impl::columnState( f, editable, checkable );
+	if ( f == f_mass )
+        impl_->columnStates_[ column ].precision = 7;
 }
 
 // static

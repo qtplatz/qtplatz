@@ -144,6 +144,10 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
         table->setColumnHidden( impl::c_id, true );
         table->setColumnField( impl::c_formula, MolTableView::f_formula, true, false );
         table->setColumnField( impl::c_mass, MolTableView::f_mass );
+        table->setColumnField( impl::c_time, MolTableView::f_time );
+        table->setColumnField( impl::c_timewindow, MolTableView::f_time );
+        table->setPrecision( impl::c_time, 4 );
+        table->setPrecision( impl::c_timewindow, 2 );
 
         std::vector< std::pair< QString, QVariant > > choice;
         choice.push_back( std::make_pair( "Area", QVariant( adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) ) );
