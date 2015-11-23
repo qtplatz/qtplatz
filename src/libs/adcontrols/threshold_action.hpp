@@ -51,9 +51,10 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
 	};
-    
+
+#if defined _MSC_VER
     ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::weak_ptr< threshold_action >;
-    
+#endif    
 }
 
 BOOST_CLASS_VERSION( adcontrols::threshold_action, 1 )
