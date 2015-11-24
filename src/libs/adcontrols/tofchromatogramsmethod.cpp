@@ -37,10 +37,10 @@ namespace adcontrols {
     class TofChromatogramsMethod::impl {
     public:
 
-        impl() {
+        impl() : numberOfTriggers_( 100 ) {
         }
 
-        impl( const impl& t ) : numberOfTriggers_( 0 )
+        impl( const impl& t ) : numberOfTriggers_( t.numberOfTriggers_ )
                               , vec_( t.vec_ ) {
         }
 

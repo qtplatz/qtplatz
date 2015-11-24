@@ -155,8 +155,10 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
         table->setChoice( impl::c_algo, choice );
     }
 
-    if ( auto form = findChild< TofChromatogramsForm * >() ) 
+    if ( auto form = findChild< TofChromatogramsForm * >() )  {
         connect( form, &TofChromatogramsForm::applyTriggered, [this](){ emit applyTriggered(); } );
+        connect( form, &TofChromatogramsForm::valueChanged, [this](){ emit valueChanged(); } );
+    }
 
     connect( impl_->model_.get(), &QSqlTableModel::dataChanged, [this] ( const QModelIndex& _1, const QModelIndex& _2 ) { impl_->dataChanged( _1, _2 ); } );
 }

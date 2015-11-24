@@ -44,20 +44,20 @@ namespace adportable {
 
         waveform_averager( size_t size ) : size_( size )
                                          , actualAverages_( 0 )
-                                         , data_( new value_type [ size ] ) {
+                                         , data_( allocator().alloc( size ) ) {
         }
         
         template< typename rvalue_type, typename waveform_type >
-        waveform( const waveform_wrapper< rvalue_type, waveform_type >& t ) : size_( t.size() )
-                                                                            , data_( new value_type [ size_ ] ) {
+        waveform_averager( const waveform_wrapper< rvalue_type, waveform_type >& t ) : size_( t.size() )
+                                                                                     , data_( allocator().alloc( size_ ) ) {
             std::copy( t.begin(), t.end(), data_.get() );            
         }
             
         template< typename rvalue_type, typename waveform_type >
-        waveform& operator += ( const waveform_wrapper< rvalue_type, waveform_type >& w ) {
+        waveform_averager& operator += ( const waveform_wrapper< rvalue_type, waveform_type >& w ) {
             if ( size_ == 0 ) {
-                return *new (this) waveform< lvalue_type, allocator >;
-            } else if ( size == w.size() ) {
+                return *new (this) waveform_averager< lvalue_type, allocator >;
+            } else if ( size_ == w.size() ) {
                 std::transform( data_.get(), data_.get() + size_, w.begin(), std::plus<lvalue_type>() );
                 ++actualAverages_;
             } else

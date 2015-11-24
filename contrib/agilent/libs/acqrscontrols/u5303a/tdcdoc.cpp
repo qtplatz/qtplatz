@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -35,6 +35,7 @@
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/threshold_finder.hpp>
+#include <adportable/waveform_averager.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <adportable/waveform_wrapper.hpp>
 
@@ -80,6 +81,14 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a
             impl_->histograms_[ channel ]->append( *result );
         ++channel;
     }
+}
+
+void
+tdcdoc::average( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > waveforms )
+{
+    adportable::waveform_averager< int32_t
+                                   , acqrscontrols::u5303a::waveform >
+        avgr( adportable::waveform_wrapper<int32_t, acqrscontrols::u5303a::waveform >( waveforms[0] ) );
 }
 
 std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
