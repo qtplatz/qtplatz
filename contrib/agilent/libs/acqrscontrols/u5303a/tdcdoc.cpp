@@ -94,12 +94,20 @@ tdcdoc::average( std::array< std::shared_ptr< const acqrscontrols::u5303a::wavef
 {
     typedef adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > u16wrap;
     typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
-        
+
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    
     if ( auto waveform = waveforms[ 0 ] ) {
         if ( ! impl_->averager_ ) {
             impl_->averager_ = std::make_shared< averager_type >( u16wrap( *waveform ) );
         } else {
             (*impl_->averager_) += u16wrap( *waveform );
+            if ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
+                impl_->avgdWaveforms_.emplace_back( impl_->averager_ );
+                impl_->averager_.reset();
+                ADDEBUG() << "averaged";
+            }
+                
         }
     }
 }

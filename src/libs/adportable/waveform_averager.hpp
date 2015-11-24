@@ -64,6 +64,8 @@ namespace adportable {
                 throw std::out_of_range("waveform length mismatch");
             return *this;
         }
+
+        const size_t actualAverages() const { return actualAverages_; }
         
     };
     

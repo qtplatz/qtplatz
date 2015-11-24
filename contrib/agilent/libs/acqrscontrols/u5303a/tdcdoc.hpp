@@ -31,6 +31,7 @@
 #include <mutex>
 #include <memory>
 #include <vector>
+#include <functional>
 
 namespace acqrscontrols { namespace u5303a { class waveform; class threshold_result; class histogram; } }
 
