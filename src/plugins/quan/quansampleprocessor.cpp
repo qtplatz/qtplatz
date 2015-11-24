@@ -58,7 +58,7 @@
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/targeting.hpp>
-#include <adcontrols/waveform.hpp>
+#include <adcontrols/waveform_filter.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
 #include <adfs/adfs.hpp>
@@ -428,7 +428,7 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
         if ( pCentroidMethod->noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter ) {
             filtered.clone( profile, true );
             for ( auto& ms : adcontrols::segment_wrapper<>( filtered ) ) {
-                adcontrols::waveform::fft4c::lowpass_filter( ms, pCentroidMethod->cutoffFreqHz() );
+                adcontrols::waveform_filter::fft4c::lowpass_filter( ms, pCentroidMethod->cutoffFreqHz() );
                 double base( 0 ), rms( 0 );
                 const double * intens = ms.getIntensityArray();
                 adportable::spectrum_processor::tic( uint32_t( ms.size() ), intens, base, rms );

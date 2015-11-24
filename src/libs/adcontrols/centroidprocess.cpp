@@ -33,7 +33,7 @@
 #include "mspeakinfoitem.hpp"
 #include "mspeakinfo.hpp"
 #include "description.hpp"
-#include "waveform.hpp"
+#include "waveform_filter.hpp"
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/moment.hpp>

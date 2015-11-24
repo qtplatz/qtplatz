@@ -39,7 +39,7 @@
 #include "msproperty.hpp"
 #include "processmethod.hpp"
 #include <adportable/spectrum_processor.hpp>
-#include "waveform.hpp"
+#include "waveform_filter.hpp"
 #include <boost/format.hpp>
 #include <numeric>
 
@@ -487,7 +487,8 @@ MSChromatogramExtractor::impl::prepare_mslock( const adcontrols::MSChromatogramM
 }
 
 void
-MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > profile, const adcontrols::ProcessMethod& pm, adcontrols::lockmass& mslock )
+MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > profile
+                                             , const adcontrols::ProcessMethod& pm, adcontrols::lockmass& mslock )
 {
     if ( auto cm = pm.find< adcontrols::CentroidMethod >() ) {
 
@@ -497,7 +498,7 @@ MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSp
             adcontrols::MassSpectrum filtered;
             filtered.clone( *profile, true );
             for ( auto& ms : adcontrols::segment_wrapper<>( filtered ) ) {
-                adcontrols::waveform::fft4c::lowpass_filter( ms, cm->cutoffFreqHz() );
+                adcontrols::waveform_filter::fft4c::lowpass_filter( ms, cm->cutoffFreqHz() );
                 double base( 0 ), rms( 0 );
                 const double * intens = ms.getIntensityArray();
                 adportable::spectrum_processor::tic( uint32_t( ms.size() ), intens, base, rms );

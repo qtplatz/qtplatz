@@ -61,7 +61,7 @@
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/targeting.hpp>
-#include <adcontrols/waveform.hpp>
+#include <adcontrols/waveform_filter.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
 #include <adfs/adfs.hpp>
@@ -280,7 +280,7 @@ QuanChromatogramProcessor::doCentroid( const adcontrols::MassSpectrum& profile
             filtered->clone( profile, true );
 
             for ( auto& ms : adcontrols::segment_wrapper<>( *filtered ) ) {
-                adcontrols::waveform::fft4c::lowpass_filter( ms, pCentroidMethod->cutoffFreqHz() );
+                adcontrols::waveform_filter::fft4c::lowpass_filter( ms, pCentroidMethod->cutoffFreqHz() );
             }
 
             filtered->addDescription( adcontrols::description( L"process", dataproc::Constants::F_DFT_FILTERD ) );

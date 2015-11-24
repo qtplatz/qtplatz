@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "waveform.hpp"
+#include "waveform_filter.hpp"
 #include "massspectrum.hpp"
 #include "msproperty.hpp"
 #include <adportable/array_wrapper.hpp>
@@ -41,12 +41,12 @@ extern "C" {
     void rdft( int, int isgn, double * );    
 }
 
-waveform::waveform()
+waveform_filter::waveform_filter()
 {
 }
 
 bool
-waveform::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
+waveform_filter::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 {
     if ( ms.isCentroid() || ms.size() < 32 )
         return false;
@@ -95,7 +95,7 @@ waveform::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 }
 
 bool
-waveform::fft::lowpass_filter( std::vector<double>& intens, double sampInterval, double freq )
+waveform_filter::fft::lowpass_filter( std::vector<double>& intens, double sampInterval, double freq )
 {
     if ( intens.size() < 32 )
         return false;
@@ -134,7 +134,7 @@ waveform::fft::lowpass_filter( std::vector<double>& intens, double sampInterval,
 }
 
 bool
-waveform::fft4g::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
+waveform_filter::fft4g::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 {
     if ( ms.isCentroid() || ms.size() < 32 )
         return false;
@@ -168,7 +168,7 @@ waveform::fft4g::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 }
 
 bool
-waveform::fft4g::lowpass_filter( size_t size, double * data, double sampInterval, double freq )
+waveform_filter::fft4g::lowpass_filter( size_t size, double * data, double sampInterval, double freq )
 {
     if ( size < 32 )
         return false;
@@ -200,7 +200,7 @@ waveform::fft4g::lowpass_filter( size_t size, double * data, double sampInterval
 
 //////////////////////
 bool
-waveform::fft4c::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
+waveform_filter::fft4c::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 {
     if ( ms.isCentroid() || ms.size() < 32 )
         return false;
@@ -234,7 +234,7 @@ waveform::fft4c::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 }
 
 bool
-waveform::fft4c::lowpass_filter( size_t size, double * data, double sampInterval, double freq )
+waveform_filter::fft4c::lowpass_filter( size_t size, double * data, double sampInterval, double freq )
 {
     if ( size < 32 )
         return false;
@@ -266,7 +266,7 @@ waveform::fft4c::lowpass_filter( size_t size, double * data, double sampInterval
 /////////////////////
 
 bool
-waveform::sg::lowpass_filter( adcontrols::MassSpectrum& ms, double width )
+waveform_filter::sg::lowpass_filter( adcontrols::MassSpectrum& ms, double width )
 {
     double sampInterval = ms.getMSProperty().samplingInfo().fSampInterval(); // seconds
     size_t npts = uint32_t( width / sampInterval ) & 01;
@@ -291,7 +291,7 @@ waveform::sg::lowpass_filter( adcontrols::MassSpectrum& ms, double width )
 }
 
 bool
-waveform::sg::lowpass_filter( size_t size, double * data, double sampInterval, double width )
+waveform_filter::sg::lowpass_filter( size_t size, double * data, double sampInterval, double width )
 {
     size_t npts = unsigned ( width / sampInterval ) | 01;
     if ( npts < 5 )

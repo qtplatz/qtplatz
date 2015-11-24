@@ -37,7 +37,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
-#include <adcontrols/waveform.hpp>
+//#include <adcontrols/waveform_filter.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adinterface/controlserver.hpp>
 #include <adfs/adfs.hpp>

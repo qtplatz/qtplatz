@@ -29,7 +29,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/tofchromatogramsmethod.hpp>
-#include <adcontrols/waveform.hpp>
+#include <adcontrols/waveform_filter.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>

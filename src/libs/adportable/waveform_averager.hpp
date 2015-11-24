@@ -32,15 +32,18 @@ namespace adportable {
     template< typename lvalue_type, typename allocator = std::allocator< lvalue_type > >
     class waveform_averager {
         size_t size_;
+        size_t actualAverages_;
         std::unique_ptr< lvalue_type [], allocator > data_;
+
     public:
         ~waveform_averager() {
         }
         
-        waveform_averager() : size_( 0 ) {
+        waveform_averager() : size_( 0 ), actualAverages_( 0 ) {
         }
 
         waveform_averager( size_t size ) : size_( size )
+                                         , actualAverages_( 0 )
                                          , data_( new value_type [ size ] ) {
         }
         
@@ -56,6 +59,7 @@ namespace adportable {
                 return *new (this) waveform< lvalue_type, allocator >;
             } else if ( size == w.size() ) {
                 std::transform( data_.get(), data_.get() + size_, w.begin(), std::plus<lvalue_type>() );
+                ++actualAverages_;
             } else
                 throw std::out_of_range();
             return *this;

@@ -123,7 +123,7 @@ add_library( adcontrols SHARED
   quancalibration.cpp 
   quancalibrations.cpp 
   serializer.cpp
-  waveform.cpp 
+  waveform_filter.cpp 
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -215,7 +215,7 @@ install( FILES
   traceaccessor.hpp 
   visitor.hpp 
   peakresult.hpp 
-  waveform.hpp 
+  waveform_filter.hpp 
   annotation.hpp 
   annotations.hpp 
   mspeakinfo.hpp 

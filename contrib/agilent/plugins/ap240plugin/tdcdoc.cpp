@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,7 +28,7 @@
 #include <acqrscontrols/ap240/threshold_result.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
-#include <adcontrols/waveform.hpp>
+#include <adcontrols/waveform_filter.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
@@ -163,13 +163,13 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::ap240::waveform& data
 
         if ( method.filter == adcontrols::threshold_method::SG_Filter ) {
 
-            adcontrols::waveform::sg::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.sgwidth );
+            adcontrols::waveform_filter::sg::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.sgwidth );
 
         } else if ( method.filter == adcontrols::threshold_method::DFT_Filter ) {
             if ( method.complex_ )
-                adcontrols::waveform::fft4c::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
+                adcontrols::waveform_filter::fft4c::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
             else
-                adcontrols::waveform::fft4g::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
+                adcontrols::waveform_filter::fft4g::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
         }
 
         double level = method.threshold_level;

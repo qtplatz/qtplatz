@@ -29,7 +29,7 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
-#include <adcontrols/waveform.hpp>
+#include <adcontrols/waveform_filter.hpp>
 
 #include <adportable/asio/thread.hpp>
 #include <adportable/binary_serializer.hpp>
@@ -330,14 +330,14 @@ waveform::apply_filter( std::vector<double>& v, const waveform& w, const adcontr
 
         if ( m.filter == adcontrols::threshold_method::SG_Filter ) {
             
-            adcontrols::waveform::sg::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.sgwidth );
+            adcontrols::waveform_filter::sg::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.sgwidth );
             
         } else if ( m.filter == adcontrols::threshold_method::DFT_Filter ) {
 
             if ( m.complex_ )
-                adcontrols::waveform::fft4c::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
+                adcontrols::waveform_filter::fft4c::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
             else
-                adcontrols::waveform::fft4g::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
+                adcontrols::waveform_filter::fft4g::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
         }
         
         return true;

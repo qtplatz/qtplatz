@@ -69,6 +69,8 @@ namespace acqrscontrols {
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
             handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > );
 
+            void average( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > );
+
             // strand required
             void appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results );
             
