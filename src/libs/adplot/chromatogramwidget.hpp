@@ -62,6 +62,7 @@ namespace adplot {
         void register_tracker( std::function< bool( const QPointF&, QwtText& ) > );
         void drawPeakParameter( const adcontrols::Peak& );
         void setZoomed( const QRectF&, bool keepY = true );
+        QColor color( int idx ) const;
 
 	private:
         void setBaseline( const adcontrols::Baseline& );

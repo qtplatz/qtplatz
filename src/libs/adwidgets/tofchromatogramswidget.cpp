@@ -93,7 +93,9 @@ namespace adwidgets {
                 double exactMass = MolTableView::getMonoIsotopicMass( record.value( "formula" ).toString() );
                 if ( exactMass > 0.7 ) {
                     model_->setData( model_->index( row, c_mass ), exactMass );
-                    for ( auto& id : { std::make_pair( c_masswindow, 0.005 ), std::make_pair( c_time, 0.0 ), std::make_pair( c_timewindow, 10.0 ) } ) {
+                    for ( auto& id : { std::make_pair( c_masswindow, 0.005 )
+                                     , std::make_pair( c_time, 0.0 )
+                                     , std::make_pair( c_timewindow, 10.0 ) } ) {
                         if ( record.isNull( id.first ) )
                             model_->setData( model_->index( row, id.first ), id.second );
                     }
@@ -102,10 +104,7 @@ namespace adwidgets {
                         model_->setData( model_->index( row, id ), QVariant() );
                 }
             }
-
-            if ( _1.column() == c_time || _1.column() == c_timewindow ) {
-                emit this_->valueChanged();
-            }
+            emit this_->valueChanged();
         }
 
         void handleContextMenu( const QPoint& pt );

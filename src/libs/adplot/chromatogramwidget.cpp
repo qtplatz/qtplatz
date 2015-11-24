@@ -302,6 +302,14 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
 	}
 }
 
+QColor
+ChromatogramWidget::color( int idx ) const
+{
+    if ( idx >= 0 && idx < sizeof( chromatogram_widget::color_table )/sizeof( chromatogram_widget::color_table[0] ) )
+        return QColor( chromatogram_widget::color_table[ idx ] );
+    return QColor( Qt::black );
+}
+
 void
 ChromatogramWidget::register_tracker( std::function< bool( const QPointF&, QwtText& ) > f )
 {
