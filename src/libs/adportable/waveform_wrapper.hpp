@@ -27,15 +27,18 @@
 
 namespace adportable {
 
-    // wrapper for acqris u5303a and ap240 waveforms, which takes variable value_types
-    // depend on number of samples to be averaged.
+    // wrapper for acqris u5303a and ap240 waveforms, which takes variable
+    // value_types (int8_t, int16_t and int32_t) depend on number of samples
+    // to be averaged.
     
-    template< typename value_type, typename waveform_type >
+    template< typename rvalue_type, typename waveform_type >
     class waveform_wrapper {
 
         const waveform_type& t_;
 
     public:
+        typedef rvalue_type value_type;
+        
         waveform_wrapper( const waveform_type& t ) : t_( t ) {
         }
 

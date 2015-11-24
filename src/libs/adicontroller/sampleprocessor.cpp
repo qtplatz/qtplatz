@@ -52,6 +52,8 @@ static size_t __nid__;
 
 SampleProcessor::~SampleProcessor()
 {
+    ADDEBUG() << "##### SampleProcessor dtor" << storage_name_.string();
+    
     fs_->close();
     boost::filesystem::path progress_name( storage_name_ );
     storage_name_.replace_extension( ".adfs" );
@@ -186,6 +188,8 @@ SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserve
 		inProgress_ = true;
         //iTask::instance()->notify_inject( this, objId, pos, rdBuf.uptime );
     }
+
+    ADDEBUG() << "SampleProcessor::handle_data progress=" << inProgress_;
 
 	if ( ! inProgress_ ) 
 		return;

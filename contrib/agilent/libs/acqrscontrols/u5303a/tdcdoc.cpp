@@ -38,9 +38,12 @@
 #include <adportable/waveform_averager.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <adportable/waveform_wrapper.hpp>
+#include <deque>
 
 namespace acqrscontrols {
     namespace u5303a {
+
+        typedef adportable::waveform_averager< int32_t > averager_type;
 
         class tdcdoc::impl {
         public:
@@ -55,6 +58,9 @@ namespace acqrscontrols {
             std::shared_ptr< adcontrols::threshold_action > threshold_action_;
             std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::atomic< double > trig_per_seconds_;
+            std::deque< std::shared_ptr< averager_type > > avgdWaveforms_;
+            std::shared_ptr< averager_type > averager_;
+
             std::mutex mutex_;
         };
         
@@ -86,9 +92,16 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a
 void
 tdcdoc::average( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > waveforms )
 {
-    adportable::waveform_averager< int32_t
-                                   , acqrscontrols::u5303a::waveform >
-        avgr( adportable::waveform_wrapper<int32_t, acqrscontrols::u5303a::waveform >( waveforms[0] ) );
+    typedef adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > u16wrap;
+    typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
+        
+    if ( auto waveform = waveforms[ 0 ] ) {
+        if ( ! impl_->averager_ ) {
+            impl_->averager_ = std::make_shared< averager_type >( u16wrap( *waveform ) );
+        } else {
+            (*impl_->averager_) += u16wrap( *waveform );
+        }
+    }
 }
 
 std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >

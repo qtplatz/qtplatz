@@ -29,11 +29,11 @@
 
 namespace adportable {
 
-    template< typename lvalue_type, typename allocator = std::allocator< lvalue_type > >
+    template< typename lvalue_type >
     class waveform_averager {
         size_t size_;
         size_t actualAverages_;
-        std::unique_ptr< lvalue_type [], allocator > data_;
+        std::unique_ptr< lvalue_type [] > data_;
 
     public:
         ~waveform_averager() {
@@ -44,24 +44,24 @@ namespace adportable {
 
         waveform_averager( size_t size ) : size_( size )
                                          , actualAverages_( 0 )
-                                         , data_( allocator().alloc( size ) ) {
+                                         , data_( new lvalue_type [ size_ ] ) {
         }
         
-        template< typename rvalue_type, typename waveform_type >
-        waveform_averager( const waveform_wrapper< rvalue_type, waveform_type >& t ) : size_( t.size() )
-                                                                                     , data_( allocator().alloc( size_ ) ) {
+        template< typename waveform_type >
+        waveform_averager( const waveform_type& t ) : size_( t.size() )
+                                                    , data_( new lvalue_type[ size_ ] ) {
             std::copy( t.begin(), t.end(), data_.get() );            
         }
             
-        template< typename rvalue_type, typename waveform_type >
-        waveform_averager& operator += ( const waveform_wrapper< rvalue_type, waveform_type >& w ) {
+        template< typename waveform_type >
+        waveform_averager& operator += ( const waveform_type& w ) {
             if ( size_ == 0 ) {
-                return *new (this) waveform_averager< lvalue_type, allocator >;
+                return *new (this) waveform_averager< lvalue_type >;
             } else if ( size_ == w.size() ) {
-                std::transform( data_.get(), data_.get() + size_, w.begin(), std::plus<lvalue_type>() );
+                std::transform( w.begin(), w.end(), data_.get(), data_.get(), std::plus<int>() );
                 ++actualAverages_;
             } else
-                throw std::out_of_range();
+                throw std::out_of_range("waveform length mismatch");
             return *this;
         }
         
