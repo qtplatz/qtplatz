@@ -25,6 +25,7 @@
 #pragma once
 
 #include "tableview.hpp"
+#include "columnstate.hpp"
 #include <functional>
 #include <memory>
 
@@ -40,23 +41,23 @@ namespace adwidgets {
         explicit MolTableView( QWidget *parent = 0);
         ~MolTableView();
 
-        enum fields {
-            f_any
-            , f_formula
-            , f_adducts
-            , f_mass
-            , f_msref
-            , f_abundance
-            , f_synonym
-            , f_description
-            , f_svg
-            , f_smiles
-            , f_time
-        };
+        // enum fields {
+        //     f_any
+        //     , f_formula
+        //     , f_adducts
+        //     , f_mass
+        //     , f_msref
+        //     , f_abundance
+        //     , f_synonym
+        //     , f_description
+        //     , f_svg
+        //     , f_smiles
+        //     , f_time
+        // };
 
         void onInitialUpdate();
 
-        void setColumnField( int column, fields f, bool editable = true, bool checkable = false );
+        void setColumnField( int column, ColumnState::fields f, bool editable = true, bool checkable = false );
         void setColumnEditable( int column, bool );
         bool isColumnEditable( int column ) const;
         void setContextMenuHandler( std::function<void(const QPoint& )> );

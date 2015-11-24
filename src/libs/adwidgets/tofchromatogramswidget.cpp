@@ -66,9 +66,9 @@ namespace adwidgets {
                 model_->setHeaderData( c_id,         Qt::Horizontal, QObject::tr( "id" ) );
                 model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
                 model_->setHeaderData( c_mass,       Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
-                model_->setHeaderData( c_masswindow, Qt::Horizontal, QObject::tr( "Mass window" ) );
-                model_->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "time(&mu;s)" ) );
-                model_->setHeaderData( c_timewindow, Qt::Horizontal, QObject::tr( "Time window(ns)" ) );
+                model_->setHeaderData( c_masswindow, Qt::Horizontal, QObject::tr( "Window(Da)" ) );
+                model_->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
+                model_->setHeaderData( c_timewindow, Qt::Horizontal, QObject::tr( "Window(ns)" ) );
                 model_->setHeaderData( c_algo,       Qt::Horizontal, QObject::tr( "Method" ) );
                 //model_->setHeaderData( 6, Qt::Horizontal, QObject::tr( "Mol" ) );
                 //model_->setHeaderData( 7, Qt::Horizontal, QObject::tr( "SMILES" ) );
@@ -142,10 +142,10 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
         table->setModel( impl_->model_.get() );
         table->setContextMenuHandler( [this]( const QPoint& pt ){ impl_->handleContextMenu( pt ); } );
         table->setColumnHidden( impl::c_id, true );
-        table->setColumnField( impl::c_formula, MolTableView::f_formula, true, false );
-        table->setColumnField( impl::c_mass, MolTableView::f_mass );
-        table->setColumnField( impl::c_time, MolTableView::f_time );
-        table->setColumnField( impl::c_timewindow, MolTableView::f_time );
+        table->setColumnField( impl::c_formula, ColumnState::f_formula, true, false );
+        table->setColumnField( impl::c_mass, ColumnState::f_mass );
+        table->setColumnField( impl::c_time, ColumnState::f_time );
+        table->setColumnField( impl::c_timewindow, ColumnState::f_time );
         table->setPrecision( impl::c_time, 4 );
         table->setPrecision( impl::c_timewindow, 2 );
 

@@ -84,7 +84,9 @@ namespace adwidgets {
     namespace ac = adcontrols;
 
     class MolTableView::impl  {
+
         MolTableView * this_;
+
     public:
         impl( MolTableView * p ) : this_( p ) {
         }
@@ -95,38 +97,16 @@ namespace adwidgets {
         std::function<void(const QPoint& )> handleContextMenu_;
 
         //-------------------------------------------------
-        struct columnState {
-            MolTableView::fields field;
-            bool isEditable;
-            bool isCheckable;
-            int precision;
-            std::vector< std::pair< QString, QVariant > > choice;
-
-            inline bool isChoice() const { return !choice.empty(); }
-            
-            columnState( MolTableView::fields f = MolTableView::f_any
-                         , bool editable = true
-                         , bool checkable = false ) : field( f ), isEditable( editable ), isCheckable( checkable )
-                                                    , precision( 0 ) {
-            }
-            columnState( const columnState& t ) : field( t.field )
-                                                , isEditable( t.isEditable )
-                                                , isCheckable( t.isCheckable )
-                                                , precision( t.precision )
-                                                , choice( t.choice) {
-            }
-        };
-        //-------------------------------------------------
         
-        std::map< int, columnState > columnStates_;
+        std::map< int, ColumnState > columnStates_;
 
-        inline const columnState& state( int column ) { return columnStates_[ column ]; }
+        inline const ColumnState& state( int column ) { return columnStates_[ column ]; }
 
-        inline MolTableView::fields field( int column ) { return columnStates_[ column ].field; }
+        inline ColumnState::fields field( int column ) { return columnStates_[ column ].field; }
 
-        inline int findColumn( MolTableView::fields field ) const {
+        inline int findColumn( ColumnState::fields field ) const {
             auto it = std::find_if( columnStates_.begin(), columnStates_.end()
-                                    , [field]( const std::pair< int, columnState >& c ){ return c.second.field == field; });
+                                    , [field]( const std::pair< int, ColumnState >& c ){ return c.second.field == field; });
             if ( it != columnStates_.end() )
                 return it->first;
             return (-1);
@@ -137,8 +117,86 @@ namespace adwidgets {
 
     //-------------------------- delegate ---------------
     class MolTableView::delegate : public QStyledItemDelegate {
+
         MolTableView::impl * impl_;
+
     public:
+
+        ///////////////////////
+        struct paint_f_precision {
+            void operator()( const ColumnState& state
+                             , QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
+                painter->drawText( option.rect
+                                   , option.displayAlignment
+                                   , QString::number( index.data( Qt::EditRole ).toDouble(), 'f', state.precision  ) );
+            }
+        };
+        
+        ///////////////////////
+        struct paint_f_mass {
+
+            int cformula;
+            int cadducts;
+            paint_f_mass( int _cformula, int _cadducts ) : cformula( _cformula ), cadducts( _cadducts ) {}
+
+            void operator()( const ColumnState& state, QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) {
+                painter->save();
+                if ( cformula >= 0 ) {
+                    auto expr = index.model()->index( index.row(), cformula ).data( Qt::EditRole ).toString();
+                    
+                    if ( cadducts >= 0 )
+                        expr += " " + index.model()->index( index.row(), cadducts ).data( Qt::EditRole ).toString();
+
+                    double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
+                    if ( exactMass > 0.7 ) {  // Any 'chemical formula' string will be > 1.0 (Hydrogen)
+                        double mass = index.data( Qt::EditRole ).toDouble();
+                        if ( !( adportable::compare<double>::approximatelyEqual( mass, 0 ) ||
+                                adportable::compare<double>::approximatelyEqual( exactMass, mass ) ) )
+                            painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
+                    }
+                    paint_f_precision()( state, painter, option, index );
+                }
+                painter->restore();                
+            }
+        };
+        
+        ///////////////////////
+        struct paint_f_formula {
+            void operator()( const ColumnState& state, QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
+                auto formula = QString::fromStdString( ac::ChemicalFormula::formatFormulae( index.data().toString().toStdString() ) );
+                DelegateHelper::render_html2( painter, option, ( formula.isEmpty() ? index.data().toString() : formula ) );
+            }
+        };
+
+        ///////////////////////
+        struct paint_f_abundance {
+
+            void operator()( const ColumnState& state, QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
+                painter->save();
+                if ( index.data().toDouble() <= 0.0001 ) {
+                    painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
+                }
+                painter->restore();                
+                paint_f_precision()( state, painter, option, index );
+            }
+        };
+
+        ///////////////////////
+        struct paint_f_svg {
+
+            void operator()( const ColumnState&, QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
+                painter->save();
+                QSvgRenderer renderer( index.data().toByteArray() );
+                painter->translate( option.rect.x(), option.rect.y() );
+                QRectF viewport = painter->viewport();
+                painter->scale( 1.0, 1.0 );
+                QRect target( 0, 0, option.rect.width(), option.rect.height() );
+                renderer.render( painter, target );
+                painter->restore();
+            }
+        };
+
+        /////////////////////////
 
         delegate( impl * p ) : impl_( p ) {
         }
@@ -157,60 +215,27 @@ namespace adwidgets {
 				if ( idx >= 0 && idx  < state.choice.size() )
                     painter->drawText( option.rect, Qt::AlignHCenter | Qt::AlignVCenter, state.choice[ idx ].first );
 
-            } else if ( field == MolTableView::f_formula ) {
+            } else if ( field == ColumnState::f_formula ) {
                 
-                auto formula = QString::fromStdString( ac::ChemicalFormula::formatFormulae( index.data().toString().toStdString() ) );
-                DelegateHelper::render_html2( painter, opt, ( formula.isEmpty() ? index.data().toString() : formula ) );
+                paint_f_formula()( state, painter, option, index );
                 
-            } else if ( field == MolTableView::f_abundance ) {
+            } else if ( field == ColumnState::f_abundance ) {
 
-                if ( index.data().toDouble() <= 0.0001 ) {
-                    painter->save();
-                    painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
-                    QStyledItemDelegate::paint( painter, opt, index );
-                    painter->restore();
-                }
-                QStyledItemDelegate::paint( painter, opt, index );
+                paint_f_abundance()( state, painter, option, index );                
 
-            } else if ( field == MolTableView::f_mass ) {
+            } else if ( field == ColumnState::f_mass ) {
 
-                painter->save();
-                int cformula = impl_->findColumn( MolTableView::f_formula );
-                if ( cformula >= 0 ) {
-                    auto expr = index.model()->index( index.row(), cformula ).data( Qt::EditRole ).toString();
-                    
-                    int cadducts = impl_->findColumn( MolTableView::f_adducts );
-                    if ( cadducts >= 0 )
-                        expr += " " + index.model()->index( index.row(), cadducts ).data( Qt::EditRole ).toString();
+                paint_f_mass( impl_->findColumn( ColumnState::f_formula )
+                              , impl_->findColumn( ColumnState::f_adducts ) )( state, painter, option, index );
 
-                    double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
-                    if ( exactMass > 0.7 ) {  // TIC (any non chemial fromula data) will be 0.0
-                        double mass = index.data( Qt::EditRole ).toDouble();
-                        if ( !( adportable::compare<double>::approximatelyEqual( mass, 0 ) ||
-                                adportable::compare<double>::approximatelyEqual( exactMass, mass ) ) )
-                            painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
-                    }
-                    painter->drawText( option.rect, option.displayAlignment
-                                       , QString::number( index.data( Qt::EditRole ).toDouble(), 'f', 
-                                                          impl_->state( index.column() ).precision  ) );
-                }
-                painter->restore();
+            } else if ( index.column() == ColumnState::f_svg ) {
 
-            } else if ( index.column() == MolTableView::f_svg ) {
-
-                painter->save();
-                QSvgRenderer renderer( index.data().toByteArray() );
-                painter->translate( option.rect.x(), option.rect.y() );
-                QRectF viewport = painter->viewport();
-                painter->scale( 1.0, 1.0 );
-                QRect target( 0, 0, option.rect.width(), option.rect.height() );
-                renderer.render( painter, target );
-                painter->restore();
+                paint_f_svg()( state, painter, option, index );
 
             } else if ( impl_->state( index.column() ).precision && index.data( Qt::EditRole ).canConvert<double>() ) {
-                painter->drawText( option.rect, option.displayAlignment
-                                   , QString::number( index.data( Qt::EditRole ).toDouble(), 'f', 
-                                                      impl_->state( index.column() ).precision  ) );
+
+                paint_f_precision()( state, painter, option, index );
+
             } else {
                 QStyledItemDelegate::paint( painter, opt, index );
             }
@@ -248,9 +273,9 @@ namespace adwidgets {
 
         QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             auto field = impl_->field( index.column() );
-            if ( field == MolTableView::f_svg && !index.data( Qt::EditRole ).toByteArray().isEmpty() ) {
+            if ( field == ColumnState::f_svg && !index.data( Qt::EditRole ).toByteArray().isEmpty() ) {
                 return QSize( 80, 80 );
-            } else if ( field == MolTableView::f_formula ) {
+            } else if ( field == ColumnState::f_formula ) {
                 return DelegateHelper::html_size_hint( option, index );
             } else {
                 return QStyledItemDelegate::sizeHint( option, index );
@@ -270,13 +295,6 @@ MolTableView::MolTableView(QWidget *parent) : TableView(parent)
     setSortingEnabled( true );
     setAcceptDrops( true );
 
-#if 0
-    connect( this, &TableView::rowsDeleted, [this]() {
-            if ( impl_->model_->rowCount() == 0 )
-                impl_->model_->setRowCount( 1 );
-        });
-#endif
-
     QFont font;
     setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 
@@ -295,6 +313,7 @@ MolTableView::~MolTableView()
 void
 MolTableView::onInitialUpdate()
 {
+    horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
 }
 
 void
@@ -430,7 +449,7 @@ MolTableView::handleCopyToClipboard()
         if ( !isRowHidden( prev.row() ) ) {
 
             auto t = prev.data( Qt::EditRole ).type();
-            if ( !isColumnHidden( prev.column() ) && ( impl_->state( prev.column() ).field != f_svg ) ) {
+            if ( !isColumnHidden( prev.column() ) && ( impl_->state( prev.column() ).field != ColumnState::f_svg ) ) {
 
                 QString text = prev.data( Qt::EditRole ).toString();
                 selected_text.append( text );
@@ -440,13 +459,13 @@ MolTableView::handleCopyToClipboard()
             }
 
             switch( impl_->field( prev.column() ) ) {
-            case f_formula: mol.formula() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case f_adducts: mol.adducts() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case f_mass: mol.mass() = prev.data( Qt::EditRole ).toDouble(); break;
-            case f_abundance: mol.abundance() = prev.data( Qt::EditRole ).toDouble(); break;                
-            case f_synonym: mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case f_description: mol.description() = prev.data( Qt::EditRole ).toString().toStdWString(); break;
-            case f_smiles: mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case ColumnState::f_formula: mol.formula() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case ColumnState::f_adducts: mol.adducts() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case ColumnState::f_mass: mol.mass() = prev.data( Qt::EditRole ).toDouble(); break;
+            case ColumnState::f_abundance: mol.abundance() = prev.data( Qt::EditRole ).toDouble(); break;                
+            case ColumnState::f_synonym: mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case ColumnState::f_description: mol.description() = prev.data( Qt::EditRole ).toString().toStdWString(); break;
+            case ColumnState::f_smiles: mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString(); break;
             }
 
             if ( index.row() != prev.row() ) {
@@ -523,10 +542,10 @@ MolTableView::handlePaste()
 }
 
 void
-MolTableView::setColumnField( int column, fields f, bool editable, bool checkable )
+MolTableView::setColumnField( int column, ColumnState::fields f, bool editable, bool checkable )
 {
-    impl_->columnStates_[ column ] = impl::columnState( f, editable, checkable );
-	if ( f == f_mass )
+    impl_->columnStates_[ column ] = ColumnState( f, editable, checkable );
+	if ( f == ColumnState::f_mass )
         impl_->columnStates_[ column ].precision = 7;
 }
 
