@@ -74,9 +74,11 @@ namespace acqrscontrols {
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
             handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > );
 
-            bool average( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > );
+            bool average( std::shared_ptr< const acqrscontrols::u5303a::waveform > );
 
             size_t readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& );
+
+            bool makeChromatogramPoints( const std::shared_ptr< const acqrscontrols::u5303a::waveform >&, bool followApex );
 
             // strand required
             void appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results );

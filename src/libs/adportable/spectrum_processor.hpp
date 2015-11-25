@@ -75,60 +75,6 @@ namespace adportable {
         std::vector< peakinfo > results_;
     };
 
-    /** \brief simplified peak finder for any waveform w/ centroid
-     * 
-     * waveform_peakfinder ctor take a functor as an argument, which return peak width and 
-     * number of samples equivalent to peak width for SG filter.
-     */
-    class waveform_peakfinder {
-    public:
-        
-        struct peakinfo {
-            size_t spos;
-            size_t epos;
-            size_t tpos;
-            double height;
-            double centreX;
-            double xleft;
-            double xright;
-            peakinfo( size_t x1, size_t x2, size_t tp, double h = 0, double c = 0 )
-                : spos( x1 ), epos( x2 ), tpos( tp ), height(h), centreX(c), xleft(0), xright(0)
-                {}
-        };
-
-        struct parabola {
-            size_t spos;
-            size_t epos;
-            size_t tpos;
-            double height;
-            double centreX;
-            double a, b, c;  // a + bx + cx^2
-            parabola( size_t x1 = 0, size_t x2 = 0, size_t tp = 0, double h = 0, double c = 0 )
-                : spos( x1 ), epos( x2 ), tpos( tp ), height(h), centreX(c), a(0), b(0), c(0)
-                {}
-        };
-
-        waveform_peakfinder( std::function< double( size_t idx, int& npeakw )> fpeakw );
-        
-        size_t operator()( std::function< double( size_t ) > fx
-                           , const double * pY
-                           , size_t beg, size_t end
-                           , std::vector< waveform_peakfinder::peakinfo >& results );
-
-        bool fit( std::function< double( size_t ) > fx
-                  , const double * pY
-                  , size_t spos
-                  , size_t tpos
-                  , size_t epos
-                  , waveform_peakfinder::parabola& result );
-        
-        double dbase() const;
-        double rms() const;        
-    private:
-        std::function< double( size_t idx, int& )> fpeakw_;
-        double dbase_;
-        double rms_;
-    };
-	
+   // Move 'waveform_peakfinder' to waveform_peakfinder.hpp
 }
 

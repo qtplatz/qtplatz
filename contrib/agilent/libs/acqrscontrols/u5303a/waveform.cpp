@@ -39,6 +39,7 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/waveform_processor.hpp>
+#include <adportable/waveform_wrapper.hpp>
 #include <adicontroller/signalobserver.hpp>
 #include <adlog/logger.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -143,7 +144,8 @@ waveform::waveform( std::shared_ptr< const identify > id
 
 waveform::waveform( const waveform& rv
                     , std::unique_ptr< int32_t [] >& data
-                    , size_t size ) : method_( rv.method_ )
+                    , size_t size
+                    , bool invert ) : method_( rv.method_ )
                                     , meta_( rv.meta_ )
                                     , ident_( rv.ident_ )
                                     , serialnumber_( rv.serialnumber_ )
@@ -152,7 +154,14 @@ waveform::waveform( const waveform& rv
                                     , firstValidPoint_( 0 )
                                     , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
 {
-    meta_.dataType = sizeof( int32_t );
+    typedef int32_t value_type;
+
+    meta_.dataType = sizeof( value_type );
+
+    if ( invert ) {
+        auto p = this->template data< value_type >();
+        std::transform( p, p + size, p, std::negate<value_type>() );
+    }
 }
 
 

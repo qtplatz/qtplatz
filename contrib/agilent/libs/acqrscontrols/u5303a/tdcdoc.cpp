@@ -36,6 +36,7 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/threshold_finder.hpp>
 #include <adportable/waveform_averager.hpp>
+#include <adportable/waveform_peakfinder.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <adportable/waveform_wrapper.hpp>
 #include <deque>
@@ -91,32 +92,44 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a
 }
 
 bool
-tdcdoc::average( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > waveforms )
+tdcdoc::average( std::shared_ptr< const acqrscontrols::u5303a::waveform > waveform )
 {
     typedef adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > u16wrap;
     typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
     
-    if ( auto waveform = waveforms[ 0 ] ) {
-        if ( ! impl_->averager_ ) {
-            
+    if ( ! impl_->averager_ ) {
+        
+        if ( waveform->dataType() == 2 )
             impl_->averager_ = std::make_shared< averager_type >( u16wrap( *waveform ) );
-            
-        } else {
+        else
+            impl_->averager_ = std::make_shared< averager_type >( u32wrap( *waveform ) );
+        
+    } else {
+        
+        if ( waveform->dataType() == 2 )
             (*impl_->averager_) += u16wrap( *waveform );
-
-            if ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
-
-                auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size() );
-
-                impl_->averaged_.emplace_back( w );
-                impl_->averager_.reset();
-            }
-                
+        else
+            (*impl_->averager_) += u32wrap( *waveform );                
+        
+        if ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
+            
+            auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), true );
+            
+            impl_->averaged_.emplace_back( w );
+            impl_->averager_.reset();
         }
+        
     }
     return !impl_->averaged_.empty();
+}
+
+
+bool
+tdcdoc::makeChromatogramPoints( const std::shared_ptr< const acqrscontrols::u5303a::waveform >& waveform, bool followApex )
+{
+    return true;
 }
 
 size_t

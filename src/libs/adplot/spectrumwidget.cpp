@@ -307,22 +307,16 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
     using spectrumwidget::TraceData;
     bool hasYLeft( false ), hasYRight( false );
     
-    left = right = std::make_pair( std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max() );
+    left = right = std::make_pair( std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest() );
 
     for ( const TraceData& trace: traces_ ) {
         std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
         if ( trace.yRight() ) {
-            if ( !hasYRight ) {
-                hasYRight = true;
-                right = std::make_pair( y.first, y.second );
-            } else
-                right = std::make_pair( std::min( y.first, right.first ), std::max( y.second, right.second ) );
+            hasYRight = true;
+            right = std::make_pair( std::min( y.first, right.first ), std::max( y.second, right.second ) );
         } else {
-            if ( !hasYLeft ) {
-                hasYLeft = true;
-                left = std::make_pair( y.first, y.second );
-            } else
-                left = std::make_pair( std::min( y.first, left.first ), std::max( y.second, left.second ) );
+            hasYLeft = true;
+            left = std::make_pair( std::min( y.first, left.first ), std::max( y.second, left.second ) );
         }
     }
 
@@ -334,6 +328,7 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
     if ( hasYRight )
         right.second = right.second + (right.second - right.first) * 0.12;
 
+#if 0
     if ( hasYLeft && hasYRight ) {
         if ( ( left.first <= 0 && left.second > 0 ) && ( right.first <= 0 && right.second > 0 ) ) {
             // adjust zero level
@@ -346,6 +341,8 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
             }
         }
     }
+#endif
+
     return std::make_pair( hasYLeft, hasYRight );
 }
 

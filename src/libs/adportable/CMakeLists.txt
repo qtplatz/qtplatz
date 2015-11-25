@@ -38,6 +38,8 @@ add_library( adportable
   uuid.cpp
   fft4g_h.c
   waveform_averager.hpp
+  waveform_peakfinder.cpp  
+  waveform_peakfinder.hpp
   waveform_processor.hpp
   waveform_simulator.hpp
   waveform_simulator.cpp

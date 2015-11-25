@@ -80,7 +80,7 @@ namespace acqrscontrols {
         public:
             waveform( std::shared_ptr< const identify > id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
             
-            waveform( const waveform&, std::unique_ptr< int32_t [] >& data, size_t size ); // software averager support
+            waveform( const waveform&, std::unique_ptr< int32_t [] >& data, size_t size, bool invert ); // software averager support
 
             const int32_t * trim( metadata&, uint32_t& ) const;
 
@@ -111,6 +111,9 @@ namespace acqrscontrols {
 
             template< typename value_type > const value_type* begin() const;
             template< typename value_type > const value_type* end() const;
+            template< typename value_type > value_type* begin();
+            template< typename value_type > value_type* end();
+
 			template< typename value_type > value_type* data();
 
             static bool
