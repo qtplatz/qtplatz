@@ -103,7 +103,7 @@ namespace acqrscontrols {
             std::pair<double, int> xy( size_t idx ) const;
             double toVolts( int ) const;
             double toVolts( double ) const;
-            bool isDEAD() const;            
+            bool isDEAD() const;
 
             const identify* ident() const { return ident_.get(); }
 

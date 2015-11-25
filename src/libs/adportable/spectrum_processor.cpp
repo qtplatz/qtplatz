@@ -204,6 +204,12 @@ namespace adportable {
 }
 
 double
+spectrum_processor::tic( size_t nbrSamples, const int16_t * praw, double& dbase, double& rms, size_t N )
+{
+    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+}
+
+double
 spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase, double& rms, size_t N )
 {
     return tic_calculator()( nbrSamples, praw, dbase, rms, N );
@@ -523,6 +529,12 @@ double
 spectrum_processor::area( const areaFraction& frac, double base, const int32_t* pData, size_t nData )
 {
     return areaCalculator<int32_t>::area( frac, base, pData, nData );
+}
+
+double
+spectrum_processor::area( const areaFraction& frac, double base, const int16_t* pData, size_t nData )
+{
+    return areaCalculator<int16_t>::area( frac, base, pData, nData );
 }
 
 

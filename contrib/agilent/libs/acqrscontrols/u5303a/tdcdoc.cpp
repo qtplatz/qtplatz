@@ -29,6 +29,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/tofchromatogramsmethod.hpp>
+#include <adcontrols/tofchromatogrammethod.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
@@ -127,8 +128,68 @@ tdcdoc::average( std::shared_ptr< const acqrscontrols::u5303a::waveform > wavefo
 
 
 bool
-tdcdoc::makeChromatogramPoints( const std::shared_ptr< const acqrscontrols::u5303a::waveform >& waveform, bool followApex )
+tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& waveform
+                                , std::vector< std::pair< double, double > >& results )
 {
+    typedef acqrscontrols::u5303a::waveform waveform_type;
+
+    results.clear();
+
+    const double xIncrement = waveform->meta_.xIncrement;
+
+    auto wrap = adportable::waveform_wrapper< int32_t, waveform_type >( *waveform );
+
+    double rms(0), dbase(0);
+    double tic = adportable::spectrum_processor::tic( wrap.size(), wrap.begin(), dbase, rms, 7 );
+
+    for ( auto& item: (*impl_->tofChromatogramsMethod_) ) {
+
+        bool found( false );
+            
+        double time = item.time();
+        double window = item.timeWindow();
+
+        if ( time < 1.0e-10 || window < 1.0e-9 ) { // assume TIC requsted
+
+            auto height = *std::max_element( wrap.begin(), wrap.end() ) - dbase;
+            results.emplace_back( std::make_pair( tic, height ) );
+
+        } else {
+            double tsta = time - window / 2; // ), waveform->xy( 0 ).first );
+            double tend = time + window / 2; // std::min( ( time + window ), waveform->xy( waveform->size() - 1 ).first );
+
+            if ( tend < waveform->xy( 0 ).first || tsta > waveform->xy( waveform->size() - 1 ).first ) {
+
+                results.emplace_back( std::make_pair( 0, 0 ) );  // out of range
+
+            } else {
+                if ( tsta < waveform->xy( 0 ).first )
+                    tsta = waveform->xy( 0 ).first;
+
+                if ( tend > waveform->xy( waveform->size() - 1 ).first )
+                    tsta = waveform->xy( waveform->size() - 1 ).first;
+
+                size_t ibeg = size_t( tsta / xIncrement + 0.5 );
+                size_t iend = size_t( tend / xIncrement + 0.5 );
+
+                auto height = *std::max_element( wrap.begin() + ibeg, wrap.begin() + iend ) - dbase;
+
+                adportable::spectrum_processor::areaFraction fraction;
+
+                fraction.lPos = ibeg;
+                fraction.uPos = iend;
+                // tbd
+                fraction.lFrac = 0; // ( masses[ frac.lPos ] - lMass ) / ( masses[ frac.lPos ] - masses[ frac.lPos - 1 ] );
+                fraction.uFrac = 0; // ( hMass - masses[ frac.uPos ] ) / ( masses[ frac.uPos + 1 ] - masses[ frac.uPos ] );
+
+                double area = adportable::spectrum_processor::area( fraction, dbase, wrap.begin(), waveform->size() );
+
+                results.emplace_back( std::make_pair( area, height ) );
+            }
+            
+        }
+    }
+    
     return true;
 }
 
