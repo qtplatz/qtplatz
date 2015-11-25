@@ -152,6 +152,7 @@ waveform::waveform( const waveform& rv
                                     , firstValidPoint_( 0 )
                                     , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
 {
+    meta_.dataType = sizeof( int32_t );
 }
 
 
@@ -380,7 +381,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     
     prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
-    prop.setDataInterpreterClsid( "ap240" );
+    prop.setDataInterpreterClsid( "u5303a" );
 
     const device_data data( *waveform.ident_, waveform.meta_ );
     std::string ar;

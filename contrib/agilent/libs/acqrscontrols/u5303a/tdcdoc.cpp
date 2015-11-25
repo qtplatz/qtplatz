@@ -130,6 +130,8 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
 
         std::move( impl_->averaged_.begin(), impl_->averaged_.end(), std::back_inserter( a ) );
 
+        impl_->averaged_.clear();
+
         return a.size();
     }
 
