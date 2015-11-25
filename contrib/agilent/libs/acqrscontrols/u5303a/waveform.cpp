@@ -132,7 +132,7 @@ namespace acqrscontrols { namespace u5303a {
 
 using namespace acqrscontrols::u5303a;
 
-waveform::waveform( std::shared_ptr< identify > id
+waveform::waveform( std::shared_ptr< const identify > id
                     , uint32_t pos, uint32_t events, uint64_t tp ) : ident_( id )
                                                                    , serialnumber_( pos )
                                                                    , wellKnownEvents_( events )
@@ -140,6 +140,20 @@ waveform::waveform( std::shared_ptr< identify > id
                                                                    , firstValidPoint_( 0 )
 {
 }
+
+waveform::waveform( const waveform& rv
+                    , std::unique_ptr< int32_t [] >& data
+                    , size_t size ) : method_( rv.method_ )
+                                    , meta_( rv.meta_ )
+                                    , ident_( rv.ident_ )
+                                    , serialnumber_( rv.serialnumber_ )
+                                    , wellKnownEvents_( rv.wellKnownEvents_ )
+                                    , timeSinceEpoch_( rv.timeSinceEpoch_ )
+                                    , firstValidPoint_( 0 )
+                                    , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
+{
+}
+
 
 const int32_t *
 waveform::trim( metadata& meta, uint32_t& nSamples ) const

@@ -78,7 +78,9 @@ namespace acqrscontrols {
             void operator = ( const waveform& ); // = delete;
 
         public:
-            waveform( std::shared_ptr< identify > id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
+            waveform( std::shared_ptr< const identify > id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
+            
+            waveform( const waveform&, std::unique_ptr< int32_t [] >& data, size_t size ); // software averager support
 
             const int32_t * trim( metadata&, uint32_t& ) const;
 
@@ -105,6 +107,8 @@ namespace acqrscontrols {
 
             const identify* ident() const { return ident_.get(); }
 
+            const std::shared_ptr< const identify >& ident_ptr() const { return ident_; }
+
             template< typename value_type > const value_type* begin() const;
             template< typename value_type > const value_type* end() const;
 			template< typename value_type > value_type* data();
@@ -129,8 +133,10 @@ namespace acqrscontrols {
 #pragma warning(push)
 #pragma warning(disable:4251)
 #endif
-            std::shared_ptr< identify > ident_;
-            boost::variant < std::shared_ptr< adportable::mblock<int32_t> >, std::shared_ptr< adportable::mblock<int16_t> > > mblock_;
+            std::shared_ptr< const identify > ident_;
+
+            boost::variant < std::shared_ptr< adportable::mblock<int32_t> >
+                             , std::shared_ptr< adportable::mblock<int16_t> > > mblock_;
             
 #if defined _MSC_VER
 #pragma warning(pop)

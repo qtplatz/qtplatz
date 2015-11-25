@@ -42,6 +42,10 @@ namespace adportable {
         mblock( size_t size = 8192 ) : pData_( new value_type[ size ] )
                                      , size_( size ) {
         }
+
+        mblock( std::unique_ptr< value_type [] >& data, size_t size ) : pData_( std::move(data) )
+                                                                      , size_( size ) {
+        }
         
         value_type * data() { return pData_.get(); }
 

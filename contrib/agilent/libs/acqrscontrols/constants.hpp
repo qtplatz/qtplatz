@@ -27,8 +27,10 @@
 namespace acqrscontrols {
 
     namespace u5303a {
-        const char * const waveform_observer_name   = "1.u5303a.ms-cheminfo.com";
-        const char * const histogram_observer_name  = "histogram.1.u5303a.ms-cheminfo.com";
+        const char * const waveform_observer_name       = "1.u5303a.ms-cheminfo.com";
+        const char * const histogram_observer_name      = "histogram.1.u5303a.ms-cheminfo.com";
+        const char * const tdcdoc_avgr_observer_name    = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
+        const char * const tdcdoc_traces_observer_name  = "tdcdoc.traces.1.u5303a.ms-cheminfo.com";
         enum { nchannels = 2 };
     }
 

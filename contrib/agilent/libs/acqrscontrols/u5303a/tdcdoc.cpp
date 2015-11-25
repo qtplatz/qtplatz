@@ -44,6 +44,7 @@ namespace acqrscontrols {
     namespace u5303a {
 
         typedef adportable::waveform_averager< int32_t > averager_type;
+        typedef waveform waveform_type;
 
         class tdcdoc::impl {
         public:
@@ -58,7 +59,7 @@ namespace acqrscontrols {
             std::shared_ptr< adcontrols::threshold_action > threshold_action_;
             std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::atomic< double > trig_per_seconds_;
-            std::deque< std::shared_ptr< averager_type > > avgdWaveforms_;
+            std::deque< std::shared_ptr< acqrscontrols::u5303a::waveform > > averaged_;
             std::shared_ptr< averager_type > averager_;
 
             std::mutex mutex_;
@@ -89,7 +90,7 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a
     }
 }
 
-void
+bool
 tdcdoc::average( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > waveforms )
 {
     typedef adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > u16wrap;
@@ -99,17 +100,40 @@ tdcdoc::average( std::array< std::shared_ptr< const acqrscontrols::u5303a::wavef
     
     if ( auto waveform = waveforms[ 0 ] ) {
         if ( ! impl_->averager_ ) {
+            
             impl_->averager_ = std::make_shared< averager_type >( u16wrap( *waveform ) );
+            
         } else {
             (*impl_->averager_) += u16wrap( *waveform );
+
             if ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
-                impl_->avgdWaveforms_.emplace_back( impl_->averager_ );
+
+                auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size() );
+
+                impl_->averaged_.emplace_back( w );
                 impl_->averager_.reset();
-                ADDEBUG() << "averaged";
             }
                 
         }
     }
+    return !impl_->averaged_.empty();
+}
+
+size_t
+tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& a )
+{
+    if ( ! impl_->averaged_.empty() ) {
+
+        a.reserve( a.size() + impl_->averaged_.size() );
+
+        std::lock_guard< std::mutex > lock( impl_->mutex_ );
+
+        std::move( impl_->averaged_.begin(), impl_->averaged_.end(), std::back_inserter( a ) );
+
+        return a.size();
+    }
+
+    return 0;
 }
 
 std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
@@ -195,7 +219,7 @@ tdcdoc::tofChromatogramsMethod() const
 }
 
 void
-tdcdoc::clearTofChromatogramsMethod()
+tdcdoc::eraseTofChromatogramsMethod()
 {
     impl_->tofChromatogramsMethod_.reset();
 }
@@ -304,6 +328,7 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
         sp->resize( times.size() );
         sp->setTimeArray( times.data() );
         sp->setIntensityArray( intens.data() );
+
     } else {
         sp->resize( hist.size() );
         for ( size_t idx = 0; idx < hist.size(); ++idx ) {

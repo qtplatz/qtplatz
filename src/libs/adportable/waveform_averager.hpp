@@ -49,6 +49,7 @@ namespace adportable {
         
         template< typename waveform_type >
         waveform_averager( const waveform_type& t ) : size_( t.size() )
+                                                    , actualAverages_( 1 )
                                                     , data_( new lvalue_type[ size_ ] ) {
             std::copy( t.begin(), t.end(), data_.get() );            
         }
@@ -66,7 +67,10 @@ namespace adportable {
         }
 
         const size_t actualAverages() const { return actualAverages_; }
-        
+
+        const size_t size() const { return size_; }
+
+        std::unique_ptr< lvalue_type [] >& data() { return data_; }
     };
     
 

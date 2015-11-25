@@ -57,6 +57,9 @@ namespace acqrscontrols {
             ~tdcdoc();
             tdcdoc();
 
+            typedef acqrscontrols::u5303a::waveform waveform_type;
+            typedef const acqrscontrols::u5303a::waveform const_waveform_type;
+
             bool set_threshold_action( const adcontrols::threshold_action& );
             std::shared_ptr< const adcontrols::threshold_action > threshold_action() const;
 
@@ -65,12 +68,15 @@ namespace acqrscontrols {
 
             bool setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& );
             std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
-            void clearTofChromatogramsMethod();
+
+            void eraseTofChromatogramsMethod();
             
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
             handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > );
 
-            void average( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > );
+            bool average( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, acqrscontrols::u5303a::nchannels > );
+
+            size_t readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& );
 
             // strand required
             void appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results );
