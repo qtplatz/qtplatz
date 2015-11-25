@@ -151,10 +151,12 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
 
         if ( time < 1.0e-10 || window < 1.0e-9 ) { // assume TIC requsted
 
-            auto height = *std::max_element( wrap.begin(), wrap.end() ) - dbase;
+            auto height = waveform->toVolts( *std::max_element( wrap.begin(), wrap.end() ) - dbase ) * 1000; // mV
+
             results.emplace_back( std::make_pair( tic, height ) );
 
         } else {
+
             double tsta = time - window / 2; // ), waveform->xy( 0 ).first );
             double tend = time + window / 2; // std::min( ( time + window ), waveform->xy( waveform->size() - 1 ).first );
 
@@ -172,7 +174,7 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
                 size_t ibeg = size_t( tsta / xIncrement + 0.5 );
                 size_t iend = size_t( tend / xIncrement + 0.5 );
 
-                auto height = *std::max_element( wrap.begin() + ibeg, wrap.begin() + iend ) - dbase;
+                auto height = waveform->toVolts( *std::max_element( wrap.begin() + ibeg, wrap.begin() + iend ) - dbase ) * 1000; // mV
 
                 adportable::spectrum_processor::areaFraction fraction;
 
