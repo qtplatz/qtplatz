@@ -149,7 +149,7 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
         double time = item.time();
         double window = item.timeWindow();
 
-        if ( time < 1.0e-10 || window < 1.0e-9 ) { // assume TIC requsted
+        if ( time < 1.0e-9 || window < 1.0e-11 ) { // assume TIC requsted
 
             auto height = waveform->toVolts( *std::max_element( wrap.begin(), wrap.end() ) - dbase ) * 1000; // mV
 
@@ -183,10 +183,17 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
                 // tbd
                 fraction.lFrac = 0; // ( masses[ frac.lPos ] - lMass ) / ( masses[ frac.lPos ] - masses[ frac.lPos - 1 ] );
                 fraction.uFrac = 0; // ( hMass - masses[ frac.uPos ] ) / ( masses[ frac.uPos + 1 ] - masses[ frac.uPos ] );
+                
+                double a = adportable::spectrum_processor::area( fraction, dbase, wrap.begin(), waveform->size() );
+#if 0
+                size_t n = iend - ibeg + 1;
+                double area = a * waveform->meta_.scaleFactor + ( waveform->meta_.scaleOffset * n );
+                if ( waveform->meta_.actualAverages )
+                    area /= waveform->meta_.actualAverages;
 
-                double area = adportable::spectrum_processor::area( fraction, dbase, wrap.begin(), waveform->size() );
-
-                results.emplace_back( std::make_pair( area, height ) );
+                ADDEBUG() << "a=" << a << ", " << area;
+#endif                
+                results.emplace_back( std::make_pair( a, height ) );
             }
             
         }
@@ -195,14 +202,32 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
     return true;
 }
 
+std::shared_ptr< const waveform_type >
+tdcdoc::averagedWaveform( uint64_t trigNumber )
+{
+    // TBD: trigNumber check,
+    // return last one for now
+    
+    if ( ! impl_->averaged_.empty() )
+        return impl_->averaged_.back();
+    
+    return 0;
+}
+
 size_t
 tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& a )
 {
+    typedef std::shared_ptr< const waveform_type > waveform_ptr;
+    
     if ( ! impl_->averaged_.empty() ) {
 
         a.reserve( a.size() + impl_->averaged_.size() );
 
         std::lock_guard< std::mutex > lock( impl_->mutex_ );
+
+        std::sort( impl_->averaged_.begin(), impl_->averaged_.end(), []( const waveform_ptr& a, const waveform_ptr& b ){
+                return a->serialnumber_ < b->serialnumber_;
+            });
 
         std::move( impl_->averaged_.begin(), impl_->averaged_.end(), std::back_inserter( a ) );
 

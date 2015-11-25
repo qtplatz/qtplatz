@@ -77,6 +77,7 @@ namespace acqrscontrols {
             bool average( std::shared_ptr< const waveform_type > );
 
             size_t readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& );
+            std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
 
             bool makeChromatogramPoints( const std::shared_ptr< const waveform_type >&, std::vector< std::pair<double, double> >& results );
 

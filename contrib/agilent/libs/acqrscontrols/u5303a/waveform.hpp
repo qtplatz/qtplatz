@@ -92,6 +92,7 @@ namespace acqrscontrols {
             uint64_t firstValidPoint_;
 
             size_t size() const; // number of samples
+
             int dataType() const; // 2 = int16_t, 4 = int32_t
             
             // typedef int32_t value_type;
