@@ -157,28 +157,26 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
 
         } else {
 
-            double tsta = time - window / 2; // ), waveform->xy( 0 ).first );
-            double tend = time + window / 2; // std::min( ( time + window ), waveform->xy( waveform->size() - 1 ).first );
+            double wsta = time - window / 2;
+            double wend = time + window / 2;
 
-            if ( tend < waveform->xy( 0 ).first || tsta > waveform->xy( waveform->size() - 1 ).first ) {
+            if ( wend < waveform->xy( 0 ).first || wsta > waveform->xy( waveform->size() - 1 ).first ) {
 
                 results.emplace_back( std::make_pair( 0, 0 ) );  // out of range
 
             } else {
-                if ( tsta < waveform->xy( 0 ).first )
-                    tsta = waveform->xy( 0 ).first;
 
-                if ( tend > waveform->xy( waveform->size() - 1 ).first )
-                    tsta = waveform->xy( waveform->size() - 1 ).first;
+                size_t ista = size_t( wsta < waveform->xy( 0 ).first ? 0 : ( wsta - waveform->xy( 0 ).first ) / xIncrement + 0.5 );
+                size_t iend = size_t( ( wend - waveform->xy( 0 ).first ) / xIncrement + 0.5 ) + 1;
+                if ( iend > waveform->size() )
+                    iend = waveform->size();
 
-                size_t ibeg = size_t( tsta / xIncrement + 0.5 );
-                size_t iend = size_t( tend / xIncrement + 0.5 );
-
-                auto height = waveform->toVolts( *std::max_element( wrap.begin() + ibeg, wrap.begin() + iend ) - dbase ) * 1000; // mV
+                auto it = std::max_element( wrap.begin() + ista, wrap.begin() + iend );
+                auto height = waveform->toVolts( *it - dbase ) * 1000;
 
                 adportable::spectrum_processor::areaFraction fraction;
 
-                fraction.lPos = ibeg;
+                fraction.lPos = ista;
                 fraction.uPos = iend;
                 // tbd
                 fraction.lFrac = 0; // ( masses[ frac.lPos ] - lMass ) / ( masses[ frac.lPos ] - masses[ frac.lPos - 1 ] );
@@ -193,6 +191,7 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
 
                 ADDEBUG() << "a=" << a << ", " << area;
 #endif                
+                ADDEBUG() << "a=" << a << ", " << height;
                 results.emplace_back( std::make_pair( a, height ) );
             }
             
