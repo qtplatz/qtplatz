@@ -191,7 +191,6 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
 
                 ADDEBUG() << "a=" << a << ", " << area;
 #endif                
-                ADDEBUG() << "a=" << a << ", " << height;
                 results.emplace_back( std::make_pair( a, height ) );
             }
             
