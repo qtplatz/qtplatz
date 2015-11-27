@@ -23,8 +23,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "adicontroller_global.hpp"
 #include "waveform_simulator_manager.hpp"
 #include <functional>
