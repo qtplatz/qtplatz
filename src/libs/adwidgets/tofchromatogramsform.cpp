@@ -114,6 +114,7 @@ void
 TofChromatogramsForm::setContents( const adcontrols::TofChromatogramsMethod& m )
 {
     if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) ) {
+        QSignalBlocker block( spin );
         size_t n = m.numberOfTriggers() == 0 ? 1 : m.numberOfTriggers();
         spin->setValue( int( n ) );
     }

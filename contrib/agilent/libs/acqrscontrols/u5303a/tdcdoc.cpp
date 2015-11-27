@@ -310,6 +310,14 @@ bool
 tdcdoc::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 {
     impl_->tofChromatogramsMethod_ = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
+    //-----------
+    auto ptr( impl_->tofChromatogramsMethod_ );
+    ADDEBUG() << "ChromatogramMethod: ";
+    for ( size_t fcn = 0; fcn < ptr->size(); ++fcn ) {
+        auto item = ptr->begin() + fcn;
+        ADDEBUG() << "     " << fcn << ": " << item->formula() << ", " << int( item->intensityAlgorithm() );
+    }
+    //-----------
     return true;
 }
 
