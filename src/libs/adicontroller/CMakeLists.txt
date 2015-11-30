@@ -39,6 +39,8 @@ add_library( ${PROJECT_NAME} SHARED
   receiver.cpp
   sampleprocessor.hpp
   sampleprocessor.cpp
+  sequence.hpp
+  sequence.cpp
   signalobserver.hpp
   signalobserver.cpp
   waveform_simulator.hpp
