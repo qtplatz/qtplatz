@@ -43,13 +43,15 @@ add_library( ${PROJECT_NAME} SHARED
   sequence.cpp
   signalobserver.hpp
   signalobserver.cpp
+  task.hpp
+  task.cpp
   waveform_simulator.hpp
   waveform_simulator.cpp
   waveform_simulator_manager.hpp
   waveform_simulator_manager.cpp
   )
 
-target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC adplugin adfs adcontrols adutils ${Boost_LIBRARIES} )
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC acewrapper adplugin adfs adcontrols adutils ${Boost_LIBRARIES} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

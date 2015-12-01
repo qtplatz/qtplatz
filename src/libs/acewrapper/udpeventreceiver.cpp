@@ -23,7 +23,9 @@
 **************************************************************************/
 
 #include "udpeventreceiver.hpp"
+#include <adportable/debug.hpp>
 #include <workaround/boost/asio.hpp>
+#include <boost/exception/all.hpp>
 #include <vector>
 #include <string>
 
@@ -39,15 +41,21 @@ udpEventReceiver::~udpEventReceiver()
 }
 
 udpEventReceiver::udpEventReceiver( boost::asio::io_service& io, short port ) : io_service_( io )
-                                                                              , sock_( io, udp::endpoint( udp::v4(), port ) )
+                                                                              , sock_( io )
 {
+    auto endpoint = udp::endpoint( udp::v4(), port );
+    sock_.open( endpoint.protocol() );
+    sock_.set_option( udp::socket::reuse_address( true ) );
+    sock_.bind( endpoint );
+    
     do_receive();
 } 
 
 void
 udpEventReceiver::register_handler( std::function<void( const char *, size_t, const udp::endpoint& )> h )
 {
-    handler_ = h;
+    //handler_ = h;
+    signal_.connect( h );
 }
 
 void
@@ -57,8 +65,10 @@ udpEventReceiver::do_receive()
         boost::asio::buffer(data_, max_length), sender_endpoint_,
         [this](boost::system::error_code ec, std::size_t bytes_recvd)  {
             if (!ec && bytes_recvd > 0) {
-                if ( handler_ )
-                    handler_( data_, bytes_recvd, sender_endpoint_ );
+                ADDEBUG() << "##### udpEventReceiver: " << std::string( data_, bytes_recvd );
+                // if ( handler_ )
+                //     handler_( data_, bytes_recvd, sender_endpoint_ );
+                signal_( data_, bytes_recvd, sender_endpoint_ );
                 do_send(bytes_recvd); // echo back
             } else {
                 if ( ec == boost::system::errc::operation_canceled ) {

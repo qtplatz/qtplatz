@@ -31,9 +31,9 @@
 
 namespace adicontroller {
 
-    class sequence::impl : public fsm::handler {
+    class sequence::impl {
     public:
-        impl() : fsm_( this ) {
+        impl() {
         }
         
         ~impl() {
@@ -42,15 +42,6 @@ namespace adicontroller {
         static std::unique_ptr< sequence > instance_;
         std::mutex mutex_;
         std::deque< sequence::value_type > que_; // SampleProcessors
-
-    private:
-        // fsm::handler
-        void fsm_action_stop() override {}
-        void fsm_action_start() override {}
-        void fsm_action_inject() override {}
-        void fsm_state( bool, fsm::idState ) override {}
-        
-        fsm::controller fsm_;
     };
 
     std::unique_ptr< sequence > sequence::impl::instance_;    
