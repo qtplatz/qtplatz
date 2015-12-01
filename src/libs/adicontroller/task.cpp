@@ -45,6 +45,7 @@ namespace adicontroller {
             std::call_once( flag, [&](){
                     threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
                 });
+            fsm_.stop();
         }
 
         void finalize() {
@@ -66,7 +67,8 @@ namespace adicontroller {
         void handle_event_out( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ) {
             std::string recv( data, length );
             auto pos = recv.find( "EVENTOUT 1" );
-            ADDEBUG() << "############### " << recv;
+            if ( pos != recv.npos )
+                ADDEBUG() << "############### " << recv;
         }
 
         boost::asio::io_service io_service_;
@@ -117,10 +119,7 @@ task::impl::impl() : fsm_( this )
                    , udpReceiver_( new acewrapper::udpEventReceiver( io_service_, 7125 ) )
 {
     if ( udpReceiver_ ) {
-        // udpReceiver_->register_handler( [&](const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep){
-        //         handle_event_out( data, length, ep );
-        //     } );
-        udpReceiver_->signal().connect( [&](const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep){
+        auto bc = udpReceiver_->connect( [&](const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep){
                 handle_event_out( data, length, ep );
             });
     }

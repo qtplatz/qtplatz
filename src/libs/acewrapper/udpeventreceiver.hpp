@@ -24,40 +24,28 @@
 
 #pragma once
 
-#include <workaround/boost/asio.hpp>
+#include <functional>
+#include <memory>
 #include <boost/signals2.hpp>
-#include <condition_variable>
-#include <mutex>
-#include <thread>
+#include <workaround/boost/asio.hpp>
 
 namespace acewrapper {
 
     class udpEventReceiver {
     public:
         ~udpEventReceiver();
+
         udpEventReceiver( boost::asio::io_service&, short port = 7125 );
         
-        bool is_open() const;
         void close();
 
-        void do_receive();
-        void do_send( size_t );
         void register_handler( std::function<void( const char *, size_t, const boost::asio::ip::udp::endpoint& )> );
 
-        boost::signals2::signal< void(const char *, size_t, const boost::asio::ip::udp::endpoint& ) >& signal() {
-            return signal_;
-        }
+        boost::signals2::connection connect( std::function<void( const char *, size_t, const boost::asio::ip::udp::endpoint& )> );
 
     private:
-        enum { max_length = 1024 };
-        boost::asio::io_service& io_service_;
-        boost::asio::ip::udp::socket sock_;
-        boost::asio::ip::udp::endpoint sender_endpoint_;
-        char data_[ max_length ];
-        // std::function<void( const char *, size_t, const boost::asio::ip::udp::endpoint& )> handler_;
-        boost::signals2::signal< void(const char *, size_t, const boost::asio::ip::udp::endpoint& ) > signal_;
-        std::mutex mutex_;
-        std::condition_variable cv_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 }

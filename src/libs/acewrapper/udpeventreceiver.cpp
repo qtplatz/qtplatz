@@ -26,66 +26,102 @@
 #include <adportable/debug.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/exception/all.hpp>
-#include <vector>
+#include <boost/signals2.hpp>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 #include <string>
+#include <vector>
+
+using boost::asio::ip::udp;
+
+namespace acewrapper {
+
+    enum { max_length = 1024 };
+
+    class udpEventReceiver::impl {
+    public:
+        impl( boost::asio::io_service& io, short port ) : io_service_( io )
+                                                        , sock_( io ) {
+            
+            auto endpoint = udp::endpoint( udp::v4(), port );
+            sock_.open( endpoint.protocol() );
+            sock_.set_option( udp::socket::reuse_address( true ) );
+            sock_.bind( endpoint );
+
+            do_receive();
+            
+        }
+
+        ~impl() {
+            std::unique_lock< std::mutex > lock( mutex_ );
+            sock_.cancel();
+            sock_.close();
+            cv_.wait( lock );
+        }
+
+        void  do_receive()  {
+            sock_.async_receive_from(
+                boost::asio::buffer(data_, max_length), sender_endpoint_,
+                [this](boost::system::error_code ec, std::size_t bytes_recvd)  {
+                    if (!ec && bytes_recvd > 0) {
+                        signal_( data_, bytes_recvd, sender_endpoint_ );
+                        do_send(bytes_recvd); // echo back
+                    } else {
+                        if ( ec == boost::system::errc::operation_canceled ) {
+                            std::lock_guard< std::mutex > lock( mutex_ );
+                            cv_.notify_one();
+                        } else
+                            do_receive();
+                    }
+                });
+        }
+        
+        void do_send(std::size_t length)  {
+            sock_.async_send_to(
+                boost::asio::buffer(data_, length), sender_endpoint_,
+                [this](boost::system::error_code /*ec*/, std::size_t /*bytes_sent*/) {
+                    do_receive();
+                });
+        }
+        
+        boost::asio::io_service& io_service_;
+        boost::asio::ip::udp::socket sock_;
+        boost::asio::ip::udp::endpoint sender_endpoint_;
+        char data_[ max_length ];
+
+        boost::signals2::signal< void(const char *, size_t, const boost::asio::ip::udp::endpoint& ) > signal_;
+        std::mutex mutex_;
+        std::condition_variable cv_;
+    };
+    
+}
 
 using namespace acewrapper;
-using boost::asio::ip::udp;
 
 udpEventReceiver::~udpEventReceiver()
 {
-    std::unique_lock< std::mutex > lock( mutex_ );
-    sock_.cancel();
-    sock_.close();
-    cv_.wait( lock );
+    impl_.reset();
 }
 
-udpEventReceiver::udpEventReceiver( boost::asio::io_service& io, short port ) : io_service_( io )
-                                                                              , sock_( io )
+udpEventReceiver::udpEventReceiver( boost::asio::io_service& io, short port ) : impl_( new impl( io, port ) )
 {
-    auto endpoint = udp::endpoint( udp::v4(), port );
-    sock_.open( endpoint.protocol() );
-    sock_.set_option( udp::socket::reuse_address( true ) );
-    sock_.bind( endpoint );
-    
-    do_receive();
 } 
 
 void
-udpEventReceiver::register_handler( std::function<void( const char *, size_t, const udp::endpoint& )> h )
+udpEventReceiver::register_handler( std::function<void( const char *, size_t, const boost::asio::ip::udp::endpoint& )> h )
 {
-    //handler_ = h;
-    signal_.connect( h );
+    impl_->signal_.connect( h );
 }
 
-void
-udpEventReceiver::do_receive()
+boost::signals2::connection
+udpEventReceiver::connect( std::function<void( const char *, size_t, const boost::asio::ip::udp::endpoint& )> h )
 {
-    sock_.async_receive_from(
-        boost::asio::buffer(data_, max_length), sender_endpoint_,
-        [this](boost::system::error_code ec, std::size_t bytes_recvd)  {
-            if (!ec && bytes_recvd > 0) {
-                ADDEBUG() << "##### udpEventReceiver: " << std::string( data_, bytes_recvd );
-                // if ( handler_ )
-                //     handler_( data_, bytes_recvd, sender_endpoint_ );
-                signal_( data_, bytes_recvd, sender_endpoint_ );
-                do_send(bytes_recvd); // echo back
-            } else {
-                if ( ec == boost::system::errc::operation_canceled ) {
-                    std::lock_guard< std::mutex > lock( mutex_ );
-                    cv_.notify_one();
-                } else
-                    do_receive();
-            }
-        });
+    return impl_->signal_.connect( h );
 }
 
-void
-udpEventReceiver::do_send(std::size_t length)
-{
-    sock_.async_send_to(
-        boost::asio::buffer(data_, length), sender_endpoint_,
-        [this](boost::system::error_code /*ec*/, std::size_t /*bytes_sent*/) {
-            do_receive();
-        });
-}
+// boost::signals2::signal< void(const char *, size_t, const boost::asio::ip::udp::endpoint& ) >&
+// udpEventReceiver::signal()
+// {
+//     return impl_->signal_;
+// }
