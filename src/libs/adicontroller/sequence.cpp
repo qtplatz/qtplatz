@@ -90,6 +90,12 @@ sequence::end() const
     return impl_->que_.end();        
 }
 
+void
+sequence::clear()
+{
+    impl_->que_.clear();
+}
+
 size_t
 sequence::size() const
 {

@@ -63,6 +63,8 @@ namespace adicontroller {
 
         value_type deque();      // <-- stop run | reset
 
+        void clear();
+
     private:
         friend std::unique_ptr< sequence >::deleter_type;
         class impl;
