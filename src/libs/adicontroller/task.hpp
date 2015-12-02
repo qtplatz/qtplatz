@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "adicontroller_global.hpp"
 #include "constants.hpp"
 #include <boost/signals2.hpp>
 #include <functional>
@@ -34,7 +35,7 @@ namespace adicontroller {
 
     class SampleProcessor;
 
-    class task {
+    class ADICONTROLLERSHARED_EXPORT task {
         
         ~task();
         task();
@@ -42,12 +43,13 @@ namespace adicontroller {
     public:
         static task * instance();
 
+
         typedef std::function< void( Instrument::eInstEvent ) > signal_inst_events_t;
         typedef std::function< void( uint32_t ) > signal_fsm_action_t;
 
         void initialize();
         void finalize();
-        boost::signals2::connection connect( signal_inst_events_t );
+        boost::signals2::connection connect_inst_events( signal_inst_events_t );
         boost::signals2::connection connect( signal_fsm_action_t );
 
     private:

@@ -50,13 +50,11 @@ namespace acewrapper {
 
         ~impl() {
             if ( ! io_service_.stopped() ) {
-                ADDEBUG() << "=====> udpEventReceiver::impl dtor stopped=" << io_service_.stopped();                
                 std::unique_lock< std::mutex > lock( mutex_ );
                 sock_.cancel();
                 cv_.wait( lock );
             }
             sock_.close();
-            ADDEBUG() << "=====> udpEventReceiver::impl dtor completed. " << io_service_.stopped();
         }
 
         void open( short port ) {
@@ -67,7 +65,6 @@ namespace acewrapper {
         }
 
         void  do_receive()  {
-            ADDEBUG() << "=====> udpEventReceiver::impl do_receive";            
             sock_.async_receive_from(
                 boost::asio::buffer(data_, max_length), sender_endpoint_,
                 [this](boost::system::error_code ec, std::size_t bytes_recvd)  {

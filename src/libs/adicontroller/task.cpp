@@ -106,7 +106,7 @@ task::finalize()
 }
 
 boost::signals2::connection
-task::connect( signal_inst_events_t f )
+task::connect_inst_events( signal_inst_events_t f )
 {
     return impl_->signalInstEvents_.connect( f );
 }
@@ -121,9 +121,6 @@ task::connect( signal_fsm_action_t f )
 
 task::impl::impl() : fsm_( this )
 {
-    udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, 7125 ) );
-    udpReceiver_->connect( std::bind( &task::impl::handle_event_out
-                                      , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
 }
 
 task::impl::~impl()
@@ -135,6 +132,11 @@ task::impl::initialize()
 {
     static std::once_flag flag;
     std::call_once( flag, [&](){
+
+            udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, 7125 ) );
+            udpReceiver_->connect( std::bind( &task::impl::handle_event_out
+                                              , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
+            
             threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
         });
 
@@ -145,7 +147,6 @@ void
 task::impl::finalize()
 {
     udpReceiver_.reset();
-
     io_service_.stop();
     for ( auto& t: threads_ )
         t.join();

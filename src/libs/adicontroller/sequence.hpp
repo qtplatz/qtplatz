@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "adicontroller_global.hpp"
 #include <deque>
 #include <memory>
 
@@ -34,7 +35,7 @@ namespace adicontroller {
 
     namespace internal {  struct receiver_data;  }
 
-    class sequence {
+    class ADICONTROLLERSHARED_EXPORT sequence {
 
         sequence( const sequence& ) = delete;
         sequence& operator = ( const sequence& ) = delete;
