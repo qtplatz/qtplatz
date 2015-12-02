@@ -42,6 +42,7 @@
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
 #include <boost/date_time.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <regex>
 #include <string>
@@ -52,18 +53,22 @@ static size_t __nid__;
 
 SampleProcessor::~SampleProcessor()
 {
-    ADDEBUG() << "##### SampleProcessor dtor" << storage_name_.string();
+    try {
+        ADDEBUG() << "##### SampleProcessor dtor" << storage_name_.string();
     
-    fs_->close();
-    boost::filesystem::path progress_name( storage_name_ );
-    storage_name_.replace_extension( ".adfs" );
+        fs_->close();
+        boost::filesystem::path progress_name( storage_name_ );
+        storage_name_.replace_extension( ".adfs" );
 
-    boost::system::error_code ec;
-    boost::filesystem::rename( progress_name, storage_name_, ec );
-    if ( ec )
-        ADERROR() << boost::format( "Sample %1% close failed: " ) % storage_name_.stem().string() % ec.message();
-    else
-        ADTRACE() << boost::format( "Sample %1% closed." ) % storage_name_.stem().string();
+        boost::system::error_code ec;
+        boost::filesystem::rename( progress_name, storage_name_, ec );
+        if ( ec )
+            ADERROR() << boost::format( "Sample %1% close failed: " ) % storage_name_.stem().string() % ec.message();
+        else
+            ADTRACE() << boost::format( "Sample %1% closed." ) % storage_name_.stem().string();
+    } catch ( std::exception& e ) {
+        ADDEBUG() << boost::diagnostic_information( e );
+    }
 }
 
 SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
