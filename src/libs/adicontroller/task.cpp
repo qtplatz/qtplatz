@@ -38,24 +38,9 @@ namespace adicontroller {
     class task::impl : public sequ::fsm::handler {
     public:
         impl();
-
-        ~impl() {
-        }
-
-        void initialize() {
-            static std::once_flag flag;
-            std::call_once( flag, [&](){
-                    threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
-                });
-            fsm_.stop();
-        }
-
-        void finalize() {
-            udpReceiver_.reset();
-            io_service_.stop();
-            for ( auto& t: threads_ )
-                t.join();
-        }
+        ~impl();
+        void initialize();
+        void finalize();
         
         static std::unique_ptr< task > instance_;
         static std::mutex mutex_;
@@ -70,10 +55,8 @@ namespace adicontroller {
         void handle_event_out( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ) {
             std::string recv( data, length );
             auto pos = recv.find( "EVENTOUT 1" );
-            if ( pos != recv.npos ) {
+            if ( pos != recv.npos )
                 signalInstEvents_( Instrument::instEventInjectOut );
-                ADDEBUG() << "############### " << recv;
-            }
         }
 
         boost::asio::io_service io_service_;
@@ -137,14 +120,35 @@ task::connect( signal_fsm_action_t f )
 //////////////////////////////////////////////////
 
 task::impl::impl() : fsm_( this )
-                   , udpReceiver_( new acewrapper::udpEventReceiver( io_service_, 7125 ) )
 {
-    if ( udpReceiver_ ) {
-        auto bc = udpReceiver_->connect( [&](const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep){
-                handle_event_out( data, length, ep );
-            });
-    }
-    
+    udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, 7125 ) );
+    udpReceiver_->connect( std::bind( &task::impl::handle_event_out
+                                      , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
+}
+
+task::impl::~impl()
+{
+}
+
+void
+task::impl::initialize()
+{
+    static std::once_flag flag;
+    std::call_once( flag, [&](){
+            threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
+        });
+
+    fsm_.stop();
+}
+
+void
+task::impl::finalize()
+{
+    udpReceiver_.reset();
+
+    io_service_.stop();
+    for ( auto& t: threads_ )
+        t.join();
 }
 
 void

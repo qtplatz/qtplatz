@@ -41,26 +41,33 @@ namespace acewrapper {
 
     class udpEventReceiver::impl {
     public:
+
         impl( boost::asio::io_service& io, short port ) : io_service_( io )
                                                         , sock_( io ) {
-            
+            open( port );
+            do_receive();
+        }
+
+        ~impl() {
+            if ( ! io_service_.stopped() ) {
+                ADDEBUG() << "=====> udpEventReceiver::impl dtor stopped=" << io_service_.stopped();                
+                std::unique_lock< std::mutex > lock( mutex_ );
+                sock_.cancel();
+                cv_.wait( lock );
+            }
+            sock_.close();
+            ADDEBUG() << "=====> udpEventReceiver::impl dtor completed. " << io_service_.stopped();
+        }
+
+        void open( short port ) {
             auto endpoint = udp::endpoint( udp::v4(), port );
             sock_.open( endpoint.protocol() );
             sock_.set_option( udp::socket::reuse_address( true ) );
             sock_.bind( endpoint );
-
-            do_receive();
-            
-        }
-
-        ~impl() {
-            std::unique_lock< std::mutex > lock( mutex_ );
-            sock_.cancel();
-            sock_.close();
-            cv_.wait( lock );
         }
 
         void  do_receive()  {
+            ADDEBUG() << "=====> udpEventReceiver::impl do_receive";            
             sock_.async_receive_from(
                 boost::asio::buffer(data_, max_length), sender_endpoint_,
                 [this](boost::system::error_code ec, std::size_t bytes_recvd)  {
@@ -120,8 +127,3 @@ udpEventReceiver::connect( std::function<void( const char *, size_t, const boost
     return impl_->signal_.connect( h );
 }
 
-// boost::signals2::signal< void(const char *, size_t, const boost::asio::ip::udp::endpoint& ) >&
-// udpEventReceiver::signal()
-// {
-//     return impl_->signal_;
-// }
