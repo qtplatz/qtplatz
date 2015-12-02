@@ -30,6 +30,8 @@
 #include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
 #include <stdexcept>
+#include <mutex>
+#include <thread>
 
 namespace adicontroller {
 
@@ -49,6 +51,7 @@ namespace adicontroller {
         }
 
         void finalize() {
+            udpReceiver_.reset();
             io_service_.stop();
             for ( auto& t: threads_ )
                 t.join();
@@ -67,8 +70,10 @@ namespace adicontroller {
         void handle_event_out( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ) {
             std::string recv( data, length );
             auto pos = recv.find( "EVENTOUT 1" );
-            if ( pos != recv.npos )
+            if ( pos != recv.npos ) {
+                signalInstEvents_( Instrument::instEventInjectOut );
                 ADDEBUG() << "############### " << recv;
+            }
         }
 
         boost::asio::io_service io_service_;
@@ -76,7 +81,10 @@ namespace adicontroller {
 
         sequ::fsm::controller fsm_;
         std::unique_ptr< acewrapper::udpEventReceiver > udpReceiver_;
-        
+
+    public:        
+        boost::signals2::signal< void( Instrument::eInstEvent ) > signalInstEvents_;
+        boost::signals2::signal< void( int ) > signalFSMAction_;
     };
 
     std::unique_ptr< task > task::impl::instance_;
@@ -114,6 +122,19 @@ task::finalize()
     impl_->finalize();
 }
 
+boost::signals2::connection
+task::connect( signal_inst_events_t f )
+{
+    return impl_->signalInstEvents_.connect( f );
+}
+
+boost::signals2::connection
+task::connect( signal_fsm_action_t f )
+{
+    return impl_->signalFSMAction_.connect( f );
+}
+
+//////////////////////////////////////////////////
 
 task::impl::impl() : fsm_( this )
                    , udpReceiver_( new acewrapper::udpEventReceiver( io_service_, 7125 ) )

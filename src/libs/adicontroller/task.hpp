@@ -25,23 +25,10 @@
 
 #pragma once
 
-// #include <boost/noncopyable.hpp>
-// #include <adportable/configuration.hpp>
-// #include <adcontrols/controlmethod.hpp>
-// #include <adcontrols/samplerun.hpp>
-
-// #include <compiler/diagnostic_push.h>
-// #include <compiler/disable_deprecated.h>
-// #include <adinterface/controlserverC.h>
-// #include <adinterface/signalobserverC.h>
-// #include <compiler/diagnostic_pop.h>
-
-#include <workaround/boost/asio.hpp>
-#include <adportable/asio/thread.hpp>
-#include <mutex>
-#include <vector>
-#include <deque>
-#include <thread>
+#include "constants.hpp"
+#include <boost/signals2.hpp>
+#include <functional>
+#include <memory>
 
 namespace adicontroller {
 
@@ -51,11 +38,17 @@ namespace adicontroller {
         
         ~task();
         task();
+
     public:
         static task * instance();
 
+        typedef std::function< void( Instrument::eInstEvent ) > signal_inst_events_t;
+        typedef std::function< void( uint32_t ) > signal_fsm_action_t;
+
         void initialize();
         void finalize();
+        boost::signals2::connection connect( signal_inst_events_t );
+        boost::signals2::connection connect( signal_fsm_action_t );
 
     private:
         friend std::unique_ptr< task >::deleter_type;

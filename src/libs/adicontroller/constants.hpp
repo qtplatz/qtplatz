@@ -104,4 +104,11 @@ namespace adicontroller {
             , Online
         };
     }
+    
+    // Finiet state machine actions for sequence acquisition
+    enum idFSMAction {
+        fsmStop
+        , fsmStart
+        , fsmInject
+    };
 } // namespace adicontroler
