@@ -83,6 +83,7 @@ std::ostream& operator << ( std::ostream& out, const execStatistics& t )
     
     for ( auto& pair: t.exceededTimings_ )
         out << "waveform at " << pair.first << " interval: " << pair.second << std::endl;
+    return out;
 }
 
 #if defined __linux
@@ -284,20 +285,16 @@ main( int argc, char * argv [] )
                     
                     execStatistics::instance().dataCount_ += vec.size();
                     
+#if defined _MSC_VER
+                    const size_t deadsize = 100;
+#else
                     constexpr size_t deadsize = 100;
+#endif
                     for ( auto& waveform: vec ) {
                         size_t count(0);
-                        for ( auto it = waveform->begin(); it != waveform->end(); ++it ) {
-                            if ( !( *it == 0 || *it == 0xffffdead ) )
-                                break;
-                            if ( ++count >= deadsize )
-                                break;
-                        }
-                        
-                        if ( count >= deadsize )
+                        if ( waveform->isDEAD() )
                             execStatistics::instance().deadCount_++;
                     }
-                    
                     vec.clear();  // throw waveforms away.
                 }
                 

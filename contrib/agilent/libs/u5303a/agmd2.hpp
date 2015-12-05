@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "u5303a_global.hpp"
 #include <AgMD2.h>
 #include <boost/logic/tribool.hpp>
 #include <functional>
@@ -35,9 +36,16 @@ namespace acqrscontrols { namespace u5303a { class identify; class waveform; } }
 
 namespace u5303a {
 
-    class AgMD2 {
+    class U5303ASHARED_EXPORT AgMD2 {
         class impl;
+#if defined _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
         std::unique_ptr< impl > impl_;
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
         ViSession session_;
 
         AgMD2( const AgMD2& ) = delete;

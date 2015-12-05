@@ -5,14 +5,23 @@ project ( test_u5303a )
 
 find_package( Boost REQUIRED COMPONENTS system )
 
+if ( WIN32 )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS )
+  set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
+  set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
+  include_directories(  ${IVIROOTDIR}/Include  )
+  find_library( AgMD2_LIBRARY AgMD2 ${IVIROOTDIR}/Lib_x64/msc )
+else()
+  set( AgMD2_LIBRARY "AgMD2" )
+endif()
+
 include_directories(
-  ${Boost_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
   ${QTPLATZ_SOURCE_DIR}/src/libs
   )
 
 find_package(Boost 1.57 REQUIRED COMPONENTS program_options thread system date_time filesystem )
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set( SOURCES test_u5303a.cpp )
 
@@ -31,7 +40,7 @@ target_link_libraries( ${PROJECT_NAME}
   adcontrols
   acqrscontrols
   ${Boost_LIBRARIES}
-  AgMD2
+  ${AgMD2_LIBRARY}
   ${DL} )
 
 

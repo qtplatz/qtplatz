@@ -23,8 +23,9 @@
 **************************************************************************/
 
 #include <cstdint>
+#include "u5303a_global.hpp"
 
-class ppio {
+class U5303ASHARED_EXPORT ppio {
 #if defined _MSC_VER
     static const uint16_t BASEPORT = 0x378;
 #else
