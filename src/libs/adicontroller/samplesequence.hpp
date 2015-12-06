@@ -35,16 +35,14 @@ namespace adicontroller {
 
     namespace internal {  struct receiver_data;  }
 
-    class ADICONTROLLERSHARED_EXPORT sequence {
+    class ADICONTROLLERSHARED_EXPORT SampleSequence {
 
-        sequence( const sequence& ) = delete;
-        sequence& operator = ( const sequence& ) = delete;
-        
-        ~sequence();
-        sequence();
+        SampleSequence( const SampleSequence& ) = delete;
+        SampleSequence& operator = ( const SampleSequence& ) = delete;
 
     public:
-        static sequence * instance();
+        ~SampleSequence();
+        SampleSequence();
 
         typedef std::shared_ptr< SampleProcessor > value_type;
         typedef std::shared_ptr< const SampleProcessor > const_value_type;
@@ -59,14 +57,11 @@ namespace adicontroller {
 
         size_t size() const;
 
-        void post( value_type ); // <-- preparing_for_run
-
+        void operator << ( value_type& );
         value_type deque();      // <-- stop run | reset
-
         void clear();
 
     private:
-        friend std::unique_ptr< sequence >::deleter_type;
         class impl;
         std::unique_ptr< impl > impl_;
     };

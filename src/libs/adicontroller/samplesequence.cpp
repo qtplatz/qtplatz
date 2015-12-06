@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "sequence.hpp"
+#include "samplesequence.hpp"
 #include "sampleprocessor.hpp"
 #include <deque>
 #include <mutex>
@@ -31,7 +31,7 @@
 
 namespace adicontroller {
 
-    class sequence::impl {
+    class SampleSequence::impl {
     public:
         impl() {
         }
@@ -39,79 +39,70 @@ namespace adicontroller {
         ~impl() {
         }
         
-        static std::unique_ptr< sequence > instance_;
+        static std::unique_ptr< SampleSequence > instance_;
         std::mutex mutex_;
-        std::deque< sequence::value_type > que_; // SampleProcessors
+        std::deque< SampleSequence::value_type > que_; // SampleProcessors
     };
 
-    std::unique_ptr< sequence > sequence::impl::instance_;    
+    std::unique_ptr< SampleSequence > SampleSequence::impl::instance_;    
 }
 
 using namespace adicontroller;
 
-sequence::~sequence()
+SampleSequence::~SampleSequence()
 {
 }
 
-sequence::sequence() : impl_( new impl() )
+SampleSequence::SampleSequence() : impl_( new impl() )
 {
 }
 
-sequence *
-sequence::instance()
-{
-    static std::once_flag flag;
-    std::call_once( flag, [](){ sequence::impl::instance_.reset( new sequence() ); } );
-
-    return sequence::impl::instance_.get();
-}
-
-sequence::iterator
-sequence::begin()
+SampleSequence::iterator
+SampleSequence::begin()
 {
     return impl_->que_.begin();
 }
 
-sequence::iterator
-sequence::end()
+SampleSequence::iterator
+SampleSequence::end()
 {
     return impl_->que_.end();    
 }
 
-sequence::const_iterator
-sequence::begin() const
+SampleSequence::const_iterator
+SampleSequence::begin() const
 {
     return impl_->que_.begin();
 }
 
-sequence::const_iterator
-sequence::end() const
+SampleSequence::const_iterator
+SampleSequence::end() const
 {
     return impl_->que_.end();        
 }
 
 void
-sequence::clear()
+SampleSequence::clear()
 {
     impl_->que_.clear();
 }
 
 size_t
-sequence::size() const
+SampleSequence::size() const
 {
     return impl_->que_.size();
 }
 
 void
-sequence::post( value_type sp )
+SampleSequence::operator << ( value_type& sp )
 {
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    
+
     impl_->que_.push_back( sp );
 }
 
-sequence::value_type
-sequence::deque()
+SampleSequence::value_type
+SampleSequence::deque()
 {
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
     

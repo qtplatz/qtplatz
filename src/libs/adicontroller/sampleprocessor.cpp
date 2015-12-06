@@ -44,6 +44,7 @@
 #include <boost/date_time.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <regex>
 #include <string>
 
@@ -71,13 +72,12 @@ SampleProcessor::~SampleProcessor()
     }
 }
 
-SampleProcessor::SampleProcessor( boost::asio::io_service& io_service
-                                  , std::shared_ptr< adcontrols::SampleRun > run
+SampleProcessor::SampleProcessor( std::shared_ptr< adcontrols::SampleRun > run
                                   , std::shared_ptr< adcontrols::ControlMethod::Method > cmth )
     : fs_( new adfs::filesystem )
     , inProgress_( false )
     , myId_( __nid__++ )
-    , strand_( io_service )
+      //, strand_( io_service )
     , objId_front_( 0 )
     , pos_front_( 0 )
     , stop_triggered_( false )
@@ -235,6 +235,28 @@ SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserve
 //        iTask::instance()->post_stop_run();
     }
 
+}
+
+
+void
+SampleProcessor::write( const boost::uuids::uuid& objId
+                              , size_t pos
+                              , const SignalObserver::DataReadBuffer& rdBuf )
+{
+    if ( rdBuf.events() & SignalObserver::wkEvent_INJECT ) {
+        ts_inject_trigger_ = rdBuf.timepoint(); // uptime;
+		inProgress_ = true;
+    }
+
+    ADDEBUG() << "SampleProcessor::handle_data progress=" << inProgress_;
+
+	if ( ! inProgress_ ) 
+		return;
+
+    v3::AcquiredData::insert( fs_->db(), objId, rdBuf );
+
+    auto elapsed_count = rdBuf.timepoint() - ts_inject_trigger_;
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
 }
 
 void

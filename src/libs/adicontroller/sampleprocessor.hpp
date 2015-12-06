@@ -34,19 +34,23 @@
 namespace adfs { class filesystem; class file; }
 namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
 namespace adicontroller { namespace SignalObserver { class DataReadBuffer; class Observer; } }
+namespace boost { namespace uuids { struct uuid; } }
 
 namespace adicontroller {
     
     class ADICONTROLLERSHARED_EXPORT SampleProcessor {
 	public:
         ~SampleProcessor();
-        SampleProcessor( boost::asio::io_service&
-                         , std::shared_ptr< adcontrols::SampleRun >
+        SampleProcessor( std::shared_ptr< adcontrols::SampleRun >
                          , std::shared_ptr< adcontrols::ControlMethod::Method> );
         
         void prepare_storage( SignalObserver::Observer * );
+
         void handle_data( unsigned long objId, long pos, const adicontroller::SignalObserver::DataReadBuffer& );
-        boost::asio::io_service::strand& strand() { return strand_; }
+
+        void write( const boost::uuids::uuid& objId, size_t pos, const adicontroller::SignalObserver::DataReadBuffer& );
+        
+        //boost::asio::io_service::strand& strand() { return strand_; }
         void pos_front( unsigned int pos, unsigned long objId );
         void stop_triggered();
         std::shared_ptr< const adcontrols::SampleRun > sampleRun() const;
@@ -66,7 +70,6 @@ namespace adicontroller {
         std::unique_ptr< adfs::filesystem > fs_;
 		bool inProgress_;
         size_t myId_;
-        boost::asio::io_service::strand strand_;
         std::atomic<unsigned long> objId_front_;
         std::atomic<unsigned int> pos_front_;
         std::atomic< bool > stop_triggered_;

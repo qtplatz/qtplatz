@@ -43,6 +43,9 @@ AcquiredData::insert( adfs::sqlite& db
 
 	sql.prepare( "INSERT INTO AcquiredData VALUES( :objuuid, :elapsed_time, :epoch_time, :npos, :fcn, :events, :data, :meta )" );
 
+    // std::string xdata;
+    // adportable::bzip2::compress( xdata, reinterpret_cast< const char * >( rb.xdata().data() ), rb.xdata().size() );
+
     sql.bind( 1 ) = objid;
     sql.bind( 2 ) = rb.elapsed_time();
     sql.bind( 3 ) = rb.epoch_time();

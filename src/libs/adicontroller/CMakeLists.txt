@@ -39,8 +39,8 @@ add_library( ${PROJECT_NAME} SHARED
   receiver.cpp
   sampleprocessor.hpp
   sampleprocessor.cpp
-  sequence.hpp
-  sequence.cpp
+  samplesequence.hpp
+  samplesequence.cpp
   signalobserver.hpp
   signalobserver.cpp
   task.hpp

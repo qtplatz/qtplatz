@@ -45,163 +45,205 @@
 
 namespace adicontroller {
 
-    namespace sequ {
-        namespace fsm {
+    namespace fsm {
 
-            namespace msm = boost::msm;
-            namespace mpl = boost::mpl;
-            using boost::msm::front::Row;
-            using boost::msm::front::none;
+        namespace msm = boost::msm;
+        namespace mpl = boost::mpl;
+        using boost::msm::front::Row;
+        using boost::msm::front::none;
 
-            enum idState { idStopped, idWaitForContactClosure, idRunning };
+        enum idState { idStopped, idPreparingForRun, idWaitForContactClosure, idRunning, idDormant };
 
-            // events
-            struct Stop   {};
-            struct Start  {}; // Prepare     {};
-            struct Inject {}; // Initiate    {};
-            struct error_clear {};
+        // events
+        struct Stop        {}; // --> Stop
+        struct Start       {}; // --> PreparingForRun
+        struct Ready       {}; // --> WaitForContactClosure
+        struct Inject      {}; // --> Running
+        struct Complete    {}; // --> Dormant
+        struct error_clear {};
 
-            struct error_detected {
-                error_detected(const std::string& name)  : name_(name)
-                    {}
-                std::string name_;
+        struct error_detected {
+            error_detected(const std::string& name)  : name_(name)
+                {}
+            std::string name_;
+        };
+
+        struct handler;
+
+        struct controller_ : public msm::front::state_machine_def< controller_ > {
+
+            controller_( handler * p ) : handler_( p ) {}
+
+            struct Error_tag {};
+            typedef msm::front::euml::func_state< Error_tag > Error;
+
+            //-----------------------------
+            struct Stopped_Entry { 
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( true, idStopped );
+                }
             };
+            struct Stopped_Exit { 
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( false, idStopped );
+                }
+            };
+            struct Stopped_tag {};
+            typedef msm::front::euml::func_state< Stopped_tag, Stopped_Entry, Stopped_Exit> Stopped;
 
-            struct handler;
+            //-----------------------------
+            struct PreparingForRun_Entry { 
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( true, idPreparingForRun );
+                }
+            };
+            struct PreparingForRun_Exit { 
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( false, idPreparingForRun );
+                }
+            };
+            struct PreparingForRun_tag {};
+            typedef msm::front::euml::func_state< PreparingForRun_tag, PreparingForRun_Entry, PreparingForRun_Exit> PreparingForRun;
 
-            struct controller_ : public msm::front::state_machine_def< controller_ > {
-
-                controller_( handler * p ) : handler_( p ) {}
-
-                struct Error_tag {};
-                typedef msm::front::euml::func_state< Error_tag > Error;
-
-                //-----------------------------
-                struct Stopped_Entry { 
-                    template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                        fsm.handler_->sequ_fsm_state( true, idStopped );
-                    }
-                };
-                struct Stopped_Exit { 
-                    template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                        fsm.handler_->sequ_fsm_state( false, idStopped );
-                    }
-                };
-                struct Stopped_tag {};
-                typedef msm::front::euml::func_state< Stopped_tag, Stopped_Entry, Stopped_Exit> Stopped;
-
-                //-----------------------------
-                struct WaitForContactClosure_Entry { 
-                    template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                        fsm.handler_->sequ_fsm_state( true, idWaitForContactClosure );
-                    }
-                };
-                struct WaitForContactClosure_Exit { 
-                    template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                        fsm.handler_->sequ_fsm_state( false, idWaitForContactClosure );
-                        // noting
-                    }
-                };
-                struct WaitForContactClosure_tag {};
-                typedef msm::front::euml::func_state< WaitForContactClosure_tag
-                                                      , WaitForContactClosure_Entry, WaitForContactClosure_Exit> WaitForContactClosure;
+            //-----------------------------
+            struct WaitForContactClosure_Entry { 
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( true, idWaitForContactClosure );
+                }
+            };
+            struct WaitForContactClosure_Exit { 
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( false, idWaitForContactClosure );
+                    // noting
+                }
+            };
+            struct WaitForContactClosure_tag {};
+            typedef msm::front::euml::func_state< WaitForContactClosure_tag
+                                                  , WaitForContactClosure_Entry, WaitForContactClosure_Exit> WaitForContactClosure;
             
 
-                //-----------------------------
-                struct Running_Entry {
-                    template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                        fsm.handler_->sequ_fsm_state( true, idRunning );
-                    }
-                };
-                struct Running_Exit {
-                    template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                        fsm.handler_->sequ_fsm_state( false, idRunning );
-                    }
-                };            
-                struct Running_tag {};
-                typedef msm::front::euml::func_state< Running_tag, Running_Entry, Running_Exit > Running;
-
-                //-----------------------------
-                typedef Stopped initial_state;
-
-                //-----------------------------
-                struct actStop {
-                    template <class EVT, class FSM, class SourceState, class TargetState >
-                    void operator()( EVT const& evt, FSM& fsm, SourceState&, TargetState& ) {
-                        fsm.handler_->sequ_action_stop();
-                    }
-                };
-
-                struct actStart {
-                    template <class EVT, class FSM, class SourceState, class TargetState >
-                    void operator()( EVT const& evt, FSM& fsm, SourceState&, TargetState& ) {
-                        fsm.handler_->sequ_action_start();
-                    }
-                };
-            
-                struct actInject {
-                    template <class EVT, class FSM, class SourceState, class TargetState >
-                    void operator()( EVT const& evt, FSM& fsm, SourceState&, TargetState& ) {
-                        fsm.handler_->sequ_action_inject();
-                    }
-                };
-
-                // guard conditions
-                struct DummyGuard {
-                    template <class EVT,class FSM,class SourceState,class TargetState>
-                    bool operator()(EVT const& evt,FSM& fsm,SourceState& src,TargetState& tgt) {
-                        return true;
-                    }
-                };
-                struct good_diag_result {
-                    template <class EVT,class FSM,class SourceState,class TargetState>
-                    bool operator()(EVT const& evt ,FSM&,SourceState& ,TargetState& ) {
-                        return true;
-                    }
-                };
-                struct always_true {
-                    template <class EVT,class FSM,class SourceState,class TargetState>
-                    bool operator()(EVT const& evt ,FSM&,SourceState& ,TargetState& ) {             
-                        return true;
-                    }
-                };
-
-                typedef controller_ p; // makes transition table cleaner
-
-                // Transition table
-                struct transition_table : mpl::vector<
-                    //    Start                    Event             Next                    Action				 Guard
-                    //  +-------------------------+------------------+----------------------+---------------------+----------------------+
-                    Row   < Stopped,               Stop,              Stopped,               none,             none >
-                    , Row < Stopped,               Start,             WaitForContactClosure, actStart,         none >
-                    , Row < WaitForContactClosure, Stop,              Stopped,               none,             none >
-                    , Row < WaitForContactClosure, Inject,            Running,               actInject,        none >
-                    , Row < Running,               Stop,              Stopped,               actStop,          none >
-                    , Row < Running,               Start,             WaitForContactClosure, actStart,         none >
-                    > {};
-
-                // Replaces the default no-transition response.
-                template <class FSM,class Event> void no_transition(Event const& e, FSM& fsm, int state)  {
-                    ADDEBUG() << "no transition from state " << state;
+            //-----------------------------
+            struct Running_Entry {
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( true, idRunning );
                 }
-
-                template <class FSM,class Event> void exception_caught(Event const& ev, FSM& fsm, std::exception& ex) {
-                    ADDEBUG() << "exception_caught " << typeid(ev).name() << "; " << ex.what();
+            };
+            struct Running_Exit {
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( false, idRunning );
                 }
+            };            
+            struct Running_tag {};
+            typedef msm::front::euml::func_state< Running_tag, Running_Entry, Running_Exit > Running;
 
-                handler* handler_;
+            //-----------------------------
+            struct Dormant_Entry { 
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( true, idDormant );
+                }
+            };
+            struct Dormant_Exit { 
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->sequ_fsm_state( false, idDormant );
+                }
+            };
+            struct Dormant_tag {};
+            typedef msm::front::euml::func_state< Dormant_tag, Dormant_Entry, Dormant_Exit> Dormant;
+                
+            //-----------------------------
+            //-----------------------------
+                
+            typedef Stopped initial_state;
+
+            //-----------------------------
+            struct actStop {
+                template <class EVT, class FSM, class SourceState, class TargetState >
+                void operator()( EVT const& evt, FSM& fsm, SourceState&, TargetState& ) {
+                    fsm.handler_->sequ_action_stop();
+                }
             };
 
-            // handler
-            struct handler {
-                virtual void sequ_action_stop() = 0;
-                virtual void sequ_action_start() = 0;
-                virtual void sequ_action_inject() = 0;
-                virtual void sequ_fsm_state( bool, idState ) = 0;
+            struct actStart {
+                template <class EVT, class FSM, class SourceState, class TargetState >
+                void operator()( EVT const& evt, FSM& fsm, SourceState&, TargetState& ) {
+                    fsm.handler_->sequ_action_start();
+                }
             };
 
-            // Pick a back-end
-            typedef msm::back::state_machine< controller_ > controller;
-        }
+            struct actReady {
+                template <class EVT, class FSM, class SourceState, class TargetState >
+                void operator()( EVT const& evt, FSM& fsm, SourceState&, TargetState& ) {
+                    // fsm.handler_->sequ_action_start();
+                }
+            };
+                
+            struct actInject {
+                template <class EVT, class FSM, class SourceState, class TargetState >
+                void operator()( EVT const& evt, FSM& fsm, SourceState&, TargetState& ) {
+                    fsm.handler_->sequ_action_inject();
+                }
+            };
+
+            // guard conditions
+            struct DummyGuard {
+                template <class EVT,class FSM,class SourceState,class TargetState>
+                bool operator()(EVT const& evt,FSM& fsm,SourceState& src,TargetState& tgt) {
+                    return true;
+                }
+            };
+            struct good_diag_result {
+                template <class EVT,class FSM,class SourceState,class TargetState>
+                bool operator()(EVT const& evt ,FSM&,SourceState& ,TargetState& ) {
+                    return true;
+                }
+            };
+            struct always_true {
+                template <class EVT,class FSM,class SourceState,class TargetState>
+                bool operator()(EVT const& evt ,FSM&,SourceState& ,TargetState& ) {             
+                    return true;
+                }
+            };
+
+            typedef controller_ p; // makes transition table cleaner
+
+            // Transition table
+            struct transition_table : mpl::vector<
+                //    Start                    Event             Next                    Action				 Guard
+                //  +-------------------------+------------------+----------------------+---------------------+----------------------+
+                Row   < Stopped,               Stop,              Stopped,               none,             none >
+                , Row < Stopped,               Start,             PreparingForRun,       actStart,         none >
+                , Row < PreparingForRun,       Start,             PreparingForRun,       actStart,         none >
+                , Row < PreparingForRun,       Ready,             WaitForContactClosure, actReady,         none >
+                , Row < WaitForContactClosure, Stop,              Stopped,               none,             none >
+                , Row < WaitForContactClosure, Inject,            Running,               actInject,        none >
+                , Row < Running,               Stop,              Dormant,               actStop,          none >
+                , Row < Running,               Complete,          Dormant,               actStop,          none >
+                , Row < Running,               Start,             PreparingForRun,       actStart,         none >
+                , Row < Dormant,               Stop,              Stopped,               none,             none >
+                , Row < Dormant,               Start,             PreparingForRun,       actStart,         none >
+                > {};
+
+            // Replaces the default no-transition response.
+            template <class FSM,class Event> void no_transition(Event const& e, FSM& fsm, int state)  {
+                ADDEBUG() << "no transition from state " << state;
+            }
+
+            template <class FSM,class Event> void exception_caught(Event const& ev, FSM& fsm, std::exception& ex) {
+                ADDEBUG() << "exception_caught " << typeid(ev).name() << "; " << ex.what();
+            }
+
+            handler* handler_;
+        };
+
+        // handler
+        struct handler {
+            virtual void sequ_action_stop() = 0;
+            virtual void sequ_action_start() = 0;
+            virtual void sequ_action_inject() = 0;
+            virtual void sequ_fsm_state( bool, idState ) = 0;
+        };
+
+        // Pick a back-end
+        typedef msm::back::state_machine< controller_ > controller;
     }
 }

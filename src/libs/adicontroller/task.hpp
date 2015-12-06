@@ -28,12 +28,19 @@
 #include "adicontroller_global.hpp"
 #include "constants.hpp"
 #include <boost/signals2.hpp>
+#include <chrono>
 #include <functional>
 #include <memory>
 
+namespace boost { namespace asio { class io_service; } }
+
+namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
+
 namespace adicontroller {
 
+    class MasterObserver;
     class SampleProcessor;
+    class SampleSequence;
 
     class ADICONTROLLERSHARED_EXPORT task {
         
@@ -43,14 +50,31 @@ namespace adicontroller {
     public:
         static task * instance();
 
-
         typedef std::function< void( Instrument::eInstEvent ) > signal_inst_events_t;
-        typedef std::function< void( uint32_t ) > signal_fsm_action_t;
+        typedef std::function< void( Instrument::idFSMAction ) > signal_fsm_action_t;
 
+        boost::signals2::connection connect_fsm_action( signal_fsm_action_t );
+        boost::signals2::connection connect_inst_events( signal_inst_events_t );
         void initialize();
         void finalize();
-        boost::signals2::connection connect_inst_events( signal_inst_events_t );
-        boost::signals2::connection connect( signal_fsm_action_t );
+        boost::asio::io_service& io_service();
+
+        const std::chrono::steady_clock::time_point& tp_uptime() const;
+        const std::chrono::steady_clock::time_point& tp_inject() const;
+
+        void post( std::shared_ptr< SampleProcessor >& );
+
+        SampleSequence * sampleSequence();
+        MasterObserver * masterObserver();
+
+        // state control buttons -- corresponding to inst control buttuns
+        void fsmStop();
+        void fsmStart();
+        void fsmInject();
+        void fsmErrorClear();
+
+        // prepare next sample strage
+        void prepare_next_sample( const adcontrols::SampleRun&, const adcontrols::ControlMethod::Method& );
 
     private:
         friend std::unique_ptr< task >::deleter_type;

@@ -44,6 +44,7 @@
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/signals2.hpp>
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -125,8 +126,12 @@ namespace u5303a {
             
             uint64_t inject_timepoint_;
             std::vector< std::string > foundResources_;
-            std::vector< digitizer::command_reply_type > reply_handlers_;
-            std::vector< digitizer::waveform_reply_type > waveform_handlers_;
+
+            // std::vector< digitizer::command_reply_type > reply_handlers_;
+            // std::vector< digitizer::waveform_reply_type > waveform_handlers_;
+            boost::signals2::signal< void( const std::string, const std::string ) > reply_handlers_;
+            boost::signals2::signal< digitizer::waveform_handler_type > waveform_handlers_;
+
             std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
             std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
             std::chrono::steady_clock::time_point tp_acquire_;
@@ -378,11 +383,9 @@ void
 task::fsm_state( bool enter, fsm::idState state )
 {
     if ( state == fsm::idStopped && enter ) {
-        for ( auto& reply: reply_handlers_ )
-            reply( "StateChanged", "Stopped" );
+        reply_handlers_( "StateChanged", "Stopped" );
     } else if ( state == fsm::idReadyToInitiate && enter ) {
-        for ( auto& reply: reply_handlers_ )
-            reply( "StateChanged", "Running" );
+        reply_handlers_( "StateChanged", "Running" );
     }
 }
 
@@ -480,20 +483,19 @@ task::handle_initial_setup()
         // SR2 = 1.6GS/s 2ch; SR2+INT = 3.2GS/s 1ch;
         // M02 = 256MB; M10 = 1GB, M40 = 4GB
         
-        for ( auto& reply : reply_handlers_ ) reply( "Identifier", ident_->Identifier() );
-        for ( auto& reply : reply_handlers_ ) reply( "Revision", ident_->Revision() );
-        for ( auto& reply : reply_handlers_ ) reply( "Description", ident_->Description() );
-        for ( auto& reply : reply_handlers_ ) reply( "InstrumentModel", ident_->InstrumentModel() );
-        for ( auto& reply : reply_handlers_ ) reply( "InstrumentFirmwareRevision", ident_->FirmwareRevision() );
-        for ( auto& reply : reply_handlers_ ) reply( "SerialNumber", ident_->SerialNumber() );
-        for ( auto& reply : reply_handlers_ ) reply( "IOVersion", ident_->IOVersion() );
-        for ( auto& reply : reply_handlers_ ) reply( "Options", ident_->Options() );
+        reply_handlers_( "Identifier", ident_->Identifier() );
+        reply_handlers_( "Revision", ident_->Revision() );
+        reply_handlers_( "Description", ident_->Description() );
+        reply_handlers_( "InstrumentModel", ident_->InstrumentModel() );
+        reply_handlers_( "InstrumentFirmwareRevision", ident_->FirmwareRevision() );
+        reply_handlers_( "SerialNumber", ident_->SerialNumber() );
+        reply_handlers_( "IOVersion", ident_->IOVersion() );
+        reply_handlers_( "Options", ident_->Options() );
 
         device::initial_setup( *this, method_, ident().Options() );
     }
 
-    for ( auto& reply: reply_handlers_ )
-        reply( "InitialSetup", ( success ? "success" : "failed" ) );
+    reply_handlers_( "InitialSetup", ( success ? "success" : "failed" ) );
 
     spDriver_->Abort();
     fsm_.process_event( fsm::Stop() );
@@ -573,10 +575,8 @@ task::handle_TSR_acquire()
 
     for ( auto& waveform: vec ) {
         acqrscontrols::u5303a::method m;
-        for ( auto& reply: waveform_handlers_ ) {
-            if ( reply( waveform.get(), nullptr, m ) )
-                handle_protocol( m );
-        }
+        if ( waveform_handlers_( waveform.get(), nullptr, m ) )
+            handle_protocol( m );
     }
     return true;
 }
@@ -601,20 +601,17 @@ task::handle_acquire()
 
                 for ( auto& waveform: vec ) {
                     acqrscontrols::u5303a::method m;
-                    for ( auto& reply: waveform_handlers_ ) {
-                        if ( reply( waveform.get(), nullptr, m ) )
-                            handle_protocol( m );
-                    }
+                    if ( waveform_handlers_( waveform.get(), nullptr, m ) )
+                        handle_protocol( m );
                 }
+                
             } else {
                 uint32_t events( 0 );
                 auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
                 if ( readData( *waveform ) ) {
                     acqrscontrols::u5303a::method m;
-                    for ( auto& reply : waveform_handlers_ ) {
-                        if ( reply( waveform.get(), nullptr, m ) )
-                            handle_protocol( m );
-                    }
+                    if ( waveform_handlers_( waveform.get(), nullptr, m ) )
+                        handle_protocol( m );
                 }
             }
             return true;
@@ -670,8 +667,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
 void
 task::connect( digitizer::command_reply_type f )
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-    reply_handlers_.push_back( f );
+    reply_handlers_.connect( f );
 }
 
 void
@@ -683,8 +679,7 @@ task::disconnect( digitizer::command_reply_type f )
 void
 task::connect( digitizer::waveform_reply_type f )
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-    waveform_handlers_.push_back( f );
+    waveform_handlers_.connect( f );
 }
 
 void
@@ -696,8 +691,7 @@ task::disconnect( digitizer::waveform_reply_type f )
 void
 task::error_reply( const std::string& e, const std::string& method )
 {
-    for ( auto& reply: reply_handlers_ )
-        reply( method, e.c_str() );
+    reply_handlers_( method, e.c_str() );
 }
 
 void

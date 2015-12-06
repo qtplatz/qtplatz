@@ -79,8 +79,11 @@ namespace u5303a {
         bool peripheral_terminate();
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
-        typedef std::function< void( const std::string, const std::string ) > command_reply_type;
-        typedef std::function< bool( const acqrscontrols::u5303a::waveform *, const acqrscontrols::u5303a::waveform *, acqrscontrols::u5303a::method& ) > waveform_reply_type;
+        typedef void (command_handler_type)( const std::string, const std::string );
+        typedef std::function< command_handler_type > command_reply_type;
+
+        typedef bool (waveform_handler_type)( const acqrscontrols::u5303a::waveform *, const acqrscontrols::u5303a::waveform *, acqrscontrols::u5303a::method& );
+        typedef std::function< waveform_handler_type > waveform_reply_type;
 
         void connect_reply( command_reply_type ); // method,reply
         void disconnect_reply( command_reply_type );

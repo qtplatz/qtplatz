@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -55,7 +55,15 @@ namespace adicontroller {
             instEventEventIn,
             instEventEventOut
         };
-        
+
+        enum idFSMAction {
+            fsmStop
+            , fsmStart    // --> PreparingForRun
+            , fsmReady    // --> WaitForContactClosure
+            , fsmInject   // --> Running
+            , fsmComplete // --> Dormant
+        };
+
     };
 
     namespace SignalObserver {
@@ -105,10 +113,4 @@ namespace adicontroller {
         };
     }
     
-    // Finiet state machine actions for sequence acquisition
-    enum idFSMAction {
-        fsmStop
-        , fsmStart
-        , fsmInject
-    };
 } // namespace adicontroler

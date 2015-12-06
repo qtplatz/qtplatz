@@ -127,8 +127,8 @@ namespace ap240 {
 
         std::vector< std::array< std::shared_ptr< acqrscontrols::ap240::threshold_result >, 2 > > que_;
 
-        std::deque < std::shared_ptr< adicontroller::SampleProcessor > > acquireingSamples_;
-        std::deque < std::shared_ptr< adicontroller::SampleProcessor > > processingSamples_;
+        // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > acquireingSamples_;
+        // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > processingSamples_;
         acqrscontrols::ap240::metadata metadata_;
         uint32_t device_delay_count_;
 
@@ -404,7 +404,7 @@ task::prepare_next_sample( adicontroller::SignalObserver::Observer * masterObser
                            , std::shared_ptr< adcontrols::SampleRun > srun, const adcontrols::ControlMethod::Method& cm )
 {
     auto method = std::make_shared< adcontrols::ControlMethod::Method >( cm );
-    if ( auto proc = std::make_shared< adicontroller::SampleProcessor >( impl_->io_service_, srun, method ) ) {
+    if ( auto proc = std::make_shared< adicontroller::SampleProcessor >( srun, method ) ) {
 
         proc->prepare_storage( masterObserver );
         emit document::instance()->sampleRunChanged();
