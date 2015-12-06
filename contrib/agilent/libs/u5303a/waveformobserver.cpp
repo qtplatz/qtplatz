@@ -120,37 +120,18 @@ WaveformObserver::readData( uint32_t pos )
 
     if ( pos == std::numeric_limits<uint32_t>::max() ) {
         return que_.back();
-        // auto rb = std::make_shared< so::DataReadBuffer >();
-        // auto pair = que_.back();
-        // acqrscontrols::u5303a::waveform::serialize( *rb, pair.first, pair.second );
-        // return rb;
     }
 
     auto it = std::lower_bound( que_.begin(), que_.end(), pos, []( const std::shared_ptr<so::DataReadBuffer>& p, uint32_t pos ){
             return p->pos() < pos;
         });
 
-    // auto it = std::lower_bound( que_.begin(), que_.end(), pos, [] ( const const_waveform_pair_t& d, uint32_t pos ){
-    //         return waveform_pair::pos( d ) < pos;
-    //     } );
-    
     if ( it != que_.end() ) {
 
         if ( (*it)->pos() == pos )
             return (*it);
-
-        // auto tpos = it->first ? it->first->serialnumber_ : it->second->serialnumber_;
-        // if ( pos == tpos ) {
-        //     auto rb = std::make_shared< so::DataReadBuffer >();
-        //     acqrscontrols::u5303a::waveform::serialize( *rb, it->first, it->second );
-        //     return rb;
-        // }
     }
 
-    // auto it = std::find_if( que_.begin(), que_.end(), [pos]( const std::shared_ptr< so::DataReadBuffer >& p ){ return pos == p->pos(); } );
-    // if ( it != que_.end() )
-    //     return *it;
-    
     return 0;
 }
 
@@ -165,10 +146,6 @@ WaveformObserver::posFromTime( uint64_t nsec ) const
     auto it = std::lower_bound( que_.begin(), que_.end(), nsec
                                 , [] ( const std::shared_ptr< so::DataReadBuffer >& p, uint64_t usec ) { return p->timepoint() < usec; } );
     
-    // auto it = std::lower_bound( que_.begin(), que_.end(), nsec, [] ( const const_waveform_pair_t& d, uint64_t nsec ){
-    //         return waveform_pair::timepoint( d ) < nsec;
-    //     });
-    
     if ( it != que_.end() )
         return (*it)->pos(); //waveform_pair::pos(*it);
 
@@ -179,7 +156,6 @@ uint32_t
 WaveformObserver::operator << ( const_waveform_pair_t& pair )
 {
     auto rb = std::make_shared< so::DataReadBuffer >();
-    // acqrscontrols::u5303a::waveform::serialize( *rb, pair.first, pair.second );
 
     if ( pair.first || pair.second ) {
         

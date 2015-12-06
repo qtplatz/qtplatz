@@ -25,6 +25,8 @@ add_library( ${PROJECT_NAME} SHARED
   u5303a/metadata.cpp
   u5303a/method.hpp
   u5303a/method.cpp
+  u5303a/timecountobserver.hpp
+  u5303a/timecountobserver.cpp
   u5303a/tdcdoc.cpp
   u5303a/tdcdoc.hpp
   u5303a/threshold_result.hpp
