@@ -188,12 +188,11 @@ task::fsmErrorClear()
 
 
 void
-task::prepare_next_sample( const adcontrols::SampleRun& run, const adcontrols::ControlMethod::Method& method )
+task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const adcontrols::ControlMethod::Method& method )
 {
-    auto pRun = std::make_shared< adcontrols::SampleRun >( run );
     auto pCM  = std:: make_shared< adcontrols::ControlMethod::Method >( method );
 
-    if ( auto sp = std::make_shared< SampleProcessor >( pRun, pCM ) ) {
+    if ( auto sp = std::make_shared< SampleProcessor >( run, pCM ) ) {
 
         sp->prepare_storage( impl_->masterObserver_.get() );
 
@@ -238,6 +237,7 @@ void
 task::impl::finalize()
 {
     fsm_.stop();
+    sequence_->clear();
     udpReceiver_.reset();
     io_service_.stop();
     for ( auto& t: threads_ )

@@ -74,12 +74,19 @@ namespace adicontroller {
         void fsmErrorClear();
 
         // prepare next sample strage
-        void prepare_next_sample( const adcontrols::SampleRun&, const adcontrols::ControlMethod::Method& );
+        void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >&, const adcontrols::ControlMethod::Method& );
 
     private:
         friend std::unique_ptr< task >::deleter_type;
         class impl;
+#if defined _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
         std::unique_ptr< impl > impl_;
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
     };
 
 } // namespace adcontroller

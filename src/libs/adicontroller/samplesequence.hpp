@@ -63,7 +63,14 @@ namespace adicontroller {
 
     private:
         class impl;
+#if defined _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
         std::unique_ptr< impl > impl_;
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
     };
 
 } // namespace adicontroller
