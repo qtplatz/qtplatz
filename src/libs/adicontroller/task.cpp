@@ -309,7 +309,15 @@ task::impl::fsm_action_complete()
 void
 task::impl::fsm_state( bool enter, fsm::idState state, int id_state )
 {
-    signalFSMStateChanged_( enter, id_state, instStatus( id_state ) );
+    Instrument::eInstStatus st( Instrument::eNothing );
+    switch( state ) {
+    case fsm::idStopped:                st = Instrument::eStop; break;
+    case fsm::idPreparingForRun:        st = Instrument::ePreparingForRun; break;
+    case fsm::idWaitForContactClosure:  st = Instrument::eWaitingForContactClosure; break;
+    case fsm::idRunning:                st = Instrument::eRunning; break;
+    case fsm::idDormant:                st = Instrument::eStandBy; break;
+    }
+    signalFSMStateChanged_( enter, id_state, st );
 }
 
 void

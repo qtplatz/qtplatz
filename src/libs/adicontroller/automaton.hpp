@@ -234,7 +234,6 @@ namespace adicontroller {
 
             // Replaces the default no-transition response.
             template <class FSM,class Event> void no_transition(Event const& e, FSM& fsm, int state)  {
-                ADDEBUG() << "no_transition : Event " << typeid(e).name() << " from state " << state;
                 fsm.handler_->fsm_no_transition( state );
             }
 
