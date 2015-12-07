@@ -742,7 +742,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     }
         
     if ( m.mode_ == 0 ) { // Digitizer 
-        ADDEBUG() << "Normal Mode";
+
         task.spDriver()->setTSREnabled( m.method_.TSR_enabled );
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
         task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
@@ -750,7 +750,6 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
     } else { // Averager
 
-        ADDEBUG() << "Averager Mode";
         task.spDriver()->setTSREnabled( false );
         task.spDriver()->setDataInversionEnabled( "Channel1", m.method_.invert_signal ? true : false );
         task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );

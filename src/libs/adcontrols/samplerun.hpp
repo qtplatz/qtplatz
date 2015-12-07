@@ -70,8 +70,11 @@ namespace adcontrols {
         const char * description() const;
         void description( const char * );
 
-        size_t runno() const;
-        size_t next_run();
+        void setRunNumber( size_t );
+        size_t runNumber() const;
+        size_t setNextRunNumber();
+
+        std::pair< std::wstring, size_t > findNextRunName() const;
 
         static bool archive( std::ostream&, const SampleRun& );
         static bool restore( std::istream&, SampleRun& );

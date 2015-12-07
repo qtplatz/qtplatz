@@ -77,10 +77,10 @@ AgMD2::log( ViStatus rcode, const char * const file, int line, std::function< st
         ViChar msg[256];
         AgMD2_GetError( VI_NULL, &errorCode, sizeof(msg), msg );
         if ( describe ) {
-            adportable::debug(file, line) << boost::format("0x%x: %s where ") % errorCode % msg << describe();
+            //adportable::debug(file, line) << boost::format("0x%x: %s where ") % errorCode % msg << describe();
             adlog::logger(file,line,(rcode < 0 ? adlog::LOG_ERROR : adlog::LOG_WARN)) << boost::format("0x%x: %s where %s") % errorCode % msg % describe();
         } else {
-            adportable::debug(file, line) << boost::format("0x%x: %s") % errorCode % msg;
+            //adportable::debug(file, line) << boost::format("0x%x: %s") % errorCode % msg;
             adlog::logger(file,line,(rcode < 0 ? adlog::LOG_ERROR : adlog::LOG_WARN)) << boost::format("0x%x: %s ") % errorCode % msg;            
         }
     }

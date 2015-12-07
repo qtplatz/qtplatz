@@ -35,14 +35,16 @@
 #include <adportable/uuid.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/date_string.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/split_filename.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <boost/filesystem.hpp>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -60,7 +62,7 @@ namespace adcontrols {
                , filePrefix_( L"RUN_0001" )
                , methodTime_( 60.0 )
                , replicates_( 999 )
-               , runno_(0) {
+               , runNumber_( 0 ) {
 
             std::ostringstream os;
 
@@ -78,7 +80,7 @@ namespace adcontrols {
                               , dataDirectory_( t.dataDirectory_ )
                               , filePrefix_( t.filePrefix_ )
                               , description_( t.description_ )
-                              , runno_(t.runno_) {
+                              , runNumber_( t.runNumber_ ) {
         }
 
         idAudit ident_;
@@ -87,8 +89,9 @@ namespace adcontrols {
         std::wstring dataDirectory_;
         std::wstring filePrefix_;
         std::string description_;
+
         // exclude from archive
-        size_t runno_;
+        size_t runNumber_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
@@ -225,16 +228,51 @@ SampleRun::description( const char * t )
     impl_->description_ = t ? t : "";
 }
 
-size_t
-SampleRun::runno() const 
+std::pair< std::wstring, size_t >
+SampleRun::findNextRunName() const
 {
-    return impl_->runno_;
+    boost::filesystem::path path( dataDirectory() );
+
+    boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix() );    
+
+    size_t runNumber(0);
+	if ( boost::filesystem::exists( path ) ) {
+
+        if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
+            using boost::filesystem::directory_iterator;
+            for ( directory_iterator it( path ); it != directory_iterator(); ++it ) {
+                boost::filesystem::path fname = (*it);
+                if ( fname.extension().string() == ".adfs" ) {
+                    runNumber = std::max( int(runNumber), adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
+                }
+            }
+        }
+    }
+    
+    std::wostringstream o;
+    o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << ( runNumber + 1 );
+
+    ADDEBUG() << "### NextRunName : " << o.str() << "; Run#=" << runNumber + 1;
+
+    return std::make_pair( o.str(), runNumber + 1 );
+}
+
+void
+SampleRun::setRunNumber( size_t )
+{
+    impl_->runNumber_;
 }
 
 size_t
-SampleRun::next_run()
+SampleRun::runNumber() const 
 {
-    return impl_->runno_++;
+    return impl_->runNumber_;
+}
+
+size_t
+SampleRun::setNextRunNumber()
+{
+    return ++impl_->runNumber_;
 }
 
 //static

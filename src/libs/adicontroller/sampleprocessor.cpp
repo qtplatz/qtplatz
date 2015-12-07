@@ -55,7 +55,7 @@ static size_t __nid__;
 SampleProcessor::~SampleProcessor()
 {
     try {
-        ADDEBUG() << "##### SampleProcessor dtor" << storage_name_.string();
+        ADDEBUG() << "##### SampleProcessor dtor: " << storage_name_.string();
     
         fs_->close();
         boost::filesystem::path progress_name( storage_name_ );
@@ -95,27 +95,15 @@ SampleProcessor::prepare_storage( adicontroller::SignalObserver::Observer * mast
 	if ( ! boost::filesystem::exists( path ) )
 		boost::filesystem::create_directories( path );
 
-    boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( sampleRun_->filePrefix() );
+    auto pair = sampleRun_->findNextRunName();
 
-    int runno = 0;
-	if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
-        using boost::filesystem::directory_iterator;
-		for ( directory_iterator it( path ); it != directory_iterator(); ++it ) {
-            boost::filesystem::path fname = (*it);
-			if ( fname.extension().string() == ".adfs" ) {
-                runno = std::max( runno, adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
-            }
-        }
-    }
-    std::wostringstream o;
-    o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << (runno + 1);
-    
-	boost::filesystem::path filename = path / o.str();
+	boost::filesystem::path filename = path / pair.first;
 	filename.replace_extension( ".adfs~" );
 
 	storage_name_ = filename.normalize();
 
-    sampleRun_->filePrefix( filename.stem().wstring().c_str() );
+    sampleRun_->setFilePrefix( filename.stem().wstring() );
+    sampleRun_->setRunNumber( pair.second );
 	
 	///////////// creating filesystem ///////////////////
     if ( !fs_->create( storage_name_.wstring().c_str() ) )
