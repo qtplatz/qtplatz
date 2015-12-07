@@ -56,6 +56,13 @@ namespace adicontroller {
 
             Description();
             Description( const Description& );
+            Description( const char * trace_id
+                         , eTRACE_METHOD
+                         , eSPECTROMETER
+                         , const wchar_t * axis_label_x
+                         , const wchar_t * axis_label_y
+                         , int axis_decimals_x
+                         , int axis_decimals_y );
 
             eTRACE_METHOD trace_method() const;
             void set_trace_method( eTRACE_METHOD );
@@ -143,7 +150,7 @@ namespace adicontroller {
 # pragma warning( pop )
 #endif            
         };
-    
+
         class ADICONTROLLERSHARED_EXPORT ObserverEvents : public std::enable_shared_from_this< ObserverEvents > {
         public:
             // Master observer tells you if new device is up or down

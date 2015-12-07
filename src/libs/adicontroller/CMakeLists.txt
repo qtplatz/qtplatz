@@ -23,6 +23,8 @@ add_library( ${PROJECT_NAME} SHARED
   acquiredconf_v3.cpp
   acquireddata_v3.hpp
   acquireddata_v3.cpp
+  datawriter.hpp
+  datawriter.cpp
   eventlog.hpp
   eventlog.cpp
   instrument.hpp
@@ -43,6 +45,8 @@ add_library( ${PROJECT_NAME} SHARED
   samplesequence.cpp
   signalobserver.hpp
   signalobserver.cpp
+  simpleobserver.hpp
+  simpleobserver.cpp
   task.hpp
   task.cpp
   waveform_simulator.hpp

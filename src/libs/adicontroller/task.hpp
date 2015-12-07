@@ -42,6 +42,8 @@ namespace adicontroller {
     class SampleProcessor;
     class SampleSequence;
 
+    namespace SignalObserver { class DataWriter; }
+
     class ADICONTROLLERSHARED_EXPORT task {
         
         ~task();
@@ -70,11 +72,16 @@ namespace adicontroller {
         // state control buttons -- corresponding to inst control buttuns
         void fsmStop();
         void fsmStart();
+        void fsmReady(); // issued when all modules are ready to inject
         void fsmInject();
         void fsmErrorClear();
 
+        adicontroller::Instrument::eInstStatus currentState() const;
+
         // prepare next sample strage
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >&, const adcontrols::ControlMethod::Method& );
+
+        void handle_write( std::shared_ptr< adicontroller::SignalObserver::DataWriter > );
 
     private:
         friend std::unique_ptr< task >::deleter_type;

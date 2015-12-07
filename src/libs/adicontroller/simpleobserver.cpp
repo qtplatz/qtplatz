@@ -22,64 +22,65 @@
 **
 **************************************************************************/
 
-#include "timecountobserver.hpp"
+#include "simpleobserver.hpp"
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
-using namespace acqrscontrols::u5303a;
+using namespace adicontroller;
 
-static const char * objtext__ = "timecount.1.u5303a.ms-cheminfo.com";
-    
-TimeCountObserver::TimeCountObserver() : objid_( boost::uuids::name_generator( base_uuid() )( objtext__ ) )
+SimpleObserver::SimpleObserver( const char * objtext
+                                , const char * dataInterpreterClsid
+                                , const so::Description& desc ) : objid_( boost::uuids::name_generator( base_uuid() )( objtext ) )
+                                                                , objtext_( objtext )
+                                                                , clsid_( dataInterpreterClsid )
+                                                                , desc_( desc )
 {
-    so::Description desc;
-    desc.set_trace_method( so::eTRACE_IMAGE_TDC );
-    desc.set_spectrometer( so::eMassSpectrometer );
-    desc.set_trace_id( objtext__ );  // unique name for the trace, can be used as 'data storage name'
-    desc.set_trace_display_name( L"U5303A Threshold Time & Count" );
-    desc.set_axis_label( so::Description::axisX, L"Time" );
-    desc.set_axis_label( so::Description::axisY, L"Count" );
-    desc.set_axis_decimals( so::Description::axisX, 3 );
-    desc.set_axis_decimals( so::Description::axisY, 0 );
+    desc_.set_trace_id( objtext );  // unique name for the trace, can be used as 'data storage name'
     setDescription( desc );
 }
 
-TimeCountObserver::~TimeCountObserver()
+SimpleObserver::~SimpleObserver()
 {
+}
+
+const char *
+SimpleObserver::dataInterpreterClsid() const
+{
+    return clsid_.c_str();
 }
 
 const char * 
-TimeCountObserver::objtext() const
+SimpleObserver::objtext() const
 {
-    return objtext__;
+    return objtext_.c_str();
 }
 
 const boost::uuids::uuid&
-TimeCountObserver::objid() const
+SimpleObserver::objid() const
 {
     return objid_;
 }
 
 uint64_t 
-TimeCountObserver::uptime() const 
+SimpleObserver::uptime() const 
 {
     return 0;
 }
 
 void 
-TimeCountObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const 
+SimpleObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const 
 {
     oldest = newest = 0;
 }
 
 std::shared_ptr< so::DataReadBuffer >
-TimeCountObserver::readData( uint32_t pos )
+SimpleObserver::readData( uint32_t pos )
 {
     return 0;
 }
 
 int32_t
-TimeCountObserver::posFromTime( uint64_t nsec ) const 
+SimpleObserver::posFromTime( uint64_t nsec ) const 
 {
     return 0;
 }

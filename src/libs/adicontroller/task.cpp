@@ -34,6 +34,7 @@
 #include <adportable/debug.hpp>
 #include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/msm/back/tools.hpp>
 #include <stdexcept>
 #include <mutex>
 #include <thread>
@@ -52,10 +53,13 @@ namespace adicontroller {
 
     private:
         // fsm::handler
-        void sequ_action_stop() override;
-        void sequ_action_start() override;
-        void sequ_action_inject() override;
-        void sequ_fsm_state( bool, fsm::idState ) override;
+        void fsm_action_stop() override;
+        void fsm_action_start() override;
+        void fsm_action_ready() override;
+        void fsm_action_inject() override;
+        void fsm_state( bool, fsm::idState ) override;
+        void fsm_no_transition( int state ) override;
+        void fsm_exception_caught( const char *, const std::exception& ) override;
 
         void handle_event_out( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ) {
             std::string recv( data, length );
@@ -165,18 +169,28 @@ task::masterObserver()
 void
 task::fsmStop()
 {
+    ADDEBUG() << "<<========= fsmStop";    
     impl_->fsm_.process_event( fsm::Stop() );
 }
 
 void
 task::fsmStart()
 {
+    ADDEBUG() << "<<========= fsmStart";    
     impl_->fsm_.process_event( fsm::Start() );
+}
+
+void
+task::fsmReady()
+{
+    ADDEBUG() << "<<========= fsmReady";
+    impl_->fsm_.process_event( fsm::Ready() );
 }
 
 void
 task::fsmInject()
 {
+    ADDEBUG() << "<<========= fsmInject";    
     impl_->fsm_.process_event( fsm::Inject() );
 }
 
@@ -199,7 +213,34 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
         post( sp );
         
     }
+
+    ADDEBUG() << "prepare_next_sample: " << run->filePrefix() << " Length: " << run->methodTime();
+}
+
+void
+task::handle_write( std::shared_ptr< adicontroller::SignalObserver::DataWriter > dw )
+{
     
+}
+
+adicontroller::Instrument::eInstStatus
+task::currentState() const
+{
+    int id_state = *( impl_->fsm_.current_state() );
+
+    if ( auto state = impl_->fsm_.get_state_by_id( *(impl_->fsm_.current_state()) ) ) {
+        
+        ADDEBUG() << "instStatus: " << typeid( *state ).name();
+    }
+
+    typedef typename boost::msm::back::recursive_get_transition_table< fsm::controller >::type recursive_stt;
+    typedef typename boost::msm::back::generate_state_set<recursive_stt>::type all_states;
+    std::string name;
+
+    boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, id_state));
+    ADDEBUG() << "instStatus: " << id_state << "; " << name;
+
+    return Instrument::eInstStatus( id_state );
 }
 
 //////////////////////////////////////////////////
@@ -245,26 +286,44 @@ task::impl::finalize()
 }
 
 void
-task::impl::sequ_action_stop()
+task::impl::fsm_action_stop()
 {
     ADDEBUG() << "sequ_action_stop";
 }
 
 void
-task::impl::sequ_action_start()
+task::impl::fsm_action_start()
 {
     ADDEBUG() << "sequ_action_start";    
 }
 
 void
-task::impl::sequ_action_inject()
+task::impl::fsm_action_ready()
+{
+    ADDEBUG() << "sequ_action_ready";    
+}
+
+void
+task::impl::fsm_action_inject()
 {
     ADDEBUG() << "sequ_action_inject";    
 }
 
 void
-task::impl::sequ_fsm_state( bool, fsm::idState state )
+task::impl::fsm_state( bool enter, fsm::idState state )
 {
-    ADDEBUG() << "sequ_fsm_state(" << state << ")";
+    ADDEBUG() << "######### sequ_fsm_state(" << fsm::stateNames[ state ] << ") " << ( enter ? "Enter" : "Leave" );
+}
+
+void
+task::impl::fsm_no_transition( int state )
+{
+    ADDEBUG() << "##### no transition from state " << state;
+}
+
+void
+task::impl::fsm_exception_caught( const char * name, const std::exception& ex )
+{
+    ADDEBUG() << "##### exception_caught " << name << "; " << ex.what();
 }
 

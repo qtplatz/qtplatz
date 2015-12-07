@@ -57,6 +57,21 @@ namespace adicontroller {
                                                          , axis_y_decimals_( t.axis_y_decimals_ )
         {
         }
+
+        Description::Description( const char * trace_id
+                                  , eTRACE_METHOD trace_method
+                                  , eSPECTROMETER spectrometer
+                                  , const wchar_t * axis_label_x
+                                  , const wchar_t * axis_label_y
+                                  , int axis_decimals_x
+                                  , int axis_decimals_y ) : trace_method_( trace_method )
+                                                          , spectrometer_( spectrometer )
+                                                          , trace_id_( trace_id )
+                                                          , axis_x_label_( axis_label_x )
+                                                          , axis_y_label_( axis_label_y )
+                                                          , axis_x_decimals_( axis_decimals_x )
+                                                          , axis_y_decimals_( axis_decimals_y ) {
+        }
         
         eTRACE_METHOD
         Description::trace_method() const

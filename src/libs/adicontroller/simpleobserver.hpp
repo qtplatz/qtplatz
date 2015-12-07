@@ -24,39 +24,42 @@
 
 #pragma once
 
-#include "../acqrscontrols_global.hpp"
-
-#include <adicontroller/signalobserver.hpp>
+#include "adicontroller_global.hpp"
+#include "simpleobserver.hpp"
+#include "signalobserver.hpp"
 #include <workaround/boost/uuid/uuid.hpp>
 
-#include <memory>
-#include <vector>
-#include <cstdint>
-#include <ostream>
+namespace adicontroller {
 
-namespace acqrscontrols {
-    namespace u5303a {
+    namespace so = adicontroller::SignalObserver;
 
-        namespace so = adicontroller::SignalObserver;
-
-        class ACQRSCONTROLSSHARED_EXPORT TimeCountObserver : public so::Observer {
-            
-        public:
-            TimeCountObserver();
-            virtual ~TimeCountObserver();
-            
-            const boost::uuids::uuid& objid() const;
-            const char * objtext() const;
-            
-            uint64_t uptime() const override;
-            void uptime_range( uint64_t& oldest, uint64_t& newest ) const override;
-            
-            std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override;
-            
-            const char * dataInterpreterClsid() const override { return "u5303a.timecount"; }
-            int32_t posFromTime( uint64_t usec ) const override;
-        private:
-            const boost::uuids::uuid objid_;
-        };
-    }
+    class ADICONTROLLERSHARED_EXPORT SimpleObserver : public so::Observer {
+    
+    public:
+        virtual ~SimpleObserver();
+        SimpleObserver( const char * objtext, const char * dataInterpreterClsid, const so::Description& desc );
+        
+        const boost::uuids::uuid& objid() const;
+        const char * objtext() const;
+        
+        uint64_t uptime() const override;
+        void uptime_range( uint64_t& oldest, uint64_t& newest ) const override;
+        
+        std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override;
+        const char * dataInterpreterClsid() const override;
+        
+        int32_t posFromTime( uint64_t usec ) const override;
+    private:
+        const boost::uuids::uuid objid_;
+#if defined _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4251 )
+#endif            
+        const std::string objtext_;
+        const std::string clsid_;
+#if defined _MSC_VER
+# pragma warning( pop )
+#endif            
+        so::Description desc_;
+    };
 }

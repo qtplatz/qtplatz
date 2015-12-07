@@ -87,6 +87,8 @@ namespace adicontroller {
             , eTRACE_IMAGE_TDC       // Series of 2-D image frames, in time domain (raw data from TDC array, such as MALPIX)
             , eTRACE_IMAGE_SPECTRA   // Serial of 2-D (surface giometric) imaging spectra
             , eTRACE_IMAGE_INTENSITY // Serias of 2-D image frames, in intensity domain, such as total ion count image map
+            , eTRACE_TDC_1D
+            , eTRACE_TDC_HISTOGRAM
         };
 
         enum eSPECTROMETER {
