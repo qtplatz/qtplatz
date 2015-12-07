@@ -57,7 +57,8 @@ namespace adicontroller {
         void fsm_action_start() override;
         void fsm_action_ready() override;
         void fsm_action_inject() override;
-        void fsm_state( bool, fsm::idState ) override;
+        void fsm_action_complete() override;
+        void fsm_state( bool, fsm::idState, int ) override;
         void fsm_no_transition( int state ) override;
         void fsm_exception_caught( const char *, const std::exception& ) override;
 
@@ -80,7 +81,10 @@ namespace adicontroller {
 
         std::unique_ptr< acewrapper::udpEventReceiver > udpReceiver_;
         boost::signals2::signal< void( Instrument::eInstEvent ) > signalInstEvents_;
-        boost::signals2::signal< void( Instrument::idFSMAction ) > signalFSMAction_;
+        boost::signals2::signal< fsm_action_t > signalFSMAction_;
+        boost::signals2::signal< fsm_state_changed_t > signalFSMStateChanged_;
+
+        static Instrument::eInstStatus instStatus( int id_state );
     };
 
     std::unique_ptr< task > task::impl::instance_;
@@ -136,6 +140,12 @@ task::connect_fsm_action( signal_fsm_action_t f )
     return impl_->signalFSMAction_.connect( f );
 }
 
+boost::signals2::connection
+task::connect_fsm_state( signal_fsm_state_changed_t f )
+{
+    return impl_->signalFSMStateChanged_.connect( f );    
+}
+
 const std::chrono::steady_clock::time_point&
 task::tp_uptime() const
 {
@@ -169,28 +179,24 @@ task::masterObserver()
 void
 task::fsmStop()
 {
-    ADDEBUG() << "<<========= fsmStop";    
     impl_->fsm_.process_event( fsm::Stop() );
 }
 
 void
 task::fsmStart()
 {
-    ADDEBUG() << "<<========= fsmStart";    
     impl_->fsm_.process_event( fsm::Start() );
 }
 
 void
 task::fsmReady()
 {
-    ADDEBUG() << "<<========= fsmReady";
     impl_->fsm_.process_event( fsm::Ready() );
 }
 
 void
 task::fsmInject()
 {
-    ADDEBUG() << "<<========= fsmInject";    
     impl_->fsm_.process_event( fsm::Inject() );
 }
 
@@ -199,7 +205,6 @@ task::fsmErrorClear()
 {
     impl_->fsm_.process_event( fsm::error_clear() );    
 }
-
 
 void
 task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const adcontrols::ControlMethod::Method& method )
@@ -226,35 +231,7 @@ task::handle_write( std::shared_ptr< adicontroller::SignalObserver::DataWriter >
 adicontroller::Instrument::eInstStatus
 task::currentState() const
 {
-#if defined _MSC_VER
-    typedef boost::msm::back::recursive_get_transition_table< fsm::controller >::type recursive_stt;
-    typedef boost::msm::back::generate_state_set<recursive_stt>::type all_states;
-#else
-    typedef typename boost::msm::back::recursive_get_transition_table< fsm::controller >::type recursive_stt;
-    typedef typename boost::msm::back::generate_state_set<recursive_stt>::type all_states;
-#endif
-
-    int id_state = *( impl_->fsm_.current_state() );
-
-    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Stopped >::value == id_state )
-        return Instrument::eStop;
-    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::PreparingForRun >::value == id_state )
-        return Instrument::ePreparingForRun;
-    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::WaitForContactClosure>::value == id_state )
-        return Instrument::eReadyForRun;
-    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Running >::value == id_state )
-        return Instrument::eRunning;
-    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Dormant >::value == id_state )
-        return Instrument::eStandBy;
-
-    return Instrument::eNothing;
-
-#if ! defined _MSC_VER
-    boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, id_state));
-    ADDEBUG() << "instStatus: " << id_state << "; " << name;
-#endif
-
-    return Instrument::eInstStatus( id_state );
+    return impl_->instStatus( impl_->fsm_.current_state()[0] );
 }
 
 //////////////////////////////////////////////////
@@ -302,37 +279,49 @@ task::impl::finalize()
 void
 task::impl::fsm_action_stop()
 {
-    ADDEBUG() << "sequ_action_stop";
+    signalFSMAction_( Instrument::fsmStop );
 }
 
 void
 task::impl::fsm_action_start()
 {
-    ADDEBUG() << "sequ_action_start";    
+    signalFSMAction_( Instrument::fsmStart );
 }
 
 void
 task::impl::fsm_action_ready()
 {
-    ADDEBUG() << "sequ_action_ready";    
+    signalFSMAction_( Instrument::fsmReady );
 }
 
 void
 task::impl::fsm_action_inject()
 {
-    ADDEBUG() << "sequ_action_inject";    
+    signalFSMAction_( Instrument::fsmInject );
 }
 
 void
-task::impl::fsm_state( bool enter, fsm::idState state )
+task::impl::fsm_action_complete()
 {
-    ADDEBUG() << "######### sequ_fsm_state(" << fsm::stateNames[ state ] << ") " << ( enter ? "Enter" : "Leave" );
+    signalFSMAction_( Instrument::fsmComplete );
+}
+
+void
+task::impl::fsm_state( bool enter, fsm::idState state, int id_state )
+{
+    signalFSMStateChanged_( enter, id_state, instStatus( id_state ) );
 }
 
 void
 task::impl::fsm_no_transition( int state )
 {
-    ADDEBUG() << "##### no transition from state " << state;
+    typedef boost::msm::back::recursive_get_transition_table< fsm::controller >::type recursive_stt;
+    typedef boost::msm::back::generate_state_set<recursive_stt>::type all_states;
+    
+    std::string name;
+    boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, state));
+    
+    ADDEBUG() << "##### no transition from state " << state << ": " << name;
 }
 
 void
@@ -341,3 +330,30 @@ task::impl::fsm_exception_caught( const char * name, const std::exception& ex )
     ADDEBUG() << "##### exception_caught " << name << "; " << ex.what();
 }
 
+Instrument::eInstStatus
+task::impl::instStatus( int id_state )
+{
+#if defined _MSC_VER
+    typedef boost::msm::back::recursive_get_transition_table< fsm::controller >::type recursive_stt;
+    typedef boost::msm::back::generate_state_set<recursive_stt>::type all_states;
+#else
+    typedef typename boost::msm::back::recursive_get_transition_table< fsm::controller >::type recursive_stt;
+    typedef typename boost::msm::back::generate_state_set<recursive_stt>::type all_states;
+#endif
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Stopped >::value == id_state )
+        return Instrument::eStop;
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::PreparingForRun >::value == id_state )
+        return Instrument::ePreparingForRun;
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::WaitForContactClosure>::value == id_state )
+        return Instrument::eReadyForRun;
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Running >::value == id_state )
+        return Instrument::eRunning;
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Dormant >::value == id_state )
+        return Instrument::eStandBy;
+    
+    std::string name;
+    boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, id_state));
+    ADDEBUG() << "Status: " << id_state << ": " << name;
+    
+    return Instrument::eNothing;
+}

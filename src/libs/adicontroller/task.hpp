@@ -52,11 +52,19 @@ namespace adicontroller {
     public:
         static task * instance();
 
-        typedef std::function< void( Instrument::eInstEvent ) > signal_inst_events_t;
-        typedef std::function< void( Instrument::idFSMAction ) > signal_fsm_action_t;
+        typedef void( inst_event_t )( Instrument::eInstEvent );
+        typedef std::function< inst_event_t > signal_inst_events_t;
+
+        typedef void( fsm_action_t )( Instrument::idFSMAction );
+        typedef std::function< fsm_action_t > signal_fsm_action_t;
+
+        typedef void( fsm_state_changed_t )(bool, int id_state, Instrument::eInstStatus);
+        typedef std::function< fsm_state_changed_t > signal_fsm_state_changed_t;
 
         boost::signals2::connection connect_fsm_action( signal_fsm_action_t );
-        boost::signals2::connection connect_inst_events( signal_inst_events_t );
+        boost::signals2::connection connect_fsm_state( signal_fsm_state_changed_t );
+        boost::signals2::connection connect_inst_events( signal_inst_events_t );        
+        
         void initialize();
         void finalize();
         boost::asio::io_service& io_service();

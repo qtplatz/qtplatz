@@ -33,7 +33,7 @@ namespace adicontroller {
             , eNotConnected             //= 0x00000001,  // no instrument := no driver software loaded
             , eOff                      //= 0x00000002,  // software driver can be controled, but hardware is currently off
             , eInitializing             //= 0x00000003,  // startup initializing (only at the begining after startup)
-            , eStandBy                  //= 0x00000004,  // instrument is stand by state
+            , eStandBy                  //= 0x00000004,  // instrument is stand by state (Pump, detector lamps, HV etc. are on; method is indeterminant)
             , ePreparingForRun          //= 0x00000005,  // preparing for next method (parameters being be set value)
             , eReadyForRun              //= 0x00000006,  // method is in initial state, ready to run (INIT RUN, MS HTV is ready)
             , eWaitingForContactClosure //= 0x00000007,  //

@@ -80,13 +80,13 @@ namespace adicontroller {
 
             //-----------------------------
             struct Stopped_Entry { 
-                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& st ) {
-                    fsm.handler_->fsm_state( true, idStopped );
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->fsm_state( true, idStopped, fsm.current_state()[0] );
                 }
             };
             struct Stopped_Exit { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                    fsm.handler_->fsm_state( false, idStopped );
+                    fsm.handler_->fsm_state( false, idStopped, fsm.current_state()[0] );
                 }
             };
             struct Stopped_tag {};
@@ -95,12 +95,12 @@ namespace adicontroller {
             //-----------------------------
             struct PreparingForRun_Entry { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                    fsm.handler_->fsm_state( true, idPreparingForRun );
+                    fsm.handler_->fsm_state( true, idPreparingForRun, fsm.current_state()[0] );
                 }
             };
             struct PreparingForRun_Exit { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                    fsm.handler_->fsm_state( false, idPreparingForRun );
+                    fsm.handler_->fsm_state( false, idPreparingForRun, fsm.current_state()[0] );
                 }
             };
             struct PreparingForRun_tag {};
@@ -109,13 +109,12 @@ namespace adicontroller {
             //-----------------------------
             struct WaitForContactClosure_Entry { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                    fsm.handler_->fsm_state( true, idWaitForContactClosure );
+                    fsm.handler_->fsm_state( true, idWaitForContactClosure, fsm.current_state()[0] );
                 }
             };
             struct WaitForContactClosure_Exit { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
-                    fsm.handler_->fsm_state( false, idWaitForContactClosure );
-                    // noting
+                    fsm.handler_->fsm_state( false, idWaitForContactClosure, fsm.current_state()[0] );
                 }
             };
             struct WaitForContactClosure_tag {};
@@ -185,6 +184,13 @@ namespace adicontroller {
                 }
             };
 
+            struct actComplete {
+                template <class EVT, class FSM, class SourceState, class TargetState >
+                void operator()( EVT const& evt, FSM& fsm, SourceState&, TargetState& ) {
+                    fsm.handler_->fsm_action_complete();
+                }
+            };
+
             // guard conditions
             struct DummyGuard {
                 template <class EVT,class FSM,class SourceState,class TargetState>
@@ -213,19 +219,22 @@ namespace adicontroller {
                 //  +-------------------------+------------------+----------------------+---------------------+----------------------+
                 Row   < Stopped,               Stop,              Stopped,               none,             none >
                 , Row < Stopped,               Start,             PreparingForRun,       actStart,         none >
-                , Row < PreparingForRun,       Start,             PreparingForRun,       actStart,         none >
+                , Row < Stopped,               Ready,             WaitForContactClosure, actReady,         none >
+                , Row < PreparingForRun,       Start,             PreparingForRun,       none,             none >
                 , Row < PreparingForRun,       Ready,             WaitForContactClosure, actReady,         none >
                 , Row < WaitForContactClosure, Stop,              Stopped,               none,             none >
                 , Row < WaitForContactClosure, Inject,            Running,               actInject,        none >
-                , Row < Running,               Stop,              Dormant,               actStop,          none >
-                , Row < Running,               Complete,          Dormant,               actStop,          none >
+                , Row < Running,               Stop,              Dormant,               actStart,         none >
+                , Row < Running,               Complete,          Dormant,               actComplete,      none >
                 , Row < Running,               Start,             PreparingForRun,       actStart,         none >
-                , Row < Dormant,               Stop,              Stopped,               none,             none >
+                , Row < Dormant,               Stop,              Stopped,               actStop,          none >
                 , Row < Dormant,               Start,             PreparingForRun,       actStart,         none >
+                , Row < Dormant,               Ready,             WaitForContactClosure, actReady,         none >
                 > {};
 
             // Replaces the default no-transition response.
             template <class FSM,class Event> void no_transition(Event const& e, FSM& fsm, int state)  {
+                ADDEBUG() << "no_transition : Event " << typeid(e).name() << " from state " << state;
                 fsm.handler_->fsm_no_transition( state );
             }
 
@@ -242,7 +251,8 @@ namespace adicontroller {
             virtual void fsm_action_start() = 0;
             virtual void fsm_action_ready() = 0;
             virtual void fsm_action_inject() = 0;
-            virtual void fsm_state( bool, idState ) = 0;
+            virtual void fsm_action_complete() = 0;
+            virtual void fsm_state( bool, idState, int id_state = 0 ) = 0;
             virtual void fsm_no_transition( int state ) = 0;
             virtual void fsm_exception_caught( const char *, const std::exception& ) = 0;
         };
