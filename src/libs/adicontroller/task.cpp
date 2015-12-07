@@ -226,19 +226,33 @@ task::handle_write( std::shared_ptr< adicontroller::SignalObserver::DataWriter >
 adicontroller::Instrument::eInstStatus
 task::currentState() const
 {
-    int id_state = *( impl_->fsm_.current_state() );
-
-    if ( auto state = impl_->fsm_.get_state_by_id( *(impl_->fsm_.current_state()) ) ) {
-        
-        ADDEBUG() << "instStatus: " << typeid( *state ).name();
-    }
-
+#if defined _MSC_VER
+    typedef boost::msm::back::recursive_get_transition_table< fsm::controller >::type recursive_stt;
+    typedef boost::msm::back::generate_state_set<recursive_stt>::type all_states;
+#else
     typedef typename boost::msm::back::recursive_get_transition_table< fsm::controller >::type recursive_stt;
     typedef typename boost::msm::back::generate_state_set<recursive_stt>::type all_states;
-    std::string name;
+#endif
 
+    int id_state = *( impl_->fsm_.current_state() );
+
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Stopped >::value == id_state )
+        return Instrument::eStop;
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::PreparingForRun >::value == id_state )
+        return Instrument::ePreparingForRun;
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::WaitForContactClosure>::value == id_state )
+        return Instrument::eReadyForRun;
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Running >::value == id_state )
+        return Instrument::eRunning;
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Dormant >::value == id_state )
+        return Instrument::eStandBy;
+
+    return Instrument::eNothing;
+
+#if ! defined _MSC_VER
     boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, id_state));
     ADDEBUG() << "instStatus: " << id_state << "; " << name;
+#endif
 
     return Instrument::eInstStatus( id_state );
 }
