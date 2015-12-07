@@ -523,7 +523,7 @@ iTask::handle_stop_run()
         queue_.pop_front();
     }
 
-    if ( sampleRun_ && sampleRun_->next_run() < sampleRun_->replicates() ) {
+    if ( sampleRun_ && (*sampleRun_)++ < sampleRun_->replicates() ) {
         io_service_.post( strand_.wrap( [this](){ handle_prepare_for_run( ctrlMethod_, sampleRun_ ); }) );
         io_service_.post( strand_.wrap( [this](){ handle_start_run(); } ) );
     }

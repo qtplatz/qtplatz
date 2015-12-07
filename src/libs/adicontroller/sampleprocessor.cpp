@@ -103,7 +103,6 @@ SampleProcessor::prepare_storage( adicontroller::SignalObserver::Observer * mast
 	storage_name_ = filename.normalize();
 
     sampleRun_->setFilePrefix( filename.stem().wstring() );
-    sampleRun_->setRunNumber( pair.second );
 	
 	///////////// creating filesystem ///////////////////
     if ( !fs_->create( storage_name_.wstring().c_str() ) )

@@ -23,6 +23,7 @@ add_library( ${PROJECT_NAME} SHARED
   acquiredconf_v3.cpp
   acquireddata_v3.hpp
   acquireddata_v3.cpp
+  automaton.hpp
   datawriter.hpp
   datawriter.cpp
   eventlog.hpp

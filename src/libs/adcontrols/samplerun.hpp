@@ -70,9 +70,8 @@ namespace adcontrols {
         const char * description() const;
         void description( const char * );
 
-        void setRunNumber( size_t );
-        size_t runNumber() const;
-        size_t setNextRunNumber();
+        size_t runCount() const;
+        size_t operator ++( );
 
         std::pair< std::wstring, size_t > findNextRunName() const;
 

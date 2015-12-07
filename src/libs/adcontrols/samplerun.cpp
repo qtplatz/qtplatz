@@ -62,7 +62,7 @@ namespace adcontrols {
                , filePrefix_( L"RUN_0001" )
                , methodTime_( 60.0 )
                , replicates_( 999 )
-               , runNumber_( 0 ) {
+               , runCount_(0) {
 
             std::ostringstream os;
 
@@ -80,7 +80,7 @@ namespace adcontrols {
                               , dataDirectory_( t.dataDirectory_ )
                               , filePrefix_( t.filePrefix_ )
                               , description_( t.description_ )
-                              , runNumber_( t.runNumber_ ) {
+                              , runCount_( t.runCount_ ) {
         }
 
         idAudit ident_;
@@ -91,7 +91,7 @@ namespace adcontrols {
         std::string description_;
 
         // exclude from archive
-        size_t runNumber_;
+        size_t runCount_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
@@ -248,31 +248,26 @@ SampleRun::findNextRunName() const
             }
         }
     }
+    ++runNumber;
     
     std::wostringstream o;
-    o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << ( runNumber + 1 );
+    o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << ( runNumber );
 
-    ADDEBUG() << "### NextRunName : " << o.str() << "; Run#=" << runNumber + 1;
+    ADDEBUG() << "### NextRunName : " << o.str() << "; Run#=" << runNumber;
 
-    return std::make_pair( o.str(), runNumber + 1 );
-}
-
-void
-SampleRun::setRunNumber( size_t )
-{
-    impl_->runNumber_;
+    return std::make_pair( o.str(), runNumber );
 }
 
 size_t
-SampleRun::runNumber() const 
+SampleRun::operator ++ ( )
 {
-    return impl_->runNumber_;
+    return impl_->runCount_++;
 }
 
 size_t
-SampleRun::setNextRunNumber()
+SampleRun::runCount() const
 {
-    return ++impl_->runNumber_;
+    return impl_->runCount_;
 }
 
 //static

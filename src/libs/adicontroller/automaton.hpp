@@ -224,7 +224,7 @@ namespace adicontroller {
                 , Row < PreparingForRun,       Ready,             WaitForContactClosure, actReady,         none >
                 , Row < WaitForContactClosure, Stop,              Stopped,               none,             none >
                 , Row < WaitForContactClosure, Inject,            Running,               actInject,        none >
-                , Row < Running,               Stop,              Dormant,               actStart,         none >
+                , Row < Running,               Stop,              Dormant,               actComplete,      none >
                 , Row < Running,               Complete,          Dormant,               actComplete,      none >
                 , Row < Running,               Start,             PreparingForRun,       actStart,         none >
                 , Row < Dormant,               Stop,              Stopped,               actStop,          none >
