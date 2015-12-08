@@ -35,7 +35,7 @@ namespace acqrscontrols {
     struct threshold_peak_processor {
         
         template< typename threshold_result_ptr >
-        size_t accumurate( threshold_result_ptr result, double tof, double window ) const {
+        size_t accumulate( threshold_result_ptr result, double tof, double window ) const {
 
             if ( !result->indecies().empty() ) {
                 
@@ -44,7 +44,7 @@ namespace acqrscontrols {
                     return result->indecies().size(); // return total ion count
 
                 const auto& meta = result->data()->meta_;
-
+                
                 uint32_t beg = uint32_t( ( ( tof - window / 2 ) - meta.initialXOffset ) / meta.xIncrement );
                 uint32_t end = uint32_t( ( ( tof + window / 2 ) - meta.initialXOffset ) / meta.xIncrement );
                 

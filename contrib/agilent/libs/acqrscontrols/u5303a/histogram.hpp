@@ -31,6 +31,7 @@
 #include <vector>
 #include <mutex>
 
+namespace adcontrols { class TimeDigitalHistogram; }
 
 namespace acqrscontrols {
     namespace u5303a {
@@ -57,6 +58,8 @@ namespace acqrscontrols {
                                  , metadata& meta
                                  , std::pair<uint32_t, uint32_t>& serialnumber
                                  , std::pair<uint64_t, uint64_t>& timeSinceEpoch );
+
+            void move( adcontrols::TimeDigitalHistogram& );
 
             static bool average( const std::vector< std::pair< double, uint32_t > >&
                                  , double resolution, std::vector< double >& times, std::vector< double >& intens );

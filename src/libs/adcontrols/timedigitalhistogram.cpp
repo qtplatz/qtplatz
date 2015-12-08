@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "timedigitalhistogram.hpp"
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
@@ -32,6 +34,9 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
+#include <algorithm>
+#include <limits>
+#include <utility>
 
 namespace adcontrols {
 
@@ -157,4 +162,152 @@ uint64_t
 TimeDigitalHistogram::trigger_count() const
 {
     return trigger_count_;
+}
+
+std::pair< uint64_t, uint64_t >&
+TimeDigitalHistogram::serialnumber()
+{
+    return serialnumber_;
+}
+
+std::pair< uint64_t, uint64_t >&
+TimeDigitalHistogram::timeSinceEpoch()
+{
+    return timeSinceEpoch_;
+}
+
+const std::pair< uint64_t, uint64_t >&
+TimeDigitalHistogram::serialnumber() const
+{
+    return serialnumber_;    
+}
+
+const std::pair< uint64_t, uint64_t >&
+TimeDigitalHistogram::timeSinceEpoch() const
+{
+    return timeSinceEpoch_;    
+}
+
+std::vector< std::pair< double, uint32_t > >&
+TimeDigitalHistogram::histogram()
+{
+    return histogram_;
+}
+
+size_t
+TimeDigitalHistogram::size() const
+{
+    return histogram_.size();
+}
+
+const TimeDigitalHistogram::value_type&
+TimeDigitalHistogram::operator []( size_t idx ) const
+{
+    return histogram_[ idx ];
+}
+            
+TimeDigitalHistogram::iterator
+TimeDigitalHistogram::begin()
+{
+    return histogram_.begin();
+}
+
+TimeDigitalHistogram::iterator
+TimeDigitalHistogram::end()
+{
+    return histogram_.end();    
+}
+
+TimeDigitalHistogram::const_iterator
+TimeDigitalHistogram::begin() const
+{
+    return histogram_.begin();
+}
+
+TimeDigitalHistogram::const_iterator
+TimeDigitalHistogram::end() const
+{
+    return histogram_.end();        
+}
+
+uint32_t
+TimeDigitalHistogram::accumulate( double tof, double window ) const
+{
+    if ( ! histogram_.empty() ) {
+
+        if ( std::abs( tof ) <= std::numeric_limits< double >::epsilon() ) {
+            return std::accumulate( histogram_.begin(), histogram_.end(), uint32_t(0)
+                                    , []( const uint32_t& a, const std::pair<double, uint32_t>& b ){ return a + b.second; });
+        }
+
+        auto lower = std::lower_bound( histogram_.begin(), histogram_.end(), (tof - window / 2.0)
+                                       , []( const std::pair<double, uint32_t>& a, const double& b){ return a.first < b; } );
+        
+        if ( lower != histogram_.end() ) {
+            
+            auto upper = std::upper_bound( histogram_.begin(), histogram_.end(), ( tof + window / 2.0 )
+                                           , []( const double& a, const std::pair<double, uint32_t>& b){ return a < b.first; } );                
+            
+            return std::accumulate( lower, upper, uint32_t(0)
+                                    , []( const uint32_t& a, const std::pair<double, uint32_t>& b ){ return a + b.second; });        
+        }
+    }
+    return 0;
+}
+
+bool
+TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigitalHistogram& hgrm )
+{
+    sp.setCentroid( adcontrols::CentroidNative );
+
+    using namespace adcontrols::metric;
+    
+    adcontrols::MSProperty prop;
+    adcontrols::MSProperty::SamplingInfo
+        info( 0 /* int interval (must be zero) */
+              , uint32_t( hgrm.initialXOffset() / hgrm.xIncrement() + 0.5 )  // delay
+              , uint32_t( hgrm.actualPoints() ) // this is for acq. time range calculation
+              , uint32_t( hgrm.trigger_count() )
+              , 0 /* mode */);
+    
+    info.fSampInterval( hgrm.xIncrement() );
+
+    prop.acceleratorVoltage( 3000 ); // nominal
+    prop.setSamplingInfo( info );
+        
+    prop.setTimeSinceInjection( hgrm.initialXTimeSeconds() );
+    prop.setTimeSinceEpoch( hgrm.timeSinceEpoch().first );
+    prop.setNumAverage( hgrm.trigger_count() );
+    prop.setTrigNumber( hgrm.serialnumber().first );
+
+    prop.setDataInterpreterClsid( "u5303a" );
+        
+    // {
+    //     acqrscontrols::u5303a::device_data data;
+    //     data.meta_ = meta;
+    //     std::string ar;
+    //     adportable::binary::serialize<>()( data, ar );
+    //     prop.setDeviceData( ar.data(), ar.size() );
+    // }
+        
+    sp.setMSProperty( prop );
+
+    // if ( resolution > meta.xIncrement ) {
+
+    //     std::vector< double > times, intens;
+    //     acqrscontrols::u5303a::histogram::average( hist, resolution, times, intens );
+    //     sp->resize( times.size() );
+    //     sp->setTimeArray( times.data() );
+    //     sp->setIntensityArray( intens.data() );
+
+    // } else {
+
+    sp.resize( hgrm.size() );
+    size_t idx = 0;
+    for ( auto it = hgrm.begin(); it != hgrm.end(); ++it, ++idx ) {
+        sp.setTime( idx, it->first );
+        sp.setIntensity( idx, it->second );
+    }
+    
+    return true;
 }

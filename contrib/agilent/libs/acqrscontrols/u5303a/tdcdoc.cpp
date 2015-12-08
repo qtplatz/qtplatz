@@ -28,6 +28,7 @@
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/timedigitalhistogram.hpp>
 #include <adcontrols/tofchromatogramsmethod.hpp>
 #include <adcontrols/tofchromatogrammethod.hpp>
 #include <adcontrols/waveform_filter.hpp>
@@ -62,8 +63,9 @@ namespace acqrscontrols {
             std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::atomic< double > trig_per_seconds_;
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_waveforms_;
-            std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_histograms_;
+            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > accumulated_histograms_;
             std::shared_ptr< averager_type > averager_;
+            metadata meta_;
             std::shared_ptr< histogram > histogram_register_;
 
             std::mutex mutex_;
@@ -99,7 +101,13 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr tdc )
 {
     if ( ! impl_->histogram_register_ )
         impl_->histogram_register_ = std::make_shared< histogram_type >();
-    impl_->histogram_register_->append( *tdc );
+    
+    if ( impl_->histogram_register_->append( *tdc ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
+
+        auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
+        impl_->histogram_register_->move( *hgrm );
+        impl_->accumulated_histograms_.emplace_back( hgrm );
+    }
     
     return !impl_->accumulated_histograms_.empty();
 }
@@ -118,7 +126,9 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
             impl_->averager_ = std::make_shared< averager_type >( u16wrap( *waveform ) );
         else
             impl_->averager_ = std::make_shared< averager_type >( u32wrap( *waveform ) );
-        
+
+        impl_->meta_ = waveform->meta_;
+
     } else {
         
         if ( waveform->dataType() == 2 )
@@ -129,6 +139,7 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
         if ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
             
             auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), true );
+            w->meta_ = impl_->meta_;  // replace with first trigger
             
             impl_->accumulated_waveforms_.emplace_back( w );
             impl_->averager_.reset();
@@ -212,6 +223,21 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
     return true;
 }
 
+bool
+tdcdoc::makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram& histogram, std::vector< uint32_t >& results )
+{
+    for ( auto& item: (*impl_->tofChromatogramsMethod_) ) {
+
+        double time = item.time();
+        double window = item.timeWindow();
+
+        results.emplace_back( histogram.accumulate( time, window ) );
+    }
+
+    return true;
+}
+
+
 std::shared_ptr< const waveform_type >
 tdcdoc::averagedWaveform( uint64_t trigNumber )
 {
@@ -242,6 +268,25 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
         std::move( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), std::back_inserter( a ) );
 
         impl_->accumulated_waveforms_.clear();
+
+        return a.size();
+    }
+
+    return 0;
+}
+
+size_t
+tdcdoc::readTimeDigitalHistograms( std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& a )
+{
+    if ( ! impl_->accumulated_histograms_.empty() ) {
+
+        a.reserve( a.size() + impl_->accumulated_histograms_.size() );
+
+        std::lock_guard< std::mutex > lock( impl_->mutex_ );
+
+        std::move( impl_->accumulated_histograms_.begin(), impl_->accumulated_histograms_.end(), std::back_inserter( a ) );
+
+        impl_->accumulated_histograms_.clear();
 
         return a.size();
     }

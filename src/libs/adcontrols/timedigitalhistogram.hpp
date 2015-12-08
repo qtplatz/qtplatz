@@ -33,6 +33,8 @@ namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
+    class MassSpectrum;
+
     template< typename T > class TimeDigitalHistogram_archive;
 
 	class ADCONTROLSSHARED_EXPORT TimeDigitalHistogram {
@@ -56,12 +58,21 @@ namespace adcontrols {
         double& xIncrement();                             // digitizer sampling interval
         uint64_t& actualPoints();                         // digitizer waveform length (for spectrum display)
         uint64_t& trigger_count();
+        std::pair< uint64_t, uint64_t >& serialnumber();
+        std::pair< uint64_t, uint64_t >& timeSinceEpoch();
         double initialXTimeSeconds() const;
         double initialXOffset() const;
         double xIncrement() const;
         uint64_t actualPoints() const;
         uint64_t trigger_count() const;
+
+        const std::pair< uint64_t, uint64_t >& serialnumber() const;
+        const std::pair< uint64_t, uint64_t >& timeSinceEpoch() const;
         std::vector< std::pair< double, uint32_t > >& histogram();
+
+        uint32_t accumulate( double tof, double window ) const;
+
+        static bool translate( adcontrols::MassSpectrum&, const TimeDigitalHistogram& );
 
     private:
         double initialXTimeSeconds_;                       // digitizer time stamp, since acquisition started

@@ -24,6 +24,7 @@
 
 #include "histogram.hpp"
 #include "threshold_result.hpp"
+#include <adcontrols/timedigitalhistogram.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <algorithm>
@@ -97,6 +98,30 @@ double
 histogram::triggers_per_sec() const
 {
     return trigger_count_ / double( timeSinceEpoch_ - timeSinceEpoch_0_ ) * 1.0e-9;
+}
+
+void
+histogram::move( adcontrols::TimeDigitalHistogram& x )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    x.histogram().clear();
+    
+    x.initialXTimeSeconds() = meta_.initialXTimeSeconds;
+    x.initialXOffset()      = meta_.initialXOffset;
+    x.xIncrement()          = meta_.xIncrement;
+    x.actualPoints()        = meta_.actualPoints;
+    x.trigger_count()       = trigger_count_;
+    x.serialnumber()        = std::make_pair( serialnumber_0_, serialnumber_ );
+    x.timeSinceEpoch()      = std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ );
+
+    for ( auto it = data_.begin(); it < data_.end(); ++it ) {
+        if ( *it ) {
+            double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
+            x.histogram().emplace_back( std::make_pair( t, *it ) );
+        }
+    }
+    reset();
 }
 
 size_t

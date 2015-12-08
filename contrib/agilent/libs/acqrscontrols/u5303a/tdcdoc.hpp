@@ -35,7 +35,8 @@
 
 namespace acqrscontrols { namespace u5303a { class waveform; class threshold_result; class histogram; } }
 
-namespace adcontrols { class threshold_action; class threshold_method; class MassSpectrum; class TofChromatogramsMethod; }
+namespace adcontrols { class threshold_action; class threshold_method;
+    class MassSpectrum; class TofChromatogramsMethod; class TimeDigitalHistogram; }
 
 namespace acqrscontrols {
 
@@ -79,9 +80,14 @@ namespace acqrscontrols {
             bool accumulate_histogram( const_threshold_result_ptr );
 
             size_t readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& );
+
+            size_t readTimeDigitalHistograms( std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& );
+            
             std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
 
             bool makeChromatogramPoints( const std::shared_ptr< const waveform_type >&, std::vector< std::pair<double, double> >& results );
+
+            bool makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram&, std::vector< uint32_t >& results );
 
             // strand required
             void appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results );
