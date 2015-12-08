@@ -85,7 +85,11 @@ namespace u5303a {
         std::atomic< bool > data_ready_;        
         std::chrono::steady_clock::time_point tp_data_handled_;
         std::chrono::steady_clock::time_point tp_plot_handled_;
-        data_status() : /* pos_( -1 ), */ pos_origin_( -1 ), device_version_( 0 ), posted_data_count_( 0 ), plot_ready_( false ), data_ready_( false ) {
+        data_status() : pos_origin_( -1 )
+                      , device_version_( 0 )
+                      , posted_data_count_( 0 )
+                      , plot_ready_( false )
+                      , data_ready_( false ) {
         }
         data_status( const data_status& t ) : pos_origin_( t.pos_origin_ )
                                             , device_version_( t.device_version_ )
@@ -379,13 +383,9 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroll
         }
     }
 
-    // if ( !waveforms[0] && !waveforms[1] ) {
-    //     waveforms = acqrscontrols::u5303a::waveform::deserialize( rb.get() );
-    // }
-
     if ( waveforms[0] || waveforms[1] ) {
 
-        auto threshold_results = document::instance()->tdc()->handle_waveforms( waveforms );
+        auto threshold_results = document::instance()->tdc()->processThreshold( waveforms );
         
         if ( threshold_results[0] || threshold_results[1] ) {
             

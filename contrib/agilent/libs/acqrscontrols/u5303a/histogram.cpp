@@ -51,7 +51,7 @@ histogram::reset()
     reset_requested_ = true;
 }
 
-void
+size_t
 histogram::append( const threshold_result& result )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -80,11 +80,11 @@ histogram::append( const threshold_result& result )
 
     if ( ! result.indecies().empty() )
         std::for_each( result.indecies().begin(), result.indecies().end(), [&] ( uint32_t idx ) {  data_[ idx ] ++; });
-
+    
     serialnumber_ = result.data()->serialnumber_;
     timeSinceEpoch_ = result.data()->timeSinceEpoch_;
 
-    ++trigger_count_;
+    return ++trigger_count_;
 }
 
 size_t

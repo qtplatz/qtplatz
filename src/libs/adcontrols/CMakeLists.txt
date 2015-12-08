@@ -110,6 +110,7 @@ add_library( adcontrols SHARED
   threshold_method.cpp
   threshold_action.cpp
   timedigitalmethod.cpp
+  timedigitalhistogram.cpp
   timeutil.cpp
   tofchromatogrammethod.cpp
   tofchromatogramsmethod.cpp
@@ -210,6 +211,7 @@ install( FILES
   threshold_method.hpp
   threshold_action.hpp
   timedigitalmethod.hpp
+  timedigitalhistogram.hpp
   timeutil.hpp 
   trace.hpp 
   traceaccessor.hpp 

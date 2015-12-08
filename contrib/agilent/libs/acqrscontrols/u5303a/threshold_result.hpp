@@ -58,7 +58,7 @@ namespace acqrscontrols {
             std::shared_ptr< const waveform > data() const;
             const std::vector< uint32_t >& indecies() const;
             const std::vector< double >& processed() const;
-
+            
             const std::pair<uint32_t, uint32_t >& findRange() const;
             uint32_t foundIndex() const;
             void setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& );

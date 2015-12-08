@@ -61,8 +61,10 @@ namespace acqrscontrols {
             std::shared_ptr< adcontrols::threshold_action > threshold_action_;
             std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::atomic< double > trig_per_seconds_;
-            std::deque< std::shared_ptr< acqrscontrols::u5303a::waveform > > averaged_;
+            std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_waveforms_;
+            std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_histograms_;
             std::shared_ptr< averager_type > averager_;
+            std::shared_ptr< histogram > histogram_register_;
 
             std::mutex mutex_;
         };
@@ -93,7 +95,17 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a
 }
 
 bool
-tdcdoc::average( std::shared_ptr< const acqrscontrols::u5303a::waveform > waveform )
+tdcdoc::accumulate_histogram( const_threshold_result_ptr tdc )
+{
+    if ( ! impl_->histogram_register_ )
+        impl_->histogram_register_ = std::make_shared< histogram_type >();
+    impl_->histogram_register_->append( *tdc );
+    
+    return !impl_->accumulated_histograms_.empty();
+}
+
+bool
+tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::waveform > waveform )
 {
     typedef adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > u16wrap;
     typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
@@ -118,12 +130,12 @@ tdcdoc::average( std::shared_ptr< const acqrscontrols::u5303a::waveform > wavefo
             
             auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), true );
             
-            impl_->averaged_.emplace_back( w );
+            impl_->accumulated_waveforms_.emplace_back( w );
             impl_->averager_.reset();
         }
         
     }
-    return !impl_->averaged_.empty();
+    return !impl_->accumulated_waveforms_.empty();
 }
 
 
@@ -206,8 +218,8 @@ tdcdoc::averagedWaveform( uint64_t trigNumber )
     // TBD: trigNumber check,
     // return last one for now
     
-    if ( ! impl_->averaged_.empty() )
-        return impl_->averaged_.back();
+    if ( ! impl_->accumulated_waveforms_.empty() )
+        return impl_->accumulated_waveforms_.back();
     
     return 0;
 }
@@ -217,19 +229,19 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
 {
     typedef std::shared_ptr< const waveform_type > waveform_ptr;
     
-    if ( ! impl_->averaged_.empty() ) {
+    if ( ! impl_->accumulated_waveforms_.empty() ) {
 
-        a.reserve( a.size() + impl_->averaged_.size() );
+        a.reserve( a.size() + impl_->accumulated_waveforms_.size() );
 
         std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-        std::sort( impl_->averaged_.begin(), impl_->averaged_.end(), []( const waveform_ptr& a, const waveform_ptr& b ){
+        std::sort( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), []( const waveform_ptr& a, const waveform_ptr& b ){
                 return a->serialnumber_ < b->serialnumber_;
             });
 
-        std::move( impl_->averaged_.begin(), impl_->averaged_.end(), std::back_inserter( a ) );
+        std::move( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), std::back_inserter( a ) );
 
-        impl_->averaged_.clear();
+        impl_->accumulated_waveforms_.clear();
 
         return a.size();
     }
@@ -238,7 +250,7 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
 }
 
 std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
-tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms )
+tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms )
 {
     if ( !waveforms[0] && !waveforms[1] ) // empty
         return std::array< threshold_result_ptr, 2 >();

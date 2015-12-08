@@ -72,9 +72,11 @@ namespace acqrscontrols {
             void eraseTofChromatogramsMethod();
             
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
-            handle_waveforms( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
+                processThreshold( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
 
-            bool average( std::shared_ptr< const waveform_type > );
+            bool accumulate_waveform( std::shared_ptr< const waveform_type > );
+
+            bool accumulate_histogram( const_threshold_result_ptr );
 
             size_t readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& );
             std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
