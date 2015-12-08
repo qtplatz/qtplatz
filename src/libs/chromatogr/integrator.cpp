@@ -373,8 +373,14 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
 void
 Integrator::offIntegration( bool flag )
 {
-    if ( ( impl_->offIntegration_ = flag ) )
-        impl_->pkreduce();    
+    if ( ( impl_->offIntegration_ = flag ) ) {
+        if ( !impl_->stack_.empty() ) {
+            if ( (impl_->stack_[0] == PKTOP) || (impl_->stack_[0] == PKVAL) ) {
+                impl_->stack_.push( PEAKSTACK(PKBAS, long(impl_->rdata_.size() - 1), 0) );
+                impl_->pkreduce();
+            }
+        }
+    }
 }
 
 void
