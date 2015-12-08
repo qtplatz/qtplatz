@@ -28,6 +28,7 @@
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <string>
+#include <compiler/pragma_warning.hpp>
 
 namespace boost { namespace serialization { class access; } }
 
@@ -63,11 +64,7 @@ namespace acqrscontrols {
             uint32_t NbrADCBits() const;
 
         private:
-
-#if _MSC_VER
-#pragma warning( push )
-#pragma warning( disable:4251)
-#endif
+            pragma_diagnostic_ignore_4251
             std::string Identifier_;
             std::string Revision_;
             std::string Vendor_;
@@ -77,10 +74,8 @@ namespace acqrscontrols {
             std::string SerialNumber_;
             std::string Options_;
             std::string IOVersion_;
+            pragma_diagnostic_pop
 
-#if _MSC_VER
-#pragma warning( pop )
-#endif
             uint32_t    NbrADCBits_;
 
             friend class identify_archive < identify > ;

@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <limits>
 #include <utility>
+#include <numeric>
 
 namespace adcontrols {
 

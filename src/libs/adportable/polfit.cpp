@@ -23,11 +23,13 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_warnings.h>
 #include <compiler/disable_sign_compare.h>
 #include <compiler/disable_unused_parameter.h>
 #include <compiler/disable_unused_function.h>
 #include <compiler/disable_unused_local_typedefs.h>
+#include <compiler/pragma_warning.hpp>
+
+pragma_msvc_warning_disable(4996)
 
 #include "polfit.hpp"
 #include "float.hpp"

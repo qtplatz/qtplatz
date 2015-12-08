@@ -28,6 +28,7 @@
 #include <boost/serialization/version.hpp>
 #include <vector>
 #include <cstdint>
+#include <compiler/pragma_warning.hpp>
 
 namespace boost { namespace serialization { class access; } }
 
@@ -80,9 +81,14 @@ namespace adcontrols {
         double xIncrement_;                                // digitizer sampling interval
         uint64_t actualPoints_;                            // digitizer waveform length (for spectrum display)
         uint64_t trigger_count_;
+
+        pragma_diagnostic_ignore_4251
+
         std::pair< uint64_t, uint64_t > serialnumber_;     // first, last waveform trigger#
         std::pair< uint64_t, uint64_t > timeSinceEpoch_;   // first waveform acquired time
         std::vector< std::pair< double, uint32_t > > histogram_;
+
+        pragma_diagnostic_pop
 
         friend class TimeDigitalHistogram_archive< TimeDigitalHistogram >;
         friend class TimeDigitalHistogram_archive< const TimeDigitalHistogram >;
