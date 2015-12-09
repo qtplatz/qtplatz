@@ -259,7 +259,7 @@ waveform::toVolts( double d ) const
 }
 
 size_t
-waveform::serialize_xmeta( std::string& os )
+waveform::serialize_xmeta( std::string& os ) const
 {
     boost::iostreams::back_insert_device< std::string > inserter( os );
     boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
@@ -267,13 +267,13 @@ waveform::serialize_xmeta( std::string& os )
     portable_binary_oarchive ar( device );
 
     int version ( 0 );
-    waveform_xmeta_archive<>().serialize( ar, *this, version );
+    waveform_xmeta_archive< const waveform >().serialize( ar, *this, version );
 
     return os.size();
 }
 
 size_t
-waveform::serialize_xdata( std::string& device )
+waveform::serialize_xdata( std::string& device ) const
 {
     if ( meta_.dataType == 2 ) {
         
