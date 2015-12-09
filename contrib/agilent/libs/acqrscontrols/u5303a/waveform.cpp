@@ -273,11 +273,12 @@ waveform::serialize_xmeta( std::string& os )
 }
 
 size_t
-waveform::serialize_xdata( std::vector< int8_t >& device )
+waveform::serialize_xdata( std::string& device )
 {
     if ( meta_.dataType == 2 ) {
+        
         device.resize( ( size() * sizeof(int16_t) + ( 4 * sizeof(int32_t) ) ) );
-        int32_t * dest_p = reinterpret_cast<int32_t *>( device.data() );
+        int32_t * dest_p = reinterpret_cast<int32_t *>( const_cast< char * >( device.data() ) );
         *dest_p++ = 0x7ffe0001; // separater & endian marker
         *dest_p++ = int32_t( size() );
 
@@ -285,8 +286,9 @@ waveform::serialize_xdata( std::vector< int8_t >& device )
         std::copy( _16.begin(), _16.end(), reinterpret_cast< int16_t *>(dest_p) );        
         
     } else {
+        
         device.resize( ( size() * sizeof(int32_t) + ( 4 * sizeof(int32_t) ) ) );
-        int32_t * dest_p = reinterpret_cast<int32_t *>( device.data() );
+        int32_t * dest_p = reinterpret_cast<int32_t *>( const_cast< char * >( device.data() ) );
         *dest_p++ = 0x7ffe0001; // separater & endian marker
         *dest_p++ = int32_t( size() );
         

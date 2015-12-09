@@ -122,7 +122,7 @@ namespace acqrscontrols {
 			template< typename value_type > value_type* data();
 
             size_t serialize_xmeta( std::string& );
-            size_t serialize_xdata( std::vector< int8_t >& );
+            size_t serialize_xdata( std::string& );
 
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
 
