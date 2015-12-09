@@ -53,14 +53,13 @@ namespace adicontroller {
             void operator = ( const DataWriter& ) = delete;
             
         public:
-            typedef bool (serializer)( const boost::any&&, std::string& );
+            typedef bool (serializer)( const boost::any&&, std::string& xdata, std::string& xmeta );
             
             virtual ~DataWriter();
             DataWriter();
             DataWriter( const DataReadBuffer& );
-            DataWriter( boost::any&& );
+            DataWriter( boost::any&&, uint64_t elapsed_time, uint64_t epock_time, uint64_t pos, uint32_t fcn, uint32_t ndata, uint32_t events );
             
-            uint64_t timepoint() const;
             uint64_t elapsed_time() const;
             uint64_t epoch_time() const;                        
             uint64_t pos() const;       // data address (sequencial number for first data in this frame)
@@ -70,6 +69,11 @@ namespace adicontroller {
 
             const boost::any& data() const;
             void setData( boost::any&& );
+            void setSerializer( std::function< serializer > );
+
+            std::function< serializer >& Serializer();
+
+            // bool serialize( const boost::any&, std::string& xdata, std::string& xmeta );
 
         private:
             std::function< serializer > serializer_;

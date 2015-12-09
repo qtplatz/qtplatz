@@ -31,58 +31,103 @@
 #include <chrono>
 #include <mutex>
 
-namespace adicontroller {
+using namespace adicontroller::SignalObserver;
 
-    namespace SignalObserver {
-
-        ///////
-        DataWriter::DataWriter() : elapsed_time_( 0 )
-                                 , epoch_time_( 0 )
-                                 , pos_( 0 )
-                                 , fcn_( 0 )
-                                 , ndata_( 0 )
-                                 , events_( 0 )
-        {
-        }
-
-        DataWriter::DataWriter( const DataReadBuffer& rb ) : elapsed_time_( rb.elapsed_time() )
-                                                           , epoch_time_( rb.epoch_time() )
-                                                           , pos_( rb.pos() )
-                                                           , fcn_( rb.fcn() )
-                                                           , ndata_( rb.ndata() )
-                                                           , events_( rb.events() )
-        {
-        }
-
-        DataWriter::DataWriter( boost::any&& a ) : any_( a )
-        {
-        }
-        
-        DataWriter::~DataWriter()
-        {
-        }
-        
-        // uint64_t& DataWriter::timepoint()    { return epoch_time_; }
-        // uint64_t& DataWriter::epoch_time()   { return epoch_time_; }
-        // uint64_t& DataWriter::elapsed_time() { return elapsed_time_; }
-        // uint64_t& DataWriter::pos()          { return pos_; }
-        // uint32_t& DataWriter::fcn()          { return fcn_; }
-        // uint32_t& DataWriter::ndata()        { return ndata_; }
-        // uint32_t& DataWriter::events()       { return events_; }
-        
-        uint64_t DataWriter::timepoint() const       { return epoch_time_; }
-        uint64_t DataWriter::epoch_time() const      { return epoch_time_; }
-        uint64_t DataWriter::elapsed_time() const    { return elapsed_time_; }
-        uint64_t DataWriter::pos() const             { return pos_; }       
-        uint32_t DataWriter::fcn() const             { return fcn_; }       
-        uint32_t DataWriter::ndata() const           { return ndata_; }     
-        uint32_t DataWriter::events() const          { return events_; }    
-
-        const boost::any& DataWriter::data() const   { return any_; }
-        void DataWriter::setData( boost::any&& d )     { any_ = d; }
-
-    };
-
+///////
+DataWriter::DataWriter() : elapsed_time_( 0 )
+                         , epoch_time_( 0 )
+                         , pos_( 0 )
+                         , fcn_( 0 )
+                         , ndata_( 0 )
+                         , events_( 0 )
+{
 }
 
+DataWriter::DataWriter( const DataReadBuffer& rb ) : elapsed_time_( rb.elapsed_time() )
+                                                   , epoch_time_( rb.epoch_time() )
+                                                   , pos_( rb.pos() )
+                                                   , fcn_( rb.fcn() )
+                                                   , ndata_( rb.ndata() )
+                                                   , events_( rb.events() )
+{
+}
+
+DataWriter::DataWriter( boost::any&& a ) : any_( a )
+{
+}
+
+DataWriter::DataWriter( boost::any&& a, std::function< serializer > f ) : any_( a )
+                                                                        , serializer_( f )
+{
+}
+        
+DataWriter::~DataWriter()
+{
+}
+        
+uint64_t
+DataWriter::timepoint() const
+{
+    return epoch_time_;
+}
+
+uint64_t
+DataWriter::epoch_time() const
+{
+    return epoch_time_;
+}
+
+uint64_t
+DataWriter::elapsed_time() const
+{
+    return elapsed_time_;
+}
+
+uint64_t
+DataWriter::pos() const
+{
+    return pos_;
+}       
+
+uint32_t
+DataWriter::fcn() const
+{
+    return fcn_;
+}       
+
+uint32_t
+DataWriter::ndata() const
+{
+    return ndata_;
+}     
+
+uint32_t
+DataWriter::events() const
+{
+    return events_;
+}    
+
+const boost::any&
+DataWriter::data() const
+{
+    return any_;
+}
+
+void
+DataWriter::setData( boost::any&& d )
+{
+    any_ = d;
+}
+        
+void
+DataWriter::setSerializer( std::function< serializer > f )
+{
+    serializer_ = f;
+}
+
+std::function< DataWriter::serializer >&
+DataWriter::Serializer()
+{
+    return serializer_;
+}
 

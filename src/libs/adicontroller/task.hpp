@@ -74,7 +74,9 @@ namespace adicontroller {
 
         void post( std::shared_ptr< SampleProcessor >& );
 
+        const SampleSequence * sampleSequence() const;
         SampleSequence * sampleSequence();
+        
         MasterObserver * masterObserver();
 
         // state control buttons -- corresponding to inst control buttuns

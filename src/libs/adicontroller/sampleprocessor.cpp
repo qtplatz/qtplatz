@@ -230,16 +230,17 @@ SampleProcessor::write( const boost::uuids::uuid& objId
 {
     if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
         ts_inject_trigger_ = writer.epoch_time(); // uptime;
+        ADDEBUG() << "SampleProcessor INJECT TRIGGERD by DATA" << writer.events();
 		inProgress_ = true;
     }
 
-    ADDEBUG() << "SampleProcessor::handle_data progress=" << inProgress_;
+    ADDEBUG() << "SampleProcessor::handle_data progress=" << inProgress_ << " Time: " << writer.elapsed_time();
 
 	if ( ! inProgress_ ) 
 		return;
 
     elapsed_time_ = writer.elapsed_time();
-    
+
     //v3::AcquiredData::insert( fs_->db(), objId, rdBuf );
 
     //auto elapsed_count = rdBuf.timepoint() - ts_inject_trigger_;

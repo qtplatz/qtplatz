@@ -166,6 +166,12 @@ task::post( std::shared_ptr< SampleProcessor >& sp )
     (*impl_->sequence_) << sp;
 }
 
+const SampleSequence *
+task::sampleSequence() const
+{
+    return impl_->sequence_.get();
+}
+
 SampleSequence *
 task::sampleSequence()
 {
@@ -221,18 +227,18 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
         
     }
 
-    // ADDEBUG() << "prepare_next_sample: " << run->filePrefix() << " Length: " << run->methodTime();
+    ADDEBUG() << "##### prepare_next_sample: " << impl_->sequence_->size() << "; " << run->filePrefix() << " Length: " << run->methodTime();
 }
 
 void
 task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adicontroller::SignalObserver::DataWriter > dw )
 {
-    ADDEBUG() << "handle_write";
+    if ( impl_->sequence_->size() == 0 )
+        ADDEBUG() << "handle_write -- no sample processor in sample sequence";
 
-    auto sampleprocessor = impl_->sequence_->begin();
-    if ( sampleprocessor != impl_->sequence_->end() ) {
-        (*sampleprocessor)->write( uuid, *dw );
-    }
+    for ( auto& sampleprocessor : *impl_->sequence_ )
+        sampleprocessor->write( uuid, *dw );
+    
 }
 
 adicontroller::Instrument::eInstStatus
@@ -306,7 +312,11 @@ void
 task::impl::fsm_action_inject()
 {
     tp_inject_ = std::chrono::steady_clock::now();
+
     signalFSMAction_( Instrument::fsmInject );
+    
+    for ( auto& sampleprocessor : *sequence_ )
+        sampleprocessor->set_inject_triggered( true );
 }
 
 void
