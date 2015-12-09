@@ -33,101 +33,112 @@
 
 using namespace adicontroller::SignalObserver;
 
-///////
-DataWriter::DataWriter() : elapsed_time_( 0 )
-                         , epoch_time_( 0 )
-                         , pos_( 0 )
-                         , fcn_( 0 )
-                         , ndata_( 0 )
-                         , events_( 0 )
+DataWriter::DataWriter( DataAccess& accessor ) : accessor_( accessor )
 {
+    accessor_.rewind();
 }
 
-DataWriter::DataWriter( const DataReadBuffer& rb ) : elapsed_time_( rb.elapsed_time() )
-                                                   , epoch_time_( rb.epoch_time() )
-                                                   , pos_( rb.pos() )
-                                                   , fcn_( rb.fcn() )
-                                                   , ndata_( rb.ndata() )
-                                                   , events_( rb.events() )
-{
-}
-
-DataWriter::DataWriter( boost::any&& a ) : any_( a )
-{
-}
-
-DataWriter::DataWriter( boost::any&& a, std::function< serializer > f ) : any_( a )
-                                                                        , serializer_( f )
-{
-}
-        
 DataWriter::~DataWriter()
 {
 }
         
-uint64_t
-DataWriter::timepoint() const
-{
-    return epoch_time_;
-}
 
 uint64_t
 DataWriter::epoch_time() const
 {
-    return epoch_time_;
+    return accessor_.epoch_time();
 }
 
 uint64_t
 DataWriter::elapsed_time() const
 {
-    return elapsed_time_;
+    return accessor_.elapsed_time();
 }
 
 uint64_t
 DataWriter::pos() const
 {
-    return pos_;
+    return accessor_.pos();
 }       
 
 uint32_t
 DataWriter::fcn() const
 {
-    return fcn_;
+    return accessor_.fcn();
 }       
 
 uint32_t
 DataWriter::ndata() const
 {
-    return ndata_;
+    return accessor_.ndata();
 }     
 
 uint32_t
 DataWriter::events() const
 {
-    return events_;
+    return accessor_.events();
 }    
 
-const boost::any&
-DataWriter::data() const
+//////////////////
+DataAccess::DataAccess()
 {
-    return any_;
 }
 
 void
-DataWriter::setData( boost::any&& d )
+DataAccess::rewind()
 {
-    any_ = d;
-}
-        
-void
-DataWriter::setSerializer( std::function< serializer > f )
-{
-    serializer_ = f;
 }
 
-std::function< DataWriter::serializer >&
-DataWriter::Serializer()
+bool
+DataAccess::operator ++ ()
 {
-    return serializer_;
+}
+
+size_t
+DataAccess::ndata() const
+{
+    return 0;
+}     // number of data in the buffer
+
+uint64_t
+DataAccess::elapsed_time() const
+{
+    return 0;
+}
+
+uint64_t
+DataAccess::epoch_time() const
+{
+    return 0;
+}                       
+
+uint64_t
+DataAccess::pos() const
+{
+    return 0;
+}       // data address (sequencial number for first data in this frame)
+
+uint32_t
+DataAccess::fcn() const
+{
+    return 0;
+}       // function number for spectrum
+
+uint32_t
+DataAccess::events() const
+{
+    return 0;
+}
+
+size_t
+DataAccess::xdata( std::string& ) const
+{
+    return 0;
+}
+
+size_t
+DataAccess::xmeta( std::string& ) const
+{
+    return 0;
 }
 

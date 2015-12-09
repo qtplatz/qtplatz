@@ -26,7 +26,7 @@
 
 #include "constants.hpp"
 #include "adicontroller_global.hpp"
-#include <boost/any.hpp>
+//#include <boost/any.hpp>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -47,18 +47,33 @@ namespace adicontroller {
         ADICONTROLLERSHARED_TEMPLATE_EXPORT template class ADICONTROLLERSHARED_EXPORT std::weak_ptr < DataWriter > ;
 #endif
 
+        class ADICONTROLLERSHARED_EXPORT DataAccess {
+            DataAccess( const DataAccess& ) = delete;
+            DataAccess& operator = ( const DataAccess& ) = delete;
+        public:
+            DataAccess();
+            virtual void rewind();
+            virtual bool operator ++ ();
+            virtual size_t ndata() const;     // number of data in the buffer
+            virtual uint64_t elapsed_time() const;
+            virtual uint64_t epoch_time() const;
+            virtual uint64_t pos() const;       // data address (sequencial number for first data in this frame)
+            virtual uint32_t fcn() const;       // function number for spectrum
+            virtual uint32_t events() const;    // well known events
+            virtual size_t xdata( std::string& ) const;
+            virtual size_t xmeta( std::string& ) const;
+        };
+        
         class ADICONTROLLERSHARED_EXPORT DataWriter : public std::enable_shared_from_this< DataWriter > {
 
             DataWriter( const DataWriter& ) = delete;
             void operator = ( const DataWriter& ) = delete;
             
         public:
-            typedef bool (serializer)( const boost::any&&, std::string& xdata, std::string& xmeta );
-            
             virtual ~DataWriter();
+
             DataWriter();
-            DataWriter( const DataReadBuffer& );
-            DataWriter( boost::any&&, uint64_t elapsed_time, uint64_t epock_time, uint64_t pos, uint32_t fcn, uint32_t ndata, uint32_t events );
+            DataWriter( DataAccess& );
             
             uint64_t elapsed_time() const;
             uint64_t epoch_time() const;                        
@@ -67,27 +82,12 @@ namespace adicontroller {
             uint32_t ndata() const;     // number of data in the buffer
             uint32_t events() const;    // well known events
 
-            const boost::any& data() const;
-            void setData( boost::any&& );
-            void setSerializer( std::function< serializer > );
-
-            std::function< serializer >& Serializer();
-
-            // bool serialize( const boost::any&, std::string& xdata, std::string& xmeta );
-
-        private:
-            std::function< serializer > serializer_;
+            // const boost::any& data() const;
+            // void setData( boost::any&& );
             
-            uint64_t elapsed_time_;  // ns
-            uint64_t epoch_time_;    // ns
-            uint64_t pos_;           // data address (sequencial number for first data in this frame)
-            uint32_t fcn_;           // function number for spectrum
-            uint32_t ndata_;         // number of data in the buffer (for trace, spectrum should be always 1)
-            uint32_t events_;        // well known events
-            pragma_msvc_warning_push_disable_4251
-            boost::any any_;
-            pragma_msvc_warning_pop
+        private:
+            DataAccess& accessor_;
         };
-        
+
     }
 }

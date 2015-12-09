@@ -234,7 +234,7 @@ SampleProcessor::write( const boost::uuids::uuid& objId
 		inProgress_ = true;
     }
 
-    ADDEBUG() << "SampleProcessor::handle_data progress=" << inProgress_ << " Time: " << writer.elapsed_time();
+    ADDEBUG() << "SampleProcessor::handle_data progress=" << inProgress_ << " Time: " << writer.elapsed_time() << " ndata: " << writer.ndata();
 
 	if ( ! inProgress_ ) 
 		return;

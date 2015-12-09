@@ -237,6 +237,8 @@ simulator::setup( const acqrscontrols::u5303a::method& m )
 void
 simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
 {
+    static size_t counter;
+    
     if ( ! vec.empty() )  {
 
         auto& w = *vec[ 0 ];
@@ -246,8 +248,11 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
             std::shared_ptr< adportable::mblock< int16_t > > mblock;
             adportable::waveform_simulator( w.meta_.initialXOffset, w.meta_.actualPoints, w.meta_.xIncrement )( mblock, int( vec.size() ) );
 
-            for ( auto& w: vec )
+            for ( auto& w: vec ) {
                 w->setData( mblock, w->firstValidPoint_ );
+                if ( w->meta_.initialXTimeSeconds == 0 )
+                    w->meta_.initialXTimeSeconds = counter++;
+            }
 
         } else {
 
