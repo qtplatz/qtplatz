@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "timedigitalhistogram.hpp"
+#include "serializer.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -53,6 +54,7 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.trigger_count_ );
             ar & BOOST_SERIALIZATION_NVP( _.serialnumber_ );
             ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
+            ar & BOOST_SERIALIZATION_NVP( _.wellKnownEvents_ );
             ar & BOOST_SERIALIZATION_NVP( _.histogram_ );
         }
     };
@@ -91,6 +93,7 @@ TimeDigitalHistogram::TimeDigitalHistogram() : initialXTimeSeconds_( 0 )
                                              , actualPoints_( 0 )
                                              , serialnumber_( { 0, 0 } )
                                              , timeSinceEpoch_( { 0, 0 } )
+                                             , wellKnownEvents_( 0 )
 {
 }
 
@@ -101,6 +104,7 @@ TimeDigitalHistogram::TimeDigitalHistogram( const TimeDigitalHistogram& t ) : in
                                                                             , serialnumber_( t.serialnumber_ )
                                                                             , timeSinceEpoch_( t.timeSinceEpoch_ )
                                                                             , trigger_count_( t.trigger_count_ )
+                                                                            , wellKnownEvents_( t.wellKnownEvents_ )
                                                                             , histogram_( t.histogram_ )
 {
 }
@@ -135,6 +139,12 @@ TimeDigitalHistogram::trigger_count()
     return trigger_count_;
 }
 
+uint32_t&
+TimeDigitalHistogram::wellKnownEvents()
+{
+    return wellKnownEvents_;
+}
+
 double
 TimeDigitalHistogram::initialXTimeSeconds() const
 {
@@ -163,6 +173,12 @@ uint64_t
 TimeDigitalHistogram::trigger_count() const
 {
     return trigger_count_;
+}
+
+uint32_t
+TimeDigitalHistogram::wellKnownEvents() const
+{
+    return wellKnownEvents_;
 }
 
 std::pair< uint64_t, uint64_t >&
@@ -317,4 +333,16 @@ double
 TimeDigitalHistogram::triggers_per_second() const
 {
     return trigger_count_ / double( timeSinceEpoch_.second - timeSinceEpoch_.first ) * 1.0e9;
+}
+
+bool
+TimeDigitalHistogram::archive( std::ostream& os, const TimeDigitalHistogram& t )
+{
+    return internal::binSerializer().archive( os, t );
+}
+
+bool
+TimeDigitalHistogram::restore( std::istream& is, TimeDigitalHistogram& t )
+{
+    return internal::binSerializer().restore( is, t );
 }

@@ -28,6 +28,7 @@
 #include <boost/serialization/version.hpp>
 #include <vector>
 #include <cstdint>
+#include <iostream>
 #include <compiler/pragma_warning.hpp>
 
 namespace boost { namespace serialization { class access; } }
@@ -59,6 +60,7 @@ namespace adcontrols {
         double& xIncrement();                             // digitizer sampling interval
         uint64_t& actualPoints();                         // digitizer waveform length (for spectrum display)
         uint64_t& trigger_count();
+        uint32_t& wellKnownEvents();
         std::pair< uint64_t, uint64_t >& serialnumber();
         std::pair< uint64_t, uint64_t >& timeSinceEpoch();
         double initialXTimeSeconds() const;
@@ -66,6 +68,7 @@ namespace adcontrols {
         double xIncrement() const;
         uint64_t actualPoints() const;
         uint64_t trigger_count() const;
+        uint32_t wellKnownEvents() const;
 
         const std::pair< uint64_t, uint64_t >& serialnumber() const;
         const std::pair< uint64_t, uint64_t >& timeSinceEpoch() const;
@@ -77,12 +80,16 @@ namespace adcontrols {
 
         static bool translate( adcontrols::MassSpectrum&, const TimeDigitalHistogram& );
 
+        static bool archive( std::ostream&, const TimeDigitalHistogram& );
+        static bool restore( std::istream&, TimeDigitalHistogram& );
+
     private:
         double initialXTimeSeconds_;                       // digitizer time stamp, since acquisition started
         double initialXOffset_;                            // digitizer acquisition start offset ( delay )
         double xIncrement_;                                // digitizer sampling interval
         uint64_t actualPoints_;                            // digitizer waveform length (for spectrum display)
         uint64_t trigger_count_;
+        uint32_t wellKnownEvents_;
 
         pragma_msvc_warning_push_disable_4251
 

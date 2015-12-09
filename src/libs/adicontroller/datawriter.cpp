@@ -33,50 +33,61 @@
 
 using namespace adicontroller::SignalObserver;
 
-DataWriter::DataWriter( DataAccess& accessor ) : accessor_( accessor )
+DataWriter::DataWriter( std::shared_ptr< DataAccess > accessor ) : accessor_( accessor )
 {
-    accessor_.rewind();
+    accessor_->rewind();
 }
 
 DataWriter::~DataWriter()
 {
 }
         
+void
+DataWriter::rewind()
+{
+    accessor_->rewind();
+}
+
+bool
+DataWriter::next()
+{
+    return accessor_->next();
+}
 
 uint64_t
 DataWriter::epoch_time() const
 {
-    return accessor_.epoch_time();
+    return accessor_->epoch_time();
 }
 
 uint64_t
 DataWriter::elapsed_time() const
 {
-    return accessor_.elapsed_time();
+    return accessor_->elapsed_time();
 }
 
 uint64_t
 DataWriter::pos() const
 {
-    return accessor_.pos();
+    return accessor_->pos();
 }       
 
 uint32_t
 DataWriter::fcn() const
 {
-    return accessor_.fcn();
+    return accessor_->fcn();
 }       
 
 uint32_t
 DataWriter::ndata() const
 {
-    return accessor_.ndata();
+    return accessor_->ndata();
 }     
 
 uint32_t
 DataWriter::events() const
 {
-    return accessor_.events();
+    return accessor_->events();
 }    
 
 //////////////////
@@ -90,8 +101,9 @@ DataAccess::rewind()
 }
 
 bool
-DataAccess::operator ++ ()
+DataAccess::next()
 {
+    return false;
 }
 
 size_t

@@ -36,6 +36,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <compiler/pragma_warning.hpp>
 
 namespace adcontrols { class MassSpectrum; }
 namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
@@ -71,6 +72,8 @@ namespace acqrscontrols {
 #endif
 
         /////////////////////////////
+        template< typename T > class waveform_xmeta_archive;
+        template< typename T > class waveform_xdata_archive;
 
         class ACQRSCONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
             
@@ -95,9 +98,10 @@ namespace acqrscontrols {
 
             int dataType() const; // 2 = int16_t, 4 = int32_t
             
-            // typedef int32_t value_type;
-            
+            // 32bit interface
             void setData( const std::shared_ptr< adportable::mblock<int32_t> >&, size_t firstValidPoint );
+
+            // 16bit interface
             void setData( const std::shared_ptr< adportable::mblock<int16_t> >&, size_t firstValidPoint );
 
             int operator [] ( size_t idx ) const;
@@ -109,7 +113,7 @@ namespace acqrscontrols {
             const identify* ident() const { return ident_.get(); }
 
             const std::shared_ptr< const identify >& ident_ptr() const { return ident_; }
-
+            
             template< typename value_type > const value_type* begin() const;
             template< typename value_type > const value_type* end() const;
             template< typename value_type > value_type* begin();
@@ -117,11 +121,8 @@ namespace acqrscontrols {
 
 			template< typename value_type > value_type* data();
 
-            static bool
-                serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
-
-            static std::array< std::shared_ptr< const waveform >, 2 >
-                deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
+            size_t serialize_xmeta( std::string& );
+            size_t serialize_xdata( std::vector< int8_t >& );
 
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
 
@@ -132,19 +133,17 @@ namespace acqrscontrols {
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
         private:
+            friend class waveform_xmeta_archive< waveform >;
+            friend class waveform_xmeta_archive< const waveform >;
+            friend class waveform_xdata_archive< waveform >;
+            friend class waveform_xdata_archive< const waveform >;            
 
-#if defined _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4251)
-#endif
+            pragma_msvc_warning_push_disable_4251
+                
             std::shared_ptr< const identify > ident_;
-
             boost::variant < std::shared_ptr< adportable::mblock<int32_t> >
                              , std::shared_ptr< adportable::mblock<int16_t> > > mblock_;
-            
-#if defined _MSC_VER
-#pragma warning(pop)
-#endif
+            pragma_msvc_warning_pop      
         };
 
         template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;

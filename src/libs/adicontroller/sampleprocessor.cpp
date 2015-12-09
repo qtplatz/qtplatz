@@ -226,15 +226,19 @@ SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserve
 
 void
 SampleProcessor::write( const boost::uuids::uuid& objId
-                        , const SignalObserver::DataWriter& writer )
+                        , SignalObserver::DataWriter& writer )
 {
+    ADDEBUG() << "write: " << inProgress_
+              << " Time: " << double(writer.elapsed_time()) * 1.0e-9
+              << " Epoch: " << double(writer.epoch_time()) * 1.0e-9
+              << " pos: "   << writer.pos()
+              << " ndata: " << writer.ndata();
+    
     if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
         ts_inject_trigger_ = writer.epoch_time(); // uptime;
         ADDEBUG() << "SampleProcessor INJECT TRIGGERD by DATA" << writer.events();
 		inProgress_ = true;
     }
-
-    ADDEBUG() << "SampleProcessor::handle_data progress=" << inProgress_ << " Time: " << writer.elapsed_time() << " ndata: " << writer.ndata();
 
 	if ( ! inProgress_ ) 
 		return;

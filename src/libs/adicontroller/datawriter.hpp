@@ -53,7 +53,7 @@ namespace adicontroller {
         public:
             DataAccess();
             virtual void rewind();
-            virtual bool operator ++ ();
+            virtual bool next();
             virtual size_t ndata() const;     // number of data in the buffer
             virtual uint64_t elapsed_time() const;
             virtual uint64_t epoch_time() const;
@@ -73,7 +73,10 @@ namespace adicontroller {
             virtual ~DataWriter();
 
             DataWriter();
-            DataWriter( DataAccess& );
+            DataWriter( std::shared_ptr< DataAccess > );
+
+            void rewind();
+            bool next();
             
             uint64_t elapsed_time() const;
             uint64_t epoch_time() const;                        
@@ -81,12 +84,8 @@ namespace adicontroller {
             uint32_t fcn() const;       // function number for spectrum
             uint32_t ndata() const;     // number of data in the buffer
             uint32_t events() const;    // well known events
-
-            // const boost::any& data() const;
-            // void setData( boost::any&& );
-            
         private:
-            DataAccess& accessor_;
+            std::shared_ptr< DataAccess > accessor_;
         };
 
     }

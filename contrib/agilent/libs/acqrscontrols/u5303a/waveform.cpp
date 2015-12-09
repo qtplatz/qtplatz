@@ -40,6 +40,8 @@
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <adportable/waveform_wrapper.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 #include <adicontroller/signalobserver.hpp>
 #include <adlog/logger.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -50,6 +52,10 @@
 #include <boost/variant.hpp>
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 
 namespace acqrscontrols { namespace u5303a {
 
@@ -73,28 +79,43 @@ namespace acqrscontrols { namespace u5303a {
 
         };
 
-        class waveform_xmeta_archive {
-            waveform_xmeta_archive( const waveform_xmeta_archive& ) = delete;
-            waveform_xmeta_archive& operator = ( const waveform_xmeta_archive& ) = delete;
-        public:
-            waveform_xmeta_archive() {}
-            ~waveform_xmeta_archive()
-            {}
+        // class waveform_xmeta_archive {
+        //     waveform_xmeta_archive( const waveform_xmeta_archive& ) = delete;
+        //     waveform_xmeta_archive& operator = ( const waveform_xmeta_archive& ) = delete;
+        // public:
+        //     waveform_xmeta_archive() {}
+        //     ~waveform_xmeta_archive()
+        //     {}
 
-            identify ident_;
-            std::vector< acqrscontrols::u5303a::metadata > meta_;
-            std::shared_ptr< acqrscontrols::u5303a::method > method_;
-        private:
-            friend class boost::serialization::access;
+        //     identify ident_;
+        //     std::vector< acqrscontrols::u5303a::metadata > meta_;
+        //     std::shared_ptr< acqrscontrols::u5303a::method > method_;
+        // private:
+        //     friend class boost::serialization::access;
+        //     template<class Archive>
+        //     void serialize( Archive& ar, const unsigned int ) {
+        //         using namespace boost::serialization;
+        //         ar & BOOST_SERIALIZATION_NVP( ident_ );
+        //         ar & BOOST_SERIALIZATION_NVP( meta_ );
+        //         ar & BOOST_SERIALIZATION_NVP( method_ );
+        //     }
+        // };
+
+        template<typename T = waveform >
+        class waveform_xmeta_archive {
+        public:
             template<class Archive>
-            void serialize( Archive& ar, const unsigned int ) {
+            void serialize( Archive& ar, T& _, const unsigned int ) {
                 using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( ident_ );
-                ar & BOOST_SERIALIZATION_NVP( meta_ );
-                ar & BOOST_SERIALIZATION_NVP( method_ );
+                ar & BOOST_SERIALIZATION_NVP( _.ident_ );
+                ar & BOOST_SERIALIZATION_NVP( _.meta_ );
+                ar & BOOST_SERIALIZATION_NVP( _.method_ );
+                ar & BOOST_SERIALIZATION_NVP( _.serialnumber_ );
+                ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
             }
         };
 
+        
         ////////////////////
         template<typename T = device_data>
         class device_data_archive {
@@ -235,6 +256,45 @@ waveform::toVolts( double d ) const
     if ( meta_.actualAverages )
         return d * meta_.scaleFactor / meta_.actualAverages;
     return d * meta_.scaleFactor;
+}
+
+size_t
+waveform::serialize_xmeta( std::string& os )
+{
+    boost::iostreams::back_insert_device< std::string > inserter( os );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+
+    portable_binary_oarchive ar( device );
+
+    int version ( 0 );
+    waveform_xmeta_archive<>().serialize( ar, *this, version );
+
+    return os.size();
+}
+
+size_t
+waveform::serialize_xdata( std::vector< int8_t >& device )
+{
+    if ( meta_.dataType == 2 ) {
+        device.resize( ( size() * sizeof(int16_t) + ( 4 * sizeof(int32_t) ) ) );
+        int32_t * dest_p = reinterpret_cast<int32_t *>( device.data() );
+        *dest_p++ = 0x7ffe0001; // separater & endian marker
+        *dest_p++ = int32_t( size() );
+
+        adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > _16( *this );
+        std::copy( _16.begin(), _16.end(), reinterpret_cast< int16_t *>(dest_p) );        
+        
+    } else {
+        device.resize( ( size() * sizeof(int32_t) + ( 4 * sizeof(int32_t) ) ) );
+        int32_t * dest_p = reinterpret_cast<int32_t *>( device.data() );
+        *dest_p++ = 0x7ffe0001; // separater & endian marker
+        *dest_p++ = int32_t( size() );
+        
+        adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > _32( *this );
+        std::copy( _32.begin(), _32.end(), dest_p );
+    }
+    
+    return device.size();
 }
 
 #if 0

@@ -49,7 +49,7 @@ namespace adicontroller {
 
         void handle_data( unsigned long objId, long pos, const adicontroller::SignalObserver::DataReadBuffer& );
 
-        void write( const boost::uuids::uuid& objId, const adicontroller::SignalObserver::DataWriter& );
+        void write( const boost::uuids::uuid& objId, adicontroller::SignalObserver::DataWriter& );
         
         void pos_front( unsigned int pos, unsigned long objId );
         void stop_triggered();
