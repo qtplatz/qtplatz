@@ -139,7 +139,8 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
         if ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
             
             auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), true );
-            w->meta_ = impl_->meta_;  // replace with first trigger
+            w->meta_ = impl_->meta_;                 // replace with first trigger
+            w->meta_.dataType = sizeof( uint32_t );  // match up with actual data format
             
             impl_->accumulated_waveforms_.emplace_back( w );
             impl_->averager_.reset();

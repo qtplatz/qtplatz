@@ -217,7 +217,6 @@ install( FILES
   traceaccessor.hpp 
   visitor.hpp 
   peakresult.hpp 
-  waveform_filter.hpp 
   annotation.hpp 
   annotations.hpp 
   mspeakinfo.hpp 
@@ -242,5 +241,6 @@ install( FILES
   quancalibration.hpp 
   quancalibrations.hpp
   tofchromatogrammethod.hpp
-  tofchromatogramsmethod.hpp  
+  tofchromatogramsmethod.hpp
+  waveform_filter.hpp 
   DESTINATION include/adcontrols COMPONENT headers )

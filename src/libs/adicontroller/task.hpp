@@ -32,7 +32,7 @@
 #include <functional>
 #include <memory>
 
-namespace boost { namespace asio { class io_service; } }
+namespace boost { namespace asio { class io_service; } namespace uuids { struct uuid; } }
 
 namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
 
@@ -89,7 +89,7 @@ namespace adicontroller {
         // prepare next sample strage
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >&, const adcontrols::ControlMethod::Method& );
 
-        void handle_write( std::shared_ptr< adicontroller::SignalObserver::DataWriter > );
+        void handle_write( const boost::uuids::uuid&, std::shared_ptr< adicontroller::SignalObserver::DataWriter > );
 
     private:
         friend std::unique_ptr< task >::deleter_type;

@@ -84,6 +84,8 @@ namespace adicontroller {
         boost::signals2::signal< fsm_action_t > signalFSMAction_;
         boost::signals2::signal< fsm_state_changed_t > signalFSMStateChanged_;
 
+        bool inject_triggered_;
+        
         static Instrument::eInstStatus instStatus( int id_state );
     };
 
@@ -223,9 +225,14 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
 }
 
 void
-task::handle_write( std::shared_ptr< adicontroller::SignalObserver::DataWriter > dw )
+task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adicontroller::SignalObserver::DataWriter > dw )
 {
-    
+    ADDEBUG() << "handle_write";
+
+    auto sampleprocessor = impl_->sequence_->begin();
+    if ( sampleprocessor != impl_->sequence_->end() ) {
+        (*sampleprocessor)->write( uuid, *dw );
+    }
 }
 
 adicontroller::Instrument::eInstStatus
@@ -241,6 +248,7 @@ task::impl::impl() : fsm_( this )
                    , tp_inject_( tp_uptime_ )
                    , sequence_( new SampleSequence )
                    , masterObserver_( new MasterObserver )
+                   , inject_triggered_( false )
 {
 }
 
@@ -297,6 +305,7 @@ task::impl::fsm_action_ready()
 void
 task::impl::fsm_action_inject()
 {
+    tp_inject_ = std::chrono::steady_clock::now();
     signalFSMAction_( Instrument::fsmInject );
 }
 
@@ -327,9 +336,21 @@ task::impl::fsm_no_transition( int state )
     typedef boost::msm::back::generate_state_set<recursive_stt>::type all_states;
     
     std::string name;
-    boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, state));
     
-    ADDEBUG() << "##### no transition from state " << state << ": " << name;
+    if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Stopped >::value == state )
+        name = "fsm::controller::Stopped";
+    else if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::PreparingForRun >::value == state )
+        name = "fsm::controller::PreparingForRun";
+    else if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::WaitForContactClosure>::value == state )
+        name = "fsm::controller::WaitForContactClosure";
+    else if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Running >::value == state )
+        name = "fsm::controller::Running";
+    else if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Dormant >::value == state )
+        name = "fsm::controller::Dormant";
+    else
+        boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, state));
+    
+    ADDEBUG() << "##### no transition from state (" << state << ") " << name;
 }
 
 void

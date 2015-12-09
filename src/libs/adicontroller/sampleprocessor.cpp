@@ -23,9 +23,10 @@
 **************************************************************************/
 
 #include "sampleprocessor.hpp"
-#include "signalobserver.hpp"
 #include "acquiredconf_v3.hpp"
 #include "acquireddata_v3.hpp"
+#include "datawriter.hpp"
+#include "signalobserver.hpp"
 #include "mscalibio_v3.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/samplerun.hpp>
@@ -73,17 +74,16 @@ SampleProcessor::~SampleProcessor()
 }
 
 SampleProcessor::SampleProcessor( std::shared_ptr< adcontrols::SampleRun > run
-                                  , std::shared_ptr< adcontrols::ControlMethod::Method > cmth )
-    : fs_( new adfs::filesystem )
-    , inProgress_( false )
-    , myId_( __nid__++ )
-      //, strand_( io_service )
-    , objId_front_( 0 )
-    , pos_front_( 0 )
-    , stop_triggered_( false )
-    , sampleRun_( run )
-    , ctrl_method_( cmth )
-    , ts_inject_trigger_( 0 )
+                                  , std::shared_ptr< adcontrols::ControlMethod::Method > cmth ) : fs_( new adfs::filesystem )
+                                                                                                , inProgress_( false )
+                                                                                                , myId_( __nid__++ )
+                                                                                                , objId_front_( 0 )
+                                                                                                , pos_front_( 0 )
+                                                                                                , stop_triggered_( false )
+                                                                                                , sampleRun_( run )
+                                                                                                , ctrl_method_( cmth )
+                                                                                                , ts_inject_trigger_( 0 )
+                                                                                                , elapsed_time_( 0 )
 {
 }
 
@@ -219,7 +219,6 @@ SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserve
 #endif
     if ( elapsed_time.count() >= sampleRun_->methodTime() || double( elapsed_count ) * 1.0e-6 >= sampleRun_->methodTime() ) {
         inProgress_ = false;
-//        iTask::instance()->post_stop_run();
     }
 
 }
@@ -227,11 +226,10 @@ SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserve
 
 void
 SampleProcessor::write( const boost::uuids::uuid& objId
-                              , size_t pos
-                              , const SignalObserver::DataReadBuffer& rdBuf )
+                        , const SignalObserver::DataWriter& writer )
 {
-    if ( rdBuf.events() & SignalObserver::wkEvent_INJECT ) {
-        ts_inject_trigger_ = rdBuf.timepoint(); // uptime;
+    if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
+        ts_inject_trigger_ = writer.epoch_time(); // uptime;
 		inProgress_ = true;
     }
 
@@ -240,10 +238,12 @@ SampleProcessor::write( const boost::uuids::uuid& objId
 	if ( ! inProgress_ ) 
 		return;
 
-    v3::AcquiredData::insert( fs_->db(), objId, rdBuf );
+    elapsed_time_ = writer.elapsed_time();
+    
+    //v3::AcquiredData::insert( fs_->db(), objId, rdBuf );
 
-    auto elapsed_count = rdBuf.timepoint() - ts_inject_trigger_;
-    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
+    //auto elapsed_count = rdBuf.timepoint() - ts_inject_trigger_;
+    //auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
 }
 
 void
@@ -303,4 +303,22 @@ std::shared_ptr< const adcontrols::SampleRun >
 SampleProcessor::sampleRun() const
 {
     return sampleRun_;
+}
+
+bool
+SampleProcessor::inject_triggered() const
+{
+    return inProgress_;
+}
+
+void
+SampleProcessor::set_inject_triggered( bool f )
+{
+    inProgress_ = f;
+}
+
+const uint64_t&
+SampleProcessor::elapsed_time() const
+{
+    return elapsed_time_;
 }

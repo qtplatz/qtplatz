@@ -30,6 +30,7 @@
 #include <atomic>
 #include <vector>
 #include <mutex>
+#include <compiler/pragma_warning.hpp>
 
 namespace adcontrols { class TimeDigitalHistogram; }
 
@@ -48,6 +49,8 @@ namespace acqrscontrols {
             void clear();
             void reset();
             size_t append( const threshold_result& result );
+            size_t append( const adcontrols::TimeDigitalHistogram& );
+            
             size_t trigger_count() const;
             double triggers_per_sec() const;
 
@@ -59,7 +62,7 @@ namespace acqrscontrols {
                                  , std::pair<uint32_t, uint32_t>& serialnumber
                                  , std::pair<uint64_t, uint64_t>& timeSinceEpoch );
 
-            void move( adcontrols::TimeDigitalHistogram& );
+            void move( adcontrols::TimeDigitalHistogram&, bool reset = true );
 
             static bool average( const std::vector< std::pair< double, uint32_t > >&
                                  , double resolution, std::vector< double >& times, std::vector< double >& intens );
@@ -72,18 +75,15 @@ namespace acqrscontrols {
             uint64_t timeSinceEpoch_0_;           // first waveform acquired time
             uint64_t timeSinceEpoch_;             // last waveform acquired time
 
-#if defined _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4251)
-#endif
+            pragma_msvc_warning_push_disable_4251
+
             std::mutex mutex_;
             std::atomic< size_t > trigger_count_; // number of triggers
             std::vector< uint32_t > data_;
             std::atomic< bool > reset_requested_;
 
-#if defined _MSC_VER
-# pragma warning( pop )
-#endif
+            pragma_msvc_warning_pop
+
         };
 
     }

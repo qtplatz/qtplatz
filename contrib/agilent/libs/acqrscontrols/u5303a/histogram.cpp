@@ -89,6 +89,51 @@ histogram::append( const threshold_result& result )
 }
 
 size_t
+histogram::append( const adcontrols::TimeDigitalHistogram& x )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    if ( reset_requested_ || ( meta_.actualPoints != x.actualPoints() ) ) {
+
+        meta_.actualPoints = x.actualPoints();
+        meta_.flags = 0;
+        meta_.actualAverages = 0;
+        meta_.actualRecords  = 0;
+        meta_.initialXOffset = x.initialXOffset();
+        meta_.xIncrement = x.xIncrement();
+        meta_.scaleFactor = 1;
+        meta_.scaleOffset = 0;
+        meta_.dataType = sizeof( int32_t );
+        
+        data_.resize( meta_.actualPoints );
+        
+        reset_requested_ = false;
+        trigger_count_ = 0;
+        
+        std::fill( data_.begin(), data_.end(), 0 );
+
+        serialnumber_0_ = x.serialnumber().first;
+        timeSinceEpoch_0_ = x.timeSinceEpoch().first;
+    }
+
+    if ( x.size() ) {
+
+        std::for_each( x.begin(), x.end(), [&] ( const std::pair<double, uint32_t>& value ) {
+                size_t idx = ( ( value.first - x.initialXOffset() ) / x.xIncrement() + 0.5 );
+                if ( idx < data_.size() )
+                    data_[ idx ] += value.second;
+            });
+    }
+    
+    serialnumber_ = x.serialnumber().second;
+    timeSinceEpoch_ = x.timeSinceEpoch().second;
+    
+    trigger_count_ += x.trigger_count();
+
+    return trigger_count_;
+}
+
+size_t
 histogram::trigger_count() const
 {
     return trigger_count_;
@@ -101,7 +146,7 @@ histogram::triggers_per_sec() const
 }
 
 void
-histogram::move( adcontrols::TimeDigitalHistogram& x )
+histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
@@ -121,7 +166,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x )
             x.histogram().emplace_back( std::make_pair( t, *it ) );
         }
     }
-    reset();
+    reset_requested_ = reset;
 }
 
 size_t

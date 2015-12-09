@@ -32,6 +32,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <compiler/pragma_warning.hpp>
 
 namespace boost { namespace uuids { struct uuid; } }
 
@@ -79,14 +80,9 @@ namespace adicontroller {
             uint32_t fcn_;           // function number for spectrum
             uint32_t ndata_;         // number of data in the buffer (for trace, spectrum should be always 1)
             uint32_t events_;        // well known events
-#if defined _MSC_VER
-# pragma warning( push )
-# pragma warning( disable: 4251 )
-#endif            
+            pragma_msvc_warning_push_disable_4251
             boost::any any_;
-#if defined _MSC_VER
-# pragma warning( pop )
-#endif            
+            pragma_msvc_warning_pop
         };
         
     }

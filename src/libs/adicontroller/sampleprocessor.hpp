@@ -30,10 +30,11 @@
 #include <workaround/boost/asio.hpp>
 #include <atomic>
 #include <chrono>
+#include <compiler/pragma_warning.hpp>
 
 namespace adfs { class filesystem; class file; }
 namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
-namespace adicontroller { namespace SignalObserver { class DataReadBuffer; class Observer; } }
+namespace adicontroller { namespace SignalObserver { class DataReadBuffer; class Observer; class DataWriter; } }
 namespace boost { namespace uuids { struct uuid; } }
 
 namespace adicontroller {
@@ -48,12 +49,17 @@ namespace adicontroller {
 
         void handle_data( unsigned long objId, long pos, const adicontroller::SignalObserver::DataReadBuffer& );
 
-        void write( const boost::uuids::uuid& objId, size_t pos, const adicontroller::SignalObserver::DataReadBuffer& );
+        void write( const boost::uuids::uuid& objId, const adicontroller::SignalObserver::DataWriter& );
         
-        //boost::asio::io_service::strand& strand() { return strand_; }
         void pos_front( unsigned int pos, unsigned long objId );
         void stop_triggered();
+
+        bool inject_triggered() const;
+        void set_inject_triggered( bool );
+        
         std::shared_ptr< const adcontrols::SampleRun > sampleRun() const;
+
+        const uint64_t& elapsed_time() const;
 
         static boost::filesystem::path prepare_sample_run( adcontrols::SampleRun&, bool createDirectory = false );
         
@@ -62,10 +68,7 @@ namespace adicontroller {
         void populate_descriptions( SignalObserver::Observer * );
         void populate_calibration( SignalObserver::Observer * );
 
-#if defined _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4251)
-#endif
+        pragma_msvc_warning_push_disable_4251
         boost::filesystem::path storage_name_;
         std::unique_ptr< adfs::filesystem > fs_;
 		bool inProgress_;
@@ -76,11 +79,10 @@ namespace adicontroller {
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
         std::shared_ptr< adcontrols::ControlMethod::Method > ctrl_method_;
         std::chrono::steady_clock::time_point tp_inject_trigger_;
-
-#if defined _MSC_VER
-# pragma warning(pop)
-#endif
+        pragma_msvc_warning_pop
+            
         uint64_t ts_inject_trigger_;
+        uint64_t elapsed_time_;
     };
 
 }

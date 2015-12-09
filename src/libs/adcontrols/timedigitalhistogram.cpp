@@ -312,3 +312,9 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
     
     return true;
 }
+
+double
+TimeDigitalHistogram::triggers_per_second() const
+{
+    return trigger_count_ / double( timeSinceEpoch_.second - timeSinceEpoch_.first ) * 1.0e9;
+}

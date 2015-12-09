@@ -51,9 +51,11 @@
 #endif
 
 #if defined _MSC_VER
-# define pragma_diagnostic_ignore_4251  __pragma(warning(push)) __pragma( warning(disable:4251) )
+# define pragma_msvc_warning_push_disable_4251  __pragma(warning(push)) __pragma( warning(disable:4251) )
+# define pragma_msvc_warning_pop  __pragma(warning(pop))
 #else
-# define pragma_diagnostic_ignore_4251  
+# define pragma_msvc_warning_push_disable_4251
+# define pragma_msvc_warning_pop
 #endif
 
 #endif

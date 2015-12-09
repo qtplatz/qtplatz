@@ -64,7 +64,7 @@ namespace acqrscontrols {
             uint32_t NbrADCBits() const;
 
         private:
-            pragma_diagnostic_ignore_4251
+            pragma_msvc_warning_push_disable_4251
             std::string Identifier_;
             std::string Revision_;
             std::string Vendor_;
@@ -74,7 +74,7 @@ namespace acqrscontrols {
             std::string SerialNumber_;
             std::string Options_;
             std::string IOVersion_;
-            pragma_diagnostic_pop
+            pragma_msvc_warning_pop
 
             uint32_t    NbrADCBits_;
 

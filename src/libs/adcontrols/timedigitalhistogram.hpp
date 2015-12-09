@@ -73,6 +73,8 @@ namespace adcontrols {
 
         uint32_t accumulate( double tof, double window ) const;
 
+        double triggers_per_second() const;
+
         static bool translate( adcontrols::MassSpectrum&, const TimeDigitalHistogram& );
 
     private:
@@ -82,13 +84,13 @@ namespace adcontrols {
         uint64_t actualPoints_;                            // digitizer waveform length (for spectrum display)
         uint64_t trigger_count_;
 
-        pragma_diagnostic_ignore_4251
+        pragma_msvc_warning_push_disable_4251
 
         std::pair< uint64_t, uint64_t > serialnumber_;     // first, last waveform trigger#
         std::pair< uint64_t, uint64_t > timeSinceEpoch_;   // first waveform acquired time
         std::vector< std::pair< double, uint32_t > > histogram_;
 
-        pragma_diagnostic_pop
+        pragma_msvc_warning_pop
 
         friend class TimeDigitalHistogram_archive< TimeDigitalHistogram >;
         friend class TimeDigitalHistogram_archive< const TimeDigitalHistogram >;
