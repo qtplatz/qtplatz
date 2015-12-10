@@ -35,7 +35,9 @@
 #include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/timer.hpp>
+#if defined HAS_CORBA
 #include <acewrapper/orbservant.hpp>
+#endif
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/pugiwrapper.hpp>
 #include <boost/asio.hpp>
