@@ -82,7 +82,7 @@ namespace adwidgets {
         void triggerLockMass( const QVector< QPair<int, int> >& );
 
     public slots:
-        void handleCopyToClipboard();
+        void handleCopyToClipboard() override;
         void handleZoomedOnSpectrum( const QRectF& );   // zoomer zoomed
         void hideRows();
         void showRows();                       

@@ -60,7 +60,7 @@ namespace adplot {
         void widgetMousePressEvent( QMouseEvent* ) override;
         void widgetMouseDoubleClickEvent( QMouseEvent * ) override;
         void widgetMouseMoveEvent( QMouseEvent * ) override;
-        void widgetLeaveEvent( QEvent * );
+        void widgetLeaveEvent( QEvent * ) override;
       
         // QwtPlotZoomer
         bool accept( QPolygon & ) const override;
