@@ -243,7 +243,10 @@ SampleProcessor::write( const boost::uuids::uuid& objId
 	if ( ! inProgress_ ) 
 		return;
 
-    elapsed_time_ = writer.elapsed_time();
+    writer.rewind();
+    do {
+        v3::AcquiredData::insert( fs_->db(), objId, writer );
+    } while( writer.next() );
 
     //v3::AcquiredData::insert( fs_->db(), objId, rdBuf );
 

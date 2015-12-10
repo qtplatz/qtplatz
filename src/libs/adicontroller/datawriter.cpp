@@ -90,6 +90,18 @@ DataWriter::events() const
     return accessor_->events();
 }    
 
+size_t
+DataWriter::xdata( std::string& data ) const
+{
+    return accessor_->xdata( data );
+}
+
+size_t
+DataWriter::xmeta( std::string& data ) const
+{
+    return accessor_->xmeta( data );
+}
+
 //////////////////
 DataAccess::DataAccess()
 {

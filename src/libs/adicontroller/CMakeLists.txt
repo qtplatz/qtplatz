@@ -9,7 +9,7 @@ cmake_policy(SET CMP0020 NEW)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Boost 1.57 REQUIRED COMPONENTS wserialization serialization)
+find_package(Boost 1.57 REQUIRED COMPONENTS wserialization serialization iostreams )
 
 add_definitions(-DADICONTROLLER_LIBRARY)
 if (WIN32)

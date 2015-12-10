@@ -33,7 +33,7 @@ namespace adfs { class sqlite; }
 
 namespace adicontroller {
 
-    namespace SignalObserver { class DataReadBuffer; }
+    namespace SignalObserver { class DataReadBuffer; class DataWriter; }
 
     namespace v3 {
     
@@ -42,6 +42,7 @@ namespace adicontroller {
             AcquiredData();
             
             static bool insert( adfs::sqlite& db, const boost::uuids::uuid& objid, const adicontroller::SignalObserver::DataReadBuffer& );
+            static bool insert( adfs::sqlite& db, const boost::uuids::uuid& objid, const adicontroller::SignalObserver::DataWriter& );
             static bool create_table_v3( adfs::sqlite& db );
         
         };

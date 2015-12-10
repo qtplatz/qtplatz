@@ -84,6 +84,8 @@ namespace adicontroller {
             uint32_t fcn() const;       // function number for spectrum
             uint32_t ndata() const;     // number of data in the buffer
             uint32_t events() const;    // well known events
+            size_t xdata( std::string& ) const;
+            size_t xmeta( std::string& ) const;
         private:
             std::shared_ptr< DataAccess > accessor_;
         };
