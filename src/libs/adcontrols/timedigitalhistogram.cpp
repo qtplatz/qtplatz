@@ -60,12 +60,12 @@ namespace adcontrols {
     };
     
     ///////// Portable binary archive ////////    
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     TimeDigitalHistogram::serialize( portable_binary_oarchive& ar, const unsigned int version ) {
         TimeDigitalHistogram_archive<>().serialize( ar, *this, version );
     }
 
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     TimeDigitalHistogram::serialize( portable_binary_iarchive& ar, const unsigned int version ) {
         TimeDigitalHistogram_archive<>().serialize( ar, *this, version );
     }
