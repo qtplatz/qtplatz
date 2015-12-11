@@ -44,7 +44,6 @@
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
-#include <boost/signals2.hpp>
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -126,10 +125,8 @@ namespace u5303a {
             
             uint64_t inject_timepoint_;
             std::vector< std::string > foundResources_;
-
-            boost::signals2::signal< void( const std::string, const std::string ) > reply_handlers_;
-            boost::signals2::signal< digitizer::waveform_handler_type > waveform_handlers_;
-
+            std::vector< digitizer::command_reply_type > reply_handlers_;
+            std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
             std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
             std::chrono::steady_clock::time_point tp_acquire_;
@@ -381,9 +378,11 @@ void
 task::fsm_state( bool enter, fsm::idState state )
 {
     if ( state == fsm::idStopped && enter ) {
-        reply_handlers_( "StateChanged", "Stopped" );
+        for ( auto& reply: reply_handlers_ )
+            reply( "StateChanged", "Stopped" );
     } else if ( state == fsm::idReadyToInitiate && enter ) {
-        reply_handlers_( "StateChanged", "Running" );
+        for ( auto& reply: reply_handlers_ )
+            reply( "StateChanged", "Running" );
     }
 }
 
@@ -481,19 +480,20 @@ task::handle_initial_setup()
         // SR2 = 1.6GS/s 2ch; SR2+INT = 3.2GS/s 1ch;
         // M02 = 256MB; M10 = 1GB, M40 = 4GB
         
-        reply_handlers_( "Identifier", ident_->Identifier() );
-        reply_handlers_( "Revision", ident_->Revision() );
-        reply_handlers_( "Description", ident_->Description() );
-        reply_handlers_( "InstrumentModel", ident_->InstrumentModel() );
-        reply_handlers_( "InstrumentFirmwareRevision", ident_->FirmwareRevision() );
-        reply_handlers_( "SerialNumber", ident_->SerialNumber() );
-        reply_handlers_( "IOVersion", ident_->IOVersion() );
-        reply_handlers_( "Options", ident_->Options() );
+        for ( auto& reply : reply_handlers_ ) reply( "Identifier", ident_->Identifier() );
+        for ( auto& reply : reply_handlers_ ) reply( "Revision", ident_->Revision() );
+        for ( auto& reply : reply_handlers_ ) reply( "Description", ident_->Description() );
+        for ( auto& reply : reply_handlers_ ) reply( "InstrumentModel", ident_->InstrumentModel() );
+        for ( auto& reply : reply_handlers_ ) reply( "InstrumentFirmwareRevision", ident_->FirmwareRevision() );
+        for ( auto& reply : reply_handlers_ ) reply( "SerialNumber", ident_->SerialNumber() );
+        for ( auto& reply : reply_handlers_ ) reply( "IOVersion", ident_->IOVersion() );
+        for ( auto& reply : reply_handlers_ ) reply( "Options", ident_->Options() );
 
         device::initial_setup( *this, method_, ident().Options() );
     }
 
-    reply_handlers_( "InitialSetup", ( success ? "success" : "failed" ) );
+    for ( auto& reply: reply_handlers_ )
+        reply( "InitialSetup", ( success ? "success" : "failed" ) );
 
     spDriver_->Abort();
     fsm_.process_event( fsm::Stop() );
@@ -573,8 +573,10 @@ task::handle_TSR_acquire()
 
     for ( auto& waveform: vec ) {
         acqrscontrols::u5303a::method m;
-        if ( waveform_handlers_( waveform.get(), nullptr, m ) )
-            handle_protocol( m );
+        for ( auto& reply: waveform_handlers_ ) {
+            if ( reply( waveform.get(), nullptr, m ) )
+                handle_protocol( m );
+        }
     }
     return true;
 }
@@ -593,23 +595,26 @@ task::handle_acquire()
 
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
                 digitizer::readData( *spDriver(), method_, vec );
-                
+
                 if ( simulated_ )
                     simulator::instance()->touchup( vec );
 
                 for ( auto& waveform: vec ) {
                     acqrscontrols::u5303a::method m;
-                    if ( waveform_handlers_( waveform.get(), nullptr, m ) )
-                        handle_protocol( m );
+                    for ( auto& reply: waveform_handlers_ ) {
+                        if ( reply( waveform.get(), nullptr, m ) )
+                            handle_protocol( m );
+                    }
                 }
-                
             } else {
                 uint32_t events( 0 );
                 auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
                 if ( readData( *waveform ) ) {
                     acqrscontrols::u5303a::method m;
-                    if ( waveform_handlers_( waveform.get(), nullptr, m ) )
-                        handle_protocol( m );
+                    for ( auto& reply : waveform_handlers_ ) {
+                        if ( reply( waveform.get(), nullptr, m ) )
+                            handle_protocol( m );
+                    }
                 }
             }
             return true;
@@ -665,7 +670,8 @@ task::readData( acqrscontrols::u5303a::waveform& data )
 void
 task::connect( digitizer::command_reply_type f )
 {
-    reply_handlers_.connect( f );
+    std::lock_guard< std::mutex > lock( mutex_ );
+    reply_handlers_.push_back( f );
 }
 
 void
@@ -677,7 +683,8 @@ task::disconnect( digitizer::command_reply_type f )
 void
 task::connect( digitizer::waveform_reply_type f )
 {
-    waveform_handlers_.connect( f );
+    std::lock_guard< std::mutex > lock( mutex_ );
+    waveform_handlers_.push_back( f );
 }
 
 void
@@ -689,7 +696,8 @@ task::disconnect( digitizer::waveform_reply_type f )
 void
 task::error_reply( const std::string& e, const std::string& method )
 {
-    reply_handlers_( method, e.c_str() );
+    for ( auto& reply: reply_handlers_ )
+        reply( method, e.c_str() );
 }
 
 void
@@ -740,7 +748,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     }
         
     if ( m.mode_ == 0 ) { // Digitizer 
-
+        ADDEBUG() << "Normal Mode";
         task.spDriver()->setTSREnabled( m.method_.TSR_enabled );
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
         task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
@@ -748,6 +756,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
     } else { // Averager
 
+        ADDEBUG() << "Averager Mode";
         task.spDriver()->setTSREnabled( false );
         task.spDriver()->setDataInversionEnabled( "Channel1", m.method_.invert_signal ? true : false );
         task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
