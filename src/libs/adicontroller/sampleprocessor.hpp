@@ -62,6 +62,7 @@ namespace adicontroller {
         const uint64_t& elapsed_time() const;
 
         static boost::filesystem::path prepare_sample_run( adcontrols::SampleRun&, bool createDirectory = false );
+        const boost::filesystem::path& storage_name() const;
         
     private:
 		void create_acquireddata_table();

@@ -127,8 +127,6 @@ namespace u5303a {
             uint64_t inject_timepoint_;
             std::vector< std::string > foundResources_;
 
-            // std::vector< digitizer::command_reply_type > reply_handlers_;
-            // std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             boost::signals2::signal< void( const std::string, const std::string ) > reply_handlers_;
             boost::signals2::signal< digitizer::waveform_handler_type > waveform_handlers_;
 
@@ -595,7 +593,7 @@ task::handle_acquire()
 
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
                 digitizer::readData( *spDriver(), method_, vec );
-
+                
                 if ( simulated_ )
                     simulator::instance()->touchup( vec );
 

@@ -169,6 +169,12 @@ SampleProcessor::pos_front( unsigned int pos, unsigned long objId )
     }
 }
 
+const boost::filesystem::path&
+SampleProcessor::storage_name() const
+{
+    return storage_name_;
+}
+
 void
 SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserver::DataReadBuffer& rdBuf )
 {

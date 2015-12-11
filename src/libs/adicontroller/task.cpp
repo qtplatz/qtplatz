@@ -69,6 +69,8 @@ namespace adicontroller {
                 signalInstEvents_( Instrument::instEventInjectOut );
         }
 
+        void handle_timeout( const boost::system::error_code& ec );
+
         std::vector< std::thread > threads_;
     public:
 
@@ -83,7 +85,8 @@ namespace adicontroller {
         boost::signals2::signal< void( Instrument::eInstEvent ) > signalInstEvents_;
         boost::signals2::signal< fsm_action_t > signalFSMAction_;
         boost::signals2::signal< fsm_state_changed_t > signalFSMStateChanged_;
-
+        boost::asio::deadline_timer timer_;
+        double methodTime_;
         bool inject_triggered_;
         
         static Instrument::eInstStatus instStatus( int id_state );
@@ -254,6 +257,8 @@ task::impl::impl() : fsm_( this )
                    , tp_inject_( tp_uptime_ )
                    , sequence_( new SampleSequence )
                    , masterObserver_( new MasterObserver )
+                   , timer_( io_service_ )
+                   , methodTime_( 60.0 )
                    , inject_triggered_( false )
 {
 }
@@ -272,6 +277,9 @@ task::impl::initialize()
             udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, 7125 ) );
             udpReceiver_->connect( std::bind( &task::impl::handle_event_out
                                               , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
+            
+            timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
+            timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
             
             threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
         });
@@ -293,18 +301,21 @@ task::impl::finalize()
 void
 task::impl::fsm_action_stop()
 {
+    inject_triggered_ = false;
     signalFSMAction_( Instrument::fsmStop );
 }
 
 void
 task::impl::fsm_action_start()
 {
+    inject_triggered_ = false;
     signalFSMAction_( Instrument::fsmStart );
 }
 
 void
 task::impl::fsm_action_ready()
 {
+    inject_triggered_ = false;
     signalFSMAction_( Instrument::fsmReady );
 }
 
@@ -312,6 +323,7 @@ void
 task::impl::fsm_action_inject()
 {
     tp_inject_ = std::chrono::steady_clock::now();
+    inject_triggered_ = true;
 
     signalFSMAction_( Instrument::fsmInject );
     
@@ -322,6 +334,7 @@ task::impl::fsm_action_inject()
 void
 task::impl::fsm_action_complete()
 {
+    inject_triggered_ = false;
     signalFSMAction_( Instrument::fsmComplete );
 }
 
@@ -395,4 +408,19 @@ task::impl::instStatus( int id_state )
     ADDEBUG() << "Status: " << id_state << ": " << name;
     
     return Instrument::eNothing;
+}
+
+void
+task::impl:: handle_timeout( const boost::system::error_code& ec )
+{
+    if ( !ec ) {
+        if ( inject_triggered_ ) {
+            auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>( std::chrono::steady_clock::now() - tp_inject_ ).count();
+            ADDEBUG() << "***** handle_timeout( " << elapsed_time << " ) *****";
+            if ( elapsed_time >= methodTime_ )
+                fsm_.process_event( fsm::Complete() );
+        }
+        timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
+        timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
+    }
 }
