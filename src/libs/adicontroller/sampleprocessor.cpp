@@ -314,7 +314,7 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
 
             adutils::v3::AcquiredConf::insert( fs_->db()
                                                , observer->objid()
-                                               , desc.confData() );
+                                               , desc.data() );
         }
         populate_descriptions( observer.get() );
     }

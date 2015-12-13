@@ -140,7 +140,7 @@ AcquiredConf::insert( adfs::sqlite& dbf
 
 // static
 bool
-AcquiredConf::insert( adfs::sqlite& dbf, const boost::uuids::uuid&& objid, const data& d )
+AcquiredConf::insert( adfs::sqlite& dbf, const boost::uuids::uuid& objid, const data& d )
 {
     adfs::stmt sql( dbf );
     

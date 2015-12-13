@@ -148,6 +148,12 @@ namespace adicontroller {
                 conf_.axis_decimals_y = v;
         }
 
+        const adutils::v3::AcquiredConf::data&
+        Description::data() const
+        {
+            return conf_;
+        }
+
         ///////
         DataReadBuffer::DataReadBuffer() : elapsed_time_( 0 ) //: impl_( new impl() )
                                          , epoch_time_( 0 )

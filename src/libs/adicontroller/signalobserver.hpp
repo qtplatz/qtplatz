@@ -84,7 +84,7 @@ namespace adicontroller {
             int32_t axis_decimals( axis ) const;
             void set_axis_decimals( axis, int32_t );
 
-            const adutils::v3::AcquiredConf& confData() const;
+            const adutils::v3::AcquiredConf::data& data() const;
 
         private:
             pragma_msvc_warning_push_disable_4251

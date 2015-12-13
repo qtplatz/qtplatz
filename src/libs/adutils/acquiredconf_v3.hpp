@@ -59,7 +59,7 @@ namespace adutils {
                 int axis_decimals_y;
             };
             
-            static bool insert( adfs::sqlite& dbf, const boost::uuids::uuid&& objid, const data& d );
+            static bool insert( adfs::sqlite& dbf, const boost::uuids::uuid& objid, const data& d );
 
             static bool insert( adfs::sqlite& dbf
                                 , const boost::uuids::uuid& objid
