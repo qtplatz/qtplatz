@@ -24,11 +24,11 @@
 
 #include "acquiredconf_v3.hpp"
 #include <adfs/sqlite.hpp>
-#include <adicontroller/signalobserver.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <cassert>
 #include <typeinfo>
 
-using namespace adicontroller::v3;
+using namespace adutils::v3;
 
 AcquiredConf::data::data()
 {
@@ -38,7 +38,14 @@ AcquiredConf::data::data( const data& t ) : objid( t.objid )
                                           , objtext( t.objtext )
                                           , pobjid( t.pobjid )
                                           , dataInterpreterClsid( t.dataInterpreterClsid )
-                                          , desc( t.desc ) // share object with source
+                                          , trace_method( t.trace_method )
+                                          , spectrometer( t.spectrometer )
+                                          , trace_id( t.trace_id )
+                                          , trace_display_name( t.trace_display_name )
+                                          , axis_label_x( t.axis_label_x )
+                                          , axis_label_y( t.axis_label_y )
+                                          , axis_decimals_x( t.axis_decimals_x )
+                                          , axis_decimals_y( t.axis_decimals_y )
 {
 }
 
@@ -79,7 +86,14 @@ AcquiredConf::insert( adfs::sqlite& dbf
                       , const std::string& objtext
                       , const boost::uuids::uuid& pobjid
                       , const std::string& dataInterpreterClsid
-                      , const adicontroller::SignalObserver::Description& d )
+                      , int trace_method
+                      , int spectrometer
+                      , const std::string& trace_id
+                      , const std::wstring& trace_display_name
+                      , const std::wstring& axis_label_x
+                      , const std::wstring& axis_label_y
+                      , int axis_decimals_x
+                      , int axis_decimals_y )
 {
     adfs::stmt sql( dbf );
     
@@ -107,14 +121,63 @@ AcquiredConf::insert( adfs::sqlite& dbf
         sql.bind( col++ ) = objtext;
         sql.bind( col++ ) = pobjid;
         sql.bind( col++ ) = dataInterpreterClsid;
-        sql.bind( col++ ) = int64_t( d.trace_method() );
-        sql.bind( col++ ) = int64_t( d.spectrometer() );
-        sql.bind( col++ ) = std::string( d.trace_id() );
-        sql.bind( col++ ) = std::wstring( d.trace_display_name() );
-        sql.bind( col++ ) = std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisX ) );
-        sql.bind( col++ ) = std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisY ) );
-        sql.bind( col++ ) = d.axis_decimals( adicontroller::SignalObserver::Description::axisX );
-        sql.bind( col++ ) = d.axis_decimals( adicontroller::SignalObserver::Description::axisY );
+        sql.bind( col++ ) = int64_t( trace_method );
+        sql.bind( col++ ) = int64_t( spectrometer );
+        sql.bind( col++ ) = trace_id;
+        sql.bind( col++ ) = trace_display_name;
+        sql.bind( col++ ) = axis_label_x;    // std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisX ) );
+        sql.bind( col++ ) = axis_label_y;    // std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisY ) );
+        sql.bind( col++ ) = axis_decimals_x; // d.axis_decimals( adicontroller::SignalObserver::Description::axisX );
+        sql.bind( col++ ) = axis_decimals_y; // d.axis_decimals( adicontroller::SignalObserver::Description::axisY );
+
+        if ( sql.step() == adfs::sqlite_done )
+            return true;
+    }
+
+    sql.reset();
+	return false;
+}
+
+// static
+bool
+AcquiredConf::insert( adfs::sqlite& dbf, const boost::uuids::uuid&& objid, const data& d )
+{
+    adfs::stmt sql( dbf );
+    
+    bool success = sql.prepare(
+        "INSERT INTO \
+ AcquiredConf VALUES(\
+:objuuid             \
+,:objtext            \
+,:pobjuuid           \
+,:dataInterpreterClsid\
+,:trace_method        \
+,:spectrometer        \
+,:trace_id            \
+,:trace_display_name  \
+,:axis_x_label        \
+,:axis_y_label        \
+,:axis_x_decimails    \
+,:axis_y_decimals     \
+)" );
+
+    assert( objid == d.objid );
+
+    if ( success ) {
+
+        int col = 1;
+        sql.bind( col++ ) = objid;
+        sql.bind( col++ ) = d.objtext;
+        sql.bind( col++ ) = d.pobjid;
+        sql.bind( col++ ) = d.dataInterpreterClsid;
+        sql.bind( col++ ) = int64_t( d.trace_method );
+        sql.bind( col++ ) = int64_t( d.spectrometer );
+        sql.bind( col++ ) = d.trace_id;
+        sql.bind( col++ ) = d.trace_display_name;
+        sql.bind( col++ ) = d.axis_label_x;
+        sql.bind( col++ ) = d.axis_label_y;
+        sql.bind( col++ ) = d.axis_decimals_x;
+        sql.bind( col++ ) = d.axis_decimals_y;
 
         if ( sql.step() == adfs::sqlite_done )
             return true;
@@ -150,17 +213,16 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
                 d.objid  = sql.get_column_value< boost::uuids::uuid >( col++ );
                 d.objtext  = sql.get_column_value<std::string>( col++ );
                 d.pobjid = sql.get_column_value< boost::uuids::uuid >( col++ );
-                //d.uuid = sql.get_column_value< boost::uuids::uuid >( 3 );
                 d.dataInterpreterClsid = sql.get_column_value<std::string>( col++ );
-                d.desc = std::make_shared< adicontroller::SignalObserver::Description >();
-                d.desc->set_trace_method( adicontroller::SignalObserver::eTRACE_METHOD( sql.get_column_value<int64_t>( col++ ) ) );
-                d.desc->set_spectrometer( adicontroller::SignalObserver::eSPECTROMETER( sql.get_column_value<int64_t>( col++ ) ) );
-                d.desc->set_trace_id( sql.get_column_value<std::string>( col++ ) );
-                d.desc->set_trace_display_name( sql.get_column_value<std::wstring>( col++ ) );
-                d.desc->set_axis_label( adicontroller::SignalObserver::Description::axisX, sql.get_column_value<std::wstring>( col++ ) );
-                d.desc->set_axis_label( adicontroller::SignalObserver::Description::axisY, sql.get_column_value<std::wstring>( col++ ) );
-                d.desc->set_axis_decimals( adicontroller::SignalObserver::Description::axisX, int32_t( sql.get_column_value<int64_t>( col++ ) ) );
-                d.desc->set_axis_decimals( adicontroller::SignalObserver::Description::axisY, int32_t( sql.get_column_value<int64_t>( col++ ) ) );
+                d.trace_method = int( sql.get_column_value<int64_t>( col++ ) );
+                d.spectrometer = int( sql.get_column_value<int64_t>( col++ ) );
+                d.trace_id = sql.get_column_value<std::string>( col++ );
+                d.trace_display_name = sql.get_column_value<std::wstring>( col++ );
+                d.axis_label_x = sql.get_column_value<std::wstring>( col++ );
+                d.axis_label_y = sql.get_column_value<std::wstring>( col++ );
+                d.axis_decimals_x = int32_t( sql.get_column_value<int64_t>( col++ ) );
+                d.axis_decimals_y = int32_t( sql.get_column_value<int64_t>( col++ ) );
+
             } catch ( std::bad_cast& ) {
                 // ignore
             }

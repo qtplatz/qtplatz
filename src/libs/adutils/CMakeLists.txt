@@ -6,8 +6,12 @@ add_library( adutils
   adutils.hpp
   acquiredconf.cpp
   acquiredconf.hpp
+  acquiredconf_v3.cpp
+  acquiredconf_v3.hpp  
   acquireddata.cpp
   acquireddata.hpp
+  acquireddata_v3.hpp
+  acquireddata_v3.cpp
   adfile.cpp
   adfile.hpp
   processeddata.cpp

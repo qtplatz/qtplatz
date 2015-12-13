@@ -31,9 +31,7 @@
 namespace boost { namespace uuids { struct uuid; } }
 namespace adfs { class sqlite; }
 
-namespace adicontroller {
-
-    namespace SignalObserver { class DataReadBuffer; class DataWriter; }
+namespace adutils {
 
     namespace v3 {
     
@@ -41,8 +39,17 @@ namespace adicontroller {
         public:
             AcquiredData();
             
-            static bool insert( adfs::sqlite& db, const boost::uuids::uuid& objid, const adicontroller::SignalObserver::DataReadBuffer& );
-            static bool insert( adfs::sqlite& db, const boost::uuids::uuid& objid, const adicontroller::SignalObserver::DataWriter& );
+            static bool insert( adfs::sqlite&
+                                , const boost::uuids::uuid& objid
+                                , uint64_t elapsed_time
+                                , uint64_t epoch_time
+                                , uint64_t pos
+                                , uint32_t fcn
+                                , uint32_t ndata 
+                                , uint32_t events
+                                , const std::string& data
+                                , const std::string& meta );
+
             static bool create_table_v3( adfs::sqlite& db );
         
         };

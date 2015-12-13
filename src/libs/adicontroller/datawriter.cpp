@@ -81,7 +81,7 @@ DataWriter::fcn() const
 uint32_t
 DataWriter::ndata() const
 {
-    return accessor_->ndata();
+    return uint32_t ( accessor_->ndata() );
 }     
 
 uint32_t

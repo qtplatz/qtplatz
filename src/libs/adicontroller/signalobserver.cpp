@@ -29,6 +29,7 @@
 #endif
 
 #include "signalobserver.hpp"
+#include <adutils/acquiredconf.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <atomic>
@@ -40,21 +41,14 @@ namespace adicontroller {
 
     namespace SignalObserver {
         
-        Description::Description() : trace_method_( eTRACE_TRACE )
-                                   , spectrometer_( eUnknownSpectrometer )
-                                   , axis_x_decimals_( 2 )
-                                   , axis_y_decimals_( 0 )
+        Description::Description()
         {
+            conf_.spectrometer = eUnknownSpectrometer;
+            conf_.axis_decimals_x = 2;
+            conf_.axis_decimals_y = 0;
         }
         
-        Description::Description( const Description& t ) : trace_method_( t.trace_method_ )
-                                                         , spectrometer_( t.spectrometer_ )
-                                                         , trace_id_( t.trace_id_ )
-                                                         , trace_display_name_( t.trace_display_name_ )
-                                                         , axis_x_label_( t.axis_x_label_ )
-                                                         , axis_y_label_( t.axis_y_label_ )
-                                                         , axis_x_decimals_( t.axis_x_decimals_ )
-                                                         , axis_y_decimals_( t.axis_y_decimals_ )
+        Description::Description( const Description& t ) : conf_( t.conf_ )
         {
         }
 
@@ -64,89 +58,94 @@ namespace adicontroller {
                                   , const wchar_t * axis_label_x
                                   , const wchar_t * axis_label_y
                                   , int axis_decimals_x
-                                  , int axis_decimals_y ) : trace_method_( trace_method )
-                                                          , spectrometer_( spectrometer )
-                                                          , trace_id_( trace_id )
-                                                          , axis_x_label_( axis_label_x )
-                                                          , axis_y_label_( axis_label_y )
-                                                          , axis_x_decimals_( axis_decimals_x )
-                                                          , axis_y_decimals_( axis_decimals_y ) {
+                                  , int axis_decimals_y ) {
+            conf_.trace_method = trace_method;
+            conf_.spectrometer = spectrometer;
+            conf_.axis_label_x = axis_label_x;
+            conf_.axis_label_y = axis_label_y;
+            conf_.axis_decimals_x = axis_decimals_x;
+            conf_.axis_decimals_y = axis_decimals_y;
         }
         
         eTRACE_METHOD
         Description::trace_method() const
         {
-            return trace_method_;
+            return eTRACE_METHOD( conf_.trace_method );
         }
         
         void
         Description::set_trace_method( eTRACE_METHOD v )
         {
-            trace_method_ = v;
+            conf_.trace_method = int(v);
         }
         
         eSPECTROMETER
         Description::spectrometer() const
         {
-            return spectrometer_;
+            return eSPECTROMETER( conf_.spectrometer );
         }
 
         void
         Description::set_spectrometer( eSPECTROMETER v )
         {
-            spectrometer_ = v;
+            conf_.spectrometer = int( v );
         }
         
         const char *
         Description::trace_id() const
         {
-            return trace_id_.c_str();
+            return conf_.trace_id.c_str();
         }
         
         void
         Description::set_trace_id( const std::string& v )
         {
-            trace_id_ = v;
+            conf_.trace_id = v;
         }
 
         const wchar_t *
         Description::trace_display_name() const
         {
-            return trace_display_name_.c_str();
+            return conf_.trace_display_name.c_str();
         }
         
         void
         Description::set_trace_display_name( const std::wstring& v )
         {
-            trace_display_name_ = v;
+            conf_.trace_display_name = v;
         }
         
         const wchar_t *
-        Description::axis_label( axis id ) const {
+        Description::axis_label( axis id ) const
+        {
             if ( id == axisX )
-                return axis_x_label_.c_str();
+                return conf_.axis_label_x.c_str();
             else
-                return axis_y_label_.c_str();
+                return conf_.axis_label_y.c_str();
         }
 
         void
-        Description::set_axis_label( axis id, const std::wstring& v ) {
+        Description::set_axis_label( axis id, const std::wstring& v )
+        {
             if ( id == axisX )
-                axis_x_label_ = v;
+                conf_.axis_label_x = v;
             else
-                axis_y_label_ = v;
+                conf_.axis_label_y = v;
         }
         
         int32_t
         Description::axis_decimals( axis id ) const
         {
-            return id == axisX ? axis_x_decimals_ : axis_y_decimals_;
+            return id == axisX ? conf_.axis_decimals_x : conf_.axis_decimals_y;
         }
 
         void
         Description::set_axis_decimals( axis id, int32_t v )
         {
-            if ( id == axisX ) axis_x_decimals_ = v; else axis_y_decimals_ = v;
+            if ( id == axisX )
+                conf_.axis_decimals_x = v;
+            else
+                conf_.axis_decimals_y = v;
         }
 
         ///////

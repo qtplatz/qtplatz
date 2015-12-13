@@ -197,8 +197,9 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
 
     bool has_uuid( false );
     if ( sql.prepare( "PRAGMA TABLE_INFO(AcquiredConf)" ) ) {
+        // either first column name = (objuuid | objid)
         while ( sql.step() == adfs::sqlite_row ) {
-            if ( sql.get_column_value< std::string >( 1 ) == "uuid" ) {
+            if ( sql.get_column_value< std::string >( 1 ) == "objuuid" ) {
                 has_uuid = true;
                 break;
             }
@@ -209,12 +210,13 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
     if ( has_uuid ) {
 
         if ( sql.prepare(
-                 "SELECT objid, pobjid, uuid, dataInterpreterClsid, trace_method, spectrometer,\
+                 "SELECT objuuid, objtext, pobjuuid, dataInterpreterClsid, trace_method, spectrometer,\
  trace_id, trace_display_name, axis_x_label, axis_y_label, axis_x_decimals, axis_y_decimals FROM AcquiredConf" ) ) {
 
             while ( sql.step() == adfs::sqlite_row ) {
                 data d;
                 try {
+                    d.objid = ( -1 );
                     d.objid  = sql.get_column_value<int64_t>( 0 );
                     d.pobjid = sql.get_column_value<int64_t>( 1 );
                     d.uuid = sql.get_column_value< boost::uuids::uuid >( 2 );

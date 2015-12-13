@@ -87,7 +87,9 @@ namespace adicontroller {
             size_t xdata( std::string& ) const;
             size_t xmeta( std::string& ) const;
         private:
+            pragma_msvc_warning_push_disable_4251
             std::shared_ptr< DataAccess > accessor_;
+            pragma_msvc_warning_pop
         };
 
     }

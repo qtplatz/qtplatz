@@ -23,13 +23,11 @@
 **************************************************************************/
 
 #include "acquireddata_v3.hpp"
-#include <adicontroller/signalobserver.hpp>
-#include <adicontroller/datawriter.hpp>
 #include <adportable/bzip2.hpp>
 #include <adfs/sqlite.hpp>
 #include <boost/uuid/uuid.hpp>
 
-using namespace adicontroller::v3;
+using namespace adutils::v3;
 
 AcquiredData::AcquiredData()
 {
@@ -38,53 +36,31 @@ AcquiredData::AcquiredData()
 // static
 bool
 AcquiredData::insert( adfs::sqlite& db
-                         , const boost::uuids::uuid& objid
-                         , const adicontroller::SignalObserver::DataReadBuffer& rb )
-{
-    adfs::stmt sql( db );
-
-	sql.prepare( "INSERT INTO AcquiredData VALUES( :objuuid, :elapsed_time, :epoch_time, :npos, :fcn, :events, :data, :meta )" );
-
-    // std::string xdata;
-    // adportable::bzip2::compress( xdata, reinterpret_cast< const char * >( rb.xdata().data() ), rb.xdata().size() );
-
-    sql.bind( 1 ) = objid;
-    sql.bind( 2 ) = rb.elapsed_time();
-    sql.bind( 3 ) = rb.epoch_time();
-	sql.bind( 4 ) = rb.pos();
-	sql.bind( 5 ) = rb.fcn();
-	sql.bind( 6 ) = rb.events();
-    sql.bind( 7 ) = adfs::blob( rb.xdata().size(), reinterpret_cast<const int8_t *>( rb.xdata().data() ) );
-    sql.bind( 8 ) = adfs::blob( rb.xmeta().size(), reinterpret_cast<const int8_t *>( rb.xmeta().data() ) );
-
-    return sql.step() == adfs::sqlite_done;
-}
-
-// static
-bool
-AcquiredData::insert( adfs::sqlite& db
                       , const boost::uuids::uuid& objid
-                      , const adicontroller::SignalObserver::DataWriter& rb )
+                      , uint64_t elapsed_time
+                      , uint64_t epoch_time
+                      , uint64_t pos
+                      , uint32_t fcn
+                      , uint32_t ndata 
+                      , uint32_t events
+                      , const std::string& data
+                      , const std::string& meta )
 {
     adfs::stmt sql( db );
 
 	sql.prepare( "INSERT INTO AcquiredData VALUES( :objuuid, :elapsed_time, :epoch_time, :npos, :fcn, :events, :data, :meta )" );
-
-    std::string xdata_raw, xmeta;
-    auto xdata_size = rb.xdata( xdata_raw );
-    auto xmeta_size = rb.xmeta( xmeta );
 
     std::string xdata;
-    adportable::bzip2::compress( xdata, reinterpret_cast< const char * >( xdata_raw.data() ), xdata_size );
+    adportable::bzip2::compress( xdata, reinterpret_cast<const char *>( data.data() ), data.size() );
 
     sql.bind( 1 ) = objid;
-    sql.bind( 2 ) = rb.elapsed_time();
-    sql.bind( 3 ) = rb.epoch_time();
-	sql.bind( 4 ) = rb.pos();
-	sql.bind( 5 ) = rb.fcn();
-	sql.bind( 6 ) = rb.events();
-    sql.bind( 7 ) = adfs::blob( xdata.size(), reinterpret_cast<const int8_t *>( xdata.data() ) );
-    sql.bind( 8 ) = adfs::blob( xmeta.size(), reinterpret_cast<const int8_t *>( xmeta.data() ) );
+    sql.bind( 2 ) = elapsed_time;
+    sql.bind( 3 ) = epoch_time;
+	sql.bind( 4 ) = pos;
+    sql.bind( 5 ) = fcn;
+	sql.bind( 6 ) = events;
+    sql.bind( 7 ) = adfs::blob( data.size(), reinterpret_cast<const int8_t *>( data.data() ) );
+    sql.bind( 8 ) = adfs::blob( meta.size(), reinterpret_cast<const int8_t *>( meta.data() ) );
 
     return sql.step() == adfs::sqlite_done;
 }

@@ -23,16 +23,15 @@
 **************************************************************************/
 
 #include "sampleprocessor.hpp"
-#include "acquiredconf_v3.hpp"
-#include "acquireddata_v3.hpp"
 #include "datawriter.hpp"
 #include "signalobserver.hpp"
 #include "mscalibio_v3.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/metric/prefix.hpp>
-#include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
+#include <adfs/filesystem.hpp>
+#include <adfs/folder.hpp>
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/date_string.hpp>
@@ -40,8 +39,8 @@
 #include <adportable/profile.hpp>
 #include <adportable/split_filename.hpp>
 #include <adportable/utf.hpp>
-#include <adfs/filesystem.hpp>
-#include <adfs/folder.hpp>
+#include <adutils/acquiredconf_v3.hpp>
+#include <adutils/acquireddata_v3.hpp>
 #include <boost/date_time.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
@@ -108,8 +107,8 @@ SampleProcessor::prepare_storage( adicontroller::SignalObserver::Observer * mast
     if ( !fs_->create( storage_name_.wstring().c_str() ) )
         return;
 
-    v3::AcquiredConf::create_table_v3( fs_->db() );
-    v3::AcquiredData::create_table_v3( fs_->db() );
+    adutils::v3::AcquiredConf::create_table_v3( fs_->db() );
+    adutils::v3::AcquiredData::create_table_v3( fs_->db() );
     v3::mscalibio::create_table_v3( fs_->db() );
 	
 	populate_descriptions( masterObserver );
@@ -251,7 +250,18 @@ SampleProcessor::write( const boost::uuids::uuid& objId
 
     writer.rewind();
     do {
-        v3::AcquiredData::insert( fs_->db(), objId, writer );
+        std::string xdata, xmeta;
+        writer.xdata( xdata );
+        writer.xmeta( xmeta );
+        adutils::v3::AcquiredData::insert( fs_->db(), objId
+                                           , writer.elapsed_time()
+                                           , writer.epoch_time()
+                                           , writer.pos()
+                                           , writer.fcn()
+                                           , writer.ndata()
+                                           , writer.events()
+                                           , xdata
+                                           , xmeta );
     } while( writer.next() );
 
     //v3::AcquiredData::insert( fs_->db(), objId, rdBuf );
@@ -302,12 +312,9 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
             auto axis_x_label = desc.axis_label( SignalObserver::Description::axisX );
             auto axis_y_label = desc.axis_label( SignalObserver::Description::axisY );
 
-            v3::AcquiredConf::insert( fs_->db()
-                                      , observer->objid()
-                                      , std::string( observer->objtext() )
-                                      , parent->objid()
-                                      , observer->dataInterpreterClsid()
-                                      , desc );
+            adutils::v3::AcquiredConf::insert( fs_->db()
+                                               , observer->objid()
+                                               , desc.confData() );
         }
         populate_descriptions( observer.get() );
     }

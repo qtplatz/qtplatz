@@ -19,10 +19,6 @@ endif()
 add_library( ${PROJECT_NAME} SHARED
   adicontroller.cpp
   adicontroller_global.hpp
-  acquiredconf_v3.hpp
-  acquiredconf_v3.cpp
-  acquireddata_v3.hpp
-  acquireddata_v3.cpp
   automaton.hpp
   datawriter.hpp
   datawriter.cpp

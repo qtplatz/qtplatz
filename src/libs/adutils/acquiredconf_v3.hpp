@@ -31,10 +31,11 @@
 #include <memory>
 
 namespace adfs { class sqlite; }
-namespace adicontroller { namespace SignalObserver { struct Description; } }
 
-namespace adicontroller {
+namespace adutils {
 
+    // data created by adicontroller namespace class
+    
     namespace v3 {
 
         class AcquiredConf {
@@ -48,15 +49,31 @@ namespace adicontroller {
                 std::string objtext;              // source text for create uuid
                 boost::uuids::uuid pobjid;
                 std::string dataInterpreterClsid;
-                std::shared_ptr< adicontroller::SignalObserver::Description > desc;
+                int trace_method;
+                int spectrometer;
+                std::string trace_id;
+                std::wstring trace_display_name;
+                std::wstring axis_label_x;
+                std::wstring axis_label_y;
+                int axis_decimals_x;
+                int axis_decimals_y;
             };
             
+            static bool insert( adfs::sqlite& dbf, const boost::uuids::uuid&& objid, const data& d );
+
             static bool insert( adfs::sqlite& dbf
                                 , const boost::uuids::uuid& objid
                                 , const std::string& objtext
                                 , const boost::uuids::uuid& parent_objid
                                 , const std::string& dataInterpreterClsid
-                                , const adicontroller::SignalObserver::Description& );
+                                , int trace_method
+                                , int spectrometer
+                                , const std::string& trace_id
+                                , const std::wstring& trace_display_name
+                                , const std::wstring& axis_label_x
+                                , const std::wstring& axis_label_y
+                                , int axis_decimals_x
+                                , int axis_decimals_y );
             
             static bool fetch( adfs::sqlite& dbf, std::vector< data >& );
             static bool create_table_v3( adfs::sqlite& db );

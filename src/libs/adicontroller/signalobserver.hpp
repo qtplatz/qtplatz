@@ -27,11 +27,13 @@
 #include "octet_array.hpp"
 #include "constants.hpp"
 #include "adicontroller_global.hpp"
+#include <adutils/acquiredconf_v3.hpp>
 #include <boost/any.hpp>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
+#include <compiler/pragma_warning.hpp>
 
 namespace boost { namespace uuids { struct uuid; } }
 
@@ -51,7 +53,7 @@ namespace adicontroller {
         // typedef std::vector < uint8_t > octet_array;
 
         struct ADICONTROLLERSHARED_EXPORT Description {
-
+            
             enum axis { axisX, axisY };
 
             Description();
@@ -82,22 +84,12 @@ namespace adicontroller {
             int32_t axis_decimals( axis ) const;
             void set_axis_decimals( axis, int32_t );
 
+            const adutils::v3::AcquiredConf& confData() const;
+
         private:
-            eTRACE_METHOD trace_method_;
-            eSPECTROMETER spectrometer_;
-#if defined _MSC_VER
-# pragma warning( push )
-# pragma warning( disable: 4251 )
-#endif            
-            std::string trace_id_;  // unique name for the trace, can be used as 'data storage name'
-            std::wstring trace_display_name_;
-            std::wstring axis_x_label_;
-            std::wstring axis_y_label_;
-#if defined _MSC_VER
-# pragma warning( pop )
-#endif            
-            int32_t axis_x_decimals_;
-            int32_t axis_y_decimals_;
+            pragma_msvc_warning_push_disable_4251
+            adutils::v3::AcquiredConf::data conf_;
+            pragma_msvc_warning_pop
         };
 
         class ADICONTROLLERSHARED_EXPORT DataReadBuffer : public std::enable_shared_from_this< DataReadBuffer > {
