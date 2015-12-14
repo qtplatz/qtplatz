@@ -128,7 +128,7 @@ namespace addatafile { namespace detail {
             apply_calibration( const std::wstring& clsid, const adcontrols::MSCalibrateResult& r ) : dataInterpreterClsid( clsid ), result( r ) {
             }
             template< typename T > bool operator()( T& rawdata ) const {
-                rawdata->applyCalibration( dataInterpreterClsid, result );
+                return rawdata->applyCalibration( dataInterpreterClsid, result );
             }
         };
 
@@ -155,9 +155,9 @@ datafile::accept( adcontrols::dataSubscriber& sub )
         // handle acquired raw data
         
         if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v2 ) {
-            rawdata_ = make_unique< v2::rawdata >( dbf_, *this );
+            rawdata_ = std::unique_ptr< v2::rawdata >( new v2::rawdata( dbf_, *this ) );
         } else if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v3 ) {
-            rawdata_ = make_unique< v3::rawdata >( dbf_, *this );
+            rawdata_ = std::unique_ptr< v3::rawdata >( new v3::rawdata( dbf_, *this ) );
         }
 
         // if ( rawdata_.which() == 0 ) {
