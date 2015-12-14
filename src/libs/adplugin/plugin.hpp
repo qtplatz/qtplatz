@@ -31,6 +31,8 @@
 #include <typeinfo>
 #include <compiler/pragma_warning.hpp>
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace adplugin {
 
     namespace internal { class manager_data; }
@@ -69,13 +71,10 @@ namespace adplugin {
         virtual const char * iid() const = 0;
         virtual const char * clsid() const { return clsid_.c_str(); }       // adplugin name
         virtual const char * adpluginspec() const { return spec_.c_str(); } // context of adplugin file (may be xml but may not be)
-        
+
+        template< typename T > T* factory( const boost::uuids::uuid&, const char * objtext );
+
         template<typename T> T* query_interface() {
-            // dynamic_cast across the shared object loaded by dlopen doesn't work even tried with
-            // QLibrary.setLoadHints(QLibrary::ResolveAllSymbolsHint| QLibrary::ExportExternalSymbolsHint)
-            // a.k.a. RTLD_NOW|RTLD_GLOBAL for dlopen
-            // This hit to a problem on Apple clang 4.0 based on LLVM 3.1svn
-            // 2013 Jun 1st, -toshi
             T* p( 0 );
             try { p = dynamic_cast<T*>( this ); } catch ( ... ) {}
             if ( !p )

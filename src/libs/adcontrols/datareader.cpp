@@ -1,15 +1,16 @@
+// -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
-** Contact: toshi.hondo@qtplatz.com
+** Contact: info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with
-** the Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -22,16 +23,25 @@
 **
 **************************************************************************/
 
-#include "acqrsinterpreter_global.hpp"
-#include "factory.hpp"
+#include "datareader.hpp"
 
-extern "C" {
-    DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
-}
+using namespace adcontrols;
 
-adplugin::plugin *
-adplugin_plugin_instance()
+DataReader::DataReader()
 {
-    return acqrsinterpreter::factory::instance();
 }
 
+DataReader::DataReader( adcontrols::datafile * datafile ) 
+{
+}
+
+DataReader::~DataReader()
+{
+}
+
+//static
+std::unique_ptr< DataReader >
+DataReader::make_reader( const boost::uuids::uuid&, const char * traceid )
+{
+    return 0;
+}

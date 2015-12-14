@@ -75,40 +75,9 @@ rawdata::db()
     return &dbf_.db();
 }
 
+// version 2 configuration
 bool
 rawdata::loadAcquiredConf()
-{
-    if ( configLoaded_ )
-        return true;
-
-    if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v2 )
-        return loadAcquiredConf_v2();
-    else
-        return loadAcquiredConf_v3();
-}
-
-bool
-rawdata::loadAcquiredConf_v3()
-{
-    if ( configLoaded_ )
-        return true;
-
-    v3::conf_vector_type conf_vector;
-    if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_vector ) && !conf_vector.empty() ) {
-        conf_vector_ = conf_vector;
-
-        for ( const auto& conf: conf_vector ) {
-            ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
-        }
-
-        return true;
-    }
-    
-    return false;
-}
-
-bool
-rawdata::loadAcquiredConf_v2()
 {
     if ( configLoaded_ )
         return true;
@@ -116,8 +85,6 @@ rawdata::loadAcquiredConf_v2()
     conf_.clear();
 
     if ( adutils::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
-
-        conf_vector_ = conf_; // duplicate for easy backword compatibility
 
         for ( const auto& conf: conf_ ) {
 

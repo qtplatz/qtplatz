@@ -16,14 +16,13 @@ endif()
 
 add_library( ${PROJECT_NAME}
   MODULE
-  acqrsinterpreter.cpp
-  acqrsinterpreter.hpp
-  massspectrometer.cpp 
-  datainterpreter.cpp
-  acqrsinterpreter.cpp
-  acqrsinterpreter.hpp
   acqrsinterpreter_global.hpp
+  factory.cpp
+  factory.hpp
+  acqrsinterpreter.cpp
+  massspectrometer.cpp 
   massspectrometer.hpp
+  datainterpreter.cpp
   datainterpreter.hpp
   )
 

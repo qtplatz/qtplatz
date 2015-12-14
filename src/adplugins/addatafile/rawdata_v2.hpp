@@ -48,9 +48,6 @@ namespace adcontrols {
 
 namespace addatafile {
 
-    namespace v2 { typedef adutils::AcquiredConf::data conf_type; typedef std::vector< conf_type > conf_vector_type; }
-    namespace v3 { typedef adutils::v3::AcquiredConf::data conf_type; typedef std::vector< conf_type > conf_vector_type; }
-
     namespace v2 {
 
         class rawdata : public adcontrols::LCMSDataset {
@@ -97,14 +94,10 @@ namespace addatafile {
             adcontrols::translate_state fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos
                                                        , adcontrols::MassSpectrum&, const std::wstring& traceId ) const;
 
-            bool loadAcquiredConf_v2();
-            bool loadAcquiredConf_v3();
-        
             adfs::filesystem& dbf_;
             adcontrols::datafile& parent_;
 
             std::vector< adutils::AcquiredConf::data > conf_;
-            boost::variant< v2::conf_vector_type, v3::conf_vector_type > conf_vector_;
         
             std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
             std::map< uint64_t, std::shared_ptr< adcontrols::MassSpectrometer > > spectrometers_; // objid,spectrometer

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,13 +22,45 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "factory.hpp"
+#include <adplugin/visitor.hpp>
 
-#include "acqrsinterpreter_global.hpp"
-#include <adcontrols/massspectrometer.hpp>
-#include <adplugin/plugin.hpp>
+namespace acqrsinterpreter {
 
-extern "C" {
-    ACQRSINTERPRETERSHARED_EXPORT adcontrols::MassSpectrometer * getMassSpectrometer();
-    ACQRSINTERPRETERSHARED_EXPORT adplugin::plugin * adplugin_plugin_instance();
+    std::shared_ptr< factory > factory::instance_;
+    
+}
+
+using namespace acqrsinterpreter;
+
+factory::~factory()
+{
+}
+
+factory::factory()
+{
+}
+
+factory *
+factory::instance()
+{
+    static std::once_flag flag;
+    std::call_once( flag, [](){
+            struct make_shared_enabler : public factory {};
+            instance_ = std::make_shared< make_shared_enabler >();
+        });
+
+    return instance_.get();
+}
+
+void
+factory::accept( adplugin::visitor& visitor, const char * adplugin )
+{
+    visitor.visit( this, adplugin );
+}
+
+const char *
+factory::iid() const
+{
+    return "";
 }

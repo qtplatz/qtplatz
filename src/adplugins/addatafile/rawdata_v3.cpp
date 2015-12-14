@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "rawdata_v3.hpp"
-#include <adinterface/signalobserver.hpp>
+#include <adicontroller/signalobserver.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
@@ -40,6 +40,7 @@
 #include <adcontrols/datainterpreter.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
+#include <adplugin_manager/manager.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/array_wrapper.hpp>
@@ -81,23 +82,9 @@ rawdata::loadAcquiredConf()
     if ( configLoaded_ )
         return true;
 
-    if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v2 )
-        return loadAcquiredConf_v2();
-    else
-        return loadAcquiredConf_v3();
-}
+    if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
 
-bool
-rawdata::loadAcquiredConf_v3()
-{
-    if ( configLoaded_ )
-        return true;
-
-    v3::conf_vector_type conf_vector;
-    if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_vector ) && !conf_vector.empty() ) {
-        conf_vector_ = conf_vector;
-
-        for ( const auto& conf: conf_vector ) {
+        for ( const auto& conf: conf_ ) {
             ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
         }
 
@@ -108,84 +95,10 @@ rawdata::loadAcquiredConf_v3()
 }
 
 bool
-rawdata::loadAcquiredConf_v2()
-{
-    if ( configLoaded_ )
-        return true;
-
-    conf_.clear();
-
-    if ( adutils::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
-
-        conf_vector_ = conf_; // duplicate for easy backword compatibility
-
-        for ( const auto& conf: conf_ ) {
-
-            if ( conf.trace_method == signalobserver::eTRACE_SPECTRA && conf.trace_id == L"MS.PROFILE" ) {
-                adfs::stmt sql( dbf_.db() );
-                if ( sql.prepare( "SELECT npos,fcn FROM AcquiredData WHERE oid = :oid" ) ) {
-                    sql.bind( 1 ) = conf.objid;
-                    int rep = 0;
-                    while ( sql.step() == adfs::sqlite_row ) {
-                        size_t pos = sql.get_column_value< uint64_t >(0);
-                        int fcn = int( sql.get_column_value< uint64_t >( 1 ) );
-                        if ( !fcnVec_.empty() && std::get<1>( fcnVec_.back() ) != fcn )
-                            rep = 0;
-                        fcnVec_.push_back( std::make_tuple( pos, fcn, rep++ ) );
-
-                        // fcnIdx_ := fcn[pos] mapping table
-                        if ( fcnIdx_.empty() )
-                            fcnIdx_.push_back( std::make_pair( pos, fcn ) );
-
-                        if ( fcnIdx_.back().second != fcn )
-                            fcnIdx_.push_back( std::make_pair( pos, fcn ) );
-                    }
-                }
-            }
-
-            if ( conf.trace_method == signalobserver::eTRACE_TRACE // timed trace := chromatogram
-                 && conf.trace_id == L"MS.TIC" ) {
-                
-                adcontrols::TraceAccessor accessor;
-
-                if ( auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid ) ) {
-
-                    if ( fetchTraces( conf.objid, spectrometer->getDataInterpreter(), accessor ) ) {
-                        for ( int fcn = 0; unsigned(fcn) < accessor.nfcn(); ++fcn ) {
-                        
-                            std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
-                            cptr->addDescription( adcontrols::description( L"create",  conf.trace_display_name ) );
-                            accessor.copy_to( *cptr, fcn );
-                            cptr->setFcn( fcn );
-                            tic_.push_back( cptr );
-                            if ( const double * times = cptr->getTimeArray() ) {
-                                for ( size_t i = 0; i < cptr->size(); ++i )
-                                    times_.push_back( std::make_pair( times[i], fcn ) );
-                            }
-                        }
-                    }
-                }
-                else {
-                    std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
-                    cptr->addDescription( adcontrols::description( L"create", conf.trace_display_name ) );
-                    tic_.push_back( cptr ); // add empty chromatogram for dieplay titiles
-                    undefined_spectrometers_.push_back( conf.dataInterpreterClsid );
-                }
-                std::sort( times_.begin(), times_.end()
-                           , []( const std::pair<double, int>& a, const std::pair<double,int>&b ){ return a.first < b.first; });
-            }
-
-        }
-        configLoaded_ = true;
-        return true;
-    }
-    return false;
-}
-
-bool
 rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibResult )
 {
-    uint64_t objid = 1;
+#if 0
+    boost::uuids::uuid objid;
     
     auto it = std::find_if( conf_.begin(), conf_.end(), [=](const adutils::AcquiredConf::data& c){
             return c.dataInterpreterClsid == dataInterpreterClsid;
@@ -195,25 +108,18 @@ rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcon
         objid = it->objid;
     else {
         if ( conf_.empty() ) 
-            adutils::AcquiredConf::create_table( dbf_.db() );
-		adutils::AcquiredConf::data d;
+            adutils::v3::AcquiredConf::create_table_v3( dbf_.db() );
+        adutils::v3::AcquiredConf::data d;
 		d.objid = objid;
-		d.pobjid = 0;
-		d.dataInterpreterClsid = dataInterpreterClsid;
-		if ( ! adutils::AcquiredConf::insert( dbf_.db(), d ) )
+        d.dataInterpreterClsid.resize( dataInterpreterClsid.size() );
+        std::copy( dataInterpreterClsid.begin(), dataInterpreterClsid.end(), d.dataInterpreterClsid.begin() );
+        if ( !adutils::v3::AcquiredConf::insert( dbf_.db(), objid, d ) )
             return false;
     }
 
 	const std::wstring calibId = calibResult.calibration().calibId();
     std::string device;
     if ( adportable::binary::serialize<>()(calibResult, device) ) {
-        adutils::mscalibio::writeCalibration( dbf_.db(), uint32_t( objid ), calibId.c_str(), calibResult.dataClass(), device.data(), device.size() );
-        loadAcquiredConf();
-        loadCalibrations();
-        return true;
-    }
-#if 0 // deprecated
-    if ( adportable::serializer< adcontrols::MSCalibrateResult >::serialize( calibResult, device ) ) {
         adutils::mscalibio::writeCalibration( dbf_.db(), uint32_t( objid ), calibId.c_str(), calibResult.dataClass(), device.data(), device.size() );
         loadAcquiredConf();
         loadCalibrations();
@@ -226,6 +132,7 @@ rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcon
 void
 rawdata::loadCalibrations()
 {
+#if 0
     // using adportable::serializer;
     using adcontrols::MSCalibrateResult;
 
@@ -246,11 +153,13 @@ rawdata::loadCalibrations()
                 }
             }
         });
+#endif
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >
 rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterClsid )
 {
+#if 0
     auto it = spectrometers_.find( objid );
     if ( it == spectrometers_.end() ) {
 		if ( auto ptr = adcontrols::MassSpectrometer::create( dataInterpreterClsid.c_str(), &parent_ ) ) {
@@ -263,6 +172,8 @@ rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterCls
 		}
     }
     return it->second;
+#endif
+    return 0;
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >
@@ -274,8 +185,9 @@ rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterCls
 size_t
 rawdata::getSpectrumCount( int fcn ) const
 {
+#if 0
 	auto it = std::find_if( conf_.begin(), conf_.end(), []( const adutils::AcquiredConf::data& c ){
-            return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+            return c.trace_method == adicontroller::SignalObserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
         });
     if ( it != conf_.end() ) {
         adfs::stmt sql( dbf_.db() );
@@ -286,21 +198,22 @@ rawdata::getSpectrumCount( int fcn ) const
                 return static_cast< size_t >( sql.get_column_value<int64_t>( 0 ) );
         }
     }
+#endif
     return 0;
 }
 
 bool
 rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
+#if 0    
     auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
             if ( objid == 0 )
-                return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+                return c.trace_method == adicontroller::SignalObserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
             else
                 return c.objid == objid;
         });
     if ( it == conf_.end() )
         return false;
-    
     adcontrols::translate_state state;
     uint64_t npos = npos0_ + pos;
 
@@ -337,6 +250,8 @@ rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_
         return state == adcontrols::translate_complete;
     
     return state == adcontrols::translate_complete || state == adcontrols::translate_indeterminate;
+#endif
+    return true;
 }
 
 bool
@@ -504,9 +419,9 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
     (void)begPos;
     (void)endPos;
     result.clear();
-    
+#if 0    
 	auto it = std::find_if( conf_.begin(), conf_.end(), []( const adutils::AcquiredConf::data& c ){
-            return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";  });
+        return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";  } );
     
 	if ( it == conf_.end() )
         return false;
@@ -597,6 +512,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
             return true;
         }
     }
+#endif
     return true;
 }
 
@@ -681,18 +597,23 @@ rawdata::fetchSpectrum( int64_t objid
 bool
 rawdata::hasProcessedSpectrum( int, int ) const
 {
+#if 0
     return std::find_if( conf_.begin(), conf_.end()
                          , [](const adutils::AcquiredConf::data& d){ return d.trace_id == L"MS.CENTROID"; }) 
         != conf_.end();
+#endif
+    return false;
 }
 
 uint32_t
 rawdata::findObjId( const std::wstring& traceId ) const
 {
+#if 0
     auto it =
         std::find_if( conf_.begin(), conf_.end(), [=](const adutils::AcquiredConf::data& d ){ return d.trace_id == traceId; });
     if ( it != conf_.end() )
         return uint32_t(it->objid);
+#endif
     return 0;
 }
 
@@ -735,7 +656,7 @@ bool
 rawdata::mslocker( adcontrols::lockmass& mslk, uint32_t objid ) const
 {
     return false;
-
+#if 0
     if ( objid == 0 ) {
         auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
                 return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
@@ -752,4 +673,5 @@ rawdata::mslocker( adcontrols::lockmass& mslk, uint32_t objid ) const
             return interpreter.lockmass( mslk );
     }
     return false;
+#endif
 }

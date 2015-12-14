@@ -22,16 +22,36 @@
 **
 **************************************************************************/
 
+#pragma once
+
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometer_factory.hpp>
+#include <adplugin/plugin.hpp>
+#include <memory>
+#include <atomic>
+#include <mutex>
 #include "acqrsinterpreter_global.hpp"
-#include "factory.hpp"
 
-extern "C" {
-    DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
+namespace acqrsinterpreter {
+
+    class factory : public adplugin::plugin {
+
+        factory( const factory& ) = delete;
+        const factory& operator = ( const factory& ) = delete;
+        factory();
+    public:
+        ~factory();
+
+        static factory * instance();
+
+        void accept( adplugin::visitor&, const char * adplugin ) override;
+        const char * iid() const override;
+
+    private:
+        class impl;
+        static std::shared_ptr< factory > instance_;    // adplugin::plugin require make_shared
+    };
+
 }
 
-adplugin::plugin *
-adplugin_plugin_instance()
-{
-    return acqrsinterpreter::factory::instance();
-}
 
