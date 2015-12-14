@@ -74,10 +74,13 @@ namespace addatafile {
         bool mounted_;
         std::wstring filename_;
         adfs::filesystem dbf_;
+        
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
         
-        boost::variant< std::shared_ptr< v2::rawdata >, std::shared_ptr< v3::rawdata > > rawdata_;
+        boost::variant< std::unique_ptr< v2::rawdata >, std::unique_ptr< v3::rawdata > > rawdata_;
+        
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > calibrations_; // mode, calibration pair
+        
         bool calibration_modified_;
     };
 

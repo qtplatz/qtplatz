@@ -103,28 +103,32 @@ namespace addatafile { namespace detail {
         };
 
         struct is_valid_rawdata : public boost::static_visitor < bool > {
-            bool operator()( std::unique_ptr< addatafile::v2::rawdata >& t ) {
-                return true;
-            }
-            bool operator()( std::unique_ptr< addatafile::v3::rawdata >& t ) {
-                return true;
-            }
-            //template<typename T> bool operator()( T& t ) const { return t.get() != nullptr; }
+            template<typename T> bool operator()( T& t ) const { return t.get() != nullptr; }
         };
 
         struct subscribe_rawdata : boost::static_visitor < void > {
-            template<typename T, typename Subscriber = adcontrols::dataSubscriber > void operator()( T& t, Subscriber& sub ) const {
+            adcontrols::dataSubscriber& subscriber_;
+            subscribe_rawdata( adcontrols::dataSubscriber& t ) : subscriber_( t ) {}
+            template<typename T> void operator()( T& t ) const {
                 t->loadAcquiredConf();
-                sub.subscribe( *t );
+                subscriber_.subscribe( *t );
                 t->loadCalibrations();
             }
         };
 
-        struct undefined_spectrometers : boost::static_visitor<void> {
-            std::wostringstream& o_;
-            template<typename T> void operator()( T& t ) const {
-                for ( auto& s : t->undefined_spectrometers() )
-                    o_ << s << L"\r";
+        struct undefined_spectrometers : boost::static_visitor< std::vector< std::wstring > > {
+            template<typename T, typename Stream = std::wostringstream > const std::vector< std::wstring > operator()( T& t ) const {
+                return t->undefined_spectrometers();
+            }
+        };
+
+        struct apply_calibration : boost::static_visitor< bool > {
+            const std::wstring& dataInterpreterClsid;
+            const adcontrols::MSCalibrateResult& result;
+            apply_calibration( const std::wstring& clsid, const adcontrols::MSCalibrateResult& r ) : dataInterpreterClsid( clsid ), result( r ) {
+            }
+            template< typename T > bool operator()( T& rawdata ) const {
+                rawdata->applyCalibration( dataInterpreterClsid, result );
             }
         };
 
@@ -151,46 +155,38 @@ datafile::accept( adcontrols::dataSubscriber& sub )
         // handle acquired raw data
         
         if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v2 ) {
-            rawdata_ = std::make_shared< v2::rawdata >( dbf_, *this );
+            rawdata_ = make_unique< v2::rawdata >( dbf_, *this );
         } else if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v3 ) {
-            rawdata_ = std::make_shared< v3::rawdata >( dbf_, *this );
+            rawdata_ = make_unique< v3::rawdata >( dbf_, *this );
         }
 
-        if ( rawdata_.which() == 0 ) {
-            auto rawdata = boost::get< std::shared_ptr<v2::rawdata> >( rawdata_ );
-            rawdata->loadAcquiredConf();
-            sub.subscribe( *rawdata );
-            rawdata->loadCalibrations();
+        // if ( rawdata_.which() == 0 ) {
+        //     auto rawdata = boost::get< std::shared_ptr<v2::rawdata> >( rawdata_ );
+        //     rawdata->loadAcquiredConf();
+        //     sub.subscribe( *rawdata );
+        //     rawdata->loadCalibrations();
 
-            if ( ! rawdata->undefined_spectrometers().empty() ) {
+        //     if ( ! rawdata->undefined_spectrometers().empty() ) {
+        //         std::wostringstream o;
+        //         for ( auto& s : rawdata->undefined_spectrometers() )
+        //             o << s << L"\r";
+        //         sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() );                
+        //     }
+        // }
+
+        if ( boost::apply_visitor( detail::is_valid_rawdata(), rawdata_ ) ) {
+            
+            boost::apply_visitor( detail::subscribe_rawdata( sub ), rawdata_ );
+
+            auto undefined_spectrometers = boost::apply_visitor( detail::undefined_spectrometers(), rawdata_ );
+            
+            if ( ! undefined_spectrometers.empty() ) {
                 std::wostringstream o;
-                for ( auto& s : rawdata->undefined_spectrometers() )
-                    o << s << L"\r";
-                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() );                
+                for ( auto& t: undefined_spectrometers )
+                    o << t << L"\r";
+                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() );
             }
         }
-#if 0        
-        detail::is_valid_rawdata x;
-        boost::apply_visitor( x( rawdata_ ) );
-        boost::apply_visitor( detail::is_valid_rawdata()( rawdata_ ) );
-
-            boost::apply_visitor( detail::subscribe_rawdata()( rawdata_, sub ) );
-
-            std::vector< std::wstring > undefined_spectrometers;
-            // publish acquired dataset <LCMSDataset>
-        
-            //if ( rawdata_->loadAcquiredConf() )
-            //sub.subscribe( *rawdata_ );
-        
-            //rawdata_->loadCalibrations();
-
-            std::wostringstream o;
-            boost::apply_visitor( undefined_spectrometers( o )( rawdata_ ) );
-
-            if ( !o.str().empty() )
-                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() );
-        }
-#endif
     }
     
     do {
@@ -427,11 +423,12 @@ datafile::removeContents( const std::vector< std::string >& dataids )
 bool
 datafile::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& result )
 {
-    if ( rawdata_.which() == 0 ) {
-        if ( auto rawdata = boost::get< std::shared_ptr< v2::rawdata > >( rawdata_ ) )
-            rawdata->applyCalibration( dataInterpreterClsid, result );
-    }
-    return true;
+    return boost::apply_visitor( detail::apply_calibration( dataInterpreterClsid, result ), rawdata_ );
+    // if ( rawdata_.which() == 0 ) {
+    //     if ( auto rawdata = boost::get< std::shared_ptr< v2::rawdata > >( rawdata_ ) )
+    //         rawdata->applyCalibration( dataInterpreterClsid, result );
+    // }
+    // return true;
 }
 
 bool
