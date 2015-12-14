@@ -24,7 +24,7 @@
 
 #include "datainterpreter.hpp"
 
-using namespace u5303aspectrometer;
+using namespace acqrsinterpreter;
 
 DataInterpreter::~DataInterpreter()
 {

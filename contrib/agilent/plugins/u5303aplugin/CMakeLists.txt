@@ -96,7 +96,6 @@ target_link_libraries(
   Core
   u5303a
   acqrscontrols
-  u5303aspectrometer
   ${Boost_LIBRARIES}
   )
 

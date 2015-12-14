@@ -24,6 +24,7 @@
 
 #include "acquiredconf_v3.hpp"
 #include <adfs/sqlite.hpp>
+#include <adportable/debug.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <cassert>
 #include <typeinfo>
@@ -192,16 +193,6 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
 {
     adfs::stmt sql( db );
 
-    bool isV3( false );
-    if ( sql.prepare( "PRAGMA TABLE_INFO(AcquiredConf)" ) ) {
-        while ( sql.step() == adfs::sqlite_row ) {
-            if ( sql.get_column_value< std::string >( 1 ) == "objuuid" )
-                isV3 = true;
-        }
-        sql.reset();
-    }
-    return false;
-    
     if ( sql.prepare(
              "SELECT objuuid, objtext, pobjuuid, dataInterpreterClsid, trace_method, spectrometer,\
  trace_id, trace_display_name, axis_x_label, axis_y_label, axis_x_decimals, axis_y_decimals FROM AcquiredConf" ) ) {
@@ -223,8 +214,9 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
                 d.axis_decimals_x = int32_t( sql.get_column_value<int64_t>( col++ ) );
                 d.axis_decimals_y = int32_t( sql.get_column_value<int64_t>( col++ ) );
 
-            } catch ( std::bad_cast& ) {
-                // ignore
+            } catch ( std::bad_cast& ex ) {
+                ADDEBUG() << ex.what();
+                return false;
             }
             vec.push_back( d );
         }

@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
@@ -22,18 +22,15 @@
 **
 **************************************************************************/
 
-#include "u5303aspectrometer.hpp"
-#include "massspectrometer.hpp"
+#ifndef U5303ASPECTROMETER_GLOBAL_HPP
+#define U5303ASPECTROMETER_GLOBAL_HPP
 
-adcontrols::MassSpectrometer *
-getMassSpectrometer()
-{
-    return u5303aspectrometer::MassSpectrometer::instance();
-}
+#include <compiler/decl_export.h>
 
-adplugin::plugin *
-adplugin_plugin_instance()
-{
-	return u5303aspectrometer::MassSpectrometer::instance();
-}
+#if defined(ACQRSINTERPRETER_LIBRARY)
+#  define ACQRSINTERPRETERSHARED_EXPORT DECL_EXPORT
+#else
+#  define ACQRSINTERPRETERSHARED_EXPORT DECL_IMPORT
+#endif
 
+#endif // U5303ASPECTROMETER_GLOBAL_HPP

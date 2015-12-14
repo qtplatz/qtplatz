@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include "u5303aspectrometer_global.hpp"
+#include "acqrsinterpreter_global.hpp"
 #include <adcontrols/massspectrometer.hpp>
 #include <adplugin/plugin.hpp>
 
 extern "C" {
-    U5303ASPECTROMETERSHARED_EXPORT adcontrols::MassSpectrometer * getMassSpectrometer();
-    U5303ASPECTROMETERSHARED_EXPORT adplugin::plugin * adplugin_plugin_instance();
+    ACQRSINTERPRETERSHARED_EXPORT adcontrols::MassSpectrometer * getMassSpectrometer();
+    ACQRSINTERPRETERSHARED_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }

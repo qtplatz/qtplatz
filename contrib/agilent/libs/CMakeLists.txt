@@ -8,5 +8,5 @@ if ( NOT CMAKE_CROSSCOMPILING )
   add_subdirectory( acqrswidgets )  # Qt GUI
 endif()
 
-add_subdirectory( u5303aspectrometer )
+add_subdirectory( acqrsinterpreter )
 add_subdirectory( acqrscontrols )

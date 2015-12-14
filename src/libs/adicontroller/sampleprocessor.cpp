@@ -178,12 +178,11 @@ void
 SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserver::DataReadBuffer& rdBuf )
 {
     if ( rdBuf.events() & SignalObserver::wkEvent_INJECT ) {
-        ts_inject_trigger_ = rdBuf.timepoint(); // uptime;
+        ts_inject_trigger_ = rdBuf.epoch_time();
         tp_inject_trigger_ = std::chrono::steady_clock::now(); // CAUTION: this has some unknown delay from exact trigger.
         //if ( !inProgress_ )
         //    Logging( L"Sample '%1%' got an INJECTION", EventLog::pri_INFO ) % storage_name_.wstring();
 		inProgress_ = true;
-        //iTask::instance()->notify_inject( this, objId, pos, rdBuf.uptime );
     }
 
     ADDEBUG() << "SampleProcessor::handle_data progress=" << inProgress_;
@@ -300,21 +299,13 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
 {
     auto vec = parent->siblings();
 
-    //for ( CORBA::ULong i = 0; i < vec->length(); ++i ) {
     for ( auto observer : vec ) {
 
-        
         if ( auto clsid = observer->dataInterpreterClsid() ) {
-            auto objid = observer->objid();
-            auto desc = observer->description();
-            auto trace_id = desc.trace_id();
-            auto trace_display_name = desc.trace_display_name();
-            auto axis_x_label = desc.axis_label( SignalObserver::Description::axisX );
-            auto axis_y_label = desc.axis_label( SignalObserver::Description::axisY );
 
             adutils::v3::AcquiredConf::insert( fs_->db()
                                                , observer->objid()
-                                               , desc.data() );
+                                               , observer->description().data() );
         }
         populate_descriptions( observer.get() );
     }

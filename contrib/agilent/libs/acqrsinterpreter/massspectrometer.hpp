@@ -30,19 +30,19 @@
 #include <memory>
 #include <atomic>
 #include <mutex>
-#include "u5303aspectrometer_global.hpp"
+#include "acqrsinterpreter_global.hpp"
 
-namespace u5303aspectrometer {
+namespace acqrsinterpreter {
 
     class ScanLaw;
     class DataInterpreter;
 
-    class U5303ASPECTROMETERSHARED_EXPORT MassSpectrometer : public adcontrols::MassSpectrometer
-                                                           , public adcontrols::massspectrometer_factory
-                                                           , public adplugin::plugin {
-
+    class ACQRSINTERPRETERSHARED_EXPORT MassSpectrometer : public adcontrols::MassSpectrometer
+                                                         , public adcontrols::massspectrometer_factory
+                                                         , public adplugin::plugin {
         MassSpectrometer();
     public:
+
         ~MassSpectrometer();
         MassSpectrometer( adcontrols::datafile * );
 

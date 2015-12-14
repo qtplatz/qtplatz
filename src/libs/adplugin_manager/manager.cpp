@@ -78,42 +78,60 @@ namespace adplugin {
     public:
         plugin_data() {
         }
+
         plugin_data( adplugin::plugin_ptr ptr ) : plugin_( ptr ) {
         }
+
         plugin_data( const plugin_data& t ) : plugin_( t.plugin_ ) {
         }
+
         const char * clsid() const { 
             return plugin_->clsid();
         }
+
         const char * iid() const { 
             return plugin_->iid(); 
         }
+
         adplugin::plugin_ptr plugin() const { return plugin_; }
+
         adplugin::plugin * p() { return plugin_.get(); }
+
         bool operator == ( const adplugin::plugin& t ) const {
             if ( plugin_.get() == &t ) // equal address
                 return true;
             return ( plugin_->clsid() == t.clsid() &&  plugin_->iid() == t.iid() );
         }
+
     };
 
     class manager::data : adplugin::visitor {
+
         data( const data& ) = delete;
         data& operator = ( const data& ) = delete;
+
     public:
         virtual ~data() {}
         data() {}
+        
         typedef std::map< std::string, plugin_data > map_type;
         typedef std::vector< plugin_data > vector_type;
+
         bool install( QLibrary&, const std::string& adpluginspec, const std::string& context );
+
         void populated();
+
         plugin_ptr select_iid( const char * regex );
+
         plugin_ptr select_clsid( const char * regex );
+
         size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
+
         size_t select_clsids( const char * regex, std::vector< plugin_ptr >& );
         
         // visitor 
         void visit( adplugin::plugin * plugin, const char * adpluginspec );
+        
     private:
         map_type plugins_;
         vector_type additionals_; // if shared-object contains more than two plugins
@@ -150,7 +168,10 @@ manager::install( QLibrary& lib, const std::string& adpluginspec )
 {
     std::ostringstream s;
     std::ifstream inf( adpluginspec.c_str() );
+
+    // read contents of .adplugin file
     std::copy( std::istreambuf_iterator<char>(inf), std::istreambuf_iterator<char>(), std::ostreambuf_iterator<char>(s) );
+
     return d_->install( lib, adpluginspec, s.str() );
 }
 

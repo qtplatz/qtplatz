@@ -29,13 +29,13 @@
 #include <memory>
 #include <string>
 #include <typeinfo>
+#include <compiler/pragma_warning.hpp>
 
 namespace adplugin {
 
     namespace internal { class manager_data; }
 
     class visitor;
-    class orbFactory;
     class plugin;
 
 #if defined _MSC_VER
@@ -48,16 +48,12 @@ namespace adplugin {
 
         plugin( const plugin& ) = delete;
         plugin& operator = ( const plugin& ) = delete;
-        
-#if defined _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4251)
-#endif
+
+        pragma_msvc_warning_push_disable_4251
         std::string clsid_;  // full path to .adplugin
         std::string spec_;   // context of .adplugin
-#if defined _MSC_VER
-# pragma warning(pop)
-#endif
+        pragma_msvc_warning_pop
+
         virtual void * query_interface_workaround( const char * /* typename */ ) { return 0; }
 
     public:
@@ -69,14 +65,11 @@ namespace adplugin {
         std::shared_ptr< plugin > pThis();
         std::shared_ptr< const plugin > pThis() const;
 
-        // virtual void add_ref();
-        // virtual void release();
-
         virtual void accept( visitor&, const char * adplugin ) = 0;
         virtual const char * iid() const = 0;
         virtual const char * clsid() const { return clsid_.c_str(); }       // adplugin name
         virtual const char * adpluginspec() const { return spec_.c_str(); } // context of adplugin file (may be xml but may not be)
-
+        
         template<typename T> T* query_interface() {
             // dynamic_cast across the shared object loaded by dlopen doesn't work even tried with
             // QLibrary.setLoadHints(QLibrary::ResolveAllSymbolsHint| QLibrary::ExportExternalSymbolsHint)

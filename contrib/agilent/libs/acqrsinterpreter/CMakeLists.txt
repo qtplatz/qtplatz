@@ -1,7 +1,7 @@
-cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
+cmake_policy( SET CMP0020 NEW )
 
-project( addatafile )
+project( acqrsinterpreter )
 
 set( PROVIDER MS-Cheminformatics )
 
@@ -10,35 +10,29 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   )
 
-add_definitions(-DADDATAFILE_LIBRARY)
+if ( MSVC )
+  add_definitions(-DACQRSINTERPRETER_LIBRARY -D_SCL_SECURE_NO_WARNINGS -wd4996 )
+endif()
 
-add_library( addatafile MODULE 
-  addatafile.cpp
-  datafile.cpp
-  datafile_factory.cpp
-  rawdata_v2.cpp
-  rawdata_v2.hpp
-  rawdata_v3.cpp
-  rawdata_v3.hpp
-  addatafile.hpp
-  addatafile_global.h
-  datafile.hpp
-  datafile_factory.hpp
+add_library( ${PROJECT_NAME}
+  MODULE
+  acqrsinterpreter.cpp
+  acqrsinterpreter.hpp
+  massspectrometer.cpp 
+  datainterpreter.cpp
+  acqrsinterpreter.cpp
+  acqrsinterpreter.hpp
+  acqrsinterpreter_global.hpp
+  massspectrometer.hpp
+  datainterpreter.hpp
   )
 
-target_link_libraries( addatafile LINK_PUBLIC
-  ${Boost_LIBRARIES}
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adplugin
-  acewrapper
-  adcontrols
-  adlog
-  adfs
   adportable
-  adutils
-  portfolio
-  xmlparser
-  adplugin
-)
+  adcontrols
+  acewrapper
+  )
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES

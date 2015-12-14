@@ -29,7 +29,7 @@
 #include <adplugin/visitor.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 
-namespace u5303aspectrometer {
+namespace acqrsinterpreter {
 
     // base class in adcontrols/massspectrometer.hpp
 
@@ -62,7 +62,7 @@ namespace u5303aspectrometer {
 
 }
 
-using namespace u5303aspectrometer;
+using namespace acqrsinterpreter;
 
 std::atomic< MassSpectrometer * > MassSpectrometer::instance_( 0 );
 std::mutex MassSpectrometer::mutex_;

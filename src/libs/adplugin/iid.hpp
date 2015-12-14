@@ -1,9 +1,10 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013 MS-Cheminformatics LLC
+** Advanced Instrumentation Project
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@scienceliaison.com
 **
 ** Commercial Usage
 **
@@ -25,19 +26,17 @@
 
 #pragma once
 
-#include "adplugin_global.h"
-#include <memory>
-
-#pragma once
-
 namespace adplugin {
 
-    class plugin;
+    namespace iid {
 
-    typedef std::shared_ptr< plugin > plugin_ptr;
+        const char * const iid_massspectrometer = "adplugins.massSpectrometer"; // "[clsid].adplugin.massSpectrometer.[provider]"
 
-    typedef std::shared_ptr< const plugin > const_plugin_ptr;
+        const char * const iid_datafile_factory = "adplugins.datafile_factory"; // "[clsid].adplugin.dataInterpreter.[provider]"
 
+        const char * const iid_datainterpreter  = "adplugins.dataInterpreter";  // "[clsid].adplugin.dataInterpreter.[provider]"
+
+    }
 }
 
 

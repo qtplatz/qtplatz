@@ -35,6 +35,8 @@ namespace adfs { class sqlite; }
 
 namespace adutils {
 
+    enum AcquiredFormatVersion { format_v2, format_v3 };
+
     class AcquiredConf {
     public:
         AcquiredConf();
@@ -83,6 +85,7 @@ namespace adutils {
                             , uint32_t axis_x_decimals
                             , uint32_t axis_y_decimale );
         
+        static AcquiredFormatVersion formatVersion( adfs::sqlite& dbf );
 
         static bool insert( adfs::sqlite& dbf, const data& );
 

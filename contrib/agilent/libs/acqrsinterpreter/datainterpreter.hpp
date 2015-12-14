@@ -31,7 +31,7 @@ namespace adcontrols {
     class TraceAccessor;
 }
 
-namespace u5303aspectrometer {
+namespace acqrsinterpreter {
 
     class DataInterpreter : public adcontrols::DataInterpreter {
     public:

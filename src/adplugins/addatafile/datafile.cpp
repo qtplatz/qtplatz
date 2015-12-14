@@ -25,7 +25,8 @@
 #include <compiler/disable_unused_parameter.h>
 #include "datafile.hpp"
 #include <adutils/cpio.hpp>
-#include "rawdata.hpp"
+#include "rawdata_v2.hpp"
+#include "rawdata_v3.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datapublisher.hpp>
@@ -59,6 +60,7 @@
 #include <adutils/fsio.hpp>
 #include <algorithm>
 #include <iostream>
+#include <compiler/make_unique.hpp>
 
 /////////////////
 namespace addatafile { namespace detail {
@@ -100,7 +102,34 @@ namespace addatafile { namespace detail {
             }
         };
 
-}
+        struct is_valid_rawdata : public boost::static_visitor < bool > {
+            bool operator()( std::unique_ptr< addatafile::v2::rawdata >& t ) {
+                return true;
+            }
+            bool operator()( std::unique_ptr< addatafile::v3::rawdata >& t ) {
+                return true;
+            }
+            //template<typename T> bool operator()( T& t ) const { return t.get() != nullptr; }
+        };
+
+        struct subscribe_rawdata : boost::static_visitor < void > {
+            template<typename T, typename Subscriber = adcontrols::dataSubscriber > void operator()( T& t, Subscriber& sub ) const {
+                t->loadAcquiredConf();
+                sub.subscribe( *t );
+                t->loadCalibrations();
+            }
+        };
+
+        struct undefined_spectrometers : boost::static_visitor<void> {
+            std::wostringstream& o_;
+            template<typename T> void operator()( T& t ) const {
+                for ( auto& s : t->undefined_spectrometers() )
+                    o_ << s << L"\r";
+            }
+        };
+
+    }
+
 }
 
 using namespace addatafile;
@@ -109,48 +138,76 @@ datafile::~datafile()
 {
 }
 
-datafile::datafile() : mounted_(false)
-                     , rawdata_( new rawdata( dbf_, *this ) )
+datafile::datafile() : mounted_( false )
 {
+    //, rawdata_( new rawdata( dbf_, *this ) )
 }
 
 void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
     if ( mounted_ ) {
-        do {
+
+        // handle acquired raw data
+        
+        if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v2 ) {
+            rawdata_ = std::make_shared< v2::rawdata >( dbf_, *this );
+        } else if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v3 ) {
+            rawdata_ = std::make_shared< v3::rawdata >( dbf_, *this );
+        }
+
+        if ( rawdata_.which() == 0 ) {
+            auto rawdata = boost::get< std::shared_ptr<v2::rawdata> >( rawdata_ );
+            rawdata->loadAcquiredConf();
+            sub.subscribe( *rawdata );
+            rawdata->loadCalibrations();
+
+            if ( ! rawdata->undefined_spectrometers().empty() ) {
+                std::wostringstream o;
+                for ( auto& s : rawdata->undefined_spectrometers() )
+                    o << s << L"\r";
+                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() );                
+            }
+        }
+#if 0        
+        detail::is_valid_rawdata x;
+        boost::apply_visitor( x( rawdata_ ) );
+        boost::apply_visitor( detail::is_valid_rawdata()( rawdata_ ) );
+
+            boost::apply_visitor( detail::subscribe_rawdata()( rawdata_, sub ) );
+
             std::vector< std::wstring > undefined_spectrometers;
             // publish acquired dataset <LCMSDataset>
-
-            if ( rawdata_->loadAcquiredConf() )
-                sub.subscribe( *rawdata_ );
-
-            rawdata_->loadCalibrations();
-
-            if ( !rawdata_->undefined_spectrometers().empty() ) {
-                std::wostringstream o;
-                for ( auto& s: rawdata_->undefined_spectrometers() )
-                    o << L"\r" << s;
-                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() + 1 ); // remove first '\r';
-            }
-        } while (0);
         
-        do {
-            // publish processed dataset
-            portfolio::Portfolio portfolio;
-            if ( loadContents( portfolio, L"/Processed" ) && processedDataset_ ) {
-                processedDataset_->xml( portfolio.xml() );
-                sub.subscribe( *processedDataset_ );
-            } else {
-				portfolio.create_with_fullpath( filename_ );
-				portfolio.addFolder( L"Chromatograms" );
-				portfolio.addFolder( L"Spectra" );
-				processedDataset_->xml( portfolio.xml() );
-				sub.subscribe( *processedDataset_ );
-			}
+            //if ( rawdata_->loadAcquiredConf() )
+            //sub.subscribe( *rawdata_ );
+        
+            //rawdata_->loadCalibrations();
 
-        } while (0);
+            std::wostringstream o;
+            boost::apply_visitor( undefined_spectrometers( o )( rawdata_ ) );
+
+            if ( !o.str().empty() )
+                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() );
+        }
+#endif
     }
+    
+    do {
+        // publish processed dataset
+        portfolio::Portfolio portfolio;
+        if ( loadContents( portfolio, L"/Processed" ) && processedDataset_ ) {
+            processedDataset_->xml( portfolio.xml() );
+            sub.subscribe( *processedDataset_ );
+        } else {
+            portfolio.create_with_fullpath( filename_ );
+            portfolio.addFolder( L"Chromatograms" );
+            portfolio.addFolder( L"Spectra" );
+            processedDataset_->xml( portfolio.xml() );
+            sub.subscribe( *processedDataset_ );
+        }
+        
+    } while (0);
 }
 
 bool
@@ -370,8 +427,10 @@ datafile::removeContents( const std::vector< std::string >& dataids )
 bool
 datafile::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& result )
 {
-    if ( rawdata_ )
-        rawdata_->applyCalibration( dataInterpreterClsid, result );
+    if ( rawdata_.which() == 0 ) {
+        if ( auto rawdata = boost::get< std::shared_ptr< v2::rawdata > >( rawdata_ ) )
+            rawdata->applyCalibration( dataInterpreterClsid, result );
+    }
     return true;
 }
 

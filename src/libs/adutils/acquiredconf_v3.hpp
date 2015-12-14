@@ -76,6 +76,7 @@ namespace adutils {
                                 , int axis_decimals_y );
             
             static bool fetch( adfs::sqlite& dbf, std::vector< data >& );
+
             static bool create_table_v3( adfs::sqlite& db );
         };
 

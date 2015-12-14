@@ -28,6 +28,7 @@
 
 #include <adcontrols/datafile.hpp>
 #include <adfs/adfs.hpp>
+#include <boost/variant.hpp>
 #include <memory>
 
 namespace adcontrols {
@@ -41,7 +42,8 @@ namespace portfolio { class Portfolio; }
 
 namespace addatafile {
 
-    class rawdata;
+    namespace v2 { class rawdata; }
+    namespace v3 { class rawdata; }
 
     class datafile : public adcontrols::datafile {
     public:
@@ -73,7 +75,8 @@ namespace addatafile {
         std::wstring filename_;
         adfs::filesystem dbf_;
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
-        std::unique_ptr< rawdata > rawdata_;
+        
+        boost::variant< std::shared_ptr< v2::rawdata >, std::shared_ptr< v3::rawdata > > rawdata_;
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > calibrations_; // mode, calibration pair
         bool calibration_modified_;
     };

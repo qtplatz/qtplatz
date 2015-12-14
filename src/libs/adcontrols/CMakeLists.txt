@@ -28,7 +28,8 @@ add_library( adcontrols SHARED
   ctfile.cpp 
   datafile.cpp 
   datafilebroker.cpp 
-  datainterpreter.cpp 
+  datainterpreter.cpp
+  datainterpreterbroker.cpp 
   datapublisher.cpp 
   datasubscriber.cpp 
   description.cpp 
@@ -152,7 +153,8 @@ install( FILES
   ctfile.hpp 
   datafile.hpp 
   datafilebroker.hpp 
-  datainterpreter.hpp 
+  datainterpreter.hpp
+  datainterpreterbroker.hpp 
   datapublisher.hpp 
   datasubscriber.hpp 
   description.hpp 

@@ -1,9 +1,9 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@MS-Cheminformatics.com
 **
 ** Commercial Usage
 **
@@ -25,19 +25,27 @@
 
 #pragma once
 
-#include "adplugin_global.h"
-#include <memory>
+#include "adcontrols_global.h"
+#include "datainterpreter.hpp"
 
-#pragma once
+namespace boost { namespace uuids { struct uuid; } };
 
-namespace adplugin {
+namespace adcontrols {
 
-    class plugin;
+    class DataInterpreterFactory;
 
-    typedef std::shared_ptr< plugin > plugin_ptr;
+    class ADCONTROLSSHARED_EXPORT DataInterpreterBroker {
+    protected:
+        DataInterpreterBroker();
+        ~DataInterpreterBroker();
 
-    typedef std::shared_ptr< const plugin > const_plugin_ptr;
+    public:
+        static DataInterpreterBroker * instance();
+        bool register_factory( DataInterpreterFactory *, const std::wstring& name );
 
+    private:
+        class impl;
+        impl * impl_;
+    };
+    
 }
-
-

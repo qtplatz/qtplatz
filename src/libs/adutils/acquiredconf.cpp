@@ -24,6 +24,7 @@
 
 #include "acquiredconf.hpp"
 #include <adfs/sqlite.hpp>
+#include <adportable/debug.hpp>
 #include <typeinfo>
 
 using namespace adutils;
@@ -114,6 +115,7 @@ AcquiredConf::insert( adfs::sqlite& dbf
 	return false;
 }
 
+
 // static
 bool
 AcquiredConf::insert( adfs::sqlite& dbf
@@ -190,84 +192,55 @@ AcquiredConf::insert( adfs::sqlite& dbf, const data& d )
                    , d.axis_y_decimals );
 }
 
+AcquiredFormatVersion
+AcquiredConf::formatVersion( adfs::sqlite& dbf )
+{
+    adfs::stmt sql( dbf );
+
+    if ( sql.prepare( "PRAGMA TABLE_INFO(AcquiredConf)" ) ) {
+        while ( sql.step() == adfs::sqlite_row ) {
+            if ( sql.get_column_value< std::string >( 1 ) == "objuuid" ) 
+                return format_v3;
+        }
+    }
+    return format_v2;
+}
+
 bool
 AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
 {
     adfs::stmt sql( db );
 
-    bool has_uuid( false );
-    if ( sql.prepare( "PRAGMA TABLE_INFO(AcquiredConf)" ) ) {
-        // either first column name = (objuuid | objid)
+    if ( formatVersion( db ) != format_v2 )
+        return false;
+
+    if ( sql.prepare(
+        "SELECT objid, pobjid, dataInterpreterClsid, trace_method, spectrometer,\
+         trace_id, trace_display_name, axis_x_label, axis_y_label, axis_x_decimals, axis_y_decimals FROM AcquiredConf" ) ) {
+
         while ( sql.step() == adfs::sqlite_row ) {
-            if ( sql.get_column_value< std::string >( 1 ) == "objuuid" ) {
-                has_uuid = true;
-                break;
+
+            data d;
+
+            try {
+                d.objid = sql.get_column_value<int64_t>( 0 );
+                d.pobjid = sql.get_column_value<int64_t>( 1 );
+                d.dataInterpreterClsid = sql.get_column_value<std::wstring>( 2 );
+                d.trace_method = sql.get_column_value<int64_t>( 3 );
+                d.spectrometer = sql.get_column_value<int64_t>( 4 );
+                d.trace_id = sql.get_column_value<std::wstring>( 5 );
+                d.trace_display_name = sql.get_column_value<std::wstring>( 6 );
+                d.axis_x_label = sql.get_column_value<std::wstring>( 7 );
+                d.axis_y_label = sql.get_column_value<std::wstring>( 8 );
+                d.axis_x_decimals = sql.get_column_value<int64_t>( 9 );
+                d.axis_y_decimals = sql.get_column_value<int64_t>( 10 );
+            } catch ( std::bad_cast& ) {
+                // ignore
             }
+            vec.push_back( d );
         }
-        sql.reset();
     }
-
-    if ( has_uuid ) {
-
-        if ( sql.prepare(
-                 "SELECT objuuid, objtext, pobjuuid, dataInterpreterClsid, trace_method, spectrometer,\
- trace_id, trace_display_name, axis_x_label, axis_y_label, axis_x_decimals, axis_y_decimals FROM AcquiredConf" ) ) {
-
-            while ( sql.step() == adfs::sqlite_row ) {
-                data d;
-                try {
-                    d.objid = ( -1 );
-                    d.objid  = sql.get_column_value<int64_t>( 0 );
-                    d.pobjid = sql.get_column_value<int64_t>( 1 );
-                    d.uuid = sql.get_column_value< boost::uuids::uuid >( 2 );
-                    d.dataInterpreterClsid = sql.get_column_value<std::wstring>( 3 );
-                    d.trace_method = sql.get_column_value<int64_t>( 4 );
-                    d.spectrometer = sql.get_column_value<int64_t>( 5 );
-                    d.trace_id = sql.get_column_value<std::wstring>( 6 );
-                    d.trace_display_name = sql.get_column_value<std::wstring>( 7 );
-                    d.axis_x_label  = sql.get_column_value<std::wstring>( 8 );
-                    d.axis_y_label = sql.get_column_value<std::wstring>( 9 );
-                    d.axis_x_decimals = sql.get_column_value<int64_t>( 10 );
-                    d.axis_y_decimals = sql.get_column_value<int64_t>( 11 );
-                } catch ( std::bad_cast& ) {
-                    // ignore
-                }
-                vec.push_back( d );
-            }
-            return true;
-        }
-
-    } else {
-
-        if ( sql.prepare(
-                 "SELECT objid, pobjid, dataInterpreterClsid, trace_method, spectrometer,\
- trace_id, trace_display_name, axis_x_label, axis_y_label, axis_x_decimals, axis_y_decimals FROM AcquiredConf" ) ) {
-
-            while ( sql.step() == adfs::sqlite_row ) {
-            
-                data d;
-            
-                try {
-                    d.objid  = sql.get_column_value<int64_t>( 0 );
-                    d.pobjid = sql.get_column_value<int64_t>( 1 );
-                    d.dataInterpreterClsid = sql.get_column_value<std::wstring>( 2 );
-                    d.trace_method = sql.get_column_value<int64_t>( 3 );
-                    d.spectrometer = sql.get_column_value<int64_t>( 4 );
-                    d.trace_id = sql.get_column_value<std::wstring>( 5 );
-                    d.trace_display_name = sql.get_column_value<std::wstring>( 6 );
-                    d.axis_x_label  = sql.get_column_value<std::wstring>( 7 );
-                    d.axis_y_label = sql.get_column_value<std::wstring>( 8 );
-                    d.axis_x_decimals = sql.get_column_value<int64_t>( 9 );
-                    d.axis_y_decimals = sql.get_column_value<int64_t>( 10 );
-                } catch ( std::bad_cast& ) {
-                    // ignore
-                }
-                vec.push_back( d );
-            }
-        }
-        return true;
-    }
-    return false;
+    return true;
 }
 
 AcquiredConf::data::data() : objid( 0 )

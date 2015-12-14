@@ -34,7 +34,6 @@
 #include <adextension/isequenceimpl.hpp>
 #include <adportable/debug_core.hpp>
 #include <adlog/logging_handler.hpp>
-#include <u5303aspectrometer/massspectrometer.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -109,8 +108,8 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
 void
 u5303APlugin::extensionsInitialized()
 {
-    auto factory = u5303aspectrometer::MassSpectrometer::instance();
-	adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
+    //auto factory = u5303aspectrometer::MassSpectrometer::instance();
+	//adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
     document::instance()->initialSetup(); // load default control method
 	mainWindow_->OnInitialUpdate();
 }

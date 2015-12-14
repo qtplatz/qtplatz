@@ -31,6 +31,7 @@
 #include <adplugin/plugin_ptr.hpp>
 #include <vector>
 #include <memory>
+#include <compiler/pragma_warning.hpp>
 
 class QString;
 class QObject;
@@ -47,34 +48,37 @@ namespace adplugin {
     namespace internal { class manager_data; }
 
     class ADPLUGINSHARED_EXPORT manager {
+
         class data;
         data * d_;
         
-#if defined _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4251)
-#endif
-
+        pragma_msvc_warning_push_disable_4251
         static std::unique_ptr< manager > instance_;
+        pragma_msvc_warning_pop
 
-#if defined _MSC_VER
-# pragma warning(pop)
-#endif
 
     protected:
         manager();
-    public:
         ~manager();
+
+    public:
+
         static manager * instance();
         static void dispose();
+
         bool install( QLibrary&, const std::string& adpluginspec );
+
 		void populated();
+
         plugin_ptr select_iid( const char * regex );
+
         plugin_ptr select_clsid( const char * regex );
+
         size_t select_iids( const char * regex, std::vector< plugin_ptr >& vec );
+
         size_t select_clsids( const char * regex, std::vector< plugin_ptr >& vec );
-        
+
     private:
-	
+        friend std::unique_ptr< manager >::deleter_type;
     };
 }
