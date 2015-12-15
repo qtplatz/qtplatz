@@ -2,6 +2,17 @@
 
 project( adfs )
 
+set( SHARED_ADFS_LIBRARY ON )
+
+if ( SHARED_ADFS_LIBRARY )
+  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
+  add_definitions( -DADFS_SHARED_LIBRARY -DADFS_SHARED_LIBRARY )
+endif()
+
+if ( MSVC )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4669 )
+endif()
+
 add_definitions(-DSQLITE_THREADSAFE)
 
 if ( WIN32 )
@@ -10,7 +21,7 @@ else()
   set( adfs_SOURCE apiposix.cpp apiposix.hpp )
 endif()
   
-add_library( adfs 
+add_library( ${PROJECT_NAME} SHARED
   adfs.cpp
   attributes.cpp
   filesystem.cpp
@@ -31,6 +42,11 @@ add_library( adfs
   ${adfs_SOURCE}
   )
 
+if ( SHARED_ADFS_LIBRARY )
+  target_link_libraries( adfs LINK_PUBLIC ${Boost_LIBRARIES} adportable )
+endif()
+
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

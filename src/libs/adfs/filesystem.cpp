@@ -72,9 +72,9 @@ filesystem::create( const boost::filesystem::path& filepath, size_t alloc, size_
     if ( boost::filesystem::exists( filepath ) ) {
         boost::system::error_code ec;
         if ( ! boost::filesystem::remove( filepath, ec ) ) {
-            //throw adfs::exception( ec.message(), ec.category().name() );
             return false;
         }
+        filename_ = filepath.string();
     }
 
     db_.reset( new sqlite() );
@@ -124,6 +124,8 @@ filesystem::mount( const boost::filesystem::path& filepath )
 
     if ( db_->open( filepath.c_str() ) ) {
 
+        filename_ = filepath.string();
+
         if ( internal::fs::mount( *db_, format_version_ ) ) {
 
             db_->set_fs_format_version( format_version_ );
@@ -163,5 +165,10 @@ filesystem::findFile( const folder& folder, const std::wstring& id )
     return file;
 }
 
+const std::string&
+filesystem::filename() const
+{
+    return filename_;
+}
 ////////////////////////
 

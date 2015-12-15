@@ -43,6 +43,7 @@ namespace adfs {
         std::shared_ptr< adfs::sqlite > db_;
         int format_version_;
         std::mutex mutex_;
+        std::string filename_;
     public:
         ~filesystem();
         filesystem();
@@ -55,6 +56,7 @@ namespace adfs {
         bool mount( const wchar_t * filename );
         bool mount( const char * filename );        
         bool close();
+        const std::string& filename() const;
         //
         folder addFolder( const std::wstring& name, bool create = true );
         folder findFolder( const std::wstring& name ) const;

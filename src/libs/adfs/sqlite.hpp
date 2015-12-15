@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "adfs_globa.h"
 #include <compiler/workaround.h>
 #include <string>
 #include <cstdint>
@@ -43,7 +44,7 @@ namespace adfs {
     class blob;
     class null;
 
-    class sqlite {
+    class ADFSSHARED_EXPORT sqlite {
         sqlite( const sqlite& ) = delete;
         sqlite& operator = ( const sqlite& ) = delete;
 
@@ -68,7 +69,7 @@ namespace adfs {
         static uuid_format uuid_storage_format();
     };
 
-    class blob {
+    class ADFSSHARED_EXPORT blob {
         const int8_t * p_;
         std::size_t octets_;
         sqlite3_blob * pBlob_;
@@ -87,12 +88,12 @@ namespace adfs {
         bool write( const int8_t *, std::size_t, std::size_t offset = 0 ) const;
     };
 
-    class null { };
-    class error { };
+    class ADFSSHARED_EXPORT null { };
+    class ADFSSHARED_EXPORT error { };
 
     // typedef boost::variant< long, double, std::wstring, blob, null > column_value_type;
 
-    class stmt {
+    class ADFSSHARED_EXPORT stmt {
     public:
         ~stmt();
         stmt( sqlite& );
@@ -114,7 +115,7 @@ namespace adfs {
         bool bind_blob( int, const void *, std::size_t, void(*)(void*) = 0);
         bool bind_zeroblob( int, std::size_t );
         //
-        struct bind_item {
+        struct ADFSSHARED_EXPORT bind_item {
             sqlite3_stmt * stmt_;
             int nnn_;
             bind_item( sqlite3_stmt * stmt, int nnn ) : stmt_(stmt), nnn_(nnn) {}
